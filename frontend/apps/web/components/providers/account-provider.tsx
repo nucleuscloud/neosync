@@ -49,13 +49,6 @@ export default function AccountProvider(props: Props): ReactElement {
   );
 
   useEffect(() => {
-    console.log(
-      'hit here',
-      isLoading,
-      userAccount,
-      accountsResponse?.accounts,
-      accountName
-    );
     if (isLoading) {
       return;
     }
