@@ -18,7 +18,7 @@ require (
 	go.temporal.io/sdk v1.25.1
 	go.uber.org/atomic v1.11.0
 	golang.org/x/net v0.19.0
-	golang.org/x/sync v0.5.0
+	golang.org/x/sync v0.6.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
