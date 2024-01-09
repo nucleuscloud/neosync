@@ -49,6 +49,13 @@ export default function AccountProvider(props: Props): ReactElement {
   );
 
   useEffect(() => {
+    console.log(
+      'hit here',
+      isLoading,
+      userAccount,
+      accountsResponse?.accounts,
+      accountName
+    );
     if (isLoading) {
       return;
     }
@@ -58,7 +65,7 @@ export default function AccountProvider(props: Props): ReactElement {
     const foundAccount = accountsResponse?.accounts.find(
       (a) => a.name === accountName
     );
-    if (userAccount?.id === foundAccount?.id) {
+    if (userAccount && foundAccount && userAccount?.id === foundAccount?.id) {
       return;
     }
     if (foundAccount) {
@@ -68,6 +75,9 @@ export default function AccountProvider(props: Props): ReactElement {
       if (!accountParam || accountParam !== foundAccount.name) {
         router.push(`/${foundAccount.name}/jobs`);
       }
+    } else if (accountName !== DEFAULT_ACCOUNT_NAME) {
+      setLastSelectedAccount(DEFAULT_ACCOUNT_NAME);
+      router.push(`/${DEFAULT_ACCOUNT_NAME}/jobs`);
     }
   }, [
     userAccount?.id,

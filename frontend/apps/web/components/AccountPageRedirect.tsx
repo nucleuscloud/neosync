@@ -17,6 +17,7 @@ export default function AccountPageRedirect(props: Props): JSX.Element {
   const { account, isLoading } = useAccount();
 
   useEffect(() => {
+    console.log('hit here', isLoading, account?.name);
     if (isLoading || !account?.name) {
       return;
     }
