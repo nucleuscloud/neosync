@@ -53,6 +53,7 @@ export default function Home(): ReactElement {
   return (
     <div>
       <Hero />
+      <TableTypes />
       <FeaturesGrid />
       {/* <ProblemStmt /> */}
       <UseCases />
@@ -67,11 +68,11 @@ export default function Home(): ReactElement {
 function Hero(): ReactElement {
   return (
     <div className="flex flex-col bg-[#FFFFFF] border-b border-b-gray-200 items-center space-y-10 mt-20">
-      <div className="text-gray-900 font-semibold text-6xl leading-tight text-center z-20 px-2 relative">
-        Open Source Test Data Ops
+      <div className="text-gray-900 font-semibold lg:text-6xl text-4xl leading-tight text-center z-20 px-2 relative">
+        Open Source Synthetic Data Orchestration
       </div>
-      <h3 className="text-[#606060] text-lg font-light relative text-center z-20 ">
-        A developer-first way to create safe, anonymized test data and sync it
+      <h3 className="text-[#606060]  text-md lg:text-lg font-light relative text-center z-20 ">
+        A developer-first way to create anonymized or synthetic data and sync it
         across all environments for high-quality local, stage and CI testing
       </h3>
       <div className="flex flex-col lg:flex-row lg:space-y-0 space-y-2 lg:space-x-4 z-30">
@@ -102,6 +103,64 @@ function Hero(): ReactElement {
             height="416"
             className="w-full"
           />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TableTypes(): ReactElement {
+  const tableTypes = [
+    {
+      name: 'Tabular',
+      description:
+        'Generate statistically consistent synthetic data for a single data frame or table.',
+      image: (
+        <Image
+          src="https://assets.nucleuscloud.com/neosync/marketingsite/tabularcropped.png"
+          alt="pre"
+          width="436"
+          height="416"
+          className="w-[280px] h-auto"
+        />
+      ),
+    },
+    {
+      name: 'Relational',
+      description:
+        'Generate statistically consistent synthetic data for a relational database while maintaining referential integrity.',
+      image: (
+        <Image
+          src="https://assets.nucleuscloud.com/neosync/marketingsite/relationaltablesgrid.png"
+          alt="pre"
+          width="436"
+          height="416"
+          className="w-[600px] h-auto"
+        />
+      ),
+    },
+  ];
+  return (
+    <div className="bg-[#F5F5F5] pt-20">
+      <div className="flex flex-col  pt-5 lg:pt-40 bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-80 max-w-[1800px] mx-auto ">
+        <div className="text-gray-900 font-semibold text-2xl lg:text-5xl font-satoshi z-10  ">
+          Generate Data for Any Schema
+        </div>
+        <div className="flex flex-col lg:flex-row space-y-4 lg:space-y-0 items-center justify-between gap-x-20 pt-10">
+          {tableTypes.map((item) => (
+            <div
+              key={item.name}
+              className="justify-center border border-gray-400 bg-white shadow-lg rounded-xl p-6 lg:w-[800px] lg:h-[400px]"
+            >
+              <div className="justify-center flex">{item.image}</div>
+              <div className="text-xl text-gray-800 font-satoshi font-semibold pt-10">
+                {item.name}
+              </div>
+              <div className=" text-gray-600 font-satoshi pt-4 ">
+                {item.description}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -150,9 +209,9 @@ function FeaturesGrid(): ReactElement {
   return (
     <div className="bg-[#F5F5F5] pt-20">
       <div className="pt-5 lg:pt-40 px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto">
-        <div className=" flex flex-col space-y-20 bg-gradient-to-tr from-[#0F0F0F] to-[#262626] rounded-2xl p-12 shadow-lg">
+        <div className=" flex flex-col space-y-20 bg-gradient-to-tr from-[#0F0F0F] to-[#262626] rounded-2xl py-12 px-6 shadow-lg">
           <div>
-            <div className="text-gray-100 font-semibold text-5xl font-satoshi pt-10">
+            <div className="text-gray-100 font-semibold text-2xl lg:text-5xl font-satoshi pt-10">
               Built for Security and Scalability
             </div>
             <div className="text-lg text-gray-400 font-satoshi font-light pt-8 lg:w-[70%]">
@@ -314,8 +373,8 @@ function UseCases(): ReactElement {
   return (
     <div className="bg-[#F5F5F5] pt-20">
       <div className="flex flex-col pt-5 lg:pt-40  bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto">
-        <div className="text-gray-900 font-semibold text-5xl font-satoshi z-10  ">
-          Test Data Ops Built for Developers
+        <div className="text-gray-900 font-semibold  text-2xl lg:text-5xl font-satoshi z-10  ">
+          Synthetic Data Orchestration Built for Developers
         </div>
         <div className="flex flex-col pt-10 z-10 items-center space-y-10">
           <div className="flex flex-col lg:flex-row gap-4 border border-gray-400 bg-white p-6 rounded-xl shadow-lg">
@@ -354,8 +413,8 @@ function UseCases(): ReactElement {
               />
             </div>
             <div className="flex flex-col space-y-8 lg:w-[60%]">
-              <div className="text-gray-900 font-semibold text-4xl font-satoshi z-10">
-                Use GitOps to hydrate your CI databases with safe data
+              <div className="text-gray-900 font-semibold text-2xl lg:text-4xl font-satoshi z-10">
+                Use GitOps to hydrate your CI databases with synthetic data
               </div>
               <div className="flex flex-col justify-start">
                 {citesting.map((item) => (
@@ -411,8 +470,8 @@ function Transformers(): ReactElement {
   return (
     <div className="bg-[#F5F5F5] pt-20">
       <div className="flex flex-col  pt-5 lg:pt-40 bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto ">
-        <div className="text-gray-900 font-semibold text-5xl font-satoshi z-10  ">
-          Fully customizable data transformations
+        <div className="text-gray-900 font-semibold  text-2xl lg:text-5xl font-satoshi">
+          Fully customizable Transformers
         </div>
         <div className="flex flex-col mt-10 gap-4 border border-gray-400 bg-white p-6 rounded-xl shadow-lg">
           <div className="text-xl text-gray-700  font-satoshi font-semibold lg:w-[60%]">
@@ -448,8 +507,8 @@ function Subset(): ReactElement {
   return (
     <div className="bg-[#F5F5F5] pt-20">
       <div className="pt-5 lg:pt-40 px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto">
-        <div className=" flex flex-col space-y-20 bg-gradient-to-tr from-[#0F0F0F] to-[#262626] rounded-2xl p-12 shadow-lg">
-          <div className="text-gray-100 font-semibold text-5xl font-satoshi pt-10">
+        <div className=" flex flex-col space-y-20 bg-gradient-to-tr from-[#0F0F0F] to-[#262626] rounded-2xl py-12 px-6 shadow-lg">
+          <div className="text-gray-100 font-semibold  text-2xl lg:text-5xl font-satoshi pt-10">
             Powerful subsetting
           </div>
           <div className="text-lg text-gray-400 font-satoshi font-light pt-8 lg:w-[70%]">
@@ -548,8 +607,8 @@ function GitOpsSection(): ReactElement {
   ];
   return (
     <div className="flex flex-col items-center lg:py-40 bg-[#F5F5F5]  pt-5 lg:pt-40 px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto">
-      <div className="text-gray-900 font-semibold text-5xl font-satoshi z-10 w-full">
-        Test Data Management meets GitOps
+      <div className="text-gray-900 font-semibold  text-2xl lg:text-5xl font-satoshi z-10 w-full">
+        Synthetic Data meets GitOps
       </div>
       <div className="flex flex-col lg:flex-row p-4 mt-10 border border-gray-400 shadow-lg rounded-xl text-gray-200">
         <div className="flex flex-col p-2 lg:p-10">
@@ -617,7 +676,7 @@ function APISection(): ReactElement {
   return (
     <div className="flex flex-col items-center justify-center pt-20 lg:pt-40">
       <GradientTag tagValue={'Developers'} />
-      <div className="pt-10 text-center text-gray-900 font-semibold text-4xl font-satoshi z-10">
+      <div className="pt-10 text-center text-gray-900 font-semibold  text-2xl lg:text-5xl font-satoshi z-10">
         Designed and Built for Developers
       </div>
       <div className="flex flex-col-reverse lg:flex-row p-4 mt-10 border-2 border-gray-700 bg-gradient-to-tr from-[#0F0F0F] to-[#191919] shadow-lg z-1 rounded-xl text-gray-200 z-10">
@@ -683,7 +742,7 @@ function AuditSection(): ReactElement {
   return (
     <div className="flex flex-col pt-20 lg:pt-40 items-center">
       <GradientTag tagValue={'Security and Compliance'} />
-      <div className="pt-10 text-center z-3 text-gray-900 font-semibold text-4xl font-satoshi z-10">
+      <div className="pt-10 text-center z-3 text-gray-900 font-semibold  text-2xl lg:text-5xlfont-satoshi z-10">
         Access Controls and Audit Logs for Compliance and Security
       </div>
       <div className="flex flex-col lg:flex-row px-1 lg:px-5 pt-10 space-y-5 lg:space-x-5 lg:space-y-0 z-1 items-center z-10">
@@ -802,7 +861,7 @@ function IntegrationSection(): ReactElement {
   return (
     <div className="flex flex-col justify-center items-center pt-10 lg:pt-20">
       <GradientTag tagValue={'Integrations'} />
-      <div className="pt-10 text-center z-3 text-gray-900 font-semibold text-4xl font-satoshi">
+      <div className="pt-10 text-center z-3 text-gray-900 font-semibold  text-2xl lg:text-5xl font-satoshi">
         Easily integrate your existing tools and workflows
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-12 pt-20 z-10">
