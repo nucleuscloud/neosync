@@ -53,6 +53,7 @@ export default function Home(): ReactElement {
   return (
     <div>
       <Hero />
+      {/* <TableTypes /> */}
       <FeaturesGrid />
       {/* <ProblemStmt /> */}
       <UseCases />
@@ -68,11 +69,12 @@ function Hero(): ReactElement {
   return (
     <div className="flex flex-col bg-[#FFFFFF] border-b border-b-gray-200 items-center space-y-10 mt-20">
       <div className="text-gray-900 font-semibold text-6xl leading-tight text-center z-20 px-2 relative">
-        Open Source Test Data Ops
+        Open Source Synthetic Data Orchestration
       </div>
       <h3 className="text-[#606060] text-lg font-light relative text-center z-20 ">
-        A developer-first way to create safe, anonymized test data and sync it
-        across all environments for high-quality local, stage and CI testing
+        A developer-first way to create safe, anonymized or synthetic data and
+        sync it across all environments for high-quality local, stage and CI
+        testing
       </h3>
       <div className="flex flex-col lg:flex-row lg:space-y-0 space-y-2 lg:space-x-4 z-30">
         <Button className="px-4">
@@ -102,6 +104,64 @@ function Hero(): ReactElement {
             height="416"
             className="w-full"
           />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TableTypes(): ReactElement {
+  const tableTypes = [
+    {
+      name: 'Tabular',
+      description:
+        'Generate statistically consistent synthetic data for a single data frame or table.',
+      image: (
+        <Image
+          src="https://assets.nucleuscloud.com/neosync/marketingsite/tabularcropped.png"
+          alt="pre"
+          width="436"
+          height="416"
+          className="w-[280px] h-auto"
+        />
+      ),
+    },
+    {
+      name: 'Relational',
+      description:
+        'Generate statistically consistent synthetic data for a relational database while maintaining referential integrity.',
+      image: (
+        <Image
+          src="https://assets.nucleuscloud.com/neosync/marketingsite/relationaltablesgrid.png"
+          alt="pre"
+          width="436"
+          height="416"
+          className="w-[600px] h-auto"
+        />
+      ),
+    },
+  ];
+  return (
+    <div className="bg-[#F5F5F5] pt-20">
+      <div className="flex flex-col  pt-5 lg:pt-40 bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-80 max-w-[1800px] mx-auto ">
+        <div className="text-gray-900 font-semibold text-5xl font-satoshi z-10  ">
+          Generate Data for Any Schema
+        </div>
+        <div className="flex flex-col lg:flex-row space-y-4 lg:space-y-0 items-center justify-between gap-x-20 pt-10">
+          {tableTypes.map((item) => (
+            <div
+              key={item.name}
+              className="justify-center border border-gray-400 bg-white shadow-lg rounded-xl p-6 w-[800px] h-[400px]"
+            >
+              <div className="justify-center flex">{item.image}</div>
+              <div className="text-xl text-gray-800 font-satoshi font-semibold pt-10">
+                {item.name}
+              </div>
+              <div className=" text-gray-600 font-satoshi pt-4 ">
+                {item.description}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

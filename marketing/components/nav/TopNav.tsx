@@ -211,7 +211,7 @@ function MobileMenu(): ReactElement {
             </MenubarItem>
             <MenubarItem>
               <Dialog>
-                <DialogTrigger asChild>
+                <DialogTrigger asChild className="w-full">
                   <Button variant="default">
                     Neosync Cloud <ArrowRightIcon className="ml-2 h-5 w-5" />
                   </Button>
