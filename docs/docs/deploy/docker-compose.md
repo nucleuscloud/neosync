@@ -11,11 +11,11 @@ A `compose.yml` file is provided in the `compose` folder to easily and quickly g
 
 This compose file is not tailed for development environments as it uses pre-baked docker images that are intended for use in production environments.
 
-There is a companion compose file found in the `temporal` folder that should be run prior to the main `compose.yml` to stand up an instance of Temporal and all of it's dependencies.
+There is a companion compose file found in the `temporal` folder that should be run prior to the main `compose.yml` to stand up an instance of Temporal and all of its dependencies.
 
 To simplify the setup even further, a compose file is provided that does not stand up authentication for Neosync. Check out the section below to stand up Neosync with auth.
 
-Database volumes for both Tempral and Neosync are mapped to the `.data` folder inside of the repository. Note: If using Docker Desktop, this folder will have to be added to the list of allowed file system mappings prior to running docker compose.
+Database volumes for both Temporal and Neosync are mapped to the `.data` folder inside of the repository. Note: If using Docker Desktop, this folder will have to be added to the list of allowed file system mappings prior to running docker compose.
 
 ```sh
 $ docker compose -f temporal/compose.yml up -d
@@ -42,4 +42,4 @@ This will persist restarts due to the postgres volume mapping. If you wish to st
 
 ## Developing Neosync with Compose
 
-Check out the README at the root of the Neosync Github repository to learn more about how to development Neosync using compose and the dev-focused compose files.
+Check out the README at the root of the Neosync Github repository to learn more about how to develop Neosync using compose and the dev-focused compose files.
