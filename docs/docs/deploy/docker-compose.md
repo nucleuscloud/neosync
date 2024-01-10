@@ -9,7 +9,7 @@ slug: /deploy/docker-compose
 
 A `compose.yml` file is provided in the `compose` folder to easily and quickly get Neosync up and running without having to build any dependencies. All that's needed is `docker`.
 
-This compose file is not tailed for development environments as it uses pre-baked docker images that are intended for use in production environments.
+This compose file is not tailored for development environments as it uses pre-baked docker images that are intended for use in production environments.
 
 There is a companion compose file found in the `temporal` folder that should be run prior to the main `compose.yml` to stand up an instance of Temporal and all of its dependencies.
 
