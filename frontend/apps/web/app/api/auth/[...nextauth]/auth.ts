@@ -178,7 +178,6 @@ async function getTokenUrl(issuer: string): Promise<string> {
     }
     return oidcConfig.token_endpoint;
   } catch (err) {
-    console.log('failed', err);
     throw err;
   }
 }

@@ -5,7 +5,6 @@ import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { ReactElement } from 'react';
 
 export default function Home(): ReactElement {
-  console.log('home', typeof window);
   return (
     <AccountPageRedirect>
       <OverviewContainer

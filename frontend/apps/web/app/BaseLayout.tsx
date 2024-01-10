@@ -17,7 +17,6 @@ interface Props {
 }
 
 export default async function BaseLayout(props: Props): Promise<ReactElement> {
-  console.log('process', typeof window);
   const { children, disableServerSignin } = props;
   const systemAppConfig = getSystemAppConfig();
   const session = systemAppConfig.isAuthEnabled ? await auth() : null;
