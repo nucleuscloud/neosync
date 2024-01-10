@@ -793,6 +793,9 @@ root.{destination_col} = transformerfunction(args)
 func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 
 	switch col.Transformer.Source {
+	case "generate_categorical":
+		categories := col.Transformer.Config.GetGenerateCategoricalConfig().Categories
+		return fmt.Sprintf(`generate_categorical(categories: %q)`, categories), nil
 	case "generate_email":
 		return "generate_email()", nil
 	case "transform_email":

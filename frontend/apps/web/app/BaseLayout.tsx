@@ -4,21 +4,27 @@ import { PostHogIdentifier } from '@/components/providers/posthog-provider';
 import { SessionProvider } from '@/components/providers/session-provider';
 import SiteHeader from '@/components/site-header/SiteHeader';
 import { Toaster } from '@/components/ui/toaster';
+import { isPast, parseISO } from 'date-fns';
+import { Session } from 'next-auth/types';
 import { ReactElement, ReactNode, Suspense } from 'react';
 import { auth, signIn } from './api/auth/[...nextauth]/auth';
-import { getSystemAppConfig } from './api/config/config';
+import { SystemAppConfig } from './config/app-config';
 
 interface Props {
   children: ReactNode;
   // If true, will disable signIn on the server if auth is enabled and there is no session
   disableServerSignin?: boolean;
+  systemAppConfig: SystemAppConfig;
 }
 
 export default async function BaseLayout(props: Props): Promise<ReactElement> {
-  const { children, disableServerSignin } = props;
-  const systemAppConfig = getSystemAppConfig();
+  const { children, disableServerSignin, systemAppConfig } = props;
   const session = systemAppConfig.isAuthEnabled ? await auth() : null;
-  if (!disableServerSignin && systemAppConfig.isAuthEnabled && !session) {
+  if (
+    !disableServerSignin &&
+    systemAppConfig.isAuthEnabled &&
+    !isSessionValid(session)
+  ) {
     await signIn();
   }
   return (
@@ -38,4 +44,12 @@ export default async function BaseLayout(props: Props): Promise<ReactElement> {
       </AccountProvider>
     </SessionProvider>
   );
+}
+
+function isSessionValid(session: Session | null): boolean {
+  if (!session) {
+    return false;
+  }
+  const expiryDate = parseISO(session.expires);
+  return !isPast(expiryDate);
 }

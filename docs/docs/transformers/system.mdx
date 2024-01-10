@@ -16,6 +16,7 @@ Neosync comes out of the box with 40+ system transformers in order to give you a
 
 | Name                                                                              | Type    | Code                                                                                                                                                 | Description                                                                                                                      |
 | --------------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| [Generate Categorical](/transformers/system#generate-categorical)                 | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_categorical.go)                               | Randomly selects a value from a defined set of categorical values                                                                |
 | [Generate Email](/transformers/system#generate-email)                             | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_email.go)                                     | Generates a new randomized email address.                                                                                        |
 | [Transform Email](/transformers/system#transform-email)                           | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_email.go)                                    | Transforms an existing email address.                                                                                            |
 | [Generate Boolean](/transformers/system#generate-boolean)                         | boolean | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_bool.go)                                      | Generates a boolean value at random.                                                                                             |
@@ -52,6 +53,32 @@ Neosync comes out of the box with 40+ system transformers in order to give you a
 | [Transform String](/transformers/system#transform-string)                         | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_string.go)                                   | Transforms an existing string value.                                                                                             |
 | [Passthrough](/transformers/system#passthrough)                                   | string  | [Code](https://github.com/nucleuscloud/neosync/blob/4e459151080109ffa0c5b0d9937f4f20fecfa6c6/worker/pkg/workflows/datasync/activities/activities.go) | Passes the input value through to the destination with no changes.                                                               |
 | [Null](/transformers/system#null)                                                 | string  | [Code](https://github.com/nucleuscloud/neosync/blob/4e459151080109ffa0c5b0d9937f4f20fecfa6c6/worker/pkg/workflows/datasync/activities/activities.go) | Inserts a `null` string instead of the source value.                                                                             |
+
+### Generate Categorical\{#generate-categorical}
+
+The generate categorical transformer allows a user to define a list of comma-separated categorical string values that Neosync will randomly sample.
+
+For example, the following values:
+`test, me, please`
+
+Could produce the following ouput value:
+`me`
+
+Or:
+`please`
+
+**Configurations**
+
+| Name       | Description                                                                          | Default         | Example Output |
+| ---------- | ------------------------------------------------------------------------------------ | --------------- | -------------- |
+| Categories | list of comma-separated categorical string values that Neosync will randomly sample. | `value1,value2` | `value1`       |
+
+**Examples**
+
+| Categories | Example Input    | Example Output |
+| ---------- | ---------------- | -------------- |
+| false      | `red,blue,green` | `green`        |
+| false      | `red,blue,green` | `red`          |
 
 ### Generate Email\{#generate-email}
 

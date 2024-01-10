@@ -1,0 +1,44 @@
+---
+title: What is Referential Integrity?
+description: Discover what referential integrity is and why it's important in synthetic data.
+date: 2024-01-06
+published: true
+image: https://assets.nucleuscloud.com/neosync/blog/ri.png
+authors:
+  - evis
+---
+
+# Introduction
+
+Maintaining the integrity and accuracy of data within a database is crticial. Understanding and implementing referential integrity is a crucial step in ensuring that data remains reliable and useful. This blog dives deep into referential integrity, its importance, and applications in both real-world databases and synthetic data.
+
+# What is Referential Integrity
+
+Referential integrity ensures that relationships in tables and between tables remain consistent as data is transformed or queried. This means that if you have a customer order in an "Orders" table, the customer ID for that order must actually exist in a "Customers" table. The customer ID in the "Orders" table would be a foreign key to the primary key customer ID in the "Customers" table. This relationship enforces data integity and ensures that orders in the "Orders" table map to a customer in the "Customers" table.
+
+More generally, the primary table contains a primary key, a unique identifier for each record. The related table, on the other hand, includes a foreign key, which is a reference back to the primary key in the primary table. Referential integrity ensures that every foreign key in the related table matches an existing primary key in the primary table. If the primary key that the foreign key references was ever deleted then the foreign key, and as a result, the record, should also be deleted.
+
+# Why is Referential Integrity important?
+
+Referential integerity is a key part in enforcing data accuracy within a given data sets. Especially in environments where there are many tables with complex relationsips, referential integrity constraints provide a safety layer to ensure that records aren't being abandoned and data quality doesn't decrease.
+
+The less commonly talked about use-case of referential integrity is that it also improves developer productivity. Most databases, have a `CASCADE` command which allows the database to do the heavy lifting of cleaning up records across tables if you delete a record that has foreign keys to it. Imagine having to write a `DELETE FROM ...` statement for ever single table where a record might have a foreign key to another record. That would be painful!
+
+# Referential Integrity in Databases
+
+Referential integrity is usually associated with relational databases where relationships are enforced at the database layer through keys and constraints. NoSQL databases on the other hand don't handle referential integrity like relational databases do, instead they delegate that to the application layer. The caveat here being graph databases which encode relationships in the edges between nodes.
+
+We've mentioned a few ways that databases handle referential integrity in the sections above such as primary and foreign keys, but let's dive a little deeper. There are 7 ways that relational databases can enforce referential integrity.
+
+1. Primary keys - By defining a primary key, the database ensures that no duplicate records exist and that no primary key field is null, thus maintaining the uniqueness and existence of every record.
+2. Foreign keys - Foreign keys enforce referential integrity by ensuring that a record in a child table cannot exist without a corresponding record in the parent table. They create a link between the data in two tables and ensure that this link is valid and consistent.
+3. Constraints - Constraints are rules that you can write to enforce foreign key, check, unique and other constraints.
+4. Cascading actions - Cascading actions are ways of cleaning up or updating all of the downstream records that are related to the record you're updating.
+5. Triggers - Triggers automatically check for certain conditions and acting when data is inserted, updated, or deleted. For example, a trigger could prevent deletion of a record if it would result in orphaned records in another table.
+6. Stored procedures - Stored procedures encapsulate pre-prepared SQL code into well-defined transactions. They can perform multiple checks and operations atomically, ensuring that the database remains consistent.7. Transactions - Transactions are ways of ensuring that all of the steps of an action are completed to ensure data integrity before fully adding, deleting, updating, etc the record to a database.
+
+# Referential Integrity in Synthetic data
+
+# Wrapping up
+
+Referential integrity is a key component of relational databases where certain columns are linked to other columns in other tables, or even in a single table. It's also a key component of creating synthetic data that can be used for testing applications and training machine learning models. Ultimately, the goal is to enforce data quality and integrit.

@@ -129,6 +129,7 @@ message TransformerConfig {
     UserDefinedTransformerConfig user_defined_transformer_config = 37;
     GenerateDefault generate_default_config = 38;
     TransformJavascript transform_javascript_config = 39;
+    GenerateCategorical generate_categorical_config = 40;
   }
 }
 
@@ -268,6 +269,10 @@ message ValidateUserJavascriptCodeRequest {
 
 message ValidateUserJavascriptCodeResponse {
   bool valid = 1;
+}
+
+message GenerateCategorical {
+  string categories = 1;
 }
 
 service TransformersService {

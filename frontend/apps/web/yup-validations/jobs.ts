@@ -1,5 +1,5 @@
-import { SubsetFormValues } from '@/app/[account]/new/job/schema';
-import { TransformerConfigSchema } from '@/app/[account]/new/transformer/schema';
+import { SubsetFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
+import { TransformerConfigSchema } from '@/app/(mgmt)/[account]/new/transformer/schema';
 import {
   AwsS3DestinationConnectionOptions,
   Connection,

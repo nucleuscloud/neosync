@@ -49,6 +49,7 @@ type TransformerConfigs struct {
 	Null                      *NullConfig                      `json:"null,omitempty"`
 	UserDefinedTransformer    *UserDefinedTransformerConfig    `json:"userDefinedTransformer,omitempty"`
 	TransformJavascript       *TransformJavascriptConfig       `json:"transformJavascript,omitempty"`
+	GenerateCategorical       *GenerateCategoricalConfig       `json:"generateCategorical,omitempty"`
 }
 
 type GenerateEmailConfig struct{}
@@ -178,6 +179,10 @@ type UserDefinedTransformerConfig struct {
 
 type TransformJavascriptConfig struct {
 	Code string `json:"code"`
+}
+
+type GenerateCategoricalConfig struct {
+	Categories string `json:"categories"`
 }
 
 // from API -> DB
@@ -327,6 +332,10 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 	case *mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig:
 		t.TransformJavascript = &TransformJavascriptConfig{
 			Code: tr.GetTransformJavascriptConfig().Code,
+		}
+	case *mgmtv1alpha1.TransformerConfig_GenerateCategoricalConfig:
+		t.GenerateCategorical = &GenerateCategoricalConfig{
+			Categories: tr.GetGenerateCategoricalConfig().Categories,
 		}
 	default:
 		t = &TransformerConfigs{}
@@ -626,6 +635,14 @@ func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerC
 			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
 					Code: t.TransformJavascript.Code,
+				},
+			},
+		}
+	case t.GenerateCategorical != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateCategoricalConfig{
+				GenerateCategoricalConfig: &mgmtv1alpha1.GenerateCategorical{
+					Categories: t.GenerateCategorical.Categories,
 				},
 			},
 		}

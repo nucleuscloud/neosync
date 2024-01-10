@@ -61,7 +61,7 @@ func GenerateRandomPhoneNumber(includeHyphens bool) (string, error) {
 func GenerateRandomPhoneNumberHyphens() (string, error) {
 
 	// only works with 10 digit-based phone numbers like in the US
-	val, err := transformer_utils.GenerateRandomInt64InValueRange(defaultPhoneNumberLength, defaultPhoneNumberLength)
+	val, err := transformer_utils.GenerateRandomInt64InLengthRange(defaultPhoneNumberLength, defaultPhoneNumberLength)
 
 	if err != nil {
 		return "", nil

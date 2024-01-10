@@ -953,6 +953,12 @@ export class TransformerConfig extends Message<TransformerConfig> {
      */
     value: TransformJavascript;
     case: "transformJavascriptConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.GenerateCategorical generate_categorical_config = 40;
+     */
+    value: GenerateCategorical;
+    case: "generateCategoricalConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<TransformerConfig>) {
@@ -1002,6 +1008,7 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 37, name: "user_defined_transformer_config", kind: "message", T: UserDefinedTransformerConfig, oneof: "config" },
     { no: 38, name: "generate_default_config", kind: "message", T: GenerateDefault, oneof: "config" },
     { no: 39, name: "transform_javascript_config", kind: "message", T: TransformJavascript, oneof: "config" },
+    { no: 40, name: "generate_categorical_config", kind: "message", T: GenerateCategorical, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -2493,6 +2500,43 @@ export class ValidateUserJavascriptCodeResponse extends Message<ValidateUserJava
 
   static equals(a: ValidateUserJavascriptCodeResponse | PlainMessage<ValidateUserJavascriptCodeResponse> | undefined, b: ValidateUserJavascriptCodeResponse | PlainMessage<ValidateUserJavascriptCodeResponse> | undefined): boolean {
     return proto3.util.equals(ValidateUserJavascriptCodeResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GenerateCategorical
+ */
+export class GenerateCategorical extends Message<GenerateCategorical> {
+  /**
+   * @generated from field: string categories = 1;
+   */
+  categories = "";
+
+  constructor(data?: PartialMessage<GenerateCategorical>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GenerateCategorical";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "categories", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateCategorical {
+    return new GenerateCategorical().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GenerateCategorical {
+    return new GenerateCategorical().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GenerateCategorical {
+    return new GenerateCategorical().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GenerateCategorical | PlainMessage<GenerateCategorical> | undefined, b: GenerateCategorical | PlainMessage<GenerateCategorical> | undefined): boolean {
+    return proto3.util.equals(GenerateCategorical, a, b);
   }
 }
 
