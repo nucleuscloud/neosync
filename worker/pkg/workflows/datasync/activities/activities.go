@@ -175,7 +175,6 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 			return nil, err
 		}
 
-		fmt.Println("processorConfig", processorConfig)
 		for _, pc := range processorConfig {
 			mutationValid := pc.Mutation != nil && *pc.Mutation != ""
 
@@ -374,8 +373,6 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncM
 		"metadata", metadata,
 		"benthos", "true",
 	))
-
-	fmt.Println("req", req.BenthosConfig)
 
 	err := streambldr.SetYAML(req.BenthosConfig)
 	if err != nil {
