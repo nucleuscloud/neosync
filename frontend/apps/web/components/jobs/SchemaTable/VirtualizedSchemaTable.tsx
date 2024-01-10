@@ -1,5 +1,5 @@
-import { SingleTableSchemaFormValues } from '@/app/[account]/new/job/schema';
-import EditTransformerOptions from '@/app/[account]/transformers/EditTransformerOptions';
+import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
+import EditTransformerOptions from '@/app/(mgmt)/[account]/transformers/EditTransformerOptions';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';

@@ -1,3 +1,4 @@
+import '@/app/globals.css';
 import {
   PHProvider,
   PostHogPageview,
@@ -6,7 +7,7 @@ import { ThemeProvider } from '@/components/providers/theme-provider';
 import { fontSans } from '@/libs/fonts';
 import { cn } from '@/libs/utils';
 import { Metadata } from 'next';
-import { ReactElement, ReactNode, Suspense } from 'react';
+import { ReactElement, Suspense } from 'react';
 import BaseLayout from '../BaseLayout';
 import { getSystemAppConfig } from '../api/config/config';
 
@@ -16,10 +17,10 @@ export const metadata: Metadata = {
   icons: [{ rel: 'icon', url: 'favicon.ico' }],
 };
 
-export default async function InviteLayout({
+export default async function RootLayout({
   children,
 }: {
-  children: ReactNode;
+  children: React.ReactNode;
 }): Promise<ReactElement> {
   const appConfig = getSystemAppConfig();
   return (
@@ -42,9 +43,7 @@ export default async function InviteLayout({
               <PostHogPageview config={appConfig.posthog} />
             </Suspense>
             <PHProvider>
-              {/*   // Server Signin is disabled for the invite page due to inability to access path or search params on the server
-  // Without this, the signin redirect url is set to the root url instead of /invite?token=<token> */}
-              <BaseLayout disableServerSignin>{children}</BaseLayout>
+              <BaseLayout>{children}</BaseLayout>
             </PHProvider>
           </>
         </ThemeProvider>
