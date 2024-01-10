@@ -695,7 +695,7 @@ func Test_buildProcessorConfigJavascriptEmpty(t *testing.T) {
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}})
 
 	assert.NoError(t, err)
-	assert.Empty(t, resp[0].Javascript)
+	assert.Empty(t, resp)
 
 }
 
