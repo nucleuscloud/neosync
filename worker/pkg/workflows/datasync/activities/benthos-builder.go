@@ -595,8 +595,18 @@ func (b *benthosBuilder) buildBenthosGenerateSourceConfigResponses(
 		if err != nil {
 			return nil, err
 		}
-		if mapping.Mutation == nil {
-			return nil, errors.New("unable to generate config mapping for table") // workshop this more
+
+		var mutationMapping string
+
+		// pulls out the bloblang mutation mapping since the generate job only allows mutations and not the javascript processor
+		// also this assumes that there will only one mutation object in the mapping slice
+		for _, m := range mapping {
+
+			if m.Mutation == nil {
+				return nil, errors.New("unable to generate config mapping for table") // workshop this more
+			}
+			mutationMapping = *m.Mutation
+
 		}
 
 		bc := &neosync_benthos.BenthosConfig{
@@ -606,7 +616,7 @@ func (b *benthosBuilder) buildBenthosGenerateSourceConfigResponses(
 						Generate: &neosync_benthos.Generate{
 							Interval: "",
 							Count:    count,
-							Mapping:  *mapping.Mutation,
+							Mapping:  mutationMapping,
 						},
 					},
 				},

@@ -175,9 +175,16 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 			return nil, err
 		}
 
-		if (processorConfig.Mutation != nil && *processorConfig.Mutation != "") ||
-			(processorConfig.Javascript != nil && processorConfig.Javascript.Code != "") {
-			bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *processorConfig)
+		fmt.Println("processorConfig", processorConfig)
+		for _, pc := range processorConfig {
+			mutationValid := pc.Mutation != nil && *pc.Mutation != ""
+
+			javascriptValid := pc.Javascript != nil && pc.Javascript.Code != ""
+
+			if mutationValid || javascriptValid {
+				bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *pc)
+			}
+
 		}
 
 		responses = append(responses, &BenthosConfigResponse{
@@ -368,6 +375,8 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncM
 		"benthos", "true",
 	))
 
+	fmt.Println("req", req.BenthosConfig)
+
 	err := streambldr.SetYAML(req.BenthosConfig)
 	if err != nil {
 		return nil, fmt.Errorf("unable to convert benthos config to yaml for stream builder: %w", err)
@@ -544,7 +553,7 @@ func getMysqlDsn(
 	}
 }
 
-func (b *benthosBuilder) buildProcessorConfig(ctx context.Context, cols []*mgmtv1alpha1.JobMapping) (*neosync_benthos.ProcessorConfig, error) {
+func (b *benthosBuilder) buildProcessorConfig(ctx context.Context, cols []*mgmtv1alpha1.JobMapping) ([]*neosync_benthos.ProcessorConfig, error) {
 	mutations := []string{}
 	jsFunctions := []string{}
 	benthosOutputs := []string{}
@@ -583,15 +592,19 @@ func (b *benthosBuilder) buildProcessorConfig(ctx context.Context, cols []*mgmtv
 
 	mutationStr := strings.Join(mutations, "\n")
 
-	pc := &neosync_benthos.ProcessorConfig{}
+	pc := []*neosync_benthos.ProcessorConfig{}
 	if len(mutationStr) > 0 {
-		pc.Mutation = &mutationStr
+		pc = append(pc, &neosync_benthos.ProcessorConfig{
+			Mutation: &mutationStr,
+		})
 	}
 	if len(jsFunctions) > 0 {
 		javascriptConfig := neosync_benthos.JavascriptConfig{
 			Code: constructBenthosJsProcessor(jsFunctions, benthosOutputs),
 		}
-		pc.Javascript = &javascriptConfig
+		pc = append(pc, &neosync_benthos.ProcessorConfig{
+			Javascript: &javascriptConfig,
+		})
 	}
 
 	return pc, nil
