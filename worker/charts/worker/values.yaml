@@ -19,6 +19,12 @@ serviceAccount:
 
 nucleusEnv:
 
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+
 istio:
   enabled: false
 
