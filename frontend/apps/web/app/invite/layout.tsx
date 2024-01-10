@@ -45,7 +45,9 @@ export default async function InviteLayout({
             <PHProvider>
               {/*   // Server Signin is disabled for the invite page due to inability to access path or search params on the server
   // Without this, the signin redirect url is set to the root url instead of /invite?token=<token> */}
-              <BaseLayout disableServerSignin>{children}</BaseLayout>
+              <BaseLayout systemAppConfig={appConfig} disableServerSignin>
+                {children}
+              </BaseLayout>
             </PHProvider>
           </>
         </ThemeProvider>
