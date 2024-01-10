@@ -144,3 +144,54 @@ func (q *Queries) GetForeignKeyConstraints(ctx context.Context, db DBTX, tableSc
 	}
 	return items, nil
 }
+
+const getPrimaryKeyConstraints = `-- name: GetPrimaryKeyConstraints :many
+SELECT 
+	table_schema AS schema_name,
+	table_name as table_name,
+	column_name as column_name,
+	constraint_name as constraint_name 
+FROM 
+	information_schema.key_column_usage
+WHERE 
+	table_schema = ?
+	AND constraint_name = 'PRIMARY'
+ORDER BY 
+	table_name, 
+	column_name
+`
+
+type GetPrimaryKeyConstraintsRow struct {
+	SchemaName     string
+	TableName      string
+	ColumnName     string
+	ConstraintName string
+}
+
+func (q *Queries) GetPrimaryKeyConstraints(ctx context.Context, db DBTX, tableSchema string) ([]*GetPrimaryKeyConstraintsRow, error) {
+	rows, err := db.QueryContext(ctx, getPrimaryKeyConstraints, tableSchema)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetPrimaryKeyConstraintsRow
+	for rows.Next() {
+		var i GetPrimaryKeyConstraintsRow
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.TableName,
+			&i.ColumnName,
+			&i.ConstraintName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

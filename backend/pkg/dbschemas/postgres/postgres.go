@@ -183,3 +183,35 @@ func GetAllPostgresFkConstraints(
 	}
 	return output, nil
 }
+
+func GetAllPostgresPkConstraints(
+	pgquerier pg_queries.Querier,
+	ctx context.Context,
+	conn pg_queries.DBTX,
+	uniqueSchemas []string,
+) ([]*pg_queries.GetPrimaryKeyConstraintsRow, error) {
+	holder := make([][]*pg_queries.GetPrimaryKeyConstraintsRow, len(uniqueSchemas))
+	errgrp, errctx := errgroup.WithContext(ctx)
+	for idx := range uniqueSchemas {
+		idx := idx
+		schema := uniqueSchemas[idx]
+		errgrp.Go(func() error {
+			constraints, err := pgquerier.GetPrimaryKeyConstraints(errctx, conn, schema)
+			if err != nil {
+				return err
+			}
+			holder[idx] = constraints
+			return nil
+		})
+	}
+
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
+	}
+
+	output := []*pg_queries.GetPrimaryKeyConstraintsRow{}
+	for _, schemas := range holder {
+		output = append(output, schemas...)
+	}
+	return output, nil
+}

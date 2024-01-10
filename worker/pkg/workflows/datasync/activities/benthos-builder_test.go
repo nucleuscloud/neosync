@@ -1076,6 +1076,20 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 				IsNullable:        "YES",
 			},
 		}, nil)
+	pgquerier.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).Return([]*pg_queries.GetPrimaryKeyConstraintsRow{
+		{
+			ConstraintName: "pkey-user-id",
+			SchemaName:     "public",
+			TableName:      "users",
+			ColumnName:     "id",
+		},
+		{
+			ConstraintName: "pkey-user-assoc-id",
+			SchemaName:     "public",
+			TableName:      "users_account_associations",
+			ColumnName:     "id",
+		},
+	}, nil)
 	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
@@ -1087,20 +1101,9 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 	assert.NotEmpty(t, resp.BenthosConfigs)
 	assert.Len(t, resp.BenthosConfigs, 3)
 
-	var excludeConfig *BenthosConfigResponse
-	var includeConfig *BenthosConfigResponse
-	for _, bc := range resp.BenthosConfigs {
-		if bc.Name == "public.users" {
-			if len(bc.DependsOn) == 0 {
-				excludeConfig = bc
-			} else {
-				includeConfig = bc
-			}
-		}
-	}
-
+	excludeConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users.exclude")
 	assert.NotNil(t, excludeConfig)
-	assert.Equal(t, excludeConfig.Name, "public.users")
+	assert.Equal(t, excludeConfig.Name, "public.users.exclude")
 	assert.Empty(t, excludeConfig.DependsOn)
 	out, err := yaml.Marshal(excludeConfig.Config)
 	assert.NoError(t, err)
@@ -1141,8 +1144,9 @@ output:
 `),
 	)
 
+	includeConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users.include")
 	assert.NotNil(t, includeConfig)
-	assert.Equal(t, includeConfig.Name, "public.users")
+	assert.Equal(t, includeConfig.Name, "public.users.include")
 	assert.Equal(t, includeConfig.DependsOn, []*tabledependency.DependsOn{{Table: "public.user_account_associations", Columns: []string{"id"}}})
 	out1, err := yaml.Marshal(includeConfig.Config)
 	assert.NoError(t, err)
@@ -1157,6 +1161,7 @@ input:
         dsn: fake-prod-url
         table: public.users
         columns:
+            - id
             - user_assoc_id
 buffer: null
 pipeline:
@@ -1170,8 +1175,8 @@ output:
             - sql_raw:
                 driver: postgres
                 dsn: fake-stage-url
-                query: INSERT INTO public.users (user_assoc_id) VALUES ($1);
-                args_mapping: root = [this.user_assoc_id]
+                query: INSERT INTO public.users (id, user_assoc_id) VALUES ($1, $2) WHERE id = $3;
+                args_mapping: root = [this.id, this.user_assoc_id]
                 init_statement: ""
                 batching:
                     count: 100
@@ -2176,7 +2181,7 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 		{Table: "public.users", DependsOn: []*tabledependency.DependsOn{}},
 	}
 
-	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts, dependencyConfigs)
+	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts, dependencyConfigs, nil)
 	assert.Nil(t, err)
 	assert.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)
 
@@ -2232,7 +2237,7 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 		{Table: "public.users", DependsOn: []*tabledependency.DependsOn{}},
 	}
 
-	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts, dependencyConfigs)
+	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts, dependencyConfigs, nil)
 	assert.Nil(t, err)
 	assert.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)
 
@@ -2294,7 +2299,7 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 		{Table: "public.users", DependsOn: []*tabledependency.DependsOn{}},
 	}
 
-	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts, dependencyConfigs)
+	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts, dependencyConfigs, nil)
 	assert.Nil(t, err)
 
 	out, err := yaml.Marshal(res[0].Config.Pipeline.Processors)
@@ -2321,7 +2326,7 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
         output["first_name"] = fn_first_name(input["first_name"]);
         benthos.v0_msg_set_structured(output);
         })();
-	    `), strings.TrimSpace(string(out)))
+      `), strings.TrimSpace(string(out)))
 }
 
 // Generate -> S3

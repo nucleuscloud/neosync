@@ -208,6 +208,57 @@ func (q *Queries) GetForeignKeyConstraints(ctx context.Context, db DBTX, tablesc
 	return items, nil
 }
 
+const getPrimaryKeyConstraints = `-- name: GetPrimaryKeyConstraints :many
+SELECT 
+    tc.table_schema AS schema_name,
+    tc.table_name as table_name,
+    tc.constraint_name as constraint_name, 
+    kcu.column_name as column_name 
+FROM 
+    information_schema.table_constraints AS tc 
+JOIN information_schema.key_column_usage AS kcu
+    ON tc.constraint_name = kcu.constraint_name
+    AND tc.table_schema = kcu.table_schema
+WHERE 
+    tc.table_schema = $1
+    AND tc.constraint_type = 'PRIMARY KEY'
+ORDER BY 
+    tc.table_name, 
+    kcu.column_name
+`
+
+type GetPrimaryKeyConstraintsRow struct {
+	SchemaName     string
+	TableName      string
+	ConstraintName string
+	ColumnName     string
+}
+
+func (q *Queries) GetPrimaryKeyConstraints(ctx context.Context, db DBTX, tableschema string) ([]*GetPrimaryKeyConstraintsRow, error) {
+	rows, err := db.Query(ctx, getPrimaryKeyConstraints, tableschema)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetPrimaryKeyConstraintsRow
+	for rows.Next() {
+		var i GetPrimaryKeyConstraintsRow
+		if err := rows.Scan(
+			&i.SchemaName,
+			&i.TableName,
+			&i.ConstraintName,
+			&i.ColumnName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getTableConstraints = `-- name: GetTableConstraints :many
 SELECT
     nsp.nspname AS db_schema,

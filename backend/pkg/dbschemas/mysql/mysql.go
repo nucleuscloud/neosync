@@ -132,3 +132,35 @@ func GetAllMysqlFkConstraints(
 	}
 	return output, nil
 }
+
+func GetAllMysqlPkConstraints(
+	mysqlquerier mysql_queries.Querier,
+	ctx context.Context,
+	conn mysql_queries.DBTX,
+	schemas []string,
+) ([]*mysql_queries.GetPrimaryKeyConstraintsRow, error) {
+	holder := make([][]*mysql_queries.GetPrimaryKeyConstraintsRow, len(schemas))
+	errgrp, errctx := errgroup.WithContext(ctx)
+	for idx := range schemas {
+		idx := idx
+		schema := schemas[idx]
+		errgrp.Go(func() error {
+			constraints, err := mysqlquerier.GetPrimaryKeyConstraints(errctx, conn, schema)
+			if err != nil {
+				return err
+			}
+			holder[idx] = constraints
+			return nil
+		})
+	}
+
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
+	}
+
+	output := []*mysql_queries.GetPrimaryKeyConstraintsRow{}
+	for _, schemas := range holder {
+		output = append(output, schemas...)
+	}
+	return output, nil
+}

@@ -47,3 +47,19 @@ WHERE
 ORDER BY
 	rc.constraint_name,
 	kcu.ordinal_position;
+
+
+-- name: GetPrimaryKeyConstraints :many
+SELECT 
+	table_schema AS schema_name,
+	table_name as table_name,
+	column_name as column_name,
+	constraint_name as constraint_name 
+FROM 
+	information_schema.key_column_usage
+WHERE 
+	table_schema = ?
+	AND constraint_name = 'PRIMARY'
+ORDER BY 
+	table_name, 
+	column_name;

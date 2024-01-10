@@ -1,6 +1,7 @@
 package datasync_workflow
 
 import (
+	"encoding/json"
 	"fmt"
 	"slices"
 	"strings"
@@ -48,8 +49,8 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	completed := map[string][]string{}
 
 	workselector := workflow.NewSelector(ctx)
-	// jsonF, _ := json.MarshalIndent(bcResp.BenthosConfigs, "", " ")
-	// fmt.Printf("\n\n  %s \n\n", string(jsonF))
+	jsonF, _ := json.MarshalIndent(bcResp.BenthosConfigs, "", " ")
+	fmt.Printf("\n\n  %s \n\n", string(jsonF))
 
 	splitConfigs := splitBenthosConfigs(bcResp.BenthosConfigs)
 	var activityErr error
@@ -136,16 +137,24 @@ func invokeSync(
 			ctx,
 			wfActivites.Sync,
 			&datasync_activities.SyncRequest{BenthosConfig: string(configbits)}, metadata).Get(ctx, &result)
-		completed[config.Name] = []string{}
-		_, ok := completed[config.Name]
+		tn := fmt.Sprintf("%s.%s", config.TableSchema, config.TableName)
+		completed[tn] = []string{}
+		_, ok := completed[tn]
 		if ok {
-			completed[config.Name] = append(completed[config.Name], config.Columns...)
+			completed[tn] = append(completed[tn], getConfigColumns(config)...)
 		} else {
-			completed[config.Name] = config.Columns
+			completed[tn] = getConfigColumns(config)
 		}
 		settable.Set(result, err)
 	})
 	return future
+}
+func getConfigColumns(config *datasync_activities.BenthosConfigResponse) []string {
+	if config.Config.Input.SqlSelect != nil {
+		return config.Config.Input.SqlSelect.Columns
+	}
+	// generate job don't need to keep track of cols
+	return []string{}
 }
 
 func isConfigReady(config *datasync_activities.BenthosConfigResponse, completed map[string][]string) bool {

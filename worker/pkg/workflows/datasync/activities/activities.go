@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"slices"
 	"strings"
 	"time"
 
@@ -43,13 +44,14 @@ type GenerateBenthosConfigsResponse struct {
 }
 
 type BenthosConfigResponse struct {
-	Name      string
-	DependsOn []*tabledependency.DependsOn
-	Config    *neosync_benthos.BenthosConfig
-	Columns   []string
+	Name        string
+	DependsOn   []*tabledependency.DependsOn
+	Config      *neosync_benthos.BenthosConfig
+	TableSchema string
+	TableName   string
 
-	tableSchema string
-	tableName   string
+	primaryKeys   []string
+	updateColumns []string
 }
 
 type Activities struct{}
@@ -127,6 +129,7 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 	driver string,
 	sourceTableOpts map[string]*sqlSourceTableOptions,
 	dependencyConfigs []*tabledependency.RunConfig,
+	primaryKeyMap map[string][]string,
 ) ([]*BenthosConfigResponse, error) {
 	responses := []*BenthosConfigResponse{}
 
@@ -150,7 +153,7 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 		tableName := neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table)
 		configs := dependencyMap[tableName]
 		var where string
-		tableOpt := sourceTableOpts[neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table)]
+		tableOpt := sourceTableOpts[tableName]
 		if tableOpt != nil && tableOpt.WhereClause != nil {
 			where = *tableOpt.WhereClause
 		}
@@ -159,6 +162,9 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 			shouldRunInclude := true
 			for _, cfg := range configs {
 				var tableMappings []*mgmtv1alpha1.JobMapping
+				var configName string
+				var primaryKeys []string
+				var columns []string
 				if cfg.Columns != nil && cfg.Columns.Exclude != nil && len(cfg.Columns.Exclude) > 0 {
 					tm := []*mgmtv1alpha1.JobMapping{}
 					for _, col := range cfg.Columns.Exclude {
@@ -174,17 +180,28 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 						shouldRunInclude = false
 					}
 					tableMappings = tm
+					configName = fmt.Sprintf("%s.insert", tableName)
 				} else if cfg.Columns != nil && cfg.Columns.Include != nil && len(cfg.Columns.Include) > 0 {
 					if shouldRunInclude {
 						tm := []*mgmtv1alpha1.JobMapping{}
+						pks := primaryKeyMap[tableName]
 						for _, col := range cfg.Columns.Include {
 							for _, m := range tableMapping.Mappings {
 								if m.Column == col {
 									tm = append(tm, m)
 								}
 							}
+							columns = buildPlainColumns(tm)
+							// add primary keys to end of slice
+							for _, m := range tableMapping.Mappings {
+								if slices.Contains(pks, m.Column) {
+									tm = append(tm, m)
+								}
+							}
 						}
 						tableMappings = tm
+						configName = fmt.Sprintf("%s.update", tableName)
+						primaryKeys = pks
 					}
 				}
 
@@ -229,13 +246,14 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 				}
 
 				responses = append(responses, &BenthosConfigResponse{
-					Name:      tableName,
+					Name:      configName,
 					Config:    bc,
 					DependsOn: cfg.DependsOn,
-					Columns:   cols,
 
-					tableSchema: tableMapping.Schema,
-					tableName:   tableMapping.Table,
+					TableSchema:   tableMapping.Schema,
+					TableName:     tableMapping.Table,
+					primaryKeys:   primaryKeys,
+					updateColumns: columns,
 				})
 
 			}
@@ -286,10 +304,9 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 				Name:      tableName,
 				Config:    bc,
 				DependsOn: cfg.DependsOn,
-				Columns:   cols,
 
-				tableSchema: tableMapping.Schema,
-				tableName:   tableMapping.Table,
+				TableSchema: tableMapping.Schema,
+				TableName:   tableMapping.Table,
 			})
 
 		}
