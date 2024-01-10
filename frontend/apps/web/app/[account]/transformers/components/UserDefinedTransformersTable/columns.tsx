@@ -74,12 +74,7 @@ export function getUserDefinedTransformerColumns(
       cell: ({ row }) => {
         return (
           <div className="flex space-x-2">
-            <NextLink
-              className="hover:underline"
-              href={`/${account?.name}/transformers/${row.original.id}`}
-            >
-              <Badge variant="outline">{row.original.dataType}</Badge>
-            </NextLink>
+            <Badge variant="outline">{row.original.dataType}</Badge>
           </div>
         );
       },
@@ -92,14 +87,9 @@ export function getUserDefinedTransformerColumns(
       cell: ({ row }) => {
         return (
           <div className="flex space-x-2">
-            <NextLink
-              className="hover:underline"
-              href={`/${account?.name}/transformers/${row.original.id}`}
-            >
-              <span className="max-w-[500px] truncate font-medium">
-                {row.original.source}
-              </span>
-            </NextLink>
+            <span className="max-w-[500px] truncate font-medium">
+              {row.original.source}
+            </span>
           </div>
         );
       },
