@@ -43,7 +43,7 @@ export default async function RootLayout({
               <PostHogPageview config={appConfig.posthog} />
             </Suspense>
             <PHProvider>
-              <BaseLayout>{children}</BaseLayout>
+              <BaseLayout systemAppConfig={appConfig}>{children}</BaseLayout>
             </PHProvider>
           </>
         </ThemeProvider>
