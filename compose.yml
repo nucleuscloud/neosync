@@ -8,6 +8,7 @@ services:
     ports:
       - 3000:3000
     environment:
+      - HOSTNAME=0.0.0.0
       - NUCLEUS_ENV=dev
       - NEXTAUTH_SECRET=foo
       - NEOSYNC_API_BASE_URL=http://api:8080

@@ -1,7 +1,7 @@
 ---
-title: Changelog 1
+title: Neosync init
 hide_table_of_contents: false
-slug: /changelog-1
+slug: /neosync-init
 authors:
   - name: Evis Drenova
     title: Co-Founder/CEO, Neosync
