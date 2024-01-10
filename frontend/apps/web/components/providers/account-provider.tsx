@@ -58,7 +58,7 @@ export default function AccountProvider(props: Props): ReactElement {
     const foundAccount = accountsResponse?.accounts.find(
       (a) => a.name === accountName
     );
-    if (userAccount && foundAccount && userAccount?.id === foundAccount?.id) {
+    if (userAccount && foundAccount && userAccount.id === foundAccount.id) {
       return;
     }
     if (foundAccount) {
@@ -82,9 +82,12 @@ export default function AccountProvider(props: Props): ReactElement {
 
   function setAccount(userAccount: UserAccount): void {
     if (userAccount.name !== accountName) {
-      router.push(`/${userAccount.name}`);
-      setUserAccount(userAccount);
+      // this order matters. Otherwise if we push first,
+      // when it routes to the page, there is no account param and it defaults to personal /shrug
+      // by setting this here, it finds the last selected account and is able to effectively route to the correct spot.
       setLastSelectedAccount(userAccount.name);
+      setUserAccount(userAccount);
+      router.push(`/${userAccount.name}`);
     }
   }
 

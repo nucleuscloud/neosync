@@ -1,4 +1,4 @@
-import { isConnectionNameAvailable } from '@/app/[account]/new/connection/postgres/PostgresForm';
+import { isConnectionNameAvailable } from '@/app/(mgmt)/[account]/new/connection/postgres/PostgresForm';
 import * as Yup from 'yup';
 
 export const POSTGRES_CONNECTION = Yup.object({
