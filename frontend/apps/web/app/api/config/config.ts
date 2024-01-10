@@ -1,6 +1,10 @@
 import { SystemAppConfig } from '@/app/config/app-config';
 
 // This will only be hydrated with env vars if invoked on the server
+// Unfortunately, during a standalone build, this method is invoked and the values here are used as environment variables.
+// These aren't provided at build time so will fall back to their defaults.
+// This only seems to be an issue with the root layout.tsx, where as all sub pages cause a re-render of the root layout
+// which causes them to be their correct values. However, if navigating to "/", the root layout isn't re-rendered and is given the defaults.
 export function getSystemAppConfig(): SystemAppConfig {
   return {
     isAuthEnabled: process.env.AUTH_ENABLED == 'true',
