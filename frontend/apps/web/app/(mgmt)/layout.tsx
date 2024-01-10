@@ -9,7 +9,6 @@ import { cn } from '@/libs/utils';
 import { Metadata } from 'next';
 import { ReactElement, Suspense } from 'react';
 import BaseLayout from '../BaseLayout';
-import { getSystemAppConfig } from '../api/config/config';
 
 export const metadata: Metadata = {
   title: 'Neosync',
@@ -22,7 +21,6 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }): Promise<ReactElement> {
-  const appConfig = getSystemAppConfig();
   return (
     <html lang="en" suppressHydrationWarning>
       <head />
@@ -40,10 +38,10 @@ export default async function RootLayout({
         >
           <>
             <Suspense>
-              <PostHogPageview config={appConfig.posthog} />
+              <PostHogPageview />
             </Suspense>
             <PHProvider>
-              <BaseLayout systemAppConfig={appConfig}>{children}</BaseLayout>
+              <BaseLayout>{children}</BaseLayout>
             </PHProvider>
           </>
         </ThemeProvider>
