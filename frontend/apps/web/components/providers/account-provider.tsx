@@ -66,13 +66,6 @@ export default function AccountProvider(props: Props): ReactElement {
       setLastSelectedAccount(foundAccount.name);
       const accountParam = getSingleOrUndefined(account);
       if (!accountParam || accountParam !== foundAccount.name) {
-        console.log(
-          'hit found account, routing to',
-          foundAccount.name,
-          '/jobs',
-          'account param',
-          accountParam
-        );
         router.push(`/${foundAccount.name}/jobs`);
       }
     } else if (accountName !== DEFAULT_ACCOUNT_NAME) {
