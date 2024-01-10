@@ -16,14 +16,7 @@ services:
 
       - POSTHOG_KEY=phc_qju45RhNvCDwYVdRyUjtWuWsOmLFaQZi3fmztMBaJip
 
-      - AUTH_ENABLED=true
-      - AUTH_CLIENT_ID=toXbXZXIYD3ni7MheOrU6J70j8lNtiSt
-      - AUTH_CLIENT_SECRET=ePOwcBxyyn2kghKLuH67OJXbAFkeT-YEfMcdqNSPPnUq2XNpPrtDX3MOWatT2HwX
-      - AUTH_ISSUER=https://auth.nucleuscloud.dev/
-      - AUTH_AUDIENCE=https://api.nucleuscloud.com
-      - AUTH_SCOPE=openid email profile offline_access
-      - AUTH_PROVIDER_ID=auth0
-      - AUTH_PROVIDER_NAME=Auth0
+      - AUTH_ENABLED=false
 
     networks:
       - neosync-network
@@ -84,16 +77,7 @@ services:
       - DB_MIGRATIONS_TABLE=neosync_api_schema_migrations
       - DB_MIGRATIONS_TABLE_QUOTED=false
 
-      - AUTH_ENABLED=true
-      - AUTH_AUDIENCE=https://api.nucleuscloud.com
-      - AUTH_BASEURL=https://auth.nucleuscloud.dev/
-      - AUTH_CLIENTID_SECRET={"N53szkXwrMZmWiMQ96bJVCSuafn6myMR":"R7-URoQHcAaYkC3mq39g0krn82HbJ3V8tNfJ6yThXcGHd12g_KaDEGogR5qpT_YA"}
-      - AUTH_CLI_CLIENT_ID=N53szkXwrMZmWiMQ96bJVCSuafn6myMR
-      - AUTH_CLI_AUDIENCE=https://api.nucleuscloud.com
-      - AUTH_API_BASEURL=https://nucleus-cloud-dev.us.auth0.com
-      - AUTH_API_CLIENT_ID=NmymQDhFqcMS42Qc9s8zGCX52IoZcJy6
-      - AUTH_API_CLIENT_SECRET=2GeZUD-RGlzW3fG4Hvu1tjkaNdgTKbXp3bX4XjKSB9szRpMfXE-NFjTdSJ0ks8g3
-      - AUTH_SIGNATURE_ALGORITHM=RS256
+      - AUTH_ENABLED=false
 
     networks:
       - neosync-network
