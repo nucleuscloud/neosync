@@ -170,20 +170,13 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 			},
 		}
 
-		processorConfig, err := b.buildProcessorConfig(ctx, tableMapping.Mappings)
+		processorConfigs, err := b.buildProcessorConfigs(ctx, tableMapping.Mappings)
 		if err != nil {
 			return nil, err
 		}
 
-		for _, pc := range processorConfig {
-			mutationValid := pc.Mutation != nil && *pc.Mutation != ""
-
-			javascriptValid := pc.Javascript != nil && pc.Javascript.Code != ""
-
-			if mutationValid || javascriptValid {
-				bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *pc)
-			}
-
+		for _, pc := range processorConfigs {
+			bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *pc)
 		}
 
 		responses = append(responses, &BenthosConfigResponse{
@@ -550,61 +543,79 @@ func getMysqlDsn(
 	}
 }
 
-func (b *benthosBuilder) buildProcessorConfig(ctx context.Context, cols []*mgmtv1alpha1.JobMapping) ([]*neosync_benthos.ProcessorConfig, error) {
+func (b *benthosBuilder) buildProcessorConfigs(ctx context.Context, cols []*mgmtv1alpha1.JobMapping) ([]*neosync_benthos.ProcessorConfig, error) {
+	var jsFunctions, benthosOutputs []string
+	var mutations string
+	var err error
+
+	for _, col := range cols {
+		if col.Transformer != nil && shouldProcessColumn(col.Transformer) {
+			if col.Transformer.Source == "transform_javascript" {
+				jsFunctions, benthosOutputs = b.extractJsFunctionsAndOutputs(cols)
+			} else {
+				mutations, err = b.buildMutationConfigs(ctx, cols)
+				if err != nil {
+					return nil, err
+				}
+			}
+		}
+	}
+
+	return b.constructProcessorConfigs(mutations, jsFunctions, benthosOutputs), nil
+}
+
+func (b *benthosBuilder) extractJsFunctionsAndOutputs(cols []*mgmtv1alpha1.JobMapping) ([]string, []string) {
+	var jsFunctions, benthosOutputs []string
+	for _, col := range cols {
+		if col.Transformer.Source == "transform_javascript" {
+			code := col.Transformer.Config.GetTransformJavascriptConfig().Code
+			if code != "" {
+				jsFunctions = append(jsFunctions, constructJsFunction(code, col.Column))
+				benthosOutputs = append(benthosOutputs, constructBenthosOutput(col.Column))
+			}
+		}
+	}
+	return jsFunctions, benthosOutputs
+}
+
+func (b *benthosBuilder) constructProcessorConfigs(mutationStr string, jsFunctions, benthosOutputs []string) []*neosync_benthos.ProcessorConfig {
+	var pc []*neosync_benthos.ProcessorConfig
+	if len(mutationStr) > 0 {
+		pc = append(pc, &neosync_benthos.ProcessorConfig{Mutation: &mutationStr})
+	}
+	if len(jsFunctions) > 0 {
+		javascriptConfig := neosync_benthos.JavascriptConfig{Code: constructBenthosJsProcessor(jsFunctions, benthosOutputs)}
+		pc = append(pc, &neosync_benthos.ProcessorConfig{Javascript: &javascriptConfig})
+	}
+	return pc
+}
+
+func (b *benthosBuilder) buildMutationConfigs(ctx context.Context, cols []*mgmtv1alpha1.JobMapping) (string, error) {
+
 	mutations := []string{}
-	jsFunctions := []string{}
-	benthosOutputs := []string{}
 
 	for _, col := range cols {
 		if shouldProcessColumn(col.Transformer) {
-
 			if _, ok := col.Transformer.Config.Config.(*mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig); ok {
-
 				// handle user defined transformer -> get the user defined transformer configs using the id
 				val, err := b.convertUserDefinedFunctionConfig(ctx, col.Transformer)
 				if err != nil {
-					return nil, errors.New("unable to look up user defined transformer config by id")
+					return "", errors.New("unable to look up user defined transformer config by id")
 				}
 				col.Transformer = val
 			}
-
-			if col.Transformer.Source == "transform_javascript" {
-
-				code := col.Transformer.Config.GetTransformJavascriptConfig().Code
-				// construct the js code and only append if there is code available
-				if code != "" {
-					jsFunctions = append(jsFunctions, constructJsFunction(code, col.Column))
-					benthosOutputs = append(benthosOutputs, constructBenthosOutput(col.Column))
-				}
-			} else {
+			if col.Transformer.Source != "transform_javascript" {
 				mutation, err := computeMutationFunction(col)
 				if err != nil {
-					return nil, fmt.Errorf("%s is not a supported transformer: %w", col.Transformer, err)
+					return "", fmt.Errorf("%s is not a supported transformer: %w", col.Transformer, err)
 				}
 				mutations = append(mutations, fmt.Sprintf("root.%s = %s", col.Column, mutation))
 			}
-
 		}
 	}
 
-	mutationStr := strings.Join(mutations, "\n")
+	return strings.Join(mutations, "\n"), nil
 
-	pc := []*neosync_benthos.ProcessorConfig{}
-	if len(mutationStr) > 0 {
-		pc = append(pc, &neosync_benthos.ProcessorConfig{
-			Mutation: &mutationStr,
-		})
-	}
-	if len(jsFunctions) > 0 {
-		javascriptConfig := neosync_benthos.JavascriptConfig{
-			Code: constructBenthosJsProcessor(jsFunctions, benthosOutputs),
-		}
-		pc = append(pc, &neosync_benthos.ProcessorConfig{
-			Javascript: &javascriptConfig,
-		})
-	}
-
-	return pc, nil
 }
 
 func shouldProcessColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {

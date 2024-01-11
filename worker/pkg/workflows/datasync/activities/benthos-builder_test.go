@@ -2037,7 +2037,10 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
 	sourceTableOpts := map[string]*sqlSourceTableOptions{"test": {WhereClause: &dsn}}
 
 	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts)
+
 	assert.Nil(t, err)
+
+	assert.Len(t, res[0].Config.Pipeline.Processors, 2)
 
 	out, err := yaml.Marshal(res[0].Config.Pipeline.Processors)
 	assert.NoError(t, err)
