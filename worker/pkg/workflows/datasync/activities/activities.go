@@ -545,50 +545,42 @@ func getMysqlDsn(
 
 func (b *benthosBuilder) buildProcessorConfigs(ctx context.Context, cols []*mgmtv1alpha1.JobMapping) ([]*neosync_benthos.ProcessorConfig, error) {
 	var jsFunctions, benthosOutputs []string
-	var mutations string
 	var err error
 
 	for _, col := range cols {
 		if col.Transformer != nil && shouldProcessColumn(col.Transformer) {
 			//nolint:goconst
 			if col.Transformer.Source == "transform_javascript" {
-				jsFunctions, benthosOutputs = b.extractJsFunctionsAndOutputs(cols)
-			} else {
-				mutations, err = b.buildMutationConfigs(ctx, cols)
-				if err != nil {
-					return nil, err
-				}
+				jsFunctions, benthosOutputs = b.extractJsFunctionsAndOutputs(col, jsFunctions, benthosOutputs)
 			}
 		}
 	}
 
-	return b.constructProcessorConfigs(mutations, jsFunctions, benthosOutputs), nil
-}
-
-func (b *benthosBuilder) extractJsFunctionsAndOutputs(cols []*mgmtv1alpha1.JobMapping) (jsFunctions, benthosOutputs []string) {
-	for _, col := range cols {
-		//nolint:goconst
-		if col.Transformer.Source == "transform_javascript" {
-			code := col.Transformer.Config.GetTransformJavascriptConfig().Code
-			if code != "" {
-				jsFunctions = append(jsFunctions, constructJsFunction(code, col.Column))
-				benthosOutputs = append(benthosOutputs, constructBenthosOutput(col.Column))
-			}
-		}
+	mutations, err := b.buildMutationConfigs(ctx, cols)
+	if err != nil {
+		return nil, err
 	}
-	return jsFunctions, benthosOutputs
-}
 
-func (b *benthosBuilder) constructProcessorConfigs(mutationStr string, jsFunctions, benthosOutputs []string) []*neosync_benthos.ProcessorConfig {
 	var pc []*neosync_benthos.ProcessorConfig
-	if len(mutationStr) > 0 {
-		pc = append(pc, &neosync_benthos.ProcessorConfig{Mutation: &mutationStr})
+	if len(mutations) > 0 {
+		pc = append(pc, &neosync_benthos.ProcessorConfig{Mutation: &mutations})
 	}
 	if len(jsFunctions) > 0 {
 		javascriptConfig := neosync_benthos.JavascriptConfig{Code: constructBenthosJsProcessor(jsFunctions, benthosOutputs)}
 		pc = append(pc, &neosync_benthos.ProcessorConfig{Javascript: &javascriptConfig})
 	}
-	return pc
+	return pc, err
+}
+
+func (b *benthosBuilder) extractJsFunctionsAndOutputs(col *mgmtv1alpha1.JobMapping, jsFunctions, benthosOutputs []string) ([]string, []string) {
+	if col.Transformer.Source == "transform_javascript" {
+		code := col.Transformer.Config.GetTransformJavascriptConfig().Code
+		if code != "" {
+			jsFunctions = append(jsFunctions, constructJsFunction(code, col.Column))
+			benthosOutputs = append(benthosOutputs, constructBenthosOutput(col.Column))
+		}
+	}
+	return jsFunctions, benthosOutputs
 }
 
 func (b *benthosBuilder) buildMutationConfigs(ctx context.Context, cols []*mgmtv1alpha1.JobMapping) (string, error) {
