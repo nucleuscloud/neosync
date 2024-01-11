@@ -8,9 +8,10 @@ import (
 )
 
 type ConnectionConfig struct {
-	PgConfig    *PostgresConnectionConfig `json:"pgConfig,omitempty"`
-	AwsS3Config *AwsS3ConnectionConfig    `json:"awsS3Config,omitempty"`
-	MysqlConfig *MysqlConnectionConfig    `json:"mysqlConfig,omitempty"`
+	PgConfig             *PostgresConnectionConfig       `json:"pgConfig,omitempty"`
+	AwsS3Config          *AwsS3ConnectionConfig          `json:"awsS3Config,omitempty"`
+	MysqlConfig          *MysqlConnectionConfig          `json:"mysqlConfig,omitempty"`
+	LocalDirectoryConfig *LocalDirectoryConnectionConfig `json:"localDirConfig,omitempty"`
 }
 
 func (c *ConnectionConfig) ToDto() *mgmtv1alpha1.ConnectionConfig {
@@ -78,6 +79,12 @@ func (c *ConnectionConfig) ToDto() *mgmtv1alpha1.ConnectionConfig {
 				AwsS3Config: c.AwsS3Config.ToDto(),
 			},
 		}
+	} else if c.LocalDirectoryConfig != nil {
+		return &mgmtv1alpha1.ConnectionConfig{
+			Config: &mgmtv1alpha1.ConnectionConfig_LocalDirConfig{
+				LocalDirConfig: c.LocalDirectoryConfig.ToDto(),
+			},
+		}
 	}
 	return nil
 }
@@ -124,6 +131,9 @@ func (c *ConnectionConfig) FromDto(dto *mgmtv1alpha1.ConnectionConfig) error {
 		if err != nil {
 			return err
 		}
+	case *mgmtv1alpha1.ConnectionConfig_LocalDirConfig:
+		c.LocalDirectoryConfig = &LocalDirectoryConnectionConfig{}
+		c.LocalDirectoryConfig.FromDto(config.LocalDirConfig)
 	default:
 		return fmt.Errorf("invalid connection config")
 	}
@@ -166,6 +176,19 @@ type AwsS3Credentials struct {
 	FromEc2Role     *bool   `json:"fromEc2Role,omitempty"`
 	RoleArn         *string `json:"roleArn,omitempty"`
 	RoleExternalId  *string `json:"roleExternalId,omitempty"`
+}
+
+type LocalDirectoryConnectionConfig struct {
+	Path string `json:"path"`
+}
+
+func (l *LocalDirectoryConnectionConfig) ToDto() *mgmtv1alpha1.LocalDirectoryConnectionConfig {
+	return &mgmtv1alpha1.LocalDirectoryConnectionConfig{
+		Path: l.Path,
+	}
+}
+func (l *LocalDirectoryConnectionConfig) FromDto(dto *mgmtv1alpha1.LocalDirectoryConnectionConfig) {
+	l.Path = dto.Path
 }
 
 func (a *AwsS3Credentials) ToDto() *mgmtv1alpha1.AwsS3Credentials {

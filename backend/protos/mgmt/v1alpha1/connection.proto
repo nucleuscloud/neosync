@@ -77,7 +77,15 @@ message ConnectionConfig {
     PostgresConnectionConfig pg_config = 1;
     AwsS3ConnectionConfig aws_s3_config = 2;
     MysqlConnectionConfig mysql_config = 3;
+    // Configures a connection to a directory available on the local file system
+    LocalDirectoryConnectionConfig local_dir_config = 4;
   }
+}
+
+// Configures a connection to a directory available on the local file system
+message LocalDirectoryConnectionConfig {
+  // The absolute path to a directory that is available on the local file system to the API and Worker nodes
+  string path = 1 [(buf.validate.field).string.min_len = 1];
 }
 
 message PostgresConnectionConfig {
