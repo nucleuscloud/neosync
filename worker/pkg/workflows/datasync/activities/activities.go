@@ -545,7 +545,10 @@ func getMysqlDsn(
 
 func (b *benthosBuilder) buildProcessorConfigs(ctx context.Context, cols []*mgmtv1alpha1.JobMapping) ([]*neosync_benthos.ProcessorConfig, error) {
 
-	jsCode := b.extractJsFunctionsAndOutputs(cols)
+	jsCode, err := b.extractJsFunctionsAndOutputs(ctx, cols)
+	if err != nil {
+		return nil, err
+	}
 
 	mutations, err := b.buildMutationConfigs(ctx, cols)
 	if err != nil {
@@ -559,15 +562,23 @@ func (b *benthosBuilder) buildProcessorConfigs(ctx context.Context, cols []*mgmt
 	if len(jsCode) > 0 {
 		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Javascript: &neosync_benthos.JavascriptConfig{Code: jsCode}})
 	}
+
 	return processorConfigs, err
 }
 
-func (b *benthosBuilder) extractJsFunctionsAndOutputs(cols []*mgmtv1alpha1.JobMapping) string {
+func (b *benthosBuilder) extractJsFunctionsAndOutputs(ctx context.Context, cols []*mgmtv1alpha1.JobMapping) (string, error) {
 	var benthosOutputs []string
 	var jsFunctions []string
 
 	for _, col := range cols {
 		if col.Transformer != nil && col.Transformer.Source == "transform_javascript" {
+			if _, ok := col.Transformer.Config.Config.(*mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig); ok {
+				val, err := b.convertUserDefinedFunctionConfig(ctx, col.Transformer)
+				if err != nil {
+					return "", errors.New("unable to look up user defined transformer config by id")
+				}
+				col.Transformer = val
+			}
 			code := col.Transformer.Config.GetTransformJavascriptConfig().Code
 			if code != "" {
 				jsFunctions = append(jsFunctions, constructJsFunction(code, col.Column))
@@ -577,9 +588,9 @@ func (b *benthosBuilder) extractJsFunctionsAndOutputs(cols []*mgmtv1alpha1.JobMa
 	}
 
 	if len(jsFunctions) > 0 {
-		return constructBenthosJsProcessor(jsFunctions, benthosOutputs)
+		return constructBenthosJsProcessor(jsFunctions, benthosOutputs), nil
 	} else {
-		return ""
+		return "", nil
 	}
 
 }
