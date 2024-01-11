@@ -25,11 +25,13 @@ function Hero(): ReactElement {
         We are Neosync.
       </div>
       <div className="text-center text-[#606060] font-semibold text-lg font-satoshi mx-6 sm:mx-2 md:mx-40 lg:mx-72 xl:mx-80 2xl:px-72 flex-wrap">
-        Modern engineering teams need better ways to protect customer data
-        privacy when building applications. And legacy TDM providers were not
-        built for modern developers and devOps teams. Our mission is to empower
-        modern engineering teams to confidently build and test their
-        applications while protecting customer data privacy.
+        We are on a mission to introduce Synthetic Data Engineering. Modern
+        engineering teams need to balance protecting customer data privacy and
+        having usable data for testing and debugging. This is where synthetic
+        data comes into play. Synthetic data that statistically and
+        schematically looks like your production data is the best way to protect
+        customer data privacy while have production-like data to use for
+        testing. We aim to bring this to the world.
       </div>
     </div>
   );
@@ -39,7 +41,7 @@ function TeamSection(): ReactElement {
   const team = [
     {
       image:
-        'https://assets.nucleuscloud.com/blog/authorHeadshots/evis_square.png',
+        'https://assets.nucleuscloud.com/neosync/blog/authorHeadshots/evis_square.png',
       name: 'Evis Drenova',
       title: 'CEO & Co-Founder',
       prev: 'Lead PM @ Skyflow',
@@ -47,14 +49,15 @@ function TeamSection(): ReactElement {
     },
     {
       image:
-        'https://assets.nucleuscloud.com/blog/authorHeadshots/nick_headshot.png',
+        'https://assets.nucleuscloud.com/neosync/blog/authorHeadshots/nick_headshot.png',
       name: 'Nick Zelei',
       title: 'CTO & Co-Founder',
       prev: 'Staff Engineer @ Newfront',
       linkedin: 'https://www.linkedin.com/in/nick-zelei/',
     },
     {
-      image: 'https://assets.nucleuscloud.com/blog/authorHeadshots/alisha.png',
+      image:
+        'https://assets.nucleuscloud.com/neosync/blog/authorHeadshots/alisha.png',
       name: 'Alisha Kawaguchi',
       title: 'Founding Engineer',
       prev: 'Sr. Engineer @ Newfront',
