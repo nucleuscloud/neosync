@@ -547,14 +547,7 @@ func (b *benthosBuilder) buildProcessorConfigs(ctx context.Context, cols []*mgmt
 	var jsFunctions, benthosOutputs []string
 	var err error
 
-	for _, col := range cols {
-		if col.Transformer != nil && shouldProcessColumn(col.Transformer) {
-			//nolint:goconst
-			if col.Transformer.Source == "transform_javascript" {
-				jsFunctions, benthosOutputs = b.extractJsFunctionsAndOutputs(col, jsFunctions, benthosOutputs)
-			}
-		}
-	}
+	jsFunctions, benthosOutputs = b.extractJsFunctionsAndOutputs(cols, jsFunctions, benthosOutputs)
 
 	mutations, err := b.buildMutationConfigs(ctx, cols)
 	if err != nil {
@@ -571,13 +564,14 @@ func (b *benthosBuilder) buildProcessorConfigs(ctx context.Context, cols []*mgmt
 	}
 	return pc, err
 }
-
-func (b *benthosBuilder) extractJsFunctionsAndOutputs(col *mgmtv1alpha1.JobMapping, jsFunctions, benthosOutputs []string) ([]string, []string) {
-	if col.Transformer.Source == "transform_javascript" {
-		code := col.Transformer.Config.GetTransformJavascriptConfig().Code
-		if code != "" {
-			jsFunctions = append(jsFunctions, constructJsFunction(code, col.Column))
-			benthosOutputs = append(benthosOutputs, constructBenthosOutput(col.Column))
+func (b *benthosBuilder) extractJsFunctionsAndOutputs(cols []*mgmtv1alpha1.JobMapping, jsFunctions, benthosOutputs []string) (updatedJsFunctions []string, updatedBenthosOutputs []string) {
+	for _, col := range cols {
+		if col.Transformer != nil && col.Transformer.Source == "transform_javascript" {
+			code := col.Transformer.Config.GetTransformJavascriptConfig().Code
+			if code != "" {
+				jsFunctions = append(jsFunctions, constructJsFunction(code, col.Column))
+				benthosOutputs = append(benthosOutputs, constructBenthosOutput(col.Column))
+			}
 		}
 	}
 	return jsFunctions, benthosOutputs
