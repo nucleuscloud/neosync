@@ -52,10 +52,10 @@ export function getUserDefinedTransformerColumns(
         return (
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
-               <div>
-                  <NextLink
-                    className="hover:underline"
-                    href={`/${account?.name}/transformers/${transformer.id}`}
+              <div>
+                <NextLink
+                  className="hover:underline"
+                  href={`/${account?.name}/transformers/${transformer.id}`}
                 >
                   {row.original.name}
                 </NextLink>

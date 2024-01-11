@@ -44,10 +44,10 @@ export function getSystemTransformerColumns(): ColumnDef<
         return (
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
-            <div>
+              <div>
                 <NextLink
-                 className="hover:underline"
-                 href={`/${account?.name}/transformers/systemTransformers/${transformer.source}`}
+                  className="hover:underline"
+                  href={`/${account?.name}/transformers/systemTransformers/${transformer.source}`}
                 >
                   {row.original.name}
                 </NextLink>
