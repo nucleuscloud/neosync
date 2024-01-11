@@ -12,16 +12,14 @@ import NextLink from 'next/link';
 interface getSystemTransformerProps {
   account: {
     name: string;
-    // Add other properties specific to account
   };
   transformer: {
     source: string;
-    // Add other properties specific to transformer
   };
 }
-export function getSystemTransformerColumns(props: getSystemTransformerProps): ColumnDef<
-  PlainMessage<SystemTransformer>
->[] {
+export function getSystemTransformerColumns(
+  props: getSystemTransformerProps
+): ColumnDef<PlainMessage<SystemTransformer>>[] {
   const { account, transformer } = props;
   return [
     {

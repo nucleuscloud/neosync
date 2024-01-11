@@ -1,7 +1,6 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-
 import { Checkbox } from '@/components/ui/checkbox';
 import NextLink from 'next/link';
 import { Badge } from '@/components/ui/badge';
@@ -15,14 +14,11 @@ interface Props {
   onTransformerDeleted(id: string): void;
   account: {
     name: string;
-    // Add other properties specific to account
   };
   transformer: {
     id: string;
-    // Add other properties specific to transformer
   };
 }
-
 
 export function getUserDefinedTransformerColumns(
   props: Props
