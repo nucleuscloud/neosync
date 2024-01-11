@@ -99,3 +99,23 @@ Would return `johntest`. The code editor comes with autocomplete for most standa
 5. Once you are satisified with your custom code, click on the **Validate** button to ensure that your javascript compiles and is valid. If it does not compile, we will return an **invalid** error.
    ![valid](https://assets.nucleuscloud.com/neosync/docs/validcode.png)
 6. Once your code has compiled, click on **Submit** to save your custom code transformer. You can now use your custom code transformer in sync jobs.
+
+# Things to watch out for
+
+There are a few thing to watch out for as you're writing your custom code. One is that interpolations are a work in progress. For example:
+
+```javascript
+const iam = 'I am';
+const five = 5;
+return `${iam} ${five}`;
+```
+
+Won't work appropriately since the underlying system we use to compile and run the javascript doesn't recognize that. Instead you would have to do something like:
+
+```javascript
+const iam = 'I am';
+const five = 5;
+return hello + five.toString();
+```
+
+Calling the `toString()` method on the integer in order to return it correctlly. We're working on this and will update it once we have a fix.
