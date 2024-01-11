@@ -550,6 +550,7 @@ func (b *benthosBuilder) buildProcessorConfigs(ctx context.Context, cols []*mgmt
 
 	for _, col := range cols {
 		if col.Transformer != nil && shouldProcessColumn(col.Transformer) {
+			//nolint:goconst
 			if col.Transformer.Source == "transform_javascript" {
 				jsFunctions, benthosOutputs = b.extractJsFunctionsAndOutputs(cols)
 			} else {
@@ -564,9 +565,9 @@ func (b *benthosBuilder) buildProcessorConfigs(ctx context.Context, cols []*mgmt
 	return b.constructProcessorConfigs(mutations, jsFunctions, benthosOutputs), nil
 }
 
-func (b *benthosBuilder) extractJsFunctionsAndOutputs(cols []*mgmtv1alpha1.JobMapping) ([]string, []string) {
-	var jsFunctions, benthosOutputs []string
+func (b *benthosBuilder) extractJsFunctionsAndOutputs(cols []*mgmtv1alpha1.JobMapping) (jsFunctions, benthosOutputs []string) {
 	for _, col := range cols {
+		//nolint:goconst
 		if col.Transformer.Source == "transform_javascript" {
 			code := col.Transformer.Config.GetTransformJavascriptConfig().Code
 			if code != "" {
