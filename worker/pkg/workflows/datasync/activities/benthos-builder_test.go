@@ -430,6 +430,13 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg(t *testing.T) {
 		}, nil)
 	pgquerier.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
 		Return([]*pg_queries.GetForeignKeyConstraintsRow{}, nil)
+	pgquerier.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*pg_queries.GetPrimaryKeyConstraintsRow{{
+			SchemaName:     "public",
+			TableName:      "users",
+			ConstraintName: "name",
+			ColumnName:     "id",
+		}}, nil)
 	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
@@ -598,6 +605,13 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_Default(t *testing.T
 		}, nil)
 	pgquerier.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
 		Return([]*pg_queries.GetForeignKeyConstraintsRow{}, nil)
+	pgquerier.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*pg_queries.GetPrimaryKeyConstraintsRow{{
+			SchemaName:     "public",
+			TableName:      "users",
+			ConstraintName: "name",
+			ColumnName:     "id",
+		}}, nil)
 	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
@@ -802,6 +816,18 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 				ForeignColumnName: "id",
 			},
 		}, nil)
+	pgquerier.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*pg_queries.GetPrimaryKeyConstraintsRow{{
+			SchemaName:     "public",
+			TableName:      "users",
+			ConstraintName: "name",
+			ColumnName:     "id",
+		}, {
+			SchemaName:     "public",
+			TableName:      "user_account_associations",
+			ConstraintName: "acc_assoc_constraint",
+			ColumnName:     "id",
+		}}, nil)
 	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
@@ -1101,11 +1127,11 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 	assert.NotEmpty(t, resp.BenthosConfigs)
 	assert.Len(t, resp.BenthosConfigs, 3)
 
-	excludeConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users.exclude")
-	assert.NotNil(t, excludeConfig)
-	assert.Equal(t, excludeConfig.Name, "public.users.exclude")
-	assert.Empty(t, excludeConfig.DependsOn)
-	out, err := yaml.Marshal(excludeConfig.Config)
+	insertConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users.insert")
+	assert.NotNil(t, insertConfig)
+	assert.Equal(t, insertConfig.Name, "public.users.insert")
+	assert.Empty(t, insertConfig.DependsOn)
+	out, err := yaml.Marshal(insertConfig.Config)
 	assert.NoError(t, err)
 	assert.Equal(
 		t,
@@ -1144,11 +1170,11 @@ output:
 `),
 	)
 
-	includeConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users.include")
-	assert.NotNil(t, includeConfig)
-	assert.Equal(t, includeConfig.Name, "public.users.include")
-	assert.Equal(t, includeConfig.DependsOn, []*tabledependency.DependsOn{{Table: "public.user_account_associations", Columns: []string{"id"}}})
-	out1, err := yaml.Marshal(includeConfig.Config)
+	updateConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users.update")
+	assert.NotNil(t, updateConfig)
+	assert.Equal(t, updateConfig.Name, "public.users.update")
+	assert.Equal(t, updateConfig.DependsOn, []*tabledependency.DependsOn{{Table: "public.user_account_associations", Columns: []string{"id"}}})
+	out1, err := yaml.Marshal(updateConfig.Config)
 	assert.NoError(t, err)
 	assert.Equal(
 		t,
@@ -1161,8 +1187,8 @@ input:
         dsn: fake-prod-url
         table: public.users
         columns:
-            - id
             - user_assoc_id
+            - id
 buffer: null
 pipeline:
     threads: -1
@@ -1175,8 +1201,8 @@ output:
             - sql_raw:
                 driver: postgres
                 dsn: fake-stage-url
-                query: INSERT INTO public.users (id, user_assoc_id) VALUES ($1, $2) WHERE id = $3;
-                args_mapping: root = [this.id, this.user_assoc_id]
+                query: UPDATE public.users SET user_assoc_id = $1 WHERE id = $2;
+                args_mapping: root = [this.user_assoc_id, this.id]
                 init_statement: ""
                 batching:
                     count: 100
@@ -2181,7 +2207,7 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 		{Table: "public.users", DependsOn: []*tabledependency.DependsOn{}},
 	}
 
-	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts, dependencyConfigs, nil)
+	res, err := bbuilder.buildRelationalBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts, dependencyConfigs, nil)
 	assert.Nil(t, err)
 	assert.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)
 
@@ -2237,7 +2263,7 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 		{Table: "public.users", DependsOn: []*tabledependency.DependsOn{}},
 	}
 
-	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts, dependencyConfigs, nil)
+	res, err := bbuilder.buildRelationalBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts, dependencyConfigs, nil)
 	assert.Nil(t, err)
 	assert.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)
 
@@ -2299,7 +2325,7 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 		{Table: "public.users", DependsOn: []*tabledependency.DependsOn{}},
 	}
 
-	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts, dependencyConfigs, nil)
+	res, err := bbuilder.buildRelationalBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts, dependencyConfigs, nil)
 	assert.Nil(t, err)
 
 	out, err := yaml.Marshal(res[0].Config.Pipeline.Processors)

@@ -85,6 +85,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 			if !isConfigReady(bc, completed) {
 				continue
 			}
+
 			future := invokeSync(bc, childctx, started, completed, logger)
 			workselector.AddFuture(future, func(f workflow.Future) {
 				logger.Info("config sync completed", "name", bc.Name)
@@ -134,25 +135,16 @@ func invokeSync(
 			ctx,
 			wfActivites.Sync,
 			&datasync_activities.SyncRequest{BenthosConfig: string(configbits)}, metadata).Get(ctx, &result)
-		if config.IsRelational {
-			tn := fmt.Sprintf("%s.%s", config.TableSchema, config.TableName)
-			_, ok := completed[tn]
-			if ok {
-				completed[tn] = append(completed[tn], getConfigColumns(config)...)
-			} else {
-				completed[tn] = getConfigColumns(config)
-			}
+		tn := fmt.Sprintf("%s.%s", config.TableSchema, config.TableName)
+		_, ok := completed[tn]
+		if ok {
+			completed[tn] = append(completed[tn], config.Columns...)
+		} else {
+			completed[tn] = config.Columns
 		}
 		settable.Set(result, err)
 	})
 	return future
-}
-func getConfigColumns(config *datasync_activities.BenthosConfigResponse) []string {
-	if config.Config.Input.SqlSelect != nil {
-		return config.Config.Input.SqlSelect.Columns
-	}
-	// generate job don't need to keep track of cols
-	return []string{}
 }
 
 func isConfigReady(config *datasync_activities.BenthosConfigResponse, completed map[string][]string) bool {

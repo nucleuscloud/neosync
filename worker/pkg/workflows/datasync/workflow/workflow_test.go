@@ -99,12 +99,38 @@ func Test_Workflow_Follows_Synchronous_DependentFlow(t *testing.T) {
 			{
 				Name:      "public.users",
 				DependsOn: []*tabledependency.DependsOn{},
-				Config:    &neosync_benthos.BenthosConfig{},
-				Columns:   []string{"id"},
+				Config: &neosync_benthos.BenthosConfig{
+					StreamConfig: neosync_benthos.StreamConfig{
+						Input: &neosync_benthos.InputConfig{
+							Inputs: neosync_benthos.Inputs{
+								SqlSelect: &neosync_benthos.SqlSelect{
+									Columns: []string{"id"},
+								},
+							},
+						},
+					},
+				},
+				IsRelational: true,
+				TableSchema:  "public",
+				TableName:    "users",
 			},
 			{
 				Name:      "public.foo",
 				DependsOn: []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}},
+				Config: &neosync_benthos.BenthosConfig{
+					StreamConfig: neosync_benthos.StreamConfig{
+						Input: &neosync_benthos.InputConfig{
+							Inputs: neosync_benthos.Inputs{
+								SqlSelect: &neosync_benthos.SqlSelect{
+									Columns: []string{"id"},
+								},
+							},
+						},
+					},
+				},
+				IsRelational: true,
+				TableSchema:  "public",
+				TableName:    "foo",
 			},
 		}}, nil)
 	count := 0
@@ -147,21 +173,58 @@ func Test_Workflow_Follows_Multiple_Dependents(t *testing.T) {
 	env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything).
 		Return(&datasync_activities.GenerateBenthosConfigsResponse{BenthosConfigs: []*datasync_activities.BenthosConfigResponse{
 			{
-				Name:      "public.users",
-				DependsOn: []*tabledependency.DependsOn{},
-				Config:    &neosync_benthos.BenthosConfig{},
-				Columns:   []string{"id"},
+				Name:         "public.users",
+				DependsOn:    []*tabledependency.DependsOn{},
+				IsRelational: true,
+				TableSchema:  "public",
+				TableName:    "users",
+				Config: &neosync_benthos.BenthosConfig{
+					StreamConfig: neosync_benthos.StreamConfig{
+						Input: &neosync_benthos.InputConfig{
+							Inputs: neosync_benthos.Inputs{
+								SqlSelect: &neosync_benthos.SqlSelect{
+									Columns: []string{"id"},
+								},
+							},
+						},
+					},
+				},
 			},
 			{
-				Name:      "public.accounts",
-				DependsOn: []*tabledependency.DependsOn{},
-				Config:    &neosync_benthos.BenthosConfig{},
-				Columns:   []string{"id"},
+				Name:         "public.accounts",
+				DependsOn:    []*tabledependency.DependsOn{},
+				IsRelational: true,
+				TableSchema:  "public",
+				TableName:    "accounts",
+				Config: &neosync_benthos.BenthosConfig{
+					StreamConfig: neosync_benthos.StreamConfig{
+						Input: &neosync_benthos.InputConfig{
+							Inputs: neosync_benthos.Inputs{
+								SqlSelect: &neosync_benthos.SqlSelect{
+									Columns: []string{"id"},
+								},
+							},
+						},
+					},
+				},
 			},
 			{
-				Name:      "public.foo",
-				DependsOn: []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}, {Table: "public.accounts", Columns: []string{"id"}}},
-				Columns:   []string{"id"},
+				Name:         "public.foo",
+				DependsOn:    []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}, {Table: "public.accounts", Columns: []string{"id"}}},
+				IsRelational: true,
+				TableSchema:  "public",
+				TableName:    "foo",
+				Config: &neosync_benthos.BenthosConfig{
+					StreamConfig: neosync_benthos.StreamConfig{
+						Input: &neosync_benthos.InputConfig{
+							Inputs: neosync_benthos.Inputs{
+								SqlSelect: &neosync_benthos.SqlSelect{
+									Columns: []string{"id"},
+								},
+							},
+						},
+					},
+				},
 			},
 		}}, nil)
 	counter := atomic.NewInt32(0)
@@ -209,21 +272,58 @@ func Test_Workflow_Halts_Activities_OnError(t *testing.T) {
 	env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything).
 		Return(&datasync_activities.GenerateBenthosConfigsResponse{BenthosConfigs: []*datasync_activities.BenthosConfigResponse{
 			{
-				Name:      "public.users",
-				DependsOn: []*tabledependency.DependsOn{},
-				Config:    &neosync_benthos.BenthosConfig{},
-				Columns:   []string{"id"},
+				Name:         "public.users",
+				DependsOn:    []*tabledependency.DependsOn{},
+				IsRelational: true,
+				TableSchema:  "public",
+				TableName:    "users",
+				Config: &neosync_benthos.BenthosConfig{
+					StreamConfig: neosync_benthos.StreamConfig{
+						Input: &neosync_benthos.InputConfig{
+							Inputs: neosync_benthos.Inputs{
+								SqlSelect: &neosync_benthos.SqlSelect{
+									Columns: []string{"id"},
+								},
+							},
+						},
+					},
+				},
 			},
 			{
-				Name:      "public.accounts",
-				DependsOn: []*tabledependency.DependsOn{},
-				Config:    &neosync_benthos.BenthosConfig{},
-				Columns:   []string{"id"},
+				Name:         "public.accounts",
+				DependsOn:    []*tabledependency.DependsOn{},
+				IsRelational: true,
+				TableSchema:  "public",
+				TableName:    "accounts",
+				Config: &neosync_benthos.BenthosConfig{
+					StreamConfig: neosync_benthos.StreamConfig{
+						Input: &neosync_benthos.InputConfig{
+							Inputs: neosync_benthos.Inputs{
+								SqlSelect: &neosync_benthos.SqlSelect{
+									Columns: []string{"id"},
+								},
+							},
+						},
+					},
+				},
 			},
 			{
-				Name:      "public.foo",
-				DependsOn: []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}, {Table: "public.accounts", Columns: []string{"id"}}},
-				Columns:   []string{"id"},
+				Name:         "public.foo",
+				DependsOn:    []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}, {Table: "public.accounts", Columns: []string{"id"}}},
+				IsRelational: true,
+				TableSchema:  "public",
+				TableName:    "foo",
+				Config: &neosync_benthos.BenthosConfig{
+					StreamConfig: neosync_benthos.StreamConfig{
+						Input: &neosync_benthos.InputConfig{
+							Inputs: neosync_benthos.Inputs{
+								SqlSelect: &neosync_benthos.SqlSelect{
+									Columns: []string{"id"},
+								},
+							},
+						},
+					},
+				},
 			},
 		}}, nil)
 
