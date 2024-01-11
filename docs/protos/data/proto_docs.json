@@ -1420,6 +1420,18 @@
               "isoneof": true,
               "oneofdecl": "config",
               "defaultValue": ""
+            },
+            {
+              "name": "local_dir_config",
+              "description": "",
+              "label": "",
+              "type": "LocalDirectoryConnectionConfig",
+              "longType": "LocalDirectoryConnectionConfig",
+              "fullType": "mgmt.v1alpha1.LocalDirectoryConnectionConfig",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
             }
           ]
         },
@@ -1679,6 +1691,30 @@
               "type": "bool",
               "longType": "bool",
               "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "LocalDirectoryConnectionConfig",
+          "longName": "LocalDirectoryConnectionConfig",
+          "fullName": "mgmt.v1alpha1.LocalDirectoryConnectionConfig",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "path",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",

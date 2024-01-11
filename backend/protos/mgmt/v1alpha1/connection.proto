@@ -77,7 +77,12 @@ message ConnectionConfig {
     PostgresConnectionConfig pg_config = 1;
     AwsS3ConnectionConfig aws_s3_config = 2;
     MysqlConnectionConfig mysql_config = 3;
+    LocalDirectoryConnectionConfig local_dir_config = 4;
   }
+}
+
+message LocalDirectoryConnectionConfig {
+  string path = 1;
 }
 
 message PostgresConnectionConfig {
