@@ -4,7 +4,7 @@ export interface SystemAppConfig {
   posthog: PosthogConfig;
 }
 
-export interface PosthogConfig {
+interface PosthogConfig {
   enabled: boolean;
   key?: string;
   host: string;

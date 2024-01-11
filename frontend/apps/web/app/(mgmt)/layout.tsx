@@ -7,7 +7,7 @@ import { ThemeProvider } from '@/components/providers/theme-provider';
 import { fontSans } from '@/libs/fonts';
 import { cn } from '@/libs/utils';
 import { Metadata } from 'next';
-import { ReactElement, ReactNode, Suspense } from 'react';
+import { ReactElement, Suspense } from 'react';
 import BaseLayout from '../BaseLayout';
 
 export const metadata: Metadata = {
@@ -16,10 +16,10 @@ export const metadata: Metadata = {
   icons: [{ rel: 'icon', url: 'favicon.ico' }],
 };
 
-export default async function InviteLayout({
+export default async function RootLayout({
   children,
 }: {
-  children: ReactNode;
+  children: React.ReactNode;
 }): Promise<ReactElement> {
   return (
     <html lang="en" suppressHydrationWarning>

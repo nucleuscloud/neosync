@@ -11,6 +11,7 @@ services:
       - HOSTNAME=0.0.0.0
       - NUCLEUS_ENV=dev
       - NEXTAUTH_SECRET=foo
+      - NEXTAUTH_URL=http://localhost:3000
       - NEOSYNC_API_BASE_URL=http://api:8080
       - NEXT_PUBLIC_APP_BASE_URL=http://localhost:3000
 

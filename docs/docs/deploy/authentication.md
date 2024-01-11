@@ -7,7 +7,7 @@ slug: /deploy/authentication
 
 ## Introduction
 
-Authentication is a core pillar to a secure, productionalized deployment of Neosync.
+Authentication is a core pillar to a secure, productionized deployment of Neosync.
 By default, Neosync launches without requiring any form of authentication. This is to make getting started with Neosync easier, and it's not advised to run Neosync in production without any form of authentication.
 
 There are a few different authentication systems and play here, and this doc will detail what each one is, and why it exists.
@@ -15,7 +15,7 @@ There will also be a section for how to properly set up these systems properly.
 
 ## User Authentication
 
-This authentication is the primary form of authentication in the system. It is used to identify authenticating users in the system and what priviledges they have.
+This authentication is the primary form of authentication in the system. It is used to identify authenticating users in the system and what privileges they have.
 Today, this is quite simple and merely verifies their access token is valid and that they are operating against a Neosync account that a user resides in.
 
 In the future, it is planned to add more fine-grained authentication in the form of scopes. This will enable more granular authorization against specific actions in the system against targeted resources.
@@ -25,7 +25,7 @@ Internally, we utilize Auth0, and to date this is the only provider that has bee
 
 Environment variables must be provided for the App ad API to properly configure User Authentication.
 See the [environment variables](/deploy/environment-variables.md) page for the whole list of required auth env vars.
-The table shows that most of them are not required, however that is only ture if `AUTH_ENABLED` is set to false. They must be provided if `AUTH_ENABLED=true`.
+The table shows that most of them are not required, however that is only true if `AUTH_ENABLED` is set to false. They must be provided if `AUTH_ENABLED=true`.
 
 The descriptions of each environment variable detail exactly what the `AUTH_*` is and why it is needed.
 
@@ -52,7 +52,7 @@ The API expects the standard `Authorization` header to come in via the HTTP requ
 ### APP Auth Configuration
 
 The app requires a bit more configuration since there is also session management that occurs with the help of `next-auth`.
-Today, the App has only been tested with Auth0, however, theoretically any auth provider credentails could be put in for the environment variable values and it should work.
+Today, the App has only been tested with Auth0, however, theoretically any auth provider credentials could be entered for the environment variable values and it should work.
 We are working towards making this more generic to allow more providers like Keycloak, Google, etc.
 
 ## API Key Authentication

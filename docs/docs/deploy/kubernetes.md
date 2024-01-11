@@ -15,13 +15,13 @@ See the external dependency section below for more information regarding these r
 
 Neosync can be deployed to Kubernetes easily with the assistance of Helm charts.
 
-We currently publish four different helm charts for maximum flexibilty.
+We currently publish four different helm charts for maximum flexibility.
 This page will detail the purpose of each one and how it can be used to deploy to Kubernetes.
 
 All of our helm charts are deployed as OCI helm charts and require Helm3 to use.
 Our images are published directly to the Github Container registry at: `ghcr.io/nucleuscloud/neosync/helm`.
 
-When a release of Neosync is made, all of these reosurces are tagged and released at the same version.
+When a release of Neosync is made, all of these resources are tagged and released at the same version.
 If using the Neosync AIO chart at version `v1.0.0`, it will use `v1.0.0` of the api, app, and worker.
 
 ### API
@@ -162,7 +162,7 @@ spec:
 
 Each chart can set the value `ingress.enabled: true`
 This will generate a Kubernetes `Ingress` resource that is attached to each chart's service.
-See the `ingress.yaml` in each chart for a better understand of what is available there.
+See the `ingress.yaml` in each chart for a better understanding of what is available there.
 Each ingress has full support for specifying the classname and TLS options.
 
 ```yaml
