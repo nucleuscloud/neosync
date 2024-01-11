@@ -571,7 +571,7 @@ func (b *benthosBuilder) extractJsFunctionsAndOutputs(ctx context.Context, cols 
 	var jsFunctions []string
 
 	for _, col := range cols {
-		if col.Transformer != nil && col.Transformer.Source == "transform_javascript" {
+		if shouldProcessColumn(col.Transformer) {
 			if _, ok := col.Transformer.Config.Config.(*mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig); ok {
 				val, err := b.convertUserDefinedFunctionConfig(ctx, col.Transformer)
 				if err != nil {
@@ -579,10 +579,12 @@ func (b *benthosBuilder) extractJsFunctionsAndOutputs(ctx context.Context, cols 
 				}
 				col.Transformer = val
 			}
-			code := col.Transformer.Config.GetTransformJavascriptConfig().Code
-			if code != "" {
-				jsFunctions = append(jsFunctions, constructJsFunction(code, col.Column))
-				benthosOutputs = append(benthosOutputs, constructBenthosOutput(col.Column))
+			if col.Transformer.Source == "transform_javascript" {
+				code := col.Transformer.Config.GetTransformJavascriptConfig().Code
+				if code != "" {
+					jsFunctions = append(jsFunctions, constructJsFunction(code, col.Column))
+					benthosOutputs = append(benthosOutputs, constructBenthosOutput(col.Column))
+				}
 			}
 		}
 	}
