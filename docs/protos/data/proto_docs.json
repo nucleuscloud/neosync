@@ -1423,7 +1423,7 @@
             },
             {
               "name": "local_dir_config",
-              "description": "",
+              "description": "Configures a connection to a directory available on the local file system",
               "label": "",
               "type": "LocalDirectoryConnectionConfig",
               "longType": "LocalDirectoryConnectionConfig",
@@ -1702,7 +1702,7 @@
           "name": "LocalDirectoryConnectionConfig",
           "longName": "LocalDirectoryConnectionConfig",
           "fullName": "mgmt.v1alpha1.LocalDirectoryConnectionConfig",
-          "description": "",
+          "description": "Configures a connection to a directory available on the local file system",
           "hasExtensions": false,
           "hasFields": true,
           "hasOneofs": false,
@@ -1710,7 +1710,7 @@
           "fields": [
             {
               "name": "path",
-              "description": "",
+              "description": "The absolute path to a directory that is available on the local file system to the API and Worker nodes",
               "label": "",
               "type": "string",
               "longType": "string",

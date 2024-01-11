@@ -586,6 +586,8 @@ export class ConnectionConfig extends Message<ConnectionConfig> {
     case: "mysqlConfig";
   } | {
     /**
+     * Configures a connection to a directory available on the local file system
+     *
      * @generated from field: mgmt.v1alpha1.LocalDirectoryConnectionConfig local_dir_config = 4;
      */
     value: LocalDirectoryConnectionConfig;
@@ -624,10 +626,14 @@ export class ConnectionConfig extends Message<ConnectionConfig> {
 }
 
 /**
+ * Configures a connection to a directory available on the local file system
+ *
  * @generated from message mgmt.v1alpha1.LocalDirectoryConnectionConfig
  */
 export class LocalDirectoryConnectionConfig extends Message<LocalDirectoryConnectionConfig> {
   /**
+   * The absolute path to a directory that is available on the local file system to the API and Worker nodes
+   *
    * @generated from field: string path = 1;
    */
   path = "";
