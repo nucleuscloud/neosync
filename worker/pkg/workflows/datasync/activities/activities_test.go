@@ -303,7 +303,7 @@ output:
 	assert.Equal(t, `{"name":"sivetest"}`, returnValue)
 }
 
-func Test_buildProcessorConfigMutation(t *testing.T) {
+func Test_buildProcessorConfigsMutation(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
@@ -319,34 +319,33 @@ func Test_buildProcessorConfigMutation(t *testing.T) {
 	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
 	ctx := context.Background()
 
-	output, err := bbuilder.buildProcessorConfig(ctx, nil)
-
+	output, err := bbuilder.buildProcessorConfigs(ctx, nil)
 	assert.Nil(t, err)
-	assert.Empty(t, output.Mutation)
+	assert.Empty(t, output)
 
-	output, err = bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{})
+	output, err = bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{})
 	assert.Nil(t, err)
-	assert.Empty(t, output.Mutation)
+	assert.Empty(t, output)
 
-	output, err = bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
+	output, err = bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id"},
 	})
 	assert.Nil(t, err)
-	assert.Empty(t, output.Mutation)
+	assert.Empty(t, output)
 
-	output, err = bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
+	output, err = bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{}},
 	})
 	assert.Nil(t, err)
-	assert.Empty(t, output.Mutation)
+	assert.Empty(t, output)
 
-	output, err = bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
+	output, err = bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "passthrough"}},
 	})
 	assert.Nil(t, err)
-	assert.Empty(t, output.Mutation)
+	assert.Empty(t, output)
 
-	output, err = bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
+	output, err = bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "null", Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
 				Nullconfig: &mgmtv1alpha1.Null{},
@@ -360,7 +359,8 @@ func Test_buildProcessorConfigMutation(t *testing.T) {
 	})
 
 	assert.Nil(t, err)
-	assert.Equal(t, *output.Mutation, "root.id = null\nroot.name = null")
+
+	assert.Equal(t, *output[0].Mutation, "root.id = null\nroot.name = null")
 
 	jsT := mgmtv1alpha1.SystemTransformer{
 		Name:        "stage",
@@ -377,13 +377,13 @@ func Test_buildProcessorConfigMutation(t *testing.T) {
 		},
 	}
 
-	output, err = bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
+	output, err = bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}})
 
 	assert.Nil(t, err)
-	assert.Equal(t, *output.Mutation, `root.email = transform_email(email:this.email,preserve_domain:true,preserve_length:false)`)
+	assert.Equal(t, *output[0].Mutation, `root.email = transform_email(email:this.email,preserve_domain:true,preserve_length:false)`)
 
-	output, err = bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
+	output, err = bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "i_do_not_exist", Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
 				Nullconfig: &mgmtv1alpha1.Null{},
@@ -397,7 +397,7 @@ func Test_buildProcessorConfigMutation(t *testing.T) {
 
 const code = `var payload = value+=" hello";return payload;`
 
-func Test_buildProcessorConfigJavascript(t *testing.T) {
+func Test_buildProcessorConfigsJavascript(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
@@ -429,7 +429,7 @@ func Test_buildProcessorConfigJavascript(t *testing.T) {
 		},
 	}
 
-	res, err := bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
+	res, err := bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: col, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}})
 
 	assert.NoError(t, err)
@@ -445,13 +445,13 @@ const output = { ...input };
 output["address"] = fn_address(input["address"]);
 benthos.v0_msg_set_structured(output);
 })();`,
-		res.Javascript.Code,
+		res[0].Javascript.Code,
 	)
 }
 
 const col = "name"
 
-func Test_buildProcessorConfigJavascriptMultiLineScript(t *testing.T) {
+func Test_buildProcessorConfigsJavascriptMultiLineScript(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
@@ -486,7 +486,7 @@ func Test_buildProcessorConfigJavascriptMultiLineScript(t *testing.T) {
 		},
 	}
 
-	res, err := bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
+	res, err := bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: col, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}})
 
 	assert.NoError(t, err)
@@ -504,11 +504,11 @@ const output = { ...input };
 output["name"] = fn_name(input["name"]);
 benthos.v0_msg_set_structured(output);
 })();`,
-		res.Javascript.Code,
+		res[0].Javascript.Code,
 	)
 }
 
-func Test_buildProcessorConfigJavascriptMultiple(t *testing.T) {
+func Test_buildProcessorConfigsJavascriptMultiple(t *testing.T) {
 
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
@@ -556,7 +556,7 @@ func Test_buildProcessorConfigJavascriptMultiple(t *testing.T) {
 		},
 	}
 
-	res, err := bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
+	res, err := bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: col, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}},
 		{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}})
 
@@ -579,7 +579,7 @@ output["name"] = fn_name(input["name"]);
 output["age"] = fn_age(input["age"]);
 benthos.v0_msg_set_structured(output);
 })();`,
-		res.Javascript.Code,
+		res[0].Javascript.Code,
 	)
 }
 
@@ -661,7 +661,7 @@ func Test_ConstructBenthosOutput(t *testing.T) {
 	assert.Equal(t, `output["col"] = fn_col(input["col"]);`, res)
 }
 
-func Test_buildProcessorConfigJavascriptEmpty(t *testing.T) {
+func Test_buildProcessorConfigsJavascriptEmpty(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
@@ -691,11 +691,11 @@ func Test_buildProcessorConfigJavascriptEmpty(t *testing.T) {
 		},
 	}
 
-	resp, err := bbuilder.buildProcessorConfig(ctx, []*mgmtv1alpha1.JobMapping{
+	resp, err := bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}})
 
 	assert.NoError(t, err)
-	assert.Empty(t, resp.Javascript)
+	assert.Empty(t, resp)
 
 }
 

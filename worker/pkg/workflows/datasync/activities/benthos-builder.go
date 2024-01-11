@@ -591,12 +591,9 @@ func (b *benthosBuilder) buildBenthosGenerateSourceConfigResponses(
 			count = tableOpt.Count
 		}
 
-		mapping, err := b.buildProcessorConfig(ctx, tableMapping.Mappings)
+		mapping, err := b.buildMutationConfigs(ctx, tableMapping.Mappings)
 		if err != nil {
 			return nil, err
-		}
-		if mapping.Mutation == nil {
-			return nil, errors.New("unable to generate config mapping for table") // workshop this more
 		}
 
 		bc := &neosync_benthos.BenthosConfig{
@@ -606,7 +603,7 @@ func (b *benthosBuilder) buildBenthosGenerateSourceConfigResponses(
 						Generate: &neosync_benthos.Generate{
 							Interval: "",
 							Count:    count,
-							Mapping:  *mapping.Mutation,
+							Mapping:  mapping,
 						},
 					},
 				},

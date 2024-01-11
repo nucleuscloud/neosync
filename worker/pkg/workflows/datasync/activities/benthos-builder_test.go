@@ -1803,6 +1803,9 @@ func getBenthosConfigByName(resps []*BenthosConfigResponse, name string) *Bentho
 	return nil
 }
 
+var dsn = "dsn"
+var driver = "driver"
+
 func Test_ProcessorConfigEmpty(t *testing.T) {
 
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
@@ -1842,8 +1845,6 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 			},
 		}}
 
-	dsn := "dsn"
-	driver := "driver"
 	sourceTableOpts := map[string]*sqlSourceTableOptions{"where": {WhereClause: &dsn}}
 
 	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts)
@@ -1895,8 +1896,6 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 			},
 		}}
 
-	dsn := "dsn"
-	driver := "driver"
 	sourceTableOpts := map[string]*sqlSourceTableOptions{"where": {WhereClause: &dsn}}
 
 	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts)
@@ -1954,8 +1953,6 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 			},
 		}}
 
-	dsn := "test"
-	driver := "test"
 	sourceTableOpts := map[string]*sqlSourceTableOptions{"test": {WhereClause: &dsn}}
 
 	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts)
@@ -1988,14 +1985,82 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 	    `), strings.TrimSpace(string(out)))
 }
 
-// Generate -> S3
-// PG -> S3
-// Mysql -> S3
+func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
 
-// Generate -> PG, S3
-// Generate -> Mysql, S3
+	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
+	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
+	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 
-// PG -> PG, S3
-// Mysql -> Mysql, S3
+	pgcache := map[string]pg_queries.DBTX{
+		"fake-prod-url":  pg_queries.NewMockDBTX(t),
+		"fake-stage-url": pg_queries.NewMockDBTX(t),
+	}
+	pgquerier := pg_queries.NewMockQuerier(t)
+	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlquerier := mysql_queries.NewMockQuerier(t)
 
-// Generate w/ FK Constraints
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+
+	tableMappings := []*TableMapping{
+		{Schema: "public",
+			Table: "users",
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "public",
+					Table:  "users",
+					Column: "email",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_email",
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_GenerateEmailConfig{
+								GenerateEmailConfig: &mgmtv1alpha1.GenerateEmail{},
+							},
+						},
+					},
+				},
+				{
+					Schema: "public",
+					Table:  "users",
+					Column: "first_name",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "transform_javascript",
+						Config: &mgmtv1alpha1.TransformerConfig{
+							Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
+								TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{Code: `var payload = value + " firstname";return payload;`},
+							},
+						},
+					},
+				},
+			},
+		}}
+
+	sourceTableOpts := map[string]*sqlSourceTableOptions{"test": {WhereClause: &dsn}}
+
+	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts)
+
+	assert.Nil(t, err)
+
+	assert.Len(t, res[0].Config.Pipeline.Processors, 2)
+
+	out, err := yaml.Marshal(res[0].Config.Pipeline.Processors)
+	assert.NoError(t, err)
+	assert.Equal(
+		t,
+		strings.TrimSpace(`
+- mutation: root.email = generate_email()
+- javascript:
+    code: |4-
+        (() => {
+
+        function fn_first_name(value){
+          var payload = value + " firstname";return payload;
+        };
+
+        const input = benthos.v0_msg_as_structured();
+        const output = { ...input };
+        output["first_name"] = fn_first_name(input["first_name"]);
+        benthos.v0_msg_set_structured(output);
+        })();
+	    `), strings.TrimSpace(string(out)))
+
+}
