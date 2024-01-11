@@ -13,12 +13,21 @@ import { DataTableRowActions } from './data-table-row-actions';
 
 interface Props {
   onTransformerDeleted(id: string): void;
+  account: {
+    name: string;
+    // Add other properties specific to account
+  };
+  transformer: {
+    id: string;
+    // Add other properties specific to transformer
+  };
 }
+
 
 export function getUserDefinedTransformerColumns(
   props: Props
 ): ColumnDef<PlainMessage<UserDefinedTransformer>>[] {
-  const { onTransformerDeleted } = props;
+  const { onTransformerDeleted, account, transformer } = props;
 
   return [
     {

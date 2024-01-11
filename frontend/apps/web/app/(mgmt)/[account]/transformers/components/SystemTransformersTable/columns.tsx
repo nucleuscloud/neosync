@@ -9,9 +9,20 @@ import { DataTableColumnHeader } from './data-table-column-header';
 import { DataTableRowActions } from './data-table-row-actions';
 import NextLink from 'next/link';
 
-export function getSystemTransformerColumns(): ColumnDef<
+interface getSystemTransformerProps {
+  account: {
+    name: string;
+    // Add other properties specific to account
+  };
+  transformer: {
+    source: string;
+    // Add other properties specific to transformer
+  };
+}
+export function getSystemTransformerColumns(props: getSystemTransformerProps): ColumnDef<
   PlainMessage<SystemTransformer>
 >[] {
+  const { account, transformer } = props;
   return [
     {
       id: 'select',
