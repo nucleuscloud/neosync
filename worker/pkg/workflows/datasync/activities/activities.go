@@ -175,8 +175,6 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 			return nil, err
 		}
 
-		fmt.Println("process", processorConfigs)
-
 		for _, pc := range processorConfigs {
 			bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *pc)
 		}
@@ -369,8 +367,6 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncM
 		"benthos", "true",
 	))
 
-	fmt.Println("req", req.BenthosConfig)
-
 	err := streambldr.SetYAML(req.BenthosConfig)
 	if err != nil {
 		return nil, fmt.Errorf("unable to convert benthos config to yaml for stream builder: %w", err)
@@ -559,8 +555,6 @@ func (b *benthosBuilder) buildProcessorConfigs(ctx context.Context, cols []*mgmt
 		return nil, err
 	}
 
-	fmt.Println("js", jsCode)
-
 	var processorConfigs []*neosync_benthos.ProcessorConfig
 	if len(mutations) > 0 {
 		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Mutation: &mutations})
@@ -577,16 +571,15 @@ func (b *benthosBuilder) extractJsFunctionsAndOutputs(ctx context.Context, cols 
 	var jsFunctions []string
 
 	for _, col := range cols {
-		if _, ok := col.Transformer.Config.Config.(*mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig); ok {
-			val, err := b.convertUserDefinedFunctionConfig(ctx, col.Transformer)
-			if err != nil {
-				return "", errors.New("unable to look up user defined transformer config by id")
-			}
-			col.Transformer = val
-		}
 		if col.Transformer != nil && col.Transformer.Source == "transform_javascript" {
+			if _, ok := col.Transformer.Config.Config.(*mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig); ok {
+				val, err := b.convertUserDefinedFunctionConfig(ctx, col.Transformer)
+				if err != nil {
+					return "", errors.New("unable to look up user defined transformer config by id")
+				}
+				col.Transformer = val
+			}
 			code := col.Transformer.Config.GetTransformJavascriptConfig().Code
-			fmt.Println("code", code)
 			if code != "" {
 				jsFunctions = append(jsFunctions, constructJsFunction(code, col.Column))
 				benthosOutputs = append(benthosOutputs, constructBenthosOutput(col.Column))
