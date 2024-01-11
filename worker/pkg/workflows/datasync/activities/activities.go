@@ -44,11 +44,12 @@ type GenerateBenthosConfigsResponse struct {
 }
 
 type BenthosConfigResponse struct {
-	Name        string
-	DependsOn   []*tabledependency.DependsOn
-	Config      *neosync_benthos.BenthosConfig
-	TableSchema string
-	TableName   string
+	Name         string
+	DependsOn    []*tabledependency.DependsOn
+	Config       *neosync_benthos.BenthosConfig
+	TableSchema  string
+	TableName    string
+	IsRelational bool
 
 	primaryKeys   []string
 	updateColumns []string
@@ -122,7 +123,83 @@ type sqlSourceTableOptions struct {
 	WhereClause *string
 }
 
-func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
+func (b *benthosBuilder) buildNonRelationalBenthosSqlSourceConfigResponses(
+	ctx context.Context,
+	mappings []*TableMapping,
+	dsn string,
+	driver string,
+	sourceTableOpts map[string]*sqlSourceTableOptions,
+) ([]*BenthosConfigResponse, error) {
+	responses := []*BenthosConfigResponse{}
+
+	for i := range mappings {
+		tableMapping := mappings[i]
+		cols := buildPlainColumns(tableMapping.Mappings)
+		if areAllColsNull(tableMapping.Mappings) {
+			// skipping table as no columns are mapped
+			continue
+		}
+
+		tableName := neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table)
+		var where string
+		tableOpt := sourceTableOpts[tableName]
+		if tableOpt != nil && tableOpt.WhereClause != nil {
+			where = *tableOpt.WhereClause
+		}
+
+		bc := &neosync_benthos.BenthosConfig{
+			StreamConfig: neosync_benthos.StreamConfig{
+				Input: &neosync_benthos.InputConfig{
+					Inputs: neosync_benthos.Inputs{
+						SqlSelect: &neosync_benthos.SqlSelect{
+							Driver: driver,
+							Dsn:    dsn,
+
+							Table:   tableName,
+							Where:   where,
+							Columns: cols,
+						},
+					},
+				},
+				Pipeline: &neosync_benthos.PipelineConfig{
+					Threads:    -1,
+					Processors: []neosync_benthos.ProcessorConfig{},
+				},
+				Output: &neosync_benthos.OutputConfig{
+					Outputs: neosync_benthos.Outputs{
+						Broker: &neosync_benthos.OutputBrokerConfig{
+							Pattern: "fan_out",
+							Outputs: []neosync_benthos.Outputs{},
+						},
+					},
+				},
+			},
+		}
+
+		processorConfig, err := b.buildProcessorConfig(ctx, tableMapping.Mappings)
+		if err != nil {
+			return nil, err
+		}
+
+		if (processorConfig.Mutation != nil && *processorConfig.Mutation != "") ||
+			(processorConfig.Javascript != nil && processorConfig.Javascript.Code != "") {
+			bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *processorConfig)
+		}
+
+		responses = append(responses, &BenthosConfigResponse{
+			Name:      fmt.Sprintf("%s.nonrelational", tableName), // todo: may need to expand on this
+			Config:    bc,
+			DependsOn: []*tabledependency.DependsOn{},
+
+			TableSchema: tableMapping.Schema,
+			TableName:   tableMapping.Table,
+		})
+	}
+
+	return responses, nil
+}
+
+func (b *benthosBuilder) buildRelationalBenthosSqlSourceConfigResponses(
 	ctx context.Context,
 	mappings []*TableMapping,
 	dsn string,
@@ -246,9 +323,10 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 				}
 
 				responses = append(responses, &BenthosConfigResponse{
-					Name:      configName,
-					Config:    bc,
-					DependsOn: cfg.DependsOn,
+					Name:         configName,
+					Config:       bc,
+					DependsOn:    cfg.DependsOn,
+					IsRelational: true,
 
 					TableSchema:   tableMapping.Schema,
 					TableName:     tableMapping.Table,
@@ -301,9 +379,10 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 			}
 
 			responses = append(responses, &BenthosConfigResponse{
-				Name:      tableName,
-				Config:    bc,
-				DependsOn: cfg.DependsOn,
+				Name:         tableName,
+				Config:       bc,
+				DependsOn:    cfg.DependsOn,
+				IsRelational: true,
 
 				TableSchema: tableMapping.Schema,
 				TableName:   tableMapping.Table,

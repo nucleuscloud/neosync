@@ -72,7 +72,9 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	if err != nil {
 		return nil, err
 	}
-	responses := []*BenthosConfigResponse{}
+	relationalConfigs := []*BenthosConfigResponse{}
+	nonrelationalConfigs := []*BenthosConfigResponse{}
+	allResponses := []*BenthosConfigResponse{}
 
 	groupedMappings := groupMappingsByTable(job.Mappings)
 	groupedTableMapping := map[string]*TableMapping{}
@@ -88,7 +90,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		if err != nil {
 			return nil, err
 		}
-		responses = append(responses, sourceResponses...)
+		relationalConfigs = append(relationalConfigs, sourceResponses...)
 
 	case *mgmtv1alpha1.JobSourceOptions_Postgres:
 		sourceConnection, err := b.getConnectionById(ctx, jobSourceConfig.Postgres.ConnectionId)
@@ -131,11 +133,17 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, err
 		}
 
-		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, dsn, "postgres", sourceTableOpts, dependencyConfigs, primaryKeys)
+		relationalSourceResponses, err := b.buildRelationalBenthosSqlSourceConfigResponses(ctx, groupedMappings, dsn, "postgres", sourceTableOpts, dependencyConfigs, primaryKeys)
 		if err != nil {
 			return nil, err
 		}
-		responses = append(responses, sourceResponses...)
+		relationalConfigs = append(relationalConfigs, relationalSourceResponses...)
+
+		nonrelationalSourceResponses, err := b.buildNonRelationalBenthosSqlSourceConfigResponses(ctx, groupedMappings, dsn, "postgres", sourceTableOpts)
+		if err != nil {
+			return nil, err
+		}
+		nonrelationalConfigs = append(nonrelationalConfigs, nonrelationalSourceResponses...)
 
 		// validate job mappings align with sql connections
 		dbschemas, err := b.pgquerier.GetDatabaseSchema(ctx, pool)
@@ -195,11 +203,17 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, err
 		}
 
-		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, dsn, "mysql", sourceTableOpts, dependencyConfigs, primaryKeys)
+		relationalSourceResponses, err := b.buildRelationalBenthosSqlSourceConfigResponses(ctx, groupedMappings, dsn, "mysql", sourceTableOpts, dependencyConfigs, primaryKeys)
 		if err != nil {
 			return nil, err
 		}
-		responses = append(responses, sourceResponses...)
+		relationalConfigs = append(relationalConfigs, relationalSourceResponses...)
+
+		nonrelationalSourceResponses, err := b.buildNonRelationalBenthosSqlSourceConfigResponses(ctx, groupedMappings, dsn, "mysql", sourceTableOpts)
+		if err != nil {
+			return nil, err
+		}
+		nonrelationalConfigs = append(nonrelationalConfigs, nonrelationalSourceResponses...)
 
 		// validate job mappings align with sql connections
 		dbschemas, err := b.mysqlquerier.GetDatabaseSchema(ctx, pool)
@@ -226,7 +240,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		if err != nil {
 			return nil, err
 		}
-		for _, resp := range responses {
+		for _, resp := range relationalConfigs {
 			switch connection := destinationConnection.ConnectionConfig.Config.(type) {
 			case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 				dsn, err := getPgDsn(connection.PgConfig)
@@ -299,6 +313,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 							},
 						},
 					})
+					allResponses = append(allResponses, resp)
 				} else if resp.Config.Input.Generate != nil {
 					tableKey := neosync_benthos.BuildBenthosTable(resp.TableSchema, resp.TableName)
 					tm := groupedTableMapping[tableKey]
@@ -344,6 +359,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 							},
 						},
 					})
+					allResponses = append(allResponses, resp)
 
 				} else {
 					return nil, errors.New("unable to build destination connection due to unsupported source connection")
@@ -414,6 +430,8 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 							},
 						},
 					})
+					allResponses = append(allResponses, resp)
+
 				} else if resp.Config.Input.Generate != nil {
 					tableKey := neosync_benthos.BuildBenthosTable(resp.TableSchema, resp.TableName)
 					tm := groupedTableMapping[tableKey]
@@ -458,10 +476,17 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 							},
 						},
 					})
+					allResponses = append(allResponses, resp)
+
 				} else {
 					return nil, errors.New("unable to build destination connection due to unsupported source connection")
 				}
 
+			default:
+			}
+		}
+		for _, resp := range nonrelationalConfigs {
+			switch connection := destinationConnection.ConnectionConfig.Config.(type) {
 			case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
 				s3pathpieces := []string{}
 				if connection.AwsS3Config.PathPrefix != nil && *connection.AwsS3Config.PathPrefix != "" {
@@ -473,7 +498,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					"workflows",
 					req.WorkflowId,
 					"activities",
-					resp.Name, // may need to do more here
+					neosync_benthos.BuildBenthosTable(resp.TableSchema, resp.TableName),
 					"data",
 					`${!count("files")}.txt.gz`,
 				)
@@ -497,14 +522,14 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						Endpoint:    connection.AwsS3Config.GetEndpoint(),
 					},
 				})
+				allResponses = append(allResponses, resp)
 			default:
-				return nil, fmt.Errorf("unsupported destination connection config")
 			}
 		}
 	}
 
 	return &GenerateBenthosConfigsResponse{
-		BenthosConfigs: responses,
+		BenthosConfigs: allResponses,
 	}, nil
 }
 

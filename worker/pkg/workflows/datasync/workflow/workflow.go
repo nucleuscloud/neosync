@@ -1,7 +1,6 @@
 package datasync_workflow
 
 import (
-	"encoding/json"
 	"fmt"
 	"slices"
 	"strings"
@@ -49,8 +48,6 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	completed := map[string][]string{}
 
 	workselector := workflow.NewSelector(ctx)
-	jsonF, _ := json.MarshalIndent(bcResp.BenthosConfigs, "", " ")
-	fmt.Printf("\n\n  %s \n\n", string(jsonF))
 
 	splitConfigs := splitBenthosConfigs(bcResp.BenthosConfigs)
 	var activityErr error
@@ -137,13 +134,14 @@ func invokeSync(
 			ctx,
 			wfActivites.Sync,
 			&datasync_activities.SyncRequest{BenthosConfig: string(configbits)}, metadata).Get(ctx, &result)
-		tn := fmt.Sprintf("%s.%s", config.TableSchema, config.TableName)
-		completed[tn] = []string{}
-		_, ok := completed[tn]
-		if ok {
-			completed[tn] = append(completed[tn], getConfigColumns(config)...)
-		} else {
-			completed[tn] = getConfigColumns(config)
+		if config.IsRelational {
+			tn := fmt.Sprintf("%s.%s", config.TableSchema, config.TableName)
+			_, ok := completed[tn]
+			if ok {
+				completed[tn] = append(completed[tn], getConfigColumns(config)...)
+			} else {
+				completed[tn] = getConfigColumns(config)
+			}
 		}
 		settable.Set(result, err)
 	})
