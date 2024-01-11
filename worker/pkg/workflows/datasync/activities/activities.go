@@ -544,27 +544,28 @@ func getMysqlDsn(
 }
 
 func (b *benthosBuilder) buildProcessorConfigs(ctx context.Context, cols []*mgmtv1alpha1.JobMapping) ([]*neosync_benthos.ProcessorConfig, error) {
-	var jsFunctions, benthosOutputs []string
-	var err error
 
-	jsFunctions, benthosOutputs = b.extractJsFunctionsAndOutputs(cols, jsFunctions, benthosOutputs)
+	jsCode := b.extractJsFunctionsAndOutputs(cols)
 
 	mutations, err := b.buildMutationConfigs(ctx, cols)
 	if err != nil {
 		return nil, err
 	}
 
-	var pc []*neosync_benthos.ProcessorConfig
+	var processorConfigs []*neosync_benthos.ProcessorConfig
 	if len(mutations) > 0 {
-		pc = append(pc, &neosync_benthos.ProcessorConfig{Mutation: &mutations})
+		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Mutation: &mutations})
 	}
-	if len(jsFunctions) > 0 {
-		javascriptConfig := neosync_benthos.JavascriptConfig{Code: constructBenthosJsProcessor(jsFunctions, benthosOutputs)}
-		pc = append(pc, &neosync_benthos.ProcessorConfig{Javascript: &javascriptConfig})
+	if len(jsCode) > 0 {
+		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Javascript: &neosync_benthos.JavascriptConfig{Code: jsCode}})
 	}
-	return pc, err
+	return processorConfigs, err
 }
-func (b *benthosBuilder) extractJsFunctionsAndOutputs(cols []*mgmtv1alpha1.JobMapping, jsFunctions, benthosOutputs []string) (updatedJsFunctions []string, updatedBenthosOutputs []string) {
+
+func (b *benthosBuilder) extractJsFunctionsAndOutputs(cols []*mgmtv1alpha1.JobMapping) string {
+	var benthosOutputs []string
+	var jsFunctions []string
+
 	for _, col := range cols {
 		if col.Transformer != nil && col.Transformer.Source == "transform_javascript" {
 			code := col.Transformer.Config.GetTransformJavascriptConfig().Code
@@ -574,7 +575,13 @@ func (b *benthosBuilder) extractJsFunctionsAndOutputs(cols []*mgmtv1alpha1.JobMa
 			}
 		}
 	}
-	return jsFunctions, benthosOutputs
+
+	if len(jsFunctions) > 0 {
+		return constructBenthosJsProcessor(jsFunctions, benthosOutputs)
+	} else {
+		return ""
+	}
+
 }
 
 func (b *benthosBuilder) buildMutationConfigs(ctx context.Context, cols []*mgmtv1alpha1.JobMapping) (string, error) {

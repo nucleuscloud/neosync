@@ -320,7 +320,6 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 	ctx := context.Background()
 
 	output, err := bbuilder.buildProcessorConfigs(ctx, nil)
-
 	assert.Nil(t, err)
 	assert.Empty(t, output)
 
