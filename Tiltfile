@@ -23,6 +23,7 @@ for arg in cfg.get('to-run', []):
 config.set_enabled_resources(resources)
 
 load_dynamic('tilt/temporal/Tiltfile')
+load_dynamic('tilt/metrics-server/Tiltfile')
 load_dynamic('backend/Tiltfile')
 load_dynamic('frontend/Tiltfile')
 load_dynamic('worker/Tiltfile')
