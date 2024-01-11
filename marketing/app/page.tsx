@@ -121,7 +121,7 @@ function TableTypes(): ReactElement {
           alt="pre"
           width="436"
           height="416"
-          className="w-[280px] h-auto"
+          className="w-[240px] h-auto"
         />
       ),
     },
@@ -150,14 +150,16 @@ function TableTypes(): ReactElement {
           {tableTypes.map((item) => (
             <div
               key={item.name}
-              className="justify-center border border-gray-400 bg-white shadow-lg rounded-xl p-6 lg:w-[800px] lg:h-[400px]"
+              className="justify-between  border border-gray-400 bg-white shadow-lg rounded-xl p-6 lg:w-[800px] lg:h-[400px]"
             >
               <div className="justify-center flex">{item.image}</div>
-              <div className="text-xl text-gray-800 font-satoshi font-semibold pt-10">
-                {item.name}
-              </div>
-              <div className=" text-gray-600 font-satoshi pt-4 ">
-                {item.description}
+              <div>
+                <div className="text-xl text-gray-800 font-satoshi font-semibold pt-10">
+                  {item.name}
+                </div>
+                <div className=" text-gray-600 font-satoshi pt-4 ">
+                  {item.description}
+                </div>
               </div>
             </div>
           ))}

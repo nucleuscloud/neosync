@@ -90,7 +90,7 @@ export default function UserDefinedTransformJavascriptForm(
           <FormItem>
             <div className="flex flex-row justify-between">
               <div className="space-y-0.5">
-                <FormLabel>Custom Code</FormLabel>
+                <FormLabel>Transformer Code</FormLabel>
                 <div className="text-[0.8rem] text-muted-foreground">
                   Define your own Transformation below using Javascript. The
                   input value will be available at the{' '}
