@@ -24,6 +24,65 @@ func (_m *MockAuthServiceClient) EXPECT() *MockAuthServiceClient_Expecter {
 	return &MockAuthServiceClient_Expecter{mock: &_m.Mock}
 }
 
+// CheckToken provides a mock function with given fields: _a0, _a1
+func (_m *MockAuthServiceClient) CheckToken(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.CheckTokenRequest]) (*connect.Response[mgmtv1alpha1.CheckTokenResponse], error) {
+	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CheckToken")
+	}
+
+	var r0 *connect.Response[mgmtv1alpha1.CheckTokenResponse]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.CheckTokenRequest]) (*connect.Response[mgmtv1alpha1.CheckTokenResponse], error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.CheckTokenRequest]) *connect.Response[mgmtv1alpha1.CheckTokenResponse]); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.CheckTokenResponse])
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.CheckTokenRequest]) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockAuthServiceClient_CheckToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CheckToken'
+type MockAuthServiceClient_CheckToken_Call struct {
+	*mock.Call
+}
+
+// CheckToken is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *connect.Request[mgmtv1alpha1.CheckTokenRequest]
+func (_e *MockAuthServiceClient_Expecter) CheckToken(_a0 interface{}, _a1 interface{}) *MockAuthServiceClient_CheckToken_Call {
+	return &MockAuthServiceClient_CheckToken_Call{Call: _e.mock.On("CheckToken", _a0, _a1)}
+}
+
+func (_c *MockAuthServiceClient_CheckToken_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.CheckTokenRequest])) *MockAuthServiceClient_CheckToken_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.CheckTokenRequest]))
+	})
+	return _c
+}
+
+func (_c *MockAuthServiceClient_CheckToken_Call) Return(_a0 *connect.Response[mgmtv1alpha1.CheckTokenResponse], _a1 error) *MockAuthServiceClient_CheckToken_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockAuthServiceClient_CheckToken_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.CheckTokenRequest]) (*connect.Response[mgmtv1alpha1.CheckTokenResponse], error)) *MockAuthServiceClient_CheckToken_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetAuthStatus provides a mock function with given fields: _a0, _a1
 func (_m *MockAuthServiceClient) GetAuthStatus(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetAuthStatusRequest]) (*connect.Response[mgmtv1alpha1.GetAuthStatusResponse], error) {
 	ret := _m.Called(_a0, _a1)

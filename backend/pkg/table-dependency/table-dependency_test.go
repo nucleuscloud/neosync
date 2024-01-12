@@ -1,6 +1,7 @@
 package tabledependency
 
 import (
+	"sort"
 	"testing"
 
 	dbschemas "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
@@ -82,6 +83,13 @@ func Test_FindCircularDependencies(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			actual := findCircularDependencies(tt.dependencies)
+
+			for i := range actual {
+				sort.Strings(actual[i])
+			}
+			for i := range tt.expect {
+				sort.Strings(tt.expect[i])
+			}
 
 			assert.Len(t, tt.expect, len(actual))
 			assert.ElementsMatch(t, tt.expect, actual)
@@ -336,6 +344,51 @@ func Test_GetRunConfigs(t *testing.T) {
 				{Table: "public.d", Columns: &SyncColumn{Exclude: []string{"e_id"}}, DependsOn: []*DependsOn{}},
 				{Table: "public.e", DependsOn: []*DependsOn{{Table: "public.d", Columns: []string{"id"}}}},
 				{Table: "public.d", Columns: &SyncColumn{Include: []string{"e_id"}}, DependsOn: []*DependsOn{{Table: "public.e", Columns: []string{"id"}}}},
+			},
+		},
+		{
+			name: "Subset of tables",
+			dependencies: dbschemas.TableDependency{
+				"public.a": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "b_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
+					},
+				},
+				"public.b": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "c_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
+					},
+				},
+				"public.c": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
+					},
+				},
+			},
+			tables: []string{"public.b", "public.c"},
+			expect: []*RunConfig{
+				{Table: "public.c", DependsOn: []*DependsOn{}},
+				{Table: "public.b", DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+			},
+		},
+		{
+			name: "Two Table Circular Dependency None Nullable",
+			dependencies: dbschemas.TableDependency{
+				"public.a": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "b_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
+					},
+				},
+				"public.b": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
+					},
+				},
+			},
+			tables: []string{"public.a", "public.b"},
+			expect: []*RunConfig{
+				{Table: "public.a", DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
+				{Table: "public.b", DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
 			},
 		},
 	}

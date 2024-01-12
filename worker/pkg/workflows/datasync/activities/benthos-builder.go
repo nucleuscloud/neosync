@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	"connectrpc.com/connect"
@@ -16,6 +17,7 @@ import (
 	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	dbschemas_mysql "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/mysql"
 	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/postgres"
+	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	"golang.org/x/sync/errgroup"
 
@@ -78,6 +80,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	for _, tm := range groupedMappings {
 		groupedTableMapping[neosync_benthos.BuildBenthosTable(tm.Schema, tm.Table)] = tm
 	}
+	uniqueSchemas := getUniqueSchemasFromMappings(job.Mappings)
 
 	switch jobSourceConfig := job.Source.Options.Config.(type) {
 	case *mgmtv1alpha1.JobSourceOptions_Generate:
@@ -87,84 +90,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, err
 		}
 		responses = append(responses, sourceResponses...)
-
-		if jobSourceConfig.Generate.FkSourceConnectionId != nil {
-			fkConnectionResp, err := b.connclient.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{Id: *jobSourceConfig.Generate.FkSourceConnectionId}))
-			if err != nil {
-				return nil, err
-			}
-			connection := fkConnectionResp.Msg.Connection
-
-			var td dbschemas_utils.TableDependency
-			switch fkconnconfig := connection.ConnectionConfig.Config.(type) {
-			case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-				pgconfig := fkconnconfig.PgConfig
-				if pgconfig == nil {
-					return nil, errors.New("source connection is not a postgres config")
-				}
-				dsn, err := getPgDsn(pgconfig)
-				if err != nil {
-					return nil, err
-				}
-
-				if _, ok := b.pgpool[dsn]; !ok {
-					pool, err := pgxpool.New(ctx, dsn)
-					if err != nil {
-						return nil, err
-					}
-					defer pool.Close()
-					b.pgpool[dsn] = pool
-				}
-				pool := b.pgpool[dsn]
-
-				allConstraints, err := b.getAllPostgresFkConstraintsFromMappings(ctx, pool, job.Mappings)
-				if err != nil {
-					return nil, err
-				}
-				td = dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
-			case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-				mysqlconfig := fkconnconfig.MysqlConfig
-				if mysqlconfig == nil {
-					return nil, errors.New("source connection is not a mysql config")
-				}
-				dsn, err := getMysqlDsn(mysqlconfig)
-				if err != nil {
-					return nil, err
-				}
-				if _, ok := b.mysqlpool[dsn]; !ok {
-					pool, err := sql.Open("mysql", dsn)
-					if err != nil {
-						return nil, err
-					}
-					defer pool.Close()
-					b.mysqlpool[dsn] = pool
-				}
-				pool := b.mysqlpool[dsn]
-
-				allConstraints, err := b.getAllMysqlFkConstraintsFromMappings(ctx, pool, job.Mappings)
-				if err != nil {
-					return nil, err
-				}
-				td = dbschemas_mysql.GetMysqlTableDependencies(allConstraints)
-			default:
-				return nil, errors.New("unsupported fk connection")
-			}
-
-			constraintMap := dbschemas_utils.BuildDependsOnSlice(td)
-			for _, resp := range responses {
-				dependsOn, ok := constraintMap[resp.Name]
-				if ok {
-					// remove circular dependencies to allow job to run
-					filteredDependsOn := []string{}
-					for _, t := range dependsOn {
-						if t != resp.Name {
-							filteredDependsOn = append(filteredDependsOn, t)
-						}
-					}
-					resp.DependsOn = filteredDependsOn
-				}
-			}
-		}
 
 	case *mgmtv1alpha1.JobSourceOptions_Postgres:
 		sourceConnection, err := b.getConnectionById(ctx, jobSourceConfig.Postgres.ConnectionId)
@@ -217,19 +142,50 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, errors.New(msg)
 		}
 
-		allConstraints, err := b.getAllPostgresFkConstraintsFromMappings(ctx, pool, job.Mappings)
+		allConstraints, err := dbschemas_postgres.GetAllPostgresFkConstraints(b.pgquerier, ctx, pool, uniqueSchemas)
 		if err != nil {
 			return nil, err
 		}
 		td := dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
-		constraintMap := dbschemas_utils.BuildDependsOnSlice(td)
-
-		for _, resp := range responses {
-			dependsOn, ok := constraintMap[resp.Name]
+		tables := b.filterNullTables(groupedMappings)
+		dependencyConfigs := tabledependency.GetRunConfigs(td, tables)
+		primaryKeys, err := b.getAllPostgresPkConstraints(ctx, pool, uniqueSchemas)
+		if err != nil {
+			return nil, err
+		}
+		dependencyMap := map[string][]*tabledependency.RunConfig{}
+		for _, cfg := range dependencyConfigs {
+			_, ok := dependencyMap[cfg.Table]
 			if ok {
-				resp.DependsOn = dependsOn
+				dependencyMap[cfg.Table] = append(dependencyMap[cfg.Table], cfg)
+			} else {
+				dependencyMap[cfg.Table] = []*tabledependency.RunConfig{cfg}
 			}
 		}
+
+		for _, resp := range responses {
+			tableName := neosync_benthos.BuildBenthosTable(resp.TableSchema, resp.TableName)
+			configs := dependencyMap[tableName]
+			if len(configs) > 1 {
+				// circular dependency
+				for _, c := range configs {
+					if c.Columns != nil && c.Columns.Exclude != nil && len(c.Columns.Exclude) > 0 {
+						resp.excludeColumns = c.Columns.Exclude
+						resp.DependsOn = c.DependsOn
+					} else if c.Columns != nil && c.Columns.Include != nil && len(c.Columns.Include) > 0 {
+						// config for sql update
+						resp.updateConfig = c
+						resp.primaryKeys = primaryKeys[tableName]
+					}
+				}
+
+			} else if len(configs) == 1 {
+				resp.DependsOn = configs[0].DependsOn
+			} else {
+				return nil, fmt.Errorf("unexpected number of benthos configs")
+			}
+		}
+
 	case *mgmtv1alpha1.JobSourceOptions_Mysql:
 		sourceConnection, err := b.getConnectionById(ctx, jobSourceConfig.Mysql.ConnectionId)
 		if err != nil {
@@ -287,18 +243,51 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, err
 		}
 		td := dbschemas_mysql.GetMysqlTableDependencies(allConstraints)
-		constraintMap := dbschemas_utils.BuildDependsOnSlice(td)
+		tables := b.filterNullTables(groupedMappings)
+		dependencyConfigs := tabledependency.GetRunConfigs(td, tables)
+		primaryKeys, err := b.getAllMysqlPkConstraints(ctx, pool, uniqueSchemas)
+		if err != nil {
+			return nil, err
+		}
 
-		for _, resp := range responses {
-			dependsOn, ok := constraintMap[resp.Name]
+		dependencyMap := map[string][]*tabledependency.RunConfig{}
+		for _, cfg := range dependencyConfigs {
+			_, ok := dependencyMap[cfg.Table]
 			if ok {
-				resp.DependsOn = dependsOn
+				dependencyMap[cfg.Table] = append(dependencyMap[cfg.Table], cfg)
+			} else {
+				dependencyMap[cfg.Table] = []*tabledependency.RunConfig{cfg}
 			}
 		}
+
+		for _, resp := range responses {
+			tableName := neosync_benthos.BuildBenthosTable(resp.TableSchema, resp.TableName)
+			configs := dependencyMap[tableName]
+			if len(configs) > 1 {
+				// circular dependency
+				for _, c := range configs {
+					if c.Columns != nil && c.Columns.Exclude != nil && len(c.Columns.Exclude) > 0 {
+						resp.excludeColumns = c.Columns.Exclude
+						resp.DependsOn = c.DependsOn
+					} else if c.Columns != nil && c.Columns.Include != nil && len(c.Columns.Include) > 0 {
+						// config for sql update
+						resp.updateConfig = c
+						resp.primaryKeys = primaryKeys[tableName]
+					}
+				}
+
+			} else if len(configs) == 1 {
+				resp.DependsOn = configs[0].DependsOn
+			} else {
+				return nil, fmt.Errorf("unexpected number of benthos configs")
+			}
+		}
+
 	default:
 		return nil, errors.New("unsupported job source")
 	}
 
+	updateResponses := []*BenthosConfigResponse{} // update configs for circular dependecies
 	for _, destination := range job.Destinations {
 		destinationConnection, err := b.getConnectionById(ctx, destination.ConnectionId)
 		if err != nil {
@@ -327,12 +316,11 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 				if resp.Config.Input.SqlSelect != nil {
 					pool := b.pgpool[resp.Config.Input.SqlSelect.Dsn]
 					// todo: make this more efficient to reduce amount of times we have to connect to the source database
-					schema, table := splitTableKey(resp.Config.Input.SqlSelect.Table)
 					initStmt, err := b.getInitStatementFromPostgres(
 						ctx,
 						pool,
-						schema,
-						table,
+						resp.TableSchema,
+						resp.TableName,
 						&initStatementOpts{
 							TruncateBeforeInsert: truncateBeforeInsert,
 							TruncateCascade:      truncateCascade,
@@ -342,24 +330,28 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					if err != nil {
 						return nil, err
 					}
-					tableKey := neosync_benthos.BuildBenthosTable(resp.tableSchema, resp.tableName)
+
+					tableKey := resp.Config.Input.SqlSelect.Table
 					tm := groupedTableMapping[tableKey]
 					if tm == nil {
 						return nil, errors.New("unable to find table mapping for key")
 					}
+
 					colSourceMap := map[string]string{}
 					for _, col := range tm.Mappings {
 						colSourceMap[col.Column] = col.GetTransformer().Source
 					}
-					filteredCols := b.filterColsBySource(resp.Config.Input.SqlSelect.Columns, colSourceMap)
+
+					out := b.buildPostgresOutputQueryAndArgs(resp, tm, tableKey, colSourceMap)
+					resp.Columns = out.Columns
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						SqlRaw: &neosync_benthos.SqlRaw{
-
 							Driver: "postgres",
 							Dsn:    dsn,
 
-							Query:         b.buildPostgresInsertQuery(resp.Config.Input.SqlSelect.Table, resp.Config.Input.SqlSelect.Columns, colSourceMap),
-							ArgsMapping:   buildPlainInsertArgs(filteredCols),
+							Query:       out.Query,
+							ArgsMapping: out.ArgsMapping,
+
 							InitStatement: initStmt,
 
 							Batching: &neosync_benthos.Batching{
@@ -368,8 +360,17 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 							},
 						},
 					})
+					if resp.updateConfig != nil {
+						// circular dependency -> create update benthos config
+						updateResp, err := b.createSqlUpdateBenthosConfig(ctx, resp, dsn, tableKey, tm, colSourceMap)
+						if err != nil {
+							return nil, err
+						}
+						updateResponses = append(updateResponses, updateResp)
+					}
+
 				} else if resp.Config.Input.Generate != nil {
-					tableKey := neosync_benthos.BuildBenthosTable(resp.tableSchema, resp.tableName)
+					tableKey := neosync_benthos.BuildBenthosTable(resp.TableSchema, resp.TableName)
 					tm := groupedTableMapping[tableKey]
 					if tm == nil {
 						return nil, errors.New("unable to find table mapping for key")
@@ -380,13 +381,13 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					for _, col := range tm.Mappings {
 						colSourceMap[col.Column] = col.GetTransformer().Source
 					}
-					// filters out default columns
-					filteredCols := b.filterColsBySource(cols, colSourceMap)
+
+					filteredCols := b.filterColsBySource(cols, colSourceMap) // filters out default columns
 					initStmt, err := b.getInitStatementFromPostgres(
 						ctx,
 						nil,
-						resp.tableSchema,
-						resp.tableName,
+						resp.TableSchema,
+						resp.TableName,
 						&initStatementOpts{
 							TruncateBeforeInsert: truncateBeforeInsert,
 							TruncateCascade:      truncateCascade,
@@ -436,12 +437,11 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 				if resp.Config.Input.SqlSelect != nil {
 					pool := b.mysqlpool[resp.Config.Input.SqlSelect.Dsn]
 					// todo: make this more efficient to reduce amount of times we have to connect to the source database
-					schema, table := splitTableKey(resp.Config.Input.SqlSelect.Table)
 					initStmt, err := b.getInitStatementFromMysql(
 						ctx,
 						pool,
-						schema,
-						table,
+						resp.TableSchema,
+						resp.TableName,
 						&initStatementOpts{
 							TruncateBeforeInsert: truncateBeforeInsert,
 							InitSchema:           initSchema,
@@ -450,23 +450,27 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					if err != nil {
 						return nil, err
 					}
-					tableKey := neosync_benthos.BuildBenthosTable(resp.tableSchema, resp.tableName)
+
+					tableKey := resp.Config.Input.SqlSelect.Table
 					tm := groupedTableMapping[tableKey]
 					if tm == nil {
 						return nil, errors.New("unable to find table mapping for key")
 					}
+
 					colSourceMap := map[string]string{}
 					for _, col := range tm.Mappings {
 						colSourceMap[col.Column] = col.GetTransformer().Source
 					}
-					filteredCols := b.filterColsBySource(resp.Config.Input.SqlSelect.Columns, colSourceMap)
+
+					out := b.buildMysqlOutputQueryAndArgs(resp, tm, tableKey, colSourceMap)
+					resp.Columns = out.Columns
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						SqlRaw: &neosync_benthos.SqlRaw{
 							Driver: "mysql",
 							Dsn:    dsn,
 
-							Query:         b.buildMysqlInsertQuery(resp.Config.Input.SqlSelect.Table, resp.Config.Input.SqlSelect.Columns, colSourceMap),
-							ArgsMapping:   buildPlainInsertArgs(filteredCols),
+							Query:         out.Query,
+							ArgsMapping:   out.ArgsMapping,
 							InitStatement: initStmt,
 
 							Batching: &neosync_benthos.Batching{
@@ -475,8 +479,16 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 							},
 						},
 					})
+					if resp.updateConfig != nil {
+						// circular dependency -> create update benthos config
+						updateResp, err := b.createSqlUpdateBenthosConfig(ctx, resp, dsn, tableKey, tm, colSourceMap)
+						if err != nil {
+							return nil, err
+						}
+						updateResponses = append(updateResponses, updateResp)
+					}
 				} else if resp.Config.Input.Generate != nil {
-					tableKey := neosync_benthos.BuildBenthosTable(resp.tableSchema, resp.tableName)
+					tableKey := neosync_benthos.BuildBenthosTable(resp.TableSchema, resp.TableName)
 					tm := groupedTableMapping[tableKey]
 					if tm == nil {
 						return nil, errors.New("unable to find table mapping for key")
@@ -492,8 +504,8 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					initStmt, err := b.getInitStatementFromMysql(
 						ctx,
 						nil,
-						resp.tableSchema,
-						resp.tableName,
+						resp.TableSchema,
+						resp.TableName,
 						&initStatementOpts{
 							TruncateBeforeInsert: truncateBeforeInsert,
 							TruncateCascade:      false,
@@ -534,7 +546,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					"workflows",
 					req.WorkflowId,
 					"activities",
-					resp.Name, // may need to do more here
+					neosync_benthos.BuildBenthosTable(resp.TableSchema, resp.TableName),
 					"data",
 					`${!count("files")}.txt.gz`,
 				)
@@ -563,9 +575,110 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		}
 	}
 
+	responses = append(responses, updateResponses...)
 	return &GenerateBenthosConfigsResponse{
 		BenthosConfigs: responses,
 	}, nil
+}
+
+type sqlOutput struct {
+	Query       string
+	ArgsMapping string
+	Columns     []string
+}
+
+func (b *benthosBuilder) buildPostgresOutputQueryAndArgs(resp *BenthosConfigResponse, tm *TableMapping, tableKey string, colSourceMap map[string]string) *sqlOutput {
+	if len(resp.excludeColumns) > 0 {
+		filteredInsertMappings := []*mgmtv1alpha1.JobMapping{}
+		for _, m := range tm.Mappings {
+			if !slices.Contains(resp.excludeColumns, m.Column) {
+				filteredInsertMappings = append(filteredInsertMappings, m)
+			}
+		}
+		insertCols := buildPlainColumns(filteredInsertMappings)
+		filteredInsertCols := b.filterColsBySource(insertCols, colSourceMap) // filters out default columns
+		return &sqlOutput{
+			Query:       b.buildPostgresInsertQuery(tableKey, insertCols, colSourceMap),
+			ArgsMapping: buildPlainInsertArgs(filteredInsertCols),
+			Columns:     insertCols,
+		}
+
+	} else if resp.updateConfig != nil && resp.updateConfig.Columns != nil && len(resp.updateConfig.Columns.Include) > 0 {
+		filteredUpdateMappings := []*mgmtv1alpha1.JobMapping{}
+
+		for _, m := range tm.Mappings {
+			if slices.Contains(resp.updateConfig.Columns.Include, m.Column) {
+				filteredUpdateMappings = append(filteredUpdateMappings, m)
+			}
+		}
+		updateCols := buildPlainColumns(filteredUpdateMappings)
+		filteredUpdateCols := b.filterColsBySource(updateCols, colSourceMap) // filters out default columns
+		updateArgsMapping := []string{}
+		updateArgsMapping = append(updateArgsMapping, filteredUpdateCols...)
+		updateArgsMapping = append(updateArgsMapping, resp.primaryKeys...)
+
+		return &sqlOutput{
+			Query:       b.buildPostgresUpdateQuery(tableKey, updateCols, colSourceMap, resp.primaryKeys),
+			ArgsMapping: buildPlainInsertArgs(updateArgsMapping),
+			Columns:     updateCols,
+		}
+
+	} else {
+		cols := buildPlainColumns(tm.Mappings)
+		filteredCols := b.filterColsBySource(cols, colSourceMap) // filters out default columns
+		return &sqlOutput{
+			Query:       b.buildPostgresInsertQuery(tableKey, cols, colSourceMap),
+			ArgsMapping: buildPlainInsertArgs(filteredCols),
+			Columns:     cols,
+		}
+	}
+}
+
+func (b *benthosBuilder) buildMysqlOutputQueryAndArgs(resp *BenthosConfigResponse, tm *TableMapping, tableKey string, colSourceMap map[string]string) *sqlOutput {
+	if len(resp.excludeColumns) > 0 {
+		filteredInsertMappings := []*mgmtv1alpha1.JobMapping{}
+		for _, m := range tm.Mappings {
+			if !slices.Contains(resp.excludeColumns, m.Column) {
+				filteredInsertMappings = append(filteredInsertMappings, m)
+			}
+		}
+		insertCols := buildPlainColumns(filteredInsertMappings)
+		filteredInsertCols := b.filterColsBySource(insertCols, colSourceMap) // filters out default columns
+		return &sqlOutput{
+			Query:       b.buildMysqlInsertQuery(tableKey, insertCols, colSourceMap),
+			ArgsMapping: buildPlainInsertArgs(filteredInsertCols),
+			Columns:     insertCols,
+		}
+
+	} else if resp.updateConfig != nil && resp.updateConfig.Columns != nil && len(resp.updateConfig.Columns.Include) > 0 {
+		filteredUpdateMappings := []*mgmtv1alpha1.JobMapping{}
+
+		for _, m := range tm.Mappings {
+			if slices.Contains(resp.updateConfig.Columns.Include, m.Column) {
+				filteredUpdateMappings = append(filteredUpdateMappings, m)
+			}
+		}
+		updateCols := buildPlainColumns(filteredUpdateMappings)
+		filteredUpdateCols := b.filterColsBySource(updateCols, colSourceMap) // filters out default columns
+		updateArgsMapping := []string{}
+		updateArgsMapping = append(updateArgsMapping, filteredUpdateCols...)
+		updateArgsMapping = append(updateArgsMapping, resp.primaryKeys...)
+
+		return &sqlOutput{
+			Query:       b.buildMysqlUpdateQuery(tableKey, updateCols, colSourceMap, resp.primaryKeys),
+			ArgsMapping: buildPlainInsertArgs(updateArgsMapping),
+			Columns:     updateCols,
+		}
+
+	} else {
+		cols := buildPlainColumns(tm.Mappings)
+		filteredCols := b.filterColsBySource(cols, colSourceMap) // filters out default columns
+		return &sqlOutput{
+			Query:       b.buildMysqlInsertQuery(tableKey, cols, colSourceMap),
+			ArgsMapping: buildPlainInsertArgs(filteredCols),
+			Columns:     cols,
+		}
+	}
 }
 
 type generateSourceTableOptions struct {
@@ -625,10 +738,10 @@ func (b *benthosBuilder) buildBenthosGenerateSourceConfigResponses(
 		responses = append(responses, &BenthosConfigResponse{
 			Name:      neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table), // todo: may need to expand on this
 			Config:    bc,
-			DependsOn: []string{},
+			DependsOn: []*tabledependency.DependsOn{},
 
-			tableSchema: tableMapping.Schema,
-			tableName:   tableMapping.Table,
+			TableSchema: tableMapping.Schema,
+			TableName:   tableMapping.Table,
 		})
 	}
 
@@ -662,36 +775,70 @@ func (b *benthosBuilder) getConnectionById(
 	return getConnResp.Msg.Connection, nil
 }
 
-func (b *benthosBuilder) getAllPostgresFkConstraintsFromMappings(
+func (b *benthosBuilder) getAllPostgresPkConstraints(
 	ctx context.Context,
 	conn pg_queries.DBTX,
-	mappings []*mgmtv1alpha1.JobMapping,
-) ([]*pg_queries.GetForeignKeyConstraintsRow, error) {
-	uniqueSchemas := getUniqueSchemasFromMappings(mappings)
-	holder := make([][]*pg_queries.GetForeignKeyConstraintsRow, len(uniqueSchemas))
-	errgrp, errctx := errgroup.WithContext(ctx)
-	for idx := range uniqueSchemas {
-		idx := idx
-		schema := uniqueSchemas[idx]
-		errgrp.Go(func() error {
-			constraints, err := b.pgquerier.GetForeignKeyConstraints(errctx, conn, schema)
-			if err != nil {
-				return err
-			}
-			holder[idx] = constraints
-			return nil
-		})
-	}
-
-	if err := errgrp.Wait(); err != nil {
+	uniqueSchemas []string,
+) (map[string][]string, error) {
+	primaryKeyConstraints, err := dbschemas_postgres.GetAllPostgresPkConstraints(b.pgquerier, ctx, conn, uniqueSchemas)
+	if err != nil {
 		return nil, err
 	}
-
-	output := []*pg_queries.GetForeignKeyConstraintsRow{}
-	for _, schemas := range holder {
-		output = append(output, schemas...)
+	pkConstraintMap := map[string][]*pg_queries.GetPrimaryKeyConstraintsRow{}
+	for _, c := range primaryKeyConstraints {
+		_, ok := pkConstraintMap[c.ConstraintName]
+		if ok {
+			pkConstraintMap[c.ConstraintName] = append(pkConstraintMap[c.ConstraintName], c)
+		} else {
+			pkConstraintMap[c.ConstraintName] = []*pg_queries.GetPrimaryKeyConstraintsRow{c}
+		}
 	}
-	return output, nil
+	pkMap := map[string][]string{}
+	for _, constraints := range pkConstraintMap {
+		for _, c := range constraints {
+			key := neosync_benthos.BuildBenthosTable(c.SchemaName, c.TableName)
+			_, ok := pkMap[key]
+			if ok {
+				pkMap[key] = append(pkMap[key], c.ColumnName)
+			} else {
+				pkMap[key] = []string{c.ColumnName}
+			}
+		}
+	}
+	return pkMap, nil
+}
+
+func (b *benthosBuilder) getAllMysqlPkConstraints(
+	ctx context.Context,
+	conn mysql_queries.DBTX,
+	uniqueSchemas []string,
+) (map[string][]string, error) {
+	primaryKeyConstraints, err := dbschemas_mysql.GetAllMysqlPkConstraints(b.mysqlquerier, ctx, conn, uniqueSchemas)
+	if err != nil {
+		return nil, err
+	}
+	pkConstraintMap := map[string][]*mysql_queries.GetPrimaryKeyConstraintsRow{}
+	for _, c := range primaryKeyConstraints {
+		_, ok := pkConstraintMap[c.ConstraintName]
+		if ok {
+			pkConstraintMap[c.ConstraintName] = append(pkConstraintMap[c.ConstraintName], c)
+		} else {
+			pkConstraintMap[c.ConstraintName] = []*mysql_queries.GetPrimaryKeyConstraintsRow{c}
+		}
+	}
+	pkMap := map[string][]string{}
+	for _, constraints := range pkConstraintMap {
+		for _, c := range constraints {
+			key := neosync_benthos.BuildBenthosTable(c.SchemaName, c.TableName)
+			_, ok := pkMap[key]
+			if ok {
+				pkMap[key] = append(pkMap[key], c.ColumnName)
+			} else {
+				pkMap[key] = []string{c.ColumnName}
+			}
+		}
+	}
+	return pkMap, nil
 }
 
 func (b *benthosBuilder) getAllMysqlFkConstraintsFromMappings(
@@ -782,6 +929,30 @@ func (b *benthosBuilder) getInitStatementFromMysql(
 	return strings.Join(statements, "\n"), nil
 }
 
+func (b *benthosBuilder) buildPostgresUpdateQuery(table string, columns []string, colSourceMap map[string]string, primaryKeys []string) string {
+	values := make([]string, len(columns))
+	var where string
+	paramCount := 1
+	for i, col := range columns {
+		colSource := colSourceMap[col]
+		if colSource == generateDefault {
+			values[i] = dbDefault
+		} else {
+			values[i] = fmt.Sprintf("%s = $%d", col, paramCount)
+			paramCount++
+		}
+	}
+	if len(primaryKeys) > 0 {
+		clauses := []string{}
+		for _, col := range primaryKeys {
+			clauses = append(clauses, fmt.Sprintf("%s = $%d", col, paramCount))
+			paramCount++
+		}
+		where = fmt.Sprintf("WHERE %s", strings.Join(clauses, " AND "))
+	}
+	return fmt.Sprintf("UPDATE %s SET %s %s;", table, strings.Join(values, ", "), where)
+}
+
 func (b *benthosBuilder) buildPostgresInsertQuery(table string, columns []string, colSourceMap map[string]string) string {
 	values := make([]string, len(columns))
 	paramCount := 1
@@ -810,6 +981,27 @@ func (b *benthosBuilder) buildMysqlInsertQuery(table string, columns []string, c
 	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, strings.Join(columns, ", "), strings.Join(values, ", "))
 }
 
+func (b *benthosBuilder) buildMysqlUpdateQuery(table string, columns []string, colSourceMap map[string]string, primaryKeys []string) string {
+	values := make([]string, len(columns))
+	var where string
+	for i, col := range columns {
+		colSource := colSourceMap[col]
+		if colSource == generateDefault {
+			values[i] = dbDefault
+		} else {
+			values[i] = fmt.Sprintf("%s = ?", col)
+		}
+	}
+	if len(primaryKeys) > 0 {
+		clauses := []string{}
+		for _, col := range primaryKeys {
+			clauses = append(clauses, fmt.Sprintf("%s = ?", col))
+		}
+		where = fmt.Sprintf("WHERE %s", strings.Join(clauses, " AND "))
+	}
+	return fmt.Sprintf("UPDATE %s SET %s %s;", table, strings.Join(values, ", "), where)
+}
+
 func (b *benthosBuilder) filterColsBySource(columns []string, colSourceMap map[string]string) []string {
 	filteredCols := []string{}
 	for _, col := range columns {
@@ -818,6 +1010,63 @@ func (b *benthosBuilder) filterColsBySource(columns []string, colSourceMap map[s
 			filteredCols = append(filteredCols, col)
 		}
 	}
-
 	return filteredCols
+}
+
+// filters out tables where all cols are set to null
+func (b *benthosBuilder) filterNullTables(mappings []*TableMapping) []string {
+	tables := []string{}
+	for _, group := range mappings {
+		if !areAllColsNull(group.Mappings) {
+			tables = append(tables, dbschemas_utils.BuildTable(group.Schema, group.Table))
+		}
+	}
+	return tables
+}
+
+func (b *benthosBuilder) createSqlUpdateBenthosConfig(
+	ctx context.Context,
+	insertConfig *BenthosConfigResponse,
+	dsn, tableKey string,
+	tm *TableMapping,
+	colSourceMap map[string]string,
+) (*BenthosConfigResponse, error) {
+	driver := insertConfig.Config.Input.SqlSelect.Driver
+	sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, []*TableMapping{tm}, insertConfig.Config.Input.SqlSelect.Dsn, driver, map[string]*sqlSourceTableOptions{})
+	if err != nil {
+		return nil, err
+	}
+	if len(sourceResponses) > 0 {
+		newResp := sourceResponses[0]
+		newResp.Config.Input.SqlSelect.Where = insertConfig.Config.Input.SqlSelect.Where // keep the where clause the same as insert
+		newResp.updateConfig = insertConfig.updateConfig
+		newResp.DependsOn = insertConfig.updateConfig.DependsOn
+		newResp.Name = fmt.Sprintf("%s.update", insertConfig.Name)
+		newResp.primaryKeys = insertConfig.primaryKeys
+		var output *sqlOutput
+		if driver == "postgres" {
+			out := b.buildPostgresOutputQueryAndArgs(newResp, tm, tableKey, colSourceMap)
+			output = out
+		} else if driver == "mysql" {
+			out := b.buildMysqlOutputQueryAndArgs(newResp, tm, tableKey, colSourceMap)
+			output = out
+		}
+		newResp.Columns = output.Columns
+		newResp.Config.Output.Broker.Outputs = append(newResp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
+			SqlRaw: &neosync_benthos.SqlRaw{
+				Driver: driver,
+				Dsn:    dsn,
+
+				Query:       output.Query,
+				ArgsMapping: output.ArgsMapping,
+
+				Batching: &neosync_benthos.Batching{
+					Period: "5s",
+					Count:  100,
+				},
+			},
+		})
+		return newResp, nil
+	}
+	return nil, errors.New("unable to build sql update benthos config")
 }

@@ -26,6 +26,7 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
 	http_client "github.com/nucleuscloud/neosync/worker/internal/http/client"
@@ -42,12 +43,16 @@ type GenerateBenthosConfigsResponse struct {
 }
 
 type BenthosConfigResponse struct {
-	Name      string
-	DependsOn []string
-	Config    *neosync_benthos.BenthosConfig
+	Name        string
+	DependsOn   []*tabledependency.DependsOn
+	Config      *neosync_benthos.BenthosConfig
+	TableSchema string
+	TableName   string
+	Columns     []string
 
-	tableSchema string
-	tableName   string
+	primaryKeys    []string
+	excludeColumns []string
+	updateConfig   *tabledependency.RunConfig
 }
 
 type Activities struct{}
@@ -182,10 +187,10 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 		responses = append(responses, &BenthosConfigResponse{
 			Name:      neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table), // todo: may need to expand on this
 			Config:    bc,
-			DependsOn: []string{},
+			DependsOn: []*tabledependency.DependsOn{},
 
-			tableSchema: tableMapping.Schema,
-			tableName:   tableMapping.Table,
+			TableSchema: tableMapping.Schema,
+			TableName:   tableMapping.Table,
 		})
 	}
 
