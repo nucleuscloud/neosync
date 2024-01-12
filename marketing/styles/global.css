@@ -79,10 +79,6 @@
   strong {
     @apply font-extrabold;
   }
-
-  img {
-    @apply border border-gray-600 shadow-md;
-  }
 }
 
 .edge-path {
