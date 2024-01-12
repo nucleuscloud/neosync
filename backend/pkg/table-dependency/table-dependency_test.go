@@ -1,8 +1,6 @@
 package tabledependency
 
 import (
-	"encoding/json"
-	"fmt"
 	"sort"
 	"testing"
 
@@ -106,276 +104,95 @@ func Test_GetRunConfigs(t *testing.T) {
 		tables       []string
 		expect       []*RunConfig
 	}{
-		// {
-		// 	name: "No circular dependencies",
-		// 	dependencies: dbschemas.TableDependency{
-		// 		"public.countries": &dbschemas.TableConstraints{
-		// 			Constraints: []*dbschemas.ForeignConstraint{
-		// 				{Column: "region_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.regions", Column: "id"}},
-		// 			},
-		// 		},
-		// 		"public.departments": &dbschemas.TableConstraints{
-		// 			Constraints: []*dbschemas.ForeignConstraint{
-		// 				{Column: "location_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.locations", Column: "id"}},
-		// 			},
-		// 		},
-		// 		"public.employees": &dbschemas.TableConstraints{
-		// 			Constraints: []*dbschemas.ForeignConstraint{
-		// 				{Column: "department_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.departments", Column: "id"}},
-		// 				{Column: "job_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.jobs", Column: "id"}},
-		// 			},
-		// 		},
-		// 		"public.locations": &dbschemas.TableConstraints{
-		// 			Constraints: []*dbschemas.ForeignConstraint{
-		// 				{Column: "country_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.countries", Column: "id"}},
-		// 			},
-		// 		},
-		// 	},
-		// 	tables: []string{"public.jobs", "public.locations", "public.regions", "public.departments", "public.countries", "public.employees"},
-		// 	expect: []*RunConfig{
-		// 		{Table: "public.regions", DependsOn: []*DependsOn{}},
-		// 		{Table: "public.locations", DependsOn: []*DependsOn{{Table: "public.countries", Columns: []string{"id"}}}},
-		// 		{Table: "public.employees", DependsOn: []*DependsOn{{Table: "public.departments", Columns: []string{"id"}}, {Table: "public.jobs", Columns: []string{"id"}}}},
-		// 		{Table: "public.departments", DependsOn: []*DependsOn{{Table: "public.locations", Columns: []string{"id"}}}},
-		// 		{Table: "public.countries", DependsOn: []*DependsOn{{Table: "public.regions", Columns: []string{"id"}}}},
-		// 		{Table: "public.jobs", DependsOn: []*DependsOn{}},
-		// 	},
-		// },
-		// {
-		// 	name: "Self Circular Dependency",
-		// 	dependencies: dbschemas.TableDependency{
-		// 		"public.a": &dbschemas.TableConstraints{
-		// 			Constraints: []*dbschemas.ForeignConstraint{
-		// 				{Column: "a_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
-		// 			},
-		// 		},
-		// 	},
-		// 	tables: []string{"public.a"},
-		// 	expect: []*RunConfig{
-		// 		{Table: "public.a", Columns: &SyncColumn{Exclude: []string{"a_id"}}, DependsOn: []*DependsOn{}},
-		// 		{Table: "public.a", Columns: &SyncColumn{Include: []string{"a_id"}}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
-		// 	},
-		// },
-		// {
-		// 	name: "Double Self Circular Dependency",
-		// 	dependencies: dbschemas.TableDependency{
-		// 		"public.a": &dbschemas.TableConstraints{
-		// 			Constraints: []*dbschemas.ForeignConstraint{
-		// 				{Column: "a_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
-		// 				{Column: "aa_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
-		// 			},
-		// 		},
-		// 	},
-		// 	tables: []string{"public.a"},
-		// 	expect: []*RunConfig{
-		// 		{Table: "public.a", Columns: &SyncColumn{Exclude: []string{"a_id", "aa_id"}}, DependsOn: []*DependsOn{}},
-		// 		{Table: "public.a", Columns: &SyncColumn{Include: []string{"a_id", "aa_id"}}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
-		// 	},
-		// },
-		// {
-		// 	name: "Two Table Circular Dependency",
-		// 	dependencies: dbschemas.TableDependency{
-		// 		"public.a": &dbschemas.TableConstraints{
-		// 			Constraints: []*dbschemas.ForeignConstraint{
-		// 				{Column: "b_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
-		// 			},
-		// 		},
-		// 		"public.b": &dbschemas.TableConstraints{
-		// 			Constraints: []*dbschemas.ForeignConstraint{
-		// 				{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
-		// 			},
-		// 		},
-		// 	},
-		// 	tables: []string{"public.a", "public.b"},
-		// 	expect: []*RunConfig{
-		// 		{Table: "public.a", Columns: &SyncColumn{Exclude: []string{"b_id"}}, DependsOn: []*DependsOn{}},
-		// 		{Table: "public.b", DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
-		// 		{Table: "public.a", Columns: &SyncColumn{Include: []string{"b_id"}}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
-		// 	},
-		// },
-		// {
-		// 	name: "Three Table Circular Dependency",
-		// 	dependencies: dbschemas.TableDependency{
-		// 		"public.a": &dbschemas.TableConstraints{
-		// 			Constraints: []*dbschemas.ForeignConstraint{
-		// 				{Column: "b_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
-		// 			},
-		// 		},
-		// 		"public.b": &dbschemas.TableConstraints{
-		// 			Constraints: []*dbschemas.ForeignConstraint{
-		// 				{Column: "c_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
-		// 			},
-		// 		},
-		// 		"public.c": &dbschemas.TableConstraints{
-		// 			Constraints: []*dbschemas.ForeignConstraint{
-		// 				{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
-		// 			},
-		// 		},
-		// 	},
-		// 	tables: []string{"public.a", "public.b", "public.c"},
-		// 	expect: []*RunConfig{
-		// 		{Table: "public.a", Columns: &SyncColumn{Exclude: []string{"b_id"}}, DependsOn: []*DependsOn{}},
-		// 		{Table: "public.c", DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
-		// 		{Table: "public.b", DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
-		// 		{Table: "public.a", Columns: &SyncColumn{Include: []string{"b_id"}}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
-		// 	},
-		// },
-		// {
-		// 	name: "Multi Table Dependencies",
-		// 	dependencies: dbschemas.TableDependency{
-		// 		"public.a": &dbschemas.TableConstraints{
-		// 			Constraints: []*dbschemas.ForeignConstraint{
-		// 				{Column: "b_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
-		// 			},
-		// 		},
-		// 		"public.b": &dbschemas.TableConstraints{
-		// 			Constraints: []*dbschemas.ForeignConstraint{
-		// 				{Column: "c_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
-		// 				{Column: "d_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.d", Column: "id"}},
-		// 			},
-		// 		},
-		// 		"public.c": &dbschemas.TableConstraints{
-		// 			Constraints: []*dbschemas.ForeignConstraint{
-		// 				{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
-		// 			},
-		// 		},
-		// 		"public.d": &dbschemas.TableConstraints{
-		// 			Constraints: []*dbschemas.ForeignConstraint{
-		// 				{Column: "e_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.e", Column: "id"}},
-		// 			},
-		// 		},
-		// 		"public.e": &dbschemas.TableConstraints{
-		// 			Constraints: []*dbschemas.ForeignConstraint{
-		// 				{Column: "b_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
-		// 			},
-		// 		},
-		// 	},
-		// 	tables: []string{"public.a", "public.b", "public.c", "public.d", "public.e"},
-		// 	expect: []*RunConfig{
-		// 		{Table: "public.a", Columns: &SyncColumn{Exclude: []string{"b_id"}}, DependsOn: []*DependsOn{}},
-		// 		{Table: "public.c", DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
-		// 		{Table: "public.e", DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
-		// 		{Table: "public.d", DependsOn: []*DependsOn{{Table: "public.e", Columns: []string{"id"}}}},
-		// 		{Table: "public.b", DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}, {Table: "public.d", Columns: []string{"id"}}}},
-		// 		{Table: "public.a", Columns: &SyncColumn{Include: []string{"b_id"}}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
-		// 	},
-		// },
-		// {
-		// 	name: "Exclude With Dependency",
-		// 	dependencies: dbschemas.TableDependency{
-		// 		"public.b": &dbschemas.TableConstraints{
-		// 			Constraints: []*dbschemas.ForeignConstraint{
-		// 				{Column: "c_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
-		// 				{Column: "a_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
-		// 			},
-		// 		},
-		// 		"public.c": &dbschemas.TableConstraints{
-		// 			Constraints: []*dbschemas.ForeignConstraint{
-		// 				{Column: "b_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
-		// 			},
-		// 		},
-		// 	},
-		// 	tables: []string{"public.a", "public.b", "public.c"},
-		// 	expect: []*RunConfig{
-		// 		{Table: "public.a", DependsOn: []*DependsOn{}},
-		// 		{Table: "public.b", Columns: &SyncColumn{Exclude: []string{"c_id"}}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
-		// 		{Table: "public.c", DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
-		// 		{Table: "public.b", Columns: &SyncColumn{Include: []string{"c_id"}}, DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}, {Table: "public.a", Columns: []string{"id"}}}},
-		// 	},
-		// },
-		// {
-		// 	name: "Multiple Depends On",
-		// 	dependencies: dbschemas.TableDependency{
-		// 		"public.b": &dbschemas.TableConstraints{
-		// 			Constraints: []*dbschemas.ForeignConstraint{
-		// 				{Column: "c_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
-		// 				{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
-		// 			},
-		// 		},
-		// 		"public.c": &dbschemas.TableConstraints{
-		// 			Constraints: []*dbschemas.ForeignConstraint{
-		// 				{Column: "b_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
-		// 			},
-		// 		},
-		// 	},
-		// 	tables: []string{"public.a", "public.b", "public.c"},
-		// 	expect: []*RunConfig{
-		// 		{Table: "public.a", DependsOn: []*DependsOn{}},
-		// 		{Table: "public.c", Columns: &SyncColumn{Exclude: []string{"b_id"}}, DependsOn: []*DependsOn{}},
-		// 		{Table: "public.b", DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}, {Table: "public.a", Columns: []string{"id"}}}},
-		// 		{Table: "public.c", Columns: &SyncColumn{Include: []string{"b_id"}}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
-		// 	},
-		// },
-		// {
-		// 	name: "Multi Unconnected Circular Dependencies",
-		// 	dependencies: dbschemas.TableDependency{
-		// 		"public.a": &dbschemas.TableConstraints{
-		// 			Constraints: []*dbschemas.ForeignConstraint{
-		// 				{Column: "b_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
-		// 			},
-		// 		},
-		// 		"public.b": &dbschemas.TableConstraints{
-		// 			Constraints: []*dbschemas.ForeignConstraint{
-		// 				{Column: "c_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
-		// 			},
-		// 		},
-		// 		"public.c": &dbschemas.TableConstraints{
-		// 			Constraints: []*dbschemas.ForeignConstraint{
-		// 				{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
-		// 			},
-		// 		},
-		// 		"public.d": &dbschemas.TableConstraints{
-		// 			Constraints: []*dbschemas.ForeignConstraint{
-		// 				{Column: "e_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.e", Column: "id"}},
-		// 			},
-		// 		},
-		// 		"public.e": &dbschemas.TableConstraints{
-		// 			Constraints: []*dbschemas.ForeignConstraint{
-		// 				{Column: "d_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.d", Column: "id"}},
-		// 			},
-		// 		},
-		// 	},
-		// 	tables: []string{"public.a", "public.b", "public.c", "public.d", "public.e"},
-		// 	expect: []*RunConfig{
-
-		// 		{Table: "public.a", Columns: &SyncColumn{Exclude: []string{"b_id"}}, DependsOn: []*DependsOn{}},
-		// 		{Table: "public.c", DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
-		// 		{Table: "public.b", DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
-		// 		{Table: "public.a", Columns: &SyncColumn{Include: []string{"b_id"}}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
-
-		// 		{Table: "public.d", Columns: &SyncColumn{Exclude: []string{"e_id"}}, DependsOn: []*DependsOn{}},
-		// 		{Table: "public.e", DependsOn: []*DependsOn{{Table: "public.d", Columns: []string{"id"}}}},
-		// 		{Table: "public.d", Columns: &SyncColumn{Include: []string{"e_id"}}, DependsOn: []*DependsOn{{Table: "public.e", Columns: []string{"id"}}}},
-		// 	},
-		// },
-		// {
-		// 	name: "Subset of tables",
-		// 	dependencies: dbschemas.TableDependency{
-		// 		"public.a": &dbschemas.TableConstraints{
-		// 			Constraints: []*dbschemas.ForeignConstraint{
-		// 				{Column: "b_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
-		// 			},
-		// 		},
-		// 		"public.b": &dbschemas.TableConstraints{
-		// 			Constraints: []*dbschemas.ForeignConstraint{
-		// 				{Column: "c_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
-		// 			},
-		// 		},
-		// 		"public.c": &dbschemas.TableConstraints{
-		// 			Constraints: []*dbschemas.ForeignConstraint{
-		// 				{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
-		// 			},
-		// 		},
-		// 	},
-		// 	tables: []string{"public.b", "public.c"},
-		// 	expect: []*RunConfig{
-		// 		{Table: "public.c", DependsOn: []*DependsOn{}},
-		// 		{Table: "public.b", DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
-		// 	},
-		// },
-		// TODO handle this situation
 		{
-			name: "OTHER",
+			name: "No circular dependencies",
+			dependencies: dbschemas.TableDependency{
+				"public.countries": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "region_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.regions", Column: "id"}},
+					},
+				},
+				"public.departments": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "location_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.locations", Column: "id"}},
+					},
+				},
+				"public.employees": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "department_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.departments", Column: "id"}},
+						{Column: "job_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.jobs", Column: "id"}},
+					},
+				},
+				"public.locations": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "country_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.countries", Column: "id"}},
+					},
+				},
+			},
+			tables: []string{"public.jobs", "public.locations", "public.regions", "public.departments", "public.countries", "public.employees"},
+			expect: []*RunConfig{
+				{Table: "public.regions", DependsOn: []*DependsOn{}},
+				{Table: "public.locations", DependsOn: []*DependsOn{{Table: "public.countries", Columns: []string{"id"}}}},
+				{Table: "public.employees", DependsOn: []*DependsOn{{Table: "public.departments", Columns: []string{"id"}}, {Table: "public.jobs", Columns: []string{"id"}}}},
+				{Table: "public.departments", DependsOn: []*DependsOn{{Table: "public.locations", Columns: []string{"id"}}}},
+				{Table: "public.countries", DependsOn: []*DependsOn{{Table: "public.regions", Columns: []string{"id"}}}},
+				{Table: "public.jobs", DependsOn: []*DependsOn{}},
+			},
+		},
+		{
+			name: "Self Circular Dependency",
+			dependencies: dbschemas.TableDependency{
+				"public.a": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "a_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
+					},
+				},
+			},
+			tables: []string{"public.a"},
+			expect: []*RunConfig{
+				{Table: "public.a", Columns: &SyncColumn{Exclude: []string{"a_id"}}, DependsOn: []*DependsOn{}},
+				{Table: "public.a", Columns: &SyncColumn{Include: []string{"a_id"}}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+			},
+		},
+		{
+			name: "Double Self Circular Dependency",
+			dependencies: dbschemas.TableDependency{
+				"public.a": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "a_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
+						{Column: "aa_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
+					},
+				},
+			},
+			tables: []string{"public.a"},
+			expect: []*RunConfig{
+				{Table: "public.a", Columns: &SyncColumn{Exclude: []string{"a_id", "aa_id"}}, DependsOn: []*DependsOn{}},
+				{Table: "public.a", Columns: &SyncColumn{Include: []string{"a_id", "aa_id"}}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+			},
+		},
+		{
+			name: "Two Table Circular Dependency",
+			dependencies: dbschemas.TableDependency{
+				"public.a": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "b_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
+					},
+				},
+				"public.b": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
+					},
+				},
+			},
+			tables: []string{"public.a", "public.b"},
+			expect: []*RunConfig{
+				{Table: "public.a", Columns: &SyncColumn{Exclude: []string{"b_id"}}, DependsOn: []*DependsOn{}},
+				{Table: "public.b", DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+				{Table: "public.a", Columns: &SyncColumn{Include: []string{"b_id"}}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
+			},
+		},
+		{
+			name: "Three Table Circular Dependency",
 			dependencies: dbschemas.TableDependency{
 				"public.a": &dbschemas.TableConstraints{
 					Constraints: []*dbschemas.ForeignConstraint{
@@ -393,10 +210,165 @@ func Test_GetRunConfigs(t *testing.T) {
 					},
 				},
 			},
-			tables: []string{"public.a", "public.c"},
+			tables: []string{"public.a", "public.b", "public.c"},
 			expect: []*RunConfig{
 				{Table: "public.a", Columns: &SyncColumn{Exclude: []string{"b_id"}}, DependsOn: []*DependsOn{}},
 				{Table: "public.c", DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+				{Table: "public.b", DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+				{Table: "public.a", Columns: &SyncColumn{Include: []string{"b_id"}}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
+			},
+		},
+		{
+			name: "Multi Table Dependencies",
+			dependencies: dbschemas.TableDependency{
+				"public.a": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "b_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
+					},
+				},
+				"public.b": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "c_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
+						{Column: "d_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.d", Column: "id"}},
+					},
+				},
+				"public.c": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
+					},
+				},
+				"public.d": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "e_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.e", Column: "id"}},
+					},
+				},
+				"public.e": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "b_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
+					},
+				},
+			},
+			tables: []string{"public.a", "public.b", "public.c", "public.d", "public.e"},
+			expect: []*RunConfig{
+				{Table: "public.a", Columns: &SyncColumn{Exclude: []string{"b_id"}}, DependsOn: []*DependsOn{}},
+				{Table: "public.c", DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+				{Table: "public.e", DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
+				{Table: "public.d", DependsOn: []*DependsOn{{Table: "public.e", Columns: []string{"id"}}}},
+				{Table: "public.b", DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}, {Table: "public.d", Columns: []string{"id"}}}},
+				{Table: "public.a", Columns: &SyncColumn{Include: []string{"b_id"}}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
+			},
+		},
+		{
+			name: "Exclude With Dependency",
+			dependencies: dbschemas.TableDependency{
+				"public.b": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "c_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
+						{Column: "a_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
+					},
+				},
+				"public.c": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "b_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
+					},
+				},
+			},
+			tables: []string{"public.a", "public.b", "public.c"},
+			expect: []*RunConfig{
+				{Table: "public.a", DependsOn: []*DependsOn{}},
+				{Table: "public.b", Columns: &SyncColumn{Exclude: []string{"c_id"}}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+				{Table: "public.c", DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
+				{Table: "public.b", Columns: &SyncColumn{Include: []string{"c_id"}}, DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}, {Table: "public.a", Columns: []string{"id"}}}},
+			},
+		},
+		{
+			name: "Multiple Depends On",
+			dependencies: dbschemas.TableDependency{
+				"public.b": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "c_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
+						{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
+					},
+				},
+				"public.c": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "b_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
+					},
+				},
+			},
+			tables: []string{"public.a", "public.b", "public.c"},
+			expect: []*RunConfig{
+				{Table: "public.a", DependsOn: []*DependsOn{}},
+				{Table: "public.c", Columns: &SyncColumn{Exclude: []string{"b_id"}}, DependsOn: []*DependsOn{}},
+				{Table: "public.b", DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}, {Table: "public.a", Columns: []string{"id"}}}},
+				{Table: "public.c", Columns: &SyncColumn{Include: []string{"b_id"}}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
+			},
+		},
+		{
+			name: "Multi Unconnected Circular Dependencies",
+			dependencies: dbschemas.TableDependency{
+				"public.a": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "b_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
+					},
+				},
+				"public.b": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "c_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
+					},
+				},
+				"public.c": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
+					},
+				},
+				"public.d": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "e_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.e", Column: "id"}},
+					},
+				},
+				"public.e": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "d_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.d", Column: "id"}},
+					},
+				},
+			},
+			tables: []string{"public.a", "public.b", "public.c", "public.d", "public.e"},
+			expect: []*RunConfig{
+
+				{Table: "public.a", Columns: &SyncColumn{Exclude: []string{"b_id"}}, DependsOn: []*DependsOn{}},
+				{Table: "public.c", DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+				{Table: "public.b", DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+				{Table: "public.a", Columns: &SyncColumn{Include: []string{"b_id"}}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
+
+				{Table: "public.d", Columns: &SyncColumn{Exclude: []string{"e_id"}}, DependsOn: []*DependsOn{}},
+				{Table: "public.e", DependsOn: []*DependsOn{{Table: "public.d", Columns: []string{"id"}}}},
+				{Table: "public.d", Columns: &SyncColumn{Include: []string{"e_id"}}, DependsOn: []*DependsOn{{Table: "public.e", Columns: []string{"id"}}}},
+			},
+		},
+		{
+			name: "Subset of tables",
+			dependencies: dbschemas.TableDependency{
+				"public.a": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "b_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
+					},
+				},
+				"public.b": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "c_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
+					},
+				},
+				"public.c": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
+					},
+				},
+			},
+			tables: []string{"public.b", "public.c"},
+			expect: []*RunConfig{
+				{Table: "public.c", DependsOn: []*DependsOn{}},
+				{Table: "public.b", DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
 			},
 		},
 	}
@@ -404,11 +376,6 @@ func Test_GetRunConfigs(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			actual := GetRunConfigs(tt.dependencies, tt.tables)
-			jsonF, _ := json.MarshalIndent(actual, "", " ")
-			fmt.Printf("\n actual: %s \n", string(jsonF))
-			jsonFx, _ := json.MarshalIndent(tt.expect, "", " ")
-			fmt.Printf("\n expect: %s \n", string(jsonFx))
-
 			assert.ElementsMatch(t, tt.expect, actual)
 		})
 	}
