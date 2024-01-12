@@ -287,6 +287,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		return nil, errors.New("unsupported job source")
 	}
 
+	updateResponses := []*BenthosConfigResponse{} // update configs for circular dependecies
 	for _, destination := range job.Destinations {
 		destinationConnection, err := b.getConnectionById(ctx, destination.ConnectionId)
 		if err != nil {
@@ -365,7 +366,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						if err != nil {
 							return nil, err
 						}
-						responses = append(responses, updateResp)
+						updateResponses = append(updateResponses, updateResp)
 					}
 
 				} else if resp.Config.Input.Generate != nil {
@@ -484,7 +485,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						if err != nil {
 							return nil, err
 						}
-						responses = append(responses, updateResp)
+						updateResponses = append(updateResponses, updateResp)
 					}
 				} else if resp.Config.Input.Generate != nil {
 					tableKey := neosync_benthos.BuildBenthosTable(resp.TableSchema, resp.TableName)
@@ -574,6 +575,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		}
 	}
 
+	responses = append(responses, updateResponses...)
 	return &GenerateBenthosConfigsResponse{
 		BenthosConfigs: responses,
 	}, nil
