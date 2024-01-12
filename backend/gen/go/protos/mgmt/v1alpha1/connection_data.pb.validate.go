@@ -2770,3 +2770,365 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GetConnectionInitStatementsResponseValidationError{}
+
+// Validate checks the field values on PrimaryConstraint with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *PrimaryConstraint) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PrimaryConstraint with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// PrimaryConstraintMultiError, or nil if none found.
+func (m *PrimaryConstraint) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PrimaryConstraint) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return PrimaryConstraintMultiError(errors)
+	}
+
+	return nil
+}
+
+// PrimaryConstraintMultiError is an error wrapping multiple validation errors
+// returned by PrimaryConstraint.ValidateAll() if the designated constraints
+// aren't met.
+type PrimaryConstraintMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PrimaryConstraintMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PrimaryConstraintMultiError) AllErrors() []error { return m }
+
+// PrimaryConstraintValidationError is the validation error returned by
+// PrimaryConstraint.Validate if the designated constraints aren't met.
+type PrimaryConstraintValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PrimaryConstraintValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PrimaryConstraintValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PrimaryConstraintValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PrimaryConstraintValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PrimaryConstraintValidationError) ErrorName() string {
+	return "PrimaryConstraintValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e PrimaryConstraintValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPrimaryConstraint.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PrimaryConstraintValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PrimaryConstraintValidationError{}
+
+// Validate checks the field values on GetConnectionPrimaryConstraintsRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *GetConnectionPrimaryConstraintsRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on
+// GetConnectionPrimaryConstraintsRequest with the rules defined in the proto
+// definition for this message. If any rules are violated, the result is a
+// list of violation errors wrapped in
+// GetConnectionPrimaryConstraintsRequestMultiError, or nil if none found.
+func (m *GetConnectionPrimaryConstraintsRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetConnectionPrimaryConstraintsRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for ConnectionId
+
+	if len(errors) > 0 {
+		return GetConnectionPrimaryConstraintsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetConnectionPrimaryConstraintsRequestMultiError is an error wrapping
+// multiple validation errors returned by
+// GetConnectionPrimaryConstraintsRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetConnectionPrimaryConstraintsRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetConnectionPrimaryConstraintsRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetConnectionPrimaryConstraintsRequestMultiError) AllErrors() []error { return m }
+
+// GetConnectionPrimaryConstraintsRequestValidationError is the validation
+// error returned by GetConnectionPrimaryConstraintsRequest.Validate if the
+// designated constraints aren't met.
+type GetConnectionPrimaryConstraintsRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetConnectionPrimaryConstraintsRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetConnectionPrimaryConstraintsRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetConnectionPrimaryConstraintsRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetConnectionPrimaryConstraintsRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetConnectionPrimaryConstraintsRequestValidationError) ErrorName() string {
+	return "GetConnectionPrimaryConstraintsRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetConnectionPrimaryConstraintsRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetConnectionPrimaryConstraintsRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetConnectionPrimaryConstraintsRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetConnectionPrimaryConstraintsRequestValidationError{}
+
+// Validate checks the field values on GetConnectionPrimaryConstraintsResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *GetConnectionPrimaryConstraintsResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on
+// GetConnectionPrimaryConstraintsResponse with the rules defined in the proto
+// definition for this message. If any rules are violated, the result is a
+// list of violation errors wrapped in
+// GetConnectionPrimaryConstraintsResponseMultiError, or nil if none found.
+func (m *GetConnectionPrimaryConstraintsResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetConnectionPrimaryConstraintsResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	{
+		sorted_keys := make([]string, len(m.GetTableConstraints()))
+		i := 0
+		for key := range m.GetTableConstraints() {
+			sorted_keys[i] = key
+			i++
+		}
+		sort.Slice(sorted_keys, func(i, j int) bool { return sorted_keys[i] < sorted_keys[j] })
+		for _, key := range sorted_keys {
+			val := m.GetTableConstraints()[key]
+			_ = val
+
+			// no validation rules for TableConstraints[key]
+
+			if all {
+				switch v := interface{}(val).(type) {
+				case interface{ ValidateAll() error }:
+					if err := v.ValidateAll(); err != nil {
+						errors = append(errors, GetConnectionPrimaryConstraintsResponseValidationError{
+							field:  fmt.Sprintf("TableConstraints[%v]", key),
+							reason: "embedded message failed validation",
+							cause:  err,
+						})
+					}
+				case interface{ Validate() error }:
+					if err := v.Validate(); err != nil {
+						errors = append(errors, GetConnectionPrimaryConstraintsResponseValidationError{
+							field:  fmt.Sprintf("TableConstraints[%v]", key),
+							reason: "embedded message failed validation",
+							cause:  err,
+						})
+					}
+				}
+			} else if v, ok := interface{}(val).(interface{ Validate() error }); ok {
+				if err := v.Validate(); err != nil {
+					return GetConnectionPrimaryConstraintsResponseValidationError{
+						field:  fmt.Sprintf("TableConstraints[%v]", key),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetConnectionPrimaryConstraintsResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetConnectionPrimaryConstraintsResponseMultiError is an error wrapping
+// multiple validation errors returned by
+// GetConnectionPrimaryConstraintsResponse.ValidateAll() if the designated
+// constraints aren't met.
+type GetConnectionPrimaryConstraintsResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetConnectionPrimaryConstraintsResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetConnectionPrimaryConstraintsResponseMultiError) AllErrors() []error { return m }
+
+// GetConnectionPrimaryConstraintsResponseValidationError is the validation
+// error returned by GetConnectionPrimaryConstraintsResponse.Validate if the
+// designated constraints aren't met.
+type GetConnectionPrimaryConstraintsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetConnectionPrimaryConstraintsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetConnectionPrimaryConstraintsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetConnectionPrimaryConstraintsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetConnectionPrimaryConstraintsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetConnectionPrimaryConstraintsResponseValidationError) ErrorName() string {
+	return "GetConnectionPrimaryConstraintsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetConnectionPrimaryConstraintsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetConnectionPrimaryConstraintsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetConnectionPrimaryConstraintsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetConnectionPrimaryConstraintsResponseValidationError{}

@@ -42,6 +42,9 @@ const (
 	// ConnectionDataServiceGetConnectionForeignConstraintsProcedure is the fully-qualified name of the
 	// ConnectionDataService's GetConnectionForeignConstraints RPC.
 	ConnectionDataServiceGetConnectionForeignConstraintsProcedure = "/mgmt.v1alpha1.ConnectionDataService/GetConnectionForeignConstraints"
+	// ConnectionDataServiceGetConnectionPrimaryConstraintsProcedure is the fully-qualified name of the
+	// ConnectionDataService's GetConnectionPrimaryConstraints RPC.
+	ConnectionDataServiceGetConnectionPrimaryConstraintsProcedure = "/mgmt.v1alpha1.ConnectionDataService/GetConnectionPrimaryConstraints"
 	// ConnectionDataServiceGetConnectionInitStatementsProcedure is the fully-qualified name of the
 	// ConnectionDataService's GetConnectionInitStatements RPC.
 	ConnectionDataServiceGetConnectionInitStatementsProcedure = "/mgmt.v1alpha1.ConnectionDataService/GetConnectionInitStatements"
@@ -57,6 +60,9 @@ type ConnectionDataServiceClient interface {
 	// For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.
 	// Used primarily by the CLI sync command to determine stream order.
 	GetConnectionForeignConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionForeignConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionForeignConstraintsResponse], error)
+	// For a specific connection, returns the primary key constraints. Mostly useful for SQL-based Connections.
+	// Used primarily by the CLI sync command to determine stream order.
+	GetConnectionPrimaryConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionPrimaryConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionPrimaryConstraintsResponse], error)
 	// For a specific connection, returns the init table statements. Mostly useful for SQL-based Connections.
 	// Used primarily by the CLI sync command to create table schema init statement.
 	GetConnectionInitStatements(context.Context, *connect.Request[v1alpha1.GetConnectionInitStatementsRequest]) (*connect.Response[v1alpha1.GetConnectionInitStatementsResponse], error)
@@ -87,6 +93,11 @@ func NewConnectionDataServiceClient(httpClient connect.HTTPClient, baseURL strin
 			baseURL+ConnectionDataServiceGetConnectionForeignConstraintsProcedure,
 			opts...,
 		),
+		getConnectionPrimaryConstraints: connect.NewClient[v1alpha1.GetConnectionPrimaryConstraintsRequest, v1alpha1.GetConnectionPrimaryConstraintsResponse](
+			httpClient,
+			baseURL+ConnectionDataServiceGetConnectionPrimaryConstraintsProcedure,
+			opts...,
+		),
 		getConnectionInitStatements: connect.NewClient[v1alpha1.GetConnectionInitStatementsRequest, v1alpha1.GetConnectionInitStatementsResponse](
 			httpClient,
 			baseURL+ConnectionDataServiceGetConnectionInitStatementsProcedure,
@@ -100,6 +111,7 @@ type connectionDataServiceClient struct {
 	getConnectionDataStream         *connect.Client[v1alpha1.GetConnectionDataStreamRequest, v1alpha1.GetConnectionDataStreamResponse]
 	getConnectionSchema             *connect.Client[v1alpha1.GetConnectionSchemaRequest, v1alpha1.GetConnectionSchemaResponse]
 	getConnectionForeignConstraints *connect.Client[v1alpha1.GetConnectionForeignConstraintsRequest, v1alpha1.GetConnectionForeignConstraintsResponse]
+	getConnectionPrimaryConstraints *connect.Client[v1alpha1.GetConnectionPrimaryConstraintsRequest, v1alpha1.GetConnectionPrimaryConstraintsResponse]
 	getConnectionInitStatements     *connect.Client[v1alpha1.GetConnectionInitStatementsRequest, v1alpha1.GetConnectionInitStatementsResponse]
 }
 
@@ -119,6 +131,12 @@ func (c *connectionDataServiceClient) GetConnectionForeignConstraints(ctx contex
 	return c.getConnectionForeignConstraints.CallUnary(ctx, req)
 }
 
+// GetConnectionPrimaryConstraints calls
+// mgmt.v1alpha1.ConnectionDataService.GetConnectionPrimaryConstraints.
+func (c *connectionDataServiceClient) GetConnectionPrimaryConstraints(ctx context.Context, req *connect.Request[v1alpha1.GetConnectionPrimaryConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionPrimaryConstraintsResponse], error) {
+	return c.getConnectionPrimaryConstraints.CallUnary(ctx, req)
+}
+
 // GetConnectionInitStatements calls
 // mgmt.v1alpha1.ConnectionDataService.GetConnectionInitStatements.
 func (c *connectionDataServiceClient) GetConnectionInitStatements(ctx context.Context, req *connect.Request[v1alpha1.GetConnectionInitStatementsRequest]) (*connect.Response[v1alpha1.GetConnectionInitStatementsResponse], error) {
@@ -136,6 +154,9 @@ type ConnectionDataServiceHandler interface {
 	// For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.
 	// Used primarily by the CLI sync command to determine stream order.
 	GetConnectionForeignConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionForeignConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionForeignConstraintsResponse], error)
+	// For a specific connection, returns the primary key constraints. Mostly useful for SQL-based Connections.
+	// Used primarily by the CLI sync command to determine stream order.
+	GetConnectionPrimaryConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionPrimaryConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionPrimaryConstraintsResponse], error)
 	// For a specific connection, returns the init table statements. Mostly useful for SQL-based Connections.
 	// Used primarily by the CLI sync command to create table schema init statement.
 	GetConnectionInitStatements(context.Context, *connect.Request[v1alpha1.GetConnectionInitStatementsRequest]) (*connect.Response[v1alpha1.GetConnectionInitStatementsResponse], error)
@@ -162,6 +183,11 @@ func NewConnectionDataServiceHandler(svc ConnectionDataServiceHandler, opts ...c
 		svc.GetConnectionForeignConstraints,
 		opts...,
 	)
+	connectionDataServiceGetConnectionPrimaryConstraintsHandler := connect.NewUnaryHandler(
+		ConnectionDataServiceGetConnectionPrimaryConstraintsProcedure,
+		svc.GetConnectionPrimaryConstraints,
+		opts...,
+	)
 	connectionDataServiceGetConnectionInitStatementsHandler := connect.NewUnaryHandler(
 		ConnectionDataServiceGetConnectionInitStatementsProcedure,
 		svc.GetConnectionInitStatements,
@@ -175,6 +201,8 @@ func NewConnectionDataServiceHandler(svc ConnectionDataServiceHandler, opts ...c
 			connectionDataServiceGetConnectionSchemaHandler.ServeHTTP(w, r)
 		case ConnectionDataServiceGetConnectionForeignConstraintsProcedure:
 			connectionDataServiceGetConnectionForeignConstraintsHandler.ServeHTTP(w, r)
+		case ConnectionDataServiceGetConnectionPrimaryConstraintsProcedure:
+			connectionDataServiceGetConnectionPrimaryConstraintsHandler.ServeHTTP(w, r)
 		case ConnectionDataServiceGetConnectionInitStatementsProcedure:
 			connectionDataServiceGetConnectionInitStatementsHandler.ServeHTTP(w, r)
 		default:
@@ -196,6 +224,10 @@ func (UnimplementedConnectionDataServiceHandler) GetConnectionSchema(context.Con
 
 func (UnimplementedConnectionDataServiceHandler) GetConnectionForeignConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionForeignConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionForeignConstraintsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionDataService.GetConnectionForeignConstraints is not implemented"))
+}
+
+func (UnimplementedConnectionDataServiceHandler) GetConnectionPrimaryConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionPrimaryConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionPrimaryConstraintsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionDataService.GetConnectionPrimaryConstraints is not implemented"))
 }
 
 func (UnimplementedConnectionDataServiceHandler) GetConnectionInitStatements(context.Context, *connect.Request[v1alpha1.GetConnectionInitStatementsRequest]) (*connect.Response[v1alpha1.GetConnectionInitStatementsResponse], error) {
