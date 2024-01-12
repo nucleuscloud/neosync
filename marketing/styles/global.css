@@ -80,7 +80,7 @@
     @apply font-extrabold;
   }
 
-  img {
+  .mdx p img {
     @apply border border-gray-600 shadow-md;
   }
 }
