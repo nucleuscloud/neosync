@@ -113,6 +113,12 @@ type destinationConfig struct {
 	TruncateCascade      bool       `yaml:"truncate-cascade,omitempty"`
 }
 
+type syncConfig struct {
+	Query         string
+	ArgsMapping   string
+	InitStatement string
+}
+
 func NewCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "sync",
@@ -442,6 +448,15 @@ func sync(
 		if err != nil {
 			return err
 		}
+		syncConfigs := []*syncConfig{}
+		for table, dc := range dependencyMap {
+			syncConfigs = append(syncConfigs, &syncConfig{
+				Query:         "",
+				ArgsMapping:   "",
+				InitStatement: "",
+			})
+
+		}
 	case postgresConnection:
 		schemaResp, err := connectiondataclient.GetConnectionSchema(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
 			ConnectionId: connection.Id,
@@ -480,7 +495,8 @@ func sync(
 	fmt.Println(printlog.Render("Generating configs... \n")) // nolint
 	configs := []*benthosConfigResponse{}
 	for table, dc := range dependencyMap {
-		benthosConfig := generateBenthosConfig()
+		benthosConfig := generateBenthosConfig(cmd, connectionType, table.Schema, table.Table, serverconfig.GetApiBaseUrl(), initStatement, dc, token)
+
 		configs = append(configs, benthosConfig)
 	}
 	// for _, table := range tables {
@@ -645,15 +661,15 @@ func getSchemaTables(schemas []*mgmtv1alpha1.DatabaseColumn) []*SqlTable {
 
 type benthosConfigResponse struct {
 	Name      string
-	DependsOn []string
+	DependsOn []*tabledependency.RunConfig
 	Config    *neosync_benthos.BenthosConfig
 }
 
 func generateBenthosConfig(
 	cmd *cmdConfig,
 	connectionType ConnectionType,
-	schema, table, apiUrl, initStatement string,
-	columns, dependsOn []string,
+	schema, table, apiUrl, initStatement, query, argsMapping string,
+	dependsOn []*tabledependency.RunConfig,
 	authToken *string,
 ) *benthosConfigResponse {
 	tableName := dbschemas_utils.BuildTable(schema, table)
@@ -683,13 +699,14 @@ func generateBenthosConfig(
 			Pipeline: &neosync_benthos.PipelineConfig{},
 			Output: &neosync_benthos.OutputConfig{
 				Outputs: neosync_benthos.Outputs{
-					SqlInsert: &neosync_benthos.SqlInsert{
-						Driver:        string(cmd.Destination.Driver),
-						Dsn:           cmd.Destination.ConnectionUrl,
+					SqlRaw: &neosync_benthos.SqlRaw{
+						Driver: string(cmd.Destination.Driver),
+						Dsn:    cmd.Destination.ConnectionUrl,
+
+						Query:         query,
+						ArgsMapping:   argsMapping,
 						InitStatement: initStatement,
-						Table:         tableName,
-						Columns:       columns,
-						ArgsMapping:   buildPlainInsertArgs(columns),
+
 						Batching: &neosync_benthos.Batching{
 							Period: "5s",
 							// max allowed by postgres in a single batch
