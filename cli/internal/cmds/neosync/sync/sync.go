@@ -22,6 +22,7 @@ import (
 	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	dbschemas_mysql "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/mysql"
 	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/postgres"
+	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
 	neosync_benthos "github.com/nucleuscloud/neosync/cli/internal/benthos"
 	auth_interceptor "github.com/nucleuscloud/neosync/cli/internal/connect/interceptors/auth"
@@ -346,6 +347,8 @@ func sync(
 	var tables []*SqlTable
 	var tableConstraints map[string]*mgmtv1alpha1.ForeignConstraintTables
 	var initTableStatementsMap map[string]string
+	var dependencyMap map[string][]*tabledependency.RunConfig
+	var tablePrimaryKeys map[string]*mgmtv1alpha1.PrimaryConstraint
 
 	switch connectionType {
 	case awsS3Connection:
@@ -421,12 +424,19 @@ func sync(
 			return nil
 		}
 
+		// TODO concurrent
 		fmt.Println(printlog.Render("Building foreign table constraints...")) // nolint
 		fkConnectionResp, err := connectiondataclient.GetConnectionForeignConstraints(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionForeignConstraintsRequest{ConnectionId: cmd.Source.ConnectionId}))
 		if err != nil {
 			return err
 		}
 		tableConstraints = fkConnectionResp.Msg.GetTableConstraints()
+		pkConnectionResp, err := connectiondataclient.GetConnectionPrimaryConstraints(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionPrimaryConstraintsRequest{ConnectionId: cmd.Source.ConnectionId}))
+		if err != nil {
+			return err
+		}
+		tablePrimaryKeys = pkConnectionResp.Msg.GetTableConstraints()
+		dependencyMap = getDependencyConfigs(tableConstraints, tables)
 
 		initTableStatementsMap, err = getTableInitStatementMap(ctx, connectiondataclient, cmd.Source.ConnectionId, cmd.Destination)
 		if err != nil {
@@ -469,27 +479,32 @@ func sync(
 
 	fmt.Println(printlog.Render("Generating configs... \n")) // nolint
 	configs := []*benthosConfigResponse{}
-	for _, table := range tables {
-		name := dbschemas_utils.BuildTable(table.Schema, table.Table)
-		constraints := tableConstraints[name].GetConstraints()
-		dependsOnMap := map[string]struct{}{}
-		for _, c := range constraints {
-			dependsOnMap[c.ForeignKey.Table] = struct{}{}
-		}
-		uniqueDependsOn := []string{}
-		for tableName := range dependsOnMap {
-			if name == tableName {
-				return fmt.Errorf("Circular dependency detected. exiting...")
-			}
-			uniqueDependsOn = append(uniqueDependsOn, tableName)
-		}
-
-		initStatement := initTableStatementsMap[name]
-
-		benthosConfig := generateBenthosConfig(cmd, connectionType, table.Schema, table.Table, serverconfig.GetApiBaseUrl(), initStatement, table.Columns, uniqueDependsOn, token)
+	for table, dc := range dependencyMap {
+		benthosConfig := generateBenthosConfig()
 		configs = append(configs, benthosConfig)
 	}
+	// for _, table := range tables {
+	// 	name := dbschemas_utils.BuildTable(table.Schema, table.Table)
+	// 	constraints := tableConstraints[name].GetConstraints()
+	// 	dependsOnMap := map[string]struct{}{}
+	// 	for _, c := range constraints {
+	// 		dependsOnMap[c.ForeignKey.Table] = struct{}{}
+	// 	}
+	// 	uniqueDependsOn := []string{}
+	// 	for tableName := range dependsOnMap {
+	// 		if name == tableName {
+	// 			return fmt.Errorf("Circular dependency detected. exiting...")
+	// 		}
+	// 		uniqueDependsOn = append(uniqueDependsOn, tableName)
+	// 	}
 
+	// 	initStatement := initTableStatementsMap[name]
+
+	// 	benthosConfig := generateBenthosConfig(cmd, connectionType, table.Schema, table.Table, serverconfig.GetApiBaseUrl(), initStatement, table.Columns, uniqueDependsOn, token)
+	// 	configs = append(configs, benthosConfig)
+	// }
+
+	// order configs in run order by dependency
 	groupedConfigs := groupConfigsByDependency(configs)
 
 	var opts []tea.ProgramOption
@@ -930,6 +945,27 @@ func getDestinationForeignConstraints(ctx context.Context, connectionDriver Driv
 	return tableConstraints, nil
 }
 
+func getDependencyConfigs(
+	tc map[string]*mgmtv1alpha1.ForeignConstraintTables,
+	tables []*SqlTable,
+) map[string][]*tabledependency.RunConfig {
+	tablesSlice := []string{}
+	for _, t := range tables {
+		tablesSlice = append(tablesSlice, dbschemas_utils.BuildTable(t.Schema, t.Table))
+	}
+	dependencyConfigs := tabledependency.GetRunConfigs(tc, tablesSlice)
+	dependencyMap := map[string][]*tabledependency.RunConfig{}
+	for _, cfg := range dependencyConfigs {
+		_, ok := dependencyMap[cfg.Table]
+		if ok {
+			dependencyMap[cfg.Table] = append(dependencyMap[cfg.Table], cfg)
+		} else {
+			dependencyMap[cfg.Table] = []*tabledependency.RunConfig{cfg}
+		}
+	}
+	return dependencyMap
+}
+
 func getConfigCount(groupedConfigs [][]*benthosConfigResponse) int {
 	count := 0
 	for _, group := range groupedConfigs {
@@ -993,4 +1029,57 @@ func getConnectionType(connection *mgmtv1alpha1.Connection) (ConnectionType, err
 		return postgresConnection, nil
 	}
 	return "", errors.New("unsupported connection type")
+}
+
+func buildPostgresUpdateQuery(table string, columns []string, primaryKeys []string) string {
+	values := make([]string, len(columns))
+	var where string
+	paramCount := 1
+	for i, col := range columns {
+		values[i] = fmt.Sprintf("%s = $%d", col, paramCount)
+		paramCount++
+	}
+	if len(primaryKeys) > 0 {
+		clauses := []string{}
+		for _, col := range primaryKeys {
+			clauses = append(clauses, fmt.Sprintf("%s = $%d", col, paramCount))
+			paramCount++
+		}
+		where = fmt.Sprintf("WHERE %s", strings.Join(clauses, " AND "))
+	}
+	return fmt.Sprintf("UPDATE %s SET %s %s;", table, strings.Join(values, ", "), where)
+}
+
+func buildPostgresInsertQuery(table string, columns []string) string {
+	values := make([]string, len(columns))
+	paramCount := 1
+	for i := range columns {
+		values[i] = fmt.Sprintf("$%d", paramCount)
+		paramCount++
+	}
+	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, strings.Join(columns, ", "), strings.Join(values, ", "))
+}
+
+func buildMysqlInsertQuery(table string, columns []string) string {
+	values := make([]string, len(columns))
+	for i := range columns {
+		values[i] = "?"
+	}
+	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, strings.Join(columns, ", "), strings.Join(values, ", "))
+}
+
+func buildMysqlUpdateQuery(table string, columns []string, primaryKeys []string) string {
+	values := make([]string, len(columns))
+	var where string
+	for i, col := range columns {
+		values[i] = fmt.Sprintf("%s = ?", col)
+	}
+	if len(primaryKeys) > 0 {
+		clauses := []string{}
+		for _, col := range primaryKeys {
+			clauses = append(clauses, fmt.Sprintf("%s = ?", col))
+		}
+		where = fmt.Sprintf("WHERE %s", strings.Join(clauses, " AND "))
+	}
+	return fmt.Sprintf("UPDATE %s SET %s %s;", table, strings.Join(values, ", "), where)
 }
