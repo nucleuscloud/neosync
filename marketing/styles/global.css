@@ -79,6 +79,10 @@
   strong {
     @apply font-extrabold;
   }
+
+  .mdx p img {
+    @apply border border-gray-600 shadow-md;
+  }
 }
 
 .edge-path {
