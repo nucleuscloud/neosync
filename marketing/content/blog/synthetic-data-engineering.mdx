@@ -10,92 +10,28 @@ authors:
 
 # Introduction
 
-Developers love flexibility. They want to be able to do things their own way and transforming data is no different. Today I'm excited to give developers that flexibility in [Neosync](https://githunb.com/nucleuscloud/neosync) with Custom Code Transformers.
+There are moments that break the forth wall where you realize that you're living in a time period that is special. That historically, we look back on and can see
 
-# What is a Transformer?
+I believe that time is now with the advancements being made in Generative AI. Generative AI, is and will continue to, creep into every nook and cranny of our lives. From personal applications like smartphones to business applications like Large Language Models (LLMs).
 
-A Transformer is a data-type specific module that transforms data in some way. Transformers can be deterministic or probablistic and can anonymize data and/or generate synthetic data. Neosync ships with 40+ transformers out of the box.
+# Why?
 
-![udt](https://assets.nucleuscloud.com/neosync/docs/udt-home.png)
+Generative AI and machine learning have gotten so good that we can effectively trick ourselves into believing that synthetic data is real data.
 
-For example, a `generate_float64` transformer, can generate random float64 values. Or the `generate_email` transformer can generate realistic-looking email addressses that are privacy-safe. The standard transformers that Neosync ships with are useful for some use-cases but how about when you want to transform the data in a custom way? This is where Custom Code Transformers come into play.
+There's a model in machine learning called Generative Adverserial Networks (GANs). A GAN is a model in which two neural networks compete with each other by using using deep learning methods to become more accurate in their predictions. The first model, called a generator, attempts to 'trick' the second model, called a discriminiator, into thinking that the data that the generator created is real. The discriminator is trained on real data and it's job is to, well, discriminate the generator's data and determine if the data is in fact real or fake. After many cycles, the generator eventually creates data that the discriminator can no longer determine is fake because it 'looks' (and I'll define this a little more later) so much like the real training data that the discriminator was trained on.
 
-# Creating a Custom Code Transformer
+Now imagine taking the same GAN concept and applying it to an organization. Where you have a team or system (the generator) that is responsible for creating data that 'looks' so much like your production data that other teams in the organization (the discriminators) can't tell that it's synthetic. What would this mean? In a world where developers aren't limited by unstable staging environments, happy-path datasets, flaky tests, data-approval bureaucracy and silos, they can build safer, more reliable applications, faster. All without the security and privacy concerns of a data leak.
 
-Custom Code Transformers are exactly what they sound like. Developers can write their own custom code to transform the data however they'd like. Let's take a look at an example.
+Enterprise companies make it too difficult for developers to get access to the data they need. It's not for good reason. Data breaches can cause billions of dollars of tangible costs and potentially more in reputational costs. Here we have fundamental friction. As a developer, I need high quality, realistic data to build and test a feature but the organization doesn't want to give to to me because I may accidently put it into an unsecured [S3 Bucket](capital one leak link). So I have to go through a data-approval process which may take weeks, then the data has to be scrubbed of PII and other sensitive data which may take weeks and then finally at the end of that, I have a data set I can use. Unless of course, it's missing something and then I have to go through the process again. Reasons like this are why it takes enterpruse companies years to ship.
 
-Let's say that I have a `users` table that has the following columns: `id, email, first_name, last_name, age`. I can use Neosync here to sync this data from prod -> stage and anonymize the sensitive data. For the `id, email, first_name, last_name` columns, I can use the standard transformers while for the `age` column, I want to write a custom transformer.
+The situation isn't any better in startups and smaller companies. Anyone and everyone has access to production. Want a local copy? Sure thing, just `PGDUMP` from prod and `PGRESTORE` locally. Pretty much anything is justified in the name of shipping fast. Security and privacy be damned.
 
-In Neosync, I can go to **Transformers** -> **New Transformer** and select **Transform Javascript**.
+If we care about data privacy and security (which we all should), we're caught between a rock and a hard place. Enterprises make it too hard to get data because they're risk-averse and startups make it too easy to get data because they need to ship features. Is there a one-size fits all solution?
 
-![tj](https://assets.nucleuscloud.com/neosync/docs/customcodetransformer.png)
+# What
 
-I can give the transformer a name and description and then start to write the custom `age` transformer. All custom transformers are written in Javascript and have access to the standard library. We've integrated with [Monaco](https://github.com/microsoft/monaco-editor), the underlying text editor of VSCode to offer to auto-complete, syntax highlighting, method definitions and more.
+What is Synthetic Data Engineering? replacing traditional data with synthetic data in all aspects of engineering where real data is not required. This is taditional product engineeering where develoeprs are building features, this is machine learning where ML engineers are using data to glean insights from customers and improve their expreiences. Data engineers who are writing and testing data pipelines shojldn't be doing this with customer data .
 
-For this custom age transformer, we're going to anonymize our the age values, which come in as a `string` type, by bucketing them into 5 year age ranges. Here is the code:
-
-```javascript
-function anonymizeAge(age) {
-  const ageGroupSize = 5; // Group ages in blocks of 5 years for example
-  const startAge = Math.floor(age / ageGroupSize) * ageGroupSize;
-  const endAge = startAge + ageGroupSize - 1;
-  const range = startAge.toString() + '-' + endAge.toString();
-  return range;
-}
-
-return anonymizeAge(value);
-```
-
-We call the `anonymizeAge` function and pass in `value` as an argument. The `value` keyword is a special keyword and what you can use to access the value being transformed. Now that we've written our code we can paste it into the **Transformer Code** input box and click the **validate** button.
-
-![tj](https://assets.nucleuscloud.com/neosync/blog/custom-age-bucket.png)
-
-The **validate** button takes the custom code and attempts to compile it. If it successfully compiles then it returns `valid`. If it is unable to compile it will return `invalid`. This is a great way to check that your code can run before saving the transformer.
-
-![tj](https://assets.nucleuscloud.com/neosync/blog/age-bucket-valid.png)
-
-Once you've validated your code, you can click **Save** to save your transformer. Once successfully saved, you'll see it in the **Transformers** page.
-
-![tj](https://assets.nucleuscloud.com/neosync/blog/saved-transformer.png)
-
-# Using the Custom Code Transformer
-
-Now that we've created our Custom Code Transformer, we can create a job to pull data from our source database, anonymize it and then sync it to our prod database. First, let's check our source database and look at a single row.
-
-![tj](https://assets.nucleuscloud.com/neosync/blog/source-postgres.png)
-
-As we mentioned above, we have a `users` table that has the following columns: `id, email, first_name, last_name, age`. Now let's go ahead and create a job so we can use it. Our first step is to go to the **Jobs** page and click on **+ New Job**.
-
-![tj](https://assets.nucleuscloud.com/neosync/blog/age-jobs-page.png)
-
-Let's select the **Data Sync** job and then define our job.
-
-![tj](https://assets.nucleuscloud.com/neosync/blog/define-job.png)
-
-Next, we can select our source and destination connections. We can select as many destination connections as we'd like but for this example we're going to just select our postgres staging database.
-
-![tj](https://assets.nucleuscloud.com/neosync/blog/age-connections.png)
-
-Next, the fun stuff. Neosync will automatically pull in the schema and we can configure our schema and transformers.
-
-![tj](https://assets.nucleuscloud.com/neosync/blog/schema-page-passthrough.png)
-
-We can go through our schema and select our transformers for each column. For the `age` column, we can select our `custom-age-transformer`. Once we're ready, we can click on **Next**.
-
-![tj](https://assets.nucleuscloud.com/neosync/blog/schema-page-configured.png)
-
-Lastly, we could configure Subset filters here. These filters allow you to flexibly filter a table or dataset. For this job, we'll just go ahead and click **Submit** to create our job. Since we configured our job to initiate a run on creation, our job will immediately trigger and after just a few seconds, we can check out staging database to see our transformed data.
-
-![tj](https://assets.nucleuscloud.com/neosync/blog/ageResult.png)
-
-We can see that our input age from our source database table had an age of 20 and now after passing it through our custom age tranformer, it's bucketed into an age range of 20-24. Also, notice the other columns have changed as well as we generated synthetic data for those columns.
-
-# Wrapping up
-
-We've walked through how to create a Custom Code Transformer and use in it a job to anonymize age data. This is a simple example but you can make this can take this as s blueprint for a more complicated example with multiple tables, millions of rows and more.
-
-This is just the first release and we're planning on adding more features here such as support for imports and adding types. So keep an eye out.
-
-Check it and let us know what you think!
-
-Evis
+- increase developer velocity
+- unshackle developers from security and privacy rules that force them to safeguard data, when it's synthetic it's not real data
+- better testindag and feasibility
