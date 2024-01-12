@@ -41,7 +41,7 @@ function TeamSection(): ReactElement {
   const team = [
     {
       image:
-        'https://assets.nucleuscloud.com/neosync/blog/authorHeadshots/evis_square.png',
+        'https://assets.nucleuscloud.com/neosync/blog/authorHeadshots/evis.png',
       name: 'Evis Drenova',
       title: 'CEO & Co-Founder',
       prev: 'Lead PM @ Skyflow',
