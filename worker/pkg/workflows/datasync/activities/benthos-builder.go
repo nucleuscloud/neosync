@@ -776,38 +776,6 @@ func (b *benthosBuilder) getConnectionById(
 	return getConnResp.Msg.Connection, nil
 }
 
-func (b *benthosBuilder) getAllPostgresFkConstraintsFromMappings(
-	ctx context.Context,
-	conn pg_queries.DBTX,
-	mappings []*mgmtv1alpha1.JobMapping,
-) ([]*pg_queries.GetForeignKeyConstraintsRow, error) {
-	uniqueSchemas := getUniqueSchemasFromMappings(mappings)
-	holder := make([][]*pg_queries.GetForeignKeyConstraintsRow, len(uniqueSchemas))
-	errgrp, errctx := errgroup.WithContext(ctx)
-	for idx := range uniqueSchemas {
-		idx := idx
-		schema := uniqueSchemas[idx]
-		errgrp.Go(func() error {
-			constraints, err := b.pgquerier.GetForeignKeyConstraints(errctx, conn, schema)
-			if err != nil {
-				return err
-			}
-			holder[idx] = constraints
-			return nil
-		})
-	}
-
-	if err := errgrp.Wait(); err != nil {
-		return nil, err
-	}
-
-	output := []*pg_queries.GetForeignKeyConstraintsRow{}
-	for _, schemas := range holder {
-		output = append(output, schemas...)
-	}
-	return output, nil
-}
-
 func (b *benthosBuilder) getAllPostgresPkConstraints(
 	ctx context.Context,
 	conn pg_queries.DBTX,

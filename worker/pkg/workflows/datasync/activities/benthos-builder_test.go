@@ -1127,9 +1127,9 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 	assert.NotEmpty(t, resp.BenthosConfigs)
 	assert.Len(t, resp.BenthosConfigs, 3)
 
-	insertConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users.insert")
+	insertConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
 	assert.NotNil(t, insertConfig)
-	assert.Equal(t, insertConfig.Name, "public.users.insert")
+	assert.Equal(t, insertConfig.Name, "public.users")
 	assert.Empty(t, insertConfig.DependsOn)
 	out, err := yaml.Marshal(insertConfig.Config)
 	assert.NoError(t, err)
@@ -1146,6 +1146,7 @@ input:
         columns:
             - id
             - name
+            - user_assoc_id
 buffer: null
 pipeline:
     threads: -1
@@ -1187,8 +1188,9 @@ input:
         dsn: fake-prod-url
         table: public.users
         columns:
-            - user_assoc_id
             - id
+            - name
+            - user_assoc_id
 buffer: null
 pipeline:
     threads: -1
@@ -1526,6 +1528,13 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) 
 		}, nil)
 	mysqlquerier.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
 		Return([]*mysql_queries.GetForeignKeyConstraintsRow{}, nil)
+	mysqlquerier.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*mysql_queries.GetPrimaryKeyConstraintsRow{{
+			SchemaName:     "public",
+			TableName:      "users",
+			ConstraintName: "pk-id",
+			ColumnName:     "id",
+		}}, nil)
 	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
@@ -1729,6 +1738,18 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Constrain
 				ForeignColumnName: "id",
 			},
 		}, nil)
+	mysqlquerier.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*mysql_queries.GetPrimaryKeyConstraintsRow{{
+			SchemaName:     "public",
+			TableName:      "users",
+			ConstraintName: "pk-users-id",
+			ColumnName:     "id",
+		}, {
+			SchemaName:     "public",
+			TableName:      "user_account_associations",
+			ConstraintName: "pk-users-assoc-id",
+			ColumnName:     "id",
+		}}, nil)
 	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformersClient)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
@@ -1831,6 +1852,339 @@ output:
 	assert.NoError(t, err)
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
+	err = newSB.SetYAML(string(out2))
+	assert.NoError(t, err)
+}
+
+func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_Dependency(t *testing.T) {
+	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
+	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
+	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+
+	pgcache := map[string]pg_queries.DBTX{}
+	pgquerier := pg_queries.NewMockQuerier(t)
+	mysqlcache := map[string]mysql_queries.DBTX{
+		"fake-prod-url":  mysql_queries.NewMockDBTX(t),
+		"fake-stage-url": mysql_queries.NewMockDBTX(t),
+	}
+	mysqlquerier := mysql_queries.NewMockQuerier(t)
+
+	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
+		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
+			Job: &mgmtv1alpha1.Job{
+				Source: &mgmtv1alpha1.JobSource{
+					Options: &mgmtv1alpha1.JobSourceOptions{
+						Config: &mgmtv1alpha1.JobSourceOptions_Mysql{
+							Mysql: &mgmtv1alpha1.MysqlSourceConnectionOptions{
+								ConnectionId: "123",
+							},
+						},
+					},
+				},
+				Mappings: []*mgmtv1alpha1.JobMapping{
+					{
+						Schema: "public",
+						Table:  "users",
+						Column: "id",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Source: "passthrough",
+						},
+					},
+					{
+						Schema: "public",
+						Table:  "users",
+						Column: "name",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Source: "passthrough",
+						},
+					},
+					{
+						Schema: "public",
+						Table:  "users",
+						Column: "user_assoc_id",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Source: "passthrough",
+						},
+					},
+					{
+						Schema: "public",
+						Table:  "user_account_associations",
+						Column: "id",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Source: "passthrough",
+						},
+					},
+					{
+						Schema: "public",
+						Table:  "user_account_associations",
+						Column: "user_id",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Source: "passthrough",
+						},
+					},
+				},
+				Destinations: []*mgmtv1alpha1.JobDestination{
+					{
+						ConnectionId: "456",
+					},
+				},
+			},
+		}), nil)
+	mockConnectionClient.On(
+		"GetConnection",
+		mock.Anything,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+			Id: "123",
+		}),
+	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+		Connection: &mgmtv1alpha1.Connection{
+			Id:   "123",
+			Name: "prod",
+			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
+							Url: "fake-prod-url",
+						},
+					},
+				},
+			},
+		},
+	}), nil)
+	mockConnectionClient.On(
+		"GetConnection",
+		mock.Anything,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+			Id: "456",
+		}),
+	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+		Connection: &mgmtv1alpha1.Connection{
+			Id:   "456",
+			Name: "stage",
+			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
+							Url: "fake-stage-url",
+						},
+					},
+				},
+			},
+		},
+	}), nil)
+
+	mysqlquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
+		Return([]*mysql_queries.GetDatabaseSchemaRow{
+			{
+				TableSchema: "public",
+				TableName:   "users",
+				ColumnName:  "id",
+			},
+			{
+				TableSchema: "public",
+				TableName:   "users",
+				ColumnName:  "user_assoc_id",
+			},
+			{
+				TableSchema: "public",
+				TableName:   "users",
+				ColumnName:  "name",
+			},
+			{
+				TableSchema: "public",
+				TableName:   "user_account_associations",
+				ColumnName:  "id",
+			},
+			{
+				TableSchema: "public",
+				TableName:   "user_account_associations",
+				ColumnName:  "user_id",
+			},
+		}, nil)
+	mysqlquerier.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*mysql_queries.GetForeignKeyConstraintsRow{
+			{
+				ConstraintName:    "fk_user_account_associations_user_id_users_id",
+				SchemaName:        "public",
+				TableName:         "user_account_associations",
+				ColumnName:        "user_id",
+				ForeignSchemaName: "public",
+				ForeignTableName:  "users",
+				ForeignColumnName: "id",
+				IsNullable:        "NO",
+			},
+			{
+				ConstraintName:    "fk_users_user_assoc_id_user_account_associations_id",
+				SchemaName:        "public",
+				TableName:         "users",
+				ColumnName:        "user_assoc_id",
+				ForeignSchemaName: "public",
+				ForeignTableName:  "user_account_associations",
+				ForeignColumnName: "id",
+				IsNullable:        "YES",
+			},
+		}, nil)
+	mysqlquerier.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).Return([]*mysql_queries.GetPrimaryKeyConstraintsRow{
+		{
+			ConstraintName: "pkey-user-id",
+			SchemaName:     "public",
+			TableName:      "users",
+			ColumnName:     "id",
+		},
+		{
+			ConstraintName: "pkey-user-assoc-id",
+			SchemaName:     "public",
+			TableName:      "users_account_associations",
+			ColumnName:     "id",
+		},
+	}, nil)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+
+	resp, err := bbuilder.GenerateBenthosConfigs(
+		context.Background(),
+		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
+		log.NewStructuredLogger(slog.Default()),
+	)
+	assert.Nil(t, err)
+	assert.NotEmpty(t, resp.BenthosConfigs)
+	assert.Len(t, resp.BenthosConfigs, 3)
+
+	insertConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
+	assert.NotNil(t, insertConfig)
+	assert.Equal(t, insertConfig.Name, "public.users")
+	assert.Empty(t, insertConfig.DependsOn)
+	out, err := yaml.Marshal(insertConfig.Config)
+	assert.NoError(t, err)
+	assert.Equal(
+		t,
+		strings.TrimSpace(string(out)),
+		strings.TrimSpace(`
+input:
+    label: ""
+    sql_select:
+        driver: mysql
+        dsn: fake-prod-url
+        table: public.users
+        columns:
+            - id
+            - name
+            - user_assoc_id
+buffer: null
+pipeline:
+    threads: -1
+    processors: []
+output:
+    label: ""
+    broker:
+        pattern: fan_out
+        outputs:
+            - sql_raw:
+                driver: mysql
+                dsn: fake-stage-url
+                query: INSERT INTO public.users (id, name) VALUES (?, ?);
+                args_mapping: root = [this.id, this.name]
+                init_statement: ""
+                batching:
+                    count: 100
+                    byte_size: 0
+                    period: 5s
+                    check: ""
+                    processors: []
+`),
+	)
+
+	updateConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users.update")
+	assert.NotNil(t, updateConfig)
+	assert.Equal(t, updateConfig.Name, "public.users.update")
+	assert.Equal(t, updateConfig.DependsOn, []*tabledependency.DependsOn{{Table: "public.user_account_associations", Columns: []string{"id"}}})
+	out1, err := yaml.Marshal(updateConfig.Config)
+	assert.NoError(t, err)
+	assert.Equal(
+		t,
+		strings.TrimSpace(string(out1)),
+		strings.TrimSpace(`
+input:
+    label: ""
+    sql_select:
+        driver: mysql
+        dsn: fake-prod-url
+        table: public.users
+        columns:
+            - id
+            - name
+            - user_assoc_id
+buffer: null
+pipeline:
+    threads: -1
+    processors: []
+output:
+    label: ""
+    broker:
+        pattern: fan_out
+        outputs:
+            - sql_raw:
+                driver: mysql
+                dsn: fake-stage-url
+                query: UPDATE public.users SET user_assoc_id = ? WHERE id = ?;
+                args_mapping: root = [this.user_assoc_id, this.id]
+                init_statement: ""
+                batching:
+                    count: 100
+                    byte_size: 0
+                    period: 5s
+                    check: ""
+                    processors: []
+`),
+	)
+
+	bc2 := getBenthosConfigByName(resp.BenthosConfigs, "public.user_account_associations")
+	assert.Equal(t, bc2.Name, "public.user_account_associations")
+	assert.Equal(t, bc2.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}})
+	out2, err := yaml.Marshal(bc2.Config)
+	assert.NoError(t, err)
+	assert.Equal(
+		t,
+		strings.TrimSpace(string(out2)),
+		strings.TrimSpace(`
+input:
+    label: ""
+    sql_select:
+        driver: mysql
+        dsn: fake-prod-url
+        table: public.user_account_associations
+        columns:
+            - id
+            - user_id
+buffer: null
+pipeline:
+    threads: -1
+    processors: []
+output:
+    label: ""
+    broker:
+        pattern: fan_out
+        outputs:
+            - sql_raw:
+                driver: mysql
+                dsn: fake-stage-url
+                query: INSERT INTO public.user_account_associations (id, user_id) VALUES (?, ?);
+                args_mapping: root = [this.id, this.user_id]
+                init_statement: ""
+                batching:
+                    count: 100
+                    byte_size: 0
+                    period: 5s
+                    check: ""
+                    processors: []
+`),
+	)
+
+	newSB := sb.NewStreamBuilder()
+
+	// SetYAML parses a full Benthos config and uses it to configure the builder.
+	err = newSB.SetYAML(string(out))
+	assert.NoError(t, err)
+
 	err = newSB.SetYAML(string(out2))
 	assert.NoError(t, err)
 }
@@ -2093,6 +2447,13 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Default(t *testing.T
 		}, nil)
 	mysqlquerier.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
 		Return([]*mysql_queries.GetForeignKeyConstraintsRow{}, nil)
+	mysqlquerier.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*mysql_queries.GetPrimaryKeyConstraintsRow{{
+			SchemaName:     "public",
+			TableName:      "users",
+			ConstraintName: "pk-id",
+			ColumnName:     "id",
+		}}, nil)
 	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
@@ -2203,11 +2564,8 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 	dsn := "dsn"
 	driver := "driver"
 	sourceTableOpts := map[string]*sqlSourceTableOptions{"where": {WhereClause: &dsn}}
-	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.users", DependsOn: []*tabledependency.DependsOn{}},
-	}
 
-	res, err := bbuilder.buildRelationalBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts, dependencyConfigs, nil)
+	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts)
 	assert.Nil(t, err)
 	assert.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)
 
@@ -2259,11 +2617,8 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 	dsn := "dsn"
 	driver := "driver"
 	sourceTableOpts := map[string]*sqlSourceTableOptions{"where": {WhereClause: &dsn}}
-	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.users", DependsOn: []*tabledependency.DependsOn{}},
-	}
 
-	res, err := bbuilder.buildRelationalBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts, dependencyConfigs, nil)
+	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts)
 	assert.Nil(t, err)
 	assert.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)
 
@@ -2321,11 +2676,8 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 	dsn := "test"
 	driver := "test"
 	sourceTableOpts := map[string]*sqlSourceTableOptions{"test": {WhereClause: &dsn}}
-	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.users", DependsOn: []*tabledependency.DependsOn{}},
-	}
 
-	res, err := bbuilder.buildRelationalBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts, dependencyConfigs, nil)
+	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts)
 	assert.Nil(t, err)
 
 	out, err := yaml.Marshal(res[0].Config.Pipeline.Processors)
