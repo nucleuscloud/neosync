@@ -1,0 +1,6 @@
+load('ext://helm_resource', 'helm_resource', 'helm_repo')
+
+helm_repo('metrics-server-repo', 'https://kubernetes-sigs.github.io/metrics-server/')
+helm_resource('metrics-server', 'metrics-server-repo/metrics-server', resource_deps=['metrics-server-repo'], namespace="kube-system", flags=[
+  "--set", "args[0]=--kubelet-insecure-tls"
+])
