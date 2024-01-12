@@ -371,6 +371,26 @@ func Test_GetRunConfigs(t *testing.T) {
 				{Table: "public.b", DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
 			},
 		},
+		{
+			name: "Two Table Circular Dependency None Nullable",
+			dependencies: dbschemas.TableDependency{
+				"public.a": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "b_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
+					},
+				},
+				"public.b": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
+					},
+				},
+			},
+			tables: []string{"public.a", "public.b"},
+			expect: []*RunConfig{
+				{Table: "public.a", DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
+				{Table: "public.b", DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+			},
+		},
 	}
 
 	for _, tt := range tests {
