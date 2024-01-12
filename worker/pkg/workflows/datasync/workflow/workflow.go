@@ -53,7 +53,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	var activityErr error
 	childctx, cancelHandler := workflow.WithCancel(ctx)
 
-	if len(splitConfigs.Root) == 0 {
+	if len(splitConfigs.Root) == 0 && len(splitConfigs.Dependents) > 0 {
 		return nil, fmt.Errorf("root config not found. unable to process configs")
 	}
 	for _, bc := range splitConfigs.Root {
