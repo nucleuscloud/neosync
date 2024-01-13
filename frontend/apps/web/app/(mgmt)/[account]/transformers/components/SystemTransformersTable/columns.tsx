@@ -9,18 +9,15 @@ import { DataTableColumnHeader } from './data-table-column-header';
 import { DataTableRowActions } from './data-table-row-actions';
 import NextLink from 'next/link';
 
-interface getSystemTransformerProps {
-  account: {
-    name: string;
-  };
-  transformer: {
-    source: string;
-  };
+interface GetSystemTransformercolumnsProps {
+  accountName: string;
+  transformerSource: string;
 }
+
 export function getSystemTransformerColumns(
-  props: getSystemTransformerProps
+  props: GetSystemTransformercolumnsProps
 ): ColumnDef<PlainMessage<SystemTransformer>>[] {
-  const { account, transformer } = props;
+  const { accountName, transformerSource } = props;
   return [
     {
       id: 'select',
@@ -56,7 +53,7 @@ export function getSystemTransformerColumns(
               <div>
                 <NextLink
                   className="hover:underline"
-                  href={`/${account?.name}/transformers/systemTransformers/${transformer.source}`}
+                  href={`/${accountName}/transformers/systemTransformers/${transformerSource}`}
                 >
                   {row.original.name}
                 </NextLink>

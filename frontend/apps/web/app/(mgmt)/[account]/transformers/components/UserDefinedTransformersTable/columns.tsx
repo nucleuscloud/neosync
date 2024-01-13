@@ -10,20 +10,16 @@ import { UserDefinedTransformer } from '@neosync/sdk';
 import { DataTableColumnHeader } from './data-table-column-header';
 import { DataTableRowActions } from './data-table-row-actions';
 
-interface Props {
+interface getUserDefinedTransformerColumnsProps {
   onTransformerDeleted(id: string): void;
-  account: {
-    name: string;
-  };
-  transformer: {
-    id: string;
-  };
+  accountName: string;
+  transformerId: string;
 }
 
 export function getUserDefinedTransformerColumns(
-  props: Props
+  props: getUserDefinedTransformerColumnsProps
 ): ColumnDef<PlainMessage<UserDefinedTransformer>>[] {
-  const { onTransformerDeleted, account, transformer } = props;
+  const { onTransformerDeleted, accountName, transformerId } = props;
 
   return [
     {
@@ -60,7 +56,7 @@ export function getUserDefinedTransformerColumns(
               <div>
                 <NextLink
                   className="hover:underline"
-                  href={`/${account?.name}/transformers/${transformer.id}`}
+                  href={`/${accountName}/transformers/${transformerId}`}
                 >
                   {row.original.name}
                 </NextLink>
