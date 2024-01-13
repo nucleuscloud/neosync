@@ -3088,19 +3088,19 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
     code: |4-
         (() => {
 
-        function fn_name(value){
+        function fn_name(value, input){
           var payload = value + " hello";return payload;
         };
 
 
-        function fn_first_name(value){
+        function fn_first_name(value, input){
           var payload = value + " firstname";return payload;
         };
 
         const input = benthos.v0_msg_as_structured();
         const output = { ...input };
-        output["name"] = fn_name(input["name"]);
-        output["first_name"] = fn_first_name(input["first_name"]);
+        output["name"] = fn_name(input["name"], input);
+        output["first_name"] = fn_first_name(input["first_name"], input);
         benthos.v0_msg_set_structured(output);
         })();
       `), strings.TrimSpace(string(out)))
@@ -3173,13 +3173,13 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
     code: |4-
         (() => {
 
-        function fn_first_name(value){
+        function fn_first_name(value, input){
           var payload = value + " firstname";return payload;
         };
 
         const input = benthos.v0_msg_as_structured();
         const output = { ...input };
-        output["first_name"] = fn_first_name(input["first_name"]);
+        output["first_name"] = fn_first_name(input["first_name"], input);
         benthos.v0_msg_set_structured(output);
         })();
 	    `), strings.TrimSpace(string(out)))
