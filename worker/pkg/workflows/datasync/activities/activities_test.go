@@ -214,12 +214,12 @@ pipeline:
     - javascript:
         code: |
           (() => { 
-          function fn_name(value){
+          function fn_name(value, input){
           var a = value + "test";
           return a };
           const input = benthos.v0_msg_as_structured();
           const output = { ...input };
-          output["name"] = fn_name(input["name"]);
+          output["name"] = fn_name(input["name"], input);
           benthos.v0_msg_set_structured(output);
           })();
 output:
@@ -272,12 +272,12 @@ pipeline:
     - javascript:
         code: |
           (() => { 
-          function fn1(value){
+          function fn1(value, input){
           var a = value + "test";
           return a };
           const input = benthos.v0_msg_as_structured();
           const output = { ...input };
-          output["name"] = fn1(input["name"]);
+          output["name"] = fn1(input["name"], input);
           benthos.v0_msg_set_structured(output);
           })();
 output:
@@ -436,13 +436,13 @@ func Test_buildProcessorConfigsJavascript(t *testing.T) {
 	assert.Equal(t, `
 (() => {
 
-function fn_address(value){
+function fn_address(value, input){
   var payload = value+=" hello";return payload;
 };
 
 const input = benthos.v0_msg_as_structured();
 const output = { ...input };
-output["address"] = fn_address(input["address"]);
+output["address"] = fn_address(input["address"], input);
 benthos.v0_msg_set_structured(output);
 })();`,
 		res[0].Javascript.Code,
@@ -493,7 +493,7 @@ func Test_buildProcessorConfigsJavascriptMultiLineScript(t *testing.T) {
 	assert.Equal(t, `
 (() => {
 
-function fn_name(value){
+function fn_name(value, input){
   var payload = value+=" hello";
   payload.replace("hello","newHello");
   return payload;
@@ -501,7 +501,7 @@ function fn_name(value){
 
 const input = benthos.v0_msg_as_structured();
 const output = { ...input };
-output["name"] = fn_name(input["name"]);
+output["name"] = fn_name(input["name"], input);
 benthos.v0_msg_set_structured(output);
 })();`,
 		res[0].Javascript.Code,
@@ -564,19 +564,19 @@ func Test_buildProcessorConfigsJavascriptMultiple(t *testing.T) {
 	assert.Equal(t, `
 (() => {
 
-function fn_name(value){
+function fn_name(value, input){
   var payload = value+=" hello";return payload;
 };
 
 
-function fn_age(value){
+function fn_age(value, input){
   var payload = value*2;return payload;
 };
 
 const input = benthos.v0_msg_as_structured();
 const output = { ...input };
-output["name"] = fn_name(input["name"]);
-output["age"] = fn_age(input["age"]);
+output["name"] = fn_name(input["name"], input);
+output["age"] = fn_age(input["age"], input);
 benthos.v0_msg_set_structured(output);
 })();`,
 		res[0].Javascript.Code,
@@ -619,7 +619,7 @@ func Test_ConstructJsFunction(t *testing.T) {
 
 	res := constructJsFunction(code, col)
 	assert.Equal(t, `
-function fn_col(value){
+function fn_col(value, input){
   var payload = value+=" hello";return payload;
 };
 `, res)
@@ -641,13 +641,13 @@ func Test_ConstructBenthosJsProcessor(t *testing.T) {
 	assert.Equal(t, `
 (() => {
 
-function fn_name(value){
+function fn_name(value, input){
   var payload = value+=" hello";return payload;
 };
 
 const input = benthos.v0_msg_as_structured();
 const output = { ...input };
-output["name"] = fn_name(input["name"]);
+output["name"] = fn_name(input["name"], input);
 benthos.v0_msg_set_structured(output);
 })();`, res)
 }
@@ -658,7 +658,7 @@ func Test_ConstructBenthosOutput(t *testing.T) {
 
 	res := constructBenthosOutput(col)
 
-	assert.Equal(t, `output["col"] = fn_col(input["col"]);`, res)
+	assert.Equal(t, `output["col"] = fn_col(input["col"], input);`, res)
 }
 
 func Test_buildProcessorConfigsJavascriptEmpty(t *testing.T) {

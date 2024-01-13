@@ -640,7 +640,7 @@ func shouldProcessColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {
 func constructJsFunction(jsCode, col string) string {
 	if jsCode != "" {
 		return fmt.Sprintf(`
-function fn_%s(value){
+function fn_%s(value, input){
   %s
 };
 `, col, jsCode)
@@ -667,7 +667,7 @@ benthos.v0_msg_set_structured(output);
 }
 
 func constructBenthosOutput(col string) string {
-	return fmt.Sprintf(`output["%[1]s"] = fn_%[1]s(input["%[1]s"]);`, col)
+	return fmt.Sprintf(`output["%[1]s"] = fn_%[1]s(input["%[1]s"], input);`, col)
 }
 
 // takes in an user defined config with just an id field and return the right transformer config for that user defined function id
