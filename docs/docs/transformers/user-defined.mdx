@@ -94,13 +94,43 @@ const input = manipulateString(value);
 return input;
 ```
 
-Would return `johntest`. The code editor comes with autocomplete for most standard methods and syntax highlighting. Lastly, we do not currently support module imports in this section. **Important**: make sure you include a return statement or the custom function will not return a value.
+This would return `johntest`. The code editor comes with autocomplete for most standard methods and syntax highlighting. Lastly, we do not currently support module imports in this section. **Important**: make sure you include a return statement or the custom function will not return a value.
 
 5. Once you are satisified with your custom code, click on the **Validate** button to ensure that your javascript compiles and is valid. If it does not compile, we will return an **invalid** error.
    ![valid](https://assets.nucleuscloud.com/neosync/docs/validcode.png)
 6. Once your code has compiled, click on **Submit** to save your custom code transformer. You can now use your custom code transformer in sync jobs.
 
+# Creating Column Dependencies
+
+The Custom Code Transformer also allows you to condition a value on a value from another column. Let's take a look at a basic example.
+
+Let's say that we have a table with three fields: `id, age, shouldDouble` and with types `uuid, integer, bool` respectively. And we want to create a function that will check the value in the `shoudlDouble` column and if it's true, we want to double the value in the `age` column. Our code would look something like this:
+
+```javascript
+function doubleAge(age, shouldDouble) {
+  if (shouldDouble) {
+    return age * 2;
+  } else {
+    return age;
+  }
+}
+
+return doubleAge(value, input.shouldDouble);
+```
+
+The key thing to point out here is the `input.shouldDouble` argument we're passing into the `return doubleAge(...)` function. We can use the `input.{column_name}` notation to access values from other columns.
+
+For example, if we had a table that looked like this:
+
+| age | shouldDouble |
+| --- | ------------ |
+| 20  | true         |
+
+Our output to the `age` column would be: `40`
+
 # Things to watch out for
+
+## Interpolations
 
 There are a few thing to watch out for as you're writing your custom code. One is that interpolations are a work in progress. For example:
 
