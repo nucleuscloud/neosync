@@ -46,6 +46,14 @@ spec:
       serviceAccountName: {{ include "neosync-worker.serviceAccountName" . }}
       {{- end }}
       terminationGracePeriod: {{ .Values.terminationGracePeriod }}
+      {{- if .Values.tolerations }}
+      tolerations: 
+        {{- toYaml .Values.tolerations | nindent 8 }}
+      {{- end }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      {{- end }}
 
       {{- with .Values.volumes }}
       volumes:
