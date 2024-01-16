@@ -15,4 +15,5 @@ releases:
           database: nucleus
       - primary:
           persistence:
+            mountPath: "/neosync/neosync-postgres"
             existingClaim: neosync-postgres # see pvc in ../yaml/neosync-postgres-pvc.yaml
