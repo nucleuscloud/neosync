@@ -8,11 +8,11 @@ import { Button } from '../ui/button';
 
 export default function Hero(): ReactElement {
   return (
-    <div className="flex flex-col bg-[#FFFFFF] border-b border-b-gray-200 items-center space-y-10 mt-20">
+    <div className="flex flex-col bg-[#FFFFFF] border-b border-b-gray-200 items-center space-y-10 mt-40">
       <div className="text-gray-900 font-semibold lg:text-6xl text-4xl leading-tight text-center z-20 px-2 relative">
         Open Source Synthetic Data Orchestration
       </div>
-      <h3 className="text-[#606060]  text-md lg:text-lg font-light relative text-center z-20 ">
+      <h3 className="text-[#606060]  text-md lg:text-lg font-semibold relative text-center z-20 ">
         A developer-first way to create anonymized or synthetic data and sync it
         across all environments for high-quality local, stage and CI testing
       </h3>

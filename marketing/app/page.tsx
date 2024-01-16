@@ -1,5 +1,5 @@
 'use client';
-import FeaturesGrid from '@/components/landing-page/FeaturesGrid';
+import { default as Features } from '@/components/landing-page/Features';
 import GitOpsSection from '@/components/landing-page/GitOps';
 import Hero from '@/components/landing-page/Hero';
 import Subset from '@/components/landing-page/Subset';
@@ -12,8 +12,8 @@ export default function Home(): ReactElement {
   return (
     <div>
       <Hero />
+      <Features />
       <TableTypes />
-      <FeaturesGrid />
       <UseCases />
       <Transformers />
       <Subset />
