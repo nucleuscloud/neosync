@@ -10,7 +10,7 @@ authors:
 
 # Introduction
 
-For most companies, sensitive data is radioactive. If put to use correctly, it can be powerful, helping you to understand your customers and power personalized experiences. If mishandled, it can be extemely damaging. Our infrastructures are contaminated with this radioactivity.
+For most companies, sensitive data is radioactive. If put to use correctly, it can be powerful, helping you to understand your customers and power personalized experiences. If mishandled, it can be extremely damaging. Our infrastructures are contaminated with this radioactivity.
 
 But there was no other option. Developers need access to it to build features and fix bugs. Machine Learning Engineers need it to train models in order to build those personalized experiences. Data Engineers need it to build and test data pipelines so the Developers and Machine Learning Engineers can do their jobs.
 
@@ -32,9 +32,9 @@ Let's look at some use-cases.
 
 ## Product Engineering
 
-Product engineers are typically building features for customers. In order to build and test those features, product engineers will either run a database locally or connect to a staging database thats in the cloud. These testing databasese need high-quality [test data](https://neosync.dev/blog/what-is-test-data) in order to replicate real world scenarios and ensure that the features are stable. Many companies will just replicate their production database to their staging database or even to the developers local database. This is obviously not great from a security and privacy standpoint and in some industries, like healthcare where HIPAA reigns strong, not allowed.
+Product engineers are typically building features for customers. In order to build and test those features, product engineers will either run a database locally or connect to a staging database thats in the cloud. These testing databases need high-quality [test data](https://neosync.dev/blog/what-is-test-data) in order to replicate real world scenarios and ensure that the features are stable. Many companies will just replicate their production database to their staging database or even to the developers local database. This is obviously not great from a security and privacy standpoint and in some industries, like healthcare where HIPAA reigns strong, not allowed.
 
-Synthetic Data Engineering for product engineers means that they can have a local or staging database with synthetic data that looks just like their production database without any of the security and privacy concerns. They can tear down and re-hydrate this database ovre and over again without touching back up copies or a live database. Also, they can test their features with different levevls of data quality to ensure that they're handling edge cases. Overall, this creates a safer and more reliable application in the long run.
+Synthetic Data Engineering for product engineers means that they can have a local or staging database with synthetic data that looks just like their production database without any of the security and privacy concerns. They can tear down and re-hydrate this database over and over again without touching back up copies or a live database. Also, they can test their features with different levels of data quality to ensure that they're handling edge cases. Overall, this creates a safer and more reliable application in the long run.
 
 ## Machine learning
 
@@ -45,7 +45,7 @@ If you ask a Machine Learning Engineer or Data Scientist what their main problem
 
 Synthetic Data Engineering solves all three of these problems. With synthetic data, Machine Learning Engineers or Data Scientists can skip the data formatting and cleaning and create datasets in whatever final output they need from the start. This saves them hours of dull work (trust me, it's dull).
 
-For Machine Learning Engineers and Data Scientists who are training models and struggling to get enough representation in their data sets, we can train a model to learn the statistical properties from an existing dataset and then augment that data set with more data that is statistically consistent. So we never have to worry about not having enough data, we can simply create more. For fine-tuning use-cases, especially in Large Langauge Models (LLMs), we can use Generative AI to create synthetic data from scratch to fine tune our models.
+For Machine Learning Engineers and Data Scientists who are training models and struggling to get enough representation in their data sets, we can train a model to learn the statistical properties from an existing dataset and then augment that data set with more data that is statistically consistent. So we never have to worry about not having enough data, we can simply create more. For fine-tuning use-cases, especially in Large Language Models (LLMs), we can use Generative AI to create synthetic data from scratch to fine tune our models.
 
 This is especially powerful in regulated industries where sensitive data is sometimes not even available to be used by Machine Learning Engineers and Data Scientists.
 
@@ -69,7 +69,7 @@ Synthetic Data Engineering revolves around four key concepts:
 
 3. **Schema Validation** - Depending on the type of database that you're working with, you may need some level of schema validation. For example, if you're using relational databases, then your data should maintain [referential integrity](https://neosync.dev/blog/referential-integrity). If you're creating timeseries datasets, then you'll want to ensure that you time constraints in place. Ultimately, this is about ensuring the structure of your data is correct.
 
-4. **Data Generation** - At the heart of Synthetic Data Engineering is the ability to actually generate synthetic data. There are a lot of different ways to do this depending on the type of data you need, the format that you need it in and the statistical consistency of the data. Generative AI can be helpful if you need a small dataset and aren't worried about performance but rather looking for generalizability. While ML models such as CTGAN can be used to quickly create large statiscally consistent data sets from existing data.
+4. **Data Generation** - At the heart of Synthetic Data Engineering is the ability to actually generate synthetic data. There are a lot of different ways to do this depending on the type of data you need, the format that you need it in and the statistical consistency of the data. Generative AI can be helpful if you need a small dataset and aren't worried about performance but rather looking for generalizability. While ML models such as CTGAN can be used to quickly create large statistically consistent data sets from existing data.
 
 Synthetic Data Engineering starts from these core concepts and then can expand into other areas such as data anonymization, tokenization and more.
 
@@ -77,4 +77,4 @@ Synthetic Data Engineering starts from these core concepts and then can expand i
 
 Driving a new architecture is an audacious goal. But it's one that we strongly believe in. We imagine a world where Developers, Machine Learning Engineers and Data Engineers have unlimited access to high-fidelity data that is structurally and statistically identical to their production data yet doesn't have any of the security and privacy risk.
 
-This is a world that unschackles engineering teams from security and privacy constraints and allows them to be as expressive and productive as they want. Which at the end of the day means a better, safe and more reliable product.
+This is a world that unshackles engineering teams from security and privacy constraints and allows them to be as expressive and productive as they want. Which at the end of the day means a better, safer and more reliable product.
