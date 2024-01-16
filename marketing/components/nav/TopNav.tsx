@@ -102,7 +102,7 @@ export default function TopNav(): ReactElement {
           >
             <Link href="https://github.com/nucleuscloud/neosync">
               <div className="flex flex-row items-center">
-                <GitHubLogoIcon className="ml-2 h-4 w-4" />
+                <GitHubLogoIcon className=" h-4 w-4" />
               </div>
             </Link>
           </Button>
@@ -204,7 +204,7 @@ function MobileMenu(): ReactElement {
               >
                 <Link href="https://github.com/nucleuscloud/neosync">
                   <div className="flex flex-row items-center">
-                    <GitHubLogoIcon className="ml-2 h-4 w-4" />
+                    <GitHubLogoIcon className=" h-4 w-4" />
                   </div>
                 </Link>
               </Button>
