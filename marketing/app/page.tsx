@@ -608,35 +608,37 @@ function GitOpsSection(): ReactElement {
     },
   ];
   return (
-    <div className="flex flex-col items-center lg:py-40 bg-[#F5F5F5]  pt-5 lg:pt-40 px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto">
-      <div className="text-gray-900 font-semibold  text-2xl lg:text-5xl font-satoshi z-10 w-full">
-        Synthetic Data meets GitOps
-      </div>
-      <div className="flex flex-col lg:flex-row p-4 mt-10 border border-gray-400 shadow-lg rounded-xl text-gray-200">
-        <div className="flex flex-col p-2 lg:p-10">
-          <div className=" pl-2 text-xl font-satoshi font-normal text-gray-900">
-            Neosync is built with DevOps and infrastructure teams in mind. Use
-            frameworks you know like terraform to manage your Neosync
-            infrastructure and even create new jobs.
-          </div>
-          <div className="flex flex-col pt-10 space-y-10 pl-2">
-            <div className="flex flex-col justify-start">
-              {vp.map((item) => (
-                <div
-                  className="flex flex-row space-x-4 items-center pt-6"
-                  key={item.name}
-                >
-                  <CheckCircledIcon className="w-6 h-6 text-gray-700" />{' '}
-                  <div className="text-sm lg:text-lg text-gray-700 font-satoshi font-semibold">
-                    {item.description}
+    <div className="bg-[#F5F5F5] pt-20">
+      <div className="flex flex-col items-center lg:py-40 bg-[#F5F5F5]  pt-5 lg:pt-40 px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto">
+        <div className="text-gray-900 font-semibold  text-2xl lg:text-5xl font-satoshi z-10 w-full">
+          Synthetic Data meets GitOps
+        </div>
+        <div className="flex flex-col lg:flex-row p-4 mt-10 border border-gray-400 shadow-lg rounded-xl text-gray-200 bg-white">
+          <div className="flex flex-col p-2 lg:p-10">
+            <div className=" pl-2 text-xl font-satoshi font-normal text-gray-900">
+              Neosync is built with DevOps and infrastructure teams in mind. Use
+              frameworks you know like terraform to manage your Neosync
+              infrastructure and even create new jobs.
+            </div>
+            <div className="flex flex-col pt-10 space-y-10 pl-2">
+              <div className="flex flex-col justify-start">
+                {vp.map((item) => (
+                  <div
+                    className="flex flex-row space-x-4 items-center pt-6"
+                    key={item.name}
+                  >
+                    <CheckCircledIcon className="w-6 h-6 text-gray-700" />{' '}
+                    <div className="text-sm lg:text-lg text-gray-700 font-satoshi font-semibold">
+                      {item.description}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-        <div className="z-1 lg:text-md text-sm">
-          <CodeBlock code={jobCode} />
+          <div className="z-1 lg:text-md text-sm">
+            <CodeBlock code={jobCode} />
+          </div>
         </div>
       </div>
     </div>

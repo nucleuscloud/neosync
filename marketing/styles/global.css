@@ -72,10 +72,6 @@
     @apply p-4;
   }
 
-  code {
-    @apply bg-gray-100;
-  }
-
   strong {
     @apply font-extrabold;
   }
