@@ -11,6 +11,13 @@ update_docs() {
   rm -rf gen/docs
 }
 
+update_python_client() {
+  rm -rf ../ml/backend/mgmt
+  rm -rf ../ml/backend/buf
+  mv gen/python/protos** ../ml/backend
+  rm -rf gen/python
+}
+
 BUF_VERSION=$(cat BUF_VERSION)
 SQLC_VERSION=$(cat SQLC_VERSION)
 
@@ -30,6 +37,15 @@ docker run --rm -i \
   --workdir "/workspace" \
   "bufbuild/buf:${BUF_VERSION}" generate &
 
+  # buf generate
+docker run --rm -i \
+  --volume "./gen:/workspace/gen" \
+  --volume "./buf.work.yaml:/workspace/buf.work.yaml" \
+  --volume "./buf.gen.python.yaml:/workspace/buf.gen.yaml" \
+  --volume "./protos:/workspace/protos" \
+  --workdir "/workspace" \
+  "bufbuild/buf:${BUF_VERSION}" generate --include-imports &
+
 # sqlc
 docker run --rm -i \
   --volume "./gen:/workspace/gen" \
@@ -42,5 +58,6 @@ wait
 
 update_frontend_client &
 update_docs &
+update_python_client &
 
 wait
