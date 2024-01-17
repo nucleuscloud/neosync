@@ -636,6 +636,103 @@ func (s *Service) GetConnectionForeignConstraints(
 	}), nil
 }
 
+func (s *Service) GetConnectionPrimaryConstraints(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetConnectionPrimaryConstraintsRequest],
+) (*connect.Response[mgmtv1alpha1.GetConnectionPrimaryConstraintsResponse], error) {
+	connection, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+		Id: req.Msg.ConnectionId,
+	}))
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.verifyUserInAccount(ctx, connection.Msg.Connection.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	schemaResp, err := s.getConnectionSchema(ctx, connection.Msg.Connection, &schemaOpts{})
+	if err != nil {
+		return nil, err
+	}
+
+	schemaMap := map[string]struct{}{}
+	for _, s := range schemaResp {
+		schemaMap[s.Schema] = struct{}{}
+	}
+	schemas := []string{}
+	for s := range schemaMap {
+		schemas = append(schemas, s)
+	}
+
+	var pc map[string][]string
+	switch config := connection.Msg.Connection.ConnectionConfig.Config.(type) {
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		mysqlconfig := config.MysqlConfig
+		dsn, err := getMysqlDsn(mysqlconfig)
+		if err != nil {
+			return nil, err
+		}
+
+		cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
+		defer cancel()
+		conn, err := s.sqlConnector.MysqlOpen(dsn)
+		if err != nil {
+			return nil, err
+		}
+		defer conn.Close()
+
+		allConstraints, err := dbschemas_mysql.GetAllMysqlPkConstraints(s.mysqlquerier, cctx, conn, schemas)
+		if err != nil && !nucleusdb.IsNoRows(err) {
+			return nil, err
+		} else if err != nil && nucleusdb.IsNoRows(err) {
+			return connect.NewResponse(&mgmtv1alpha1.GetConnectionPrimaryConstraintsResponse{
+				TableConstraints: map[string]*mgmtv1alpha1.PrimaryConstraint{},
+			}), nil
+		}
+		pc = dbschemas_mysql.GetMysqlTablePrimaryKeys(allConstraints)
+
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		dsn, err := getPgDsn(config.PgConfig)
+		if err != nil {
+			return nil, err
+		}
+
+		cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
+		defer cancel()
+		pool, err := s.sqlConnector.PgPoolOpen(cctx, dsn)
+		if err != nil {
+			return nil, err
+		}
+		defer pool.Close()
+
+		allConstraints, err := dbschemas_postgres.GetAllPostgresPkConstraints(s.pgquerier, cctx, pool, schemas)
+		if err != nil && !nucleusdb.IsNoRows(err) {
+			return nil, err
+		} else if err != nil && nucleusdb.IsNoRows(err) {
+			return connect.NewResponse(&mgmtv1alpha1.GetConnectionPrimaryConstraintsResponse{
+				TableConstraints: map[string]*mgmtv1alpha1.PrimaryConstraint{},
+			}), nil
+		}
+		pc = dbschemas_postgres.GetPostgresTablePrimaryKeys(allConstraints)
+
+	default:
+		return nil, errors.New("unsupported fk connection")
+	}
+
+	tableConstraints := map[string]*mgmtv1alpha1.PrimaryConstraint{}
+	for tableName, cols := range pc {
+		tableConstraints[tableName] = &mgmtv1alpha1.PrimaryConstraint{
+			Columns: cols,
+		}
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.GetConnectionPrimaryConstraintsResponse{
+		TableConstraints: tableConstraints,
+	}), nil
+}
+
 func (s *Service) GetConnectionInitStatements(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetConnectionInitStatementsRequest],
