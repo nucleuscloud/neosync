@@ -4,6 +4,8 @@ import (
 	"math"
 	"testing"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/stretchr/testify/assert"
 )
@@ -226,6 +228,211 @@ func Test_buildMysqlUpdateQuery(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			actual := buildMysqlUpdateQuery(tt.table, tt.columns, tt.primaryKeys)
 			assert.Equal(t, tt.expected, actual)
+		})
+	}
+}
+
+func Test_buildSyncConfigs_postgres(t *testing.T) {
+	tests := []struct {
+		name   string
+		config *schemaConfig
+		expect []*syncConfig
+	}{
+		{
+			name: "Empty Schema",
+			config: &schemaConfig{
+				Schemas:                []*mgmtv1alpha1.DatabaseColumn{},
+				TableConstraints:       map[string]*dbschemas_utils.TableConstraints{},
+				TablePrimaryKeys:       map[string]*mgmtv1alpha1.PrimaryConstraint{},
+				InitTableStatementsMap: map[string]string{},
+			},
+			expect: []*syncConfig{},
+		},
+		{
+			name: "Single Table",
+			config: &schemaConfig{
+				Schemas: []*mgmtv1alpha1.DatabaseColumn{
+					{Schema: "public", Table: "users", Column: "id", DataType: ""},
+					{Schema: "public", Table: "users", Column: "name", DataType: ""},
+					{Schema: "public", Table: "users", Column: "email", DataType: ""},
+				},
+				TableConstraints:       map[string]*dbschemas_utils.TableConstraints{},
+				TablePrimaryKeys:       map[string]*mgmtv1alpha1.PrimaryConstraint{},
+				InitTableStatementsMap: map[string]string{},
+			},
+			expect: []*syncConfig{
+				{
+					Query:         "INSERT INTO public.users (id, name, email) VALUES ($1, $2, $3);",
+					ArgsMapping:   "root = [this.id, this.name, this.email]",
+					InitStatement: "",
+					Schema:        "public",
+					Table:         "users",
+					Columns:       []string{"id", "name", "email"},
+					DependsOn:     []*tabledependency.DependsOn{},
+					Name:          "public.users",
+				},
+			},
+		},
+		{
+			name: "Multiple Tables",
+			config: &schemaConfig{
+				Schemas: []*mgmtv1alpha1.DatabaseColumn{
+					{Schema: "public", Table: "users", Column: "id", DataType: ""},
+					{Schema: "public", Table: "users", Column: "name", DataType: ""},
+					{Schema: "public", Table: "users", Column: "email", DataType: ""},
+					{Schema: "public", Table: "accounts", Column: "id", DataType: ""},
+					{Schema: "public", Table: "accounts", Column: "user_id", DataType: ""},
+				},
+				TableConstraints: map[string]*dbschemas_utils.TableConstraints{
+					"public.accounts": {Constraints: []*dbschemas_utils.ForeignConstraint{
+						{Column: "user_id", IsNullable: false, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.users", Column: "id"}},
+					}},
+				},
+				TablePrimaryKeys:       map[string]*mgmtv1alpha1.PrimaryConstraint{},
+				InitTableStatementsMap: map[string]string{},
+			},
+			expect: []*syncConfig{
+				{
+					Query:         "INSERT INTO public.users (id, name, email) VALUES ($1, $2, $3);",
+					ArgsMapping:   "root = [this.id, this.name, this.email]",
+					InitStatement: "",
+					Schema:        "public",
+					Table:         "users",
+					Columns:       []string{"id", "name", "email"},
+					DependsOn:     []*tabledependency.DependsOn{},
+					Name:          "public.users",
+				},
+				{
+					Query:         "INSERT INTO public.accounts (id, user_id) VALUES ($1, $2);",
+					ArgsMapping:   "root = [this.id, this.user_id]",
+					InitStatement: "",
+					Schema:        "public",
+					Table:         "accounts",
+					Columns:       []string{"id", "user_id"},
+					DependsOn: []*tabledependency.DependsOn{{
+						Table: "public.users", Columns: []string{"id"},
+					}},
+					Name: "public.accounts",
+				},
+			},
+		},
+		{
+			name: "Circular Dependent Tables",
+			config: &schemaConfig{
+				Schemas: []*mgmtv1alpha1.DatabaseColumn{
+					{Schema: "public", Table: "users", Column: "id", DataType: ""},
+					{Schema: "public", Table: "users", Column: "name", DataType: ""},
+					{Schema: "public", Table: "users", Column: "account_id", DataType: ""},
+					{Schema: "public", Table: "accounts", Column: "id", DataType: ""},
+					{Schema: "public", Table: "accounts", Column: "user_id", DataType: ""},
+				},
+				TableConstraints: map[string]*dbschemas_utils.TableConstraints{
+					"public.accounts": {Constraints: []*dbschemas_utils.ForeignConstraint{
+						{Column: "user_id", IsNullable: false, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.users", Column: "id"}},
+					}},
+					"public.users": {Constraints: []*dbschemas_utils.ForeignConstraint{
+						{Column: "account_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.accounts", Column: "id"}},
+					}},
+				},
+				TablePrimaryKeys: map[string]*mgmtv1alpha1.PrimaryConstraint{
+					"public.accounts": {Columns: []string{"id"}},
+					"public.users":    {Columns: []string{"id"}},
+				},
+				InitTableStatementsMap: map[string]string{},
+			},
+			expect: []*syncConfig{
+				{
+					Query:         "INSERT INTO public.users (id, name) VALUES ($1, $2);",
+					ArgsMapping:   "root = [this.id, this.name]",
+					InitStatement: "",
+					Schema:        "public",
+					Table:         "users",
+					Columns:       []string{"id", "name"},
+					DependsOn:     []*tabledependency.DependsOn{},
+					Name:          "public.users",
+				},
+				{
+					Query:         "INSERT INTO public.accounts (id, user_id) VALUES ($1, $2);",
+					ArgsMapping:   "root = [this.id, this.user_id]",
+					InitStatement: "",
+					Schema:        "public",
+					Table:         "accounts",
+					Columns:       []string{"id", "user_id"},
+					DependsOn: []*tabledependency.DependsOn{{
+						Table: "public.users", Columns: []string{"id"},
+					}},
+					Name: "public.accounts",
+				},
+				{
+					Query:         "UPDATE public.users SET account_id = $1 WHERE id = $2;",
+					ArgsMapping:   "root = [this.account_id, this.id]",
+					InitStatement: "",
+					Schema:        "public",
+					Table:         "users",
+					Columns:       []string{"account_id"},
+					DependsOn: []*tabledependency.DependsOn{
+						{Table: "public.users", Columns: []string{"id"}},
+					},
+					Name: "public.users.updated",
+				},
+			},
+		},
+		{
+			name: "Self Circular Dependency",
+			config: &schemaConfig{
+				Schemas: []*mgmtv1alpha1.DatabaseColumn{
+					{Schema: "public", Table: "users", Column: "id", DataType: ""},
+					{Schema: "public", Table: "users", Column: "name", DataType: ""},
+					{Schema: "public", Table: "users", Column: "user_id", DataType: ""},
+				},
+				TableConstraints: map[string]*dbschemas_utils.TableConstraints{
+					"public.users": {Constraints: []*dbschemas_utils.ForeignConstraint{
+						{Column: "user_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.users", Column: "id"}},
+					}},
+				},
+				TablePrimaryKeys: map[string]*mgmtv1alpha1.PrimaryConstraint{
+					"public.users": {Columns: []string{"id"}},
+				},
+				InitTableStatementsMap: map[string]string{},
+			},
+			expect: []*syncConfig{
+				{
+					Query:         "INSERT INTO public.users (id, name) VALUES ($1, $2);",
+					ArgsMapping:   "root = [this.id, this.name]",
+					InitStatement: "",
+					Schema:        "public",
+					Table:         "users",
+					Columns:       []string{"id", "name"},
+					DependsOn:     []*tabledependency.DependsOn{},
+					Name:          "public.users",
+				},
+				{
+					Query:         "UPDATE public.users SET user_id = $1 WHERE id = $2;",
+					ArgsMapping:   "root = [this.user_id, this.id]",
+					InitStatement: "",
+					Schema:        "public",
+					Table:         "users",
+					Columns:       []string{"user_id"},
+					DependsOn: []*tabledependency.DependsOn{
+						{Table: "public.users", Columns: []string{"id"}},
+					},
+					Name: "public.users.updated",
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			configs := buildSyncConfigs(tt.config, buildPostgresInsertQuery, buildPostgresUpdateQuery)
+			assert.Len(t, configs, len(tt.expect))
+			for _, actual := range configs {
+				for _, c := range tt.expect {
+					if c.Name == actual.Name {
+						assert.Equal(t, actual, c)
+					}
+				}
+			}
 		})
 	}
 }
