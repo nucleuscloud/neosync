@@ -89,5 +89,8 @@ temporal:
     keyContents:
     certContents:
 
+tolerations: []
+nodeSelector: {}
+
 volumes: []
 volumeMounts: []
