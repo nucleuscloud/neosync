@@ -352,6 +352,12 @@ func (s *Service) CreateJob(
 		connectionIds = append(connectionIds, config.Postgres.ConnectionId)
 	case *mgmtv1alpha1.JobSourceOptions_AwsS3:
 		connectionIds = append(connectionIds, config.AwsS3.ConnectionId)
+	case *mgmtv1alpha1.JobSourceOptions_SingleTableCtganTrain:
+		switch stconfig := config.SingleTableCtganTrain.ConnectionConfig.(type) {
+		case *mgmtv1alpha1.TrainSingleTableCtganSourceOptions_Postgres:
+			connectionIds = append(connectionIds, stconfig.Postgres.ConnectionId)
+		default:
+		}
 	default:
 	}
 
@@ -372,6 +378,12 @@ func (s *Service) CreateJob(
 		fkConnId := config.Generate.GetFkSourceConnectionId()
 		if fkConnId != "" {
 			connectionIdToVerify = &fkConnId
+		}
+	case *mgmtv1alpha1.JobSourceOptions_SingleTableCtganTrain:
+		switch stconfig := config.SingleTableCtganTrain.ConnectionConfig.(type) {
+		case *mgmtv1alpha1.TrainSingleTableCtganSourceOptions_Postgres:
+			connectionIdToVerify = &stconfig.Postgres.ConnectionId
+		default:
 		}
 	default:
 		return nil, errors.New("unsupported source option config type")
@@ -395,6 +407,20 @@ func (s *Service) CreateJob(
 		}
 	}
 
+	if req.Msg.Source.Options.GetSingleTableCtganTrain() != nil {
+		if len(req.Msg.Destinations) == 0 {
+			return nil, nucleuserrors.NewBadRequest("must provide at least one destination")
+		}
+		for _, destination := range req.Msg.Destinations {
+			switch destination.Options.Config.(type) {
+			case *mgmtv1alpha1.JobDestinationOptions_AwsS3Options, *mgmtv1alpha1.JobDestinationOptions_LocalDirectoryOptions:
+				continue
+			default:
+				return nil, nucleuserrors.NewBadRequest("not a supported destination type for single table model trainings")
+			}
+		}
+	}
+
 	cron := pgtype.Text{}
 	if req.Msg.CronSchedule != nil {
 		err := cron.Scan(req.Msg.GetCronSchedule())
@@ -404,13 +430,15 @@ func (s *Service) CreateJob(
 	}
 
 	mappings := []*pg_models.JobMapping{}
-	for _, mapping := range req.Msg.Mappings {
-		jm := &pg_models.JobMapping{}
-		err = jm.FromDto(mapping)
-		if err != nil {
-			return nil, err
+	if req.Msg.Source.Options.GetSingleTableCtganTrain() == nil {
+		for _, mapping := range req.Msg.Mappings {
+			jm := &pg_models.JobMapping{}
+			err = jm.FromDto(mapping)
+			if err != nil {
+				return nil, err
+			}
+			mappings = append(mappings, jm)
 		}
-		mappings = append(mappings, jm)
 	}
 
 	connectionOptions := &pg_models.JobSourceOptions{}
@@ -1291,7 +1319,7 @@ func verifyConnectionsAreCompatible(ctx context.Context, db *nucleusdb.NucleusDb
 	for i := range dests {
 		d := dests[i]
 		// AWS S3 is always a valid destination regardless of source connection type
-		if d.ConnectionConfig.AwsS3Config != nil {
+		if d.ConnectionConfig.AwsS3Config != nil || d.ConnectionConfig.LocalDirectoryConfig != nil {
 			continue
 		}
 		if sourceConnection.ConnectionConfig.PgConfig != nil && d.ConnectionConfig.MysqlConfig != nil {

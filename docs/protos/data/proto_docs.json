@@ -6727,6 +6727,18 @@
               "isoneof": true,
               "oneofdecl": "config",
               "defaultValue": ""
+            },
+            {
+              "name": "local_directory_options",
+              "description": "",
+              "label": "",
+              "type": "LocalDirectoryDestinationConnectionOptions",
+              "longType": "LocalDirectoryDestinationConnectionOptions",
+              "fullType": "mgmt.v1alpha1.LocalDirectoryDestinationConnectionOptions",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
             }
           ]
         },
@@ -7303,6 +7315,18 @@
               "isoneof": true,
               "oneofdecl": "config",
               "defaultValue": ""
+            },
+            {
+              "name": "single_table_ctgan_train",
+              "description": "",
+              "label": "",
+              "type": "TrainSingleTableCtganSourceOptions",
+              "longType": "TrainSingleTableCtganSourceOptions",
+              "fullType": "mgmt.v1alpha1.TrainSingleTableCtganSourceOptions",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
             }
           ]
         },
@@ -7371,6 +7395,30 @@
               "type": "JobStatus",
               "longType": "JobStatus",
               "fullType": "mgmt.v1alpha1.JobStatus",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "LocalDirectoryDestinationConnectionOptions",
+          "longName": "LocalDirectoryDestinationConnectionOptions",
+          "fullName": "mgmt.v1alpha1.LocalDirectoryDestinationConnectionOptions",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "file_name",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -7979,6 +8027,54 @@
           ]
         },
         {
+          "name": "SingleTablePostgresConnectionOptions",
+          "longName": "SingleTablePostgresConnectionOptions",
+          "fullName": "mgmt.v1alpha1.SingleTablePostgresConnectionOptions",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "connection_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "schema",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "table",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "TerminateJobRunRequest",
           "longName": "TerminateJobRunRequest",
           "fullName": "mgmt.v1alpha1.TerminateJobRunRequest",
@@ -8024,6 +8120,66 @@
           "hasOneofs": false,
           "extensions": [],
           "fields": []
+        },
+        {
+          "name": "TrainSingleTableCtganSourceOptions",
+          "longName": "TrainSingleTableCtganSourceOptions",
+          "fullName": "mgmt.v1alpha1.TrainSingleTableCtganSourceOptions",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "epochs",
+              "description": "",
+              "label": "",
+              "type": "uint32",
+              "longType": "uint32",
+              "fullType": "uint32",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "columns",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "discrete_columns",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "postgres",
+              "description": "",
+              "label": "",
+              "type": "SingleTablePostgresConnectionOptions",
+              "longType": "SingleTablePostgresConnectionOptions",
+              "fullType": "mgmt.v1alpha1.SingleTablePostgresConnectionOptions",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "connection_config",
+              "defaultValue": ""
+            }
+          ]
         },
         {
           "name": "UpdateJobDestinationConnectionRequest",
