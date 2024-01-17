@@ -661,6 +661,16 @@ func Test_UpdateJobSourceConnection_Success(t *testing.T) {
 		AccountId:    accountUuid,
 		ConnectionId: conn.ID,
 	}).Return(int64(1), nil)
+	m.ConnectionServiceClientMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+		Connection: &mgmtv1alpha1.Connection{
+			Id: mockConnectionId,
+			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{},
+				},
+			},
+		},
+	}), nil)
 
 	resp, err := m.Service.UpdateJobSourceConnection(context.Background(), &connect.Request[mgmtv1alpha1.UpdateJobSourceConnectionRequest]{
 		Msg: &mgmtv1alpha1.UpdateJobSourceConnectionRequest{
@@ -691,6 +701,64 @@ func Test_UpdateJobSourceConnection_Success(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
+}
+
+func Test_UpdateJobSourceConnection_MismatchError(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	conn := getConnectionMock(mockAccountId, "test-1")
+	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
+	whereClause := "where1"
+
+	mockUserAccountCalls(m.UserAccountServiceMock, true)
+	mockIsUserInAccount(m.UserAccountServiceMock, true)
+	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, job.ID).Return(job, nil)
+	m.QuerierMock.On("IsConnectionInAccount", mock.Anything, mock.Anything, db_queries.IsConnectionInAccountParams{
+		AccountId:    accountUuid,
+		ConnectionId: conn.ID,
+	}).Return(int64(1), nil)
+	m.ConnectionServiceClientMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+		Connection: &mgmtv1alpha1.Connection{
+			Id: mockConnectionId,
+			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{},
+				},
+			},
+		},
+	}), nil)
+
+	_, err := m.Service.UpdateJobSourceConnection(context.Background(), &connect.Request[mgmtv1alpha1.UpdateJobSourceConnectionRequest]{
+		Msg: &mgmtv1alpha1.UpdateJobSourceConnectionRequest{
+			Id: nucleusdb.UUIDString(job.ID),
+			Source: &mgmtv1alpha1.JobSource{
+				Options: &mgmtv1alpha1.JobSourceOptions{
+					Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
+						Postgres: &mgmtv1alpha1.PostgresSourceConnectionOptions{
+							ConnectionId:            nucleusdb.UUIDString(conn.ID),
+							HaltOnNewColumnAddition: true,
+							Schemas: []*mgmtv1alpha1.PostgresSourceSchemaOption{
+								{Schema: "schema-1", Tables: []*mgmtv1alpha1.PostgresSourceTableOption{
+									{Table: "table-1", WhereClause: &whereClause},
+								}},
+							},
+						},
+					},
+				},
+			},
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{Schema: "schema-1", Table: "table-1", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
+					Source: "passthrough",
+					Config: &mgmtv1alpha1.TransformerConfig{},
+				}},
+			},
+		},
+	})
+
+	assert.Error(t, err)
+	m.QuerierMock.AssertNotCalled(t, "UpdateJobSource", mock.Anything, mock.Anything, mock.Anything)
+	m.QuerierMock.AssertNotCalled(t, "UpdateJobMappings", mock.Anything, mock.Anything, mock.Anything)
 }
 
 // SetJobSourceSqlConnectionSubsets

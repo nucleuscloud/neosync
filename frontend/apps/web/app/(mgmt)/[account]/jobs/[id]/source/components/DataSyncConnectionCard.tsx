@@ -146,7 +146,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   }
 
   async function onSubmit(values: SourceFormValues) {
-    const connection = connections.find((c) => (c.id = values.sourceId));
+    const connection = connections.find((c) => c.id == values.sourceId);
     const job = data?.job;
     if (!job || !connection) {
       return;
