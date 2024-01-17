@@ -47,7 +47,7 @@ export default function Features(): ReactElement {
           {features.map((item) => (
             <div
               key={item.title}
-              className="bg-gradient-to-tr from-[#0F0F0F] to-[#2e2e2e] rounded-xl p-8 hover:-translate-y-2 duration-150 shadow-xl items-center flex flex-col gap-6 text-center w-[480px]"
+              className="bg-gradient-to-tr from-[#0F0F0F] to-[#2e2e2e] rounded-xl p-8 shadow-xl items-center flex flex-col gap-6 text-center w-[480px]"
             >
               <div className="text-gray-100">{item.icon}</div>
               <div className="text-gray-100 text-2xl">{item.title}</div>

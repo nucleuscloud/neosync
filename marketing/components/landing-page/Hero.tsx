@@ -4,11 +4,12 @@ import { ArrowRightIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ReactElement } from 'react';
+import { PiBookOpenText } from 'react-icons/pi';
 import { Button } from '../ui/button';
 
 export default function Hero(): ReactElement {
   return (
-    <div className="flex flex-col bg-[#FFFFFF] border-b border-b-gray-200 items-center space-y-10 mt-40">
+    <div className="flex flex-col bg-[#FFFFFF] border-b border-b-gray-200 items-center space-y-10 mt-20">
       <div className="text-gray-900 font-semibold lg:text-6xl text-4xl leading-tight text-center z-20 px-2 relative">
         Open Source Synthetic Data Orchestration
       </div>
@@ -17,17 +18,19 @@ export default function Hero(): ReactElement {
         across all environments for high-quality local, stage and CI testing
       </h3>
       <div className="flex flex-col lg:flex-row lg:space-y-0 space-y-2 lg:space-x-4 z-30">
-        <Button className="px-4">
-          <Link href="https://docs.neosync.dev">
-            <div className="flex flex-row">
-              Documentation <ArrowRightIcon className="ml-2 h-5 w-5" />
+        <Button className="px-6">
+          <Link href="https://github.com/nucleuscloud/neosync">
+            <div className="flex flex-row gap-2">
+              <GitHubLogoIcon className="mr-2 h-5 w-5" /> Get started{' '}
+              <ArrowRightIcon className="h-5 w-5" />
             </div>
           </Link>
         </Button>
-        <Button variant="secondary" className="px-6">
-          <Link href="https://github.com/nucleuscloud/neosync">
-            <div className="flex flex-row">
-              <GitHubLogoIcon className="mr-2 h-5 w-5" /> Get started
+        <Button variant="secondary" className="px-4">
+          <Link href="https://docs.neosync.dev">
+            <div className="flex flex-row items-center gap-2">
+              <PiBookOpenText className="h-5 w-5" />
+              Documentation
             </div>
           </Link>
         </Button>
