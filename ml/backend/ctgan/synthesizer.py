@@ -281,7 +281,7 @@ class CTGAN(object):
     def load_from_dir_for_eval(path: str, filename: str = "/ctgan.pkl"):
         with open(os.path.join(path, filename), "rb") as f:
             ctgan = pickle.load(f)
-            ctgan.model.eval()
+            # ctgan.generator.eval()
             return ctgan
 
         # device = attributes.pop("device", None)
