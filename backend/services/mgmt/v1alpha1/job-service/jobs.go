@@ -17,6 +17,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
+	ctganworkflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/syth-gen/ctgan-workflow"
 
 	workflowpb "go.temporal.io/api/workflow/v1"
 	"go.temporal.io/api/workflowservice/v1"
@@ -500,15 +501,26 @@ func (s *Service) CreateJob(
 		spec.CronExpressions = []string{*schedule}
 		paused = false
 	}
+
+	var action *temporalclient.ScheduleWorkflowAction
+	if req.Msg.Source.Options.GetSingleTableCtganTrain() != nil {
+		action = &temporalclient.ScheduleWorkflowAction{
+			Workflow:  ctganworkflow.Workflow,
+			TaskQueue: tconfig.SyncJobQueueName,
+			Args:      []any{&ctganworkflow.WorkflowRequest{JobId: jobUuid}},
+		}
+	} else {
+		action = &temporalclient.ScheduleWorkflowAction{
+			Workflow:  datasync_workflow.Workflow,
+			TaskQueue: tconfig.SyncJobQueueName,
+			Args:      []any{&datasync_workflow.WorkflowRequest{JobId: jobUuid}},
+		}
+	}
 	scheduleHandle, err := tScheduleClient.Create(ctx, temporalclient.ScheduleOptions{
 		ID:     jobUuid,
 		Spec:   spec,
 		Paused: paused,
-		Action: &temporalclient.ScheduleWorkflowAction{
-			Workflow:  datasync_workflow.Workflow,
-			TaskQueue: tconfig.SyncJobQueueName,
-			Args:      []any{&datasync_workflow.WorkflowRequest{JobId: jobUuid}},
-		},
+		Action: action,
 	})
 	if err != nil {
 		logger.Error(fmt.Errorf("unable to create schedule workflow: %w", err).Error())
