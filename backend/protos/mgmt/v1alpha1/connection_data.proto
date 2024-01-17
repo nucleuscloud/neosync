@@ -116,6 +116,20 @@ message GetConnectionInitStatementsResponse {
   map<string, string> table_init_statements = 1;
 }
 
+message PrimaryConstraint {
+  repeated string columns = 1;
+}
+
+// Primary constraints for a specific table
+message GetConnectionPrimaryConstraintsRequest {
+  string connection_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message GetConnectionPrimaryConstraintsResponse {
+  // the key here is <schema>.<table> and value is
+  map<string, PrimaryConstraint> table_constraints = 1;
+}
+
 // Service for managing connection data.
 // This is used in handle data from a connection
 service ConnectionDataService {
@@ -127,6 +141,9 @@ service ConnectionDataService {
   // For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.
   // Used primarily by the CLI sync command to determine stream order.
   rpc GetConnectionForeignConstraints(GetConnectionForeignConstraintsRequest) returns (GetConnectionForeignConstraintsResponse) {}
+  // For a specific connection, returns the primary key constraints. Mostly useful for SQL-based Connections.
+  // Used primarily by the CLI sync command to determine stream order.
+  rpc GetConnectionPrimaryConstraints(GetConnectionPrimaryConstraintsRequest) returns (GetConnectionPrimaryConstraintsResponse) {}
   // For a specific connection, returns the init table statements. Mostly useful for SQL-based Connections.
   // Used primarily by the CLI sync command to create table schema init statement.
   rpc GetConnectionInitStatements(GetConnectionInitStatementsRequest) returns (GetConnectionInitStatementsResponse) {}

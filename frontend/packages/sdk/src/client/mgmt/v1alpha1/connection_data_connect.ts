@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { GetConnectionDataStreamRequest, GetConnectionDataStreamResponse, GetConnectionForeignConstraintsRequest, GetConnectionForeignConstraintsResponse, GetConnectionInitStatementsRequest, GetConnectionInitStatementsResponse, GetConnectionSchemaRequest, GetConnectionSchemaResponse } from "./connection_data_pb.js";
+import { GetConnectionDataStreamRequest, GetConnectionDataStreamResponse, GetConnectionForeignConstraintsRequest, GetConnectionForeignConstraintsResponse, GetConnectionInitStatementsRequest, GetConnectionInitStatementsResponse, GetConnectionPrimaryConstraintsRequest, GetConnectionPrimaryConstraintsResponse, GetConnectionSchemaRequest, GetConnectionSchemaResponse } from "./connection_data_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -48,6 +48,18 @@ export const ConnectionDataService = {
       name: "GetConnectionForeignConstraints",
       I: GetConnectionForeignConstraintsRequest,
       O: GetConnectionForeignConstraintsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * For a specific connection, returns the primary key constraints. Mostly useful for SQL-based Connections.
+     * Used primarily by the CLI sync command to determine stream order.
+     *
+     * @generated from rpc mgmt.v1alpha1.ConnectionDataService.GetConnectionPrimaryConstraints
+     */
+    getConnectionPrimaryConstraints: {
+      name: "GetConnectionPrimaryConstraints",
+      I: GetConnectionPrimaryConstraintsRequest,
+      O: GetConnectionPrimaryConstraintsResponse,
       kind: MethodKind.Unary,
     },
     /**

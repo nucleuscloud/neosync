@@ -19,7 +19,6 @@ import (
 	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/postgres"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
-	"golang.org/x/sync/errgroup"
 
 	"go.temporal.io/sdk/log"
 )
@@ -238,7 +237,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, errors.New(msg)
 		}
 
-		allConstraints, err := b.getAllMysqlFkConstraintsFromMappings(ctx, pool, job.Mappings)
+		allConstraints, err := dbschemas_mysql.GetAllMysqlFkConstraints(b.mysqlquerier, ctx, pool, uniqueSchemas)
 		if err != nil {
 			return nil, err
 		}
@@ -784,27 +783,7 @@ func (b *benthosBuilder) getAllPostgresPkConstraints(
 	if err != nil {
 		return nil, err
 	}
-	pkConstraintMap := map[string][]*pg_queries.GetPrimaryKeyConstraintsRow{}
-	for _, c := range primaryKeyConstraints {
-		_, ok := pkConstraintMap[c.ConstraintName]
-		if ok {
-			pkConstraintMap[c.ConstraintName] = append(pkConstraintMap[c.ConstraintName], c)
-		} else {
-			pkConstraintMap[c.ConstraintName] = []*pg_queries.GetPrimaryKeyConstraintsRow{c}
-		}
-	}
-	pkMap := map[string][]string{}
-	for _, constraints := range pkConstraintMap {
-		for _, c := range constraints {
-			key := neosync_benthos.BuildBenthosTable(c.SchemaName, c.TableName)
-			_, ok := pkMap[key]
-			if ok {
-				pkMap[key] = append(pkMap[key], c.ColumnName)
-			} else {
-				pkMap[key] = []string{c.ColumnName}
-			}
-		}
-	}
+	pkMap := dbschemas_postgres.GetPostgresTablePrimaryKeys(primaryKeyConstraints)
 	return pkMap, nil
 }
 
@@ -817,60 +796,8 @@ func (b *benthosBuilder) getAllMysqlPkConstraints(
 	if err != nil {
 		return nil, err
 	}
-	pkConstraintMap := map[string][]*mysql_queries.GetPrimaryKeyConstraintsRow{}
-	for _, c := range primaryKeyConstraints {
-		_, ok := pkConstraintMap[c.ConstraintName]
-		if ok {
-			pkConstraintMap[c.ConstraintName] = append(pkConstraintMap[c.ConstraintName], c)
-		} else {
-			pkConstraintMap[c.ConstraintName] = []*mysql_queries.GetPrimaryKeyConstraintsRow{c}
-		}
-	}
-	pkMap := map[string][]string{}
-	for _, constraints := range pkConstraintMap {
-		for _, c := range constraints {
-			key := neosync_benthos.BuildBenthosTable(c.SchemaName, c.TableName)
-			_, ok := pkMap[key]
-			if ok {
-				pkMap[key] = append(pkMap[key], c.ColumnName)
-			} else {
-				pkMap[key] = []string{c.ColumnName}
-			}
-		}
-	}
+	pkMap := dbschemas_mysql.GetMysqlTablePrimaryKeys(primaryKeyConstraints)
 	return pkMap, nil
-}
-
-func (b *benthosBuilder) getAllMysqlFkConstraintsFromMappings(
-	ctx context.Context,
-	conn mysql_queries.DBTX,
-	mappings []*mgmtv1alpha1.JobMapping,
-) ([]*mysql_queries.GetForeignKeyConstraintsRow, error) {
-	uniqueSchemas := getUniqueSchemasFromMappings(mappings)
-	holder := make([][]*mysql_queries.GetForeignKeyConstraintsRow, len(uniqueSchemas))
-	errgrp, errctx := errgroup.WithContext(ctx)
-	for idx := range uniqueSchemas {
-		idx := idx
-		schema := uniqueSchemas[idx]
-		errgrp.Go(func() error {
-			constraints, err := b.mysqlquerier.GetForeignKeyConstraints(errctx, conn, schema)
-			if err != nil {
-				return err
-			}
-			holder[idx] = constraints
-			return nil
-		})
-	}
-
-	if err := errgrp.Wait(); err != nil {
-		return nil, err
-	}
-
-	output := []*mysql_queries.GetForeignKeyConstraintsRow{}
-	for _, schemas := range holder {
-		output = append(output, schemas...)
-	}
-	return output, nil
 }
 
 type initStatementOpts struct {

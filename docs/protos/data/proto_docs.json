@@ -2790,6 +2790,90 @@
           ]
         },
         {
+          "name": "GetConnectionPrimaryConstraintsRequest",
+          "longName": "GetConnectionPrimaryConstraintsRequest",
+          "fullName": "mgmt.v1alpha1.GetConnectionPrimaryConstraintsRequest",
+          "description": "Primary constraints for a specific table",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "connection_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetConnectionPrimaryConstraintsResponse",
+          "longName": "GetConnectionPrimaryConstraintsResponse",
+          "fullName": "mgmt.v1alpha1.GetConnectionPrimaryConstraintsResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "table_constraints",
+              "description": "the key here is \u003cschema\u003e.\u003ctable\u003e and value is",
+              "label": "repeated",
+              "type": "TableConstraintsEntry",
+              "longType": "GetConnectionPrimaryConstraintsResponse.TableConstraintsEntry",
+              "fullType": "mgmt.v1alpha1.GetConnectionPrimaryConstraintsResponse.TableConstraintsEntry",
+              "ismap": true,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "TableConstraintsEntry",
+          "longName": "GetConnectionPrimaryConstraintsResponse.TableConstraintsEntry",
+          "fullName": "mgmt.v1alpha1.GetConnectionPrimaryConstraintsResponse.TableConstraintsEntry",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "key",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "value",
+              "description": "",
+              "label": "",
+              "type": "PrimaryConstraint",
+              "longType": "PrimaryConstraint",
+              "fullType": "mgmt.v1alpha1.PrimaryConstraint",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "GetConnectionSchemaRequest",
           "longName": "GetConnectionSchemaRequest",
           "fullName": "mgmt.v1alpha1.GetConnectionSchemaRequest",
@@ -2940,6 +3024,30 @@
           "hasOneofs": false,
           "extensions": [],
           "fields": []
+        },
+        {
+          "name": "PrimaryConstraint",
+          "longName": "PrimaryConstraint",
+          "fullName": "mgmt.v1alpha1.PrimaryConstraint",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "columns",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
         }
       ],
       "services": [
@@ -2983,6 +3091,18 @@
               "responseType": "GetConnectionForeignConstraintsResponse",
               "responseLongType": "GetConnectionForeignConstraintsResponse",
               "responseFullType": "mgmt.v1alpha1.GetConnectionForeignConstraintsResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "GetConnectionPrimaryConstraints",
+              "description": "For a specific connection, returns the primary key constraints. Mostly useful for SQL-based Connections.\nUsed primarily by the CLI sync command to determine stream order.",
+              "requestType": "GetConnectionPrimaryConstraintsRequest",
+              "requestLongType": "GetConnectionPrimaryConstraintsRequest",
+              "requestFullType": "mgmt.v1alpha1.GetConnectionPrimaryConstraintsRequest",
+              "requestStreaming": false,
+              "responseType": "GetConnectionPrimaryConstraintsResponse",
+              "responseLongType": "GetConnectionPrimaryConstraintsResponse",
+              "responseFullType": "mgmt.v1alpha1.GetConnectionPrimaryConstraintsResponse",
               "responseStreaming": false
             },
             {
