@@ -862,6 +862,27 @@ func (s *Service) UpdateJobSourceConnection(
 		}
 	}
 
+	conn, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+		Id: *connectionIdToVerify,
+	}))
+
+	switch conn.Msg.Connection.ConnectionConfig.Config.(type) {
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		if _, ok := req.Msg.Source.Options.Config.(*mgmtv1alpha1.JobSourceOptions_Mysql); !ok {
+			return nil, fmt.Errorf("job source option config type and connection type mismatch")
+		}
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		if _, ok := req.Msg.Source.Options.Config.(*mgmtv1alpha1.JobSourceOptions_Postgres); !ok {
+			return nil, fmt.Errorf("job source option config type and connection type mismatch")
+		}
+	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
+		if _, ok := req.Msg.Source.Options.Config.(*mgmtv1alpha1.JobSourceOptions_AwsS3); !ok {
+			return nil, fmt.Errorf("job source option config type and connection type mismatch")
+		}
+	default:
+		return nil, nucleuserrors.NewNotImplemented("this connection config is not currently supported")
+	}
+
 	connectionOptions := &pg_models.JobSourceOptions{}
 	err = connectionOptions.FromDto(req.Msg.Source.Options)
 	if err != nil {
