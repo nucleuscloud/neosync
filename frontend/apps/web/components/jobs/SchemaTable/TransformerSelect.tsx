@@ -67,11 +67,7 @@ export default function TransformerSelect(props: Props): ReactElement {
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent
-        className="w-[350px] p-0"
-        side="left"
-        avoidCollisions={false}
-      >
+      <PopoverContent className="w-[350px] p-0" avoidCollisions={false}>
         <Command>
           <CommandInput placeholder={placeholder} />
           <CommandEmpty>No transformers found.</CommandEmpty>
