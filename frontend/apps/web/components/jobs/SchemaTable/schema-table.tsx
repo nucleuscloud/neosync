@@ -11,10 +11,10 @@ import { joinTransformers } from '@/shared/transformers';
 import { JobMappingFormValues } from '@/yup-validations/jobs';
 import { GetConnectionSchemaResponse } from '@neosync/sdk';
 import { ReactElement } from 'react';
-import { VirtualizedSchemaTable } from './VirtualizedSchemaTable';
+import { Row, VirtualizedSchemaTable } from './VirtualizedSchemaTable';
 
 interface Props {
-  data?: JobMappingFormValues[];
+  data: JobMappingFormValues[];
   excludeInputReqTransformers?: boolean; // will result in only generators (functions with no data input)
 }
 
@@ -43,10 +43,11 @@ export function SchemaTable(props: Props): ReactElement {
     filteredCustomTransformers
   );
 
-  const tableData = data?.map((d) => {
+  const tableData = data.map((d, idx): Row => {
     return {
       ...d,
       isSelected: false,
+      formIdx: idx, // this is very important because we need to retain this when updating the form due to the table being filterable. Otherwise the index used is incorrect.
     };
   });
 

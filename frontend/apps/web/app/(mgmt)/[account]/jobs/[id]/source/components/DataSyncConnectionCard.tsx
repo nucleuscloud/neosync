@@ -238,7 +238,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
             maxColNum={2}
           />
 
-          <SchemaTable data={form.getValues().mappings} />
+          <SchemaTable data={form.watch().mappings} />
           <div className="flex flex-row items-center justify-end w-full mt-4">
             <Button type="submit">Save</Button>
           </div>
