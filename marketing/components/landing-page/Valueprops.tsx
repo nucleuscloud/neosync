@@ -1,7 +1,5 @@
-import { LinkBreak1Icon, Share1Icon } from '@radix-ui/react-icons';
+import Image from 'next/image';
 import { ReactElement } from 'react';
-import { GoWorkflow } from 'react-icons/go';
-import { PiFlaskLight } from 'react-icons/pi';
 
 export default function ValueProps(): ReactElement {
   const features = [
@@ -9,29 +7,27 @@ export default function ValueProps(): ReactElement {
       title: 'Unblock local development ',
       description:
         'Shift left and give developers the ability to self-serve de-identified and synthetic data locally whenever they need it. ',
-      icon: <Share1Icon className="w-14 h-14" />,
+      image:
+        'https://assets.nucleuscloud.com/neosync/marketingsite/fixlocal.png',
     },
     {
-      title: 'Get stable, realistic staging environments',
+      title: 'Fix broken staging environments',
       description:
         'Catch production bugs and ship faster when you hydrate your staging and QA environments with production-like data that is safe and fast to generate. ',
-      icon: <PiFlaskLight className="w-14 h-14" />,
+      image: 'https://assets.nucleuscloud.com/neosync/marketingsite/stage.png',
     },
     {
       title: 'Keep environments up to date',
       description:
         'Speed up your dev and test cycles. Make sure your environments stay in sync with the latest de-identified and synthetic data that you can refresh whenever you need to.',
-      icon: <LinkBreak1Icon className="w-14 h-14" />,
+      image:
+        'https://assets.nucleuscloud.com/neosync/marketingsite/environmentsync.png',
     },
-    // {
-    //   title: 'Generate statistically consistent data',
-    //   description: `Neosync uses machine learning to generate data that is structurally and statistically consistent with your production data. It's as close to production as you can get.`,
-    //   icon: <LinkBreak1Icon className="w-14 h-14" />,
-    // },
     {
-      title: `Don't let compliance slow you down`,
+      title: `Frictionless security, privacy and compliance`,
       description: `Easily and quickly abide by laws like HIPAA, GDPR, and DPDP with de-identified and synthetic data that structurally and statistically looks just like your production data.  `,
-      icon: <GoWorkflow className="w-14 h-14" />,
+      image:
+        'https://assets.nucleuscloud.com/neosync/marketingsite/security.png',
     },
   ];
 
@@ -54,7 +50,15 @@ export default function ValueProps(): ReactElement {
               key={item.title}
               className="border border-gray-400 bg-white rounded-xl p-8 shadow-xl items-center flex flex-col gap-6 text-center w-[480px]"
             >
-              <div className="text-gray-900">{item.icon}</div>
+              <div className="text-gray-900">
+                {' '}
+                <Image
+                  src={item.image}
+                  alt="NeosyncLogo"
+                  width="250"
+                  height="172"
+                />
+              </div>
               <div className="text-gray-900 text-2xl">{item.title}</div>
               <div className=" text-gray-500 text-[16px] ">
                 {item.description}
