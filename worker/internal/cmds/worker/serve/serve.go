@@ -15,6 +15,8 @@ import (
 	"connectrpc.com/grpcreflect"
 	datasync_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
+	ctganactivities "github.com/nucleuscloud/neosync/worker/pkg/workflows/syth-gen/ctgan-activities"
+	ctganworkflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/syth-gen/ctgan-workflow"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.temporal.io/sdk/client"
@@ -84,6 +86,9 @@ func serve() error {
 
 	w.RegisterWorkflow(datasync_workflow.Workflow)
 	w.RegisterActivity(&datasync_activities.Activities{})
+
+	w.RegisterWorkflow(ctganworkflow.CtganWorkflow)
+	w.RegisterActivity(ctganactivities.GetTrainModelInput)
 
 	if err := w.Start(); err != nil {
 		return err

@@ -76,7 +76,11 @@ func (s *Service) GetJobs(
 	// Use jobIds to retain original query order
 	for _, jobId := range jobIds {
 		job := jobMap[jobId]
-		dtos = append(dtos, dtomaps.ToJobDto(job, associationMap[job.ID]))
+		dto, err := dtomaps.ToJobDto(job, associationMap[job.ID])
+		if err != nil {
+			return nil, err
+		}
+		dtos = append(dtos, dto)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobsResponse{
@@ -125,8 +129,13 @@ func (s *Service) GetJob(
 		return nil, err
 	}
 
+	dto, err := dtomaps.ToJobDto(&job, destConnections)
+	if err != nil {
+		return nil, err
+	}
+
 	return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
-		Job: dtomaps.ToJobDto(&job, destConnections),
+		Job: dto,
 	}), nil
 }
 
@@ -505,7 +514,7 @@ func (s *Service) CreateJob(
 	var action *temporalclient.ScheduleWorkflowAction
 	if req.Msg.Source.Options.GetSingleTableCtganTrain() != nil {
 		action = &temporalclient.ScheduleWorkflowAction{
-			Workflow:  ctganworkflow.Workflow,
+			Workflow:  ctganworkflow.CtganWorkflow,
 			TaskQueue: tconfig.SyncJobQueueName,
 			Args:      []any{&ctganworkflow.WorkflowRequest{JobId: jobUuid}},
 		}
@@ -542,8 +551,13 @@ func (s *Service) CreateJob(
 		logger.Error("unable to retrieve job destination connections")
 	}
 
+	dto, err := dtomaps.ToJobDto(cj, destinationConnections)
+	if err != nil {
+		return nil, err
+	}
+
 	return connect.NewResponse(&mgmtv1alpha1.CreateJobResponse{
-		Job: dtomaps.ToJobDto(cj, destinationConnections),
+		Job: dto,
 	}), nil
 }
 
