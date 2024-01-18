@@ -55,15 +55,6 @@ export const VirtualizedSchemaTable = function VirtualizedSchemaTable({
   const [columnFilters, setColumnFilters] = useState<ColumnFilters>({});
   const form = useFormContext<SingleTableSchemaFormValues | SchemaFormValues>();
 
-  // this is sketch
-  // useEffect(() => {
-  //   setRows(data);
-  // }, [data]);
-
-  // const treeData = useMemo(
-  //   () => getSchemaTreeData(data, columnFilters),
-  //   [data, columnFilters]
-  // );
   const treeData = getSchemaTreeData(data, columnFilters, transformers);
 
   const onFilterSelect = (columnId: string, colFilters: string[]): void => {

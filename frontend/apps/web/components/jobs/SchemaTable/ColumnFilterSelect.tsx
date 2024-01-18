@@ -58,30 +58,32 @@ export default function ColumnFilterSelect(props: Props) {
         <Command>
           <CommandInput placeholder="Search filters..." />
           <CommandEmpty>No filters found.</CommandEmpty>
-          <CommandGroup>
-            {possibleFilters.map((i, index) => (
-              <CommandItem
-                key={`${i}-${index}`}
-                onSelect={() => {
-                  // use i here instead of value because it lowercases the value
-                  const newValues = computeFilters(i, columnFilters || []);
-                  setColumnFilters(columnId, newValues);
-                  setOpen(false);
-                }}
-                value={i}
-              >
-                <CheckIcon
-                  className={cn(
-                    'mr-2 h-4 w-4',
-                    columnFilters && columnFilters.includes(i)
-                      ? 'opacity-100'
-                      : 'opacity-0'
-                  )}
-                />
-                <span className="truncate">{i}</span>
-              </CommandItem>
-            ))}
-          </CommandGroup>
+          <div className="overflow-y-scroll max-h-[400px]">
+            <CommandGroup>
+              {possibleFilters.map((i, index) => (
+                <CommandItem
+                  key={`${i}-${index}`}
+                  onSelect={() => {
+                    // use i here instead of value because it lowercases the value
+                    const newValues = computeFilters(i, columnFilters || []);
+                    setColumnFilters(columnId, newValues);
+                    setOpen(false);
+                  }}
+                  value={i}
+                >
+                  <CheckIcon
+                    className={cn(
+                      'mr-2 h-4 w-4',
+                      columnFilters && columnFilters.includes(i)
+                        ? 'opacity-100'
+                        : 'opacity-0'
+                    )}
+                  />
+                  <span className="truncate">{i}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </div>
         </Command>
       </PopoverContent>
     </Popover>
