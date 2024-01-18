@@ -144,7 +144,7 @@ export default function TransformerSelect(props: Props): ReactElement {
                         <CheckIcon
                           className={cn(
                             'mr-2 h-4 w-4',
-                            value?.source == t?.source
+                            value?.source === t?.source
                               ? 'opacity-100'
                               : 'opacity-0'
                           )}

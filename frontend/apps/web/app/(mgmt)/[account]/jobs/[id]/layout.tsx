@@ -111,7 +111,7 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
                 />
               }
               leftBadgeValue={
-                data.job.source?.options?.config.case == 'generate'
+                data.job.source?.options?.config.case === 'generate'
                   ? 'Generate Job'
                   : 'Sync Job'
               }

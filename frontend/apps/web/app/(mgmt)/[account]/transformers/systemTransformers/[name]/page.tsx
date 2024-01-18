@@ -37,7 +37,7 @@ export default function ViewSystemTransformers({
   const tName = params?.name ?? '';
 
   const currentTransformer = systemTransformers?.transformers.find(
-    (item: SystemTransformer) => item.source == tName
+    (item: SystemTransformer) => item.source === tName
   );
 
   const router = useRouter();

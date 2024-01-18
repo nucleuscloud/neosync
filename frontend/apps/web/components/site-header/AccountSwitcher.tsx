@@ -52,9 +52,9 @@ export default function AccountSwitcher(_: Props): ReactElement {
   const [teamName, setTeamName] = React.useState('');
 
   const personalAccounts =
-    data?.accounts.filter((a) => a.type == UserAccountType.PERSONAL) || [];
+    data?.accounts.filter((a) => a.type === UserAccountType.PERSONAL) || [];
   const teamAccounts =
-    data?.accounts.filter((a) => a.type == UserAccountType.TEAM) || [];
+    data?.accounts.filter((a) => a.type === UserAccountType.TEAM) || [];
 
   async function onSubmit(teamName: string): Promise<void> {
     try {

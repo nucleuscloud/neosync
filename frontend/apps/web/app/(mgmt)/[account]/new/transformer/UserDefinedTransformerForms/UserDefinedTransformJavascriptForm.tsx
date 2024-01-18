@@ -69,7 +69,7 @@ export default function UserDefinedTransformJavascriptForm(
         account.account?.id ?? ''
       );
       setIsValidatingCode(false);
-      if (res.valid == true) {
+      if (res.valid === true) {
         setIsCodeValid('valid');
       } else {
         setIsCodeValid('invalid');
@@ -106,18 +106,20 @@ export default function UserDefinedTransformJavascriptForm(
               <div className="flex flex-row gap-2">
                 {isCodeValid !== 'null' && (
                   <Badge
-                    variant={isCodeValid == 'valid' ? 'success' : 'destructive'}
+                    variant={
+                      isCodeValid === 'valid' ? 'success' : 'destructive'
+                    }
                     className="h-9 px-4 py-2"
                   >
                     <ButtonText
                       leftIcon={
-                        isCodeValid == 'valid' ? (
+                        isCodeValid === 'valid' ? (
                           <CheckCircledIcon />
-                        ) : isCodeValid == 'invalid' ? (
+                        ) : isCodeValid === 'invalid' ? (
                           <CrossCircledIcon />
                         ) : null
                       }
-                      text={isCodeValid == 'invalid' ? 'invalid' : 'valid'}
+                      text={isCodeValid === 'invalid' ? 'invalid' : 'valid'}
                     />
                   </Badge>
                 )}
@@ -136,7 +138,7 @@ export default function UserDefinedTransformJavascriptForm(
                   width="100%"
                   language="javascript"
                   value={field.value}
-                  theme={resolvedTheme == 'dark' ? 'vs-dark' : 'cobalt'}
+                  theme={resolvedTheme === 'dark' ? 'vs-dark' : 'cobalt'}
                   defaultValue={field.value}
                   onChange={(e) => {
                     field.onChange(e);

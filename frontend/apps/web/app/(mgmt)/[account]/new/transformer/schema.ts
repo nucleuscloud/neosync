@@ -175,7 +175,7 @@ const transformJavascriptConfig = Yup.object().shape({
         }
         try {
           const res = await IsUserJavascriptCodeValid(value, accountId);
-          if (res.valid == true) {
+          if (res.valid === true) {
             return true;
           } else {
             return context.createError({
@@ -300,7 +300,7 @@ const transformerNameSchema = Yup.string()
         });
       }
 
-      if (value == context?.options?.context?.name) {
+      if (value === context?.options?.context?.name) {
         return true;
       }
 

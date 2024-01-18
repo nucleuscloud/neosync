@@ -105,8 +105,8 @@ export function DataTableRowActions<TData>({
           View
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        {(run.status == JobRunStatusEnum.RUNNING ||
-          run.status == JobRunStatusEnum.PENDING) && (
+        {(run.status === JobRunStatusEnum.RUNNING ||
+          run.status === JobRunStatusEnum.PENDING) && (
           <div>
             <ConfirmationDialog
               trigger={
