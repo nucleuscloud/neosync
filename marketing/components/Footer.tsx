@@ -39,7 +39,7 @@ export default function Footer(): ReactElement {
               <Button className="px-8 bg-transparent border border-gray-600 hover:bg-[#303030]">
                 <Link href="https://github.com/nucleuscloud/neosync">
                   <div className="flex flex-row items-center">
-                    <p>Support us</p>
+                    <p>Star Neosync on</p>
                     <GitHubLogoIcon className="ml-3 h-5 w-5" />
                   </div>
                 </Link>

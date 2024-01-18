@@ -17,10 +17,15 @@ export default function ValueProps(): ReactElement {
         'Catch production bugs and ship faster when you hydrate your staging and QA environments with production-like data that is safe and fast to generate. ',
       icon: <PiFlaskLight className="w-14 h-14" />,
     },
+    // {
+    //   title: 'Keep environments up to date',
+    //   description:
+    //     'Speed up your dev and test cycles. Make sure your environments stay in sync with the latest de-identified and synthetic data that you can refresh whenever you need to.',
+    //   icon: <LinkBreak1Icon className="w-14 h-14" />,
+    // },
     {
-      title: 'Keep environments up to date',
-      description:
-        'Speed up your dev and test cycles. Make sure your environments stay in sync with the latest de-identified and synthetic data that you can refresh whenever you need to.',
+      title: 'Generate statistically consistent data',
+      description: `Neosync uses machine learning to generate data that is structurally and statistically consistent with your production data. It's as close to production as you can get.`,
       icon: <LinkBreak1Icon className="w-14 h-14" />,
     },
     {

@@ -23,6 +23,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
+import { FaDiscord } from 'react-icons/fa';
 import { GiHamburgerMenu } from 'react-icons/gi';
 import PrivateBetaForm from '../buttons/PrivateBetaForm';
 import { Button } from '../ui/button';
@@ -102,8 +103,15 @@ export default function TopNav(): ReactElement {
           >
             <Link href="https://github.com/nucleuscloud/neosync">
               <div className="flex flex-row items-center">
-                <GitHubLogoIcon className=" h-4 w-4" />
+                <GitHubLogoIcon className="h-4 w-4" />
               </div>
+            </Link>
+          </Button>
+        </div>
+        <div>
+          <Button variant="navLink">
+            <Link href="https://discord.gg/UVmPTzn7dV">
+              <FaDiscord className=" h-5 w-5" />
             </Link>
           </Button>
         </div>

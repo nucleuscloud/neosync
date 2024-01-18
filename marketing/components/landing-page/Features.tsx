@@ -24,8 +24,8 @@ export default function Features(): ReactElement {
       icon: <LinkBreak1Icon className="w-14 h-14" />,
     },
     {
-      title: 'Referential integrity',
-      description: `Neosync automatically handles referential integrity whether you have 1 table or 1000 tables.`,
+      title: 'Subsetting',
+      description: `Subset your database to reduce its size so that it fits locally or filter it by an ID to  easily reproduce bugs and data errors.`,
       icon: <GoWorkflow className="w-14 h-14" />,
     },
   ];

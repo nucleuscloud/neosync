@@ -31,9 +31,9 @@ export default function FeaturesGrid(): ReactElement {
       icon: <PiLink />,
     },
     {
-      title: 'Retries',
+      title: 'Subsetting',
       description:
-        'Neosync handles automatically handles retries in the case of an error during the sync process.',
+        'Create subsets of your database to easily reproduce bugs or fit your database locally. Neosync maintains full referential integrity.',
       icon: <BsRecycle />,
     },
     {

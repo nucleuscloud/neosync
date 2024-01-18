@@ -44,11 +44,11 @@ you're ready, deploy Neosync using a Helm Chart or Docker
       <div className="pt-5 lg:pt-40 px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto">
         <div className=" flex flex-col px-6">
           <div className="text-gray-900 font-semibold text-2xl lg:text-5xl font-satoshi text-center">
-            Get up and running in minutes
+            Get Up and Running in Minutes
           </div>
           <div className="text-lg text-gray-600 font-satoshi font-semibold pt-10 px-60 text-center">
             Whether you want to run Neosync locally, on VMs or in Kubernetes,
-            Neosync is easy to deploy using Docker Compose or Helm.
+            Neosync is easy to deploy using Docker or Helm.
           </div>
           <div className="justify-center flex pt-10">
             <Button className="px-4">
@@ -81,7 +81,7 @@ you're ready, deploy Neosync using a Helm Chart or Docker
                     <div className="w-[400px]">{step.description}</div>
                   </div>
                 </div>
-                <div>
+                <div className="my-8">
                   <Image src={step.image} alt="pre" width="800" height="317" />
                 </div>
               </div>
