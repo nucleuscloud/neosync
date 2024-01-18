@@ -291,8 +291,8 @@ export function filterInputFreeSystemTransformers(
   return transformers.filter(
     (t) =>
       t.source !== 'passthrough' &&
-      (t.source == 'null' ||
-        t.source == 'default' ||
+      (t.source === 'null' ||
+        t.source === 'default' ||
         t.source.startsWith('generate_'))
   );
 }

@@ -71,7 +71,7 @@ export default function TransformJavascriptForm(props: Props): ReactElement {
         account.account?.id ?? ''
       );
       setIsValidatingCode(false);
-      if (res.valid == true) {
+      if (res.valid === true) {
         setIsCodeValid('valid');
       } else {
         setIsCodeValid('invalid');
@@ -107,18 +107,20 @@ export default function TransformJavascriptForm(props: Props): ReactElement {
               <div className="flex flex-row gap-2">
                 {isCodeValid !== 'null' && (
                   <Badge
-                    variant={isCodeValid == 'valid' ? 'success' : 'destructive'}
+                    variant={
+                      isCodeValid === 'valid' ? 'success' : 'destructive'
+                    }
                     className="h-9 px-4 py-2"
                   >
                     <ButtonText
                       leftIcon={
-                        isCodeValid == 'valid' ? (
+                        isCodeValid === 'valid' ? (
                           <CheckCircledIcon />
-                        ) : isCodeValid == 'invalid' ? (
+                        ) : isCodeValid === 'invalid' ? (
                           <CrossCircledIcon />
                         ) : null
                       }
-                      text={isCodeValid == 'invalid' ? 'invalid' : 'valid'}
+                      text={isCodeValid === 'invalid' ? 'invalid' : 'valid'}
                     />
                   </Badge>
                 )}
@@ -137,7 +139,7 @@ export default function TransformJavascriptForm(props: Props): ReactElement {
                   width="100%"
                   language="javascript"
                   value={userCode}
-                  theme={resolvedTheme == 'dark' ? 'vs-dark' : 'cobalt'}
+                  theme={resolvedTheme === 'dark' ? 'vs-dark' : 'cobalt'}
                   defaultValue={userCode}
                   onChange={(e) => {
                     setUserCode(e ?? '');

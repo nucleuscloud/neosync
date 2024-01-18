@@ -74,7 +74,7 @@ export function DataTable<TData, TValue>({
                     <TableHead
                       key={header.id}
                       className={
-                        header.id == 'select'
+                        header.id === 'select'
                           ? 'w-[44px] pl-2 '
                           : 'w-[197px] px-0'
                       }
@@ -109,7 +109,7 @@ export function DataTable<TData, TValue>({
                         return (
                           <TableCell
                             className={
-                              cell.column.id == 'select'
+                              cell.column.id === 'select'
                                 ? ' w-[40px]'
                                 : 'w-[197px]'
                             }

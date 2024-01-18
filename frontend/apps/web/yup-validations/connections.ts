@@ -49,7 +49,7 @@ const connectionNameSchema = Yup.string()
 
       // this handles the case in the update flow where the connection already exists
       // we return true otherwise the isConnectionName func below will fail since it already exists
-      if (value == context?.options?.context?.originalConnectionName) {
+      if (value === context?.options?.context?.originalConnectionName) {
         return true;
       }
 

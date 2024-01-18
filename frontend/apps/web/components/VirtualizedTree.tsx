@@ -74,7 +74,7 @@ export const VirtualizedTree = ({ data, onNodeSelect }: TreeProps) => {
             isSelected: isSelected,
           };
         }
-        if (nextItem.depth == node.depth && nextItem.isSelected) {
+        if (nextItem.depth === node.depth && nextItem.isSelected) {
           areSibilingNodesSelected = true;
         }
         depth = nextItem.depth;

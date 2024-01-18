@@ -63,7 +63,7 @@ function JobTable(props: JobTableProps): ReactElement {
     return {
       ...j,
       status: statusJobMap[j.id] || JobStatus.UNSPECIFIED,
-      type: j.source?.options?.config.case == 'generate' ? 'Generate' : 'Sync',
+      type: j.source?.options?.config.case === 'generate' ? 'Generate' : 'Sync',
     };
   });
 

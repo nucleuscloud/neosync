@@ -21,7 +21,7 @@ export const DEFINE_FORM_SCHEMA = Yup.object({
       'checkNameUnique',
       'This name is already taken.',
       async (value, context) => {
-        if (!value || value.length == 0) {
+        if (!value || value.length === 0) {
           return false;
         }
         const accountId = context.options.context?.accountId;

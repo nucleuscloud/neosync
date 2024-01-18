@@ -292,7 +292,7 @@ async function createNewJob(
     connections.map((connection) => [connection.id, connection])
   );
   const sourceConnection = connections.find(
-    (c) => c.id == formData.connect.sourceId
+    (c) => c.id === formData.connect.sourceId
   );
 
   const body = new CreateJobRequest({

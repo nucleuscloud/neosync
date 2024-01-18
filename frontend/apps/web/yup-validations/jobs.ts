@@ -93,7 +93,7 @@ export const DESTINATION_FORM_SCHEMA = Yup.object({
       (value, ctx) => {
         if (ctx.from) {
           const { sourceId } = ctx.from[ctx.from.length - 1].value;
-          if (value == sourceId) {
+          if (value === sourceId) {
             return false;
           }
         }

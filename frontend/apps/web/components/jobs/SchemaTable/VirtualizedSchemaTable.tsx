@@ -74,7 +74,7 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
     (columnId: string, colFilters: string[]) => {
       setColumnFilters((prevFilters) => {
         const newFilters = { ...prevFilters, [columnId]: colFilters };
-        if (colFilters.length == 0) {
+        if (colFilters.length === 0) {
           delete newFilters[columnId as keyof ColumnFilters];
         }
         const filteredRows = data.filter((r) =>
@@ -444,11 +444,11 @@ function shouldFilterRow(
   columnId?: keyof Row
 ): boolean {
   for (const key of Object.keys(columnFilters)) {
-    if (columnId && key == columnId) {
+    if (columnId && key === columnId) {
       continue;
     }
     const filters = columnFilters[key as keyof ColumnFilters];
-    if (filters.length == 0) {
+    if (filters.length === 0) {
       continue;
     }
     switch (key) {
@@ -512,7 +512,7 @@ function getSchemaTreeData(data: Row[], columnFilters: ColumnFilters) {
   const tableFilters = new Set(columnFilters['table'] || []);
 
   var falseOverride = false;
-  if (schemaFilters.size == 0 && tableFilters.size == 0) {
+  if (schemaFilters.size === 0 && tableFilters.size === 0) {
     falseOverride = true;
   }
 

@@ -50,10 +50,10 @@ export default function Page({ params }: PageProps): ReactElement {
                 connections={connections}
                 availableConnections={connections.filter(
                   (c) =>
-                    c.id == destination.connectionId ||
+                    c.id === destination.connectionId ||
                     (c.id != sourceConnectionId && !destinationIds?.has(c.id))
                 )}
-                isDeleteDisabled={data?.job?.destinations.length == 1}
+                isDeleteDisabled={data?.job?.destinations.length === 1}
               />
             );
           })}
