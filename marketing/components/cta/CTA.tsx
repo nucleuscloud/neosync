@@ -1,15 +1,14 @@
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { GitHubLogoIcon } from '@radix-ui/react-icons';
 import { ArrowRightIcon } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { ReactElement } from 'react';
 import PrivateBetaForm from '../buttons/PrivateBetaForm';
@@ -19,7 +18,7 @@ export default function CTA(): ReactElement {
   return (
     <div className="bg-[#F5F5F5] pb-20">
       <div className="pt-5 lg:pt-40 px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto">
-        <div className=" bg-gradient-to-r from-slate-50 to-zinc-300 border-2 border-gray-400 shadow-xl rounded-xl">
+        <div className=" bg-gradient-to-r from-slate-50 to-zinc-300 border border-gray-400 shadow-xl rounded-xl">
           <div className="flex flex-col align-center space-y-6 py-10 justify-center px-[25%]">
             <div className="text-gray-900 text-4xl font-satoshi text-center">
               Get started with synthetic data at scale to build faster
@@ -32,30 +31,28 @@ export default function CTA(): ReactElement {
                       Neosync Cloud <ArrowRightIcon className="ml-2 h-5 w-5" />
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-lg bg-black border border-gray-600 p-6">
+                  <DialogContent className="sm:max-w-lg bg-white border border-gray-400 p-6 shadow-xl">
                     <DialogHeader>
-                      <DialogTitle className="text-white text-2xl">
+                      <div className="flex justify-center pt-10">
+                        <Image
+                          src="https://assets.nucleuscloud.com/neosync/newbrand/logo_text_light_mode.svg"
+                          alt="NeosyncLogo"
+                          width="118"
+                          height="30"
+                        />
+                      </div>
+                      <DialogTitle className="text-gray-900 text-2xl text-center pt-10">
                         Join the Neosync Cloud Private Beta
                       </DialogTitle>
-                      <DialogDescription className="pt-10 text-gray-300 text-md">
+                      <DialogDescription className="pt-6 text-gray-900 text-md text-center">
                         Want to use Neosync but don&apos;t want to host it
-                        yourself? Sign up for the private beta of Neosync Cloud.
+                        yourself? Sign up for the private beta of Neosync Cloud
+                        and get an environment.
                       </DialogDescription>
                     </DialogHeader>
                     <div className="flex items-center space-x-2">
                       <PrivateBetaForm />
                     </div>
-                    <DialogFooter className="sm:justify-start">
-                      <DialogClose asChild>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          className="text-white hover:bg-gray-800 hover:text-white"
-                        >
-                          Close
-                        </Button>
-                      </DialogClose>
-                    </DialogFooter>
                   </DialogContent>
                 </Dialog>
               </div>

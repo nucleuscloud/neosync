@@ -17,17 +17,17 @@ export default function ValueProps(): ReactElement {
         'Catch production bugs and ship faster when you hydrate your staging and QA environments with production-like data that is safe and fast to generate. ',
       icon: <PiFlaskLight className="w-14 h-14" />,
     },
-    // {
-    //   title: 'Keep environments up to date',
-    //   description:
-    //     'Speed up your dev and test cycles. Make sure your environments stay in sync with the latest de-identified and synthetic data that you can refresh whenever you need to.',
-    //   icon: <LinkBreak1Icon className="w-14 h-14" />,
-    // },
     {
-      title: 'Generate statistically consistent data',
-      description: `Neosync uses machine learning to generate data that is structurally and statistically consistent with your production data. It's as close to production as you can get.`,
+      title: 'Keep environments up to date',
+      description:
+        'Speed up your dev and test cycles. Make sure your environments stay in sync with the latest de-identified and synthetic data that you can refresh whenever you need to.',
       icon: <LinkBreak1Icon className="w-14 h-14" />,
     },
+    // {
+    //   title: 'Generate statistically consistent data',
+    //   description: `Neosync uses machine learning to generate data that is structurally and statistically consistent with your production data. It's as close to production as you can get.`,
+    //   icon: <LinkBreak1Icon className="w-14 h-14" />,
+    // },
     {
       title: `Don't let compliance slow you down`,
       description: `Easily and quickly abide by laws like HIPAA, GDPR, and DPDP with de-identified and synthetic data that structurally and statistically looks just like your production data.  `,
@@ -52,7 +52,7 @@ export default function ValueProps(): ReactElement {
           {features.map((item) => (
             <div
               key={item.title}
-              className="border border-gray-400 bg-white  rounded-xl p-8 shadow-xl items-center flex flex-col gap-6 text-center w-[480px]"
+              className="border border-gray-400 bg-white rounded-xl p-8 shadow-xl items-center flex flex-col gap-6 text-center w-[480px]"
             >
               <div className="text-gray-900">{item.icon}</div>
               <div className="text-gray-900 text-2xl">{item.title}</div>
