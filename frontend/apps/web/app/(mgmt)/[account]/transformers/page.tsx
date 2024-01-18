@@ -32,10 +32,7 @@ export default function Transformers(): ReactElement {
   );
 }
 
-interface TransformersTableProps {}
-
-function TransformersTable(props: TransformersTableProps): ReactElement {
-  const {} = props;
+function TransformersTable(): ReactElement {
   const { data, isLoading: transformersIsLoading } = useGetSystemTransformers();
   const { account } = useAccount();
   const {
@@ -51,15 +48,13 @@ function TransformersTable(props: TransformersTableProps): ReactElement {
     return <SkeletonTable />;
   }
   const systemTransformerColumns = getSystemTransformerColumns({
-    accountName: '',
-    transformerSource: '',
+    accountName: account?.name ?? '',
   });
   const userDefinedTransformerColumns = getUserDefinedTransformerColumns({
     onTransformerDeleted() {
       userDefinedTransformerMutate();
     },
-    accountName: '',
-    transformerId: '',
+    accountName: account?.name ?? '',
   });
 
   return (
@@ -88,9 +83,7 @@ function TransformersTable(props: TransformersTableProps): ReactElement {
   );
 }
 
-interface NewTransformerButtonprops {}
-function NewTransformerButton(props: NewTransformerButtonprops): ReactElement {
-  const {} = props;
+function NewTransformerButton(): ReactElement {
   const { account } = useAccount();
   return (
     <NextLink href={`/${account?.name}/new/transformer`}>

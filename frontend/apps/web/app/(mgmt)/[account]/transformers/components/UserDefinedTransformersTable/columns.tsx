@@ -13,13 +13,12 @@ import { DataTableRowActions } from './data-table-row-actions';
 interface getUserDefinedTransformerColumnsProps {
   onTransformerDeleted(id: string): void;
   accountName: string;
-  transformerId: string;
 }
 
 export function getUserDefinedTransformerColumns(
   props: getUserDefinedTransformerColumnsProps
 ): ColumnDef<PlainMessage<UserDefinedTransformer>>[] {
-  const { onTransformerDeleted, accountName, transformerId } = props;
+  const { onTransformerDeleted, accountName } = props;
 
   return [
     {
@@ -56,7 +55,7 @@ export function getUserDefinedTransformerColumns(
               <div>
                 <NextLink
                   className="hover:underline"
-                  href={`/${accountName}/transformers/${transformerId}`}
+                  href={`/${accountName}/transformers/${row.original.id}`}
                 >
                   {row.original.name}
                 </NextLink>

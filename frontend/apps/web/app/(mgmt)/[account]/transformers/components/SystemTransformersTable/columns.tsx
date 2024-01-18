@@ -11,13 +11,12 @@ import NextLink from 'next/link';
 
 interface GetSystemTransformercolumnsProps {
   accountName: string;
-  transformerSource: string;
 }
 
 export function getSystemTransformerColumns(
   props: GetSystemTransformercolumnsProps
 ): ColumnDef<PlainMessage<SystemTransformer>>[] {
-  const { accountName, transformerSource } = props;
+  const { accountName } = props;
   return [
     {
       id: 'select',
@@ -53,7 +52,7 @@ export function getSystemTransformerColumns(
               <div>
                 <NextLink
                   className="hover:underline"
-                  href={`/${accountName}/transformers/systemTransformers/${transformerSource}`}
+                  href={`/${accountName}/transformers/systemTransformers/${row.original.source}`}
                 >
                   {row.original.name}
                 </NextLink>
