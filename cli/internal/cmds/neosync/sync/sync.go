@@ -468,7 +468,6 @@ func sync(
 		fmt.Println("Error syncing data:", err) // nolint
 		os.Exit(1)
 	}
-	log.Printf("Done! Completed %d tables.", len(configs))
 
 	return nil
 }
@@ -822,6 +821,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if m.index == configCount-1 {
 			m.done = true
+			log.Printf("Done! Completed %d tables.", configCount)
 			return m, tea.Batch(
 				progressCmd,
 				tea.Println(strings.Join(successStrs, " \n")),
