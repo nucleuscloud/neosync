@@ -19,7 +19,7 @@ export default function CTA(): ReactElement {
   return (
     <div className="bg-[#F5F5F5] pb-20">
       <div className="pt-5 lg:pt-40 px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto">
-        <div className=" bg-gradient-to-r from-slate-50 to-zinc-300 border-2 border-gray-700 shadow-lg rounded-xl">
+        <div className=" bg-gradient-to-r from-slate-50 to-zinc-300 border-2 border-gray-400 shadow-xl rounded-xl">
           <div className="flex flex-col align-center space-y-6 py-10 justify-center px-[25%]">
             <div className="text-gray-900 text-4xl font-satoshi text-center">
               Get started with synthetic data at scale to build faster
