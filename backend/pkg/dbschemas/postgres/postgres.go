@@ -93,6 +93,8 @@ func buildDataType(record *pg_queries.GetDatabaseTableSchemaRow) string {
 	if record.CharacterMaximumLength != nil {
 		if strings.EqualFold(record.DataType, "character varying") || strings.EqualFold(record.DataType, "character") || strings.EqualFold(record.DataType, "varchar") || strings.EqualFold(record.DataType, "bpchar") {
 			return fmt.Sprintf("%s(%d)", record.DataType, record.CharacterMaximumLength)
+		} else if strings.EqualFold(record.DataType, "numeric") {
+			return fmt.Sprintf("%s(%d,%d)", record.DataType, record.NumericPrecision, record.NumericScale)
 		}
 	}
 	return record.DataType
