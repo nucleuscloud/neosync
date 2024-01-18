@@ -1,5 +1,6 @@
 import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
 import EditTransformerOptions from '@/app/(mgmt)/[account]/transformers/EditTransformerOptions';
+import { TreeData, VirtualizedTree } from '@/components/VirtualizedTree';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
@@ -63,7 +64,7 @@ export const VirtualizedSchemaTable = function VirtualizedSchemaTable({
   //   () => getSchemaTreeData(data, columnFilters),
   //   [data, columnFilters]
   // );
-  //  const treeData = getSchemaTreeData(data, columnFilters)
+  const treeData = getSchemaTreeData(data, columnFilters, transformers);
 
   const onFilterSelect = (columnId: string, colFilters: string[]): void => {
     setColumnFilters((prevFilters) => {
@@ -102,38 +103,38 @@ export const VirtualizedSchemaTable = function VirtualizedSchemaTable({
     });
   };
 
-  // const onTreeFilterSelect = (id: string, isSelected: boolean): void => {
-  //   setColumnFilters((prevFilters) => {
-  //     const [schema, table] = id.split('.');
-  //     const newFilters = { ...prevFilters };
-  //     if (isSelected) {
-  //       newFilters['schema'] = newFilters['schema']
-  //         ? [...newFilters['schema'], schema]
-  //         : [schema];
-  //       if (table) {
-  //         newFilters['table'] = newFilters['table']
-  //           ? [...newFilters['table'], table]
-  //           : [table];
-  //       }
-  //     } else {
-  //       newFilters['schema'] = newFilters['schema'].filter((s) => s != schema);
-  //       if (table) {
-  //         newFilters['table'] = newFilters['table'].filter((t) => t != table);
-  //       }
-  //     }
-  //     const filteredRows = data.filter((r) =>
-  //       shouldFilterRow(r, newFilters, transformers)
-  //     );
-  //     setRows(filteredRows);
-  //     return newFilters;
-  //   });
-  // }
+  const onTreeFilterSelect = (id: string, isSelected: boolean): void => {
+    setColumnFilters((prevFilters) => {
+      const [schema, table] = splitOnFirstOccurrence(id, '.');
+      const newFilters = { ...prevFilters };
+      if (isSelected) {
+        newFilters['schema'] = newFilters['schema']
+          ? [...newFilters['schema'], schema]
+          : [schema];
+        if (table) {
+          newFilters['table'] = newFilters['table']
+            ? [...newFilters['table'], table]
+            : [table];
+        }
+      } else {
+        newFilters['schema'] = newFilters['schema'].filter((s) => s != schema);
+        if (table) {
+          newFilters['table'] = newFilters['table'].filter((t) => t != table);
+        }
+      }
+      const filteredRows = data.filter((r) =>
+        shouldFilterRow(r, newFilters, transformers)
+      );
+      setRows(filteredRows);
+      return newFilters;
+    });
+  };
 
   return (
     <div className="flex flex-row w-full">
-      {/* <div className="basis-1/6  pt-[45px] ">
+      <div className="basis-1/6  pt-[45px] ">
         <VirtualizedTree data={treeData} onNodeSelect={onTreeFilterSelect} />
-      </div> */}
+      </div>
       <div className="space-y-2 pl-2 basis-5/6 ">
         <div className="flex items-center justify-between">
           <div className="w-[250px]">
@@ -497,9 +498,19 @@ function isTableSelected(
   );
 }
 
-function getSchemaTreeData(data: Row[], columnFilters: ColumnFilters) {
+function getSchemaTreeData(
+  data: Row[],
+  columnFilters: ColumnFilters,
+  transformers: Transformer[]
+): TreeData[] {
   const schemaMap: Record<string, Record<string, string>> = {};
   data.forEach((row) => {
+    if (
+      !shouldFilterRow(row, columnFilters, transformers, 'schema') &&
+      !shouldFilterRow(row, columnFilters, transformers, 'table')
+    ) {
+      return;
+    }
     if (!schemaMap[row.schema]) {
       schemaMap[row.schema] = { [row.table]: row.table };
     } else {
@@ -510,14 +521,11 @@ function getSchemaTreeData(data: Row[], columnFilters: ColumnFilters) {
   const schemaFilters = new Set(columnFilters['schema'] || []);
   const tableFilters = new Set(columnFilters['table'] || []);
 
-  var falseOverride = false;
-  if (schemaFilters.size === 0 && tableFilters.size === 0) {
-    falseOverride = true;
-  }
+  const falseOverride = schemaFilters.size === 0 && tableFilters.size === 0;
 
-  return Object.keys(schemaMap).map((schema) => {
+  return Object.keys(schemaMap).map((schema): TreeData => {
     const isSchemaSelected = schemaFilters.has(schema);
-    const children = Object.keys(schemaMap[schema]).map((table) => {
+    const children = Object.keys(schemaMap[schema]).map((table): TreeData => {
       return {
         id: `${schema}.${table}`,
         name: table,
@@ -593,4 +601,22 @@ function getTransformerFilterValue(
       )?.name ?? 'unknown transformer'
     );
   }
+}
+
+function splitOnFirstOccurrence(
+  str: string,
+  character: string
+): [string, string] {
+  const index = str.indexOf(character);
+
+  if (index === -1) {
+    // Character not found, return the original string and an empty string
+    return [str, ''];
+  }
+
+  // Split the string at the found index
+  const firstPart = str.substring(0, index);
+  const secondPart = str.substring(index + 1); // +1 to exclude the character itself
+
+  return [firstPart, secondPart];
 }

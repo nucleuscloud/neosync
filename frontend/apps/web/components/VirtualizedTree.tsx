@@ -5,7 +5,7 @@ import { CSSProperties, memo, useCallback, useEffect, useState } from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { FixedSizeList as List, areEqual } from 'react-window';
 
-interface TreeData {
+export interface TreeData {
   isSelected: boolean;
   id: string;
   name: string;
