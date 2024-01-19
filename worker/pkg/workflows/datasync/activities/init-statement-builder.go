@@ -234,11 +234,12 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				}
 			}
 
-			if !truncateBeforeInsert && !truncateCascade && !initSchema {
-				continue
-			}
 			if job.Source.Options.GetGenerate() != nil {
 				initSchema = false
+			}
+
+			if !truncateBeforeInsert && !truncateCascade && !initSchema {
+				continue
 			}
 
 			if job.Source.Options.GetPostgres() != nil || job.Source.Options.GetGenerate() != nil {
@@ -297,6 +298,10 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 			}
 			if job.Source.Options.GetGenerate() != nil {
 				initSchema = false
+			}
+
+			if !truncateBeforeInsert && !initSchema {
+				continue
 			}
 
 			if job.Source.Options.GetMysql() != nil || job.Source.Options.GetGenerate() != nil {

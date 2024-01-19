@@ -435,7 +435,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 							Query:       b.buildMysqlInsertQuery(tableKey, cols, colSourceMap),
 							ArgsMapping: buildPlainInsertArgs(filteredCols),
-							// InitStatement: initStmt,
 
 							Batching: &neosync_benthos.Batching{
 								Period: "5s",
