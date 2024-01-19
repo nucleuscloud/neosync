@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/popover';
 import { cn } from '@/libs/utils';
 import { CheckIcon, MagnifyingGlassIcon } from '@radix-ui/react-icons';
+import Fuse from 'fuse.js';
 import memoizeOne from 'memoize-one';
 import { CSSProperties, ReactElement, useCallback, useState } from 'react';
 import { AiOutlineFilter } from 'react-icons/ai';
@@ -22,12 +23,12 @@ interface Props {
 
 const createRowData = memoizeOne(
   (
-    columnFilters,
-    uniqueColFilters,
-    setColumnFilters,
-    setOpen,
-    columnId,
-    possibleFilters
+    columnFilters: string[],
+    uniqueColFilters: Set<string>,
+    setColumnFilters: (columnId: string, newValues: string[]) => void,
+    setOpen: (isOpen: boolean) => void,
+    columnId: string,
+    possibleFilters: string[]
   ) => ({
     columnFilters,
     uniqueColFilters,
@@ -42,7 +43,12 @@ export default function ColumnFilterSelect(props: Props) {
   const { allColumnFilters, setColumnFilters, columnId, possibleFilters } =
     props;
   const [open, setOpen] = useState(false);
-
+  const [fuzzyText, setFuzzyText] = useState<string>();
+  const fuse = new Fuse(possibleFilters, { threshold: 0.3 });
+  const fuzziedPossibleFilters = fuzzyText ? fuse.search(fuzzyText ?? '') : [];
+  const filteredPossibleFilters = fuzzyText
+    ? fuzziedPossibleFilters.map((pf) => pf.item)
+    : possibleFilters;
   const columnFilters = allColumnFilters[columnId] ?? [];
   const uniqueColFilters = new Set(columnFilters);
   const itemData = createRowData(
@@ -51,14 +57,15 @@ export default function ColumnFilterSelect(props: Props) {
     setColumnFilters,
     setOpen,
     columnId,
-    possibleFilters
+    filteredPossibleFilters
   );
   const itemKey = useCallback(
     (index: number) => {
-      return possibleFilters[index];
+      return filteredPossibleFilters[index];
     },
-    [possibleFilters]
+    [filteredPossibleFilters]
   );
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -83,18 +90,20 @@ export default function ColumnFilterSelect(props: Props) {
           <Input
             className="h-10 bg-transparent px-0 py-3 outline-none border-none focus-visible:ring-0"
             placeholder="Search filters..."
+            value={fuzzyText}
+            onChange={(e) => setFuzzyText(e.target.value)}
           />
         </div>
         <div
           className="flex pt-1"
-          style={{ height: Math.min(40 * possibleFilters.length, 300) }}
+          style={{ height: Math.min(40 * filteredPossibleFilters.length, 300) }}
         >
           <AutoSizer>
             {({ height, width }) => (
               <List
                 height={height}
                 width={width}
-                itemCount={possibleFilters.length}
+                itemCount={filteredPossibleFilters.length}
                 itemSize={35}
                 itemData={itemData}
                 itemKey={itemKey}
