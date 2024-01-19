@@ -39,16 +39,28 @@ const createRowData = memoizeOne(
   })
 );
 
+function getFuzzyPossibleFilters(
+  possibleFilters: string[],
+  fuzzyText: string | undefined
+): string[] {
+  if (!fuzzyText) {
+    return possibleFilters;
+  }
+  // this seems to be performant, but may need or want to memoize this at some point
+  const fuse = new Fuse(possibleFilters, { threshold: 0.3 });
+  const fuzziedPossibleFilters = fuse.search(fuzzyText ?? '');
+  return fuzziedPossibleFilters.map((pf) => pf.item);
+}
+
 export default function ColumnFilterSelect(props: Props) {
   const { allColumnFilters, setColumnFilters, columnId, possibleFilters } =
     props;
   const [open, setOpen] = useState(false);
   const [fuzzyText, setFuzzyText] = useState<string>();
-  const fuse = new Fuse(possibleFilters, { threshold: 0.3 });
-  const fuzziedPossibleFilters = fuzzyText ? fuse.search(fuzzyText ?? '') : [];
-  const filteredPossibleFilters = fuzzyText
-    ? fuzziedPossibleFilters.map((pf) => pf.item)
-    : possibleFilters;
+  const filteredPossibleFilters = getFuzzyPossibleFilters(
+    possibleFilters,
+    fuzzyText
+  );
   const columnFilters = allColumnFilters[columnId] ?? [];
   const uniqueColFilters = new Set(columnFilters);
   const itemData = createRowData(
