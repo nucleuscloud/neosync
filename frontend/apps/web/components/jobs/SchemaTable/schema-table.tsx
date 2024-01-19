@@ -46,7 +46,6 @@ export function SchemaTable(props: Props): ReactElement {
   const tableData = data.map((d, idx): Row => {
     return {
       ...d,
-      isSelected: false,
       formIdx: idx, // this is very important because we need to retain this when updating the form due to the table being filterable. Otherwise the index used is incorrect.
     };
   });
