@@ -7,7 +7,7 @@ Open Source Synthetic Data Orchestration
 <p>
 
 <div align='center'>
- | <a href="https://neosync.dev">Webiste</a> |
+ | <a href="https://neosync.dev">Website</a> |
  <a href="https://docs.neosync.dev">Docs</a> |
  <a href="https://neosync.dev/blog">Blog</a> |
  <a href="https://docs.neosync.dev/changelog">Changelog</a> |
