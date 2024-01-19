@@ -16,7 +16,7 @@ cluster-destroy:
 	sh ./tilt/scripts/cluster-destroy.sh
 .PHONY: cluster-destroy
 
-build: build-backend build-worker build-cli 
+build: build-backend build-worker build-cli
 .PHONY: build
 
 build-backend:
@@ -40,7 +40,7 @@ clean-backend:
 
 clean-worker:
 	sh -c "cd ./worker && make clean"
-.PHONY: clean-worker	
+.PHONY: clean-worker
 
 clean-cli:
 	sh -c "cd ./cli && make clean"
@@ -49,8 +49,8 @@ clean-cli:
 rebuild: clean build
 .PHONY: rebuild
 
-compose-up: 
-	sh -c "docker compose -f $(TEMPORAL_COMPOSE_FILE) up -d"	
+compose-up:
+	sh -c "docker compose -f $(TEMPORAL_COMPOSE_FILE) up -d"
 	sh -c "docker compose -f $(PROD_COMPOSE_FILE) up -d"
 .PHONY: compose-up
 
@@ -68,8 +68,8 @@ compose-auth-down:
 	sh -c "docker compose -f $(TEMPORAL_COMPOSE_FILE) down"
 	sh -c "docker compose -f $(PROD_AUTH_COMPOSE_FILE) down"
 .PHONY: compose-auth-down
-	
-compose-dev-up: rebuild 
+
+compose-dev-up: rebuild
 	sh -c "docker compose -f $(TEMPORAL_COMPOSE_FILE) up -d"
 	sh -c "docker compose -f $(DEV_COMPOSE_FILE) watch"
 .PHONY: compose-dev-up
@@ -79,7 +79,7 @@ compose-dev-down: rebuild
 	sh -c "docker compose -f $(DEV_COMPOSE_FILE) down"
 .PHONY: compose-dev-down
 
-compose-dev-auth-up: rebuild 
+compose-dev-auth-up: rebuild
 	sh -c "docker compose -f $(TEMPORAL_COMPOSE_FILE) up -d"
 	sh -c "docker compose -f $(DEV_AUTH_COMPOSE_FILE) watch"
 .PHONY: compose-dev-auth-up
@@ -88,3 +88,10 @@ compose-dev-auth-down: rebuild
 	sh -c "docker compose -f $(TEMPORAL_COMPOSE_FILE) down"
 	sh -c "docker compose -f $(DEV_AUTH_COMPOSE_FILE) down"
 .PHONY: compose-dev-auth-down
+
+goworksync:
+	go work sync
+	cd worker && go mod tidy
+	cd cli && go mod tidy
+	cd backend && go mod tidy
+.PHONY: goworksync
