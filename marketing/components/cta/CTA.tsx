@@ -16,19 +16,19 @@ import { Button } from '../ui/button';
 
 export default function CTA(): ReactElement {
   return (
-    <div className="bg-[#F5F5F5] pb-20">
+    <div className="bg-[#F5F5F5]  pb-10 lg:pb-20">
       <div className="pt-5 lg:pt-40 px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto">
         <div className=" bg-gradient-to-r from-slate-50 to-zinc-300 border border-gray-400 shadow-xl rounded-xl">
-          <div className="flex flex-col align-center space-y-6 py-10 justify-center px-[25%]">
+          <div className="flex flex-col align-center space-y-6 py-10 justify-center  px-[5%] lg:px-[25%]">
             <div className="text-gray-900 text-4xl font-satoshi text-center">
-              Get started with synthetic data at scale to build faster
+              Get started with synthetic data at scale
             </div>
             <div className="flex flex-col lg:flex-row items-center justify-center gap-6">
               <div>
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button variant="default">
-                      Neosync Cloud <ArrowRightIcon className="ml-2 h-5 w-5" />
+                      Neosync Cloud <ArrowRightIcon className="ml-2 h-5 w-8" />
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-lg bg-white border border-gray-400 p-6 shadow-xl">
