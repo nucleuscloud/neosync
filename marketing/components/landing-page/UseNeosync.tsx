@@ -44,7 +44,7 @@ you're ready, deploy Neosync using a Helm Chart or Docker
           <div className="text-gray-900 font-semibold text-2xl lg:text-5xl font-satoshi text-center">
             Get Up and Running in Minutes
           </div>
-          <div className="text-lg text-gray-600 font-satoshi font-semibold pt-10 px-60 text-center">
+          <div className="text-lg text-gray-600 font-satoshi font-semibold pt-10 lg:px-60 text-center">
             Whether you want to run Neosync locally, on VMs or in Kubernetes,
             Neosync is easy to deploy using Docker or Helm.
           </div>
@@ -60,8 +60,8 @@ you're ready, deploy Neosync using a Helm Chart or Docker
           </div>
           <div className="pt-20">
             {steps.map((step, index) => (
-              <div className="flex flex-row" key={step.title}>
-                <div className="flex flex-row gap-10">
+              <div className="flex flex-col lg:flex-row" key={step.title}>
+                <div className="flex flex-row gap-2 lg:gap-10">
                   <div className="flex flex-col items-center ">
                     <div className="w-8 h-9 bg-black rounded-full flex items-center justify-center text-white text-xl">
                       {step.step}
@@ -73,10 +73,9 @@ you're ready, deploy Neosync using a Helm Chart or Docker
                       </div>
                     )}
                   </div>
-                  <div className="h-[2px] w-full bg-gray-900 justify-start" />
-                  <div className="flex flex-col gap-6 justify-start pr-4">
+                  <div className="flex flex-col  gap-2 lg:gap-6 justify-start pr-4">
                     <div className="text-gray-900 text-2xl"> {step.title}</div>
-                    <div className="w-[400px]">{step.description}</div>
+                    <div className="lg:w-[400px]">{step.description}</div>
                   </div>
                 </div>
                 <div className="my-8">
