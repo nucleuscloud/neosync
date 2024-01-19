@@ -14,27 +14,28 @@ export default function UseNeosync(): ReactElement {
       description: `Start Neosync locally using Tilt or Docker compose. When
 you're ready, deploy Neosync using a Helm Chart or Docker
     Compose.`,
-      image: 'https://assets.nucleuscloud.com/neosync/marketingsite/deloyn.svg',
+      image: 'https://assets.nucleuscloud.com/neosync/marketingsite/deploy.svg',
     },
     {
       step: '2',
       title: 'Connect',
       description: `Connect your source and destinations. Neosync supports Postgres, Mysql, S3 and we're always building more integrations.`,
       image:
-        'https://assets.nucleuscloud.com/neosync/marketingsite/connect2.svg',
+        'https://assets.nucleuscloud.com/neosync/marketingsite/connect.svg',
     },
     {
       step: '3',
       title: 'Configure',
       description: `Configure your schemas, tables and columns with transformers that de-identify your data or generate synthetic data. Neosync automatically handles all relational integrity. `,
       image:
-        'https://assets.nucleuscloud.com/neosync/marketingsite/configure.svg',
+        'https://assets.nucleuscloud.com/neosync/marketingsite/configurefinal.svg',
     },
     {
       step: '4',
       title: 'Sync',
       description: `Sync data across systems or generate synthetic data from scratch and send it a downstream system. `,
-      image: 'https://assets.nucleuscloud.com/neosync/marketingsite/sync.svg',
+      image:
+        'https://assets.nucleuscloud.com/neosync/marketingsite/syncfinal.svg',
     },
   ];
   return (

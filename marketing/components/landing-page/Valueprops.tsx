@@ -8,7 +8,7 @@ export default function ValueProps(): ReactElement {
       description:
         'Shift left and give developers the ability to self-serve de-identified and synthetic data locally whenever they need it. ',
       image:
-        'https://assets.nucleuscloud.com/neosync/marketingsite/localsvg.svg',
+        'https://assets.nucleuscloud.com/neosync/marketingsite/localdev.svg',
     },
     {
       title: 'Fix broken staging environments',
@@ -22,7 +22,7 @@ export default function ValueProps(): ReactElement {
       description:
         'Speed up your dev and test cycles. Make sure your environments stay in sync with the latest de-identified and synthetic data that you can refresh whenever you need to.',
       image:
-        'https://assets.nucleuscloud.com/neosync/marketingsite/envsync2.svg',
+        'https://assets.nucleuscloud.com/neosync/marketingsite/syncenv.svg',
     },
     {
       title: `Frictionless security, privacy and compliance`,
