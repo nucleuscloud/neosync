@@ -280,6 +280,70 @@ func getUniqueColMappingsMap(
 	return tableColMappings
 }
 
+type RunSqlInitTableStatementsRequest struct {
+	JobId      string
+	WorkflowId string
+}
+
+type RunSqlInitTableStatementsResponse struct {
+}
+
+func (a *Activities) RunSqlInitTableStatements(
+	ctx context.Context,
+	req *RunSqlInitTableStatementsRequest,
+) (*RunSqlInitTableStatementsResponse, error) {
+	logger := activity.GetLogger(ctx)
+	_ = logger
+	go func() {
+		for {
+			select {
+			case <-time.After(1 * time.Second):
+				activity.RecordHeartbeat(ctx)
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+
+	neosyncUrl := viper.GetString("NEOSYNC_URL")
+	if neosyncUrl == "" {
+		neosyncUrl = "http://localhost:8080"
+	}
+
+	neosyncApiKey := viper.GetString("NEOSYNC_API_KEY")
+
+	pgpoolmap := map[string]pg_queries.DBTX{}
+	pgquerier := pg_queries.New()
+	mysqlpoolmap := map[string]mysql_queries.DBTX{}
+	mysqlquerier := mysql_queries.New()
+
+	httpClient := http.DefaultClient
+	if neosyncApiKey != "" {
+		httpClient = http_client.NewWithHeaders(
+			map[string]string{"Authorization": fmt.Sprintf("Bearer %s", neosyncApiKey)},
+		)
+	}
+
+	jobclient := mgmtv1alpha1connect.NewJobServiceClient(
+		httpClient,
+		neosyncUrl,
+	)
+
+	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(
+		httpClient,
+		neosyncUrl,
+	)
+	builder := newInitStatementBuilder(
+		pgpoolmap,
+		pgquerier,
+		mysqlpoolmap,
+		mysqlquerier,
+		jobclient,
+		connclient,
+	)
+	return builder.RunSqlInitTableStatements(ctx, req, logger)
+}
+
 func shouldHaltOnSchemaAddition(
 	groupedSchemas map[string]map[string]struct{},
 	mappings []*mgmtv1alpha1.JobMapping,

@@ -44,6 +44,16 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		return nil, err
 	}
 
+	logger.Info("running init statements in job destinations")
+	var resp *datasync_activities.RunSqlInitTableStatementsResponse
+	err = workflow.ExecuteActivity(ctx, wfActivites.RunSqlInitTableStatements, &datasync_activities.RunSqlInitTableStatementsRequest{
+		JobId:      req.JobId,
+		WorkflowId: wfinfo.WorkflowExecution.ID,
+	}).Get(ctx, &resp)
+	if err != nil {
+		return nil, err
+	}
+
 	started := map[string]struct{}{}
 	completed := map[string][]string{}
 
