@@ -33,39 +33,32 @@ export default function ValueProps(): ReactElement {
   ];
 
   return (
-    <div className="bg-[#F5F5F5]">
-      <div className="pt-5 lg:pt-40 px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto">
-        <div className="flex flex-col px-6">
-          <div className="text-gray-900 font-semibold text-2xl lg:text-5xl font-satoshi text-center">
-            Protect Your Sensitive Data, Empower Your Developers
-          </div>
-          <div className="text-lg text-gray-600 font-satoshi font-semibold pt-10 lg:px-40 text-center">
-            Neosync is for teams of all sizes. Whether you&apos;re an enterprise
-            who needs an air-gapped deployment or a startup looking to get
-            started quickly, Neosync can help.
-          </div>
+    <div>
+      <div className="px-6">
+        <div className="text-gray-900 font-semibold text-2xl lg:text-5xl font-satoshi text-center">
+          Protect Your Sensitive Data, Build Faster with Neosync
         </div>
-        <div className="text-lg text-gray-400 font-satoshi font-light pt-20 flex flex-col lg:flex-row gap-6 justify-center items-center">
-          {features.map((item) => (
-            <div
-              key={item.title}
-              className="border border-gray-400 bg-white rounded-xl p-8 shadow-xl flex flex-col gap-6 text-center w-full lg:w-[480px] max-w-xs mx-auto"
-            >
-              <div className="text-gray-900 ">
-                <Image
-                  src={item.image}
-                  alt="NeosyncLogo"
-                  width="250"
-                  height="172"
-                />
-              </div>
-              <div className="text-gray-900 text-2xl">{item.title}</div>
-              <div className=" text-gray-500 text-[16px] ">
-                {item.description}
-              </div>
+      </div>
+      <div className="text-lg text-gray-400 font-satoshi font-light  pt-10 lg:pt-20 flex flex-col lg:flex-row gap-6 justify-center items-center">
+        {features.map((item) => (
+          <div
+            key={item.title}
+            className="border border-gray-400 bg-white rounded-xl p-8 shadow-xl flex flex-col gap-6 text-center w-full lg:w-[480px] max-w-xs mx-auto lg:h-[490px]"
+          >
+            <div className="text-gray-900 ">
+              <Image
+                src={item.image}
+                alt="NeosyncLogo"
+                width="250"
+                height="172"
+              />
             </div>
-          ))}
-        </div>
+            <div className="text-gray-900 text-2xl">{item.title}</div>
+            <div className=" text-gray-500 text-[16px] ">
+              {item.description}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -122,7 +122,7 @@ export default function TopNav(): ReactElement {
                 Neosync Cloud <ArrowRightIcon className="ml-2 h-5 w-5" />
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-lg bg-white border border-gray-400 p-6 shadow-xl">
+            <DialogContent className="sm:max-w-lg bg-white  p-6 shadow-xl">
               <DialogHeader>
                 <div className="flex justify-center pt-10">
                   <Image
