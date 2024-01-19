@@ -58,6 +58,10 @@ export const VirtualizedSchemaTable = function VirtualizedSchemaTable({
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const treeData = getSchemaTreeData(data, columnFilters, transformers);
+  // const treeData = useMemo(
+  //   () => getSchemaTreeData(data, columnFilters, transformers),
+  //   [data, columnFilters]
+  // );
 
   const onFilterSelect = (columnId: string, colFilters: string[]): void => {
     setColumnFilters((prevFilters) => {
@@ -84,27 +88,11 @@ export const VirtualizedSchemaTable = function VirtualizedSchemaTable({
       }
       return newSet;
     });
-    // setRows((prevItems) => {
-    //   const newItems = [...prevItems];
-    //   newItems[index] = {
-    //     ...newItems[index],
-    //     isSelected: !newItems[index].isSelected,
-    //   };
-    //   return newItems;
-    // });
   };
 
   const onSelectAll = (isSelected: boolean): void => {
     setBulkSelect(isSelected);
     setSelected(new Set());
-    // setRows((prevItems) => {
-    //   return [...prevItems].map((i) => {
-    //     return {
-    //       ...i,
-    //       isSelected,
-    //     };
-    //   });
-    // });
   };
 
   const onTreeFilterSelect = (id: string, isSelected: boolean): void => {
@@ -519,6 +507,7 @@ function getSchemaTreeData(
 ): TreeData[] {
   const schemaMap: Record<string, Record<string, string>> = {};
   data.forEach((row) => {
+    // don't build the map if there are no rows that are filterable by the schema or table
     if (
       !shouldFilterRow(row, columnFilters, transformers, 'schema') &&
       !shouldFilterRow(row, columnFilters, transformers, 'table')
