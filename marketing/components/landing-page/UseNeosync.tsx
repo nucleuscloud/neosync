@@ -61,7 +61,7 @@ you're ready, deploy Neosync using a Helm Chart or Docker
           <div className="pt-20">
             {steps.map((step, index) => (
               <div className="flex flex-row" key={step.title}>
-                <div className="flex flex-row gap-8">
+                <div className="flex flex-row gap-10">
                   <div className="flex flex-col items-center ">
                     <div className="w-8 h-9 bg-black rounded-full flex items-center justify-center text-white text-xl">
                       {step.step}
