@@ -44,6 +44,10 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		return nil, err
 	}
 
+	if len(bcResp.BenthosConfigs) == 0 {
+		return &WorkflowResponse{}, nil
+	}
+
 	logger.Info("running init statements in job destinations")
 	var resp *datasync_activities.RunSqlInitTableStatementsResponse
 	err = workflow.ExecuteActivity(ctx, wfActivites.RunSqlInitTableStatements, &datasync_activities.RunSqlInitTableStatementsRequest{
