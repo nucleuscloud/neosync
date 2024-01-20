@@ -13,7 +13,8 @@ releases:
       - auth:
           postgresPassword: foofar
           database: nucleus
-      - primary:
+        primary:
           persistence:
             mountPath: "/neosync/neosync-postgres"
             existingClaim: neosync-postgres # see pvc in ../yaml/neosync-postgres-pvc.yaml
+        postgresqlDataDir: "/neosync/neosync-postgres/data"
