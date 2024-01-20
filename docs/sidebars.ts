@@ -184,6 +184,11 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'doc',
+      id: 'guides/custom-code-transformers',
+      label: 'Custom Code Transformers',
+    },
+    {
+      type: 'doc',
       id: 'guides/using-neosync-in-ci',
       label: 'Using Neosync in CI',
     },
