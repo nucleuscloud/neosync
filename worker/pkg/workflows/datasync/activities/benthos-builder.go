@@ -24,8 +24,11 @@ import (
 )
 
 const (
-	generateDefault = "generate_default"
-	dbDefault       = "DEFAULT"
+	generateDefault            = "generate_default"
+	dbDefault                  = "DEFAULT"
+	jobmappingSubsetErrMsg     = "job mappings are not equal to or a subset of the database schema found in the source connection"
+	haltOnSchemaAdditionErrMsg = "job mappings does not contain a column mapping for all " +
+		"columns found in the source connection for the selected schemas and tables"
 )
 
 type benthosBuilder struct {
@@ -132,13 +135,11 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		}
 		groupedSchemas := dbschemas_postgres.GetUniqueSchemaColMappings(dbschemas)
 		if !areMappingsSubsetOfSchemas(groupedSchemas, job.Mappings) {
-			return nil, errors.New("job mappings are not equal to or a subset of the database schema found in the source connection")
+			return nil, errors.New(jobmappingSubsetErrMsg)
 		}
 		if sqlOpts != nil && sqlOpts.HaltOnNewColumnAddition &&
 			shouldHaltOnSchemaAddition(groupedSchemas, job.Mappings) {
-			msg := "job mappings does not contain a column mapping for all " +
-				"columns found in the source connection for the selected schemas and tables"
-			return nil, errors.New(msg)
+			return nil, errors.New(haltOnSchemaAdditionErrMsg)
 		}
 
 		allConstraints, err := dbschemas_postgres.GetAllPostgresFkConstraints(b.pgquerier, ctx, pool, uniqueSchemas)
@@ -228,13 +229,11 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		}
 		groupedSchemas := dbschemas_mysql.GetUniqueSchemaColMappings(dbschemas)
 		if !areMappingsSubsetOfSchemas(groupedSchemas, job.Mappings) {
-			return nil, errors.New("job mappings are not equal to or a subset of the database schema found in the source connection")
+			return nil, errors.New(jobmappingSubsetErrMsg)
 		}
 		if sqlOpts != nil && sqlOpts.HaltOnNewColumnAddition &&
 			shouldHaltOnSchemaAddition(groupedSchemas, job.Mappings) {
-			msg := "job mappings does not contain a column mapping for all " +
-				"columns found in the source connection for the selected schemas and tables"
-			return nil, errors.New(msg)
+			return nil, errors.New(haltOnSchemaAdditionErrMsg)
 		}
 
 		allConstraints, err := dbschemas_mysql.GetAllMysqlFkConstraints(b.mysqlquerier, ctx, pool, uniqueSchemas)
