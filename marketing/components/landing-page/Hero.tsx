@@ -21,7 +21,7 @@ export default function Hero(): ReactElement {
         <Button className="px-6">
           <Link href="https://github.com/nucleuscloud/neosync">
             <div className="flex flex-row gap-2">
-              <GitHubLogoIcon className="mr-2 h-5 w-5" /> Get started{' '}
+              <GitHubLogoIcon className="mr-2 h-5 w-5" /> Get started
               <ArrowRightIcon className="h-5 w-5" />
             </div>
           </Link>
