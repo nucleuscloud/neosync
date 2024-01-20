@@ -24,8 +24,11 @@ import (
 )
 
 const (
-	generateDefault = "generate_default"
-	dbDefault       = "DEFAULT"
+	generateDefault            = "generate_default"
+	dbDefault                  = "DEFAULT"
+	jobmappingSubsetErrMsg     = "job mappings are not equal to or a subset of the database schema found in the source connection"
+	haltOnSchemaAdditionErrMsg = "job mappings does not contain a column mapping for all " +
+		"columns found in the source connection for the selected schemas and tables"
 )
 
 type benthosBuilder struct {
@@ -132,13 +135,11 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		}
 		groupedSchemas := dbschemas_postgres.GetUniqueSchemaColMappings(dbschemas)
 		if !areMappingsSubsetOfSchemas(groupedSchemas, job.Mappings) {
-			return nil, errors.New("job mappings are not equal to or a subset of the database schema found in the source connection")
+			return nil, errors.New(jobmappingSubsetErrMsg)
 		}
 		if sqlOpts != nil && sqlOpts.HaltOnNewColumnAddition &&
 			shouldHaltOnSchemaAddition(groupedSchemas, job.Mappings) {
-			msg := "job mappings does not contain a column mapping for all " +
-				"columns found in the source connection for the selected schemas and tables"
-			return nil, errors.New(msg)
+			return nil, errors.New(haltOnSchemaAdditionErrMsg)
 		}
 
 		allConstraints, err := dbschemas_postgres.GetAllPostgresFkConstraints(b.pgquerier, ctx, pool, uniqueSchemas)
@@ -228,13 +229,11 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		}
 		groupedSchemas := dbschemas_mysql.GetUniqueSchemaColMappings(dbschemas)
 		if !areMappingsSubsetOfSchemas(groupedSchemas, job.Mappings) {
-			return nil, errors.New("job mappings are not equal to or a subset of the database schema found in the source connection")
+			return nil, errors.New(jobmappingSubsetErrMsg)
 		}
 		if sqlOpts != nil && sqlOpts.HaltOnNewColumnAddition &&
 			shouldHaltOnSchemaAddition(groupedSchemas, job.Mappings) {
-			msg := "job mappings does not contain a column mapping for all " +
-				"columns found in the source connection for the selected schemas and tables"
-			return nil, errors.New(msg)
+			return nil, errors.New(haltOnSchemaAdditionErrMsg)
 		}
 
 		allConstraints, err := dbschemas_mysql.GetAllMysqlFkConstraints(b.mysqlquerier, ctx, pool, uniqueSchemas)
@@ -300,35 +299,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					return nil, err
 				}
 
-				truncateBeforeInsert := false
-				truncateCascade := false
-				initSchema := false
-				sqlOpts := destination.Options.GetPostgresOptions()
-				if sqlOpts != nil {
-					initSchema = sqlOpts.InitTableSchema
-					if sqlOpts.TruncateTable != nil {
-						truncateBeforeInsert = sqlOpts.TruncateTable.TruncateBeforeInsert
-						truncateCascade = sqlOpts.TruncateTable.Cascade
-					}
-				}
-
 				if resp.Config.Input.SqlSelect != nil {
-					pool := b.pgpool[resp.Config.Input.SqlSelect.Dsn]
-					// todo: make this more efficient to reduce amount of times we have to connect to the source database
-					initStmt, err := b.getInitStatementFromPostgres(
-						ctx,
-						pool,
-						resp.TableSchema,
-						resp.TableName,
-						&initStatementOpts{
-							TruncateBeforeInsert: truncateBeforeInsert,
-							TruncateCascade:      truncateCascade,
-							InitSchema:           initSchema,
-						},
-					)
-					if err != nil {
-						return nil, err
-					}
 
 					tableKey := resp.Config.Input.SqlSelect.Table
 					tm := groupedTableMapping[tableKey]
@@ -350,8 +321,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 							Query:       out.Query,
 							ArgsMapping: out.ArgsMapping,
-
-							InitStatement: initStmt,
 
 							Batching: &neosync_benthos.Batching{
 								Period: "5s",
@@ -382,20 +351,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					}
 
 					filteredCols := b.filterColsBySource(cols, colSourceMap) // filters out default columns
-					initStmt, err := b.getInitStatementFromPostgres(
-						ctx,
-						nil,
-						resp.TableSchema,
-						resp.TableName,
-						&initStatementOpts{
-							TruncateBeforeInsert: truncateBeforeInsert,
-							TruncateCascade:      truncateCascade,
-							InitSchema:           false, // todo
-						},
-					)
-					if err != nil {
-						return nil, err
-					}
 
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						SqlRaw: &neosync_benthos.SqlRaw{
@@ -404,8 +359,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 							Query:       b.buildPostgresInsertQuery(tableKey, cols, colSourceMap),
 							ArgsMapping: buildPlainInsertArgs(filteredCols),
-
-							InitStatement: initStmt,
 
 							Batching: &neosync_benthos.Batching{
 								Period: "5s",
@@ -423,33 +376,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					return nil, err
 				}
 
-				truncateBeforeInsert := false
-				initSchema := false
-				sqlOpts := destination.Options.GetMysqlOptions()
-				if sqlOpts != nil {
-					initSchema = sqlOpts.InitTableSchema
-					if sqlOpts.TruncateTable != nil {
-						truncateBeforeInsert = sqlOpts.TruncateTable.TruncateBeforeInsert
-					}
-				}
-
 				if resp.Config.Input.SqlSelect != nil {
-					pool := b.mysqlpool[resp.Config.Input.SqlSelect.Dsn]
-					// todo: make this more efficient to reduce amount of times we have to connect to the source database
-					initStmt, err := b.getInitStatementFromMysql(
-						ctx,
-						pool,
-						resp.TableSchema,
-						resp.TableName,
-						&initStatementOpts{
-							TruncateBeforeInsert: truncateBeforeInsert,
-							InitSchema:           initSchema,
-						},
-					)
-					if err != nil {
-						return nil, err
-					}
-
 					tableKey := resp.Config.Input.SqlSelect.Table
 					tm := groupedTableMapping[tableKey]
 					if tm == nil {
@@ -468,9 +395,8 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 							Driver: "mysql",
 							Dsn:    dsn,
 
-							Query:         out.Query,
-							ArgsMapping:   out.ArgsMapping,
-							InitStatement: initStmt,
+							Query:       out.Query,
+							ArgsMapping: out.ArgsMapping,
 
 							Batching: &neosync_benthos.Batching{
 								Period: "5s",
@@ -500,29 +426,14 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					}
 					// filters out default columns
 					filteredCols := b.filterColsBySource(cols, colSourceMap)
-					initStmt, err := b.getInitStatementFromMysql(
-						ctx,
-						nil,
-						resp.TableSchema,
-						resp.TableName,
-						&initStatementOpts{
-							TruncateBeforeInsert: truncateBeforeInsert,
-							TruncateCascade:      false,
-							InitSchema:           false, // todo
-						},
-					)
-					if err != nil {
-						return nil, err
-					}
 
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						SqlRaw: &neosync_benthos.SqlRaw{
 							Driver: "mysql",
 							Dsn:    dsn,
 
-							Query:         b.buildMysqlInsertQuery(tableKey, cols, colSourceMap),
-							ArgsMapping:   buildPlainInsertArgs(filteredCols),
-							InitStatement: initStmt,
+							Query:       b.buildMysqlInsertQuery(tableKey, cols, colSourceMap),
+							ArgsMapping: buildPlainInsertArgs(filteredCols),
 
 							Batching: &neosync_benthos.Batching{
 								Period: "5s",
@@ -798,62 +709,6 @@ func (b *benthosBuilder) getAllMysqlPkConstraints(
 	}
 	pkMap := dbschemas_mysql.GetMysqlTablePrimaryKeys(primaryKeyConstraints)
 	return pkMap, nil
-}
-
-type initStatementOpts struct {
-	TruncateBeforeInsert bool
-	TruncateCascade      bool // only applied if truncatebeforeinsert is true
-	InitSchema           bool
-}
-
-func (b *benthosBuilder) getInitStatementFromPostgres(
-	ctx context.Context,
-	conn pg_queries.DBTX,
-	schema string,
-	table string,
-	opts *initStatementOpts,
-) (string, error) {
-
-	statements := []string{}
-	if opts != nil && opts.InitSchema {
-		stmt, err := dbschemas_postgres.GetTableCreateStatement(ctx, conn, b.pgquerier, schema, table)
-		if err != nil {
-			return "", err
-		}
-		statements = append(statements, stmt)
-	}
-	if opts != nil && opts.TruncateBeforeInsert {
-		if opts.TruncateCascade {
-			statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s CASCADE;", schema, table))
-		} else {
-			statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s;", schema, table))
-		}
-	}
-	return strings.Join(statements, "\n"), nil
-}
-
-func (b *benthosBuilder) getInitStatementFromMysql(
-	ctx context.Context,
-	conn mysql_queries.DBTX,
-	schema string,
-	table string,
-	opts *initStatementOpts,
-) (string, error) {
-	statements := []string{}
-	if opts != nil && opts.InitSchema {
-		stmt, err := dbschemas_mysql.GetTableCreateStatement(ctx, conn, &dbschemas_mysql.GetTableCreateStatementRequest{
-			Schema: schema,
-			Table:  table,
-		})
-		if err != nil {
-			return "", err
-		}
-		statements = append(statements, stmt)
-	}
-	if opts != nil && opts.TruncateBeforeInsert {
-		statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s;", schema, table))
-	}
-	return strings.Join(statements, "\n"), nil
 }
 
 func (b *benthosBuilder) buildPostgresUpdateQuery(table string, columns []string, colSourceMap map[string]string, primaryKeys []string) string {

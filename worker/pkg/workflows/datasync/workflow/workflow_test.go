@@ -72,6 +72,8 @@ func Test_Workflow_Succeeds_SingleSync(t *testing.T) {
 				Config:    &neosync_benthos.BenthosConfig{},
 			},
 		}}, nil)
+	env.OnActivity(activities.RunSqlInitTableStatements, mock.Anything, mock.Anything).
+		Return(&datasync_activities.RunSqlInitTableStatementsResponse{}, nil)
 	env.OnActivity(activities.Sync, mock.Anything, mock.Anything, mock.Anything).Return(&datasync_activities.SyncResponse{}, nil)
 
 	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
@@ -133,6 +135,8 @@ func Test_Workflow_Follows_Synchronous_DependentFlow(t *testing.T) {
 				Columns:     []string{"id"},
 			},
 		}}, nil)
+	env.OnActivity(activities.RunSqlInitTableStatements, mock.Anything, mock.Anything).
+		Return(&datasync_activities.RunSqlInitTableStatementsResponse{}, nil)
 	count := 0
 	env.
 		OnActivity(activities.Sync, mock.Anything, mock.Anything, &datasync_activities.SyncMetadata{Schema: "public", Table: "users"}).
@@ -227,6 +231,8 @@ func Test_Workflow_Follows_Multiple_Dependents(t *testing.T) {
 				},
 			},
 		}}, nil)
+	env.OnActivity(activities.RunSqlInitTableStatements, mock.Anything, mock.Anything).
+		Return(&datasync_activities.RunSqlInitTableStatementsResponse{}, nil)
 	counter := atomic.NewInt32(0)
 	env.
 		OnActivity(activities.Sync, mock.Anything, mock.Anything, &datasync_activities.SyncMetadata{Schema: "public", Table: "users"}).
@@ -326,6 +332,8 @@ func Test_Workflow_Halts_Activities_OnError(t *testing.T) {
 				},
 			},
 		}}, nil)
+	env.OnActivity(activities.RunSqlInitTableStatements, mock.Anything, mock.Anything).
+		Return(&datasync_activities.RunSqlInitTableStatementsResponse{}, nil)
 
 	env.
 		OnActivity(activities.Sync, mock.Anything, mock.Anything, &datasync_activities.SyncMetadata{Schema: "public", Table: "users"}).
