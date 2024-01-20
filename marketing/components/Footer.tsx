@@ -49,7 +49,7 @@ export default function Footer(): ReactElement {
                 </div>
               </div>
             </div>
-            <div className="opacity-60">
+            <div className="opacity-70">
               <Image
                 src="https://assets.nucleuscloud.com/neosync/marketingsite/devcommunity.svg"
                 alt="dev"
