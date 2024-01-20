@@ -46,8 +46,8 @@ export default function JobNextRuns({ jobId, status }: Props): ReactElement {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {(status && status == JobStatus.PAUSED) ||
-              data?.nextRuns?.nextRunTimes.length == 0 ? (
+              {(status && status === JobStatus.PAUSED) ||
+              data?.nextRuns?.nextRunTimes.length === 0 ? (
                 <TableRow className="hover:bg-background">
                   <TableCell>
                     <span className="font-medium justify-center flex pt-20">

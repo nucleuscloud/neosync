@@ -1,0 +1,164 @@
+---
+title: connection_data.proto
+hide_title: true
+---
+
+import { ProtoMessage, ProtoServiceMethod, ProtoEnum } from '@theme/ProtoFile';
+
+# `connection_data.proto`
+_**path** mgmt/v1alpha1/connection_data.proto_
+
+_**package** mgmt.v1alpha1_
+
+
+
+---
+
+## Messages
+
+
+### `AwsS3SchemaConfig`
+<ProtoMessage key={0} message={{"name":"AwsS3SchemaConfig","longName":"AwsS3SchemaConfig","fullName":"mgmt.v1alpha1.AwsS3SchemaConfig","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":true,"extensions":[],"fields":[{"name":"job_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":true,"oneofdecl":"id","defaultValue":""},{"name":"job_run_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":true,"oneofdecl":"id","defaultValue":""}]}} />
+
+
+### `AwsS3StreamConfig`
+<ProtoMessage key={1} message={{"name":"AwsS3StreamConfig","longName":"AwsS3StreamConfig","fullName":"mgmt.v1alpha1.AwsS3StreamConfig","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":true,"extensions":[],"fields":[{"name":"job_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":true,"oneofdecl":"id","defaultValue":""},{"name":"job_run_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":true,"oneofdecl":"id","defaultValue":""}]}} />
+
+
+### `ConnectionSchemaConfig`
+<ProtoMessage key={2} message={{"name":"ConnectionSchemaConfig","longName":"ConnectionSchemaConfig","fullName":"mgmt.v1alpha1.ConnectionSchemaConfig","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":true,"extensions":[],"fields":[{"name":"pg_config","description":"","label":"","type":"PostgresSchemaConfig","longType":"PostgresSchemaConfig","fullType":"mgmt.v1alpha1.PostgresSchemaConfig","ismap":false,"isoneof":true,"oneofdecl":"config","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/connection_data.proto#postgresschemaconfig"},{"name":"aws_s3_config","description":"","label":"","type":"AwsS3SchemaConfig","longType":"AwsS3SchemaConfig","fullType":"mgmt.v1alpha1.AwsS3SchemaConfig","ismap":false,"isoneof":true,"oneofdecl":"config","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/connection_data.proto#awss3schemaconfig"},{"name":"mysql_config","description":"","label":"","type":"MysqlSchemaConfig","longType":"MysqlSchemaConfig","fullType":"mgmt.v1alpha1.MysqlSchemaConfig","ismap":false,"isoneof":true,"oneofdecl":"config","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/connection_data.proto#mysqlschemaconfig"}]}} />
+
+
+### `ConnectionStreamConfig`
+<ProtoMessage key={3} message={{"name":"ConnectionStreamConfig","longName":"ConnectionStreamConfig","fullName":"mgmt.v1alpha1.ConnectionStreamConfig","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":true,"extensions":[],"fields":[{"name":"pg_config","description":"","label":"","type":"PostgresStreamConfig","longType":"PostgresStreamConfig","fullType":"mgmt.v1alpha1.PostgresStreamConfig","ismap":false,"isoneof":true,"oneofdecl":"config","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/connection_data.proto#postgresstreamconfig"},{"name":"aws_s3_config","description":"","label":"","type":"AwsS3StreamConfig","longType":"AwsS3StreamConfig","fullType":"mgmt.v1alpha1.AwsS3StreamConfig","ismap":false,"isoneof":true,"oneofdecl":"config","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/connection_data.proto#awss3streamconfig"},{"name":"mysql_config","description":"","label":"","type":"MysqlStreamConfig","longType":"MysqlStreamConfig","fullType":"mgmt.v1alpha1.MysqlStreamConfig","ismap":false,"isoneof":true,"oneofdecl":"config","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/connection_data.proto#mysqlstreamconfig"}]}} />
+
+
+### `DatabaseColumn`
+<ProtoMessage key={4} message={{"name":"DatabaseColumn","longName":"DatabaseColumn","fullName":"mgmt.v1alpha1.DatabaseColumn","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"schema","description":"The database schema. Ex: public","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"table","description":"The name of the table in the schema","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"column","description":"The name of the column","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"data_type","description":"The datatype of the column","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `ForeignConstraint`
+<ProtoMessage key={5} message={{"name":"ForeignConstraint","longName":"ForeignConstraint","fullName":"mgmt.v1alpha1.ForeignConstraint","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"column","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"is_nullable","description":"","label":"","type":"bool","longType":"bool","fullType":"bool","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"foreign_key","description":"","label":"","type":"ForeignKey","longType":"ForeignKey","fullType":"mgmt.v1alpha1.ForeignKey","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/connection_data.proto#foreignkey"}]}} />
+
+
+### `ForeignConstraintTables`
+<ProtoMessage key={6} message={{"name":"ForeignConstraintTables","longName":"ForeignConstraintTables","fullName":"mgmt.v1alpha1.ForeignConstraintTables","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"constraints","description":"","label":"repeated","type":"ForeignConstraint","longType":"ForeignConstraint","fullType":"mgmt.v1alpha1.ForeignConstraint","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/connection_data.proto#foreignconstraint"}]}} />
+
+
+### `ForeignKey`
+<ProtoMessage key={7} message={{"name":"ForeignKey","longName":"ForeignKey","fullName":"mgmt.v1alpha1.ForeignKey","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"table","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"column","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `GetConnectionDataStreamRequest`
+<ProtoMessage key={8} message={{"name":"GetConnectionDataStreamRequest","longName":"GetConnectionDataStreamRequest","fullName":"mgmt.v1alpha1.GetConnectionDataStreamRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"connection_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"stream_config","description":"","label":"","type":"ConnectionStreamConfig","longType":"ConnectionStreamConfig","fullType":"mgmt.v1alpha1.ConnectionStreamConfig","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/connection_data.proto#connectionstreamconfig"},{"name":"schema","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"table","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `GetConnectionDataStreamResponse`
+<ProtoMessage key={9} message={{"name":"GetConnectionDataStreamResponse","longName":"GetConnectionDataStreamResponse","fullName":"mgmt.v1alpha1.GetConnectionDataStreamResponse","description":"Each stream response is a single row in the requested schema and table","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"row","description":"A map of column name to the bytes value of the data that was found for that column and row","label":"repeated","type":"RowEntry","longType":"GetConnectionDataStreamResponse.RowEntry","fullType":"mgmt.v1alpha1.GetConnectionDataStreamResponse.RowEntry","ismap":true,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/connection_data.proto#getconnectiondatastreamresponserowentry"}]}} />
+
+
+### `GetConnectionDataStreamResponse.RowEntry`
+<ProtoMessage key={10} message={{"name":"RowEntry","longName":"GetConnectionDataStreamResponse.RowEntry","fullName":"mgmt.v1alpha1.GetConnectionDataStreamResponse.RowEntry","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"key","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"value","description":"","label":"","type":"bytes","longType":"bytes","fullType":"bytes","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `GetConnectionForeignConstraintsRequest`
+<ProtoMessage key={11} message={{"name":"GetConnectionForeignConstraintsRequest","longName":"GetConnectionForeignConstraintsRequest","fullName":"mgmt.v1alpha1.GetConnectionForeignConstraintsRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"connection_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `GetConnectionForeignConstraintsResponse`
+<ProtoMessage key={12} message={{"name":"GetConnectionForeignConstraintsResponse","longName":"GetConnectionForeignConstraintsResponse","fullName":"mgmt.v1alpha1.GetConnectionForeignConstraintsResponse","description":"Dependency constraints for a specific table","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"table_constraints","description":"the key here is <schema>.<table> and the list of tables that it depends on, also `<schema>.<table>` format.","label":"repeated","type":"TableConstraintsEntry","longType":"GetConnectionForeignConstraintsResponse.TableConstraintsEntry","fullType":"mgmt.v1alpha1.GetConnectionForeignConstraintsResponse.TableConstraintsEntry","ismap":true,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/connection_data.proto#getconnectionforeignconstraintsresponsetableconstraintsentry"}]}} />
+
+
+### `GetConnectionForeignConstraintsResponse.TableConstraintsEntry`
+<ProtoMessage key={13} message={{"name":"TableConstraintsEntry","longName":"GetConnectionForeignConstraintsResponse.TableConstraintsEntry","fullName":"mgmt.v1alpha1.GetConnectionForeignConstraintsResponse.TableConstraintsEntry","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"key","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"value","description":"","label":"","type":"ForeignConstraintTables","longType":"ForeignConstraintTables","fullType":"mgmt.v1alpha1.ForeignConstraintTables","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/connection_data.proto#foreignconstrainttables"}]}} />
+
+
+### `GetConnectionInitStatementsRequest`
+<ProtoMessage key={14} message={{"name":"GetConnectionInitStatementsRequest","longName":"GetConnectionInitStatementsRequest","fullName":"mgmt.v1alpha1.GetConnectionInitStatementsRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"connection_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"options","description":"","label":"","type":"InitStatementOptions","longType":"InitStatementOptions","fullType":"mgmt.v1alpha1.InitStatementOptions","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/connection_data.proto#initstatementoptions"}]}} />
+
+
+### `GetConnectionInitStatementsResponse`
+<ProtoMessage key={15} message={{"name":"GetConnectionInitStatementsResponse","longName":"GetConnectionInitStatementsResponse","fullName":"mgmt.v1alpha1.GetConnectionInitStatementsResponse","description":"Init statement for a specific table","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"table_init_statements","description":"the key here is <schema>.<table> and value is the table init statement.","label":"repeated","type":"TableInitStatementsEntry","longType":"GetConnectionInitStatementsResponse.TableInitStatementsEntry","fullType":"mgmt.v1alpha1.GetConnectionInitStatementsResponse.TableInitStatementsEntry","ismap":true,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/connection_data.proto#getconnectioninitstatementsresponsetableinitstatementsentry"}]}} />
+
+
+### `GetConnectionInitStatementsResponse.TableInitStatementsEntry`
+<ProtoMessage key={16} message={{"name":"TableInitStatementsEntry","longName":"GetConnectionInitStatementsResponse.TableInitStatementsEntry","fullName":"mgmt.v1alpha1.GetConnectionInitStatementsResponse.TableInitStatementsEntry","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"key","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"value","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `GetConnectionPrimaryConstraintsRequest`
+<ProtoMessage key={17} message={{"name":"GetConnectionPrimaryConstraintsRequest","longName":"GetConnectionPrimaryConstraintsRequest","fullName":"mgmt.v1alpha1.GetConnectionPrimaryConstraintsRequest","description":"Primary constraints for a specific table","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"connection_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `GetConnectionPrimaryConstraintsResponse`
+<ProtoMessage key={18} message={{"name":"GetConnectionPrimaryConstraintsResponse","longName":"GetConnectionPrimaryConstraintsResponse","fullName":"mgmt.v1alpha1.GetConnectionPrimaryConstraintsResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"table_constraints","description":"the key here is <schema>.<table> and value is","label":"repeated","type":"TableConstraintsEntry","longType":"GetConnectionPrimaryConstraintsResponse.TableConstraintsEntry","fullType":"mgmt.v1alpha1.GetConnectionPrimaryConstraintsResponse.TableConstraintsEntry","ismap":true,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/connection_data.proto#getconnectionprimaryconstraintsresponsetableconstraintsentry"}]}} />
+
+
+### `GetConnectionPrimaryConstraintsResponse.TableConstraintsEntry`
+<ProtoMessage key={19} message={{"name":"TableConstraintsEntry","longName":"GetConnectionPrimaryConstraintsResponse.TableConstraintsEntry","fullName":"mgmt.v1alpha1.GetConnectionPrimaryConstraintsResponse.TableConstraintsEntry","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"key","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"value","description":"","label":"","type":"PrimaryConstraint","longType":"PrimaryConstraint","fullType":"mgmt.v1alpha1.PrimaryConstraint","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/connection_data.proto#primaryconstraint"}]}} />
+
+
+### `GetConnectionSchemaRequest`
+<ProtoMessage key={20} message={{"name":"GetConnectionSchemaRequest","longName":"GetConnectionSchemaRequest","fullName":"mgmt.v1alpha1.GetConnectionSchemaRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"connection_id","description":"","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"schema_config","description":"","label":"","type":"ConnectionSchemaConfig","longType":"ConnectionSchemaConfig","fullType":"mgmt.v1alpha1.ConnectionSchemaConfig","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/connection_data.proto#connectionschemaconfig"}]}} />
+
+
+### `GetConnectionSchemaResponse`
+<ProtoMessage key={21} message={{"name":"GetConnectionSchemaResponse","longName":"GetConnectionSchemaResponse","fullName":"mgmt.v1alpha1.GetConnectionSchemaResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"schemas","description":"","label":"repeated","type":"DatabaseColumn","longType":"DatabaseColumn","fullType":"mgmt.v1alpha1.DatabaseColumn","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/connection_data.proto#databasecolumn"}]}} />
+
+
+### `InitStatementOptions`
+<ProtoMessage key={22} message={{"name":"InitStatementOptions","longName":"InitStatementOptions","fullName":"mgmt.v1alpha1.InitStatementOptions","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"init_schema","description":"","label":"","type":"bool","longType":"bool","fullType":"bool","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"truncate_before_insert","description":"","label":"","type":"bool","longType":"bool","fullType":"bool","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"truncate_cascade","description":"","label":"","type":"bool","longType":"bool","fullType":"bool","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `MysqlSchemaConfig`
+<ProtoMessage key={23} message={{"name":"MysqlSchemaConfig","longName":"MysqlSchemaConfig","fullName":"mgmt.v1alpha1.MysqlSchemaConfig","description":"","hasExtensions":false,"hasFields":false,"hasOneofs":false,"extensions":[],"fields":[]}} />
+
+
+### `MysqlStreamConfig`
+<ProtoMessage key={24} message={{"name":"MysqlStreamConfig","longName":"MysqlStreamConfig","fullName":"mgmt.v1alpha1.MysqlStreamConfig","description":"","hasExtensions":false,"hasFields":false,"hasOneofs":false,"extensions":[],"fields":[]}} />
+
+
+### `PostgresSchemaConfig`
+<ProtoMessage key={25} message={{"name":"PostgresSchemaConfig","longName":"PostgresSchemaConfig","fullName":"mgmt.v1alpha1.PostgresSchemaConfig","description":"","hasExtensions":false,"hasFields":false,"hasOneofs":false,"extensions":[],"fields":[]}} />
+
+
+### `PostgresStreamConfig`
+<ProtoMessage key={26} message={{"name":"PostgresStreamConfig","longName":"PostgresStreamConfig","fullName":"mgmt.v1alpha1.PostgresStreamConfig","description":"","hasExtensions":false,"hasFields":false,"hasOneofs":false,"extensions":[],"fields":[]}} />
+
+
+### `PrimaryConstraint`
+<ProtoMessage key={27} message={{"name":"PrimaryConstraint","longName":"PrimaryConstraint","fullName":"mgmt.v1alpha1.PrimaryConstraint","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"columns","description":"","label":"repeated","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+---
+## Services
+
+
+### `ConnectionDataService`
+
+Service for managing connection data.
+This is used in handle data from a connection
+
+
+#### `GetConnectionDataStream`
+<ProtoServiceMethod key={'GetConnectionDataStream-0'} method={{"name":"GetConnectionDataStream","description":"Streaming endpoint that will stream the data available from the Connection to the client.\nUsed primarily by the CLI sync command.","requestType":"GetConnectionDataStreamRequest","requestLongType":"GetConnectionDataStreamRequest","requestFullType":"mgmt.v1alpha1.GetConnectionDataStreamRequest","requestStreaming":false,"responseType":"GetConnectionDataStreamResponse","responseLongType":"GetConnectionDataStreamResponse","responseFullType":"mgmt.v1alpha1.GetConnectionDataStreamResponse","responseStreaming":true,"requestTypeLink":"/api/mgmt/v1alpha1/connection_data.proto#getconnectiondatastreamrequest","responseTypeLink":"/api/mgmt/v1alpha1/connection_data.proto#getconnectiondatastreamresponse"}} />
+
+
+#### `GetConnectionSchema`
+<ProtoServiceMethod key={'GetConnectionSchema-1'} method={{"name":"GetConnectionSchema","description":"Returns the schema for a specific connection. Used mostly for SQL-based connections","requestType":"GetConnectionSchemaRequest","requestLongType":"GetConnectionSchemaRequest","requestFullType":"mgmt.v1alpha1.GetConnectionSchemaRequest","requestStreaming":false,"responseType":"GetConnectionSchemaResponse","responseLongType":"GetConnectionSchemaResponse","responseFullType":"mgmt.v1alpha1.GetConnectionSchemaResponse","responseStreaming":false,"requestTypeLink":"/api/mgmt/v1alpha1/connection_data.proto#getconnectionschemarequest","responseTypeLink":"/api/mgmt/v1alpha1/connection_data.proto#getconnectionschemaresponse"}} />
+
+
+#### `GetConnectionForeignConstraints`
+<ProtoServiceMethod key={'GetConnectionForeignConstraints-2'} method={{"name":"GetConnectionForeignConstraints","description":"For a specific connection, returns the foreign key constraints. Mostly useful for SQL-based Connections.\nUsed primarily by the CLI sync command to determine stream order.","requestType":"GetConnectionForeignConstraintsRequest","requestLongType":"GetConnectionForeignConstraintsRequest","requestFullType":"mgmt.v1alpha1.GetConnectionForeignConstraintsRequest","requestStreaming":false,"responseType":"GetConnectionForeignConstraintsResponse","responseLongType":"GetConnectionForeignConstraintsResponse","responseFullType":"mgmt.v1alpha1.GetConnectionForeignConstraintsResponse","responseStreaming":false,"requestTypeLink":"/api/mgmt/v1alpha1/connection_data.proto#getconnectionforeignconstraintsrequest","responseTypeLink":"/api/mgmt/v1alpha1/connection_data.proto#getconnectionforeignconstraintsresponse"}} />
+
+
+#### `GetConnectionPrimaryConstraints`
+<ProtoServiceMethod key={'GetConnectionPrimaryConstraints-3'} method={{"name":"GetConnectionPrimaryConstraints","description":"For a specific connection, returns the primary key constraints. Mostly useful for SQL-based Connections.\nUsed primarily by the CLI sync command to determine stream order.","requestType":"GetConnectionPrimaryConstraintsRequest","requestLongType":"GetConnectionPrimaryConstraintsRequest","requestFullType":"mgmt.v1alpha1.GetConnectionPrimaryConstraintsRequest","requestStreaming":false,"responseType":"GetConnectionPrimaryConstraintsResponse","responseLongType":"GetConnectionPrimaryConstraintsResponse","responseFullType":"mgmt.v1alpha1.GetConnectionPrimaryConstraintsResponse","responseStreaming":false,"requestTypeLink":"/api/mgmt/v1alpha1/connection_data.proto#getconnectionprimaryconstraintsrequest","responseTypeLink":"/api/mgmt/v1alpha1/connection_data.proto#getconnectionprimaryconstraintsresponse"}} />
+
+
+#### `GetConnectionInitStatements`
+<ProtoServiceMethod key={'GetConnectionInitStatements-4'} method={{"name":"GetConnectionInitStatements","description":"For a specific connection, returns the init table statements. Mostly useful for SQL-based Connections.\nUsed primarily by the CLI sync command to create table schema init statement.","requestType":"GetConnectionInitStatementsRequest","requestLongType":"GetConnectionInitStatementsRequest","requestFullType":"mgmt.v1alpha1.GetConnectionInitStatementsRequest","requestStreaming":false,"responseType":"GetConnectionInitStatementsResponse","responseLongType":"GetConnectionInitStatementsResponse","responseFullType":"mgmt.v1alpha1.GetConnectionInitStatementsResponse","responseStreaming":false,"requestTypeLink":"/api/mgmt/v1alpha1/connection_data.proto#getconnectioninitstatementsrequest","responseTypeLink":"/api/mgmt/v1alpha1/connection_data.proto#getconnectioninitstatementsresponse"}} />
+
+
+---
+
+
+  

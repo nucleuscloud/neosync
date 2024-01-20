@@ -24,13 +24,13 @@ export default function Footer(): ReactElement {
             Backed by a passionate group of early enthusiasts, contributors, and
             advocates.
           </div>
-          <div className="flex flex-col sm:flex-row gap-2 lg:gap-4 items-end">
+          <div className="flex flex-col sm:flex-row gap-4 lg:gap-4">
             <div>
               <Button className="px-4" variant="secondary">
                 <Link href="https://discord.gg/UVmPTzn7dV">
                   <div className="flex flex-row items-center">
                     <p>Join our Discord</p>
-                    <ArrowRightIcon className="ml-2 h-5 w-5" />
+                    <ArrowRightIcon className="ml-3 h-5 w-15" />
                   </div>
                 </Link>
               </Button>
@@ -39,8 +39,8 @@ export default function Footer(): ReactElement {
               <Button className="px-8 bg-transparent border border-gray-600 hover:bg-[#303030]">
                 <Link href="https://github.com/nucleuscloud/neosync">
                   <div className="flex flex-row items-center">
-                    <p>Support us</p>
-                    <GitHubLogoIcon className="ml-3 h-5 w-5" />
+                    <p>Star Neosync</p>
+                    <GitHubLogoIcon className="ml-3 h-5 w-15" />
                   </div>
                 </Link>
               </Button>

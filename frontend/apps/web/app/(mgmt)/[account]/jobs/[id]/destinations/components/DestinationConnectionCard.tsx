@@ -66,7 +66,7 @@ export default function DestinationConnectionCard({
 
   async function onSubmit(values: FormValues) {
     try {
-      const connection = connections.find((c) => c.id == values.connectionId);
+      const connection = connections.find((c) => c.id === values.connectionId);
       await setJobConnection(
         account?.id ?? '',
         jobId,
@@ -108,7 +108,7 @@ export default function DestinationConnectionCard({
   }
 
   const dest = availableConnections.find(
-    (item) => item.id == destination.connectionId
+    (item) => item.id === destination.connectionId
   );
   return (
     <Card>
@@ -158,7 +158,7 @@ export default function DestinationConnectionCard({
               />
               <DestinationOptionsForm
                 connection={connections.find(
-                  (c) => c.id == form.getValues().connectionId
+                  (c) => c.id === form.getValues().connectionId
                 )}
                 maxColNum={2}
               />

@@ -84,10 +84,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const errors = form.formState.errors;
 
   const mysqlConns = connections.filter(
-    (c) => c.connectionConfig?.config.case == 'mysqlConfig'
+    (c) => c.connectionConfig?.config.case === 'mysqlConfig'
   );
   const postgresConns = connections.filter(
-    (c) => c.connectionConfig?.config.case == 'pgConfig'
+    (c) => c.connectionConfig?.config.case === 'pgConfig'
   );
 
   return (
@@ -208,7 +208,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
               <DestinationOptionsForm
                 connection={connections.find(
-                  (c) => c.id == form.getValues().connectionId
+                  (c) => c.id === form.getValues().connectionId
                 )}
                 maxColNum={2}
               />

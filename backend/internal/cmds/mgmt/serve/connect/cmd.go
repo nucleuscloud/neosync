@@ -132,7 +132,10 @@ func serve(ctx context.Context) error {
 		return err
 	}
 
-	otelInterceptor := otelconnect.NewInterceptor()
+	otelInterceptor, err := otelconnect.NewInterceptor()
+	if err != nil {
+		return err
+	}
 	loggerInterceptor := logger_interceptor.NewInterceptor(logger)
 	loggingInterceptor := logging_interceptor.NewInterceptor(logger)
 

@@ -1,5 +1,6 @@
 import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
 import EditTransformerOptions from '@/app/(mgmt)/[account]/transformers/EditTransformerOptions';
+import { TreeData, VirtualizedTree } from '@/components/VirtualizedTree';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
@@ -10,36 +11,26 @@ import {
   isUserDefinedTransformer,
 } from '@/shared/transformers';
 import {
+  JobMappingFormValues,
   JobMappingTransformerForm,
   SchemaFormValues,
 } from '@/yup-validations/jobs';
 import { UserDefinedTransformerConfig } from '@neosync/sdk';
 import { ExclamationTriangleIcon, UpdateIcon } from '@radix-ui/react-icons';
-import memoize from 'memoize-one';
-import {
-  CSSProperties,
-  memo,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import memoizeOne from 'memoize-one';
+import { CSSProperties, ReactElement, useMemo, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import AutoSizer from 'react-virtualized-auto-sizer';
-import { FixedSizeList as List, areEqual } from 'react-window';
-import { VirtualizedTree } from '../../VirtualizedTree';
+import { FixedSizeList as List } from 'react-window';
 import ColumnFilterSelect from './ColumnFilterSelect';
 import TransformerSelect from './TransformerSelect';
 
-interface Row {
-  table: string;
-  transformer: JobMappingTransformerForm;
-  schema: string;
-  column: string;
-  dataType: string;
-  isSelected: boolean;
-}
+export type Row = JobMappingFormValues & {
+  // isSelected: boolean;
+  formIdx: number;
+};
 
+// columnId: list of values
 type ColumnFilters = Record<string, string[]>;
 
 interface VirtualizedSchemaTableProps {
@@ -47,11 +38,15 @@ interface VirtualizedSchemaTableProps {
   transformers: Transformer[];
 }
 
-export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
+function buildRowKey(row: Row): string {
+  return `${row.schema}-${row.table}-${row.column}`;
+}
+
+export const VirtualizedSchemaTable = function VirtualizedSchemaTable({
   data,
   transformers,
 }: VirtualizedSchemaTableProps) {
-  const [rows, setRows] = useState(data);
+  const [rows, setRows] = useState<Row[]>(data);
   const [bulkTransformer, setBulkTransformer] =
     useState<JobMappingTransformerForm>({
       source: '',
@@ -60,61 +55,51 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
   const [bulkSelect, setBulkSelect] = useState(false);
   const [columnFilters, setColumnFilters] = useState<ColumnFilters>({});
   const form = useFormContext<SingleTableSchemaFormValues | SchemaFormValues>();
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    setRows(data);
-  }, [data]);
+  const treeData = getSchemaTreeData(data, columnFilters, transformers);
+  // const treeData = useMemo(
+  //   () => getSchemaTreeData(data, columnFilters, transformers),
+  //   [data, columnFilters]
+  // );
 
-  const treeData = useMemo(
-    () => getSchemaTreeData(data, columnFilters),
-    [data, columnFilters]
-  );
-
-  const onFilterSelect = useCallback(
-    (columnId: string, colFilters: string[]) => {
-      setColumnFilters((prevFilters) => {
-        const newFilters = { ...prevFilters, [columnId]: colFilters };
-        if (colFilters.length == 0) {
-          delete newFilters[columnId as keyof ColumnFilters];
-        }
-        const filteredRows = data.filter((r) =>
-          shouldFilterRow(r, newFilters, transformers)
-        );
-        setRows(filteredRows);
-        return newFilters;
-      });
-    },
-    []
-  );
-
-  const onSelect = useCallback((index: number) => {
-    setRows((prevItems) => {
-      const newItems = [...prevItems];
-      newItems[index] = {
-        ...newItems[index],
-        isSelected: !newItems[index].isSelected,
-      };
-      return newItems;
-    });
-  }, []);
-
-  const onSelectAll = useCallback((isSelected: boolean) => {
-    setRows((prevItems) => {
-      const newItems = [...prevItems];
-      return newItems.map((i) => {
-        return {
-          ...i,
-          isSelected,
-        };
-      });
-    });
-  }, []);
-
-  const onTreeFilterSelect = useCallback((id: string, isSelected: boolean) => {
+  const onFilterSelect = (columnId: string, colFilters: string[]): void => {
     setColumnFilters((prevFilters) => {
-      const [schema, table] = id.split('.');
+      const newFilters = { ...prevFilters, [columnId]: colFilters };
+      if (colFilters.length === 0) {
+        delete newFilters[columnId as keyof ColumnFilters];
+      }
+      const filteredRows = data.filter((r) =>
+        shouldFilterRow(r, newFilters, transformers)
+      );
+      setRows(filteredRows);
+      return newFilters;
+    });
+  };
+
+  const onSelect = (index: number): void => {
+    setSelected((prevSet) => {
+      const newSet = new Set(prevSet);
+      const row = rows[index];
+      if (newSet.has(buildRowKey(row))) {
+        newSet.delete(buildRowKey(row));
+      } else {
+        newSet.add(buildRowKey(row));
+      }
+      return newSet;
+    });
+  };
+
+  const onSelectAll = (isSelected: boolean): void => {
+    setBulkSelect(isSelected);
+    setSelected(new Set());
+  };
+
+  const onTreeFilterSelect = (id: string, isSelected: boolean): void => {
+    setColumnFilters((prevFilters) => {
+      const [schema, table] = splitOnFirstOccurrence(id, '.');
       const newFilters = { ...prevFilters };
-      if (isSelected) {
+      if (isSelected || bulkSelect) {
         newFilters['schema'] = newFilters['schema']
           ? [...newFilters['schema'], schema]
           : [schema];
@@ -135,7 +120,7 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
       setRows(filteredRows);
       return newFilters;
     });
-  }, []);
+  };
 
   return (
     <div className="flex flex-row w-full">
@@ -149,16 +134,18 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
               transformers={transformers}
               value={bulkTransformer}
               onSelect={(value) => {
-                rows.forEach((r, index) => {
-                  if (r.isSelected) {
-                    form.setValue(`mappings.${index}.transformer`, value, {
+                rows.forEach((r) => {
+                  if (bulkSelect || selected.has(buildRowKey(r))) {
+                    form.setValue(`mappings.${r.formIdx}.transformer`, value, {
                       shouldDirty: true,
                     });
                   }
                 });
                 onSelectAll(false);
-                setBulkSelect(false);
-                setBulkTransformer(value);
+                setBulkTransformer({
+                  source: '',
+                  config: { case: '', value: {} },
+                });
               }}
               placeholder="Bulk update Transformers..."
             />
@@ -177,13 +164,13 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
         </div>
         <div>
           <VirtualizedSchemaList
-            rows={rows}
+            filteredRows={rows}
             allRows={data}
             onSelect={onSelect}
             onSelectAll={onSelectAll}
             transformers={transformers}
-            bulkSelect={bulkSelect}
-            setBulkSelect={setBulkSelect}
+            isAllSelected={bulkSelect}
+            selected={selected}
             columnFilters={columnFilters}
             onFilterSelect={onFilterSelect}
           />
@@ -191,25 +178,29 @@ export const VirtualizedSchemaTable = memo(function VirtualizedSchemaTable({
       </div>
     </div>
   );
-});
+};
 
-interface RowProps {
+interface RowItemData {
+  rows: Row[];
+  selected: Set<string>;
+  isAllSelected: boolean;
+  onSelect: (index: number) => void;
+  onSelectAll: (value: boolean) => void;
+  transformers: Transformer[];
+}
+
+interface TableRowProps {
   index: number;
   style: CSSProperties;
-  data: {
-    rows: Row[];
-    onSelect: (index: number) => void;
-    onSelectAll: (value: boolean) => void;
-    transformers: Transformer[];
-  };
+  data: RowItemData;
 }
 
 // If list items are expensive to render,
 // Consider using PureComponent to avoid unnecessary re-renders.
 // https://reactjs.org/docs/react-api.html#reactpurecomponent
-const Row = memo(function Row({ data, index, style }: RowProps) {
+const TableRow = function Row({ data, index, style }: TableRowProps) {
   // Data passed to List as "itemData" is available as props.data
-  const { rows, onSelect, transformers } = data;
+  const { rows, onSelect, transformers, selected, isAllSelected } = data;
   const row = rows[index];
 
   return (
@@ -219,7 +210,7 @@ const Row = memo(function Row({ data, index, style }: RowProps) {
           <Checkbox
             id="select"
             onClick={() => onSelect(index)}
-            checked={row.isSelected}
+            checked={isAllSelected || selected.has(buildRowKey(row))}
             type="button"
             className="self-center mr-4"
           />
@@ -230,7 +221,7 @@ const Row = memo(function Row({ data, index, style }: RowProps) {
         <Cell value={row.dataType} />
         <div>
           <FormField<SchemaFormValues | SingleTableSchemaFormValues>
-            name={`mappings.${index}.transformer`}
+            name={`mappings.${row.formIdx}.transformer`}
             render={({ field, fieldState, formState }) => {
               const fv = field.value as JobMappingTransformerForm;
               return (
@@ -249,7 +240,7 @@ const Row = memo(function Row({ data, index, style }: RowProps) {
                         </div>
                       )}
 
-                      <div className="">
+                      <div>
                         <TransformerSelect
                           transformers={transformers}
                           value={fv}
@@ -283,14 +274,14 @@ const Row = memo(function Row({ data, index, style }: RowProps) {
       </div>
     </div>
   );
-}, areEqual);
-Row.displayName = 'row';
+};
+TableRow.displayName = 'row';
 
 interface CellProps {
   value: string;
 }
 
-function Cell(props: CellProps) {
+function Cell(props: CellProps): ReactElement {
   const { value } = props;
   return <span className="truncate font-medium text-sm">{value}</span>;
 }
@@ -300,27 +291,31 @@ function Cell(props: CellProps) {
 // This is only needed since we are passing multiple props with a wrapper object.
 // If we were only passing a single, stable value (e.g. items),
 // We could just pass the value directly.
-const createRowData = memoize(
+const createRowData = memoizeOne(
   (
     rows: Row[],
     onSelect: (index: number) => void,
     onSelectAll: (value: boolean) => void,
-    transformers: Transformer[]
+    transformers: Transformer[],
+    selected: Set<string>,
+    isAllSelected: boolean
   ) => ({
     rows,
     onSelect,
     onSelectAll,
     transformers,
+    selected,
+    isAllSelected,
   })
 );
 
 interface VirtualizedSchemaListProps {
-  rows: Row[];
+  filteredRows: Row[];
   allRows: Row[];
   onSelect: (index: number) => void;
-  onSelectAll: (value: boolean) => void;
-  bulkSelect: boolean;
-  setBulkSelect: (value: boolean) => void;
+  onSelectAll: (isSelected: boolean) => void;
+  isAllSelected: boolean;
+  selected: Set<string>;
   columnFilters: ColumnFilters;
   onFilterSelect: (columnId: string, newValues: string[]) => void;
   transformers: Transformer[];
@@ -328,26 +323,34 @@ interface VirtualizedSchemaListProps {
 // In this example, "items" is an Array of objects to render,
 // and "onSelect" is a function that updates an item's state.
 function VirtualizedSchemaList({
-  rows,
+  filteredRows,
   allRows,
   onSelect,
   onSelectAll,
   transformers,
-  bulkSelect,
-  setBulkSelect,
+  isAllSelected,
   columnFilters,
   onFilterSelect,
+  selected,
 }: VirtualizedSchemaListProps) {
   // Bundle additional data to list rows using the "rowData" prop.
   // It will be accessible to item renderers as props.data.
   // Memoize this data to avoid bypassing shouldComponentUpdate().
-  const rowData = createRowData(rows, onSelect, onSelectAll, transformers);
+  const itemData: RowItemData = createRowData(
+    filteredRows,
+    onSelect,
+    onSelectAll,
+    transformers,
+    selected,
+    isAllSelected
+  );
+
   const uniqueFilters = useMemo(
     () => getUniqueFilters(allRows, columnFilters, transformers),
     [allRows, columnFilters]
   );
 
-  const sumOfRowHeights = 50 * rows.length;
+  const sumOfRowHeights = 50 * filteredRows.length;
   const dynamicHeight = Math.min(sumOfRowHeights, 700);
 
   return (
@@ -359,10 +362,9 @@ function VirtualizedSchemaList({
           <Checkbox
             id="select"
             onClick={() => {
-              onSelectAll(!bulkSelect);
-              setBulkSelect(!bulkSelect);
+              onSelectAll(!isAllSelected);
             }}
-            checked={bulkSelect}
+            checked={isAllSelected}
             type="button"
             className="self-center mr-4"
           />
@@ -419,16 +421,16 @@ function VirtualizedSchemaList({
           {({ height, width }) => (
             <List
               height={height}
-              itemCount={rows.length}
-              itemData={rowData}
+              itemCount={filteredRows.length}
+              itemData={itemData}
               itemSize={50}
               width={width}
               itemKey={(index: number) => {
-                const r = rows[index];
-                return `${r.schema}-${r.table}-${r.column}`;
+                const r = filteredRows[index];
+                return buildRowKey(r);
               }}
             >
-              {Row}
+              {TableRow}
             </List>
           )}
         </AutoSizer>
@@ -441,14 +443,14 @@ function shouldFilterRow(
   row: Row,
   columnFilters: ColumnFilters,
   transformers: Transformer[],
-  columnId?: keyof Row
+  columnIdToSkip?: keyof Row
 ): boolean {
   for (const key of Object.keys(columnFilters)) {
-    if (columnId && key == columnId) {
+    if (columnIdToSkip && key === columnIdToSkip) {
       continue;
     }
     const filters = columnFilters[key as keyof ColumnFilters];
-    if (filters.length == 0) {
+    if (filters.length === 0) {
       continue;
     }
     switch (key) {
@@ -498,9 +500,20 @@ function isTableSelected(
   );
 }
 
-function getSchemaTreeData(data: Row[], columnFilters: ColumnFilters) {
+function getSchemaTreeData(
+  data: Row[],
+  columnFilters: ColumnFilters,
+  transformers: Transformer[]
+): TreeData[] {
   const schemaMap: Record<string, Record<string, string>> = {};
   data.forEach((row) => {
+    // don't build the map if there are no rows that are filterable by the schema or table
+    if (
+      !shouldFilterRow(row, columnFilters, transformers, 'schema') &&
+      !shouldFilterRow(row, columnFilters, transformers, 'table')
+    ) {
+      return;
+    }
     if (!schemaMap[row.schema]) {
       schemaMap[row.schema] = { [row.table]: row.table };
     } else {
@@ -511,14 +524,11 @@ function getSchemaTreeData(data: Row[], columnFilters: ColumnFilters) {
   const schemaFilters = new Set(columnFilters['schema'] || []);
   const tableFilters = new Set(columnFilters['table'] || []);
 
-  var falseOverride = false;
-  if (schemaFilters.size == 0 && tableFilters.size == 0) {
-    falseOverride = true;
-  }
+  const falseOverride = schemaFilters.size === 0 && tableFilters.size === 0;
 
-  return Object.keys(schemaMap).map((schema) => {
+  return Object.keys(schemaMap).map((schema): TreeData => {
     const isSchemaSelected = schemaFilters.has(schema);
-    const children = Object.keys(schemaMap[schema]).map((table) => {
+    const children = Object.keys(schemaMap[schema]).map((table): TreeData => {
       return {
         id: `${schema}.${table}`,
         name: table,
@@ -540,66 +550,76 @@ function getSchemaTreeData(data: Row[], columnFilters: ColumnFilters) {
   });
 }
 
-function getUniqueFiltersByColumn(
-  rows: Row[],
-  columnFilters: ColumnFilters,
-  columnId: keyof Row,
-  transformers: Transformer[]
-): string[] {
-  const uniqueColFilters: Record<string, string> = {};
-  const filteredRows = rows.filter((r) =>
-    shouldFilterRow(r, columnFilters, transformers, columnId)
-  );
-  filteredRows.forEach((r) => {
-    switch (columnId) {
-      case 'transformer': {
-        const rowVal = r[columnId];
-        if (rowVal.source === 'custom') {
-          const udfId = (rowVal.config.value as UserDefinedTransformerConfig)
-            .id;
-          const value =
-            transformers.find(
-              (t) => isUserDefinedTransformer(t) && t.id === udfId
-            )?.name ?? 'unknown transformer';
-          uniqueColFilters[value] = value;
-        } else {
-          const value =
-            transformers.find(
-              (t) => isSystemTransformer(t) && t.source === rowVal.source
-            )?.name ?? 'unknown transformer';
-          uniqueColFilters[value] = value;
-        }
-        break;
-      }
-      case 'isSelected': {
-        uniqueColFilters[r[columnId] ? 'true' : 'false'];
-        break;
-      }
-      default: {
-        const value = r[columnId] as string;
-        uniqueColFilters[value] = value;
-      }
-    }
-  });
-  return Object.keys(uniqueColFilters).sort();
-}
-
 function getUniqueFilters(
-  rows: Row[],
+  allRows: Row[],
   columnFilters: ColumnFilters,
   transformers: Transformer[]
 ): Record<string, string[]> {
-  const filterSet: Record<string, string[]> = {
-    schema: getUniqueFiltersByColumn(rows, columnFilters, 'schema', []),
-    table: getUniqueFiltersByColumn(rows, columnFilters, 'table', []),
-    column: getUniqueFiltersByColumn(rows, columnFilters, 'column', []),
-    dataType: getUniqueFiltersByColumn(rows, columnFilters, 'dataType', []),
-    transformer: getUniqueFiltersByColumn(
-      rows,
-      columnFilters,
-      'transformer',
-      transformers
-    ),
+  const filterSet = {
+    schema: new Set<string>(),
+    table: new Set<string>(),
+    column: new Set<string>(),
+    dataType: new Set<string>(),
+    transformer: new Set<string>(),
   };
-  return filterSet;
+  allRows.forEach((row) => {
+    if (shouldFilterRow(row, columnFilters, transformers, 'schema')) {
+      filterSet.schema.add(row.schema);
+    }
+    if (shouldFilterRow(row, columnFilters, transformers, 'table')) {
+      filterSet.table.add(row.table);
+    }
+    if (shouldFilterRow(row, columnFilters, transformers, 'column')) {
+      filterSet.column.add(row.column);
+    }
+    if (shouldFilterRow(row, columnFilters, transformers, 'dataType')) {
+      filterSet.dataType.add(row.dataType);
+    }
+    if (shouldFilterRow(row, columnFilters, transformers, 'transformer')) {
+      filterSet.transformer.add(getTransformerFilterValue(row, transformers));
+    }
+  });
+  const uniqueColFilters: Record<string, string[]> = {};
+  Object.entries(filterSet).forEach(([key, val]) => {
+    uniqueColFilters[key] = Array.from(val).sort();
+  });
+  return uniqueColFilters;
+}
+
+function getTransformerFilterValue(
+  row: Row,
+  transformers: Transformer[]
+): string {
+  if (row.transformer.source === 'custom') {
+    const udfId = (row.transformer.config.value as UserDefinedTransformerConfig)
+      .id;
+    return (
+      transformers.find((t) => isUserDefinedTransformer(t) && t.id === udfId)
+        ?.name ?? 'unknown transformer'
+    );
+  } else {
+    return (
+      transformers.find(
+        (t) => isSystemTransformer(t) && t.source === row.transformer.source
+      )?.name ?? 'unknown transformer'
+    );
+  }
+}
+
+function splitOnFirstOccurrence(
+  str: string,
+  character: string
+): [string, string] {
+  const index = str.indexOf(character);
+
+  if (index === -1) {
+    // Character not found, return the original string and an empty string
+    return [str, ''];
+  }
+
+  // Split the string at the found index
+  const firstPart = str.substring(0, index);
+  const secondPart = str.substring(index + 1); // +1 to exclude the character itself
+
+  return [firstPart, secondPart];
 }

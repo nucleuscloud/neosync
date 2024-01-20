@@ -1,23 +1,35 @@
 'use client';
-import { default as Features } from '@/components/landing-page/Features';
-import GitOpsSection from '@/components/landing-page/GitOps';
+import CTA from '@/components/cta/CTA';
+import EngineeringTeams from '@/components/landing-page/EngineeringTeams';
 import Hero from '@/components/landing-page/Hero';
-import Subset from '@/components/landing-page/Subset';
-import TableTypes from '@/components/landing-page/TableTypes';
 import Transformers from '@/components/landing-page/Transformers';
-import UseCases from '@/components/landing-page/Usecases';
+import UseNeosync from '@/components/landing-page/UseNeosync';
+import ValueProps from '@/components/landing-page/Valueprops';
 import { ReactElement } from 'react';
 
 export default function Home(): ReactElement {
   return (
     <div>
-      <Hero />
-      <Features />
-      <TableTypes />
-      <UseCases />
-      <Transformers />
-      <Subset />
-      <GitOpsSection />
+      <div className="py-20 bg-[#FFFFFF] border-b border-b-gray-200">
+        <Hero />
+      </div>
+      <div className="bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto">
+        <div className="pt-20 lg:pt-40">
+          <ValueProps />
+        </div>
+        <div className="pt-20 lg:pt-40">
+          <UseNeosync />
+        </div>
+        <div className="pt-20 lg:pt-40">
+          <Transformers />
+        </div>
+        <div className="pt-20 lg:pt-40">
+          <EngineeringTeams />
+        </div>
+        <div className="py-20 lg:pt-40">
+          <CTA />
+        </div>
+      </div>
     </div>
   );
 }

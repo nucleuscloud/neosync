@@ -212,7 +212,8 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
                     'mappings',
                     allJobMappings
                       .filter(
-                        (m) => m.schema == formValues.schema && m.table == value
+                        (m) =>
+                          m.schema === formValues.schema && m.table === value
                       )
                       .map((r) => {
                         return {
@@ -348,7 +349,7 @@ function getJobSource(
   });
 
   const mappings: SingleTableSchemaFormValues['mappings'] = dbCols
-    .filter((c) => c.schema == schema && c.table == table)
+    .filter((c) => c.schema === schema && c.table === table)
     .map((c) => {
       const colMapping = getColumnMapping(
         schemaMap,

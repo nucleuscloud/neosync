@@ -90,13 +90,13 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const errors = form.formState.errors;
 
   const mysqlConns = connections.filter(
-    (c) => c.connectionConfig?.config.case == 'mysqlConfig'
+    (c) => c.connectionConfig?.config.case === 'mysqlConfig'
   );
   const postgresConns = connections.filter(
-    (c) => c.connectionConfig?.config.case == 'pgConfig'
+    (c) => c.connectionConfig?.config.case === 'pgConfig'
   );
   const awsS3Conns = connections.filter(
-    (c) => c.connectionConfig?.config.case == 'awsS3Config'
+    (c) => c.connectionConfig?.config.case === 'awsS3Config'
   );
 
   return (
@@ -154,7 +154,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               );
                               return;
                             }
-                            if (value == destConn) {
+                            if (value === destConn) {
                               form.setError(`sourceId`, {
                                 type: 'string',
                                 message:
@@ -254,7 +254,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
               <SourceOptionsForm
                 connection={connections.find(
-                  (c) => c.id == form.getValues().sourceId
+                  (c) => c.id === form.getValues().sourceId
                 )}
                 maxColNum={2}
               />
@@ -299,7 +299,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                         return;
                                       }
                                       setDestConn(value);
-                                      if (value == sourceConn) {
+                                      if (value === sourceConn) {
                                         form.setError(
                                           `destinations.${index}.connectionId`,
                                           {
@@ -421,7 +421,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                         <Button
                           type="button"
                           variant="outline"
-                          disabled={fields.length == 1}
+                          disabled={fields.length === 1}
                           onClick={() => {
                             if (fields.length != 1) {
                               remove(index);
@@ -486,18 +486,18 @@ function getErrorConnectionTypes(
   connId: string,
   connections: Connection[]
 ): string {
-  const conn = connections.find((c) => c.id == connId);
+  const conn = connections.find((c) => c.id === connId);
   if (!conn) {
     return isSource ? '[Postgres, Mysql]' : '[Postgres, Mysql, AWS S3]';
   }
-  if (conn.connectionConfig?.config.case == 'awsS3Config') {
+  if (conn.connectionConfig?.config.case === 'awsS3Config') {
     return '[Mysql, Postgres]';
   }
-  if (conn.connectionConfig?.config.case == 'mysqlConfig') {
+  if (conn.connectionConfig?.config.case === 'mysqlConfig') {
     return isSource ? '[Postgres]' : '[Mysql, AWS S3]';
   }
 
-  if (conn.connectionConfig?.config.case == 'pgConfig') {
+  if (conn.connectionConfig?.config.case === 'pgConfig') {
     return isSource ? '[Mysql]' : '[Postgres, AWS S3]';
   }
   return '';
@@ -508,21 +508,21 @@ function isValidConnectionPair(
   connId2: string,
   connections: Connection[]
 ): boolean {
-  const conn1 = connections.find((c) => c.id == connId1);
-  const conn2 = connections.find((c) => c.id == connId2);
+  const conn1 = connections.find((c) => c.id === connId1);
+  const conn2 = connections.find((c) => c.id === connId2);
 
   if (!conn1 || !conn2) {
     return true;
   }
   if (
-    conn1.connectionConfig?.config.case == 'awsS3Config' ||
-    conn2.connectionConfig?.config.case == 'awsS3Config'
+    conn1.connectionConfig?.config.case === 'awsS3Config' ||
+    conn2.connectionConfig?.config.case === 'awsS3Config'
   ) {
     return true;
   }
 
   if (
-    conn1.connectionConfig?.config.case == conn2.connectionConfig?.config.case
+    conn1.connectionConfig?.config.case === conn2.connectionConfig?.config.case
   ) {
     return true;
   }

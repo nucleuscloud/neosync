@@ -70,18 +70,21 @@ export default function PrivateBetaForm(): ReactElement {
         <Input
           type="email"
           placeholder="Work email"
+          className="bg-gray-100 text-gray-900"
           onChange={(e) => setEmail(e.target.value)}
         />
         <Input
           type="text"
+          className="bg-gray-100 text-gray-900"
           placeholder="Company"
           onChange={(e) => setCompany(e.target.value)}
         />
+      </div>
+      <div className="pt-10">
         <Button
           type="submit"
           id="get-a-demo"
-          variant="secondary"
-          className="h-9"
+          className="h-9 w-full"
           disabled={isSubmitting}
           onClick={handleSubmit}
         >

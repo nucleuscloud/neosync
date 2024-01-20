@@ -24,7 +24,9 @@ SELECT
 	COALESCE(c.column_default, 'NULL') as column_default, -- must coalesce because sqlc doesn't appear to work for system structs to output a *string
 	c.is_nullable,
 	c.data_type,
-    c.character_maximum_length
+    c.character_maximum_length,
+    c.numeric_precision,
+    c.numeric_scale
 FROM
 	information_schema.columns AS c
 	JOIN information_schema.tables AS t ON c.table_schema = t.table_schema

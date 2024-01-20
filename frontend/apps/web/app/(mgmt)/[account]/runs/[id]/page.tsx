@@ -130,8 +130,8 @@ export default function Page({ params }: PageProps): ReactElement {
                 description=""
                 onConfirm={async () => onDelete()}
               />
-              {(jobRun?.status == JobRunStatusEnum.RUNNING ||
-                jobRun?.status == JobRunStatusEnum.PENDING) && (
+              {(jobRun?.status === JobRunStatusEnum.RUNNING ||
+                jobRun?.status === JobRunStatusEnum.PENDING) && (
                 <div className="flex flex-row gap-4">
                   <ConfirmationDialog
                     trigger={
@@ -265,7 +265,7 @@ function getDuration(dateTimeValue2?: Date, dateTimeValue1?: Date): string {
     (dateTimeValue2.getTime() - dateTimeValue1.getTime()) / 1000;
   const minutes = Math.abs(Math.round(differenceValue / 60));
   const seconds = Math.round(differenceValue % 60);
-  if (minutes == 0) {
+  if (minutes === 0) {
     return `${seconds} seconds`;
   }
   return `${minutes} minutes ${seconds} seconds`;

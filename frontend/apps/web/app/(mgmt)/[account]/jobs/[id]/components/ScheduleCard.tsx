@@ -76,7 +76,7 @@ export default function JobScheduleCard({ job, mutate }: Props): ReactElement {
   }
 
   const msg =
-    !form.getValues().cronSchedule || form.getValues().cronSchedule == ''
+    !form.getValues().cronSchedule || form.getValues().cronSchedule === ''
       ? 'Not currently scheduled'
       : '';
 

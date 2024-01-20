@@ -56,7 +56,7 @@ export default function NewTransformer(): ReactElement {
 
   const transformerQueryParam = useSearchParams().get('transformer');
   const [base, setBase] = useState<SystemTransformer>(
-    transformers.find((item) => item.source == transformerQueryParam) ??
+    transformers.find((item) => item.source === transformerQueryParam) ??
       new SystemTransformer({})
   );
   const [openBaseSelect, setOpenBaseSelect] = useState(false);
@@ -152,7 +152,7 @@ export default function NewTransformer(): ReactElement {
                               <CheckIcon
                                 className={cn(
                                   'mr-2 h-4 w-4',
-                                  base.name == t.name
+                                  base.name === t.name
                                     ? 'opacity-100'
                                     : 'opacity-0'
                                 )}

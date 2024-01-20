@@ -212,7 +212,7 @@ export default function Page({ params }: PageProps): ReactElement {
                 <Button
                   disabled={
                     !form.formState.isDirty ||
-                    form.getValues().destinations.length == 0
+                    form.getValues().destinations.length === 0
                   }
                   type="submit"
                 >
@@ -248,7 +248,7 @@ async function createJobConnections(
               connectionId: d.connectionId,
               options: toJobDestinationOptions(
                 d,
-                connections.find((c) => c.id == d.connectionId)
+                connections.find((c) => c.id === d.connectionId)
               ),
             });
           }),

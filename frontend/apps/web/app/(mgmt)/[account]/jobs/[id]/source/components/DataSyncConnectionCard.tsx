@@ -146,7 +146,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   }
 
   async function onSubmit(values: SourceFormValues) {
-    const connection = connections.find((c) => c.id == values.sourceId);
+    const connection = connections.find((c) => c.id === values.sourceId);
     const job = data?.job;
     if (!job || !connection) {
       return;
@@ -178,7 +178,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     );
   }
 
-  const source = connections.find((item) => item.id == sourceConnectionId);
+  const source = connections.find((item) => item.id === sourceConnectionId);
 
   return (
     <Form {...form}>
@@ -233,12 +233,12 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
           />
           <SourceOptionsForm
             connection={connections.find(
-              (c) => c.id == form.getValues().sourceId
+              (c) => c.id === form.getValues().sourceId
             )}
             maxColNum={2}
           />
 
-          <SchemaTable data={form.getValues().mappings} />
+          <SchemaTable data={form.watch().mappings} />
           <div className="flex flex-row items-center justify-end w-full mt-4">
             <Button type="submit">Save</Button>
           </div>
