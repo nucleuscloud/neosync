@@ -1,6 +1,8 @@
+import { ConfigureDash } from '@/public/images/Configure';
 import { ConnectDash } from '@/public/images/Connect';
 import { SyncDash } from '@/public/images/Sync';
 import { ArrowRightIcon } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { ReactElement } from 'react';
 import { GoCheckCircleFill } from 'react-icons/go';
@@ -15,7 +17,14 @@ export default function UseNeosync(): ReactElement {
       description: `Start Neosync locally using Tilt or Docker compose. When
 you're ready, deploy Neosync using a Helm Chart or Docker
     Compose.`,
-      image: 'https://assets.nucleuscloud.com/neosync/marketingsite/deploy.svg',
+      image: (
+        <Image
+          src="https://assets.nucleuscloud.com/neosync/marketingsite/deploy.svg"
+          alt="pre"
+          width="800"
+          height="317"
+        />
+      ),
     },
     {
       step: '2',
@@ -27,15 +36,12 @@ you're ready, deploy Neosync using a Helm Chart or Docker
       step: '3',
       title: 'Configure',
       description: `Configure your schemas, tables and columns with transformers that de-identify your data or generate synthetic data. Neosync automatically handles all relational integrity. `,
-      image:
-        'https://assets.nucleuscloud.com/neosync/marketingsite/configurefinal.svg',
+      image: <ConfigureDash />,
     },
     {
       step: '4',
       title: 'Sync',
       description: `Sync data across systems or generate synthetic data from scratch and send it a downstream system. `,
-      // image:
-      //   'https://assets.nucleuscloud.com/neosync/marketingsite/syncfinal.svg',
       image: <SyncDash />,
     },
   ];
@@ -79,10 +85,7 @@ you're ready, deploy Neosync using a Helm Chart or Docker
                   <div className="lg:w-[400px]">{step.description}</div>
                 </div>
               </div>
-              <div className="my-8">
-                {/* <Image src={step.image} alt="pre" width="800" height="317" /> */}
-                {step.image}
-              </div>
+              <div className="my-8">{step.image}</div>
             </div>
           ))}
         </div>
