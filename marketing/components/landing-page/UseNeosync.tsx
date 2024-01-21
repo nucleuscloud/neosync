@@ -1,5 +1,6 @@
+import { ConnectDash } from '@/public/images/Connect';
+import { SyncDash } from '@/public/images/Sync';
 import { ArrowRightIcon } from 'lucide-react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { ReactElement } from 'react';
 import { GoCheckCircleFill } from 'react-icons/go';
@@ -20,8 +21,7 @@ you're ready, deploy Neosync using a Helm Chart or Docker
       step: '2',
       title: 'Connect',
       description: `Connect your source and destinations. Neosync supports Postgres, Mysql, S3 and we're always building more integrations.`,
-      image:
-        'https://assets.nucleuscloud.com/neosync/marketingsite/connect.svg',
+      image: <ConnectDash />,
     },
     {
       step: '3',
@@ -34,8 +34,9 @@ you're ready, deploy Neosync using a Helm Chart or Docker
       step: '4',
       title: 'Sync',
       description: `Sync data across systems or generate synthetic data from scratch and send it a downstream system. `,
-      image:
-        'https://assets.nucleuscloud.com/neosync/marketingsite/syncfinal.svg',
+      // image:
+      //   'https://assets.nucleuscloud.com/neosync/marketingsite/syncfinal.svg',
+      image: <SyncDash />,
     },
   ];
   return (
@@ -79,7 +80,8 @@ you're ready, deploy Neosync using a Helm Chart or Docker
                 </div>
               </div>
               <div className="my-8">
-                <Image src={step.image} alt="pre" width="800" height="317" />
+                {/* <Image src={step.image} alt="pre" width="800" height="317" /> */}
+                {step.image}
               </div>
             </div>
           ))}

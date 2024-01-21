@@ -83,10 +83,10 @@
 
 .edge-path {
   strokedasharray: 12 12;
-  animation: dashdraw 0.5s linear infinite;
+  animation: dashdraw 1s linear infinite;
 }
 @keyframes dashdraw {
   to {
-    stroke-dashoffset: -40;
+    stroke-dashoffset: -80;
   }
 }
