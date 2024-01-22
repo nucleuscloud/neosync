@@ -13,7 +13,7 @@ require (
 	connectrpc.com/validate v0.1.0
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/auth0/go-auth0 v1.4.0
-	github.com/auth0/go-jwt-middleware/v2 v2.2.0
+	github.com/auth0/go-jwt-middleware/v2 v2.2.1
 	github.com/aws/aws-sdk-go-v2 v1.24.1
 	github.com/aws/aws-sdk-go-v2/config v1.26.5
 	github.com/aws/aws-sdk-go-v2/credentials v1.16.16
@@ -311,7 +311,7 @@ require (
 	google.golang.org/genproto v0.0.0-20231106174013-bbf56f31fb17 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20231106174013-bbf56f31fb17 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231120223509-83a465c0220f // indirect
-	gopkg.in/go-jose/go-jose.v2 v2.6.1 // indirect
+	gopkg.in/go-jose/go-jose.v2 v2.6.2 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
