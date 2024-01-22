@@ -24,14 +24,14 @@ export default function GithubBanner(): ReactElement {
               router.push('https://github.com/nucleuscloud/neosync')
             }
             variant="ghost"
-            className="hover:bg-gray-300"
+            className="hover:bg-indigo-400 "
           >
             <GitHubLogoIcon />
           </Button>
           <Button
             onClick={() => router.push('https://twitter.com/neosynccloud')}
             variant="ghost"
-            className="hover:bg-gray-300 "
+            className="hover:bg-indigo-400 "
           >
             <TwitterLogoIcon />
           </Button>
