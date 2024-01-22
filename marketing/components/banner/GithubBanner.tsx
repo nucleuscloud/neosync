@@ -12,7 +12,7 @@ export default function GithubBanner(): ReactElement {
   const router = useRouter();
   return (
     <div>
-      <div className="top-0 hidden lg:flex flex-row gap-3 justify-center w-full h-[35px] items-center bg-gradient-to-r from-indigo-200 to-slate-300 font-satoshi">
+      <div className="top-0 hidden lg:flex flex-row gap-3 justify-center w-full h-[35px] items-center bg-gradient-to-r from-violet-500 to-indigo-200 font-satoshi">
         <div>
           If you like Neosync, give it a{' '}
           <StarFilledIcon className="text-yellow-500 inline h-[20px] w-[20px]" />
