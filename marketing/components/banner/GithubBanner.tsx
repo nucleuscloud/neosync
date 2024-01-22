@@ -45,7 +45,7 @@ export default function GithubBanner(): ReactElement {
 function MobileBanner(): ReactElement {
   const router = useRouter();
   return (
-    <div className="top-0 flex md:hidden lg:hidden flex-row gap-3 justify-center w-full h-[35px] items-center bg-gradient-to-r from-indigo-200 to-slate-300 font-satoshi">
+    <div className="top-0 flex md:hidden lg:hidden flex-row gap-3 justify-center w-full h-[35px] items-center bg-gradient-to-r from-violet-500 to-indigo-200 font-satoshi">
       <div className="flex flex-row items-center">
         <StarFilledIcon className="text-yellow-500 inline h-[20px] w-[20px]" />
         <div className="text-sm pl-4">Neosync on GitHub</div>
