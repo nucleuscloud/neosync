@@ -184,7 +184,11 @@ func (g *neosyncInput) Read(ctx context.Context) (*service.Message, service.AckF
 
 	valuesMap := map[string]any{}
 	for col, val := range row {
-		valuesMap[col] = val
+		if len(val) == 0 {
+			valuesMap[col] = nil
+		} else {
+			valuesMap[col] = val
+		}
 	}
 
 	msg := service.NewMessage(nil)

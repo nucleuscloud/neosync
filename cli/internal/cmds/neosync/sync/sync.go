@@ -585,11 +585,12 @@ func buildSyncConfigs(
 					syncConfigs = append(syncConfigs, &syncConfig{
 						Query:       buildUpdateQueryFunc(table, c.Columns.Include, primaryKeyCols),
 						ArgsMapping: buildPlainInsertArgs(argCols),
-						Schema:      split[0],
-						Table:       split[1],
-						Columns:     c.Columns.Include,
-						DependsOn:   c.DependsOn,
-						Name:        fmt.Sprintf("%s.update", table),
+
+						Schema:    split[0],
+						Table:     split[1],
+						Columns:   c.Columns.Include,
+						DependsOn: c.DependsOn,
+						Name:      fmt.Sprintf("%s.update", table),
 					})
 				}
 			}
