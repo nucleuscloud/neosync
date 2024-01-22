@@ -1,4 +1,4 @@
-import { HeroandGrid } from '@/public/heroandgrid';
+import { HeroHeader } from '@/public/images/MainHero';
 import { GitHubLogoIcon } from '@radix-ui/react-icons';
 import { ArrowRightIcon } from 'lucide-react';
 import Image from 'next/image';
@@ -36,8 +36,9 @@ export default function Hero(): ReactElement {
         </Button>
       </div>
       <div className="mt-10 rounded-xl overflow-hidden">
-        <div className="hidden lg:block">
-          <HeroandGrid />
+        <div className="hidden lg:block pt-10">
+          {/* <HeroandGrid /> */}
+          <HeroHeader />
         </div>
         <div className="block md:hidden lg:hidden">
           <Image
