@@ -23,8 +23,7 @@ export default function Footer(): ReactElement {
                 Join our Community
               </div>
               <div className="font-satoshi text-xl text-gray-400 lg:w-[80%]">
-                Backed by a passionate group of early enthusiasts, contributors,
-                and advocates.
+                Have questions about Neosync? Come chat with us on Discord!
               </div>
               <div className="flex flex-col sm:flex-row gap-4 lg:gap-4">
                 <div>
