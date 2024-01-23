@@ -1,7 +1,7 @@
 ---
-title: Custom Code Transformers
+title: Conditional Transformers
 hide_table_of_contents: false
-slug: /custom-code-transformers
+slug: /conditional-transformers
 authors:
   - name: Evis Drenova
     title: Co-Founder/CEO, Neosync
