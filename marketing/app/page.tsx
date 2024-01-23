@@ -2,7 +2,7 @@
 import CTA from '@/components/cta/CTA';
 import EngineeringTeams from '@/components/landing-page/EngineeringTeams';
 import Hero from '@/components/landing-page/Hero';
-import Transformers from '@/components/landing-page/Transformers';
+import Platform from '@/components/landing-page/Platform';
 import UseNeosync from '@/components/landing-page/UseNeosync';
 import ValueProps from '@/components/landing-page/Valueprops';
 import { ReactElement } from 'react';
@@ -21,7 +21,7 @@ export default function Home(): ReactElement {
           <UseNeosync />
         </div>
         <div className="pt-20 lg:pt-40">
-          <Transformers />
+          <Platform />
         </div>
         <div className="pt-20 lg:pt-40">
           <EngineeringTeams />

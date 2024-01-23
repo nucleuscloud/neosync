@@ -9,7 +9,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ReactElement } from 'react';
 import { AiOutlineCopyright } from 'react-icons/ai';
-import WaitlistForm from './buttons/WaitlistForm';
 import { Button } from './ui/button';
 
 export default function Footer(): ReactElement {
@@ -74,7 +73,13 @@ export default function Footer(): ReactElement {
             <Socials />
           </div>
           <div>
-            <WaitlistForm />
+            <Image
+              src="https://assets.nucleuscloud.com/neosync/marketingsite/soc2.png"
+              alt="soc2"
+              className="object-scale-down"
+              width="100"
+              height="100"
+            />
           </div>
         </div>
         <Links />
@@ -98,7 +103,7 @@ function Socials(): ReactElement {
     {
       name: 'Linkedin',
       logo: <LinkedInLogoIcon className="w-6 h-6" />,
-      href: 'https://linkedin.com/nucleuscloud',
+      href: 'https://linkedin.com/company/neosync',
     },
     {
       name: 'Discord',
@@ -121,7 +126,7 @@ function Socials(): ReactElement {
 
 function Links(): ReactElement {
   return (
-    <div className="flex flex-col w-full pt-10 ">
+    <div className="flex flex-col w-full lg:pt-10 ">
       <div className="h-[2px] rounded-full w-full bg-[#303030]" />
       <div className="flex flex-col lg:flex-row lg:justify-center items-endspace-y-3 lg:space-x-8 pt-10">
         <div className="flex flex-row items-center">
@@ -146,16 +151,4 @@ function Links(): ReactElement {
       </div>
     </div>
   );
-}
-
-{
-  /*
-  SOC2 logo
-  <Image
-src="https://assets.nucleuscloud.com/neosync/marketingsite/soc2.png"
-alt="soc2"
-className="object-scale-down"
-width="70"
-height="70"
-/> */
 }

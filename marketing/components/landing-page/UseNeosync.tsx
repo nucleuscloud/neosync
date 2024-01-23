@@ -85,7 +85,7 @@ you're ready, deploy Neosync using a Helm Chart or Docker
                   <div className="lg:w-[400px]">{step.description}</div>
                 </div>
               </div>
-              <div className="my-8">{step.image}</div>
+              <div className="my-8 lg:w-full">{step.image}</div>
             </div>
           ))}
         </div>

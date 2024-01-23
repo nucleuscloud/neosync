@@ -2,8 +2,8 @@ export const ConnectDash = () => {
   return (
     <div>
       <svg
-        width="753"
-        height="340"
+        // width="753"
+        // height="340"
         viewBox="0 0 753 340"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
