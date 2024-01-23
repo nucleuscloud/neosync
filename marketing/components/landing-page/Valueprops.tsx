@@ -6,7 +6,7 @@ export default function ValueProps(): ReactElement {
     {
       title: 'Unblock local development ',
       description:
-        'Shift left and give developers the ability to self-serve de-identified and synthetic data locally whenever they need it. ',
+        'Shift left and give developers the ability to self-serve de-identified and synthetic data locally whenever they need it without having to worry about sensitive data privacy or security. ',
       image:
         'https://assets.nucleuscloud.com/neosync/marketingsite/localdev.svg',
     },
@@ -43,7 +43,7 @@ export default function ValueProps(): ReactElement {
         {features.map((item) => (
           <div
             key={item.title}
-            className="border border-gray-400 bg-white rounded-xl p-8 shadow-xl flex flex-col gap-6 text-center w-full lg:w-[480px] max-w-xs mx-auto lg:h-[490px]"
+            className="border border-gray-400 bg-white rounded-xl p-8 shadow-xl flex flex-col gap-6 text-center w-full lg:w-[480px] max-w-xs mx-auto lg:h-[520px]"
           >
             <div className="text-gray-900 ">
               <Image

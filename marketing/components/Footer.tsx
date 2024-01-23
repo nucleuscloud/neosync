@@ -16,34 +16,45 @@ export default function Footer(): ReactElement {
   return (
     <div className="py-10 rounded-t-2xl bg-[#1E1E1E]">
       <div className="flex flex-col w-full justify-between gap-20 px-5 sm:px-10 md:px-20 lg:px-40  max-w-[1800px] mx-auto ">
-        <div className="flex flex-col gap-6 p-10 border border-[#484848] bg-[#282828] rounded-xl mt-10 justify-center">
-          <div className="font-satoshi text-3xl lg:text-5xl text-gray-100">
-            Join our Community
-          </div>
-          <div className="font-satoshi text-xl text-gray-400 lg:w-[40%]">
-            Backed by a passionate group of early enthusiasts, contributors, and
-            advocates.
-          </div>
-          <div className="flex flex-col sm:flex-row gap-4 lg:gap-4">
-            <div>
-              <Button className="px-4" variant="secondary">
-                <Link href="https://discord.gg/UVmPTzn7dV">
-                  <div className="flex flex-row items-center">
-                    <p>Join our Discord</p>
-                    <ArrowRightIcon className="ml-3 h-5 w-15" />
-                  </div>
-                </Link>
-              </Button>
+        <div className="p-10 border border-[#484848] bg-[#282828] rounded-xl mt-10 justify-center">
+          <div className="flex flex-col lg:flex-row gap-10 items-cener">
+            <div className="flex flex-col gap-6 ">
+              <div className="font-satoshi text-3xl lg:text-5xl text-gray-100">
+                Join our Community
+              </div>
+              <div className="font-satoshi text-xl text-gray-400 lg:w-[80%]">
+                Have questions about Neosync? Come chat with us on Discord!
+              </div>
+              <div className="flex flex-col sm:flex-row gap-4 lg:gap-4">
+                <div>
+                  <Button className="px-4" variant="secondary">
+                    <Link href="https://discord.gg/UVmPTzn7dV">
+                      <div className="flex flex-row items-center">
+                        <p>Join our Discord</p>
+                        <ArrowRightIcon className="ml-3 h-5 w-15" />
+                      </div>
+                    </Link>
+                  </Button>
+                </div>
+                <div>
+                  <Button className="px-8 bg-transparent border border-gray-600 hover:bg-[#303030]">
+                    <Link href="https://github.com/nucleuscloud/neosync">
+                      <div className="flex flex-row items-center">
+                        <p>Star Neosync</p>
+                        <GitHubLogoIcon className="ml-3 h-5 w-15" />
+                      </div>
+                    </Link>
+                  </Button>
+                </div>
+              </div>
             </div>
-            <div>
-              <Button className="px-8 bg-transparent border border-gray-600 hover:bg-[#303030]">
-                <Link href="https://github.com/nucleuscloud/neosync">
-                  <div className="flex flex-row items-center">
-                    <p>Star Neosync</p>
-                    <GitHubLogoIcon className="ml-3 h-5 w-15" />
-                  </div>
-                </Link>
-              </Button>
+            <div className="opacity-60">
+              <Image
+                src="https://assets.nucleuscloud.com/neosync/marketingsite/devcommunity.svg"
+                alt="dev"
+                width="600"
+                height="191"
+              />
             </div>
           </div>
         </div>

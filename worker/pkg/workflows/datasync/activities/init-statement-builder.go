@@ -134,21 +134,6 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		}
 		pool := b.pgpool[dsn]
 
-		// validate job mappings align with sql connections
-		dbschemas, err := b.pgquerier.GetDatabaseSchema(ctx, pool)
-		if err != nil {
-			return nil, err
-		}
-		groupedSchemas := dbschemas_postgres.GetUniqueSchemaColMappings(dbschemas)
-		if !areMappingsSubsetOfSchemas(groupedSchemas, job.Mappings) {
-			return nil, errors.New(jobmappingSubsetErrMsg)
-		}
-
-		if jobSourceConfig.Postgres != nil && jobSourceConfig.Postgres.HaltOnNewColumnAddition &&
-			shouldHaltOnSchemaAddition(groupedSchemas, job.Mappings) {
-			return nil, errors.New(haltOnSchemaAdditionErrMsg)
-		}
-
 		allConstraints, err := dbschemas_postgres.GetAllPostgresFkConstraints(b.pgquerier, ctx, pool, uniqueSchemas)
 		if err != nil {
 			return nil, err
@@ -182,19 +167,6 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		}
 		pool := b.mysqlpool[dsn]
 
-		// validate job mappings align with sql connections
-		dbschemas, err := b.mysqlquerier.GetDatabaseSchema(ctx, pool)
-		if err != nil {
-			return nil, err
-		}
-		groupedSchemas := dbschemas_mysql.GetUniqueSchemaColMappings(dbschemas)
-		if !areMappingsSubsetOfSchemas(groupedSchemas, job.Mappings) {
-			return nil, errors.New(jobmappingSubsetErrMsg)
-		}
-		if jobSourceConfig.Mysql != nil && jobSourceConfig.Mysql.HaltOnNewColumnAddition &&
-			shouldHaltOnSchemaAddition(groupedSchemas, job.Mappings) {
-			return nil, errors.New(haltOnSchemaAdditionErrMsg)
-		}
 		allConstraints, err := dbschemas_mysql.GetAllMysqlFkConstraints(b.mysqlquerier, ctx, pool, uniqueSchemas)
 		if err != nil {
 			return nil, err

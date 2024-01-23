@@ -1,4 +1,4 @@
-import { HeroandGrid } from '@/public/heroandgrid';
+import { HeroHeader } from '@/public/images/MainHero';
 import { GitHubLogoIcon } from '@radix-ui/react-icons';
 import { ArrowRightIcon } from 'lucide-react';
 import Image from 'next/image';
@@ -21,7 +21,7 @@ export default function Hero(): ReactElement {
         <Button className="px-6">
           <Link href="https://github.com/nucleuscloud/neosync">
             <div className="flex flex-row gap-2">
-              <GitHubLogoIcon className="mr-2 h-5 w-5" /> Get started{' '}
+              <GitHubLogoIcon className="mr-2 h-5 w-5" /> Get started
               <ArrowRightIcon className="h-5 w-5" />
             </div>
           </Link>
@@ -36,8 +36,9 @@ export default function Hero(): ReactElement {
         </Button>
       </div>
       <div className="mt-10 rounded-xl overflow-hidden">
-        <div className="hidden lg:block">
-          <HeroandGrid />
+        <div className="hidden lg:block pt-10">
+          {/* <HeroandGrid /> */}
+          <HeroHeader />
         </div>
         <div className="block md:hidden lg:hidden">
           <Image
