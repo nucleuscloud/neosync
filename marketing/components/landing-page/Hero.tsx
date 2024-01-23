@@ -37,7 +37,6 @@ export default function Hero(): ReactElement {
       </div>
       <div className="mt-10 rounded-xl overflow-hidden">
         <div className="hidden lg:block pt-10">
-          {/* <HeroandGrid /> */}
           <HeroHeader />
         </div>
         <div className="block md:hidden lg:hidden">
