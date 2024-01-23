@@ -14,6 +14,8 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 
+	"github.com/nucleuscloud/neosync/backend/internal/apikey"
+	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	"github.com/nucleuscloud/neosync/backend/internal/sqlconnect"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
@@ -196,6 +198,29 @@ func Test_GetConnection(t *testing.T) {
 	m.QuerierMock.On("GetConnectionById", context.Background(), mock.Anything, connectionUuid).Return(connection, nil)
 
 	resp, err := m.Service.GetConnection(context.Background(), &connect.Request[mgmtv1alpha1.GetConnectionRequest]{
+		Msg: &mgmtv1alpha1.GetConnectionRequest{
+			Id: mockConnectionId,
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, mockAccountId, resp.Msg.Connection.AccountId)
+	assert.Equal(t, mockConnectionId, resp.Msg.Connection.Id)
+}
+
+func Test_GetConnection_Supports_WorkerApiKeys(t *testing.T) {
+	m := createServiceMock(t)
+	defer m.SqlDbMock.Close()
+
+	connectionUuid, _ := nucleusdb.ToUuid(mockConnectionId)
+	connection := getConnectionMock(mockAccountId, mockConnectionName, connectionUuid, PostgresMock)
+	ctx := context.WithValue(context.Background(), auth_apikey.TokenContextKey{}, &auth_apikey.TokenContextData{
+		ApiKeyType: apikey.WorkerApiKey,
+	})
+	m.QuerierMock.On("GetConnectionById", ctx, mock.Anything, connectionUuid).Return(connection, nil)
+
+	resp, err := m.Service.GetConnection(ctx, &connect.Request[mgmtv1alpha1.GetConnectionRequest]{
 		Msg: &mgmtv1alpha1.GetConnectionRequest{
 			Id: mockConnectionId,
 		},

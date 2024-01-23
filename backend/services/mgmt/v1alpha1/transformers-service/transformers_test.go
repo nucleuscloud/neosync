@@ -13,6 +13,8 @@ import (
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"github.com/nucleuscloud/neosync/backend/internal/apikey"
+	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	"github.com/stretchr/testify/assert"
@@ -73,6 +75,29 @@ func Test_GetUserDefinedTransformersById(t *testing.T) {
 	m.QuerierMock.On("GetUserDefinedTransformerById", context.Background(), mock.Anything, transformerId).Return(transformer, nil)
 
 	resp, err := m.Service.GetUserDefinedTransformerById(context.Background(), &connect.Request[mgmtv1alpha1.GetUserDefinedTransformerByIdRequest]{
+		Msg: &mgmtv1alpha1.GetUserDefinedTransformerByIdRequest{
+			TransformerId: mockTransformerId,
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, mockAccountId, resp.Msg.Transformer.AccountId)
+	assert.Equal(t, mockTransformerId, resp.Msg.Transformer.Id)
+}
+
+func Test_GetUserDefinedTransformersById_Supports_WorkerApiKeys(t *testing.T) {
+	m := createServiceMock(t)
+	defer m.SqlDbMock.Close()
+
+	transformer := mockTransformer(mockAccountId, mockUserId, mockTransformerId)
+	transformerId, _ := nucleusdb.ToUuid(mockTransformerId)
+	ctx := context.WithValue(context.Background(), auth_apikey.TokenContextKey{}, &auth_apikey.TokenContextData{
+		ApiKeyType: apikey.WorkerApiKey,
+	})
+	m.QuerierMock.On("GetUserDefinedTransformerById", ctx, mock.Anything, transformerId).Return(transformer, nil)
+
+	resp, err := m.Service.GetUserDefinedTransformerById(ctx, &connect.Request[mgmtv1alpha1.GetUserDefinedTransformerByIdRequest]{
 		Msg: &mgmtv1alpha1.GetUserDefinedTransformerByIdRequest{
 			TransformerId: mockTransformerId,
 		},
