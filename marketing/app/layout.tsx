@@ -12,7 +12,6 @@ export const metadata: Metadata = {
     description: 'Open Source Synthetic Data Orchestration',
     url: 'https://neosync.dev',
     siteName: 'Neosync',
-
     images: [
       {
         url: '/neosync/marketingsite/mainOGHero.svg',
