@@ -13,7 +13,7 @@ export default function Settings(): ReactElement {
       return;
     }
     const accountName = account?.name ?? 'personal';
-    return router.push(`/${accountName}/settings/temporal`);
+    return router.push(`/${accountName}/settings/api-keys`);
   }, [account?.name, isAccountLoading]);
 
   return (

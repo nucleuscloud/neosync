@@ -45,7 +45,11 @@ export default function Temporal(): ReactElement {
     mutate: mutateTcData,
     isLoading: isTemporalConfigLoading,
   } = useGetAccountTemporalConfig(
-    !isSystemAppConfigDataLoading && !!account?.id ? account.id : ''
+    !isSystemAppConfigDataLoading &&
+      !!account?.id &&
+      !systemAppConfigData?.isNeosyncCloud
+      ? account.id
+      : ''
   );
   const form = useForm<FormValues>({
     resolver: yupResolver(FORM_SCHEMA),
@@ -84,12 +88,16 @@ export default function Temporal(): ReactElement {
       });
     }
   }
-  if (isSystemAppConfigDataLoading || isTemporalConfigLoading) {
+  if (isSystemAppConfigDataLoading) {
     return <Skeleton />;
   }
 
   if (systemAppConfigData?.isNeosyncCloud) {
     return <Error statusCode={404} />;
+  }
+
+  if (isTemporalConfigLoading) {
+    return <Skeleton />;
   }
 
   return (
