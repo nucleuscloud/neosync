@@ -232,6 +232,21 @@ const sidebars: SidebarsConfig = {
       id: 'transformers/user-defined',
       label: 'User Defined',
     },
+    {
+      type: 'html',
+      value: '<div>Table Constraints</div>',
+      className: 'sidebarcategory',
+    },
+    {
+      type: 'doc',
+      id: 'table-constraints/foreign-keys',
+      label: 'Foreign Keys',
+    },
+    {
+      type: 'doc',
+      id: 'table-constraints/circular-dependencies',
+      label: 'Circular Dependencies',
+    },
   ],
 };
 
