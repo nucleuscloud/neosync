@@ -410,7 +410,7 @@ func sync(
 			return nil
 		}
 
-		configs := buildSyncConfigs(schemaCfg, buildPostgresInsertQuery, buildPostgresUpdateQuery)
+		configs := buildSyncConfigs(schemaCfg, buildMysqlInsertQuery, buildMysqlUpdateQuery)
 		if configs == nil {
 			return nil
 		}
