@@ -9,7 +9,7 @@ export default function Platform(): ReactElement {
       name: 'Orchestration',
       key: 'orchestration',
       description:
-        'With Neosync, you can move data from a source system tomultiple destination systems ad-hoc or on a schedule. Neosync handles:',
+        'Neosync handles all of the orchestration heavy lifting for you and allows you to move data from a source system to multiple destination systems on any schedule you want. Neosync handles:',
       usecases: [
         'Scheduling and executing async jobs to move data',
         'Retries and back-offs',
@@ -66,7 +66,7 @@ export default function Platform(): ReactElement {
   return (
     <div>
       <div className="text-gray-900 font-semibold text-2xl lg:text-5xl font-satoshi text-center">
-        Data Orchestration and Anonymization at Scale
+        A Modern Platform to Protect Your Data
       </div>
       <div className=" p-6 lg:p-10 border border-gray-400 rounded-xl mt-10 shadow-lg">
         <Tabs defaultValue="orchestration">
