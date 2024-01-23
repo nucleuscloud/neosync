@@ -15,6 +15,9 @@ func (s *Service) GetAccountTemporalConfig(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetAccountTemporalConfigRequest],
 ) (*connect.Response[mgmtv1alpha1.GetAccountTemporalConfigResponse], error) {
+	if s.cfg.IsNeosyncCloud {
+		return nil, nucleuserrors.NewNotImplemented("not enabled in Neosync Cloud")
+	}
 	user, err := s.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
 	if err != nil {
 		return nil, err
@@ -52,6 +55,9 @@ func (s *Service) SetAccountTemporalConfig(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.SetAccountTemporalConfigRequest],
 ) (*connect.Response[mgmtv1alpha1.SetAccountTemporalConfigResponse], error) {
+	if s.cfg.IsNeosyncCloud {
+		return nil, nucleuserrors.NewNotImplemented("not enabled in Neosync Cloud")
+	}
 	user, err := s.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
 	if err != nil {
 		return nil, err

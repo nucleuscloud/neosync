@@ -103,6 +103,22 @@ func Test_Service_GetAccountTemporalConfig_NotInAccount_Err(t *testing.T) {
 	assert.Nil(t, resp)
 }
 
+func Test_Service_GetAccountTemporalConfig_NeosyncCloud(t *testing.T) {
+	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockQuerier := db_queries.NewMockQuerier(t)
+	mockAuth0MgmtClient := auth0.NewMockAuth0MgmtClientInterface(t)
+	mockTfWfMgr := clientmanager.NewMockTemporalClientManagerClient(t)
+
+	service := New(&Config{IsNeosyncCloud: true}, nucleusdb.New(mockDbtx, mockQuerier), mockAuth0MgmtClient, mockTfWfMgr)
+
+	resp, err := service.GetAccountTemporalConfig(context.Background(), connect.NewRequest(&mgmtv1alpha1.GetAccountTemporalConfigRequest{
+		AccountId: fakeAccountId,
+	}))
+	assert.Error(t, err)
+	assert.EqualError(t, err, "unimplemented: not enabled in Neosync Cloud")
+	assert.Nil(t, resp)
+}
+
 func Test_Service_SetAccountTemporalConfig(t *testing.T) {
 	mockDbtx := nucleusdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
@@ -204,6 +220,24 @@ func Test_Service_SetAccountTemporalConfig_NotInAccount_Err(t *testing.T) {
 		Config:    mgmtTc,
 	}))
 	assert.Error(t, err)
+	assert.Nil(t, resp)
+}
+
+func Test_Service_SetAccountTemporalConfig_NeosyncCloud(t *testing.T) {
+	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockQuerier := db_queries.NewMockQuerier(t)
+	mockAuth0MgmtClient := auth0.NewMockAuth0MgmtClientInterface(t)
+	mockTfWfMgr := clientmanager.NewMockTemporalClientManagerClient(t)
+	mgmtTc := &mgmtv1alpha1.AccountTemporalConfig{}
+
+	service := New(&Config{IsNeosyncCloud: true}, nucleusdb.New(mockDbtx, mockQuerier), mockAuth0MgmtClient, mockTfWfMgr)
+
+	resp, err := service.SetAccountTemporalConfig(context.Background(), connect.NewRequest(&mgmtv1alpha1.SetAccountTemporalConfigRequest{
+		AccountId: fakeAccountId,
+		Config:    mgmtTc,
+	}))
+	assert.Error(t, err)
+	assert.EqualError(t, err, "unimplemented: not enabled in Neosync Cloud")
 	assert.Nil(t, resp)
 }
 
