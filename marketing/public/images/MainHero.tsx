@@ -11,7 +11,7 @@ export const HeroHeader = () => {
         <path
           d="M104 266.894L154.258 300L156.657 298.345L300 203"
           stroke="black"
-          stroke-dasharray="8 8"
+          strokeDasharray="8 8"
           className="edge-path"
         />
         <rect
@@ -20,7 +20,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 68.8086 186.732)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -28,7 +28,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 5.01172 223.428)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -36,7 +36,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 68.8086 260.125)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -44,7 +44,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 68.8086 147.808)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -52,7 +52,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 5.01172 184.504)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -60,7 +60,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 68.8086 221.201)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -68,7 +68,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 68.8086 106)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -76,7 +76,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 5.01172 142.696)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -84,7 +84,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 68.8086 179.393)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -94,29 +94,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 79.6719 187.247)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0692 189.771C81.4268 190.417 81.9305 190.823 82.4955 190.834L79.602 190.777C79.0371 190.766 78.5334 190.361 78.1758 189.714L81.0692 189.771Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0695 189.772C80.2978 188.377 80.342 186.142 81.1683 184.778L78.2749 184.722C77.4486 186.085 77.4043 188.32 78.176 189.715L81.0695 189.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M82.6334 183.774C82.0684 183.763 81.5491 184.148 81.1662 184.779L78.2728 184.723C78.6557 184.091 79.175 183.706 79.74 183.717L82.6334 183.774Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -126,29 +126,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 91.0742 180.981)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4716 183.506C92.8292 184.152 93.3328 184.557 93.8978 184.569L91.0044 184.512C90.4394 184.501 89.9357 184.095 89.5781 183.449L92.4716 183.506Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4718 183.506C91.7001 182.112 91.7444 179.876 92.5707 178.513L89.6772 178.456C88.8509 179.82 88.8067 182.055 89.5784 183.45L92.4718 183.506Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M94.0358 177.509C93.4708 177.498 92.9515 177.883 92.5686 178.514L89.6751 178.457C90.058 177.826 90.5773 177.441 91.1423 177.452L94.0358 177.509Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -158,29 +158,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 99.9414 176.11)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.339 178.634C101.696 179.281 102.2 179.686 102.765 179.697L99.8716 179.64C99.3066 179.629 98.8029 179.224 98.4453 178.578L101.339 178.634Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.339 178.635C100.567 177.24 100.612 175.005 101.438 173.642L98.5444 173.585C97.7181 174.948 97.6739 177.183 98.4456 178.578L101.339 178.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M102.903 172.637C102.338 172.626 101.819 173.011 101.436 173.643L98.5423 173.586C98.9252 172.954 99.4445 172.569 100.009 172.58L102.903 172.637Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -190,29 +190,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 79.6719 227.613)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0692 230.138C81.4268 230.784 81.9305 231.189 82.4955 231.2L79.602 231.144C79.0371 231.132 78.5334 230.727 78.1758 230.081L81.0692 230.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0695 230.138C80.2978 228.744 80.342 226.508 81.1683 225.145L78.2749 225.088C77.4486 226.451 77.4043 228.687 78.176 230.081L81.0695 230.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M82.6334 224.141C82.0684 224.129 81.5491 224.515 81.1662 225.146L78.2728 225.089C78.6557 224.458 79.175 224.073 79.74 224.084L82.6334 224.141Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -222,29 +222,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 91.0742 221.348)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4716 223.873C92.8292 224.519 93.3328 224.925 93.8978 224.936L91.0044 224.879C90.4394 224.868 89.9357 224.463 89.5781 223.816L92.4716 223.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4718 223.874C91.7001 222.479 91.7444 220.244 92.5707 218.881L89.6772 218.824C88.8509 220.187 88.8067 222.422 89.5784 223.817L92.4718 223.874Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M94.0358 217.875C93.4708 217.864 92.9515 218.249 92.5686 218.881L89.6751 218.824C90.058 218.193 90.5773 217.807 91.1423 217.819L94.0358 217.875Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -254,29 +254,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 99.9414 216.478)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.339 219.002C101.696 219.648 102.2 220.054 102.765 220.065L99.8716 220.008C99.3066 219.997 98.8029 219.592 98.4453 218.945L101.339 219.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.339 219.002C100.567 217.608 100.612 215.373 101.438 214.009L98.5444 213.953C97.7181 215.316 97.6739 217.551 98.4456 218.946L101.339 219.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M102.903 213.005C102.338 212.994 101.819 213.379 101.436 214.01L98.5423 213.954C98.9252 213.322 99.4445 212.937 100.009 212.948L102.903 213.005Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -286,29 +286,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 79.6719 263.654)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0692 266.179C81.4268 266.825 81.9305 267.23 82.4955 267.241L79.602 267.185C79.0371 267.173 78.5334 266.768 78.1758 266.122L81.0692 266.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0695 266.179C80.2978 264.785 80.342 262.549 81.1683 261.186L78.2749 261.129C77.4486 262.492 77.4043 264.728 78.176 266.122L81.0695 266.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M82.6334 260.182C82.0684 260.17 81.5491 260.556 81.1662 261.187L78.2728 261.13C78.6557 260.499 79.175 260.114 79.74 260.125L82.6334 260.182Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -318,29 +318,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 91.0742 257.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4716 259.914C92.8292 260.56 93.3328 260.965 93.8978 260.976L91.0044 260.919C90.4394 260.908 89.9357 260.503 89.5781 259.857L92.4716 259.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4718 259.914C91.7001 258.52 91.7444 256.284 92.5707 254.921L89.6772 254.864C88.8509 256.227 88.8067 258.463 89.5784 259.857L92.4718 259.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M94.0358 253.916C93.4708 253.905 92.9515 254.29 92.5686 254.922L89.6751 254.865C90.058 254.234 90.5773 253.848 91.1423 253.86L94.0358 253.916Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -350,29 +350,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 99.9414 252.518)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.339 255.042C101.696 255.688 102.2 256.094 102.765 256.105L99.8716 256.048C99.3066 256.037 98.8029 255.632 98.4453 254.985L101.339 255.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.339 255.043C100.567 253.648 100.612 251.413 101.438 250.049L98.5444 249.993C97.7181 251.356 97.6739 253.591 98.4456 254.986L101.339 255.043Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M102.903 249.045C102.338 249.034 101.819 249.419 101.436 250.05L98.5423 249.994C98.9252 249.362 99.4445 248.977 100.009 248.988L102.903 249.045Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -380,7 +380,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 68.8008 186.732)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -388,7 +388,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 5.00391 223.428)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -396,7 +396,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 68.8008 260.125)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -404,7 +404,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 68.8008 147.808)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -412,7 +412,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 5.00391 184.504)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -420,7 +420,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 68.8008 221.201)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -428,7 +428,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 68.8008 106)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -436,7 +436,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 5.00391 142.696)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -444,7 +444,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 68.8008 179.393)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -454,29 +454,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 79.6719 187.247)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0692 189.772C81.4268 190.418 81.9305 190.823 82.4955 190.834L79.602 190.777C79.0371 190.766 78.5334 190.361 78.1758 189.715L81.0692 189.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0695 189.772C80.2978 188.378 80.342 186.142 81.1683 184.779L78.2749 184.722C77.4486 186.085 77.4043 188.321 78.176 189.715L81.0695 189.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M82.6334 183.774C82.0684 183.763 81.5491 184.148 81.1662 184.78L78.2728 184.723C78.6557 184.091 79.175 183.706 79.74 183.717L82.6334 183.774Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -486,29 +486,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 91.0742 180.982)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4716 183.507C92.8292 184.153 93.3328 184.558 93.8978 184.569L91.0044 184.512C90.4394 184.501 89.9357 184.096 89.5781 183.45L92.4716 183.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4718 183.507C91.7001 182.112 91.7444 179.877 92.5707 178.514L89.6772 178.457C88.8509 179.82 88.8067 182.056 89.5784 183.45L92.4718 183.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M94.0358 177.509C93.4708 177.498 92.9515 177.883 92.5686 178.515L89.6751 178.458C90.058 177.826 90.5773 177.441 91.1423 177.452L94.0358 177.509Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -518,29 +518,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 99.9414 176.11)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.339 178.635C101.696 179.281 102.2 179.686 102.765 179.698L99.8716 179.641C99.3066 179.63 98.8029 179.224 98.4453 178.578L101.339 178.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.339 178.635C100.567 177.241 100.612 175.005 101.438 173.642L98.5444 173.585C97.7181 174.948 97.6739 177.184 98.4456 178.578L101.339 178.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M102.903 172.638C102.338 172.626 101.819 173.012 101.436 173.643L98.5423 173.586C98.9252 172.955 99.4445 172.57 100.009 172.581L102.903 172.638Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -550,29 +550,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 79.6719 227.613)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0692 230.137C81.4268 230.784 81.9305 231.189 82.4955 231.2L79.602 231.143C79.0371 231.132 78.5334 230.727 78.1758 230.081L81.0692 230.137Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0695 230.138C80.2978 228.743 80.342 226.508 81.1683 225.145L78.2749 225.088C77.4486 226.451 77.4043 228.686 78.176 230.081L81.0695 230.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M82.6334 224.14C82.0684 224.129 81.5491 224.514 81.1662 225.146L78.2728 225.089C78.6557 224.457 79.175 224.072 79.74 224.083L82.6334 224.14Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -582,29 +582,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 91.0742 221.348)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4716 223.873C92.8292 224.519 93.3328 224.924 93.8978 224.935L91.0044 224.878C90.4394 224.867 89.9357 224.462 89.5781 223.816L92.4716 223.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4718 223.873C91.7001 222.479 91.7444 220.243 92.5707 218.88L89.6772 218.823C88.8509 220.186 88.8067 222.422 89.5784 223.816L92.4718 223.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M94.0358 217.875C93.4708 217.864 92.9515 218.249 92.5686 218.881L89.6751 218.824C90.058 218.193 90.5773 217.807 91.1423 217.819L94.0358 217.875Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -614,29 +614,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 99.9414 216.477)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.339 219.002C101.696 219.648 102.2 220.053 102.765 220.064L99.8716 220.007C99.3066 219.996 98.8029 219.591 98.4453 218.945L101.339 219.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.339 219.002C100.567 217.608 100.612 215.372 101.438 214.009L98.5444 213.952C97.7181 215.315 97.6739 217.551 98.4456 218.945L101.339 219.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M102.903 213.004C102.338 212.993 101.819 213.378 101.436 214.01L98.5423 213.953C98.9252 213.321 99.4445 212.936 100.009 212.947L102.903 213.004Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -646,29 +646,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 79.6719 263.654)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0692 266.179C81.4268 266.826 81.9305 267.231 82.4955 267.242L79.602 267.185C79.0371 267.174 78.5334 266.769 78.1758 266.123L81.0692 266.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0695 266.18C80.2978 264.785 80.342 262.55 81.1683 261.187L78.2749 261.13C77.4486 262.493 77.4043 264.728 78.176 266.123L81.0695 266.18Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M82.6334 260.182C82.0684 260.171 81.5491 260.556 81.1662 261.188L78.2728 261.131C78.6557 260.499 79.175 260.114 79.74 260.125L82.6334 260.182Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -678,29 +678,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 91.0742 257.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4716 259.914C92.8292 260.56 93.3328 260.965 93.8978 260.976L91.0044 260.919C90.4394 260.908 89.9357 260.503 89.5781 259.857L92.4716 259.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4718 259.914C91.7001 258.52 91.7444 256.284 92.5707 254.921L89.6772 254.864C88.8509 256.227 88.8067 258.463 89.5784 259.857L92.4718 259.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M94.0358 253.916C93.4708 253.905 92.9515 254.29 92.5686 254.922L89.6751 254.865C90.058 254.234 90.5773 253.848 91.1423 253.86L94.0358 253.916Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -710,29 +710,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 99.9414 252.518)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.339 255.042C101.696 255.688 102.2 256.094 102.765 256.105L99.8716 256.048C99.3066 256.037 98.8029 255.632 98.4453 254.985L101.339 255.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.339 255.043C100.567 253.648 100.612 251.413 101.438 250.049L98.5444 249.993C97.7181 251.356 97.6739 253.591 98.4456 254.986L101.339 255.043Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M102.903 249.045C102.338 249.034 101.819 249.419 101.436 250.05L98.5423 249.994C98.9252 249.362 99.4445 248.977 100.009 248.988L102.903 249.045Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -740,7 +740,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 68.8008 186.732)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -748,7 +748,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 5.00391 223.428)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -756,7 +756,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 68.8008 260.125)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -764,7 +764,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 68.8008 147.808)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -772,7 +772,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 5.00391 184.504)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -780,7 +780,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 68.8008 221.201)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -788,7 +788,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 68.8008 106)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -796,7 +796,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 5.00391 142.696)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -804,7 +804,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 68.8008 179.393)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -814,29 +814,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 79.6699 187.247)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0673 189.772C81.4249 190.418 81.9285 190.823 82.4935 190.834L79.6001 190.777C79.0351 190.766 78.5314 190.361 78.1738 189.715L81.0673 189.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0675 189.772C80.2958 188.378 80.3401 186.142 81.1664 184.779L78.2729 184.722C77.4466 186.085 77.4024 188.321 78.1741 189.715L81.0675 189.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M82.6315 183.774C82.0665 183.763 81.5472 184.148 81.1643 184.78L78.2708 184.723C78.6537 184.091 79.173 183.706 79.738 183.717L82.6315 183.774Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -846,29 +846,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 91.0723 180.982)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4696 183.507C92.8272 184.153 93.3309 184.558 93.8959 184.569L91.0024 184.512C90.4374 184.501 89.9338 184.096 89.5762 183.45L92.4696 183.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4699 183.507C91.6982 182.112 91.7424 179.877 92.5687 178.514L89.6753 178.457C88.849 179.82 88.8047 182.056 89.5764 183.45L92.4699 183.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M94.0338 177.509C93.4688 177.498 92.9495 177.883 92.5666 178.515L89.6732 178.458C90.0561 177.826 90.5754 177.441 91.1404 177.452L94.0338 177.509Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -878,29 +878,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 99.9395 176.11)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.337 178.635C101.694 179.281 102.198 179.686 102.763 179.698L99.8696 179.641C99.3046 179.63 98.801 179.224 98.4434 178.578L101.337 178.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.337 178.635C100.565 177.241 100.61 175.005 101.436 173.642L98.5424 173.585C97.7162 174.948 97.6719 177.184 98.4436 178.578L101.337 178.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M102.901 172.638C102.336 172.626 101.817 173.012 101.434 173.643L98.5404 173.586C98.9232 172.955 99.4426 172.57 100.008 172.581L102.901 172.638Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -910,29 +910,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 79.6699 227.613)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0673 230.137C81.4249 230.784 81.9285 231.189 82.4935 231.2L79.6001 231.143C79.0351 231.132 78.5314 230.727 78.1738 230.081L81.0673 230.137Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0675 230.138C80.2958 228.743 80.3401 226.508 81.1664 225.145L78.2729 225.088C77.4466 226.451 77.4024 228.686 78.1741 230.081L81.0675 230.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M82.6315 224.14C82.0665 224.129 81.5472 224.514 81.1643 225.146L78.2708 225.089C78.6537 224.457 79.173 224.072 79.738 224.083L82.6315 224.14Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -942,29 +942,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 91.0723 221.348)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4696 223.873C92.8272 224.519 93.3309 224.924 93.8959 224.935L91.0024 224.878C90.4374 224.867 89.9338 224.462 89.5762 223.816L92.4696 223.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4699 223.873C91.6982 222.479 91.7424 220.243 92.5687 218.88L89.6753 218.823C88.849 220.186 88.8047 222.422 89.5764 223.816L92.4699 223.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M94.0338 217.875C93.4688 217.864 92.9495 218.249 92.5666 218.881L89.6732 218.824C90.0561 218.193 90.5754 217.807 91.1404 217.819L94.0338 217.875Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -974,29 +974,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 99.9395 216.477)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.337 219.002C101.694 219.648 102.198 220.053 102.763 220.064L99.8696 220.007C99.3046 219.996 98.801 219.591 98.4434 218.945L101.337 219.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.337 219.002C100.565 217.608 100.61 215.372 101.436 214.009L98.5424 213.952C97.7162 215.315 97.6719 217.551 98.4436 218.945L101.337 219.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M102.901 213.004C102.336 212.993 101.817 213.378 101.434 214.01L98.5404 213.953C98.9232 213.321 99.4426 212.936 100.008 212.947L102.901 213.004Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -1006,29 +1006,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 79.6699 263.654)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0673 266.179C81.4249 266.825 81.9285 267.23 82.4935 267.241L79.6001 267.185C79.0351 267.173 78.5314 266.768 78.1738 266.122L81.0673 266.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0675 266.179C80.2958 264.785 80.3401 262.549 81.1664 261.186L78.2729 261.129C77.4466 262.492 77.4024 264.728 78.1741 266.122L81.0675 266.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M82.6315 260.182C82.0665 260.17 81.5472 260.556 81.1643 261.187L78.2708 261.13C78.6537 260.499 79.173 260.114 79.738 260.125L82.6315 260.182Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -1038,29 +1038,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 91.0723 257.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4696 259.914C92.8272 260.56 93.3309 260.965 93.8959 260.976L91.0024 260.919C90.4374 260.908 89.9338 260.503 89.5762 259.857L92.4696 259.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4699 259.914C91.6982 258.519 91.7424 256.284 92.5687 254.921L89.6753 254.864C88.849 256.227 88.8047 258.462 89.5764 259.857L92.4699 259.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M94.0338 253.916C93.4688 253.905 92.9495 254.29 92.5666 254.922L89.6732 254.865C90.0561 254.233 90.5754 253.848 91.1404 253.859L94.0338 253.916Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -1070,29 +1070,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 99.9395 252.517)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.337 255.042C101.694 255.688 102.198 256.093 102.763 256.104L99.8696 256.047C99.3046 256.036 98.801 255.631 98.4434 254.985L101.337 255.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.337 255.042C100.565 253.648 100.61 251.412 101.436 250.049L98.5424 249.992C97.7162 251.355 97.6719 253.591 98.4436 254.985L101.337 255.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M102.901 249.044C102.336 249.033 101.817 249.418 101.434 250.05L98.5404 249.993C98.9232 249.361 99.4426 248.976 100.008 248.987L102.901 249.044Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -1100,7 +1100,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 68.7988 186.733)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -1108,7 +1108,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 5.00195 223.429)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -1116,7 +1116,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 68.7988 260.126)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -1124,7 +1124,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 68.7988 147.808)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -1132,7 +1132,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 5.00195 184.504)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -1140,7 +1140,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 68.7988 221.201)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -1148,7 +1148,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 68.7988 106)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -1156,7 +1156,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 5.00195 142.696)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -1164,7 +1164,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 68.7988 179.394)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -1174,29 +1174,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 79.6699 187.247)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0673 189.772C81.4249 190.418 81.9285 190.823 82.4935 190.834L79.6001 190.777C79.0351 190.766 78.5314 190.361 78.1738 189.715L81.0673 189.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0675 189.772C80.2958 188.378 80.3401 186.142 81.1664 184.779L78.2729 184.722C77.4466 186.085 77.4024 188.321 78.1741 189.715L81.0675 189.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M82.6315 183.774C82.0665 183.763 81.5472 184.148 81.1643 184.78L78.2708 184.723C78.6537 184.091 79.173 183.706 79.738 183.717L82.6315 183.774Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -1206,29 +1206,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 91.0703 180.982)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4677 183.507C92.8253 184.153 93.3289 184.558 93.8939 184.57L91.0005 184.513C90.4355 184.502 89.9318 184.096 89.5742 183.45L92.4677 183.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4679 183.507C91.6962 182.113 91.7405 179.877 92.5668 178.514L89.6733 178.457C88.847 179.821 88.8028 182.056 89.5745 183.451L92.4679 183.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M94.0319 177.51C93.4669 177.499 92.9476 177.884 92.5647 178.515L89.6712 178.458C90.0541 177.827 90.5734 177.442 91.1384 177.453L94.0319 177.51Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -1238,29 +1238,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 99.9414 176.11)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.339 178.635C101.696 179.281 102.2 179.686 102.765 179.698L99.8716 179.641C99.3066 179.63 98.8029 179.224 98.4453 178.578L101.339 178.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.339 178.635C100.567 177.241 100.612 175.005 101.438 173.642L98.5444 173.585C97.7181 174.948 97.6739 177.184 98.4456 178.578L101.339 178.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M102.903 172.637C102.338 172.626 101.819 173.011 101.436 173.643L98.5423 173.586C98.9252 172.954 99.4445 172.569 100.009 172.58L102.903 172.637Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -1270,29 +1270,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 79.6699 227.613)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0673 230.138C81.4249 230.784 81.9285 231.189 82.4935 231.2L79.6001 231.144C79.0351 231.132 78.5314 230.727 78.1738 230.081L81.0673 230.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0675 230.138C80.2958 228.744 80.3401 226.508 81.1664 225.145L78.2729 225.088C77.4466 226.451 77.4024 228.687 78.1741 230.081L81.0675 230.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M82.6315 224.141C82.0665 224.129 81.5472 224.515 81.1643 225.146L78.2708 225.089C78.6537 224.458 79.173 224.073 79.738 224.084L82.6315 224.141Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -1302,29 +1302,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 91.0703 221.349)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4677 223.873C92.8253 224.519 93.3289 224.925 93.8939 224.936L91.0005 224.879C90.4355 224.868 89.9318 224.463 89.5742 223.816L92.4677 223.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4679 223.874C91.6962 222.479 91.7405 220.244 92.5668 218.881L89.6733 218.824C88.847 220.187 88.8028 222.422 89.5745 223.817L92.4679 223.874Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M94.0338 217.876C93.4688 217.865 92.9495 218.25 92.5666 218.882L89.6732 218.825C90.0561 218.193 90.5754 217.808 91.1404 217.819L94.0338 217.876Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -1334,29 +1334,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 99.9434 216.477)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.341 219.001C101.698 219.647 102.202 220.053 102.767 220.064L99.8735 220.007C99.3085 219.996 98.8049 219.591 98.4473 218.944L101.341 219.001Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.341 219.002C100.569 217.607 100.614 215.372 101.44 214.008L98.5464 213.952C97.7201 215.315 97.6758 217.55 98.4475 218.945L101.341 219.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M102.905 213.004C102.34 212.993 101.821 213.378 101.438 214.009L98.5443 213.953C98.9272 213.321 99.4465 212.936 100.011 212.947L102.905 213.004Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -1366,29 +1366,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 79.6699 263.655)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0673 266.179C81.4249 266.826 81.9285 267.231 82.4935 267.242L79.6001 267.185C79.0351 267.174 78.5314 266.769 78.1738 266.123L81.0673 266.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0675 266.18C80.2958 264.785 80.3401 262.55 81.1664 261.187L78.2729 261.13C77.4466 262.493 77.4024 264.728 78.1741 266.123L81.0675 266.18Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M82.6315 260.182C82.0665 260.171 81.5472 260.556 81.1643 261.188L78.2708 261.131C78.6537 260.499 79.173 260.114 79.738 260.125L82.6315 260.182Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -1398,29 +1398,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 91.0703 257.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4677 259.914C92.8253 260.56 93.3289 260.965 93.8939 260.976L91.0005 260.919C90.4355 260.908 89.9318 260.503 89.5742 259.857L92.4677 259.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4679 259.914C91.6962 258.52 91.7405 256.284 92.5668 254.921L89.6733 254.864C88.847 256.227 88.8028 258.463 89.5745 259.857L92.4679 259.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M94.0319 253.916C93.4669 253.905 92.9476 254.29 92.5647 254.922L89.6712 254.865C90.0541 254.234 90.5734 253.848 91.1384 253.86L94.0319 253.916Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -1430,29 +1430,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 99.9395 252.518)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.337 255.042C101.694 255.688 102.198 256.094 102.763 256.105L99.8696 256.048C99.3046 256.037 98.801 255.632 98.4434 254.985L101.337 255.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.337 255.043C100.565 253.648 100.61 251.413 101.436 250.049L98.5424 249.993C97.7162 251.356 97.6719 253.591 98.4436 254.986L101.337 255.043Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M102.901 249.045C102.336 249.034 101.817 249.419 101.434 250.05L98.5404 249.994C98.9232 249.362 99.4426 248.977 100.008 248.988L102.901 249.045Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -1460,7 +1460,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 68.7988 186.733)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -1468,7 +1468,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 5.00195 223.429)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -1476,7 +1476,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 68.7988 260.126)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -1484,7 +1484,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 68.7988 147.808)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -1492,7 +1492,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 5.00195 184.504)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -1500,7 +1500,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 68.7988 221.201)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -1508,7 +1508,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 68.7988 106)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -1516,7 +1516,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 5.00195 142.696)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -1524,7 +1524,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 68.7988 179.394)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -1534,29 +1534,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 79.666 187.247)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0634 189.772C81.421 190.418 81.9246 190.823 82.4896 190.834L79.5962 190.777C79.0312 190.766 78.5275 190.361 78.1699 189.715L81.0634 189.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0617 189.772C80.29 188.377 80.3342 186.142 81.1605 184.778L78.2671 184.722C77.4408 186.085 77.3965 188.32 78.1682 189.715L81.0617 189.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M82.6276 183.774C82.0626 183.763 81.5433 184.148 81.1604 184.779L78.2669 184.723C78.6498 184.091 79.1691 183.706 79.7341 183.717L82.6276 183.774Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -1566,29 +1566,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 91.0684 180.982)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4657 183.507C92.8233 184.153 93.327 184.558 93.892 184.57L90.9985 184.513C90.4335 184.502 89.9299 184.096 89.5723 183.45L92.4657 183.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.466 183.507C91.6943 182.113 91.7385 179.877 92.5648 178.514L89.6714 178.457C88.8451 179.821 88.8008 182.056 89.5725 183.451L92.466 183.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M94.0299 177.51C93.4649 177.499 92.9456 177.884 92.5627 178.515L89.6693 178.458C90.0522 177.827 90.5715 177.442 91.1365 177.453L94.0299 177.51Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -1598,29 +1598,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 99.9355 176.11)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.333 178.635C101.691 179.281 102.194 179.686 102.759 179.698L99.8657 179.641C99.3007 179.63 98.7971 179.224 98.4395 178.578L101.333 178.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.333 178.635C100.561 177.24 100.606 175.005 101.432 173.642L98.5385 173.585C97.7122 174.948 97.668 177.183 98.4397 178.578L101.333 178.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M102.899 172.637C102.334 172.626 101.815 173.011 101.432 173.642L98.5384 173.585C98.9213 172.954 99.4406 172.569 100.006 172.58L102.899 172.637Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -1630,29 +1630,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 79.666 227.613)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0634 230.138C81.421 230.784 81.9246 231.189 82.4896 231.2L79.5962 231.144C79.0312 231.132 78.5275 230.727 78.1699 230.081L81.0634 230.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0617 230.138C80.29 228.743 80.3342 226.508 81.1605 225.145L78.2671 225.088C77.4408 226.451 77.3965 228.686 78.1682 230.081L81.0617 230.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M82.6276 224.14C82.0626 224.129 81.5433 224.514 81.1604 225.146L78.2669 225.089C78.6498 224.457 79.1691 224.072 79.7341 224.083L82.6276 224.14Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -1662,29 +1662,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 91.0703 221.349)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4677 223.873C92.8253 224.519 93.3289 224.925 93.8939 224.936L91.0005 224.879C90.4355 224.868 89.9318 224.463 89.5742 223.816L92.4677 223.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4679 223.874C91.6962 222.479 91.7405 220.244 92.5668 218.881L89.6733 218.824C88.847 220.187 88.8028 222.422 89.5745 223.817L92.4679 223.874Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M94.0338 217.876C93.4688 217.865 92.9495 218.25 92.5666 218.882L89.6732 218.825C90.0561 218.193 90.5754 217.808 91.1404 217.819L94.0338 217.876Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -1694,29 +1694,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 99.9375 216.477)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.335 219.001C101.692 219.647 102.196 220.053 102.761 220.064L99.8677 220.007C99.3027 219.996 98.799 219.591 98.4414 218.944L101.335 219.001Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.335 219.002C100.563 217.607 100.608 215.372 101.434 214.008L98.5405 213.952C97.7142 215.315 97.6699 217.55 98.4417 218.945L101.335 219.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M102.899 213.004C102.334 212.993 101.815 213.378 101.432 214.009L98.5384 213.953C98.9213 213.321 99.4406 212.936 100.006 212.947L102.899 213.004Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -1726,29 +1726,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 79.666 263.654)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0634 266.179C81.421 266.826 81.9246 267.231 82.4896 267.242L79.5962 267.185C79.0312 267.174 78.5275 266.769 78.1699 266.123L81.0634 266.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0617 266.179C80.29 264.785 80.3342 262.549 81.1605 261.186L78.2671 261.129C77.4408 262.492 77.3965 264.728 78.1682 266.122L81.0617 266.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M82.6276 260.182C82.0626 260.17 81.5433 260.556 81.1604 261.187L78.2669 261.13C78.6498 260.499 79.1691 260.114 79.7341 260.125L82.6276 260.182Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -1758,29 +1758,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 91.0684 257.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4657 259.914C92.8233 260.56 93.327 260.965 93.892 260.976L90.9985 260.919C90.4335 260.908 89.9299 260.503 89.5723 259.857L92.4657 259.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.466 259.914C91.6943 258.52 91.7385 256.284 92.5648 254.921L89.6714 254.864C88.8451 256.227 88.8008 258.463 89.5725 259.857L92.466 259.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M94.0299 253.916C93.4649 253.905 92.9456 254.29 92.5627 254.922L89.6693 254.865C90.0522 254.234 90.5715 253.848 91.1365 253.86L94.0299 253.916Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -1790,29 +1790,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 99.9375 252.518)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.335 255.042C101.692 255.688 102.196 256.094 102.761 256.105L99.8677 256.048C99.3027 256.037 98.799 255.632 98.4414 254.985L101.335 255.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.335 255.043C100.563 253.648 100.608 251.413 101.434 250.049L98.5405 249.993C97.7142 251.356 97.6699 253.591 98.4417 254.986L101.335 255.043Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M102.899 249.045C102.334 249.034 101.815 249.419 101.432 250.05L98.5384 249.994C98.9213 249.362 99.4406 248.977 100.006 248.988L102.899 249.045Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -1820,7 +1820,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 68.7969 186.732)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -1828,7 +1828,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 5 223.428)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -1836,7 +1836,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 68.7969 260.125)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -1844,7 +1844,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 68.7969 147.808)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -1852,7 +1852,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 5 184.504)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -1860,7 +1860,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 68.7969 221.201)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -1868,7 +1868,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 68.7969 106)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -1876,7 +1876,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 5 142.696)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -1884,7 +1884,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 68.7969 179.394)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -1894,29 +1894,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 79.6641 187.247)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0614 189.772C81.419 190.418 81.9227 190.823 82.4877 190.834L79.5942 190.777C79.0292 190.766 78.5256 190.361 78.168 189.715L81.0614 189.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0617 189.772C80.29 188.378 80.3342 186.142 81.1605 184.779L78.2671 184.722C77.4408 186.085 77.3965 188.321 78.1682 189.715L81.0617 189.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M82.6256 183.774C82.0606 183.763 81.5413 184.148 81.1584 184.78L78.265 184.723C78.6479 184.091 79.1672 183.706 79.7322 183.717L82.6256 183.774Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -1926,29 +1926,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 91.0664 180.982)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4638 183.507C92.8214 184.153 93.325 184.558 93.89 184.57L90.9966 184.513C90.4316 184.502 89.9279 184.096 89.5703 183.45L92.4638 183.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.464 183.507C91.6923 182.113 91.7366 179.877 92.5628 178.514L89.6694 178.457C88.8431 179.821 88.7989 182.056 89.5706 183.451L92.464 183.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M94.0279 177.51C93.463 177.499 92.9436 177.884 92.5608 178.515L89.6673 178.458C90.0502 177.827 90.5695 177.442 91.1345 177.453L94.0279 177.51Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -1958,29 +1958,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 99.9355 176.11)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.333 178.635C101.691 179.282 102.194 179.687 102.759 179.698L99.8657 179.641C99.3007 179.63 98.7971 179.225 98.4395 178.579L101.333 178.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.333 178.635C100.561 177.241 100.606 175.005 101.432 173.642L98.5385 173.585C97.7122 174.948 97.668 177.184 98.4397 178.578L101.333 178.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M102.899 172.637C102.334 172.626 101.815 173.011 101.432 173.643L98.5384 173.586C98.9213 172.954 99.4406 172.569 100.006 172.58L102.899 172.637Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -1990,29 +1990,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 79.6641 227.613)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0614 230.138C81.419 230.784 81.9227 231.189 82.4877 231.2L79.5942 231.144C79.0292 231.132 78.5256 230.727 78.168 230.081L81.0614 230.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0617 230.138C80.29 228.744 80.3342 226.508 81.1605 225.145L78.2671 225.088C77.4408 226.451 77.3965 228.687 78.1682 230.081L81.0617 230.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M82.6256 224.141C82.0606 224.129 81.5413 224.515 81.1584 225.146L78.265 225.089C78.6479 224.458 79.1672 224.073 79.7322 224.084L82.6256 224.141Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -2022,29 +2022,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 91.0664 221.348)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4638 223.872C92.8214 224.518 93.325 224.924 93.89 224.935L90.9966 224.878C90.4316 224.867 89.9279 224.462 89.5703 223.815L92.4638 223.872Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.464 223.873C91.6923 222.478 91.7366 220.243 92.5628 218.88L89.6694 218.823C88.8431 220.186 88.7989 222.421 89.5706 223.816L92.464 223.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M94.0279 217.875C93.463 217.864 92.9436 218.249 92.5608 218.881L89.6673 218.824C90.0502 218.192 90.5695 217.807 91.1345 217.818L94.0279 217.875Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -2054,29 +2054,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 99.9355 216.476)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.333 219C101.691 219.646 102.194 220.052 102.759 220.063L99.8657 220.006C99.3007 219.995 98.7971 219.59 98.4395 218.943L101.333 219Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.333 219.001C100.561 217.606 100.606 215.371 101.432 214.007L98.5385 213.951C97.7122 215.314 97.668 217.549 98.4397 218.944L101.333 219.001Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M102.897 213.003C102.332 212.992 101.813 213.377 101.43 214.008L98.5364 213.952C98.9193 213.32 99.4387 212.935 100.004 212.946L102.897 213.003Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -2086,29 +2086,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 79.6641 263.655)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0614 266.179C81.419 266.826 81.9227 267.231 82.4877 267.242L79.5942 267.185C79.0292 267.174 78.5256 266.769 78.168 266.123L81.0614 266.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0617 266.18C80.29 264.785 80.3342 262.55 81.1605 261.187L78.2671 261.13C77.4408 262.493 77.3965 264.728 78.1682 266.123L81.0617 266.18Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M82.6256 260.182C82.0606 260.171 81.5413 260.556 81.1584 261.188L78.265 261.131C78.6479 260.499 79.1672 260.114 79.7322 260.125L82.6256 260.182Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -2118,29 +2118,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 91.0664 257.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4638 259.914C92.8214 260.56 93.325 260.965 93.89 260.976L90.9966 260.919C90.4316 260.908 89.9279 260.503 89.5703 259.857L92.4638 259.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.464 259.914C91.6923 258.52 91.7366 256.284 92.5628 254.921L89.6694 254.864C88.8431 256.227 88.7989 258.463 89.5706 259.857L92.464 259.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M94.0279 253.916C93.463 253.905 92.9436 254.29 92.5608 254.922L89.6673 254.865C90.0502 254.234 90.5695 253.848 91.1345 253.86L94.0279 253.916Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -2150,29 +2150,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 99.9355 252.518)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.333 255.042C101.691 255.688 102.194 256.094 102.759 256.105L99.8657 256.048C99.3007 256.037 98.7971 255.632 98.4395 254.985L101.333 255.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.333 255.043C100.561 253.648 100.606 251.413 101.432 250.049L98.5385 249.993C97.7122 251.356 97.668 253.591 98.4397 254.986L101.333 255.043Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M102.897 249.045C102.332 249.034 101.813 249.419 101.43 250.05L98.5364 249.994C98.9193 249.362 99.4387 248.977 100.004 248.988L102.897 249.045Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <g filter="url(#filter0_d_2900_53447)">
           <rect
@@ -2186,7 +2186,7 @@ export const HeroHeader = () => {
             height="73.5976"
             transform="matrix(0.866826 0.498611 -0.866826 0.498611 68.7969 186.732)"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <g filter="url(#filter1_d_2900_53447)">
@@ -2201,7 +2201,7 @@ export const HeroHeader = () => {
             height="27.5224"
             transform="matrix(0.866826 0.498611 0 1 5 223.428)"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <g filter="url(#filter2_d_2900_53447)">
@@ -2216,7 +2216,7 @@ export const HeroHeader = () => {
             height="27.5224"
             transform="matrix(0.866826 -0.498611 0 1 68.7969 260.125)"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <rect
@@ -2225,7 +2225,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 68.7969 147.808)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -2233,7 +2233,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 5 184.504)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -2241,7 +2241,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 68.7969 221.201)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -2249,7 +2249,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 68.7969 106)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -2257,7 +2257,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 5 142.696)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -2265,7 +2265,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 68.7969 179.394)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -2275,29 +2275,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 79.6641 187.247)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0614 189.772C81.419 190.418 81.9227 190.823 82.4877 190.834L79.5942 190.777C79.0292 190.766 78.5256 190.361 78.168 189.715L81.0614 189.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0617 189.772C80.29 188.378 80.3342 186.142 81.1605 184.779L78.2671 184.722C77.4408 186.085 77.3965 188.321 78.1682 189.715L81.0617 189.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M82.6256 183.774C82.0606 183.763 81.5413 184.148 81.1584 184.78L78.265 184.723C78.6479 184.091 79.1672 183.706 79.7322 183.717L82.6256 183.774Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -2307,29 +2307,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 91.0664 180.982)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4638 183.507C92.8214 184.153 93.325 184.558 93.89 184.57L90.9966 184.513C90.4316 184.502 89.9279 184.096 89.5703 183.45L92.4638 183.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.464 183.507C91.6923 182.113 91.7366 179.877 92.5628 178.514L89.6694 178.457C88.8431 179.821 88.7989 182.056 89.5706 183.451L92.464 183.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M94.0279 177.51C93.463 177.499 92.9436 177.884 92.5608 178.515L89.6673 178.458C90.0502 177.827 90.5695 177.442 91.1345 177.453L94.0279 177.51Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -2339,29 +2339,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 99.9355 176.11)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.333 178.635C101.691 179.282 102.194 179.687 102.759 179.698L99.8657 179.641C99.3007 179.63 98.7971 179.225 98.4395 178.579L101.333 178.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.333 178.635C100.561 177.241 100.606 175.005 101.432 173.642L98.5385 173.585C97.7122 174.948 97.668 177.184 98.4397 178.578L101.333 178.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M102.899 172.637C102.334 172.626 101.815 173.011 101.432 173.643L98.5384 173.586C98.9213 172.954 99.4406 172.569 100.006 172.58L102.899 172.637Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -2371,29 +2371,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 79.6641 227.613)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0614 230.138C81.419 230.784 81.9227 231.189 82.4877 231.2L79.5942 231.144C79.0292 231.132 78.5256 230.727 78.168 230.081L81.0614 230.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0617 230.138C80.29 228.744 80.3342 226.508 81.1605 225.145L78.2671 225.088C77.4408 226.451 77.3965 228.687 78.1682 230.081L81.0617 230.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M82.6256 224.141C82.0606 224.129 81.5413 224.515 81.1584 225.146L78.265 225.089C78.6479 224.458 79.1672 224.073 79.7322 224.084L82.6256 224.141Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -2403,29 +2403,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 91.0664 221.348)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4638 223.872C92.8214 224.518 93.325 224.924 93.89 224.935L90.9966 224.878C90.4316 224.867 89.9279 224.462 89.5703 223.815L92.4638 223.872Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.464 223.873C91.6923 222.478 91.7366 220.243 92.5628 218.88L89.6694 218.823C88.8431 220.186 88.7989 222.421 89.5706 223.816L92.464 223.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M94.0279 217.875C93.463 217.864 92.9436 218.249 92.5608 218.881L89.6673 218.824C90.0502 218.192 90.5695 217.807 91.1345 217.818L94.0279 217.875Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -2435,29 +2435,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 99.9355 216.476)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.333 219C101.691 219.646 102.194 220.052 102.759 220.063L99.8657 220.006C99.3007 219.995 98.7971 219.59 98.4395 218.943L101.333 219Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.333 219.001C100.561 217.606 100.606 215.371 101.432 214.007L98.5385 213.951C97.7122 215.314 97.668 217.549 98.4397 218.944L101.333 219.001Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M102.897 213.003C102.332 212.992 101.813 213.377 101.43 214.008L98.5364 213.952C98.9193 213.32 99.4387 212.935 100.004 212.946L102.897 213.003Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -2467,29 +2467,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 79.6641 263.655)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0614 266.179C81.419 266.826 81.9227 267.231 82.4877 267.242L79.5942 267.185C79.0292 267.174 78.5256 266.769 78.168 266.123L81.0614 266.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M81.0617 266.18C80.29 264.785 80.3342 262.55 81.1605 261.187L78.2671 261.13C77.4408 262.493 77.3965 264.728 78.1682 266.123L81.0617 266.18Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M82.6256 260.182C82.0606 260.171 81.5413 260.556 81.1584 261.188L78.265 261.131C78.6479 260.499 79.1672 260.114 79.7322 260.125L82.6256 260.182Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -2499,29 +2499,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 91.0664 257.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.4638 259.914C92.8214 260.56 93.325 260.965 93.89 260.976L90.9966 260.919C90.4316 260.908 89.9279 260.503 89.5703 259.857L92.4638 259.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M92.464 259.914C91.6923 258.52 91.7366 256.284 92.5628 254.921L89.6694 254.864C88.8431 256.227 88.7989 258.463 89.5706 259.857L92.464 259.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M94.0279 253.916C93.463 253.905 92.9436 254.29 92.5608 254.922L89.6673 254.865C90.0502 254.234 90.5695 253.848 91.1345 253.86L94.0279 253.916Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -2531,29 +2531,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 99.9355 252.518)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.333 255.042C101.691 255.688 102.194 256.094 102.759 256.105L99.8657 256.048C99.3007 256.037 98.7971 255.632 98.4395 254.985L101.333 255.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M101.333 255.043C100.561 253.648 100.606 251.413 101.432 250.049L98.5385 249.993C97.7122 251.356 97.668 253.591 98.4397 254.986L101.333 255.043Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M102.897 249.045C102.332 249.034 101.813 249.419 101.43 250.05L98.5364 249.994C98.9193 249.362 99.4387 248.977 100.004 248.988L102.897 249.045Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -2561,7 +2561,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1004.81 274.732)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -2569,7 +2569,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 941.012 311.428)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -2577,7 +2577,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1004.81 348.125)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -2585,7 +2585,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1004.81 235.808)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -2593,7 +2593,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 941.012 272.504)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -2601,7 +2601,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1004.81 309.201)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -2609,7 +2609,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1004.81 194)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -2617,7 +2617,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 941.012 230.696)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -2625,7 +2625,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1004.81 267.393)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -2635,29 +2635,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1015.67 275.247)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.07 277.771C1017.43 278.417 1017.93 278.823 1018.5 278.834L1015.6 278.777C1015.04 278.766 1014.53 278.361 1014.18 277.714L1017.07 277.771Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.07 277.772C1016.3 276.377 1016.34 274.142 1017.17 272.778L1014.27 272.722C1013.45 274.085 1013.4 276.32 1014.18 277.715L1017.07 277.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1018.63 271.774C1018.07 271.763 1017.55 272.148 1017.17 272.779L1014.27 272.723C1014.66 272.091 1015.17 271.706 1015.74 271.717L1018.63 271.774Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -2667,29 +2667,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1027.07 268.981)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.47 271.506C1028.83 272.152 1029.33 272.557 1029.9 272.569L1027 272.512C1026.44 272.501 1025.94 272.095 1025.58 271.449L1028.47 271.506Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.47 271.506C1027.7 270.112 1027.74 267.876 1028.57 266.513L1025.68 266.456C1024.85 267.82 1024.81 270.055 1025.58 271.45L1028.47 271.506Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1030.04 265.509C1029.47 265.498 1028.95 265.883 1028.57 266.514L1025.68 266.457C1026.06 265.826 1026.58 265.441 1027.14 265.452L1030.04 265.509Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -2699,29 +2699,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1035.94 264.11)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.34 266.634C1037.7 267.281 1038.2 267.686 1038.77 267.697L1035.87 267.64C1035.31 267.629 1034.8 267.224 1034.45 266.578L1037.34 266.634Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.34 266.635C1036.57 265.24 1036.61 263.005 1037.44 261.642L1034.54 261.585C1033.72 262.948 1033.67 265.183 1034.45 266.578L1037.34 266.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1038.9 260.637C1038.34 260.626 1037.82 261.011 1037.44 261.643L1034.54 261.586C1034.93 260.954 1035.44 260.569 1036.01 260.58L1038.9 260.637Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -2731,29 +2731,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1015.67 315.613)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.07 318.138C1017.43 318.784 1017.93 319.189 1018.5 319.2L1015.6 319.144C1015.04 319.132 1014.53 318.727 1014.18 318.081L1017.07 318.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.07 318.138C1016.3 316.744 1016.34 314.508 1017.17 313.145L1014.27 313.088C1013.45 314.451 1013.4 316.687 1014.18 318.081L1017.07 318.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1018.63 312.141C1018.07 312.129 1017.55 312.515 1017.17 313.146L1014.27 313.089C1014.66 312.458 1015.17 312.073 1015.74 312.084L1018.63 312.141Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -2763,29 +2763,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1027.07 309.348)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.47 311.873C1028.83 312.519 1029.33 312.925 1029.9 312.936L1027 312.879C1026.44 312.868 1025.94 312.463 1025.58 311.816L1028.47 311.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.47 311.874C1027.7 310.479 1027.74 308.244 1028.57 306.881L1025.68 306.824C1024.85 308.187 1024.81 310.422 1025.58 311.817L1028.47 311.874Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1030.04 305.875C1029.47 305.864 1028.95 306.249 1028.57 306.881L1025.68 306.824C1026.06 306.193 1026.58 305.807 1027.14 305.819L1030.04 305.875Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -2795,29 +2795,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1035.94 304.478)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.34 307.002C1037.7 307.648 1038.2 308.054 1038.77 308.065L1035.87 308.008C1035.31 307.997 1034.8 307.592 1034.45 306.945L1037.34 307.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.34 307.002C1036.57 305.608 1036.61 303.373 1037.44 302.009L1034.54 301.953C1033.72 303.316 1033.67 305.551 1034.45 306.946L1037.34 307.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1038.9 301.005C1038.34 300.994 1037.82 301.379 1037.44 302.01L1034.54 301.954C1034.93 301.322 1035.44 300.937 1036.01 300.948L1038.9 301.005Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -2827,29 +2827,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1015.67 351.654)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.07 354.179C1017.43 354.825 1017.93 355.23 1018.5 355.241L1015.6 355.185C1015.04 355.173 1014.53 354.768 1014.18 354.122L1017.07 354.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.07 354.179C1016.3 352.785 1016.34 350.549 1017.17 349.186L1014.27 349.129C1013.45 350.492 1013.4 352.728 1014.18 354.122L1017.07 354.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1018.63 348.182C1018.07 348.17 1017.55 348.556 1017.17 349.187L1014.27 349.13C1014.66 348.499 1015.17 348.114 1015.74 348.125L1018.63 348.182Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -2859,29 +2859,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1027.07 345.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.47 347.914C1028.83 348.56 1029.33 348.965 1029.9 348.976L1027 348.919C1026.44 348.908 1025.94 348.503 1025.58 347.857L1028.47 347.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.47 347.914C1027.7 346.52 1027.74 344.284 1028.57 342.921L1025.68 342.864C1024.85 344.227 1024.81 346.463 1025.58 347.857L1028.47 347.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1030.04 341.916C1029.47 341.905 1028.95 342.29 1028.57 342.922L1025.68 342.865C1026.06 342.234 1026.58 341.848 1027.14 341.86L1030.04 341.916Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -2891,29 +2891,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1035.94 340.518)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.34 343.042C1037.7 343.688 1038.2 344.094 1038.77 344.105L1035.87 344.048C1035.31 344.037 1034.8 343.632 1034.45 342.985L1037.34 343.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.34 343.043C1036.57 341.648 1036.61 339.413 1037.44 338.049L1034.54 337.993C1033.72 339.356 1033.67 341.591 1034.45 342.986L1037.34 343.043Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1038.9 337.045C1038.34 337.034 1037.82 337.419 1037.44 338.05L1034.54 337.994C1034.93 337.362 1035.44 336.977 1036.01 336.988L1038.9 337.045Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -2921,7 +2921,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1004.8 274.732)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -2929,7 +2929,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 941.004 311.428)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -2937,7 +2937,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1004.8 348.125)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -2945,7 +2945,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1004.8 235.808)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -2953,7 +2953,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 941.004 272.504)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -2961,7 +2961,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1004.8 309.201)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -2969,7 +2969,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1004.8 194)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -2977,7 +2977,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 941.004 230.696)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -2985,7 +2985,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1004.8 267.393)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -2995,29 +2995,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1015.67 275.247)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.07 277.772C1017.43 278.418 1017.93 278.823 1018.5 278.834L1015.6 278.777C1015.04 278.766 1014.53 278.361 1014.18 277.715L1017.07 277.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.07 277.772C1016.3 276.378 1016.34 274.142 1017.17 272.779L1014.27 272.722C1013.45 274.085 1013.4 276.321 1014.18 277.715L1017.07 277.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1018.63 271.774C1018.07 271.763 1017.55 272.148 1017.17 272.78L1014.27 272.723C1014.66 272.091 1015.17 271.706 1015.74 271.717L1018.63 271.774Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -3027,29 +3027,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1027.07 268.982)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.47 271.507C1028.83 272.153 1029.33 272.558 1029.9 272.569L1027 272.512C1026.44 272.501 1025.94 272.096 1025.58 271.45L1028.47 271.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.47 271.507C1027.7 270.112 1027.74 267.877 1028.57 266.514L1025.68 266.457C1024.85 267.82 1024.81 270.056 1025.58 271.45L1028.47 271.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1030.04 265.509C1029.47 265.498 1028.95 265.883 1028.57 266.515L1025.68 266.458C1026.06 265.826 1026.58 265.441 1027.14 265.452L1030.04 265.509Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -3059,29 +3059,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1035.94 264.11)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.34 266.635C1037.7 267.281 1038.2 267.686 1038.77 267.698L1035.87 267.641C1035.31 267.63 1034.8 267.224 1034.45 266.578L1037.34 266.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.34 266.635C1036.57 265.241 1036.61 263.005 1037.44 261.642L1034.54 261.585C1033.72 262.948 1033.67 265.184 1034.45 266.578L1037.34 266.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1038.9 260.638C1038.34 260.626 1037.82 261.012 1037.44 261.643L1034.54 261.586C1034.93 260.955 1035.44 260.57 1036.01 260.581L1038.9 260.638Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -3091,29 +3091,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1015.67 315.613)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.07 318.137C1017.43 318.784 1017.93 319.189 1018.5 319.2L1015.6 319.143C1015.04 319.132 1014.53 318.727 1014.18 318.081L1017.07 318.137Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.07 318.138C1016.3 316.743 1016.34 314.508 1017.17 313.145L1014.27 313.088C1013.45 314.451 1013.4 316.686 1014.18 318.081L1017.07 318.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1018.63 312.14C1018.07 312.129 1017.55 312.514 1017.17 313.146L1014.27 313.089C1014.66 312.457 1015.17 312.072 1015.74 312.083L1018.63 312.14Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -3123,29 +3123,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1027.07 309.348)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.47 311.873C1028.83 312.519 1029.33 312.924 1029.9 312.935L1027 312.878C1026.44 312.867 1025.94 312.462 1025.58 311.816L1028.47 311.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.47 311.873C1027.7 310.479 1027.74 308.243 1028.57 306.88L1025.68 306.823C1024.85 308.186 1024.81 310.422 1025.58 311.816L1028.47 311.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1030.04 305.875C1029.47 305.864 1028.95 306.249 1028.57 306.881L1025.68 306.824C1026.06 306.193 1026.58 305.807 1027.14 305.819L1030.04 305.875Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -3155,29 +3155,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1035.94 304.477)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.34 307.002C1037.7 307.648 1038.2 308.053 1038.77 308.064L1035.87 308.007C1035.31 307.996 1034.8 307.591 1034.45 306.945L1037.34 307.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.34 307.002C1036.57 305.608 1036.61 303.372 1037.44 302.009L1034.54 301.952C1033.72 303.315 1033.67 305.551 1034.45 306.945L1037.34 307.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1038.9 301.004C1038.34 300.993 1037.82 301.378 1037.44 302.01L1034.54 301.953C1034.93 301.321 1035.44 300.936 1036.01 300.947L1038.9 301.004Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -3187,29 +3187,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1015.67 351.654)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.07 354.179C1017.43 354.826 1017.93 355.231 1018.5 355.242L1015.6 355.185C1015.04 355.174 1014.53 354.769 1014.18 354.123L1017.07 354.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.07 354.18C1016.3 352.785 1016.34 350.55 1017.17 349.187L1014.27 349.13C1013.45 350.493 1013.4 352.728 1014.18 354.123L1017.07 354.18Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1018.63 348.182C1018.07 348.171 1017.55 348.556 1017.17 349.188L1014.27 349.131C1014.66 348.499 1015.17 348.114 1015.74 348.125L1018.63 348.182Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -3219,29 +3219,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1027.07 345.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.47 347.914C1028.83 348.56 1029.33 348.965 1029.9 348.976L1027 348.919C1026.44 348.908 1025.94 348.503 1025.58 347.857L1028.47 347.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.47 347.914C1027.7 346.52 1027.74 344.284 1028.57 342.921L1025.68 342.864C1024.85 344.227 1024.81 346.463 1025.58 347.857L1028.47 347.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1030.04 341.916C1029.47 341.905 1028.95 342.29 1028.57 342.922L1025.68 342.865C1026.06 342.234 1026.58 341.848 1027.14 341.86L1030.04 341.916Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -3251,29 +3251,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1035.94 340.518)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.34 343.042C1037.7 343.688 1038.2 344.094 1038.77 344.105L1035.87 344.048C1035.31 344.037 1034.8 343.632 1034.45 342.985L1037.34 343.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.34 343.043C1036.57 341.648 1036.61 339.413 1037.44 338.049L1034.54 337.993C1033.72 339.356 1033.67 341.591 1034.45 342.986L1037.34 343.043Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1038.9 337.045C1038.34 337.034 1037.82 337.419 1037.44 338.05L1034.54 337.994C1034.93 337.362 1035.44 336.977 1036.01 336.988L1038.9 337.045Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -3281,7 +3281,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1004.8 274.732)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -3289,7 +3289,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 941.004 311.428)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -3297,7 +3297,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1004.8 348.125)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -3305,7 +3305,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1004.8 235.808)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -3313,7 +3313,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 941.004 272.504)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -3321,7 +3321,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1004.8 309.201)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -3329,7 +3329,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1004.8 194)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -3337,7 +3337,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 941.004 230.696)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -3345,7 +3345,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1004.8 267.393)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -3355,29 +3355,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1015.67 275.247)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.07 277.772C1017.42 278.418 1017.93 278.823 1018.49 278.834L1015.6 278.777C1015.04 278.766 1014.53 278.361 1014.17 277.715L1017.07 277.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.07 277.772C1016.3 276.378 1016.34 274.142 1017.17 272.779L1014.27 272.722C1013.45 274.085 1013.4 276.321 1014.17 277.715L1017.07 277.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1018.63 271.774C1018.07 271.763 1017.55 272.148 1017.16 272.78L1014.27 272.723C1014.65 272.091 1015.17 271.706 1015.74 271.717L1018.63 271.774Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -3387,29 +3387,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1027.07 268.982)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.47 271.507C1028.83 272.153 1029.33 272.558 1029.9 272.569L1027 272.512C1026.44 272.501 1025.93 272.096 1025.58 271.45L1028.47 271.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.47 271.507C1027.7 270.112 1027.74 267.877 1028.57 266.514L1025.68 266.457C1024.85 267.82 1024.8 270.056 1025.58 271.45L1028.47 271.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1030.03 265.509C1029.47 265.498 1028.95 265.883 1028.57 266.515L1025.67 266.458C1026.06 265.826 1026.58 265.441 1027.14 265.452L1030.03 265.509Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -3419,29 +3419,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1035.94 264.11)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.34 266.635C1037.69 267.281 1038.2 267.686 1038.76 267.698L1035.87 267.641C1035.3 267.63 1034.8 267.224 1034.44 266.578L1037.34 266.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.34 266.635C1036.57 265.241 1036.61 263.005 1037.44 261.642L1034.54 261.585C1033.72 262.948 1033.67 265.184 1034.44 266.578L1037.34 266.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1038.9 260.638C1038.34 260.626 1037.82 261.012 1037.43 261.643L1034.54 261.586C1034.92 260.955 1035.44 260.57 1036.01 260.581L1038.9 260.638Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -3451,29 +3451,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1015.67 315.613)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.07 318.137C1017.42 318.784 1017.93 319.189 1018.49 319.2L1015.6 319.143C1015.04 319.132 1014.53 318.727 1014.17 318.081L1017.07 318.137Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.07 318.138C1016.3 316.743 1016.34 314.508 1017.17 313.145L1014.27 313.088C1013.45 314.451 1013.4 316.686 1014.17 318.081L1017.07 318.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1018.63 312.14C1018.07 312.129 1017.55 312.514 1017.16 313.146L1014.27 313.089C1014.65 312.457 1015.17 312.072 1015.74 312.083L1018.63 312.14Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -3483,29 +3483,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1027.07 309.348)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.47 311.873C1028.83 312.519 1029.33 312.924 1029.9 312.935L1027 312.878C1026.44 312.867 1025.93 312.462 1025.58 311.816L1028.47 311.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.47 311.873C1027.7 310.479 1027.74 308.243 1028.57 306.88L1025.68 306.823C1024.85 308.186 1024.8 310.422 1025.58 311.816L1028.47 311.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1030.03 305.875C1029.47 305.864 1028.95 306.249 1028.57 306.881L1025.67 306.824C1026.06 306.193 1026.58 305.807 1027.14 305.819L1030.03 305.875Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -3515,29 +3515,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1035.94 304.477)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.34 307.002C1037.69 307.648 1038.2 308.053 1038.76 308.064L1035.87 308.007C1035.3 307.996 1034.8 307.591 1034.44 306.945L1037.34 307.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.34 307.002C1036.57 305.608 1036.61 303.372 1037.44 302.009L1034.54 301.952C1033.72 303.315 1033.67 305.551 1034.44 306.945L1037.34 307.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1038.9 301.004C1038.34 300.993 1037.82 301.378 1037.43 302.01L1034.54 301.953C1034.92 301.321 1035.44 300.936 1036.01 300.947L1038.9 301.004Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -3547,29 +3547,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1015.67 351.654)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.07 354.179C1017.42 354.825 1017.93 355.23 1018.49 355.241L1015.6 355.185C1015.04 355.173 1014.53 354.768 1014.17 354.122L1017.07 354.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.07 354.179C1016.3 352.785 1016.34 350.549 1017.17 349.186L1014.27 349.129C1013.45 350.492 1013.4 352.728 1014.17 354.122L1017.07 354.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1018.63 348.182C1018.07 348.17 1017.55 348.556 1017.16 349.187L1014.27 349.13C1014.65 348.499 1015.17 348.114 1015.74 348.125L1018.63 348.182Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -3579,29 +3579,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1027.07 345.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.47 347.914C1028.83 348.56 1029.33 348.965 1029.9 348.976L1027 348.919C1026.44 348.908 1025.93 348.503 1025.58 347.857L1028.47 347.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.47 347.914C1027.7 346.519 1027.74 344.284 1028.57 342.921L1025.68 342.864C1024.85 344.227 1024.8 346.462 1025.58 347.857L1028.47 347.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1030.03 341.916C1029.47 341.905 1028.95 342.29 1028.57 342.922L1025.67 342.865C1026.06 342.233 1026.58 341.848 1027.14 341.859L1030.03 341.916Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -3611,29 +3611,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1035.94 340.517)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.34 343.042C1037.69 343.688 1038.2 344.093 1038.76 344.104L1035.87 344.047C1035.3 344.036 1034.8 343.631 1034.44 342.985L1037.34 343.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.34 343.042C1036.57 341.648 1036.61 339.412 1037.44 338.049L1034.54 337.992C1033.72 339.355 1033.67 341.591 1034.44 342.985L1037.34 343.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1038.9 337.044C1038.34 337.033 1037.82 337.418 1037.43 338.05L1034.54 337.993C1034.92 337.361 1035.44 336.976 1036.01 336.987L1038.9 337.044Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -3641,7 +3641,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1004.8 274.733)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -3649,7 +3649,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 941.002 311.429)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -3657,7 +3657,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1004.8 348.126)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -3665,7 +3665,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1004.8 235.808)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -3673,7 +3673,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 941.002 272.504)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -3681,7 +3681,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1004.8 309.201)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -3689,7 +3689,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1004.8 194)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -3697,7 +3697,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 941.002 230.696)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -3705,7 +3705,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1004.8 267.394)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -3715,29 +3715,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1015.67 275.247)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.07 277.772C1017.42 278.418 1017.93 278.823 1018.49 278.834L1015.6 278.777C1015.04 278.766 1014.53 278.361 1014.17 277.715L1017.07 277.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.07 277.772C1016.3 276.378 1016.34 274.142 1017.17 272.779L1014.27 272.722C1013.45 274.085 1013.4 276.321 1014.17 277.715L1017.07 277.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1018.63 271.774C1018.07 271.763 1017.55 272.148 1017.16 272.78L1014.27 272.723C1014.65 272.091 1015.17 271.706 1015.74 271.717L1018.63 271.774Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -3747,29 +3747,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1027.07 268.982)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.47 271.507C1028.83 272.153 1029.33 272.558 1029.89 272.57L1027 272.513C1026.44 272.502 1025.93 272.096 1025.57 271.45L1028.47 271.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.47 271.507C1027.7 270.113 1027.74 267.877 1028.57 266.514L1025.67 266.457C1024.85 267.821 1024.8 270.056 1025.57 271.451L1028.47 271.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1030.03 265.51C1029.47 265.499 1028.95 265.884 1028.56 266.515L1025.67 266.458C1026.05 265.827 1026.57 265.442 1027.14 265.453L1030.03 265.51Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -3779,29 +3779,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1035.94 264.11)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.34 266.635C1037.7 267.281 1038.2 267.686 1038.77 267.698L1035.87 267.641C1035.31 267.63 1034.8 267.224 1034.45 266.578L1037.34 266.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.34 266.635C1036.57 265.241 1036.61 263.005 1037.44 261.642L1034.54 261.585C1033.72 262.948 1033.67 265.184 1034.45 266.578L1037.34 266.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1038.9 260.637C1038.34 260.626 1037.82 261.011 1037.44 261.643L1034.54 261.586C1034.93 260.954 1035.44 260.569 1036.01 260.58L1038.9 260.637Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -3811,29 +3811,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1015.67 315.613)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.07 318.138C1017.42 318.784 1017.93 319.189 1018.49 319.2L1015.6 319.144C1015.04 319.132 1014.53 318.727 1014.17 318.081L1017.07 318.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.07 318.138C1016.3 316.744 1016.34 314.508 1017.17 313.145L1014.27 313.088C1013.45 314.451 1013.4 316.687 1014.17 318.081L1017.07 318.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1018.63 312.141C1018.07 312.129 1017.55 312.515 1017.16 313.146L1014.27 313.089C1014.65 312.458 1015.17 312.073 1015.74 312.084L1018.63 312.141Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -3843,29 +3843,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1027.07 309.349)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.47 311.873C1028.83 312.519 1029.33 312.925 1029.9 312.936L1027 312.879C1026.44 312.868 1025.93 312.463 1025.58 311.816L1028.47 311.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.47 311.874C1027.7 310.479 1027.74 308.244 1028.57 306.881L1025.68 306.824C1024.85 308.187 1024.8 310.422 1025.58 311.817L1028.47 311.874Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1030.04 305.876C1029.47 305.865 1028.95 306.25 1028.57 306.882L1025.68 306.825C1026.06 306.193 1026.58 305.808 1027.14 305.819L1030.04 305.876Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -3875,29 +3875,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1035.94 304.477)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.34 307.001C1037.7 307.647 1038.2 308.053 1038.77 308.064L1035.87 308.007C1035.31 307.996 1034.8 307.591 1034.45 306.944L1037.34 307.001Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.34 307.002C1036.57 305.607 1036.61 303.372 1037.44 302.008L1034.55 301.952C1033.72 303.315 1033.68 305.55 1034.45 306.945L1037.34 307.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1038.9 301.004C1038.34 300.993 1037.82 301.378 1037.44 302.009L1034.54 301.953C1034.93 301.321 1035.45 300.936 1036.01 300.947L1038.9 301.004Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -3907,29 +3907,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1015.67 351.655)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.07 354.179C1017.42 354.826 1017.93 355.231 1018.49 355.242L1015.6 355.185C1015.04 355.174 1014.53 354.769 1014.17 354.123L1017.07 354.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.07 354.18C1016.3 352.785 1016.34 350.55 1017.17 349.187L1014.27 349.13C1013.45 350.493 1013.4 352.728 1014.17 354.123L1017.07 354.18Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1018.63 348.182C1018.07 348.171 1017.55 348.556 1017.16 349.188L1014.27 349.131C1014.65 348.499 1015.17 348.114 1015.74 348.125L1018.63 348.182Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -3939,29 +3939,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1027.07 345.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.47 347.914C1028.83 348.56 1029.33 348.965 1029.89 348.976L1027 348.919C1026.44 348.908 1025.93 348.503 1025.57 347.857L1028.47 347.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.47 347.914C1027.7 346.52 1027.74 344.284 1028.57 342.921L1025.67 342.864C1024.85 344.227 1024.8 346.463 1025.57 347.857L1028.47 347.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1030.03 341.916C1029.47 341.905 1028.95 342.29 1028.56 342.922L1025.67 342.865C1026.05 342.234 1026.57 341.848 1027.14 341.86L1030.03 341.916Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -3971,29 +3971,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1035.94 340.518)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.34 343.042C1037.69 343.688 1038.2 344.094 1038.76 344.105L1035.87 344.048C1035.3 344.037 1034.8 343.632 1034.44 342.985L1037.34 343.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.34 343.043C1036.57 341.648 1036.61 339.413 1037.44 338.049L1034.54 337.993C1033.72 339.356 1033.67 341.591 1034.44 342.986L1037.34 343.043Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1038.9 337.045C1038.34 337.034 1037.82 337.419 1037.43 338.05L1034.54 337.994C1034.92 337.362 1035.44 336.977 1036.01 336.988L1038.9 337.045Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -4001,7 +4001,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1004.8 274.733)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -4009,7 +4009,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 941.002 311.429)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -4017,7 +4017,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1004.8 348.126)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -4025,7 +4025,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1004.8 235.808)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -4033,7 +4033,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 941.002 272.504)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -4041,7 +4041,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1004.8 309.201)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -4049,7 +4049,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1004.8 194)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -4057,7 +4057,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 941.002 230.696)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -4065,7 +4065,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1004.8 267.394)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -4075,29 +4075,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1015.67 275.247)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.06 277.772C1017.42 278.418 1017.92 278.823 1018.49 278.834L1015.6 278.777C1015.03 278.766 1014.53 278.361 1014.17 277.715L1017.06 277.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.06 277.772C1016.29 276.377 1016.33 274.142 1017.16 272.778L1014.27 272.722C1013.44 274.085 1013.4 276.32 1014.17 277.715L1017.06 277.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1018.63 271.774C1018.06 271.763 1017.54 272.148 1017.16 272.779L1014.27 272.723C1014.65 272.091 1015.17 271.706 1015.73 271.717L1018.63 271.774Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -4107,29 +4107,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1027.07 268.982)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.47 271.507C1028.82 272.153 1029.33 272.558 1029.89 272.57L1027 272.513C1026.43 272.502 1025.93 272.096 1025.57 271.45L1028.47 271.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.47 271.507C1027.69 270.113 1027.74 267.877 1028.56 266.514L1025.67 266.457C1024.85 267.821 1024.8 270.056 1025.57 271.451L1028.47 271.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1030.03 265.51C1029.46 265.499 1028.95 265.884 1028.56 266.515L1025.67 266.458C1026.05 265.827 1026.57 265.442 1027.14 265.453L1030.03 265.51Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -4139,29 +4139,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1035.94 264.11)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.33 266.635C1037.69 267.281 1038.19 267.686 1038.76 267.698L1035.87 267.641C1035.3 267.63 1034.8 267.224 1034.44 266.578L1037.33 266.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.33 266.635C1036.56 265.24 1036.61 263.005 1037.43 261.642L1034.54 261.585C1033.71 262.948 1033.67 265.183 1034.44 266.578L1037.33 266.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1038.9 260.637C1038.33 260.626 1037.81 261.011 1037.43 261.642L1034.54 261.585C1034.92 260.954 1035.44 260.569 1036.01 260.58L1038.9 260.637Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -4171,29 +4171,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1015.67 315.613)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.06 318.138C1017.42 318.784 1017.92 319.189 1018.49 319.2L1015.6 319.144C1015.03 319.132 1014.53 318.727 1014.17 318.081L1017.06 318.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.06 318.138C1016.29 316.743 1016.33 314.508 1017.16 313.145L1014.27 313.088C1013.44 314.451 1013.4 316.686 1014.17 318.081L1017.06 318.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1018.63 312.14C1018.06 312.129 1017.54 312.514 1017.16 313.146L1014.27 313.089C1014.65 312.457 1015.17 312.072 1015.73 312.083L1018.63 312.14Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -4203,29 +4203,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1027.07 309.349)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.47 311.873C1028.83 312.519 1029.33 312.925 1029.89 312.936L1027 312.879C1026.44 312.868 1025.93 312.463 1025.57 311.816L1028.47 311.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.47 311.874C1027.7 310.479 1027.74 308.244 1028.57 306.881L1025.67 306.824C1024.85 308.187 1024.8 310.422 1025.57 311.817L1028.47 311.874Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1030.03 305.876C1029.47 305.865 1028.95 306.25 1028.57 306.882L1025.67 306.825C1026.06 306.193 1026.58 305.808 1027.14 305.819L1030.03 305.876Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -4235,29 +4235,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1035.94 304.477)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.33 307.001C1037.69 307.647 1038.2 308.053 1038.76 308.064L1035.87 308.007C1035.3 307.996 1034.8 307.591 1034.44 306.944L1037.33 307.001Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.34 307.002C1036.56 305.607 1036.61 303.372 1037.43 302.008L1034.54 301.952C1033.71 303.315 1033.67 305.55 1034.44 306.945L1037.34 307.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1038.9 301.004C1038.33 300.993 1037.81 301.378 1037.43 302.009L1034.54 301.953C1034.92 301.321 1035.44 300.936 1036.01 300.947L1038.9 301.004Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -4267,29 +4267,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1015.67 351.654)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.06 354.179C1017.42 354.826 1017.92 355.231 1018.49 355.242L1015.6 355.185C1015.03 355.174 1014.53 354.769 1014.17 354.123L1017.06 354.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.06 354.179C1016.29 352.785 1016.33 350.549 1017.16 349.186L1014.27 349.129C1013.44 350.492 1013.4 352.728 1014.17 354.122L1017.06 354.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1018.63 348.182C1018.06 348.17 1017.54 348.556 1017.16 349.187L1014.27 349.13C1014.65 348.499 1015.17 348.114 1015.73 348.125L1018.63 348.182Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -4299,29 +4299,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1027.07 345.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.47 347.914C1028.82 348.56 1029.33 348.965 1029.89 348.976L1027 348.919C1026.43 348.908 1025.93 348.503 1025.57 347.857L1028.47 347.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.47 347.914C1027.69 346.52 1027.74 344.284 1028.56 342.921L1025.67 342.864C1024.85 344.227 1024.8 346.463 1025.57 347.857L1028.47 347.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1030.03 341.916C1029.46 341.905 1028.95 342.29 1028.56 342.922L1025.67 342.865C1026.05 342.234 1026.57 341.848 1027.14 341.86L1030.03 341.916Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -4331,29 +4331,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1035.94 340.518)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.33 343.042C1037.69 343.688 1038.2 344.094 1038.76 344.105L1035.87 344.048C1035.3 344.037 1034.8 343.632 1034.44 342.985L1037.33 343.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.34 343.043C1036.56 341.648 1036.61 339.413 1037.43 338.049L1034.54 337.993C1033.71 339.356 1033.67 341.591 1034.44 342.986L1037.34 343.043Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1038.9 337.045C1038.33 337.034 1037.81 337.419 1037.43 338.05L1034.54 337.994C1034.92 337.362 1035.44 336.977 1036.01 336.988L1038.9 337.045Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -4361,7 +4361,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1004.8 274.732)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -4369,7 +4369,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 941 311.428)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -4377,7 +4377,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1004.8 348.125)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -4385,7 +4385,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1004.8 235.808)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -4393,7 +4393,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 941 272.504)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -4401,7 +4401,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1004.8 309.201)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -4409,7 +4409,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1004.8 194)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -4417,7 +4417,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 941 230.696)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -4425,7 +4425,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1004.8 267.394)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -4435,29 +4435,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1015.66 275.247)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.06 277.772C1017.42 278.418 1017.92 278.823 1018.49 278.834L1015.59 278.777C1015.03 278.766 1014.53 278.361 1014.17 277.715L1017.06 277.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.06 277.772C1016.29 276.378 1016.33 274.142 1017.16 272.779L1014.27 272.722C1013.44 274.085 1013.4 276.321 1014.17 277.715L1017.06 277.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1018.63 271.774C1018.06 271.763 1017.54 272.148 1017.16 272.78L1014.26 272.723C1014.65 272.091 1015.17 271.706 1015.73 271.717L1018.63 271.774Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -4467,29 +4467,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1027.07 268.982)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.46 271.507C1028.82 272.153 1029.33 272.558 1029.89 272.57L1027 272.513C1026.43 272.502 1025.93 272.096 1025.57 271.45L1028.46 271.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.46 271.507C1027.69 270.113 1027.74 267.877 1028.56 266.514L1025.67 266.457C1024.84 267.821 1024.8 270.056 1025.57 271.451L1028.46 271.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1030.03 265.51C1029.46 265.499 1028.94 265.884 1028.56 266.515L1025.67 266.458C1026.05 265.827 1026.57 265.442 1027.13 265.453L1030.03 265.51Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -4499,29 +4499,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1035.94 264.11)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.33 266.635C1037.69 267.282 1038.19 267.687 1038.76 267.698L1035.87 267.641C1035.3 267.63 1034.8 267.225 1034.44 266.579L1037.33 266.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.33 266.635C1036.56 265.241 1036.61 263.005 1037.43 261.642L1034.54 261.585C1033.71 262.948 1033.67 265.184 1034.44 266.578L1037.33 266.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1038.9 260.637C1038.33 260.626 1037.81 261.011 1037.43 261.643L1034.54 261.586C1034.92 260.954 1035.44 260.569 1036.01 260.58L1038.9 260.637Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -4531,29 +4531,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1015.66 315.613)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.06 318.138C1017.42 318.784 1017.92 319.189 1018.49 319.2L1015.59 319.144C1015.03 319.132 1014.53 318.727 1014.17 318.081L1017.06 318.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.06 318.138C1016.29 316.744 1016.33 314.508 1017.16 313.145L1014.27 313.088C1013.44 314.451 1013.4 316.687 1014.17 318.081L1017.06 318.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1018.63 312.141C1018.06 312.129 1017.54 312.515 1017.16 313.146L1014.26 313.089C1014.65 312.458 1015.17 312.073 1015.73 312.084L1018.63 312.141Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -4563,29 +4563,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1027.07 309.348)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.46 311.872C1028.82 312.518 1029.33 312.924 1029.89 312.935L1027 312.878C1026.43 312.867 1025.93 312.462 1025.57 311.815L1028.46 311.872Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.46 311.873C1027.69 310.478 1027.74 308.243 1028.56 306.88L1025.67 306.823C1024.84 308.186 1024.8 310.421 1025.57 311.816L1028.46 311.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1030.03 305.875C1029.46 305.864 1028.94 306.249 1028.56 306.881L1025.67 306.824C1026.05 306.192 1026.57 305.807 1027.13 305.818L1030.03 305.875Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -4595,29 +4595,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1035.94 304.476)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.33 307C1037.69 307.646 1038.19 308.052 1038.76 308.063L1035.87 308.006C1035.3 307.995 1034.8 307.59 1034.44 306.943L1037.33 307Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.33 307.001C1036.56 305.606 1036.61 303.371 1037.43 302.007L1034.54 301.951C1033.71 303.314 1033.67 305.549 1034.44 306.944L1037.33 307.001Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1038.9 301.003C1038.33 300.992 1037.81 301.377 1037.43 302.008L1034.54 301.952C1034.92 301.32 1035.44 300.935 1036 300.946L1038.9 301.003Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -4627,29 +4627,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1015.66 351.655)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.06 354.179C1017.42 354.826 1017.92 355.231 1018.49 355.242L1015.59 355.185C1015.03 355.174 1014.53 354.769 1014.17 354.123L1017.06 354.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.06 354.18C1016.29 352.785 1016.33 350.55 1017.16 349.187L1014.27 349.13C1013.44 350.493 1013.4 352.728 1014.17 354.123L1017.06 354.18Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1018.63 348.182C1018.06 348.171 1017.54 348.556 1017.16 349.188L1014.26 349.131C1014.65 348.499 1015.17 348.114 1015.73 348.125L1018.63 348.182Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -4659,29 +4659,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1027.07 345.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.46 347.914C1028.82 348.56 1029.33 348.965 1029.89 348.976L1027 348.919C1026.43 348.908 1025.93 348.503 1025.57 347.857L1028.46 347.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.46 347.914C1027.69 346.52 1027.74 344.284 1028.56 342.921L1025.67 342.864C1024.84 344.227 1024.8 346.463 1025.57 347.857L1028.46 347.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1030.03 341.916C1029.46 341.905 1028.94 342.29 1028.56 342.922L1025.67 342.865C1026.05 342.234 1026.57 341.848 1027.13 341.86L1030.03 341.916Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -4691,29 +4691,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1035.94 340.518)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.33 343.042C1037.69 343.688 1038.19 344.094 1038.76 344.105L1035.87 344.048C1035.3 344.037 1034.8 343.632 1034.44 342.985L1037.33 343.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.33 343.043C1036.56 341.648 1036.61 339.413 1037.43 338.049L1034.54 337.993C1033.71 339.356 1033.67 341.591 1034.44 342.986L1037.33 343.043Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1038.9 337.045C1038.33 337.034 1037.81 337.419 1037.43 338.05L1034.54 337.994C1034.92 337.362 1035.44 336.977 1036 336.988L1038.9 337.045Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <g filter="url(#filter3_d_2900_53447)">
           <rect
@@ -4727,7 +4727,7 @@ export const HeroHeader = () => {
             height="73.5976"
             transform="matrix(0.866826 0.498611 -0.866826 0.498611 1004.8 274.732)"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <g filter="url(#filter4_d_2900_53447)">
@@ -4742,7 +4742,7 @@ export const HeroHeader = () => {
             height="27.5224"
             transform="matrix(0.866826 0.498611 0 1 941 311.428)"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <g filter="url(#filter5_d_2900_53447)">
@@ -4757,7 +4757,7 @@ export const HeroHeader = () => {
             height="27.5224"
             transform="matrix(0.866826 -0.498611 0 1 1004.8 348.125)"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <rect
@@ -4766,7 +4766,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1004.8 235.808)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -4774,7 +4774,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 941 272.504)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -4782,7 +4782,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1004.8 309.201)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -4790,7 +4790,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1004.8 194)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -4798,7 +4798,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 941 230.696)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -4806,7 +4806,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1004.8 267.394)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -4816,29 +4816,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1015.66 275.247)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.06 277.772C1017.42 278.418 1017.92 278.823 1018.49 278.834L1015.59 278.777C1015.03 278.766 1014.53 278.361 1014.17 277.715L1017.06 277.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.06 277.772C1016.29 276.378 1016.33 274.142 1017.16 272.779L1014.27 272.722C1013.44 274.085 1013.4 276.321 1014.17 277.715L1017.06 277.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1018.63 271.774C1018.06 271.763 1017.54 272.148 1017.16 272.78L1014.26 272.723C1014.65 272.091 1015.17 271.706 1015.73 271.717L1018.63 271.774Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -4848,29 +4848,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1027.07 268.982)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.46 271.507C1028.82 272.153 1029.33 272.558 1029.89 272.57L1027 272.513C1026.43 272.502 1025.93 272.096 1025.57 271.45L1028.46 271.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.46 271.507C1027.69 270.113 1027.74 267.877 1028.56 266.514L1025.67 266.457C1024.84 267.821 1024.8 270.056 1025.57 271.451L1028.46 271.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1030.03 265.51C1029.46 265.499 1028.94 265.884 1028.56 266.515L1025.67 266.458C1026.05 265.827 1026.57 265.442 1027.13 265.453L1030.03 265.51Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -4880,29 +4880,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1035.94 264.11)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.33 266.635C1037.69 267.282 1038.19 267.687 1038.76 267.698L1035.87 267.641C1035.3 267.63 1034.8 267.225 1034.44 266.579L1037.33 266.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.33 266.635C1036.56 265.241 1036.61 263.005 1037.43 261.642L1034.54 261.585C1033.71 262.948 1033.67 265.184 1034.44 266.578L1037.33 266.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1038.9 260.637C1038.33 260.626 1037.81 261.011 1037.43 261.643L1034.54 261.586C1034.92 260.954 1035.44 260.569 1036.01 260.58L1038.9 260.637Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -4912,29 +4912,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1015.66 315.613)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.06 318.138C1017.42 318.784 1017.92 319.189 1018.49 319.2L1015.59 319.144C1015.03 319.132 1014.53 318.727 1014.17 318.081L1017.06 318.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.06 318.138C1016.29 316.744 1016.33 314.508 1017.16 313.145L1014.27 313.088C1013.44 314.451 1013.4 316.687 1014.17 318.081L1017.06 318.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1018.63 312.141C1018.06 312.129 1017.54 312.515 1017.16 313.146L1014.26 313.089C1014.65 312.458 1015.17 312.073 1015.73 312.084L1018.63 312.141Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -4944,29 +4944,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1027.07 309.348)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.46 311.872C1028.82 312.518 1029.33 312.924 1029.89 312.935L1027 312.878C1026.43 312.867 1025.93 312.462 1025.57 311.815L1028.46 311.872Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.46 311.873C1027.69 310.478 1027.74 308.243 1028.56 306.88L1025.67 306.823C1024.84 308.186 1024.8 310.421 1025.57 311.816L1028.46 311.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1030.03 305.875C1029.46 305.864 1028.94 306.249 1028.56 306.881L1025.67 306.824C1026.05 306.192 1026.57 305.807 1027.13 305.818L1030.03 305.875Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -4976,29 +4976,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1035.94 304.476)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.33 307C1037.69 307.646 1038.19 308.052 1038.76 308.063L1035.87 308.006C1035.3 307.995 1034.8 307.59 1034.44 306.943L1037.33 307Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.33 307.001C1036.56 305.606 1036.61 303.371 1037.43 302.007L1034.54 301.951C1033.71 303.314 1033.67 305.549 1034.44 306.944L1037.33 307.001Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1038.9 301.003C1038.33 300.992 1037.81 301.377 1037.43 302.008L1034.54 301.952C1034.92 301.32 1035.44 300.935 1036 300.946L1038.9 301.003Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -5008,29 +5008,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1015.66 351.655)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.06 354.179C1017.42 354.826 1017.92 355.231 1018.49 355.242L1015.59 355.185C1015.03 355.174 1014.53 354.769 1014.17 354.123L1017.06 354.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1017.06 354.18C1016.29 352.785 1016.33 350.55 1017.16 349.187L1014.27 349.13C1013.44 350.493 1013.4 352.728 1014.17 354.123L1017.06 354.18Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1018.63 348.182C1018.06 348.171 1017.54 348.556 1017.16 349.188L1014.26 349.131C1014.65 348.499 1015.17 348.114 1015.73 348.125L1018.63 348.182Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -5040,29 +5040,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1027.07 345.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.46 347.914C1028.82 348.56 1029.33 348.965 1029.89 348.976L1027 348.919C1026.43 348.908 1025.93 348.503 1025.57 347.857L1028.46 347.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1028.46 347.914C1027.69 346.52 1027.74 344.284 1028.56 342.921L1025.67 342.864C1024.84 344.227 1024.8 346.463 1025.57 347.857L1028.46 347.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1030.03 341.916C1029.46 341.905 1028.94 342.29 1028.56 342.922L1025.67 342.865C1026.05 342.234 1026.57 341.848 1027.13 341.86L1030.03 341.916Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -5072,29 +5072,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1035.94 340.518)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.33 343.042C1037.69 343.688 1038.19 344.094 1038.76 344.105L1035.87 344.048C1035.3 344.037 1034.8 343.632 1034.44 342.985L1037.33 343.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1037.33 343.043C1036.56 341.648 1036.61 339.413 1037.43 338.049L1034.54 337.993C1033.71 339.356 1033.67 341.591 1034.44 342.986L1037.33 343.043Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1038.9 337.045C1038.33 337.034 1037.81 337.419 1037.43 338.05L1034.54 337.994C1034.92 337.362 1035.44 336.977 1036 336.988L1038.9 337.045Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -5102,7 +5102,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1192.81 298.732)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -5110,7 +5110,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 1129.01 335.428)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -5118,7 +5118,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1192.81 372.125)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -5126,7 +5126,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1192.81 259.808)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -5134,7 +5134,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 1129.01 296.504)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -5142,7 +5142,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1192.81 333.201)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -5150,7 +5150,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1192.81 218)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -5158,7 +5158,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 1129.01 254.696)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -5166,7 +5166,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1192.81 291.393)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -5176,29 +5176,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1203.67 299.247)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.07 301.771C1205.43 302.417 1205.93 302.823 1206.5 302.834L1203.6 302.777C1203.04 302.766 1202.53 302.361 1202.18 301.714L1205.07 301.771Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.07 301.772C1204.3 300.377 1204.34 298.142 1205.17 296.778L1202.27 296.722C1201.45 298.085 1201.4 300.32 1202.18 301.715L1205.07 301.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1206.63 295.774C1206.07 295.763 1205.55 296.148 1205.17 296.779L1202.27 296.723C1202.66 296.091 1203.17 295.706 1203.74 295.717L1206.63 295.774Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -5208,29 +5208,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1215.07 292.981)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.47 295.506C1216.83 296.152 1217.33 296.557 1217.9 296.569L1215 296.512C1214.44 296.501 1213.94 296.095 1213.58 295.449L1216.47 295.506Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.47 295.506C1215.7 294.112 1215.74 291.876 1216.57 290.513L1213.68 290.456C1212.85 291.82 1212.81 294.055 1213.58 295.45L1216.47 295.506Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1218.04 289.509C1217.47 289.498 1216.95 289.883 1216.57 290.514L1213.68 290.457C1214.06 289.826 1214.58 289.441 1215.14 289.452L1218.04 289.509Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -5240,29 +5240,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1223.94 288.11)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.34 290.634C1225.7 291.281 1226.2 291.686 1226.77 291.697L1223.87 291.64C1223.31 291.629 1222.8 291.224 1222.45 290.578L1225.34 290.634Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.34 290.635C1224.57 289.24 1224.61 287.005 1225.44 285.642L1222.54 285.585C1221.72 286.948 1221.67 289.183 1222.45 290.578L1225.34 290.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1226.9 284.637C1226.34 284.626 1225.82 285.011 1225.44 285.643L1222.54 285.586C1222.93 284.954 1223.44 284.569 1224.01 284.58L1226.9 284.637Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -5272,29 +5272,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1203.67 339.613)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.07 342.138C1205.43 342.784 1205.93 343.189 1206.5 343.2L1203.6 343.144C1203.04 343.132 1202.53 342.727 1202.18 342.081L1205.07 342.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.07 342.138C1204.3 340.744 1204.34 338.508 1205.17 337.145L1202.27 337.088C1201.45 338.451 1201.4 340.687 1202.18 342.081L1205.07 342.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1206.63 336.141C1206.07 336.129 1205.55 336.515 1205.17 337.146L1202.27 337.089C1202.66 336.458 1203.17 336.073 1203.74 336.084L1206.63 336.141Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -5304,29 +5304,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1215.07 333.348)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.47 335.873C1216.83 336.519 1217.33 336.925 1217.9 336.936L1215 336.879C1214.44 336.868 1213.94 336.463 1213.58 335.816L1216.47 335.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.47 335.874C1215.7 334.479 1215.74 332.244 1216.57 330.881L1213.68 330.824C1212.85 332.187 1212.81 334.422 1213.58 335.817L1216.47 335.874Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1218.04 329.875C1217.47 329.864 1216.95 330.249 1216.57 330.881L1213.68 330.824C1214.06 330.193 1214.58 329.807 1215.14 329.819L1218.04 329.875Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -5336,29 +5336,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1223.94 328.478)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.34 331.002C1225.7 331.648 1226.2 332.054 1226.77 332.065L1223.87 332.008C1223.31 331.997 1222.8 331.592 1222.45 330.945L1225.34 331.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.34 331.002C1224.57 329.608 1224.61 327.373 1225.44 326.009L1222.54 325.953C1221.72 327.316 1221.67 329.551 1222.45 330.946L1225.34 331.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1226.9 325.005C1226.34 324.994 1225.82 325.379 1225.44 326.01L1222.54 325.954C1222.93 325.322 1223.44 324.937 1224.01 324.948L1226.9 325.005Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -5368,29 +5368,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1203.67 375.654)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.07 378.179C1205.43 378.825 1205.93 379.23 1206.5 379.241L1203.6 379.185C1203.04 379.173 1202.53 378.768 1202.18 378.122L1205.07 378.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.07 378.179C1204.3 376.785 1204.34 374.549 1205.17 373.186L1202.27 373.129C1201.45 374.492 1201.4 376.728 1202.18 378.122L1205.07 378.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1206.63 372.182C1206.07 372.17 1205.55 372.556 1205.17 373.187L1202.27 373.13C1202.66 372.499 1203.17 372.114 1203.74 372.125L1206.63 372.182Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -5400,29 +5400,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1215.07 369.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.47 371.914C1216.83 372.56 1217.33 372.965 1217.9 372.976L1215 372.919C1214.44 372.908 1213.94 372.503 1213.58 371.857L1216.47 371.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.47 371.914C1215.7 370.52 1215.74 368.284 1216.57 366.921L1213.68 366.864C1212.85 368.227 1212.81 370.463 1213.58 371.857L1216.47 371.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1218.04 365.916C1217.47 365.905 1216.95 366.29 1216.57 366.922L1213.68 366.865C1214.06 366.234 1214.58 365.848 1215.14 365.86L1218.04 365.916Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -5432,29 +5432,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1223.94 364.518)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.34 367.042C1225.7 367.688 1226.2 368.094 1226.77 368.105L1223.87 368.048C1223.31 368.037 1222.8 367.632 1222.45 366.985L1225.34 367.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.34 367.043C1224.57 365.648 1224.61 363.413 1225.44 362.049L1222.54 361.993C1221.72 363.356 1221.67 365.591 1222.45 366.986L1225.34 367.043Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1226.9 361.045C1226.34 361.034 1225.82 361.419 1225.44 362.05L1222.54 361.994C1222.93 361.362 1223.44 360.977 1224.01 360.988L1226.9 361.045Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -5462,7 +5462,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1192.8 298.732)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -5470,7 +5470,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 1129 335.428)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -5478,7 +5478,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1192.8 372.125)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -5486,7 +5486,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1192.8 259.808)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -5494,7 +5494,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 1129 296.504)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -5502,7 +5502,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1192.8 333.201)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -5510,7 +5510,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1192.8 218)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -5518,7 +5518,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 1129 254.696)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -5526,7 +5526,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1192.8 291.393)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -5536,29 +5536,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1203.67 299.247)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.07 301.772C1205.43 302.418 1205.93 302.823 1206.5 302.834L1203.6 302.777C1203.04 302.766 1202.53 302.361 1202.18 301.715L1205.07 301.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.07 301.772C1204.3 300.378 1204.34 298.142 1205.17 296.779L1202.27 296.722C1201.45 298.085 1201.4 300.321 1202.18 301.715L1205.07 301.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1206.63 295.774C1206.07 295.763 1205.55 296.148 1205.17 296.78L1202.27 296.723C1202.66 296.091 1203.17 295.706 1203.74 295.717L1206.63 295.774Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -5568,29 +5568,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1215.07 292.982)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.47 295.507C1216.83 296.153 1217.33 296.558 1217.9 296.569L1215 296.512C1214.44 296.501 1213.94 296.096 1213.58 295.45L1216.47 295.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.47 295.507C1215.7 294.112 1215.74 291.877 1216.57 290.514L1213.68 290.457C1212.85 291.82 1212.81 294.056 1213.58 295.45L1216.47 295.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1218.04 289.509C1217.47 289.498 1216.95 289.883 1216.57 290.515L1213.68 290.458C1214.06 289.826 1214.58 289.441 1215.14 289.452L1218.04 289.509Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -5600,29 +5600,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1223.94 288.11)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.34 290.635C1225.7 291.281 1226.2 291.686 1226.77 291.698L1223.87 291.641C1223.31 291.63 1222.8 291.224 1222.45 290.578L1225.34 290.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.34 290.635C1224.57 289.241 1224.61 287.005 1225.44 285.642L1222.54 285.585C1221.72 286.948 1221.67 289.184 1222.45 290.578L1225.34 290.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1226.9 284.638C1226.34 284.626 1225.82 285.012 1225.44 285.643L1222.54 285.586C1222.93 284.955 1223.44 284.57 1224.01 284.581L1226.9 284.638Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -5632,29 +5632,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1203.67 339.613)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.07 342.137C1205.43 342.784 1205.93 343.189 1206.5 343.2L1203.6 343.143C1203.04 343.132 1202.53 342.727 1202.18 342.081L1205.07 342.137Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.07 342.138C1204.3 340.743 1204.34 338.508 1205.17 337.145L1202.27 337.088C1201.45 338.451 1201.4 340.686 1202.18 342.081L1205.07 342.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1206.63 336.14C1206.07 336.129 1205.55 336.514 1205.17 337.146L1202.27 337.089C1202.66 336.457 1203.17 336.072 1203.74 336.083L1206.63 336.14Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -5664,29 +5664,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1215.07 333.348)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.47 335.873C1216.83 336.519 1217.33 336.924 1217.9 336.935L1215 336.878C1214.44 336.867 1213.94 336.462 1213.58 335.816L1216.47 335.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.47 335.873C1215.7 334.479 1215.74 332.243 1216.57 330.88L1213.68 330.823C1212.85 332.186 1212.81 334.422 1213.58 335.816L1216.47 335.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1218.04 329.875C1217.47 329.864 1216.95 330.249 1216.57 330.881L1213.68 330.824C1214.06 330.193 1214.58 329.807 1215.14 329.819L1218.04 329.875Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -5696,29 +5696,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1223.94 328.477)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.34 331.002C1225.7 331.648 1226.2 332.053 1226.77 332.064L1223.87 332.007C1223.31 331.996 1222.8 331.591 1222.45 330.945L1225.34 331.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.34 331.002C1224.57 329.608 1224.61 327.372 1225.44 326.009L1222.54 325.952C1221.72 327.315 1221.67 329.551 1222.45 330.945L1225.34 331.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1226.9 325.004C1226.34 324.993 1225.82 325.378 1225.44 326.01L1222.54 325.953C1222.93 325.321 1223.44 324.936 1224.01 324.947L1226.9 325.004Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -5728,29 +5728,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1203.67 375.654)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.07 378.179C1205.43 378.826 1205.93 379.231 1206.5 379.242L1203.6 379.185C1203.04 379.174 1202.53 378.769 1202.18 378.123L1205.07 378.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.07 378.18C1204.3 376.785 1204.34 374.55 1205.17 373.187L1202.27 373.13C1201.45 374.493 1201.4 376.728 1202.18 378.123L1205.07 378.18Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1206.63 372.182C1206.07 372.171 1205.55 372.556 1205.17 373.188L1202.27 373.131C1202.66 372.499 1203.17 372.114 1203.74 372.125L1206.63 372.182Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -5760,29 +5760,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1215.07 369.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.47 371.914C1216.83 372.56 1217.33 372.965 1217.9 372.976L1215 372.919C1214.44 372.908 1213.94 372.503 1213.58 371.857L1216.47 371.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.47 371.914C1215.7 370.52 1215.74 368.284 1216.57 366.921L1213.68 366.864C1212.85 368.227 1212.81 370.463 1213.58 371.857L1216.47 371.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1218.04 365.916C1217.47 365.905 1216.95 366.29 1216.57 366.922L1213.68 366.865C1214.06 366.234 1214.58 365.848 1215.14 365.86L1218.04 365.916Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -5792,29 +5792,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1223.94 364.518)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.34 367.042C1225.7 367.688 1226.2 368.094 1226.77 368.105L1223.87 368.048C1223.31 368.037 1222.8 367.632 1222.45 366.985L1225.34 367.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.34 367.043C1224.57 365.648 1224.61 363.413 1225.44 362.049L1222.54 361.993C1221.72 363.356 1221.67 365.591 1222.45 366.986L1225.34 367.043Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1226.9 361.045C1226.34 361.034 1225.82 361.419 1225.44 362.05L1222.54 361.994C1222.93 361.362 1223.44 360.977 1224.01 360.988L1226.9 361.045Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -5822,7 +5822,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1192.8 298.732)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -5830,7 +5830,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 1129 335.428)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -5838,7 +5838,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1192.8 372.125)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -5846,7 +5846,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1192.8 259.808)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -5854,7 +5854,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 1129 296.504)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -5862,7 +5862,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1192.8 333.201)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -5870,7 +5870,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1192.8 218)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -5878,7 +5878,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 1129 254.696)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -5886,7 +5886,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1192.8 291.393)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -5896,29 +5896,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1203.67 299.247)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.07 301.772C1205.42 302.418 1205.93 302.823 1206.49 302.834L1203.6 302.777C1203.04 302.766 1202.53 302.361 1202.17 301.715L1205.07 301.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.07 301.772C1204.3 300.378 1204.34 298.142 1205.17 296.779L1202.27 296.722C1201.45 298.085 1201.4 300.321 1202.17 301.715L1205.07 301.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1206.63 295.774C1206.07 295.763 1205.55 296.148 1205.16 296.78L1202.27 296.723C1202.65 296.091 1203.17 295.706 1203.74 295.717L1206.63 295.774Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -5928,29 +5928,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1215.07 292.982)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.47 295.507C1216.83 296.153 1217.33 296.558 1217.9 296.569L1215 296.512C1214.44 296.501 1213.93 296.096 1213.58 295.45L1216.47 295.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.47 295.507C1215.7 294.112 1215.74 291.877 1216.57 290.514L1213.68 290.457C1212.85 291.82 1212.8 294.056 1213.58 295.45L1216.47 295.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1218.03 289.509C1217.47 289.498 1216.95 289.883 1216.57 290.515L1213.67 290.458C1214.06 289.826 1214.58 289.441 1215.14 289.452L1218.03 289.509Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -5960,29 +5960,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1223.94 288.11)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.34 290.635C1225.69 291.281 1226.2 291.686 1226.76 291.698L1223.87 291.641C1223.3 291.63 1222.8 291.224 1222.44 290.578L1225.34 290.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.34 290.635C1224.57 289.241 1224.61 287.005 1225.44 285.642L1222.54 285.585C1221.72 286.948 1221.67 289.184 1222.44 290.578L1225.34 290.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1226.9 284.638C1226.34 284.626 1225.82 285.012 1225.43 285.643L1222.54 285.586C1222.92 284.955 1223.44 284.57 1224.01 284.581L1226.9 284.638Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -5992,29 +5992,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1203.67 339.613)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.07 342.137C1205.42 342.784 1205.93 343.189 1206.49 343.2L1203.6 343.143C1203.04 343.132 1202.53 342.727 1202.17 342.081L1205.07 342.137Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.07 342.138C1204.3 340.743 1204.34 338.508 1205.17 337.145L1202.27 337.088C1201.45 338.451 1201.4 340.686 1202.17 342.081L1205.07 342.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1206.63 336.14C1206.07 336.129 1205.55 336.514 1205.16 337.146L1202.27 337.089C1202.65 336.457 1203.17 336.072 1203.74 336.083L1206.63 336.14Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -6024,29 +6024,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1215.07 333.348)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.47 335.873C1216.83 336.519 1217.33 336.924 1217.9 336.935L1215 336.878C1214.44 336.867 1213.93 336.462 1213.58 335.816L1216.47 335.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.47 335.873C1215.7 334.479 1215.74 332.243 1216.57 330.88L1213.68 330.823C1212.85 332.186 1212.8 334.422 1213.58 335.816L1216.47 335.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1218.03 329.875C1217.47 329.864 1216.95 330.249 1216.57 330.881L1213.67 330.824C1214.06 330.193 1214.58 329.807 1215.14 329.819L1218.03 329.875Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -6056,29 +6056,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1223.94 328.477)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.34 331.002C1225.69 331.648 1226.2 332.053 1226.76 332.064L1223.87 332.007C1223.3 331.996 1222.8 331.591 1222.44 330.945L1225.34 331.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.34 331.002C1224.57 329.608 1224.61 327.372 1225.44 326.009L1222.54 325.952C1221.72 327.315 1221.67 329.551 1222.44 330.945L1225.34 331.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1226.9 325.004C1226.34 324.993 1225.82 325.378 1225.43 326.01L1222.54 325.953C1222.92 325.321 1223.44 324.936 1224.01 324.947L1226.9 325.004Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -6088,29 +6088,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1203.67 375.654)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.07 378.179C1205.42 378.825 1205.93 379.23 1206.49 379.241L1203.6 379.185C1203.04 379.173 1202.53 378.768 1202.17 378.122L1205.07 378.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.07 378.179C1204.3 376.785 1204.34 374.549 1205.17 373.186L1202.27 373.129C1201.45 374.492 1201.4 376.728 1202.17 378.122L1205.07 378.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1206.63 372.182C1206.07 372.17 1205.55 372.556 1205.16 373.187L1202.27 373.13C1202.65 372.499 1203.17 372.114 1203.74 372.125L1206.63 372.182Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -6120,29 +6120,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1215.07 369.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.47 371.914C1216.83 372.56 1217.33 372.965 1217.9 372.976L1215 372.919C1214.44 372.908 1213.93 372.503 1213.58 371.857L1216.47 371.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.47 371.914C1215.7 370.519 1215.74 368.284 1216.57 366.921L1213.68 366.864C1212.85 368.227 1212.8 370.462 1213.58 371.857L1216.47 371.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1218.03 365.916C1217.47 365.905 1216.95 366.29 1216.57 366.922L1213.67 366.865C1214.06 366.233 1214.58 365.848 1215.14 365.859L1218.03 365.916Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -6152,29 +6152,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1223.94 364.517)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.34 367.042C1225.69 367.688 1226.2 368.093 1226.76 368.104L1223.87 368.047C1223.3 368.036 1222.8 367.631 1222.44 366.985L1225.34 367.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.34 367.042C1224.57 365.648 1224.61 363.412 1225.44 362.049L1222.54 361.992C1221.72 363.355 1221.67 365.591 1222.44 366.985L1225.34 367.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1226.9 361.044C1226.34 361.033 1225.82 361.418 1225.43 362.05L1222.54 361.993C1222.92 361.361 1223.44 360.976 1224.01 360.987L1226.9 361.044Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -6182,7 +6182,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1192.8 298.733)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -6190,7 +6190,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 1129 335.429)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -6198,7 +6198,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1192.8 372.126)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -6206,7 +6206,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1192.8 259.808)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -6214,7 +6214,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 1129 296.504)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -6222,7 +6222,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1192.8 333.201)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -6230,7 +6230,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1192.8 218)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -6238,7 +6238,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 1129 254.696)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -6246,7 +6246,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1192.8 291.394)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -6256,29 +6256,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1203.67 299.247)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.07 301.772C1205.42 302.418 1205.93 302.823 1206.49 302.834L1203.6 302.777C1203.04 302.766 1202.53 302.361 1202.17 301.715L1205.07 301.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.07 301.772C1204.3 300.378 1204.34 298.142 1205.17 296.779L1202.27 296.722C1201.45 298.085 1201.4 300.321 1202.17 301.715L1205.07 301.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1206.63 295.774C1206.07 295.763 1205.55 296.148 1205.16 296.78L1202.27 296.723C1202.65 296.091 1203.17 295.706 1203.74 295.717L1206.63 295.774Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -6288,29 +6288,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1215.07 292.982)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.47 295.507C1216.83 296.153 1217.33 296.558 1217.89 296.57L1215 296.513C1214.44 296.502 1213.93 296.096 1213.57 295.45L1216.47 295.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.47 295.507C1215.7 294.113 1215.74 291.877 1216.57 290.514L1213.67 290.457C1212.85 291.821 1212.8 294.056 1213.57 295.451L1216.47 295.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1218.03 289.51C1217.47 289.499 1216.95 289.884 1216.56 290.515L1213.67 290.458C1214.05 289.827 1214.57 289.442 1215.14 289.453L1218.03 289.51Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -6320,29 +6320,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1223.94 288.11)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.34 290.635C1225.7 291.281 1226.2 291.686 1226.77 291.698L1223.87 291.641C1223.31 291.63 1222.8 291.224 1222.45 290.578L1225.34 290.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.34 290.635C1224.57 289.241 1224.61 287.005 1225.44 285.642L1222.54 285.585C1221.72 286.948 1221.67 289.184 1222.45 290.578L1225.34 290.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1226.9 284.637C1226.34 284.626 1225.82 285.011 1225.44 285.643L1222.54 285.586C1222.93 284.954 1223.44 284.569 1224.01 284.58L1226.9 284.637Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -6352,29 +6352,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1203.67 339.613)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.07 342.138C1205.42 342.784 1205.93 343.189 1206.49 343.2L1203.6 343.144C1203.04 343.132 1202.53 342.727 1202.17 342.081L1205.07 342.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.07 342.138C1204.3 340.744 1204.34 338.508 1205.17 337.145L1202.27 337.088C1201.45 338.451 1201.4 340.687 1202.17 342.081L1205.07 342.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1206.63 336.141C1206.07 336.129 1205.55 336.515 1205.16 337.146L1202.27 337.089C1202.65 336.458 1203.17 336.073 1203.74 336.084L1206.63 336.141Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -6384,29 +6384,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1215.07 333.349)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.47 335.873C1216.83 336.519 1217.33 336.925 1217.9 336.936L1215 336.879C1214.44 336.868 1213.93 336.463 1213.58 335.816L1216.47 335.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.47 335.874C1215.7 334.479 1215.74 332.244 1216.57 330.881L1213.68 330.824C1212.85 332.187 1212.8 334.422 1213.58 335.817L1216.47 335.874Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1218.04 329.876C1217.47 329.865 1216.95 330.25 1216.57 330.882L1213.68 330.825C1214.06 330.193 1214.58 329.808 1215.14 329.819L1218.04 329.876Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -6416,29 +6416,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1223.94 328.477)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.34 331.001C1225.7 331.647 1226.2 332.053 1226.77 332.064L1223.87 332.007C1223.31 331.996 1222.8 331.591 1222.45 330.944L1225.34 331.001Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.34 331.002C1224.57 329.607 1224.61 327.372 1225.44 326.008L1222.55 325.952C1221.72 327.315 1221.68 329.55 1222.45 330.945L1225.34 331.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1226.9 325.004C1226.34 324.993 1225.82 325.378 1225.44 326.009L1222.54 325.953C1222.93 325.321 1223.45 324.936 1224.01 324.947L1226.9 325.004Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -6448,29 +6448,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1203.67 375.655)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.07 378.179C1205.42 378.826 1205.93 379.231 1206.49 379.242L1203.6 379.185C1203.04 379.174 1202.53 378.769 1202.17 378.123L1205.07 378.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.07 378.18C1204.3 376.785 1204.34 374.55 1205.17 373.187L1202.27 373.13C1201.45 374.493 1201.4 376.728 1202.17 378.123L1205.07 378.18Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1206.63 372.182C1206.07 372.171 1205.55 372.556 1205.16 373.188L1202.27 373.131C1202.65 372.499 1203.17 372.114 1203.74 372.125L1206.63 372.182Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -6480,29 +6480,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1215.07 369.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.47 371.914C1216.83 372.56 1217.33 372.965 1217.89 372.976L1215 372.919C1214.44 372.908 1213.93 372.503 1213.57 371.857L1216.47 371.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.47 371.914C1215.7 370.52 1215.74 368.284 1216.57 366.921L1213.67 366.864C1212.85 368.227 1212.8 370.463 1213.57 371.857L1216.47 371.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1218.03 365.916C1217.47 365.905 1216.95 366.29 1216.56 366.922L1213.67 366.865C1214.05 366.234 1214.57 365.848 1215.14 365.86L1218.03 365.916Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -6512,29 +6512,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1223.94 364.518)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.34 367.042C1225.69 367.688 1226.2 368.094 1226.76 368.105L1223.87 368.048C1223.3 368.037 1222.8 367.632 1222.44 366.985L1225.34 367.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.34 367.043C1224.57 365.648 1224.61 363.413 1225.44 362.049L1222.54 361.993C1221.72 363.356 1221.67 365.591 1222.44 366.986L1225.34 367.043Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1226.9 361.045C1226.34 361.034 1225.82 361.419 1225.43 362.05L1222.54 361.994C1222.92 361.362 1223.44 360.977 1224.01 360.988L1226.9 361.045Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -6542,7 +6542,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1192.8 298.733)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -6550,7 +6550,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 1129 335.429)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -6558,7 +6558,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1192.8 372.126)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -6566,7 +6566,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1192.8 259.808)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -6574,7 +6574,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 1129 296.504)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -6582,7 +6582,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1192.8 333.201)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -6590,7 +6590,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1192.8 218)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -6598,7 +6598,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 1129 254.696)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -6606,7 +6606,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1192.8 291.394)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -6616,29 +6616,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1203.67 299.247)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.06 301.772C1205.42 302.418 1205.92 302.823 1206.49 302.834L1203.6 302.777C1203.03 302.766 1202.53 302.361 1202.17 301.715L1205.06 301.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.06 301.772C1204.29 300.377 1204.33 298.142 1205.16 296.778L1202.27 296.722C1201.44 298.085 1201.4 300.32 1202.17 301.715L1205.06 301.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1206.63 295.774C1206.06 295.763 1205.54 296.148 1205.16 296.779L1202.27 296.723C1202.65 296.091 1203.17 295.706 1203.73 295.717L1206.63 295.774Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -6648,29 +6648,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1215.07 292.982)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.47 295.507C1216.82 296.153 1217.33 296.558 1217.89 296.57L1215 296.513C1214.43 296.502 1213.93 296.096 1213.57 295.45L1216.47 295.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.47 295.507C1215.69 294.113 1215.74 291.877 1216.56 290.514L1213.67 290.457C1212.85 291.821 1212.8 294.056 1213.57 295.451L1216.47 295.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1218.03 289.51C1217.46 289.499 1216.95 289.884 1216.56 290.515L1213.67 290.458C1214.05 289.827 1214.57 289.442 1215.14 289.453L1218.03 289.51Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -6680,29 +6680,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1223.94 288.11)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.33 290.635C1225.69 291.281 1226.19 291.686 1226.76 291.698L1223.87 291.641C1223.3 291.63 1222.8 291.224 1222.44 290.578L1225.33 290.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.33 290.635C1224.56 289.24 1224.61 287.005 1225.43 285.642L1222.54 285.585C1221.71 286.948 1221.67 289.183 1222.44 290.578L1225.33 290.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1226.9 284.637C1226.33 284.626 1225.81 285.011 1225.43 285.642L1222.54 285.585C1222.92 284.954 1223.44 284.569 1224.01 284.58L1226.9 284.637Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -6712,29 +6712,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1203.67 339.613)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.06 342.138C1205.42 342.784 1205.92 343.189 1206.49 343.2L1203.6 343.144C1203.03 343.132 1202.53 342.727 1202.17 342.081L1205.06 342.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.06 342.138C1204.29 340.743 1204.33 338.508 1205.16 337.145L1202.27 337.088C1201.44 338.451 1201.4 340.686 1202.17 342.081L1205.06 342.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1206.63 336.14C1206.06 336.129 1205.54 336.514 1205.16 337.146L1202.27 337.089C1202.65 336.457 1203.17 336.072 1203.73 336.083L1206.63 336.14Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -6744,29 +6744,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1215.07 333.349)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.47 335.873C1216.83 336.519 1217.33 336.925 1217.89 336.936L1215 336.879C1214.44 336.868 1213.93 336.463 1213.57 335.816L1216.47 335.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.47 335.874C1215.7 334.479 1215.74 332.244 1216.57 330.881L1213.67 330.824C1212.85 332.187 1212.8 334.422 1213.57 335.817L1216.47 335.874Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1218.03 329.876C1217.47 329.865 1216.95 330.25 1216.57 330.882L1213.67 330.825C1214.06 330.193 1214.58 329.808 1215.14 329.819L1218.03 329.876Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -6776,29 +6776,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1223.94 328.477)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.33 331.001C1225.69 331.647 1226.2 332.053 1226.76 332.064L1223.87 332.007C1223.3 331.996 1222.8 331.591 1222.44 330.944L1225.33 331.001Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.34 331.002C1224.56 329.607 1224.61 327.372 1225.43 326.008L1222.54 325.952C1221.71 327.315 1221.67 329.55 1222.44 330.945L1225.34 331.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1226.9 325.004C1226.33 324.993 1225.81 325.378 1225.43 326.009L1222.54 325.953C1222.92 325.321 1223.44 324.936 1224.01 324.947L1226.9 325.004Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -6808,29 +6808,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1203.67 375.654)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.06 378.179C1205.42 378.826 1205.92 379.231 1206.49 379.242L1203.6 379.185C1203.03 379.174 1202.53 378.769 1202.17 378.123L1205.06 378.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.06 378.179C1204.29 376.785 1204.33 374.549 1205.16 373.186L1202.27 373.129C1201.44 374.492 1201.4 376.728 1202.17 378.122L1205.06 378.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1206.63 372.182C1206.06 372.17 1205.54 372.556 1205.16 373.187L1202.27 373.13C1202.65 372.499 1203.17 372.114 1203.73 372.125L1206.63 372.182Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -6840,29 +6840,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1215.07 369.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.47 371.914C1216.82 372.56 1217.33 372.965 1217.89 372.976L1215 372.919C1214.43 372.908 1213.93 372.503 1213.57 371.857L1216.47 371.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.47 371.914C1215.69 370.52 1215.74 368.284 1216.56 366.921L1213.67 366.864C1212.85 368.227 1212.8 370.463 1213.57 371.857L1216.47 371.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1218.03 365.916C1217.46 365.905 1216.95 366.29 1216.56 366.922L1213.67 366.865C1214.05 366.234 1214.57 365.848 1215.14 365.86L1218.03 365.916Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -6872,29 +6872,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1223.94 364.518)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.33 367.042C1225.69 367.688 1226.2 368.094 1226.76 368.105L1223.87 368.048C1223.3 368.037 1222.8 367.632 1222.44 366.985L1225.33 367.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.34 367.043C1224.56 365.648 1224.61 363.413 1225.43 362.049L1222.54 361.993C1221.71 363.356 1221.67 365.591 1222.44 366.986L1225.34 367.043Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1226.9 361.045C1226.33 361.034 1225.81 361.419 1225.43 362.05L1222.54 361.994C1222.92 361.362 1223.44 360.977 1224.01 360.988L1226.9 361.045Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -6902,7 +6902,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1192.8 298.732)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -6910,7 +6910,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 1129 335.428)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -6918,7 +6918,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1192.8 372.125)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -6926,7 +6926,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1192.8 259.808)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -6934,7 +6934,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 1129 296.504)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -6942,7 +6942,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1192.8 333.201)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -6950,7 +6950,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1192.8 218)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -6958,7 +6958,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 1129 254.696)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -6966,7 +6966,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1192.8 291.394)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -6976,29 +6976,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1203.66 299.247)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.06 301.772C1205.42 302.418 1205.92 302.823 1206.49 302.834L1203.59 302.777C1203.03 302.766 1202.53 302.361 1202.17 301.715L1205.06 301.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.06 301.772C1204.29 300.378 1204.33 298.142 1205.16 296.779L1202.27 296.722C1201.44 298.085 1201.4 300.321 1202.17 301.715L1205.06 301.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1206.63 295.774C1206.06 295.763 1205.54 296.148 1205.16 296.78L1202.26 296.723C1202.65 296.091 1203.17 295.706 1203.73 295.717L1206.63 295.774Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -7008,29 +7008,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1215.07 292.982)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.46 295.507C1216.82 296.153 1217.33 296.558 1217.89 296.57L1215 296.513C1214.43 296.502 1213.93 296.096 1213.57 295.45L1216.46 295.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.46 295.507C1215.69 294.113 1215.74 291.877 1216.56 290.514L1213.67 290.457C1212.84 291.821 1212.8 294.056 1213.57 295.451L1216.46 295.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1218.03 289.51C1217.46 289.499 1216.94 289.884 1216.56 290.515L1213.67 290.458C1214.05 289.827 1214.57 289.442 1215.13 289.453L1218.03 289.51Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -7040,29 +7040,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1223.94 288.11)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.33 290.635C1225.69 291.282 1226.19 291.687 1226.76 291.698L1223.87 291.641C1223.3 291.63 1222.8 291.225 1222.44 290.579L1225.33 290.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.33 290.635C1224.56 289.241 1224.61 287.005 1225.43 285.642L1222.54 285.585C1221.71 286.948 1221.67 289.184 1222.44 290.578L1225.33 290.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1226.9 284.637C1226.33 284.626 1225.81 285.011 1225.43 285.643L1222.54 285.586C1222.92 284.954 1223.44 284.569 1224.01 284.58L1226.9 284.637Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -7072,29 +7072,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1203.66 339.613)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.06 342.138C1205.42 342.784 1205.92 343.189 1206.49 343.2L1203.59 343.144C1203.03 343.132 1202.53 342.727 1202.17 342.081L1205.06 342.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.06 342.138C1204.29 340.744 1204.33 338.508 1205.16 337.145L1202.27 337.088C1201.44 338.451 1201.4 340.687 1202.17 342.081L1205.06 342.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1206.63 336.141C1206.06 336.129 1205.54 336.515 1205.16 337.146L1202.26 337.089C1202.65 336.458 1203.17 336.073 1203.73 336.084L1206.63 336.141Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -7104,29 +7104,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1215.07 333.348)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.46 335.872C1216.82 336.518 1217.33 336.924 1217.89 336.935L1215 336.878C1214.43 336.867 1213.93 336.462 1213.57 335.815L1216.46 335.872Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.46 335.873C1215.69 334.478 1215.74 332.243 1216.56 330.88L1213.67 330.823C1212.84 332.186 1212.8 334.421 1213.57 335.816L1216.46 335.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1218.03 329.875C1217.46 329.864 1216.94 330.249 1216.56 330.881L1213.67 330.824C1214.05 330.192 1214.57 329.807 1215.13 329.818L1218.03 329.875Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -7136,29 +7136,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1223.94 328.476)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.33 331C1225.69 331.646 1226.19 332.052 1226.76 332.063L1223.87 332.006C1223.3 331.995 1222.8 331.59 1222.44 330.943L1225.33 331Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.33 331.001C1224.56 329.606 1224.61 327.371 1225.43 326.007L1222.54 325.951C1221.71 327.314 1221.67 329.549 1222.44 330.944L1225.33 331.001Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1226.9 325.003C1226.33 324.992 1225.81 325.377 1225.43 326.008L1222.54 325.952C1222.92 325.32 1223.44 324.935 1224 324.946L1226.9 325.003Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -7168,29 +7168,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1203.66 375.655)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.06 378.179C1205.42 378.826 1205.92 379.231 1206.49 379.242L1203.59 379.185C1203.03 379.174 1202.53 378.769 1202.17 378.123L1205.06 378.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.06 378.18C1204.29 376.785 1204.33 374.55 1205.16 373.187L1202.27 373.13C1201.44 374.493 1201.4 376.728 1202.17 378.123L1205.06 378.18Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1206.63 372.182C1206.06 372.171 1205.54 372.556 1205.16 373.188L1202.26 373.131C1202.65 372.499 1203.17 372.114 1203.73 372.125L1206.63 372.182Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -7200,29 +7200,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1215.07 369.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.46 371.914C1216.82 372.56 1217.33 372.965 1217.89 372.976L1215 372.919C1214.43 372.908 1213.93 372.503 1213.57 371.857L1216.46 371.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.46 371.914C1215.69 370.52 1215.74 368.284 1216.56 366.921L1213.67 366.864C1212.84 368.227 1212.8 370.463 1213.57 371.857L1216.46 371.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1218.03 365.916C1217.46 365.905 1216.94 366.29 1216.56 366.922L1213.67 366.865C1214.05 366.234 1214.57 365.848 1215.13 365.86L1218.03 365.916Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -7232,29 +7232,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1223.94 364.518)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.33 367.042C1225.69 367.688 1226.19 368.094 1226.76 368.105L1223.87 368.048C1223.3 368.037 1222.8 367.632 1222.44 366.985L1225.33 367.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.33 367.043C1224.56 365.648 1224.61 363.413 1225.43 362.049L1222.54 361.993C1221.71 363.356 1221.67 365.591 1222.44 366.986L1225.33 367.043Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1226.9 361.045C1226.33 361.034 1225.81 361.419 1225.43 362.05L1222.54 361.994C1222.92 361.362 1223.44 360.977 1224 360.988L1226.9 361.045Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <g filter="url(#filter6_d_2900_53447)">
           <rect
@@ -7268,7 +7268,7 @@ export const HeroHeader = () => {
             height="73.5976"
             transform="matrix(0.866826 0.498611 -0.866826 0.498611 1192.8 298.732)"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <g filter="url(#filter7_d_2900_53447)">
@@ -7283,7 +7283,7 @@ export const HeroHeader = () => {
             height="27.5224"
             transform="matrix(0.866826 0.498611 0 1 1129 335.428)"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <g filter="url(#filter8_d_2900_53447)">
@@ -7298,7 +7298,7 @@ export const HeroHeader = () => {
             height="27.5224"
             transform="matrix(0.866826 -0.498611 0 1 1192.8 372.125)"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <rect
@@ -7307,7 +7307,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1192.8 259.808)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -7315,7 +7315,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 1129 296.504)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -7323,7 +7323,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1192.8 333.201)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -7331,7 +7331,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1192.8 218)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -7339,7 +7339,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 1129 254.696)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -7347,7 +7347,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1192.8 291.394)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -7357,29 +7357,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1203.66 299.247)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.06 301.772C1205.42 302.418 1205.92 302.823 1206.49 302.834L1203.59 302.777C1203.03 302.766 1202.53 302.361 1202.17 301.715L1205.06 301.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.06 301.772C1204.29 300.378 1204.33 298.142 1205.16 296.779L1202.27 296.722C1201.44 298.085 1201.4 300.321 1202.17 301.715L1205.06 301.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1206.63 295.774C1206.06 295.763 1205.54 296.148 1205.16 296.78L1202.26 296.723C1202.65 296.091 1203.17 295.706 1203.73 295.717L1206.63 295.774Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -7389,29 +7389,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1215.07 292.982)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.46 295.507C1216.82 296.153 1217.33 296.558 1217.89 296.57L1215 296.513C1214.43 296.502 1213.93 296.096 1213.57 295.45L1216.46 295.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.46 295.507C1215.69 294.113 1215.74 291.877 1216.56 290.514L1213.67 290.457C1212.84 291.821 1212.8 294.056 1213.57 295.451L1216.46 295.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1218.03 289.51C1217.46 289.499 1216.94 289.884 1216.56 290.515L1213.67 290.458C1214.05 289.827 1214.57 289.442 1215.13 289.453L1218.03 289.51Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -7421,29 +7421,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1223.94 288.11)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.33 290.635C1225.69 291.282 1226.19 291.687 1226.76 291.698L1223.87 291.641C1223.3 291.63 1222.8 291.225 1222.44 290.579L1225.33 290.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.33 290.635C1224.56 289.241 1224.61 287.005 1225.43 285.642L1222.54 285.585C1221.71 286.948 1221.67 289.184 1222.44 290.578L1225.33 290.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1226.9 284.637C1226.33 284.626 1225.81 285.011 1225.43 285.643L1222.54 285.586C1222.92 284.954 1223.44 284.569 1224.01 284.58L1226.9 284.637Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -7453,29 +7453,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1203.66 339.613)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.06 342.138C1205.42 342.784 1205.92 343.189 1206.49 343.2L1203.59 343.144C1203.03 343.132 1202.53 342.727 1202.17 342.081L1205.06 342.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.06 342.138C1204.29 340.744 1204.33 338.508 1205.16 337.145L1202.27 337.088C1201.44 338.451 1201.4 340.687 1202.17 342.081L1205.06 342.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1206.63 336.141C1206.06 336.129 1205.54 336.515 1205.16 337.146L1202.26 337.089C1202.65 336.458 1203.17 336.073 1203.73 336.084L1206.63 336.141Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -7485,29 +7485,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1215.07 333.348)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.46 335.872C1216.82 336.518 1217.33 336.924 1217.89 336.935L1215 336.878C1214.43 336.867 1213.93 336.462 1213.57 335.815L1216.46 335.872Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.46 335.873C1215.69 334.478 1215.74 332.243 1216.56 330.88L1213.67 330.823C1212.84 332.186 1212.8 334.421 1213.57 335.816L1216.46 335.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1218.03 329.875C1217.46 329.864 1216.94 330.249 1216.56 330.881L1213.67 330.824C1214.05 330.192 1214.57 329.807 1215.13 329.818L1218.03 329.875Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -7517,29 +7517,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1223.94 328.476)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.33 331C1225.69 331.646 1226.19 332.052 1226.76 332.063L1223.87 332.006C1223.3 331.995 1222.8 331.59 1222.44 330.943L1225.33 331Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.33 331.001C1224.56 329.606 1224.61 327.371 1225.43 326.007L1222.54 325.951C1221.71 327.314 1221.67 329.549 1222.44 330.944L1225.33 331.001Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1226.9 325.003C1226.33 324.992 1225.81 325.377 1225.43 326.008L1222.54 325.952C1222.92 325.32 1223.44 324.935 1224 324.946L1226.9 325.003Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -7549,29 +7549,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1203.66 375.655)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.06 378.179C1205.42 378.826 1205.92 379.231 1206.49 379.242L1203.59 379.185C1203.03 379.174 1202.53 378.769 1202.17 378.123L1205.06 378.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1205.06 378.18C1204.29 376.785 1204.33 374.55 1205.16 373.187L1202.27 373.13C1201.44 374.493 1201.4 376.728 1202.17 378.123L1205.06 378.18Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1206.63 372.182C1206.06 372.171 1205.54 372.556 1205.16 373.188L1202.26 373.131C1202.65 372.499 1203.17 372.114 1203.73 372.125L1206.63 372.182Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -7581,29 +7581,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1215.07 369.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.46 371.914C1216.82 372.56 1217.33 372.965 1217.89 372.976L1215 372.919C1214.43 372.908 1213.93 372.503 1213.57 371.857L1216.46 371.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1216.46 371.914C1215.69 370.52 1215.74 368.284 1216.56 366.921L1213.67 366.864C1212.84 368.227 1212.8 370.463 1213.57 371.857L1216.46 371.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1218.03 365.916C1217.46 365.905 1216.94 366.29 1216.56 366.922L1213.67 366.865C1214.05 366.234 1214.57 365.848 1215.13 365.86L1218.03 365.916Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -7613,29 +7613,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1223.94 364.518)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.33 367.042C1225.69 367.688 1226.19 368.094 1226.76 368.105L1223.87 368.048C1223.3 368.037 1222.8 367.632 1222.44 366.985L1225.33 367.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1225.33 367.043C1224.56 365.648 1224.61 363.413 1225.43 362.049L1222.54 361.993C1221.71 363.356 1221.67 365.591 1222.44 366.986L1225.33 367.043Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1226.9 361.045C1226.33 361.034 1225.81 361.419 1225.43 362.05L1222.54 361.994C1222.92 361.362 1223.44 360.977 1224 360.988L1226.9 361.045Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M14.0219 133.41V120.95L17.486 118.95C18.2943 118.483 18.9467 118.267 19.4432 118.3C19.9398 118.333 20.3035 118.55 20.5344 118.95C20.7769 119.33 20.8982 119.847 20.8982 120.5C20.8982 120.98 20.8346 121.463 20.7076 121.95C20.5806 122.437 20.3785 122.92 20.1014 123.4C19.8358 123.873 19.4952 124.317 19.0795 124.73C18.6638 125.143 18.1615 125.52 17.5726 125.86L15.269 127.19V132.69L14.0219 133.41ZM15.269 125.95L17.4341 124.7C17.9652 124.393 18.3925 124.06 18.7158 123.7C19.0391 123.327 19.2758 122.937 19.4259 122.53C19.576 122.11 19.6511 121.687 19.6511 121.26C19.6511 120.847 19.576 120.517 19.4259 120.27C19.2758 120.023 19.0391 119.893 18.7158 119.88C18.3925 119.853 17.971 119.99 17.4514 120.29L15.269 121.55V125.95ZM23.375 118.87L24.674 118.12L24.6221 120.81L24.4662 120.6C24.5355 120.147 24.6567 119.71 24.8299 119.29C25.0031 118.87 25.211 118.483 25.4534 118.13C25.6959 117.763 25.9615 117.443 26.2502 117.17C26.5389 116.883 26.8391 116.65 27.1509 116.47C27.5665 116.23 27.9476 116.097 28.294 116.07C28.652 116.023 28.9695 116.087 29.2466 116.26L28.6924 117.7L28.6231 117.92L28.5019 117.91C28.4788 117.817 28.4441 117.737 28.3979 117.67C28.3517 117.603 28.2536 117.547 28.1035 117.5C27.9187 117.473 27.7455 117.487 27.5839 117.54C27.4338 117.573 27.2606 117.647 27.0643 117.76C26.7756 117.927 26.4869 118.16 26.1982 118.46C25.9096 118.747 25.644 119.093 25.4015 119.5C25.1705 119.9 24.9858 120.347 24.8472 120.84C24.7087 121.333 24.6394 121.867 24.6394 122.44V127.3L23.375 128.03V118.87ZM33.9578 122.06C33.2419 122.473 32.6068 122.64 32.0526 122.56C31.5098 122.46 31.0826 122.147 30.7708 121.62C30.4591 121.08 30.3032 120.35 30.3032 119.43C30.3032 118.497 30.4591 117.587 30.7708 116.7C31.0826 115.8 31.5098 114.993 32.0526 114.28C32.6068 113.547 33.2419 112.973 33.9578 112.56C34.6737 112.147 35.303 111.99 35.8458 112.09C36.4 112.17 36.833 112.48 37.1448 113.02C37.4566 113.547 37.6124 114.277 37.6124 115.21C37.6124 116.13 37.4566 117.04 37.1448 117.94C36.833 118.827 36.4 119.637 35.8458 120.37C35.303 121.083 34.6737 121.647 33.9578 122.06ZM33.9578 120.86C34.4197 120.593 34.8238 120.207 35.1703 119.7C35.5167 119.193 35.788 118.617 35.9843 117.97C36.1922 117.317 36.2961 116.643 36.2961 115.95C36.2961 115.257 36.1922 114.703 35.9843 114.29C35.788 113.87 35.5167 113.613 35.1703 113.52C34.8238 113.413 34.4197 113.493 33.9578 113.76C33.5075 114.02 33.1033 114.407 32.7454 114.92C32.399 115.413 32.1218 115.987 31.914 116.64C31.7177 117.287 31.6195 117.957 31.6195 118.65C31.6195 119.343 31.7177 119.9 31.914 120.32C32.1218 120.733 32.399 120.993 32.7454 121.1C33.1033 121.2 33.5075 121.12 33.9578 120.86ZM41.9945 117.46C41.5904 117.693 41.192 117.823 40.7994 117.85C40.4184 117.87 40.0662 117.773 39.7429 117.56C39.4311 117.34 39.1828 116.977 38.9981 116.47C38.8133 115.963 38.721 115.303 38.721 114.49C38.721 113.65 38.8191 112.88 39.0154 112.18C39.2117 111.467 39.4715 110.83 39.7948 110.27C40.1181 109.697 40.4761 109.21 40.8687 108.81C41.2613 108.397 41.6597 108.073 42.0638 107.84C42.4333 107.627 42.7624 107.503 43.0511 107.47C43.3513 107.43 43.6111 107.467 43.8305 107.58C44.0614 107.673 44.2404 107.843 44.3674 108.09V102.59L45.5106 101.93L45.6838 101.83V101.97C45.6145 102.09 45.5683 102.203 45.5452 102.31C45.5337 102.41 45.5279 102.573 45.5279 102.8L45.5452 113.79C45.5452 114.03 45.551 114.267 45.5626 114.5C45.5856 114.713 45.6376 114.917 45.7184 115.11L44.4887 115.82C44.4309 115.693 44.3905 115.557 44.3674 115.41C44.3443 115.263 44.327 115.12 44.3155 114.98C44.3155 114.82 44.3155 114.66 44.3155 114.5C44.1538 114.913 43.9575 115.313 43.7266 115.7C43.4956 116.073 43.2358 116.41 42.9472 116.71C42.6585 117.01 42.3409 117.26 41.9945 117.46ZM42.1851 116.09C42.5661 115.87 42.8894 115.597 43.155 115.27C43.4206 114.93 43.6342 114.553 43.7959 114.14C43.9575 113.713 44.073 113.267 44.1423 112.8C44.2231 112.313 44.2635 111.823 44.2635 111.33C44.2635 110.65 44.1885 110.087 44.0383 109.64C43.8882 109.18 43.6515 108.89 43.3282 108.77C43.0049 108.637 42.5892 108.717 42.0811 109.01C41.7347 109.21 41.423 109.47 41.1458 109.79C40.8802 110.09 40.6551 110.44 40.4703 110.84C40.2971 111.233 40.1643 111.663 40.072 112.13C39.9796 112.583 39.9334 113.063 39.9334 113.57C39.9334 114.33 40.02 114.947 40.1932 115.42C40.3664 115.893 40.6204 116.193 40.9553 116.32C41.2902 116.447 41.7001 116.37 42.1851 116.09Z"
@@ -7665,13 +7665,13 @@ export const HeroHeader = () => {
         <path
           d="M945.072 117.491L945.978 117L979 134.068"
           stroke="black"
-          stroke-dasharray="8 8"
+          strokeDasharray="8 8"
           className="edge-path"
         />
         <path
           d="M836.5 172L1083.07 47.4911L1083.98 47L1194.5 107"
           stroke="black"
-          stroke-dasharray="8 8"
+          strokeDasharray="8 8"
           className="edge-path"
         />
         <g filter="url(#filter9_d_2900_53447)">
@@ -7679,25 +7679,25 @@ export const HeroHeader = () => {
             d="M515.305 46.6483C539.713 33.7338 579.287 33.7339 603.695 46.6483L892.805 199.616C917.213 212.531 917.213 233.469 892.805 246.384L603.695 399.352C579.287 412.266 539.713 412.266 515.305 399.352L226.195 246.384C201.787 233.469 201.787 212.531 226.195 199.616L515.305 46.6483Z"
             fill="white"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
           <path
             d="M208 224C208 233.763 217.05 241.602 229 248V268C217.05 261.602 209.658 252.763 209.658 243L208 224Z"
             fill="#E7E7E7"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
           <path
             d="M512.75 398C538.845 411.808 581.155 411.808 607.25 398V418C581.155 431.808 538.845 431.808 512.75 418V398Z"
             fill="#B7B7B7"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
           <path
             d="M911 223.5C911 233.263 902.842 241.602 890.75 248V268C902.842 261.602 910.322 252.764 910.322 243L911 223.5Z"
             fill="#B7B7B7"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
           <path
             d="M513 399.027V418L229.078 267.742L229 248L513 399.027Z"
@@ -7716,14 +7716,14 @@ export const HeroHeader = () => {
           x2="966.304"
           y2="358.874"
           stroke="black"
-          stroke-linecap="round"
-          stroke-dasharray="8 8"
+          strokeLinecap="round"
+          strokeDasharray="8 8"
           className="edge-path"
         />
         <path
           d="M821.5 304L1050 442.5L1157 381.5"
           stroke="black"
-          stroke-dasharray="8 8"
+          strokeDasharray="8 8"
           className="edge-path"
         />
         <path
@@ -7768,7 +7768,7 @@ export const HeroHeader = () => {
             rx="8"
             transform="matrix(0.866025 -0.5 0 1 1203 94.7168)"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <rect
@@ -7777,7 +7777,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866025 0.5 0 1 1192 98.0728)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="85.538"
@@ -7785,7 +7785,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866025 -0.5 0.866025 0.5 1201.26 82.0352)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <g filter="url(#filter11_d_2900_53447)">
           <path
@@ -7795,20 +7795,20 @@ export const HeroHeader = () => {
           <path
             d="M1203.57 190.293C1203.57 193.029 1204.48 195.244 1206.29 196.288L1194.71 189.605C1192.9 188.561 1192 186.347 1192 183.61L1203.57 190.293Z"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <path
           d="M1203.57 104.756C1203.57 98.851 1207.72 91.6704 1212.83 88.7178L1201.26 82.0352C1196.15 84.9877 1192 92.1684 1192 98.0735L1203.57 104.756Z"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1293.46 45.2994C1291.65 44.2555 1289.28 44.5798 1286.91 45.9479L1275.34 39.2653C1277.71 37.8971 1280.08 37.5728 1281.88 38.6167L1293.46 45.2994Z"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="181.453"
@@ -7817,7 +7817,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 -0.486817 0 1 302.771 96.1284)"
           fill="white"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="23.3909"
@@ -7825,7 +7825,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 0.486817 0 1 282 103.361)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="149.702"
@@ -7833,25 +7833,25 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 -0.486817 0.873504 0.486817 298.344 76.0322)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M302.432 260.503C302.432 265.166 304.028 268.939 307.22 270.718L286.788 259.331C283.596 257.552 282 253.778 282 249.116L302.432 260.503Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M302.432 114.748C302.432 104.686 309.75 92.4504 318.778 87.4193L298.346 76.0322C289.318 81.0634 282 93.2989 282 103.361L302.432 114.748Z"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M461.101 13.4379C457.91 11.6591 453.727 12.2117 449.543 14.5431L429.111 3.15602C433.295 0.82466 437.478 0.272067 440.669 2.05084L461.101 13.4379Z"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="2.33909"
@@ -7859,7 +7859,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 0.486817 -0.873504 0.486817 444.695 48.8252)"
           fill="#BDCBFD"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="2.33909"
@@ -7867,7 +7867,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 0.486817 0 1 322.104 117.147)"
           fill="#93AAFC"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="140.345"
@@ -7875,7 +7875,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 -0.486817 0 1 324.145 118.287)"
           fill="#FFB2B2"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="2.33909"
@@ -7883,7 +7883,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 0.486817 -0.873504 0.486817 444.695 82.9863)"
           fill="#BDCBFD"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="2.33909"
@@ -7891,7 +7891,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 0.486817 0 1 322.104 151.309)"
           fill="#93AAFC"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="140.345"
@@ -7899,7 +7899,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 -0.486817 0 1 324.145 152.448)"
           fill="#FFB2B2"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="2.33909"
@@ -7907,7 +7907,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 0.486817 -0.873504 0.486817 444.695 114.871)"
           fill="#BDCBFD"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="2.33909"
@@ -7915,7 +7915,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 0.486817 0 1 322.104 183.193)"
           fill="#93AAFC"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="140.345"
@@ -7923,7 +7923,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 -0.486817 0 1 324.145 184.333)"
           fill="#FFB2B2"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="2.33909"
@@ -7931,7 +7931,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 0.486817 -0.873504 0.486817 444.695 149.031)"
           fill="#BDCBFD"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="2.33909"
@@ -7939,7 +7939,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 0.486817 0 1 322.104 217.354)"
           fill="#93AAFC"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="140.345"
@@ -7947,7 +7947,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 -0.486817 0 1 324.145 218.493)"
           fill="#FFB2B2"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M332.437 127.988C332.208 128.115 331.992 128.193 331.788 128.223C331.585 128.262 331.397 128.254 331.226 128.2C331.063 128.142 330.916 128.046 330.786 127.914L330.48 128.924L329.917 129.238V119.928L330.798 119.437L330.92 119.369V119.467C330.871 119.55 330.839 119.629 330.822 119.703C330.814 119.773 330.81 119.887 330.81 120.046V123.322C330.9 123.104 331.006 122.891 331.128 122.683C331.25 122.475 331.385 122.278 331.532 122.094C331.678 121.909 331.833 121.748 331.996 121.611C332.159 121.464 332.318 121.347 332.473 121.261C332.816 121.07 333.125 120.968 333.403 120.953C333.688 120.925 333.933 120.994 334.136 121.16C334.34 121.317 334.495 121.572 334.601 121.923C334.715 122.27 334.772 122.719 334.772 123.27C334.772 123.839 334.707 124.375 334.577 124.877C334.446 125.379 334.267 125.838 334.039 126.255C333.818 126.657 333.57 127.006 333.293 127.3C333.015 127.595 332.73 127.824 332.437 127.988ZM332.326 127.153C332.522 127.044 332.71 126.897 332.889 126.713C333.077 126.525 333.244 126.296 333.39 126.028C333.537 125.75 333.651 125.43 333.733 125.067C333.822 124.7 333.867 124.288 333.867 123.83C333.867 123.41 333.831 123.067 333.757 122.8C333.684 122.523 333.578 122.321 333.439 122.193C333.309 122.06 333.15 121.999 332.962 122.011C332.775 122.012 332.571 122.075 332.351 122.197C332.049 122.365 331.78 122.623 331.544 122.969C331.316 123.302 331.136 123.696 331.006 124.151C330.875 124.597 330.81 125.067 330.81 125.562C330.81 125.926 330.839 126.241 330.896 126.508C330.953 126.775 331.038 126.984 331.152 127.135C331.275 127.282 331.43 127.363 331.617 127.38C331.813 127.383 332.049 127.307 332.326 127.153ZM337.035 119.671L335.824 120.346V119.548L337.035 118.873V118.341C337.035 117.772 337.12 117.257 337.291 116.798C337.471 116.334 337.715 115.932 338.025 115.591C338.335 115.241 338.69 114.955 339.089 114.732C339.44 114.537 339.766 114.43 340.067 114.411C340.377 114.378 340.634 114.454 340.838 114.639L340.373 115.64L340.3 115.793L340.226 115.778C340.218 115.708 340.202 115.642 340.178 115.581C340.153 115.52 340.096 115.459 340.006 115.397C339.876 115.339 339.745 115.318 339.615 115.335C339.485 115.352 339.317 115.417 339.114 115.53C338.877 115.662 338.665 115.836 338.478 116.053C338.29 116.26 338.143 116.514 338.037 116.816C337.931 117.109 337.878 117.46 337.878 117.871V118.403L339.713 117.38V118.178L337.878 119.201V124.801L337.035 125.271V119.671ZM342.379 115.895L343.296 115.383L343.259 117.266L343.149 117.117C343.198 116.801 343.284 116.496 343.406 116.204C343.528 115.912 343.675 115.644 343.846 115.399C344.017 115.145 344.205 114.924 344.409 114.735C344.613 114.538 344.825 114.378 345.045 114.255C345.338 114.091 345.607 114.002 345.852 113.987C346.105 113.958 346.329 114.006 346.524 114.13L346.133 115.132L346.084 115.286L345.999 115.277C345.982 115.212 345.958 115.155 345.925 115.108C345.893 115.061 345.823 115.02 345.717 114.986C345.587 114.965 345.465 114.973 345.35 115.008C345.244 115.03 345.122 115.08 344.984 115.157C344.78 115.271 344.576 115.431 344.372 115.638C344.168 115.835 343.981 116.075 343.81 116.357C343.646 116.635 343.516 116.945 343.418 117.289C343.32 117.633 343.271 118.006 343.271 118.407V121.809L342.379 122.307V115.895ZM349.374 118.548C348.738 118.903 348.249 119.012 347.906 118.876C347.564 118.731 347.393 118.402 347.393 117.888C347.393 117.543 347.466 117.194 347.613 116.842C347.76 116.48 347.959 116.135 348.212 115.808C348.473 115.466 348.775 115.149 349.117 114.855C349.459 114.562 349.822 114.308 350.205 114.095C350.344 114.018 350.483 113.945 350.621 113.877C350.768 113.795 350.919 113.721 351.074 113.653C351.237 113.571 351.404 113.497 351.575 113.429L351.599 114.186C351.453 114.24 351.302 114.305 351.147 114.382C351 114.445 350.853 114.513 350.707 114.585C350.56 114.658 350.417 114.733 350.279 114.81C349.985 114.973 349.716 115.151 349.472 115.344C349.227 115.536 349.015 115.738 348.836 115.95C348.656 116.162 348.518 116.384 348.42 116.616C348.322 116.848 348.273 117.09 348.273 117.342C348.273 117.538 348.302 117.69 348.359 117.798C348.424 117.892 348.51 117.952 348.616 117.977C348.722 117.992 348.844 117.98 348.982 117.94C349.129 117.896 349.288 117.826 349.459 117.73C349.777 117.553 350.059 117.341 350.303 117.092C350.556 116.83 350.768 116.539 350.939 116.22C351.118 115.896 351.253 115.546 351.343 115.169C351.432 114.792 351.477 114.394 351.477 113.974C351.477 113.339 351.412 112.881 351.282 112.599C351.151 112.317 350.955 112.174 350.695 112.17C350.442 112.162 350.116 112.269 349.716 112.491C349.447 112.641 349.182 112.85 348.921 113.116C348.66 113.374 348.424 113.683 348.212 114.044L347.784 113.638C348.045 113.194 348.347 112.802 348.689 112.462C349.031 112.122 349.394 111.845 349.777 111.631C350.144 111.427 350.478 111.292 350.78 111.226C351.082 111.161 351.339 111.191 351.551 111.315C351.771 111.426 351.938 111.65 352.052 111.988C352.174 112.321 352.235 112.791 352.235 113.397V116.799L351.282 117.331V116.351C351.176 116.643 351.045 116.907 350.89 117.143C350.743 117.374 350.584 117.579 350.413 117.759C350.242 117.929 350.067 118.078 349.887 118.206C349.708 118.343 349.537 118.457 349.374 118.548ZM353.544 116.07V109.672L354.4 109.195V110.329C354.547 109.986 354.718 109.667 354.914 109.371C355.109 109.066 355.325 108.796 355.562 108.562C355.798 108.318 356.043 108.126 356.295 107.985C356.605 107.812 356.882 107.746 357.127 107.787C357.372 107.828 357.567 108.004 357.714 108.314C357.861 108.624 357.934 109.101 357.934 109.745V113.623L357.078 114.1V110.25C357.078 109.802 357.033 109.473 356.944 109.261C356.854 109.041 356.732 108.918 356.577 108.892C356.422 108.857 356.246 108.894 356.051 109.003C355.863 109.107 355.672 109.261 355.476 109.463C355.289 109.661 355.113 109.894 354.95 110.162C354.787 110.421 354.653 110.702 354.547 111.003C354.449 111.3 354.4 111.603 354.4 111.911V115.593L353.544 116.07ZM360.967 108.727L360.233 109.92V112.342L359.34 112.84V103.53L360.221 103.039L360.343 102.971V103.069C360.294 103.152 360.262 103.231 360.245 103.305C360.237 103.375 360.233 103.489 360.233 103.648V108.884L363.034 104.355C363.083 104.337 363.131 104.32 363.18 104.302C363.229 104.284 363.278 104.266 363.327 104.248C363.384 104.216 363.441 104.189 363.498 104.166C363.564 104.13 363.625 104.096 363.682 104.064L364 103.887L361.652 107.73L364.391 110.025L363.254 110.715L360.967 108.727ZM365.369 109.48V108.668L367.02 107.748V100.062L365.443 100.941V100.129L367.913 98.752V107.25L369.552 106.337V107.149L365.369 109.48ZM371.496 106.065V105.253L372.927 104.456V99.6817L371.57 100.438V99.6262L373.807 98.379V103.965L375.116 103.236V104.048L371.496 106.065ZM373.318 97.3076C373.147 97.403 373 97.4148 372.878 97.3429C372.756 97.2711 372.695 97.1372 372.695 96.9412C372.695 96.7358 372.752 96.5314 372.866 96.3278C372.988 96.1196 373.139 95.9655 373.318 95.8656C373.489 95.7702 373.636 95.763 373.759 95.8442C373.889 95.9115 373.954 96.0432 373.954 96.2392C373.954 96.4352 373.889 96.6395 373.759 96.8522C373.636 97.0604 373.489 97.2122 373.318 97.3076ZM377.024 102.985V96.5865L377.88 96.1094V97.2434C378.026 96.9003 378.198 96.5809 378.393 96.2852C378.589 95.9801 378.805 95.7104 379.041 95.476C379.278 95.2322 379.522 95.0399 379.775 94.899C380.085 94.7264 380.362 94.6606 380.607 94.7016C380.851 94.7426 381.047 94.9182 381.194 95.2284C381.341 95.5387 381.414 96.0158 381.414 96.6598V100.538L380.558 101.015V97.1648C380.558 96.7168 380.513 96.3872 380.423 96.1758C380.334 95.9551 380.211 95.832 380.056 95.8063C379.902 95.7713 379.726 95.8083 379.531 95.9173C379.343 96.0218 379.152 96.1753 378.956 96.3777C378.768 96.5755 378.593 96.8085 378.43 97.0767C378.267 97.3356 378.132 97.6159 378.026 97.9176C377.929 98.2148 377.88 98.5174 377.88 98.8254V102.507L377.024 102.985ZM385.621 98.3473C385.221 98.5699 384.826 98.7016 384.434 98.7424C384.051 98.7692 383.705 98.687 383.395 98.4957C383.093 98.2904 382.849 97.9554 382.661 97.4906C382.482 97.0212 382.392 96.3945 382.392 95.6105C382.392 94.8359 382.478 94.1208 382.649 93.4654C382.82 92.8007 383.049 92.2068 383.334 91.6837C383.619 91.1607 383.933 90.7151 384.276 90.347C384.626 89.9742 384.977 89.6902 385.327 89.4948C385.629 89.3267 385.922 89.2285 386.208 89.2001C386.493 89.1718 386.746 89.2269 386.966 89.3656C387.194 89.4997 387.374 89.731 387.504 90.0597C387.634 90.379 387.7 90.8 387.7 91.3226V94.5846L386.966 94.9936V94.4616C386.811 94.7626 386.632 95.0258 386.428 95.2514C386.232 95.4632 386.016 95.6349 385.78 95.7667C385.47 95.9393 385.193 96.0145 384.948 95.9921C384.704 95.9697 384.508 95.8595 384.361 95.6612C384.223 95.4585 384.153 95.1798 384.153 94.8251C384.153 94.5078 384.21 94.1866 384.324 93.8617C384.439 93.5368 384.61 93.2173 384.838 92.9034C385.074 92.585 385.364 92.2884 385.706 92.0136C386.057 91.7248 386.465 91.4697 386.929 91.248C386.929 90.8933 386.864 90.6124 386.734 90.4051C386.603 90.1884 386.416 90.0643 386.171 90.0326C385.926 90.0009 385.633 90.0804 385.291 90.2713C384.997 90.4348 384.72 90.6593 384.459 90.9447C384.198 91.2301 383.966 91.5789 383.762 91.9912C383.558 92.3941 383.395 92.8537 383.273 93.3698C383.159 93.8814 383.102 94.4452 383.102 95.0612C383.102 95.7332 383.175 96.271 383.322 96.6746C383.468 97.0781 383.664 97.3751 383.909 97.5654C384.161 97.7419 384.439 97.8254 384.74 97.816C385.05 97.7926 385.368 97.6901 385.694 97.5084C385.931 97.3766 386.155 97.2143 386.367 97.0215C386.587 96.8148 386.799 96.58 387.003 96.3171L387.333 96.8191C387.072 97.1512 386.799 97.4434 386.513 97.6957C386.228 97.9574 385.931 98.1746 385.621 98.3473ZM385.89 94.9353C386.077 94.8308 386.236 94.7002 386.367 94.5435C386.505 94.3823 386.619 94.1833 386.709 93.9467C386.799 93.71 386.864 93.4264 386.905 93.0956C386.946 92.7649 386.966 92.3756 386.966 91.9276C386.517 92.1308 386.138 92.3654 385.829 92.6314C385.527 92.8928 385.299 93.1694 385.144 93.4611C384.989 93.7527 384.911 94.0479 384.911 94.3466C384.911 94.6919 384.993 94.9218 385.156 95.0362C385.319 95.1507 385.564 95.1171 385.89 94.9353ZM390.904 97.657C390.512 97.8751 390.158 98.0354 389.84 98.1379C389.53 98.2453 389.261 98.2925 389.033 98.2798C388.812 98.2718 388.641 98.1992 388.519 98.062C388.405 97.9203 388.348 97.7094 388.348 97.4294C388.348 97.1681 388.397 96.9075 388.495 96.6476C388.592 96.3878 388.719 96.1494 388.874 95.9324C389.037 95.7015 389.212 95.5011 389.399 95.3313L389.766 95.3788C389.62 95.5633 389.501 95.7318 389.412 95.8845C389.322 96.0371 389.257 96.1901 389.216 96.3435C389.175 96.5062 389.155 96.6809 389.155 96.8676C389.155 97.0263 389.196 97.1435 389.277 97.2194C389.359 97.3047 389.473 97.3484 389.62 97.3506C389.774 97.3483 389.958 97.3114 390.17 97.2399C390.39 97.1639 390.639 97.0487 390.916 96.8942C391.291 96.6852 391.593 96.4704 391.821 96.2498C392.057 96.0341 392.233 95.815 392.347 95.5928C392.461 95.3798 392.518 95.1754 392.518 94.9794C392.518 94.774 392.485 94.6242 392.42 94.5299C392.355 94.4356 392.22 94.4125 392.016 94.4608C391.813 94.509 391.503 94.649 391.087 94.8808C390.802 95.0398 390.541 95.1712 390.304 95.2749C390.068 95.3787 389.856 95.4502 389.669 95.4894C389.481 95.5285 389.322 95.5378 389.192 95.5172C389.069 95.4826 388.976 95.4136 388.91 95.3099C388.845 95.2063 388.812 95.0611 388.812 94.8744C388.812 94.6318 388.87 94.3666 388.984 94.079C389.106 93.7869 389.269 93.4813 389.473 93.1624L389.889 93.3087C389.807 93.4568 389.742 93.5865 389.693 93.6977C389.644 93.7996 389.607 93.8948 389.583 93.9831C389.567 94.0575 389.558 94.1367 389.558 94.2207C389.558 94.37 389.607 94.4641 389.705 94.5029C389.811 94.5372 389.991 94.5072 390.243 94.413C390.496 94.3095 390.838 94.1373 391.271 93.8965C391.703 93.6557 392.053 93.5023 392.322 93.4364C392.591 93.3611 392.795 93.3595 392.934 93.4316C393.08 93.4992 393.182 93.6151 393.239 93.7792C393.296 93.9434 393.325 94.1422 393.325 94.3755C393.325 94.6275 393.28 94.8905 393.19 95.1645C393.109 95.4433 392.974 95.7236 392.787 96.0054C392.599 96.2966 392.351 96.5798 392.041 96.8552C391.731 97.1398 391.352 97.4071 390.904 97.657ZM390.647 93.2221C390.247 93.4448 389.901 93.5399 389.607 93.5074C389.314 93.4657 389.086 93.3222 388.923 93.0771C388.768 92.8181 388.69 92.4833 388.69 92.0726C388.69 91.6619 388.768 91.2454 388.923 90.8231C389.086 90.3962 389.314 90.003 389.607 89.6434C389.901 89.2745 390.247 88.9788 390.647 88.7561C391.054 88.5289 391.401 88.4385 391.686 88.4848C391.98 88.5172 392.204 88.6583 392.359 88.908C392.522 89.1531 392.603 89.481 392.603 89.8916C392.603 90.3023 392.522 90.7258 392.359 91.162C392.204 91.5843 391.98 91.9799 391.686 92.3488C391.401 92.7038 391.054 92.9949 390.647 93.2221ZM390.647 92.3821C390.883 92.2504 391.091 92.0738 391.271 91.8525C391.458 91.6174 391.605 91.3629 391.711 91.0892C391.817 90.8154 391.87 90.5526 391.87 90.3006C391.87 90.0392 391.817 89.8354 391.711 89.6892C391.605 89.5336 391.458 89.4474 391.271 89.4305C391.091 89.3998 390.883 89.4504 390.647 89.5821C390.41 89.7139 390.198 89.8973 390.011 90.1325C389.832 90.3538 389.689 90.6013 389.583 90.8751C389.477 91.1395 389.424 91.4023 389.424 91.6637C389.424 91.9157 389.477 92.1195 389.583 92.2751C389.689 92.4307 389.832 92.5238 390.011 92.5545C390.198 92.5713 390.41 92.5139 390.647 92.3821ZM392.273 89.1237L391.931 88.8525C392.167 88.4501 392.412 88.1178 392.665 87.8556C392.926 87.5795 393.231 87.3578 393.582 87.1904L393.692 87.9551C393.423 88.077 393.17 88.2272 392.934 88.4056C392.697 88.5841 392.477 88.8234 392.273 89.1237ZM394.218 93.402V87.004L395.025 86.5542V87.1842C395.115 86.9755 395.216 86.7834 395.331 86.6078C395.453 86.4183 395.583 86.2523 395.722 86.1097C395.869 85.9626 396.015 85.8481 396.162 85.7664C396.325 85.6755 396.476 85.6334 396.615 85.6402C396.753 85.6376 396.867 85.6813 396.957 85.7714C397.055 85.8568 397.12 85.9838 397.153 86.1523C397.226 85.9247 397.324 85.7069 397.446 85.4987C397.577 85.286 397.723 85.0969 397.886 84.9314C398.058 84.752 398.233 84.6123 398.412 84.5123C398.6 84.4078 398.763 84.3589 398.901 84.3657C399.04 84.3725 399.154 84.4255 399.244 84.5249C399.334 84.6149 399.399 84.7512 399.44 84.9338C399.48 85.1071 399.497 85.3127 399.488 85.5506V90.4646L398.681 90.9144V86.3784C398.681 85.9864 398.657 85.7153 398.608 85.5653C398.567 85.4107 398.506 85.3327 398.425 85.3315C398.343 85.3209 398.253 85.3429 398.155 85.3974C398.001 85.4838 397.854 85.6496 397.715 85.8948C397.585 86.1262 397.475 86.3882 397.385 86.6808C397.304 86.9689 397.263 87.2343 397.263 87.477V91.705L396.443 92.1616V87.7096C396.443 87.1776 396.399 86.8479 396.309 86.7206C396.227 86.5887 396.068 86.5886 395.832 86.7204C395.742 86.7704 395.649 86.8599 395.551 86.9891C395.461 87.1044 395.375 87.2501 395.294 87.4263C395.212 87.593 395.147 87.7834 395.098 87.9973C395.049 88.2112 395.025 88.4395 395.025 88.6822V92.9522L394.218 93.402ZM402.203 89.1055C401.567 89.4599 401.078 89.5692 400.736 89.4334C400.393 89.2882 400.222 88.959 400.222 88.4456C400.222 88.1003 400.296 87.7514 400.442 87.399C400.589 87.0372 400.789 86.6925 401.042 86.365C401.302 86.0236 401.604 85.7062 401.946 85.4127C402.289 85.1192 402.652 84.8656 403.035 84.6521C403.173 84.5748 403.312 84.5023 403.451 84.4344C403.597 84.3526 403.748 84.2778 403.903 84.2102C404.066 84.1286 404.233 84.0542 404.405 83.9868L404.429 84.7431C404.282 84.7969 404.131 84.8623 403.977 84.9393C403.83 85.0024 403.683 85.0702 403.536 85.1426C403.39 85.2151 403.247 85.2899 403.108 85.3672C402.815 85.5308 402.546 85.7087 402.301 85.901C402.057 86.0933 401.845 86.2955 401.665 86.5074C401.486 86.7194 401.347 86.9413 401.249 87.1731C401.152 87.405 401.103 87.6469 401.103 87.8989C401.103 88.0949 401.131 88.247 401.188 88.3552C401.254 88.4495 401.339 88.5092 401.445 88.5341C401.551 88.5497 401.673 88.5375 401.812 88.4976C401.959 88.4532 402.118 88.3832 402.289 88.2878C402.607 88.1106 402.888 87.8979 403.133 87.6496C403.385 87.3874 403.597 87.0966 403.769 86.7772C403.948 86.4532 404.082 86.1029 404.172 85.7262C404.262 85.3496 404.307 84.9513 404.307 84.5313C404.307 83.8966 404.241 83.4383 404.111 83.1563C403.981 82.8744 403.785 82.7314 403.524 82.7275C403.271 82.719 402.945 82.8261 402.546 83.0487C402.277 83.1986 402.012 83.407 401.751 83.6737C401.49 83.9311 401.254 84.2402 401.042 84.601L400.614 84.1955C400.874 83.7515 401.176 83.3594 401.518 83.0192C401.861 82.679 402.224 82.4022 402.607 82.1886C402.974 81.9842 403.308 81.8492 403.61 81.7838C403.911 81.7183 404.168 81.7479 404.38 81.8724C404.6 81.983 404.767 82.2072 404.881 82.545C405.004 82.8781 405.065 83.3481 405.065 83.9547V87.3567L404.111 87.8883V86.9083C404.005 87.2007 403.875 87.4648 403.72 87.7004C403.573 87.9315 403.414 88.1368 403.243 88.3162C403.072 88.4863 402.896 88.6353 402.717 88.7633C402.538 88.9006 402.366 89.0147 402.203 89.1055ZM406.716 86.4366V85.6246L408.147 84.8272V80.0532L406.789 80.8097V79.9977L409.027 78.7505V84.3365L410.336 83.6073V84.4193L406.716 86.4366ZM408.538 77.6791C408.367 77.7746 408.22 77.7863 408.098 77.7145C407.975 77.6426 407.914 77.5087 407.914 77.3127C407.914 77.1074 407.971 76.9029 408.085 76.6993C408.208 76.4912 408.359 76.3371 408.538 76.2371C408.709 76.1417 408.856 76.1346 408.978 76.2158C409.109 76.2831 409.174 76.4147 409.174 76.6107C409.174 76.8067 409.109 77.0111 408.978 77.2238C408.856 77.4319 408.709 77.5837 408.538 77.6791ZM412.329 83.3084V82.4964L413.98 81.5763V73.8903L412.402 74.7695V73.9575L414.873 72.5807V81.0787L416.511 80.1655V80.9775L412.329 83.3084ZM420.143 79.1073C419.948 79.2163 419.781 79.2301 419.642 79.1487C419.503 79.0673 419.434 78.9193 419.434 78.7046C419.434 78.4899 419.503 78.2646 419.642 78.0287C419.781 77.7928 419.948 77.6203 420.143 77.5113C420.331 77.4068 420.494 77.3952 420.632 77.4767C420.771 77.5581 420.84 77.7061 420.84 77.9208C420.84 78.1355 420.771 78.3608 420.632 78.5967C420.494 78.8326 420.331 79.0028 420.143 79.1073ZM426.588 75.5156C426.18 75.7427 425.805 75.8677 425.463 75.8906C425.121 75.9134 424.823 75.8459 424.57 75.6881C424.326 75.5257 424.134 75.2825 423.995 74.9584C423.857 74.625 423.788 74.2156 423.788 73.7303C423.788 73.2543 423.857 72.777 423.995 72.2984C424.134 71.8105 424.326 71.3491 424.57 70.9141C424.823 70.4746 425.121 70.0754 425.463 69.7166C425.805 69.3577 426.176 69.067 426.576 68.8444C427.032 68.5899 427.44 68.4701 427.799 68.4848C428.166 68.4857 428.463 68.6092 428.691 68.8553L428.141 69.778L428.056 69.9237L427.994 69.8878C427.994 69.8131 427.978 69.7522 427.945 69.705C427.921 69.6533 427.86 69.5988 427.762 69.5413C427.583 69.4546 427.391 69.4307 427.187 69.4696C426.983 69.5085 426.747 69.603 426.478 69.7529C426.242 69.8847 426.017 70.0656 425.805 70.2957C425.593 70.5259 425.402 70.796 425.231 71.1061C425.068 71.4023 424.937 71.727 424.839 72.0802C424.741 72.4334 424.693 72.792 424.693 73.156C424.693 73.52 424.741 73.8287 424.839 74.0822C424.937 74.3263 425.072 74.5127 425.243 74.6413C425.414 74.7698 425.618 74.8336 425.854 74.8325C426.099 74.8175 426.36 74.7328 426.637 74.5783C426.824 74.4738 427.004 74.3458 427.175 74.1944C427.346 74.0337 427.509 73.8541 427.664 73.6558C427.819 73.4481 427.962 73.224 428.092 72.9833L428.606 73.383C428.329 73.8735 428.019 74.2982 427.676 74.657C427.342 75.0113 426.979 75.2975 426.588 75.5156ZM432.03 72.4407C431.525 72.7224 431.076 72.8323 430.685 72.7704C430.302 72.6946 430 72.4707 429.78 72.0987C429.56 71.7174 429.45 71.2047 429.45 70.5607C429.45 69.9074 429.56 69.2721 429.78 68.6547C430 68.0281 430.302 67.4679 430.685 66.9744C431.076 66.467 431.525 66.0724 432.03 65.7907C432.535 65.509 432.98 65.406 433.363 65.4818C433.754 65.5437 434.06 65.7653 434.28 66.1466C434.5 66.5186 434.61 67.0313 434.61 67.6846C434.61 68.3286 434.5 68.964 434.28 69.5907C434.06 70.208 433.754 70.7704 433.363 71.2778C432.98 71.7714 432.535 72.159 432.03 72.4407ZM432.03 71.6007C432.356 71.4189 432.641 71.1526 432.886 70.8016C433.131 70.4506 433.322 70.0499 433.461 69.5993C433.608 69.1442 433.681 68.6739 433.681 68.1886C433.681 67.7033 433.608 67.3148 433.461 67.0233C433.322 66.7272 433.131 66.5446 432.886 66.4756C432.641 66.3973 432.356 66.4489 432.03 66.6307C431.712 66.8079 431.427 67.0743 431.174 67.4298C430.929 67.7714 430.734 68.1698 430.587 68.6249C430.448 69.0755 430.379 69.5434 430.379 70.0288C430.379 70.5141 430.448 70.9048 430.587 71.2009C430.734 71.4925 430.929 71.6774 431.174 71.7558C431.427 71.8296 431.712 71.7779 432.03 71.6007ZM435.307 70.5022V64.1042L436.114 63.6543V64.2843C436.204 64.0757 436.306 63.8836 436.42 63.7079C436.542 63.5185 436.673 63.3524 436.812 63.2099C436.958 63.0627 437.105 62.9483 437.252 62.8665C437.415 62.7756 437.566 62.7336 437.704 62.7403C437.843 62.7378 437.957 62.7815 438.047 62.8715C438.145 62.957 438.21 63.084 438.242 63.2524C438.316 63.0249 438.414 62.807 438.536 62.5989C438.666 62.3862 438.813 62.1971 438.976 62.0315C439.147 61.8521 439.323 61.7124 439.502 61.6125C439.689 61.508 439.852 61.4591 439.991 61.4658C440.13 61.4726 440.244 61.5257 440.334 61.625C440.423 61.715 440.488 61.8513 440.529 62.034C440.57 62.2072 440.586 62.4128 440.578 62.6507V67.5647L439.771 68.0145V63.4785C439.771 63.0865 439.747 62.8155 439.698 62.6654C439.657 62.5108 439.596 62.4329 439.514 62.4316C439.433 62.4211 439.343 62.4431 439.245 62.4976C439.09 62.5839 438.943 62.7497 438.805 62.9949C438.674 63.2263 438.564 63.4883 438.475 63.781C438.393 64.0691 438.352 64.3344 438.352 64.5771V68.8051L437.533 69.2617V64.8097C437.533 64.2777 437.488 63.9481 437.399 63.8207C437.317 63.6888 437.158 63.6888 436.922 63.8205C436.832 63.8705 436.738 63.9601 436.64 64.0893C436.551 64.2046 436.465 64.3503 436.384 64.5264C436.302 64.6932 436.237 64.8835 436.188 65.0974C436.139 65.3114 436.114 65.5397 436.114 65.7823V70.0523L435.307 70.5022Z"
@@ -7972,7 +7972,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 -0.486817 0 1 686.771 116.128)"
           fill="white"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="23.3909"
@@ -7980,7 +7980,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 0.486817 0 1 666 123.361)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="149.702"
@@ -7988,25 +7988,25 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 -0.486817 0.873504 0.486817 682.344 96.0322)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M686.432 280.503C686.432 285.166 688.028 288.939 691.22 290.718L670.788 279.331C667.596 277.552 666 273.778 666 269.116L686.432 280.503Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M686.432 134.748C686.432 124.686 693.75 112.45 702.778 107.419L682.346 96.0322C673.318 101.063 666 113.299 666 123.361L686.432 134.748Z"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M845.101 33.4379C841.91 31.6591 837.727 32.2117 833.543 34.5431L813.111 23.156C817.295 20.8247 821.478 20.2721 824.669 22.0508L845.101 33.4379Z"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="2.33909"
@@ -8014,7 +8014,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 0.486817 -0.873504 0.486817 828.695 68.8252)"
           fill="#BDCBFD"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="2.33909"
@@ -8022,7 +8022,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 0.486817 0 1 706.104 137.147)"
           fill="#93AAFC"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="140.345"
@@ -8030,7 +8030,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 -0.486817 0 1 708.145 138.287)"
           fill="#CBFFD4"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="2.33909"
@@ -8038,7 +8038,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 0.486817 -0.873504 0.486817 828.994 102)"
           fill="#BDCBFD"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="2.33909"
@@ -8046,7 +8046,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 0.486817 0 1 706.402 170.322)"
           fill="#93AAFC"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="140.345"
@@ -8054,7 +8054,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 -0.486817 0 1 708.443 171.461)"
           fill="#CBFFD4"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="2.33909"
@@ -8062,7 +8062,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 0.486817 -0.873504 0.486817 828.695 134.871)"
           fill="#BDCBFD"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="2.33909"
@@ -8070,7 +8070,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 0.486817 0 1 706.104 203.193)"
           fill="#93AAFC"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="140.345"
@@ -8078,7 +8078,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 -0.486817 0 1 708.145 204.333)"
           fill="#CBFFD4"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="2.33909"
@@ -8086,7 +8086,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 0.486817 -0.873504 0.486817 828.695 169.031)"
           fill="#BDCBFD"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="2.33909"
@@ -8094,7 +8094,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 0.486817 0 1 706.104 237.354)"
           fill="#93AAFC"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="140.345"
@@ -8102,7 +8102,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 -0.486817 0 1 708.145 238.493)"
           fill="#CBFFD4"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M716.669 147.858C716.261 148.085 715.886 148.21 715.544 148.233C715.201 148.256 714.904 148.188 714.651 148.031C714.406 147.868 714.215 147.625 714.076 147.301C713.938 146.968 713.868 146.558 713.868 146.073C713.868 145.597 713.938 145.12 714.076 144.641C714.215 144.153 714.406 143.692 714.651 143.257C714.904 142.817 715.201 142.418 715.544 142.059C715.886 141.7 716.257 141.41 716.657 141.187C717.113 140.932 717.521 140.813 717.88 140.827C718.246 140.828 718.544 140.952 718.772 141.198L718.222 142.121L718.136 142.266L718.075 142.23C718.075 142.156 718.059 142.095 718.026 142.048C718.002 141.996 717.941 141.941 717.843 141.884C717.664 141.797 717.472 141.773 717.268 141.812C717.064 141.851 716.828 141.945 716.559 142.095C716.322 142.227 716.098 142.408 715.886 142.638C715.674 142.868 715.483 143.139 715.311 143.449C715.148 143.745 715.018 144.07 714.92 144.423C714.822 144.776 714.773 145.134 714.773 145.498C714.773 145.862 714.822 146.171 714.92 146.425C715.018 146.669 715.152 146.855 715.324 146.984C715.495 147.112 715.699 147.176 715.935 147.175C716.18 147.16 716.441 147.075 716.718 146.921C716.905 146.816 717.085 146.688 717.256 146.537C717.427 146.376 717.59 146.197 717.745 145.998C717.9 145.791 718.043 145.566 718.173 145.326L718.687 145.726C718.409 146.216 718.1 146.641 717.757 147C717.423 147.354 717.06 147.64 716.669 147.858ZM722.71 144.435C722.351 144.635 722.058 144.729 721.83 144.716C721.601 144.703 721.426 144.586 721.304 144.365C721.181 144.135 721.1 143.807 721.059 143.381C721.026 142.952 721.018 142.424 721.035 141.799L721.181 137.153L722.099 136.516L722.221 136.434L722.233 136.525C722.192 136.613 722.156 136.699 722.123 136.782C722.099 136.861 722.078 136.985 722.062 137.152L721.952 138.796L721.989 139.027L721.903 141.385C721.878 142.108 721.895 142.65 721.952 143.01C722.009 143.361 722.111 143.57 722.258 143.637C722.404 143.696 722.6 143.657 722.845 143.52C723.114 143.37 723.35 143.178 723.554 142.943C723.766 142.704 723.986 142.427 724.214 142.113L724.483 142.761C724.206 143.149 723.921 143.481 723.627 143.756C723.334 144.032 723.028 144.258 722.71 144.435ZM719.91 139.5L723.933 137.258V138.084L719.91 140.326V139.5ZM726.379 135.895L727.296 135.383L727.259 137.266L727.149 137.117C727.198 136.801 727.284 136.496 727.406 136.204C727.528 135.912 727.675 135.644 727.846 135.399C728.017 135.145 728.205 134.924 728.409 134.735C728.613 134.538 728.825 134.378 729.045 134.255C729.338 134.091 729.607 134.002 729.852 133.987C730.105 133.958 730.329 134.006 730.524 134.13L730.133 135.132L730.084 135.286L729.999 135.277C729.982 135.212 729.958 135.155 729.925 135.108C729.893 135.061 729.823 135.02 729.717 134.986C729.587 134.965 729.465 134.973 729.35 135.008C729.244 135.03 729.122 135.08 728.984 135.157C728.78 135.271 728.576 135.431 728.372 135.638C728.168 135.835 727.981 136.075 727.81 136.357C727.646 136.635 727.516 136.945 727.418 137.289C727.32 137.633 727.271 138.006 727.271 138.407V141.809L726.379 142.307V135.895ZM733.374 138.548C732.738 138.903 732.249 139.012 731.906 138.876C731.564 138.731 731.393 138.402 731.393 137.888C731.393 137.543 731.466 137.194 731.613 136.842C731.76 136.48 731.959 136.135 732.212 135.808C732.473 135.466 732.775 135.149 733.117 134.855C733.459 134.562 733.822 134.308 734.205 134.095C734.344 134.018 734.483 133.945 734.621 133.877C734.768 133.795 734.919 133.721 735.074 133.653C735.237 133.571 735.404 133.497 735.575 133.429L735.599 134.186C735.453 134.24 735.302 134.305 735.147 134.382C735 134.445 734.853 134.513 734.707 134.585C734.56 134.658 734.417 134.733 734.279 134.81C733.985 134.973 733.716 135.151 733.472 135.344C733.227 135.536 733.015 135.738 732.836 135.95C732.656 136.162 732.518 136.384 732.42 136.616C732.322 136.848 732.273 137.09 732.273 137.342C732.273 137.538 732.302 137.69 732.359 137.798C732.424 137.892 732.51 137.952 732.616 137.977C732.722 137.992 732.844 137.98 732.982 137.94C733.129 137.896 733.288 137.826 733.459 137.73C733.777 137.553 734.059 137.341 734.303 137.092C734.556 136.83 734.768 136.539 734.939 136.22C735.118 135.896 735.253 135.546 735.343 135.169C735.432 134.792 735.477 134.394 735.477 133.974C735.477 133.339 735.412 132.881 735.282 132.599C735.151 132.317 734.955 132.174 734.695 132.17C734.442 132.162 734.116 132.269 733.716 132.491C733.447 132.641 733.182 132.85 732.921 133.116C732.66 133.374 732.424 133.683 732.212 134.044L731.784 133.638C732.045 133.194 732.347 132.802 732.689 132.462C733.031 132.122 733.394 131.845 733.777 131.631C734.144 131.427 734.478 131.292 734.78 131.226C735.082 131.161 735.339 131.191 735.551 131.315C735.771 131.426 735.938 131.65 736.052 131.988C736.174 132.321 736.235 132.791 736.235 133.397V136.799L735.282 137.331V136.351C735.176 136.643 735.045 136.907 734.89 137.143C734.743 137.374 734.584 137.579 734.413 137.759C734.242 137.929 734.067 138.078 733.887 138.206C733.708 138.343 733.537 138.457 733.374 138.548ZM737.629 136.022V135.21L739.28 134.29V126.604L737.703 127.484V126.672L740.173 125.295V133.793L741.812 132.88V133.692L737.629 136.022ZM745.86 131.576C745.452 131.803 745.081 131.94 744.747 131.986C744.413 132.023 744.123 131.969 743.879 131.826C743.642 131.678 743.459 131.434 743.328 131.096C743.198 130.749 743.133 130.309 743.133 129.777C743.133 129.236 743.198 128.719 743.328 128.226C743.467 127.729 743.65 127.277 743.879 126.87C744.115 126.449 744.388 126.077 744.698 125.755C745.016 125.429 745.35 125.168 745.701 124.972C746.019 124.795 746.316 124.69 746.593 124.657C746.871 124.624 747.111 124.676 747.315 124.815C747.519 124.944 747.678 125.168 747.792 125.487C747.914 125.801 747.975 126.22 747.975 126.743C747.975 126.817 747.971 126.899 747.963 126.987C747.963 127.062 747.959 127.139 747.951 127.218L743.976 129.433C743.993 129.835 744.054 130.16 744.16 130.409C744.266 130.649 744.404 130.819 744.576 130.919C744.747 131.011 744.942 131.041 745.163 131.012C745.391 130.978 745.631 130.891 745.884 130.75C746.08 130.641 746.263 130.515 746.434 130.373C746.606 130.222 746.765 130.054 746.911 129.87C747.066 129.671 747.205 129.459 747.327 129.232L747.816 129.505C747.661 129.806 747.482 130.088 747.278 130.351C747.083 130.609 746.866 130.837 746.63 131.034C746.394 131.241 746.137 131.421 745.86 131.576ZM744.013 128.629L747.083 126.918C747.083 126.619 747.046 126.374 746.972 126.181C746.907 125.975 746.809 125.824 746.679 125.729C746.557 125.62 746.406 125.573 746.227 125.589C746.055 125.591 745.86 125.654 745.64 125.776C745.444 125.885 745.256 126.027 745.077 126.202C744.906 126.372 744.747 126.582 744.6 126.832C744.453 127.072 744.327 127.343 744.221 127.645C744.123 127.942 744.054 128.27 744.013 128.629ZM752.011 128.161C751.611 128.384 751.216 128.516 750.825 128.557C750.441 128.583 750.095 128.501 749.785 128.31C749.484 128.105 749.239 127.77 749.051 127.305C748.872 126.835 748.782 126.209 748.782 125.425C748.782 124.65 748.868 123.935 749.039 123.28C749.21 122.615 749.439 122.021 749.724 121.498C750.009 120.975 750.323 120.529 750.666 120.161C751.016 119.788 751.367 119.504 751.717 119.309C752.019 119.141 752.313 119.043 752.598 119.014C752.883 118.986 753.136 119.041 753.356 119.18C753.584 119.314 753.764 119.545 753.894 119.874C754.025 120.193 754.09 120.614 754.09 121.137V124.399L753.356 124.808V124.276C753.201 124.577 753.022 124.84 752.818 125.066C752.622 125.277 752.406 125.449 752.17 125.581C751.86 125.754 751.583 125.829 751.338 125.806C751.094 125.784 750.898 125.674 750.751 125.475C750.613 125.273 750.543 124.994 750.543 124.639C750.543 124.322 750.6 124.001 750.715 123.676C750.829 123.351 751 123.032 751.228 122.718C751.465 122.399 751.754 122.103 752.096 121.828C752.447 121.539 752.855 121.284 753.319 121.062C753.319 120.708 753.254 120.427 753.124 120.219C752.993 120.003 752.806 119.878 752.561 119.847C752.317 119.815 752.023 119.895 751.681 120.085C751.387 120.249 751.11 120.474 750.849 120.759C750.588 121.044 750.356 121.393 750.152 121.805C749.948 122.208 749.785 122.668 749.663 123.184C749.549 123.696 749.492 124.259 749.492 124.875C749.492 125.547 749.565 126.085 749.712 126.489C749.859 126.892 750.054 127.189 750.299 127.38C750.552 127.556 750.829 127.64 751.13 127.63C751.44 127.607 751.758 127.504 752.084 127.323C752.321 127.191 752.545 127.029 752.757 126.836C752.977 126.629 753.189 126.394 753.393 126.131L753.723 126.633C753.462 126.965 753.189 127.258 752.904 127.51C752.618 127.772 752.321 127.989 752.011 128.161ZM752.28 124.75C752.467 124.645 752.626 124.514 752.757 124.358C752.895 124.197 753.01 123.998 753.099 123.761C753.189 123.524 753.254 123.241 753.295 122.91C753.336 122.579 753.356 122.19 753.356 121.742C752.908 121.945 752.529 122.18 752.219 122.446C751.917 122.707 751.689 122.984 751.534 123.275C751.379 123.567 751.302 123.862 751.302 124.161C751.302 124.506 751.383 124.736 751.546 124.85C751.709 124.965 751.954 124.931 752.28 124.75ZM757.294 127.471C756.902 127.689 756.548 127.85 756.23 127.952C755.92 128.059 755.651 128.107 755.423 128.094C755.203 128.086 755.031 128.013 754.909 127.876C754.795 127.735 754.738 127.524 754.738 127.244C754.738 126.982 754.787 126.722 754.885 126.462C754.983 126.202 755.109 125.964 755.264 125.747C755.427 125.516 755.602 125.315 755.79 125.146L756.157 125.193C756.01 125.378 755.892 125.546 755.802 125.699C755.712 125.851 755.647 126.004 755.606 126.158C755.565 126.32 755.545 126.495 755.545 126.682C755.545 126.84 755.586 126.958 755.667 127.034C755.749 127.119 755.863 127.163 756.01 127.165C756.165 127.163 756.348 127.126 756.56 127.054C756.78 126.978 757.029 126.863 757.306 126.708C757.681 126.499 757.983 126.285 758.211 126.064C758.447 125.848 758.623 125.629 758.737 125.407C758.851 125.194 758.908 124.99 758.908 124.794C758.908 124.588 758.875 124.438 758.81 124.344C758.745 124.25 758.61 124.227 758.407 124.275C758.203 124.323 757.893 124.463 757.477 124.695C757.192 124.854 756.931 124.985 756.695 125.089C756.458 125.193 756.246 125.264 756.059 125.304C755.871 125.343 755.712 125.352 755.582 125.331C755.459 125.297 755.366 125.228 755.3 125.124C755.235 125.02 755.203 124.875 755.203 124.689C755.203 124.446 755.26 124.181 755.374 123.893C755.496 123.601 755.659 123.296 755.863 122.977L756.279 123.123C756.197 123.271 756.132 123.401 756.083 123.512C756.034 123.614 755.998 123.709 755.973 123.797C755.957 123.872 755.949 123.951 755.949 124.035C755.949 124.184 755.998 124.278 756.095 124.317C756.201 124.351 756.381 124.321 756.633 124.227C756.886 124.124 757.229 123.952 757.661 123.711C758.093 123.47 758.443 123.317 758.712 123.251C758.981 123.175 759.185 123.174 759.324 123.246C759.471 123.313 759.572 123.429 759.63 123.593C759.687 123.758 759.715 123.956 759.715 124.19C759.715 124.442 759.67 124.705 759.581 124.979C759.499 125.257 759.365 125.538 759.177 125.82C758.99 126.111 758.741 126.394 758.431 126.669C758.121 126.954 757.742 127.221 757.294 127.471ZM757.037 123.036C756.638 123.259 756.291 123.354 755.998 123.322C755.704 123.28 755.476 123.136 755.313 122.891C755.158 122.632 755.08 122.297 755.08 121.887C755.08 121.476 755.158 121.06 755.313 120.637C755.476 120.21 755.704 119.817 755.998 119.458C756.291 119.089 756.638 118.793 757.037 118.57C757.445 118.343 757.791 118.253 758.076 118.299C758.37 118.331 758.594 118.473 758.749 118.722C758.912 118.967 758.994 119.295 758.994 119.706C758.994 120.117 758.912 120.54 758.749 120.976C758.594 121.399 758.37 121.794 758.076 122.163C757.791 122.518 757.445 122.809 757.037 123.036ZM757.037 122.196C757.273 122.065 757.481 121.888 757.661 121.667C757.848 121.432 757.995 121.177 758.101 120.903C758.207 120.63 758.26 120.367 758.26 120.115C758.26 119.853 758.207 119.65 758.101 119.503C757.995 119.348 757.848 119.262 757.661 119.245C757.481 119.214 757.273 119.265 757.037 119.396C756.801 119.528 756.589 119.712 756.401 119.947C756.222 120.168 756.079 120.416 755.973 120.689C755.867 120.954 755.814 121.217 755.814 121.478C755.814 121.73 755.867 121.934 755.973 122.089C756.079 122.245 756.222 122.338 756.401 122.369C756.589 122.386 756.801 122.328 757.037 122.196ZM758.663 118.938L758.321 118.667C758.557 118.264 758.802 117.932 759.055 117.67C759.316 117.394 759.621 117.172 759.972 117.005L760.082 117.769C759.813 117.891 759.56 118.041 759.324 118.22C759.087 118.398 758.867 118.638 758.663 118.938ZM760.608 123.216V116.818L761.415 116.368V116.998C761.505 116.79 761.607 116.598 761.721 116.422C761.843 116.233 761.973 116.067 762.112 115.924C762.259 115.777 762.406 115.662 762.552 115.581C762.715 115.49 762.866 115.448 763.005 115.454C763.143 115.452 763.258 115.496 763.347 115.586C763.445 115.671 763.51 115.798 763.543 115.967C763.616 115.739 763.714 115.521 763.836 115.313C763.967 115.1 764.114 114.911 764.277 114.746C764.448 114.566 764.623 114.426 764.802 114.327C764.99 114.222 765.153 114.173 765.292 114.18C765.43 114.187 765.544 114.24 765.634 114.339C765.724 114.429 765.789 114.565 765.83 114.748C765.87 114.921 765.887 115.127 765.879 115.365V120.279L765.071 120.729V116.193C765.071 115.801 765.047 115.53 764.998 115.379C764.957 115.225 764.896 115.147 764.815 115.146C764.733 115.135 764.643 115.157 764.546 115.212C764.391 115.298 764.244 115.464 764.105 115.709C763.975 115.94 763.865 116.202 763.775 116.495C763.694 116.783 763.653 117.049 763.653 117.291V121.519L762.834 121.976V117.524C762.834 116.992 762.789 116.662 762.699 116.535C762.618 116.403 762.459 116.403 762.222 116.535C762.132 116.585 762.039 116.674 761.941 116.803C761.851 116.919 761.766 117.064 761.684 117.24C761.603 117.407 761.537 117.598 761.488 117.812C761.439 118.025 761.415 118.254 761.415 118.496V122.766L760.608 123.216ZM768.593 118.92C767.958 119.274 767.468 119.383 767.126 119.248C766.784 119.102 766.612 118.773 766.612 118.26C766.612 117.915 766.686 117.566 766.832 117.213C766.979 116.851 767.179 116.507 767.432 116.179C767.693 115.838 767.994 115.52 768.337 115.227C768.679 114.933 769.042 114.68 769.425 114.466C769.564 114.389 769.702 114.316 769.841 114.249C769.988 114.167 770.138 114.092 770.293 114.024C770.456 113.943 770.623 113.868 770.795 113.801L770.819 114.557C770.672 114.611 770.522 114.677 770.367 114.754C770.22 114.817 770.073 114.884 769.926 114.957C769.78 115.029 769.637 115.104 769.498 115.181C769.205 115.345 768.936 115.523 768.691 115.715C768.447 115.908 768.235 116.11 768.055 116.322C767.876 116.534 767.737 116.756 767.64 116.987C767.542 117.219 767.493 117.461 767.493 117.713C767.493 117.909 767.521 118.061 767.578 118.169C767.644 118.264 767.729 118.323 767.835 118.348C767.941 118.364 768.064 118.352 768.202 118.312C768.349 118.267 768.508 118.197 768.679 118.102C768.997 117.925 769.278 117.712 769.523 117.464C769.776 117.202 769.988 116.911 770.159 116.591C770.338 116.267 770.473 115.917 770.562 115.54C770.652 115.164 770.697 114.766 770.697 114.346C770.697 113.711 770.632 113.253 770.501 112.971C770.371 112.689 770.175 112.546 769.914 112.542C769.661 112.533 769.335 112.64 768.936 112.863C768.667 113.013 768.402 113.221 768.141 113.488C767.88 113.745 767.644 114.054 767.432 114.415L767.004 114.01C767.265 113.566 767.566 113.174 767.909 112.833C768.251 112.493 768.614 112.216 768.997 112.003C769.364 111.798 769.698 111.663 770 111.598C770.301 111.533 770.558 111.562 770.77 111.687C770.99 111.797 771.157 112.021 771.272 112.359C771.394 112.692 771.455 113.162 771.455 113.769V117.171L770.501 117.703V116.723C770.395 117.015 770.265 117.279 770.11 117.515C769.963 117.746 769.804 117.951 769.633 118.13C769.462 118.301 769.286 118.45 769.107 118.578C768.928 118.715 768.757 118.829 768.593 118.92ZM773.106 116.251V115.439L774.537 114.641V109.867L773.179 110.624V109.812L775.417 108.565V114.151L776.726 113.421V114.233L773.106 116.251ZM774.928 107.493C774.757 107.589 774.61 107.601 774.488 107.529C774.366 107.457 774.304 107.323 774.304 107.127C774.304 106.922 774.361 106.717 774.476 106.514C774.598 106.305 774.749 106.151 774.928 106.051C775.099 105.956 775.246 105.949 775.368 106.03C775.499 106.097 775.564 106.229 775.564 106.425C775.564 106.621 775.499 106.825 775.368 107.038C775.246 107.246 775.099 107.398 774.928 107.493ZM778.719 113.123V112.311L780.37 111.39V103.704L778.792 104.584V103.772L781.263 102.395V110.893L782.901 109.98V110.792L778.719 113.123ZM786.533 108.922C786.338 109.031 786.171 109.044 786.032 108.963C785.893 108.882 785.824 108.733 785.824 108.519C785.824 108.304 785.893 108.079 786.032 107.843C786.171 107.607 786.338 107.435 786.533 107.326C786.721 107.221 786.884 107.209 787.023 107.291C787.161 107.372 787.231 107.52 787.231 107.735C787.231 107.95 787.161 108.175 787.023 108.411C786.884 108.647 786.721 108.817 786.533 108.922ZM792.978 105.33C792.571 105.557 792.196 105.682 791.853 105.705C791.511 105.728 791.213 105.66 790.96 105.502C790.716 105.34 790.524 105.097 790.386 104.773C790.247 104.439 790.178 104.03 790.178 103.545C790.178 103.069 790.247 102.591 790.386 102.113C790.524 101.625 790.716 101.163 790.96 100.728C791.213 100.289 791.511 99.8896 791.853 99.5308C792.196 99.172 792.566 98.8812 792.966 98.6586C793.423 98.4042 793.83 98.2843 794.189 98.2991C794.556 98.2999 794.853 98.4234 795.082 98.6695L794.531 99.5922L794.446 99.7379L794.385 99.702C794.385 99.6273 794.368 99.5664 794.336 99.5193C794.311 99.4676 794.25 99.413 794.152 99.3555C793.973 99.2688 793.781 99.2449 793.577 99.2838C793.374 99.3227 793.137 99.4172 792.868 99.5671C792.632 99.6989 792.408 99.8798 792.196 100.11C791.984 100.34 791.792 100.61 791.621 100.92C791.458 101.216 791.327 101.541 791.229 101.894C791.132 102.248 791.083 102.606 791.083 102.97C791.083 103.334 791.132 103.643 791.229 103.896C791.327 104.141 791.462 104.327 791.633 104.455C791.804 104.584 792.008 104.648 792.244 104.647C792.489 104.632 792.75 104.547 793.027 104.393C793.215 104.288 793.394 104.16 793.565 104.009C793.736 103.848 793.899 103.668 794.054 103.47C794.209 103.262 794.352 103.038 794.482 102.797L794.996 103.197C794.719 103.688 794.409 104.112 794.067 104.471C793.732 104.825 793.37 105.112 792.978 105.33ZM798.42 102.255C797.915 102.537 797.466 102.647 797.075 102.585C796.692 102.509 796.39 102.285 796.17 101.913C795.95 101.532 795.84 101.019 795.84 100.375C795.84 99.7216 795.95 99.0863 796.17 98.469C796.39 97.8423 796.692 97.2822 797.075 96.7886C797.466 96.2812 797.915 95.8866 798.42 95.6049C798.926 95.3232 799.37 95.2202 799.753 95.296C800.144 95.3579 800.45 95.5796 800.67 95.9609C800.89 96.3329 801 96.8455 801 97.4989C801 98.1429 800.89 98.7782 800.67 99.4049C800.45 100.022 800.144 100.585 799.753 101.092C799.37 101.586 798.926 101.973 798.42 102.255ZM798.42 101.415C798.746 101.233 799.032 100.967 799.276 100.616C799.521 100.265 799.712 99.8641 799.851 99.4135C799.998 98.9584 800.071 98.4882 800.071 98.0028C800.071 97.5175 799.998 97.1291 799.851 96.8375C799.712 96.5414 799.521 96.3589 799.276 96.2898C799.032 96.2115 798.746 96.2632 798.42 96.4449C798.102 96.6221 797.817 96.8885 797.564 97.244C797.32 97.5856 797.124 97.984 796.977 98.4391C796.839 98.8897 796.769 99.3577 796.769 99.843C796.769 100.328 796.839 100.719 796.977 101.015C797.124 101.307 797.32 101.492 797.564 101.57C797.817 101.644 798.102 101.592 798.42 101.415ZM801.698 100.316V93.9184L802.505 93.4686V94.0986C802.594 93.8899 802.696 93.6978 802.81 93.5222C802.933 93.3327 803.063 93.1667 803.202 93.0241C803.348 92.877 803.495 92.7625 803.642 92.6807C803.805 92.5898 803.956 92.5478 804.094 92.5546C804.233 92.552 804.347 92.5957 804.437 92.6857C804.535 92.7712 804.6 92.8982 804.632 93.0667C804.706 92.8391 804.804 92.6213 804.926 92.4131C805.056 92.2004 805.203 92.0113 805.366 91.8457C805.537 91.6663 805.713 91.5266 805.892 91.4267C806.08 91.3222 806.243 91.2733 806.381 91.2801C806.52 91.2868 806.634 91.3399 806.724 91.4392C806.813 91.5293 806.879 91.6656 806.919 91.8482C806.96 92.0215 806.976 92.227 806.968 92.4649V97.3789L806.161 97.8287V93.2927C806.161 92.9007 806.137 92.6297 806.088 92.4796C806.047 92.325 805.986 92.2471 805.904 92.2459C805.823 92.2353 805.733 92.2573 805.635 92.3118C805.48 92.3981 805.334 92.5639 805.195 92.8092C805.065 93.0405 804.955 93.3025 804.865 93.5952C804.783 93.8833 804.743 94.1487 804.743 94.3913V98.6193L803.923 99.076V94.624C803.923 94.092 803.878 93.7623 803.789 93.6349C803.707 93.503 803.548 93.503 803.312 93.6347C803.222 93.6847 803.128 93.7743 803.03 93.9035C802.941 94.0188 802.855 94.1645 802.774 94.3406C802.692 94.5074 802.627 94.6977 802.578 94.9117C802.529 95.1256 802.505 95.3539 802.505 95.5966V99.8666L801.698 100.316Z"
@@ -8127,7 +8127,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 -0.486817 0 1 493.771 105.128)"
           fill="white"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="23.3909"
@@ -8135,7 +8135,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 0.486817 0 1 473 112.361)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="149.702"
@@ -8143,25 +8143,25 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 -0.486817 0.873504 0.486817 489.344 85.0322)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M493.432 269.503C493.432 274.166 495.028 277.939 498.22 279.718L477.788 268.331C474.596 266.552 473 262.778 473 258.116L493.432 269.503Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M493.432 123.748C493.432 113.686 500.75 101.45 509.778 96.4193L489.346 85.0322C480.318 90.0634 473 102.299 473 112.361L493.432 123.748Z"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M652.101 22.4379C648.91 20.6591 644.727 21.2117 640.543 23.5431L620.111 12.156C624.295 9.82466 628.478 9.27207 631.669 11.0508L652.101 22.4379Z"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="2.33909"
@@ -8169,7 +8169,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 0.486817 -0.873504 0.486817 635.695 57.8252)"
           fill="#BDCBFD"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="2.33909"
@@ -8177,7 +8177,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 0.486817 0 1 513.104 126.147)"
           fill="#93AAFC"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="140.345"
@@ -8185,7 +8185,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 -0.486817 0 1 515.145 127.287)"
           fill="#FFB2B2"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="2.33909"
@@ -8193,7 +8193,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 0.486817 -0.873504 0.486817 635.695 91.9863)"
           fill="#BDCBFD"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="2.33909"
@@ -8201,7 +8201,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 0.486817 0 1 513.104 160.309)"
           fill="#93AAFC"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="140.345"
@@ -8209,7 +8209,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 -0.486817 0 1 515.145 161.448)"
           fill="#FFB2B2"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M523.437 136.988C523.208 137.115 522.992 137.193 522.788 137.223C522.585 137.262 522.397 137.254 522.226 137.2C522.063 137.142 521.916 137.046 521.786 136.914L521.48 137.924L520.917 138.238V128.928L521.798 128.437L521.92 128.369V128.467C521.871 128.55 521.839 128.629 521.822 128.703C521.814 128.773 521.81 128.887 521.81 129.046V132.322C521.9 132.104 522.006 131.891 522.128 131.683C522.25 131.475 522.385 131.278 522.532 131.094C522.678 130.909 522.833 130.748 522.996 130.611C523.159 130.464 523.318 130.347 523.473 130.261C523.816 130.07 524.125 129.968 524.403 129.953C524.688 129.925 524.933 129.994 525.136 130.16C525.34 130.317 525.495 130.572 525.601 130.923C525.715 131.27 525.772 131.719 525.772 132.27C525.772 132.839 525.707 133.375 525.577 133.877C525.446 134.379 525.267 134.838 525.039 135.255C524.818 135.657 524.57 136.006 524.293 136.3C524.015 136.595 523.73 136.824 523.437 136.988ZM523.326 136.153C523.522 136.044 523.71 135.897 523.889 135.713C524.077 135.525 524.244 135.296 524.39 135.028C524.537 134.75 524.651 134.43 524.733 134.067C524.822 133.7 524.867 133.288 524.867 132.83C524.867 132.41 524.831 132.067 524.757 131.8C524.684 131.523 524.578 131.321 524.439 131.193C524.309 131.06 524.15 130.999 523.962 131.011C523.775 131.012 523.571 131.075 523.351 131.197C523.049 131.365 522.78 131.623 522.544 131.969C522.316 132.302 522.136 132.696 522.006 133.151C521.875 133.597 521.81 134.067 521.81 134.562C521.81 134.926 521.839 135.241 521.896 135.508C521.953 135.775 522.038 135.984 522.152 136.135C522.275 136.282 522.43 136.363 522.617 136.38C522.813 136.383 523.049 136.307 523.326 136.153ZM528.035 128.671L526.824 129.346V128.548L528.035 127.873V127.341C528.035 126.772 528.12 126.257 528.291 125.798C528.471 125.334 528.715 124.932 529.025 124.591C529.335 124.241 529.69 123.955 530.089 123.732C530.44 123.537 530.766 123.43 531.067 123.411C531.377 123.378 531.634 123.454 531.838 123.639L531.373 124.64L531.3 124.793L531.226 124.778C531.218 124.708 531.202 124.642 531.178 124.581C531.153 124.52 531.096 124.459 531.006 124.397C530.876 124.339 530.745 124.318 530.615 124.335C530.485 124.352 530.317 124.417 530.114 124.53C529.877 124.662 529.665 124.836 529.478 125.053C529.29 125.26 529.143 125.514 529.037 125.816C528.931 126.109 528.878 126.46 528.878 126.871V127.403L530.713 126.38V127.178L528.878 128.201V133.801L528.035 134.271V128.671ZM533.379 124.895L534.296 124.383L534.259 126.266L534.149 126.117C534.198 125.801 534.284 125.496 534.406 125.204C534.528 124.912 534.675 124.644 534.846 124.399C535.017 124.145 535.205 123.924 535.409 123.735C535.613 123.538 535.825 123.378 536.045 123.255C536.338 123.091 536.607 123.002 536.852 122.987C537.105 122.958 537.329 123.006 537.524 123.13L537.133 124.132L537.084 124.286L536.999 124.277C536.982 124.212 536.958 124.155 536.925 124.108C536.893 124.061 536.823 124.02 536.717 123.986C536.587 123.965 536.465 123.973 536.35 124.008C536.244 124.03 536.122 124.08 535.984 124.157C535.78 124.271 535.576 124.431 535.372 124.638C535.168 124.835 534.981 125.075 534.81 125.357C534.646 125.635 534.516 125.945 534.418 126.289C534.32 126.633 534.271 127.006 534.271 127.407V130.809L533.379 131.307V124.895ZM540.374 127.548C539.738 127.903 539.249 128.012 538.906 127.876C538.564 127.731 538.393 127.402 538.393 126.888C538.393 126.543 538.466 126.194 538.613 125.842C538.76 125.48 538.959 125.135 539.212 124.808C539.473 124.466 539.775 124.149 540.117 123.855C540.459 123.562 540.822 123.308 541.205 123.095C541.344 123.018 541.483 122.945 541.621 122.877C541.768 122.795 541.919 122.721 542.074 122.653C542.237 122.571 542.404 122.497 542.575 122.429L542.599 123.186C542.453 123.24 542.302 123.305 542.147 123.382C542 123.445 541.853 123.513 541.707 123.585C541.56 123.658 541.417 123.733 541.279 123.81C540.985 123.973 540.716 124.151 540.472 124.344C540.227 124.536 540.015 124.738 539.836 124.95C539.656 125.162 539.518 125.384 539.42 125.616C539.322 125.848 539.273 126.09 539.273 126.342C539.273 126.538 539.302 126.69 539.359 126.798C539.424 126.892 539.51 126.952 539.616 126.977C539.722 126.992 539.844 126.98 539.982 126.94C540.129 126.896 540.288 126.826 540.459 126.73C540.777 126.553 541.059 126.341 541.303 126.092C541.556 125.83 541.768 125.539 541.939 125.22C542.118 124.896 542.253 124.546 542.343 124.169C542.432 123.792 542.477 123.394 542.477 122.974C542.477 122.339 542.412 121.881 542.282 121.599C542.151 121.317 541.955 121.174 541.695 121.17C541.442 121.162 541.116 121.269 540.716 121.491C540.447 121.641 540.182 121.85 539.921 122.116C539.66 122.374 539.424 122.683 539.212 123.044L538.784 122.638C539.045 122.194 539.347 121.802 539.689 121.462C540.031 121.122 540.394 120.845 540.777 120.631C541.144 120.427 541.478 120.292 541.78 120.226C542.082 120.161 542.339 120.191 542.551 120.315C542.771 120.426 542.938 120.65 543.052 120.988C543.174 121.321 543.235 121.791 543.235 122.397V125.799L542.282 126.331V125.351C542.176 125.643 542.045 125.907 541.89 126.143C541.743 126.374 541.584 126.579 541.413 126.759C541.242 126.929 541.067 127.078 540.887 127.206C540.708 127.343 540.537 127.457 540.374 127.548ZM544.544 125.07V118.672L545.4 118.195V119.329C545.547 118.986 545.718 118.667 545.914 118.371C546.109 118.066 546.325 117.796 546.562 117.562C546.798 117.318 547.043 117.126 547.295 116.985C547.605 116.812 547.882 116.746 548.127 116.787C548.372 116.828 548.567 117.004 548.714 117.314C548.861 117.624 548.934 118.101 548.934 118.745V122.623L548.078 123.1V119.25C548.078 118.802 548.033 118.473 547.944 118.261C547.854 118.041 547.732 117.918 547.577 117.892C547.422 117.857 547.246 117.894 547.051 118.003C546.863 118.107 546.672 118.261 546.476 118.463C546.289 118.661 546.113 118.894 545.95 119.162C545.787 119.421 545.653 119.702 545.547 120.003C545.449 120.3 545.4 120.603 545.4 120.911V124.593L544.544 125.07ZM551.967 117.727L551.233 118.92V121.342L550.34 121.84V112.53L551.221 112.039L551.343 111.971V112.069C551.294 112.152 551.262 112.231 551.245 112.305C551.237 112.375 551.233 112.489 551.233 112.648V117.884L554.034 113.355C554.083 113.337 554.131 113.32 554.18 113.302C554.229 113.284 554.278 113.266 554.327 113.248C554.384 113.216 554.441 113.189 554.498 113.166C554.564 113.13 554.625 113.096 554.682 113.064L555 112.887L552.652 116.73L555.391 119.025L554.254 119.715L551.967 117.727ZM556.369 118.48V117.668L558.02 116.748V109.062L556.443 109.941V109.129L558.913 107.752V116.25L560.552 115.337V116.149L556.369 118.48ZM562.496 115.065V114.253L563.927 113.456V108.682L562.57 109.438V108.626L564.807 107.379V112.965L566.116 112.236V113.048L562.496 115.065ZM564.318 106.308C564.147 106.403 564 106.415 563.878 106.343C563.756 106.271 563.695 106.137 563.695 105.941C563.695 105.736 563.752 105.531 563.866 105.328C563.988 105.12 564.139 104.966 564.318 104.866C564.489 104.77 564.636 104.763 564.759 104.844C564.889 104.912 564.954 105.043 564.954 105.239C564.954 105.435 564.889 105.64 564.759 105.852C564.636 106.06 564.489 106.212 564.318 106.308ZM568.024 111.985V105.587L568.88 105.109V106.243C569.026 105.9 569.198 105.581 569.393 105.285C569.589 104.98 569.805 104.71 570.041 104.476C570.278 104.232 570.522 104.04 570.775 103.899C571.085 103.726 571.362 103.661 571.607 103.702C571.851 103.743 572.047 103.918 572.194 104.228C572.341 104.539 572.414 105.016 572.414 105.66V109.538L571.558 110.015V106.165C571.558 105.717 571.513 105.387 571.423 105.176C571.334 104.955 571.211 104.832 571.056 104.806C570.902 104.771 570.726 104.808 570.531 104.917C570.343 105.022 570.152 105.175 569.956 105.378C569.768 105.576 569.593 105.809 569.43 106.077C569.267 106.336 569.132 106.616 569.026 106.918C568.929 107.215 568.88 107.517 568.88 107.825V111.507L568.024 111.985ZM576.621 107.347C576.221 107.57 575.826 107.702 575.434 107.742C575.051 107.769 574.705 107.687 574.395 107.496C574.093 107.29 573.849 106.955 573.661 106.491C573.482 106.021 573.392 105.395 573.392 104.611C573.392 103.836 573.478 103.121 573.649 102.465C573.82 101.801 574.049 101.207 574.334 100.684C574.619 100.161 574.933 99.7151 575.276 99.347C575.626 98.9742 575.977 98.6902 576.327 98.4948C576.629 98.3267 576.922 98.2285 577.208 98.2001C577.493 98.1718 577.746 98.2269 577.966 98.3656C578.194 98.4997 578.374 98.731 578.504 99.0597C578.634 99.379 578.7 99.8 578.7 100.323V103.585L577.966 103.994V103.462C577.811 103.763 577.632 104.026 577.428 104.251C577.232 104.463 577.016 104.635 576.78 104.767C576.47 104.939 576.193 105.014 575.948 104.992C575.704 104.97 575.508 104.859 575.361 104.661C575.223 104.458 575.153 104.18 575.153 103.825C575.153 103.508 575.21 103.187 575.324 102.862C575.439 102.537 575.61 102.217 575.838 101.903C576.074 101.585 576.364 101.288 576.706 101.014C577.057 100.725 577.465 100.47 577.929 100.248C577.929 99.8933 577.864 99.6124 577.734 99.4051C577.603 99.1884 577.416 99.0643 577.171 99.0326C576.926 99.0009 576.633 99.0804 576.291 99.2713C575.997 99.4348 575.72 99.6593 575.459 99.9447C575.198 100.23 574.966 100.579 574.762 100.991C574.558 101.394 574.395 101.854 574.273 102.37C574.159 102.881 574.102 103.445 574.102 104.061C574.102 104.733 574.175 105.271 574.322 105.675C574.468 106.078 574.664 106.375 574.909 106.565C575.161 106.742 575.439 106.825 575.74 106.816C576.05 106.793 576.368 106.69 576.694 106.508C576.931 106.377 577.155 106.214 577.367 106.022C577.587 105.815 577.799 105.58 578.003 105.317L578.333 105.819C578.072 106.151 577.799 106.443 577.513 106.696C577.228 106.957 576.931 107.175 576.621 107.347ZM576.89 103.935C577.077 103.831 577.236 103.7 577.367 103.544C577.505 103.382 577.619 103.183 577.709 102.947C577.799 102.71 577.864 102.426 577.905 102.096C577.946 101.765 577.966 101.376 577.966 100.928C577.517 101.131 577.138 101.365 576.829 101.631C576.527 101.893 576.299 102.169 576.144 102.461C575.989 102.753 575.911 103.048 575.911 103.347C575.911 103.692 575.993 103.922 576.156 104.036C576.319 104.151 576.564 104.117 576.89 103.935ZM581.904 106.657C581.512 106.875 581.158 107.035 580.84 107.138C580.53 107.245 580.261 107.293 580.033 107.28C579.812 107.272 579.641 107.199 579.519 107.062C579.405 106.92 579.348 106.709 579.348 106.429C579.348 106.168 579.397 105.907 579.495 105.648C579.592 105.388 579.719 105.149 579.874 104.932C580.037 104.701 580.212 104.501 580.399 104.331L580.766 104.379C580.62 104.563 580.501 104.732 580.412 104.884C580.322 105.037 580.257 105.19 580.216 105.344C580.175 105.506 580.155 105.681 580.155 105.868C580.155 106.026 580.196 106.144 580.277 106.219C580.359 106.305 580.473 106.348 580.62 106.351C580.774 106.348 580.958 106.311 581.17 106.24C581.39 106.164 581.639 106.049 581.916 105.894C582.291 105.685 582.593 105.47 582.821 105.25C583.057 105.034 583.233 104.815 583.347 104.593C583.461 104.38 583.518 104.175 583.518 103.979C583.518 103.774 583.485 103.624 583.42 103.53C583.355 103.436 583.22 103.413 583.016 103.461C582.813 103.509 582.503 103.649 582.087 103.881C581.802 104.04 581.541 104.171 581.304 104.275C581.068 104.379 580.856 104.45 580.669 104.489C580.481 104.529 580.322 104.538 580.192 104.517C580.069 104.483 579.976 104.414 579.91 104.31C579.845 104.206 579.812 104.061 579.812 103.874C579.812 103.632 579.87 103.367 579.984 103.079C580.106 102.787 580.269 102.481 580.473 102.162L580.889 102.309C580.807 102.457 580.742 102.586 580.693 102.698C580.644 102.8 580.607 102.895 580.583 102.983C580.567 103.057 580.558 103.137 580.558 103.221C580.558 103.37 580.607 103.464 580.705 103.503C580.811 103.537 580.991 103.507 581.243 103.413C581.496 103.31 581.838 103.137 582.271 102.897C582.703 102.656 583.053 102.502 583.322 102.436C583.591 102.361 583.795 102.36 583.934 102.432C584.08 102.499 584.182 102.615 584.239 102.779C584.296 102.943 584.325 103.142 584.325 103.376C584.325 103.628 584.28 103.891 584.19 104.165C584.109 104.443 583.974 104.724 583.787 105.005C583.599 105.297 583.351 105.58 583.041 105.855C582.731 106.14 582.352 106.407 581.904 106.657ZM581.647 102.222C581.247 102.445 580.901 102.54 580.607 102.507C580.314 102.466 580.086 102.322 579.923 102.077C579.768 101.818 579.69 101.483 579.69 101.073C579.69 100.662 579.768 100.245 579.923 99.8231C580.086 99.3962 580.314 99.003 580.607 98.6434C580.901 98.2745 581.247 97.9788 581.647 97.7561C582.054 97.5289 582.401 97.4385 582.686 97.4848C582.98 97.5172 583.204 97.6583 583.359 97.908C583.522 98.1531 583.603 98.481 583.603 98.8916C583.603 99.3023 583.522 99.7258 583.359 100.162C583.204 100.584 582.98 100.98 582.686 101.349C582.401 101.704 582.054 101.995 581.647 102.222ZM581.647 101.382C581.883 101.25 582.091 101.074 582.271 100.853C582.458 100.617 582.605 100.363 582.711 100.089C582.817 99.8154 582.87 99.5526 582.87 99.3006C582.87 99.0392 582.817 98.8354 582.711 98.6892C582.605 98.5336 582.458 98.4474 582.271 98.4305C582.091 98.3998 581.883 98.4504 581.647 98.5821C581.41 98.7139 581.198 98.8973 581.011 99.1325C580.832 99.3538 580.689 99.6013 580.583 99.8751C580.477 100.139 580.424 100.402 580.424 100.664C580.424 100.916 580.477 101.119 580.583 101.275C580.689 101.431 580.832 101.524 581.011 101.555C581.198 101.571 581.41 101.514 581.647 101.382ZM583.273 98.1237L582.931 97.8525C583.167 97.4501 583.412 97.1178 583.665 96.8556C583.926 96.5795 584.231 96.3578 584.582 96.1904L584.692 96.9551C584.423 97.077 584.17 97.2272 583.934 97.4056C583.697 97.5841 583.477 97.8234 583.273 98.1237ZM585.218 102.402V96.004L586.025 95.5542V96.1842C586.115 95.9755 586.216 95.7834 586.331 95.6078C586.453 95.4183 586.583 95.2523 586.722 95.1097C586.869 94.9626 587.015 94.8481 587.162 94.7664C587.325 94.6755 587.476 94.6334 587.615 94.6402C587.753 94.6376 587.867 94.6813 587.957 94.7714C588.055 94.8568 588.12 94.9838 588.153 95.1523C588.226 94.9247 588.324 94.7069 588.446 94.4987C588.577 94.286 588.723 94.0969 588.886 93.9314C589.058 93.752 589.233 93.6123 589.412 93.5123C589.6 93.4078 589.763 93.3589 589.901 93.3657C590.04 93.3725 590.154 93.4255 590.244 93.5249C590.334 93.6149 590.399 93.7512 590.44 93.9338C590.48 94.1071 590.497 94.3127 590.488 94.5506V99.4646L589.681 99.9144V95.3784C589.681 94.9864 589.657 94.7153 589.608 94.5653C589.567 94.4107 589.506 94.3327 589.425 94.3315C589.343 94.3209 589.253 94.3429 589.155 94.3974C589.001 94.4838 588.854 94.6496 588.715 94.8948C588.585 95.1262 588.475 95.3882 588.385 95.6808C588.304 95.9689 588.263 96.2343 588.263 96.477V100.705L587.443 101.162V96.7096C587.443 96.1776 587.399 95.8479 587.309 95.7206C587.227 95.5887 587.068 95.5886 586.832 95.7204C586.742 95.7704 586.649 95.8599 586.551 95.9891C586.461 96.1044 586.375 96.2501 586.294 96.4263C586.212 96.593 586.147 96.7834 586.098 96.9973C586.049 97.2112 586.025 97.4395 586.025 97.6822V101.952L585.218 102.402ZM593.203 98.1055C592.567 98.4599 592.078 98.5692 591.736 98.4334C591.393 98.2882 591.222 97.959 591.222 97.4456C591.222 97.1003 591.296 96.7514 591.442 96.399C591.589 96.0372 591.789 95.6925 592.042 95.365C592.302 95.0236 592.604 94.7062 592.946 94.4127C593.289 94.1192 593.652 93.8656 594.035 93.6521C594.173 93.5748 594.312 93.5023 594.451 93.4344C594.597 93.3526 594.748 93.2778 594.903 93.2102C595.066 93.1286 595.233 93.0542 595.405 92.9868L595.429 93.7431C595.282 93.7969 595.131 93.8623 594.977 93.9393C594.83 94.0024 594.683 94.0702 594.536 94.1426C594.39 94.2151 594.247 94.2899 594.108 94.3672C593.815 94.5308 593.546 94.7087 593.301 94.901C593.057 95.0933 592.845 95.2955 592.665 95.5074C592.486 95.7194 592.347 95.9413 592.249 96.1731C592.152 96.405 592.103 96.6469 592.103 96.8989C592.103 97.0949 592.131 97.247 592.188 97.3552C592.254 97.4495 592.339 97.5092 592.445 97.5341C592.551 97.5497 592.673 97.5375 592.812 97.4976C592.959 97.4532 593.118 97.3832 593.289 97.2878C593.607 97.1106 593.888 96.8979 594.133 96.6496C594.385 96.3874 594.597 96.0966 594.769 95.7772C594.948 95.4532 595.082 95.1029 595.172 94.7262C595.262 94.3496 595.307 93.9513 595.307 93.5313C595.307 92.8966 595.241 92.4383 595.111 92.1563C594.981 91.8744 594.785 91.7314 594.524 91.7275C594.271 91.719 593.945 91.8261 593.546 92.0487C593.277 92.1986 593.012 92.407 592.751 92.6737C592.49 92.9311 592.254 93.2402 592.042 93.601L591.614 93.1955C591.874 92.7515 592.176 92.3594 592.518 92.0192C592.861 91.679 593.224 91.4022 593.607 91.1886C593.974 90.9842 594.308 90.8492 594.61 90.7838C594.911 90.7183 595.168 90.7479 595.38 90.8724C595.6 90.983 595.767 91.2072 595.881 91.545C596.004 91.8781 596.065 92.3481 596.065 92.9547V96.3567L595.111 96.8883V95.9083C595.005 96.2007 594.875 96.4648 594.72 96.7004C594.573 96.9315 594.414 97.1368 594.243 97.3162C594.072 97.4863 593.896 97.6353 593.717 97.7633C593.538 97.9006 593.366 98.0147 593.203 98.1055ZM597.716 95.4366V94.6246L599.147 93.8272V89.0532L597.789 89.8097V88.9977L600.027 87.7505V93.3365L601.336 92.6073V93.4193L597.716 95.4366ZM599.538 86.6791C599.367 86.7746 599.22 86.7863 599.098 86.7145C598.975 86.6426 598.914 86.5087 598.914 86.3127C598.914 86.1074 598.971 85.9029 599.085 85.6993C599.208 85.4912 599.359 85.3371 599.538 85.2371C599.709 85.1417 599.856 85.1346 599.978 85.2158C600.109 85.2831 600.174 85.4147 600.174 85.6107C600.174 85.8067 600.109 86.0111 599.978 86.2238C599.856 86.4319 599.709 86.5837 599.538 86.6791ZM603.329 92.3084V91.4964L604.98 90.5763V82.8903L603.402 83.7695V82.9575L605.873 81.5807V90.0787L607.511 89.1655V89.9775L603.329 92.3084ZM611.143 88.1073C610.948 88.2163 610.781 88.2301 610.642 88.1487C610.503 88.0673 610.434 87.9193 610.434 87.7046C610.434 87.4899 610.503 87.2646 610.642 87.0287C610.781 86.7928 610.948 86.6203 611.143 86.5113C611.331 86.4068 611.494 86.3952 611.632 86.4767C611.771 86.5581 611.84 86.7061 611.84 86.9208C611.84 87.1355 611.771 87.3608 611.632 87.5967C611.494 87.8326 611.331 88.0028 611.143 88.1073ZM617.588 84.5156C617.18 84.7427 616.805 84.8677 616.463 84.8906C616.121 84.9134 615.823 84.8459 615.57 84.6881C615.326 84.5257 615.134 84.2825 614.995 83.9584C614.857 83.625 614.788 83.2156 614.788 82.7303C614.788 82.2543 614.857 81.777 614.995 81.2984C615.134 80.8105 615.326 80.3491 615.57 79.9141C615.823 79.4746 616.121 79.0754 616.463 78.7166C616.805 78.3577 617.176 78.067 617.576 77.8444C618.032 77.5899 618.44 77.4701 618.799 77.4848C619.166 77.4857 619.463 77.6092 619.691 77.8553L619.141 78.778L619.056 78.9237L618.994 78.8878C618.994 78.8131 618.978 78.7522 618.945 78.705C618.921 78.6533 618.86 78.5988 618.762 78.5413C618.583 78.4546 618.391 78.4307 618.187 78.4696C617.983 78.5085 617.747 78.603 617.478 78.7529C617.242 78.8847 617.017 79.0656 616.805 79.2957C616.593 79.5259 616.402 79.796 616.231 80.1061C616.068 80.4023 615.937 80.727 615.839 81.0802C615.741 81.4334 615.693 81.792 615.693 82.156C615.693 82.52 615.741 82.8287 615.839 83.0822C615.937 83.3263 616.072 83.5127 616.243 83.6413C616.414 83.7698 616.618 83.8336 616.854 83.8325C617.099 83.8175 617.36 83.7328 617.637 83.5783C617.824 83.4738 618.004 83.3458 618.175 83.1944C618.346 83.0337 618.509 82.8541 618.664 82.6558C618.819 82.4481 618.962 82.224 619.092 81.9833L619.606 82.383C619.329 82.8735 619.019 83.2982 618.676 83.657C618.342 84.0113 617.979 84.2975 617.588 84.5156ZM623.03 81.4407C622.525 81.7224 622.076 81.8323 621.685 81.7704C621.302 81.6946 621 81.4707 620.78 81.0987C620.56 80.7174 620.45 80.2047 620.45 79.5607C620.45 78.9074 620.56 78.2721 620.78 77.6547C621 77.0281 621.302 76.4679 621.685 75.9744C622.076 75.467 622.525 75.0724 623.03 74.7907C623.535 74.509 623.98 74.406 624.363 74.4818C624.754 74.5437 625.06 74.7653 625.28 75.1466C625.5 75.5186 625.61 76.0313 625.61 76.6846C625.61 77.3286 625.5 77.964 625.28 78.5907C625.06 79.208 624.754 79.7704 624.363 80.2778C623.98 80.7714 623.535 81.159 623.03 81.4407ZM623.03 80.6007C623.356 80.4189 623.641 80.1526 623.886 79.8016C624.131 79.4506 624.322 79.0499 624.461 78.5993C624.608 78.1442 624.681 77.6739 624.681 77.1886C624.681 76.7033 624.608 76.3148 624.461 76.0233C624.322 75.7272 624.131 75.5446 623.886 75.4756C623.641 75.3973 623.356 75.4489 623.03 75.6307C622.712 75.8079 622.427 76.0743 622.174 76.4298C621.929 76.7714 621.734 77.1698 621.587 77.6249C621.448 78.0755 621.379 78.5434 621.379 79.0288C621.379 79.5141 621.448 79.9048 621.587 80.2009C621.734 80.4925 621.929 80.6774 622.174 80.7558C622.427 80.8296 622.712 80.7779 623.03 80.6007ZM626.307 79.5022V73.1042L627.114 72.6543V73.2843C627.204 73.0757 627.306 72.8836 627.42 72.7079C627.542 72.5185 627.673 72.3524 627.812 72.2099C627.958 72.0627 628.105 71.9483 628.252 71.8665C628.415 71.7756 628.566 71.7336 628.704 71.7403C628.843 71.7378 628.957 71.7815 629.047 71.8715C629.145 71.957 629.21 72.084 629.242 72.2524C629.316 72.0249 629.414 71.807 629.536 71.5989C629.666 71.3862 629.813 71.1971 629.976 71.0315C630.147 70.8521 630.323 70.7124 630.502 70.6125C630.689 70.508 630.852 70.4591 630.991 70.4658C631.13 70.4726 631.244 70.5257 631.334 70.625C631.423 70.715 631.488 70.8513 631.529 71.034C631.57 71.2072 631.586 71.4128 631.578 71.6507V76.5647L630.771 77.0145V72.4785C630.771 72.0865 630.747 71.8155 630.698 71.6654C630.657 71.5108 630.596 71.4329 630.514 71.4316C630.433 71.4211 630.343 71.4431 630.245 71.4976C630.09 71.5839 629.943 71.7497 629.805 71.9949C629.674 72.2263 629.564 72.4883 629.475 72.781C629.393 73.0691 629.352 73.3344 629.352 73.5771V77.8051L628.533 78.2617V73.8097C628.533 73.2777 628.488 72.9481 628.399 72.8207C628.317 72.6888 628.158 72.6888 627.922 72.8205C627.832 72.8705 627.738 72.9601 627.64 73.0893C627.551 73.2046 627.465 73.3503 627.384 73.5264C627.302 73.6932 627.237 73.8835 627.188 74.0974C627.139 74.3114 627.114 74.5397 627.114 74.7823V79.0523L626.307 79.5022Z"
@@ -8225,7 +8225,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 0.486817 -0.873504 0.486817 636.592 129)"
           fill="#BDCBFD"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="2.33909"
@@ -8233,7 +8233,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 0.486817 0 1 514 197.322)"
           fill="#93AAFC"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="140.345"
@@ -8241,7 +8241,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 -0.486817 0 1 516.041 198.461)"
           fill="#CBFFD4"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="2.33909"
@@ -8249,7 +8249,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 0.486817 -0.873504 0.486817 636.592 163.16)"
           fill="#BDCBFD"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="2.33909"
@@ -8257,7 +8257,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 0.486817 0 1 514 231.482)"
           fill="#93AAFC"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="140.345"
@@ -8265,7 +8265,7 @@ export const HeroHeader = () => {
           transform="matrix(0.873504 -0.486817 0 1 516.041 232.622)"
           fill="#CBFFD4"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M557.703 189.834C557.482 189.957 557.275 190.036 557.079 190.07C556.883 190.104 556.704 190.092 556.541 190.034C556.386 189.961 556.251 189.84 556.137 189.671C556.023 189.501 555.933 189.271 555.868 188.981C555.811 188.686 555.783 188.333 555.783 187.922L555.795 184.346L556.651 183.868V187.438C556.651 187.84 556.684 188.162 556.749 188.406C556.814 188.65 556.904 188.824 557.018 188.928C557.14 189.028 557.279 189.072 557.434 189.06C557.588 189.049 557.752 188.995 557.923 188.9C558.118 188.791 558.306 188.644 558.485 188.46C558.665 188.267 558.824 188.043 558.962 187.788C559.109 187.529 559.223 187.237 559.305 186.911C559.386 186.586 559.427 186.232 559.427 185.849V182.321L560.283 181.844V187.248C560.283 187.416 560.287 187.582 560.295 187.745C560.311 187.895 560.348 188.038 560.405 188.174L559.561 188.644C559.521 188.555 559.492 188.464 559.476 188.37C559.46 188.267 559.447 188.162 559.439 188.055C559.439 187.943 559.439 187.835 559.439 187.733C559.349 187.96 559.243 188.178 559.121 188.386C558.999 188.594 558.86 188.792 558.705 188.981C558.559 189.157 558.4 189.315 558.228 189.457C558.065 189.604 557.89 189.73 557.703 189.834ZM561.75 187.424V181.026L562.606 180.549V181.683C562.753 181.34 562.924 181.021 563.12 180.725C563.316 180.42 563.532 180.15 563.768 179.916C564.005 179.672 564.249 179.48 564.502 179.339C564.812 179.166 565.089 179.1 565.334 179.141C565.578 179.183 565.774 179.358 565.921 179.668C566.067 179.979 566.141 180.456 566.141 181.1V184.978L565.285 185.455V181.605C565.285 181.157 565.24 180.827 565.15 180.616C565.06 180.395 564.938 180.272 564.783 180.246C564.628 180.211 564.453 180.248 564.257 180.357C564.07 180.462 563.878 180.615 563.683 180.818C563.495 181.015 563.32 181.248 563.157 181.517C562.994 181.776 562.859 182.056 562.753 182.358C562.655 182.655 562.606 182.957 562.606 183.265V186.947L561.75 187.424ZM569.173 180.081L568.44 181.274V183.696L567.547 184.194V174.884L568.428 174.393L568.55 174.325V174.423C568.501 174.506 568.468 174.585 568.452 174.66C568.444 174.729 568.44 174.844 568.44 175.002V180.238L571.24 175.71C571.289 175.692 571.338 175.674 571.387 175.656C571.436 175.638 571.485 175.62 571.534 175.602C571.591 175.57 571.648 175.543 571.705 175.521C571.77 175.484 571.831 175.45 571.888 175.418L572.206 175.241L569.858 179.084L572.598 181.379L571.46 182.069L569.173 180.081ZM573.49 180.882V174.484L574.346 174.007V175.141C574.493 174.797 574.664 174.478 574.86 174.182C575.056 173.877 575.272 173.607 575.508 173.373C575.745 173.129 575.989 172.937 576.242 172.796C576.552 172.623 576.829 172.558 577.073 172.599C577.318 172.64 577.514 172.815 577.66 173.126C577.807 173.436 577.881 173.913 577.881 174.557V178.435L577.025 178.912V175.062C577.025 174.614 576.98 174.284 576.89 174.073C576.8 173.852 576.678 173.729 576.523 173.703C576.368 173.668 576.193 173.705 575.997 173.814C575.81 173.919 575.618 174.072 575.423 174.275C575.235 174.473 575.06 174.706 574.897 174.974C574.734 175.233 574.599 175.513 574.493 175.815C574.395 176.112 574.346 176.415 574.346 176.723V180.405L573.49 180.882ZM581.537 176.509C581.032 176.791 580.583 176.901 580.192 176.839C579.809 176.763 579.507 176.539 579.287 176.167C579.067 175.786 578.957 175.273 578.957 174.629C578.957 173.976 579.067 173.34 579.287 172.723C579.507 172.096 579.809 171.536 580.192 171.043C580.583 170.535 581.032 170.141 581.537 169.859C582.043 169.577 582.487 169.474 582.87 169.55C583.261 169.612 583.567 169.834 583.787 170.215C584.007 170.587 584.117 171.1 584.117 171.753C584.117 172.397 584.007 173.032 583.787 173.659C583.567 174.276 583.261 174.839 582.87 175.346C582.487 175.84 582.043 176.227 581.537 176.509ZM581.537 175.669C581.863 175.487 582.149 175.221 582.393 174.87C582.638 174.519 582.829 174.118 582.968 173.668C583.115 173.213 583.188 172.742 583.188 172.257C583.188 171.772 583.115 171.383 582.968 171.092C582.829 170.796 582.638 170.613 582.393 170.544C582.149 170.466 581.863 170.517 581.537 170.699C581.219 170.876 580.934 171.143 580.681 171.498C580.436 171.84 580.241 172.238 580.094 172.693C579.955 173.144 579.886 173.612 579.886 174.097C579.886 174.582 579.955 174.973 580.094 175.269C580.241 175.561 580.436 175.746 580.681 175.824C580.934 175.898 581.219 175.846 581.537 175.669ZM585.67 174.107L584.545 168.322L585.316 167.893L586.221 172.527L587.175 167.459L587.713 167.159L588.899 171.02C589.005 170.13 589.091 169.401 589.156 168.833C589.229 168.26 589.282 167.797 589.315 167.442C589.355 167.074 589.38 166.771 589.388 166.534C589.404 166.291 589.413 166.053 589.413 165.82V165.61L590.232 165.153C590.15 165.917 590.061 166.686 589.963 167.459C589.873 168.219 589.771 168.985 589.657 169.758C589.551 170.526 589.433 171.301 589.303 172.083L588.471 172.547L587.444 168.975L586.465 173.664L585.67 174.107ZM591.1 171.067V164.669L591.956 164.192V165.326C592.103 164.983 592.274 164.664 592.47 164.368C592.665 164.063 592.882 163.793 593.118 163.559C593.354 163.315 593.599 163.123 593.852 162.982C594.162 162.809 594.439 162.743 594.683 162.784C594.928 162.825 595.124 163.001 595.27 163.311C595.417 163.622 595.49 164.099 595.49 164.743V168.621L594.634 169.098V165.248C594.634 164.8 594.59 164.47 594.5 164.259C594.41 164.038 594.288 163.915 594.133 163.889C593.978 163.854 593.803 163.891 593.607 164C593.42 164.105 593.228 164.258 593.032 164.461C592.845 164.658 592.67 164.891 592.507 165.16C592.343 165.418 592.209 165.699 592.103 166C592.005 166.298 591.956 166.6 591.956 166.908V170.59L591.1 171.067Z"
@@ -8290,13 +8290,13 @@ export const HeroHeader = () => {
         <path
           d="M325 263L415.5 309.5L480 271"
           stroke="black"
-          stroke-dasharray="8 8"
+          strokeDasharray="8 8"
           className="edge-path"
         />
         <path
           d="M515 269L599.5 321L672 279"
           stroke="black"
-          stroke-dasharray="8 8"
+          strokeDasharray="8 8"
           className="edge-path"
         />
         <path
@@ -8315,7 +8315,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1042.81 97.7324)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -8323,7 +8323,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 979.012 134.428)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -8331,7 +8331,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1042.81 171.125)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -8339,7 +8339,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1042.81 58.8081)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -8347,7 +8347,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 979.012 95.5039)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -8355,7 +8355,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1042.81 132.201)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -8363,7 +8363,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1042.81 17)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -8371,7 +8371,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 979.012 53.6958)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -8379,7 +8379,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1042.81 90.3931)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -8389,29 +8389,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1053.67 98.2466)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.07 100.771C1055.43 101.417 1055.93 101.823 1056.5 101.834L1053.6 101.777C1053.04 101.766 1052.53 101.361 1052.18 100.714L1055.07 100.771Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.07 100.772C1054.3 99.377 1054.34 97.1416 1055.17 95.7785L1052.27 95.7216C1051.45 97.0847 1051.4 99.3202 1052.18 100.715L1055.07 100.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1056.63 94.7738C1056.07 94.7627 1055.55 95.1478 1055.17 95.7795L1052.27 95.7226C1052.66 95.091 1053.17 94.7059 1053.74 94.717L1056.63 94.7738Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -8421,29 +8421,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1065.07 91.9814)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.47 94.5061C1066.83 95.1523 1067.33 95.5575 1067.9 95.5686L1065 95.5117C1064.44 95.5006 1063.94 95.0954 1063.58 94.4492L1066.47 94.5061Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.47 94.5064C1065.7 93.1119 1065.74 90.8764 1066.57 89.5133L1063.68 89.4565C1062.85 90.8196 1062.81 93.055 1063.58 94.4495L1066.47 94.5064Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1068.04 88.5087C1067.47 88.4976 1066.95 88.8827 1066.57 89.5143L1063.68 89.4575C1064.06 88.8258 1064.58 88.4407 1065.14 88.4518L1068.04 88.5087Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -8453,29 +8453,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1073.94 87.1099)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.34 89.6345C1075.7 90.2807 1076.2 90.6859 1076.77 90.697L1073.87 90.6402C1073.31 90.6291 1072.8 90.2238 1072.45 89.5776L1075.34 89.6345Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.34 89.6348C1074.57 88.2403 1074.61 86.0049 1075.44 84.6418L1072.54 84.5849C1071.72 85.948 1071.67 88.1835 1072.45 89.578L1075.34 89.6348Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1076.9 83.6371C1076.34 83.626 1075.82 84.0111 1075.44 84.6428L1072.54 84.5859C1072.93 83.9543 1073.44 83.5691 1074.01 83.5802L1076.9 83.6371Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -8485,29 +8485,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1053.67 138.613)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.07 141.138C1055.43 141.784 1055.93 142.189 1056.5 142.2L1053.6 142.144C1053.04 142.132 1052.53 141.727 1052.18 141.081L1055.07 141.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.07 141.138C1054.3 139.744 1054.34 137.508 1055.17 136.145L1052.27 136.088C1051.45 137.451 1051.4 139.687 1052.18 141.081L1055.07 141.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1056.63 135.141C1056.07 135.129 1055.55 135.515 1055.17 136.146L1052.27 136.089C1052.66 135.458 1053.17 135.073 1053.74 135.084L1056.63 135.141Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -8517,29 +8517,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1065.07 132.348)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.47 134.873C1066.83 135.519 1067.33 135.925 1067.9 135.936L1065 135.879C1064.44 135.868 1063.94 135.463 1063.58 134.816L1066.47 134.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.47 134.874C1065.7 133.479 1065.74 131.244 1066.57 129.881L1063.68 129.824C1062.85 131.187 1062.81 133.422 1063.58 134.817L1066.47 134.874Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1068.04 128.875C1067.47 128.864 1066.95 129.249 1066.57 129.881L1063.68 129.824C1064.06 129.193 1064.58 128.807 1065.14 128.819L1068.04 128.875Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -8549,29 +8549,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1073.94 127.478)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.34 130.002C1075.7 130.648 1076.2 131.054 1076.77 131.065L1073.87 131.008C1073.31 130.997 1072.8 130.592 1072.45 129.945L1075.34 130.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.34 130.002C1074.57 128.608 1074.61 126.373 1075.44 125.009L1072.54 124.953C1071.72 126.316 1071.67 128.551 1072.45 129.946L1075.34 130.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1076.9 124.005C1076.34 123.994 1075.82 124.379 1075.44 125.01L1072.54 124.954C1072.93 124.322 1073.44 123.937 1074.01 123.948L1076.9 124.005Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -8581,29 +8581,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1053.67 174.654)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.07 177.179C1055.43 177.825 1055.93 178.23 1056.5 178.241L1053.6 178.185C1053.04 178.173 1052.53 177.768 1052.18 177.122L1055.07 177.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.07 177.179C1054.3 175.785 1054.34 173.549 1055.17 172.186L1052.27 172.129C1051.45 173.492 1051.4 175.728 1052.18 177.122L1055.07 177.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1056.63 171.182C1056.07 171.17 1055.55 171.556 1055.17 172.187L1052.27 172.13C1052.66 171.499 1053.17 171.114 1053.74 171.125L1056.63 171.182Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -8613,29 +8613,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1065.07 168.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.47 170.914C1066.83 171.56 1067.33 171.965 1067.9 171.976L1065 171.919C1064.44 171.908 1063.94 171.503 1063.58 170.857L1066.47 170.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.47 170.914C1065.7 169.52 1065.74 167.284 1066.57 165.921L1063.68 165.864C1062.85 167.227 1062.81 169.463 1063.58 170.857L1066.47 170.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1068.04 164.916C1067.47 164.905 1066.95 165.29 1066.57 165.922L1063.68 165.865C1064.06 165.234 1064.58 164.848 1065.14 164.86L1068.04 164.916Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -8645,29 +8645,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1073.94 163.518)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.34 166.042C1075.7 166.688 1076.2 167.094 1076.77 167.105L1073.87 167.048C1073.31 167.037 1072.8 166.632 1072.45 165.985L1075.34 166.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.34 166.043C1074.57 164.648 1074.61 162.413 1075.44 161.049L1072.54 160.993C1071.72 162.356 1071.67 164.591 1072.45 165.986L1075.34 166.043Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1076.9 160.045C1076.34 160.034 1075.82 160.419 1075.44 161.05L1072.54 160.994C1072.93 160.362 1073.44 159.977 1074.01 159.988L1076.9 160.045Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -8675,7 +8675,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1042.8 97.7324)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -8683,7 +8683,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 979.004 134.428)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -8691,7 +8691,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1042.8 171.125)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -8699,7 +8699,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1042.8 58.8081)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -8707,7 +8707,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 979.004 95.5039)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -8715,7 +8715,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1042.8 132.201)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -8723,7 +8723,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1042.8 17)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -8731,7 +8731,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 979.004 53.6958)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -8739,7 +8739,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1042.8 90.3931)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -8749,29 +8749,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1053.67 98.2471)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.07 100.772C1055.43 101.418 1055.93 101.823 1056.5 101.834L1053.6 101.777C1053.04 101.766 1052.53 101.361 1052.18 100.715L1055.07 100.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.07 100.772C1054.3 99.3775 1054.34 97.1421 1055.17 95.779L1052.27 95.7221C1051.45 97.0852 1051.4 99.3207 1052.18 100.715L1055.07 100.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1056.63 94.7743C1056.07 94.7632 1055.55 95.1483 1055.17 95.78L1052.27 95.7231C1052.66 95.0915 1053.17 94.7063 1053.74 94.7174L1056.63 94.7743Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -8781,29 +8781,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1065.07 91.9819)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.47 94.5066C1066.83 95.1528 1067.33 95.558 1067.9 95.5691L1065 95.5122C1064.44 95.5011 1063.94 95.0959 1063.58 94.4497L1066.47 94.5066Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.47 94.5069C1065.7 93.1124 1065.74 90.8769 1066.57 89.5138L1063.68 89.457C1062.85 90.8201 1062.81 93.0555 1063.58 94.45L1066.47 94.5069Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1068.04 88.5092C1067.47 88.4981 1066.95 88.8832 1066.57 89.5148L1063.68 89.458C1064.06 88.8263 1064.58 88.4412 1065.14 88.4523L1068.04 88.5092Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -8813,29 +8813,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1073.94 87.1104)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.34 89.635C1075.7 90.2812 1076.2 90.6864 1076.77 90.6975L1073.87 90.6406C1073.31 90.6295 1072.8 90.2243 1072.45 89.5781L1075.34 89.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.34 89.6353C1074.57 88.2408 1074.61 86.0053 1075.44 84.6422L1072.54 84.5854C1071.72 85.9485 1071.67 88.184 1072.45 89.5784L1075.34 89.6353Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1076.9 83.6376C1076.34 83.6265 1075.82 84.0116 1075.44 84.6432L1072.54 84.5864C1072.93 83.9548 1073.44 83.5696 1074.01 83.5807L1076.9 83.6376Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -8845,29 +8845,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1053.67 138.613)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.07 141.137C1055.43 141.784 1055.93 142.189 1056.5 142.2L1053.6 142.143C1053.04 142.132 1052.53 141.727 1052.18 141.081L1055.07 141.137Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.07 141.138C1054.3 139.743 1054.34 137.508 1055.17 136.145L1052.27 136.088C1051.45 137.451 1051.4 139.686 1052.18 141.081L1055.07 141.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1056.63 135.14C1056.07 135.129 1055.55 135.514 1055.17 136.146L1052.27 136.089C1052.66 135.457 1053.17 135.072 1053.74 135.083L1056.63 135.14Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -8877,29 +8877,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1065.07 132.348)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.47 134.873C1066.83 135.519 1067.33 135.924 1067.9 135.935L1065 135.878C1064.44 135.867 1063.94 135.462 1063.58 134.816L1066.47 134.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.47 134.873C1065.7 133.479 1065.74 131.243 1066.57 129.88L1063.68 129.823C1062.85 131.186 1062.81 133.422 1063.58 134.816L1066.47 134.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1068.04 128.875C1067.47 128.864 1066.95 129.249 1066.57 129.881L1063.68 129.824C1064.06 129.193 1064.58 128.807 1065.14 128.819L1068.04 128.875Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -8909,29 +8909,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1073.94 127.477)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.34 130.002C1075.7 130.648 1076.2 131.053 1076.77 131.064L1073.87 131.007C1073.31 130.996 1072.8 130.591 1072.45 129.945L1075.34 130.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.34 130.002C1074.57 128.608 1074.61 126.372 1075.44 125.009L1072.54 124.952C1071.72 126.315 1071.67 128.551 1072.45 129.945L1075.34 130.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1076.9 124.004C1076.34 123.993 1075.82 124.378 1075.44 125.01L1072.54 124.953C1072.93 124.321 1073.44 123.936 1074.01 123.947L1076.9 124.004Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -8941,29 +8941,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1053.67 174.654)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.07 177.179C1055.43 177.826 1055.93 178.231 1056.5 178.242L1053.6 178.185C1053.04 178.174 1052.53 177.769 1052.18 177.123L1055.07 177.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.07 177.18C1054.3 175.785 1054.34 173.55 1055.17 172.187L1052.27 172.13C1051.45 173.493 1051.4 175.728 1052.18 177.123L1055.07 177.18Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1056.63 171.182C1056.07 171.171 1055.55 171.556 1055.17 172.188L1052.27 172.131C1052.66 171.499 1053.17 171.114 1053.74 171.125L1056.63 171.182Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -8973,29 +8973,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1065.07 168.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.47 170.914C1066.83 171.56 1067.33 171.965 1067.9 171.976L1065 171.919C1064.44 171.908 1063.94 171.503 1063.58 170.857L1066.47 170.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.47 170.914C1065.7 169.52 1065.74 167.284 1066.57 165.921L1063.68 165.864C1062.85 167.227 1062.81 169.463 1063.58 170.857L1066.47 170.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1068.04 164.916C1067.47 164.905 1066.95 165.29 1066.57 165.922L1063.68 165.865C1064.06 165.234 1064.58 164.848 1065.14 164.86L1068.04 164.916Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -9005,29 +9005,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1073.94 163.518)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.34 166.042C1075.7 166.688 1076.2 167.094 1076.77 167.105L1073.87 167.048C1073.31 167.037 1072.8 166.632 1072.45 165.985L1075.34 166.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.34 166.043C1074.57 164.648 1074.61 162.413 1075.44 161.049L1072.54 160.993C1071.72 162.356 1071.67 164.591 1072.45 165.986L1075.34 166.043Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1076.9 160.045C1076.34 160.034 1075.82 160.419 1075.44 161.05L1072.54 160.994C1072.93 160.362 1073.44 159.977 1074.01 159.988L1076.9 160.045Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -9035,7 +9035,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1042.8 97.7324)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -9043,7 +9043,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 979.004 134.428)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -9051,7 +9051,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1042.8 171.125)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -9059,7 +9059,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1042.8 58.8081)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -9067,7 +9067,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 979.004 95.5039)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -9075,7 +9075,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1042.8 132.201)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -9083,7 +9083,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1042.8 17)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -9091,7 +9091,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 979.004 53.6958)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -9099,7 +9099,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1042.8 90.3931)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -9109,29 +9109,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1053.67 98.2471)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.07 100.772C1055.42 101.418 1055.93 101.823 1056.49 101.834L1053.6 101.777C1053.04 101.766 1052.53 101.361 1052.17 100.715L1055.07 100.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.07 100.772C1054.3 99.3775 1054.34 97.1421 1055.17 95.779L1052.27 95.7221C1051.45 97.0852 1051.4 99.3207 1052.17 100.715L1055.07 100.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1056.63 94.7743C1056.07 94.7632 1055.55 95.1483 1055.16 95.78L1052.27 95.7231C1052.65 95.0915 1053.17 94.7063 1053.74 94.7174L1056.63 94.7743Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -9141,29 +9141,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1065.07 91.9819)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.47 94.5066C1066.83 95.1528 1067.33 95.558 1067.9 95.5691L1065 95.5122C1064.44 95.5011 1063.93 95.0959 1063.58 94.4497L1066.47 94.5066Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.47 94.5069C1065.7 93.1124 1065.74 90.8769 1066.57 89.5138L1063.68 89.457C1062.85 90.8201 1062.8 93.0555 1063.58 94.45L1066.47 94.5069Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1068.03 88.5092C1067.47 88.4981 1066.95 88.8832 1066.57 89.5148L1063.67 89.458C1064.06 88.8263 1064.58 88.4412 1065.14 88.4523L1068.03 88.5092Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -9173,29 +9173,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1073.94 87.1104)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.34 89.635C1075.69 90.2812 1076.2 90.6864 1076.76 90.6975L1073.87 90.6406C1073.3 90.6295 1072.8 90.2243 1072.44 89.5781L1075.34 89.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.34 89.6353C1074.57 88.2408 1074.61 86.0053 1075.44 84.6422L1072.54 84.5854C1071.72 85.9485 1071.67 88.184 1072.44 89.5784L1075.34 89.6353Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1076.9 83.6376C1076.34 83.6265 1075.82 84.0116 1075.43 84.6432L1072.54 84.5864C1072.92 83.9548 1073.44 83.5696 1074.01 83.5807L1076.9 83.6376Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -9205,29 +9205,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1053.67 138.613)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.07 141.137C1055.42 141.784 1055.93 142.189 1056.49 142.2L1053.6 142.143C1053.04 142.132 1052.53 141.727 1052.17 141.081L1055.07 141.137Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.07 141.138C1054.3 139.743 1054.34 137.508 1055.17 136.145L1052.27 136.088C1051.45 137.451 1051.4 139.686 1052.17 141.081L1055.07 141.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1056.63 135.14C1056.07 135.129 1055.55 135.514 1055.16 136.146L1052.27 136.089C1052.65 135.457 1053.17 135.072 1053.74 135.083L1056.63 135.14Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -9237,29 +9237,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1065.07 132.348)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.47 134.873C1066.83 135.519 1067.33 135.924 1067.9 135.935L1065 135.878C1064.44 135.867 1063.93 135.462 1063.58 134.816L1066.47 134.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.47 134.873C1065.7 133.479 1065.74 131.243 1066.57 129.88L1063.68 129.823C1062.85 131.186 1062.8 133.422 1063.58 134.816L1066.47 134.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1068.03 128.875C1067.47 128.864 1066.95 129.249 1066.57 129.881L1063.67 129.824C1064.06 129.193 1064.58 128.807 1065.14 128.819L1068.03 128.875Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -9269,29 +9269,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1073.94 127.477)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.34 130.002C1075.69 130.648 1076.2 131.053 1076.76 131.064L1073.87 131.007C1073.3 130.996 1072.8 130.591 1072.44 129.945L1075.34 130.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.34 130.002C1074.57 128.608 1074.61 126.372 1075.44 125.009L1072.54 124.952C1071.72 126.315 1071.67 128.551 1072.44 129.945L1075.34 130.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1076.9 124.004C1076.34 123.993 1075.82 124.378 1075.43 125.01L1072.54 124.953C1072.92 124.321 1073.44 123.936 1074.01 123.947L1076.9 124.004Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -9301,29 +9301,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1053.67 174.654)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.07 177.179C1055.42 177.825 1055.93 178.23 1056.49 178.241L1053.6 178.185C1053.04 178.173 1052.53 177.768 1052.17 177.122L1055.07 177.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.07 177.179C1054.3 175.785 1054.34 173.549 1055.17 172.186L1052.27 172.129C1051.45 173.492 1051.4 175.728 1052.17 177.122L1055.07 177.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1056.63 171.182C1056.07 171.17 1055.55 171.556 1055.16 172.187L1052.27 172.13C1052.65 171.499 1053.17 171.114 1053.74 171.125L1056.63 171.182Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -9333,29 +9333,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1065.07 168.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.47 170.914C1066.83 171.56 1067.33 171.965 1067.9 171.976L1065 171.919C1064.44 171.908 1063.93 171.503 1063.58 170.857L1066.47 170.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.47 170.914C1065.7 169.519 1065.74 167.284 1066.57 165.921L1063.68 165.864C1062.85 167.227 1062.8 169.462 1063.58 170.857L1066.47 170.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1068.03 164.916C1067.47 164.905 1066.95 165.29 1066.57 165.922L1063.67 165.865C1064.06 165.233 1064.58 164.848 1065.14 164.859L1068.03 164.916Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -9365,29 +9365,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1073.94 163.517)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.34 166.042C1075.69 166.688 1076.2 167.093 1076.76 167.104L1073.87 167.047C1073.3 167.036 1072.8 166.631 1072.44 165.985L1075.34 166.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.34 166.042C1074.57 164.648 1074.61 162.412 1075.44 161.049L1072.54 160.992C1071.72 162.355 1071.67 164.591 1072.44 165.985L1075.34 166.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1076.9 160.044C1076.34 160.033 1075.82 160.418 1075.43 161.05L1072.54 160.993C1072.92 160.361 1073.44 159.976 1074.01 159.987L1076.9 160.044Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -9395,7 +9395,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1042.8 97.7329)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -9403,7 +9403,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 979.002 134.429)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -9411,7 +9411,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1042.8 171.126)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -9419,7 +9419,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1042.8 58.8081)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -9427,7 +9427,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 979.002 95.5039)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -9435,7 +9435,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1042.8 132.201)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -9443,7 +9443,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1042.8 17.0005)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -9451,7 +9451,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 979.002 53.6963)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -9459,7 +9459,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1042.8 90.3936)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -9469,29 +9469,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1053.67 98.2471)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.07 100.772C1055.42 101.418 1055.93 101.823 1056.49 101.834L1053.6 101.777C1053.04 101.766 1052.53 101.361 1052.17 100.715L1055.07 100.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.07 100.772C1054.3 99.3775 1054.34 97.1421 1055.17 95.779L1052.27 95.7221C1051.45 97.0852 1051.4 99.3207 1052.17 100.715L1055.07 100.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1056.63 94.7743C1056.07 94.7632 1055.55 95.1483 1055.16 95.78L1052.27 95.7231C1052.65 95.0915 1053.17 94.7063 1053.74 94.7174L1056.63 94.7743Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -9501,29 +9501,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1065.07 91.9824)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.47 94.507C1066.83 95.1532 1067.33 95.5585 1067.89 95.5696L1065 95.5127C1064.44 95.5016 1063.93 95.0964 1063.57 94.4502L1066.47 94.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.47 94.5074C1065.7 93.1129 1065.74 90.8774 1066.57 89.5143L1063.67 89.4575C1062.85 90.8206 1062.8 93.056 1063.57 94.4505L1066.47 94.5074Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1068.03 88.5096C1067.47 88.4985 1066.95 88.8837 1066.56 89.5153L1063.67 89.4585C1064.05 88.8268 1064.57 88.4417 1065.14 88.4528L1068.03 88.5096Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -9533,29 +9533,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1073.94 87.1104)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.34 89.635C1075.7 90.2812 1076.2 90.6864 1076.77 90.6975L1073.87 90.6406C1073.31 90.6295 1072.8 90.2243 1072.45 89.5781L1075.34 89.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.34 89.6353C1074.57 88.2408 1074.61 86.0053 1075.44 84.6422L1072.54 84.5854C1071.72 85.9485 1071.67 88.184 1072.45 89.5784L1075.34 89.6353Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1076.9 83.6371C1076.34 83.626 1075.82 84.0111 1075.44 84.6428L1072.54 84.5859C1072.93 83.9543 1073.44 83.5691 1074.01 83.5802L1076.9 83.6371Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -9565,29 +9565,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1053.67 138.613)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.07 141.138C1055.42 141.784 1055.93 142.189 1056.49 142.2L1053.6 142.144C1053.04 142.132 1052.53 141.727 1052.17 141.081L1055.07 141.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.07 141.138C1054.3 139.744 1054.34 137.508 1055.17 136.145L1052.27 136.088C1051.45 137.451 1051.4 139.687 1052.17 141.081L1055.07 141.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1056.63 135.141C1056.07 135.129 1055.55 135.515 1055.16 136.146L1052.27 136.089C1052.65 135.458 1053.17 135.073 1053.74 135.084L1056.63 135.141Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -9597,29 +9597,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1065.07 132.349)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.47 134.874C1066.83 135.52 1067.33 135.925 1067.9 135.936L1065 135.879C1064.44 135.868 1063.93 135.463 1063.58 134.817L1066.47 134.874Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.47 134.874C1065.7 133.48 1065.74 131.244 1066.57 129.881L1063.68 129.824C1062.85 131.187 1062.8 133.423 1063.58 134.817L1066.47 134.874Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1068.04 128.876C1067.47 128.865 1066.95 129.25 1066.57 129.882L1063.68 129.825C1064.06 129.194 1064.58 128.808 1065.14 128.819L1068.04 128.876Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -9629,29 +9629,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1073.94 127.477)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.34 130.001C1075.7 130.647 1076.2 131.053 1076.77 131.064L1073.87 131.007C1073.31 130.996 1072.8 130.591 1072.45 129.944L1075.34 130.001Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.34 130.002C1074.57 128.607 1074.61 126.372 1075.44 125.008L1072.55 124.952C1071.72 126.315 1071.68 128.55 1072.45 129.945L1075.34 130.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1076.9 124.004C1076.34 123.993 1075.82 124.378 1075.44 125.009L1072.54 124.953C1072.93 124.321 1073.45 123.936 1074.01 123.947L1076.9 124.004Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -9661,29 +9661,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1053.67 174.655)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.07 177.179C1055.42 177.826 1055.93 178.231 1056.49 178.242L1053.6 178.185C1053.04 178.174 1052.53 177.769 1052.17 177.123L1055.07 177.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.07 177.18C1054.3 175.785 1054.34 173.55 1055.17 172.187L1052.27 172.13C1051.45 173.493 1051.4 175.728 1052.17 177.123L1055.07 177.18Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1056.63 171.182C1056.07 171.171 1055.55 171.556 1055.16 172.188L1052.27 172.131C1052.65 171.499 1053.17 171.114 1053.74 171.125L1056.63 171.182Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -9693,29 +9693,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1065.07 168.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.47 170.914C1066.83 171.56 1067.33 171.965 1067.89 171.976L1065 171.919C1064.44 171.908 1063.93 171.503 1063.57 170.857L1066.47 170.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.47 170.914C1065.7 169.52 1065.74 167.284 1066.57 165.921L1063.67 165.864C1062.85 167.227 1062.8 169.463 1063.57 170.857L1066.47 170.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1068.03 164.916C1067.47 164.905 1066.95 165.29 1066.56 165.922L1063.67 165.865C1064.05 165.234 1064.57 164.848 1065.14 164.86L1068.03 164.916Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -9725,29 +9725,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1073.94 163.518)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.34 166.042C1075.69 166.688 1076.2 167.094 1076.76 167.105L1073.87 167.048C1073.3 167.037 1072.8 166.632 1072.44 165.985L1075.34 166.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.34 166.043C1074.57 164.648 1074.61 162.413 1075.44 161.049L1072.54 160.993C1071.72 162.356 1071.67 164.591 1072.44 165.986L1075.34 166.043Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1076.9 160.045C1076.34 160.034 1075.82 160.419 1075.43 161.05L1072.54 160.994C1072.92 160.362 1073.44 159.977 1074.01 159.988L1076.9 160.045Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -9755,7 +9755,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1042.8 97.7329)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -9763,7 +9763,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 979.002 134.429)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -9771,7 +9771,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1042.8 171.126)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -9779,7 +9779,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1042.8 58.8081)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -9787,7 +9787,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 979.002 95.5039)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -9795,7 +9795,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1042.8 132.201)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -9803,7 +9803,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1042.8 17.0005)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -9811,7 +9811,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 979.002 53.6963)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -9819,7 +9819,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1042.8 90.3936)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -9829,29 +9829,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1053.67 98.2466)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.06 100.772C1055.42 101.418 1055.92 101.823 1056.49 101.834L1053.6 101.777C1053.03 101.766 1052.53 101.361 1052.17 100.715L1055.06 100.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.06 100.772C1054.29 99.377 1054.33 97.1416 1055.16 95.7785L1052.27 95.7216C1051.44 97.0847 1051.4 99.3202 1052.17 100.715L1055.06 100.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1056.63 94.7738C1056.06 94.7627 1055.54 95.1478 1055.16 95.7795L1052.27 95.7226C1052.65 95.091 1053.17 94.7059 1053.73 94.717L1056.63 94.7738Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -9861,29 +9861,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1065.07 91.9824)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.47 94.507C1066.82 95.1532 1067.33 95.5585 1067.89 95.5696L1065 95.5127C1064.43 95.5016 1063.93 95.0964 1063.57 94.4502L1066.47 94.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.47 94.5074C1065.69 93.1129 1065.74 90.8774 1066.56 89.5143L1063.67 89.4575C1062.85 90.8206 1062.8 93.056 1063.57 94.4505L1066.47 94.5074Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1068.03 88.5096C1067.46 88.4985 1066.95 88.8837 1066.56 89.5153L1063.67 89.4585C1064.05 88.8268 1064.57 88.4417 1065.14 88.4528L1068.03 88.5096Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -9893,29 +9893,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1073.94 87.1099)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.33 89.635C1075.69 90.2812 1076.19 90.6864 1076.76 90.6975L1073.87 90.6406C1073.3 90.6295 1072.8 90.2243 1072.44 89.5781L1075.33 89.635Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.33 89.6348C1074.56 88.2403 1074.61 86.0049 1075.43 84.6418L1072.54 84.5849C1071.71 85.948 1071.67 88.1835 1072.44 89.578L1075.33 89.6348Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1076.9 83.6366C1076.33 83.6255 1075.81 84.0106 1075.43 84.6423L1072.54 84.5854C1072.92 83.9538 1073.44 83.5686 1074.01 83.5797L1076.9 83.6366Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -9925,29 +9925,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1053.67 138.613)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.06 141.138C1055.42 141.784 1055.92 142.189 1056.49 142.2L1053.6 142.144C1053.03 142.132 1052.53 141.727 1052.17 141.081L1055.06 141.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.06 141.138C1054.29 139.743 1054.33 137.508 1055.16 136.145L1052.27 136.088C1051.44 137.451 1051.4 139.686 1052.17 141.081L1055.06 141.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1056.63 135.14C1056.06 135.129 1055.54 135.514 1055.16 136.146L1052.27 136.089C1052.65 135.457 1053.17 135.072 1053.73 135.083L1056.63 135.14Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -9957,29 +9957,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1065.07 132.349)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.47 134.873C1066.83 135.519 1067.33 135.925 1067.89 135.936L1065 135.879C1064.44 135.868 1063.93 135.463 1063.57 134.816L1066.47 134.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.47 134.874C1065.7 133.479 1065.74 131.244 1066.57 129.881L1063.67 129.824C1062.85 131.187 1062.8 133.422 1063.57 134.817L1066.47 134.874Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1068.03 128.876C1067.47 128.865 1066.95 129.25 1066.57 129.882L1063.67 129.825C1064.06 129.193 1064.58 128.808 1065.14 128.819L1068.03 128.876Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -9989,29 +9989,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1073.94 127.477)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.33 130.001C1075.69 130.647 1076.2 131.053 1076.76 131.064L1073.87 131.007C1073.3 130.996 1072.8 130.591 1072.44 129.944L1075.33 130.001Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.34 130.002C1074.56 128.607 1074.61 126.372 1075.43 125.008L1072.54 124.952C1071.71 126.315 1071.67 128.55 1072.44 129.945L1075.34 130.002Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1076.9 124.004C1076.33 123.993 1075.81 124.378 1075.43 125.009L1072.54 124.953C1072.92 124.321 1073.44 123.936 1074.01 123.947L1076.9 124.004Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -10021,29 +10021,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1053.67 174.654)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.06 177.179C1055.42 177.826 1055.92 178.231 1056.49 178.242L1053.6 178.185C1053.03 178.174 1052.53 177.769 1052.17 177.123L1055.06 177.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.06 177.179C1054.29 175.785 1054.33 173.549 1055.16 172.186L1052.27 172.129C1051.44 173.492 1051.4 175.728 1052.17 177.122L1055.06 177.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1056.63 171.182C1056.06 171.17 1055.54 171.556 1055.16 172.187L1052.27 172.13C1052.65 171.499 1053.17 171.114 1053.73 171.125L1056.63 171.182Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -10053,29 +10053,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1065.07 168.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.47 170.914C1066.82 171.56 1067.33 171.965 1067.89 171.976L1065 171.919C1064.43 171.908 1063.93 171.503 1063.57 170.857L1066.47 170.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.47 170.914C1065.69 169.52 1065.74 167.284 1066.56 165.921L1063.67 165.864C1062.85 167.227 1062.8 169.463 1063.57 170.857L1066.47 170.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1068.03 164.916C1067.46 164.905 1066.95 165.29 1066.56 165.922L1063.67 165.865C1064.05 165.234 1064.57 164.848 1065.14 164.86L1068.03 164.916Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -10085,29 +10085,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1073.94 163.518)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.33 166.042C1075.69 166.688 1076.2 167.094 1076.76 167.105L1073.87 167.048C1073.3 167.037 1072.8 166.632 1072.44 165.985L1075.33 166.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.34 166.043C1074.56 164.648 1074.61 162.413 1075.43 161.049L1072.54 160.993C1071.71 162.356 1071.67 164.591 1072.44 165.986L1075.34 166.043Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1076.9 160.045C1076.33 160.034 1075.81 160.419 1075.43 161.05L1072.54 160.994C1072.92 160.362 1073.44 159.977 1074.01 159.988L1076.9 160.045Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -10115,7 +10115,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1042.8 97.7324)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -10123,7 +10123,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 979 134.428)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -10131,7 +10131,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1042.8 171.125)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -10139,7 +10139,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1042.8 58.8081)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -10147,7 +10147,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 979 95.5039)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -10155,7 +10155,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1042.8 132.201)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -10163,7 +10163,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1042.8 17.0005)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -10171,7 +10171,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 979 53.6963)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -10179,7 +10179,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1042.8 90.394)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -10189,29 +10189,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1053.66 98.2471)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.06 100.772C1055.42 101.418 1055.92 101.823 1056.49 101.834L1053.59 101.777C1053.03 101.766 1052.53 101.361 1052.17 100.715L1055.06 100.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.06 100.772C1054.29 99.3775 1054.33 97.1421 1055.16 95.779L1052.27 95.7221C1051.44 97.0852 1051.4 99.3207 1052.17 100.715L1055.06 100.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1056.63 94.7743C1056.06 94.7632 1055.54 95.1483 1055.16 95.78L1052.26 95.7231C1052.65 95.0915 1053.17 94.7063 1053.73 94.7174L1056.63 94.7743Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -10221,29 +10221,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1065.07 91.9824)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.46 94.507C1066.82 95.1532 1067.33 95.5585 1067.89 95.5696L1065 95.5127C1064.43 95.5016 1063.93 95.0964 1063.57 94.4502L1066.46 94.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.46 94.5074C1065.69 93.1129 1065.74 90.8774 1066.56 89.5143L1063.67 89.4575C1062.84 90.8206 1062.8 93.056 1063.57 94.4505L1066.46 94.5074Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1068.03 88.5096C1067.46 88.4985 1066.94 88.8837 1066.56 89.5153L1063.67 89.4585C1064.05 88.8268 1064.57 88.4417 1065.13 88.4528L1068.03 88.5096Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -10253,29 +10253,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1073.94 87.1104)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.33 89.6355C1075.69 90.2817 1076.19 90.6869 1076.76 90.698L1073.87 90.6411C1073.3 90.63 1072.8 90.2248 1072.44 89.5786L1075.33 89.6355Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.33 89.6353C1074.56 88.2408 1074.61 86.0053 1075.43 84.6422L1072.54 84.5854C1071.71 85.9485 1071.67 88.184 1072.44 89.5784L1075.33 89.6353Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1076.9 83.6371C1076.33 83.626 1075.81 84.0111 1075.43 84.6428L1072.54 84.5859C1072.92 83.9543 1073.44 83.5691 1074.01 83.5802L1076.9 83.6371Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -10285,29 +10285,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1053.66 138.613)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.06 141.138C1055.42 141.784 1055.92 142.189 1056.49 142.2L1053.59 142.144C1053.03 142.132 1052.53 141.727 1052.17 141.081L1055.06 141.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.06 141.138C1054.29 139.744 1054.33 137.508 1055.16 136.145L1052.27 136.088C1051.44 137.451 1051.4 139.687 1052.17 141.081L1055.06 141.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1056.63 135.141C1056.06 135.129 1055.54 135.515 1055.16 136.146L1052.26 136.089C1052.65 135.458 1053.17 135.073 1053.73 135.084L1056.63 135.141Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -10317,29 +10317,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1065.07 132.348)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.46 134.872C1066.82 135.518 1067.33 135.924 1067.89 135.935L1065 135.878C1064.43 135.867 1063.93 135.462 1063.57 134.815L1066.46 134.872Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.46 134.873C1065.69 133.478 1065.74 131.243 1066.56 129.88L1063.67 129.823C1062.84 131.186 1062.8 133.421 1063.57 134.816L1066.46 134.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1068.03 128.875C1067.46 128.864 1066.94 129.249 1066.56 129.881L1063.67 129.824C1064.05 129.192 1064.57 128.807 1065.13 128.818L1068.03 128.875Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -10349,29 +10349,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1073.94 127.476)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.33 130C1075.69 130.646 1076.19 131.052 1076.76 131.063L1073.87 131.006C1073.3 130.995 1072.8 130.59 1072.44 129.943L1075.33 130Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.33 130.001C1074.56 128.606 1074.61 126.371 1075.43 125.007L1072.54 124.951C1071.71 126.314 1071.67 128.549 1072.44 129.944L1075.33 130.001Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1076.9 124.003C1076.33 123.992 1075.81 124.377 1075.43 125.008L1072.54 124.952C1072.92 124.32 1073.44 123.935 1074 123.946L1076.9 124.003Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -10381,29 +10381,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1053.66 174.655)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.06 177.179C1055.42 177.826 1055.92 178.231 1056.49 178.242L1053.59 178.185C1053.03 178.174 1052.53 177.769 1052.17 177.123L1055.06 177.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.06 177.18C1054.29 175.785 1054.33 173.55 1055.16 172.187L1052.27 172.13C1051.44 173.493 1051.4 175.728 1052.17 177.123L1055.06 177.18Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1056.63 171.182C1056.06 171.171 1055.54 171.556 1055.16 172.188L1052.26 172.131C1052.65 171.499 1053.17 171.114 1053.73 171.125L1056.63 171.182Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -10413,29 +10413,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1065.07 168.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.46 170.914C1066.82 171.56 1067.33 171.965 1067.89 171.976L1065 171.919C1064.43 171.908 1063.93 171.503 1063.57 170.857L1066.46 170.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.46 170.914C1065.69 169.52 1065.74 167.284 1066.56 165.921L1063.67 165.864C1062.84 167.227 1062.8 169.463 1063.57 170.857L1066.46 170.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1068.03 164.916C1067.46 164.905 1066.94 165.29 1066.56 165.922L1063.67 165.865C1064.05 165.234 1064.57 164.848 1065.13 164.86L1068.03 164.916Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -10445,29 +10445,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1073.94 163.518)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.33 166.042C1075.69 166.688 1076.19 167.094 1076.76 167.105L1073.87 167.048C1073.3 167.037 1072.8 166.632 1072.44 165.985L1075.33 166.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.33 166.043C1074.56 164.648 1074.61 162.413 1075.43 161.049L1072.54 160.993C1071.71 162.356 1071.67 164.591 1072.44 165.986L1075.33 166.043Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1076.9 160.045C1076.33 160.034 1075.81 160.419 1075.43 161.05L1072.54 160.994C1072.92 160.362 1073.44 159.977 1074 159.988L1076.9 160.045Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <g filter="url(#filter12_d_2900_53447)">
           <rect
@@ -10481,7 +10481,7 @@ export const HeroHeader = () => {
             height="73.5976"
             transform="matrix(0.866826 0.498611 -0.866826 0.498611 1042.8 97.7324)"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <g filter="url(#filter13_d_2900_53447)">
@@ -10496,7 +10496,7 @@ export const HeroHeader = () => {
             height="27.5224"
             transform="matrix(0.866826 0.498611 0 1 979 134.428)"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <g filter="url(#filter14_d_2900_53447)">
@@ -10511,7 +10511,7 @@ export const HeroHeader = () => {
             height="27.5224"
             transform="matrix(0.866826 -0.498611 0 1 1042.8 171.125)"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <rect
@@ -10520,7 +10520,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1042.8 58.8081)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -10528,7 +10528,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 979 95.5039)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -10536,7 +10536,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1042.8 132.201)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -10544,7 +10544,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 -0.866826 0.498611 1042.8 17.0005)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -10552,7 +10552,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 0.498611 0 1 979 53.6963)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="73.5976"
@@ -10560,7 +10560,7 @@ export const HeroHeader = () => {
           transform="matrix(0.866826 -0.498611 0 1 1042.8 90.394)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -10570,29 +10570,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1053.66 98.2471)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.06 100.772C1055.42 101.418 1055.92 101.823 1056.49 101.834L1053.59 101.777C1053.03 101.766 1052.53 101.361 1052.17 100.715L1055.06 100.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.06 100.772C1054.29 99.3775 1054.33 97.1421 1055.16 95.779L1052.27 95.7221C1051.44 97.0852 1051.4 99.3207 1052.17 100.715L1055.06 100.772Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1056.63 94.7743C1056.06 94.7632 1055.54 95.1483 1055.16 95.78L1052.26 95.7231C1052.65 95.0915 1053.17 94.7063 1053.73 94.7174L1056.63 94.7743Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -10602,29 +10602,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1065.07 91.9824)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.46 94.507C1066.82 95.1532 1067.33 95.5585 1067.89 95.5696L1065 95.5127C1064.43 95.5016 1063.93 95.0964 1063.57 94.4502L1066.46 94.507Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.46 94.5074C1065.69 93.1129 1065.74 90.8774 1066.56 89.5143L1063.67 89.4575C1062.84 90.8206 1062.8 93.056 1063.57 94.4505L1066.46 94.5074Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1068.03 88.5096C1067.46 88.4985 1066.94 88.8837 1066.56 89.5153L1063.67 89.4585C1064.05 88.8268 1064.57 88.4417 1065.13 88.4528L1068.03 88.5096Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -10634,29 +10634,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1073.94 87.1104)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.33 89.6355C1075.69 90.2817 1076.19 90.6869 1076.76 90.698L1073.87 90.6411C1073.3 90.63 1072.8 90.2248 1072.44 89.5786L1075.33 89.6355Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.33 89.6353C1074.56 88.2408 1074.61 86.0053 1075.43 84.6422L1072.54 84.5854C1071.71 85.9485 1071.67 88.184 1072.44 89.5784L1075.33 89.6353Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1076.9 83.6371C1076.33 83.626 1075.81 84.0111 1075.43 84.6428L1072.54 84.5859C1072.92 83.9543 1073.44 83.5691 1074.01 83.5802L1076.9 83.6371Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -10666,29 +10666,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1053.66 138.613)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.06 141.138C1055.42 141.784 1055.92 142.189 1056.49 142.2L1053.59 142.144C1053.03 142.132 1052.53 141.727 1052.17 141.081L1055.06 141.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.06 141.138C1054.29 139.744 1054.33 137.508 1055.16 136.145L1052.27 136.088C1051.44 137.451 1051.4 139.687 1052.17 141.081L1055.06 141.138Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1056.63 135.141C1056.06 135.129 1055.54 135.515 1055.16 136.146L1052.26 136.089C1052.65 135.458 1053.17 135.073 1053.73 135.084L1056.63 135.141Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -10698,29 +10698,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1065.07 132.348)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.46 134.872C1066.82 135.518 1067.33 135.924 1067.89 135.935L1065 135.878C1064.43 135.867 1063.93 135.462 1063.57 134.815L1066.46 134.872Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.46 134.873C1065.69 133.478 1065.74 131.243 1066.56 129.88L1063.67 129.823C1062.84 131.186 1062.8 133.421 1063.57 134.816L1066.46 134.873Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1068.03 128.875C1067.46 128.864 1066.94 129.249 1066.56 129.881L1063.67 129.824C1064.05 129.192 1064.57 128.807 1065.13 128.818L1068.03 128.875Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -10730,29 +10730,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1073.94 127.476)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.33 130C1075.69 130.646 1076.19 131.052 1076.76 131.063L1073.87 131.006C1073.3 130.995 1072.8 130.59 1072.44 129.943L1075.33 130Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.33 130.001C1074.56 128.606 1074.61 126.371 1075.43 125.007L1072.54 124.951C1071.71 126.314 1071.67 128.549 1072.44 129.944L1075.33 130.001Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1076.9 124.003C1076.33 123.992 1075.81 124.377 1075.43 125.008L1072.54 124.952C1072.92 124.32 1073.44 123.935 1074 123.946L1076.9 124.003Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -10762,29 +10762,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1053.66 174.655)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.06 177.179C1055.42 177.826 1055.92 178.231 1056.49 178.242L1053.59 178.185C1053.03 178.174 1052.53 177.769 1052.17 177.123L1055.06 177.179Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1055.06 177.18C1054.29 175.785 1054.33 173.55 1055.16 172.187L1052.27 172.13C1051.44 173.493 1051.4 175.728 1052.17 177.123L1055.06 177.18Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1056.63 171.182C1056.06 171.171 1055.54 171.556 1055.16 172.188L1052.26 172.131C1052.65 171.499 1053.17 171.114 1053.73 171.125L1056.63 171.182Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -10794,29 +10794,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1065.07 168.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.46 170.914C1066.82 171.56 1067.33 171.965 1067.89 171.976L1065 171.919C1064.43 171.908 1063.93 171.503 1063.57 170.857L1066.46 170.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1066.46 170.914C1065.69 169.52 1065.74 167.284 1066.56 165.921L1063.67 165.864C1062.84 167.227 1062.8 169.463 1063.57 170.857L1066.46 170.914Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1068.03 164.916C1067.46 164.905 1066.94 165.29 1066.56 165.922L1063.67 165.865C1064.05 165.234 1064.57 164.848 1065.13 164.86L1068.03 164.916Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="2.89009"
@@ -10826,29 +10826,29 @@ export const HeroHeader = () => {
           transform="matrix(0.51768 -0.853988 0.4842 0.874958 1073.94 163.518)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.33 166.042C1075.69 166.688 1076.19 167.094 1076.76 167.105L1073.87 167.048C1073.3 167.037 1072.8 166.632 1072.44 165.985L1075.33 166.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1075.33 166.043C1074.56 164.648 1074.61 162.413 1075.43 161.049L1072.54 160.993C1071.71 162.356 1071.67 164.591 1072.44 165.986L1075.33 166.043Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M1076.9 160.045C1076.33 160.034 1075.81 160.419 1075.43 161.05L1072.54 160.994C1072.92 160.362 1073.44 159.977 1074 159.988L1076.9 160.045Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <defs>
           <filter
@@ -10858,9 +10858,9 @@ export const HeroHeader = () => {
             width="136.461"
             height="81.8921"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -10893,9 +10893,9 @@ export const HeroHeader = () => {
             width="72.6641"
             height="73.2188"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -10928,9 +10928,9 @@ export const HeroHeader = () => {
             width="72.6641"
             height="73.2192"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -10963,9 +10963,9 @@ export const HeroHeader = () => {
             width="136.461"
             height="81.8921"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -10998,9 +10998,9 @@ export const HeroHeader = () => {
             width="72.6641"
             height="73.2188"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -11033,9 +11033,9 @@ export const HeroHeader = () => {
             width="72.6641"
             height="73.2192"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -11068,9 +11068,9 @@ export const HeroHeader = () => {
             width="136.461"
             height="81.8921"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -11103,9 +11103,9 @@ export const HeroHeader = () => {
             width="72.6641"
             height="73.2188"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -11138,9 +11138,9 @@ export const HeroHeader = () => {
             width="72.6641"
             height="73.2192"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -11173,9 +11173,9 @@ export const HeroHeader = () => {
             width="712.473"
             height="400.224"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -11208,9 +11208,9 @@ export const HeroHeader = () => {
             width="100.52"
             height="160.209"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -11243,9 +11243,9 @@ export const HeroHeader = () => {
             width="23.0371"
             height="21.5435"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -11278,9 +11278,9 @@ export const HeroHeader = () => {
             width="136.461"
             height="81.8921"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -11313,9 +11313,9 @@ export const HeroHeader = () => {
             width="72.6641"
             height="73.2188"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -11348,9 +11348,9 @@ export const HeroHeader = () => {
             width="72.6641"
             height="73.2192"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
