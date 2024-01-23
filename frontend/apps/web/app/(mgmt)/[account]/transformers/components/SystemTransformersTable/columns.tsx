@@ -7,10 +7,16 @@ import { SystemTransformer } from '@neosync/sdk';
 import { ColumnDef } from '@tanstack/react-table';
 import { DataTableColumnHeader } from './data-table-column-header';
 import { DataTableRowActions } from './data-table-row-actions';
+import NextLink from 'next/link';
 
-export function getSystemTransformerColumns(): ColumnDef<
-  PlainMessage<SystemTransformer>
->[] {
+interface GetSystemTransformercolumnsProps {
+  accountName: string;
+}
+
+export function getSystemTransformerColumns(
+  props: GetSystemTransformercolumnsProps
+): ColumnDef<PlainMessage<SystemTransformer>>[] {
+  const { accountName } = props;
   return [
     {
       id: 'select',
@@ -43,7 +49,14 @@ export function getSystemTransformerColumns(): ColumnDef<
         return (
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
-              {row.original.name}
+              <div>
+                <NextLink
+                  className="hover:underline"
+                  href={`/${accountName}/transformers/systemTransformers/${row.original.source}`}
+                >
+                  {row.original.name}
+                </NextLink>
+              </div>
             </span>
           </div>
         );

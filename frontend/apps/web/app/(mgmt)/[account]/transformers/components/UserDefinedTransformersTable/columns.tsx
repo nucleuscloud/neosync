@@ -1,9 +1,8 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-
 import { Checkbox } from '@/components/ui/checkbox';
-
+import NextLink from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { formatDateTime } from '@/util/util';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
@@ -11,14 +10,15 @@ import { UserDefinedTransformer } from '@neosync/sdk';
 import { DataTableColumnHeader } from './data-table-column-header';
 import { DataTableRowActions } from './data-table-row-actions';
 
-interface Props {
+interface getUserDefinedTransformerColumnsProps {
   onTransformerDeleted(id: string): void;
+  accountName: string;
 }
 
 export function getUserDefinedTransformerColumns(
-  props: Props
+  props: getUserDefinedTransformerColumnsProps
 ): ColumnDef<PlainMessage<UserDefinedTransformer>>[] {
-  const { onTransformerDeleted } = props;
+  const { onTransformerDeleted, accountName } = props;
 
   return [
     {
@@ -52,7 +52,14 @@ export function getUserDefinedTransformerColumns(
         return (
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
-              {row.original.name}
+              <div>
+                <NextLink
+                  className="hover:underline"
+                  href={`/${accountName}/transformers/${row.original.id}`}
+                >
+                  {row.original.name}
+                </NextLink>
+              </div>
             </span>
           </div>
         );

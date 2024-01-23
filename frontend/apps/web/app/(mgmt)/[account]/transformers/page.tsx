@@ -47,11 +47,14 @@ function TransformersTable(): ReactElement {
   if (transformersIsLoading || userDefinedTransformersLoading) {
     return <SkeletonTable />;
   }
-  const systemTransformerColumns = getSystemTransformerColumns();
+  const systemTransformerColumns = getSystemTransformerColumns({
+    accountName: account?.name ?? '',
+  });
   const userDefinedTransformerColumns = getUserDefinedTransformerColumns({
     onTransformerDeleted() {
       userDefinedTransformerMutate();
     },
+    accountName: account?.name ?? '',
   });
 
   return (
