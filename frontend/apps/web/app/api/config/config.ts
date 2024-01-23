@@ -17,5 +17,6 @@ export function getSystemAppConfig(): SystemAppConfig {
       host: process.env.POSTHOG_HOST ?? 'https://app.posthog.com',
       key: process.env.POSTHOG_KEY,
     },
+    isNeosyncCloud: process.env.NEOSYNC_CLOUD === 'true',
   };
 }

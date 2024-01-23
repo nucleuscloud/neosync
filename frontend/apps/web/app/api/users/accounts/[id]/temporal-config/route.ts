@@ -1,6 +1,9 @@
 import { withNeosyncContext } from '@/api-only/neosync-context';
+import { getSystemAppConfig } from '@/app/api/config/config';
 import { RequestContext } from '@/shared';
 import {
+  Code,
+  ConnectError,
   GetAccountTemporalConfigRequest,
   SetAccountTemporalConfigRequest,
 } from '@neosync/sdk';
@@ -10,27 +13,39 @@ export async function GET(
   req: NextRequest,
   { params }: RequestContext
 ): Promise<NextResponse> {
-  return withNeosyncContext(async (ctx) =>
-    ctx.client.users.getAccountTemporalConfig(
+  const systemConfig = getSystemAppConfig();
+  return withNeosyncContext(async (ctx) => {
+    if (systemConfig.isNeosyncCloud) {
+      throw new ConnectError('unimplemented', Code.Unimplemented);
+    }
+    return ctx.client.users.getAccountTemporalConfig(
       new GetAccountTemporalConfigRequest({
         accountId: params.id,
       })
-    )
-  )(req);
+    );
+  })(req);
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  return withNeosyncContext(async (ctx) =>
-    ctx.client.users.setAccountTemporalConfig(
+  const systemConfig = getSystemAppConfig();
+  return withNeosyncContext(async (ctx) => {
+    if (systemConfig.isNeosyncCloud) {
+      throw new ConnectError('unimplemented', Code.Unimplemented);
+    }
+    return ctx.client.users.setAccountTemporalConfig(
       SetAccountTemporalConfigRequest.fromJson(await req.json())
-    )
-  )(req);
+    );
+  })(req);
 }
 
 export async function PUT(req: NextRequest): Promise<NextResponse> {
-  return withNeosyncContext(async (ctx) =>
-    ctx.client.users.setAccountTemporalConfig(
+  const systemConfig = getSystemAppConfig();
+  return withNeosyncContext(async (ctx) => {
+    if (systemConfig.isNeosyncCloud) {
+      throw new ConnectError('unimplemented', Code.Unimplemented);
+    }
+    return ctx.client.users.setAccountTemporalConfig(
       SetAccountTemporalConfigRequest.fromJson(await req.json())
-    )
-  )(req);
+    );
+  })(req);
 }

@@ -89,3 +89,5 @@ stringData:
     {{- if and .Values.auth .Values.auth.api .Values.auth.api.baseUrl }}
     AUTH_API_BASEURL: {{ .Values.auth.api.baseUrl }}
     {{- end }}
+
+    NEOSYNC_CLOUD: {{ .Values.neosyncCloud.enabled | default "false" | quote }}

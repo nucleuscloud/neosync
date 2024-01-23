@@ -14,7 +14,8 @@ type Service struct {
 }
 
 type Config struct {
-	IsAuthEnabled bool
+	IsAuthEnabled  bool
+	IsNeosyncCloud bool
 }
 
 func New(

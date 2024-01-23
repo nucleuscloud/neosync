@@ -94,3 +94,6 @@ nodeSelector: {}
 
 volumes: []
 volumeMounts: []
+
+neosyncCloud:
+  enabled: false

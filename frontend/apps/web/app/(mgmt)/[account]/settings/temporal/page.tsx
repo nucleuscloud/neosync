@@ -11,8 +11,10 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetAccountTemporalConfig } from '@/libs/hooks/useGetAccountTemporalConfig';
+import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { getErrorMessage } from '@/util/util';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
@@ -21,6 +23,7 @@ import {
   SetAccountTemporalConfigRequest,
   SetAccountTemporalConfigResponse,
 } from '@neosync/sdk';
+import Error from 'next/error';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -35,8 +38,18 @@ type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
 
 export default function Temporal(): ReactElement {
   const { account } = useAccount();
-  const { data: tcData, mutate: mutateTcData } = useGetAccountTemporalConfig(
-    account?.id ?? ''
+  const { data: systemAppConfigData, isLoading: isSystemAppConfigDataLoading } =
+    useGetSystemAppConfig();
+  const {
+    data: tcData,
+    mutate: mutateTcData,
+    isLoading: isTemporalConfigLoading,
+  } = useGetAccountTemporalConfig(
+    !isSystemAppConfigDataLoading &&
+      !!account?.id &&
+      !systemAppConfigData?.isNeosyncCloud
+      ? account.id
+      : ''
   );
   const form = useForm<FormValues>({
     resolver: yupResolver(FORM_SCHEMA),
@@ -74,6 +87,17 @@ export default function Temporal(): ReactElement {
         variant: 'destructive',
       });
     }
+  }
+  if (isSystemAppConfigDataLoading) {
+    return <Skeleton />;
+  }
+
+  if (systemAppConfigData?.isNeosyncCloud) {
+    return <Error statusCode={404} />;
+  }
+
+  if (isTemporalConfigLoading) {
+    return <Skeleton />;
   }
 
   return (

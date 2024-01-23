@@ -2,6 +2,7 @@ export interface SystemAppConfig {
   isAuthEnabled: boolean;
   publicAppBaseUrl: string;
   posthog: PosthogConfig;
+  isNeosyncCloud: boolean;
 }
 
 interface PosthogConfig {
