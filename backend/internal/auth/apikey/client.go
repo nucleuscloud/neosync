@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"connectrpc.com/connect"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	"github.com/nucleuscloud/neosync/backend/internal/apikey"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
@@ -30,20 +31,26 @@ type Queries interface {
 }
 
 type Client struct {
-	q                    Queries
-	db                   db_queries.DBTX
-	allowedWorkerApiKeys []string
+	q                       Queries
+	db                      db_queries.DBTX
+	allowedWorkerApiKeys    []string
+	allowedWorkerProcedures map[string]any
 }
 
 func New(
 	queries Queries,
 	db db_queries.DBTX,
 	allowedWorkerApiKeys []string,
+	allowedWorkerProcedures []string,
 ) *Client {
-	return &Client{q: queries, db: db, allowedWorkerApiKeys: allowedWorkerApiKeys}
+	allowedWorkerProcedureSet := map[string]any{}
+	for _, procedure := range allowedWorkerProcedures {
+		allowedWorkerProcedureSet[procedure] = struct{}{}
+	}
+	return &Client{q: queries, db: db, allowedWorkerApiKeys: allowedWorkerApiKeys, allowedWorkerProcedures: allowedWorkerProcedureSet}
 }
 
-func (c *Client) InjectTokenCtx(ctx context.Context, header http.Header) (context.Context, error) {
+func (c *Client) InjectTokenCtx(ctx context.Context, header http.Header, spec connect.Spec) (context.Context, error) {
 	token, err := utils.GetBearerTokenFromHeader(header, "Authorization")
 	if err != nil {
 		return nil, err
@@ -68,7 +75,9 @@ func (c *Client) InjectTokenCtx(ctx context.Context, header http.Header) (contex
 			ApiKeyType: apikey.AccountApiKey,
 		})
 		return newctx, nil
-	} else if apikey.IsValidV1WorkerKey(token) && isApiKeyAllowed(token, c.allowedWorkerApiKeys) {
+	} else if apikey.IsValidV1WorkerKey(token) &&
+		isApiKeyAllowed(token, c.allowedWorkerApiKeys) &&
+		isProcedureAllowed(spec.Procedure, c.allowedWorkerProcedures) {
 		newctx := context.WithValue(ctx, TokenContextKey{}, &TokenContextData{
 			RawToken:   token,
 			ApiKey:     nil,
@@ -95,6 +104,11 @@ func isApiKeyAllowed(key string, allowedKeys []string) bool {
 		}
 	}
 	return false
+}
+
+func isProcedureAllowed(procedure string, allowedProcedures map[string]any) bool {
+	_, ok := allowedProcedures[procedure]
+	return ok
 }
 
 func secureCompare(a, b string) bool {

@@ -14,7 +14,7 @@ import (
 )
 
 func Test_Interceptor_WrapUnary_Disallow_All(t *testing.T) {
-	interceptor := NewInterceptor(func(ctx context.Context, header http.Header) (context.Context, error) {
+	interceptor := NewInterceptor(func(ctx context.Context, header http.Header, spec connect.Spec) (context.Context, error) {
 		return nil, errors.New("no dice")
 	})
 
@@ -36,7 +36,7 @@ func Test_Interceptor_WrapUnary_Disallow_All(t *testing.T) {
 }
 
 func Test_Interceptor_WrapUnary_Allow_All(t *testing.T) {
-	interceptor := NewInterceptor(func(ctx context.Context, header http.Header) (context.Context, error) {
+	interceptor := NewInterceptor(func(ctx context.Context, header http.Header, spec connect.Spec) (context.Context, error) {
 		return ctx, nil
 	})
 
@@ -68,7 +68,7 @@ func startHTTPServer(tb testing.TB, h http.Handler) *httptest.Server {
 
 func Test_Interceptor_WrapUnary_WithExclude(t *testing.T) {
 	interceptor := NewInterceptorWithExclude(
-		func(ctx context.Context, header http.Header) (context.Context, error) {
+		func(ctx context.Context, header http.Header, spec connect.Spec) (context.Context, error) {
 			return nil, errors.New("no dice")
 		},
 		[]string{mgmtv1alpha1connect.UserAccountServiceSetUserProcedure},

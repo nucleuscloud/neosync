@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
@@ -22,14 +23,14 @@ func Test_Client_New(t *testing.T) {
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockDbTx := db_queries.NewMockDBTX(t)
 
-	assert.NotNil(t, New(mockQuerier, mockDbTx, []string{}))
+	assert.NotNil(t, New(mockQuerier, mockDbTx, []string{}, []string{}))
 }
 
 func Test_Client_InjectTokenCtx_Account(t *testing.T) {
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockDbTx := db_queries.NewMockDBTX(t)
 
-	client := New(mockQuerier, mockDbTx, []string{})
+	client := New(mockQuerier, mockDbTx, []string{}, []string{})
 
 	fakeToken := apikey.NewV1AccountKey()
 	hashedFakeToken := utils.ToSha256(
@@ -46,7 +47,7 @@ func Test_Client_InjectTokenCtx_Account(t *testing.T) {
 
 	newctx, err := client.InjectTokenCtx(context.Background(), http.Header{
 		"Authorization": []string{fmt.Sprintf("Bearer %s", fakeToken)},
-	})
+	}, connect.Spec{})
 	assert.NoError(t, err)
 	assert.NotNil(t, newctx)
 
@@ -68,7 +69,7 @@ func Test_Client_InjectTokenCtx_Account_Expired(t *testing.T) {
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockDbTx := db_queries.NewMockDBTX(t)
 
-	client := New(mockQuerier, mockDbTx, []string{})
+	client := New(mockQuerier, mockDbTx, []string{}, []string{})
 
 	fakeToken := apikey.NewV1AccountKey()
 	hashedFakeToken := utils.ToSha256(
@@ -85,7 +86,7 @@ func Test_Client_InjectTokenCtx_Account_Expired(t *testing.T) {
 
 	newctx, err := client.InjectTokenCtx(context.Background(), http.Header{
 		"Authorization": []string{fmt.Sprintf("Bearer %s", fakeToken)},
-	})
+	}, connect.Spec{})
 	assert.Error(t, err)
 	assert.True(t, errors.Is(err, ApiKeyExpiredErr))
 	assert.Nil(t, newctx)
@@ -93,7 +94,7 @@ func Test_Client_InjectTokenCtx_Account_Expired(t *testing.T) {
 
 func Test_Client_InjectTokenCtx_InvalidHeader(t *testing.T) {
 	client := &Client{}
-	_, err := client.InjectTokenCtx(context.Background(), http.Header{"Authorization": []string{}})
+	_, err := client.InjectTokenCtx(context.Background(), http.Header{"Authorization": []string{}}, connect.Spec{})
 	assert.Error(t, err)
 }
 
@@ -101,11 +102,11 @@ func Test_Client_InjectTokenCtx_InvalidToken(t *testing.T) {
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockDbTx := db_queries.NewMockDBTX(t)
 
-	client := New(mockQuerier, mockDbTx, []string{})
+	client := New(mockQuerier, mockDbTx, []string{}, []string{})
 
 	newctx, err := client.InjectTokenCtx(context.Background(), http.Header{
 		"Authorization": []string{"Bearer 123"},
-	})
+	}, connect.Spec{})
 	assert.Error(t, err)
 	assert.Nil(t, newctx)
 }
@@ -114,7 +115,7 @@ func Test_Client_InjectTokenCtx_Account_NotFoundKeyValue(t *testing.T) {
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockDbTx := db_queries.NewMockDBTX(t)
 
-	client := New(mockQuerier, mockDbTx, []string{})
+	client := New(mockQuerier, mockDbTx, []string{}, []string{})
 
 	fakeToken := apikey.NewV1AccountKey()
 	hashedFakeToken := utils.ToSha256(
@@ -126,7 +127,7 @@ func Test_Client_InjectTokenCtx_Account_NotFoundKeyValue(t *testing.T) {
 
 	newctx, err := client.InjectTokenCtx(context.Background(), http.Header{
 		"Authorization": []string{fmt.Sprintf("Bearer %s", fakeToken)},
-	})
+	}, connect.Spec{})
 	assert.Error(t, err)
 	assert.Nil(t, newctx)
 }
@@ -148,11 +149,11 @@ func Test_Client_InjectTokenCtx_Worker_Allowed(t *testing.T) {
 
 	fakeToken := apikey.NewV1WorkerKey()
 
-	client := New(mockQuerier, mockDbTx, []string{fakeToken, apikey.NewV1WorkerKey()})
+	client := New(mockQuerier, mockDbTx, []string{fakeToken, apikey.NewV1WorkerKey()}, []string{"/foo"})
 
 	newctx, err := client.InjectTokenCtx(context.Background(), http.Header{
 		"Authorization": []string{fmt.Sprintf("Bearer %s", fakeToken)},
-	})
+	}, connect.Spec{Procedure: "/foo"})
 	assert.NoError(t, err)
 	assert.NotNil(t, newctx)
 
@@ -169,17 +170,32 @@ func Test_Client_InjectTokenCtx_Worker_Allowed(t *testing.T) {
 	)
 }
 
-func Test_Client_InjectTokenCtx_Worker_DisAllowed(t *testing.T) {
+func Test_Client_InjectTokenCtx_Worker_DisAllowed_ApiKey(t *testing.T) {
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockDbTx := db_queries.NewMockDBTX(t)
 
 	fakeToken := apikey.NewV1WorkerKey()
 
-	client := New(mockQuerier, mockDbTx, []string{apikey.NewV1WorkerKey(), apikey.NewV1WorkerKey()})
+	client := New(mockQuerier, mockDbTx, []string{apikey.NewV1WorkerKey(), apikey.NewV1WorkerKey()}, []string{})
 
 	newctx, err := client.InjectTokenCtx(context.Background(), http.Header{
 		"Authorization": []string{fmt.Sprintf("Bearer %s", fakeToken)},
-	})
+	}, connect.Spec{})
+	assert.Error(t, err)
+	assert.Nil(t, newctx)
+}
+
+func Test_Client_InjectTokenCtx_Worker_DisAllowed_Procedure(t *testing.T) {
+	mockQuerier := db_queries.NewMockQuerier(t)
+	mockDbTx := db_queries.NewMockDBTX(t)
+
+	fakeToken := apikey.NewV1WorkerKey()
+
+	client := New(mockQuerier, mockDbTx, []string{fakeToken}, []string{"/foo"})
+
+	newctx, err := client.InjectTokenCtx(context.Background(), http.Header{
+		"Authorization": []string{fmt.Sprintf("Bearer %s", fakeToken)},
+	}, connect.Spec{Procedure: "/bar"})
 	assert.Error(t, err)
 	assert.Nil(t, newctx)
 }
