@@ -173,9 +173,14 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						resp.excludeColumns = c.Columns.Exclude
 						resp.DependsOn = c.DependsOn
 					} else if c.Columns != nil && c.Columns.Include != nil && len(c.Columns.Include) > 0 {
+						pks := primaryKeys[tableName]
+						if len(pks) == 0 {
+							return nil, fmt.Errorf("No primary keys found for table (%s). Unable to build update query.", tableName)
+						}
+
 						// config for sql update
 						resp.updateConfig = c
-						resp.primaryKeys = primaryKeys[tableName]
+						resp.primaryKeys = pks
 					}
 				}
 
@@ -268,6 +273,10 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						resp.excludeColumns = c.Columns.Exclude
 						resp.DependsOn = c.DependsOn
 					} else if c.Columns != nil && c.Columns.Include != nil && len(c.Columns.Include) > 0 {
+						pks := primaryKeys[tableName]
+						if len(pks) == 0 {
+							return nil, fmt.Errorf("No primary keys found for table (%s). Unable to build update query.", tableName)
+						}
 						// config for sql update
 						resp.updateConfig = c
 						resp.primaryKeys = primaryKeys[tableName]
