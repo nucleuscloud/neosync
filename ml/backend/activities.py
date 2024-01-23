@@ -21,7 +21,7 @@ class TrainModelInput:
   table: str
   columns: List[str]
 
-@activity.defn
+@activity.defn(name="ctgan_single_table_train")
 async def train_model(input: TrainModelInput):
   activity.logger.info("running train model activity")
   engine = create_engine(input.dsn)

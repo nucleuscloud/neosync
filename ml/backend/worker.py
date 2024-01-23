@@ -30,22 +30,22 @@ with workflow.unsafe.imports_passed_through():
 #     )
 
 
-@workflow.defn
-class SampleWorkflow:
-   @workflow.run
-   async def run(self):
-      workflow.logger.info("Running sample workflow")
-      return await workflow.execute_activity(
-        sample_model,
-        SampleModelInput(
-           10000,
-           "/Users/nick/code/nucleus/neosync/ml/backend/storage/adult.pkl",
-           "postgresql://postgres:foofar@localhost:5435/nucleus?sslmode=disable",
-           "public",
-           "adult",
-        ),
-        start_to_close_timeout=timedelta(seconds=10 * 60),
-      )
+# @workflow.defn
+# class SampleWorkflow:
+#    @workflow.run
+#    async def run(self):
+#       workflow.logger.info("Running sample workflow")
+#       return await workflow.execute_activity(
+#         sample_model,
+#         SampleModelInput(
+#            10000,
+#            "/Users/nick/code/nucleus/neosync/ml/backend/storage/adult.pkl",
+#            "postgresql://postgres:foofar@localhost:5435/nucleus?sslmode=disable",
+#            "public",
+#            "adult",
+#         ),
+#         start_to_close_timeout=timedelta(seconds=10 * 60),
+#       )
 
 
 async def main():
