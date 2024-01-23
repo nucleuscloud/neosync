@@ -8,6 +8,13 @@ import (
 	"github.com/google/uuid"
 )
 
+type ApiKeyType string
+
+const (
+	AccountApiKey ApiKeyType = "account"
+	WorkerApiKey  ApiKeyType = "worker"
+)
+
 const (
 	prefix         = "neo"
 	accountTokenId = "at"
