@@ -357,6 +357,7 @@ func sync(
 	fmt.Println(printlog.Render("Retrieving connection schema..."))                    // nolint
 
 	syncConfigs := []*syncConfig{}
+	var schemaConfig *schemaConfig
 	switch connectionType {
 	case awsS3Connection:
 		var cfg *mgmtv1alpha1.AwsS3SchemaConfig
@@ -379,6 +380,7 @@ func sync(
 			fmt.Println(bold.Render("No tables found.")) // nolint
 			return nil
 		}
+		schemaConfig = schemaCfg
 
 		if cmd.Destination.Driver == postgresDriver {
 			configs := buildSyncConfigs(schemaCfg, buildPostgresInsertQuery, buildPostgresUpdateQuery)
@@ -409,6 +411,7 @@ func sync(
 			fmt.Println(bold.Render("No tables found.")) // nolint
 			return nil
 		}
+		schemaConfig = schemaCfg
 
 		configs := buildSyncConfigs(schemaCfg, buildMysqlInsertQuery, buildMysqlUpdateQuery)
 		if configs == nil {
@@ -431,6 +434,7 @@ func sync(
 			fmt.Println(bold.Render("No tables found.")) // nolint
 			return nil
 		}
+		schemaConfig = schemaCfg
 
 		configs := buildSyncConfigs(schemaCfg, buildPostgresInsertQuery, buildPostgresUpdateQuery)
 		if configs == nil {
@@ -440,6 +444,35 @@ func sync(
 
 	default:
 		return fmt.Errorf("this connection type is not currently supported")
+	}
+
+	fmt.Println(printlog.Render("Running table init statements...")) // nolint
+	dependencyMap := buildDependencyMap(syncConfigs)
+	if cmd.Destination.Driver == postgresDriver {
+		orderedInitStatements := dbschemas_postgres.GetOrderedPostgresInitStatements(schemaConfig.InitTableStatementsMap, dependencyMap)
+		pool, err := pgxpool.New(ctx, cmd.Destination.ConnectionUrl)
+		if err != nil {
+			return err
+		}
+		_, err = pool.Exec(ctx, strings.Join(orderedInitStatements, "\n"))
+		if err != nil {
+			return err
+		}
+		pool.Close()
+	} else if cmd.Destination.Driver == mysqlDriver {
+		initStatementsMap := getMysqlInitStatementsMap(schemaConfig.InitTableStatementsMap)
+		orderedInitStatements := dbschemas_mysql.GetOrderedMysqlInitStatements(initStatementsMap, dependencyMap)
+		pool, err := sql.Open("mysql", cmd.Destination.ConnectionUrl)
+		if err != nil {
+			return err
+		}
+		for _, statement := range orderedInitStatements {
+			_, err = pool.ExecContext(ctx, statement)
+			if err != nil {
+				return err
+			}
+		}
+		pool.Close()
 	}
 
 	fmt.Println(printlog.Render("Generating configs... \n")) // nolint
@@ -611,6 +644,22 @@ func buildSyncConfigs(
 	return syncConfigs
 }
 
+func buildDependencyMap(syncConfigs []*syncConfig) map[string][]string {
+	dependencyMap := map[string][]string{}
+	for _, cfg := range syncConfigs {
+		key := dbschemas_utils.BuildTable(cfg.Schema, cfg.Table)
+		for _, dep := range cfg.DependsOn {
+			_, ok := dependencyMap[key]
+			if ok {
+				dependencyMap[key] = append(dependencyMap[key], dep.Table)
+			} else {
+				dependencyMap[key] = []string{dep.Table}
+			}
+		}
+	}
+	return dependencyMap
+}
+
 func getTableInitStatementMap(ctx context.Context, connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient, connectionId string, opts *destinationConfig) (map[string]string, error) {
 	if opts.InitSchema || opts.TruncateBeforeInsert || opts.TruncateCascade {
 		fmt.Println(printlog.Render("Creating init statements...")) // nolint
@@ -699,9 +748,8 @@ func generateBenthosConfig(
 						Driver: string(cmd.Destination.Driver),
 						Dsn:    cmd.Destination.ConnectionUrl,
 
-						Query:         syncConfig.Query,
-						ArgsMapping:   syncConfig.ArgsMapping,
-						InitStatement: syncConfig.InitStatement,
+						Query:       syncConfig.Query,
+						ArgsMapping: syncConfig.ArgsMapping,
 
 						Batching: &neosync_benthos.Batching{
 							Period: "5s",
@@ -1280,4 +1328,19 @@ func buildMysqlUpdateQuery(table string, columns, primaryKeys []string) string {
 		where = fmt.Sprintf("WHERE %s", strings.Join(clauses, " AND "))
 	}
 	return fmt.Sprintf("UPDATE %s SET %s %s;", table, strings.Join(values, ", "), where)
+}
+
+// returns map of table to list of sql statements
+func getMysqlInitStatementsMap(initTableStatementsMap map[string]string) map[string][]string {
+	initStatementsMap := map[string][]string{}
+	for key, statements := range initTableStatementsMap {
+		nonEmptyStatements := []string{}
+		for _, st := range strings.SplitAfter(statements, ";") {
+			if st != "" {
+				nonEmptyStatements = append(nonEmptyStatements, st)
+			}
+		}
+		initStatementsMap[key] = nonEmptyStatements
+	}
+	return initStatementsMap
 }

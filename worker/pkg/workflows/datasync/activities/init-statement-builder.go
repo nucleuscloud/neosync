@@ -234,13 +234,12 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					tableInitMap[table] = initStmt
 				}
 
-				sqlStatement := getOrderedSqlInitStatement(tableInitMap, dependencyMap)
-
+				sqlStatement := dbschemas_postgres.GetOrderedPostgresInitStatements(tableInitMap, dependencyMap)
 				pool, err := pgxpool.New(ctx, dsn)
 				if err != nil {
 					return nil, err
 				}
-				_, err = pool.Exec(ctx, sqlStatement)
+				_, err = pool.Exec(ctx, strings.Join(sqlStatement, "\n"))
 				if err != nil {
 					return nil, err
 				}
@@ -294,8 +293,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					tableInitMap[table] = initStmt
 				}
 
-				sqlStatements := getOrderedMysqlInitStatements(tableInitMap, dependencyMap)
-
+				sqlStatements := dbschemas_mysql.GetOrderedMysqlInitStatements(tableInitMap, dependencyMap)
 				pool, err := sql.Open("mysql", dsn)
 				if err != nil {
 					return nil, err
@@ -427,73 +425,6 @@ func getUniqueTablesFromMappings(mappings []*mgmtv1alpha1.JobMapping) map[string
 		}
 	}
 	return filteredTables
-}
-
-func getOrderedSqlInitStatement(tableInitMap map[string]string, dependencyMap map[string][]string) string {
-	orderedStatements := []string{}
-	seenTables := map[string]struct{}{}
-	for table, statement := range tableInitMap {
-		dep, ok := dependencyMap[table]
-		if !ok || len(dep) == 0 {
-			orderedStatements = append(orderedStatements, statement)
-			seenTables[table] = struct{}{}
-			delete(tableInitMap, table)
-		}
-	}
-
-	maxCount := len(tableInitMap) * 2
-	for len(tableInitMap) > 0 && maxCount > 0 {
-		maxCount--
-		for table, statement := range tableInitMap {
-			deps := dependencyMap[table]
-			if isReady(seenTables, deps, table) {
-				orderedStatements = append(orderedStatements, statement)
-				seenTables[table] = struct{}{}
-				delete(tableInitMap, table)
-			}
-		}
-	}
-
-	return strings.Join(orderedStatements, "\n")
-}
-
-func getOrderedMysqlInitStatements(tableInitMap, dependencyMap map[string][]string) []string {
-	orderedStatements := []string{}
-	seenTables := map[string]struct{}{}
-	for table, statements := range tableInitMap {
-		dep, ok := dependencyMap[table]
-		if !ok || len(dep) == 0 {
-			orderedStatements = append(orderedStatements, statements...)
-			seenTables[table] = struct{}{}
-			delete(tableInitMap, table)
-		}
-	}
-
-	maxCount := len(tableInitMap) * 2
-	for len(tableInitMap) > 0 && maxCount > 0 {
-		maxCount--
-		for table, statements := range tableInitMap {
-			deps := dependencyMap[table]
-			if isReady(seenTables, deps, table) {
-				orderedStatements = append(orderedStatements, statements...)
-				seenTables[table] = struct{}{}
-				delete(tableInitMap, table)
-			}
-		}
-	}
-
-	return orderedStatements
-}
-
-func isReady(seen map[string]struct{}, deps []string, table string) bool {
-	for _, d := range deps {
-		_, ok := seen[d]
-		// allow self dependencies
-		if !ok && d != table {
-			return false
-		}
-	}
-	return true
 }
 
 func getDependencyMap(td map[string]*dbschemas_utils.TableConstraints, uniqueTables map[string]struct{}) map[string][]string {
