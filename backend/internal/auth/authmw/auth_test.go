@@ -24,7 +24,7 @@ func Test_AuthMiddleware_InjectTokenCtx_ApiKey(t *testing.T) {
 
 	mw := New(mockJwt, mockApiKey)
 
-	mockApiKey.On("InjectTokenCtx", mock.Anything, mock.Anything).
+	mockApiKey.On("InjectTokenCtx", mock.Anything, mock.Anything, mock.Anything).
 		Return(context.Background(), nil)
 
 	_, err := mw.InjectTokenCtx(context.Background(), http.Header{
@@ -39,7 +39,7 @@ func Test_AuthMiddleware_InjectTokenCtx_ApiKey_InternalError(t *testing.T) {
 
 	mw := New(mockJwt, mockApiKey)
 
-	mockApiKey.On("InjectTokenCtx", mock.Anything, mock.Anything).
+	mockApiKey.On("InjectTokenCtx", mock.Anything, mock.Anything, mock.Anything).
 		Return(nil, errors.New("internal"))
 
 	_, err := mw.InjectTokenCtx(context.Background(), http.Header{
@@ -55,9 +55,9 @@ func Test_AuthMiddleware_InjectTokenCtx_ApiKey_JwtFallback(t *testing.T) {
 	mw := New(mockJwt, mockApiKey)
 
 	ctx := context.Background()
-	mockApiKey.On("InjectTokenCtx", ctx, mock.Anything).
+	mockApiKey.On("InjectTokenCtx", ctx, mock.Anything, mock.Anything).
 		Return(nil, auth_apikey.InvalidApiKeyErr)
-	mockJwt.On("InjectTokenCtx", ctx, mock.Anything).
+	mockJwt.On("InjectTokenCtx", ctx, mock.Anything, mock.Anything).
 		Return(context.Background(), nil)
 
 	_, err := mw.InjectTokenCtx(context.Background(), http.Header{
