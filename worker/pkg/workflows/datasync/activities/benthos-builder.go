@@ -292,6 +292,11 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, err
 		}
 		for _, resp := range responses {
+			tableKey := neosync_benthos.BuildBenthosTable(resp.TableSchema, resp.TableName)
+			tm := groupedTableMapping[tableKey]
+			if tm == nil {
+				return nil, errors.New("unable to find table mapping for key")
+			}
 			switch connection := destinationConnection.ConnectionConfig.Config.(type) {
 			case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 				dsn, err := getPgDsn(connection.PgConfig)
@@ -300,13 +305,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 				}
 
 				if resp.Config.Input.SqlSelect != nil {
-
-					tableKey := resp.Config.Input.SqlSelect.Table
-					tm := groupedTableMapping[tableKey]
-					if tm == nil {
-						return nil, errors.New("unable to find table mapping for key")
-					}
-
 					colSourceMap := map[string]string{}
 					for _, col := range tm.Mappings {
 						colSourceMap[col.Column] = col.GetTransformer().Source
@@ -338,12 +336,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					}
 
 				} else if resp.Config.Input.Generate != nil {
-					tableKey := neosync_benthos.BuildBenthosTable(resp.TableSchema, resp.TableName)
-					tm := groupedTableMapping[tableKey]
-					if tm == nil {
-						return nil, errors.New("unable to find table mapping for key")
-					}
-
 					cols := buildPlainColumns(tm.Mappings)
 					colSourceMap := map[string]string{}
 					for _, col := range tm.Mappings {
@@ -377,12 +369,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 				}
 
 				if resp.Config.Input.SqlSelect != nil {
-					tableKey := resp.Config.Input.SqlSelect.Table
-					tm := groupedTableMapping[tableKey]
-					if tm == nil {
-						return nil, errors.New("unable to find table mapping for key")
-					}
-
 					colSourceMap := map[string]string{}
 					for _, col := range tm.Mappings {
 						colSourceMap[col.Column] = col.GetTransformer().Source
@@ -413,12 +399,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						updateResponses = append(updateResponses, updateResp)
 					}
 				} else if resp.Config.Input.Generate != nil {
-					tableKey := neosync_benthos.BuildBenthosTable(resp.TableSchema, resp.TableName)
-					tm := groupedTableMapping[tableKey]
-					if tm == nil {
-						return nil, errors.New("unable to find table mapping for key")
-					}
-
 					cols := buildPlainColumns(tm.Mappings)
 					colSourceMap := map[string]string{}
 					for _, col := range tm.Mappings {
@@ -461,6 +441,8 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					`${!count("files")}.txt.gz`,
 				)
 
+				cols := buildPlainColumns(tm.Mappings)
+				resp.Columns = cols
 				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 					AwsS3: &neosync_benthos.AwsS3Insert{
 						Bucket:      connection.AwsS3Config.Bucket,
