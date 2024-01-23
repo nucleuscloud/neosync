@@ -4,6 +4,11 @@ import { TreeData, VirtualizedTree } from '@/components/VirtualizedTree';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from '@/components/ui/resizable';
 import { cn } from '@/libs/utils';
 import {
   Transformer,
@@ -124,58 +129,67 @@ export const VirtualizedSchemaTable = function VirtualizedSchemaTable({
 
   return (
     <div className="flex flex-row w-full">
-      <div className="basis-1/6  pt-[45px] ">
-        <VirtualizedTree data={treeData} onNodeSelect={onTreeFilterSelect} />
-      </div>
-      <div className="space-y-2 pl-2 basis-5/6 ">
-        <div className="flex items-center justify-between">
-          <div className="w-[250px]">
-            <TransformerSelect
-              transformers={transformers}
-              value={bulkTransformer}
-              onSelect={(value) => {
-                rows.forEach((r) => {
-                  if (bulkSelect || selected.has(buildRowKey(r))) {
-                    form.setValue(`mappings.${r.formIdx}.transformer`, value, {
-                      shouldDirty: true,
+      <ResizablePanelGroup direction="horizontal">
+        <ResizablePanel defaultSize={15}>
+          <VirtualizedTree data={treeData} onNodeSelect={onTreeFilterSelect} />
+        </ResizablePanel>
+        <ResizableHandle withHandle />
+        <ResizablePanel defaultSize={85}>
+          <div className="space-y-2 pl-2  ">
+            <div className="flex items-center justify-between">
+              <div className="w-[250px]">
+                <TransformerSelect
+                  transformers={transformers}
+                  value={bulkTransformer}
+                  onSelect={(value) => {
+                    rows.forEach((r) => {
+                      if (bulkSelect || selected.has(buildRowKey(r))) {
+                        form.setValue(
+                          `mappings.${r.formIdx}.transformer`,
+                          value,
+                          {
+                            shouldDirty: true,
+                          }
+                        );
+                      }
                     });
-                  }
-                });
-                onSelectAll(false);
-                setBulkTransformer({
-                  source: '',
-                  config: { case: '', value: {} },
-                });
-              }}
-              placeholder="Bulk update Transformers..."
-            />
+                    onSelectAll(false);
+                    setBulkTransformer({
+                      source: '',
+                      config: { case: '', value: {} },
+                    });
+                  }}
+                  placeholder="Bulk update Transformers..."
+                />
+              </div>
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => {
+                  setColumnFilters({});
+                  setRows(data);
+                }}
+              >
+                Clear filters
+                <UpdateIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </div>
+            <div>
+              <VirtualizedSchemaList
+                filteredRows={rows}
+                allRows={data}
+                onSelect={onSelect}
+                onSelectAll={onSelectAll}
+                transformers={transformers}
+                isAllSelected={bulkSelect}
+                selected={selected}
+                columnFilters={columnFilters}
+                onFilterSelect={onFilterSelect}
+              />
+            </div>
           </div>
-          <Button
-            variant="outline"
-            type="button"
-            onClick={() => {
-              setColumnFilters({});
-              setRows(data);
-            }}
-          >
-            Clear filters
-            <UpdateIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </div>
-        <div>
-          <VirtualizedSchemaList
-            filteredRows={rows}
-            allRows={data}
-            onSelect={onSelect}
-            onSelectAll={onSelectAll}
-            transformers={transformers}
-            isAllSelected={bulkSelect}
-            selected={selected}
-            columnFilters={columnFilters}
-            onFilterSelect={onFilterSelect}
-          />
-        </div>
-      </div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </div>
   );
 };

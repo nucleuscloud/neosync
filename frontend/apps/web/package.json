@@ -57,6 +57,7 @@
     "react-hook-form": "^7.49.3",
     "react-hook-form-persist": "^3.0.0",
     "react-icons": "^5.0.1",
+    "react-resizable-panels": "^1.0.9",
     "react-virtualized-auto-sizer": "^1.0.21",
     "react-window": "^1.8.10",
     "swr": "^2.2.4",
