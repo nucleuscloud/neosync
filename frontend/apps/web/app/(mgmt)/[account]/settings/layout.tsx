@@ -81,14 +81,14 @@ function useGetNavSettings(): Item[] {
 function getAllNavSettings(accountName: string): Item[] {
   return [
     {
-      href: `/${accountName}/settings/temporal`,
-      ref: 'temporal',
-      title: 'Temporal',
-    },
-    {
       href: `/${accountName}/settings/api-keys`,
       ref: 'api-keys',
       title: 'API Keys',
+    },
+    {
+      href: `/${accountName}/settings/temporal`,
+      ref: 'temporal',
+      title: 'Temporal',
     },
     {
       href: `/${accountName}/settings/members`,
