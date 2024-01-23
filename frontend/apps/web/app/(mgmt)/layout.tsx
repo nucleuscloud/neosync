@@ -13,7 +13,7 @@ import BaseLayout from '../BaseLayout';
 export const metadata: Metadata = {
   title: 'Neosync',
   description: 'Open Source Test Data Management',
-  icons: [{ rel: 'icon', url: 'favicon.ico' }],
+  icons: [{ rel: 'icon', url: '/favicon.ico' }],
 };
 
 export default async function RootLayout({
