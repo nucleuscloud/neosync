@@ -252,7 +252,8 @@ func serve(ctx context.Context) error {
 	}, db.Q, db.Db)
 
 	useraccountService := v1alpha1_useraccountservice.New(&v1alpha1_useraccountservice.Config{
-		IsAuthEnabled: isAuthEnabled,
+		IsAuthEnabled:  isAuthEnabled,
+		IsNeosyncCloud: getIsNeosyncCloud(),
 	}, db, auth0Mgmt, tfwfmgr)
 	api.Handle(
 		mgmtv1alpha1connect.NewUserAccountServiceHandler(
@@ -578,4 +579,8 @@ func getAuthApiClientId() string {
 
 func getAuthApiClientSecret() string {
 	return viper.GetString("AUTH_API_CLIENT_SECRET")
+}
+
+func getIsNeosyncCloud() bool {
+	return viper.GetBool("NEOSYNC_CLOUD")
 }
