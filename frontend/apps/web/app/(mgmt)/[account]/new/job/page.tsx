@@ -62,12 +62,12 @@ export default function NewJob({ params }: PageProps): ReactElement {
       Header={
         <PageHeader
           header="Create a new job"
-          description="Select a job type that can be triggered or scheduled in the system"
+          description="Select a job type to synchronize or generate data"
           pageHeaderContainerClassName="mx-24"
         />
       }
     >
-      <div className="gap-6 rounded-lg md:grid lg:grid-cols-2 xl:grid-cols-3 content-stretch mx-24">
+      <div className="gap-6 rounded-lg grid lg:grid-cols-2 xl:grid-cols-3 content-stretch mx-24">
         {jobData.map((jd) => (
           <JobCard
             key={jd.name}
@@ -93,7 +93,7 @@ function JobCard(props: JobCardProps): ReactElement {
   const { name, description, href, icon } = props;
   return (
     <Link href={href}>
-      <Card className="cursor-pointer hover:border hover:border-gray-500">
+      <Card className="cursor-pointer hover:border hover:border-gray-500 min-h-[110px]">
         <CardHeader>
           <CardTitle>
             <div className="flex flex-row items-center gap-2">
