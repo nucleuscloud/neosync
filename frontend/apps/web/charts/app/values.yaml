@@ -62,3 +62,6 @@ posthog:
 
 tolerations: []
 nodeSelector: {}
+
+neosyncCloud:
+  enabled: false

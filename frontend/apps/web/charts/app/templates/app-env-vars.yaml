@@ -79,3 +79,5 @@ stringData:
     {{ if and .Values.posthog .Values.posthog.host }}
     POSTHOG_HOST: {{ .Values.posthog.host }}
     {{- end }}
+
+    NEOSYNC_CLOUD: {{ .Values.neosyncCloud.enabled | default "false" | quote }}
