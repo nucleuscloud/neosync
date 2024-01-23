@@ -1,0 +1,38 @@
+---
+title: Circular Dependencies
+id: circular-dependencies
+hide_title: false
+slug: /table-constraints/circular-dependencies
+---
+
+## Sync Job
+
+In Neosync, handling circular dependencies in a Sync Job involves a few key concepts:
+
+**Support for Circular Dependencies**: Sync jobs can handle both self-referencing circular dependencies and those spanning multiple tables.
+
+**Nullable Columns:** For circular dependencies to work, at least one table involved in the dependency must have a column that is nullable.
+
+**Foreign Key Dependencies and Table Constraints:** While a sync job does not modify table constraints, it synchronizes data based on foreign key dependencies.
+
+**Data Insertion and Updating Process:** Sync jobs first performs an initial data insertion. Subsequently, it updates the columns involved in the circular dependency.
+
+## Generate Job
+
+In Neosync, handling circular dependencies in a Generate Job involves a few key concepts:
+
+**Support for Circular Dependencies**: Generate jobs currently do not handle circular dependencies. If the schema has a self referencing circular dependency and that column is nullable then use the `Null` transformer.
+
+## CLI - Sync cmd
+
+In Neosync, handling circular dependencies in a CLI Sync cmd involves a few key concepts:
+
+**Support for Circular Dependencies**: The CLI sync feature in Neosync is capable of managing both self-referencing circular dependencies and those involving multiple tables.
+In scenarios where the source data is not from a SQL database (like AWS S3) but the destination is a SQL database, Neosync utilizes the foreign key constraints of the destination
+SQL database to effectively insert data. This approach ensures data integrity and respects the relational structure of the SQL database.
+
+**Nullable Columns:** For circular dependencies to work, at least one table involved in the dependency must have a column that is nullable.
+
+**Foreign Key Dependencies and Table Constraints:** While a CLI sync does not modify table constraints, it synchronizes data based on foreign key dependencies.
+
+**Data Insertion and Updating Process:** Sync jobs first performs an initial data insertion. Subsequently, it updates the columns involved in the circular dependency.

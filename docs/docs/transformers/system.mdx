@@ -22,6 +22,7 @@ Neosync comes out of the box with 40+ system transformers in order to give you a
 | [Generate Boolean](/transformers/system#generate-boolean)                         | boolean | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_bool.go)                                      | Generates a boolean value at random.                                                                                             |
 | [Generate Card Number](/transformers/system#generate-card-number)                 | int64   | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_card_number.go)                               | Generates a card number.                                                                                                         |
 | [Generate City](/transformers/system#generate-city)                               | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_city.go)                                      | Randomly selects a city from a list of predefined US cities.                                                                     |
+| [Generate Default](/transformers/system#generate-default)                         | any     | [Code](https://github.com/nucleuscloud/neosync/blob/4e459151080109ffa0c5b0d9937f4f20fecfa6c6/worker/pkg/workflows/datasync/activities/activities.go) | Applies the predefined default value of a column as specified in the SQL database schema                                         |
 | [Generate E164 Phone Number](/transformers/system#generate-e164-phone-number)     | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_e164_phone.go)                                | Generates a Generate phone number in e164 format.                                                                                |
 | [Generate First Name](/transformers/system#generate-first-name)                   | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_first_name.go)                                | Generates a random first name.                                                                                                   |
 | [Generate Float64](/transformers/system#generate-float64)                         | float64 | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/generate_float.go)                                     | Generates a random float64 value.                                                                                                |
@@ -199,6 +200,10 @@ Here are some examples of what an output City value may look like.
 | -------------- |
 | Louisville     |
 | Manchester     |
+
+### Generate Default\{#generate-default}
+
+The generate default transformer automatically applies the predefined default value of a column as specified in the SQL database schema. This means whenever new data is added without specifying a value for this column, the system will insert the default value set for that column in the database.
 
 ### Generate E164 Phone Number\{#generate-e164-phone-number}
 
