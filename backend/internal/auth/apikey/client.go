@@ -76,8 +76,8 @@ func (c *Client) InjectTokenCtx(ctx context.Context, header http.Header, spec co
 		})
 		return newctx, nil
 	} else if apikey.IsValidV1WorkerKey(token) &&
-		isApiKeyAllowed(token, c.allowedWorkerApiKeys) &&
-		isProcedureAllowed(spec.Procedure, c.allowedWorkerProcedures) {
+		isApiKeyAllowed(c.allowedWorkerApiKeys, token) &&
+		isProcedureAllowed(c.allowedWorkerProcedures, spec.Procedure) {
 		newctx := context.WithValue(ctx, TokenContextKey{}, &TokenContextData{
 			RawToken:   token,
 			ApiKey:     nil,
@@ -97,7 +97,7 @@ func GetTokenDataFromCtx(ctx context.Context) (*TokenContextData, error) {
 	return data, nil
 }
 
-func isApiKeyAllowed(key string, allowedKeys []string) bool {
+func isApiKeyAllowed(allowedKeys []string, key string) bool {
 	for _, allowedKey := range allowedKeys {
 		if secureCompare(allowedKey, key) {
 			return true
@@ -106,7 +106,7 @@ func isApiKeyAllowed(key string, allowedKeys []string) bool {
 	return false
 }
 
-func isProcedureAllowed(procedure string, allowedProcedures map[string]any) bool {
+func isProcedureAllowed(allowedProcedures map[string]any, procedure string) bool {
 	_, ok := allowedProcedures[procedure]
 	return ok
 }
