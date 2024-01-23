@@ -2,8 +2,8 @@ export const SyncDash = () => {
   return (
     <div>
       <svg
-        width="710"
-        height="357"
+        // width="710"
+        // height="357"
         viewBox="0 0 710 357"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"

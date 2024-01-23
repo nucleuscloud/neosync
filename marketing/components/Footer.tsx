@@ -126,7 +126,7 @@ function Socials(): ReactElement {
 
 function Links(): ReactElement {
   return (
-    <div className="flex flex-col w-full pt-10 ">
+    <div className="flex flex-col w-full lg:pt-10 ">
       <div className="h-[2px] rounded-full w-full bg-[#303030]" />
       <div className="flex flex-col lg:flex-row lg:justify-center items-endspace-y-3 lg:space-x-8 pt-10">
         <div className="flex flex-row items-center">
@@ -151,16 +151,4 @@ function Links(): ReactElement {
       </div>
     </div>
   );
-}
-
-{
-  /*
-  SOC2 logo
-  <Image
-src="https://assets.nucleuscloud.com/neosync/marketingsite/soc2.png"
-alt="soc2"
-className="object-scale-down"
-width="70"
-height="70"
-/> */
 }
