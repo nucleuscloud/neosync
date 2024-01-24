@@ -3685,3 +3685,83 @@ export class TerminateJobRunResponse extends Message<TerminateJobRunResponse> {
   }
 }
 
+/**
+ * @generated from message mgmt.v1alpha1.GetJobRunLogsStreamRequest
+ */
+export class GetJobRunLogsStreamRequest extends Message<GetJobRunLogsStreamRequest> {
+  /**
+   * @generated from field: string job_run_id = 1;
+   */
+  jobRunId = "";
+
+  /**
+   * @generated from field: string account_id = 2;
+   */
+  accountId = "";
+
+  constructor(data?: PartialMessage<GetJobRunLogsStreamRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetJobRunLogsStreamRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "job_run_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetJobRunLogsStreamRequest {
+    return new GetJobRunLogsStreamRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetJobRunLogsStreamRequest {
+    return new GetJobRunLogsStreamRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetJobRunLogsStreamRequest {
+    return new GetJobRunLogsStreamRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetJobRunLogsStreamRequest | PlainMessage<GetJobRunLogsStreamRequest> | undefined, b: GetJobRunLogsStreamRequest | PlainMessage<GetJobRunLogsStreamRequest> | undefined): boolean {
+    return proto3.util.equals(GetJobRunLogsStreamRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetJobRunLogsStreamResponse
+ */
+export class GetJobRunLogsStreamResponse extends Message<GetJobRunLogsStreamResponse> {
+  /**
+   * @generated from field: string log_line = 1;
+   */
+  logLine = "";
+
+  constructor(data?: PartialMessage<GetJobRunLogsStreamResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetJobRunLogsStreamResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "log_line", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetJobRunLogsStreamResponse {
+    return new GetJobRunLogsStreamResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetJobRunLogsStreamResponse {
+    return new GetJobRunLogsStreamResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetJobRunLogsStreamResponse {
+    return new GetJobRunLogsStreamResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetJobRunLogsStreamResponse | PlainMessage<GetJobRunLogsStreamResponse> | undefined, b: GetJobRunLogsStreamResponse | PlainMessage<GetJobRunLogsStreamResponse> | undefined): boolean {
+    return proto3.util.equals(GetJobRunLogsStreamResponse, a, b);
+  }
+}
+

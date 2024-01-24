@@ -401,12 +401,16 @@ type SyncMetadata struct {
 	Schema string
 	Table  string
 }
+type WorkflowMetadata struct {
+	WorkflowId string
+	RunId      string
+}
 type SyncRequest struct {
 	BenthosConfig string
 }
 type SyncResponse struct{}
 
-func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata) (*SyncResponse, error) {
+func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata, workflowMetadata *WorkflowMetadata) (*SyncResponse, error) {
 	logger := activity.GetLogger(ctx)
 	var benthosStream *service.Stream
 	go func() {
@@ -434,6 +438,8 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncM
 	streambldr.SetLogger(benthoslogger.With(
 		"metadata", metadata,
 		"benthos", "true",
+		"WorkflowID", workflowMetadata.WorkflowId,
+		"RunID", workflowMetadata.RunId,
 	))
 
 	err := streambldr.SetYAML(req.BenthosConfig)

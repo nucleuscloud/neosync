@@ -1,8 +1,11 @@
 package v1alpha1_jobservice
 
 import (
+	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"strings"
 
@@ -22,6 +25,11 @@ import (
 	"go.temporal.io/sdk/converter"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 )
 
 func (s *Service) GetJobRuns(
@@ -438,4 +446,79 @@ func (s *Service) getVerifiedJobRun(
 		NeosyncAccountId:  accountId,
 		TemporalConfig:    tconfig,
 	}, nil
+}
+
+type LogLine struct {
+	WorkflowID string `json:"WorkflowID"`
+	// Include other fields from the log as needed
+}
+
+func (s *Service) GetJobRunLogsStream(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetJobRunLogsStreamRequest],
+	stream *connect.ServerStream[mgmtv1alpha1.GetJobRunLogsStreamResponse],
+) error {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("jobRunId", req.Msg.JobRunId)
+	verifResp, err := s.getVerifiedJobRun(ctx, logger, req.Msg.JobRunId, req.Msg.AccountId)
+	if err != nil {
+		return err
+	}
+	// check for isK8Flag
+	// else return unimlemented
+	// todo add namespace env var
+	kubeConfig, err := rest.InClusterConfig()
+	if err != nil {
+		logger.Error("error getting Kubernetes config: %v\n", err)
+		return err
+	}
+
+	clientset, err := kubernetes.NewForConfig(kubeConfig)
+	if err != nil {
+		logger.Error("error getting Kubernetes clientset: %v\n", err)
+		return err
+	}
+
+	pods, err := clientset.CoreV1().Pods("neosync").List(context.Background(), metav1.ListOptions{})
+	if err != nil {
+		logger.Error("error getting pods: %v\n", err)
+		return err
+	}
+	for idx := range pods.Items {
+		pod := pods.Items[idx]
+		if pod.Labels["app"] == "neosync-worker" {
+			logsReq := clientset.CoreV1().Pods("neosync").GetLogs(pod.Name, &corev1.PodLogOptions{})
+			logstream, err := logsReq.Stream(ctx)
+			if err != nil && !errors.IsNotFound(err) {
+				return err
+			} else if err != nil && errors.IsNotFound(err) {
+				return nucleuserrors.NewNotFound("pod no longer exists") // message is used by the frontend
+			}
+
+			scanner := bufio.NewScanner(logstream)
+
+			for scanner.Scan() {
+				txt := scanner.Text()
+				var logLine LogLine
+				err := json.Unmarshal([]byte(txt), &logLine)
+				if err != nil {
+					logger.Error("error unmarshaling log line: %v\n", err)
+					continue // Skip lines that can't be unmarshaled
+				}
+
+				if logLine.WorkflowID == verifResp.WorkflowExecution.Execution.WorkflowId {
+					if err := stream.Send(&mgmtv1alpha1.GetJobRunLogsStreamResponse{LogLine: txt}); err != nil {
+						if err == io.EOF {
+							return nil
+						}
+						return err
+					}
+				}
+
+			}
+			logstream.Close()
+
+		}
+	}
+	return nil
 }

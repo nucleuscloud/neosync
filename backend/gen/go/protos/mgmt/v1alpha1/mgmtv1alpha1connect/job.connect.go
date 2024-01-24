@@ -91,6 +91,9 @@ const (
 	// JobServiceTerminateJobRunProcedure is the fully-qualified name of the JobService's
 	// TerminateJobRun RPC.
 	JobServiceTerminateJobRunProcedure = "/mgmt.v1alpha1.JobService/TerminateJobRun"
+	// JobServiceGetJobRunLogsStreamProcedure is the fully-qualified name of the JobService's
+	// GetJobRunLogsStream RPC.
+	JobServiceGetJobRunLogsStreamProcedure = "/mgmt.v1alpha1.JobService/GetJobRunLogsStream"
 )
 
 // JobServiceClient is a client for the mgmt.v1alpha1.JobService service.
@@ -118,6 +121,7 @@ type JobServiceClient interface {
 	CreateJobRun(context.Context, *connect.Request[v1alpha1.CreateJobRunRequest]) (*connect.Response[v1alpha1.CreateJobRunResponse], error)
 	CancelJobRun(context.Context, *connect.Request[v1alpha1.CancelJobRunRequest]) (*connect.Response[v1alpha1.CancelJobRunResponse], error)
 	TerminateJobRun(context.Context, *connect.Request[v1alpha1.TerminateJobRunRequest]) (*connect.Response[v1alpha1.TerminateJobRunResponse], error)
+	GetJobRunLogsStream(context.Context, *connect.Request[v1alpha1.GetJobRunLogsStreamRequest]) (*connect.ServerStreamForClient[v1alpha1.GetJobRunLogsStreamResponse], error)
 }
 
 // NewJobServiceClient constructs a client for the mgmt.v1alpha1.JobService service. By default, it
@@ -245,6 +249,11 @@ func NewJobServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			baseURL+JobServiceTerminateJobRunProcedure,
 			opts...,
 		),
+		getJobRunLogsStream: connect.NewClient[v1alpha1.GetJobRunLogsStreamRequest, v1alpha1.GetJobRunLogsStreamResponse](
+			httpClient,
+			baseURL+JobServiceGetJobRunLogsStreamProcedure,
+			opts...,
+		),
 	}
 }
 
@@ -273,6 +282,7 @@ type jobServiceClient struct {
 	createJobRun                     *connect.Client[v1alpha1.CreateJobRunRequest, v1alpha1.CreateJobRunResponse]
 	cancelJobRun                     *connect.Client[v1alpha1.CancelJobRunRequest, v1alpha1.CancelJobRunResponse]
 	terminateJobRun                  *connect.Client[v1alpha1.TerminateJobRunRequest, v1alpha1.TerminateJobRunResponse]
+	getJobRunLogsStream              *connect.Client[v1alpha1.GetJobRunLogsStreamRequest, v1alpha1.GetJobRunLogsStreamResponse]
 }
 
 // GetJobs calls mgmt.v1alpha1.JobService.GetJobs.
@@ -390,6 +400,11 @@ func (c *jobServiceClient) TerminateJobRun(ctx context.Context, req *connect.Req
 	return c.terminateJobRun.CallUnary(ctx, req)
 }
 
+// GetJobRunLogsStream calls mgmt.v1alpha1.JobService.GetJobRunLogsStream.
+func (c *jobServiceClient) GetJobRunLogsStream(ctx context.Context, req *connect.Request[v1alpha1.GetJobRunLogsStreamRequest]) (*connect.ServerStreamForClient[v1alpha1.GetJobRunLogsStreamResponse], error) {
+	return c.getJobRunLogsStream.CallServerStream(ctx, req)
+}
+
 // JobServiceHandler is an implementation of the mgmt.v1alpha1.JobService service.
 type JobServiceHandler interface {
 	GetJobs(context.Context, *connect.Request[v1alpha1.GetJobsRequest]) (*connect.Response[v1alpha1.GetJobsResponse], error)
@@ -415,6 +430,7 @@ type JobServiceHandler interface {
 	CreateJobRun(context.Context, *connect.Request[v1alpha1.CreateJobRunRequest]) (*connect.Response[v1alpha1.CreateJobRunResponse], error)
 	CancelJobRun(context.Context, *connect.Request[v1alpha1.CancelJobRunRequest]) (*connect.Response[v1alpha1.CancelJobRunResponse], error)
 	TerminateJobRun(context.Context, *connect.Request[v1alpha1.TerminateJobRunRequest]) (*connect.Response[v1alpha1.TerminateJobRunResponse], error)
+	GetJobRunLogsStream(context.Context, *connect.Request[v1alpha1.GetJobRunLogsStreamRequest], *connect.ServerStream[v1alpha1.GetJobRunLogsStreamResponse]) error
 }
 
 // NewJobServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -538,6 +554,11 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 		svc.TerminateJobRun,
 		opts...,
 	)
+	jobServiceGetJobRunLogsStreamHandler := connect.NewServerStreamHandler(
+		JobServiceGetJobRunLogsStreamProcedure,
+		svc.GetJobRunLogsStream,
+		opts...,
+	)
 	return "/mgmt.v1alpha1.JobService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case JobServiceGetJobsProcedure:
@@ -586,6 +607,8 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 			jobServiceCancelJobRunHandler.ServeHTTP(w, r)
 		case JobServiceTerminateJobRunProcedure:
 			jobServiceTerminateJobRunHandler.ServeHTTP(w, r)
+		case JobServiceGetJobRunLogsStreamProcedure:
+			jobServiceGetJobRunLogsStreamHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -685,4 +708,8 @@ func (UnimplementedJobServiceHandler) CancelJobRun(context.Context, *connect.Req
 
 func (UnimplementedJobServiceHandler) TerminateJobRun(context.Context, *connect.Request[v1alpha1.TerminateJobRunRequest]) (*connect.Response[v1alpha1.TerminateJobRunResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.TerminateJobRun is not implemented"))
+}
+
+func (UnimplementedJobServiceHandler) GetJobRunLogsStream(context.Context, *connect.Request[v1alpha1.GetJobRunLogsStreamRequest], *connect.ServerStream[v1alpha1.GetJobRunLogsStreamResponse]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.GetJobRunLogsStream is not implemented"))
 }
