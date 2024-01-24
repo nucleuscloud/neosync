@@ -137,9 +137,10 @@ export const VirtualizedSchemaTable = function VirtualizedSchemaTable({
     });
   };
 
+  // construct the column order
   const columnList: Column[] = [
     { name: 'Schema', id: 'schema' },
-    { name: 'Table', id: 'Table' },
+    { name: 'Table', id: 'table' },
     { name: 'Column', id: 'column' },
     { name: 'Data Type', id: 'dataType' },
     { name: 'Transformer', id: 'transformer' },
@@ -192,6 +193,7 @@ export const VirtualizedSchemaTable = function VirtualizedSchemaTable({
                         (item) => column.id == item.id
                       )}
                       onCheckedChange={() => {
+                        // checks if the column is already visible, if it is, then it filters it from the visible columns
                         if (
                           visibleColumns.some((item) => column.id == item.id)
                         ) {
@@ -200,6 +202,7 @@ export const VirtualizedSchemaTable = function VirtualizedSchemaTable({
                           );
                           setVisibleColumns(updatedColumns);
                         } else {
+                          // adds the column back into the visible columns in the same order as the original columns list
                           const newVisibleColumns = columnList.filter(
                             (col) =>
                               visibleColumns.some(
@@ -255,6 +258,7 @@ interface RowItemData {
   onSelect: (index: number) => void;
   onSelectAll: (value: boolean) => void;
   transformers: Transformer[];
+  visibleColumns: Column[];
 }
 
 interface TableRowProps {
@@ -268,77 +272,101 @@ interface TableRowProps {
 // https://reactjs.org/docs/react-api.html#reactpurecomponent
 const TableRow = function Row({ data, index, style }: TableRowProps) {
   // Data passed to List as "itemData" is available as props.data
-  const { rows, onSelect, transformers, selected, isAllSelected } = data;
+  const {
+    rows,
+    onSelect,
+    transformers,
+    selected,
+    isAllSelected,
+    visibleColumns,
+  } = data;
   const row = rows[index];
 
   return (
     <div style={style} className="border-t dark:border-gray-700">
       <div className="grid grid-cols-5 gap-2 items-center p-2">
-        <div className="flex flex-row truncate ">
-          <Checkbox
-            id="select"
-            onClick={() => onSelect(index)}
-            checked={isAllSelected || selected.has(buildRowKey(row))}
-            type="button"
-            className="self-center mr-4"
-          />
-          <Cell value={row.schema} />
-        </div>
-        <Cell value={row.table} />
-        <Cell value={row.column} />
-        <Cell value={row.dataType} />
-        <div>
-          <FormField<SchemaFormValues | SingleTableSchemaFormValues>
-            name={`mappings.${row.formIdx}.transformer`}
-            render={({ field, fieldState, formState }) => {
-              const fv = field.value as JobMappingTransformerForm;
+        {visibleColumns.map((column) => {
+          switch (column.id) {
+            case 'schema':
               return (
-                <FormItem>
-                  <FormControl>
-                    <div className="flex flex-row space-x-2">
-                      {formState.errors.mappings && (
-                        <div className="place-self-center">
-                          {fieldState.error ? (
-                            <div>
-                              <ExclamationTriangleIcon className="h-4 w-4 text-destructive" />
-                            </div>
-                          ) : (
-                            <div className="w-4"></div>
-                          )}
-                        </div>
-                      )}
-
-                      <div>
-                        <TransformerSelect
-                          transformers={transformers}
-                          value={fv}
-                          onSelect={field.onChange}
-                          placeholder="Select Transformer..."
-                        />
-                      </div>
-                      <EditTransformerOptions
-                        transformer={transformers.find((t) => {
-                          if (
-                            fv.source === 'custom' &&
-                            fv.config.case === 'userDefinedTransformerConfig' &&
-                            isUserDefinedTransformer(t) &&
-                            t.id === fv.config.value.id
-                          ) {
-                            return t;
-                          }
-                          return (
-                            isSystemTransformer(t) && t.source === fv.source
-                          );
-                        })}
-                        index={index}
-                      />
-                    </div>
-                  </FormControl>
-                </FormItem>
+                <div className="flex flex-row truncate " key={column.id}>
+                  <Checkbox
+                    id="select"
+                    onClick={() => onSelect(index)}
+                    checked={isAllSelected || selected.has(buildRowKey(row))}
+                    type="button"
+                    className="self-center mr-4"
+                  />
+                  <Cell value={row.schema} />
+                </div>
               );
-            }}
-          />
-        </div>
+            case 'table':
+              return <Cell key={column.id} value={row.table} />;
+            case 'column':
+              return <Cell key={column.id} value={row.column} />;
+            case 'dataType':
+              return <Cell key={column.id} value={row.dataType} />;
+            case 'transformer':
+              return (
+                <div>
+                  <FormField<SchemaFormValues | SingleTableSchemaFormValues>
+                    name={`mappings.${row.formIdx}.transformer`}
+                    render={({ field, fieldState, formState }) => {
+                      const fv = field.value as JobMappingTransformerForm;
+                      return (
+                        <FormItem>
+                          <FormControl>
+                            <div className="flex flex-row space-x-2">
+                              {formState.errors.mappings && (
+                                <div className="place-self-center">
+                                  {fieldState.error ? (
+                                    <div>
+                                      <ExclamationTriangleIcon className="h-4 w-4 text-destructive" />
+                                    </div>
+                                  ) : (
+                                    <div className="w-4"></div>
+                                  )}
+                                </div>
+                              )}
+
+                              <div>
+                                <TransformerSelect
+                                  transformers={transformers}
+                                  value={fv}
+                                  onSelect={field.onChange}
+                                  placeholder="Select Transformer..."
+                                />
+                              </div>
+                              <EditTransformerOptions
+                                transformer={transformers.find((t) => {
+                                  if (
+                                    fv.source === 'custom' &&
+                                    fv.config.case ===
+                                      'userDefinedTransformerConfig' &&
+                                    isUserDefinedTransformer(t) &&
+                                    t.id === fv.config.value.id
+                                  ) {
+                                    return t;
+                                  }
+                                  return (
+                                    isSystemTransformer(t) &&
+                                    t.source === fv.source
+                                  );
+                                })}
+                                index={index}
+                              />
+                            </div>
+                          </FormControl>
+                        </FormItem>
+                      );
+                    }}
+                  />
+                </div>
+              );
+            default:
+              return null;
+          }
+        })}
       </div>
     </div>
   );
@@ -366,7 +394,8 @@ const createRowData = memoizeOne(
     onSelectAll: (value: boolean) => void,
     transformers: Transformer[],
     selected: Set<string>,
-    isAllSelected: boolean
+    isAllSelected: boolean,
+    visibleColumns: Column[]
   ) => ({
     rows,
     onSelect,
@@ -374,6 +403,7 @@ const createRowData = memoizeOne(
     transformers,
     selected,
     isAllSelected,
+    visibleColumns,
   })
 );
 
@@ -412,7 +442,8 @@ function VirtualizedSchemaList({
     onSelectAll,
     transformers,
     selected,
-    isAllSelected
+    isAllSelected,
+    visibleColumns
   );
 
   const uniqueFilters = useMemo(
@@ -428,25 +459,6 @@ function VirtualizedSchemaList({
       className={cn(`grid grid-col-1 border rounded-md dark:border-gray-700`)}
     >
       <div className={`grid grid-cols-5 gap-2 pl-2 pt-1 bg-muted `}>
-        {/* <div className="flex flex-row">
-          <Checkbox
-            id="select"
-            onClick={() => {
-              onSelectAll(!isAllSelected);
-            }}
-            checked={isAllSelected}
-            type="button"
-            className="self-center mr-4"
-          />
-
-          <span className="text-xs self-center">Schema</span>
-          <ColumnFilterSelect
-            columnId="schema"
-            allColumnFilters={columnFilters}
-            setColumnFilters={onFilterSelect}
-            possibleFilters={uniqueFilters.schema}
-          />
-        </div> */}
         {visibleColumns.map((col) => (
           <div className="flex flex-row" key={col.id}>
             {col.id == 'schema' && (
@@ -469,42 +481,6 @@ function VirtualizedSchemaList({
             />
           </div>
         ))}
-        {/* <div className="flex flex-row">
-          <span className="text-xs self-center">Table</span>
-          <ColumnFilterSelect
-            columnId="table"
-            allColumnFilters={columnFilters}
-            setColumnFilters={onFilterSelect}
-            possibleFilters={uniqueFilters.table}
-          />
-        </div>
-        <div className="flex flex-row">
-          <span className="text-xs self-center">Column</span>
-          <ColumnFilterSelect
-            columnId="column"
-            allColumnFilters={columnFilters}
-            setColumnFilters={onFilterSelect}
-            possibleFilters={uniqueFilters.column}
-          />
-        </div>
-        <div className="flex flex-row">
-          <span className="text-xs self-center">Data Type</span>
-          <ColumnFilterSelect
-            columnId="dataType"
-            allColumnFilters={columnFilters}
-            setColumnFilters={onFilterSelect}
-            possibleFilters={uniqueFilters.dataType}
-          />
-        </div>
-        <div className="flex flex-row">
-          <span className="text-xs self-center">Transformer</span>
-          <ColumnFilterSelect
-            columnId="transformer"
-            allColumnFilters={columnFilters}
-            setColumnFilters={onFilterSelect}
-            possibleFilters={uniqueFilters.transformer}
-          />
-        </div> */}
         <div className="col-span-5"></div>
       </div>
 
