@@ -287,6 +287,9 @@ func (s *Service) GetConnectionDataStream(
 								gzr.Close()
 								return err
 							}
+							if string(byteValue) == "null" {
+								byteValue = nil
+							}
 						}
 						rowMap[key] = byteValue
 					}

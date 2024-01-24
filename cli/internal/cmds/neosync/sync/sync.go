@@ -1065,9 +1065,14 @@ func getDestinationSchemaConfig(
 		fmt.Println(bold.Render("No tables found.")) // nolint
 		return nil, nil
 	}
+
+	schemaMap := map[string]struct{}{}
+	for _, s := range schemaResp.Msg.GetSchemas() {
+		schemaMap[s.Schema] = struct{}{}
+	}
 	schemas := []string{}
-	for t := range tableColMap {
-		schemas = append(schemas, t)
+	for s := range schemaMap {
+		schemas = append(schemas, s)
 	}
 
 	fmt.Println(printlog.Render("Building foreign table constraints...")) // nolint
