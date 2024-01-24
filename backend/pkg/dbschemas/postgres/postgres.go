@@ -244,3 +244,42 @@ func GetPostgresTablePrimaryKeys(
 	}
 	return pkMap
 }
+
+func GetOrderedPostgresInitStatements(tableInitMap map[string]string, dependencyMap map[string][]string) []string {
+	orderedStatements := []string{}
+	seenTables := map[string]struct{}{}
+	for table, statement := range tableInitMap {
+		dep, ok := dependencyMap[table]
+		if !ok || len(dep) == 0 {
+			orderedStatements = append(orderedStatements, statement)
+			seenTables[table] = struct{}{}
+			delete(tableInitMap, table)
+		}
+	}
+
+	maxCount := len(tableInitMap) * 2
+	for len(tableInitMap) > 0 && maxCount > 0 {
+		maxCount--
+		for table, statement := range tableInitMap {
+			deps := dependencyMap[table]
+			if isReady(seenTables, deps, table) {
+				orderedStatements = append(orderedStatements, statement)
+				seenTables[table] = struct{}{}
+				delete(tableInitMap, table)
+			}
+		}
+	}
+
+	return orderedStatements
+}
+
+func isReady(seen map[string]struct{}, deps []string, table string) bool {
+	for _, d := range deps {
+		_, ok := seen[d]
+		// allow self dependencies
+		if !ok && d != table {
+			return false
+		}
+	}
+	return true
+}

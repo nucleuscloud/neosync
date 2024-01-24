@@ -1,6 +1,8 @@
 package dbschemas_utils
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type ForeignKey struct {
 	Table  string
