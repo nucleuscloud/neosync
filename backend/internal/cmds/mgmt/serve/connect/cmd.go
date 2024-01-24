@@ -165,7 +165,11 @@ func serve(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		apikeyClient := auth_apikey.New(db.Q, db.Db)
+		apikeyClient := auth_apikey.New(db.Q, db.Db, getAllowedWorkerApiKeys(getIsNeosyncCloud()), []string{
+			mgmtv1alpha1connect.JobServiceGetJobProcedure,
+			mgmtv1alpha1connect.ConnectionServiceGetConnectionProcedure,
+			mgmtv1alpha1connect.TransformersServiceGetUserDefinedTransformerByIdProcedure,
+		})
 		stdAuthInterceptors = append(
 			stdAuthInterceptors,
 			auth_interceptor.NewInterceptor(
@@ -583,4 +587,11 @@ func getAuthApiClientSecret() string {
 
 func getIsNeosyncCloud() bool {
 	return viper.GetBool("NEOSYNC_CLOUD")
+}
+
+func getAllowedWorkerApiKeys(isNeosyncCloud bool) []string {
+	if isNeosyncCloud {
+		return viper.GetStringSlice("NEOSYNC_CLOUD_ALLOWED_WORKER_API_KEYS")
+	}
+	return []string{}
 }

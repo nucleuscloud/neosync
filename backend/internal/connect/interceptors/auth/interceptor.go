@@ -12,7 +12,7 @@ type Interceptor struct {
 	excludedProcedures map[string]struct{}
 }
 
-type AuthFunc func(ctx context.Context, header http.Header) (context.Context, error)
+type AuthFunc func(ctx context.Context, header http.Header, spec connect.Spec) (context.Context, error)
 
 func NewInterceptor(authFunc AuthFunc) connect.Interceptor {
 	return &Interceptor{authFunc: authFunc}
@@ -32,7 +32,7 @@ func (i *Interceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
 		if _, ok := i.excludedProcedures[request.Spec().Procedure]; ok {
 			return next(ctx, request)
 		}
-		newCtx, err := i.authFunc(ctx, request.Header())
+		newCtx, err := i.authFunc(ctx, request.Header(), request.Spec())
 		if err != nil {
 			return nil, err
 		}
@@ -51,7 +51,7 @@ func (i *Interceptor) WrapStreamingHandler(next connect.StreamingHandlerFunc) co
 		if _, ok := i.excludedProcedures[conn.Spec().Procedure]; ok {
 			return next(ctx, conn)
 		}
-		newCtx, err := i.authFunc(ctx, conn.RequestHeader())
+		newCtx, err := i.authFunc(ctx, conn.RequestHeader(), conn.Spec())
 		if err != nil {
 			return err
 		}

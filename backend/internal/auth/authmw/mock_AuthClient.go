@@ -4,6 +4,9 @@ package authmw
 
 import (
 	context "context"
+
+	connect "connectrpc.com/connect"
+
 	http "net/http"
 
 	mock "github.com/stretchr/testify/mock"
@@ -22,9 +25,9 @@ func (_m *MockAuthClient) EXPECT() *MockAuthClient_Expecter {
 	return &MockAuthClient_Expecter{mock: &_m.Mock}
 }
 
-// InjectTokenCtx provides a mock function with given fields: ctx, header
-func (_m *MockAuthClient) InjectTokenCtx(ctx context.Context, header http.Header) (context.Context, error) {
-	ret := _m.Called(ctx, header)
+// InjectTokenCtx provides a mock function with given fields: ctx, header, spec
+func (_m *MockAuthClient) InjectTokenCtx(ctx context.Context, header http.Header, spec connect.Spec) (context.Context, error) {
+	ret := _m.Called(ctx, header, spec)
 
 	if len(ret) == 0 {
 		panic("no return value specified for InjectTokenCtx")
@@ -32,19 +35,19 @@ func (_m *MockAuthClient) InjectTokenCtx(ctx context.Context, header http.Header
 
 	var r0 context.Context
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, http.Header) (context.Context, error)); ok {
-		return rf(ctx, header)
+	if rf, ok := ret.Get(0).(func(context.Context, http.Header, connect.Spec) (context.Context, error)); ok {
+		return rf(ctx, header, spec)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, http.Header) context.Context); ok {
-		r0 = rf(ctx, header)
+	if rf, ok := ret.Get(0).(func(context.Context, http.Header, connect.Spec) context.Context); ok {
+		r0 = rf(ctx, header, spec)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(context.Context)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, http.Header) error); ok {
-		r1 = rf(ctx, header)
+	if rf, ok := ret.Get(1).(func(context.Context, http.Header, connect.Spec) error); ok {
+		r1 = rf(ctx, header, spec)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -60,13 +63,14 @@ type MockAuthClient_InjectTokenCtx_Call struct {
 // InjectTokenCtx is a helper method to define mock.On call
 //   - ctx context.Context
 //   - header http.Header
-func (_e *MockAuthClient_Expecter) InjectTokenCtx(ctx interface{}, header interface{}) *MockAuthClient_InjectTokenCtx_Call {
-	return &MockAuthClient_InjectTokenCtx_Call{Call: _e.mock.On("InjectTokenCtx", ctx, header)}
+//   - spec connect.Spec
+func (_e *MockAuthClient_Expecter) InjectTokenCtx(ctx interface{}, header interface{}, spec interface{}) *MockAuthClient_InjectTokenCtx_Call {
+	return &MockAuthClient_InjectTokenCtx_Call{Call: _e.mock.On("InjectTokenCtx", ctx, header, spec)}
 }
 
-func (_c *MockAuthClient_InjectTokenCtx_Call) Run(run func(ctx context.Context, header http.Header)) *MockAuthClient_InjectTokenCtx_Call {
+func (_c *MockAuthClient_InjectTokenCtx_Call) Run(run func(ctx context.Context, header http.Header, spec connect.Spec)) *MockAuthClient_InjectTokenCtx_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(http.Header))
+		run(args[0].(context.Context), args[1].(http.Header), args[2].(connect.Spec))
 	})
 	return _c
 }
@@ -76,7 +80,7 @@ func (_c *MockAuthClient_InjectTokenCtx_Call) Return(_a0 context.Context, _a1 er
 	return _c
 }
 
-func (_c *MockAuthClient_InjectTokenCtx_Call) RunAndReturn(run func(context.Context, http.Header) (context.Context, error)) *MockAuthClient_InjectTokenCtx_Call {
+func (_c *MockAuthClient_InjectTokenCtx_Call) RunAndReturn(run func(context.Context, http.Header, connect.Spec) (context.Context, error)) *MockAuthClient_InjectTokenCtx_Call {
 	_c.Call.Return(run)
 	return _c
 }

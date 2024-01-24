@@ -12,6 +12,8 @@ import (
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"github.com/nucleuscloud/neosync/backend/internal/apikey"
+	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 
@@ -114,6 +116,31 @@ func Test_GetJob(t *testing.T) {
 	jobId := nucleusdb.UUIDString(job.ID)
 
 	resp, err := m.Service.GetJob(context.Background(), &connect.Request[mgmtv1alpha1.GetJobRequest]{
+		Msg: &mgmtv1alpha1.GetJobRequest{
+			Id: jobId,
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, nucleusdb.UUIDString(destConn.ID), resp.Msg.Job.Destinations[0].ConnectionId)
+}
+
+func Test_GetJob_Supports_WorkerApiKeys(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	destConn := getConnectionMock(mockAccountId, "test-1")
+	destConnAssociation := mockJobDestConnAssociation(job.ID, destConn.ID, &pg_models.JobDestinationOptions{})
+	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, job.ID).Return(job, nil)
+	m.QuerierMock.On("GetJobConnectionDestinations", mock.Anything, mock.Anything, job.ID).Return([]db_queries.NeosyncApiJobDestinationConnectionAssociation{destConnAssociation}, nil)
+	jobId := nucleusdb.UUIDString(job.ID)
+
+	ctx := context.WithValue(context.Background(), auth_apikey.TokenContextKey{}, &auth_apikey.TokenContextData{
+		ApiKeyType: apikey.WorkerApiKey,
+	})
+
+	resp, err := m.Service.GetJob(ctx, &connect.Request[mgmtv1alpha1.GetJobRequest]{
 		Msg: &mgmtv1alpha1.GetJobRequest{
 			Id: jobId,
 		},

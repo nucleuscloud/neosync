@@ -97,3 +97,4 @@ volumeMounts: []
 
 neosyncCloud:
   enabled: false
+  workerApiKeys: []
