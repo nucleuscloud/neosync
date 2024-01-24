@@ -62,7 +62,6 @@ func (t *Sshtunnel) Start() (chan any, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to listen to local endpoint: %w", err)
 	}
-	// defer listener.Close() // todo: figure out when to close this
 	ready := make(chan any)
 	go t.Serve(listener, ready)
 	return ready, nil
