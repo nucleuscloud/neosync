@@ -24,7 +24,25 @@ message JobSourceOptions {
     AwsS3SourceConnectionOptions aws_s3 = 2;
     MysqlSourceConnectionOptions mysql = 3;
     GenerateSourceOptions generate = 4;
+    TrainSingleTableCtganSourceOptions single_table_ctgan_train = 5;
   }
+}
+
+message TrainSingleTableCtganSourceOptions {
+  uint32 epochs = 1;
+  repeated string columns = 2;
+  repeated string discrete_columns = 3;
+
+  oneof connection_config {
+    SingleTablePostgresConnectionOptions postgres = 4;
+  }
+}
+
+message SingleTablePostgresConnectionOptions {
+  string connection_id = 1;
+
+  string schema = 2;
+  string table = 3;
 }
 
 message CreateJobDestination {
@@ -91,6 +109,7 @@ message JobDestinationOptions {
     PostgresDestinationConnectionOptions postgres_options = 1;
     AwsS3DestinationConnectionOptions aws_s3_options = 2;
     MysqlDestinationConnectionOptions mysql_options = 3;
+    LocalDirectoryDestinationConnectionOptions local_directory_options = 4;
   }
 }
 
@@ -110,6 +129,10 @@ message MysqlDestinationConnectionOptions {
 }
 message MysqlTruncateTableConfig {
   bool truncate_before_insert = 1;
+}
+
+message LocalDirectoryDestinationConnectionOptions {
+  string file_name = 2;
 }
 
 message AwsS3DestinationConnectionOptions {}

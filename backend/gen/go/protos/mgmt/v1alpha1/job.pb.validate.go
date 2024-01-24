@@ -586,6 +586,47 @@ func (m *JobSourceOptions) validate(all bool) error {
 			}
 		}
 
+	case *JobSourceOptions_SingleTableCtganTrain:
+		if v == nil {
+			err := JobSourceOptionsValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetSingleTableCtganTrain()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobSourceOptionsValidationError{
+						field:  "SingleTableCtganTrain",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobSourceOptionsValidationError{
+						field:  "SingleTableCtganTrain",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetSingleTableCtganTrain()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobSourceOptionsValidationError{
+					field:  "SingleTableCtganTrain",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -667,6 +708,270 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = JobSourceOptionsValidationError{}
+
+// Validate checks the field values on TrainSingleTableCtganSourceOptions with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *TrainSingleTableCtganSourceOptions) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on TrainSingleTableCtganSourceOptions
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// TrainSingleTableCtganSourceOptionsMultiError, or nil if none found.
+func (m *TrainSingleTableCtganSourceOptions) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *TrainSingleTableCtganSourceOptions) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Epochs
+
+	switch v := m.ConnectionConfig.(type) {
+	case *TrainSingleTableCtganSourceOptions_Postgres:
+		if v == nil {
+			err := TrainSingleTableCtganSourceOptionsValidationError{
+				field:  "ConnectionConfig",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetPostgres()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, TrainSingleTableCtganSourceOptionsValidationError{
+						field:  "Postgres",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, TrainSingleTableCtganSourceOptionsValidationError{
+						field:  "Postgres",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetPostgres()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return TrainSingleTableCtganSourceOptionsValidationError{
+					field:  "Postgres",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	default:
+		_ = v // ensures v is used
+	}
+
+	if len(errors) > 0 {
+		return TrainSingleTableCtganSourceOptionsMultiError(errors)
+	}
+
+	return nil
+}
+
+// TrainSingleTableCtganSourceOptionsMultiError is an error wrapping multiple
+// validation errors returned by
+// TrainSingleTableCtganSourceOptions.ValidateAll() if the designated
+// constraints aren't met.
+type TrainSingleTableCtganSourceOptionsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m TrainSingleTableCtganSourceOptionsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m TrainSingleTableCtganSourceOptionsMultiError) AllErrors() []error { return m }
+
+// TrainSingleTableCtganSourceOptionsValidationError is the validation error
+// returned by TrainSingleTableCtganSourceOptions.Validate if the designated
+// constraints aren't met.
+type TrainSingleTableCtganSourceOptionsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e TrainSingleTableCtganSourceOptionsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e TrainSingleTableCtganSourceOptionsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e TrainSingleTableCtganSourceOptionsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e TrainSingleTableCtganSourceOptionsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e TrainSingleTableCtganSourceOptionsValidationError) ErrorName() string {
+	return "TrainSingleTableCtganSourceOptionsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e TrainSingleTableCtganSourceOptionsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sTrainSingleTableCtganSourceOptions.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = TrainSingleTableCtganSourceOptionsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = TrainSingleTableCtganSourceOptionsValidationError{}
+
+// Validate checks the field values on SingleTablePostgresConnectionOptions
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *SingleTablePostgresConnectionOptions) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SingleTablePostgresConnectionOptions
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// SingleTablePostgresConnectionOptionsMultiError, or nil if none found.
+func (m *SingleTablePostgresConnectionOptions) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SingleTablePostgresConnectionOptions) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for ConnectionId
+
+	// no validation rules for Schema
+
+	// no validation rules for Table
+
+	if len(errors) > 0 {
+		return SingleTablePostgresConnectionOptionsMultiError(errors)
+	}
+
+	return nil
+}
+
+// SingleTablePostgresConnectionOptionsMultiError is an error wrapping multiple
+// validation errors returned by
+// SingleTablePostgresConnectionOptions.ValidateAll() if the designated
+// constraints aren't met.
+type SingleTablePostgresConnectionOptionsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SingleTablePostgresConnectionOptionsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SingleTablePostgresConnectionOptionsMultiError) AllErrors() []error { return m }
+
+// SingleTablePostgresConnectionOptionsValidationError is the validation error
+// returned by SingleTablePostgresConnectionOptions.Validate if the designated
+// constraints aren't met.
+type SingleTablePostgresConnectionOptionsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SingleTablePostgresConnectionOptionsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SingleTablePostgresConnectionOptionsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SingleTablePostgresConnectionOptionsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SingleTablePostgresConnectionOptionsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SingleTablePostgresConnectionOptionsValidationError) ErrorName() string {
+	return "SingleTablePostgresConnectionOptionsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SingleTablePostgresConnectionOptionsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSingleTablePostgresConnectionOptions.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SingleTablePostgresConnectionOptionsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SingleTablePostgresConnectionOptionsValidationError{}
 
 // Validate checks the field values on CreateJobDestination with the rules
 // defined in the proto definition for this message. If any rules are
@@ -2343,6 +2648,47 @@ func (m *JobDestinationOptions) validate(all bool) error {
 			}
 		}
 
+	case *JobDestinationOptions_LocalDirectoryOptions:
+		if v == nil {
+			err := JobDestinationOptionsValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetLocalDirectoryOptions()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobDestinationOptionsValidationError{
+						field:  "LocalDirectoryOptions",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobDestinationOptionsValidationError{
+						field:  "LocalDirectoryOptions",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetLocalDirectoryOptions()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobDestinationOptionsValidationError{
+					field:  "LocalDirectoryOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -2909,6 +3255,114 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = MysqlTruncateTableConfigValidationError{}
+
+// Validate checks the field values on
+// LocalDirectoryDestinationConnectionOptions with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *LocalDirectoryDestinationConnectionOptions) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on
+// LocalDirectoryDestinationConnectionOptions with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in
+// LocalDirectoryDestinationConnectionOptionsMultiError, or nil if none found.
+func (m *LocalDirectoryDestinationConnectionOptions) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *LocalDirectoryDestinationConnectionOptions) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for FileName
+
+	if len(errors) > 0 {
+		return LocalDirectoryDestinationConnectionOptionsMultiError(errors)
+	}
+
+	return nil
+}
+
+// LocalDirectoryDestinationConnectionOptionsMultiError is an error wrapping
+// multiple validation errors returned by
+// LocalDirectoryDestinationConnectionOptions.ValidateAll() if the designated
+// constraints aren't met.
+type LocalDirectoryDestinationConnectionOptionsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m LocalDirectoryDestinationConnectionOptionsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m LocalDirectoryDestinationConnectionOptionsMultiError) AllErrors() []error { return m }
+
+// LocalDirectoryDestinationConnectionOptionsValidationError is the validation
+// error returned by LocalDirectoryDestinationConnectionOptions.Validate if
+// the designated constraints aren't met.
+type LocalDirectoryDestinationConnectionOptionsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e LocalDirectoryDestinationConnectionOptionsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e LocalDirectoryDestinationConnectionOptionsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e LocalDirectoryDestinationConnectionOptionsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e LocalDirectoryDestinationConnectionOptionsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e LocalDirectoryDestinationConnectionOptionsValidationError) ErrorName() string {
+	return "LocalDirectoryDestinationConnectionOptionsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e LocalDirectoryDestinationConnectionOptionsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sLocalDirectoryDestinationConnectionOptions.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = LocalDirectoryDestinationConnectionOptionsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = LocalDirectoryDestinationConnectionOptionsValidationError{}
 
 // Validate checks the field values on AwsS3DestinationConnectionOptions with
 // the rules defined in the proto definition for this message. If any rules

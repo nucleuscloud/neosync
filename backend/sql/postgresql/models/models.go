@@ -1,6 +1,7 @@
 package pg_models
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -278,9 +279,10 @@ func (jm *JobMapping) FromDto(dto *mgmtv1alpha1.JobMapping) error {
 }
 
 type JobSourceOptions struct {
-	PostgresOptions *PostgresSourceOptions `json:"postgresOptions,omitempty"`
-	MysqlOptions    *MysqlSourceOptions    `json:"mysqlOptions,omitempty"`
-	GenerateOptions *GenerateSourceOptions `json:"generateOptions,omitempty"`
+	PostgresOptions                    *PostgresSourceOptions              `json:"postgresOptions,omitempty"`
+	MysqlOptions                       *MysqlSourceOptions                 `json:"mysqlOptions,omitempty"`
+	GenerateOptions                    *GenerateSourceOptions              `json:"generateOptions,omitempty"`
+	TrainSingleTableCtganSourceOptions *TrainSingleTableCtganSourceOptions `json:"singleTableCtganTrainOptions,omitempty"`
 }
 
 type MysqlSourceOptions struct {
@@ -306,6 +308,62 @@ type GenerateSourceSchemaOption struct {
 type GenerateSourceTableOption struct {
 	Table    string `json:"table"`
 	RowCount int64  `json:"rowCount,omitempty"`
+}
+
+type TrainSingleTableCtganSourceOptions struct {
+	Epochs          uint32   `json:"epochs"`
+	Columns         []string `json:"columns"`
+	DiscreteColumns []string `json:"discreteColumns"`
+
+	ConnectionConfig *TrainSingleTableCtganSourceConnectionConfig `json:"connectionConfig"`
+}
+
+func (t *TrainSingleTableCtganSourceOptions) ToDto() (*mgmtv1alpha1.TrainSingleTableCtganSourceOptions, error) {
+	if t.ConnectionConfig.Postgres != nil {
+		return &mgmtv1alpha1.TrainSingleTableCtganSourceOptions{
+			Epochs:          t.Epochs,
+			Columns:         t.Columns,
+			DiscreteColumns: t.DiscreteColumns,
+			ConnectionConfig: &mgmtv1alpha1.TrainSingleTableCtganSourceOptions_Postgres{
+				Postgres: &mgmtv1alpha1.SingleTablePostgresConnectionOptions{
+					ConnectionId: t.ConnectionConfig.Postgres.ConnectionId,
+					Schema:       t.ConnectionConfig.Postgres.Schema,
+					Table:        t.ConnectionConfig.Postgres.Table,
+				},
+			},
+		}, nil
+	}
+	return nil, errors.New("unsupported connection config for train single table ctgan dto method")
+}
+
+func (t *TrainSingleTableCtganSourceOptions) FromDto(dto *mgmtv1alpha1.TrainSingleTableCtganSourceOptions) error {
+	t.Columns = dto.Columns
+	t.DiscreteColumns = dto.DiscreteColumns
+	t.Epochs = dto.Epochs
+
+	switch config := dto.ConnectionConfig.(type) {
+	case *mgmtv1alpha1.TrainSingleTableCtganSourceOptions_Postgres:
+		t.ConnectionConfig = &TrainSingleTableCtganSourceConnectionConfig{
+			Postgres: &SingleTablePostgresConnectionConfig{
+				ConnectionId: config.Postgres.ConnectionId,
+				Schema:       config.Postgres.Schema,
+				Table:        config.Postgres.Table,
+			},
+		}
+	default:
+		return errors.New("unable to convert dto to train single table ctan source options")
+	}
+	return nil
+}
+
+type TrainSingleTableCtganSourceConnectionConfig struct {
+	Postgres *SingleTablePostgresConnectionConfig `json:"postgres,omitempty"`
+}
+
+type SingleTablePostgresConnectionConfig struct {
+	ConnectionId string `json:"connectionid"`
+	Schema       string `json:"schema"`
+	Table        string `json:"table"`
 }
 
 func (s *PostgresSourceOptions) ToDto() *mgmtv1alpha1.PostgresSourceConnectionOptions {
@@ -477,29 +535,40 @@ type MysqlSourceTableOption struct {
 	WhereClause *string `json:"whereClause,omitempty"`
 }
 
-func (j *JobSourceOptions) ToDto() *mgmtv1alpha1.JobSourceOptions {
+func (j *JobSourceOptions) ToDto() (*mgmtv1alpha1.JobSourceOptions, error) {
 	if j.PostgresOptions != nil {
 		return &mgmtv1alpha1.JobSourceOptions{
 			Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
 				Postgres: j.PostgresOptions.ToDto(),
 			},
-		}
+		}, nil
 	}
 	if j.MysqlOptions != nil {
 		return &mgmtv1alpha1.JobSourceOptions{
 			Config: &mgmtv1alpha1.JobSourceOptions_Mysql{
 				Mysql: j.MysqlOptions.ToDto(),
 			},
-		}
+		}, nil
 	}
 	if j.GenerateOptions != nil {
 		return &mgmtv1alpha1.JobSourceOptions{
 			Config: &mgmtv1alpha1.JobSourceOptions_Generate{
 				Generate: j.GenerateOptions.ToDto(),
 			},
-		}
+		}, nil
 	}
-	return nil
+	if j.TrainSingleTableCtganSourceOptions != nil {
+		dto, err := j.TrainSingleTableCtganSourceOptions.ToDto()
+		if err != nil {
+			return nil, err
+		}
+		return &mgmtv1alpha1.JobSourceOptions{
+			Config: &mgmtv1alpha1.JobSourceOptions_SingleTableCtganTrain{
+				SingleTableCtganTrain: dto,
+			},
+		}, nil
+	}
+	return nil, errors.New("unable to convert job source options to valid dto")
 }
 
 func (j *JobSourceOptions) FromDto(dto *mgmtv1alpha1.JobSourceOptions) error {
@@ -516,6 +585,13 @@ func (j *JobSourceOptions) FromDto(dto *mgmtv1alpha1.JobSourceOptions) error {
 		genOpts := &GenerateSourceOptions{}
 		genOpts.FromDto(config.Generate)
 		j.GenerateOptions = genOpts
+	case *mgmtv1alpha1.JobSourceOptions_SingleTableCtganTrain:
+		opts := &TrainSingleTableCtganSourceOptions{}
+		err := opts.FromDto(config.SingleTableCtganTrain)
+		if err != nil {
+			return err
+		}
+		j.TrainSingleTableCtganSourceOptions = opts
 	default:
 		return fmt.Errorf("invalid job source options config")
 	}
@@ -523,9 +599,10 @@ func (j *JobSourceOptions) FromDto(dto *mgmtv1alpha1.JobSourceOptions) error {
 }
 
 type JobDestinationOptions struct {
-	PostgresOptions *PostgresDestinationOptions `json:"postgresOptions,omitempty"`
-	AwsS3Options    *AwsS3DestinationOptions    `json:"awsS3Options,omitempty"`
-	MysqlOptions    *MysqlDestinationOptions    `json:"mysqlOptions,omitempty"`
+	PostgresOptions       *PostgresDestinationOptions       `json:"postgresOptions,omitempty"`
+	AwsS3Options          *AwsS3DestinationOptions          `json:"awsS3Options,omitempty"`
+	MysqlOptions          *MysqlDestinationOptions          `json:"mysqlOptions,omitempty"`
+	LocalDirectoryOptions *LocalDirectoryDestinationOptions `json:"localDirectoryOptions,omitempty"`
 }
 type AwsS3DestinationOptions struct{}
 type PostgresDestinationOptions struct {
@@ -567,7 +644,21 @@ func (t *MysqlTruncateTableConfig) FromDto(dto *mgmtv1alpha1.MysqlTruncateTableC
 	t.TruncateBeforeInsert = dto.TruncateBeforeInsert
 }
 
-func (j *JobDestinationOptions) ToDto() *mgmtv1alpha1.JobDestinationOptions {
+type LocalDirectoryDestinationOptions struct {
+	FileName string `json:"filename"`
+}
+
+func (t *LocalDirectoryDestinationOptions) ToDto() *mgmtv1alpha1.LocalDirectoryDestinationConnectionOptions {
+	return &mgmtv1alpha1.LocalDirectoryDestinationConnectionOptions{
+		FileName: t.FileName,
+	}
+}
+
+func (t *LocalDirectoryDestinationOptions) FromDto(dto *mgmtv1alpha1.LocalDirectoryDestinationConnectionOptions) {
+	t.FileName = dto.FileName
+}
+
+func (j *JobDestinationOptions) ToDto() (*mgmtv1alpha1.JobDestinationOptions, error) {
 	if j.PostgresOptions != nil {
 		if j.PostgresOptions.TruncateTableConfig == nil {
 			j.PostgresOptions.TruncateTableConfig = &PostgresTruncateTableConfig{}
@@ -579,7 +670,7 @@ func (j *JobDestinationOptions) ToDto() *mgmtv1alpha1.JobDestinationOptions {
 					InitTableSchema: j.PostgresOptions.InitTableSchema,
 				},
 			},
-		}
+		}, nil
 	}
 	if j.MysqlOptions != nil {
 		if j.MysqlOptions.TruncateTableConfig == nil {
@@ -592,17 +683,26 @@ func (j *JobDestinationOptions) ToDto() *mgmtv1alpha1.JobDestinationOptions {
 					InitTableSchema: j.MysqlOptions.InitTableSchema,
 				},
 			},
-		}
+		}, nil
 	}
 	if j.AwsS3Options != nil {
 		return &mgmtv1alpha1.JobDestinationOptions{
 			Config: &mgmtv1alpha1.JobDestinationOptions_AwsS3Options{
 				AwsS3Options: &mgmtv1alpha1.AwsS3DestinationConnectionOptions{},
 			},
-		}
+		}, nil
+	}
+	if j.LocalDirectoryOptions != nil {
+		return &mgmtv1alpha1.JobDestinationOptions{
+			Config: &mgmtv1alpha1.JobDestinationOptions_LocalDirectoryOptions{
+				LocalDirectoryOptions: &mgmtv1alpha1.LocalDirectoryDestinationConnectionOptions{
+					FileName: j.LocalDirectoryOptions.FileName,
+				},
+			},
+		}, nil
 	}
 
-	return nil
+	return nil, errors.New("unable to map job destination options to dto")
 }
 
 func (j *JobDestinationOptions) FromDto(dto *mgmtv1alpha1.JobDestinationOptions) error {
@@ -623,6 +723,10 @@ func (j *JobDestinationOptions) FromDto(dto *mgmtv1alpha1.JobDestinationOptions)
 		}
 	case *mgmtv1alpha1.JobDestinationOptions_AwsS3Options:
 		j.AwsS3Options = &AwsS3DestinationOptions{}
+	case *mgmtv1alpha1.JobDestinationOptions_LocalDirectoryOptions:
+		destCfg := &LocalDirectoryDestinationOptions{}
+		destCfg.FromDto(config.LocalDirectoryOptions)
+		j.LocalDirectoryOptions = destCfg
 	default:
 		return fmt.Errorf("invalid job destination options config")
 	}

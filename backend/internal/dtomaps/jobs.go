@@ -11,7 +11,7 @@ import (
 func ToJobDto(
 	inputJob *db_queries.NeosyncApiJob,
 	inputDestConnections []db_queries.NeosyncApiJobDestinationConnectionAssociation,
-) *mgmtv1alpha1.Job {
+) (*mgmtv1alpha1.Job, error) {
 	mappings := []*mgmtv1alpha1.JobMapping{}
 	for _, mapping := range inputJob.Mappings {
 		mappings = append(mappings, mapping.ToDto())
@@ -20,7 +20,16 @@ func ToJobDto(
 	destinations := []*mgmtv1alpha1.JobDestination{}
 	for i := range inputDestConnections {
 		dest := inputDestConnections[i]
-		destinations = append(destinations, toDestinationDto(&dest))
+		destDto, err := toDestinationDto(&dest)
+		if err != nil {
+			return nil, err
+		}
+		destinations = append(destinations, destDto)
+	}
+
+	jobSourceOptions, err := inputJob.ConnectionOptions.ToDto()
+	if err != nil {
+		return nil, err
 	}
 
 	return &mgmtv1alpha1.Job{
@@ -33,19 +42,23 @@ func ToJobDto(
 		CronSchedule:    nucleusdb.ToNullableString(inputJob.CronSchedule),
 		Mappings:        mappings,
 		Source: &mgmtv1alpha1.JobSource{
-			Options: inputJob.ConnectionOptions.ToDto(),
+			Options: jobSourceOptions,
 		},
 		Destinations: destinations,
 		AccountId:    nucleusdb.UUIDString(inputJob.AccountID),
-	}
+	}, nil
 }
 
-func toDestinationDto(input *db_queries.NeosyncApiJobDestinationConnectionAssociation) *mgmtv1alpha1.JobDestination {
+func toDestinationDto(input *db_queries.NeosyncApiJobDestinationConnectionAssociation) (*mgmtv1alpha1.JobDestination, error) {
+	optsDto, err := input.Options.ToDto()
+	if err != nil {
+		return nil, err
+	}
 	return &mgmtv1alpha1.JobDestination{
 		ConnectionId: nucleusdb.UUIDString(input.ConnectionID),
-		Options:      input.Options.ToDto(),
+		Options:      optsDto,
 		Id:           nucleusdb.UUIDString(input.ID),
-	}
+	}, nil
 }
 
 func ToJobStatus(inputSchedule *temporalclient.ScheduleDescription) mgmtv1alpha1.JobStatus {

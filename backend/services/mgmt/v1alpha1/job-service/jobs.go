@@ -17,6 +17,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
+	ctganworkflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/syth-gen/ctgan-workflow"
 
 	workflowpb "go.temporal.io/api/workflow/v1"
 	"go.temporal.io/api/workflowservice/v1"
@@ -75,7 +76,11 @@ func (s *Service) GetJobs(
 	// Use jobIds to retain original query order
 	for _, jobId := range jobIds {
 		job := jobMap[jobId]
-		dtos = append(dtos, dtomaps.ToJobDto(job, associationMap[job.ID]))
+		dto, err := dtomaps.ToJobDto(job, associationMap[job.ID])
+		if err != nil {
+			return nil, err
+		}
+		dtos = append(dtos, dto)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobsResponse{
@@ -124,8 +129,13 @@ func (s *Service) GetJob(
 		return nil, err
 	}
 
+	dto, err := dtomaps.ToJobDto(&job, destConnections)
+	if err != nil {
+		return nil, err
+	}
+
 	return connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
-		Job: dtomaps.ToJobDto(&job, destConnections),
+		Job: dto,
 	}), nil
 }
 
@@ -352,6 +362,12 @@ func (s *Service) CreateJob(
 		connectionIds = append(connectionIds, config.Postgres.ConnectionId)
 	case *mgmtv1alpha1.JobSourceOptions_AwsS3:
 		connectionIds = append(connectionIds, config.AwsS3.ConnectionId)
+	case *mgmtv1alpha1.JobSourceOptions_SingleTableCtganTrain:
+		switch stconfig := config.SingleTableCtganTrain.ConnectionConfig.(type) {
+		case *mgmtv1alpha1.TrainSingleTableCtganSourceOptions_Postgres:
+			connectionIds = append(connectionIds, stconfig.Postgres.ConnectionId)
+		default:
+		}
 	default:
 	}
 
@@ -372,6 +388,12 @@ func (s *Service) CreateJob(
 		fkConnId := config.Generate.GetFkSourceConnectionId()
 		if fkConnId != "" {
 			connectionIdToVerify = &fkConnId
+		}
+	case *mgmtv1alpha1.JobSourceOptions_SingleTableCtganTrain:
+		switch stconfig := config.SingleTableCtganTrain.ConnectionConfig.(type) {
+		case *mgmtv1alpha1.TrainSingleTableCtganSourceOptions_Postgres:
+			connectionIdToVerify = &stconfig.Postgres.ConnectionId
+		default:
 		}
 	default:
 		return nil, errors.New("unsupported source option config type")
@@ -395,6 +417,20 @@ func (s *Service) CreateJob(
 		}
 	}
 
+	if req.Msg.Source.Options.GetSingleTableCtganTrain() != nil {
+		if len(req.Msg.Destinations) == 0 {
+			return nil, nucleuserrors.NewBadRequest("must provide at least one destination")
+		}
+		for _, destination := range req.Msg.Destinations {
+			switch destination.Options.Config.(type) {
+			case *mgmtv1alpha1.JobDestinationOptions_AwsS3Options, *mgmtv1alpha1.JobDestinationOptions_LocalDirectoryOptions:
+				continue
+			default:
+				return nil, nucleuserrors.NewBadRequest("not a supported destination type for single table model trainings")
+			}
+		}
+	}
+
 	cron := pgtype.Text{}
 	if req.Msg.CronSchedule != nil {
 		err := cron.Scan(req.Msg.GetCronSchedule())
@@ -404,13 +440,15 @@ func (s *Service) CreateJob(
 	}
 
 	mappings := []*pg_models.JobMapping{}
-	for _, mapping := range req.Msg.Mappings {
-		jm := &pg_models.JobMapping{}
-		err = jm.FromDto(mapping)
-		if err != nil {
-			return nil, err
+	if req.Msg.Source.Options.GetSingleTableCtganTrain() == nil {
+		for _, mapping := range req.Msg.Mappings {
+			jm := &pg_models.JobMapping{}
+			err = jm.FromDto(mapping)
+			if err != nil {
+				return nil, err
+			}
+			mappings = append(mappings, jm)
 		}
-		mappings = append(mappings, jm)
 	}
 
 	connectionOptions := &pg_models.JobSourceOptions{}
@@ -472,15 +510,26 @@ func (s *Service) CreateJob(
 		spec.CronExpressions = []string{*schedule}
 		paused = false
 	}
+
+	var action *temporalclient.ScheduleWorkflowAction
+	if req.Msg.Source.Options.GetSingleTableCtganTrain() != nil {
+		action = &temporalclient.ScheduleWorkflowAction{
+			Workflow:  ctganworkflow.CtganWorkflow,
+			TaskQueue: tconfig.SyncJobQueueName,
+			Args:      []any{&ctganworkflow.WorkflowRequest{JobId: jobUuid}},
+		}
+	} else {
+		action = &temporalclient.ScheduleWorkflowAction{
+			Workflow:  datasync_workflow.Workflow,
+			TaskQueue: tconfig.SyncJobQueueName,
+			Args:      []any{&datasync_workflow.WorkflowRequest{JobId: jobUuid}},
+		}
+	}
 	scheduleHandle, err := tScheduleClient.Create(ctx, temporalclient.ScheduleOptions{
 		ID:     jobUuid,
 		Spec:   spec,
 		Paused: paused,
-		Action: &temporalclient.ScheduleWorkflowAction{
-			Workflow:  datasync_workflow.Workflow,
-			TaskQueue: tconfig.SyncJobQueueName,
-			Args:      []any{&datasync_workflow.WorkflowRequest{JobId: jobUuid}},
-		},
+		Action: action,
 	})
 	if err != nil {
 		logger.Error(fmt.Errorf("unable to create schedule workflow: %w", err).Error())
@@ -502,8 +551,13 @@ func (s *Service) CreateJob(
 		logger.Error("unable to retrieve job destination connections")
 	}
 
+	dto, err := dtomaps.ToJobDto(cj, destinationConnections)
+	if err != nil {
+		return nil, err
+	}
+
 	return connect.NewResponse(&mgmtv1alpha1.CreateJobResponse{
-		Job: dtomaps.ToJobDto(cj, destinationConnections),
+		Job: dto,
 	}), nil
 }
 
@@ -1291,7 +1345,7 @@ func verifyConnectionsAreCompatible(ctx context.Context, db *nucleusdb.NucleusDb
 	for i := range dests {
 		d := dests[i]
 		// AWS S3 is always a valid destination regardless of source connection type
-		if d.ConnectionConfig.AwsS3Config != nil {
+		if d.ConnectionConfig.AwsS3Config != nil || d.ConnectionConfig.LocalDirectoryConfig != nil {
 			continue
 		}
 		if sourceConnection.ConnectionConfig.PgConfig != nil && d.ConnectionConfig.MysqlConfig != nil {
