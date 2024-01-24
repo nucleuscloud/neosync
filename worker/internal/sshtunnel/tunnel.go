@@ -57,18 +57,21 @@ func New(
 	}
 }
 
-func (t *Sshtunnel) Start() error {
+func (t *Sshtunnel) Start() (chan any, error) {
 	listener, err := net.Listen("tcp", t.Local.String())
 	if err != nil {
-		return fmt.Errorf("unable to listen to local endpoint: %w", err)
+		return nil, fmt.Errorf("unable to listen to local endpoint: %w", err)
 	}
-	defer listener.Close()
-	return t.Serve(listener)
+	// defer listener.Close() // todo: figure out when to close this
+	ready := make(chan any)
+	go t.Serve(listener, ready)
+	return ready, nil
 }
 
-func (t *Sshtunnel) Serve(listener net.Listener) error {
+func (t *Sshtunnel) Serve(listener net.Listener, ready chan<- any) {
 	t.Local.Port = listener.Addr().(*net.TCPAddr).Port
 	t.isOpen = true
+	hasSignaledReady := false
 
 	for {
 		if !t.isOpen {
@@ -76,13 +79,19 @@ func (t *Sshtunnel) Serve(listener net.Listener) error {
 		}
 
 		c := make(chan net.Conn)
-		go newConnectionWaiter(listener, c, t.logger)
+		go newConnectionWaiter(listener, c, ready, hasSignaledReady, t.logger) // beings accepting connections and sends the connection onto the channel
+		hasSignaledReady = true
 		t.logger.Info(fmt.Sprintf("listening for new connections on %s", t.Local.String()))
 
 		select {
 		case <-t.close:
 			t.logger.Info("received close signal...")
 			t.isOpen = false
+			go func() {
+				if err := listener.Close(); err != nil {
+					t.logger.Error(err.Error())
+				}
+			}()
 		case conn := <-c:
 			t.connections = append(t.connections, conn)
 			t.logger.Info(fmt.Sprintf("accepted connection from %s", conn.RemoteAddr().String()))
@@ -112,7 +121,6 @@ func (t *Sshtunnel) Serve(listener net.Listener) error {
 	}
 
 	t.logger.Info("tunnel closed")
-	return nil
 }
 
 func (t *Sshtunnel) forward(localConnection net.Conn) {
@@ -161,7 +169,6 @@ func (t *Sshtunnel) forward(localConnection net.Conn) {
 	go copyConnection(remoteConnection, localConnection, t.logger)
 }
 
-// why do we need this?
 func copyConnection(writer, reader net.Conn, logger *slog.Logger) {
 	_, err := io.Copy(writer, reader)
 	if err != nil {
@@ -169,15 +176,22 @@ func copyConnection(writer, reader net.Conn, logger *slog.Logger) {
 	}
 }
 
-func newConnectionWaiter(listener net.Listener, c chan<- net.Conn, logger *slog.Logger) {
+func newConnectionWaiter(listener net.Listener, c chan<- net.Conn, ready chan<- any, hasSignaledReady bool, logger *slog.Logger) {
+	go func() {
+		if !hasSignaledReady {
+			logger.Info("closing ready channel")
+			ready <- struct{}{}
+		}
+	}()
 	conn, err := listener.Accept()
 	if err != nil {
-		logger.Error("unable to accept new connection", "err", err.Error())
+		logger.Error(fmt.Sprintf("unable to accept new connection: %v", err))
 		return
 	}
+	logger.Info("sending connection to channel")
 	c <- conn
 }
 
 func (t *Sshtunnel) Close() {
-	t.close <- true
+	t.close <- struct{}{}
 }
