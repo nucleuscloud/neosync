@@ -3,6 +3,12 @@ import EditTransformerOptions from '@/app/(mgmt)/[account]/transformers/EditTran
 import { TreeData, VirtualizedTree } from '@/components/VirtualizedTree';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
 import { cn } from '@/libs/utils';
 import {
@@ -16,7 +22,11 @@ import {
   SchemaFormValues,
 } from '@/yup-validations/jobs';
 import { UserDefinedTransformerConfig } from '@neosync/sdk';
-import { ExclamationTriangleIcon, UpdateIcon } from '@radix-ui/react-icons';
+import {
+  ChevronDownIcon,
+  ExclamationTriangleIcon,
+  UpdateIcon,
+} from '@radix-ui/react-icons';
 import memoizeOne from 'memoize-one';
 import { CSSProperties, ReactElement, useMemo, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
@@ -36,6 +46,11 @@ type ColumnFilters = Record<string, string[]>;
 interface VirtualizedSchemaTableProps {
   data: Row[];
   transformers: Transformer[];
+}
+
+interface Column {
+  name: string;
+  id: string;
 }
 
 function buildRowKey(row: Row): string {
@@ -122,6 +137,16 @@ export const VirtualizedSchemaTable = function VirtualizedSchemaTable({
     });
   };
 
+  const columnList: Column[] = [
+    { name: 'Schema', id: 'schema' },
+    { name: 'Table', id: 'Table' },
+    { name: 'Column', id: 'column' },
+    { name: 'Data Type', id: 'dataType' },
+    { name: 'Transformer', id: 'transformer' },
+  ];
+
+  const [visibleColumns, setVisibleColumns] = useState<Column[]>(columnList);
+
   return (
     <div className="flex flex-row w-full">
       <div className="basis-1/6  pt-[45px] ">
@@ -150,17 +175,59 @@ export const VirtualizedSchemaTable = function VirtualizedSchemaTable({
               placeholder="Bulk update Transformers..."
             />
           </div>
-          <Button
-            variant="outline"
-            type="button"
-            onClick={() => {
-              setColumnFilters({});
-              setRows(data);
-            }}
-          >
-            Clear filters
-            <UpdateIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
+          <div className="flex flex-row items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="ml-auto">
+                  Columns <ChevronDownIcon className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {columnList.map((column) => {
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={visibleColumns.some(
+                        (item) => column.id == item.id
+                      )}
+                      onCheckedChange={() => {
+                        if (
+                          visibleColumns.some((item) => column.id == item.id)
+                        ) {
+                          const updatedColumns = visibleColumns.filter(
+                            (item) => item.id != column.id
+                          );
+                          setVisibleColumns(updatedColumns);
+                        } else {
+                          const newVisibleColumns = columnList.filter(
+                            (col) =>
+                              visibleColumns.some(
+                                (item) => item.id === col.id
+                              ) || col.id === column.id
+                          );
+                          setVisibleColumns(newVisibleColumns);
+                        }
+                      }}
+                    >
+                      {column.id}
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => {
+                setColumnFilters({});
+                setRows(data);
+              }}
+            >
+              Clear filters
+              <UpdateIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </div>
         </div>
         <div>
           <VirtualizedSchemaList
@@ -173,6 +240,7 @@ export const VirtualizedSchemaTable = function VirtualizedSchemaTable({
             selected={selected}
             columnFilters={columnFilters}
             onFilterSelect={onFilterSelect}
+            visibleColumns={visibleColumns}
           />
         </div>
       </div>
@@ -319,6 +387,7 @@ interface VirtualizedSchemaListProps {
   columnFilters: ColumnFilters;
   onFilterSelect: (columnId: string, newValues: string[]) => void;
   transformers: Transformer[];
+  visibleColumns: Column[];
 }
 // In this example, "items" is an Array of objects to render,
 // and "onSelect" is a function that updates an item's state.
@@ -332,6 +401,7 @@ function VirtualizedSchemaList({
   columnFilters,
   onFilterSelect,
   selected,
+  visibleColumns,
 }: VirtualizedSchemaListProps) {
   // Bundle additional data to list rows using the "rowData" prop.
   // It will be accessible to item renderers as props.data.
@@ -358,7 +428,7 @@ function VirtualizedSchemaList({
       className={cn(`grid grid-col-1 border rounded-md dark:border-gray-700`)}
     >
       <div className={`grid grid-cols-5 gap-2 pl-2 pt-1 bg-muted `}>
-        <div className="flex flex-row">
+        {/* <div className="flex flex-row">
           <Checkbox
             id="select"
             onClick={() => {
@@ -376,8 +446,30 @@ function VirtualizedSchemaList({
             setColumnFilters={onFilterSelect}
             possibleFilters={uniqueFilters.schema}
           />
-        </div>
-        <div className="flex flex-row">
+        </div> */}
+        {visibleColumns.map((col) => (
+          <div className="flex flex-row" key={col.id}>
+            {col.id == 'schema' && (
+              <Checkbox
+                id="select"
+                onClick={() => {
+                  onSelectAll(!isAllSelected);
+                }}
+                checked={isAllSelected}
+                type="button"
+                className="self-center mr-4"
+              />
+            )}
+            <span className="text-xs self-center">{col.name}</span>
+            <ColumnFilterSelect
+              columnId={col.id}
+              allColumnFilters={columnFilters}
+              setColumnFilters={onFilterSelect}
+              possibleFilters={uniqueFilters[col.id]}
+            />
+          </div>
+        ))}
+        {/* <div className="flex flex-row">
           <span className="text-xs self-center">Table</span>
           <ColumnFilterSelect
             columnId="table"
@@ -412,7 +504,7 @@ function VirtualizedSchemaList({
             setColumnFilters={onFilterSelect}
             possibleFilters={uniqueFilters.transformer}
           />
-        </div>
+        </div> */}
         <div className="col-span-5"></div>
       </div>
 

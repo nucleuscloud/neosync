@@ -108,7 +108,9 @@ export default function ColumnFilterSelect(props: Props) {
         </div>
         <div
           className="flex pt-1"
-          style={{ height: Math.min(40 * filteredPossibleFilters.length, 300) }}
+          style={{
+            height: Math.min(40 * filteredPossibleFilters?.length, 300),
+          }}
         >
           <AutoSizer>
             {({ height, width }) => (
