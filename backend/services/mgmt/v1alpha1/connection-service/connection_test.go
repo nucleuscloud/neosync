@@ -745,25 +745,25 @@ func getPostgresConnectionMock() *mgmtv1alpha1.PostgresConnection {
 	}
 }
 
-func getMysqlConfigMock() *mgmtv1alpha1.ConnectionConfig {
-	return &mgmtv1alpha1.ConnectionConfig{
-		Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
-			MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
-				ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Connection{
-					Connection: getMysqlConnectionMock(),
-				},
-			},
-		},
-	}
-}
+// func getMysqlConfigMock() *mgmtv1alpha1.ConnectionConfig {
+// 	return &mgmtv1alpha1.ConnectionConfig{
+// 		Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+// 			MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+// 				ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Connection{
+// 					Connection: getMysqlConnectionMock(),
+// 				},
+// 			},
+// 		},
+// 	}
+// }
 
-func getMysqlConnectionMock() *mgmtv1alpha1.MysqlConnection {
-	return &mgmtv1alpha1.MysqlConnection{
-		Host:     "host",
-		Port:     5432,
-		Name:     "database",
-		User:     "user",
-		Pass:     "topsecret",
-		Protocol: "tcp",
-	}
-}
+// func getMysqlConnectionMock() *mgmtv1alpha1.MysqlConnection {
+// 	return &mgmtv1alpha1.MysqlConnection{
+// 		Host:     "host",
+// 		Port:     5432,
+// 		Name:     "database",
+// 		User:     "user",
+// 		Pass:     "topsecret",
+// 		Protocol: "tcp",
+// 	}
+// }
