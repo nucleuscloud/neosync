@@ -213,7 +213,7 @@ func (s *SSHAuthentication) ToDto() *mgmtv1alpha1.SSHAuthentication {
 		return &mgmtv1alpha1.SSHAuthentication{
 			AuthConfig: &mgmtv1alpha1.SSHAuthentication_PrivateKey{
 				PrivateKey: &mgmtv1alpha1.SSHPrivateKey{
-					Value:      s.SSHPassphrase.Value,
+					Value:      s.SSHPrivateKey.Value,
 					Passphrase: s.SSHPrivateKey.Passphrase,
 				},
 			},
