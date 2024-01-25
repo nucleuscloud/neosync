@@ -51,6 +51,10 @@ func (c *ConnectionConfig) ToDto() *mgmtv1alpha1.ConnectionConfig {
 			}
 		}
 	} else if c.MysqlConfig != nil {
+		var tunnel *mgmtv1alpha1.SSHTunnel
+		if c.MysqlConfig.SSHTunnel != nil {
+			tunnel = c.MysqlConfig.SSHTunnel.ToDto()
+		}
 		if c.MysqlConfig.Connection != nil {
 			return &mgmtv1alpha1.ConnectionConfig{
 				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
@@ -65,6 +69,7 @@ func (c *ConnectionConfig) ToDto() *mgmtv1alpha1.ConnectionConfig {
 								Name:     c.MysqlConfig.Connection.Name,
 							},
 						},
+						Tunnel: tunnel,
 					},
 				},
 			}
@@ -75,6 +80,7 @@ func (c *ConnectionConfig) ToDto() *mgmtv1alpha1.ConnectionConfig {
 						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
 							Url: *c.MysqlConfig.Url,
 						},
+						Tunnel: tunnel,
 					},
 				},
 			}
@@ -120,6 +126,10 @@ func (c *ConnectionConfig) FromDto(dto *mgmtv1alpha1.ConnectionConfig) error {
 		}
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 		c.MysqlConfig = &MysqlConnectionConfig{}
+		if config.MysqlConfig.Tunnel != nil {
+			c.MysqlConfig.SSHTunnel = &SSHTunnel{}
+			c.MysqlConfig.SSHTunnel.FromDto(config.MysqlConfig.Tunnel)
+		}
 		switch mysqlcfg := config.MysqlConfig.ConnectionConfig.(type) {
 		case *mgmtv1alpha1.MysqlConnectionConfig_Connection:
 			c.MysqlConfig.Connection = &MysqlConnection{
@@ -248,6 +258,7 @@ type SSHPrivateKey struct {
 type MysqlConnectionConfig struct {
 	Connection *MysqlConnection `json:"connection,omitempty"`
 	Url        *string          `json:"url,omitempty"`
+	SSHTunnel  *SSHTunnel       `json:"sshTunnel,omitempty"`
 }
 
 type MysqlConnection struct {
