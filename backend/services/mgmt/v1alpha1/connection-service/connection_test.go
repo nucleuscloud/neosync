@@ -608,7 +608,7 @@ func Test_GetConnectionUrl_Postgres(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	cfg, err := m.Service.getConnectionDetails(getPostgresConfigMock())
+	cfg, err := m.Service.getConnectionDetails(getPostgresConfigMock(), nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, "postgres://user:topsecret@host:5432/database?sslmode=disable", cfg.ConnectionString)
@@ -628,7 +628,7 @@ func Test_GetConnectionUrl_Postgres_Url(t *testing.T) {
 				},
 			},
 		},
-	})
+	}, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, mockUrl, cfg.ConnectionString)
@@ -639,7 +639,7 @@ func Test_GetConnectionUrl_Mysql(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	cfg, err := m.Service.getConnectionDetails(getMysqlConfigMock())
+	cfg, err := m.Service.getConnectionDetails(getMysqlConfigMock(), nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, "user:topsecret@tcp(host:5432)/database", cfg.ConnectionString)
@@ -660,7 +660,7 @@ func Test_GetConnectionUrl_MysqlUrl(t *testing.T) {
 				},
 			},
 		},
-	})
+	}, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, mockUrl, cfg.ConnectionString)
@@ -672,7 +672,7 @@ func Test_GetConnectionUrl_NotImplemented(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	_, err := m.Service.getConnectionDetails(&mgmtv1alpha1.ConnectionConfig{})
+	_, err := m.Service.getConnectionDetails(&mgmtv1alpha1.ConnectionConfig{}, nil)
 
 	assert.Error(t, err)
 }

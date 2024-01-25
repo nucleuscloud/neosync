@@ -2,28 +2,40 @@ package connections
 
 import (
 	"fmt"
+	"net/url"
 )
 
 type PostgresConnectConfig struct {
-	Host     string
-	Port     int32
-	Database string
-	User     string
-	Pass     string
-	SslMode  *string
+	Host              string
+	Port              int32
+	Database          string
+	User              string
+	Pass              string
+	SslMode           *string
+	ConnectionTimeout *uint32
 }
 
 func GetPostgresUrl(cfg *PostgresConnectConfig) string {
-	dburl := fmt.Sprintf(
-		"postgres://%s:%s@%s:%d/%s",
-		cfg.User,
-		cfg.Pass,
-		cfg.Host,
-		cfg.Port,
-		cfg.Database,
-	)
-	if cfg.SslMode != nil && *cfg.SslMode != "" {
-		dburl = fmt.Sprintf("%s?sslmode=%s", dburl, *cfg.SslMode)
+	u := url.URL{
+		Scheme: "postgres",
+		Host:   fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
+		Path:   cfg.Database,
 	}
-	return dburl
+
+	// Add user info
+	if cfg.User != "" || cfg.Pass != "" {
+		u.User = url.UserPassword(cfg.User, cfg.Pass)
+	}
+
+	// Build query parameters
+	query := url.Values{}
+	if cfg.SslMode != nil {
+		query.Add("sslmode", *cfg.SslMode)
+	}
+	if cfg.ConnectionTimeout != nil {
+		query.Add("connect_timeout", fmt.Sprintf("%d", *cfg.ConnectionTimeout))
+	}
+	u.RawQuery = query.Encode()
+
+	return u.String()
 }

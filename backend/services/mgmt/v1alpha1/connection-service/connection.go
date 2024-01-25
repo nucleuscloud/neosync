@@ -27,7 +27,8 @@ func (s *Service) CheckConnectionConfig(
 	req *connect.Request[mgmtv1alpha1.CheckConnectionConfigRequest],
 ) (*connect.Response[mgmtv1alpha1.CheckConnectionConfigResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	connDetails, err := s.getConnectionDetails(req.Msg.ConnectionConfig)
+	connectionTimeout := uint32(5)
+	connDetails, err := s.getConnectionDetails(req.Msg.ConnectionConfig, &connectionTimeout)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +41,8 @@ func (s *Service) CheckConnectionConfig(
 			logger.Error(fmt.Errorf("failed to close mysql connection: %w", err).Error())
 		}
 	}()
-	cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
+
+	cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	err = conn.PingContext(cctx)
 	if err != nil {
@@ -248,7 +250,7 @@ func (s *Service) CheckSqlQuery(
 		return nil, err
 	}
 
-	connDetails, err := s.getConnectionDetails(connection.Msg.Connection.ConnectionConfig)
+	connDetails, err := s.getConnectionDetails(connection.Msg.Connection.ConnectionConfig, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -286,19 +288,20 @@ type connectionDetails struct {
 	ConnectionDriver string
 }
 
-func (s *Service) getConnectionDetails(c *mgmtv1alpha1.ConnectionConfig) (*connectionDetails, error) {
+func (s *Service) getConnectionDetails(c *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32) (*connectionDetails, error) {
 	switch config := c.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		var connectionString *string
 		switch connectionConfig := config.PgConfig.ConnectionConfig.(type) {
 		case *mgmtv1alpha1.PostgresConnectionConfig_Connection:
 			connStr := conn_utils.GetPostgresUrl(&conn_utils.PostgresConnectConfig{
-				Host:     connectionConfig.Connection.Host,
-				Port:     connectionConfig.Connection.Port,
-				Database: connectionConfig.Connection.Name,
-				User:     connectionConfig.Connection.User,
-				Pass:     connectionConfig.Connection.Pass,
-				SslMode:  connectionConfig.Connection.SslMode,
+				Host:              connectionConfig.Connection.Host,
+				Port:              connectionConfig.Connection.Port,
+				Database:          connectionConfig.Connection.Name,
+				User:              connectionConfig.Connection.User,
+				Pass:              connectionConfig.Connection.Pass,
+				SslMode:           connectionConfig.Connection.SslMode,
+				ConnectionTimeout: connectionTimeout,
 			})
 			connectionString = &connStr
 		case *mgmtv1alpha1.PostgresConnectionConfig_Url:
@@ -312,12 +315,13 @@ func (s *Service) getConnectionDetails(c *mgmtv1alpha1.ConnectionConfig) (*conne
 		switch connectionConfig := config.MysqlConfig.ConnectionConfig.(type) {
 		case *mgmtv1alpha1.MysqlConnectionConfig_Connection:
 			connStr := conn_utils.GetMysqlUrl(&conn_utils.MysqlConnectConfig{
-				Host:     connectionConfig.Connection.Host,
-				Port:     connectionConfig.Connection.Port,
-				Database: connectionConfig.Connection.Name,
-				Username: connectionConfig.Connection.User,
-				Password: connectionConfig.Connection.Pass,
-				Protocol: connectionConfig.Connection.Protocol,
+				Host:              connectionConfig.Connection.Host,
+				Port:              connectionConfig.Connection.Port,
+				Database:          connectionConfig.Connection.Name,
+				Username:          connectionConfig.Connection.User,
+				Password:          connectionConfig.Connection.Pass,
+				Protocol:          connectionConfig.Connection.Protocol,
+				ConnectionTimeout: connectionTimeout,
 			})
 			connectionString = &connStr
 		case *mgmtv1alpha1.MysqlConnectionConfig_Url:
