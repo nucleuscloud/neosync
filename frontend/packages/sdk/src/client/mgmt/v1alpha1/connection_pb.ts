@@ -1100,6 +1100,13 @@ export class MysqlConnectionConfig extends Message<MysqlConnectionConfig> {
     case: "connection";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
+  /**
+   * Provide tunnel configuration that can be used to access a postgres connection that is not publicly accessible to the internet
+   *
+   * @generated from field: mgmt.v1alpha1.SSHTunnel tunnel = 3;
+   */
+  tunnel?: SSHTunnel;
+
   constructor(data?: PartialMessage<MysqlConnectionConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1110,6 +1117,7 @@ export class MysqlConnectionConfig extends Message<MysqlConnectionConfig> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "connection_config" },
     { no: 2, name: "connection", kind: "message", T: MysqlConnection, oneof: "connection_config" },
+    { no: 3, name: "tunnel", kind: "message", T: SSHTunnel },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MysqlConnectionConfig {

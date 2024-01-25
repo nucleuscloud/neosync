@@ -16,11 +16,6 @@ import (
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 )
 
-const (
-	mysqlDriver    = "mysql"
-	postgresDriver = "postgres"
-)
-
 func (s *Service) CheckConnectionConfig(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.CheckConnectionConfigRequest],
