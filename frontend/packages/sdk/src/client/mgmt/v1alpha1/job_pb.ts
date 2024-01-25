@@ -134,6 +134,38 @@ proto3.util.setEnumType(JobRunStatus, "mgmt.v1alpha1.JobRunStatus", [
 ]);
 
 /**
+ * @generated from enum mgmt.v1alpha1.LogWindow
+ */
+export enum LogWindow {
+  /**
+   * @generated from enum value: LOG_WINDOW_NO_TIME_UNSPECIFIED = 0;
+   */
+  NO_TIME_UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: LOG_WINDOW_FIFTEEN_MIN = 1;
+   */
+  FIFTEEN_MIN = 1,
+
+  /**
+   * @generated from enum value: LOG_WINDOW_ONE_HOUR = 2;
+   */
+  ONE_HOUR = 2,
+
+  /**
+   * @generated from enum value: LOG_WINDOW_ONE_DAY = 3;
+   */
+  ONE_DAY = 3,
+}
+// Retrieve enum metadata with: proto3.getEnumType(LogWindow)
+proto3.util.setEnumType(LogWindow, "mgmt.v1alpha1.LogWindow", [
+  { no: 0, name: "LOG_WINDOW_NO_TIME_UNSPECIFIED" },
+  { no: 1, name: "LOG_WINDOW_FIFTEEN_MIN" },
+  { no: 2, name: "LOG_WINDOW_ONE_HOUR" },
+  { no: 3, name: "LOG_WINDOW_ONE_DAY" },
+]);
+
+/**
  * @generated from message mgmt.v1alpha1.GetJobsRequest
  */
 export class GetJobsRequest extends Message<GetJobsRequest> {
@@ -3699,6 +3731,21 @@ export class GetJobRunLogsStreamRequest extends Message<GetJobRunLogsStreamReque
    */
   accountId = "";
 
+  /**
+   * @generated from field: mgmt.v1alpha1.LogWindow window = 3;
+   */
+  window = LogWindow.NO_TIME_UNSPECIFIED;
+
+  /**
+   * @generated from field: bool should_tail = 4;
+   */
+  shouldTail = false;
+
+  /**
+   * @generated from field: optional int64 max_log_lines = 5;
+   */
+  maxLogLines?: bigint;
+
   constructor(data?: PartialMessage<GetJobRunLogsStreamRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -3709,6 +3756,9 @@ export class GetJobRunLogsStreamRequest extends Message<GetJobRunLogsStreamReque
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "job_run_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "window", kind: "enum", T: proto3.getEnumType(LogWindow) },
+    { no: 4, name: "should_tail", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 5, name: "max_log_lines", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetJobRunLogsStreamRequest {

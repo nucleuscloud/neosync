@@ -10889,6 +10889,14 @@ func (m *GetJobRunLogsStreamRequest) validate(all bool) error {
 
 	// no validation rules for AccountId
 
+	// no validation rules for Window
+
+	// no validation rules for ShouldTail
+
+	if m.MaxLogLines != nil {
+		// no validation rules for MaxLogLines
+	}
+
 	if len(errors) > 0 {
 		return GetJobRunLogsStreamRequestMultiError(errors)
 	}

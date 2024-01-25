@@ -23,12 +23,28 @@ import {
   refreshEventsWhenEventsIncomplete,
   useGetJobRunEvents,
 } from '@/libs/hooks/useGetJobRunEvents';
+import {
+  refreshLogsWhenRunNotComplete,
+  useGetJobRunLogs,
+} from '@/libs/hooks/useGetJobRunLogs';
 import { formatDateTime, getErrorMessage } from '@/util/util';
-import { ArrowRightIcon, Cross2Icon, TrashIcon } from '@radix-ui/react-icons';
+import {
+  ArrowRightIcon,
+  Cross2Icon,
+  ReloadIcon,
+  TrashIcon,
+} from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
-import { ReactElement } from 'react';
+import { ReactElement, useEffect, useRef, useState } from 'react';
+import AutoSizer from 'react-virtualized-auto-sizer';
+import { VariableSizeList as List } from 'react-window';
 import JobRunStatus from '../components/JobRunStatus';
 import JobRunActivityTable from './components/JobRunActivityTable';
+
+type WindowSize = {
+  width: number;
+  height: number;
+};
 
 export default function Page({ params }: PageProps): ReactElement {
   const { account } = useAccount();
@@ -48,8 +64,40 @@ export default function Page({ params }: PageProps): ReactElement {
   } = useGetJobRunEvents(id, accountId, {
     refreshIntervalFn: refreshEventsWhenEventsIncomplete,
   });
+  // TODO fix refresh
+  const {
+    data: logsData,
+    isLoading: isLogsLoading,
+    isValidating: isLogsValidating,
+    mutate: logsMutate,
+  } = useGetJobRunLogs(id, accountId, {
+    refreshIntervalFn: refreshLogsWhenRunNotComplete,
+  });
 
+  const logs = logsData || [];
   const jobRun = data?.jobRun;
+
+  const [windowSize, setWindowSize] = useState<WindowSize>({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+  const listRef = useRef<List<string[]> | null>(null);
+
+  useEffect(() => {
+    function handleResize() {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+      if (listRef.current) {
+        listRef.current.resetAfterIndex(0);
+      }
+    }
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   async function onDelete(): Promise<void> {
     try {
@@ -102,6 +150,19 @@ export default function Page({ params }: PageProps): ReactElement {
         variant: 'destructive',
       });
     }
+  }
+
+  function onRefreshClick(): void {
+    logsMutate();
+  }
+
+  function getLogLineSize(index: number): number {
+    const log = logs[index];
+    const maxLineWidth = windowSize.width;
+    const estimatedLineWidth = log.length * 10;
+    const numberOfLines = Math.ceil(estimatedLineWidth / maxLineWidth);
+    const height = 5 + numberOfLines * 28;
+    return height;
   }
 
   return (
@@ -220,6 +281,55 @@ export default function Page({ params }: PageProps): ReactElement {
                 );
               }
             })}
+            {logs?.some((l) => l.includes('ERROR')) && (
+              <AlertDestructive
+                key="log-error"
+                title="Log Errors"
+                description="check the logs for errors"
+              />
+            )}
+          </div>
+          <div className="space-y-4">
+            <div className="flex flex-row items-center space-x-2">
+              <h1 className="text-2xl font-bold tracking-tight">Logs</h1>
+              <Button
+                className={isLogsValidating ? 'animate-spin' : ''}
+                disabled={isLogsValidating}
+                variant="ghost"
+                size="icon"
+                onClick={() => onRefreshClick()}
+              >
+                <ReloadIcon className="h-4 w-4" />
+              </Button>
+            </div>
+            {isLogsLoading ? (
+              <SkeletonTable />
+            ) : (
+              <div className="h-[500px] w-full p-4">
+                <AutoSizer>
+                  {({ height, width }) => (
+                    <List
+                      ref={listRef}
+                      className="border rounded-md dark:border-gray-700"
+                      height={height}
+                      itemCount={logs.length}
+                      itemSize={getLogLineSize}
+                      width={width}
+                      itemKey={(index: number) => logs[index]}
+                      itemData={logs}
+                    >
+                      {({ index, style }) => {
+                        return (
+                          <p className="p-2" style={style}>
+                            {logs[index]}
+                          </p>
+                        );
+                      }}
+                    </List>
+                  )}
+                </AutoSizer>
+              </div>
+            )}
           </div>
           <div className="space-y-4">
             <div className="flex flex-row items-center space-x-2">

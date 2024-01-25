@@ -425,9 +425,18 @@ message TerminateJobRunRequest {
 }
 message TerminateJobRunResponse {}
 
+enum LogWindow {
+  LOG_WINDOW_NO_TIME_UNSPECIFIED = 0;
+  LOG_WINDOW_FIFTEEN_MIN = 1;
+  LOG_WINDOW_ONE_HOUR = 2;
+  LOG_WINDOW_ONE_DAY = 3;
+}
 message GetJobRunLogsStreamRequest {
   string job_run_id = 1;
   string account_id = 2 [(buf.validate.field).string.uuid = true];
+  LogWindow window = 3;
+  bool should_tail = 4;
+  optional int64 max_log_lines = 5 [(buf.validate.field).int64.gte = 1];
 }
 message GetJobRunLogsStreamResponse {
   string log_line = 1;
