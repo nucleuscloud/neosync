@@ -510,7 +510,7 @@ func createServiceMock(t *testing.T) *serviceMocks {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
 
-	service := New(&Config{}, mockUserAccountService, mockConnectionService, mockJobService, mockAwsManager, mockSqlConnector, mockPgquerier, mockMysqlquerier)
+	service := New(&Config{}, mockUserAccountService, mockConnectionService, mockJobService, mockAwsManager, nil, mockPgquerier, mockMysqlquerier) // todo
 
 	return &serviceMocks{
 		Service:                service,

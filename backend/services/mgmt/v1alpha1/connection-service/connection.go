@@ -13,7 +13,6 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
-	conn_utils "github.com/nucleuscloud/neosync/backend/internal/utils/connections"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 )
 
@@ -250,14 +249,13 @@ func (s *Service) CheckSqlQuery(
 		return nil, err
 	}
 
-	connDetails, err := s.getConnectionDetails(connection.Msg.Connection.ConnectionConfig, nil)
+	conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.Msg.Connection.ConnectionConfig, nil, logger)
 	if err != nil {
 		return nil, err
 	}
 
-	conn, err := s.sqlConnector.Open(connDetails.ConnectionDriver, connDetails.ConnectionString)
+	db, err := conn.Open()
 	if err != nil {
-		logger.Error("unable to connect", err)
 		return nil, err
 	}
 	defer func() {
@@ -265,7 +263,7 @@ func (s *Service) CheckSqlQuery(
 			logger.Error(fmt.Errorf("failed to close connection: %w", err).Error())
 		}
 	}()
-	tx, err := conn.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
+	tx, err := db.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
 	if err != nil {
 		return nil, err
 	}
@@ -281,56 +279,4 @@ func (s *Service) CheckSqlQuery(
 		IsValid:      err == nil,
 		ErorrMessage: errorMsg,
 	}), nil
-}
-
-type connectionDetails struct {
-	ConnectionString string
-	ConnectionDriver string
-}
-
-func (s *Service) getConnectionDetails(c *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32) (*connectionDetails, error) {
-	switch config := c.Config.(type) {
-	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		var connectionString *string
-		switch connectionConfig := config.PgConfig.ConnectionConfig.(type) {
-		case *mgmtv1alpha1.PostgresConnectionConfig_Connection:
-			connStr := conn_utils.GetPostgresUrl(&conn_utils.PostgresConnectConfig{
-				Host:              connectionConfig.Connection.Host,
-				Port:              connectionConfig.Connection.Port,
-				Database:          connectionConfig.Connection.Name,
-				User:              connectionConfig.Connection.User,
-				Pass:              connectionConfig.Connection.Pass,
-				SslMode:           connectionConfig.Connection.SslMode,
-				ConnectionTimeout: connectionTimeout,
-			})
-			connectionString = &connStr
-		case *mgmtv1alpha1.PostgresConnectionConfig_Url:
-			connectionString = &connectionConfig.Url
-		default:
-			return nil, nucleuserrors.NewBadRequest("must provide valid postgres connection")
-		}
-		return &connectionDetails{ConnectionString: *connectionString, ConnectionDriver: postgresDriver}, nil
-	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		var connectionString *string
-		switch connectionConfig := config.MysqlConfig.ConnectionConfig.(type) {
-		case *mgmtv1alpha1.MysqlConnectionConfig_Connection:
-			connStr := conn_utils.GetMysqlUrl(&conn_utils.MysqlConnectConfig{
-				Host:              connectionConfig.Connection.Host,
-				Port:              connectionConfig.Connection.Port,
-				Database:          connectionConfig.Connection.Name,
-				Username:          connectionConfig.Connection.User,
-				Password:          connectionConfig.Connection.Pass,
-				Protocol:          connectionConfig.Connection.Protocol,
-				ConnectionTimeout: connectionTimeout,
-			})
-			connectionString = &connStr
-		case *mgmtv1alpha1.MysqlConnectionConfig_Url:
-			connectionString = &connectionConfig.Url
-		default:
-			return nil, nucleuserrors.NewBadRequest("must provide valid mysql connection")
-		}
-		return &connectionDetails{ConnectionString: *connectionString, ConnectionDriver: mysqlDriver}, nil
-	default:
-		return nil, nucleuserrors.NewNotImplemented("this connection config is not currently supported")
-	}
 }

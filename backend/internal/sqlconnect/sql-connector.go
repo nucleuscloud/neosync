@@ -17,39 +17,84 @@ import (
 )
 
 type SqlConnector interface {
-	Open(driverName, connectionStr string) (*sql.DB, error)
 	NewDbFromConnectionConfig(connectionConfig *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (*SqlDb, error)
-	MysqlOpen(connectionStr string) (*sql.DB, error)
-	PgPoolOpen(ctx context.Context, connectionStr string) (*pgxpool.Pool, error)
+	NewPgPoolFromConnectionConfig(pgconfig *mgmtv1alpha1.PostgresConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (*PgPool, error)
 }
 
 type SqlOpenConnector struct{}
 
-func (rc *SqlOpenConnector) Open(driverName, connectionStr string) (*sql.DB, error) {
-	return sql.Open(driverName, connectionStr)
-}
-
 func (rc *SqlOpenConnector) NewDbFromConnectionConfig(connectionConfig *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (*SqlDb, error) {
-	// details, err := getConnectionDetails(connectonConfig, connectionTimeout)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	sqldb := &SqlDb{
+	return &SqlDb{
 		connectionConfig:  connectionConfig,
 		logger:            logger,
 		connectionTimeout: connectionTimeout,
+	}, nil
+}
+
+func (rc *SqlOpenConnector) NewPgPoolFromConnectionConfig(pgconfig *mgmtv1alpha1.PostgresConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (*PgPool, error) {
+	return &PgPool{
+		connectionConfig:  pgconfig,
+		logger:            logger,
+		connectionTimeout: connectionTimeout,
+	}, nil
+}
+
+type PgPool struct {
+	pool *pgxpool.Pool
+
+	connectionConfig *mgmtv1alpha1.PostgresConnectionConfig
+	tunnel           *sshtunnel.Sshtunnel
+	logger           *slog.Logger
+
+	connectionTimeout *uint32
+}
+
+func (s *PgPool) Open(ctx context.Context) (*pgxpool.Pool, error) {
+	details, err := getConnectionDetails(&mgmtv1alpha1.ConnectionConfig{
+		Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+			PgConfig: s.connectionConfig,
+		},
+	}, s.connectionTimeout, s.logger)
+	if err != nil {
+		return nil, err
+	}
+	if details.tunnel != nil {
+		ready, err := details.tunnel.Start()
+		if err != nil {
+			return nil, err
+		}
+		<-ready
+		newPort := int32(details.tunnel.Local.Port)
+		details.GeneralDbConnectConfig.Port = newPort
+		db, err := pgxpool.New(ctx, details.GeneralDbConnectConfig.String())
+		if err != nil {
+			return nil, err
+		}
+		s.pool = db
+		s.tunnel = details.tunnel
+		return db, nil
 	}
 
-	return sqldb, nil
+	db, err := pgxpool.New(ctx, details.GeneralDbConnectConfig.String())
+	if err != nil {
+		return nil, err
+	}
+	s.pool = db
+	return db, nil
 }
 
-func (rc *SqlOpenConnector) MysqlOpen(connectionStr string) (*sql.DB, error) {
-	return sql.Open("mysql", connectionStr)
-}
-
-func (rc *SqlOpenConnector) PgPoolOpen(ctx context.Context, connectionStr string) (*pgxpool.Pool, error) {
-	return pgxpool.New(ctx, connectionStr)
+func (s *PgPool) Close() {
+	if s.pool == nil {
+		return
+	}
+	db := s.pool
+	s.pool = nil
+	db.Close()
+	if s.tunnel != nil {
+		tunnel := s.tunnel
+		s.tunnel = nil
+		tunnel.Close()
+	}
 }
 
 type SqlDb struct {

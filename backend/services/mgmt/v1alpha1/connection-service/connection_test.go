@@ -603,80 +603,6 @@ func Test_CheckSqlQuery_Error(t *testing.T) {
 	}
 }
 
-// getConnectionDetails
-func Test_GetConnectionUrl_Postgres(t *testing.T) {
-	m := createServiceMock(t)
-	defer m.SqlDbMock.Close()
-
-	cfg, err := m.Service.getConnectionDetails(getPostgresConfigMock(), nil)
-
-	assert.NoError(t, err)
-	assert.Equal(t, "postgres://user:topsecret@host:5432/database?sslmode=disable", cfg.ConnectionString)
-	assert.Equal(t, "postgres", cfg.ConnectionDriver)
-}
-
-func Test_GetConnectionUrl_Postgres_Url(t *testing.T) {
-	m := createServiceMock(t)
-	defer m.SqlDbMock.Close()
-
-	mockUrl := "some-url"
-	cfg, err := m.Service.getConnectionDetails(&mgmtv1alpha1.ConnectionConfig{
-		Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
-			PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
-				ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-					Url: mockUrl,
-				},
-			},
-		},
-	}, nil)
-
-	assert.NoError(t, err)
-	assert.Equal(t, mockUrl, cfg.ConnectionString)
-	assert.Equal(t, "postgres", cfg.ConnectionDriver)
-}
-
-func Test_GetConnectionUrl_Mysql(t *testing.T) {
-	m := createServiceMock(t)
-	defer m.SqlDbMock.Close()
-
-	cfg, err := m.Service.getConnectionDetails(getMysqlConfigMock(), nil)
-
-	assert.NoError(t, err)
-	assert.Equal(t, "user:topsecret@tcp(host:5432)/database", cfg.ConnectionString)
-	assert.Equal(t, "mysql", cfg.ConnectionDriver)
-
-}
-
-func Test_GetConnectionUrl_MysqlUrl(t *testing.T) {
-	m := createServiceMock(t)
-	defer m.SqlDbMock.Close()
-
-	mockUrl := "some-url"
-	cfg, err := m.Service.getConnectionDetails(&mgmtv1alpha1.ConnectionConfig{
-		Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
-			MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
-				ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
-					Url: mockUrl,
-				},
-			},
-		},
-	}, nil)
-
-	assert.NoError(t, err)
-	assert.Equal(t, mockUrl, cfg.ConnectionString)
-	assert.Equal(t, "mysql", cfg.ConnectionDriver)
-
-}
-
-func Test_GetConnectionUrl_NotImplemented(t *testing.T) {
-	m := createServiceMock(t)
-	defer m.SqlDbMock.Close()
-
-	_, err := m.Service.getConnectionDetails(&mgmtv1alpha1.ConnectionConfig{}, nil)
-
-	assert.Error(t, err)
-}
-
 type serviceMocks struct {
 	Service                *Service
 	DbtxMock               *nucleusdb.MockDBTX
@@ -698,7 +624,7 @@ func createServiceMock(t *testing.T) *serviceMocks {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
 
-	service := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService, mockSqlConnector)
+	service := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService, nil) // todo
 
 	return &serviceMocks{
 		Service:                service,
