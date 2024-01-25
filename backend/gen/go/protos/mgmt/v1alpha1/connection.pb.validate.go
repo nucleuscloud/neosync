@@ -2081,6 +2081,35 @@ func (m *PostgresConnectionConfig) validate(all bool) error {
 
 	var errors []error
 
+	if all {
+		switch v := interface{}(m.GetTunnel()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PostgresConnectionConfigValidationError{
+					field:  "Tunnel",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PostgresConnectionConfigValidationError{
+					field:  "Tunnel",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetTunnel()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PostgresConnectionConfigValidationError{
+				field:  "Tunnel",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	switch v := m.ConnectionConfig.(type) {
 	case *PostgresConnectionConfig_Url:
 		if v == nil {
@@ -2218,6 +2247,541 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = PostgresConnectionConfigValidationError{}
+
+// Validate checks the field values on SSHTunnel with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *SSHTunnel) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SSHTunnel with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in SSHTunnelMultiError, or nil
+// if none found.
+func (m *SSHTunnel) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SSHTunnel) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Host
+
+	// no validation rules for Port
+
+	// no validation rules for User
+
+	if all {
+		switch v := interface{}(m.GetAuthentication()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SSHTunnelValidationError{
+					field:  "Authentication",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SSHTunnelValidationError{
+					field:  "Authentication",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAuthentication()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SSHTunnelValidationError{
+				field:  "Authentication",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.KnownHostPublicKey != nil {
+		// no validation rules for KnownHostPublicKey
+	}
+
+	if len(errors) > 0 {
+		return SSHTunnelMultiError(errors)
+	}
+
+	return nil
+}
+
+// SSHTunnelMultiError is an error wrapping multiple validation errors returned
+// by SSHTunnel.ValidateAll() if the designated constraints aren't met.
+type SSHTunnelMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SSHTunnelMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SSHTunnelMultiError) AllErrors() []error { return m }
+
+// SSHTunnelValidationError is the validation error returned by
+// SSHTunnel.Validate if the designated constraints aren't met.
+type SSHTunnelValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SSHTunnelValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SSHTunnelValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SSHTunnelValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SSHTunnelValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SSHTunnelValidationError) ErrorName() string { return "SSHTunnelValidationError" }
+
+// Error satisfies the builtin error interface
+func (e SSHTunnelValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSSHTunnel.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SSHTunnelValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SSHTunnelValidationError{}
+
+// Validate checks the field values on SSHAuthentication with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *SSHAuthentication) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SSHAuthentication with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SSHAuthenticationMultiError, or nil if none found.
+func (m *SSHAuthentication) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SSHAuthentication) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	switch v := m.AuthConfig.(type) {
+	case *SSHAuthentication_Passphrase:
+		if v == nil {
+			err := SSHAuthenticationValidationError{
+				field:  "AuthConfig",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetPassphrase()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, SSHAuthenticationValidationError{
+						field:  "Passphrase",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, SSHAuthenticationValidationError{
+						field:  "Passphrase",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetPassphrase()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return SSHAuthenticationValidationError{
+					field:  "Passphrase",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *SSHAuthentication_PrivateKey:
+		if v == nil {
+			err := SSHAuthenticationValidationError{
+				field:  "AuthConfig",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetPrivateKey()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, SSHAuthenticationValidationError{
+						field:  "PrivateKey",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, SSHAuthenticationValidationError{
+						field:  "PrivateKey",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetPrivateKey()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return SSHAuthenticationValidationError{
+					field:  "PrivateKey",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	default:
+		_ = v // ensures v is used
+	}
+
+	if len(errors) > 0 {
+		return SSHAuthenticationMultiError(errors)
+	}
+
+	return nil
+}
+
+// SSHAuthenticationMultiError is an error wrapping multiple validation errors
+// returned by SSHAuthentication.ValidateAll() if the designated constraints
+// aren't met.
+type SSHAuthenticationMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SSHAuthenticationMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SSHAuthenticationMultiError) AllErrors() []error { return m }
+
+// SSHAuthenticationValidationError is the validation error returned by
+// SSHAuthentication.Validate if the designated constraints aren't met.
+type SSHAuthenticationValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SSHAuthenticationValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SSHAuthenticationValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SSHAuthenticationValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SSHAuthenticationValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SSHAuthenticationValidationError) ErrorName() string {
+	return "SSHAuthenticationValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SSHAuthenticationValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSSHAuthentication.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SSHAuthenticationValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SSHAuthenticationValidationError{}
+
+// Validate checks the field values on SSHPassphrase with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *SSHPassphrase) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SSHPassphrase with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in SSHPassphraseMultiError, or
+// nil if none found.
+func (m *SSHPassphrase) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SSHPassphrase) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Value
+
+	if len(errors) > 0 {
+		return SSHPassphraseMultiError(errors)
+	}
+
+	return nil
+}
+
+// SSHPassphraseMultiError is an error wrapping multiple validation errors
+// returned by SSHPassphrase.ValidateAll() if the designated constraints
+// aren't met.
+type SSHPassphraseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SSHPassphraseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SSHPassphraseMultiError) AllErrors() []error { return m }
+
+// SSHPassphraseValidationError is the validation error returned by
+// SSHPassphrase.Validate if the designated constraints aren't met.
+type SSHPassphraseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SSHPassphraseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SSHPassphraseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SSHPassphraseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SSHPassphraseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SSHPassphraseValidationError) ErrorName() string { return "SSHPassphraseValidationError" }
+
+// Error satisfies the builtin error interface
+func (e SSHPassphraseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSSHPassphrase.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SSHPassphraseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SSHPassphraseValidationError{}
+
+// Validate checks the field values on SSHPrivateKey with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *SSHPrivateKey) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SSHPrivateKey with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in SSHPrivateKeyMultiError, or
+// nil if none found.
+func (m *SSHPrivateKey) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SSHPrivateKey) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Value
+
+	if m.Passphrase != nil {
+		// no validation rules for Passphrase
+	}
+
+	if len(errors) > 0 {
+		return SSHPrivateKeyMultiError(errors)
+	}
+
+	return nil
+}
+
+// SSHPrivateKeyMultiError is an error wrapping multiple validation errors
+// returned by SSHPrivateKey.ValidateAll() if the designated constraints
+// aren't met.
+type SSHPrivateKeyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SSHPrivateKeyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SSHPrivateKeyMultiError) AllErrors() []error { return m }
+
+// SSHPrivateKeyValidationError is the validation error returned by
+// SSHPrivateKey.Validate if the designated constraints aren't met.
+type SSHPrivateKeyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SSHPrivateKeyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SSHPrivateKeyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SSHPrivateKeyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SSHPrivateKeyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SSHPrivateKeyValidationError) ErrorName() string { return "SSHPrivateKeyValidationError" }
+
+// Error satisfies the builtin error interface
+func (e SSHPrivateKeyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSSHPrivateKey.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SSHPrivateKeyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SSHPrivateKeyValidationError{}
 
 // Validate checks the field values on PostgresConnection with the rules
 // defined in the proto definition for this message. If any rules are

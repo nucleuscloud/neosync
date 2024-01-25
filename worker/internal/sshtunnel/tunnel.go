@@ -178,13 +178,15 @@ func copyConnection(writer, reader net.Conn, logger *slog.Logger) {
 func newConnectionWaiter(listener net.Listener, c chan<- net.Conn, ready chan<- any, hasSignaledReady bool, logger *slog.Logger) {
 	go func() {
 		if !hasSignaledReady {
-			logger.Info("closing ready channel")
+			logger.Info("notifying ready channel")
 			ready <- struct{}{}
 		}
 	}()
 	conn, err := listener.Accept()
 	if err != nil {
-		logger.Error(fmt.Sprintf("unable to accept new connection: %v", err))
+		if !errors.Is(err, net.ErrClosed) {
+			logger.Error(fmt.Sprintf("unable to accept new connection: %v", err))
+		}
 		return
 	}
 	logger.Info("sending connection to channel")

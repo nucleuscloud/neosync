@@ -1959,6 +1959,186 @@
               "isoneof": true,
               "oneofdecl": "connection_config",
               "defaultValue": ""
+            },
+            {
+              "name": "tunnel",
+              "description": "Provide tunnel configuration that can be used to access a postgres connection that is not publicly accessible to the internet",
+              "label": "",
+              "type": "SSHTunnel",
+              "longType": "SSHTunnel",
+              "fullType": "mgmt.v1alpha1.SSHTunnel",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SSHAuthentication",
+          "longName": "SSHAuthentication",
+          "fullName": "mgmt.v1alpha1.SSHAuthentication",
+          "description": "SSH Authentication",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "passphrase",
+              "description": "",
+              "label": "",
+              "type": "SSHPassphrase",
+              "longType": "SSHPassphrase",
+              "fullType": "mgmt.v1alpha1.SSHPassphrase",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "auth_config",
+              "defaultValue": ""
+            },
+            {
+              "name": "private_key",
+              "description": "",
+              "label": "",
+              "type": "SSHPrivateKey",
+              "longType": "SSHPrivateKey",
+              "fullType": "mgmt.v1alpha1.SSHPrivateKey",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "auth_config",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SSHPassphrase",
+          "longName": "SSHPassphrase",
+          "fullName": "mgmt.v1alpha1.SSHPassphrase",
+          "description": "Contains the configuration needed to retrieve the SSH passphrase for the tunnel",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "value",
+              "description": "The password to be used to connect to the SSH server\n\neventually we can expand this to allow pulling from other sources.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SSHPrivateKey",
+          "longName": "SSHPrivateKey",
+          "fullName": "mgmt.v1alpha1.SSHPrivateKey",
+          "description": "Contains the configuration needed to retrieve the SSH private key for the tunnel",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "value",
+              "description": "The private key in PEM format.",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "passphrase",
+              "description": "If the private key is encrypted, this value should decrypt it.",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_passphrase",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SSHTunnel",
+          "longName": "SSHTunnel",
+          "fullName": "mgmt.v1alpha1.SSHTunnel",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "host",
+              "description": "The host of the SSH server",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "port",
+              "description": "The port of the SSH server, typically 22",
+              "label": "",
+              "type": "int32",
+              "longType": "int32",
+              "fullType": "int32",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "user",
+              "description": "The user that will be used to authenticate",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "known_host_public_key",
+              "description": "Optionally provide the public key of the known host of the SSH tunnel that we are connecting to.\nIf this is not provided, the server will blindly connect to the host with the given credentials.\nThis is not recommended for production use!",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_known_host_public_key",
+              "defaultValue": ""
+            },
+            {
+              "name": "authentication",
+              "description": "Provide the authentication required to successfully connect to the SSH server for tunneling",
+              "label": "",
+              "type": "SSHAuthentication",
+              "longType": "SSHAuthentication",
+              "fullType": "mgmt.v1alpha1.SSHAuthentication",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },

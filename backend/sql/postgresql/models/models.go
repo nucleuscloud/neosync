@@ -16,6 +16,10 @@ type ConnectionConfig struct {
 
 func (c *ConnectionConfig) ToDto() *mgmtv1alpha1.ConnectionConfig {
 	if c.PgConfig != nil {
+		var tunnel *mgmtv1alpha1.SSHTunnel
+		if c.PgConfig.SSHTunnel != nil {
+			tunnel = c.PgConfig.SSHTunnel.ToDto()
+		}
 		if c.PgConfig.Connection != nil {
 			return &mgmtv1alpha1.ConnectionConfig{
 				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
@@ -30,6 +34,7 @@ func (c *ConnectionConfig) ToDto() *mgmtv1alpha1.ConnectionConfig {
 								SslMode: c.PgConfig.Connection.SslMode,
 							},
 						},
+						Tunnel: tunnel,
 					},
 				},
 			}
@@ -40,6 +45,7 @@ func (c *ConnectionConfig) ToDto() *mgmtv1alpha1.ConnectionConfig {
 						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
 							Url: *c.PgConfig.Url,
 						},
+						Tunnel: tunnel,
 					},
 				},
 			}
@@ -93,6 +99,10 @@ func (c *ConnectionConfig) FromDto(dto *mgmtv1alpha1.ConnectionConfig) error {
 	switch config := dto.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		c.PgConfig = &PostgresConnectionConfig{}
+		if config.PgConfig.Tunnel != nil {
+			c.PgConfig.SSHTunnel = &SSHTunnel{}
+			c.PgConfig.SSHTunnel.FromDto(config.PgConfig.Tunnel)
+		}
 		switch pgcfg := config.PgConfig.ConnectionConfig.(type) {
 		case *mgmtv1alpha1.PostgresConnectionConfig_Connection:
 			c.PgConfig.Connection = &PostgresConnection{
@@ -143,6 +153,7 @@ func (c *ConnectionConfig) FromDto(dto *mgmtv1alpha1.ConnectionConfig) error {
 type PostgresConnectionConfig struct {
 	Connection *PostgresConnection `json:"connection,omitempty"`
 	Url        *string             `json:"url,omitempty"`
+	SSHTunnel  *SSHTunnel          `json:"sshTunnel,omitempty"`
 }
 
 type PostgresConnection struct {
@@ -152,6 +163,86 @@ type PostgresConnection struct {
 	User    string  `json:"user"`
 	Pass    string  `json:"pass"`
 	SslMode *string `json:"sslMode,omitempty"`
+}
+
+type SSHTunnel struct {
+	Host string `json:"host"`
+	Port int32  `json:"port"`
+	User string `json:"user"`
+
+	KnownHostPublicKey *string            `json:"knownHostPublicKey,omitempty"`
+	SSHAuthentication  *SSHAuthentication `json:"sshAuthentication,omitempty"`
+}
+
+func (s *SSHTunnel) ToDto() *mgmtv1alpha1.SSHTunnel {
+	return &mgmtv1alpha1.SSHTunnel{
+		Host:               s.Host,
+		Port:               s.Port,
+		User:               s.User,
+		KnownHostPublicKey: s.KnownHostPublicKey,
+		Authentication:     s.SSHAuthentication.ToDto(),
+	}
+}
+
+func (s *SSHTunnel) FromDto(dto *mgmtv1alpha1.SSHTunnel) {
+	s.Host = dto.Host
+	s.Port = dto.Port
+	s.User = dto.User
+	s.KnownHostPublicKey = dto.KnownHostPublicKey
+
+	if dto.Authentication != nil {
+		auth := &SSHAuthentication{}
+		auth.FromDto(dto.Authentication)
+		s.SSHAuthentication = auth
+	}
+}
+
+type SSHAuthentication struct {
+	SSHPassphrase *SSHPassphrase `json:"sshPassphrase,omitempty"`
+	SSHPrivateKey *SSHPrivateKey `json:"sshPrivateKey,omitempty"`
+}
+
+func (s *SSHAuthentication) ToDto() *mgmtv1alpha1.SSHAuthentication {
+	if s.SSHPassphrase != nil {
+		return &mgmtv1alpha1.SSHAuthentication{
+			AuthConfig: &mgmtv1alpha1.SSHAuthentication_Passphrase{
+				Passphrase: &mgmtv1alpha1.SSHPassphrase{Value: s.SSHPassphrase.Value},
+			},
+		}
+	} else if s.SSHPrivateKey != nil {
+		return &mgmtv1alpha1.SSHAuthentication{
+			AuthConfig: &mgmtv1alpha1.SSHAuthentication_PrivateKey{
+				PrivateKey: &mgmtv1alpha1.SSHPrivateKey{
+					Value:      s.SSHPassphrase.Value,
+					Passphrase: s.SSHPrivateKey.Passphrase,
+				},
+			},
+		}
+	}
+	return nil
+}
+
+func (s *SSHAuthentication) FromDto(dto *mgmtv1alpha1.SSHAuthentication) {
+	switch config := dto.AuthConfig.(type) {
+	case *mgmtv1alpha1.SSHAuthentication_Passphrase:
+		s.SSHPassphrase = &SSHPassphrase{
+			Value: config.Passphrase.Value,
+		}
+	case *mgmtv1alpha1.SSHAuthentication_PrivateKey:
+		s.SSHPrivateKey = &SSHPrivateKey{
+			Value:      config.PrivateKey.Value,
+			Passphrase: config.PrivateKey.Passphrase,
+		}
+	}
+}
+
+type SSHPassphrase struct {
+	Value string `json:"value"`
+}
+
+type SSHPrivateKey struct {
+	Value      string  `json:"value"`
+	Passphrase *string `json:"passphrase,omitempty"`
 }
 
 type MysqlConnectionConfig struct {
