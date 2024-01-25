@@ -18,14 +18,24 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+type SqlDbContainer interface {
+	Open() (*sql.DB, error)
+	Close() error
+}
+
+type PgPoolContainer interface {
+	Open(context.Context) (*pgxpool.Pool, error)
+	Close()
+}
+
 type SqlConnector interface {
-	NewDbFromConnectionConfig(connectionConfig *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (*SqlDb, error)
-	NewPgPoolFromConnectionConfig(pgconfig *mgmtv1alpha1.PostgresConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (*PgPool, error)
+	NewDbFromConnectionConfig(connectionConfig *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (SqlDbContainer, error)
+	NewPgPoolFromConnectionConfig(pgconfig *mgmtv1alpha1.PostgresConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (PgPoolContainer, error)
 }
 
 type SqlOpenConnector struct{}
 
-func (rc *SqlOpenConnector) NewDbFromConnectionConfig(connectionConfig *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (*SqlDb, error) {
+func (rc *SqlOpenConnector) NewDbFromConnectionConfig(connectionConfig *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (SqlDbContainer, error) {
 	return &SqlDb{
 		connectionConfig:  connectionConfig,
 		logger:            logger,
@@ -33,7 +43,7 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(connectionConfig *mgmtv1al
 	}, nil
 }
 
-func (rc *SqlOpenConnector) NewPgPoolFromConnectionConfig(pgconfig *mgmtv1alpha1.PostgresConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (*PgPool, error) {
+func (rc *SqlOpenConnector) NewPgPoolFromConnectionConfig(pgconfig *mgmtv1alpha1.PostgresConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (PgPoolContainer, error) {
 	return &PgPool{
 		connectionConfig:  pgconfig,
 		logger:            logger,

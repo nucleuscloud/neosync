@@ -23,23 +23,23 @@ func (_m *MockSqlConnector) EXPECT() *MockSqlConnector_Expecter {
 }
 
 // NewDbFromConnectionConfig provides a mock function with given fields: connectionConfig, connectionTimeout, logger
-func (_m *MockSqlConnector) NewDbFromConnectionConfig(connectionConfig *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (*SqlDb, error) {
+func (_m *MockSqlConnector) NewDbFromConnectionConfig(connectionConfig *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (SqlDbContainer, error) {
 	ret := _m.Called(connectionConfig, connectionTimeout, logger)
 
 	if len(ret) == 0 {
 		panic("no return value specified for NewDbFromConnectionConfig")
 	}
 
-	var r0 *SqlDb
+	var r0 SqlDbContainer
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*mgmtv1alpha1.ConnectionConfig, *uint32, *slog.Logger) (*SqlDb, error)); ok {
+	if rf, ok := ret.Get(0).(func(*mgmtv1alpha1.ConnectionConfig, *uint32, *slog.Logger) (SqlDbContainer, error)); ok {
 		return rf(connectionConfig, connectionTimeout, logger)
 	}
-	if rf, ok := ret.Get(0).(func(*mgmtv1alpha1.ConnectionConfig, *uint32, *slog.Logger) *SqlDb); ok {
+	if rf, ok := ret.Get(0).(func(*mgmtv1alpha1.ConnectionConfig, *uint32, *slog.Logger) SqlDbContainer); ok {
 		r0 = rf(connectionConfig, connectionTimeout, logger)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*SqlDb)
+			r0 = ret.Get(0).(SqlDbContainer)
 		}
 	}
 
@@ -72,34 +72,34 @@ func (_c *MockSqlConnector_NewDbFromConnectionConfig_Call) Run(run func(connecti
 	return _c
 }
 
-func (_c *MockSqlConnector_NewDbFromConnectionConfig_Call) Return(_a0 *SqlDb, _a1 error) *MockSqlConnector_NewDbFromConnectionConfig_Call {
+func (_c *MockSqlConnector_NewDbFromConnectionConfig_Call) Return(_a0 SqlDbContainer, _a1 error) *MockSqlConnector_NewDbFromConnectionConfig_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockSqlConnector_NewDbFromConnectionConfig_Call) RunAndReturn(run func(*mgmtv1alpha1.ConnectionConfig, *uint32, *slog.Logger) (*SqlDb, error)) *MockSqlConnector_NewDbFromConnectionConfig_Call {
+func (_c *MockSqlConnector_NewDbFromConnectionConfig_Call) RunAndReturn(run func(*mgmtv1alpha1.ConnectionConfig, *uint32, *slog.Logger) (SqlDbContainer, error)) *MockSqlConnector_NewDbFromConnectionConfig_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // NewPgPoolFromConnectionConfig provides a mock function with given fields: pgconfig, connectionTimeout, logger
-func (_m *MockSqlConnector) NewPgPoolFromConnectionConfig(pgconfig *mgmtv1alpha1.PostgresConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (*PgPool, error) {
+func (_m *MockSqlConnector) NewPgPoolFromConnectionConfig(pgconfig *mgmtv1alpha1.PostgresConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (PgPoolContainer, error) {
 	ret := _m.Called(pgconfig, connectionTimeout, logger)
 
 	if len(ret) == 0 {
 		panic("no return value specified for NewPgPoolFromConnectionConfig")
 	}
 
-	var r0 *PgPool
+	var r0 PgPoolContainer
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*mgmtv1alpha1.PostgresConnectionConfig, *uint32, *slog.Logger) (*PgPool, error)); ok {
+	if rf, ok := ret.Get(0).(func(*mgmtv1alpha1.PostgresConnectionConfig, *uint32, *slog.Logger) (PgPoolContainer, error)); ok {
 		return rf(pgconfig, connectionTimeout, logger)
 	}
-	if rf, ok := ret.Get(0).(func(*mgmtv1alpha1.PostgresConnectionConfig, *uint32, *slog.Logger) *PgPool); ok {
+	if rf, ok := ret.Get(0).(func(*mgmtv1alpha1.PostgresConnectionConfig, *uint32, *slog.Logger) PgPoolContainer); ok {
 		r0 = rf(pgconfig, connectionTimeout, logger)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*PgPool)
+			r0 = ret.Get(0).(PgPoolContainer)
 		}
 	}
 
@@ -132,12 +132,12 @@ func (_c *MockSqlConnector_NewPgPoolFromConnectionConfig_Call) Run(run func(pgco
 	return _c
 }
 
-func (_c *MockSqlConnector_NewPgPoolFromConnectionConfig_Call) Return(_a0 *PgPool, _a1 error) *MockSqlConnector_NewPgPoolFromConnectionConfig_Call {
+func (_c *MockSqlConnector_NewPgPoolFromConnectionConfig_Call) Return(_a0 PgPoolContainer, _a1 error) *MockSqlConnector_NewPgPoolFromConnectionConfig_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockSqlConnector_NewPgPoolFromConnectionConfig_Call) RunAndReturn(run func(*mgmtv1alpha1.PostgresConnectionConfig, *uint32, *slog.Logger) (*PgPool, error)) *MockSqlConnector_NewPgPoolFromConnectionConfig_Call {
+func (_c *MockSqlConnector_NewPgPoolFromConnectionConfig_Call) RunAndReturn(run func(*mgmtv1alpha1.PostgresConnectionConfig, *uint32, *slog.Logger) (PgPoolContainer, error)) *MockSqlConnector_NewPgPoolFromConnectionConfig_Call {
 	_c.Call.Return(run)
 	return _c
 }
