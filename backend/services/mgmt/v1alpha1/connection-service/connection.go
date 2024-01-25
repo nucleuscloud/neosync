@@ -28,23 +28,23 @@ func (s *Service) CheckConnectionConfig(
 ) (*connect.Response[mgmtv1alpha1.CheckConnectionConfigResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	connectionTimeout := uint32(5)
-	connDetails, err := s.getConnectionDetails(req.Msg.ConnectionConfig, &connectionTimeout)
+	conn, err := s.sqlConnector.NewDbFromConnectionConfig(req.Msg.ConnectionConfig, &connectionTimeout, logger)
 	if err != nil {
 		return nil, err
 	}
-	conn, err := s.sqlConnector.Open(connDetails.ConnectionDriver, connDetails.ConnectionString)
+	db, err := conn.Open()
 	if err != nil {
 		return nil, err
 	}
 	defer func() {
 		if err := conn.Close(); err != nil {
-			logger.Error(fmt.Errorf("failed to close mysql connection: %w", err).Error())
+			logger.Error(fmt.Errorf("failed to close database connection: %w", err).Error())
 		}
 	}()
 
 	cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-	err = conn.PingContext(cctx)
+	err = db.PingContext(cctx)
 	if err != nil {
 		msg := err.Error()
 		return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
