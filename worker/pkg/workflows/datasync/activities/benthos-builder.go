@@ -118,7 +118,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		responses = append(responses, sourceResponses...)
 
 		if _, ok := b.pgpool[sourceConnection.Id]; !ok {
-			pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(pgconfig, nil, slogger)
+			pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(pgconfig, ptr(uint32(5)), slogger)
 			if err != nil {
 				return nil, err
 			}
@@ -126,7 +126,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			if err != nil {
 				return nil, err
 			}
-			pgconn.Close()
+			defer pgconn.Close()
 			b.pgpool[sourceConnection.Id] = pool
 		}
 		pool := b.pgpool[sourceConnection.Id]
