@@ -207,11 +207,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		if err != nil {
 			return nil, err
 		}
-		dsn := "todo"
-		// dsn, err := getMysqlDsn(mysqlconfig)
-		// if err != nil {
-		// 	return nil, err
-		// }
 
 		sqlOpts := jobSourceConfig.Mysql
 		var sourceTableOpts map[string]*sqlSourceTableOptions
@@ -219,7 +214,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			sourceTableOpts = groupMysqlSourceOptionsByTable(sqlOpts.Schemas)
 		}
 
-		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, dsn, "mysql", sourceTableOpts)
+		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, jobSourceConfig.Mysql.ConnectionId, "mysql", sourceTableOpts)
 		if err != nil {
 			return nil, err
 		}

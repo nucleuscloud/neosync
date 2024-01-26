@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -1423,4 +1424,38 @@ func Test_TransformerStringLint(t *testing.T) {
 		_, err = bloblang.Parse(val)
 		assert.NoError(t, err, "transformer lint failed, check that the transformer string is being constructed correctly.")
 	}
+}
+
+func Test_getEnvVarLookupFn(t *testing.T) {
+	fn := getEnvVarLookupFn(nil)
+	assert.NotNil(t, fn)
+	val, ok := fn("foo")
+	assert.False(t, ok)
+	assert.Empty(t, val)
+
+	fn = getEnvVarLookupFn(map[string]string{"foo": "bar"})
+	assert.NotNil(t, fn)
+	val, ok = fn("foo")
+	assert.True(t, ok)
+	assert.Equal(t, val, "bar")
+
+	val, ok = fn("bar")
+	assert.False(t, ok)
+	assert.Empty(t, val)
+}
+
+func Test_syncMapToStringMap(t *testing.T) {
+	syncmap := sync.Map{}
+
+	syncmap.Store("foo", "bar")
+	syncmap.Store("bar", "baz")
+	syncmap.Store(1, "2")
+	syncmap.Store("3", 4)
+
+	out := syncMapToStringMap(&syncmap)
+	assert.Len(t, out, 2)
+	assert.Equal(t, out["foo"], "bar")
+	assert.Equal(t, out["bar"], "baz")
+
+	assert.Empty(t, syncMapToStringMap(nil))
 }
