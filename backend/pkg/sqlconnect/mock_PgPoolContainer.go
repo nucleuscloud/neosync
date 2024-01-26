@@ -5,7 +5,7 @@ package sqlconnect
 import (
 	context "context"
 
-	pgxpool "github.com/jackc/pgx/v5/pgxpool"
+	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -55,23 +55,23 @@ func (_c *MockPgPoolContainer_Close_Call) RunAndReturn(run func()) *MockPgPoolCo
 }
 
 // Open provides a mock function with given fields: _a0
-func (_m *MockPgPoolContainer) Open(_a0 context.Context) (*pgxpool.Pool, error) {
+func (_m *MockPgPoolContainer) Open(_a0 context.Context) (pg_queries.DBTX, error) {
 	ret := _m.Called(_a0)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Open")
 	}
 
-	var r0 *pgxpool.Pool
+	var r0 pg_queries.DBTX
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) (*pgxpool.Pool, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context) (pg_queries.DBTX, error)); ok {
 		return rf(_a0)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) *pgxpool.Pool); ok {
+	if rf, ok := ret.Get(0).(func(context.Context) pg_queries.DBTX); ok {
 		r0 = rf(_a0)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*pgxpool.Pool)
+			r0 = ret.Get(0).(pg_queries.DBTX)
 		}
 	}
 
@@ -102,12 +102,12 @@ func (_c *MockPgPoolContainer_Open_Call) Run(run func(_a0 context.Context)) *Moc
 	return _c
 }
 
-func (_c *MockPgPoolContainer_Open_Call) Return(_a0 *pgxpool.Pool, _a1 error) *MockPgPoolContainer_Open_Call {
+func (_c *MockPgPoolContainer_Open_Call) Return(_a0 pg_queries.DBTX, _a1 error) *MockPgPoolContainer_Open_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockPgPoolContainer_Open_Call) RunAndReturn(run func(context.Context) (*pgxpool.Pool, error)) *MockPgPoolContainer_Open_Call {
+func (_c *MockPgPoolContainer_Open_Call) RunAndReturn(run func(context.Context) (pg_queries.DBTX, error)) *MockPgPoolContainer_Open_Call {
 	_c.Call.Return(run)
 	return _c
 }
