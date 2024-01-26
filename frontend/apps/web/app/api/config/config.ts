@@ -18,6 +18,6 @@ export function getSystemAppConfig(): SystemAppConfig {
       key: process.env.POSTHOG_KEY,
     },
     isNeosyncCloud: process.env.NEOSYNC_CLOUD === 'true',
-    isKubernetes: process.env.KUBERNETES_ENABLED === 'true',
+    enableRunLogs: process.env.ENABLE_RUN_LOGS === 'true',
   };
 }

@@ -226,7 +226,7 @@ export default function Page({ params }: PageProps): ReactElement {
             })}
           </div>
           {!isSystemAppConfigDataLoading &&
-            systemAppConfigData?.isKubernetes && (
+            systemAppConfigData?.enableRunLogs && (
               <div>
                 <JobRunLogs accountId={accountId} runId={id} />
               </div>

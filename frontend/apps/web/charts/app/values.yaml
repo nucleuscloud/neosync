@@ -66,5 +66,4 @@ nodeSelector: {}
 neosyncCloud:
   enabled: false
 
-kubernetes:
-  enabled: false
+enableRunLogs: false
