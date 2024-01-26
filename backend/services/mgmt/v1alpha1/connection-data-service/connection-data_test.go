@@ -26,7 +26,7 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	awsmanager "github.com/nucleuscloud/neosync/backend/internal/aws"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
-	"github.com/nucleuscloud/neosync/backend/internal/sqlconnect"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

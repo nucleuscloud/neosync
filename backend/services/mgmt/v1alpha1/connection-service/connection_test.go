@@ -17,7 +17,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/apikey"
 	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
-	"github.com/nucleuscloud/neosync/backend/internal/sqlconnect"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
