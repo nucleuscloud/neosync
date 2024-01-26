@@ -42,9 +42,8 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	var wfActivites *datasync_activities.Activities
 	var bcResp *datasync_activities.GenerateBenthosConfigsResponse
 	err := workflow.ExecuteActivity(ctx, wfActivites.GenerateBenthosConfigs, &datasync_activities.GenerateBenthosConfigsRequest{
-		JobId:      req.JobId,
-		WorkflowId: wfinfo.WorkflowExecution.ID,
-	}).Get(ctx, &bcResp)
+		JobId: req.JobId,
+	}, workflowMetadata).Get(ctx, &bcResp)
 	if err != nil {
 		return nil, err
 	}

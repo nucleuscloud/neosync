@@ -61,6 +61,7 @@ type Activities struct{}
 func (a *Activities) GenerateBenthosConfigs(
 	ctx context.Context,
 	req *GenerateBenthosConfigsRequest,
+	wfmetadata *WorkflowMetadata,
 ) (*GenerateBenthosConfigsResponse, error) {
 	logger := activity.GetLogger(ctx)
 	_ = logger
@@ -118,7 +119,12 @@ func (a *Activities) GenerateBenthosConfigs(
 		transformerclient,
 		&sqlconnect.SqlOpenConnector{},
 	)
-	return bbuilder.GenerateBenthosConfigs(ctx, req, logger)
+	slogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
+	slogger = slogger.With(
+		"WorkflowID", wfmetadata.WorkflowId,
+		"RunID", wfmetadata.RunId,
+	)
+	return bbuilder.GenerateBenthosConfigs(ctx, req, slogger)
 }
 
 type sqlSourceTableOptions struct {

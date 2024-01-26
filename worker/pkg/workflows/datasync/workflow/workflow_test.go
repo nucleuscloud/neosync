@@ -20,7 +20,7 @@ func Test_Workflow_BenthosConfigsFails(t *testing.T) {
 	env := testSuite.NewTestWorkflowEnvironment()
 
 	activities := &datasync_activities.Activities{}
-	env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything).Return(nil, errors.New("TestFailure"))
+	env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything, mock.Anything).Return(nil, errors.New("TestFailure"))
 
 	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
 
@@ -41,7 +41,7 @@ func Test_Workflow_Succeeds_Zero_BenthosConfigs(t *testing.T) {
 	env := testSuite.NewTestWorkflowEnvironment()
 
 	activities := &datasync_activities.Activities{}
-	env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything).
+	env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything, mock.Anything).
 		Return(&datasync_activities.GenerateBenthosConfigsResponse{BenthosConfigs: []*datasync_activities.BenthosConfigResponse{}}, nil)
 
 	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
@@ -64,7 +64,7 @@ func Test_Workflow_Succeeds_SingleSync(t *testing.T) {
 	env := testSuite.NewTestWorkflowEnvironment()
 
 	activities := &datasync_activities.Activities{}
-	env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything).
+	env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything, mock.Anything).
 		Return(&datasync_activities.GenerateBenthosConfigsResponse{BenthosConfigs: []*datasync_activities.BenthosConfigResponse{
 			{
 				Name:      "public.users",
@@ -96,7 +96,7 @@ func Test_Workflow_Follows_Synchronous_DependentFlow(t *testing.T) {
 	env := testSuite.NewTestWorkflowEnvironment()
 
 	activities := &datasync_activities.Activities{}
-	env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything).
+	env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything, mock.Anything).
 		Return(&datasync_activities.GenerateBenthosConfigsResponse{BenthosConfigs: []*datasync_activities.BenthosConfigResponse{
 			{
 				Name:      "public.users",
@@ -174,7 +174,7 @@ func Test_Workflow_Follows_Multiple_Dependents(t *testing.T) {
 	env := testSuite.NewTestWorkflowEnvironment()
 
 	activities := &datasync_activities.Activities{}
-	env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything).
+	env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything, mock.Anything).
 		Return(&datasync_activities.GenerateBenthosConfigsResponse{BenthosConfigs: []*datasync_activities.BenthosConfigResponse{
 			{
 				Name:        "public.users",
@@ -275,7 +275,7 @@ func Test_Workflow_Halts_Activities_OnError(t *testing.T) {
 	env := testSuite.NewTestWorkflowEnvironment()
 
 	activities := &datasync_activities.Activities{}
-	env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything).
+	env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything, mock.Anything).
 		Return(&datasync_activities.GenerateBenthosConfigsResponse{BenthosConfigs: []*datasync_activities.BenthosConfigResponse{
 			{
 				Name:        "public.users",
