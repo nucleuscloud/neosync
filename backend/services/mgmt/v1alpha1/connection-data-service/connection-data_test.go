@@ -130,7 +130,9 @@ func Test_GetConnectionSchema_Postgres(t *testing.T) {
 		}}
 
 	pool, _ := pgxpool.New(context.Background(), "")
-	m.SqlConnectorMock.On("PgPoolOpen", mock.Anything, mock.Anything).Return(pool, nil)
+	m.PgPoolContainerMock.On("Open", mock.Anything).Return(pool, nil)
+	m.PgPoolContainerMock.On("Close")
+	m.SqlConnectorMock.On("NewPgPoolFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.PgPoolContainerMock, nil)
 
 	connection := getConnectionMock(mockAccountId, mockConnectionName, mockConnectionId, PostgresMock)
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
@@ -186,7 +188,9 @@ func Test_GetConnectionSchema_Mysql(t *testing.T) {
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
-	m.SqlConnectorMock.On("MysqlOpen", mock.Anything).Return(m.SqlDbMock, nil)
+	m.SqlDbContainerMock.On("Open").Return(m.SqlDbMock, nil)
+	m.SqlDbContainerMock.On("Close").Return(nil)
+	m.SqlConnectorMock.On("NewDbFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.SqlDbContainerMock, nil)
 
 	m.MysqlQueierMock.On("GetDatabaseSchema", mock.Anything, mock.Anything).
 		Return(mockColumns, nil)
@@ -214,7 +218,9 @@ func Test_GetConnectionSchema_NoRows(t *testing.T) {
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
-	m.SqlConnectorMock.On("MysqlOpen", mock.Anything).Return(m.SqlDbMock, nil)
+	m.SqlDbContainerMock.On("Open").Return(m.SqlDbMock, nil)
+	m.SqlDbContainerMock.On("Close").Return(nil)
+	m.SqlConnectorMock.On("NewDbFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.SqlDbContainerMock, nil)
 	m.MysqlQueierMock.On("GetDatabaseSchema", mock.Anything, mock.Anything).
 		Return([]*mysql_queries.GetDatabaseSchemaRow{}, sql.ErrNoRows)
 
@@ -242,7 +248,9 @@ func Test_GetConnectionSchema_Error(t *testing.T) {
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
-	m.SqlConnectorMock.On("MysqlOpen", mock.Anything).Return(m.SqlDbMock, nil)
+	m.SqlDbContainerMock.On("Open").Return(m.SqlDbMock, nil)
+	m.SqlDbContainerMock.On("Close").Return(nil)
+	m.SqlConnectorMock.On("NewDbFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.SqlDbContainerMock, nil)
 	m.MysqlQueierMock.On("GetDatabaseSchema", mock.Anything, mock.Anything).
 		Return([]*mysql_queries.GetDatabaseSchemaRow{}, errors.New("oh no"))
 
@@ -269,7 +277,9 @@ func Test_GetConnectionForeignConstraints_Mysql(t *testing.T) {
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 		Connection: connection,
 	}), nil)
-	m.SqlConnectorMock.On("MysqlOpen", mock.Anything).Return(m.SqlDbMock, nil)
+	m.SqlDbContainerMock.On("Open").Return(m.SqlDbMock, nil)
+	m.SqlDbContainerMock.On("Close").Return(nil)
+	m.SqlConnectorMock.On("NewDbFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.SqlDbContainerMock, nil)
 
 	m.MysqlQueierMock.On("GetDatabaseSchema", mock.Anything, mock.Anything).
 		Return([]*mysql_queries.GetDatabaseSchemaRow{
@@ -318,7 +328,9 @@ func Test_GetConnectionForeignConstraints_Postgres(t *testing.T) {
 	defer m.SqlDbMock.Close()
 
 	pool, _ := pgxpool.New(context.Background(), "")
-	m.SqlConnectorMock.On("PgPoolOpen", mock.Anything, mock.Anything).Return(pool, nil)
+	m.PgPoolContainerMock.On("Open", mock.Anything).Return(pool, nil)
+	m.PgPoolContainerMock.On("Close")
+	m.SqlConnectorMock.On("NewPgPoolFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.PgPoolContainerMock, nil)
 	connection := getConnectionMock(mockAccountId, mockConnectionName, mockConnectionId, PostgresMock)
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
@@ -377,7 +389,9 @@ func Test_GetConnectionForeignConstraints_Postgres(t *testing.T) {
 // 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
 // 		Connection: connection,
 // 	}), nil)
-// 	m.SqlConnectorMock.On("MysqlOpen", mock.Anything).Return(m.SqlDbMock, nil)
+// m.SqlDbContainerMock.On("Open").Return(m.SqlDbMock, nil)
+// m.SqlDbContainerMock.On("Close").Return(nil)
+// m.SqlConnectorMock.On("NewDbFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.SqlDbContainerMock, nil)
 // 	m.MysqlQueierMock.On("GetDatabaseSchema", mock.Anything, mock.Anything).
 // 		Return([]*mysql_queries.GetDatabaseSchemaRow{
 // 			{
@@ -414,7 +428,9 @@ func Test_GetConnectionInitStatements_Postgres(t *testing.T) {
 	defer m.SqlDbMock.Close()
 
 	pool, _ := pgxpool.New(context.Background(), "")
-	m.SqlConnectorMock.On("PgPoolOpen", mock.Anything, mock.Anything).Return(pool, nil)
+	m.PgPoolContainerMock.On("Open", mock.Anything).Return(pool, nil)
+	m.PgPoolContainerMock.On("Close")
+	m.SqlConnectorMock.On("NewPgPoolFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.PgPoolContainerMock, nil)
 	connection := getConnectionMock(mockAccountId, mockConnectionName, mockConnectionId, PostgresMock)
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
@@ -488,6 +504,8 @@ type serviceMocks struct {
 	JobServiceMock         *mgmtv1alpha1connect.MockJobServiceHandler
 	SqlMock                sqlmock.Sqlmock
 	SqlDbMock              *sql.DB
+	SqlDbContainerMock     *sqlconnect.MockSqlDbContainer
+	PgPoolContainerMock    *sqlconnect.MockPgPoolContainer
 	PgQueierMock           *pg_queries.MockQuerier
 	MysqlQueierMock        *mysql_queries.MockQuerier
 	SqlConnectorMock       *sqlconnect.MockSqlConnector
@@ -521,6 +539,8 @@ func createServiceMock(t *testing.T) *serviceMocks {
 		JobServiceMock:         mockJobService,
 		SqlMock:                sqlMock,
 		SqlDbMock:              sqlDbMock,
+		SqlDbContainerMock:     sqlconnect.NewMockSqlDbContainer(t),
+		PgPoolContainerMock:    sqlconnect.NewMockPgPoolContainer(t),
 		PgQueierMock:           mockPgquerier,
 		MysqlQueierMock:        mockMysqlquerier,
 		SqlConnectorMock:       mockSqlConnector,

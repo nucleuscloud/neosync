@@ -67,29 +67,31 @@ func (s *Service) GetConnectionDataStream(
 		return err
 	}
 
+	connectionTimeout := uint32(5)
+
 	switch config := connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 		err := s.areSchemaAndTableValid(ctx, connection, req.Msg.Schema, req.Msg.Table)
 		if err != nil {
 			return err
 		}
-		mysqlconfig := config.MysqlConfig
-		dsn, err := getMysqlDsn(mysqlconfig)
-		if err != nil {
-			return err
-		}
 
-		cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
-		defer cancel()
-		conn, err := s.sqlConnector.MysqlOpen(dsn)
+		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.ConnectionConfig, &connectionTimeout, logger)
 		if err != nil {
 			return err
 		}
 		defer conn.Close()
+		db, err := conn.Open()
+		if err != nil {
+			return err
+		}
+
+		cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cancel()
 
 		// used to get column names
 		query := fmt.Sprintf("SELECT * FROM %s.%s LIMIT 1;", req.Msg.Schema, req.Msg.Table) //nolint
-		r, err := conn.QueryContext(cctx, query)
+		r, err := db.QueryContext(cctx, query)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return err
 		}
@@ -100,7 +102,7 @@ func (s *Service) GetConnectionDataStream(
 		}
 
 		selectQuery := fmt.Sprintf("SELECT %s FROM %s.%s;", strings.Join(columnNames, ", "), req.Msg.Schema, req.Msg.Table) //nolint
-		rows, err := conn.QueryContext(cctx, selectQuery)
+		rows, err := db.QueryContext(cctx, selectQuery)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return err
 		}
@@ -131,22 +133,22 @@ func (s *Service) GetConnectionDataStream(
 			return err
 		}
 
-		dsn, err := getPgDsn(config.PgConfig)
+		conn, err := s.sqlConnector.NewPgPoolFromConnectionConfig(config.PgConfig, &connectionTimeout, logger)
 		if err != nil {
 			return err
 		}
+		db, err := conn.Open(ctx)
+		if err != nil {
+			return err
+		}
+		defer conn.Close()
 
-		cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
+		cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 		defer cancel()
-		pool, err := s.sqlConnector.PgPoolOpen(cctx, dsn)
-		if err != nil {
-			return err
-		}
-		defer pool.Close()
 
 		// used to get column names
 		query := fmt.Sprintf("SELECT * FROM %s.%s LIMIT 1;", req.Msg.Schema, req.Msg.Table) //nolint
-		r, err := pool.Query(cctx, query)
+		r, err := db.Query(cctx, query)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return err
 		}
@@ -158,7 +160,7 @@ func (s *Service) GetConnectionDataStream(
 		}
 
 		selectQuery := fmt.Sprintf("SELECT %s FROM %s.%s;", strings.Join(columnNames, ", "), req.Msg.Schema, req.Msg.Table) //nolint
-		rows, err := pool.Query(cctx, selectQuery)
+		rows, err := db.Query(cctx, selectQuery)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return err
 		}
@@ -340,23 +342,24 @@ func (s *Service) GetConnectionSchema(
 		return nil, err
 	}
 
+	connectionTimeout := uint32(5)
+
 	switch config := connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		mysqlconfig := config.MysqlConfig
-		dsn, err := getMysqlDsn(mysqlconfig)
-		if err != nil {
-			return nil, err
-		}
-
-		cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
-		defer cancel()
-		conn, err := s.sqlConnector.MysqlOpen(dsn)
+		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.ConnectionConfig, &connectionTimeout, logger)
 		if err != nil {
 			return nil, err
 		}
 		defer conn.Close()
+		db, err := conn.Open()
+		if err != nil {
+			return nil, err
+		}
 
-		dbschema, err := s.mysqlquerier.GetDatabaseSchema(cctx, conn)
+		cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cancel()
+
+		dbschema, err := s.mysqlquerier.GetDatabaseSchema(cctx, db)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return nil, err
 		} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -380,20 +383,20 @@ func (s *Service) GetConnectionSchema(
 		}), nil
 
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		dsn, err := getPgDsn(config.PgConfig)
+		conn, err := s.sqlConnector.NewPgPoolFromConnectionConfig(config.PgConfig, &connectionTimeout, logger)
 		if err != nil {
 			return nil, err
 		}
+		db, err := conn.Open(ctx)
+		if err != nil {
+			return nil, err
+		}
+		defer conn.Close()
 
-		cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
+		cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 		defer cancel()
-		pool, err := s.sqlConnector.PgPoolOpen(cctx, dsn)
-		if err != nil {
-			return nil, err
-		}
-		defer pool.Close()
 
-		dbschema, err := s.pgquerier.GetDatabaseSchema(cctx, pool)
+		dbschema, err := s.pgquerier.GetDatabaseSchema(cctx, db)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return nil, err
 		} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -538,6 +541,7 @@ func (s *Service) GetConnectionForeignConstraints(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetConnectionForeignConstraintsRequest],
 ) (*connect.Response[mgmtv1alpha1.GetConnectionForeignConstraintsResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	connection, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
 		Id: req.Msg.ConnectionId,
 	}))
@@ -564,24 +568,25 @@ func (s *Service) GetConnectionForeignConstraints(
 		schemas = append(schemas, s)
 	}
 
+	connectionTimeout := uint32(5)
+
 	var td dbschemas.TableDependency
 	switch config := connection.Msg.Connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		mysqlconfig := config.MysqlConfig
-		dsn, err := getMysqlDsn(mysqlconfig)
-		if err != nil {
-			return nil, err
-		}
-
-		cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
-		defer cancel()
-		conn, err := s.sqlConnector.MysqlOpen(dsn)
+		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.Msg.Connection.ConnectionConfig, &connectionTimeout, logger)
 		if err != nil {
 			return nil, err
 		}
 		defer conn.Close()
+		db, err := conn.Open()
+		if err != nil {
+			return nil, err
+		}
 
-		allConstraints, err := dbschemas_mysql.GetAllMysqlFkConstraints(s.mysqlquerier, cctx, conn, schemas)
+		cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cancel()
+
+		allConstraints, err := dbschemas_mysql.GetAllMysqlFkConstraints(s.mysqlquerier, cctx, db, schemas)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return nil, err
 		} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -592,20 +597,20 @@ func (s *Service) GetConnectionForeignConstraints(
 		td = dbschemas_mysql.GetMysqlTableDependencies(allConstraints)
 
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		dsn, err := getPgDsn(config.PgConfig)
+		conn, err := s.sqlConnector.NewPgPoolFromConnectionConfig(config.PgConfig, &connectionTimeout, logger)
 		if err != nil {
 			return nil, err
 		}
+		db, err := conn.Open(ctx)
+		if err != nil {
+			return nil, err
+		}
+		defer conn.Close()
 
-		cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
+		cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 		defer cancel()
-		pool, err := s.sqlConnector.PgPoolOpen(cctx, dsn)
-		if err != nil {
-			return nil, err
-		}
-		defer pool.Close()
 
-		allConstraints, err := dbschemas_postgres.GetAllPostgresFkConstraints(s.pgquerier, cctx, pool, schemas)
+		allConstraints, err := dbschemas_postgres.GetAllPostgresFkConstraints(s.pgquerier, cctx, db, schemas)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return nil, err
 		} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -643,6 +648,7 @@ func (s *Service) GetConnectionPrimaryConstraints(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetConnectionPrimaryConstraintsRequest],
 ) (*connect.Response[mgmtv1alpha1.GetConnectionPrimaryConstraintsResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	connection, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
 		Id: req.Msg.ConnectionId,
 	}))
@@ -669,24 +675,25 @@ func (s *Service) GetConnectionPrimaryConstraints(
 		schemas = append(schemas, s)
 	}
 
+	connectionTimeout := uint32(5)
+
 	var pc map[string][]string
 	switch config := connection.Msg.Connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		mysqlconfig := config.MysqlConfig
-		dsn, err := getMysqlDsn(mysqlconfig)
+		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.Msg.Connection.ConnectionConfig, &connectionTimeout, logger)
+		if err != nil {
+			return nil, err
+		}
+		defer conn.Close()
+		db, err := conn.Open()
 		if err != nil {
 			return nil, err
 		}
 
 		cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
 		defer cancel()
-		conn, err := s.sqlConnector.MysqlOpen(dsn)
-		if err != nil {
-			return nil, err
-		}
-		defer conn.Close()
 
-		allConstraints, err := dbschemas_mysql.GetAllMysqlPkConstraints(s.mysqlquerier, cctx, conn, schemas)
+		allConstraints, err := dbschemas_mysql.GetAllMysqlPkConstraints(s.mysqlquerier, cctx, db, schemas)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return nil, err
 		} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -697,20 +704,20 @@ func (s *Service) GetConnectionPrimaryConstraints(
 		pc = dbschemas_mysql.GetMysqlTablePrimaryKeys(allConstraints)
 
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		dsn, err := getPgDsn(config.PgConfig)
+		conn, err := s.sqlConnector.NewPgPoolFromConnectionConfig(config.PgConfig, &connectionTimeout, logger)
 		if err != nil {
 			return nil, err
 		}
+		db, err := conn.Open(ctx)
+		if err != nil {
+			return nil, err
+		}
+		defer conn.Close()
 
-		cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
+		cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 		defer cancel()
-		pool, err := s.sqlConnector.PgPoolOpen(cctx, dsn)
-		if err != nil {
-			return nil, err
-		}
-		defer pool.Close()
 
-		allConstraints, err := dbschemas_postgres.GetAllPostgresPkConstraints(s.pgquerier, cctx, pool, schemas)
+		allConstraints, err := dbschemas_postgres.GetAllPostgresPkConstraints(s.pgquerier, cctx, db, schemas)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return nil, err
 		} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -740,6 +747,7 @@ func (s *Service) GetConnectionInitStatements(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetConnectionInitStatementsRequest],
 ) (*connect.Response[mgmtv1alpha1.GetConnectionInitStatementsResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	connection, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
 		Id: req.Msg.ConnectionId,
 	}))
@@ -762,27 +770,28 @@ func (s *Service) GetConnectionInitStatements(
 		schemaTableMap[fmt.Sprintf("%s.%s", s.Schema, s.Table)] = s
 	}
 
+	connectionTimeout := uint32(5)
+
 	statementsMap := map[string]string{}
 	switch config := connection.Msg.Connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		mysqlconfig := config.MysqlConfig
-		dsn, err := getMysqlDsn(mysqlconfig)
-		if err != nil {
-			return nil, err
-		}
-
-		cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
-		defer cancel()
-		conn, err := s.sqlConnector.MysqlOpen(dsn)
+		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.Msg.Connection.ConnectionConfig, &connectionTimeout, logger)
 		if err != nil {
 			return nil, err
 		}
 		defer conn.Close()
+		db, err := conn.Open()
+		if err != nil {
+			return nil, err
+		}
+
+		cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cancel()
 
 		for k, v := range schemaTableMap {
 			statements := []string{}
 			if req.Msg.Options.InitSchema {
-				stmt, err := dbschemas_mysql.GetTableCreateStatement(cctx, conn, &dbschemas_mysql.GetTableCreateStatementRequest{
+				stmt, err := dbschemas_mysql.GetTableCreateStatement(cctx, db, &dbschemas_mysql.GetTableCreateStatementRequest{
 					Schema: v.Schema,
 					Table:  v.Table,
 				})
@@ -798,23 +807,23 @@ func (s *Service) GetConnectionInitStatements(
 		}
 
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		dsn, err := getPgDsn(config.PgConfig)
+		conn, err := s.sqlConnector.NewPgPoolFromConnectionConfig(config.PgConfig, &connectionTimeout, logger)
 		if err != nil {
 			return nil, err
 		}
+		db, err := conn.Open(ctx)
+		if err != nil {
+			return nil, err
+		}
+		defer conn.Close()
 
-		cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
+		cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 		defer cancel()
-		pool, err := s.sqlConnector.PgPoolOpen(cctx, dsn)
-		if err != nil {
-			return nil, err
-		}
-		defer pool.Close()
 
 		for k, v := range schemaTableMap {
 			statements := []string{}
 			if req.Msg.Options.InitSchema {
-				stmt, err := dbschemas_postgres.GetTableCreateStatement(cctx, pool, s.pgquerier, v.Schema, v.Table)
+				stmt, err := dbschemas_postgres.GetTableCreateStatement(cctx, db, s.pgquerier, v.Schema, v.Table)
 				if err != nil {
 					return nil, err
 				}
@@ -836,64 +845,6 @@ func (s *Service) GetConnectionInitStatements(
 	return connect.NewResponse(&mgmtv1alpha1.GetConnectionInitStatementsResponse{
 		TableInitStatements: statementsMap,
 	}), nil
-}
-
-func getPgDsn(
-	config *mgmtv1alpha1.PostgresConnectionConfig,
-) (string, error) {
-	if config == nil {
-		return "", errors.New("must provide non-nil config")
-	}
-	switch cfg := config.ConnectionConfig.(type) {
-	case *mgmtv1alpha1.PostgresConnectionConfig_Connection:
-		if cfg.Connection == nil {
-			return "", errors.New("must provide non-nil connection config")
-		}
-		dburl := fmt.Sprintf(
-			"postgres://%s:%s@%s:%d/%s",
-			cfg.Connection.User,
-			cfg.Connection.Pass,
-			cfg.Connection.Host,
-			cfg.Connection.Port,
-			cfg.Connection.Name,
-		)
-		if cfg.Connection.SslMode != nil && *cfg.Connection.SslMode != "" {
-			dburl = fmt.Sprintf("%s?sslmode=%s", dburl, *cfg.Connection.SslMode)
-		}
-		return dburl, nil
-	case *mgmtv1alpha1.PostgresConnectionConfig_Url:
-		return cfg.Url, nil
-	default:
-		return "", fmt.Errorf("unsupported postgres connection config type")
-	}
-}
-
-func getMysqlDsn(
-	config *mgmtv1alpha1.MysqlConnectionConfig,
-) (string, error) {
-	if config == nil {
-		return "", errors.New("must provide non-nil config")
-	}
-	switch cfg := config.ConnectionConfig.(type) {
-	case *mgmtv1alpha1.MysqlConnectionConfig_Connection:
-		if cfg.Connection == nil {
-			return "", errors.New("must provide non-nil connection config")
-		}
-		dburl := fmt.Sprintf(
-			"%s:%s@%s(%s:%d)/%s",
-			cfg.Connection.User,
-			cfg.Connection.Pass,
-			cfg.Connection.Protocol,
-			cfg.Connection.Host,
-			cfg.Connection.Port,
-			cfg.Connection.Name,
-		)
-		return dburl, nil
-	case *mgmtv1alpha1.MysqlConnectionConfig_Url:
-		return cfg.Url, nil
-	default:
-		return "", fmt.Errorf("unsupported mysql connection config type")
-	}
 }
 
 type schemaOpts struct {

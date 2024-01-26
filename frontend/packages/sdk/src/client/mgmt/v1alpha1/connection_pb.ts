@@ -689,6 +689,13 @@ export class PostgresConnectionConfig extends Message<PostgresConnectionConfig> 
     case: "connection";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
+  /**
+   * Provide tunnel configuration that can be used to access a postgres connection that is not publicly accessible to the internet
+   *
+   * @generated from field: mgmt.v1alpha1.SSHTunnel tunnel = 3;
+   */
+  tunnel?: SSHTunnel;
+
   constructor(data?: PartialMessage<PostgresConnectionConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -699,6 +706,7 @@ export class PostgresConnectionConfig extends Message<PostgresConnectionConfig> 
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "connection_config" },
     { no: 2, name: "connection", kind: "message", T: PostgresConnection, oneof: "connection_config" },
+    { no: 3, name: "tunnel", kind: "message", T: SSHTunnel },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PostgresConnectionConfig {
@@ -715,6 +723,223 @@ export class PostgresConnectionConfig extends Message<PostgresConnectionConfig> 
 
   static equals(a: PostgresConnectionConfig | PlainMessage<PostgresConnectionConfig> | undefined, b: PostgresConnectionConfig | PlainMessage<PostgresConnectionConfig> | undefined): boolean {
     return proto3.util.equals(PostgresConnectionConfig, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.SSHTunnel
+ */
+export class SSHTunnel extends Message<SSHTunnel> {
+  /**
+   * The host of the SSH server
+   *
+   * @generated from field: string host = 1;
+   */
+  host = "";
+
+  /**
+   * The port of the SSH server, typically 22
+   *
+   * @generated from field: int32 port = 2;
+   */
+  port = 0;
+
+  /**
+   * The user that will be used to authenticate
+   *
+   * @generated from field: string user = 3;
+   */
+  user = "";
+
+  /**
+   * Optionally provide the public key of the known host of the SSH tunnel that we are connecting to.
+   * If this is not provided, the server will blindly connect to the host with the given credentials.
+   * This is not recommended for production use!
+   *
+   * @generated from field: optional string known_host_public_key = 4;
+   */
+  knownHostPublicKey?: string;
+
+  /**
+   * Provide the authentication required to successfully connect to the SSH server for tunneling
+   *
+   * @generated from field: mgmt.v1alpha1.SSHAuthentication authentication = 5;
+   */
+  authentication?: SSHAuthentication;
+
+  constructor(data?: PartialMessage<SSHTunnel>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SSHTunnel";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "host", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "port", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 3, name: "user", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "known_host_public_key", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 5, name: "authentication", kind: "message", T: SSHAuthentication },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SSHTunnel {
+    return new SSHTunnel().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SSHTunnel {
+    return new SSHTunnel().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SSHTunnel {
+    return new SSHTunnel().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SSHTunnel | PlainMessage<SSHTunnel> | undefined, b: SSHTunnel | PlainMessage<SSHTunnel> | undefined): boolean {
+    return proto3.util.equals(SSHTunnel, a, b);
+  }
+}
+
+/**
+ * SSH Authentication
+ *
+ * @generated from message mgmt.v1alpha1.SSHAuthentication
+ */
+export class SSHAuthentication extends Message<SSHAuthentication> {
+  /**
+   * @generated from oneof mgmt.v1alpha1.SSHAuthentication.auth_config
+   */
+  authConfig: {
+    /**
+     * @generated from field: mgmt.v1alpha1.SSHPassphrase passphrase = 1;
+     */
+    value: SSHPassphrase;
+    case: "passphrase";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.SSHPrivateKey private_key = 2;
+     */
+    value: SSHPrivateKey;
+    case: "privateKey";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<SSHAuthentication>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SSHAuthentication";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "passphrase", kind: "message", T: SSHPassphrase, oneof: "auth_config" },
+    { no: 2, name: "private_key", kind: "message", T: SSHPrivateKey, oneof: "auth_config" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SSHAuthentication {
+    return new SSHAuthentication().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SSHAuthentication {
+    return new SSHAuthentication().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SSHAuthentication {
+    return new SSHAuthentication().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SSHAuthentication | PlainMessage<SSHAuthentication> | undefined, b: SSHAuthentication | PlainMessage<SSHAuthentication> | undefined): boolean {
+    return proto3.util.equals(SSHAuthentication, a, b);
+  }
+}
+
+/**
+ * Contains the configuration needed to retrieve the SSH passphrase for the tunnel
+ *
+ * @generated from message mgmt.v1alpha1.SSHPassphrase
+ */
+export class SSHPassphrase extends Message<SSHPassphrase> {
+  /**
+   * The password to be used to connect to the SSH server
+   *
+   * eventually we can expand this to allow pulling from other sources.
+   *
+   * @generated from field: string value = 1;
+   */
+  value = "";
+
+  constructor(data?: PartialMessage<SSHPassphrase>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SSHPassphrase";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "value", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SSHPassphrase {
+    return new SSHPassphrase().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SSHPassphrase {
+    return new SSHPassphrase().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SSHPassphrase {
+    return new SSHPassphrase().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SSHPassphrase | PlainMessage<SSHPassphrase> | undefined, b: SSHPassphrase | PlainMessage<SSHPassphrase> | undefined): boolean {
+    return proto3.util.equals(SSHPassphrase, a, b);
+  }
+}
+
+/**
+ * Contains the configuration needed to retrieve the SSH private key for the tunnel
+ *
+ * @generated from message mgmt.v1alpha1.SSHPrivateKey
+ */
+export class SSHPrivateKey extends Message<SSHPrivateKey> {
+  /**
+   * The private key in PEM format.
+   *
+   * @generated from field: string value = 1;
+   */
+  value = "";
+
+  /**
+   * If the private key is encrypted, this value should decrypt it.
+   *
+   * @generated from field: optional string passphrase = 2;
+   */
+  passphrase?: string;
+
+  constructor(data?: PartialMessage<SSHPrivateKey>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SSHPrivateKey";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "value", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "passphrase", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SSHPrivateKey {
+    return new SSHPrivateKey().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SSHPrivateKey {
+    return new SSHPrivateKey().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SSHPrivateKey {
+    return new SSHPrivateKey().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SSHPrivateKey | PlainMessage<SSHPrivateKey> | undefined, b: SSHPrivateKey | PlainMessage<SSHPrivateKey> | undefined): boolean {
+    return proto3.util.equals(SSHPrivateKey, a, b);
   }
 }
 
@@ -875,6 +1100,13 @@ export class MysqlConnectionConfig extends Message<MysqlConnectionConfig> {
     case: "connection";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
+  /**
+   * Provide tunnel configuration that can be used to access a postgres connection that is not publicly accessible to the internet
+   *
+   * @generated from field: mgmt.v1alpha1.SSHTunnel tunnel = 3;
+   */
+  tunnel?: SSHTunnel;
+
   constructor(data?: PartialMessage<MysqlConnectionConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -885,6 +1117,7 @@ export class MysqlConnectionConfig extends Message<MysqlConnectionConfig> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "connection_config" },
     { no: 2, name: "connection", kind: "message", T: MysqlConnection, oneof: "connection_config" },
+    { no: 3, name: "tunnel", kind: "message", T: SSHTunnel },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MysqlConnectionConfig {

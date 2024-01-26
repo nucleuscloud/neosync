@@ -1,10 +1,10 @@
 quiet: False
 disable-version-string: True
 with-expecter: True
-filename: 'mock_{{.InterfaceName}}.go'
-dir: '{{.InterfaceDir}}'
-mockname: 'Mock{{.InterfaceName}}'
-outpkg: '{{.PackageName}}'
+filename: "mock_{{.InterfaceName}}.go"
+dir: "{{.InterfaceDir}}"
+mockname: "Mock{{.InterfaceName}}"
+outpkg: "{{.PackageName}}"
 inpackage: True
 packages:
   github.com/nucleuscloud/neosync/backend/internal/auth/jwt:
@@ -53,6 +53,8 @@ packages:
   github.com/nucleuscloud/neosync/backend/internal/sqlconnect:
     interfaces:
       SqlConnector:
+      SqlDbContainer:
+      PgPoolContainer:
   github.com/nucleuscloud/neosync/backend/internal/aws:
     interfaces:
       NeosyncAwsManagerClient:

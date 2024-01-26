@@ -96,6 +96,50 @@ message PostgresConnectionConfig {
     string url = 1;
     PostgresConnection connection = 2;
   }
+
+  // Provide tunnel configuration that can be used to access a postgres connection that is not publicly accessible to the internet
+  SSHTunnel tunnel = 3;
+}
+
+message SSHTunnel {
+  // The host of the SSH server
+  string host = 1 [(buf.validate.field).string.min_len = 1];
+  // The port of the SSH server, typically 22
+  int32 port = 2 [(buf.validate.field).int32.gte = 0];
+  // The user that will be used to authenticate
+  string user = 3 [(buf.validate.field).string.min_len = 1];
+
+  // Optionally provide the public key of the known host of the SSH tunnel that we are connecting to.
+  // If this is not provided, the server will blindly connect to the host with the given credentials.
+  // This is not recommended for production use!
+  optional string known_host_public_key = 4 [(buf.validate.field).string.min_len = 1];
+  // Provide the authentication required to successfully connect to the SSH server for tunneling
+  SSHAuthentication authentication = 5;
+}
+
+// SSH Authentication
+message SSHAuthentication {
+  oneof auth_config {
+    option (buf.validate.oneof).required = true;
+
+    SSHPassphrase passphrase = 1;
+    SSHPrivateKey private_key = 2;
+  }
+}
+
+// Contains the configuration needed to retrieve the SSH passphrase for the tunnel
+message SSHPassphrase {
+  // The password to be used to connect to the SSH server
+  string value = 1 [(buf.validate.field).string.min_len = 1];
+  // eventually we can expand this to allow pulling from other sources.
+}
+
+// Contains the configuration needed to retrieve the SSH private key for the tunnel
+message SSHPrivateKey {
+  // The private key in PEM format.
+  string value = 1 [(buf.validate.field).string.min_len = 1];
+  // If the private key is encrypted, this value should decrypt it.
+  optional string passphrase = 2 [(buf.validate.field).string.min_len = 1];
 }
 
 message PostgresConnection {
@@ -124,6 +168,9 @@ message MysqlConnectionConfig {
     string url = 1;
     MysqlConnection connection = 2;
   }
+
+  // Provide tunnel configuration that can be used to access a postgres connection that is not publicly accessible to the internet
+  SSHTunnel tunnel = 3;
 }
 
 message AwsS3ConnectionConfig {

@@ -45,7 +45,9 @@ func Test_CheckConnectionConfig(t *testing.T) {
 	defer m.SqlDbMock.Close()
 
 	m.SqlMock.ExpectPing()
-	m.SqlConnectorMock.On("Open", mock.Anything, mock.Anything).Return(m.SqlDbMock, nil)
+	m.SqlDbContainerMock.On("Open").Return(m.SqlDbMock, nil)
+	m.SqlDbContainerMock.On("Close").Return(nil)
+	m.SqlConnectorMock.On("NewDbFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.SqlDbContainerMock, nil)
 
 	resp, err := m.Service.CheckConnectionConfig(context.Background(), &connect.Request[mgmtv1alpha1.CheckConnectionConfigRequest]{
 		Msg: &mgmtv1alpha1.CheckConnectionConfigRequest{
@@ -66,7 +68,9 @@ func Test_CheckConnectionConfigs_Fail(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	m.SqlConnectorMock.On("Open", mock.Anything, mock.Anything).Return(m.SqlDbMock, nil)
+	m.SqlDbContainerMock.On("Open").Return(m.SqlDbMock, nil)
+	m.SqlDbContainerMock.On("Close").Return(nil)
+	m.SqlConnectorMock.On("NewDbFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.SqlDbContainerMock, nil)
 	m.SqlMock.ExpectPing().WillReturnError(errors.New("connection failed"))
 
 	resp, err := m.Service.CheckConnectionConfig(context.Background(), &connect.Request[mgmtv1alpha1.CheckConnectionConfigRequest]{
@@ -87,6 +91,9 @@ func Test_CheckConnectionConfigs_Fail(t *testing.T) {
 func Test_CheckConnectionConfig_NotImplemented(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
+
+	m.SqlDbContainerMock.On("Open").Return(nil, errors.New("test error"))
+	m.SqlConnectorMock.On("NewDbFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.SqlDbContainerMock, nil)
 
 	resp, err := m.Service.CheckConnectionConfig(context.Background(), &connect.Request[mgmtv1alpha1.CheckConnectionConfigRequest]{
 		Msg: &mgmtv1alpha1.CheckConnectionConfigRequest{
@@ -527,7 +534,9 @@ func Test_CheckSqlQuery_Valid(t *testing.T) {
 	m.QuerierMock.On("GetConnectionById", context.Background(), mock.Anything, connectionUuid).Return(getConnectionMock(mockAccountId, mockConnectionName, connectionUuid, PostgresMock), nil)
 
 	mockQuery := "some query"
-	m.SqlConnectorMock.On("Open", mock.Anything, mock.Anything).Return(m.SqlDbMock, nil)
+	m.SqlDbContainerMock.On("Open").Return(m.SqlDbMock, nil)
+	m.SqlDbContainerMock.On("Close").Return(nil)
+	m.SqlConnectorMock.On("NewDbFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.SqlDbContainerMock, nil)
 	m.SqlMock.ExpectBegin()
 	m.SqlMock.ExpectPrepare(mockQuery)
 
@@ -556,7 +565,9 @@ func Test_CheckSqlQuery_Invalid(t *testing.T) {
 	m.QuerierMock.On("GetConnectionById", context.Background(), mock.Anything, connectionUuid).Return(getConnectionMock(mockAccountId, mockConnectionName, connectionUuid, PostgresMock), nil)
 
 	mockQuery := "another query"
-	m.SqlConnectorMock.On("Open", mock.Anything, mock.Anything).Return(m.SqlDbMock, nil)
+	m.SqlDbContainerMock.On("Open").Return(m.SqlDbMock, nil)
+	m.SqlDbContainerMock.On("Close").Return(nil)
+	m.SqlConnectorMock.On("NewDbFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.SqlDbContainerMock, nil)
 	m.SqlMock.ExpectBegin()
 	m.SqlMock.ExpectPrepare(mockQuery).WillReturnError(errors.New("error"))
 	m.SqlMock.ExpectRollback()
@@ -586,7 +597,9 @@ func Test_CheckSqlQuery_Error(t *testing.T) {
 	m.QuerierMock.On("GetConnectionById", context.Background(), mock.Anything, connectionUuid).Return(getConnectionMock(mockAccountId, mockConnectionName, connectionUuid, PostgresMock), nil)
 
 	mockQuery := "diff query"
-	m.SqlConnectorMock.On("Open", mock.Anything, mock.Anything).Return(m.SqlDbMock, nil)
+	m.SqlDbContainerMock.On("Open").Return(m.SqlDbMock, nil)
+	m.SqlDbContainerMock.On("Close").Return(nil)
+	m.SqlConnectorMock.On("NewDbFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.SqlDbContainerMock, nil)
 	m.SqlMock.ExpectBegin().WillReturnError(errors.New("error"))
 
 	resp, err := m.Service.CheckSqlQuery(context.Background(), &connect.Request[mgmtv1alpha1.CheckSqlQueryRequest]{
@@ -603,80 +616,6 @@ func Test_CheckSqlQuery_Error(t *testing.T) {
 	}
 }
 
-// getConnectionDetails
-func Test_GetConnectionUrl_Postgres(t *testing.T) {
-	m := createServiceMock(t)
-	defer m.SqlDbMock.Close()
-
-	cfg, err := m.Service.getConnectionDetails(getPostgresConfigMock())
-
-	assert.NoError(t, err)
-	assert.Equal(t, "postgres://user:topsecret@host:5432/database?sslmode=disable", cfg.ConnectionString)
-	assert.Equal(t, "postgres", cfg.ConnectionDriver)
-}
-
-func Test_GetConnectionUrl_Postgres_Url(t *testing.T) {
-	m := createServiceMock(t)
-	defer m.SqlDbMock.Close()
-
-	mockUrl := "some-url"
-	cfg, err := m.Service.getConnectionDetails(&mgmtv1alpha1.ConnectionConfig{
-		Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
-			PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
-				ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-					Url: mockUrl,
-				},
-			},
-		},
-	})
-
-	assert.NoError(t, err)
-	assert.Equal(t, mockUrl, cfg.ConnectionString)
-	assert.Equal(t, "postgres", cfg.ConnectionDriver)
-}
-
-func Test_GetConnectionUrl_Mysql(t *testing.T) {
-	m := createServiceMock(t)
-	defer m.SqlDbMock.Close()
-
-	cfg, err := m.Service.getConnectionDetails(getMysqlConfigMock())
-
-	assert.NoError(t, err)
-	assert.Equal(t, "user:topsecret@tcp(host:5432)/database", cfg.ConnectionString)
-	assert.Equal(t, "mysql", cfg.ConnectionDriver)
-
-}
-
-func Test_GetConnectionUrl_MysqlUrl(t *testing.T) {
-	m := createServiceMock(t)
-	defer m.SqlDbMock.Close()
-
-	mockUrl := "some-url"
-	cfg, err := m.Service.getConnectionDetails(&mgmtv1alpha1.ConnectionConfig{
-		Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
-			MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
-				ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
-					Url: mockUrl,
-				},
-			},
-		},
-	})
-
-	assert.NoError(t, err)
-	assert.Equal(t, mockUrl, cfg.ConnectionString)
-	assert.Equal(t, "mysql", cfg.ConnectionDriver)
-
-}
-
-func Test_GetConnectionUrl_NotImplemented(t *testing.T) {
-	m := createServiceMock(t)
-	defer m.SqlDbMock.Close()
-
-	_, err := m.Service.getConnectionDetails(&mgmtv1alpha1.ConnectionConfig{})
-
-	assert.Error(t, err)
-}
-
 type serviceMocks struct {
 	Service                *Service
 	DbtxMock               *nucleusdb.MockDBTX
@@ -685,6 +624,8 @@ type serviceMocks struct {
 	SqlConnectorMock       *sqlconnect.MockSqlConnector
 	SqlMock                sqlmock.Sqlmock
 	SqlDbMock              *sql.DB
+	SqlDbContainerMock     *sqlconnect.MockSqlDbContainer
+	PgPoolContainerMock    *sqlconnect.MockPgPoolContainer
 }
 
 func createServiceMock(t *testing.T) *serviceMocks {
@@ -708,6 +649,8 @@ func createServiceMock(t *testing.T) *serviceMocks {
 		SqlConnectorMock:       mockSqlConnector,
 		SqlMock:                sqlMock,
 		SqlDbMock:              sqlDbMock,
+		SqlDbContainerMock:     sqlconnect.NewMockSqlDbContainer(t),
+		PgPoolContainerMock:    sqlconnect.NewMockPgPoolContainer(t),
 	}
 }
 
@@ -802,25 +745,25 @@ func getPostgresConnectionMock() *mgmtv1alpha1.PostgresConnection {
 	}
 }
 
-func getMysqlConfigMock() *mgmtv1alpha1.ConnectionConfig {
-	return &mgmtv1alpha1.ConnectionConfig{
-		Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
-			MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
-				ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Connection{
-					Connection: getMysqlConnectionMock(),
-				},
-			},
-		},
-	}
-}
+// func getMysqlConfigMock() *mgmtv1alpha1.ConnectionConfig {
+// 	return &mgmtv1alpha1.ConnectionConfig{
+// 		Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+// 			MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+// 				ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Connection{
+// 					Connection: getMysqlConnectionMock(),
+// 				},
+// 			},
+// 		},
+// 	}
+// }
 
-func getMysqlConnectionMock() *mgmtv1alpha1.MysqlConnection {
-	return &mgmtv1alpha1.MysqlConnection{
-		Host:     "host",
-		Port:     5432,
-		Name:     "database",
-		User:     "user",
-		Pass:     "topsecret",
-		Protocol: "tcp",
-	}
-}
+// func getMysqlConnectionMock() *mgmtv1alpha1.MysqlConnection {
+// 	return &mgmtv1alpha1.MysqlConnection{
+// 		Host:     "host",
+// 		Port:     5432,
+// 		Name:     "database",
+// 		User:     "user",
+// 		Pass:     "topsecret",
+// 		Protocol: "tcp",
+// 	}
+// }
