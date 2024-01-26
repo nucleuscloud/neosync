@@ -56,7 +56,7 @@ func New(
 
 func getHostKeyCallback(key ssh.PublicKey) ssh.HostKeyCallback {
 	if key == nil {
-		return ssh.InsecureIgnoreHostKey()
+		return ssh.InsecureIgnoreHostKey() //nolint
 	}
 	return ssh.FixedHostKey(key)
 }
