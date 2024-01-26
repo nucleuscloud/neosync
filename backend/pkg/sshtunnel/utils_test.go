@@ -24,6 +24,7 @@ GAAAAAtzc2gtZWQyNTUxOQAAACCVXq9QVRO6CLsUemebj/8gcFJkw4x6dmQXlzrZ0J4opg
 AAAEAVL3RnsSDw63JV+ATzXYtmfIW6EMY4PQ2227MsSYEUdpVer1BVE7oIuxR6Z5uP/yBw
 UmTDjHp2ZBeXOtnQniimAAAAEHRlc3RAZXhhbXBsZS5jb20BAgMEBQ==
 -----END OPENSSH PRIVATE KEY-----`
+	unencryptedPublicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVer1BVE7oIuxR6Z5uP/yBwUmTDjHp2ZBeXOtnQniim test@example.com"
 )
 
 func Test_GetPrivateKeyAuthMethod(t *testing.T) {
@@ -50,4 +51,14 @@ func Test_GetPrivateKeyAuthMethod(t *testing.T) {
 
 func ptr[T any](val T) *T {
 	return &val
+}
+
+func Test_ParseSshKey(t *testing.T) {
+	pk, err := ParseSshKey(unencryptedPublicKey)
+	assert.NoError(t, err)
+	assert.NotNil(t, pk)
+
+	pk, err = ParseSshKey("bad key")
+	assert.Error(t, err)
+	assert.Nil(t, pk)
 }

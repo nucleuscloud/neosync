@@ -1,9 +1,7 @@
 package sshtunnel
 
 import (
-	"encoding/base64"
 	"fmt"
-	"strings"
 
 	"golang.org/x/crypto/ssh"
 )
@@ -32,19 +30,8 @@ func getPlaintextPrivateKeyAuthMethod(keyBytes []byte) (ssh.AuthMethod, error) {
 }
 
 func ParseSshKey(keyString string) (ssh.PublicKey, error) {
-	// The key string is usually in the format "type base64-encoded-key".
-	// First, decode the base64 part.
-	parts := strings.Split(keyString, " ")
-	if len(parts) < 2 {
-		return nil, fmt.Errorf("invalid key format")
-	}
-	keyBytes, err := base64.StdEncoding.DecodeString(parts[1])
-	if err != nil {
-		return nil, fmt.Errorf("base64 decoding failed: %v", err)
-	}
-
 	// Parse the key
-	publicKey, _, _, _, err := ssh.ParseAuthorizedKey(keyBytes) //nolint
+	publicKey, _, _, _, err := ssh.ParseAuthorizedKey([]byte(keyString)) //nolint
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse public key: %v", err)
 	}
