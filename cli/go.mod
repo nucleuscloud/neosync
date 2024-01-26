@@ -11,7 +11,7 @@ require (
 	github.com/charmbracelet/bubbletea v0.25.0
 	github.com/charmbracelet/lipgloss v0.9.1
 	github.com/fatih/color v1.16.0
-	github.com/google/uuid v1.5.0
+	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.5.2
 	github.com/nucleuscloud/neosync/backend v0.0.0-00010101000000-000000000000
 	github.com/rodaine/table v1.1.1
@@ -22,7 +22,7 @@ require (
 	golang.org/x/net v0.20.0
 	golang.org/x/sync v0.6.0
 	golang.org/x/term v0.16.0
-	google.golang.org/grpc v1.60.1
+	google.golang.org/grpc v1.61.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 )
