@@ -19,6 +19,7 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	"github.com/stretchr/testify/assert"
@@ -213,7 +214,7 @@ pipeline:
   processors:
     - javascript:
         code: |
-          (() => { 
+          (() => {
           function fn_name(value, input){
           var a = value + "test";
           return a };
@@ -267,11 +268,11 @@ input:
     count: 1
 pipeline:
   processors:
-    - mutation: 
+    - mutation:
         root.name = this.name.reverse()
     - javascript:
         code: |
-          (() => { 
+          (() => {
           function fn1(value, input){
           var a = value + "test";
           return a };
@@ -307,7 +308,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 	pgcache := map[string]pg_queries.DBTX{
 		"fake-prod-url":  pg_queries.NewMockDBTX(t),
 		"fake-stage-url": pg_queries.NewMockDBTX(t),
@@ -316,7 +317,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 	mysqlcache := map[string]mysql_queries.DBTX{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 	ctx := context.Background()
 
 	output, err := bbuilder.buildProcessorConfigs(ctx, nil)
@@ -401,7 +402,7 @@ func Test_buildProcessorConfigsJavascript(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 	pgcache := map[string]pg_queries.DBTX{
 		"fake-prod-url":  pg_queries.NewMockDBTX(t),
 		"fake-stage-url": pg_queries.NewMockDBTX(t),
@@ -410,7 +411,7 @@ func Test_buildProcessorConfigsJavascript(t *testing.T) {
 	mysqlcache := map[string]mysql_queries.DBTX{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 	ctx := context.Background()
 
 	col := "address"
@@ -455,7 +456,7 @@ func Test_buildProcessorConfigsJavascriptMultiLineScript(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 	pgcache := map[string]pg_queries.DBTX{
 		"fake-prod-url":  pg_queries.NewMockDBTX(t),
 		"fake-stage-url": pg_queries.NewMockDBTX(t),
@@ -464,7 +465,7 @@ func Test_buildProcessorConfigsJavascriptMultiLineScript(t *testing.T) {
 	mysqlcache := map[string]mysql_queries.DBTX{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 	ctx := context.Background()
 
 	code :=
@@ -513,7 +514,7 @@ func Test_buildProcessorConfigsJavascriptMultiple(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 	pgcache := map[string]pg_queries.DBTX{
 		"fake-prod-url":  pg_queries.NewMockDBTX(t),
 		"fake-stage-url": pg_queries.NewMockDBTX(t),
@@ -522,7 +523,7 @@ func Test_buildProcessorConfigsJavascriptMultiple(t *testing.T) {
 	mysqlcache := map[string]mysql_queries.DBTX{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 	ctx := context.Background()
 
 	code2 := `var payload = value*2;return payload;`
@@ -665,7 +666,7 @@ func Test_buildProcessorConfigsJavascriptEmpty(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 	pgcache := map[string]pg_queries.DBTX{
 		"fake-prod-url":  pg_queries.NewMockDBTX(t),
 		"fake-stage-url": pg_queries.NewMockDBTX(t),
@@ -674,7 +675,7 @@ func Test_buildProcessorConfigsJavascriptEmpty(t *testing.T) {
 	mysqlcache := map[string]mysql_queries.DBTX{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 	ctx := context.Background()
 
 	jsT := mgmtv1alpha1.SystemTransformer{
@@ -704,7 +705,7 @@ func Test_convertUserDefinedFunctionConfig(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 	pgcache := map[string]pg_queries.DBTX{
 		"fake-prod-url":  pg_queries.NewMockDBTX(t),
 		"fake-stage-url": pg_queries.NewMockDBTX(t),
@@ -713,7 +714,7 @@ func Test_convertUserDefinedFunctionConfig(t *testing.T) {
 	mysqlcache := map[string]mysql_queries.DBTX{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 	ctx := context.Background()
 
 	mockTransformerClient.On(

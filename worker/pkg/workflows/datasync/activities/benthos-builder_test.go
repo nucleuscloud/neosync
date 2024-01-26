@@ -12,6 +12,7 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -23,6 +24,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Pg(t *testing.T) 
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
 	pgcache := map[string]pg_queries.DBTX{
 		"fake-prod-url":  pg_queries.NewMockDBTX(t),
@@ -114,7 +117,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Pg(t *testing.T) 
 		},
 	}), nil)
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
@@ -177,6 +180,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Generate_Pg_Default(t *testing.T
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
 	pgcache := map[string]pg_queries.DBTX{
 		"fake-prod-url":  pg_queries.NewMockDBTX(t),
@@ -266,7 +270,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Generate_Pg_Default(t *testing.T
 		},
 	}), nil)
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
@@ -326,6 +330,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
 	pgcache := map[string]pg_queries.DBTX{
 		"fake-prod-url":  pg_queries.NewMockDBTX(t),
@@ -437,7 +442,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg(t *testing.T) {
 			ConstraintName: "name",
 			ColumnName:     "id",
 		}}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -501,6 +506,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_Default(t *testing.T
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
 	pgcache := map[string]pg_queries.DBTX{
 		"fake-prod-url":  pg_queries.NewMockDBTX(t),
@@ -612,7 +618,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_Default(t *testing.T
 			ConstraintName: "name",
 			ColumnName:     "id",
 		}}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -676,6 +682,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
 	pgcache := map[string]pg_queries.DBTX{
 		"fake-prod-url":  pg_queries.NewMockDBTX(t),
@@ -828,7 +835,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 			ConstraintName: "acc_assoc_constraint",
 			ColumnName:     "id",
 		}}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -938,6 +945,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
 	pgcache := map[string]pg_queries.DBTX{
 		"fake-prod-url":  pg_queries.NewMockDBTX(t),
@@ -1116,7 +1124,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 			ColumnName:     "id",
 		},
 	}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -1271,6 +1279,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
 	pgcache := map[string]pg_queries.DBTX{
 		"fake-prod-url":  pg_queries.NewMockDBTX(t),
@@ -1479,7 +1488,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 			ColumnName:     "id",
 		},
 	}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -1673,7 +1682,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Mysql(t *testing.
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 	pgcache := map[string]pg_queries.DBTX{}
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mysqlcache := map[string]mysql_queries.DBTX{
@@ -1764,7 +1773,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Mysql(t *testing.
 		},
 	}), nil)
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -1826,6 +1835,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) 
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
 	pgcache := map[string]pg_queries.DBTX{}
 	pgquerier := pg_queries.NewMockQuerier(t)
@@ -1937,7 +1947,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) 
 			ConstraintName: "pk-id",
 			ColumnName:     "id",
 		}}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -2000,6 +2010,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Constrain
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformersClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
 	pgcache := map[string]pg_queries.DBTX{}
 	pgquerier := pg_queries.NewMockQuerier(t)
@@ -2152,7 +2163,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Constrain
 			ConstraintName: "pk-users-assoc-id",
 			ColumnName:     "id",
 		}}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformersClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformersClient, mockSqlConnector)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -2262,6 +2273,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
 	pgcache := map[string]pg_queries.DBTX{}
 	pgquerier := pg_queries.NewMockQuerier(t)
@@ -2440,7 +2452,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_
 			ColumnName:     "id",
 		},
 	}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -2595,6 +2607,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Mysql_Default(t *
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
 	pgcache := map[string]pg_queries.DBTX{}
 	pgquerier := pg_queries.NewMockQuerier(t)
@@ -2684,7 +2697,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Mysql_Default(t *
 		},
 	}), nil)
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -2745,6 +2758,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Default(t *testing.T
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
 	pgcache := map[string]pg_queries.DBTX{}
 	pgquerier := pg_queries.NewMockQuerier(t)
@@ -2856,7 +2870,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Default(t *testing.T
 			ConstraintName: "pk-id",
 			ColumnName:     "id",
 		}}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -2928,10 +2942,10 @@ var dsn = "dsn"
 var driver = "driver"
 
 func Test_ProcessorConfigEmpty(t *testing.T) {
-
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
 	pgcache := map[string]pg_queries.DBTX{
 		"fake-prod-url":  pg_queries.NewMockDBTX(t),
@@ -2941,7 +2955,7 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 	mysqlcache := map[string]mysql_queries.DBTX{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 
 	tableMappings := []*TableMapping{
 		{Schema: "public",
@@ -2974,11 +2988,10 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 
 }
 func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
-
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 	pgcache := map[string]pg_queries.DBTX{
 		"fake-prod-url":  pg_queries.NewMockDBTX(t),
 		"fake-stage-url": pg_queries.NewMockDBTX(t),
@@ -2987,7 +3000,7 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 	mysqlcache := map[string]mysql_queries.DBTX{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 
 	tableMappings := []*TableMapping{
 		{Schema: "public",
@@ -3026,10 +3039,10 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 }
 
 func Test_ProcessorConfigMultiJavascript(t *testing.T) {
-
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
 	pgcache := map[string]pg_queries.DBTX{
 		"fake-prod-url":  pg_queries.NewMockDBTX(t),
@@ -3039,7 +3052,7 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 	mysqlcache := map[string]mysql_queries.DBTX{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 
 	tableMappings := []*TableMapping{
 		{Schema: "public",
@@ -3107,11 +3120,10 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 }
 
 func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
-
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 	pgcache := map[string]pg_queries.DBTX{
 		"fake-prod-url":  pg_queries.NewMockDBTX(t),
 		"fake-stage-url": pg_queries.NewMockDBTX(t),
@@ -3120,7 +3132,7 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
 	mysqlcache := map[string]mysql_queries.DBTX{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 
 	tableMappings := []*TableMapping{
 		{Schema: "public",

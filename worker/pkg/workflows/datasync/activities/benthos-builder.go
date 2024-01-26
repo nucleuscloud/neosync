@@ -17,6 +17,7 @@ import (
 	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	dbschemas_mysql "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/mysql"
 	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/postgres"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 
@@ -38,6 +39,8 @@ type benthosBuilder struct {
 	mysqlpool    map[string]mysql_queries.DBTX
 	mysqlquerier mysql_queries.Querier
 
+	sqlconnector sqlconnect.SqlConnector
+
 	jobclient         mgmtv1alpha1connect.JobServiceClient
 	connclient        mgmtv1alpha1connect.ConnectionServiceClient
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient
@@ -54,12 +57,15 @@ func newBenthosBuilder(
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 
+	sqlconnector sqlconnect.SqlConnector,
+
 ) *benthosBuilder {
 	return &benthosBuilder{
 		pgpool:            pgpool,
 		pgquerier:         pgquerier,
 		mysqlpool:         mysqlpool,
 		mysqlquerier:      mysqlquerier,
+		sqlconnector:      sqlconnector,
 		jobclient:         jobclient,
 		connclient:        connclient,
 		transformerclient: transformerclient,

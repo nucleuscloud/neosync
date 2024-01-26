@@ -26,6 +26,7 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
@@ -115,6 +116,7 @@ func (a *Activities) GenerateBenthosConfigs(
 		jobclient,
 		connclient,
 		transformerclient,
+		&sqlconnect.SqlOpenConnector{},
 	)
 	return bbuilder.GenerateBenthosConfigs(ctx, req, logger)
 }
