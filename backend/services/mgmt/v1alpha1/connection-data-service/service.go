@@ -12,7 +12,7 @@ type Service struct {
 	cfg                *Config
 	useraccountService mgmtv1alpha1connect.UserAccountServiceClient
 	connectionService  mgmtv1alpha1connect.ConnectionServiceClient
-	jobService         mgmtv1alpha1connect.JobServiceClient
+	jobService         mgmtv1alpha1connect.JobServiceHandler
 
 	awsManager awsmanager.NeosyncAwsManagerClient
 
@@ -28,7 +28,7 @@ func New(
 	cfg *Config,
 	useraccountService mgmtv1alpha1connect.UserAccountServiceClient,
 	connectionService mgmtv1alpha1connect.ConnectionServiceClient,
-	jobService mgmtv1alpha1connect.JobServiceClient,
+	jobService mgmtv1alpha1connect.JobServiceHandler,
 
 	awsManager awsmanager.NeosyncAwsManagerClient,
 

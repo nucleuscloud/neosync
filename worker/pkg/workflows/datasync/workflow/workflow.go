@@ -34,6 +34,11 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	logger := workflow.GetLogger(ctx)
 	_ = logger
 
+	workflowMetadata := &datasync_activities.WorkflowMetadata{
+		WorkflowId: wfinfo.WorkflowExecution.ID,
+		RunId:      wfinfo.WorkflowExecution.RunID,
+	}
+
 	var wfActivites *datasync_activities.Activities
 	var bcResp *datasync_activities.GenerateBenthosConfigsResponse
 	err := workflow.ExecuteActivity(ctx, wfActivites.GenerateBenthosConfigs, &datasync_activities.GenerateBenthosConfigsRequest{
@@ -72,7 +77,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	}
 	for _, bc := range splitConfigs.Root {
 		bc := bc
-		future := invokeSync(bc, childctx, started, completed, logger)
+		future := invokeSync(bc, childctx, started, completed, workflowMetadata, logger)
 		workselector.AddFuture(future, func(f workflow.Future) {
 			logger.Info("config sync completed", "name", bc.Name)
 			var result datasync_activities.SyncResponse
@@ -103,7 +108,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 				continue
 			}
 
-			future := invokeSync(bc, childctx, started, completed, logger)
+			future := invokeSync(bc, childctx, started, completed, workflowMetadata, logger)
 			workselector.AddFuture(future, func(f workflow.Future) {
 				logger.Info("config sync completed", "name", bc.Name)
 				var result datasync_activities.SyncResponse
@@ -133,6 +138,7 @@ func invokeSync(
 	ctx workflow.Context,
 	started map[string]struct{},
 	completed map[string][]string,
+	workflowMetadata *datasync_activities.WorkflowMetadata,
 	logger log.Logger,
 ) workflow.Future {
 	metadata := getSyncMetadata(config)
@@ -151,7 +157,7 @@ func invokeSync(
 		err = workflow.ExecuteActivity(
 			ctx,
 			wfActivites.Sync,
-			&datasync_activities.SyncRequest{BenthosConfig: string(configbits)}, metadata).Get(ctx, &result)
+			&datasync_activities.SyncRequest{BenthosConfig: string(configbits)}, metadata, workflowMetadata).Get(ctx, &result)
 		tn := fmt.Sprintf("%s.%s", config.TableSchema, config.TableName)
 		_, ok := completed[tn]
 		if ok {

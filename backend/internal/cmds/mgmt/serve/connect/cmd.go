@@ -289,7 +289,10 @@ func serve(ctx context.Context) error {
 	)
 
 	jobServiceConfig := &v1alpha1_jobservice.Config{
-		IsAuthEnabled: isAuthEnabled,
+		IsAuthEnabled:           isAuthEnabled,
+		IsKubernetesEnabled:     getIsKubernetes(),
+		KubernetesNamespace:     getKubernetesNamespace(),
+		KubernetesWorkerAppName: getKubernetesWorkerAppName(),
 	}
 	jobService := v1alpha1_jobservice.New(
 		jobServiceConfig,
@@ -594,4 +597,16 @@ func getAllowedWorkerApiKeys(isNeosyncCloud bool) []string {
 		return viper.GetStringSlice("NEOSYNC_CLOUD_ALLOWED_WORKER_API_KEYS")
 	}
 	return []string{}
+}
+
+func getIsKubernetes() bool {
+	return viper.GetBool("KUBERNETES_ENABLED")
+}
+
+func getKubernetesNamespace() string {
+	return viper.GetString("KUBERNETES_NAMESPACE")
+}
+
+func getKubernetesWorkerAppName() string {
+	return viper.GetString("KUBERNETES_WORKER_APP_NAME")
 }

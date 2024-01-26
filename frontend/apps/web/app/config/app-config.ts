@@ -3,6 +3,7 @@ export interface SystemAppConfig {
   publicAppBaseUrl: string;
   posthog: PosthogConfig;
   isNeosyncCloud: boolean;
+  isKubernetes: boolean;
 }
 
 interface PosthogConfig {

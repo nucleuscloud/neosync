@@ -65,3 +65,6 @@ nodeSelector: {}
 
 neosyncCloud:
   enabled: false
+
+kubernetes:
+  enabled: false

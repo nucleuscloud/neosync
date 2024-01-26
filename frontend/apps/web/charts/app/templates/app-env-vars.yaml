@@ -81,3 +81,5 @@ stringData:
     {{- end }}
 
     NEOSYNC_CLOUD: {{ .Values.neosyncCloud.enabled | default "false" | quote }}
+    
+    KUBERNETES_ENABLED: {{ .Values.kubernetes.enabled | default "false" | quote }}

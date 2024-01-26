@@ -23,12 +23,14 @@ import {
   refreshEventsWhenEventsIncomplete,
   useGetJobRunEvents,
 } from '@/libs/hooks/useGetJobRunEvents';
+import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { formatDateTime, getErrorMessage } from '@/util/util';
 import { ArrowRightIcon, Cross2Icon, TrashIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
 import JobRunStatus from '../components/JobRunStatus';
 import JobRunActivityTable from './components/JobRunActivityTable';
+import JobRunLogs from './components/JobRunLogs';
 
 export default function Page({ params }: PageProps): ReactElement {
   const { account } = useAccount();
@@ -36,6 +38,8 @@ export default function Page({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
   const router = useRouter();
   const { toast } = useToast();
+  const { data: systemAppConfigData, isLoading: isSystemAppConfigDataLoading } =
+    useGetSystemAppConfig();
   const { data, isLoading, mutate } = useGetJobRun(id, accountId, {
     refreshIntervalFn: refreshWhenJobRunning,
   });
@@ -221,6 +225,12 @@ export default function Page({ params }: PageProps): ReactElement {
               }
             })}
           </div>
+          {!isSystemAppConfigDataLoading &&
+            systemAppConfigData?.isKubernetes && (
+              <div>
+                <JobRunLogs accountId={accountId} runId={id} />
+              </div>
+            )}
           <div className="space-y-4">
             <div className="flex flex-row items-center space-x-2">
               <h1 className="text-2xl font-bold tracking-tight">Activity</h1>

@@ -1,10 +1,14 @@
 package v1alpha1_jobservice
 
 import (
+	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"strings"
+	"time"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -22,6 +26,13 @@ import (
 	"go.temporal.io/sdk/converter"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/selection"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 )
 
 func (s *Service) GetJobRuns(
@@ -438,4 +449,104 @@ func (s *Service) getVerifiedJobRun(
 		NeosyncAccountId:  accountId,
 		TemporalConfig:    tconfig,
 	}, nil
+}
+
+type LogLine struct {
+	WorkflowID string `json:"WorkflowID"`
+}
+
+func (s *Service) GetJobRunLogsStream(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetJobRunLogsStreamRequest],
+	stream *connect.ServerStream[mgmtv1alpha1.GetJobRunLogsStreamResponse],
+) error {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("jobRunId", req.Msg.JobRunId)
+	if s.cfg.IsKubernetesEnabled {
+		verifResp, err := s.getVerifiedJobRun(ctx, logger, req.Msg.JobRunId, req.Msg.AccountId)
+		if err != nil {
+			return err
+		}
+
+		kubeConfig, err := rest.InClusterConfig()
+		if err != nil {
+			logger.Error(fmt.Errorf("error getting kubernetes config: %w", err).Error())
+			return err
+		}
+
+		clientset, err := kubernetes.NewForConfig(kubeConfig)
+		if err != nil {
+			logger.Error(fmt.Errorf("error getting kubernetes clientset: %w", err).Error())
+			return err
+		}
+
+		appNameSelector, err := labels.NewRequirement("app", selection.Equals, []string{s.cfg.KubernetesWorkerAppName})
+		if err != nil {
+			logger.Error(fmt.Errorf("unable to build label selector to find logs: %w", err).Error())
+			return err
+		}
+		pods, err := clientset.CoreV1().Pods(s.cfg.KubernetesNamespace).List(context.Background(), metav1.ListOptions{
+			LabelSelector: appNameSelector.String(),
+		})
+		if err != nil {
+			logger.Error(fmt.Errorf("error getting pods: %w", err).Error())
+			return err
+		}
+		for idx := range pods.Items {
+			pod := pods.Items[idx]
+			logsReq := clientset.CoreV1().Pods(s.cfg.KubernetesNamespace).GetLogs(pod.Name, &corev1.PodLogOptions{
+				Follow:    req.Msg.ShouldTail,
+				TailLines: req.Msg.MaxLogLines,
+				SinceTime: getLogFilterTime(req.Msg.GetWindow()),
+			})
+			logstream, err := logsReq.Stream(ctx)
+			if err != nil && !errors.IsNotFound(err) {
+				return err
+			} else if err != nil && errors.IsNotFound(err) {
+				return nucleuserrors.NewNotFound("pod no longer exists")
+			}
+
+			scanner := bufio.NewScanner(logstream)
+
+			for scanner.Scan() {
+				txt := scanner.Text()
+				var logLine LogLine
+				err := json.Unmarshal([]byte(txt), &logLine)
+				if err != nil {
+					logger.Error("error unmarshaling log line: %v\n", err)
+					continue // Skip lines that can't be unmarshaled
+				}
+
+				if logLine.WorkflowID == verifResp.WorkflowExecution.Execution.WorkflowId {
+					if err := stream.Send(&mgmtv1alpha1.GetJobRunLogsStreamResponse{LogLine: txt}); err != nil {
+						if err == io.EOF {
+							return nil
+						}
+						return err
+					}
+				}
+			}
+			logstream.Close()
+		}
+		return nil
+	}
+	return nucleuserrors.NewNotImplemented("streaming log pods not implemented for this container type")
+}
+
+func getLogFilterTime(window mgmtv1alpha1.LogWindow) *metav1.Time {
+	switch window {
+	case mgmtv1alpha1.LogWindow_LOG_WINDOW_FIFTEEN_MIN:
+		return &metav1.Time{
+			Time: time.Now().Add(-15 * time.Minute),
+		}
+	case mgmtv1alpha1.LogWindow_LOG_WINDOW_ONE_HOUR:
+		return &metav1.Time{
+			Time: time.Now().Add(-1 * time.Hour),
+		}
+	case mgmtv1alpha1.LogWindow_LOG_WINDOW_ONE_DAY:
+		return &metav1.Time{
+			Time: time.Now().Add(-24 * time.Hour),
+		}
+	}
+	return nil
 }

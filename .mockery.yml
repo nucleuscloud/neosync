@@ -28,6 +28,7 @@ packages:
     interfaces:
       UserAccountServiceClient:
       JobServiceClient:
+      JobServiceHandler:
       ConnectionServiceClient:
       AuthServiceClient:
       TransformersServiceClient:

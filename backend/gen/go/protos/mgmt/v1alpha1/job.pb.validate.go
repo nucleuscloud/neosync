@@ -10862,3 +10862,222 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = TerminateJobRunResponseValidationError{}
+
+// Validate checks the field values on GetJobRunLogsStreamRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetJobRunLogsStreamRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetJobRunLogsStreamRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetJobRunLogsStreamRequestMultiError, or nil if none found.
+func (m *GetJobRunLogsStreamRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetJobRunLogsStreamRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for JobRunId
+
+	// no validation rules for AccountId
+
+	// no validation rules for Window
+
+	// no validation rules for ShouldTail
+
+	if m.MaxLogLines != nil {
+		// no validation rules for MaxLogLines
+	}
+
+	if len(errors) > 0 {
+		return GetJobRunLogsStreamRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetJobRunLogsStreamRequestMultiError is an error wrapping multiple
+// validation errors returned by GetJobRunLogsStreamRequest.ValidateAll() if
+// the designated constraints aren't met.
+type GetJobRunLogsStreamRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetJobRunLogsStreamRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetJobRunLogsStreamRequestMultiError) AllErrors() []error { return m }
+
+// GetJobRunLogsStreamRequestValidationError is the validation error returned
+// by GetJobRunLogsStreamRequest.Validate if the designated constraints aren't met.
+type GetJobRunLogsStreamRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetJobRunLogsStreamRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetJobRunLogsStreamRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetJobRunLogsStreamRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetJobRunLogsStreamRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetJobRunLogsStreamRequestValidationError) ErrorName() string {
+	return "GetJobRunLogsStreamRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetJobRunLogsStreamRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetJobRunLogsStreamRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetJobRunLogsStreamRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetJobRunLogsStreamRequestValidationError{}
+
+// Validate checks the field values on GetJobRunLogsStreamResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetJobRunLogsStreamResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetJobRunLogsStreamResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetJobRunLogsStreamResponseMultiError, or nil if none found.
+func (m *GetJobRunLogsStreamResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetJobRunLogsStreamResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for LogLine
+
+	if len(errors) > 0 {
+		return GetJobRunLogsStreamResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetJobRunLogsStreamResponseMultiError is an error wrapping multiple
+// validation errors returned by GetJobRunLogsStreamResponse.ValidateAll() if
+// the designated constraints aren't met.
+type GetJobRunLogsStreamResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetJobRunLogsStreamResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetJobRunLogsStreamResponseMultiError) AllErrors() []error { return m }
+
+// GetJobRunLogsStreamResponseValidationError is the validation error returned
+// by GetJobRunLogsStreamResponse.Validate if the designated constraints
+// aren't met.
+type GetJobRunLogsStreamResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetJobRunLogsStreamResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetJobRunLogsStreamResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetJobRunLogsStreamResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetJobRunLogsStreamResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetJobRunLogsStreamResponseValidationError) ErrorName() string {
+	return "GetJobRunLogsStreamResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetJobRunLogsStreamResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetJobRunLogsStreamResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetJobRunLogsStreamResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetJobRunLogsStreamResponseValidationError{}

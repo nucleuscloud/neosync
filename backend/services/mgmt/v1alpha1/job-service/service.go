@@ -16,7 +16,10 @@ type Service struct {
 }
 
 type Config struct {
-	IsAuthEnabled bool
+	IsAuthEnabled           bool
+	IsKubernetesEnabled     bool
+	KubernetesNamespace     string
+	KubernetesWorkerAppName string
 }
 
 func New(

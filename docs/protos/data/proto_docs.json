@@ -5364,6 +5364,34 @@
               "description": ""
             }
           ]
+        },
+        {
+          "name": "LogWindow",
+          "longName": "LogWindow",
+          "fullName": "mgmt.v1alpha1.LogWindow",
+          "description": "",
+          "values": [
+            {
+              "name": "LOG_WINDOW_NO_TIME_UNSPECIFIED",
+              "number": "0",
+              "description": ""
+            },
+            {
+              "name": "LOG_WINDOW_FIFTEEN_MIN",
+              "number": "1",
+              "description": ""
+            },
+            {
+              "name": "LOG_WINDOW_ONE_HOUR",
+              "number": "2",
+              "description": ""
+            },
+            {
+              "name": "LOG_WINDOW_ONE_DAY",
+              "number": "3",
+              "description": ""
+            }
+          ]
         }
       ],
       "extensions": [],
@@ -6159,6 +6187,102 @@
               "type": "bool",
               "longType": "bool",
               "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetJobRunLogsStreamRequest",
+          "longName": "GetJobRunLogsStreamRequest",
+          "fullName": "mgmt.v1alpha1.GetJobRunLogsStreamRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "job_run_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "account_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "window",
+              "description": "",
+              "label": "",
+              "type": "LogWindow",
+              "longType": "LogWindow",
+              "fullType": "mgmt.v1alpha1.LogWindow",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "should_tail",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "max_log_lines",
+              "description": "",
+              "label": "optional",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_max_log_lines",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetJobRunLogsStreamResponse",
+          "longName": "GetJobRunLogsStreamResponse",
+          "fullName": "mgmt.v1alpha1.GetJobRunLogsStreamResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "log_line",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -8524,6 +8648,18 @@
               "responseLongType": "TerminateJobRunResponse",
               "responseFullType": "mgmt.v1alpha1.TerminateJobRunResponse",
               "responseStreaming": false
+            },
+            {
+              "name": "GetJobRunLogsStream",
+              "description": "",
+              "requestType": "GetJobRunLogsStreamRequest",
+              "requestLongType": "GetJobRunLogsStreamRequest",
+              "requestFullType": "mgmt.v1alpha1.GetJobRunLogsStreamRequest",
+              "requestStreaming": false,
+              "responseType": "GetJobRunLogsStreamResponse",
+              "responseLongType": "GetJobRunLogsStreamResponse",
+              "responseFullType": "mgmt.v1alpha1.GetJobRunLogsStreamResponse",
+              "responseStreaming": true
             }
           ]
         }

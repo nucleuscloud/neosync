@@ -151,7 +151,7 @@ output:
   stdout:
     codec: lines
 `),
-	}, &SyncMetadata{Schema: "public", Table: "test"})
+	}, &SyncMetadata{Schema: "public", Table: "test"}, &WorkflowMetadata{WorkflowId: "workflow-id", RunId: "run-id"})
 	require.NoError(t, err)
 	res := &SyncResponse{}
 	err = val.Get(res)
@@ -182,7 +182,7 @@ output:
   stdout:
     codec: lines
 `),
-	}, &SyncMetadata{Schema: "public", Table: "test"})
+	}, &SyncMetadata{Schema: "public", Table: "test"}, &WorkflowMetadata{WorkflowId: "workflow-id", RunId: "RunId"})
 	require.NoError(t, err)
 	res := &SyncResponse{}
 	err = val.Get(res)
@@ -228,7 +228,7 @@ output:
     path:  %s
     codec: lines
 `, tmpFile.Name())),
-	}, &SyncMetadata{Schema: "public", Table: "test"})
+	}, &SyncMetadata{Schema: "public", Table: "test"}, &WorkflowMetadata{WorkflowId: "workflow-id", RunId: "run-id"})
 	assert.NoError(t, err)
 	res := &SyncResponse{}
 	err = val.Get(res)
@@ -286,7 +286,7 @@ output:
     path:  %s
     codec: lines
 	`, tmpFile.Name())),
-	}, &SyncMetadata{Schema: "public", Table: "test"})
+	}, &SyncMetadata{Schema: "public", Table: "test"}, &WorkflowMetadata{WorkflowId: "workflow-id", RunId: "run-id"})
 	assert.NoError(t, err)
 	res := &SyncResponse{}
 	err = val.Get(res)

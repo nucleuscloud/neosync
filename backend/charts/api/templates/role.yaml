@@ -1,0 +1,14 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: neosync
+  name: {{ template "neosync-api.fullname" . }}-role
+rules:
+  - apiGroups: [""]
+    resources:
+      - pods 
+      - pods/log
+    verbs:
+      - get
+      - list
+      - watch
