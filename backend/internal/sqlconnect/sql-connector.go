@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"net"
 	"net/url"
 	"strconv"
 	"strings"
@@ -196,7 +195,7 @@ func getConnectionDetails(c *mgmtv1alpha1.ConnectionConfig, connectionTimeout *u
 				1,
 				logger,
 			)
-			connDetails, err := GetGeneralDbConnectConfigFromPg(config, connectionTimeout)
+			connDetails, err := getGeneralDbConnectConfigFromPg(config, connectionTimeout)
 			if err != nil {
 				return nil, err
 			}
@@ -208,7 +207,7 @@ func getConnectionDetails(c *mgmtv1alpha1.ConnectionConfig, connectionTimeout *u
 			}, nil
 		}
 
-		connDetails, err := GetGeneralDbConnectConfigFromPg(config, connectionTimeout)
+		connDetails, err := getGeneralDbConnectConfigFromPg(config, connectionTimeout)
 		if err != nil {
 			return nil, err
 		}
@@ -282,7 +281,7 @@ func getEndpointFromPgConnectionConfig(config *mgmtv1alpha1.ConnectionConfig_PgC
 	case *mgmtv1alpha1.PostgresConnectionConfig_Connection:
 		return sshtunnel.NewEndpointWithUser(cc.Connection.Host, int(cc.Connection.Port), cc.Connection.User), nil
 	case *mgmtv1alpha1.PostgresConnectionConfig_Url:
-		details, err := GetGeneralDbConnectConfigFromPg(config, nil)
+		details, err := getGeneralDbConnectConfigFromPg(config, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -377,58 +376,13 @@ func getGeneralDbConnectionConfigFromMysql(config *mgmtv1alpha1.ConnectionConfig
 			QueryParams: query,
 		}, nil
 	case *mgmtv1alpha1.MysqlConnectionConfig_Url:
-		dsn := cc.Url
-		if !strings.Contains(dsn, "//") {
-			dsn = "//" + dsn
-		}
-		u, err := url.Parse(dsn)
-		if err != nil {
-			return nil, err
-		}
-
-		// Extract username and password
-		user := u.User.Username()
-		pass, _ := u.User.Password()
-
-		// Extract host, port, and protocol
-		var protocol string
-		host, portStr, err := net.SplitHostPort(u.Host)
-		if err != nil {
-			host = u.Host // host:port parsing failed, assume it's just the host
-		} else {
-			protocolParts := strings.SplitN(host, "(", 2)
-			if len(protocolParts) == 2 {
-				protocol = protocolParts[0]
-				host = strings.TrimRight(protocolParts[1], ")")
-			}
-		}
-		var port int32 = 3306 // default MySQL port
-		if portStr != "" {
-			port64, err := strconv.ParseInt(portStr, 10, 32)
-			if err != nil {
-				return nil, fmt.Errorf("invalid port: %v", err)
-			}
-			port = int32(port64)
-		}
-
-		// Extract database name
-		dbname := strings.TrimPrefix(u.Path, "/")
-		return &GeneralDbConnectConfig{
-			Driver:      mysqlDriver,
-			Host:        host,
-			Port:        port,
-			Database:    dbname,
-			Protocol:    &protocol,
-			User:        user,
-			Pass:        pass,
-			QueryParams: u.Query(),
-		}, nil
+		return nil, nucleuserrors.NewNotImplemented("not currently implemented")
 	default:
 		return nil, nucleuserrors.NewBadRequest("must provide valid mysql connection")
 	}
 }
 
-func GetGeneralDbConnectConfigFromPg(config *mgmtv1alpha1.ConnectionConfig_PgConfig, connectionTimeout *uint32) (*GeneralDbConnectConfig, error) {
+func getGeneralDbConnectConfigFromPg(config *mgmtv1alpha1.ConnectionConfig_PgConfig, connectionTimeout *uint32) (*GeneralDbConnectConfig, error) {
 	switch cc := config.PgConfig.ConnectionConfig.(type) {
 	case *mgmtv1alpha1.PostgresConnectionConfig_Connection:
 		query := url.Values{}
@@ -436,7 +390,7 @@ func GetGeneralDbConnectConfigFromPg(config *mgmtv1alpha1.ConnectionConfig_PgCon
 			query.Add("sslmode", *cc.Connection.SslMode)
 		}
 		if connectionTimeout != nil {
-			query.Add("connect_timeout", fmt.Sprintf("%d", connectionTimeout))
+			query.Add("connect_timeout", fmt.Sprintf("%d", *connectionTimeout))
 		}
 		return &GeneralDbConnectConfig{
 			Driver:      postgresDriver,
@@ -475,7 +429,7 @@ func GetGeneralDbConnectConfigFromPg(config *mgmtv1alpha1.ConnectionConfig_PgCon
 			Driver:      postgresDriver,
 			Host:        host,
 			Port:        int32(port),
-			Database:    u.Path,
+			Database:    strings.TrimPrefix(u.Path, "/"),
 			User:        user,
 			Pass:        pass,
 			QueryParams: u.Query(),
