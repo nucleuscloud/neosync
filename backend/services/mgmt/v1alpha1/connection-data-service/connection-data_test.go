@@ -485,7 +485,7 @@ type serviceMocks struct {
 	QuerierMock            *db_queries.MockQuerier
 	UserAccountServiceMock *mgmtv1alpha1connect.MockUserAccountServiceClient
 	ConnectionServiceMock  *mgmtv1alpha1connect.MockConnectionServiceClient
-	JobServiceMock         *mgmtv1alpha1connect.MockJobServiceClient
+	JobServiceMock         *mgmtv1alpha1connect.MockJobServiceHandler
 	SqlMock                sqlmock.Sqlmock
 	SqlDbMock              *sql.DB
 	PgQueierMock           *pg_queries.MockQuerier
@@ -499,7 +499,7 @@ func createServiceMock(t *testing.T) *serviceMocks {
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
 	mockConnectionService := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-	mockJobService := mgmtv1alpha1connect.NewMockJobServiceClient(t)
+	mockJobService := mgmtv1alpha1connect.NewMockJobServiceHandler(t)
 	mockPgquerier := pg_queries.NewMockQuerier(t)
 	mockMysqlquerier := mysql_queries.NewMockQuerier(t)
 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
