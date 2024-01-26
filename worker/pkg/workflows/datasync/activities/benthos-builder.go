@@ -105,10 +105,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		if pgconfig == nil {
 			return nil, errors.New("source connection is not a postgres config")
 		}
-		pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(pgconfig, nil, slogger)
-		if err != nil {
-			return nil, err
-		}
 		sqlOpts := jobSourceConfig.Postgres
 		var sourceTableOpts map[string]*sqlSourceTableOptions
 		if sqlOpts != nil {
@@ -122,6 +118,10 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		responses = append(responses, sourceResponses...)
 
 		if _, ok := b.pgpool[sourceConnection.Id]; !ok {
+			pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(pgconfig, nil, slogger)
+			if err != nil {
+				return nil, err
+			}
 			pool, err := pgconn.Open(ctx)
 			if err != nil {
 				return nil, err
@@ -203,10 +203,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		if mysqlconfig == nil {
 			return nil, errors.New("source connection is not a mysql config")
 		}
-		conn, err := b.sqlconnector.NewDbFromConnectionConfig(sourceConnection.ConnectionConfig, nil, slogger)
-		if err != nil {
-			return nil, err
-		}
 
 		sqlOpts := jobSourceConfig.Mysql
 		var sourceTableOpts map[string]*sqlSourceTableOptions
@@ -221,6 +217,10 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		responses = append(responses, sourceResponses...)
 
 		if _, ok := b.mysqlpool[sourceConnection.Id]; !ok {
+			conn, err := b.sqlconnector.NewDbFromConnectionConfig(sourceConnection.ConnectionConfig, nil, slogger)
+			if err != nil {
+				return nil, err
+			}
 			pool, err := conn.Open()
 			if err != nil {
 				return nil, err
