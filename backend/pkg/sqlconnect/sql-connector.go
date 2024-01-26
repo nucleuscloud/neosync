@@ -67,6 +67,12 @@ type PgPool struct {
 	logger           *slog.Logger
 
 	connectionTimeout *uint32
+
+	dsn string
+}
+
+func (s *PgPool) GetDsn() string {
+	return s.dsn
 }
 
 func (s *PgPool) Open(ctx context.Context) (pg_queries.DBTX, error) {
@@ -86,20 +92,24 @@ func (s *PgPool) Open(ctx context.Context) (pg_queries.DBTX, error) {
 		<-ready
 		newPort := int32(details.Tunnel.Local.Port)
 		details.GeneralDbConnectConfig.Port = newPort
-		db, err := pgxpool.New(ctx, details.GeneralDbConnectConfig.String())
+		dsn := details.GeneralDbConnectConfig.String()
+		db, err := pgxpool.New(ctx, dsn)
 		if err != nil {
 			return nil, err
 		}
+		s.dsn = dsn
 		s.pool = db
 		s.tunnel = details.Tunnel
 		return db, nil
 	}
 
-	db, err := pgxpool.New(ctx, details.GeneralDbConnectConfig.String())
+	dsn := details.GeneralDbConnectConfig.String()
+	db, err := pgxpool.New(ctx, dsn)
 	if err != nil {
 		return nil, err
 	}
 	s.pool = db
+	s.dsn = dsn
 	return db, nil
 }
 
@@ -107,6 +117,7 @@ func (s *PgPool) Close() {
 	if s.pool == nil {
 		return
 	}
+	s.dsn = ""
 	db := s.pool
 	s.pool = nil
 	db.Close()
@@ -125,6 +136,8 @@ type SqlDb struct {
 	logger           *slog.Logger
 
 	connectionTimeout *uint32
+
+	dsn string
 }
 
 func (s *SqlDb) Open() (SqlDBTX, error) {
@@ -141,20 +154,28 @@ func (s *SqlDb) Open() (SqlDBTX, error) {
 
 		newPort := int32(details.Tunnel.Local.Port)
 		details.GeneralDbConnectConfig.Port = newPort
-		db, err := sql.Open(details.GeneralDbConnectConfig.Driver, details.GeneralDbConnectConfig.String())
+		dsn := details.GeneralDbConnectConfig.String()
+		db, err := sql.Open(details.GeneralDbConnectConfig.Driver, dsn)
 		if err != nil {
 			return nil, err
 		}
 		s.db = db
+		s.dsn = dsn
 		s.tunnel = details.Tunnel
 		return db, nil
 	}
-	db, err := sql.Open(details.GeneralDbConnectConfig.Driver, details.GeneralDbConnectConfig.String())
+	dsn := details.GeneralDbConnectConfig.String()
+	db, err := sql.Open(details.GeneralDbConnectConfig.Driver, dsn)
 	s.db = db
 	if err != nil {
 		return nil, err
 	}
+	s.dsn = dsn
 	return db, nil
+}
+
+func (s *SqlDb) GetDsn() string {
+	return s.dsn
 }
 
 func (s *SqlDb) Close() error {
@@ -162,6 +183,7 @@ func (s *SqlDb) Close() error {
 		return nil
 	}
 	db := s.db
+	s.dsn = ""
 	s.db = nil
 	err := db.Close()
 	if s.tunnel != nil {

@@ -84,6 +84,9 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					return nil, err
 				}
 				pool, err := pgconn.Open(ctx)
+				if err != nil {
+					return nil, err
+				}
 				defer pgconn.Close()
 				b.pgpool[sourceConnection.Id] = pool
 			}
@@ -119,6 +122,9 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				return nil, err
 			}
 			pool, err := pgconn.Open(ctx)
+			if err != nil {
+				return nil, err
+			}
 			defer pgconn.Close()
 			b.pgpool[sourceConnection.Id] = pool
 		}
@@ -144,6 +150,9 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				return nil, err
 			}
 			pool, err := conn.Open()
+			if err != nil {
+				return nil, err
+			}
 			defer conn.Close()
 			b.mysqlpool[sourceConnection.Id] = pool
 		}
