@@ -16,7 +16,6 @@ import (
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.temporal.io/sdk/log"
 	"gopkg.in/yaml.v3"
 )
 
@@ -121,7 +120,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Pg(t *testing.T) 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		log.NewStructuredLogger(slog.Default()),
+		slog.Default(),
 	)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
@@ -274,7 +273,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Generate_Pg_Default(t *testing.T
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		log.NewStructuredLogger(slog.Default()),
+		slog.Default(),
 	)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
@@ -447,7 +446,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg(t *testing.T) {
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		log.NewStructuredLogger(slog.Default()),
+		slog.Default(),
 	)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
@@ -623,7 +622,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_Default(t *testing.T
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		log.NewStructuredLogger(slog.Default()),
+		slog.Default(),
 	)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
@@ -840,7 +839,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		log.NewStructuredLogger(slog.Default()),
+		slog.Default(),
 	)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
@@ -1129,7 +1128,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		log.NewStructuredLogger(slog.Default()),
+		slog.Default(),
 	)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
@@ -1493,7 +1492,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		log.NewStructuredLogger(slog.Default()),
+		slog.Default(),
 	)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
@@ -1778,7 +1777,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Mysql(t *testing.
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		log.NewStructuredLogger(slog.Default()),
+		slog.Default(),
 	)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
@@ -1952,7 +1951,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		log.NewStructuredLogger(slog.Default()),
+		slog.Default(),
 	)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
@@ -2168,7 +2167,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Constrain
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		log.NewStructuredLogger(slog.Default()),
+		slog.Default(),
 	)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
@@ -2457,7 +2456,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		log.NewStructuredLogger(slog.Default()),
+		slog.Default(),
 	)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
@@ -2702,7 +2701,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Mysql_Default(t *
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		log.NewStructuredLogger(slog.Default()),
+		slog.Default(),
 	)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
@@ -2875,7 +2874,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Default(t *testing.T
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		log.NewStructuredLogger(slog.Default()),
+		slog.Default(),
 	)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)

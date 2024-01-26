@@ -2,14 +2,13 @@ package datasync_activities
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
 	"slices"
 	"strings"
 
 	"connectrpc.com/connect"
-	"github.com/jackc/pgx/v5/pgxpool"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -20,8 +19,6 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
-
-	"go.temporal.io/sdk/log"
 )
 
 const (
@@ -75,7 +72,7 @@ func newBenthosBuilder(
 func (b *benthosBuilder) GenerateBenthosConfigs(
 	ctx context.Context,
 	req *GenerateBenthosConfigsRequest,
-	logger log.Logger,
+	slogger *slog.Logger,
 ) (*GenerateBenthosConfigsResponse, error) {
 	job, err := b.getJobById(ctx, req.JobId)
 	if err != nil {
@@ -108,7 +105,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		if pgconfig == nil {
 			return nil, errors.New("source connection is not a postgres config")
 		}
-		dsn, err := getPgDsn(pgconfig)
+		pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(pgconfig, nil, slogger)
 		if err != nil {
 			return nil, err
 		}
@@ -118,21 +115,21 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			sourceTableOpts = groupPostgresSourceOptionsByTable(sqlOpts.Schemas)
 		}
 
-		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, dsn, "postgres", sourceTableOpts)
+		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, jobSourceConfig.Postgres.ConnectionId, "postgres", sourceTableOpts)
 		if err != nil {
 			return nil, err
 		}
 		responses = append(responses, sourceResponses...)
 
-		if _, ok := b.pgpool[dsn]; !ok {
-			pool, err := pgxpool.New(ctx, dsn)
+		if _, ok := b.pgpool[sourceConnection.Id]; !ok {
+			pool, err := pgconn.Open(ctx)
 			if err != nil {
 				return nil, err
 			}
-			defer pool.Close()
-			b.pgpool[dsn] = pool
+			pgconn.Close()
+			b.pgpool[sourceConnection.Id] = pool
 		}
-		pool := b.pgpool[dsn]
+		pool := b.pgpool[sourceConnection.Id]
 
 		// validate job mappings align with sql connections
 		dbschemas, err := b.pgquerier.GetDatabaseSchema(ctx, pool)
@@ -206,10 +203,15 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		if mysqlconfig == nil {
 			return nil, errors.New("source connection is not a mysql config")
 		}
-		dsn, err := getMysqlDsn(mysqlconfig)
+		conn, err := b.sqlconnector.NewDbFromConnectionConfig(sourceConnection.ConnectionConfig, nil, slogger)
 		if err != nil {
 			return nil, err
 		}
+		dsn := "todo"
+		// dsn, err := getMysqlDsn(mysqlconfig)
+		// if err != nil {
+		// 	return nil, err
+		// }
 
 		sqlOpts := jobSourceConfig.Mysql
 		var sourceTableOpts map[string]*sqlSourceTableOptions
@@ -223,15 +225,15 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		}
 		responses = append(responses, sourceResponses...)
 
-		if _, ok := b.mysqlpool[dsn]; !ok {
-			pool, err := sql.Open("mysql", dsn)
+		if _, ok := b.mysqlpool[sourceConnection.Id]; !ok {
+			pool, err := conn.Open()
 			if err != nil {
 				return nil, err
 			}
-			defer pool.Close()
-			b.mysqlpool[dsn] = pool
+			defer conn.Close()
+			b.mysqlpool[sourceConnection.Id] = pool
 		}
-		pool := b.mysqlpool[dsn]
+		pool := b.mysqlpool[sourceConnection.Id]
 
 		// validate job mappings align with sql connections
 		dbschemas, err := b.mysqlquerier.GetDatabaseSchema(ctx, pool)
@@ -301,7 +303,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	}
 
 	updateResponses := []*BenthosConfigResponse{} // update configs for circular dependecies
-	for _, destination := range job.Destinations {
+	for destIdx, destination := range job.Destinations {
 		destinationConnection, err := b.getConnectionById(ctx, destination.ConnectionId)
 		if err != nil {
 			return nil, err
@@ -312,12 +314,12 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			if tm == nil {
 				return nil, errors.New("unable to find table mapping for key")
 			}
+			dstEnvVarKey := fmt.Sprintf("DESTINATION_%d_CONNECTION_DSN", destIdx)
+			dsn := fmt.Sprintf("${%s}", dstEnvVarKey)
+
 			switch connection := destinationConnection.ConnectionConfig.Config.(type) {
 			case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-				dsn, err := getPgDsn(connection.PgConfig)
-				if err != nil {
-					return nil, err
-				}
+				resp.BenthosDsns = append(resp.BenthosDsns, &BenthosDsn{EnvVarKey: dstEnvVarKey, ConnectionId: destination.Id})
 
 				if resp.Config.Input.SqlSelect != nil {
 					colSourceMap := map[string]string{}
@@ -378,10 +380,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					return nil, errors.New("unable to build destination connection due to unsupported source connection")
 				}
 			case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-				dsn, err := getMysqlDsn(connection.MysqlConfig)
-				if err != nil {
-					return nil, err
-				}
+				resp.BenthosDsns = append(resp.BenthosDsns, &BenthosDsn{EnvVarKey: dstEnvVarKey, ConnectionId: destination.Id})
 
 				if resp.Config.Input.SqlSelect != nil {
 					colSourceMap := map[string]string{}
