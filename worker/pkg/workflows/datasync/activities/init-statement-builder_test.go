@@ -10,9 +10,9 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.temporal.io/sdk/log"
 )
 
 // todo figure out how to mock pgxpool
@@ -138,10 +138,11 @@ import (
 func Test_InitStatementBuilder_Pg_Generate_NoInitStatement(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
 	pgcache := map[string]pg_queries.DBTX{
-		"fake-prod-url":  pg_queries.NewMockDBTX(t),
-		"fake-stage-url": pg_queries.NewMockDBTX(t),
+		"123": pg_queries.NewMockDBTX(t),
+		"456": pg_queries.NewMockDBTX(t),
 	}
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mysqlcache := map[string]mysql_queries.DBTX{}
@@ -231,11 +232,11 @@ func Test_InitStatementBuilder_Pg_Generate_NoInitStatement(t *testing.T) {
 		},
 	}), nil)
 
-	bbuilder := newInitStatementBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient)
+	bbuilder := newInitStatementBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockSqlConnector)
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123", WorkflowId: "123"},
-		log.NewStructuredLogger(slog.Default()),
+		slog.Default(),
 	)
 	assert.Nil(t, err)
 }

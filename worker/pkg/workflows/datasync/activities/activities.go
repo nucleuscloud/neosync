@@ -367,8 +367,13 @@ func (a *Activities) RunSqlInitTableStatements(
 		mysqlquerier,
 		jobclient,
 		connclient,
+		&sqlconnect.SqlOpenConnector{},
 	)
-	return builder.RunSqlInitTableStatements(ctx, req, logger)
+	slogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
+	slogger = slogger.With(
+		"WorkflowID", req.WorkflowId,
+	)
+	return builder.RunSqlInitTableStatements(ctx, req, slogger)
 }
 
 func shouldHaltOnSchemaAddition(
@@ -440,6 +445,12 @@ type SyncResponse struct{}
 
 func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata, workflowMetadata *WorkflowMetadata) (*SyncResponse, error) {
 	logger := activity.GetLogger(ctx)
+	slogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
+	slogger = slogger.With(
+		"metadata", metadata,
+		"WorkflowID", workflowMetadata.WorkflowId,
+		"RunID", workflowMetadata.RunId,
+	)
 	var benthosStream *service.Stream
 	go func() {
 		for {
@@ -506,7 +517,7 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncM
 		bdns := bdns
 		errgrp.Go(func() error {
 			connection := connections[idx]
-			details, err := sqlconnect.GetConnectionDetails(connection.ConnectionConfig, nil, slog.Default())
+			details, err := sqlconnect.GetConnectionDetails(connection.ConnectionConfig, ptr(uint32(5)), slogger)
 			if err != nil {
 				return err
 			}
@@ -532,12 +543,8 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncM
 
 	streambldr := service.NewStreamBuilder()
 	// would ideally use the activity logger here but can't convert it into a slog.
-	benthoslogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
-	streambldr.SetLogger(benthoslogger.With(
-		"metadata", metadata,
+	streambldr.SetLogger(slogger.With(
 		"benthos", "true",
-		"WorkflowID", workflowMetadata.WorkflowId,
-		"RunID", workflowMetadata.RunId,
 	))
 
 	err := streambldr.SetYAML(req.BenthosConfig)
