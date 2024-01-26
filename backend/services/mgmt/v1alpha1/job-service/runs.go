@@ -495,6 +495,7 @@ func (s *Service) GetJobRunLogsStream(
 		for idx := range pods.Items {
 			pod := pods.Items[idx]
 			logsReq := clientset.CoreV1().Pods(s.cfg.KubernetesNamespace).GetLogs(pod.Name, &corev1.PodLogOptions{
+				Container: "user-container",
 				Follow:    req.Msg.ShouldTail,
 				TailLines: req.Msg.MaxLogLines,
 				SinceTime: getLogFilterTime(req.Msg.GetWindow()),
