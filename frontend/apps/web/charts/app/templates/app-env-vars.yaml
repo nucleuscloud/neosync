@@ -82,4 +82,4 @@ stringData:
 
     NEOSYNC_CLOUD: {{ .Values.neosyncCloud.enabled | default "false" | quote }}
     
-    KUBERNETES_ENABLED: {{ .Values.kubernetes.enabled | default "false" | quote }}
+    ENABLE_RUN_LOGS: {{ .Values.enableRunLogs | default "false" | quote }}
