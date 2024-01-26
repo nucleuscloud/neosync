@@ -50,7 +50,7 @@ packages:
   github.com/nucleuscloud/neosync/backend/internal/authmgmt/auth0:
     interfaces:
       Auth0MgmtClientInterface:
-  github.com/nucleuscloud/neosync/backend/internal/sqlconnect:
+  github.com/nucleuscloud/neosync/backend/pkg/sqlconnect:
     interfaces:
       SqlConnector:
       SqlDbContainer:

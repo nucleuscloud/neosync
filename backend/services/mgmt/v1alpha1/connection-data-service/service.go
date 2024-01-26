@@ -5,7 +5,7 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	awsmanager "github.com/nucleuscloud/neosync/backend/internal/aws"
-	"github.com/nucleuscloud/neosync/backend/internal/sqlconnect"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 )
 
 type Service struct {

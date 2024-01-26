@@ -11,19 +11,28 @@ import (
 	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/pkg/sshtunnel"
 	"golang.org/x/crypto/ssh"
 )
 
+type SqlDBTX interface {
+	mysql_queries.DBTX
+
+	PingContext(context.Context) error
+	BeginTx(context.Context, *sql.TxOptions) (*sql.Tx, error)
+}
+
 type SqlDbContainer interface {
-	Open() (*sql.DB, error)
+	Open() (SqlDBTX, error)
 	Close() error
 }
 
 type PgPoolContainer interface {
-	Open(context.Context) (*pgxpool.Pool, error)
+	Open(context.Context) (pg_queries.DBTX, error)
 	Close()
 }
 
@@ -60,7 +69,7 @@ type PgPool struct {
 	connectionTimeout *uint32
 }
 
-func (s *PgPool) Open(ctx context.Context) (*pgxpool.Pool, error) {
+func (s *PgPool) Open(ctx context.Context) (pg_queries.DBTX, error) {
 	details, err := getConnectionDetails(&mgmtv1alpha1.ConnectionConfig{
 		Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
 			PgConfig: s.connectionConfig,
@@ -118,7 +127,7 @@ type SqlDb struct {
 	connectionTimeout *uint32
 }
 
-func (s *SqlDb) Open() (*sql.DB, error) {
+func (s *SqlDb) Open() (SqlDBTX, error) {
 	details, err := getConnectionDetails(s.connectionConfig, s.connectionTimeout, s.logger)
 	if err != nil {
 		return nil, err
