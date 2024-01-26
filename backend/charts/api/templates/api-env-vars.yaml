@@ -91,6 +91,7 @@ stringData:
     {{- end }}
 
     NEOSYNC_CLOUD: {{ .Values.neosyncCloud.enabled | default "false" | quote }}
+    NEOSYNC_CLOUD_ALLOWED_WORKER_API_KEYS: {{ join "," .Values.neosyncCloud.workerApiKeys }}
 
     KUBERNETES_ENABLED: {{ .Values.kubernetes.enabled | default "false" | quote }}
     
