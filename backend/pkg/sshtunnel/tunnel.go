@@ -33,9 +33,9 @@ func New(
 	destination *Endpoint,
 	local *Endpoint,
 	maxConnectionAttempts uint,
+	serverPublicKey ssh.PublicKey,
 	logger *slog.Logger,
 ) *Sshtunnel {
-
 	return &Sshtunnel{
 		logger: logger,
 		close:  make(chan any),
@@ -47,14 +47,18 @@ func New(
 		maxConnectionAttempts: maxConnectionAttempts,
 
 		Config: &ssh.ClientConfig{
-			User: tunnel.User,
-			Auth: []ssh.AuthMethod{auth},
-			HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
-				// todo, always accept key for now
-				return nil
-			},
+			User:            tunnel.User,
+			Auth:            []ssh.AuthMethod{auth},
+			HostKeyCallback: getHostKeyCallback(serverPublicKey),
 		},
 	}
+}
+
+func getHostKeyCallback(key ssh.PublicKey) ssh.HostKeyCallback {
+	if key == nil {
+		return ssh.InsecureIgnoreHostKey()
+	}
+	return ssh.FixedHostKey(key)
 }
 
 func (t *Sshtunnel) Start() (chan any, error) {

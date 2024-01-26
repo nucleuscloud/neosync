@@ -187,12 +187,20 @@ func getConnectionDetails(c *mgmtv1alpha1.ConnectionConfig, connectionTimeout *u
 			if err != nil {
 				return nil, err
 			}
+			var publickey ssh.PublicKey
+			if config.PgConfig.Tunnel.KnownHostPublicKey != nil {
+				publickey, err = sshtunnel.ParseSshKey(*config.PgConfig.Tunnel.KnownHostPublicKey)
+				if err != nil {
+					return nil, err
+				}
+			}
 			tunnel := sshtunnel.New(
 				sshtunnel.NewEndpointWithUser(config.PgConfig.Tunnel.GetHost(), int(config.PgConfig.Tunnel.GetPort()), config.PgConfig.Tunnel.GetUser()),
 				authmethod,
 				destination,
 				sshtunnel.NewEndpoint(localhost, randomPort),
 				1,
+				publickey,
 				logger,
 			)
 			connDetails, err := getGeneralDbConnectConfigFromPg(config, connectionTimeout)
@@ -224,12 +232,20 @@ func getConnectionDetails(c *mgmtv1alpha1.ConnectionConfig, connectionTimeout *u
 			if err != nil {
 				return nil, err
 			}
+			var publickey ssh.PublicKey
+			if config.MysqlConfig.Tunnel.KnownHostPublicKey != nil {
+				publickey, err = sshtunnel.ParseSshKey(*config.MysqlConfig.Tunnel.KnownHostPublicKey)
+				if err != nil {
+					return nil, err
+				}
+			}
 			tunnel := sshtunnel.New(
 				sshtunnel.NewEndpointWithUser(config.MysqlConfig.Tunnel.GetHost(), int(config.MysqlConfig.Tunnel.GetPort()), config.MysqlConfig.Tunnel.GetUser()),
 				authmethod,
 				destination,
 				sshtunnel.NewEndpoint(localhost, randomPort),
 				1,
+				publickey,
 				logger,
 			)
 			connDetails, err := getGeneralDbConnectionConfigFromMysql(config, connectionTimeout)
