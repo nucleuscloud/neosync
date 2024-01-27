@@ -8,10 +8,12 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"connectrpc.com/connect"
 	"go.temporal.io/sdk/activity"
+	"golang.org/x/sync/errgroup"
 
 	_ "github.com/benthosdev/benthos/v4/public/components/aws"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
@@ -26,6 +28,8 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	"github.com/nucleuscloud/neosync/backend/pkg/sshtunnel"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
@@ -50,9 +54,34 @@ type BenthosConfigResponse struct {
 	TableName   string
 	Columns     []string
 
+	BenthosDsns []*BenthosDsn
+
 	primaryKeys    []string
 	excludeColumns []string
 	updateConfig   *tabledependency.RunConfig
+}
+
+type BenthosDsn struct {
+	EnvVarKey string
+	// Neosync Connection Id
+	ConnectionId string
+}
+
+func getNeosyncHttpClient(apiKey string) *http.Client {
+	if apiKey != "" {
+		return http_client.NewWithHeaders(
+			map[string]string{"Authorization": fmt.Sprintf("Bearer %s", apiKey)},
+		)
+	}
+	return http.DefaultClient
+}
+
+func getNeosyncUrl() string {
+	neosyncUrl := viper.GetString("NEOSYNC_URL")
+	if neosyncUrl == "" {
+		return "http://localhost:8080"
+	}
+	return neosyncUrl
 }
 
 type Activities struct{}
@@ -60,6 +89,7 @@ type Activities struct{}
 func (a *Activities) GenerateBenthosConfigs(
 	ctx context.Context,
 	req *GenerateBenthosConfigsRequest,
+	wfmetadata *WorkflowMetadata,
 ) (*GenerateBenthosConfigsResponse, error) {
 	logger := activity.GetLogger(ctx)
 	_ = logger
@@ -74,24 +104,13 @@ func (a *Activities) GenerateBenthosConfigs(
 		}
 	}()
 
-	neosyncUrl := viper.GetString("NEOSYNC_URL")
-	if neosyncUrl == "" {
-		neosyncUrl = "http://localhost:8080"
-	}
-
-	neosyncApiKey := viper.GetString("NEOSYNC_API_KEY")
+	neosyncUrl := getNeosyncUrl()
+	httpClient := getNeosyncHttpClient(viper.GetString("NEOSYNC_API_KEY"))
 
 	pgpoolmap := map[string]pg_queries.DBTX{}
 	pgquerier := pg_queries.New()
 	mysqlpoolmap := map[string]mysql_queries.DBTX{}
 	mysqlquerier := mysql_queries.New()
-
-	httpClient := http.DefaultClient
-	if neosyncApiKey != "" {
-		httpClient = http_client.NewWithHeaders(
-			map[string]string{"Authorization": fmt.Sprintf("Bearer %s", neosyncApiKey)},
-		)
-	}
 
 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(
 		httpClient,
@@ -115,8 +134,14 @@ func (a *Activities) GenerateBenthosConfigs(
 		jobclient,
 		connclient,
 		transformerclient,
+		&sqlconnect.SqlOpenConnector{},
 	)
-	return bbuilder.GenerateBenthosConfigs(ctx, req, logger)
+	slogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
+	slogger = slogger.With(
+		"WorkflowID", wfmetadata.WorkflowId,
+		"RunID", wfmetadata.RunId,
+	)
+	return bbuilder.GenerateBenthosConfigs(ctx, req, slogger)
 }
 
 type sqlSourceTableOptions struct {
@@ -126,7 +151,7 @@ type sqlSourceTableOptions struct {
 func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 	ctx context.Context,
 	mappings []*TableMapping,
-	dsn string,
+	dsnConnectionId string,
 	driver string,
 	sourceTableOpts map[string]*sqlSourceTableOptions,
 ) ([]*BenthosConfigResponse, error) {
@@ -152,7 +177,7 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 					Inputs: neosync_benthos.Inputs{
 						SqlSelect: &neosync_benthos.SqlSelect{
 							Driver: driver,
-							Dsn:    dsn,
+							Dsn:    "${SOURCE_CONNECTION_DSN}",
 
 							Table:   neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table),
 							Where:   where,
@@ -188,6 +213,8 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 			Name:      neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table), // todo: may need to expand on this
 			Config:    bc,
 			DependsOn: []*tabledependency.DependsOn{},
+
+			BenthosDsns: []*BenthosDsn{{ConnectionId: dsnConnectionId, EnvVarKey: "SOURCE_CONNECTION_DSN"}},
 
 			TableSchema: tableMapping.Schema,
 			TableName:   tableMapping.Table,
@@ -340,8 +367,13 @@ func (a *Activities) RunSqlInitTableStatements(
 		mysqlquerier,
 		jobclient,
 		connclient,
+		&sqlconnect.SqlOpenConnector{},
 	)
-	return builder.RunSqlInitTableStatements(ctx, req, logger)
+	slogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
+	slogger = slogger.With(
+		"WorkflowID", req.WorkflowId,
+	)
+	return builder.RunSqlInitTableStatements(ctx, req, slogger)
 }
 
 func shouldHaltOnSchemaAddition(
@@ -407,11 +439,18 @@ type WorkflowMetadata struct {
 }
 type SyncRequest struct {
 	BenthosConfig string
+	BenthosDsns   []*BenthosDsn
 }
 type SyncResponse struct{}
 
 func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata, workflowMetadata *WorkflowMetadata) (*SyncResponse, error) {
 	logger := activity.GetLogger(ctx)
+	slogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
+	slogger = slogger.With(
+		"metadata", metadata,
+		"WorkflowID", workflowMetadata.WorkflowId,
+		"RunID", workflowMetadata.RunId,
+	)
 	var benthosStream *service.Stream
 	go func() {
 		for {
@@ -432,15 +471,85 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncM
 		}
 	}()
 
+	neosyncUrl := getNeosyncUrl()
+	httpClient := getNeosyncHttpClient(viper.GetString("NEOSYNC_API_KEY"))
+
+	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(
+		httpClient,
+		neosyncUrl,
+	)
+
+	connections := make([]*mgmtv1alpha1.Connection, len(req.BenthosDsns))
+
+	errgrp, errctx := errgroup.WithContext(ctx)
+	for idx, bdns := range req.BenthosDsns {
+		idx := idx
+		bdns := bdns
+		errgrp.Go(func() error {
+			resp, err := connclient.GetConnection(errctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{Id: bdns.ConnectionId}))
+			if err != nil {
+				return err
+			}
+			connections[idx] = resp.Msg.Connection
+			return nil
+		})
+	}
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
+	}
+
+	envKeyDsnSyncMap := sync.Map{}
+	tunnelMap := sync.Map{}
+	defer func() {
+		tunnelMap.Range(func(key, value any) bool {
+			tunnel, ok := value.(*sshtunnel.Sshtunnel)
+			if !ok {
+				logger.Warn("was unable to convert value to Sshtunnel for key", "key", key)
+				return true
+			}
+			tunnel.Close()
+			return true
+		})
+	}()
+	errgrp, errctx = errgroup.WithContext(ctx)
+	for idx, bdns := range req.BenthosDsns {
+		idx := idx
+		bdns := bdns
+		errgrp.Go(func() error {
+			connection := connections[idx]
+			details, err := sqlconnect.GetConnectionDetails(connection.ConnectionConfig, ptr(uint32(5)), slogger)
+			if err != nil {
+				return err
+			}
+			if details.Tunnel != nil {
+				ready, err := details.Tunnel.Start()
+				if err != nil {
+					return err
+				}
+				tunnelMap.Store(bdns.EnvVarKey, details.Tunnel)
+				<-ready
+				details.GeneralDbConnectConfig.Host = details.Tunnel.Local.Host
+				details.GeneralDbConnectConfig.Port = int32(details.Tunnel.Local.Port)
+				logger.Info("tunnel is ready, updated configuration host and port", "host", details.Tunnel.Local.Host, "port", details.Tunnel.Local.Port)
+			}
+			envKeyDsnSyncMap.Store(bdns.EnvVarKey, details.GeneralDbConnectConfig.String())
+			return nil
+		})
+	}
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
+	}
+
+	envKeyDnsMap := syncMapToStringMap(&envKeyDsnSyncMap)
+
 	streambldr := service.NewStreamBuilder()
 	// would ideally use the activity logger here but can't convert it into a slog.
-	benthoslogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
-	streambldr.SetLogger(benthoslogger.With(
-		"metadata", metadata,
+	streambldr.SetLogger(slogger.With(
 		"benthos", "true",
-		"WorkflowID", workflowMetadata.WorkflowId,
-		"RunID", workflowMetadata.RunId,
 	))
+
+	// This must come before SetYaml as otherwise it will not be invoked
+	streambldr.SetEnvVarLookupFunc(getEnvVarLookupFn(envKeyDnsMap))
 
 	err := streambldr.SetYAML(req.BenthosConfig)
 	if err != nil {
@@ -452,13 +561,43 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncM
 		return nil, err
 	}
 	benthosStream = stream
-
 	err = stream.Run(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("unable to run benthos stream: %w", err)
 	}
 	benthosStream = nil
 	return &SyncResponse{}, nil
+}
+
+func getEnvVarLookupFn(input map[string]string) func(key string) (string, bool) {
+	return func(key string) (string, bool) {
+		if input == nil {
+			return "", false
+		}
+		output, ok := input[key]
+		return output, ok
+	}
+}
+
+func syncMapToStringMap(incoming *sync.Map) map[string]string {
+	out := map[string]string{}
+	if incoming == nil {
+		return out
+	}
+
+	incoming.Range(func(key, value any) bool {
+		keyStr, ok := key.(string)
+		if !ok {
+			return true
+		}
+		valStr, ok := value.(string)
+		if !ok {
+			return true
+		}
+		out[keyStr] = valStr
+		return true
+	})
+	return out
 }
 
 func groupGenerateSourceOptionsByTable(

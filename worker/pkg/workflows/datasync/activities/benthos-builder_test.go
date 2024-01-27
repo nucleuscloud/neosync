@@ -12,10 +12,10 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.temporal.io/sdk/log"
 	"gopkg.in/yaml.v3"
 )
 
@@ -24,9 +24,11 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Pg(t *testing.T) 
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
+
 	pgcache := map[string]pg_queries.DBTX{
-		"fake-prod-url":  pg_queries.NewMockDBTX(t),
-		"fake-stage-url": pg_queries.NewMockDBTX(t),
+		"123": pg_queries.NewMockDBTX(t),
+		"456": pg_queries.NewMockDBTX(t),
 	}
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mysqlcache := map[string]mysql_queries.DBTX{}
@@ -114,11 +116,11 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Pg(t *testing.T) 
 		},
 	}), nil)
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		log.NewStructuredLogger(slog.Default()),
+		slog.Default(),
 	)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
@@ -151,7 +153,7 @@ output:
         outputs:
             - sql_raw:
                 driver: postgres
-                dsn: fake-stage-url
+                dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users (id, name) VALUES ($1, $2);
                 args_mapping: root = [this.id, this.name]
                 init_statement: ""
@@ -170,17 +172,17 @@ output:
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
 	assert.NoError(t, err)
-
 }
 
 func Test_BenthosBuilder_GenerateBenthosConfigs_Generate_Pg_Default(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
 	pgcache := map[string]pg_queries.DBTX{
-		"fake-prod-url":  pg_queries.NewMockDBTX(t),
-		"fake-stage-url": pg_queries.NewMockDBTX(t),
+		"123": pg_queries.NewMockDBTX(t),
+		"456": pg_queries.NewMockDBTX(t),
 	}
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mysqlcache := map[string]mysql_queries.DBTX{}
@@ -266,11 +268,11 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Generate_Pg_Default(t *testing.T
 		},
 	}), nil)
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		log.NewStructuredLogger(slog.Default()),
+		slog.Default(),
 	)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
@@ -301,7 +303,7 @@ output:
         outputs:
             - sql_raw:
                 driver: postgres
-                dsn: fake-stage-url
+                dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users (id, name) VALUES (DEFAULT, $1);
                 args_mapping: root = [this.name]
                 init_statement: ""
@@ -326,10 +328,11 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
 	pgcache := map[string]pg_queries.DBTX{
-		"fake-prod-url":  pg_queries.NewMockDBTX(t),
-		"fake-stage-url": pg_queries.NewMockDBTX(t),
+		"123": pg_queries.NewMockDBTX(t),
+		"456": pg_queries.NewMockDBTX(t),
 	}
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mysqlcache := map[string]mysql_queries.DBTX{}
@@ -437,12 +440,12 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg(t *testing.T) {
 			ConstraintName: "name",
 			ColumnName:     "id",
 		}}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		log.NewStructuredLogger(slog.Default()),
+		slog.Default(),
 	)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
@@ -460,7 +463,7 @@ input:
     label: ""
     sql_select:
         driver: postgres
-        dsn: fake-prod-url
+        dsn: ${SOURCE_CONNECTION_DSN}
         table: public.users
         columns:
             - id
@@ -476,7 +479,7 @@ output:
         outputs:
             - sql_raw:
                 driver: postgres
-                dsn: fake-stage-url
+                dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users (id, name) VALUES ($1, $2);
                 args_mapping: root = [this.id, this.name]
                 init_statement: ""
@@ -501,10 +504,11 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_Default(t *testing.T
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
 	pgcache := map[string]pg_queries.DBTX{
-		"fake-prod-url":  pg_queries.NewMockDBTX(t),
-		"fake-stage-url": pg_queries.NewMockDBTX(t),
+		"123": pg_queries.NewMockDBTX(t),
+		"456": pg_queries.NewMockDBTX(t),
 	}
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mysqlcache := map[string]mysql_queries.DBTX{}
@@ -612,12 +616,12 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_Default(t *testing.T
 			ConstraintName: "name",
 			ColumnName:     "id",
 		}}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		log.NewStructuredLogger(slog.Default()),
+		slog.Default(),
 	)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
@@ -635,7 +639,7 @@ input:
     label: ""
     sql_select:
         driver: postgres
-        dsn: fake-prod-url
+        dsn: ${SOURCE_CONNECTION_DSN}
         table: public.users
         columns:
             - id
@@ -651,7 +655,7 @@ output:
         outputs:
             - sql_raw:
                 driver: postgres
-                dsn: fake-stage-url
+                dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users (id, name) VALUES (DEFAULT, $1);
                 args_mapping: root = [this.name]
                 init_statement: ""
@@ -676,10 +680,11 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
 	pgcache := map[string]pg_queries.DBTX{
-		"fake-prod-url":  pg_queries.NewMockDBTX(t),
-		"fake-stage-url": pg_queries.NewMockDBTX(t),
+		"123": pg_queries.NewMockDBTX(t),
+		"456": pg_queries.NewMockDBTX(t),
 	}
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mysqlcache := map[string]mysql_queries.DBTX{}
@@ -828,12 +833,12 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 			ConstraintName: "acc_assoc_constraint",
 			ColumnName:     "id",
 		}}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		log.NewStructuredLogger(slog.Default()),
+		slog.Default(),
 	)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
@@ -853,7 +858,7 @@ input:
     label: ""
     sql_select:
         driver: postgres
-        dsn: fake-prod-url
+        dsn: ${SOURCE_CONNECTION_DSN}
         table: public.users
         columns:
             - id
@@ -869,7 +874,7 @@ output:
         outputs:
             - sql_raw:
                 driver: postgres
-                dsn: fake-stage-url
+                dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users (id, name) VALUES ($1, $2);
                 args_mapping: root = [this.id, this.name]
                 init_statement: ""
@@ -895,7 +900,7 @@ input:
     label: ""
     sql_select:
         driver: postgres
-        dsn: fake-prod-url
+        dsn: ${SOURCE_CONNECTION_DSN}
         table: public.user_account_associations
         columns:
             - id
@@ -911,7 +916,7 @@ output:
         outputs:
             - sql_raw:
                 driver: postgres
-                dsn: fake-stage-url
+                dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.user_account_associations (id, user_id) VALUES ($1, $2);
                 args_mapping: root = [this.id, this.user_id]
                 init_statement: ""
@@ -938,10 +943,11 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
 	pgcache := map[string]pg_queries.DBTX{
-		"fake-prod-url":  pg_queries.NewMockDBTX(t),
-		"fake-stage-url": pg_queries.NewMockDBTX(t),
+		"123": pg_queries.NewMockDBTX(t),
+		"456": pg_queries.NewMockDBTX(t),
 	}
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mysqlcache := map[string]mysql_queries.DBTX{}
@@ -1116,12 +1122,12 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 			ColumnName:     "id",
 		},
 	}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		log.NewStructuredLogger(slog.Default()),
+		slog.Default(),
 	)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
@@ -1141,7 +1147,7 @@ input:
     label: ""
     sql_select:
         driver: postgres
-        dsn: fake-prod-url
+        dsn: ${SOURCE_CONNECTION_DSN}
         table: public.users
         columns:
             - id
@@ -1158,7 +1164,7 @@ output:
         outputs:
             - sql_raw:
                 driver: postgres
-                dsn: fake-stage-url
+                dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users (id, name) VALUES ($1, $2);
                 args_mapping: root = [this.id, this.name]
                 init_statement: ""
@@ -1185,7 +1191,7 @@ input:
     label: ""
     sql_select:
         driver: postgres
-        dsn: fake-prod-url
+        dsn: ${SOURCE_CONNECTION_DSN}
         table: public.users
         columns:
             - id
@@ -1202,7 +1208,7 @@ output:
         outputs:
             - sql_raw:
                 driver: postgres
-                dsn: fake-stage-url
+                dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: UPDATE public.users SET user_assoc_id = $1 WHERE id = $2;
                 args_mapping: root = [this.user_assoc_id, this.id]
                 init_statement: ""
@@ -1228,7 +1234,7 @@ input:
     label: ""
     sql_select:
         driver: postgres
-        dsn: fake-prod-url
+        dsn: ${SOURCE_CONNECTION_DSN}
         table: public.user_account_associations
         columns:
             - id
@@ -1244,7 +1250,7 @@ output:
         outputs:
             - sql_raw:
                 driver: postgres
-                dsn: fake-stage-url
+                dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.user_account_associations (id, user_id) VALUES ($1, $2);
                 args_mapping: root = [this.id, this.user_id]
                 init_statement: ""
@@ -1271,10 +1277,11 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
 	pgcache := map[string]pg_queries.DBTX{
-		"fake-prod-url":  pg_queries.NewMockDBTX(t),
-		"fake-stage-url": pg_queries.NewMockDBTX(t),
+		"123": pg_queries.NewMockDBTX(t),
+		"456": pg_queries.NewMockDBTX(t),
 	}
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mysqlcache := map[string]mysql_queries.DBTX{}
@@ -1479,12 +1486,12 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 			ColumnName:     "id",
 		},
 	}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		log.NewStructuredLogger(slog.Default()),
+		slog.Default(),
 	)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
@@ -1505,7 +1512,7 @@ input:
     label: ""
     sql_select:
         driver: postgres
-        dsn: fake-prod-url
+        dsn: ${SOURCE_CONNECTION_DSN}
         table: public.users
         columns:
             - id
@@ -1522,7 +1529,7 @@ output:
         outputs:
             - sql_raw:
                 driver: postgres
-                dsn: fake-stage-url
+                dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users (id, name) VALUES ($1, $2);
                 args_mapping: root = [this.id, this.name]
                 init_statement: ""
@@ -1568,7 +1575,7 @@ input:
     label: ""
     sql_select:
         driver: postgres
-        dsn: fake-prod-url
+        dsn: ${SOURCE_CONNECTION_DSN}
         table: public.users
         columns:
             - id
@@ -1585,7 +1592,7 @@ output:
         outputs:
             - sql_raw:
                 driver: postgres
-                dsn: fake-stage-url
+                dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: UPDATE public.users SET user_assoc_id = $1 WHERE id = $2;
                 args_mapping: root = [this.user_assoc_id, this.id]
                 init_statement: ""
@@ -1612,7 +1619,7 @@ input:
     label: ""
     sql_select:
         driver: postgres
-        dsn: fake-prod-url
+        dsn: ${SOURCE_CONNECTION_DSN}
         table: public.user_account_associations
         columns:
             - id
@@ -1628,7 +1635,7 @@ output:
         outputs:
             - sql_raw:
                 driver: postgres
-                dsn: fake-stage-url
+                dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.user_account_associations (id, user_id) VALUES ($1, $2);
                 args_mapping: root = [this.id, this.user_id]
                 init_statement: ""
@@ -1673,12 +1680,12 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Mysql(t *testing.
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 	pgcache := map[string]pg_queries.DBTX{}
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mysqlcache := map[string]mysql_queries.DBTX{
-		"fake-prod-url":  mysql_queries.NewMockDBTX(t),
-		"fake-stage-url": mysql_queries.NewMockDBTX(t),
+		"123": mysql_queries.NewMockDBTX(t),
+		"456": mysql_queries.NewMockDBTX(t),
 	}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 
@@ -1764,12 +1771,12 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Mysql(t *testing.
 		},
 	}), nil)
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		log.NewStructuredLogger(slog.Default()),
+		slog.Default(),
 	)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
@@ -1802,7 +1809,7 @@ output:
         outputs:
             - sql_raw:
                 driver: mysql
-                dsn: fake-stage-url
+                dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users (id, name) VALUES (?, ?);
                 args_mapping: root = [this.id, this.name]
                 init_statement: ""
@@ -1826,12 +1833,13 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) 
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
 	pgcache := map[string]pg_queries.DBTX{}
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mysqlcache := map[string]mysql_queries.DBTX{
-		"fake-prod-url":  mysql_queries.NewMockDBTX(t),
-		"fake-stage-url": mysql_queries.NewMockDBTX(t),
+		"123": mysql_queries.NewMockDBTX(t),
+		"456": mysql_queries.NewMockDBTX(t),
 	}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 
@@ -1937,12 +1945,12 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) 
 			ConstraintName: "pk-id",
 			ColumnName:     "id",
 		}}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		log.NewStructuredLogger(slog.Default()),
+		slog.Default(),
 	)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
@@ -1960,7 +1968,7 @@ input:
     label: ""
     sql_select:
         driver: mysql
-        dsn: fake-prod-url
+        dsn: ${SOURCE_CONNECTION_DSN}
         table: public.users
         columns:
             - id
@@ -1976,7 +1984,7 @@ output:
         outputs:
             - sql_raw:
                 driver: mysql
-                dsn: fake-stage-url
+                dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users (id, name) VALUES (?, ?);
                 args_mapping: root = [this.id, this.name]
                 init_statement: ""
@@ -2000,12 +2008,13 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Constrain
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformersClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
 	pgcache := map[string]pg_queries.DBTX{}
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mysqlcache := map[string]mysql_queries.DBTX{
-		"fake-prod-url":  mysql_queries.NewMockDBTX(t),
-		"fake-stage-url": mysql_queries.NewMockDBTX(t),
+		"123": mysql_queries.NewMockDBTX(t),
+		"456": mysql_queries.NewMockDBTX(t),
 	}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 
@@ -2152,12 +2161,12 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Constrain
 			ConstraintName: "pk-users-assoc-id",
 			ColumnName:     "id",
 		}}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformersClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformersClient, mockSqlConnector)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		log.NewStructuredLogger(slog.Default()),
+		slog.Default(),
 	)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
@@ -2176,7 +2185,7 @@ input:
     label: ""
     sql_select:
         driver: mysql
-        dsn: fake-prod-url
+        dsn: ${SOURCE_CONNECTION_DSN}
         table: public.users
         columns:
             - id
@@ -2192,7 +2201,7 @@ output:
         outputs:
             - sql_raw:
                 driver: mysql
-                dsn: fake-stage-url
+                dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users (id, name) VALUES (?, ?);
                 args_mapping: root = [this.id, this.name]
                 init_statement: ""
@@ -2218,7 +2227,7 @@ input:
     label: ""
     sql_select:
         driver: mysql
-        dsn: fake-prod-url
+        dsn: ${SOURCE_CONNECTION_DSN}
         table: public.user_account_associations
         columns:
             - id
@@ -2234,7 +2243,7 @@ output:
         outputs:
             - sql_raw:
                 driver: mysql
-                dsn: fake-stage-url
+                dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.user_account_associations (id, user_id) VALUES (?, ?);
                 args_mapping: root = [this.id, this.user_id]
                 init_statement: ""
@@ -2262,12 +2271,13 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
 	pgcache := map[string]pg_queries.DBTX{}
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mysqlcache := map[string]mysql_queries.DBTX{
-		"fake-prod-url":  mysql_queries.NewMockDBTX(t),
-		"fake-stage-url": mysql_queries.NewMockDBTX(t),
+		"123": mysql_queries.NewMockDBTX(t),
+		"456": mysql_queries.NewMockDBTX(t),
 	}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 
@@ -2440,12 +2450,12 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_
 			ColumnName:     "id",
 		},
 	}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		log.NewStructuredLogger(slog.Default()),
+		slog.Default(),
 	)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
@@ -2465,7 +2475,7 @@ input:
     label: ""
     sql_select:
         driver: mysql
-        dsn: fake-prod-url
+        dsn: ${SOURCE_CONNECTION_DSN}
         table: public.users
         columns:
             - id
@@ -2482,7 +2492,7 @@ output:
         outputs:
             - sql_raw:
                 driver: mysql
-                dsn: fake-stage-url
+                dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users (id, name) VALUES (?, ?);
                 args_mapping: root = [this.id, this.name]
                 init_statement: ""
@@ -2509,7 +2519,7 @@ input:
     label: ""
     sql_select:
         driver: mysql
-        dsn: fake-prod-url
+        dsn: ${SOURCE_CONNECTION_DSN}
         table: public.users
         columns:
             - id
@@ -2526,7 +2536,7 @@ output:
         outputs:
             - sql_raw:
                 driver: mysql
-                dsn: fake-stage-url
+                dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: UPDATE public.users SET user_assoc_id = ? WHERE id = ?;
                 args_mapping: root = [this.user_assoc_id, this.id]
                 init_statement: ""
@@ -2552,7 +2562,7 @@ input:
     label: ""
     sql_select:
         driver: mysql
-        dsn: fake-prod-url
+        dsn: ${SOURCE_CONNECTION_DSN}
         table: public.user_account_associations
         columns:
             - id
@@ -2568,7 +2578,7 @@ output:
         outputs:
             - sql_raw:
                 driver: mysql
-                dsn: fake-stage-url
+                dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.user_account_associations (id, user_id) VALUES (?, ?);
                 args_mapping: root = [this.id, this.user_id]
                 init_statement: ""
@@ -2595,12 +2605,13 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Mysql_Default(t *
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
 	pgcache := map[string]pg_queries.DBTX{}
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mysqlcache := map[string]mysql_queries.DBTX{
-		"fake-prod-url":  mysql_queries.NewMockDBTX(t),
-		"fake-stage-url": mysql_queries.NewMockDBTX(t),
+		"123": mysql_queries.NewMockDBTX(t),
+		"456": mysql_queries.NewMockDBTX(t),
 	}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 
@@ -2684,12 +2695,12 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Mysql_Default(t *
 		},
 	}), nil)
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		log.NewStructuredLogger(slog.Default()),
+		slog.Default(),
 	)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
@@ -2720,7 +2731,7 @@ output:
         outputs:
             - sql_raw:
                 driver: mysql
-                dsn: fake-stage-url
+                dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users (id, name) VALUES (DEFAULT, ?);
                 args_mapping: root = [this.name]
                 init_statement: ""
@@ -2745,12 +2756,13 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Default(t *testing.T
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
 	pgcache := map[string]pg_queries.DBTX{}
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mysqlcache := map[string]mysql_queries.DBTX{
-		"fake-prod-url":  mysql_queries.NewMockDBTX(t),
-		"fake-stage-url": mysql_queries.NewMockDBTX(t),
+		"123": mysql_queries.NewMockDBTX(t),
+		"456": mysql_queries.NewMockDBTX(t),
 	}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 
@@ -2856,12 +2868,12 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Default(t *testing.T
 			ConstraintName: "pk-id",
 			ColumnName:     "id",
 		}}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		log.NewStructuredLogger(slog.Default()),
+		slog.Default(),
 	)
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
@@ -2879,7 +2891,7 @@ input:
     label: ""
     sql_select:
         driver: mysql
-        dsn: fake-prod-url
+        dsn: ${SOURCE_CONNECTION_DSN}
         table: public.users
         columns:
             - id
@@ -2895,7 +2907,7 @@ output:
         outputs:
             - sql_raw:
                 driver: mysql
-                dsn: fake-stage-url
+                dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users (id, name) VALUES (DEFAULT, ?);
                 args_mapping: root = [this.name]
                 init_statement: ""
@@ -2928,20 +2940,20 @@ var dsn = "dsn"
 var driver = "driver"
 
 func Test_ProcessorConfigEmpty(t *testing.T) {
-
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
 	pgcache := map[string]pg_queries.DBTX{
-		"fake-prod-url":  pg_queries.NewMockDBTX(t),
-		"fake-stage-url": pg_queries.NewMockDBTX(t),
+		"123": pg_queries.NewMockDBTX(t),
+		"456": pg_queries.NewMockDBTX(t),
 	}
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mysqlcache := map[string]mysql_queries.DBTX{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 
 	tableMappings := []*TableMapping{
 		{Schema: "public",
@@ -2974,20 +2986,19 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 
 }
 func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
-
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 	pgcache := map[string]pg_queries.DBTX{
-		"fake-prod-url":  pg_queries.NewMockDBTX(t),
-		"fake-stage-url": pg_queries.NewMockDBTX(t),
+		"123": pg_queries.NewMockDBTX(t),
+		"456": pg_queries.NewMockDBTX(t),
 	}
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mysqlcache := map[string]mysql_queries.DBTX{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 
 	tableMappings := []*TableMapping{
 		{Schema: "public",
@@ -3026,20 +3037,20 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 }
 
 func Test_ProcessorConfigMultiJavascript(t *testing.T) {
-
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
 	pgcache := map[string]pg_queries.DBTX{
-		"fake-prod-url":  pg_queries.NewMockDBTX(t),
-		"fake-stage-url": pg_queries.NewMockDBTX(t),
+		"123": pg_queries.NewMockDBTX(t),
+		"456": pg_queries.NewMockDBTX(t),
 	}
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mysqlcache := map[string]mysql_queries.DBTX{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 
 	tableMappings := []*TableMapping{
 		{Schema: "public",
@@ -3107,20 +3118,19 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 }
 
 func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
-
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 	pgcache := map[string]pg_queries.DBTX{
-		"fake-prod-url":  pg_queries.NewMockDBTX(t),
-		"fake-stage-url": pg_queries.NewMockDBTX(t),
+		"123": pg_queries.NewMockDBTX(t),
+		"456": pg_queries.NewMockDBTX(t),
 	}
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mysqlcache := map[string]mysql_queries.DBTX{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 
 	tableMappings := []*TableMapping{
 		{Schema: "public",

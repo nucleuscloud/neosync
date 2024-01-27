@@ -2,13 +2,12 @@ package datasync_activities
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"connectrpc.com/connect"
-	"github.com/jackc/pgx/v5/pgxpool"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -16,8 +15,7 @@ import (
 	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	dbschemas_mysql "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/mysql"
 	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/postgres"
-
-	"go.temporal.io/sdk/log"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 )
 
 type initStatementBuilder struct {
@@ -29,6 +27,8 @@ type initStatementBuilder struct {
 
 	jobclient  mgmtv1alpha1connect.JobServiceClient
 	connclient mgmtv1alpha1connect.ConnectionServiceClient
+
+	sqlconnector sqlconnect.SqlConnector
 }
 
 func newInitStatementBuilder(
@@ -41,6 +41,8 @@ func newInitStatementBuilder(
 	jobclient mgmtv1alpha1connect.JobServiceClient,
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
 
+	sqlconnector sqlconnect.SqlConnector,
+
 ) *initStatementBuilder {
 	return &initStatementBuilder{
 		pgpool:       pgpool,
@@ -49,21 +51,21 @@ func newInitStatementBuilder(
 		mysqlquerier: mysqlquerier,
 		jobclient:    jobclient,
 		connclient:   connclient,
+		sqlconnector: sqlconnector,
 	}
 }
 
 func (b *initStatementBuilder) RunSqlInitTableStatements(
 	ctx context.Context,
 	req *RunSqlInitTableStatementsRequest,
-	logger log.Logger,
+	slogger *slog.Logger,
 ) (*RunSqlInitTableStatementsResponse, error) {
-
 	job, err := b.getJobById(ctx, req.JobId)
 	if err != nil {
 		return nil, err
 	}
 
-	var sourceDsn string
+	var sourceConnectionId string
 	var dependencyMap map[string][]string
 	uniqueTables := getUniqueTablesFromMappings(job.Mappings)
 	uniqueSchemas := getUniqueSchemasFromMappings(job.Mappings)
@@ -76,34 +78,34 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		}
 		switch connConfig := sourceConnection.ConnectionConfig.Config.(type) {
 		case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-			dsn, err := getPgDsn(connConfig.PgConfig)
-			if err != nil {
-				return nil, err
-			}
-			if _, ok := b.pgpool[dsn]; !ok {
-				pool, err := pgxpool.New(ctx, dsn)
+			if _, ok := b.pgpool[sourceConnection.Id]; !ok {
+				pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(connConfig.PgConfig, ptr(uint32(5)), slogger)
 				if err != nil {
 					return nil, err
 				}
-				defer pool.Close()
-				b.pgpool[dsn] = pool
+				pool, err := pgconn.Open(ctx)
+				if err != nil {
+					return nil, err
+				}
+				defer pgconn.Close()
+				b.pgpool[sourceConnection.Id] = pool
 			}
-			sourceDsn = dsn
+			sourceConnectionId = sourceConnection.Id
 
 		case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-			dsn, err := getMysqlDsn(connConfig.MysqlConfig)
-			if err != nil {
-				return nil, err
-			}
-			if _, ok := b.mysqlpool[dsn]; !ok {
-				pool, err := sql.Open("mysql", dsn)
+			if _, ok := b.mysqlpool[sourceConnection.Id]; !ok {
+				conn, err := b.sqlconnector.NewDbFromConnectionConfig(sourceConnection.ConnectionConfig, ptr(uint32(5)), slogger)
 				if err != nil {
 					return nil, err
 				}
-				defer pool.Close()
-				b.mysqlpool[dsn] = pool
+				db, err := conn.Open()
+				if err != nil {
+					return nil, err
+				}
+				defer conn.Close()
+				b.mysqlpool[sourceConnection.Id] = db
 			}
-			sourceDsn = dsn
+			sourceConnectionId = sourceConnection.Id
 		default:
 			return nil, errors.New("unsupported job source connection")
 		}
@@ -113,26 +115,21 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		if err != nil {
 			return nil, err
 		}
-		pgconfig := sourceConnection.ConnectionConfig.GetPgConfig()
-		if pgconfig == nil {
-			return nil, errors.New("source connection is not a postgres config")
-		}
-		dsn, err := getPgDsn(pgconfig)
-		if err != nil {
-			return nil, err
-		}
 
-		sourceDsn = dsn
-
-		if _, ok := b.pgpool[dsn]; !ok {
-			pool, err := pgxpool.New(ctx, dsn)
+		if _, ok := b.pgpool[sourceConnection.Id]; !ok {
+			pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(sourceConnection.ConnectionConfig.GetPgConfig(), ptr(uint32(5)), slogger)
 			if err != nil {
 				return nil, err
 			}
-			defer pool.Close()
-			b.pgpool[dsn] = pool
+			pool, err := pgconn.Open(ctx)
+			if err != nil {
+				return nil, err
+			}
+			defer pgconn.Close()
+			b.pgpool[sourceConnection.Id] = pool
 		}
-		pool := b.pgpool[dsn]
+		pool := b.pgpool[sourceConnection.Id]
+		sourceConnectionId = sourceConnection.Id
 
 		allConstraints, err := dbschemas_postgres.GetAllPostgresFkConstraints(b.pgquerier, ctx, pool, uniqueSchemas)
 		if err != nil {
@@ -146,26 +143,21 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		if err != nil {
 			return nil, err
 		}
-		mysqlconfig := sourceConnection.ConnectionConfig.GetMysqlConfig()
-		if mysqlconfig == nil {
-			return nil, errors.New("source connection is not a mysql config")
-		}
-		dsn, err := getMysqlDsn(mysqlconfig)
-		if err != nil {
-			return nil, err
-		}
 
-		sourceDsn = dsn
-
-		if _, ok := b.mysqlpool[dsn]; !ok {
-			pool, err := sql.Open("mysql", dsn)
+		if _, ok := b.pgpool[sourceConnection.Id]; !ok {
+			conn, err := b.sqlconnector.NewDbFromConnectionConfig(sourceConnection.ConnectionConfig, ptr(uint32(5)), slogger)
 			if err != nil {
 				return nil, err
 			}
-			defer pool.Close()
-			b.mysqlpool[dsn] = pool
+			pool, err := conn.Open()
+			if err != nil {
+				return nil, err
+			}
+			defer conn.Close()
+			b.mysqlpool[sourceConnection.Id] = pool
 		}
-		pool := b.mysqlpool[dsn]
+		pool := b.mysqlpool[sourceConnection.Id]
+		sourceConnectionId = sourceConnection.Id
 
 		allConstraints, err := dbschemas_mysql.GetAllMysqlFkConstraints(b.mysqlquerier, ctx, pool, uniqueSchemas)
 		if err != nil {
@@ -185,11 +177,6 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		}
 		switch connection := destinationConnection.ConnectionConfig.Config.(type) {
 		case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-			dsn, err := getPgDsn(connection.PgConfig)
-			if err != nil {
-				return nil, err
-			}
-
 			truncateBeforeInsert := false
 			truncateCascade := false
 			initSchema := false
@@ -211,8 +198,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 			}
 
 			if job.Source.Options.GetPostgres() != nil || job.Source.Options.GetGenerate() != nil {
-
-				sourcePool := b.pgpool[sourceDsn]
+				sourcePool := b.pgpool[sourceConnectionId]
 				tableInitMap := map[string]string{}
 				for table := range uniqueTables {
 					split := strings.Split(table, ".")
@@ -235,25 +221,25 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				}
 
 				sqlStatement := dbschemas_postgres.GetOrderedPostgresInitStatements(tableInitMap, dependencyMap)
-				pool, err := pgxpool.New(ctx, dsn)
+				pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(connection.PgConfig, ptr(uint32(5)), slogger)
+				if err != nil {
+					return nil, err
+				}
+				pool, err := pgconn.Open(ctx)
 				if err != nil {
 					return nil, err
 				}
 				_, err = pool.Exec(ctx, strings.Join(sqlStatement, "\n"))
 				if err != nil {
+					pgconn.Close()
 					return nil, err
 				}
-				pool.Close()
+				pgconn.Close()
 
 			} else {
 				return nil, errors.New("unable to build destination connection due to unsupported source connection")
 			}
 		case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-			dsn, err := getMysqlDsn(connection.MysqlConfig)
-			if err != nil {
-				return nil, err
-			}
-
 			truncateBeforeInsert := false
 			initSchema := false
 			sqlOpts := destination.Options.GetMysqlOptions()
@@ -272,7 +258,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 			}
 
 			if job.Source.Options.GetMysql() != nil || job.Source.Options.GetGenerate() != nil {
-				sourcePool := b.mysqlpool[sourceDsn]
+				sourcePool := b.mysqlpool[sourceConnectionId]
 				// todo: make this more efficient to reduce amount of times we have to connect to the source database
 				tableInitMap := map[string][]string{}
 				for table := range uniqueTables {
@@ -294,17 +280,27 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				}
 
 				sqlStatements := dbschemas_mysql.GetOrderedMysqlInitStatements(tableInitMap, dependencyMap)
-				pool, err := sql.Open("mysql", dsn)
+				conn, err := b.sqlconnector.NewDbFromConnectionConfig(destinationConnection.ConnectionConfig, ptr(uint32(5)), slogger)
 				if err != nil {
 					return nil, err
 				}
+				pool, err := conn.Open()
+				if err != nil {
+					return nil, err
+				}
+
 				for _, statement := range sqlStatements {
 					_, err = pool.ExecContext(ctx, statement)
 					if err != nil {
+						if err := conn.Close(); err != nil {
+							slogger.Error(err.Error())
+						}
 						return nil, err
 					}
 				}
-				pool.Close()
+				if err := conn.Close(); err != nil {
+					slogger.Error(err.Error())
+				}
 
 			} else {
 				return nil, errors.New("unable to build destination connection due to unsupported source connection")
@@ -444,4 +440,8 @@ func getDependencyMap(td map[string]*dbschemas_utils.TableConstraints, uniqueTab
 		}
 	}
 	return dpMap
+}
+
+func ptr[T any](val T) *T {
+	return &val
 }

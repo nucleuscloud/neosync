@@ -41,10 +41,10 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 
 	var wfActivites *datasync_activities.Activities
 	var bcResp *datasync_activities.GenerateBenthosConfigsResponse
+	logger.Info("executing generate benthos configs activity")
 	err := workflow.ExecuteActivity(ctx, wfActivites.GenerateBenthosConfigs, &datasync_activities.GenerateBenthosConfigsRequest{
-		JobId:      req.JobId,
-		WorkflowId: wfinfo.WorkflowExecution.ID,
-	}).Get(ctx, &bcResp)
+		JobId: req.JobId,
+	}, workflowMetadata).Get(ctx, &bcResp)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		return &WorkflowResponse{}, nil
 	}
 
-	logger.Info("running init statements in job destinations")
+	logger.Info("executing running init statements in job destinations activity")
 	var resp *datasync_activities.RunSqlInitTableStatementsResponse
 	err = workflow.ExecuteActivity(ctx, wfActivites.RunSqlInitTableStatements, &datasync_activities.RunSqlInitTableStatementsRequest{
 		JobId:      req.JobId,
@@ -157,7 +157,7 @@ func invokeSync(
 		err = workflow.ExecuteActivity(
 			ctx,
 			wfActivites.Sync,
-			&datasync_activities.SyncRequest{BenthosConfig: string(configbits)}, metadata, workflowMetadata).Get(ctx, &result)
+			&datasync_activities.SyncRequest{BenthosConfig: string(configbits), BenthosDsns: config.BenthosDsns}, metadata, workflowMetadata).Get(ctx, &result)
 		tn := fmt.Sprintf("%s.%s", config.TableSchema, config.TableName)
 		_, ok := completed[tn]
 		if ok {

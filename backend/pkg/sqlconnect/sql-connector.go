@@ -67,10 +67,16 @@ type PgPool struct {
 	logger           *slog.Logger
 
 	connectionTimeout *uint32
+
+	dsn string
+}
+
+func (s *PgPool) GetDsn() string {
+	return s.dsn
 }
 
 func (s *PgPool) Open(ctx context.Context) (pg_queries.DBTX, error) {
-	details, err := getConnectionDetails(&mgmtv1alpha1.ConnectionConfig{
+	details, err := GetConnectionDetails(&mgmtv1alpha1.ConnectionConfig{
 		Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
 			PgConfig: s.connectionConfig,
 		},
@@ -78,28 +84,32 @@ func (s *PgPool) Open(ctx context.Context) (pg_queries.DBTX, error) {
 	if err != nil {
 		return nil, err
 	}
-	if details.tunnel != nil {
-		ready, err := details.tunnel.Start()
+	if details.Tunnel != nil {
+		ready, err := details.Tunnel.Start()
 		if err != nil {
 			return nil, err
 		}
 		<-ready
-		newPort := int32(details.tunnel.Local.Port)
+		newPort := int32(details.Tunnel.Local.Port)
 		details.GeneralDbConnectConfig.Port = newPort
-		db, err := pgxpool.New(ctx, details.GeneralDbConnectConfig.String())
+		dsn := details.GeneralDbConnectConfig.String()
+		db, err := pgxpool.New(ctx, dsn)
 		if err != nil {
 			return nil, err
 		}
+		s.dsn = dsn
 		s.pool = db
-		s.tunnel = details.tunnel
+		s.tunnel = details.Tunnel
 		return db, nil
 	}
 
-	db, err := pgxpool.New(ctx, details.GeneralDbConnectConfig.String())
+	dsn := details.GeneralDbConnectConfig.String()
+	db, err := pgxpool.New(ctx, dsn)
 	if err != nil {
 		return nil, err
 	}
 	s.pool = db
+	s.dsn = dsn
 	return db, nil
 }
 
@@ -107,6 +117,7 @@ func (s *PgPool) Close() {
 	if s.pool == nil {
 		return
 	}
+	s.dsn = ""
 	db := s.pool
 	s.pool = nil
 	db.Close()
@@ -125,36 +136,46 @@ type SqlDb struct {
 	logger           *slog.Logger
 
 	connectionTimeout *uint32
+
+	dsn string
 }
 
 func (s *SqlDb) Open() (SqlDBTX, error) {
-	details, err := getConnectionDetails(s.connectionConfig, s.connectionTimeout, s.logger)
+	details, err := GetConnectionDetails(s.connectionConfig, s.connectionTimeout, s.logger)
 	if err != nil {
 		return nil, err
 	}
-	if details.tunnel != nil {
-		ready, err := details.tunnel.Start()
+	if details.Tunnel != nil {
+		ready, err := details.Tunnel.Start()
 		if err != nil {
 			return nil, err
 		}
 		<-ready
 
-		newPort := int32(details.tunnel.Local.Port)
+		newPort := int32(details.Tunnel.Local.Port)
 		details.GeneralDbConnectConfig.Port = newPort
-		db, err := sql.Open(details.GeneralDbConnectConfig.Driver, details.GeneralDbConnectConfig.String())
+		dsn := details.GeneralDbConnectConfig.String()
+		db, err := sql.Open(details.GeneralDbConnectConfig.Driver, dsn)
 		if err != nil {
 			return nil, err
 		}
 		s.db = db
-		s.tunnel = details.tunnel
+		s.dsn = dsn
+		s.tunnel = details.Tunnel
 		return db, nil
 	}
-	db, err := sql.Open(details.GeneralDbConnectConfig.Driver, details.GeneralDbConnectConfig.String())
+	dsn := details.GeneralDbConnectConfig.String()
+	db, err := sql.Open(details.GeneralDbConnectConfig.Driver, dsn)
 	s.db = db
 	if err != nil {
 		return nil, err
 	}
+	s.dsn = dsn
 	return db, nil
+}
+
+func (s *SqlDb) GetDsn() string {
+	return s.dsn
 }
 
 func (s *SqlDb) Close() error {
@@ -162,6 +183,7 @@ func (s *SqlDb) Close() error {
 		return nil
 	}
 	db := s.db
+	s.dsn = ""
 	s.db = nil
 	err := db.Close()
 	if s.tunnel != nil {
@@ -171,10 +193,10 @@ func (s *SqlDb) Close() error {
 	return err
 }
 
-type connectionDetails struct {
+type ConnectionDetails struct {
 	GeneralDbConnectConfig
 
-	tunnel *sshtunnel.Sshtunnel
+	Tunnel *sshtunnel.Sshtunnel
 }
 
 const (
@@ -184,7 +206,7 @@ const (
 	randomPort     = 0
 )
 
-func getConnectionDetails(c *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (*connectionDetails, error) {
+func GetConnectionDetails(c *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (*ConnectionDetails, error) {
 	switch config := c.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		if config.PgConfig.Tunnel != nil {
@@ -218,8 +240,8 @@ func getConnectionDetails(c *mgmtv1alpha1.ConnectionConfig, connectionTimeout *u
 			}
 			connDetails.Host = localhost
 			connDetails.Port = randomPort
-			return &connectionDetails{
-				tunnel:                 tunnel,
+			return &ConnectionDetails{
+				Tunnel:                 tunnel,
 				GeneralDbConnectConfig: *connDetails,
 			}, nil
 		}
@@ -228,7 +250,7 @@ func getConnectionDetails(c *mgmtv1alpha1.ConnectionConfig, connectionTimeout *u
 		if err != nil {
 			return nil, err
 		}
-		return &connectionDetails{
+		return &ConnectionDetails{
 			GeneralDbConnectConfig: *connDetails,
 		}, nil
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
@@ -263,8 +285,8 @@ func getConnectionDetails(c *mgmtv1alpha1.ConnectionConfig, connectionTimeout *u
 			}
 			connDetails.Host = localhost
 			connDetails.Port = randomPort
-			return &connectionDetails{
-				tunnel:                 tunnel,
+			return &ConnectionDetails{
+				Tunnel:                 tunnel,
 				GeneralDbConnectConfig: *connDetails,
 			}, nil
 		}
@@ -273,7 +295,7 @@ func getConnectionDetails(c *mgmtv1alpha1.ConnectionConfig, connectionTimeout *u
 		if err != nil {
 			return nil, err
 		}
-		return &connectionDetails{
+		return &ConnectionDetails{
 			GeneralDbConnectConfig: *connDetails,
 		}, nil
 	default:

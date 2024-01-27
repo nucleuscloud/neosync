@@ -116,7 +116,7 @@ message AwsS3DestinationConnectionOptions {}
 
 message CreateJobRequest {
   string account_id = 1 [(buf.validate.field).string.uuid = true];
-  string job_name = 2;
+  string job_name = 2 [(buf.validate.field).string.min_len = 1];
   optional string cron_schedule = 3;
   repeated JobMapping mappings = 4;
   JobSource source = 5;
