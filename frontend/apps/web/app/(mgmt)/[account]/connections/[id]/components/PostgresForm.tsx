@@ -154,7 +154,14 @@ export default function PostgresForm(props: Props) {
               </FormLabel>
               <FormDescription>The database port.</FormDescription>
               <FormControl>
-                <Input placeholder="5432" {...field} />
+                <Input
+                  type="number"
+                  placeholder="5432"
+                  {...field}
+                  onChange={(e) => {
+                    field.onChange(e.target.valueAsNumber);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -208,7 +215,7 @@ export default function PostgresForm(props: Props) {
               </FormLabel>
               <FormDescription>The database password</FormDescription>
               <FormControl>
-                <Input placeholder="postgres" {...field} />
+                <Input type="password" placeholder="postgres" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
