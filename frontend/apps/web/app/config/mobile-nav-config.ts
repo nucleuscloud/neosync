@@ -11,6 +11,10 @@ export function getMobileMainNav(
       href: `/${accountName}/jobs`,
     },
     {
+      title: 'Runs',
+      href: `/${accountName}/runs`,
+    },
+    {
       title: 'Transformers',
       href: `/${accountName}/transformers`,
     },

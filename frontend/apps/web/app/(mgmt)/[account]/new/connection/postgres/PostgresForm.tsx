@@ -23,6 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import {
@@ -39,6 +41,10 @@ import {
   IsConnectionNameAvailableResponse,
   PostgresConnection,
   PostgresConnectionConfig,
+  SSHAuthentication,
+  SSHPassphrase,
+  SSHPrivateKey,
+  SSHTunnel,
 } from '@neosync/sdk';
 import {
   CheckCircledIcon,
@@ -52,6 +58,7 @@ export default function PostgresForm() {
   const { account } = useAccount();
   const form = useForm<PostgresFormValues>({
     resolver: yupResolver(POSTGRES_FORM_SCHEMA),
+    mode: 'onChange',
     defaultValues: {
       connectionName: '',
       db: {
@@ -61,6 +68,14 @@ export default function PostgresForm() {
         pass: 'postgres',
         port: 5432,
         sslMode: 'disable',
+      },
+      tunnel: {
+        host: '',
+        port: 22,
+        knownHostPublicKey: '',
+        user: '',
+        passphrase: '',
+        privateKey: '',
       },
     },
     context: { accountId: account?.id ?? '' },
@@ -82,7 +97,8 @@ export default function PostgresForm() {
       const connection = await createPostgresConnection(
         values.db,
         values.connectionName,
-        account.id
+        account.id,
+        values.tunnel
       );
       toast({
         title: 'Successfully created connection!',
@@ -173,7 +189,14 @@ export default function PostgresForm() {
               </FormLabel>
               <FormDescription>The database port.</FormDescription>
               <FormControl>
-                <Input placeholder="5432" {...field} />
+                <Input
+                  type="number"
+                  placeholder="5432"
+                  {...field}
+                  onChange={(e) => {
+                    field.onChange(e.target.valueAsNumber);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -227,7 +250,7 @@ export default function PostgresForm() {
               </FormLabel>
               <FormDescription>The database password</FormDescription>
               <FormControl>
-                <Input placeholder="postgres" {...field} />
+                <Input type="password" placeholder="postgres" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -268,6 +291,110 @@ export default function PostgresForm() {
             </FormItem>
           )}
         />
+        <Separator />
+        <div className="flex flex-col gap-2">
+          <h2 className="text-xl font-semibold tracking-tight">
+            Bastion Host Configuration
+          </h2>
+          <p>
+            This section is optional and only necessary if your database is not
+            publicly accessible to the internet.
+          </p>
+        </div>
+        <FormField
+          control={form.control}
+          name="tunnel.host"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Host</FormLabel>
+              <FormDescription>
+                The hostname of the bastion server that will be used for SSH
+                tunneling.
+              </FormDescription>
+              <FormControl>
+                <Input placeholder="bastion.example.com" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="tunnel.port"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Port</FormLabel>
+              <FormDescription>
+                The port of the bastion host. Typically this is port 22.
+              </FormDescription>
+              <FormControl>
+                <Input
+                  type="number"
+                  placeholder="22"
+                  {...field}
+                  onChange={(e) => {
+                    field.onChange(e.target.valueAsNumber);
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="tunnel.user"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>User</FormLabel>
+              <FormDescription>
+                The name of the user that will be used to authenticate.
+              </FormDescription>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="tunnel.privateKey"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Private Key</FormLabel>
+              <FormDescription>
+                The private key that will be used to authenticate against the
+                SSH server. If using passphrase auth, provide that in the
+                appropriate field below.
+              </FormDescription>
+              <FormControl>
+                <Textarea {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="tunnel.passphrase"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Passphrase / Private Key Password</FormLabel>
+              <FormDescription>
+                The passphrase that will be used to authenticate with. If the
+                SSH Key provided above is encrypted, provide the password for it
+                here.
+              </FormDescription>
+              <FormControl>
+                <Input type="password" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Separator />
+
         <TestConnectionResult resp={checkResp} />
         <div className="flex flex-row gap-3 justify-between">
           <Button
@@ -278,6 +405,7 @@ export default function PostgresForm() {
               try {
                 const resp = await checkPostgresConnection(
                   form.getValues().db,
+                  form.getValues().tunnel,
                   account?.id ?? ''
                 );
                 setCheckResp(resp);
@@ -375,8 +503,52 @@ function ErrorAlert(props: ErrorAlertProps): ReactElement {
 async function createPostgresConnection(
   db: PostgresFormValues['db'],
   name: string,
-  accountId: string
+  accountId: string,
+  tunnel: PostgresFormValues['tunnel']
 ): Promise<CreateConnectionResponse> {
+  const pgconfig = new PostgresConnectionConfig({
+    connectionConfig: {
+      case: 'connection',
+      value: new PostgresConnection({
+        host: db.host,
+        name: db.name,
+        user: db.user,
+        pass: db.pass,
+        port: db.port,
+        sslMode: db.sslMode,
+      }),
+    },
+  });
+  if (tunnel && tunnel.host) {
+    pgconfig.tunnel = new SSHTunnel({
+      host: tunnel.host,
+      port: tunnel.port,
+      user: tunnel.user,
+      knownHostPublicKey: tunnel.knownHostPublicKey
+        ? tunnel.knownHostPublicKey
+        : undefined,
+    });
+    if (tunnel.privateKey) {
+      pgconfig.tunnel.authentication = new SSHAuthentication({
+        authConfig: {
+          case: 'privateKey',
+          value: new SSHPrivateKey({
+            value: tunnel.privateKey,
+            passphrase: tunnel.passphrase,
+          }),
+        },
+      });
+    } else if (tunnel.passphrase) {
+      pgconfig.tunnel.authentication = new SSHAuthentication({
+        authConfig: {
+          case: 'passphrase',
+          value: new SSHPassphrase({
+            value: tunnel.passphrase,
+          }),
+        },
+      });
+    }
+  }
   const res = await fetch(`/api/accounts/${accountId}/connections`, {
     method: 'POST',
     headers: {
@@ -389,19 +561,7 @@ async function createPostgresConnection(
         connectionConfig: new ConnectionConfig({
           config: {
             case: 'pgConfig',
-            value: new PostgresConnectionConfig({
-              connectionConfig: {
-                case: 'connection',
-                value: new PostgresConnection({
-                  host: db.host,
-                  name: db.name,
-                  user: db.user,
-                  pass: db.pass,
-                  port: db.port,
-                  sslMode: db.sslMode,
-                }),
-              },
-            }),
+            value: pgconfig,
           },
         }),
       })
@@ -416,6 +576,7 @@ async function createPostgresConnection(
 
 async function checkPostgresConnection(
   db: PostgresFormValues['db'],
+  tunnel: PostgresFormValues['tunnel'],
   accountId: string
 ): Promise<CheckConnectionConfigResponse> {
   const res = await fetch(
@@ -425,7 +586,7 @@ async function checkPostgresConnection(
       headers: {
         'content-type': 'application/json',
       },
-      body: JSON.stringify(db),
+      body: JSON.stringify({ db, tunnel }),
     }
   );
   if (!res.ok) {
