@@ -157,7 +157,7 @@ func invokeSync(
 		err = workflow.ExecuteActivity(
 			ctx,
 			wfActivites.Sync,
-			&datasync_activities.SyncRequest{BenthosConfig: string(configbits)}, metadata, workflowMetadata).Get(ctx, &result)
+			&datasync_activities.SyncRequest{BenthosConfig: string(configbits), BenthosDsns: config.BenthosDsns}, metadata, workflowMetadata).Get(ctx, &result)
 		tn := fmt.Sprintf("%s.%s", config.TableSchema, config.TableName)
 		_, ok := completed[tn]
 		if ok {

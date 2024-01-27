@@ -530,8 +530,9 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncM
 				<-ready
 				details.GeneralDbConnectConfig.Host = details.Tunnel.Local.Host
 				details.GeneralDbConnectConfig.Port = int32(details.Tunnel.Local.Port)
+				logger.Info("tunnel is ready, updated configuration host and port", "host", details.Tunnel.Local.Host, "port", details.Tunnel.Local.Port)
 			}
-			envKeyDsnSyncMap.Store(fmt.Sprintf("${%s}", bdns.EnvVarKey), details.GeneralDbConnectConfig.String())
+			envKeyDsnSyncMap.Store(bdns.EnvVarKey, details.GeneralDbConnectConfig.String())
 			return nil
 		})
 	}
@@ -547,12 +548,13 @@ func (a *Activities) Sync(ctx context.Context, req *SyncRequest, metadata *SyncM
 		"benthos", "true",
 	))
 
+	// This must come before SetYaml as otherwise it will not be invoked
+	streambldr.SetEnvVarLookupFunc(getEnvVarLookupFn(envKeyDnsMap))
+
 	err := streambldr.SetYAML(req.BenthosConfig)
 	if err != nil {
 		return nil, fmt.Errorf("unable to convert benthos config to yaml for stream builder: %w", err)
 	}
-
-	streambldr.SetEnvVarLookupFunc(getEnvVarLookupFn(envKeyDnsMap))
 
 	stream, err := streambldr.Build()
 	if err != nil {

@@ -217,7 +217,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		responses = append(responses, sourceResponses...)
 
 		if _, ok := b.mysqlpool[sourceConnection.Id]; !ok {
-			conn, err := b.sqlconnector.NewDbFromConnectionConfig(sourceConnection.ConnectionConfig, nil, slogger)
+			conn, err := b.sqlconnector.NewDbFromConnectionConfig(sourceConnection.ConnectionConfig, ptr(uint32(5)), slogger)
 			if err != nil {
 				return nil, err
 			}
@@ -314,7 +314,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 			switch connection := destinationConnection.ConnectionConfig.Config.(type) {
 			case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-				resp.BenthosDsns = append(resp.BenthosDsns, &BenthosDsn{EnvVarKey: dstEnvVarKey, ConnectionId: destination.Id})
+				resp.BenthosDsns = append(resp.BenthosDsns, &BenthosDsn{EnvVarKey: dstEnvVarKey, ConnectionId: destinationConnection.Id})
 
 				if resp.Config.Input.SqlSelect != nil {
 					colSourceMap := map[string]string{}
