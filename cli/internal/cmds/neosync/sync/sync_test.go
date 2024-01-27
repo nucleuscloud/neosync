@@ -110,9 +110,14 @@ func Test_groupConfigsByDependency(t *testing.T) {
 			assert.Len(t, groups, len(tt.expect))
 			for i, group := range groups {
 				assert.Equal(t, len(group), len(tt.expect[i]))
-				for j, cfg := range group {
-					assert.Equal(t, cfg.Name, tt.expect[i][j].Name)
-					assert.ElementsMatch(t, cfg.DependsOn, tt.expect[i][j].DependsOn)
+				expectedConfigMap := map[string]*benthosConfigResponse{}
+				for _, cfg := range tt.expect[i] {
+					expectedConfigMap[cfg.Name] = cfg
+				}
+				for _, cfg := range group {
+					expect := expectedConfigMap[cfg.Name]
+					assert.NotNil(t, expect)
+					assert.ElementsMatch(t, cfg.DependsOn, expect.DependsOn)
 				}
 			}
 		})
