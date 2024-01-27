@@ -10,14 +10,34 @@ export const POSTGRES_CONNECTION = Yup.object({
   sslMode: Yup.string().optional(),
 });
 
+// todo: need to do better validation here
+export const SSH_TUNNEL_FORM_SCHEMA = Yup.object({
+  host: Yup.string(),
+  port: Yup.number()
+    .min(0)
+    .when('host', (host, schema) => ([host] ? schema.required() : schema)),
+  user: Yup.string().when('host', (values, schema) => {
+    const [host] = values;
+    console.log('value of host', host, schema);
+    return host ? schema.required() : schema;
+  }),
+
+  knownHostPublicKey: Yup.string(),
+
+  privateKey: Yup.string(),
+  passphrase: Yup.string(),
+});
+
 export const NEW_POSTGRES_CONNECTION = Yup.object({
   connectionName: Yup.string().required(),
   connection: POSTGRES_CONNECTION,
+  tunnel: SSH_TUNNEL_FORM_SCHEMA,
 });
 
 export const EXISTING_POSTGRES_CONNECTION = Yup.object({
   id: Yup.string().uuid().required(),
   connection: POSTGRES_CONNECTION,
+  tunnel: SSH_TUNNEL_FORM_SCHEMA,
 });
 
 export const SSL_MODES = [
@@ -102,6 +122,7 @@ export const POSTGRES_FORM_SCHEMA = Yup.object({
     port: Yup.number().integer().positive().required(),
     sslMode: Yup.string().optional(),
   }).required(),
+  tunnel: SSH_TUNNEL_FORM_SCHEMA,
 });
 export type PostgresFormValues = Yup.InferType<typeof POSTGRES_FORM_SCHEMA>;
 

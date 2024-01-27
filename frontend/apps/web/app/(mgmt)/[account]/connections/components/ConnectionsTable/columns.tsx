@@ -47,7 +47,12 @@ export function getColumns(
         return (
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
-              {row.getValue('name')}
+              <NextLink
+                className="hover:underline"
+                href={`/${accountName}/connections/${row.getValue('id')}`}
+              >
+                {row.getValue('name')}
+              </NextLink>
             </span>
           </div>
         );

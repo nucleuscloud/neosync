@@ -2,7 +2,11 @@
 import { CopyButton } from '@/components/CopyButton';
 import ConnectionIcon from '@/components/connections/ConnectionIcon';
 import PageHeader from '@/components/headers/PageHeader';
-import { Connection, UpdateConnectionResponse } from '@neosync/sdk';
+import {
+  Connection,
+  SSHAuthentication,
+  UpdateConnectionResponse,
+} from '@neosync/sdk';
 import { ReactElement } from 'react';
 import AwsS3Form from './AwsS3Form';
 import MysqlForm from './MysqlForm';
@@ -67,6 +71,24 @@ export function getConnectionComponentDetails(
                     user: value.connectionConfig.value.user,
                     pass: value.connectionConfig.value.pass,
                     sslMode: value.connectionConfig.value.sslMode,
+                  },
+                  tunnel: {
+                    host: value.tunnel?.host ?? '',
+                    port: value.tunnel?.port ?? 22,
+                    knownHostPublicKey: value.tunnel?.knownHostPublicKey ?? '',
+                    user: value.tunnel?.user ?? '',
+                    passphrase:
+                      value.tunnel && value.tunnel.authentication
+                        ? getPassphraseFromSshAuthentication(
+                            value.tunnel.authentication
+                          ) ?? ''
+                        : '',
+                    privateKey:
+                      value.tunnel && value.tunnel.authentication
+                        ? getPrivateKeyFromSshAuthentication(
+                            value.tunnel.authentication
+                          ) ?? ''
+                        : '',
                   },
                 }}
                 onSaved={(resp) => onSaved(resp)}
@@ -229,5 +251,29 @@ export function getConnectionComponentDetails(
           </div>
         ),
       };
+  }
+}
+
+function getPassphraseFromSshAuthentication(
+  sshauth: SSHAuthentication
+): string | undefined {
+  switch (sshauth.authConfig.case) {
+    case 'passphrase':
+      return sshauth.authConfig.value.value;
+    case 'privateKey':
+      return sshauth.authConfig.value.passphrase;
+    default:
+      return undefined;
+  }
+}
+
+function getPrivateKeyFromSshAuthentication(
+  sshauth: SSHAuthentication
+): string | undefined {
+  switch (sshauth.authConfig.case) {
+    case 'privateKey':
+      return sshauth.authConfig.value.value;
+    default:
+      return undefined;
   }
 }
