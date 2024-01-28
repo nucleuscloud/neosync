@@ -42,11 +42,11 @@ migrations:
 resources:
   # These are low-usage defaults. Change these depending on your needs.
   requests:
-    cpu: '100m'
-    memory: '128Mi'
+    cpu: "100m"
+    memory: "128Mi"
   limits:
-    cpu: '300m'
-    memory: '384Mi'
+    cpu: "300m"
+    memory: "384Mi"
 
 autoscaling:
   enabled: true
@@ -103,3 +103,6 @@ kubernetes:
   enabled: false
   namespace: neosync
   workerAppName: neosync-worker
+
+ingress:
+  enabled: false
