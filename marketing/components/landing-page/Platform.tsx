@@ -68,14 +68,14 @@ export default function Platform(): ReactElement {
       <div className="text-gray-200 font-semibold text-2xl lg:text-4xl font-satoshi text-center">
         A Modern Platform to Protect Your Data
       </div>
-      <div className=" p-6 lg:p-10 border border-gray-400 rounded-xl mt-10 shadow-lg">
+      <div className=" p-6 lg:p-10 border border-gray-300 rounded-xl mt-10 shadow-lg">
         <Tabs defaultValue="orchestration">
-          <TabsList className="w-full">
+          <TabsList className="w-full bg-transparent  ">
             <div className="border border-gray-500 rounded-lg p-2 justify-center flex lg:flex-row flex-col lg:gap-4 ">
               {tabs.map((tab) => (
                 <TabsTrigger
                   value={tab.key}
-                  className="data-[state=active]:bg-gray-900 data-[state=active]:text-gray-100"
+                  className="data-[state=active]:bg-gray-300 data-[state=active]:text-gray-950"
                   key={tab.key}
                 >
                   {tab.name}
@@ -88,9 +88,9 @@ export default function Platform(): ReactElement {
               <TabsContent value={tab.key} className="pt-10" key={tab.key}>
                 <div className="flex flex-col lg:flex-row justify-start gap-6 lg:gap-20">
                   <div className="flex flex-col gap-2">
-                    <div>{tab.description}</div>
+                    <div className="text-gray-300">{tab.description}</div>
                     <div className="pt-10">
-                      <div className="flex flex-col gap-4">
+                      <div className="flex flex-col gap-4 text-gray-300">
                         {tab.usecases.map((item) => (
                           <div
                             className="flex flex-row items-center gap-4"
