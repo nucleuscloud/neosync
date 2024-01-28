@@ -2,15 +2,14 @@
 
 import {
   ColumnDef,
-  ColumnFiltersState,
   Row,
   SortingState,
   VisibilityState,
   flexRender,
   getCoreRowModel,
+  getExpandedRowModel,
   getFacetedRowModel,
   getFacetedUniqueValues,
-  getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
@@ -36,12 +35,8 @@ interface DataTableProps {
 }
 
 export function DataTable({ columns, data, isError }: DataTableProps) {
-  const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({ error: isError, id: false });
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  );
   const [sorting, setSorting] = React.useState<SortingState>([]);
   React.useEffect(() => {
     setColumnVisibility({ error: isError });
@@ -56,21 +51,17 @@ export function DataTable({ columns, data, isError }: DataTableProps) {
     state: {
       sorting,
       columnVisibility,
-      rowSelection,
-      columnFilters,
       pagination: { pageIndex: pagination, pageSize: pageSize },
     },
-    enableRowSelection: true,
-    onRowSelectionChange: setRowSelection,
+    getRowCanExpand: () => true,
     onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
+    getExpandedRowModel: getExpandedRowModel(),
   });
 
   return (
