@@ -7,7 +7,7 @@ export default function AuditSection(): ReactElement {
   return (
     <div className="flex flex-col pt-20 lg:pt-40 items-center">
       <GradientTag tagValue={'Security and Compliance'} />
-      <div className="pt-10 text-center z-3 text-gray-900 font-semibold  text-2xl lg:text-5xlfont-satoshi z-10">
+      <div className="pt-10 text-center z-3 text-gray-900 font-semibold  text-2xl lg:text-4xlfont-satoshi z-10">
         Access Controls and Audit Logs for Compliance and Security
       </div>
       <div className="flex flex-col lg:flex-row px-1 lg:px-5 pt-10 space-y-5 lg:space-x-5 lg:space-y-0 z-1 items-center z-10">

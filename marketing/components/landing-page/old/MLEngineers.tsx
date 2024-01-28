@@ -46,7 +46,7 @@ export default function MLEngineers(): ReactElement {
             </Badge>
           </div>
           <div className="flex flex-col lg:flex-row gap-8 pt-6 ">
-            <div className="text-gray-900 font-semibold text-2xl lg:text-5xl font-satoshi z-10  ">
+            <div className="text-gray-900 font-semibold text-2xl lg:text-4xl font-satoshi z-10  ">
               Generate Data for Any Schema
             </div>
             <div className="flex flex-col lg:flex-row space-y-4 lg:space-y-0 items-center justify-between gap-x-20 pt-10">

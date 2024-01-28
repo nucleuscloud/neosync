@@ -35,7 +35,7 @@ export default function FeaturesCopy(): ReactElement {
       <div className="pt-5 lg:pt-40 px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto ">
         <div className="bg-gradient-to-tr from-[#0F0F0F] to-[#2e2e2e] rounded-xl p-8 shadow-xl ">
           <div className=" flex flex-col px-6">
-            <div className="text-gray-100 font-semibold text-2xl lg:text-5xl font-satoshi text-center">
+            <div className="text-gray-100 font-semibold text-2xl lg:text-4xl font-satoshi text-center">
               Built for Security and Scalability
             </div>
             <div className="text-lg text-gray-300 font-satoshi font-semibold pt-8 px-40 text-center">

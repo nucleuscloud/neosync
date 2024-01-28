@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 export default function Transformers(): ReactElement {
   return (
     <div>
-      <div className="text-gray-900 font-semibold text-2xl lg:text-5xl font-satoshi text-center">
+      <div className="text-gray-900 font-semibold text-2xl lg:text-4xl font-satoshi text-center">
         The Most Flexible Way to Transform Your Data
       </div>
       <div className="text-lg text-gray-600 font-satoshi font-semibold pt-10 lg:px-60 text-center">

@@ -18,7 +18,7 @@ export default function Footer(): ReactElement {
         <div className="p-10 border border-[#484848] bg-[#282828] rounded-xl mt-10 justify-center">
           <div className="flex flex-col lg:flex-row gap-10 items-cener">
             <div className="flex flex-col gap-6 ">
-              <div className="font-satoshi text-3xl lg:text-5xl text-gray-100">
+              <div className="font-satoshi text-3xl lg:text-4xl text-gray-100">
                 Join our Community
               </div>
               <div className="font-satoshi text-xl text-gray-400 lg:w-[80%]">

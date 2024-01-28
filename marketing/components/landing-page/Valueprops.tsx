@@ -35,7 +35,7 @@ export default function ValueProps(): ReactElement {
   return (
     <div>
       <div className="px-6">
-        <div className="text-gray-900 font-semibold text-2xl lg:text-5xl font-satoshi text-center">
+        <div className="text-gray-900 font-semibold text-2xl lg:text-4xl font-satoshi text-center">
           Protect Your Sensitive Data, Build Faster with Neosync
         </div>
       </div>

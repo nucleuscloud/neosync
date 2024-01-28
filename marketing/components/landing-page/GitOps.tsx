@@ -80,7 +80,7 @@ export default function GitOpsSection(): ReactElement {
   return (
     <div className="bg-[#F5F5F5] pt-20">
       <div className="flex flex-col items-center lg:py-40 bg-[#F5F5F5]  pt-5 lg:pt-40 px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto">
-        <div className="text-gray-900 font-semibold  text-2xl lg:text-5xl font-satoshi z-10 w-full">
+        <div className="text-gray-900 font-semibold  text-2xl lg:text-4xl font-satoshi z-10 w-full">
           Synthetic Data meets GitOps
         </div>
         <div className="flex flex-col lg:flex-row p-4 mt-10 border border-gray-400 shadow-lg rounded-xl text-gray-200 bg-white">

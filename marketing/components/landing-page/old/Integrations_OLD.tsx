@@ -89,7 +89,7 @@ export default function IntegrationSection(): ReactElement {
   return (
     <div className="flex flex-col justify-center items-center pt-10 lg:pt-20">
       <GradientTag tagValue={'Integrations'} />
-      <div className="pt-10 text-center z-3 text-gray-900 font-semibold  text-2xl lg:text-5xl font-satoshi">
+      <div className="pt-10 text-center z-3 text-gray-900 font-semibold  text-2xl lg:text-4xl font-satoshi">
         Easily integrate your existing tools and workflows
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-12 pt-20 z-10">
