@@ -67,6 +67,3 @@ neosyncCloud:
   enabled: false
 
 enableRunLogs: false
-
-ingress:
-  enabled: false
