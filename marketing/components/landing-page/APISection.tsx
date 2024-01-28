@@ -42,7 +42,7 @@ export default function APISection(): ReactElement {
   return (
     <div className="flex flex-col items-center justify-center pt-20 lg:pt-40">
       <GradientTag tagValue={'Developers'} />
-      <div className="pt-10 text-center text-gray-900 font-semibold  text-2xl lg:text-5xl font-satoshi z-10">
+      <div className="pt-10 text-center text-gray-900 font-semibold  text-2xl lg:text-4xl font-satoshi z-10">
         Designed and Built for Developers
       </div>
       <div className="flex flex-col-reverse lg:flex-row p-4 mt-10 border-2 border-gray-700 bg-gradient-to-tr from-[#0F0F0F] to-[#191919] shadow-lg z-1 rounded-xl text-gray-200 z-10">

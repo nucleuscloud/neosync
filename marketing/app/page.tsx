@@ -13,22 +13,24 @@ export default function Home(): ReactElement {
       <div className="py-20 bg-[#FFFFFF] border-b border-b-gray-200">
         <Hero />
       </div>
-      <div className="bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto">
-        <div className="pt-20 lg:pt-40">
-          <ValueProps />
+      <div className="bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-autopt-20 lg:pt-40">
+        <ValueProps />
+      </div>
+      <div className="bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-autopt-20 lg:pt-40">
+        <UseNeosync />
+      </div>
+      <div className="bg-[#1E1E1E]">
+        <div className=" px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto">
+          <div className="pt-20 lg:pt-40">
+            <Platform />
+          </div>
+          <div className="pt-20 lg:pt-40">
+            <EngineeringTeams />
+          </div>
         </div>
-        <div className="pt-20 lg:pt-40">
-          <UseNeosync />
-        </div>
-        <div className="pt-20 lg:pt-40">
-          <Platform />
-        </div>
-        <div className="pt-20 lg:pt-40">
-          <EngineeringTeams />
-        </div>
-        <div className="py-20 lg:pt-40">
-          <CTA />
-        </div>
+      </div>
+      <div className="bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto pt-20 lg:pt-40">
+        <CTA />
       </div>
     </div>
   );

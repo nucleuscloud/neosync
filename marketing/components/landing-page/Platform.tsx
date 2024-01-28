@@ -65,7 +65,7 @@ export default function Platform(): ReactElement {
 
   return (
     <div>
-      <div className="text-gray-900 font-semibold text-2xl lg:text-5xl font-satoshi text-center">
+      <div className="text-gray-200 font-semibold text-2xl lg:text-4xl font-satoshi text-center">
         A Modern Platform to Protect Your Data
       </div>
       <div className=" p-6 lg:p-10 border border-gray-400 rounded-xl mt-10 shadow-lg">

@@ -48,7 +48,7 @@ you're ready, deploy Neosync using a Helm Chart or Docker
   return (
     <div>
       <div className="px-6">
-        <div className="text-gray-900 font-semibold text-2xl lg:text-5xl font-satoshi text-center">
+        <div className="text-gray-900 font-semibold text-2xl lg:text-4xl font-satoshi text-center">
           Get Up and Running in Minutes
         </div>
         <div className="text-lg text-gray-600 font-satoshi font-semibold pt-10 lg:px-60 text-center">

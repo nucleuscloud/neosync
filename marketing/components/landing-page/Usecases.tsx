@@ -84,7 +84,7 @@ export default function UseCases(): ReactElement {
   return (
     <div className="bg-[#F5F5F5] pt-20">
       <div className="flex flex-col pt-5 lg:pt-40  bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto">
-        <div className="text-gray-900 font-semibold  text-2xl lg:text-5xl font-satoshi z-10  ">
+        <div className="text-gray-900 font-semibold  text-2xl lg:text-4xl font-satoshi z-10  ">
           Synthetic Data Orchestration Built for Developers
         </div>
         <div className="flex flex-col pt-10 z-10 items-center space-y-10">
