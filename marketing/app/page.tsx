@@ -29,7 +29,7 @@ export default function Home(): ReactElement {
           </div>
         </div>
       </div>
-      <div className="bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto pt-20 lg:pt-40">
+      <div className="bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto pt-20 lg:py-40">
         <CTA />
       </div>
     </div>
