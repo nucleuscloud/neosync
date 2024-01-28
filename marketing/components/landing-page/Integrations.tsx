@@ -4,7 +4,7 @@ import { DiMysql } from 'react-icons/di';
 import { FaAws, FaDocker } from 'react-icons/fa';
 import { SiKubernetes, SiPostgresql } from 'react-icons/si';
 
-export default function EngineeringTeams(): ReactElement {
+export default function Intergrations(): ReactElement {
   const integrations = [
     {
       name: 'Postgres',
@@ -48,7 +48,7 @@ export default function EngineeringTeams(): ReactElement {
             {integrations.map((item) => (
               <div
                 key={item.name}
-                className="px-16 py-10 border border-gray-600 rounded-xl"
+                className="px-16 py-10 border border-gray-600 rounded-xl shadow-xl"
               >
                 <div className="flex flex-col gap-4 justify-center items-center">
                   <div>{item.logo}</div>
