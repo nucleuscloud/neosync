@@ -16,17 +16,111 @@ import {
   MenubarMenu,
   MenubarTrigger,
 } from '@/components/ui/menubar';
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from '@/components/ui/navigation-menu';
 import { env } from '@/env';
 import { FireMixpanel } from '@/lib/mixpanel';
+import { cn } from '@/lib/utils';
 import { ArrowRightIcon, GitHubLogoIcon } from '@radix-ui/react-icons';
+import { LucideServerCrash } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ReactElement } from 'react';
+import { ReactElement, ReactNode, forwardRef } from 'react';
+import { AiOutlineCloudSync } from 'react-icons/ai';
 import { FaDiscord } from 'react-icons/fa';
 import { GiHamburgerMenu } from 'react-icons/gi';
+import { GoShieldCheck } from 'react-icons/go';
+import { IoTerminalOutline } from 'react-icons/io5';
 import PrivateBetaForm from '../buttons/PrivateBetaForm';
 import { Button } from '../ui/button';
+
+interface NavLinks {
+  title: string;
+  href: string;
+  description: string;
+  icon?: JSX.Element;
+  children: NavLinks[];
+}
+
+const links: NavLinks[] = [
+  {
+    title: 'About',
+    href: '/about',
+    description: '',
+    children: [],
+  },
+  {
+    title: 'Solutions',
+    href: '/solutions',
+    description: 'Solutions that Neosync can deliver',
+    children: [
+      {
+        title: 'Unblock local development',
+        href: '/unblock-local-development',
+        description:
+          'Self-serve anonymized and synthetic data for local development',
+        children: [],
+        icon: <IoTerminalOutline className="w-8 h-8" />,
+      },
+      {
+        title: 'Fix broken staging environments',
+        href: '/fix-staging-environments',
+        description: 'Catch bugs faster with production-like data in staging',
+        children: [],
+        icon: <LucideServerCrash className="w-8 h-8" />,
+      },
+      {
+        title: 'Keep environments up to date',
+        href: '/keep-environments-in-sync',
+        description:
+          'Effortlessly keep environments in sync with the latest data',
+        children: [],
+        icon: <AiOutlineCloudSync className="w-8 h-8" />,
+      },
+      {
+        title: 'Comply with Security and Privacy',
+        href: '/comply-security-privacy',
+        description: 'Easily comply with GDPR, HIPAA, DPDP and more',
+        children: [],
+        icon: <GoShieldCheck className="w-8 h-8" />,
+      },
+    ],
+  },
+  {
+    title: 'Docs',
+    href: 'https://docs.neosync.dev',
+    description: '',
+    children: [],
+  },
+  {
+    title: 'Blog',
+    href: `${env.NEXT_PUBLIC_APP_URL}/blog`,
+    description: '',
+    children: [],
+  },
+  {
+    title: '',
+    href: 'https://github.com/nucleuscloud/neosync',
+    description: '',
+    icon: <GitHubLogoIcon className="h-4 w-4" />,
+    children: [],
+  },
+  {
+    title: '',
+    href: 'https://discord.gg/UVmPTzn7dV',
+    description: '',
+    icon: <FaDiscord className=" h-5 w-5" />,
+    children: [],
+  },
+];
 
 export default function TopNav(): ReactElement {
   return (
@@ -45,108 +139,89 @@ export default function TopNav(): ReactElement {
           </span>
         </Link>
       </div>
-      <div className="hidden items-center md:flex lg:flex lg:flex-row gap-4">
-        <div>
-          <Button
-            variant="navLink"
-            onClick={() => {
-              FireMixpanel('About Section', {
-                source: 'top-nav',
-                type: 'about section',
-              });
-            }}
-          >
-            <Link href="/about">
-              <div className="flex flex-row">About</div>
-            </Link>
-          </Button>
-        </div>
-        <div className="flex items-center">
-          <Button
-            variant="navLink"
-            onClick={() => {
-              FireMixpanel('docs', {
-                source: 'top-nav',
-                type: 'docs section',
-              });
-            }}
-          >
-            <Link href="https://docs.neosync.dev">
-              <div className="flex flex-row">Docs</div>
-            </Link>
-          </Button>
-        </div>
-        <div className="flex items-center">
-          <Button
-            variant="navLink"
-            onClick={() => {
-              FireMixpanel('blog', {
-                source: 'top-nav',
-                type: 'blog section',
-              });
-            }}
-          >
-            <Link href={`${env.NEXT_PUBLIC_APP_URL}/blog`}>
-              <div className="flex flex-row">Blog</div>
-            </Link>
-          </Button>
-        </div>
-        <div>
-          <Button
-            variant="navLink"
-            onClick={() => {
-              FireMixpanel('github button', {
-                source: 'top-nav',
-                type: 'github button',
-              });
-            }}
-          >
-            <Link href="https://github.com/nucleuscloud/neosync">
-              <div className="flex flex-row items-center">
-                <GitHubLogoIcon className="h-4 w-4" />
+      <NavigationMenu>
+        <NavigationMenuList>
+          {links.map((link) =>
+            link.children.length > 0 ? (
+              <NavigationMenuItem
+                key={link.href}
+                onClick={() =>
+                  FireMixpanel(`${link.title}`, {
+                    source: 'top-nav',
+                    type: 'click',
+                  })
+                }
+              >
+                <NavigationMenuTrigger>{link.title}</NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                    {link.children.map((sublink) => (
+                      <ListItem
+                        key={sublink.title}
+                        title={sublink.title}
+                        href={sublink.href}
+                        icon={sublink.icon}
+                      >
+                        {sublink.description}
+                      </ListItem>
+                    ))}
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+            ) : (
+              <NavigationMenuItem
+                key={link.href}
+                onClick={() =>
+                  FireMixpanel(`${link.title}`, {
+                    source: 'top-nav',
+                    type: 'click',
+                  })
+                }
+              >
+                <Link href={link.href} passHref legacyBehavior>
+                  <NavigationMenuLink
+                    className={navigationMenuTriggerStyle()}
+                    target="_blank"
+                  >
+                    {link.title ? link.title : link.icon}
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+            )
+          )}
+        </NavigationMenuList>
+      </NavigationMenu>
+      <div>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="default">
+              Neosync Cloud <ArrowRightIcon className="ml-2 h-5 w-5" />
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-lg bg-white  p-6 shadow-xl">
+            <DialogHeader>
+              <div className="flex justify-center pt-10">
+                <Image
+                  src="https://assets.nucleuscloud.com/neosync/newbrand/logo_text_light_mode.svg"
+                  alt="NeosyncLogo"
+                  width="118"
+                  height="30"
+                />
               </div>
-            </Link>
-          </Button>
-        </div>
-        <div>
-          <Button variant="navLink">
-            <Link href="https://discord.gg/UVmPTzn7dV">
-              <FaDiscord className=" h-5 w-5" />
-            </Link>
-          </Button>
-        </div>
-        <div>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="default">
-                Neosync Cloud <ArrowRightIcon className="ml-2 h-5 w-5" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-lg bg-white  p-6 shadow-xl">
-              <DialogHeader>
-                <div className="flex justify-center pt-10">
-                  <Image
-                    src="https://assets.nucleuscloud.com/neosync/newbrand/logo_text_light_mode.svg"
-                    alt="NeosyncLogo"
-                    width="118"
-                    height="30"
-                  />
-                </div>
-                <DialogTitle className="text-gray-900 text-2xl text-center pt-10">
-                  Join the Neosync Cloud Private Beta
-                </DialogTitle>
-                <DialogDescription className="pt-6 text-gray-900 text-md text-center">
-                  Want to use Neosync but don&apos;t want to host it yourself?
-                  Sign up for the private beta of Neosync Cloud and get an
-                  environment.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="flex items-center space-x-2">
-                <PrivateBetaForm />
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+              <DialogTitle className="text-gray-900 text-2xl text-center pt-10">
+                Join the Neosync Cloud Private Beta
+              </DialogTitle>
+              <DialogDescription className="pt-6 text-gray-900 text-md text-center">
+                Want to use Neosync but don&apos;t want to host it yourself?
+                Sign up for the private beta of Neosync Cloud and get an
+                environment.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex items-center space-x-2">
+              <PrivateBetaForm />
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
       <MobileMenu />
     </div>
@@ -255,3 +330,42 @@ function MobileMenu(): ReactElement {
     </div>
   );
 }
+
+interface ListItemProps {
+  title: string;
+  href: string;
+  icon?: JSX.Element;
+  children: ReactNode;
+  className?: string;
+}
+
+const ListItem = forwardRef<HTMLAnchorElement, ListItemProps>(
+  ({ className, title, href, icon, children }, ref) => {
+    return (
+      <li>
+        <NavigationMenuLink asChild>
+          <a
+            ref={ref}
+            href={href}
+            className={cn(
+              'block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
+              className
+            )}
+          >
+            <div className="flex flex-row items-center gap-4 ">
+              {icon && icon}
+              <div className="flex flex-col gap-2">
+                <div className="text-sm font-medium leading-none">{title}</div>
+                <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                  {children}
+                </p>
+              </div>
+            </div>
+          </a>
+        </NavigationMenuLink>
+      </li>
+    );
+  }
+);
+
+ListItem.displayName = 'ListItem';
