@@ -18,7 +18,6 @@ export const SSH_TUNNEL_FORM_SCHEMA = Yup.object({
     .when('host', (host, schema) => ([host] ? schema.required() : schema)),
   user: Yup.string().when('host', (values, schema) => {
     const [host] = values;
-    console.log('value of host', host, schema);
     return host ? schema.required() : schema;
   }),
 

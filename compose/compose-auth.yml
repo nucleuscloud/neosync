@@ -23,6 +23,7 @@ services:
       - AUTH_AUTHORIZE_URL=http://localhost:8083/realms/neosync/protocol/openid-connect/auth
       - AUTH_USERINFO_URL=http://keycloak:8080/realms/neosync/protocol/openid-connect/userinfo
       - AUTH_TOKEN_URL=http://keycloak:8080/realms/neosync/protocol/openid-connect/token
+      - AUTH_LOGOUT_URL=http://keycloak:8080/realms/neosync/protocol/openid-connect/logout
 
       - AUTH_CLIENT_ID=neosync-app
       - AUTH_CLIENT_SECRET=72alWGzhHInDskRHduTQ8BjB4Lgn0n3a
