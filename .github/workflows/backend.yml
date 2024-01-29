@@ -43,7 +43,7 @@ jobs:
           echo "BUF_VERSION=$VER" >> $GITHUB_ENV
 
       - name: Setup Buf
-        uses: bufbuild/buf-setup-action@v1.28.1
+        uses: bufbuild/buf-setup-action@v1.29.0
         with:
           version: ${{ env.BUF_VERSION }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
