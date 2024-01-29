@@ -49,11 +49,31 @@ interface OAuthConfig {
   authorizeUrl?: string;
   userInfoUrl?: string;
   tokenUrl?: string;
+  logoutUrl?: string;
 
   clientId: string;
   clientSecret?: string;
   audience: string;
   scope: string;
+}
+
+export async function getLogoutUrl(): Promise<string | undefined> {
+  const oauthconfig = getOAuthConfig();
+  if (!oauthconfig) {
+    console.warn('there is no oauthconfig defined, unable to find logout url');
+    return undefined;
+  }
+  if (oauthconfig.logoutUrl) {
+    return oauthconfig.logoutUrl;
+  }
+  const oidcConfig = await getOpenIdConfiguration(oauthconfig.issuer);
+  if (oidcConfig.end_session_endpoint) {
+    return oidcConfig.end_session_endpoint;
+  }
+  console.warn(
+    'oidc configuration well known did not provide an end session endpoint'
+  );
+  return undefined;
 }
 
 function getOAuthConfig(): OAuthConfig | null {
@@ -84,6 +104,7 @@ function getOAuthConfig(): OAuthConfig | null {
 
     authorizeUrl: process.env.AUTH_AUTHORIZE_URL,
     userInfoUrl: process.env.AUTH_USERINFO_URL,
+    logoutUrl: process.env.AUTH_LOGOUT_URL,
     tokenUrl: process.env.AUTH_TOKEN_URL,
   };
 }
@@ -102,11 +123,13 @@ export const {
   callbacks: {
     session: async ({ session, token }) => {
       session.accessToken = (token as any).accessToken; // eslint-disable-line @typescript-eslint/no-explicit-any
+      session.idToken = (token as any).idToken; // eslint-disable-line @typescript-eslint/no-explicit-any
       return session;
     },
     jwt: async ({ token, account }) => {
       // Persist the OAuth access_token and or the user id to the token right after signin
       if (account) {
+        token.idToken = account.id_token;
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
         token.expiresAt = account.expires_at;
@@ -167,6 +190,7 @@ interface OidcConfiguration {
   authorization_endpoint: string;
   token_endpoint: string;
   userinfo_endpoint: string;
+  end_session_endpoint?: string;
   jwks_uri: string;
 }
 
@@ -197,6 +221,7 @@ async function getOpenIdConfiguration(
 declare module 'next-auth' {
   export interface Session {
     accessToken: string;
+    idToken: string;
   }
 }
 
