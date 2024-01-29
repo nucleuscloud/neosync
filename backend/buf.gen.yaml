@@ -7,25 +7,25 @@ managed:
       - buf.build/bufbuild/protovalidate
       - buf.build/googleapis/googleapis
 plugins:
-  - plugin: buf.build/protocolbuffers/go:v1.31.0
+  - plugin: buf.build/protocolbuffers/go:v1.32.0
     out: gen/go/protos
     opt:
       - paths=source_relative
-  - plugin: buf.build/connectrpc/go:v1.11.1
+  - plugin: buf.build/connectrpc/go:v1.14.0
     out: gen/go/protos
     opt:
       - paths=source_relative
-  - plugin: buf.build/bufbuild/validate-go:v1.0.2
+  - plugin: buf.build/bufbuild/validate-go:v1.0.4
     out: gen/go/protos
     opt:
       - paths=source_relative
 
-  - plugin: buf.build/bufbuild/es:v1.3.1
+  - plugin: buf.build/bufbuild/es:v1.7.1
     out: gen/es/protos
     opt:
       - target=ts
       - import_extension=.js
-  - plugin: buf.build/connectrpc/es:v1.0.0
+  - plugin: buf.build/connectrpc/es:v1.3.0
     out: gen/es/protos
     opt:
       - target=ts

@@ -18,7 +18,7 @@ import (
 // generated with a version of connect newer than the one compiled into your binary. You can fix the
 // problem by either regenerating this code with an older version of connect or updating the connect
 // version compiled into your binary.
-const _ = connect.IsAtLeastVersion0_1_0
+const _ = connect.IsAtLeastVersion1_13_0
 
 const (
 	// AuthServiceName is the fully-qualified name of the AuthService service.
@@ -48,6 +48,17 @@ const (
 	// AuthServiceGetAuthStatusProcedure is the fully-qualified name of the AuthService's GetAuthStatus
 	// RPC.
 	AuthServiceGetAuthStatusProcedure = "/mgmt.v1alpha1.AuthService/GetAuthStatus"
+)
+
+// These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
+var (
+	authServiceServiceDescriptor               = v1alpha1.File_mgmt_v1alpha1_auth_proto.Services().ByName("AuthService")
+	authServiceLoginCliMethodDescriptor        = authServiceServiceDescriptor.Methods().ByName("LoginCli")
+	authServiceRefreshCliMethodDescriptor      = authServiceServiceDescriptor.Methods().ByName("RefreshCli")
+	authServiceCheckTokenMethodDescriptor      = authServiceServiceDescriptor.Methods().ByName("CheckToken")
+	authServiceGetCliIssuerMethodDescriptor    = authServiceServiceDescriptor.Methods().ByName("GetCliIssuer")
+	authServiceGetAuthorizeUrlMethodDescriptor = authServiceServiceDescriptor.Methods().ByName("GetAuthorizeUrl")
+	authServiceGetAuthStatusMethodDescriptor   = authServiceServiceDescriptor.Methods().ByName("GetAuthStatus")
 )
 
 // AuthServiceClient is a client for the mgmt.v1alpha1.AuthService service.
@@ -82,32 +93,38 @@ func NewAuthServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 		loginCli: connect.NewClient[v1alpha1.LoginCliRequest, v1alpha1.LoginCliResponse](
 			httpClient,
 			baseURL+AuthServiceLoginCliProcedure,
-			opts...,
+			connect.WithSchema(authServiceLoginCliMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		refreshCli: connect.NewClient[v1alpha1.RefreshCliRequest, v1alpha1.RefreshCliResponse](
 			httpClient,
 			baseURL+AuthServiceRefreshCliProcedure,
-			opts...,
+			connect.WithSchema(authServiceRefreshCliMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		checkToken: connect.NewClient[v1alpha1.CheckTokenRequest, v1alpha1.CheckTokenResponse](
 			httpClient,
 			baseURL+AuthServiceCheckTokenProcedure,
-			opts...,
+			connect.WithSchema(authServiceCheckTokenMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		getCliIssuer: connect.NewClient[v1alpha1.GetCliIssuerRequest, v1alpha1.GetCliIssuerResponse](
 			httpClient,
 			baseURL+AuthServiceGetCliIssuerProcedure,
-			opts...,
+			connect.WithSchema(authServiceGetCliIssuerMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		getAuthorizeUrl: connect.NewClient[v1alpha1.GetAuthorizeUrlRequest, v1alpha1.GetAuthorizeUrlResponse](
 			httpClient,
 			baseURL+AuthServiceGetAuthorizeUrlProcedure,
-			opts...,
+			connect.WithSchema(authServiceGetAuthorizeUrlMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		getAuthStatus: connect.NewClient[v1alpha1.GetAuthStatusRequest, v1alpha1.GetAuthStatusResponse](
 			httpClient,
 			baseURL+AuthServiceGetAuthStatusProcedure,
-			opts...,
+			connect.WithSchema(authServiceGetAuthStatusMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 	}
 }
@@ -180,32 +197,38 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 	authServiceLoginCliHandler := connect.NewUnaryHandler(
 		AuthServiceLoginCliProcedure,
 		svc.LoginCli,
-		opts...,
+		connect.WithSchema(authServiceLoginCliMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	authServiceRefreshCliHandler := connect.NewUnaryHandler(
 		AuthServiceRefreshCliProcedure,
 		svc.RefreshCli,
-		opts...,
+		connect.WithSchema(authServiceRefreshCliMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	authServiceCheckTokenHandler := connect.NewUnaryHandler(
 		AuthServiceCheckTokenProcedure,
 		svc.CheckToken,
-		opts...,
+		connect.WithSchema(authServiceCheckTokenMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	authServiceGetCliIssuerHandler := connect.NewUnaryHandler(
 		AuthServiceGetCliIssuerProcedure,
 		svc.GetCliIssuer,
-		opts...,
+		connect.WithSchema(authServiceGetCliIssuerMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	authServiceGetAuthorizeUrlHandler := connect.NewUnaryHandler(
 		AuthServiceGetAuthorizeUrlProcedure,
 		svc.GetAuthorizeUrl,
-		opts...,
+		connect.WithSchema(authServiceGetAuthorizeUrlMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	authServiceGetAuthStatusHandler := connect.NewUnaryHandler(
 		AuthServiceGetAuthStatusProcedure,
 		svc.GetAuthStatus,
-		opts...,
+		connect.WithSchema(authServiceGetAuthStatusMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	return "/mgmt.v1alpha1.AuthService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {

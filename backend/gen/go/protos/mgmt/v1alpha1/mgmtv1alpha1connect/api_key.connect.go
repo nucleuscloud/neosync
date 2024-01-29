@@ -18,7 +18,7 @@ import (
 // generated with a version of connect newer than the one compiled into your binary. You can fix the
 // problem by either regenerating this code with an older version of connect or updating the connect
 // version compiled into your binary.
-const _ = connect.IsAtLeastVersion0_1_0
+const _ = connect.IsAtLeastVersion1_13_0
 
 const (
 	// ApiKeyServiceName is the fully-qualified name of the ApiKeyService service.
@@ -50,6 +50,16 @@ const (
 	ApiKeyServiceDeleteAccountApiKeyProcedure = "/mgmt.v1alpha1.ApiKeyService/DeleteAccountApiKey"
 )
 
+// These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
+var (
+	apiKeyServiceServiceDescriptor                       = v1alpha1.File_mgmt_v1alpha1_api_key_proto.Services().ByName("ApiKeyService")
+	apiKeyServiceGetAccountApiKeysMethodDescriptor       = apiKeyServiceServiceDescriptor.Methods().ByName("GetAccountApiKeys")
+	apiKeyServiceGetAccountApiKeyMethodDescriptor        = apiKeyServiceServiceDescriptor.Methods().ByName("GetAccountApiKey")
+	apiKeyServiceCreateAccountApiKeyMethodDescriptor     = apiKeyServiceServiceDescriptor.Methods().ByName("CreateAccountApiKey")
+	apiKeyServiceRegenerateAccountApiKeyMethodDescriptor = apiKeyServiceServiceDescriptor.Methods().ByName("RegenerateAccountApiKey")
+	apiKeyServiceDeleteAccountApiKeyMethodDescriptor     = apiKeyServiceServiceDescriptor.Methods().ByName("DeleteAccountApiKey")
+)
+
 // ApiKeyServiceClient is a client for the mgmt.v1alpha1.ApiKeyService service.
 type ApiKeyServiceClient interface {
 	// Retrieves a list of Account API Keys
@@ -79,27 +89,32 @@ func NewApiKeyServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 		getAccountApiKeys: connect.NewClient[v1alpha1.GetAccountApiKeysRequest, v1alpha1.GetAccountApiKeysResponse](
 			httpClient,
 			baseURL+ApiKeyServiceGetAccountApiKeysProcedure,
-			opts...,
+			connect.WithSchema(apiKeyServiceGetAccountApiKeysMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		getAccountApiKey: connect.NewClient[v1alpha1.GetAccountApiKeyRequest, v1alpha1.GetAccountApiKeyResponse](
 			httpClient,
 			baseURL+ApiKeyServiceGetAccountApiKeyProcedure,
-			opts...,
+			connect.WithSchema(apiKeyServiceGetAccountApiKeyMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		createAccountApiKey: connect.NewClient[v1alpha1.CreateAccountApiKeyRequest, v1alpha1.CreateAccountApiKeyResponse](
 			httpClient,
 			baseURL+ApiKeyServiceCreateAccountApiKeyProcedure,
-			opts...,
+			connect.WithSchema(apiKeyServiceCreateAccountApiKeyMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		regenerateAccountApiKey: connect.NewClient[v1alpha1.RegenerateAccountApiKeyRequest, v1alpha1.RegenerateAccountApiKeyResponse](
 			httpClient,
 			baseURL+ApiKeyServiceRegenerateAccountApiKeyProcedure,
-			opts...,
+			connect.WithSchema(apiKeyServiceRegenerateAccountApiKeyMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		deleteAccountApiKey: connect.NewClient[v1alpha1.DeleteAccountApiKeyRequest, v1alpha1.DeleteAccountApiKeyResponse](
 			httpClient,
 			baseURL+ApiKeyServiceDeleteAccountApiKeyProcedure,
-			opts...,
+			connect.WithSchema(apiKeyServiceDeleteAccountApiKeyMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 	}
 }
@@ -163,27 +178,32 @@ func NewApiKeyServiceHandler(svc ApiKeyServiceHandler, opts ...connect.HandlerOp
 	apiKeyServiceGetAccountApiKeysHandler := connect.NewUnaryHandler(
 		ApiKeyServiceGetAccountApiKeysProcedure,
 		svc.GetAccountApiKeys,
-		opts...,
+		connect.WithSchema(apiKeyServiceGetAccountApiKeysMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	apiKeyServiceGetAccountApiKeyHandler := connect.NewUnaryHandler(
 		ApiKeyServiceGetAccountApiKeyProcedure,
 		svc.GetAccountApiKey,
-		opts...,
+		connect.WithSchema(apiKeyServiceGetAccountApiKeyMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	apiKeyServiceCreateAccountApiKeyHandler := connect.NewUnaryHandler(
 		ApiKeyServiceCreateAccountApiKeyProcedure,
 		svc.CreateAccountApiKey,
-		opts...,
+		connect.WithSchema(apiKeyServiceCreateAccountApiKeyMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	apiKeyServiceRegenerateAccountApiKeyHandler := connect.NewUnaryHandler(
 		ApiKeyServiceRegenerateAccountApiKeyProcedure,
 		svc.RegenerateAccountApiKey,
-		opts...,
+		connect.WithSchema(apiKeyServiceRegenerateAccountApiKeyMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	apiKeyServiceDeleteAccountApiKeyHandler := connect.NewUnaryHandler(
 		ApiKeyServiceDeleteAccountApiKeyProcedure,
 		svc.DeleteAccountApiKey,
-		opts...,
+		connect.WithSchema(apiKeyServiceDeleteAccountApiKeyMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	return "/mgmt.v1alpha1.ApiKeyService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {

@@ -18,7 +18,7 @@ import (
 // generated with a version of connect newer than the one compiled into your binary. You can fix the
 // problem by either regenerating this code with an older version of connect or updating the connect
 // version compiled into your binary.
-const _ = connect.IsAtLeastVersion0_1_0
+const _ = connect.IsAtLeastVersion1_13_0
 
 const (
 	// UserAccountServiceName is the fully-qualified name of the UserAccountService service.
@@ -83,6 +83,27 @@ const (
 	UserAccountServiceGetSystemInformationProcedure = "/mgmt.v1alpha1.UserAccountService/GetSystemInformation"
 )
 
+// These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
+var (
+	userAccountServiceServiceDescriptor                            = v1alpha1.File_mgmt_v1alpha1_user_account_proto.Services().ByName("UserAccountService")
+	userAccountServiceGetUserMethodDescriptor                      = userAccountServiceServiceDescriptor.Methods().ByName("GetUser")
+	userAccountServiceSetUserMethodDescriptor                      = userAccountServiceServiceDescriptor.Methods().ByName("SetUser")
+	userAccountServiceGetUserAccountsMethodDescriptor              = userAccountServiceServiceDescriptor.Methods().ByName("GetUserAccounts")
+	userAccountServiceSetPersonalAccountMethodDescriptor           = userAccountServiceServiceDescriptor.Methods().ByName("SetPersonalAccount")
+	userAccountServiceConvertPersonalToTeamAccountMethodDescriptor = userAccountServiceServiceDescriptor.Methods().ByName("ConvertPersonalToTeamAccount")
+	userAccountServiceCreateTeamAccountMethodDescriptor            = userAccountServiceServiceDescriptor.Methods().ByName("CreateTeamAccount")
+	userAccountServiceIsUserInAccountMethodDescriptor              = userAccountServiceServiceDescriptor.Methods().ByName("IsUserInAccount")
+	userAccountServiceGetAccountTemporalConfigMethodDescriptor     = userAccountServiceServiceDescriptor.Methods().ByName("GetAccountTemporalConfig")
+	userAccountServiceSetAccountTemporalConfigMethodDescriptor     = userAccountServiceServiceDescriptor.Methods().ByName("SetAccountTemporalConfig")
+	userAccountServiceGetTeamAccountMembersMethodDescriptor        = userAccountServiceServiceDescriptor.Methods().ByName("GetTeamAccountMembers")
+	userAccountServiceRemoveTeamAccountMemberMethodDescriptor      = userAccountServiceServiceDescriptor.Methods().ByName("RemoveTeamAccountMember")
+	userAccountServiceInviteUserToTeamAccountMethodDescriptor      = userAccountServiceServiceDescriptor.Methods().ByName("InviteUserToTeamAccount")
+	userAccountServiceGetTeamAccountInvitesMethodDescriptor        = userAccountServiceServiceDescriptor.Methods().ByName("GetTeamAccountInvites")
+	userAccountServiceRemoveTeamAccountInviteMethodDescriptor      = userAccountServiceServiceDescriptor.Methods().ByName("RemoveTeamAccountInvite")
+	userAccountServiceAcceptTeamAccountInviteMethodDescriptor      = userAccountServiceServiceDescriptor.Methods().ByName("AcceptTeamAccountInvite")
+	userAccountServiceGetSystemInformationMethodDescriptor         = userAccountServiceServiceDescriptor.Methods().ByName("GetSystemInformation")
+)
+
 // UserAccountServiceClient is a client for the mgmt.v1alpha1.UserAccountService service.
 type UserAccountServiceClient interface {
 	GetUser(context.Context, *connect.Request[v1alpha1.GetUserRequest]) (*connect.Response[v1alpha1.GetUserResponse], error)
@@ -116,82 +137,98 @@ func NewUserAccountServiceClient(httpClient connect.HTTPClient, baseURL string, 
 		getUser: connect.NewClient[v1alpha1.GetUserRequest, v1alpha1.GetUserResponse](
 			httpClient,
 			baseURL+UserAccountServiceGetUserProcedure,
-			opts...,
+			connect.WithSchema(userAccountServiceGetUserMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		setUser: connect.NewClient[v1alpha1.SetUserRequest, v1alpha1.SetUserResponse](
 			httpClient,
 			baseURL+UserAccountServiceSetUserProcedure,
-			opts...,
+			connect.WithSchema(userAccountServiceSetUserMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		getUserAccounts: connect.NewClient[v1alpha1.GetUserAccountsRequest, v1alpha1.GetUserAccountsResponse](
 			httpClient,
 			baseURL+UserAccountServiceGetUserAccountsProcedure,
-			opts...,
+			connect.WithSchema(userAccountServiceGetUserAccountsMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		setPersonalAccount: connect.NewClient[v1alpha1.SetPersonalAccountRequest, v1alpha1.SetPersonalAccountResponse](
 			httpClient,
 			baseURL+UserAccountServiceSetPersonalAccountProcedure,
-			opts...,
+			connect.WithSchema(userAccountServiceSetPersonalAccountMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		convertPersonalToTeamAccount: connect.NewClient[v1alpha1.ConvertPersonalToTeamAccountRequest, v1alpha1.ConvertPersonalToTeamAccountResponse](
 			httpClient,
 			baseURL+UserAccountServiceConvertPersonalToTeamAccountProcedure,
-			opts...,
+			connect.WithSchema(userAccountServiceConvertPersonalToTeamAccountMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		createTeamAccount: connect.NewClient[v1alpha1.CreateTeamAccountRequest, v1alpha1.CreateTeamAccountResponse](
 			httpClient,
 			baseURL+UserAccountServiceCreateTeamAccountProcedure,
-			opts...,
+			connect.WithSchema(userAccountServiceCreateTeamAccountMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		isUserInAccount: connect.NewClient[v1alpha1.IsUserInAccountRequest, v1alpha1.IsUserInAccountResponse](
 			httpClient,
 			baseURL+UserAccountServiceIsUserInAccountProcedure,
-			opts...,
+			connect.WithSchema(userAccountServiceIsUserInAccountMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		getAccountTemporalConfig: connect.NewClient[v1alpha1.GetAccountTemporalConfigRequest, v1alpha1.GetAccountTemporalConfigResponse](
 			httpClient,
 			baseURL+UserAccountServiceGetAccountTemporalConfigProcedure,
-			opts...,
+			connect.WithSchema(userAccountServiceGetAccountTemporalConfigMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		setAccountTemporalConfig: connect.NewClient[v1alpha1.SetAccountTemporalConfigRequest, v1alpha1.SetAccountTemporalConfigResponse](
 			httpClient,
 			baseURL+UserAccountServiceSetAccountTemporalConfigProcedure,
-			opts...,
+			connect.WithSchema(userAccountServiceSetAccountTemporalConfigMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		getTeamAccountMembers: connect.NewClient[v1alpha1.GetTeamAccountMembersRequest, v1alpha1.GetTeamAccountMembersResponse](
 			httpClient,
 			baseURL+UserAccountServiceGetTeamAccountMembersProcedure,
-			opts...,
+			connect.WithSchema(userAccountServiceGetTeamAccountMembersMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		removeTeamAccountMember: connect.NewClient[v1alpha1.RemoveTeamAccountMemberRequest, v1alpha1.RemoveTeamAccountMemberResponse](
 			httpClient,
 			baseURL+UserAccountServiceRemoveTeamAccountMemberProcedure,
-			opts...,
+			connect.WithSchema(userAccountServiceRemoveTeamAccountMemberMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		inviteUserToTeamAccount: connect.NewClient[v1alpha1.InviteUserToTeamAccountRequest, v1alpha1.InviteUserToTeamAccountResponse](
 			httpClient,
 			baseURL+UserAccountServiceInviteUserToTeamAccountProcedure,
-			opts...,
+			connect.WithSchema(userAccountServiceInviteUserToTeamAccountMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		getTeamAccountInvites: connect.NewClient[v1alpha1.GetTeamAccountInvitesRequest, v1alpha1.GetTeamAccountInvitesResponse](
 			httpClient,
 			baseURL+UserAccountServiceGetTeamAccountInvitesProcedure,
-			opts...,
+			connect.WithSchema(userAccountServiceGetTeamAccountInvitesMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		removeTeamAccountInvite: connect.NewClient[v1alpha1.RemoveTeamAccountInviteRequest, v1alpha1.RemoveTeamAccountInviteResponse](
 			httpClient,
 			baseURL+UserAccountServiceRemoveTeamAccountInviteProcedure,
-			opts...,
+			connect.WithSchema(userAccountServiceRemoveTeamAccountInviteMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		acceptTeamAccountInvite: connect.NewClient[v1alpha1.AcceptTeamAccountInviteRequest, v1alpha1.AcceptTeamAccountInviteResponse](
 			httpClient,
 			baseURL+UserAccountServiceAcceptTeamAccountInviteProcedure,
-			opts...,
+			connect.WithSchema(userAccountServiceAcceptTeamAccountInviteMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		getSystemInformation: connect.NewClient[v1alpha1.GetSystemInformationRequest, v1alpha1.GetSystemInformationResponse](
 			httpClient,
 			baseURL+UserAccountServiceGetSystemInformationProcedure,
-			opts...,
+			connect.WithSchema(userAccountServiceGetSystemInformationMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 	}
 }
@@ -325,82 +362,98 @@ func NewUserAccountServiceHandler(svc UserAccountServiceHandler, opts ...connect
 	userAccountServiceGetUserHandler := connect.NewUnaryHandler(
 		UserAccountServiceGetUserProcedure,
 		svc.GetUser,
-		opts...,
+		connect.WithSchema(userAccountServiceGetUserMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	userAccountServiceSetUserHandler := connect.NewUnaryHandler(
 		UserAccountServiceSetUserProcedure,
 		svc.SetUser,
-		opts...,
+		connect.WithSchema(userAccountServiceSetUserMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	userAccountServiceGetUserAccountsHandler := connect.NewUnaryHandler(
 		UserAccountServiceGetUserAccountsProcedure,
 		svc.GetUserAccounts,
-		opts...,
+		connect.WithSchema(userAccountServiceGetUserAccountsMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	userAccountServiceSetPersonalAccountHandler := connect.NewUnaryHandler(
 		UserAccountServiceSetPersonalAccountProcedure,
 		svc.SetPersonalAccount,
-		opts...,
+		connect.WithSchema(userAccountServiceSetPersonalAccountMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	userAccountServiceConvertPersonalToTeamAccountHandler := connect.NewUnaryHandler(
 		UserAccountServiceConvertPersonalToTeamAccountProcedure,
 		svc.ConvertPersonalToTeamAccount,
-		opts...,
+		connect.WithSchema(userAccountServiceConvertPersonalToTeamAccountMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	userAccountServiceCreateTeamAccountHandler := connect.NewUnaryHandler(
 		UserAccountServiceCreateTeamAccountProcedure,
 		svc.CreateTeamAccount,
-		opts...,
+		connect.WithSchema(userAccountServiceCreateTeamAccountMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	userAccountServiceIsUserInAccountHandler := connect.NewUnaryHandler(
 		UserAccountServiceIsUserInAccountProcedure,
 		svc.IsUserInAccount,
-		opts...,
+		connect.WithSchema(userAccountServiceIsUserInAccountMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	userAccountServiceGetAccountTemporalConfigHandler := connect.NewUnaryHandler(
 		UserAccountServiceGetAccountTemporalConfigProcedure,
 		svc.GetAccountTemporalConfig,
-		opts...,
+		connect.WithSchema(userAccountServiceGetAccountTemporalConfigMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	userAccountServiceSetAccountTemporalConfigHandler := connect.NewUnaryHandler(
 		UserAccountServiceSetAccountTemporalConfigProcedure,
 		svc.SetAccountTemporalConfig,
-		opts...,
+		connect.WithSchema(userAccountServiceSetAccountTemporalConfigMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	userAccountServiceGetTeamAccountMembersHandler := connect.NewUnaryHandler(
 		UserAccountServiceGetTeamAccountMembersProcedure,
 		svc.GetTeamAccountMembers,
-		opts...,
+		connect.WithSchema(userAccountServiceGetTeamAccountMembersMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	userAccountServiceRemoveTeamAccountMemberHandler := connect.NewUnaryHandler(
 		UserAccountServiceRemoveTeamAccountMemberProcedure,
 		svc.RemoveTeamAccountMember,
-		opts...,
+		connect.WithSchema(userAccountServiceRemoveTeamAccountMemberMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	userAccountServiceInviteUserToTeamAccountHandler := connect.NewUnaryHandler(
 		UserAccountServiceInviteUserToTeamAccountProcedure,
 		svc.InviteUserToTeamAccount,
-		opts...,
+		connect.WithSchema(userAccountServiceInviteUserToTeamAccountMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	userAccountServiceGetTeamAccountInvitesHandler := connect.NewUnaryHandler(
 		UserAccountServiceGetTeamAccountInvitesProcedure,
 		svc.GetTeamAccountInvites,
-		opts...,
+		connect.WithSchema(userAccountServiceGetTeamAccountInvitesMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	userAccountServiceRemoveTeamAccountInviteHandler := connect.NewUnaryHandler(
 		UserAccountServiceRemoveTeamAccountInviteProcedure,
 		svc.RemoveTeamAccountInvite,
-		opts...,
+		connect.WithSchema(userAccountServiceRemoveTeamAccountInviteMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	userAccountServiceAcceptTeamAccountInviteHandler := connect.NewUnaryHandler(
 		UserAccountServiceAcceptTeamAccountInviteProcedure,
 		svc.AcceptTeamAccountInvite,
-		opts...,
+		connect.WithSchema(userAccountServiceAcceptTeamAccountInviteMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	userAccountServiceGetSystemInformationHandler := connect.NewUnaryHandler(
 		UserAccountServiceGetSystemInformationProcedure,
 		svc.GetSystemInformation,
-		opts...,
+		connect.WithSchema(userAccountServiceGetSystemInformationMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	return "/mgmt.v1alpha1.UserAccountService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {

@@ -18,7 +18,7 @@ import (
 // generated with a version of connect newer than the one compiled into your binary. You can fix the
 // problem by either regenerating this code with an older version of connect or updating the connect
 // version compiled into your binary.
-const _ = connect.IsAtLeastVersion0_1_0
+const _ = connect.IsAtLeastVersion1_13_0
 
 const (
 	// ConnectionDataServiceName is the fully-qualified name of the ConnectionDataService service.
@@ -48,6 +48,16 @@ const (
 	// ConnectionDataServiceGetConnectionInitStatementsProcedure is the fully-qualified name of the
 	// ConnectionDataService's GetConnectionInitStatements RPC.
 	ConnectionDataServiceGetConnectionInitStatementsProcedure = "/mgmt.v1alpha1.ConnectionDataService/GetConnectionInitStatements"
+)
+
+// These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
+var (
+	connectionDataServiceServiceDescriptor                               = v1alpha1.File_mgmt_v1alpha1_connection_data_proto.Services().ByName("ConnectionDataService")
+	connectionDataServiceGetConnectionDataStreamMethodDescriptor         = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionDataStream")
+	connectionDataServiceGetConnectionSchemaMethodDescriptor             = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionSchema")
+	connectionDataServiceGetConnectionForeignConstraintsMethodDescriptor = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionForeignConstraints")
+	connectionDataServiceGetConnectionPrimaryConstraintsMethodDescriptor = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionPrimaryConstraints")
+	connectionDataServiceGetConnectionInitStatementsMethodDescriptor     = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionInitStatements")
 )
 
 // ConnectionDataServiceClient is a client for the mgmt.v1alpha1.ConnectionDataService service.
@@ -81,27 +91,32 @@ func NewConnectionDataServiceClient(httpClient connect.HTTPClient, baseURL strin
 		getConnectionDataStream: connect.NewClient[v1alpha1.GetConnectionDataStreamRequest, v1alpha1.GetConnectionDataStreamResponse](
 			httpClient,
 			baseURL+ConnectionDataServiceGetConnectionDataStreamProcedure,
-			opts...,
+			connect.WithSchema(connectionDataServiceGetConnectionDataStreamMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		getConnectionSchema: connect.NewClient[v1alpha1.GetConnectionSchemaRequest, v1alpha1.GetConnectionSchemaResponse](
 			httpClient,
 			baseURL+ConnectionDataServiceGetConnectionSchemaProcedure,
-			opts...,
+			connect.WithSchema(connectionDataServiceGetConnectionSchemaMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		getConnectionForeignConstraints: connect.NewClient[v1alpha1.GetConnectionForeignConstraintsRequest, v1alpha1.GetConnectionForeignConstraintsResponse](
 			httpClient,
 			baseURL+ConnectionDataServiceGetConnectionForeignConstraintsProcedure,
-			opts...,
+			connect.WithSchema(connectionDataServiceGetConnectionForeignConstraintsMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		getConnectionPrimaryConstraints: connect.NewClient[v1alpha1.GetConnectionPrimaryConstraintsRequest, v1alpha1.GetConnectionPrimaryConstraintsResponse](
 			httpClient,
 			baseURL+ConnectionDataServiceGetConnectionPrimaryConstraintsProcedure,
-			opts...,
+			connect.WithSchema(connectionDataServiceGetConnectionPrimaryConstraintsMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		getConnectionInitStatements: connect.NewClient[v1alpha1.GetConnectionInitStatementsRequest, v1alpha1.GetConnectionInitStatementsResponse](
 			httpClient,
 			baseURL+ConnectionDataServiceGetConnectionInitStatementsProcedure,
-			opts...,
+			connect.WithSchema(connectionDataServiceGetConnectionInitStatementsMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 	}
 }
@@ -171,27 +186,32 @@ func NewConnectionDataServiceHandler(svc ConnectionDataServiceHandler, opts ...c
 	connectionDataServiceGetConnectionDataStreamHandler := connect.NewServerStreamHandler(
 		ConnectionDataServiceGetConnectionDataStreamProcedure,
 		svc.GetConnectionDataStream,
-		opts...,
+		connect.WithSchema(connectionDataServiceGetConnectionDataStreamMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	connectionDataServiceGetConnectionSchemaHandler := connect.NewUnaryHandler(
 		ConnectionDataServiceGetConnectionSchemaProcedure,
 		svc.GetConnectionSchema,
-		opts...,
+		connect.WithSchema(connectionDataServiceGetConnectionSchemaMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	connectionDataServiceGetConnectionForeignConstraintsHandler := connect.NewUnaryHandler(
 		ConnectionDataServiceGetConnectionForeignConstraintsProcedure,
 		svc.GetConnectionForeignConstraints,
-		opts...,
+		connect.WithSchema(connectionDataServiceGetConnectionForeignConstraintsMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	connectionDataServiceGetConnectionPrimaryConstraintsHandler := connect.NewUnaryHandler(
 		ConnectionDataServiceGetConnectionPrimaryConstraintsProcedure,
 		svc.GetConnectionPrimaryConstraints,
-		opts...,
+		connect.WithSchema(connectionDataServiceGetConnectionPrimaryConstraintsMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	connectionDataServiceGetConnectionInitStatementsHandler := connect.NewUnaryHandler(
 		ConnectionDataServiceGetConnectionInitStatementsProcedure,
 		svc.GetConnectionInitStatements,
-		opts...,
+		connect.WithSchema(connectionDataServiceGetConnectionInitStatementsMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	return "/mgmt.v1alpha1.ConnectionDataService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {

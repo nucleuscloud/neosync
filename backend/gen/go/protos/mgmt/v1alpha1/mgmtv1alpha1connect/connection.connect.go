@@ -18,7 +18,7 @@ import (
 // generated with a version of connect newer than the one compiled into your binary. You can fix the
 // problem by either regenerating this code with an older version of connect or updating the connect
 // version compiled into your binary.
-const _ = connect.IsAtLeastVersion0_1_0
+const _ = connect.IsAtLeastVersion1_13_0
 
 const (
 	// ConnectionServiceName is the fully-qualified name of the ConnectionService service.
@@ -59,6 +59,19 @@ const (
 	ConnectionServiceCheckSqlQueryProcedure = "/mgmt.v1alpha1.ConnectionService/CheckSqlQuery"
 )
 
+// These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
+var (
+	connectionServiceServiceDescriptor                         = v1alpha1.File_mgmt_v1alpha1_connection_proto.Services().ByName("ConnectionService")
+	connectionServiceGetConnectionsMethodDescriptor            = connectionServiceServiceDescriptor.Methods().ByName("GetConnections")
+	connectionServiceGetConnectionMethodDescriptor             = connectionServiceServiceDescriptor.Methods().ByName("GetConnection")
+	connectionServiceCreateConnectionMethodDescriptor          = connectionServiceServiceDescriptor.Methods().ByName("CreateConnection")
+	connectionServiceUpdateConnectionMethodDescriptor          = connectionServiceServiceDescriptor.Methods().ByName("UpdateConnection")
+	connectionServiceDeleteConnectionMethodDescriptor          = connectionServiceServiceDescriptor.Methods().ByName("DeleteConnection")
+	connectionServiceIsConnectionNameAvailableMethodDescriptor = connectionServiceServiceDescriptor.Methods().ByName("IsConnectionNameAvailable")
+	connectionServiceCheckConnectionConfigMethodDescriptor     = connectionServiceServiceDescriptor.Methods().ByName("CheckConnectionConfig")
+	connectionServiceCheckSqlQueryMethodDescriptor             = connectionServiceServiceDescriptor.Methods().ByName("CheckSqlQuery")
+)
+
 // ConnectionServiceClient is a client for the mgmt.v1alpha1.ConnectionService service.
 type ConnectionServiceClient interface {
 	// Returns a list of connections associated with the account
@@ -94,42 +107,50 @@ func NewConnectionServiceClient(httpClient connect.HTTPClient, baseURL string, o
 		getConnections: connect.NewClient[v1alpha1.GetConnectionsRequest, v1alpha1.GetConnectionsResponse](
 			httpClient,
 			baseURL+ConnectionServiceGetConnectionsProcedure,
-			opts...,
+			connect.WithSchema(connectionServiceGetConnectionsMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		getConnection: connect.NewClient[v1alpha1.GetConnectionRequest, v1alpha1.GetConnectionResponse](
 			httpClient,
 			baseURL+ConnectionServiceGetConnectionProcedure,
-			opts...,
+			connect.WithSchema(connectionServiceGetConnectionMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		createConnection: connect.NewClient[v1alpha1.CreateConnectionRequest, v1alpha1.CreateConnectionResponse](
 			httpClient,
 			baseURL+ConnectionServiceCreateConnectionProcedure,
-			opts...,
+			connect.WithSchema(connectionServiceCreateConnectionMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		updateConnection: connect.NewClient[v1alpha1.UpdateConnectionRequest, v1alpha1.UpdateConnectionResponse](
 			httpClient,
 			baseURL+ConnectionServiceUpdateConnectionProcedure,
-			opts...,
+			connect.WithSchema(connectionServiceUpdateConnectionMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		deleteConnection: connect.NewClient[v1alpha1.DeleteConnectionRequest, v1alpha1.DeleteConnectionResponse](
 			httpClient,
 			baseURL+ConnectionServiceDeleteConnectionProcedure,
-			opts...,
+			connect.WithSchema(connectionServiceDeleteConnectionMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		isConnectionNameAvailable: connect.NewClient[v1alpha1.IsConnectionNameAvailableRequest, v1alpha1.IsConnectionNameAvailableResponse](
 			httpClient,
 			baseURL+ConnectionServiceIsConnectionNameAvailableProcedure,
-			opts...,
+			connect.WithSchema(connectionServiceIsConnectionNameAvailableMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		checkConnectionConfig: connect.NewClient[v1alpha1.CheckConnectionConfigRequest, v1alpha1.CheckConnectionConfigResponse](
 			httpClient,
 			baseURL+ConnectionServiceCheckConnectionConfigProcedure,
-			opts...,
+			connect.WithSchema(connectionServiceCheckConnectionConfigMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		checkSqlQuery: connect.NewClient[v1alpha1.CheckSqlQueryRequest, v1alpha1.CheckSqlQueryResponse](
 			httpClient,
 			baseURL+ConnectionServiceCheckSqlQueryProcedure,
-			opts...,
+			connect.WithSchema(connectionServiceCheckSqlQueryMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 	}
 }
@@ -217,42 +238,50 @@ func NewConnectionServiceHandler(svc ConnectionServiceHandler, opts ...connect.H
 	connectionServiceGetConnectionsHandler := connect.NewUnaryHandler(
 		ConnectionServiceGetConnectionsProcedure,
 		svc.GetConnections,
-		opts...,
+		connect.WithSchema(connectionServiceGetConnectionsMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	connectionServiceGetConnectionHandler := connect.NewUnaryHandler(
 		ConnectionServiceGetConnectionProcedure,
 		svc.GetConnection,
-		opts...,
+		connect.WithSchema(connectionServiceGetConnectionMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	connectionServiceCreateConnectionHandler := connect.NewUnaryHandler(
 		ConnectionServiceCreateConnectionProcedure,
 		svc.CreateConnection,
-		opts...,
+		connect.WithSchema(connectionServiceCreateConnectionMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	connectionServiceUpdateConnectionHandler := connect.NewUnaryHandler(
 		ConnectionServiceUpdateConnectionProcedure,
 		svc.UpdateConnection,
-		opts...,
+		connect.WithSchema(connectionServiceUpdateConnectionMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	connectionServiceDeleteConnectionHandler := connect.NewUnaryHandler(
 		ConnectionServiceDeleteConnectionProcedure,
 		svc.DeleteConnection,
-		opts...,
+		connect.WithSchema(connectionServiceDeleteConnectionMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	connectionServiceIsConnectionNameAvailableHandler := connect.NewUnaryHandler(
 		ConnectionServiceIsConnectionNameAvailableProcedure,
 		svc.IsConnectionNameAvailable,
-		opts...,
+		connect.WithSchema(connectionServiceIsConnectionNameAvailableMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	connectionServiceCheckConnectionConfigHandler := connect.NewUnaryHandler(
 		ConnectionServiceCheckConnectionConfigProcedure,
 		svc.CheckConnectionConfig,
-		opts...,
+		connect.WithSchema(connectionServiceCheckConnectionConfigMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	connectionServiceCheckSqlQueryHandler := connect.NewUnaryHandler(
 		ConnectionServiceCheckSqlQueryProcedure,
 		svc.CheckSqlQuery,
-		opts...,
+		connect.WithSchema(connectionServiceCheckSqlQueryMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	return "/mgmt.v1alpha1.ConnectionService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {

@@ -18,7 +18,7 @@ import (
 // generated with a version of connect newer than the one compiled into your binary. You can fix the
 // problem by either regenerating this code with an older version of connect or updating the connect
 // version compiled into your binary.
-const _ = connect.IsAtLeastVersion0_1_0
+const _ = connect.IsAtLeastVersion1_13_0
 
 const (
 	// JobServiceName is the fully-qualified name of the JobService service.
@@ -96,6 +96,35 @@ const (
 	JobServiceGetJobRunLogsStreamProcedure = "/mgmt.v1alpha1.JobService/GetJobRunLogsStream"
 )
 
+// These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
+var (
+	jobServiceServiceDescriptor                                = v1alpha1.File_mgmt_v1alpha1_job_proto.Services().ByName("JobService")
+	jobServiceGetJobsMethodDescriptor                          = jobServiceServiceDescriptor.Methods().ByName("GetJobs")
+	jobServiceGetJobMethodDescriptor                           = jobServiceServiceDescriptor.Methods().ByName("GetJob")
+	jobServiceCreateJobMethodDescriptor                        = jobServiceServiceDescriptor.Methods().ByName("CreateJob")
+	jobServiceDeleteJobMethodDescriptor                        = jobServiceServiceDescriptor.Methods().ByName("DeleteJob")
+	jobServiceIsJobNameAvailableMethodDescriptor               = jobServiceServiceDescriptor.Methods().ByName("IsJobNameAvailable")
+	jobServiceUpdateJobScheduleMethodDescriptor                = jobServiceServiceDescriptor.Methods().ByName("UpdateJobSchedule")
+	jobServiceUpdateJobSourceConnectionMethodDescriptor        = jobServiceServiceDescriptor.Methods().ByName("UpdateJobSourceConnection")
+	jobServiceSetJobSourceSqlConnectionSubsetsMethodDescriptor = jobServiceServiceDescriptor.Methods().ByName("SetJobSourceSqlConnectionSubsets")
+	jobServiceUpdateJobDestinationConnectionMethodDescriptor   = jobServiceServiceDescriptor.Methods().ByName("UpdateJobDestinationConnection")
+	jobServiceDeleteJobDestinationConnectionMethodDescriptor   = jobServiceServiceDescriptor.Methods().ByName("DeleteJobDestinationConnection")
+	jobServiceCreateJobDestinationConnectionsMethodDescriptor  = jobServiceServiceDescriptor.Methods().ByName("CreateJobDestinationConnections")
+	jobServicePauseJobMethodDescriptor                         = jobServiceServiceDescriptor.Methods().ByName("PauseJob")
+	jobServiceGetJobRecentRunsMethodDescriptor                 = jobServiceServiceDescriptor.Methods().ByName("GetJobRecentRuns")
+	jobServiceGetJobNextRunsMethodDescriptor                   = jobServiceServiceDescriptor.Methods().ByName("GetJobNextRuns")
+	jobServiceGetJobStatusMethodDescriptor                     = jobServiceServiceDescriptor.Methods().ByName("GetJobStatus")
+	jobServiceGetJobStatusesMethodDescriptor                   = jobServiceServiceDescriptor.Methods().ByName("GetJobStatuses")
+	jobServiceGetJobRunsMethodDescriptor                       = jobServiceServiceDescriptor.Methods().ByName("GetJobRuns")
+	jobServiceGetJobRunEventsMethodDescriptor                  = jobServiceServiceDescriptor.Methods().ByName("GetJobRunEvents")
+	jobServiceGetJobRunMethodDescriptor                        = jobServiceServiceDescriptor.Methods().ByName("GetJobRun")
+	jobServiceDeleteJobRunMethodDescriptor                     = jobServiceServiceDescriptor.Methods().ByName("DeleteJobRun")
+	jobServiceCreateJobRunMethodDescriptor                     = jobServiceServiceDescriptor.Methods().ByName("CreateJobRun")
+	jobServiceCancelJobRunMethodDescriptor                     = jobServiceServiceDescriptor.Methods().ByName("CancelJobRun")
+	jobServiceTerminateJobRunMethodDescriptor                  = jobServiceServiceDescriptor.Methods().ByName("TerminateJobRun")
+	jobServiceGetJobRunLogsStreamMethodDescriptor              = jobServiceServiceDescriptor.Methods().ByName("GetJobRunLogsStream")
+)
+
 // JobServiceClient is a client for the mgmt.v1alpha1.JobService service.
 type JobServiceClient interface {
 	GetJobs(context.Context, *connect.Request[v1alpha1.GetJobsRequest]) (*connect.Response[v1alpha1.GetJobsResponse], error)
@@ -142,122 +171,146 @@ func NewJobServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 		getJobs: connect.NewClient[v1alpha1.GetJobsRequest, v1alpha1.GetJobsResponse](
 			httpClient,
 			baseURL+JobServiceGetJobsProcedure,
-			opts...,
+			connect.WithSchema(jobServiceGetJobsMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		getJob: connect.NewClient[v1alpha1.GetJobRequest, v1alpha1.GetJobResponse](
 			httpClient,
 			baseURL+JobServiceGetJobProcedure,
-			opts...,
+			connect.WithSchema(jobServiceGetJobMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		createJob: connect.NewClient[v1alpha1.CreateJobRequest, v1alpha1.CreateJobResponse](
 			httpClient,
 			baseURL+JobServiceCreateJobProcedure,
-			opts...,
+			connect.WithSchema(jobServiceCreateJobMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		deleteJob: connect.NewClient[v1alpha1.DeleteJobRequest, v1alpha1.DeleteJobResponse](
 			httpClient,
 			baseURL+JobServiceDeleteJobProcedure,
-			opts...,
+			connect.WithSchema(jobServiceDeleteJobMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		isJobNameAvailable: connect.NewClient[v1alpha1.IsJobNameAvailableRequest, v1alpha1.IsJobNameAvailableResponse](
 			httpClient,
 			baseURL+JobServiceIsJobNameAvailableProcedure,
-			opts...,
+			connect.WithSchema(jobServiceIsJobNameAvailableMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		updateJobSchedule: connect.NewClient[v1alpha1.UpdateJobScheduleRequest, v1alpha1.UpdateJobScheduleResponse](
 			httpClient,
 			baseURL+JobServiceUpdateJobScheduleProcedure,
-			opts...,
+			connect.WithSchema(jobServiceUpdateJobScheduleMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		updateJobSourceConnection: connect.NewClient[v1alpha1.UpdateJobSourceConnectionRequest, v1alpha1.UpdateJobSourceConnectionResponse](
 			httpClient,
 			baseURL+JobServiceUpdateJobSourceConnectionProcedure,
-			opts...,
+			connect.WithSchema(jobServiceUpdateJobSourceConnectionMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		setJobSourceSqlConnectionSubsets: connect.NewClient[v1alpha1.SetJobSourceSqlConnectionSubsetsRequest, v1alpha1.SetJobSourceSqlConnectionSubsetsResponse](
 			httpClient,
 			baseURL+JobServiceSetJobSourceSqlConnectionSubsetsProcedure,
-			opts...,
+			connect.WithSchema(jobServiceSetJobSourceSqlConnectionSubsetsMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		updateJobDestinationConnection: connect.NewClient[v1alpha1.UpdateJobDestinationConnectionRequest, v1alpha1.UpdateJobDestinationConnectionResponse](
 			httpClient,
 			baseURL+JobServiceUpdateJobDestinationConnectionProcedure,
-			opts...,
+			connect.WithSchema(jobServiceUpdateJobDestinationConnectionMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		deleteJobDestinationConnection: connect.NewClient[v1alpha1.DeleteJobDestinationConnectionRequest, v1alpha1.DeleteJobDestinationConnectionResponse](
 			httpClient,
 			baseURL+JobServiceDeleteJobDestinationConnectionProcedure,
-			opts...,
+			connect.WithSchema(jobServiceDeleteJobDestinationConnectionMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		createJobDestinationConnections: connect.NewClient[v1alpha1.CreateJobDestinationConnectionsRequest, v1alpha1.CreateJobDestinationConnectionsResponse](
 			httpClient,
 			baseURL+JobServiceCreateJobDestinationConnectionsProcedure,
-			opts...,
+			connect.WithSchema(jobServiceCreateJobDestinationConnectionsMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		pauseJob: connect.NewClient[v1alpha1.PauseJobRequest, v1alpha1.PauseJobResponse](
 			httpClient,
 			baseURL+JobServicePauseJobProcedure,
-			opts...,
+			connect.WithSchema(jobServicePauseJobMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		getJobRecentRuns: connect.NewClient[v1alpha1.GetJobRecentRunsRequest, v1alpha1.GetJobRecentRunsResponse](
 			httpClient,
 			baseURL+JobServiceGetJobRecentRunsProcedure,
-			opts...,
+			connect.WithSchema(jobServiceGetJobRecentRunsMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		getJobNextRuns: connect.NewClient[v1alpha1.GetJobNextRunsRequest, v1alpha1.GetJobNextRunsResponse](
 			httpClient,
 			baseURL+JobServiceGetJobNextRunsProcedure,
-			opts...,
+			connect.WithSchema(jobServiceGetJobNextRunsMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		getJobStatus: connect.NewClient[v1alpha1.GetJobStatusRequest, v1alpha1.GetJobStatusResponse](
 			httpClient,
 			baseURL+JobServiceGetJobStatusProcedure,
-			opts...,
+			connect.WithSchema(jobServiceGetJobStatusMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		getJobStatuses: connect.NewClient[v1alpha1.GetJobStatusesRequest, v1alpha1.GetJobStatusesResponse](
 			httpClient,
 			baseURL+JobServiceGetJobStatusesProcedure,
-			opts...,
+			connect.WithSchema(jobServiceGetJobStatusesMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		getJobRuns: connect.NewClient[v1alpha1.GetJobRunsRequest, v1alpha1.GetJobRunsResponse](
 			httpClient,
 			baseURL+JobServiceGetJobRunsProcedure,
-			opts...,
+			connect.WithSchema(jobServiceGetJobRunsMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		getJobRunEvents: connect.NewClient[v1alpha1.GetJobRunEventsRequest, v1alpha1.GetJobRunEventsResponse](
 			httpClient,
 			baseURL+JobServiceGetJobRunEventsProcedure,
-			opts...,
+			connect.WithSchema(jobServiceGetJobRunEventsMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		getJobRun: connect.NewClient[v1alpha1.GetJobRunRequest, v1alpha1.GetJobRunResponse](
 			httpClient,
 			baseURL+JobServiceGetJobRunProcedure,
-			opts...,
+			connect.WithSchema(jobServiceGetJobRunMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		deleteJobRun: connect.NewClient[v1alpha1.DeleteJobRunRequest, v1alpha1.DeleteJobRunResponse](
 			httpClient,
 			baseURL+JobServiceDeleteJobRunProcedure,
-			opts...,
+			connect.WithSchema(jobServiceDeleteJobRunMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		createJobRun: connect.NewClient[v1alpha1.CreateJobRunRequest, v1alpha1.CreateJobRunResponse](
 			httpClient,
 			baseURL+JobServiceCreateJobRunProcedure,
-			opts...,
+			connect.WithSchema(jobServiceCreateJobRunMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		cancelJobRun: connect.NewClient[v1alpha1.CancelJobRunRequest, v1alpha1.CancelJobRunResponse](
 			httpClient,
 			baseURL+JobServiceCancelJobRunProcedure,
-			opts...,
+			connect.WithSchema(jobServiceCancelJobRunMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		terminateJobRun: connect.NewClient[v1alpha1.TerminateJobRunRequest, v1alpha1.TerminateJobRunResponse](
 			httpClient,
 			baseURL+JobServiceTerminateJobRunProcedure,
-			opts...,
+			connect.WithSchema(jobServiceTerminateJobRunMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		getJobRunLogsStream: connect.NewClient[v1alpha1.GetJobRunLogsStreamRequest, v1alpha1.GetJobRunLogsStreamResponse](
 			httpClient,
 			baseURL+JobServiceGetJobRunLogsStreamProcedure,
-			opts...,
+			connect.WithSchema(jobServiceGetJobRunLogsStreamMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 	}
 }
@@ -452,122 +505,146 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 	jobServiceGetJobsHandler := connect.NewUnaryHandler(
 		JobServiceGetJobsProcedure,
 		svc.GetJobs,
-		opts...,
+		connect.WithSchema(jobServiceGetJobsMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceGetJobHandler := connect.NewUnaryHandler(
 		JobServiceGetJobProcedure,
 		svc.GetJob,
-		opts...,
+		connect.WithSchema(jobServiceGetJobMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceCreateJobHandler := connect.NewUnaryHandler(
 		JobServiceCreateJobProcedure,
 		svc.CreateJob,
-		opts...,
+		connect.WithSchema(jobServiceCreateJobMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceDeleteJobHandler := connect.NewUnaryHandler(
 		JobServiceDeleteJobProcedure,
 		svc.DeleteJob,
-		opts...,
+		connect.WithSchema(jobServiceDeleteJobMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceIsJobNameAvailableHandler := connect.NewUnaryHandler(
 		JobServiceIsJobNameAvailableProcedure,
 		svc.IsJobNameAvailable,
-		opts...,
+		connect.WithSchema(jobServiceIsJobNameAvailableMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceUpdateJobScheduleHandler := connect.NewUnaryHandler(
 		JobServiceUpdateJobScheduleProcedure,
 		svc.UpdateJobSchedule,
-		opts...,
+		connect.WithSchema(jobServiceUpdateJobScheduleMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceUpdateJobSourceConnectionHandler := connect.NewUnaryHandler(
 		JobServiceUpdateJobSourceConnectionProcedure,
 		svc.UpdateJobSourceConnection,
-		opts...,
+		connect.WithSchema(jobServiceUpdateJobSourceConnectionMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceSetJobSourceSqlConnectionSubsetsHandler := connect.NewUnaryHandler(
 		JobServiceSetJobSourceSqlConnectionSubsetsProcedure,
 		svc.SetJobSourceSqlConnectionSubsets,
-		opts...,
+		connect.WithSchema(jobServiceSetJobSourceSqlConnectionSubsetsMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceUpdateJobDestinationConnectionHandler := connect.NewUnaryHandler(
 		JobServiceUpdateJobDestinationConnectionProcedure,
 		svc.UpdateJobDestinationConnection,
-		opts...,
+		connect.WithSchema(jobServiceUpdateJobDestinationConnectionMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceDeleteJobDestinationConnectionHandler := connect.NewUnaryHandler(
 		JobServiceDeleteJobDestinationConnectionProcedure,
 		svc.DeleteJobDestinationConnection,
-		opts...,
+		connect.WithSchema(jobServiceDeleteJobDestinationConnectionMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceCreateJobDestinationConnectionsHandler := connect.NewUnaryHandler(
 		JobServiceCreateJobDestinationConnectionsProcedure,
 		svc.CreateJobDestinationConnections,
-		opts...,
+		connect.WithSchema(jobServiceCreateJobDestinationConnectionsMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	jobServicePauseJobHandler := connect.NewUnaryHandler(
 		JobServicePauseJobProcedure,
 		svc.PauseJob,
-		opts...,
+		connect.WithSchema(jobServicePauseJobMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceGetJobRecentRunsHandler := connect.NewUnaryHandler(
 		JobServiceGetJobRecentRunsProcedure,
 		svc.GetJobRecentRuns,
-		opts...,
+		connect.WithSchema(jobServiceGetJobRecentRunsMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceGetJobNextRunsHandler := connect.NewUnaryHandler(
 		JobServiceGetJobNextRunsProcedure,
 		svc.GetJobNextRuns,
-		opts...,
+		connect.WithSchema(jobServiceGetJobNextRunsMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceGetJobStatusHandler := connect.NewUnaryHandler(
 		JobServiceGetJobStatusProcedure,
 		svc.GetJobStatus,
-		opts...,
+		connect.WithSchema(jobServiceGetJobStatusMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceGetJobStatusesHandler := connect.NewUnaryHandler(
 		JobServiceGetJobStatusesProcedure,
 		svc.GetJobStatuses,
-		opts...,
+		connect.WithSchema(jobServiceGetJobStatusesMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceGetJobRunsHandler := connect.NewUnaryHandler(
 		JobServiceGetJobRunsProcedure,
 		svc.GetJobRuns,
-		opts...,
+		connect.WithSchema(jobServiceGetJobRunsMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceGetJobRunEventsHandler := connect.NewUnaryHandler(
 		JobServiceGetJobRunEventsProcedure,
 		svc.GetJobRunEvents,
-		opts...,
+		connect.WithSchema(jobServiceGetJobRunEventsMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceGetJobRunHandler := connect.NewUnaryHandler(
 		JobServiceGetJobRunProcedure,
 		svc.GetJobRun,
-		opts...,
+		connect.WithSchema(jobServiceGetJobRunMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceDeleteJobRunHandler := connect.NewUnaryHandler(
 		JobServiceDeleteJobRunProcedure,
 		svc.DeleteJobRun,
-		opts...,
+		connect.WithSchema(jobServiceDeleteJobRunMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceCreateJobRunHandler := connect.NewUnaryHandler(
 		JobServiceCreateJobRunProcedure,
 		svc.CreateJobRun,
-		opts...,
+		connect.WithSchema(jobServiceCreateJobRunMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceCancelJobRunHandler := connect.NewUnaryHandler(
 		JobServiceCancelJobRunProcedure,
 		svc.CancelJobRun,
-		opts...,
+		connect.WithSchema(jobServiceCancelJobRunMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceTerminateJobRunHandler := connect.NewUnaryHandler(
 		JobServiceTerminateJobRunProcedure,
 		svc.TerminateJobRun,
-		opts...,
+		connect.WithSchema(jobServiceTerminateJobRunMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceGetJobRunLogsStreamHandler := connect.NewServerStreamHandler(
 		JobServiceGetJobRunLogsStreamProcedure,
 		svc.GetJobRunLogsStream,
-		opts...,
+		connect.WithSchema(jobServiceGetJobRunLogsStreamMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	return "/mgmt.v1alpha1.JobService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
