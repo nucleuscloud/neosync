@@ -9,7 +9,7 @@ require (
 	connectrpc.com/grpchealth v1.3.0
 	connectrpc.com/grpcreflect v1.2.0
 	github.com/benthosdev/benthos/v4 v4.24.0
-	github.com/google/uuid v1.5.0
+	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.5.2
 	github.com/nucleuscloud/neosync/backend v0.0.0-20231203015621-7d46ef5b9957
 	github.com/spf13/cobra v1.8.0
@@ -57,7 +57,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.2.10 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.10.10 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.16.10 // indirect
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.48.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.48.1 // indirect
 	github.com/aws/smithy-go v1.19.0 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/benhoyt/goawk v1.25.0 // indirect
@@ -236,7 +236,7 @@ require (
 	google.golang.org/genproto v0.0.0-20231106174013-bbf56f31fb17 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20231106174013-bbf56f31fb17 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231120223509-83a465c0220f // indirect
-	google.golang.org/grpc v1.60.1 // indirect
+	google.golang.org/grpc v1.61.0 // indirect
 	google.golang.org/protobuf v1.32.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/jcmturner/aescts.v1 v1.0.1 // indirect
