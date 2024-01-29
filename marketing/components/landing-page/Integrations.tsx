@@ -34,7 +34,7 @@ export default function Intergrations(): ReactElement {
     },
   ];
   return (
-    <div className="relative">
+    <div>
       <div className="text-gray-200 font-semibold text-2xl lg:text-4xl font-satoshi text-center">
         Integrations With Your Favorite Tools
       </div>
@@ -48,7 +48,7 @@ export default function Intergrations(): ReactElement {
             {integrations.map((item) => (
               <div
                 key={item.name}
-                className="px-16 py-10 border border-gray-600 rounded-xl shadow-xl"
+                className=" p-6 lg:px-16 lg:py-10 border border-gray-600 rounded-xl shadow-xl"
               >
                 <div className="flex flex-col gap-4 justify-center items-center">
                   <div>{item.logo}</div>
