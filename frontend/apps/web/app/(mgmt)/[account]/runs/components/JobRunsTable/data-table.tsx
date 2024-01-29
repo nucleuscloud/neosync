@@ -133,7 +133,7 @@ export function DataTable<TData, TValue, TAutoRefreshInterval extends string>({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No runs in the last 24 hours.
+                  No active runs found
                 </TableCell>
               </TableRow>
             )}
