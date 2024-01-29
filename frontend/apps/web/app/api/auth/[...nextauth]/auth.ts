@@ -35,7 +35,9 @@ function getWellKnown(issuerUrl: string): string {
 }
 
 function trimEnd(val: string, chars: string): string {
-  return val.endsWith(chars) ? val.substring(0, chars.length - 1) : val;
+  return val.endsWith(chars)
+    ? val.substring(0, val.length - chars.length)
+    : val;
 }
 
 interface OAuthConfig {
@@ -210,7 +212,6 @@ async function getOpenIdConfiguration(
   issuer: string
 ): Promise<Partial<OidcConfiguration>> {
   const wellKnownUrl = getWellKnown(issuer);
-
   const res = await fetch(wellKnownUrl, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
