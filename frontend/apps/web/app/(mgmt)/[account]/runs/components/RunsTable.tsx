@@ -34,15 +34,24 @@ export default function RunsTable(props: RunsTableProps): ReactElement {
     }
   );
 
-  const { data: jobsData, mutate: jobsMutate } = useGetJobs(account?.id ?? '');
+  const {
+    data: jobsData,
+    mutate: jobsMutate,
+    isLoading: isJobsLoading,
+    isValidating: isJobsValidating,
+  } = useGetJobs(account?.id ?? '');
 
-  const jobNameMap =
-    jobsData?.jobs.reduce(
+  const jobs = jobsData?.jobs ?? [];
+
+  // must be memoized otherwise it causes columns to re-render endlessly when hovering over links within the table
+  const jobNameMap = useMemo(() => {
+    return jobs.reduce(
       (prev, curr) => {
         return { ...prev, [curr.id]: curr.name };
       },
       {} as Record<string, string>
-    ) || {};
+    );
+  }, [isJobsLoading, isJobsValidating]);
 
   const columns = useMemo(
     () =>
