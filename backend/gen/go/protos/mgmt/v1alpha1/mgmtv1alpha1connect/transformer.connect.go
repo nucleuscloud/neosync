@@ -18,7 +18,7 @@ import (
 // generated with a version of connect newer than the one compiled into your binary. You can fix the
 // problem by either regenerating this code with an older version of connect or updating the connect
 // version compiled into your binary.
-const _ = connect.IsAtLeastVersion0_1_0
+const _ = connect.IsAtLeastVersion1_13_0
 
 const (
 	// TransformersServiceName is the fully-qualified name of the TransformersService service.
@@ -59,6 +59,19 @@ const (
 	TransformersServiceValidateUserJavascriptCodeProcedure = "/mgmt.v1alpha1.TransformersService/ValidateUserJavascriptCode"
 )
 
+// These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
+var (
+	transformersServiceServiceDescriptor                             = v1alpha1.File_mgmt_v1alpha1_transformer_proto.Services().ByName("TransformersService")
+	transformersServiceGetSystemTransformersMethodDescriptor         = transformersServiceServiceDescriptor.Methods().ByName("GetSystemTransformers")
+	transformersServiceGetUserDefinedTransformersMethodDescriptor    = transformersServiceServiceDescriptor.Methods().ByName("GetUserDefinedTransformers")
+	transformersServiceGetUserDefinedTransformerByIdMethodDescriptor = transformersServiceServiceDescriptor.Methods().ByName("GetUserDefinedTransformerById")
+	transformersServiceCreateUserDefinedTransformerMethodDescriptor  = transformersServiceServiceDescriptor.Methods().ByName("CreateUserDefinedTransformer")
+	transformersServiceDeleteUserDefinedTransformerMethodDescriptor  = transformersServiceServiceDescriptor.Methods().ByName("DeleteUserDefinedTransformer")
+	transformersServiceUpdateUserDefinedTransformerMethodDescriptor  = transformersServiceServiceDescriptor.Methods().ByName("UpdateUserDefinedTransformer")
+	transformersServiceIsTransformerNameAvailableMethodDescriptor    = transformersServiceServiceDescriptor.Methods().ByName("IsTransformerNameAvailable")
+	transformersServiceValidateUserJavascriptCodeMethodDescriptor    = transformersServiceServiceDescriptor.Methods().ByName("ValidateUserJavascriptCode")
+)
+
 // TransformersServiceClient is a client for the mgmt.v1alpha1.TransformersService service.
 type TransformersServiceClient interface {
 	GetSystemTransformers(context.Context, *connect.Request[v1alpha1.GetSystemTransformersRequest]) (*connect.Response[v1alpha1.GetSystemTransformersResponse], error)
@@ -84,42 +97,50 @@ func NewTransformersServiceClient(httpClient connect.HTTPClient, baseURL string,
 		getSystemTransformers: connect.NewClient[v1alpha1.GetSystemTransformersRequest, v1alpha1.GetSystemTransformersResponse](
 			httpClient,
 			baseURL+TransformersServiceGetSystemTransformersProcedure,
-			opts...,
+			connect.WithSchema(transformersServiceGetSystemTransformersMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		getUserDefinedTransformers: connect.NewClient[v1alpha1.GetUserDefinedTransformersRequest, v1alpha1.GetUserDefinedTransformersResponse](
 			httpClient,
 			baseURL+TransformersServiceGetUserDefinedTransformersProcedure,
-			opts...,
+			connect.WithSchema(transformersServiceGetUserDefinedTransformersMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		getUserDefinedTransformerById: connect.NewClient[v1alpha1.GetUserDefinedTransformerByIdRequest, v1alpha1.GetUserDefinedTransformerByIdResponse](
 			httpClient,
 			baseURL+TransformersServiceGetUserDefinedTransformerByIdProcedure,
-			opts...,
+			connect.WithSchema(transformersServiceGetUserDefinedTransformerByIdMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		createUserDefinedTransformer: connect.NewClient[v1alpha1.CreateUserDefinedTransformerRequest, v1alpha1.CreateUserDefinedTransformerResponse](
 			httpClient,
 			baseURL+TransformersServiceCreateUserDefinedTransformerProcedure,
-			opts...,
+			connect.WithSchema(transformersServiceCreateUserDefinedTransformerMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		deleteUserDefinedTransformer: connect.NewClient[v1alpha1.DeleteUserDefinedTransformerRequest, v1alpha1.DeleteUserDefinedTransformerResponse](
 			httpClient,
 			baseURL+TransformersServiceDeleteUserDefinedTransformerProcedure,
-			opts...,
+			connect.WithSchema(transformersServiceDeleteUserDefinedTransformerMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		updateUserDefinedTransformer: connect.NewClient[v1alpha1.UpdateUserDefinedTransformerRequest, v1alpha1.UpdateUserDefinedTransformerResponse](
 			httpClient,
 			baseURL+TransformersServiceUpdateUserDefinedTransformerProcedure,
-			opts...,
+			connect.WithSchema(transformersServiceUpdateUserDefinedTransformerMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		isTransformerNameAvailable: connect.NewClient[v1alpha1.IsTransformerNameAvailableRequest, v1alpha1.IsTransformerNameAvailableResponse](
 			httpClient,
 			baseURL+TransformersServiceIsTransformerNameAvailableProcedure,
-			opts...,
+			connect.WithSchema(transformersServiceIsTransformerNameAvailableMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 		validateUserJavascriptCode: connect.NewClient[v1alpha1.ValidateUserJavascriptCodeRequest, v1alpha1.ValidateUserJavascriptCodeResponse](
 			httpClient,
 			baseURL+TransformersServiceValidateUserJavascriptCodeProcedure,
-			opts...,
+			connect.WithSchema(transformersServiceValidateUserJavascriptCodeMethodDescriptor),
+			connect.WithClientOptions(opts...),
 		),
 	}
 }
@@ -201,42 +222,50 @@ func NewTransformersServiceHandler(svc TransformersServiceHandler, opts ...conne
 	transformersServiceGetSystemTransformersHandler := connect.NewUnaryHandler(
 		TransformersServiceGetSystemTransformersProcedure,
 		svc.GetSystemTransformers,
-		opts...,
+		connect.WithSchema(transformersServiceGetSystemTransformersMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	transformersServiceGetUserDefinedTransformersHandler := connect.NewUnaryHandler(
 		TransformersServiceGetUserDefinedTransformersProcedure,
 		svc.GetUserDefinedTransformers,
-		opts...,
+		connect.WithSchema(transformersServiceGetUserDefinedTransformersMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	transformersServiceGetUserDefinedTransformerByIdHandler := connect.NewUnaryHandler(
 		TransformersServiceGetUserDefinedTransformerByIdProcedure,
 		svc.GetUserDefinedTransformerById,
-		opts...,
+		connect.WithSchema(transformersServiceGetUserDefinedTransformerByIdMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	transformersServiceCreateUserDefinedTransformerHandler := connect.NewUnaryHandler(
 		TransformersServiceCreateUserDefinedTransformerProcedure,
 		svc.CreateUserDefinedTransformer,
-		opts...,
+		connect.WithSchema(transformersServiceCreateUserDefinedTransformerMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	transformersServiceDeleteUserDefinedTransformerHandler := connect.NewUnaryHandler(
 		TransformersServiceDeleteUserDefinedTransformerProcedure,
 		svc.DeleteUserDefinedTransformer,
-		opts...,
+		connect.WithSchema(transformersServiceDeleteUserDefinedTransformerMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	transformersServiceUpdateUserDefinedTransformerHandler := connect.NewUnaryHandler(
 		TransformersServiceUpdateUserDefinedTransformerProcedure,
 		svc.UpdateUserDefinedTransformer,
-		opts...,
+		connect.WithSchema(transformersServiceUpdateUserDefinedTransformerMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	transformersServiceIsTransformerNameAvailableHandler := connect.NewUnaryHandler(
 		TransformersServiceIsTransformerNameAvailableProcedure,
 		svc.IsTransformerNameAvailable,
-		opts...,
+		connect.WithSchema(transformersServiceIsTransformerNameAvailableMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	transformersServiceValidateUserJavascriptCodeHandler := connect.NewUnaryHandler(
 		TransformersServiceValidateUserJavascriptCodeProcedure,
 		svc.ValidateUserJavascriptCode,
-		opts...,
+		connect.WithSchema(transformersServiceValidateUserJavascriptCodeMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
 	)
 	return "/mgmt.v1alpha1.TransformersService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
