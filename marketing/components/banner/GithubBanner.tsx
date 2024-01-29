@@ -12,7 +12,7 @@ export default function GithubBanner(): ReactElement {
   const router = useRouter();
   return (
     <div>
-      <div className="top-0 hidden lg:flex flex-row gap-3 justify-center w-full h-[35px] items-center bg-gradient-to-r from-violet-500 to-indigo-200 font-satoshi">
+      <div className="top-0 hidden lg:flex flex-row gap-3 justify-center w-full h-[35px] items-center bg-slate-700 font-satoshi text-gray-100">
         <div>
           If you like Neosync, give it a{' '}
           <StarFilledIcon className="text-yellow-500 inline h-[20px] w-[20px]" />
@@ -45,7 +45,7 @@ export default function GithubBanner(): ReactElement {
 function MobileBanner(): ReactElement {
   const router = useRouter();
   return (
-    <div className="top-0 flex md:hidden lg:hidden flex-row gap-3 justify-center w-full h-[35px] items-center bg-gradient-to-r from-violet-500 to-indigo-200 font-satoshi">
+    <div className="top-0 flex md:hidden lg:hidden flex-row gap-3 justify-center w-full h-[35px] items-center bg-slate-700 font-satoshi text-gray-100">
       <div className="flex flex-row items-center">
         <StarFilledIcon className="text-yellow-500 inline h-[20px] w-[20px]" />
         <div className="text-sm pl-4">Neosync on GitHub</div>
