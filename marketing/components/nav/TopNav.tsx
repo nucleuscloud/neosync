@@ -1,14 +1,10 @@
 'use client';
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import {
   Menubar,
   MenubarContent,
@@ -28,7 +24,7 @@ import {
 import { env } from '@/env';
 import { FireMixpanel } from '@/lib/mixpanel';
 import { cn } from '@/lib/utils';
-import { ArrowRightIcon, GitHubLogoIcon } from '@radix-ui/react-icons';
+import { GitHubLogoIcon } from '@radix-ui/react-icons';
 import { LucideServerCrash } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -39,7 +35,7 @@ import { FaDiscord } from 'react-icons/fa';
 import { GiHamburgerMenu } from 'react-icons/gi';
 import { GoShieldCheck } from 'react-icons/go';
 import { IoTerminalOutline } from 'react-icons/io5';
-import PrivateBetaForm from '../buttons/PrivateBetaForm';
+import PrivateBetaButton from '../buttons/PrivateBetaButton';
 import { Button } from '../ui/button';
 
 interface NavLinks {
@@ -139,89 +135,62 @@ export default function TopNav(): ReactElement {
           </span>
         </Link>
       </div>
-      <NavigationMenu>
-        <NavigationMenuList>
-          {links.map((link) =>
-            link.children.length > 0 ? (
-              <NavigationMenuItem
-                key={link.href}
-                onClick={() =>
-                  FireMixpanel(`${link.title}`, {
-                    source: 'top-nav',
-                    type: 'click',
-                  })
-                }
-              >
-                <NavigationMenuTrigger>{link.title}</NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
-                    {link.children.map((sublink) => (
-                      <ListItem
-                        key={sublink.title}
-                        title={sublink.title}
-                        href={sublink.href}
-                        icon={sublink.icon}
-                      >
-                        {sublink.description}
-                      </ListItem>
-                    ))}
-                  </ul>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
-            ) : (
-              <NavigationMenuItem
-                key={link.href}
-                onClick={() =>
-                  FireMixpanel(`${link.title}`, {
-                    source: 'top-nav',
-                    type: 'click',
-                  })
-                }
-              >
-                <Link href={link.href} passHref legacyBehavior>
-                  <NavigationMenuLink
-                    className={navigationMenuTriggerStyle()}
-                    target="_blank"
-                  >
-                    {link.title ? link.title : link.icon}
-                  </NavigationMenuLink>
-                </Link>
-              </NavigationMenuItem>
-            )
-          )}
-        </NavigationMenuList>
-      </NavigationMenu>
-      <div>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="default">
-              Neosync Cloud <ArrowRightIcon className="ml-2 h-5 w-5" />
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-lg bg-white  p-6 shadow-xl">
-            <DialogHeader>
-              <div className="flex justify-center pt-10">
-                <Image
-                  src="https://assets.nucleuscloud.com/neosync/newbrand/logo_text_light_mode.svg"
-                  alt="NeosyncLogo"
-                  width="118"
-                  height="30"
-                />
-              </div>
-              <DialogTitle className="text-gray-900 text-2xl text-center pt-10">
-                Join the Neosync Cloud Private Beta
-              </DialogTitle>
-              <DialogDescription className="pt-6 text-gray-900 text-md text-center">
-                Want to use Neosync but don&apos;t want to host it yourself?
-                Sign up for the private beta of Neosync Cloud and get an
-                environment.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="flex items-center space-x-2">
-              <PrivateBetaForm />
-            </div>
-          </DialogContent>
-        </Dialog>
+      <div className="hidden items-center md:flex lg:flex lg:flex-row gap-4">
+        <NavigationMenu>
+          <NavigationMenuList>
+            {links.map((link) =>
+              link.children.length > 0 ? (
+                <NavigationMenuItem
+                  key={link.href}
+                  onClick={() =>
+                    FireMixpanel(`${link.title}`, {
+                      source: 'top-nav',
+                      type: 'click',
+                    })
+                  }
+                >
+                  <NavigationMenuTrigger>{link.title}</NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                      {link.children.map((sublink) => (
+                        <ListItem
+                          key={sublink.title}
+                          title={sublink.title}
+                          href={sublink.href}
+                          icon={sublink.icon}
+                        >
+                          {sublink.description}
+                        </ListItem>
+                      ))}
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+              ) : (
+                <NavigationMenuItem
+                  key={link.href}
+                  onClick={() =>
+                    FireMixpanel(`${link.title}`, {
+                      source: 'top-nav',
+                      type: 'click',
+                    })
+                  }
+                >
+                  <Link href={link.href} passHref legacyBehavior>
+                    <NavigationMenuLink
+                      className={navigationMenuTriggerStyle()}
+                      target="_blank"
+                    >
+                      {link.title ? link.title : link.icon}
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+              )
+            )}
+          </NavigationMenuList>
+        </NavigationMenu>
+        <div>
+          <PrivateBetaButton />
+        </div>
       </div>
       <MobileMenu />
     </div>
@@ -237,93 +206,52 @@ function MobileMenu(): ReactElement {
           <MenubarTrigger className="cursor-pointer data-[state=open]:bg-transparent focus:bg-transparent">
             <GiHamburgerMenu color="black" />
           </MenubarTrigger>
-          <MenubarContent className="bg-white border border-gray-700 mx-2 mt-1">
-            <MenubarItem>
-              <Button
-                variant="mobileNavLink"
-                className="text-gray-900 w-full"
-                onClick={() => {
-                  FireMixpanel('About Section', {
-                    source: 'top-nav',
-                    type: 'about section',
-                  });
-                }}
-              >
-                <Link href="/about">
-                  <div className="flex flex-row">About</div>
-                </Link>
-              </Button>
-            </MenubarItem>
-            <MenubarItem>
-              <Button
-                variant="navLink"
-                className="text-gray-900 w-full"
-                onClick={() => {
-                  FireMixpanel('blog', {
-                    source: 'top-nav',
-                    type: 'blog section',
-                  });
-                }}
-              >
-                <Link href={`${env.NEXT_PUBLIC_APP_URL}/blog`}>
-                  <div className="flex flex-row">Blog</div>
-                </Link>
-              </Button>
-            </MenubarItem>
-            <MenubarItem>
-              <Button
-                variant="mobileNavLink"
-                className="text-gray-900 w-full"
-                id="2"
-                onClick={() => {
-                  FireMixpanel('About Section', {
-                    source: 'top-nav',
-                    type: 'about section',
-                  });
-                  router.push('/about');
-                }}
-              >
-                <Link href="https://github.com/nucleuscloud/neosync">
-                  <div className="flex flex-row items-center">
-                    <GitHubLogoIcon className=" h-4 w-4" />
-                  </div>
-                </Link>
-              </Button>
-            </MenubarItem>
-            <MenubarItem>
-              <Dialog>
-                <DialogTrigger asChild className="w-full">
-                  <Button variant="default">
-                    Neosync Cloud <ArrowRightIcon className="ml-2 h-5 w-5" />
+          <MenubarContent className="bg-white border border-gray-700 mx-2 mt-1 w-[244px] py-2">
+            {links.map((link) =>
+              link.children.length > 0 ? (
+                <Accordion type="single" collapsible key={link.href}>
+                  <AccordionItem value="solutions">
+                    <AccordionTrigger className="no-underline flex justify-center text-[14px]">
+                      Solutions
+                    </AccordionTrigger>
+                    <AccordionContent className="flex flex-col items-start gap-4 p-2 pl-8">
+                      {link.children.map((sublink) => (
+                        <Link
+                          href={sublink.href}
+                          passHref
+                          legacyBehavior
+                          key={sublink.href}
+                        >
+                          {sublink.title}
+                        </Link>
+                      ))}
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              ) : (
+                <MenubarItem key={link.href}>
+                  <Button
+                    variant="mobileNavLink"
+                    className="text-gray-900 w-full"
+                    onClick={() => {
+                      FireMixpanel('About Section', {
+                        source: 'top-nav',
+                        type: 'about section',
+                      });
+                    }}
+                  >
+                    <Link href={link.href}>
+                      <div className="flex flex-row">
+                        {link.title ? link.title : link.icon}
+                      </div>
+                    </Link>
                   </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-lg bg-black border border-gray-600 p-6">
-                  <DialogHeader>
-                    <DialogTitle className="text-white text-2xl">
-                      Join the Neosync Cloud Private Beta
-                    </DialogTitle>
-                    <DialogDescription className="pt-10 text-gray-300 text-md">
-                      Want to use Neosync but don&apos;t want to host it
-                      yourself? Sign up for the private beta of Neosync Cloud.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="flex items-center space-x-2">
-                    <PrivateBetaForm />
-                  </div>
-                  <DialogFooter className="sm:justify-start">
-                    <DialogClose asChild>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        className="text-white hover:bg-gray-800 hover:text-white"
-                      >
-                        Close
-                      </Button>
-                    </DialogClose>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </MenubarItem>
+                </MenubarItem>
+              )
+            )}
+            <div className="flex justify-center">
+              <PrivateBetaButton />
+            </div>
           </MenubarContent>
         </MenubarMenu>
       </Menubar>
