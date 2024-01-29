@@ -19,5 +19,6 @@ export function getSystemAppConfig(): SystemAppConfig {
     },
     isNeosyncCloud: process.env.NEOSYNC_CLOUD === 'true',
     enableRunLogs: process.env.ENABLE_RUN_LOGS === 'true',
+    signInProviderId: process.env.AUTH_PROVIDER_ID,
   };
 }

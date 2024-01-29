@@ -4,6 +4,7 @@ import { useAccount } from '@/components/providers/account-provider';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
+import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { useNeosyncUser } from '@/libs/hooks/useNeosyncUser';
 import { getErrorMessage } from '@/util/util';
 import { AcceptTeamAccountInviteResponse } from '@neosync/sdk';
@@ -22,11 +23,16 @@ export default function InvitePage(): ReactElement {
   const [error, setError] = useState<string>();
   const isFirstRender = useRef(true);
   const { toast } = useToast();
+  const { data: systemData, isLoading: isSystemDataLoading } =
+    useGetSystemAppConfig();
 
   useEffect(() => {
+    if (isSystemDataLoading) {
+      return;
+    }
     if (status === 'unauthenticated') {
       // signin must be called on the client for this page so the redirectUrl is properly set
-      signIn().catch((err) => {
+      signIn(systemData?.signInProviderId).catch((err) => {
         toast({
           title: 'Unable to redirect to signin page',
           variant: 'destructive',
@@ -56,7 +62,7 @@ export default function InvitePage(): ReactElement {
         })
         .catch((err) => setError(getErrorMessage(err)));
     }
-  }, [status, token, isUserLoading, userError]);
+  }, [status, token, isUserLoading, userError, isSystemDataLoading]);
 
   return (
     <div className="flex justify-center mt-24">

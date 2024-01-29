@@ -21,7 +21,7 @@ export function SessionProvider({ children, session }: Props) {
     return <Skeleton />;
   }
   if (data?.isAuthEnabled && !isSessionValid(session)) {
-    signIn();
+    signIn(data.signInProviderId);
     return <Skeleton />;
   }
   return (
