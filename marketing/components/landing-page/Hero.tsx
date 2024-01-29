@@ -13,7 +13,7 @@ export default function Hero(): ReactElement {
       <div className="text-gray-900 font-semibold lg:text-6xl text-4xl leading-tight text-center z-20 px-2 relative">
         Open Source Synthetic Data Orchestration
       </div>
-      <h3 className="text-[#606060] text-md lg:text-lg font-semibold relative text-center lg:px-0 px-6">
+      <h3 className="text-gray-800 text-md lg:text-lg font-semibold relative text-center lg:px-0 px-6">
         A developer-first way to create anonymized or synthetic data and sync it
         across all environments for testing and machine learning
       </h3>
