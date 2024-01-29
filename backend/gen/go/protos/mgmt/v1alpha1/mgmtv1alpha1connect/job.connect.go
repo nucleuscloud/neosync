@@ -110,17 +110,22 @@ type JobServiceClient interface {
 	DeleteJobDestinationConnection(context.Context, *connect.Request[v1alpha1.DeleteJobDestinationConnectionRequest]) (*connect.Response[v1alpha1.DeleteJobDestinationConnectionResponse], error)
 	CreateJobDestinationConnections(context.Context, *connect.Request[v1alpha1.CreateJobDestinationConnectionsRequest]) (*connect.Response[v1alpha1.CreateJobDestinationConnectionsResponse], error)
 	PauseJob(context.Context, *connect.Request[v1alpha1.PauseJobRequest]) (*connect.Response[v1alpha1.PauseJobResponse], error)
+	// Returns a list of recently invoked job runs baseds on the Temporal cron scheduler. This will return a list of job runs that include archived runs
 	GetJobRecentRuns(context.Context, *connect.Request[v1alpha1.GetJobRecentRunsRequest]) (*connect.Response[v1alpha1.GetJobRecentRunsResponse], error)
+	// Returns a list of runs that are scheduled for execution based on the Temporal cron scheduler.
 	GetJobNextRuns(context.Context, *connect.Request[v1alpha1.GetJobNextRunsRequest]) (*connect.Response[v1alpha1.GetJobNextRunsResponse], error)
 	GetJobStatus(context.Context, *connect.Request[v1alpha1.GetJobStatusRequest]) (*connect.Response[v1alpha1.GetJobStatusResponse], error)
 	GetJobStatuses(context.Context, *connect.Request[v1alpha1.GetJobStatusesRequest]) (*connect.Response[v1alpha1.GetJobStatusesResponse], error)
+	// Returns a list of job runs by either account or job
 	GetJobRuns(context.Context, *connect.Request[v1alpha1.GetJobRunsRequest]) (*connect.Response[v1alpha1.GetJobRunsResponse], error)
 	GetJobRunEvents(context.Context, *connect.Request[v1alpha1.GetJobRunEventsRequest]) (*connect.Response[v1alpha1.GetJobRunEventsResponse], error)
+	// Returns a specific job run, along with any of its pending activities
 	GetJobRun(context.Context, *connect.Request[v1alpha1.GetJobRunRequest]) (*connect.Response[v1alpha1.GetJobRunResponse], error)
 	DeleteJobRun(context.Context, *connect.Request[v1alpha1.DeleteJobRunRequest]) (*connect.Response[v1alpha1.DeleteJobRunResponse], error)
 	CreateJobRun(context.Context, *connect.Request[v1alpha1.CreateJobRunRequest]) (*connect.Response[v1alpha1.CreateJobRunResponse], error)
 	CancelJobRun(context.Context, *connect.Request[v1alpha1.CancelJobRunRequest]) (*connect.Response[v1alpha1.CancelJobRunResponse], error)
 	TerminateJobRun(context.Context, *connect.Request[v1alpha1.TerminateJobRunRequest]) (*connect.Response[v1alpha1.TerminateJobRunResponse], error)
+	// Returns a stream of logs from the worker nodes that pertain to a specific job run
 	GetJobRunLogsStream(context.Context, *connect.Request[v1alpha1.GetJobRunLogsStreamRequest]) (*connect.ServerStreamForClient[v1alpha1.GetJobRunLogsStreamResponse], error)
 }
 
@@ -419,17 +424,22 @@ type JobServiceHandler interface {
 	DeleteJobDestinationConnection(context.Context, *connect.Request[v1alpha1.DeleteJobDestinationConnectionRequest]) (*connect.Response[v1alpha1.DeleteJobDestinationConnectionResponse], error)
 	CreateJobDestinationConnections(context.Context, *connect.Request[v1alpha1.CreateJobDestinationConnectionsRequest]) (*connect.Response[v1alpha1.CreateJobDestinationConnectionsResponse], error)
 	PauseJob(context.Context, *connect.Request[v1alpha1.PauseJobRequest]) (*connect.Response[v1alpha1.PauseJobResponse], error)
+	// Returns a list of recently invoked job runs baseds on the Temporal cron scheduler. This will return a list of job runs that include archived runs
 	GetJobRecentRuns(context.Context, *connect.Request[v1alpha1.GetJobRecentRunsRequest]) (*connect.Response[v1alpha1.GetJobRecentRunsResponse], error)
+	// Returns a list of runs that are scheduled for execution based on the Temporal cron scheduler.
 	GetJobNextRuns(context.Context, *connect.Request[v1alpha1.GetJobNextRunsRequest]) (*connect.Response[v1alpha1.GetJobNextRunsResponse], error)
 	GetJobStatus(context.Context, *connect.Request[v1alpha1.GetJobStatusRequest]) (*connect.Response[v1alpha1.GetJobStatusResponse], error)
 	GetJobStatuses(context.Context, *connect.Request[v1alpha1.GetJobStatusesRequest]) (*connect.Response[v1alpha1.GetJobStatusesResponse], error)
+	// Returns a list of job runs by either account or job
 	GetJobRuns(context.Context, *connect.Request[v1alpha1.GetJobRunsRequest]) (*connect.Response[v1alpha1.GetJobRunsResponse], error)
 	GetJobRunEvents(context.Context, *connect.Request[v1alpha1.GetJobRunEventsRequest]) (*connect.Response[v1alpha1.GetJobRunEventsResponse], error)
+	// Returns a specific job run, along with any of its pending activities
 	GetJobRun(context.Context, *connect.Request[v1alpha1.GetJobRunRequest]) (*connect.Response[v1alpha1.GetJobRunResponse], error)
 	DeleteJobRun(context.Context, *connect.Request[v1alpha1.DeleteJobRunRequest]) (*connect.Response[v1alpha1.DeleteJobRunResponse], error)
 	CreateJobRun(context.Context, *connect.Request[v1alpha1.CreateJobRunRequest]) (*connect.Response[v1alpha1.CreateJobRunResponse], error)
 	CancelJobRun(context.Context, *connect.Request[v1alpha1.CancelJobRunRequest]) (*connect.Response[v1alpha1.CancelJobRunResponse], error)
 	TerminateJobRun(context.Context, *connect.Request[v1alpha1.TerminateJobRunRequest]) (*connect.Response[v1alpha1.TerminateJobRunResponse], error)
+	// Returns a stream of logs from the worker nodes that pertain to a specific job run
 	GetJobRunLogsStream(context.Context, *connect.Request[v1alpha1.GetJobRunLogsStreamRequest], *connect.ServerStream[v1alpha1.GetJobRunLogsStreamResponse]) error
 }
 

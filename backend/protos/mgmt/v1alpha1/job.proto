@@ -349,6 +349,7 @@ message PendingActivity {
 }
 
 message JobRun {
+  // The id of the job run. This will currently be equivalent to the temporal workflow id
   string id = 1;
   string job_id = 2;
   string name = 3;
@@ -356,6 +357,7 @@ message JobRun {
 
   google.protobuf.Timestamp started_at = 6;
   optional google.protobuf.Timestamp completed_at = 7;
+  // Pending activities are only returned when retrieving a specific job run and will not be returned when requesting job runs in list format
   repeated PendingActivity pending_activities = 8;
 }
 
@@ -455,17 +457,22 @@ service JobService {
   rpc DeleteJobDestinationConnection(DeleteJobDestinationConnectionRequest) returns (DeleteJobDestinationConnectionResponse) {}
   rpc CreateJobDestinationConnections(CreateJobDestinationConnectionsRequest) returns (CreateJobDestinationConnectionsResponse) {}
   rpc PauseJob(PauseJobRequest) returns (PauseJobResponse) {}
+  // Returns a list of recently invoked job runs baseds on the Temporal cron scheduler. This will return a list of job runs that include archived runs
   rpc GetJobRecentRuns(GetJobRecentRunsRequest) returns (GetJobRecentRunsResponse) {}
+  // Returns a list of runs that are scheduled for execution based on the Temporal cron scheduler.
   rpc GetJobNextRuns(GetJobNextRunsRequest) returns (GetJobNextRunsResponse) {}
   rpc GetJobStatus(GetJobStatusRequest) returns (GetJobStatusResponse) {}
   rpc GetJobStatuses(GetJobStatusesRequest) returns (GetJobStatusesResponse) {}
 
+  // Returns a list of job runs by either account or job
   rpc GetJobRuns(GetJobRunsRequest) returns (GetJobRunsResponse) {}
   rpc GetJobRunEvents(GetJobRunEventsRequest) returns (GetJobRunEventsResponse) {}
+  // Returns a specific job run, along with any of its pending activities
   rpc GetJobRun(GetJobRunRequest) returns (GetJobRunResponse) {}
   rpc DeleteJobRun(DeleteJobRunRequest) returns (DeleteJobRunResponse) {}
   rpc CreateJobRun(CreateJobRunRequest) returns (CreateJobRunResponse) {}
   rpc CancelJobRun(CancelJobRunRequest) returns (CancelJobRunResponse) {}
   rpc TerminateJobRun(TerminateJobRunRequest) returns (TerminateJobRunResponse) {}
+  // Returns a stream of logs from the worker nodes that pertain to a specific job run
   rpc GetJobRunLogsStream(GetJobRunLogsStreamRequest) returns (stream GetJobRunLogsStreamResponse) {}
 }

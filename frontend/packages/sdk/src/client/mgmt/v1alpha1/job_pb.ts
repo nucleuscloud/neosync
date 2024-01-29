@@ -3164,6 +3164,8 @@ export class PendingActivity extends Message<PendingActivity> {
  */
 export class JobRun extends Message<JobRun> {
   /**
+   * The id of the job run. This will currently be equivalent to the temporal workflow id
+   *
    * @generated from field: string id = 1;
    */
   id = "";
@@ -3194,6 +3196,8 @@ export class JobRun extends Message<JobRun> {
   completedAt?: Timestamp;
 
   /**
+   * Pending activities are only returned when retrieving a specific job run and will not be returned when requesting job runs in list format
+   *
    * @generated from field: repeated mgmt.v1alpha1.PendingActivity pending_activities = 8;
    */
   pendingActivities: PendingActivity[] = [];

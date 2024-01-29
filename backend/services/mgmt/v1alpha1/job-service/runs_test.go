@@ -29,9 +29,8 @@ func Test_GetJobRuns_ByJobId(t *testing.T) {
 	temporalClientMock := new(MockTemporalClient)
 	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
 	jobId := nucleusdb.UUIDString(job.ID)
-	runId := uuid.NewString()
 	workflowId := uuid.NewString()
-	workflowExecutionMock := getWorkflowExecutionMock(jobId, workflowId)
+	workflowExecutionMock := getWorfklowExecutionInfoMock(jobId, workflowId)
 
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, job.ID).Return(job, nil)
@@ -42,17 +41,10 @@ func Test_GetJobRuns_ByJobId(t *testing.T) {
 		Url:              "localhost:7233",
 	}, nil)
 
-	workflows := []*workflowpb.WorkflowExecutionInfo{{
-		Execution: &common.WorkflowExecution{
-			WorkflowId: workflowId,
-			RunId:      runId,
-		},
-	}}
+	workflows := []*workflowpb.WorkflowExecutionInfo{workflowExecutionMock}
 	temporalClientMock.On("ListWorkflow", mock.Anything, mock.Anything).Return(&workflowservice.ListWorkflowExecutionsResponse{
 		Executions: workflows,
 	}, nil)
-
-	temporalClientMock.On("DescribeWorkflowExecution", mock.Anything, workflowId, runId).Return(workflowExecutionMock, nil)
 
 	resp, err := m.Service.GetJobRuns(context.Background(), &connect.Request[mgmtv1alpha1.GetJobRunsRequest]{
 		Msg: &mgmtv1alpha1.GetJobRunsRequest{
@@ -73,26 +65,18 @@ func Test_GetJobRuns_ByAccountId(t *testing.T) {
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
 	jobId := nucleusdb.UUIDString(job.ID)
-	runId := uuid.NewString()
 	workflowId := uuid.NewString()
-	workflowExecutionMock := getWorkflowExecutionMock(jobId, workflowId)
+	workflowExecutionMock := getWorfklowExecutionInfoMock(jobId, workflowId)
 
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.QuerierMock.On("GetJobsByAccount", mock.Anything, mock.Anything, accountUuid).Return([]db_queries.NeosyncApiJob{job}, nil)
 	m.TemporalWfManagerMock.On("GetWorkflowClientByAccount", mock.Anything, mockAccountId, mock.Anything).Return(temporalClientMock, nil)
 	m.TemporalWfManagerMock.On("GetTemporalConfigByAccount", mock.Anything, mockAccountId).Return(&pg_models.TemporalConfig{}, nil)
 
-	workflows := []*workflowpb.WorkflowExecutionInfo{{
-		Execution: &common.WorkflowExecution{
-			WorkflowId: workflowId,
-			RunId:      runId,
-		},
-	}}
+	workflows := []*workflowpb.WorkflowExecutionInfo{workflowExecutionMock}
 	temporalClientMock.On("ListWorkflow", mock.Anything, mock.Anything).Return(&workflowservice.ListWorkflowExecutionsResponse{
 		Executions: workflows,
 	}, nil)
-
-	temporalClientMock.On("DescribeWorkflowExecution", mock.Anything, workflowId, runId).Return(workflowExecutionMock, nil)
 
 	resp, err := m.Service.GetJobRuns(context.Background(), &connect.Request[mgmtv1alpha1.GetJobRunsRequest]{
 		Msg: &mgmtv1alpha1.GetJobRunsRequest{
@@ -116,7 +100,7 @@ func Test_GetJobRun(t *testing.T) {
 	jobId := nucleusdb.UUIDString(job.ID)
 	runId := uuid.NewString()
 	workflowId := uuid.NewString()
-	workflowExecutionMock := getWorkflowExecutionMock(jobId, workflowId)
+	workflowExecutionMock := getDescribeWorkflowExecutionResponseMock(jobId, workflowId)
 	workflows := []*workflowpb.WorkflowExecutionInfo{{
 		Execution: &common.WorkflowExecution{
 			WorkflowId: workflowId,
@@ -209,28 +193,30 @@ func mockGetVerifiedJobRun(
 	}, nil)
 }
 
-func getWorkflowExecutionMock(jobId, workflowId string) *workflowservice.DescribeWorkflowExecutionResponse {
+func getDescribeWorkflowExecutionResponseMock(jobId, workflowId string) *workflowservice.DescribeWorkflowExecutionResponse {
+	return &workflowservice.DescribeWorkflowExecutionResponse{
+		WorkflowExecutionInfo: getWorfklowExecutionInfoMock(jobId, workflowId),
+		PendingActivities:     []*workflowpb.PendingActivityInfo{},
+	}
+}
+
+func getWorfklowExecutionInfoMock(jobId, workflowId string) *workflowpb.WorkflowExecutionInfo {
 	now := time.Now()
 	payload, _ := converter.GetDefaultDataConverter().ToPayload(jobId)
-
-	return &workflowservice.DescribeWorkflowExecutionResponse{
-		WorkflowExecutionInfo: &workflowpb.WorkflowExecutionInfo{
-			CloseTime: &now,
-			StartTime: &now,
-			Type: &common.WorkflowType{
-				Name: "name",
-			},
-			Status: enums.WORKFLOW_EXECUTION_STATUS_COMPLETED,
-			SearchAttributes: &common.SearchAttributes{
-				IndexedFields: map[string]*common.Payload{
-					"TemporalScheduledById": payload,
-				},
-			},
-			Execution: &common.WorkflowExecution{
-				WorkflowId: workflowId,
+	return &workflowpb.WorkflowExecutionInfo{
+		CloseTime: &now,
+		StartTime: &now,
+		Type: &common.WorkflowType{
+			Name: "name",
+		},
+		Status: enums.WORKFLOW_EXECUTION_STATUS_COMPLETED,
+		SearchAttributes: &common.SearchAttributes{
+			IndexedFields: map[string]*common.Payload{
+				"TemporalScheduledById": payload,
 			},
 		},
-		PendingActivities: []*workflowpb.PendingActivityInfo{},
+		Execution: &common.WorkflowExecution{
+			WorkflowId: workflowId,
+		},
 	}
-
 }

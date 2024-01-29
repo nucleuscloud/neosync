@@ -121,6 +121,8 @@ export const JobService = {
       kind: MethodKind.Unary,
     },
     /**
+     * Returns a list of recently invoked job runs baseds on the Temporal cron scheduler. This will return a list of job runs that include archived runs
+     *
      * @generated from rpc mgmt.v1alpha1.JobService.GetJobRecentRuns
      */
     getJobRecentRuns: {
@@ -130,6 +132,8 @@ export const JobService = {
       kind: MethodKind.Unary,
     },
     /**
+     * Returns a list of runs that are scheduled for execution based on the Temporal cron scheduler.
+     *
      * @generated from rpc mgmt.v1alpha1.JobService.GetJobNextRuns
      */
     getJobNextRuns: {
@@ -157,6 +161,8 @@ export const JobService = {
       kind: MethodKind.Unary,
     },
     /**
+     * Returns a list of job runs by either account or job
+     *
      * @generated from rpc mgmt.v1alpha1.JobService.GetJobRuns
      */
     getJobRuns: {
@@ -175,6 +181,8 @@ export const JobService = {
       kind: MethodKind.Unary,
     },
     /**
+     * Returns a specific job run, along with any of its pending activities
+     *
      * @generated from rpc mgmt.v1alpha1.JobService.GetJobRun
      */
     getJobRun: {
@@ -220,6 +228,8 @@ export const JobService = {
       kind: MethodKind.Unary,
     },
     /**
+     * Returns a stream of logs from the worker nodes that pertain to a specific job run
+     *
      * @generated from rpc mgmt.v1alpha1.JobService.GetJobRunLogsStream
      */
     getJobRunLogsStream: {
