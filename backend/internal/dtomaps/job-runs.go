@@ -5,40 +5,43 @@ import (
 	"log/slog"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	"go.temporal.io/api/common/v1"
+	commonpb "go.temporal.io/api/common/v1"
 	"go.temporal.io/api/enums/v1"
 	temporalfailure "go.temporal.io/api/failure/v1"
 	"go.temporal.io/api/history/v1"
-	"go.temporal.io/api/workflow/v1"
+	workflowpb "go.temporal.io/api/workflow/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/sdk/converter"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+// including pending activities
 func ToJobRunDto(
 	logger *slog.Logger,
 	input *workflowservice.DescribeWorkflowExecutionResponse,
 ) *mgmtv1alpha1.JobRun {
-	executionInfo := input.GetWorkflowExecutionInfo()
+	jr := ToJobRunDtoFromWorkflowExecutionInfo(input.WorkflowExecutionInfo, logger)
+	jr.PendingActivities = toPendingActivitiesDto(input.GetPendingActivities())
+	return jr
+}
 
-	closeTime := executionInfo.GetCloseTime()
+// returns a job run without any pending activities
+func ToJobRunDtoFromWorkflowExecutionInfo(workflow *workflowpb.WorkflowExecutionInfo, logger *slog.Logger) *mgmtv1alpha1.JobRun {
 	var completedTime *timestamppb.Timestamp
-	if closeTime != nil {
-		completedTime = timestamppb.New(*executionInfo.GetCloseTime())
+	if workflow.GetCloseTime() != nil {
+		completedTime = timestamppb.New(*workflow.GetCloseTime())
 	}
-
 	return &mgmtv1alpha1.JobRun{
-		Id:                executionInfo.Execution.WorkflowId,
-		JobId:             GetJobIdFromWorkflow(logger, executionInfo.GetSearchAttributes()),
-		Name:              executionInfo.Type.Name,
-		Status:            toWorfklowStatus(input),
-		StartedAt:         timestamppb.New(*executionInfo.StartTime),
-		CompletedAt:       completedTime,
-		PendingActivities: toPendingActivitiesDto(input.GetPendingActivities()),
+		Id:          workflow.Execution.WorkflowId,
+		JobId:       GetJobIdFromWorkflow(logger, workflow.GetSearchAttributes()),
+		Name:        workflow.Type.Name,
+		Status:      toWorfklowStatus(workflow.Status),
+		StartedAt:   timestamppb.New(*workflow.StartTime),
+		CompletedAt: completedTime,
 	}
 }
 
-func GetJobIdFromWorkflow(logger *slog.Logger, searchAttributes *common.SearchAttributes) string {
+func GetJobIdFromWorkflow(logger *slog.Logger, searchAttributes *commonpb.SearchAttributes) string {
 	scheduledByIDPayload := searchAttributes.IndexedFields["TemporalScheduledById"]
 	var scheduledByID string
 	err := converter.GetDefaultDataConverter().FromPayload(scheduledByIDPayload, &scheduledByID)
@@ -65,7 +68,7 @@ func ToJobRunEventTaskErrorDto(failure *temporalfailure.Failure, retryState enum
 
 }
 
-func toPendingActivitiesDto(activities []*workflow.PendingActivityInfo) []*mgmtv1alpha1.PendingActivity {
+func toPendingActivitiesDto(activities []*workflowpb.PendingActivityInfo) []*mgmtv1alpha1.PendingActivity {
 	dtos := []*mgmtv1alpha1.PendingActivity{}
 	for _, activity := range activities {
 		var lastFailure *mgmtv1alpha1.ActivityFailure
@@ -97,19 +100,11 @@ func toActivityStatus(state enums.PendingActivityState) mgmtv1alpha1.ActivitySta
 
 }
 
-func toWorfklowStatus(input *workflowservice.DescribeWorkflowExecutionResponse) mgmtv1alpha1.JobRunStatus {
-
-	switch input.GetWorkflowExecutionInfo().Status {
+func toWorfklowStatus(input enums.WorkflowExecutionStatus) mgmtv1alpha1.JobRunStatus {
+	switch input {
 	case enums.WORKFLOW_EXECUTION_STATUS_COMPLETED:
 		return mgmtv1alpha1.JobRunStatus_JOB_RUN_STATUS_COMPLETE
 	case enums.WORKFLOW_EXECUTION_STATUS_RUNNING:
-		if input.PendingActivities != nil {
-			for _, activity := range input.PendingActivities {
-				if activity.LastFailure != nil {
-					return mgmtv1alpha1.JobRunStatus_JOB_RUN_STATUS_ERROR
-				}
-			}
-		}
 		return mgmtv1alpha1.JobRunStatus_JOB_RUN_STATUS_RUNNING
 	case enums.WORKFLOW_EXECUTION_STATUS_CONTINUED_AS_NEW:
 		return mgmtv1alpha1.JobRunStatus_JOB_RUN_STATUS_RUNNING

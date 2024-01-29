@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	"strings"
 	"time"
 
 	"connectrpc.com/connect"
@@ -16,7 +15,6 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
-	"github.com/nucleuscloud/neosync/backend/internal/utils"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	commonpb "go.temporal.io/api/common/v1"
 	"go.temporal.io/api/enums/v1"
@@ -24,7 +22,6 @@ import (
 	"go.temporal.io/api/workflowservice/v1"
 	temporalclient "go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/converter"
-	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -43,7 +40,6 @@ func (s *Service) GetJobRuns(
 
 	var accountId string
 	jobIds := []string{}
-	var workflows []*workflowpb.WorkflowExecutionInfo
 	switch id := req.Msg.Id.(type) {
 	case *mgmtv1alpha1.GetJobRunsRequest_JobId:
 		jobUuid, err := nucleusdb.ToUuid(id.JobId)
@@ -73,6 +69,12 @@ func (s *Service) GetJobRuns(
 	default:
 		return nil, fmt.Errorf("must provide jobId or accountId")
 	}
+
+	_, err := s.verifyUserInAccount(ctx, accountId)
+	if err != nil {
+		return nil, err
+	}
+
 	tclient, err := s.temporalWfManager.GetWorkflowClientByAccount(ctx, accountId, logger)
 	if err != nil {
 		return nil, err
@@ -81,44 +83,19 @@ func (s *Service) GetJobRuns(
 	if err != nil {
 		return nil, err
 	}
-	workflows, err = getWorkflowExecutionsByJobIds(ctx, tclient, logger, tconfig.Namespace, jobIds)
-	if err != nil {
-		return nil, err
-	}
 
-	_, err = s.verifyUserInAccount(ctx, accountId)
+	workflows, err := getWorkflowExecutionsByJobIds(ctx, tclient, tconfig.Namespace, jobIds)
 	if err != nil {
 		return nil, err
 	}
 
 	runs := make([]*mgmtv1alpha1.JobRun, len(workflows))
-	errGrp, errCtx := errgroup.WithContext(ctx)
-	for index, workflow := range workflows {
-		index := index
-		workflow := workflow
-		errGrp.Go(func() error {
-			res, err := tclient.DescribeWorkflowExecution(errCtx, workflow.Execution.WorkflowId, workflow.Execution.RunId)
-			if err != nil && !strings.Contains(err.Error(), "Workflow executionsRow not found") {
-				return err
-			} else if err != nil && strings.Contains(err.Error(), "Workflow executionsRow not found") {
-				return nil
-			}
-			runs[index] = dtomaps.ToJobRunDto(logger, res)
-			return nil
-		})
+	for idx, workflow := range workflows {
+		runs[idx] = dtomaps.ToJobRunDtoFromWorkflowExecutionInfo(workflow, logger)
 	}
-
-	err = errGrp.Wait()
-	if err != nil {
-		return nil, err
-	}
-
-	filteredRuns := utils.FilterSlice[*mgmtv1alpha1.JobRun](runs, func(run *mgmtv1alpha1.JobRun) bool {
-		return run != nil && run.Id != ""
-	})
 
 	return connect.NewResponse(&mgmtv1alpha1.GetJobRunsResponse{
-		JobRuns: filteredRuns,
+		JobRuns: runs,
 	}), nil
 }
 

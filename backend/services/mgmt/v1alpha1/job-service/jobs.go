@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 	"strings"
 
 	"connectrpc.com/connect"
@@ -540,7 +539,7 @@ func (s *Service) DeleteJob(
 	}
 
 	logger.Info("deleting schedule's workflow executions")
-	workflows, err := getWorkflowExecutionsByJobIds(ctx, tclient, logger, tconfig.Namespace, []string{req.Msg.Id})
+	workflows, err := getWorkflowExecutionsByJobIds(ctx, tclient, tconfig.Namespace, []string{req.Msg.Id})
 	if err != nil {
 		return nil, err
 	}
@@ -553,10 +552,7 @@ func (s *Service) DeleteJob(
 				Namespace:         tconfig.Namespace,
 				WorkflowExecution: w.Execution,
 			})
-			if err != nil {
-				return err
-			}
-			return nil
+			return err
 		})
 	}
 
@@ -1198,7 +1194,6 @@ func (s *Service) verifyConnectionInAccount(
 func getWorkflowExecutionsByJobIds(
 	ctx context.Context,
 	tc temporalclient.Client,
-	logger *slog.Logger,
 	namespace string,
 	jobIds []string,
 ) ([]*workflowpb.WorkflowExecutionInfo, error) {
@@ -1220,8 +1215,7 @@ func getWorkflowExecutionsByJobIds(
 			Query:         query,
 		})
 		if err != nil {
-			logger.Error(fmt.Errorf("unable to retrieve workflow executions: %w", err).Error())
-			return nil, err
+			return nil, fmt.Errorf("unable to retrieve workflow executions: %w", err)
 		}
 
 		executions = append(executions, resp.Executions...)
