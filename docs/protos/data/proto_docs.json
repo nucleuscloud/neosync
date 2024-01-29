@@ -7214,7 +7214,7 @@
           "fields": [
             {
               "name": "id",
-              "description": "",
+              "description": "The id of the job run. This will currently be equivalent to the temporal workflow id",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -7286,7 +7286,7 @@
             },
             {
               "name": "pending_activities",
-              "description": "",
+              "description": "Pending activities are only returned when retrieving a specific job run and will not be returned when requesting job runs in list format",
               "label": "repeated",
               "type": "PendingActivity",
               "longType": "PendingActivity",
@@ -8711,7 +8711,7 @@
             },
             {
               "name": "GetJobRecentRuns",
-              "description": "",
+              "description": "Returns a list of recently invoked job runs baseds on the Temporal cron scheduler. This will return a list of job runs that include archived runs",
               "requestType": "GetJobRecentRunsRequest",
               "requestLongType": "GetJobRecentRunsRequest",
               "requestFullType": "mgmt.v1alpha1.GetJobRecentRunsRequest",
@@ -8723,7 +8723,7 @@
             },
             {
               "name": "GetJobNextRuns",
-              "description": "",
+              "description": "Returns a list of runs that are scheduled for execution based on the Temporal cron scheduler.",
               "requestType": "GetJobNextRunsRequest",
               "requestLongType": "GetJobNextRunsRequest",
               "requestFullType": "mgmt.v1alpha1.GetJobNextRunsRequest",
@@ -8759,7 +8759,7 @@
             },
             {
               "name": "GetJobRuns",
-              "description": "",
+              "description": "Returns a list of job runs by either account or job",
               "requestType": "GetJobRunsRequest",
               "requestLongType": "GetJobRunsRequest",
               "requestFullType": "mgmt.v1alpha1.GetJobRunsRequest",
@@ -8783,7 +8783,7 @@
             },
             {
               "name": "GetJobRun",
-              "description": "",
+              "description": "Returns a specific job run, along with any of its pending activities",
               "requestType": "GetJobRunRequest",
               "requestLongType": "GetJobRunRequest",
               "requestFullType": "mgmt.v1alpha1.GetJobRunRequest",
@@ -8843,7 +8843,7 @@
             },
             {
               "name": "GetJobRunLogsStream",
-              "description": "",
+              "description": "Returns a stream of logs from the worker nodes that pertain to a specific job run",
               "requestType": "GetJobRunLogsStreamRequest",
               "requestLongType": "GetJobRunLogsStreamRequest",
               "requestFullType": "mgmt.v1alpha1.GetJobRunLogsStreamRequest",

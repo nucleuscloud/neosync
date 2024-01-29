@@ -4152,13 +4152,15 @@ type JobRun struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Id                string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	JobId             string                 `protobuf:"bytes,2,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
-	Name              string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	Status            JobRunStatus           `protobuf:"varint,4,opt,name=status,proto3,enum=mgmt.v1alpha1.JobRunStatus" json:"status,omitempty"`
-	StartedAt         *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
-	CompletedAt       *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=completed_at,json=completedAt,proto3,oneof" json:"completed_at,omitempty"`
-	PendingActivities []*PendingActivity     `protobuf:"bytes,8,rep,name=pending_activities,json=pendingActivities,proto3" json:"pending_activities,omitempty"`
+	// The id of the job run. This will currently be equivalent to the temporal workflow id
+	Id          string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	JobId       string                 `protobuf:"bytes,2,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
+	Name        string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Status      JobRunStatus           `protobuf:"varint,4,opt,name=status,proto3,enum=mgmt.v1alpha1.JobRunStatus" json:"status,omitempty"`
+	StartedAt   *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
+	CompletedAt *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=completed_at,json=completedAt,proto3,oneof" json:"completed_at,omitempty"`
+	// Pending activities are only returned when retrieving a specific job run and will not be returned when requesting job runs in list format
+	PendingActivities []*PendingActivity `protobuf:"bytes,8,rep,name=pending_activities,json=pendingActivities,proto3" json:"pending_activities,omitempty"`
 }
 
 func (x *JobRun) Reset() {
