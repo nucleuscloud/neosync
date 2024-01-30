@@ -17,7 +17,8 @@
     "knip:production": "knip --production --strict",
     "prettier:check": "prettier --check .",
     "prettier:write": "prettier --write .",
-    "proto-build": "docusaurus generate-proto-docs"
+    "proto-build": "docusaurus generate-proto-docs",
+    "spellcheck": "cspell"
   },
   "dependencies": {
     "@docusaurus/core": "^3.1.1",
@@ -39,6 +40,7 @@
     "@docusaurus/module-type-aliases": "^3.1.0",
     "@docusaurus/types": "^3.1.0",
     "@tsconfig/docusaurus": "^2.0.2",
+    "cspell": "^8.3.2",
     "knip": "^4.2.1",
     "postcss-import": "^15.1.0",
     "postcss-nesting": "^12.0.2",

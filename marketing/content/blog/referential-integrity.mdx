@@ -10,17 +10,17 @@ authors:
 
 # Introduction
 
-Maintaining the integrity and accuracy of data within a database is crticial. Understanding and implementing referential integrity is a crucial step in ensuring that data remains reliable and useful. This blog dives deep into referential integrity, its importance, and applications in both real-world databases and synthetic data.
+Maintaining the integrity and accuracy of data within a database is critical. Understanding and implementing referential integrity is a crucial step in ensuring that data remains reliable and useful. This blog dives deep into referential integrity, its importance, and applications in both real-world databases and synthetic data.
 
 # What is Referential Integrity
 
-Referential integrity ensures that relationships in tables and between tables remain consistent as data is transformed or queried. This means that if you have a customer order in an "Orders" table, the customer ID for that order must actually exist in a "Customers" table. The customer ID in the "Orders" table would be a foreign key to the primary key customer ID in the "Customers" table. This relationship enforces data integity and ensures that orders in the "Orders" table map to a customer in the "Customers" table.
+Referential integrity ensures that relationships in tables and between tables remain consistent as data is transformed or queried. This means that if you have a customer order in an "Orders" table, the customer ID for that order must actually exist in a "Customers" table. The customer ID in the "Orders" table would be a foreign key to the primary key customer ID in the "Customers" table. This relationship enforces data integrity and ensures that orders in the "Orders" table map to a customer in the "Customers" table.
 
 More generally, the primary table contains a primary key, a unique identifier for each record. The related table, on the other hand, includes a foreign key, which is a reference back to the primary key in the primary table. Referential integrity ensures that every foreign key in the related table matches an existing primary key in the primary table. If the primary key that the foreign key references was ever deleted then the foreign key, and as a result, the record, should also be deleted.
 
 # Why is Referential Integrity important?
 
-Referential integerity is a key part in enforcing data accuracy within a given data sets. Especially in environments where there are many tables with complex relationsips, referential integrity constraints provide a safety layer to ensure that records aren't being abandoned and data quality doesn't decrease.
+Referential integrity is a key part in enforcing data accuracy within a given data sets. Especially in environments where there are many tables with complex relationships, referential integrity constraints provide a safety layer to ensure that records aren't being abandoned and data quality doesn't decrease.
 
 The less commonly talked about use-case of referential integrity is that it also improves developer productivity. Most databases, have a `CASCADE` command which allows the database to do the heavy lifting of cleaning up records across tables if you delete a record that has foreign keys to it. Imagine having to write a `DELETE FROM ...` statement for ever single table where a record might have a foreign key to another record. That would be painful!
 
@@ -41,4 +41,4 @@ We've mentioned a few ways that databases handle referential integrity in the se
 
 # Wrapping up
 
-Referential integrity is a key component of relational databases where certain columns are linked to other columns in other tables, or even in a single table. It's also a key component of creating synthetic data that can be used for testing applications and training machine learning models. Ultimately, the goal is to enforce data quality and integrit.
+Referential integrity is a key component of relational databases where certain columns are linked to other columns in other tables, or even in a single table. It's also a key component of creating synthetic data that can be used for testing applications and training machine learning models. Ultimately, the goal is to enforce data quality and integrity.

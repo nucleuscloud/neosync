@@ -81,3 +81,18 @@ jobs:
       - run: npm ci
       - name: Build
         run: npm run typecheck
+
+  spellcheck:
+    name: Spellcheck Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: streetsidesoftware/cspell-action@v5
+        with:
+          root: docs
+          config: docs/cspell.json
+          incremental_files_only: true
+          files: |
+            blog/**/*.md*
+            docs/**/*.md*
