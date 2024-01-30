@@ -91,3 +91,4 @@ jobs:
       - uses: streetsidesoftware/cspell-action@v5
         with:
           root: docs
+          config: docs/cspell.json

@@ -58,5 +58,6 @@
     "johntest"
   ],
   "flagWords": ["hte"],
-  "files": ["blog/**/*.md*", "docs/**/*.md*"]
+  "files": ["blog/**/*.md*", "docs/**/*.md*"],
+  "useGitignore": true
 }
