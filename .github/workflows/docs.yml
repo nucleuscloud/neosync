@@ -92,3 +92,4 @@ jobs:
         with:
           root: docs
           config: docs/cspell.json
+          incremental_files_only: false
