@@ -57,7 +57,23 @@
     "mgmt",
     "johntest"
   ],
-  "flagWords": ["hte"],
-  "files": ["blog/**/*.md*", "docs/**/*.md*"],
-  "useGitignore": true
+  "flagWords": [
+    "hte"
+  ],
+  "files": [
+    "blog/**/*.md*",
+    "docs/**/*.md*"
+  ],
+  "useGitignore": true,
+  "dictionaries": [
+    "en_US",
+    "companies",
+    "softwareTerms",
+    "typescript",
+    "node",
+    "go",
+    "html",
+    "python",
+    "npm",
+  ]
 }
