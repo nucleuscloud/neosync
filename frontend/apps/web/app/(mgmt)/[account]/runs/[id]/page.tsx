@@ -30,7 +30,7 @@ import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
 import JobRunStatus from '../components/JobRunStatus';
 import JobRunActivityTable from './components/JobRunActivityTable';
-import JobRunLogsTest from './components/JobRunLogs';
+import JobRunLogs from './components/JobRunLogs';
 
 export default function Page({ params }: PageProps): ReactElement {
   const { account } = useAccount();
@@ -228,7 +228,7 @@ export default function Page({ params }: PageProps): ReactElement {
           {!isSystemAppConfigDataLoading &&
             systemAppConfigData?.enableRunLogs && (
               <div>
-                <JobRunLogsTest accountId={accountId} runId={id} />
+                <JobRunLogs accountId={accountId} runId={id} />
               </div>
             )}
           <div className="space-y-4">
