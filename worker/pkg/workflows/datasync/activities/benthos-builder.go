@@ -797,6 +797,8 @@ func (b *benthosBuilder) filterNullTables(mappings []*TableMapping) []string {
 	return tables
 }
 
+// creates copy of benthos insert config
+// changes query and argsmapping to sql update statement
 func (b *benthosBuilder) createSqlUpdateBenthosConfig(
 	ctx context.Context,
 	insertConfig *BenthosConfigResponse,
