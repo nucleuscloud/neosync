@@ -1,4 +1,6 @@
+import { ArrowRight } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { ReactElement } from 'react';
 
 export default function ValueProps(): ReactElement {
@@ -6,9 +8,10 @@ export default function ValueProps(): ReactElement {
     {
       title: 'Unblock local development ',
       description:
-        'Shift left and give developers the ability to self-serve de-identified and synthetic data locally whenever they need it without having to worry about sensitive data privacy or security. ',
+        'Give developers the ability to self-serve de-identified and synthetic data locally whenever they need it without having to worry about sensitive data privacy or security. ',
       image:
         'https://assets.nucleuscloud.com/neosync/marketingsite/localdev.svg',
+      link: '/unblock-local-development',
     },
     {
       title: 'Fix broken staging environments',
@@ -16,6 +19,7 @@ export default function ValueProps(): ReactElement {
         'Catch production bugs and ship faster when you hydrate your staging and QA environments with production-like data that is safe and fast to generate. ',
       image:
         'https://assets.nucleuscloud.com/neosync/marketingsite/stagingsvg.svg',
+      link: '/fix-broken-staging',
     },
     {
       title: 'Keep environments up to date',
@@ -23,12 +27,14 @@ export default function ValueProps(): ReactElement {
         'Speed up your dev and test cycles. Make sure your environments stay in sync with the latest de-identified and synthetic data that you can refresh whenever you need to.',
       image:
         'https://assets.nucleuscloud.com/neosync/marketingsite/syncenv.svg',
+      link: '/keep-environments-in-sync',
     },
     {
       title: `Frictionless security, privacy and compliance`,
       description: `Easily comply with laws like HIPAA, GDPR, and DPDP with de-identified and synthetic data that structurally and statistically looks just like your production data.`,
       image:
         'https://assets.nucleuscloud.com/neosync/marketingsite/compliance.svg',
+      link: '/frictionless-security-privacy',
     },
   ];
 
@@ -43,19 +49,33 @@ export default function ValueProps(): ReactElement {
         {features.map((item) => (
           <div
             key={item.title}
-            className="border border-gray-400 bg-white rounded-xl p-8 shadow-xl flex flex-col gap-6 text-center w-full lg:w-[480px] max-w-xs mx-auto lg:h-[520px]"
+            className="border border-gray-400 bg-white rounded-xl p-8 shadow-xl flex flex-col justify-between gap-6 text-center w-full lg:w-[480px] max-w-xs mx-auto lg:h-[560px] hover:shadow-gray-400"
           >
-            <div className="text-gray-900 ">
-              <Image
-                src={item.image}
-                alt="NeosyncLogo"
-                width="250"
-                height="172"
-              />
+            <div>
+              <div className="text-gray-900 ">
+                <Image
+                  src={item.image}
+                  alt="NeosyncLogo"
+                  width="250"
+                  height="172"
+                />
+              </div>
+              <div className="text-gray-900 text-2xl pt-10">{item.title}</div>
+              <div className=" text-gray-500 text-[16px] pt-6 text-left">
+                {item.description}
+              </div>
             </div>
-            <div className="text-gray-900 text-2xl">{item.title}</div>
-            <div className=" text-gray-500 text-[16px] ">
-              {item.description}
+            <div>
+              <Link
+                href={item.link}
+                target="_blank"
+                className="flex flex-row justify-end text-sm items-center gap-2"
+              >
+                <div className="text-gray-900">Learn more</div>
+                <div>
+                  <ArrowRight className="text-gray-900 w-4 h-4" />
+                </div>
+              </Link>
             </div>
           </div>
         ))}
