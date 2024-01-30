@@ -92,7 +92,7 @@ jobs:
         with:
           root: docs
           config: docs/cspell.json
-          incremental_files_only: false
+          incremental_files_only: true
           files: |
             blog/**/*.md*
             docs/**/*.md*
