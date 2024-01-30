@@ -1,9 +1,9 @@
 'use client';
 import CTA from '@/components/cta/CTA';
-import APISection from '@/components/landing-page/APISection';
 import Intergrations from '@/components/landing-page/Integrations';
 import Platform from '@/components/landing-page/Platform';
 import { ReactElement } from 'react';
+import JobSchedules from './JobShedules';
 import KeepEnvironmentsInSync from './KeepEnvironmentsInSync';
 import Hero from './hero';
 
@@ -18,7 +18,7 @@ export default function Page(): ReactElement {
           <KeepEnvironmentsInSync />
         </div>
         <div className="bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto pt-20 lg:pt-40">
-          <APISection />
+          <JobSchedules />
         </div>
         <div className=" bg-[#F5F5F5] lg:p-20 px-4">
           <div className=" bg-[#1E1E1E] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto rounded-3xl py-10">

@@ -8,12 +8,12 @@ export default function KeepEnvironmentsInSync(): ReactElement {
       description:
         'Keep dev, staging and CI all in sync with the latest data. No more "well, it works locally!"',
       image:
-        'https://assets.nucleuscloud.com/neosync/marketingsite/errorsNew.svg',
+        'https://assets.nucleuscloud.com/neosync/marketingsite/stagingsvg.svg',
     },
     {
-      title: 'Consolidate your data pipelines',
+      title: 'Enable developers to self-service',
       description:
-        'Centalize your data pipelines into one system that include security and privacy out of the box.',
+        'Developers can self-serve de-identified or synthetic data whenever they need to without waiting on other teams. ',
       image:
         'https://assets.nucleuscloud.com/neosync/marketingsite/localdev.svg',
     },
@@ -36,7 +36,7 @@ export default function KeepEnvironmentsInSync(): ReactElement {
     <div>
       <div className="px-6">
         <div className="text-gray-900 font-semibold text-2xl lg:text-4xl font-satoshi text-center">
-          Always Stay Up To Date With The Freshest Data
+          Never Work with Stale Data Again
         </div>
       </div>
       <div className="text-lg text-gray-400 font-satoshi font-light  pt-10 lg:pt-20 flex flex-col lg:flex-row gap-6 justify-center items-center">

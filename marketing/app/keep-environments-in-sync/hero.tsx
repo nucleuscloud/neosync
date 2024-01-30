@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { LocalDev } from '@/public/images/LocalDev';
+import { KeepSync } from '@/public/images/KeepSync';
 import { ArrowRightIcon, GitHubLogoIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { ReactElement } from 'react';
@@ -7,14 +7,14 @@ import { PiBookOpenText } from 'react-icons/pi';
 
 export default function Hero(): ReactElement {
   return (
-    <div className="flex flex-col lg:flex-row items-center pb-8 lg:pb-20">
+    <div className="flex flex-col lg:flex-row items-center lg:pb-20">
       <div className="flex flex-col items-center lg:items-start gap-2 lg:gap-10">
         <div className="text-gray-900 font-semibold lg:text-6xl text-4xl leading-tight text-center lg:text-left">
           Keep data environments in sync
         </div>
         <h3 className="text-gray-800 text-md lg:text-lg font-semibold text-center lg:text-left lg:px-0 px-6 lg:w-[80%]">
           Effortlessly keep all of your environments in sync with the latest
-          anonymized or synthetic data
+          anonymized and synthetic data
         </h3>
         <div className="flex flex-col lg:flex-row lg:space-y-0 space-y-2 lg:space-x-4 pt-8">
           <Button className="px-6">
@@ -36,10 +36,10 @@ export default function Hero(): ReactElement {
         </div>
       </div>
       <div className="hidden lg:block pt-10">
-        <LocalDev width={624} height={562} />
+        <KeepSync width={764} height={389} />
       </div>
       <div className="block md:hidden lg:hidden pt-10">
-        <LocalDev width={324} height={262} />
+        <KeepSync width={284} height={289} />
       </div>
     </div>
   );
