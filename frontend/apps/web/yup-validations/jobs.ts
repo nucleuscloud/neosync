@@ -74,6 +74,7 @@ export type JobMappingFormValues = Yup.InferType<typeof JOB_MAPPING_SCHEMA>;
 
 export const SCHEMA_FORM_SCHEMA = Yup.object({
   mappings: Yup.array().of(JOB_MAPPING_SCHEMA).required(),
+  connectionId: Yup.string().required(),
 });
 
 export const SOURCE_FORM_SCHEMA = Yup.object({

@@ -90,6 +90,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     schemaFormKey,
     {
       mappings: [],
+      connectionId: '',
     }
   );
 

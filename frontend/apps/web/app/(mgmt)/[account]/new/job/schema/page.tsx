@@ -55,6 +55,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     `${sessionPrefix}-new-job-schema`,
     {
       mappings: [],
+      connectionId: '', // hack to track if source id changes
     }
   );
 
@@ -65,7 +66,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const form = useForm<SchemaFormValues>({
     resolver: yupResolver<SchemaFormValues>(SCHEMA_FORM_SCHEMA),
-    values: getFormValues(connectionSchemaData?.schemas ?? [], schemaFormData),
+    values: getFormValues(
+      connectionSchemaData?.schemas ?? [],
+      connectFormValues.sourceId,
+      schemaFormData
+    ),
   });
 
   useFormPersist(`${sessionPrefix}-new-job-schema`, {
@@ -116,10 +121,15 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
 function getFormValues(
   dbCols: DatabaseColumn[],
+  connectionId: string,
   existingData: SchemaFormValues | undefined
 ): SchemaFormValues {
   const existingMappings = existingData?.mappings ?? [];
-  if (existingData && existingMappings.length > 0) {
+  if (
+    existingData &&
+    existingMappings.length > 0 &&
+    existingData.connectionId === connectionId
+  ) {
     return existingData;
   }
 
@@ -140,5 +150,6 @@ function getFormValues(
         ),
       };
     }),
+    connectionId,
   };
 }

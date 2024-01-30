@@ -18,7 +18,13 @@ import {
 import { UserDefinedTransformerConfig } from '@neosync/sdk';
 import { ExclamationTriangleIcon, UpdateIcon } from '@radix-ui/react-icons';
 import memoizeOne from 'memoize-one';
-import { CSSProperties, ReactElement, useMemo, useState } from 'react';
+import {
+  CSSProperties,
+  ReactElement,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { useFormContext } from 'react-hook-form';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { FixedSizeList as List } from 'react-window';
@@ -58,6 +64,10 @@ export const VirtualizedSchemaTable = function VirtualizedSchemaTable({
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const treeData = getSchemaTreeData(data, columnFilters, transformers);
+  // hack
+  useEffect(() => {
+    setRows(data);
+  }, [data]);
   // const treeData = useMemo(
   //   () => getSchemaTreeData(data, columnFilters, transformers),
   //   [data, columnFilters]

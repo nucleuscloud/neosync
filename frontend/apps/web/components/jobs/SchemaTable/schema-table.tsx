@@ -53,7 +53,8 @@ export function SchemaTable(props: Props): ReactElement {
   if (
     systemTransformersIsLoading ||
     customTransformersIsLoading ||
-    !tableData
+    !tableData ||
+    tableData.length == 0
   ) {
     return <SkeletonTable />;
   }
