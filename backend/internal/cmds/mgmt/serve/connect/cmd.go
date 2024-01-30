@@ -467,7 +467,7 @@ func getTemporalAuthCertificate() ([]tls.Certificate, error) {
 	key := viper.GetString("TEMPORAL_CERT_KEY")
 	cert := viper.GetString("TEMPORAL_CERT")
 	if key != "" && cert != "" {
-		cert, err := tls.X509KeyPair([]byte(key), []byte(cert))
+		cert, err := tls.X509KeyPair([]byte(cert), []byte(key))
 		if err != nil {
 			return nil, err
 		}
