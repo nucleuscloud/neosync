@@ -33,6 +33,7 @@ import { ReactElement, ReactNode, forwardRef } from 'react';
 import { AiOutlineCloudSync } from 'react-icons/ai';
 import { FaDiscord } from 'react-icons/fa';
 import { GiHamburgerMenu } from 'react-icons/gi';
+import { GoShieldCheck } from 'react-icons/go';
 import { IoTerminalOutline } from 'react-icons/io5';
 import PrivateBetaButton from '../buttons/PrivateBetaButton';
 import { Button } from '../ui/button';
@@ -80,13 +81,13 @@ const links: NavLinks[] = [
         children: [],
         icon: <AiOutlineCloudSync className="w-8 h-8" />,
       },
-      // {
-      //   title: 'Comply with Security and Privacy',
-      //   href: '/comply-security-privacy',
-      //   description: 'Easily comply with GDPR, HIPAA, DPDP and more',
-      //   children: [],
-      //   icon: <GoShieldCheck className="w-8 h-8" />,
-      // },
+      {
+        title: 'Comply with Security and Privacy',
+        href: '/security-privacy',
+        description: 'Easily comply with GDPR, HIPAA, DPDP and more',
+        children: [],
+        icon: <GoShieldCheck className="w-8 h-8" />,
+      },
     ],
   },
   {
