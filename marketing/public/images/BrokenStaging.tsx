@@ -19,7 +19,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 488.502 129.109)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="113.736"
@@ -27,7 +27,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 390 185.978)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="113.736"
@@ -35,7 +35,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 488.502 242.848)"
           fill="#FFB2B2"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="113.736"
@@ -43,7 +43,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 488.502 68.79)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="113.736"
@@ -51,7 +51,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 390 125.658)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="113.736"
@@ -59,7 +59,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 488.502 182.527)"
           fill="#FFB2B2"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="113.736"
@@ -67,7 +67,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 488.502 4)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="113.736"
@@ -75,7 +75,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 390 60.8682)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="113.736"
@@ -83,7 +83,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 488.502 117.737)"
           fill="#FFB2B2"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.46819"
@@ -93,29 +93,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 507.502 129.908)"
           fill="#FFB2B2"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M509.659 133.822C510.211 134.823 510.988 135.451 511.861 135.468L507.393 135.38C506.521 135.363 505.744 134.735 505.191 133.733L509.659 133.822Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M509.66 133.821C508.469 131.66 508.537 128.195 509.813 126.083L505.346 125.995C504.07 128.107 504.002 131.572 505.193 133.733L509.66 133.821Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M512.074 124.524C511.202 124.507 510.4 125.104 509.809 126.082L505.341 125.994C505.932 125.015 506.734 124.419 507.607 124.436L512.074 124.524Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.46819"
@@ -125,29 +125,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 525.107 120.199)"
           fill="#FFB2B2"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M527.264 124.113C527.816 125.114 528.594 125.742 529.466 125.759L524.999 125.671C524.127 125.654 523.349 125.026 522.797 124.024L527.264 124.113Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M527.266 124.112C526.074 121.951 526.143 118.486 527.418 116.374L522.951 116.286C521.675 118.398 521.607 121.863 522.799 124.024L527.266 124.112Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M529.679 114.815C528.807 114.798 528.005 115.395 527.414 116.373L522.947 116.285C523.538 115.306 524.34 114.71 525.212 114.727L529.679 114.815Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.46819"
@@ -157,29 +157,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 538.803 112.648)"
           fill="#FFB2B2"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M540.96 116.562C541.512 117.563 542.289 118.191 543.162 118.208L538.694 118.12C537.822 118.103 537.044 117.475 536.492 116.474L540.96 116.562Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M540.961 116.561C539.77 114.4 539.838 110.936 541.114 108.823L536.646 108.735C535.371 110.848 535.302 114.312 536.494 116.473L540.961 116.561Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M543.375 107.264C542.502 107.247 541.701 107.844 541.109 108.823L536.642 108.735C537.233 107.756 538.035 107.159 538.907 107.176L543.375 107.264Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.46819"
@@ -189,29 +189,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 507.502 192.462)"
           fill="#FFB2B2"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M509.659 196.375C510.211 197.377 510.988 198.005 511.861 198.022L507.393 197.934C506.521 197.916 505.744 197.288 505.191 196.287L509.659 196.375Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M509.66 196.374C508.469 194.213 508.537 190.749 509.813 188.637L505.346 188.549C504.07 190.661 504.002 194.125 505.193 196.286L509.66 196.374Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M512.074 187.078C511.202 187.06 510.4 187.657 509.809 188.636L505.341 188.548C505.932 187.569 506.734 186.972 507.607 186.99L512.074 187.078Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.46819"
@@ -221,29 +221,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 525.109 182.754)"
           fill="#FFB2B2"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M527.264 186.667C527.816 187.669 528.594 188.297 529.466 188.314L524.999 188.226C524.127 188.208 523.349 187.58 522.797 186.579L527.264 186.667Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M527.262 186.667C526.07 184.506 526.139 181.042 527.415 178.93L522.947 178.842C521.671 180.954 521.603 184.418 522.795 186.579L527.262 186.667Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M529.679 177.372C528.807 177.354 528.005 177.951 527.414 178.93L522.947 178.842C523.538 177.863 524.34 177.266 525.212 177.283L529.679 177.372Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.46819"
@@ -253,29 +253,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 538.803 175.204)"
           fill="#FFB2B2"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M540.96 179.117C541.512 180.119 542.289 180.747 543.162 180.764L538.694 180.676C537.822 180.659 537.044 180.031 536.492 179.029L540.96 179.117Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M540.961 179.117C539.77 176.956 539.838 173.491 541.114 171.379L536.646 171.291C535.371 173.403 535.302 176.867 536.494 179.028L540.961 179.117Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M543.375 169.82C542.502 169.803 541.701 170.399 541.109 171.378L536.642 171.29C537.233 170.311 538.035 169.715 538.907 169.732L543.375 169.82Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.46819"
@@ -285,29 +285,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 507.502 248.313)"
           fill="#FFB2B2"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M509.659 252.227C510.211 253.228 510.988 253.856 511.861 253.873L507.393 253.785C506.521 253.768 505.744 253.14 505.191 252.139L509.659 252.227Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M509.66 252.226C508.469 250.065 508.537 246.601 509.813 244.488L505.346 244.4C504.07 246.513 504.002 249.977 505.193 252.138L509.66 252.226Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M512.074 242.929C511.202 242.912 510.4 243.509 509.809 244.488L505.341 244.4C505.932 243.421 506.734 242.824 507.607 242.841L512.074 242.929Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.46819"
@@ -317,29 +317,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 525.107 238.606)"
           fill="#FFB2B2"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M527.264 242.52C527.816 243.521 528.594 244.149 529.466 244.166L524.999 244.078C524.127 244.061 523.349 243.433 522.797 242.432L527.264 242.52Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M527.266 242.519C526.074 240.358 526.143 236.894 527.418 234.781L522.951 234.693C521.675 236.806 521.607 240.27 522.799 242.431L527.266 242.519Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M529.679 233.222C528.807 233.205 528.005 233.802 527.414 234.781L522.947 234.693C523.538 233.714 524.34 233.117 525.212 233.134L529.679 233.222Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.46819"
@@ -349,29 +349,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 538.803 231.057)"
           fill="#FFB2B2"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M540.96 234.97C541.512 235.971 542.289 236.599 543.162 236.617L538.694 236.528C537.822 236.511 537.044 235.883 536.492 234.882L540.96 234.97Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M540.961 234.969C539.77 232.808 539.838 229.344 541.114 227.231L536.646 227.143C535.371 229.256 535.302 232.72 536.494 234.881L540.961 234.969Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M543.375 225.672C542.502 225.655 541.701 226.252 541.109 227.231L536.642 227.143C537.233 226.164 538.035 225.567 538.907 225.584L543.375 225.672Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -379,7 +379,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.811 388.473)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -387,7 +387,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762.029 445.505)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -395,7 +395,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.811 502.534)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -403,7 +403,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.811 327.977)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -411,7 +411,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762.029 385.009)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -419,7 +419,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.811 442.038)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -427,7 +427,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.811 263.004)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -435,7 +435,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762.029 320.036)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -443,7 +443,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.811 377.065)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -453,29 +453,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.631 389.272)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.791 393.193C880.344 394.197 881.124 394.827 881.999 394.844L877.519 394.756C876.644 394.739 875.864 394.109 875.311 393.104L879.791 393.193Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.794 393.195C878.599 391.028 878.667 387.554 879.947 385.435L875.467 385.347C874.187 387.465 874.119 390.94 875.314 393.107L879.794 393.195Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.223 383.871C881.348 383.853 880.544 384.452 879.951 385.434L875.471 385.345C876.064 384.364 876.868 383.765 877.743 383.782L882.223 383.871Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -485,29 +485,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.287 379.537)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.447 383.459C898.001 384.464 898.78 385.093 899.655 385.111L895.175 385.022C894.3 385.005 893.52 384.375 892.967 383.371L897.447 383.459Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.448 383.459C896.253 381.292 896.322 377.817 897.601 375.699L893.121 375.611C891.842 377.729 891.773 381.203 892.968 383.37L897.448 383.459Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.879 374.137C899.004 374.12 898.2 374.719 897.607 375.7L893.127 375.612C893.72 374.63 894.524 374.032 895.399 374.049L899.879 374.137Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -517,29 +517,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909.018 371.965)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.177 375.888C911.731 376.892 912.511 377.522 913.386 377.539L908.906 377.451C908.031 377.434 907.251 376.804 906.697 375.8L911.177 375.888Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.179 375.89C909.984 373.722 910.052 370.248 911.332 368.13L906.851 368.041C905.572 370.16 905.504 373.634 906.698 375.801L911.179 375.89Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.609 366.565C912.735 366.548 911.931 367.146 911.338 368.128L906.858 368.04C907.45 367.058 908.255 366.459 909.129 366.477L913.609 366.565Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -549,29 +549,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.631 452.006)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.791 455.926C880.344 456.931 881.124 457.56 881.999 457.578L877.519 457.489C876.644 457.472 875.864 456.842 875.311 455.838L879.791 455.926Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.794 455.929C878.599 453.761 878.667 450.287 879.947 448.169L875.467 448.08C874.187 450.199 874.119 453.673 875.314 455.84L879.794 455.929Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.223 446.604C881.348 446.587 880.544 447.185 879.951 448.167L875.471 448.079C876.064 447.097 876.868 446.498 877.743 446.516L882.223 446.604Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -581,29 +581,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.287 442.27)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.447 446.19C898.001 447.194 898.78 447.824 899.655 447.841L895.175 447.753C894.3 447.736 893.52 447.106 892.967 446.102L897.447 446.19Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.45 446.192C896.255 444.025 896.324 440.551 897.603 438.432L893.123 438.344C891.844 440.463 891.775 443.937 892.97 446.104L897.45 446.192Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.879 436.868C899.004 436.85 898.2 437.449 897.607 438.431L893.127 438.342C893.72 437.361 894.524 436.762 895.399 436.779L899.879 436.868Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -613,29 +613,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909.018 434.697)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.177 438.62C911.731 439.624 912.511 440.254 913.386 440.271L908.906 440.183C908.031 440.165 907.251 439.536 906.697 438.531L911.177 438.62Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.179 438.619C909.984 436.452 910.052 432.978 911.332 430.859L906.851 430.771C905.572 432.889 905.504 436.363 906.698 438.531L911.179 438.619Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.609 429.297C912.735 429.28 911.931 429.879 911.338 430.86L906.858 430.772C907.45 429.79 908.255 429.192 909.129 429.209L913.609 429.297Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -645,29 +645,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.631 508.015)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.791 511.935C880.344 512.939 881.124 513.569 881.999 513.586L877.519 513.498C876.644 513.481 875.864 512.851 875.311 511.847L879.791 511.935Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.792 511.937C878.597 509.77 878.665 506.296 879.945 504.178L875.465 504.089C874.185 506.208 874.117 509.682 875.312 511.849L879.792 511.937Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.223 502.613C881.348 502.596 880.544 503.194 879.951 504.176L875.471 504.087C876.064 503.106 876.868 502.507 877.743 502.524L882.223 502.613Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -677,29 +677,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.287 498.279)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.447 502.2C898.001 503.204 898.78 503.834 899.655 503.851L895.175 503.763C894.3 503.745 893.52 503.116 892.967 502.111L897.447 502.2Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.45 502.202C896.255 500.035 896.324 496.561 897.603 494.442L893.123 494.354C891.844 496.472 891.775 499.946 892.97 502.114L897.45 502.202Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.879 492.877C899.004 492.86 898.2 493.459 897.607 494.44L893.127 494.352C893.72 493.37 894.524 492.772 895.399 492.789L899.879 492.877Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -709,29 +709,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909.018 490.707)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.177 494.629C911.731 495.634 912.511 496.263 913.386 496.281L908.906 496.192C908.031 496.175 907.251 495.545 906.697 494.541L911.177 494.629Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.181 494.629C909.986 492.462 910.054 488.987 911.334 486.869L906.853 486.781C905.574 488.899 905.505 492.373 906.7 494.54L911.181 494.629Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.609 485.307C912.735 485.29 911.931 485.888 911.338 486.87L906.858 486.782C907.45 485.8 908.255 485.202 909.129 485.219L913.609 485.307Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -739,7 +739,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.799 388.469)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -747,7 +747,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762.018 445.501)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -755,7 +755,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.799 502.53)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -763,7 +763,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.799 327.974)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -771,7 +771,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762.018 385.006)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -779,7 +779,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.799 442.035)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -787,7 +787,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.799 263)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -795,7 +795,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762.018 320.032)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -803,7 +803,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.799 377.062)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -813,29 +813,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.629 389.27)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.789 393.19C880.342 394.194 881.122 394.824 881.997 394.841L877.517 394.753C876.642 394.736 875.862 394.106 875.309 393.102L879.789 393.19Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.792 393.192C878.597 391.025 878.665 387.551 879.945 385.432L875.465 385.344C874.185 387.463 874.117 390.937 875.312 393.104L879.792 393.192Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.221 383.868C881.346 383.85 880.542 384.449 879.949 385.431L875.469 385.342C876.062 384.361 876.866 383.762 877.741 383.779L882.221 383.868Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -845,29 +845,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.285 379.537)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.445 383.457C897.999 384.462 898.779 385.092 899.653 385.109L895.173 385.02C894.298 385.003 893.519 384.373 892.965 383.369L897.445 383.457Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.448 383.46C896.253 381.293 896.322 377.818 897.601 375.7L893.121 375.612C891.842 377.73 891.773 381.204 892.968 383.371L897.448 383.46Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.877 374.135C899.002 374.118 898.198 374.717 897.605 375.698L893.125 375.61C893.718 374.628 894.522 374.03 895.397 374.047L899.877 374.135Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -877,29 +877,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909.016 371.962)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.175 375.884C911.729 376.889 912.509 377.518 913.384 377.536L908.904 377.447C908.029 377.43 907.249 376.8 906.695 375.796L911.175 375.884Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.179 375.887C909.984 373.719 910.052 370.245 911.332 368.127L906.851 368.038C905.572 370.157 905.504 373.631 906.698 375.798L911.179 375.887Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.608 366.562C912.733 366.545 911.929 367.143 911.336 368.125L906.856 368.037C907.449 367.055 908.253 366.456 909.127 366.474L913.608 366.562Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -909,29 +909,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.629 452.006)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.789 455.926C880.342 456.931 881.122 457.56 881.997 457.578L877.517 457.489C876.642 457.472 875.862 456.842 875.309 455.838L879.789 455.926Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.792 455.929C878.597 453.761 878.665 450.287 879.945 448.169L875.465 448.08C874.185 450.199 874.117 453.673 875.312 455.84L879.792 455.929Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.221 446.604C881.346 446.587 880.542 447.185 879.949 448.167L875.469 448.079C876.062 447.097 876.866 446.498 877.741 446.516L882.221 446.604Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -941,29 +941,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.285 442.27)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.445 446.19C897.999 447.194 898.779 447.824 899.653 447.841L895.173 447.753C894.298 447.736 893.519 447.106 892.965 446.102L897.445 446.19Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.448 446.192C896.253 444.025 896.322 440.551 897.601 438.432L893.121 438.344C891.842 440.463 891.773 443.937 892.968 446.104L897.448 446.192Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.877 436.868C899.002 436.85 898.198 437.449 897.605 438.431L893.125 438.342C893.718 437.361 894.522 436.762 895.397 436.779L899.877 436.868Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -973,29 +973,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909.016 434.697)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.175 438.62C911.729 439.624 912.509 440.254 913.384 440.271L908.904 440.183C908.029 440.165 907.249 439.536 906.695 438.531L911.175 438.62Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.177 438.619C909.982 436.452 910.05 432.978 911.33 430.859L906.85 430.771C905.57 432.889 905.502 436.363 906.696 438.531L911.177 438.619Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.608 429.297C912.733 429.28 911.929 429.879 911.336 430.86L906.856 430.772C907.449 429.79 908.253 429.192 909.127 429.209L913.608 429.297Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -1005,29 +1005,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.629 508.015)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.789 511.935C880.342 512.939 881.122 513.569 881.997 513.586L877.517 513.498C876.642 513.481 875.862 512.851 875.309 511.847L879.789 511.935Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.79 511.937C878.595 509.77 878.664 506.296 879.943 504.178L875.463 504.089C874.183 506.208 874.115 509.682 875.31 511.849L879.79 511.937Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.221 502.613C881.346 502.596 880.542 503.194 879.949 504.176L875.469 504.087C876.062 503.106 876.866 502.507 877.741 502.524L882.221 502.613Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -1037,29 +1037,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.285 498.279)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.445 502.2C897.999 503.204 898.779 503.834 899.653 503.851L895.173 503.763C894.298 503.745 893.519 503.116 892.965 502.111L897.445 502.2Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.448 502.202C896.253 500.035 896.322 496.561 897.601 494.442L893.121 494.354C891.842 496.472 891.773 499.946 892.968 502.114L897.448 502.202Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.877 492.877C899.002 492.86 898.198 493.459 897.605 494.44L893.125 494.352C893.718 493.37 894.522 492.772 895.397 492.789L899.877 492.877Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -1069,29 +1069,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909.016 490.707)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.175 494.629C911.729 495.634 912.509 496.263 913.384 496.281L908.904 496.192C908.029 496.175 907.249 495.545 906.695 494.541L911.175 494.629Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.179 494.629C909.984 492.462 910.052 488.987 911.332 486.869L906.851 486.781C905.572 488.899 905.504 492.373 906.698 494.54L911.179 494.629Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.608 485.307C912.733 485.29 911.929 485.888 911.336 486.87L906.856 486.782C907.449 485.8 908.253 485.202 909.127 485.219L913.608 485.307Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -1099,7 +1099,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.797 388.469)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -1107,7 +1107,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762.016 445.501)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -1115,7 +1115,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.797 502.53)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -1123,7 +1123,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.797 327.974)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -1131,7 +1131,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762.016 385.006)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -1139,7 +1139,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.797 442.035)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -1147,7 +1147,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.797 263)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -1155,7 +1155,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762.016 320.032)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -1163,7 +1163,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.797 377.062)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -1173,29 +1173,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.621 389.269)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.781 393.189C880.335 394.193 881.114 394.823 881.989 394.84L877.509 394.752C876.634 394.735 875.854 394.105 875.301 393.101L879.781 393.189Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.784 393.191C878.589 391.024 878.658 387.55 879.937 385.431L875.457 385.343C874.178 387.462 874.109 390.936 875.304 393.103L879.784 393.191Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.213 383.867C881.338 383.849 880.534 384.448 879.941 385.43L875.461 385.341C876.054 384.36 876.858 383.761 877.733 383.778L882.213 383.867Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -1205,29 +1205,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.277 379.536)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.437 383.457C897.991 384.461 898.771 385.091 899.646 385.108L895.165 385.019C894.291 385.002 893.511 384.372 892.957 383.368L897.437 383.457Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.44 383.459C896.245 381.292 896.314 377.817 897.593 375.699L893.113 375.611C891.834 377.729 891.765 381.203 892.96 383.37L897.44 383.459Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.869 374.134C898.994 374.117 898.19 374.716 897.597 375.697L893.117 375.609C893.71 374.627 894.514 374.029 895.389 374.046L899.869 374.134Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -1237,29 +1237,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909.008 371.962)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.168 375.884C911.721 376.889 912.501 377.518 913.376 377.536L908.896 377.447C908.021 377.43 907.241 376.8 906.688 375.796L911.168 375.884Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.171 375.887C909.976 373.719 910.044 370.245 911.324 368.127L906.844 368.038C905.564 370.157 905.496 373.631 906.691 375.798L911.171 375.887Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.6 366.562C912.725 366.545 911.921 367.143 911.328 368.125L906.848 368.037C907.441 367.055 908.245 366.456 909.12 366.474L913.6 366.562Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -1269,29 +1269,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.621 452.002)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.781 455.922C880.335 456.927 881.114 457.556 881.989 457.574L877.509 457.485C876.634 457.468 875.854 456.838 875.301 455.834L879.781 455.922Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.784 455.925C878.589 453.757 878.658 450.283 879.937 448.165L875.457 448.077C874.178 450.195 874.109 453.669 875.304 455.836L879.784 455.925Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.213 446.6C881.338 446.583 880.534 447.181 879.941 448.163L875.461 448.075C876.054 447.093 876.858 446.495 877.733 446.512L882.213 446.6Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -1301,29 +1301,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.277 442.267)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.437 446.187C897.991 447.191 898.771 447.821 899.646 447.838L895.165 447.75C894.291 447.733 893.511 447.103 892.957 446.099L897.437 446.187Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.44 446.189C896.245 444.022 896.314 440.548 897.593 438.43L893.113 438.341C891.834 440.46 891.765 443.934 892.96 446.101L897.44 446.189Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.869 436.865C898.994 436.848 898.19 437.446 897.597 438.428L893.117 438.339C893.71 437.358 894.514 436.759 895.389 436.776L899.869 436.865Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -1333,29 +1333,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909.008 434.693)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.168 438.617C911.721 439.621 912.501 440.251 913.376 440.268L908.896 440.18C908.021 440.162 907.241 439.533 906.688 438.528L911.168 438.617Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.171 438.615C909.976 436.448 910.044 432.974 911.324 430.855L906.844 430.767C905.564 432.885 905.496 436.36 906.691 438.527L911.171 438.615Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.6 429.294C912.725 429.276 911.921 429.875 911.328 430.856L906.848 430.768C907.441 429.786 908.245 429.188 909.12 429.205L913.6 429.294Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -1365,29 +1365,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.621 508.015)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.781 511.935C880.335 512.939 881.114 513.569 881.989 513.586L877.509 513.498C876.634 513.481 875.854 512.851 875.301 511.847L879.781 511.935Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.784 511.937C878.589 509.77 878.658 506.296 879.937 504.178L875.457 504.089C874.178 506.208 874.109 509.682 875.304 511.849L879.784 511.937Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.213 502.613C881.338 502.596 880.534 503.194 879.941 504.176L875.461 504.087C876.054 503.106 876.858 502.507 877.733 502.524L882.213 502.613Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -1397,29 +1397,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.277 498.279)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.437 502.2C897.991 503.204 898.771 503.834 899.646 503.851L895.165 503.763C894.291 503.745 893.511 503.116 892.957 502.111L897.437 502.2Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.44 502.202C896.245 500.035 896.314 496.561 897.593 494.442L893.113 494.354C891.834 496.472 891.765 499.946 892.96 502.114L897.44 502.202Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.869 492.877C898.994 492.86 898.19 493.459 897.597 494.44L893.117 494.352C893.71 493.37 894.514 492.772 895.389 492.789L899.869 492.877Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -1429,29 +1429,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909.008 490.707)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.168 494.629C911.721 495.634 912.501 496.263 913.376 496.281L908.896 496.192C908.021 496.175 907.241 495.545 906.688 494.541L911.168 494.629Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.171 494.629C909.976 492.462 910.044 488.987 911.324 486.869L906.844 486.781C905.564 488.899 905.496 492.373 906.691 494.54L911.171 494.629Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.6 485.307C912.725 485.29 911.921 485.888 911.328 486.87L906.848 486.782C907.441 485.8 908.245 485.202 909.12 485.219L913.6 485.307Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -1459,7 +1459,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.795 388.469)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -1467,7 +1467,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762.014 445.499)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -1475,7 +1475,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.795 502.53)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -1483,7 +1483,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.795 327.974)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -1491,7 +1491,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762.014 385.006)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -1499,7 +1499,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.795 442.035)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -1507,7 +1507,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.795 263)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -1515,7 +1515,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762.014 320.03)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -1523,7 +1523,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.795 377.062)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -1533,29 +1533,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.621 389.266)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.781 393.186C880.335 394.19 881.114 394.82 881.989 394.837L877.509 394.749C876.634 394.732 875.854 394.102 875.301 393.098L879.781 393.186Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.784 393.188C878.589 391.021 878.658 387.547 879.937 385.429L875.457 385.34C874.178 387.459 874.109 390.933 875.304 393.1L879.784 393.188Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.213 383.864C881.338 383.847 880.534 384.445 879.941 385.427L875.461 385.338C876.054 384.357 876.858 383.758 877.733 383.775L882.213 383.864Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -1565,29 +1565,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.277 379.533)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.437 383.454C897.991 384.458 898.771 385.088 899.646 385.105L895.165 385.017C894.291 384.999 893.511 384.369 892.957 383.365L897.437 383.454Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.44 383.456C896.245 381.289 896.314 377.815 897.593 375.696L893.113 375.608C891.834 377.726 891.765 381.2 892.96 383.368L897.44 383.456Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.869 374.131C898.994 374.114 898.19 374.713 897.597 375.694L893.117 375.606C893.71 374.624 894.514 374.026 895.389 374.043L899.869 374.131Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -1597,29 +1597,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909.008 371.959)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.168 375.881C911.721 376.886 912.501 377.515 913.376 377.533L908.896 377.444C908.021 377.427 907.241 376.797 906.688 375.793L911.168 375.881Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.171 375.884C909.976 373.716 910.044 370.242 911.324 368.124L906.844 368.035C905.564 370.154 905.496 373.628 906.691 375.795L911.171 375.884Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.6 366.559C912.725 366.542 911.921 367.14 911.328 368.122L906.848 368.034C907.441 367.052 908.245 366.454 909.12 366.471L913.6 366.559Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -1629,29 +1629,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.621 452.002)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.781 455.922C880.335 456.927 881.114 457.556 881.989 457.574L877.509 457.485C876.634 457.468 875.854 456.838 875.301 455.834L879.781 455.922Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.784 455.925C878.589 453.757 878.658 450.283 879.937 448.165L875.457 448.077C874.178 450.195 874.109 453.669 875.304 455.836L879.784 455.925Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.213 446.6C881.338 446.583 880.534 447.181 879.941 448.163L875.461 448.075C876.054 447.093 876.858 446.495 877.733 446.512L882.213 446.6Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -1661,29 +1661,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.277 442.267)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.437 446.187C897.991 447.191 898.771 447.821 899.646 447.838L895.165 447.75C894.291 447.733 893.511 447.103 892.957 446.099L897.437 446.187Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.44 446.189C896.245 444.022 896.314 440.548 897.593 438.43L893.113 438.341C891.834 440.46 891.765 443.934 892.96 446.101L897.44 446.189Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.869 436.865C898.994 436.848 898.19 437.446 897.597 438.428L893.117 438.339C893.71 437.358 894.514 436.759 895.389 436.776L899.869 436.865Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -1693,29 +1693,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909.008 434.693)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.168 438.617C911.721 439.621 912.501 440.251 913.376 440.268L908.896 440.18C908.021 440.162 907.241 439.533 906.688 438.528L911.168 438.617Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.171 438.615C909.976 436.448 910.044 432.974 911.324 430.855L906.844 430.767C905.564 432.885 905.496 436.36 906.691 438.527L911.171 438.615Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.6 429.294C912.725 429.276 911.921 429.875 911.328 430.856L906.848 430.768C907.441 429.786 908.245 429.188 909.12 429.205L913.6 429.294Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -1725,29 +1725,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.621 508.014)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.781 511.934C880.335 512.938 881.114 513.568 881.989 513.585L877.509 513.497C876.634 513.48 875.854 512.85 875.301 511.846L879.781 511.934Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.784 511.936C878.589 509.769 878.658 506.295 879.937 504.177L875.457 504.088C874.178 506.207 874.109 509.681 875.304 511.848L879.784 511.936Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.213 502.612C881.338 502.595 880.534 503.193 879.941 504.175L875.461 504.086C876.054 503.105 876.858 502.506 877.733 502.524L882.213 502.612Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -1757,29 +1757,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.277 498.278)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.437 502.199C897.991 503.203 898.771 503.833 899.646 503.85L895.165 503.762C894.291 503.744 893.511 503.115 892.957 502.11L897.437 502.199Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.44 502.201C896.245 500.034 896.314 496.56 897.593 494.441L893.113 494.353C891.834 496.471 891.765 499.945 892.96 502.113L897.44 502.201Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.869 492.877C898.994 492.859 898.19 493.458 897.597 494.439L893.117 494.351C893.71 493.369 894.514 492.771 895.389 492.788L899.869 492.877Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -1789,29 +1789,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909.008 490.705)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.168 494.628C911.721 495.633 912.501 496.262 913.376 496.28L908.896 496.191C908.021 496.174 907.241 495.544 906.688 494.54L911.168 494.628Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.171 494.627C909.976 492.46 910.044 488.985 911.324 486.867L906.844 486.779C905.564 488.897 905.496 492.371 906.691 494.538L911.171 494.627Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.6 485.305C912.725 485.288 911.921 485.887 911.328 486.868L906.848 486.78C907.441 485.798 908.245 485.2 909.12 485.217L913.6 485.305Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -1819,7 +1819,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.791 388.469)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -1827,7 +1827,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762.01 445.499)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -1835,7 +1835,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.791 502.53)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -1843,7 +1843,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.791 327.974)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -1851,7 +1851,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762.01 385.006)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -1859,7 +1859,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.791 442.035)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -1867,7 +1867,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.791 263)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -1875,7 +1875,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762.01 320.03)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -1883,7 +1883,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.791 377.062)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -1893,29 +1893,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.615 389.269)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.775 393.189C880.329 394.193 881.109 394.823 881.983 394.84L877.503 394.752C876.628 394.735 875.849 394.105 875.295 393.101L879.775 393.189Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.778 393.191C878.583 391.024 878.652 387.55 879.931 385.431L875.451 385.343C874.172 387.462 874.103 390.936 875.298 393.103L879.778 393.191Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.207 383.867C881.332 383.849 880.528 384.448 879.935 385.43L875.455 385.341C876.048 384.36 876.852 383.761 877.727 383.778L882.207 383.867Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -1925,29 +1925,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.271 379.534)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.431 383.457C897.985 384.461 898.765 385.091 899.64 385.108L895.16 385.019C894.285 385.002 893.505 384.372 892.951 383.368L897.431 383.457Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.434 383.456C896.24 381.289 896.308 377.815 897.587 375.696L893.107 375.608C891.828 377.726 891.759 381.2 892.954 383.368L897.434 383.456Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.863 374.134C898.989 374.117 898.184 374.716 897.592 375.697L893.111 375.609C893.704 374.627 894.508 374.029 895.383 374.046L899.863 374.134Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -1957,29 +1957,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909.002 371.962)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.162 375.884C911.715 376.889 912.495 377.518 913.37 377.536L908.89 377.447C908.015 377.43 907.235 376.8 906.682 375.796L911.162 375.884Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.165 375.887C909.97 373.719 910.039 370.245 911.318 368.127L906.838 368.038C905.558 370.157 905.49 373.631 906.685 375.798L911.165 375.887Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.594 366.562C912.719 366.545 911.915 367.143 911.322 368.125L906.842 368.037C907.435 367.055 908.239 366.456 909.114 366.474L913.594 366.562Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -1989,29 +1989,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.615 452)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.775 455.92C880.329 456.925 881.109 457.554 881.983 457.572L877.503 457.483C876.628 457.466 875.849 456.836 875.295 455.832L879.775 455.92Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.778 455.923C878.583 453.756 878.652 450.281 879.931 448.163L875.451 448.075C874.172 450.193 874.103 453.667 875.298 455.834L879.778 455.923Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.207 446.598C881.332 446.581 880.528 447.179 879.935 448.161L875.455 448.073C876.048 447.091 876.852 446.493 877.727 446.51L882.207 446.598Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -2021,29 +2021,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.271 442.265)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.431 446.185C897.985 447.189 898.765 447.819 899.64 447.836L895.16 447.748C894.285 447.731 893.505 447.101 892.951 446.097L897.431 446.185Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.434 446.187C896.24 444.02 896.308 440.546 897.587 438.428L893.107 438.339C891.828 440.458 891.759 443.932 892.954 446.099L897.434 446.187Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.863 436.863C898.989 436.846 898.184 437.444 897.592 438.426L893.111 438.337C893.704 437.356 894.508 436.757 895.383 436.774L899.863 436.863Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -2053,29 +2053,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 908.996 434.692)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.162 438.615C911.715 439.619 912.495 440.249 913.37 440.266L908.89 440.178C908.015 440.16 907.235 439.531 906.682 438.526L911.162 438.615Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.165 438.617C909.97 436.45 910.039 432.976 911.318 430.857L906.838 430.769C905.558 432.887 905.49 436.361 906.685 438.529L911.165 438.617Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.594 429.293C912.719 429.275 911.915 429.874 911.322 430.855L906.842 430.767C907.435 429.785 908.239 429.187 909.114 429.204L913.594 429.293Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -2085,29 +2085,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.615 508.019)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.775 511.939C880.329 512.943 881.109 513.573 881.983 513.59L877.503 513.502C876.628 513.485 875.849 512.855 875.295 511.851L879.775 511.939Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.778 511.941C878.583 509.774 878.652 506.3 879.931 504.181L875.451 504.093C874.172 506.212 874.103 509.686 875.298 511.853L879.778 511.941Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.207 502.617C881.332 502.599 880.528 503.198 879.935 504.18L875.455 504.091C876.048 503.11 876.852 502.511 877.727 502.528L882.207 502.617Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -2117,29 +2117,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.271 498.284)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.431 502.207C897.985 503.211 898.765 503.841 899.64 503.858L895.16 503.769C894.285 503.752 893.505 503.122 892.951 502.118L897.431 502.207Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.434 502.206C896.24 500.039 896.308 496.565 897.587 494.446L893.107 494.358C891.828 496.476 891.759 499.95 892.954 502.118L897.434 502.206Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.863 492.884C898.989 492.867 898.184 493.466 897.592 494.447L893.111 494.359C893.704 493.377 894.508 492.779 895.383 492.796L899.863 492.884Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -2149,29 +2149,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909.002 490.709)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.162 494.631C911.715 495.636 912.495 496.265 913.37 496.283L908.89 496.194C908.015 496.177 907.235 495.547 906.682 494.543L911.162 494.631Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.165 494.634C909.97 492.466 910.039 488.992 911.318 486.874L906.838 486.785C905.558 488.904 905.49 492.378 906.685 494.545L911.165 494.634Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.594 485.309C912.719 485.292 911.915 485.89 911.322 486.872L906.842 486.784C907.435 485.802 908.239 485.204 909.114 485.221L913.594 485.309Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -2179,7 +2179,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.781 388.469)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -2187,7 +2187,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762 445.501)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -2195,7 +2195,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.781 502.53)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -2203,7 +2203,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.781 327.974)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -2211,7 +2211,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762 385.006)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -2219,7 +2219,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.781 442.035)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -2227,7 +2227,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.781 263)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -2235,7 +2235,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762 320.032)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -2243,7 +2243,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.781 377.062)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -2253,29 +2253,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.613 389.269)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.773 393.189C880.327 394.193 881.107 394.823 881.981 394.84L877.501 394.752C876.627 394.735 875.847 394.105 875.293 393.101L879.773 393.189Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.776 393.191C878.581 391.024 878.65 387.55 879.929 385.431L875.449 385.343C874.17 387.462 874.101 390.936 875.296 393.103L879.776 393.191Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.205 383.867C881.33 383.849 880.526 384.448 879.933 385.43L875.453 385.341C876.046 384.36 876.85 383.761 877.725 383.778L882.205 383.867Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -2285,29 +2285,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.27 379.534)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.429 383.457C897.983 384.461 898.763 385.091 899.638 385.108L895.158 385.019C894.283 385.002 893.503 384.372 892.949 383.368L897.429 383.457Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.432 383.456C896.238 381.289 896.306 377.815 897.585 375.696L893.105 375.608C891.826 377.726 891.757 381.2 892.952 383.368L897.432 383.456Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.861 374.134C898.987 374.117 898.183 374.716 897.59 375.697L893.11 375.609C893.702 374.627 894.507 374.029 895.381 374.046L899.861 374.134Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -2317,29 +2317,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909 371.962)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.16 375.884C911.714 376.889 912.493 377.518 913.368 377.536L908.888 377.447C908.013 377.43 907.233 376.8 906.68 375.796L911.16 375.884Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.163 375.887C909.968 373.719 910.037 370.245 911.316 368.127L906.836 368.038C905.556 370.157 905.488 373.631 906.683 375.798L911.163 375.887Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.592 366.562C912.717 366.545 911.913 367.143 911.32 368.125L906.84 368.037C907.433 367.055 908.237 366.456 909.112 366.474L913.592 366.562Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -2349,29 +2349,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.613 452)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.773 455.92C880.327 456.925 881.107 457.554 881.981 457.572L877.501 457.483C876.627 457.466 875.847 456.836 875.293 455.832L879.773 455.92Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.776 455.923C878.581 453.756 878.65 450.281 879.929 448.163L875.449 448.075C874.17 450.193 874.101 453.667 875.296 455.834L879.776 455.923Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.205 446.598C881.33 446.581 880.526 447.179 879.933 448.161L875.453 448.073C876.046 447.091 876.85 446.493 877.725 446.51L882.205 446.598Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -2381,29 +2381,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.27 442.263)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.429 446.184C897.983 447.188 898.763 447.818 899.638 447.835L895.158 447.747C894.283 447.73 893.503 447.1 892.949 446.096L897.429 446.184Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.432 446.186C896.238 444.019 896.306 440.545 897.585 438.427L893.105 438.338C891.826 440.457 891.757 443.931 892.952 446.098L897.432 446.186Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.861 436.862C898.987 436.845 898.183 437.443 897.59 438.425L893.11 438.336C893.702 437.355 894.507 436.756 895.381 436.774L899.861 436.862Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -2413,29 +2413,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909 434.691)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.16 438.614C911.714 439.618 912.493 440.248 913.368 440.265L908.888 440.177C908.013 440.159 907.233 439.53 906.68 438.525L911.16 438.614Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.163 438.616C909.968 436.449 910.037 432.975 911.316 430.856L906.836 430.768C905.556 432.886 905.488 436.361 906.683 438.528L911.163 438.616Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.592 429.292C912.717 429.274 911.913 429.873 911.32 430.854L906.84 430.766C907.433 429.784 908.237 429.186 909.112 429.203L913.592 429.292Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -2445,29 +2445,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.613 508.014)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.773 511.934C880.327 512.938 881.107 513.568 881.981 513.585L877.501 513.497C876.627 513.48 875.847 512.85 875.293 511.846L879.773 511.934Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.776 511.936C878.581 509.769 878.65 506.295 879.929 504.177L875.449 504.088C874.17 506.207 874.101 509.681 875.296 511.848L879.776 511.936Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.205 502.612C881.33 502.595 880.526 503.193 879.933 504.175L875.453 504.086C876.046 503.105 876.85 502.506 877.725 502.524L882.205 502.612Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -2477,29 +2477,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.27 498.278)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.429 502.201C897.983 503.205 898.763 503.835 899.638 503.852L895.158 503.764C894.283 503.746 893.503 503.117 892.949 502.112L897.429 502.201Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.432 502.2C896.238 500.033 896.306 496.559 897.585 494.44L893.105 494.352C891.826 496.47 891.757 499.944 892.952 502.112L897.432 502.2Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.861 492.878C898.987 492.861 898.183 493.46 897.59 494.441L893.11 494.353C893.702 493.371 894.507 492.773 895.381 492.79L899.861 492.878Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -2509,29 +2509,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909 490.705)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.16 494.628C911.714 495.633 912.493 496.262 913.368 496.28L908.888 496.191C908.013 496.174 907.233 495.544 906.68 494.54L911.16 494.628Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.163 494.631C909.968 492.464 910.037 488.989 911.316 486.871L906.836 486.783C905.556 488.901 905.488 492.375 906.683 494.542L911.163 494.631Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.592 485.305C912.717 485.288 911.913 485.887 911.32 486.868L906.84 486.78C907.433 485.798 908.237 485.2 909.112 485.217L913.592 485.305Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -2539,7 +2539,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.781 388.469)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -2547,7 +2547,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762 445.501)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -2555,7 +2555,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.781 502.53)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -2563,7 +2563,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.781 327.974)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -2571,7 +2571,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762 385.006)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -2579,7 +2579,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.781 442.035)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -2587,7 +2587,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.781 263)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -2595,7 +2595,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762 320.032)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -2603,7 +2603,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.781 377.062)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -2613,29 +2613,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.605 389.266)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.765 393.186C880.319 394.19 881.099 394.82 881.974 394.837L877.494 394.749C876.619 394.732 875.839 394.102 875.285 393.098L879.765 393.186Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.768 393.188C878.574 391.021 878.642 387.547 879.921 385.429L875.441 385.34C874.162 387.459 874.093 390.933 875.288 393.1L879.768 393.188Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.197 383.864C881.323 383.847 880.518 384.445 879.926 385.427L875.445 385.338C876.038 384.357 876.842 383.758 877.717 383.775L882.197 383.864Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -2645,29 +2645,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.262 379.531)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.422 383.454C897.975 384.458 898.755 385.088 899.63 385.105L895.15 385.017C894.275 384.999 893.495 384.369 892.941 383.365L897.422 383.454Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.425 383.453C896.23 381.286 896.298 377.812 897.578 375.693L893.098 375.605C891.818 377.723 891.75 381.197 892.945 383.365L897.425 383.453Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.854 374.131C898.979 374.114 898.175 374.713 897.582 375.694L893.102 375.606C893.695 374.624 894.499 374.026 895.373 374.043L899.854 374.131Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -2677,29 +2677,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 908.992 371.959)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.152 375.881C911.706 376.886 912.486 377.515 913.36 377.533L908.88 377.444C908.005 377.427 907.226 376.797 906.672 375.793L911.152 375.881Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.155 375.884C909.96 373.716 910.029 370.242 911.308 368.124L906.828 368.035C905.549 370.154 905.48 373.628 906.675 375.795L911.155 375.884Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.584 366.559C912.709 366.542 911.905 367.14 911.312 368.122L906.832 368.034C907.425 367.052 908.229 366.454 909.104 366.471L913.584 366.559Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -2709,29 +2709,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.605 452)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.765 455.92C880.319 456.925 881.099 457.554 881.974 457.572L877.494 457.483C876.619 457.466 875.839 456.836 875.285 455.832L879.765 455.92Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.768 455.923C878.574 453.756 878.642 450.281 879.921 448.163L875.441 448.075C874.162 450.193 874.093 453.667 875.288 455.834L879.768 455.923Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.197 446.598C881.323 446.581 880.518 447.179 879.926 448.161L875.445 448.073C876.038 447.091 876.842 446.493 877.717 446.51L882.197 446.598Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -2741,29 +2741,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.262 442.263)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.422 446.183C897.975 447.187 898.755 447.817 899.63 447.834L895.15 447.746C894.275 447.729 893.495 447.099 892.941 446.095L897.422 446.183Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.425 446.185C896.23 444.018 896.298 440.544 897.578 438.426L893.098 438.337C891.818 440.456 891.75 443.93 892.945 446.097L897.425 446.185Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.854 436.861C898.979 436.844 898.175 437.442 897.582 438.424L893.102 438.335C893.695 437.354 894.499 436.755 895.373 436.773L899.854 436.861Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -2773,29 +2773,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 908.992 434.691)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.152 438.614C911.706 439.618 912.486 440.248 913.36 440.265L908.88 440.177C908.005 440.159 907.226 439.53 906.672 438.525L911.152 438.614Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.155 438.616C909.96 436.449 910.029 432.975 911.308 430.856L906.828 430.768C905.549 432.886 905.48 436.361 906.675 438.528L911.155 438.616Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.584 429.292C912.709 429.274 911.905 429.873 911.312 430.854L906.832 430.766C907.425 429.784 908.229 429.186 909.104 429.203L913.584 429.292Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -2805,29 +2805,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.605 508.014)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.765 511.934C880.319 512.938 881.099 513.568 881.974 513.585L877.494 513.497C876.619 513.48 875.839 512.85 875.285 511.846L879.765 511.934Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.768 511.936C878.574 509.769 878.642 506.295 879.921 504.177L875.441 504.088C874.162 506.207 874.093 509.681 875.288 511.848L879.768 511.936Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.197 502.612C881.323 502.595 880.518 503.193 879.926 504.175L875.445 504.086C876.038 503.105 876.842 502.506 877.717 502.524L882.197 502.612Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -2837,29 +2837,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.262 498.277)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.422 502.2C897.975 503.204 898.755 503.834 899.63 503.851L895.15 503.763C894.275 503.745 893.495 503.116 892.941 502.111L897.422 502.2Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.425 502.199C896.23 500.032 896.298 496.558 897.578 494.439L893.098 494.351C891.818 496.469 891.75 499.944 892.945 502.111L897.425 502.199Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.854 492.877C898.979 492.86 898.175 493.459 897.582 494.44L893.102 494.352C893.695 493.37 894.499 492.772 895.373 492.789L899.854 492.877Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -2869,29 +2869,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 908.992 490.705)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.152 494.627C911.706 495.632 912.486 496.261 913.36 496.279L908.88 496.19C908.005 496.173 907.226 495.543 906.672 494.539L911.152 494.627Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.155 494.63C909.96 492.463 910.029 488.988 911.308 486.87L906.828 486.782C905.549 488.9 905.48 492.374 906.675 494.541L911.155 494.63Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.584 485.305C912.709 485.288 911.905 485.887 911.312 486.868L906.832 486.78C907.425 485.798 908.229 485.2 909.104 485.217L913.584 485.305Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M27.2263 247.292V232.34L31.3832 229.94C32.3532 229.38 33.136 229.12 33.7319 229.16C34.3277 229.2 34.7642 229.46 35.0413 229.94C35.3323 230.396 35.4778 231.016 35.4778 231.8C35.4778 232.376 35.4016 232.956 35.2492 233.54C35.0967 234.124 34.8542 234.704 34.5217 235.28C34.203 235.848 33.7942 236.38 33.2954 236.876C32.7966 237.372 32.1938 237.824 31.4871 238.232L28.7228 239.828V246.428L27.2263 247.292ZM28.7228 238.34L31.3209 236.84C31.9583 236.472 32.4709 236.072 32.8589 235.64C33.2469 235.192 33.531 234.724 33.7111 234.236C33.8912 233.732 33.9813 233.224 33.9813 232.712C33.9813 232.216 33.8912 231.82 33.7111 231.524C33.531 231.228 33.2469 231.072 32.8589 231.056C32.4709 231.024 31.9652 231.188 31.3416 231.548L28.7228 233.06V238.34ZM38.8657 229.604L40.4245 228.704L40.3622 231.932L40.1751 231.68C40.2582 231.136 40.4037 230.612 40.6116 230.108C40.8194 229.604 41.0688 229.14 41.3598 228.716C41.6508 228.276 41.9695 227.892 42.3159 227.564C42.6623 227.22 43.0226 226.94 43.3967 226.724C43.8955 226.436 44.3528 226.276 44.7685 226.244C45.1981 226.188 45.5791 226.264 45.9117 226.472L45.2465 228.2L45.1634 228.464L45.0179 228.452C44.9902 228.34 44.9486 228.244 44.8932 228.164C44.8378 228.084 44.72 228.016 44.5399 227.96C44.3182 227.928 44.1103 227.944 43.9163 228.008C43.7362 228.048 43.5284 228.136 43.2928 228.272C42.9464 228.472 42.6 228.752 42.2536 229.112C41.9072 229.456 41.5885 229.872 41.2975 230.36C41.0203 230.84 40.7986 231.376 40.6324 231.968C40.4661 232.56 40.3829 233.2 40.3829 233.888V239.72L38.8657 240.596V229.604ZM51.9808 233.192C51.1217 233.688 50.3596 233.888 49.6945 233.792C49.0432 233.672 48.5305 233.296 48.1564 232.664C47.7823 232.016 47.5952 231.14 47.5952 230.036C47.5952 228.916 47.7823 227.824 48.1564 226.76C48.5305 225.68 49.0432 224.712 49.6945 223.856C50.3596 222.976 51.1217 222.288 51.9808 221.792C52.8399 221.296 53.595 221.108 54.2463 221.228C54.9114 221.324 55.431 221.696 55.8051 222.344C56.1793 222.976 56.3663 223.852 56.3663 224.972C56.3663 226.076 56.1793 227.168 55.8051 228.248C55.431 229.312 54.9114 230.284 54.2463 231.164C53.595 232.02 52.8399 232.696 51.9808 233.192ZM51.9808 231.752C52.535 231.432 53.02 230.968 53.4357 230.36C53.8514 229.752 54.177 229.06 54.4126 228.284C54.662 227.5 54.7867 226.692 54.7867 225.86C54.7867 225.028 54.662 224.364 54.4126 223.868C54.177 223.364 53.8514 223.056 53.4357 222.944C53.02 222.816 52.535 222.912 51.9808 223.232C51.4404 223.544 50.9554 224.008 50.5258 224.624C50.1101 225.216 49.7776 225.904 49.5282 226.688C49.2926 227.464 49.1748 228.268 49.1748 229.1C49.1748 229.932 49.2926 230.6 49.5282 231.104C49.7776 231.6 50.1101 231.912 50.5258 232.04C50.9554 232.16 51.4404 232.064 51.9808 231.752ZM62.0405 227.432C61.5555 227.712 61.0775 227.868 60.6064 227.9C60.1491 227.924 59.7265 227.808 59.3385 227.552C58.9644 227.288 58.6665 226.852 58.4448 226.244C58.2231 225.636 58.1122 224.844 58.1122 223.868C58.1122 222.86 58.23 221.936 58.4656 221.096C58.7011 220.24 59.0129 219.476 59.4009 218.804C59.7888 218.116 60.2184 217.532 60.6895 217.052C61.1606 216.556 61.6387 216.168 62.1237 215.888C62.5671 215.632 62.962 215.484 63.3084 215.444C63.6686 215.396 63.9804 215.44 64.2437 215.576C64.5208 215.688 64.7356 215.892 64.888 216.188V209.588L66.2598 208.796L66.4676 208.676V208.844C66.3845 208.988 66.3291 209.124 66.3014 209.252C66.2875 209.372 66.2806 209.568 66.2806 209.84L66.3014 223.028C66.3014 223.316 66.3083 223.6 66.3221 223.88C66.3499 224.136 66.4122 224.38 66.5092 224.612L65.0335 225.464C64.9642 225.312 64.9157 225.148 64.888 224.972C64.8603 224.796 64.8395 224.624 64.8257 224.456C64.8257 224.264 64.8257 224.072 64.8257 223.88C64.6317 224.376 64.3961 224.856 64.119 225.32C63.8418 225.768 63.5301 226.172 63.1837 226.532C62.8373 226.892 62.4562 227.192 62.0405 227.432ZM62.2691 225.788C62.7264 225.524 63.1144 225.196 63.4331 224.804C63.7518 224.396 64.0081 223.944 64.2021 223.448C64.3961 222.936 64.5347 222.4 64.6178 221.84C64.7148 221.256 64.7633 220.668 64.7633 220.076C64.7633 219.26 64.6732 218.584 64.4931 218.048C64.313 217.496 64.0289 217.148 63.6409 217.004C63.2529 216.844 62.7541 216.94 62.1444 217.292C61.7287 217.532 61.3546 217.844 61.0221 218.228C60.7034 218.588 60.4332 219.008 60.2115 219.488C60.0036 219.96 59.8443 220.476 59.7334 221.036C59.6226 221.58 59.5671 222.156 59.5671 222.764C59.5671 223.676 59.6711 224.416 59.8789 224.984C60.0868 225.552 60.3916 225.912 60.7934 226.064C61.1953 226.216 61.6872 226.124 62.2691 225.788Z"
@@ -2912,7 +2912,7 @@ export const BrokenStaging = (props: Props) => {
             y2="-0.5"
             transform="matrix(0.866025 0.5 0 1 531 494)"
             stroke="black"
-            stroke-dasharray="8 8"
+            strokeDasharray="8 8"
             className="edge-path"
           />
         </g>
@@ -2923,7 +2923,7 @@ export const BrokenStaging = (props: Props) => {
             y2="-0.5"
             transform="matrix(0.866025 -0.5 0 1 681 580)"
             stroke="black"
-            stroke-dasharray="8 8"
+            strokeDasharray="8 8"
             className="edge-path"
           />
         </g>
@@ -2934,7 +2934,7 @@ export const BrokenStaging = (props: Props) => {
             y2="-0.5"
             transform="matrix(0.866025 0.5 0 1 528 270)"
             stroke="black"
-            stroke-dasharray="8 8"
+            strokeDasharray="8 8"
             className="edge-path"
           />
         </g>
@@ -2945,7 +2945,7 @@ export const BrokenStaging = (props: Props) => {
             y2="-0.5"
             transform="matrix(0.866025 -0.5 0 1 451 445)"
             stroke="black"
-            stroke-dasharray="8 8"
+            strokeDasharray="8 8"
             className="edge-path"
           />
         </g>
@@ -2956,7 +2956,7 @@ export const BrokenStaging = (props: Props) => {
             y2="-0.5"
             transform="matrix(0.866025 0.5 0 1 262 331)"
             stroke="black"
-            stroke-dasharray="8 8"
+            strokeDasharray="8 8"
             className="edge-path"
           />
         </g>
@@ -2967,7 +2967,7 @@ export const BrokenStaging = (props: Props) => {
             y2="-0.5"
             transform="matrix(0.866025 -0.5 0 1 115 416)"
             stroke="black"
-            stroke-dasharray="8 8"
+            strokeDasharray="8 8"
             className="edge-path"
           />
         </g>
@@ -2978,25 +2978,25 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 472.42 374)"
           fill="white"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M390.096 441.214C390.096 454.338 399.31 466.22 414.207 474.821V497.226C399.31 488.625 390.096 476.743 390.096 463.619V441.214Z"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M414.209 474.821C446.357 493.382 498.48 493.382 530.629 474.821V497.226C498.48 515.787 446.357 515.787 414.209 497.226V474.821Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M554.736 441.214C554.736 454.338 545.522 466.22 530.625 474.821V497.226C545.522 488.625 554.736 476.743 554.736 463.619V441.214Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M503.763 423.5C506.219 422.082 507.448 421.373 508.023 420.583C508.827 419.478 508.815 418.227 507.99 417.117C507.4 416.324 506.158 415.607 503.675 414.173L503.675 414.173L487.697 404.948C482.552 401.978 479.979 400.492 476.8 400.482C473.621 400.472 471.077 401.941 465.988 404.879L456.206 410.527C448.363 415.055 444.441 417.319 445.453 419.729C446.464 422.139 451.767 423.168 462.373 425.226L482.635 429.157C486.17 429.843 487.256 432.431 484.642 433.94C483.314 434.707 481.342 434.971 479.546 434.623L439.844 426.919C435.463 426.069 433.272 425.644 431.158 425.927C429.043 426.21 427.423 427.145 424.184 429.015L420.954 430.88C415.865 433.818 413.321 435.287 413.338 437.123C413.356 438.958 415.928 440.443 421.073 443.414L436.531 452.338C439.015 453.772 440.256 454.489 440.847 455.283C441.672 456.393 441.684 457.644 440.88 458.749C440.304 459.539 439.076 460.248 436.62 461.666L436.62 461.666C434.164 463.084 432.936 463.793 432.36 464.583C431.556 465.688 431.568 466.939 432.393 468.049C432.984 468.843 434.225 469.56 436.709 470.993L452.687 480.218C457.831 483.189 460.404 484.674 463.583 484.684C466.762 484.694 469.306 483.225 474.395 480.287L474.395 480.287L484.177 474.639C492.02 470.111 495.942 467.847 494.931 465.437C493.919 463.028 488.616 461.999 478.01 459.941L457.748 456.009C454.213 455.323 453.127 452.735 455.741 451.226C457.069 450.459 459.041 450.195 460.837 450.544L500.54 458.248C504.92 459.098 507.111 459.523 509.226 459.239C511.34 458.956 512.96 458.021 516.199 456.151L516.199 456.151L519.429 454.286C524.518 451.348 527.062 449.879 527.045 448.044C527.027 446.208 524.455 444.723 519.31 441.753L503.852 432.828C501.369 431.394 500.127 430.677 499.536 429.883C498.711 428.773 498.699 427.522 499.504 426.418C500.079 425.628 501.307 424.918 503.763 423.5Z"
@@ -3012,7 +3012,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.811 388.473)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -3020,7 +3020,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762.029 445.505)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -3028,7 +3028,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.811 502.534)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -3036,7 +3036,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.811 327.977)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -3044,7 +3044,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762.029 385.009)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -3052,7 +3052,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.811 442.038)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -3060,7 +3060,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.811 263.004)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -3068,7 +3068,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762.029 320.036)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -3076,7 +3076,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.811 377.065)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -3086,29 +3086,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.631 389.272)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.791 393.193C880.344 394.197 881.124 394.827 881.999 394.844L877.519 394.756C876.644 394.739 875.864 394.109 875.311 393.104L879.791 393.193Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.794 393.195C878.599 391.028 878.667 387.554 879.947 385.435L875.467 385.347C874.187 387.465 874.119 390.94 875.314 393.107L879.794 393.195Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.223 383.871C881.348 383.853 880.544 384.452 879.951 385.434L875.471 385.345C876.064 384.364 876.868 383.765 877.743 383.782L882.223 383.871Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -3118,29 +3118,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.287 379.537)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.447 383.459C898.001 384.464 898.78 385.093 899.655 385.111L895.175 385.022C894.3 385.005 893.52 384.375 892.967 383.371L897.447 383.459Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.448 383.459C896.253 381.292 896.322 377.817 897.601 375.699L893.121 375.611C891.842 377.729 891.773 381.203 892.968 383.37L897.448 383.459Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.879 374.137C899.004 374.12 898.2 374.719 897.607 375.7L893.127 375.612C893.72 374.63 894.524 374.032 895.399 374.049L899.879 374.137Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -3150,29 +3150,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909.018 371.965)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.177 375.888C911.731 376.892 912.511 377.522 913.386 377.539L908.906 377.451C908.031 377.434 907.251 376.804 906.697 375.8L911.177 375.888Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.179 375.89C909.984 373.722 910.052 370.248 911.332 368.13L906.851 368.041C905.572 370.16 905.504 373.634 906.698 375.801L911.179 375.89Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.609 366.565C912.735 366.548 911.931 367.146 911.338 368.128L906.858 368.04C907.45 367.058 908.255 366.459 909.129 366.477L913.609 366.565Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -3182,29 +3182,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.631 452.006)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.791 455.926C880.344 456.931 881.124 457.56 881.999 457.578L877.519 457.489C876.644 457.472 875.864 456.842 875.311 455.838L879.791 455.926Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.794 455.929C878.599 453.761 878.667 450.287 879.947 448.169L875.467 448.08C874.187 450.199 874.119 453.673 875.314 455.84L879.794 455.929Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.223 446.604C881.348 446.587 880.544 447.185 879.951 448.167L875.471 448.079C876.064 447.097 876.868 446.498 877.743 446.516L882.223 446.604Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -3214,29 +3214,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.287 442.27)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.447 446.19C898.001 447.194 898.78 447.824 899.655 447.841L895.175 447.753C894.3 447.736 893.52 447.106 892.967 446.102L897.447 446.19Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.45 446.192C896.255 444.025 896.324 440.551 897.603 438.432L893.123 438.344C891.844 440.463 891.775 443.937 892.97 446.104L897.45 446.192Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.879 436.868C899.004 436.85 898.2 437.449 897.607 438.431L893.127 438.342C893.72 437.361 894.524 436.762 895.399 436.779L899.879 436.868Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -3246,29 +3246,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909.018 434.697)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.177 438.62C911.731 439.624 912.511 440.254 913.386 440.271L908.906 440.183C908.031 440.165 907.251 439.536 906.697 438.531L911.177 438.62Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.179 438.619C909.984 436.452 910.052 432.978 911.332 430.859L906.851 430.771C905.572 432.889 905.504 436.363 906.698 438.531L911.179 438.619Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.609 429.297C912.735 429.28 911.931 429.879 911.338 430.86L906.858 430.772C907.45 429.79 908.255 429.192 909.129 429.209L913.609 429.297Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -3278,29 +3278,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.631 508.015)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.791 511.935C880.344 512.939 881.124 513.569 881.999 513.586L877.519 513.498C876.644 513.481 875.864 512.851 875.311 511.847L879.791 511.935Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.792 511.937C878.597 509.77 878.665 506.296 879.945 504.178L875.465 504.089C874.185 506.208 874.117 509.682 875.312 511.849L879.792 511.937Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.223 502.613C881.348 502.596 880.544 503.194 879.951 504.176L875.471 504.087C876.064 503.106 876.868 502.507 877.743 502.524L882.223 502.613Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -3310,29 +3310,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.287 498.279)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.447 502.2C898.001 503.204 898.78 503.834 899.655 503.851L895.175 503.763C894.3 503.745 893.52 503.116 892.967 502.111L897.447 502.2Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.45 502.202C896.255 500.035 896.324 496.561 897.603 494.442L893.123 494.354C891.844 496.472 891.775 499.946 892.97 502.114L897.45 502.202Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.879 492.877C899.004 492.86 898.2 493.459 897.607 494.44L893.127 494.352C893.72 493.37 894.524 492.772 895.399 492.789L899.879 492.877Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -3342,29 +3342,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909.018 490.707)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.177 494.629C911.731 495.634 912.511 496.263 913.386 496.281L908.906 496.192C908.031 496.175 907.251 495.545 906.697 494.541L911.177 494.629Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.181 494.629C909.986 492.462 910.054 488.987 911.334 486.869L906.853 486.781C905.574 488.899 905.505 492.373 906.7 494.54L911.181 494.629Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.609 485.307C912.735 485.29 911.931 485.888 911.338 486.87L906.858 486.782C907.45 485.8 908.255 485.202 909.129 485.219L913.609 485.307Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -3372,7 +3372,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.799 388.469)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -3380,7 +3380,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762.018 445.501)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -3388,7 +3388,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.799 502.53)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -3396,7 +3396,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.799 327.974)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -3404,7 +3404,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762.018 385.006)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -3412,7 +3412,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.799 442.035)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -3420,7 +3420,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.799 263)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -3428,7 +3428,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762.018 320.032)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -3436,7 +3436,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.799 377.062)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -3446,29 +3446,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.629 389.27)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.789 393.19C880.342 394.194 881.122 394.824 881.997 394.841L877.517 394.753C876.642 394.736 875.862 394.106 875.309 393.102L879.789 393.19Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.792 393.192C878.597 391.025 878.665 387.551 879.945 385.432L875.465 385.344C874.185 387.463 874.117 390.937 875.312 393.104L879.792 393.192Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.221 383.868C881.346 383.85 880.542 384.449 879.949 385.431L875.469 385.342C876.062 384.361 876.866 383.762 877.741 383.779L882.221 383.868Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -3478,29 +3478,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.285 379.537)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.445 383.457C897.999 384.462 898.779 385.092 899.653 385.109L895.173 385.02C894.298 385.003 893.519 384.373 892.965 383.369L897.445 383.457Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.448 383.46C896.253 381.293 896.322 377.818 897.601 375.7L893.121 375.612C891.842 377.73 891.773 381.204 892.968 383.371L897.448 383.46Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.877 374.135C899.002 374.118 898.198 374.717 897.605 375.698L893.125 375.61C893.718 374.628 894.522 374.03 895.397 374.047L899.877 374.135Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -3510,29 +3510,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909.016 371.962)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.175 375.884C911.729 376.889 912.509 377.518 913.384 377.536L908.904 377.447C908.029 377.43 907.249 376.8 906.695 375.796L911.175 375.884Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.179 375.887C909.984 373.719 910.052 370.245 911.332 368.127L906.851 368.038C905.572 370.157 905.504 373.631 906.698 375.798L911.179 375.887Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.608 366.562C912.733 366.545 911.929 367.143 911.336 368.125L906.856 368.037C907.449 367.055 908.253 366.456 909.127 366.474L913.608 366.562Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -3542,29 +3542,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.629 452.006)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.789 455.926C880.342 456.931 881.122 457.56 881.997 457.578L877.517 457.489C876.642 457.472 875.862 456.842 875.309 455.838L879.789 455.926Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.792 455.929C878.597 453.761 878.665 450.287 879.945 448.169L875.465 448.08C874.185 450.199 874.117 453.673 875.312 455.84L879.792 455.929Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.221 446.604C881.346 446.587 880.542 447.185 879.949 448.167L875.469 448.079C876.062 447.097 876.866 446.498 877.741 446.516L882.221 446.604Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -3574,29 +3574,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.285 442.27)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.445 446.19C897.999 447.194 898.779 447.824 899.653 447.841L895.173 447.753C894.298 447.736 893.519 447.106 892.965 446.102L897.445 446.19Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.448 446.192C896.253 444.025 896.322 440.551 897.601 438.432L893.121 438.344C891.842 440.463 891.773 443.937 892.968 446.104L897.448 446.192Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.877 436.868C899.002 436.85 898.198 437.449 897.605 438.431L893.125 438.342C893.718 437.361 894.522 436.762 895.397 436.779L899.877 436.868Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -3606,29 +3606,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909.016 434.697)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.175 438.62C911.729 439.624 912.509 440.254 913.384 440.271L908.904 440.183C908.029 440.165 907.249 439.536 906.695 438.531L911.175 438.62Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.177 438.619C909.982 436.452 910.05 432.978 911.33 430.859L906.85 430.771C905.57 432.889 905.502 436.363 906.696 438.531L911.177 438.619Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.608 429.297C912.733 429.28 911.929 429.879 911.336 430.86L906.856 430.772C907.449 429.79 908.253 429.192 909.127 429.209L913.608 429.297Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -3638,29 +3638,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.629 508.015)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.789 511.935C880.342 512.939 881.122 513.569 881.997 513.586L877.517 513.498C876.642 513.481 875.862 512.851 875.309 511.847L879.789 511.935Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.79 511.937C878.595 509.77 878.664 506.296 879.943 504.178L875.463 504.089C874.183 506.208 874.115 509.682 875.31 511.849L879.79 511.937Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.221 502.613C881.346 502.596 880.542 503.194 879.949 504.176L875.469 504.087C876.062 503.106 876.866 502.507 877.741 502.524L882.221 502.613Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -3670,29 +3670,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.285 498.279)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.445 502.2C897.999 503.204 898.779 503.834 899.653 503.851L895.173 503.763C894.298 503.745 893.519 503.116 892.965 502.111L897.445 502.2Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.448 502.202C896.253 500.035 896.322 496.561 897.601 494.442L893.121 494.354C891.842 496.472 891.773 499.946 892.968 502.114L897.448 502.202Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.877 492.877C899.002 492.86 898.198 493.459 897.605 494.44L893.125 494.352C893.718 493.37 894.522 492.772 895.397 492.789L899.877 492.877Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -3702,29 +3702,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909.016 490.707)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.175 494.629C911.729 495.634 912.509 496.263 913.384 496.281L908.904 496.192C908.029 496.175 907.249 495.545 906.695 494.541L911.175 494.629Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.179 494.629C909.984 492.462 910.052 488.987 911.332 486.869L906.851 486.781C905.572 488.899 905.504 492.373 906.698 494.54L911.179 494.629Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.608 485.307C912.733 485.29 911.929 485.888 911.336 486.87L906.856 486.782C907.449 485.8 908.253 485.202 909.127 485.219L913.608 485.307Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -3732,7 +3732,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.797 388.469)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -3740,7 +3740,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762.016 445.501)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -3748,7 +3748,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.797 502.53)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -3756,7 +3756,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.797 327.974)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -3764,7 +3764,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762.016 385.006)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -3772,7 +3772,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.797 442.035)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -3780,7 +3780,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.797 263)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -3788,7 +3788,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762.016 320.032)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -3796,7 +3796,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.797 377.062)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -3806,29 +3806,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.621 389.269)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.781 393.189C880.335 394.193 881.114 394.823 881.989 394.84L877.509 394.752C876.634 394.735 875.854 394.105 875.301 393.101L879.781 393.189Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.784 393.191C878.589 391.024 878.658 387.55 879.937 385.431L875.457 385.343C874.178 387.462 874.109 390.936 875.304 393.103L879.784 393.191Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.213 383.867C881.338 383.849 880.534 384.448 879.941 385.43L875.461 385.341C876.054 384.36 876.858 383.761 877.733 383.778L882.213 383.867Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -3838,29 +3838,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.277 379.536)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.437 383.457C897.991 384.461 898.771 385.091 899.646 385.108L895.165 385.019C894.291 385.002 893.511 384.372 892.957 383.368L897.437 383.457Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.44 383.459C896.245 381.292 896.314 377.817 897.593 375.699L893.113 375.611C891.834 377.729 891.765 381.203 892.96 383.37L897.44 383.459Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.869 374.134C898.994 374.117 898.19 374.716 897.597 375.697L893.117 375.609C893.71 374.627 894.514 374.029 895.389 374.046L899.869 374.134Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -3870,29 +3870,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909.008 371.962)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.168 375.884C911.721 376.889 912.501 377.518 913.376 377.536L908.896 377.447C908.021 377.43 907.241 376.8 906.688 375.796L911.168 375.884Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.171 375.887C909.976 373.719 910.044 370.245 911.324 368.127L906.844 368.038C905.564 370.157 905.496 373.631 906.691 375.798L911.171 375.887Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.6 366.562C912.725 366.545 911.921 367.143 911.328 368.125L906.848 368.037C907.441 367.055 908.245 366.456 909.12 366.474L913.6 366.562Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -3902,29 +3902,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.621 452.002)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.781 455.922C880.335 456.927 881.114 457.556 881.989 457.574L877.509 457.485C876.634 457.468 875.854 456.838 875.301 455.834L879.781 455.922Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.784 455.925C878.589 453.757 878.658 450.283 879.937 448.165L875.457 448.077C874.178 450.195 874.109 453.669 875.304 455.836L879.784 455.925Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.213 446.6C881.338 446.583 880.534 447.181 879.941 448.163L875.461 448.075C876.054 447.093 876.858 446.495 877.733 446.512L882.213 446.6Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -3934,29 +3934,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.277 442.267)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.437 446.187C897.991 447.191 898.771 447.821 899.646 447.838L895.165 447.75C894.291 447.733 893.511 447.103 892.957 446.099L897.437 446.187Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.44 446.189C896.245 444.022 896.314 440.548 897.593 438.43L893.113 438.341C891.834 440.46 891.765 443.934 892.96 446.101L897.44 446.189Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.869 436.865C898.994 436.848 898.19 437.446 897.597 438.428L893.117 438.339C893.71 437.358 894.514 436.759 895.389 436.776L899.869 436.865Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -3966,29 +3966,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909.008 434.693)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.168 438.617C911.721 439.621 912.501 440.251 913.376 440.268L908.896 440.18C908.021 440.162 907.241 439.533 906.688 438.528L911.168 438.617Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.171 438.615C909.976 436.448 910.044 432.974 911.324 430.855L906.844 430.767C905.564 432.885 905.496 436.36 906.691 438.527L911.171 438.615Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.6 429.294C912.725 429.276 911.921 429.875 911.328 430.856L906.848 430.768C907.441 429.786 908.245 429.188 909.12 429.205L913.6 429.294Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -3998,29 +3998,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.621 508.015)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.781 511.935C880.335 512.939 881.114 513.569 881.989 513.586L877.509 513.498C876.634 513.481 875.854 512.851 875.301 511.847L879.781 511.935Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.784 511.937C878.589 509.77 878.658 506.296 879.937 504.178L875.457 504.089C874.178 506.208 874.109 509.682 875.304 511.849L879.784 511.937Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.213 502.613C881.338 502.596 880.534 503.194 879.941 504.176L875.461 504.087C876.054 503.106 876.858 502.507 877.733 502.524L882.213 502.613Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -4030,29 +4030,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.277 498.279)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.437 502.2C897.991 503.204 898.771 503.834 899.646 503.851L895.165 503.763C894.291 503.745 893.511 503.116 892.957 502.111L897.437 502.2Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.44 502.202C896.245 500.035 896.314 496.561 897.593 494.442L893.113 494.354C891.834 496.472 891.765 499.946 892.96 502.114L897.44 502.202Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.869 492.877C898.994 492.86 898.19 493.459 897.597 494.44L893.117 494.352C893.71 493.37 894.514 492.772 895.389 492.789L899.869 492.877Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -4062,29 +4062,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909.008 490.707)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.168 494.629C911.721 495.634 912.501 496.263 913.376 496.281L908.896 496.192C908.021 496.175 907.241 495.545 906.688 494.541L911.168 494.629Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.171 494.629C909.976 492.462 910.044 488.987 911.324 486.869L906.844 486.781C905.564 488.899 905.496 492.373 906.691 494.54L911.171 494.629Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.6 485.307C912.725 485.29 911.921 485.888 911.328 486.87L906.848 486.782C907.441 485.8 908.245 485.202 909.12 485.219L913.6 485.307Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -4092,7 +4092,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.795 388.469)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -4100,7 +4100,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762.014 445.499)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -4108,7 +4108,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.795 502.53)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -4116,7 +4116,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.795 327.974)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -4124,7 +4124,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762.014 385.006)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -4132,7 +4132,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.795 442.035)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -4140,7 +4140,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.795 263)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -4148,7 +4148,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762.014 320.03)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -4156,7 +4156,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.795 377.062)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -4166,29 +4166,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.621 389.266)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.781 393.186C880.335 394.19 881.114 394.82 881.989 394.837L877.509 394.749C876.634 394.732 875.854 394.102 875.301 393.098L879.781 393.186Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.784 393.188C878.589 391.021 878.658 387.547 879.937 385.429L875.457 385.34C874.178 387.459 874.109 390.933 875.304 393.1L879.784 393.188Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.213 383.864C881.338 383.847 880.534 384.445 879.941 385.427L875.461 385.338C876.054 384.357 876.858 383.758 877.733 383.775L882.213 383.864Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -4198,29 +4198,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.277 379.533)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.437 383.454C897.991 384.458 898.771 385.088 899.646 385.105L895.165 385.017C894.291 384.999 893.511 384.369 892.957 383.365L897.437 383.454Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.44 383.456C896.245 381.289 896.314 377.815 897.593 375.696L893.113 375.608C891.834 377.726 891.765 381.2 892.96 383.368L897.44 383.456Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.869 374.131C898.994 374.114 898.19 374.713 897.597 375.694L893.117 375.606C893.71 374.624 894.514 374.026 895.389 374.043L899.869 374.131Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -4230,29 +4230,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909.008 371.959)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.168 375.881C911.721 376.886 912.501 377.515 913.376 377.533L908.896 377.444C908.021 377.427 907.241 376.797 906.688 375.793L911.168 375.881Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.171 375.884C909.976 373.716 910.044 370.242 911.324 368.124L906.844 368.035C905.564 370.154 905.496 373.628 906.691 375.795L911.171 375.884Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.6 366.559C912.725 366.542 911.921 367.14 911.328 368.122L906.848 368.034C907.441 367.052 908.245 366.454 909.12 366.471L913.6 366.559Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -4262,29 +4262,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.621 452.002)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.781 455.922C880.335 456.927 881.114 457.556 881.989 457.574L877.509 457.485C876.634 457.468 875.854 456.838 875.301 455.834L879.781 455.922Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.784 455.925C878.589 453.757 878.658 450.283 879.937 448.165L875.457 448.077C874.178 450.195 874.109 453.669 875.304 455.836L879.784 455.925Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.213 446.6C881.338 446.583 880.534 447.181 879.941 448.163L875.461 448.075C876.054 447.093 876.858 446.495 877.733 446.512L882.213 446.6Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -4294,29 +4294,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.277 442.267)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.437 446.187C897.991 447.191 898.771 447.821 899.646 447.838L895.165 447.75C894.291 447.733 893.511 447.103 892.957 446.099L897.437 446.187Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.44 446.189C896.245 444.022 896.314 440.548 897.593 438.43L893.113 438.341C891.834 440.46 891.765 443.934 892.96 446.101L897.44 446.189Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.869 436.865C898.994 436.848 898.19 437.446 897.597 438.428L893.117 438.339C893.71 437.358 894.514 436.759 895.389 436.776L899.869 436.865Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -4326,29 +4326,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909.008 434.693)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.168 438.617C911.721 439.621 912.501 440.251 913.376 440.268L908.896 440.18C908.021 440.162 907.241 439.533 906.688 438.528L911.168 438.617Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.171 438.615C909.976 436.448 910.044 432.974 911.324 430.855L906.844 430.767C905.564 432.885 905.496 436.36 906.691 438.527L911.171 438.615Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.6 429.294C912.725 429.276 911.921 429.875 911.328 430.856L906.848 430.768C907.441 429.786 908.245 429.188 909.12 429.205L913.6 429.294Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -4358,29 +4358,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.621 508.014)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.781 511.934C880.335 512.938 881.114 513.568 881.989 513.585L877.509 513.497C876.634 513.48 875.854 512.85 875.301 511.846L879.781 511.934Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.784 511.936C878.589 509.769 878.658 506.295 879.937 504.177L875.457 504.088C874.178 506.207 874.109 509.681 875.304 511.848L879.784 511.936Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.213 502.612C881.338 502.595 880.534 503.193 879.941 504.175L875.461 504.086C876.054 503.105 876.858 502.506 877.733 502.524L882.213 502.612Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -4390,29 +4390,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.277 498.278)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.437 502.199C897.991 503.203 898.771 503.833 899.646 503.85L895.165 503.762C894.291 503.744 893.511 503.115 892.957 502.11L897.437 502.199Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.44 502.201C896.245 500.034 896.314 496.56 897.593 494.441L893.113 494.353C891.834 496.471 891.765 499.945 892.96 502.113L897.44 502.201Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.869 492.877C898.994 492.859 898.19 493.458 897.597 494.439L893.117 494.351C893.71 493.369 894.514 492.771 895.389 492.788L899.869 492.877Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -4422,29 +4422,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909.008 490.705)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.168 494.628C911.721 495.633 912.501 496.262 913.376 496.28L908.896 496.191C908.021 496.174 907.241 495.544 906.688 494.54L911.168 494.628Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.171 494.627C909.976 492.46 910.044 488.985 911.324 486.867L906.844 486.779C905.564 488.897 905.496 492.371 906.691 494.538L911.171 494.627Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.6 485.305C912.725 485.288 911.921 485.887 911.328 486.868L906.848 486.78C907.441 485.798 908.245 485.2 909.12 485.217L913.6 485.305Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -4452,7 +4452,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.791 388.469)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -4460,7 +4460,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762.01 445.499)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -4468,7 +4468,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.791 502.53)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -4476,7 +4476,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.791 327.974)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -4484,7 +4484,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762.01 385.006)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -4492,7 +4492,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.791 442.035)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -4500,7 +4500,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.791 263)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -4508,7 +4508,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762.01 320.03)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -4516,7 +4516,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.791 377.062)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -4526,29 +4526,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.615 389.269)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.775 393.189C880.329 394.193 881.109 394.823 881.983 394.84L877.503 394.752C876.628 394.735 875.849 394.105 875.295 393.101L879.775 393.189Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.778 393.191C878.583 391.024 878.652 387.55 879.931 385.431L875.451 385.343C874.172 387.462 874.103 390.936 875.298 393.103L879.778 393.191Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.207 383.867C881.332 383.849 880.528 384.448 879.935 385.43L875.455 385.341C876.048 384.36 876.852 383.761 877.727 383.778L882.207 383.867Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -4558,29 +4558,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.271 379.534)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.431 383.457C897.985 384.461 898.765 385.091 899.64 385.108L895.16 385.019C894.285 385.002 893.505 384.372 892.951 383.368L897.431 383.457Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.434 383.456C896.24 381.289 896.308 377.815 897.587 375.696L893.107 375.608C891.828 377.726 891.759 381.2 892.954 383.368L897.434 383.456Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.863 374.134C898.989 374.117 898.184 374.716 897.592 375.697L893.111 375.609C893.704 374.627 894.508 374.029 895.383 374.046L899.863 374.134Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -4590,29 +4590,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909.002 371.962)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.162 375.884C911.715 376.889 912.495 377.518 913.37 377.536L908.89 377.447C908.015 377.43 907.235 376.8 906.682 375.796L911.162 375.884Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.165 375.887C909.97 373.719 910.039 370.245 911.318 368.127L906.838 368.038C905.558 370.157 905.49 373.631 906.685 375.798L911.165 375.887Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.594 366.562C912.719 366.545 911.915 367.143 911.322 368.125L906.842 368.037C907.435 367.055 908.239 366.456 909.114 366.474L913.594 366.562Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -4622,29 +4622,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.615 452)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.775 455.92C880.329 456.925 881.109 457.554 881.983 457.572L877.503 457.483C876.628 457.466 875.849 456.836 875.295 455.832L879.775 455.92Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.778 455.923C878.583 453.756 878.652 450.281 879.931 448.163L875.451 448.075C874.172 450.193 874.103 453.667 875.298 455.834L879.778 455.923Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.207 446.598C881.332 446.581 880.528 447.179 879.935 448.161L875.455 448.073C876.048 447.091 876.852 446.493 877.727 446.51L882.207 446.598Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -4654,29 +4654,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.271 442.265)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.431 446.185C897.985 447.189 898.765 447.819 899.64 447.836L895.16 447.748C894.285 447.731 893.505 447.101 892.951 446.097L897.431 446.185Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.434 446.187C896.24 444.02 896.308 440.546 897.587 438.428L893.107 438.339C891.828 440.458 891.759 443.932 892.954 446.099L897.434 446.187Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.863 436.863C898.989 436.846 898.184 437.444 897.592 438.426L893.111 438.337C893.704 437.356 894.508 436.757 895.383 436.774L899.863 436.863Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -4686,29 +4686,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 908.996 434.692)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.162 438.615C911.715 439.619 912.495 440.249 913.37 440.266L908.89 440.178C908.015 440.16 907.235 439.531 906.682 438.526L911.162 438.615Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.165 438.617C909.97 436.45 910.039 432.976 911.318 430.857L906.838 430.769C905.558 432.887 905.49 436.361 906.685 438.529L911.165 438.617Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.594 429.293C912.719 429.275 911.915 429.874 911.322 430.855L906.842 430.767C907.435 429.785 908.239 429.187 909.114 429.204L913.594 429.293Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -4718,29 +4718,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.615 508.019)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.775 511.939C880.329 512.943 881.109 513.573 881.983 513.59L877.503 513.502C876.628 513.485 875.849 512.855 875.295 511.851L879.775 511.939Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.778 511.941C878.583 509.774 878.652 506.3 879.931 504.181L875.451 504.093C874.172 506.212 874.103 509.686 875.298 511.853L879.778 511.941Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.207 502.617C881.332 502.599 880.528 503.198 879.935 504.18L875.455 504.091C876.048 503.11 876.852 502.511 877.727 502.528L882.207 502.617Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -4750,29 +4750,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.271 498.284)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.431 502.207C897.985 503.211 898.765 503.841 899.64 503.858L895.16 503.769C894.285 503.752 893.505 503.122 892.951 502.118L897.431 502.207Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.434 502.206C896.24 500.039 896.308 496.565 897.587 494.446L893.107 494.358C891.828 496.476 891.759 499.95 892.954 502.118L897.434 502.206Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.863 492.884C898.989 492.867 898.184 493.466 897.592 494.447L893.111 494.359C893.704 493.377 894.508 492.779 895.383 492.796L899.863 492.884Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -4782,29 +4782,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909.002 490.709)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.162 494.631C911.715 495.636 912.495 496.265 913.37 496.283L908.89 496.194C908.015 496.177 907.235 495.547 906.682 494.543L911.162 494.631Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.165 494.634C909.97 492.466 910.039 488.992 911.318 486.874L906.838 486.785C905.558 488.904 905.49 492.378 906.685 494.545L911.165 494.634Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.594 485.309C912.719 485.292 911.915 485.89 911.322 486.872L906.842 486.784C907.435 485.802 908.239 485.204 909.114 485.221L913.594 485.309Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -4812,7 +4812,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.781 388.469)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -4820,7 +4820,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762 445.501)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -4828,7 +4828,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.781 502.53)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -4836,7 +4836,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.781 327.974)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -4844,7 +4844,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762 385.006)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -4852,7 +4852,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.781 442.035)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -4860,7 +4860,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.781 263)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -4868,7 +4868,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762 320.032)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -4876,7 +4876,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.781 377.062)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -4886,29 +4886,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.613 389.269)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.773 393.189C880.327 394.193 881.107 394.823 881.981 394.84L877.501 394.752C876.627 394.735 875.847 394.105 875.293 393.101L879.773 393.189Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.776 393.191C878.581 391.024 878.65 387.55 879.929 385.431L875.449 385.343C874.17 387.462 874.101 390.936 875.296 393.103L879.776 393.191Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.205 383.867C881.33 383.849 880.526 384.448 879.933 385.43L875.453 385.341C876.046 384.36 876.85 383.761 877.725 383.778L882.205 383.867Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -4918,29 +4918,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.27 379.534)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.429 383.457C897.983 384.461 898.763 385.091 899.638 385.108L895.158 385.019C894.283 385.002 893.503 384.372 892.949 383.368L897.429 383.457Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.432 383.456C896.238 381.289 896.306 377.815 897.585 375.696L893.105 375.608C891.826 377.726 891.757 381.2 892.952 383.368L897.432 383.456Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.861 374.134C898.987 374.117 898.183 374.716 897.59 375.697L893.11 375.609C893.702 374.627 894.507 374.029 895.381 374.046L899.861 374.134Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -4950,29 +4950,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909 371.962)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.16 375.884C911.714 376.889 912.493 377.518 913.368 377.536L908.888 377.447C908.013 377.43 907.233 376.8 906.68 375.796L911.16 375.884Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.163 375.887C909.968 373.719 910.037 370.245 911.316 368.127L906.836 368.038C905.556 370.157 905.488 373.631 906.683 375.798L911.163 375.887Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.592 366.562C912.717 366.545 911.913 367.143 911.32 368.125L906.84 368.037C907.433 367.055 908.237 366.456 909.112 366.474L913.592 366.562Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -4982,29 +4982,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.613 452)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.773 455.92C880.327 456.925 881.107 457.554 881.981 457.572L877.501 457.483C876.627 457.466 875.847 456.836 875.293 455.832L879.773 455.92Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.776 455.923C878.581 453.756 878.65 450.281 879.929 448.163L875.449 448.075C874.17 450.193 874.101 453.667 875.296 455.834L879.776 455.923Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.205 446.598C881.33 446.581 880.526 447.179 879.933 448.161L875.453 448.073C876.046 447.091 876.85 446.493 877.725 446.51L882.205 446.598Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -5014,29 +5014,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.27 442.263)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.429 446.184C897.983 447.188 898.763 447.818 899.638 447.835L895.158 447.747C894.283 447.73 893.503 447.1 892.949 446.096L897.429 446.184Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.432 446.186C896.238 444.019 896.306 440.545 897.585 438.427L893.105 438.338C891.826 440.457 891.757 443.931 892.952 446.098L897.432 446.186Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.861 436.862C898.987 436.845 898.183 437.443 897.59 438.425L893.11 438.336C893.702 437.355 894.507 436.756 895.381 436.774L899.861 436.862Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -5046,29 +5046,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909 434.691)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.16 438.614C911.714 439.618 912.493 440.248 913.368 440.265L908.888 440.177C908.013 440.159 907.233 439.53 906.68 438.525L911.16 438.614Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.163 438.616C909.968 436.449 910.037 432.975 911.316 430.856L906.836 430.768C905.556 432.886 905.488 436.361 906.683 438.528L911.163 438.616Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.592 429.292C912.717 429.274 911.913 429.873 911.32 430.854L906.84 430.766C907.433 429.784 908.237 429.186 909.112 429.203L913.592 429.292Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -5078,29 +5078,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.613 508.014)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.773 511.934C880.327 512.938 881.107 513.568 881.981 513.585L877.501 513.497C876.627 513.48 875.847 512.85 875.293 511.846L879.773 511.934Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.776 511.936C878.581 509.769 878.65 506.295 879.929 504.177L875.449 504.088C874.17 506.207 874.101 509.681 875.296 511.848L879.776 511.936Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.205 502.612C881.33 502.595 880.526 503.193 879.933 504.175L875.453 504.086C876.046 503.105 876.85 502.506 877.725 502.524L882.205 502.612Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -5110,29 +5110,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.27 498.278)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.429 502.201C897.983 503.205 898.763 503.835 899.638 503.852L895.158 503.764C894.283 503.746 893.503 503.117 892.949 502.112L897.429 502.201Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.432 502.2C896.238 500.033 896.306 496.559 897.585 494.44L893.105 494.352C891.826 496.47 891.757 499.944 892.952 502.112L897.432 502.2Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.861 492.878C898.987 492.861 898.183 493.46 897.59 494.441L893.11 494.353C893.702 493.371 894.507 492.773 895.381 492.79L899.861 492.878Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -5142,29 +5142,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 909 490.705)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.16 494.628C911.714 495.633 912.493 496.262 913.368 496.28L908.888 496.191C908.013 496.174 907.233 495.544 906.68 494.54L911.16 494.628Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.163 494.631C909.968 492.464 910.037 488.989 911.316 486.871L906.836 486.783C905.556 488.901 905.488 492.375 906.683 494.542L911.163 494.631Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.592 485.305C912.717 485.288 911.913 485.887 911.32 486.868L906.84 486.78C907.433 485.798 908.237 485.2 909.112 485.217L913.592 485.305Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -5172,7 +5172,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.781 388.469)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <g filter="url(#filter6_d_2938_2997)">
           <rect
@@ -5186,7 +5186,7 @@ export const BrokenStaging = (props: Props) => {
             height="42.7731"
             transform="matrix(0.866025 0.5 0 1 762 445.501)"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <g filter="url(#filter7_d_2938_2997)">
@@ -5201,7 +5201,7 @@ export const BrokenStaging = (props: Props) => {
             height="42.7731"
             transform="matrix(0.866025 -0.5 0 1 860.781 502.53)"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <rect
@@ -5210,7 +5210,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.781 327.974)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -5218,7 +5218,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762 385.006)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -5226,7 +5226,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.781 442.035)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -5234,7 +5234,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 860.781 263)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -5242,7 +5242,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 762 320.032)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -5250,7 +5250,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 860.781 377.062)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -5260,29 +5260,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.605 389.266)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.765 393.186C880.319 394.19 881.099 394.82 881.974 394.837L877.494 394.749C876.619 394.732 875.839 394.102 875.285 393.098L879.765 393.186Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.768 393.188C878.574 391.021 878.642 387.547 879.921 385.429L875.441 385.34C874.162 387.459 874.093 390.933 875.288 393.1L879.768 393.188Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.197 383.864C881.323 383.847 880.518 384.445 879.926 385.427L875.445 385.338C876.038 384.357 876.842 383.758 877.717 383.775L882.197 383.864Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -5292,29 +5292,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.262 379.531)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.422 383.454C897.975 384.458 898.755 385.088 899.63 385.105L895.15 385.017C894.275 384.999 893.495 384.369 892.941 383.365L897.422 383.454Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.425 383.453C896.23 381.286 896.298 377.812 897.578 375.693L893.098 375.605C891.818 377.723 891.75 381.197 892.945 383.365L897.425 383.453Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.854 374.131C898.979 374.114 898.175 374.713 897.582 375.694L893.102 375.606C893.695 374.624 894.499 374.026 895.373 374.043L899.854 374.131Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -5324,29 +5324,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 908.992 371.959)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.152 375.881C911.706 376.886 912.486 377.515 913.36 377.533L908.88 377.444C908.005 377.427 907.226 376.797 906.672 375.793L911.152 375.881Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.155 375.884C909.96 373.716 910.029 370.242 911.308 368.124L906.828 368.035C905.549 370.154 905.48 373.628 906.675 375.795L911.155 375.884Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.584 366.559C912.709 366.542 911.905 367.14 911.312 368.122L906.832 368.034C907.425 367.052 908.229 366.454 909.104 366.471L913.584 366.559Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -5356,29 +5356,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.605 452)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.765 455.92C880.319 456.925 881.099 457.554 881.974 457.572L877.494 457.483C876.619 457.466 875.839 456.836 875.285 455.832L879.765 455.92Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.768 455.923C878.574 453.756 878.642 450.281 879.921 448.163L875.441 448.075C874.162 450.193 874.093 453.667 875.288 455.834L879.768 455.923Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.197 446.598C881.323 446.581 880.518 447.179 879.926 448.161L875.445 448.073C876.038 447.091 876.842 446.493 877.717 446.51L882.197 446.598Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -5388,29 +5388,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.262 442.263)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.422 446.183C897.975 447.187 898.755 447.817 899.63 447.834L895.15 447.746C894.275 447.729 893.495 447.099 892.941 446.095L897.422 446.183Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.425 446.185C896.23 444.018 896.298 440.544 897.578 438.426L893.098 438.337C891.818 440.456 891.75 443.93 892.945 446.097L897.425 446.185Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.854 436.861C898.979 436.844 898.175 437.442 897.582 438.424L893.102 438.335C893.695 437.354 894.499 436.755 895.373 436.773L899.854 436.861Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -5420,29 +5420,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 908.992 434.691)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.152 438.614C911.706 439.618 912.486 440.248 913.36 440.265L908.88 440.177C908.005 440.159 907.226 439.53 906.672 438.525L911.152 438.614Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.155 438.616C909.96 436.449 910.029 432.975 911.308 430.856L906.828 430.768C905.549 432.886 905.48 436.361 906.675 438.528L911.155 438.616Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.584 429.292C912.709 429.274 911.905 429.873 911.312 430.854L906.832 430.766C907.425 429.784 908.229 429.186 909.104 429.203L913.584 429.292Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -5452,29 +5452,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 877.605 508.014)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.765 511.934C880.319 512.938 881.099 513.568 881.974 513.585L877.494 513.497C876.619 513.48 875.839 512.85 875.285 511.846L879.765 511.934Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M879.768 511.936C878.574 509.769 878.642 506.295 879.921 504.177L875.441 504.088C874.162 506.207 874.093 509.681 875.288 511.848L879.768 511.936Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M882.197 502.612C881.323 502.595 880.518 503.193 879.926 504.175L875.445 504.086C876.038 503.105 876.842 502.506 877.717 502.524L882.197 502.612Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -5484,29 +5484,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 895.262 498.277)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.422 502.2C897.975 503.204 898.755 503.834 899.63 503.851L895.15 503.763C894.275 503.745 893.495 503.116 892.941 502.111L897.422 502.2Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M897.425 502.199C896.23 500.032 896.298 496.558 897.578 494.439L893.098 494.351C891.818 496.469 891.75 499.944 892.945 502.111L897.425 502.199Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M899.854 492.877C898.979 492.86 898.175 493.459 897.582 494.44L893.102 494.352C893.695 493.37 894.499 492.772 895.373 492.789L899.854 492.877Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -5516,29 +5516,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 908.992 490.705)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.152 494.627C911.706 495.632 912.486 496.261 913.36 496.279L908.88 496.19C908.005 496.173 907.226 495.543 906.672 494.539L911.152 494.627Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M911.155 494.63C909.96 492.463 910.029 488.988 911.308 486.87L906.828 486.782C905.549 488.9 905.48 492.374 906.675 494.541L911.155 494.63Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M913.584 485.305C912.709 485.288 911.905 485.887 911.312 486.868L906.832 486.78C907.425 485.798 908.229 485.2 909.104 485.217L913.584 485.305Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -5546,7 +5546,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 103.781 345.467)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <g filter="url(#filter8_d_2938_2997)">
           <rect
@@ -5560,7 +5560,7 @@ export const BrokenStaging = (props: Props) => {
             height="42.7731"
             transform="matrix(0.866025 0.5 0 1 5 402.495)"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <g filter="url(#filter9_d_2938_2997)">
@@ -5575,7 +5575,7 @@ export const BrokenStaging = (props: Props) => {
             height="42.7731"
             transform="matrix(0.866025 -0.5 0 1 103.781 459.527)"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <rect
@@ -5584,7 +5584,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 103.781 284.971)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -5592,7 +5592,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 5 342.003)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -5600,7 +5600,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 103.781 399.032)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -5608,7 +5608,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 103.781 220)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -5616,7 +5616,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 5 277.03)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="114.062"
@@ -5624,7 +5624,7 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.866025 -0.5 0 1 103.781 334.059)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -5634,29 +5634,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 122.85 346.268)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M125.009 350.191C125.563 351.195 126.343 351.825 127.218 351.842L122.738 351.754C121.863 351.737 121.083 351.107 120.529 350.103L125.009 350.191Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M125.013 350.193C123.818 348.026 123.886 344.552 125.166 342.433L120.685 342.345C119.406 344.463 119.338 347.938 120.532 350.105L125.013 350.193Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M127.441 340.868C126.567 340.85 125.763 341.449 125.17 342.431L120.69 342.342C121.282 341.361 122.087 340.762 122.961 340.779L127.441 340.868Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -5666,29 +5666,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 140.512 336.529)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M142.672 340.453C143.225 341.457 144.005 342.087 144.88 342.104L140.4 342.016C139.525 341.998 138.745 341.369 138.191 340.364L142.672 340.453Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M142.675 340.454C141.48 338.287 141.548 334.813 142.828 332.694L138.348 332.606C137.068 334.724 137 338.198 138.195 340.366L142.675 340.454Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M145.104 331.129C144.229 331.112 143.425 331.711 142.832 332.692L138.352 332.604C138.945 331.622 139.749 331.024 140.623 331.041L145.104 331.129Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -5698,29 +5698,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 154.23 328.959)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M156.39 332.881C156.944 333.886 157.724 334.515 158.599 334.533L154.119 334.444C153.244 334.427 152.464 333.797 151.91 332.793L156.39 332.881Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M156.393 332.884C155.199 330.716 155.267 327.242 156.546 325.124L152.066 325.035C150.787 327.154 150.718 330.628 151.913 332.795L156.393 332.884Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M158.822 323.559C157.948 323.542 157.143 324.14 156.551 325.122L152.07 325.034C152.663 324.052 153.467 323.454 154.342 323.471L158.822 323.559Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -5730,29 +5730,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 122.844 408.999)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M125.006 412.921C125.559 413.926 126.339 414.555 127.214 414.573L122.734 414.484C121.859 414.467 121.079 413.837 120.525 412.833L125.006 412.921Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M125.009 412.921C123.814 410.754 123.882 407.279 125.162 405.161L120.682 405.073C119.402 407.191 119.334 410.665 120.529 412.832L125.009 412.921Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M127.436 403.597C126.561 403.58 125.757 404.178 125.164 405.16L120.684 405.072C121.277 404.09 122.081 403.492 122.956 403.509L127.436 403.597Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -5762,29 +5762,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 140.506 399.259)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M142.668 403.185C143.221 404.189 144.001 404.819 144.876 404.836L140.396 404.748C139.521 404.731 138.741 404.101 138.188 403.097L142.668 403.185Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M142.671 403.184C141.476 401.017 141.544 397.543 142.824 395.425L138.344 395.336C137.064 397.455 136.996 400.929 138.191 403.096L142.671 403.184Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M145.098 393.861C144.223 393.844 143.419 394.442 142.826 395.424L138.346 395.335C138.939 394.354 139.743 393.755 140.618 393.773L145.098 393.861Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -5794,29 +5794,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 154.227 391.688)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M156.386 395.61C156.94 396.614 157.72 397.244 158.595 397.261L154.115 397.173C153.24 397.156 152.46 396.526 151.906 395.521L156.386 395.61Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M156.389 395.612C155.195 393.445 155.263 389.971 156.543 387.852L152.062 387.764C150.783 389.882 150.714 393.357 151.909 395.524L156.389 395.612Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M158.818 386.288C157.944 386.27 157.14 386.869 156.547 387.851L152.067 387.762C152.659 386.781 153.464 386.182 154.338 386.199L158.818 386.288Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -5826,29 +5826,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 122.85 465.012)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M125.009 468.934C125.563 469.938 126.343 470.568 127.218 470.585L122.738 470.497C121.863 470.48 121.083 469.85 120.529 468.846L125.009 468.934Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M125.013 468.936C123.818 466.769 123.886 463.295 125.166 461.177L120.685 461.088C119.406 463.207 119.338 466.681 120.532 468.848L125.013 468.936Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M127.441 459.612C126.567 459.595 125.763 460.193 125.17 461.175L120.69 461.086C121.282 460.105 122.087 459.506 122.961 459.524L127.441 459.612Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -5858,29 +5858,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 140.512 455.278)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M142.672 459.199C143.225 460.203 144.005 460.833 144.88 460.85L140.4 460.762C139.525 460.744 138.745 460.115 138.191 459.11L142.672 459.199Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M142.675 459.201C141.48 457.034 141.548 453.56 142.828 451.441L138.348 451.353C137.068 453.471 137 456.945 138.195 459.113L142.675 459.201Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M145.104 449.877C144.229 449.859 143.425 450.458 142.832 451.439L138.352 451.351C138.945 450.369 139.749 449.771 140.623 449.788L145.104 449.877Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="4.48099"
@@ -5890,29 +5890,29 @@ export const BrokenStaging = (props: Props) => {
           transform="matrix(0.516979 -0.855998 0.482826 0.875716 154.23 447.705)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M156.39 451.625C156.944 452.63 157.724 453.259 158.599 453.277L154.119 453.188C153.244 453.171 152.464 452.541 151.91 451.537L156.39 451.625Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M156.393 451.628C155.199 449.461 155.267 445.986 156.546 443.868L152.066 443.78C150.787 445.898 150.718 449.372 151.913 451.539L156.393 451.628Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M158.822 442.303C157.948 442.286 157.143 442.885 156.551 443.866L152.07 443.778C152.663 442.796 153.467 442.198 154.342 442.215L158.822 442.303Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <defs>
           <filter
@@ -5922,9 +5922,9 @@ export const BrokenStaging = (props: Props) => {
             width="157.822"
             height="95.5"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -5957,9 +5957,9 @@ export const BrokenStaging = (props: Props) => {
             width="176.01"
             height="106"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -5992,9 +5992,9 @@ export const BrokenStaging = (props: Props) => {
             width="120.584"
             height="74"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -6027,9 +6027,9 @@ export const BrokenStaging = (props: Props) => {
             width="198.525"
             height="119"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -6062,9 +6062,9 @@ export const BrokenStaging = (props: Props) => {
             width="169.08"
             height="102"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -6097,9 +6097,9 @@ export const BrokenStaging = (props: Props) => {
             width="155.225"
             height="94"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -6132,9 +6132,9 @@ export const BrokenStaging = (props: Props) => {
             width="107.646"
             height="108.804"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -6167,9 +6167,9 @@ export const BrokenStaging = (props: Props) => {
             width="107.646"
             height="108.805"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -6202,9 +6202,9 @@ export const BrokenStaging = (props: Props) => {
             width="107.646"
             height="108.804"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -6237,9 +6237,9 @@ export const BrokenStaging = (props: Props) => {
             width="107.646"
             height="108.805"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
