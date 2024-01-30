@@ -25,6 +25,7 @@ import { env } from '@/env';
 import { FireMixpanel } from '@/lib/mixpanel';
 import { cn } from '@/lib/utils';
 import { GitHubLogoIcon } from '@radix-ui/react-icons';
+import { LucideServerCrash } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -64,13 +65,13 @@ const links: NavLinks[] = [
         children: [],
         icon: <IoTerminalOutline className="w-8 h-8" />,
       },
-      // {
-      //   title: 'Fix broken staging environments',
-      //   href: '/fix-staging-environments',
-      //   description: 'Catch bugs faster with production-like data in staging',
-      //   children: [],
-      //   icon: <LucideServerCrash className="w-8 h-8" />,
-      // },
+      {
+        title: 'Fix broken staging environments',
+        href: '/fix-staging-environments',
+        description: 'Catch bugs faster with production-like data in staging',
+        children: [],
+        icon: <LucideServerCrash className="w-8 h-8" />,
+      },
       {
         title: 'Keep environments up to date',
         href: '/keep-environments-in-sync',
@@ -278,7 +279,7 @@ const ListItem = forwardRef<HTMLAnchorElement, ListItemProps>(
               className
             )}
           >
-            <div className="flex flex-row items-center gap-4 ">
+            <div className="flex flex-row items-center gap-4 hover:text-blue-500">
               {icon && icon}
               <div className="flex flex-col gap-2">
                 <div className="text-sm font-medium leading-none">{title}</div>

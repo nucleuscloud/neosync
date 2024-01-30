@@ -19,7 +19,7 @@ export default function ValueProps(): ReactElement {
         'Catch production bugs and ship faster when you hydrate your staging and QA environments with production-like data that is safe and fast to generate. ',
       image:
         'https://assets.nucleuscloud.com/neosync/marketingsite/stagingsvg.svg',
-      link: '/fix-broken-staging',
+      link: '/fix-staging-environments',
     },
     {
       title: 'Keep environments up to date',
