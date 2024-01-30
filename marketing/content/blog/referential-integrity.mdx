@@ -14,7 +14,7 @@ Maintaining the integrity and accuracy of data within a database is critical. Un
 
 # What is Referential Integrity
 
-Referential integrity ensures that relationships in tables and between tables remain consistent as data is transformed or queried. This means that if you have a customer order in an "Orders" table, the customer ID for that order must actually exist in a "Customers" table. The customer ID in the "Orders" table would be a foreign key to the primary key customer ID in the "Customers" table. This relationship enforces data integity and ensures that orders in the "Orders" table map to a customer in the "Customers" table.
+Referential integrity ensures that relationships in tables and between tables remain consistent as data is transformed or queried. This means that if you have a customer order in an "Orders" table, the customer ID for that order must actually exist in a "Customers" table. The customer ID in the "Orders" table would be a foreign key to the primary key customer ID in the "Customers" table. This relationship enforces data integrity and ensures that orders in the "Orders" table map to a customer in the "Customers" table.
 
 More generally, the primary table contains a primary key, a unique identifier for each record. The related table, on the other hand, includes a foreign key, which is a reference back to the primary key in the primary table. Referential integrity ensures that every foreign key in the related table matches an existing primary key in the primary table. If the primary key that the foreign key references was ever deleted then the foreign key, and as a result, the record, should also be deleted.
 

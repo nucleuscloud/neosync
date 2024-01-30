@@ -26,7 +26,7 @@ export default function GitOpsSection(): ReactElement {
         "schema" : "public",
         "table" : "users",
         "column" : "account_number",
-        "transformer" : "custom_accout_number",
+        "transformer" : "custom_account_number",
       },
       {
         "schema" : "public",

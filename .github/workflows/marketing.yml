@@ -63,3 +63,17 @@ jobs:
       - run: npm install
       - name: Build
         run: npm run build
+
+  spellcheck:
+    name: Spellcheck Content
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: streetsidesoftware/cspell-action@v5
+        with:
+          root: marketing
+          config: marketing/cspell.json
+          incremental_files_only: true
+          files: |
+            content/**/*.md*
