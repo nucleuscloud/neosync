@@ -88,12 +88,8 @@
     "alishakawaguchi",
     "kawaguchi"
   ],
-  "flagWords": [
-    "hte"
-  ],
-  "files": [
-    "content/**/*.md*",
-  ],
+  "flagWords": ["hte"],
+  "files": ["content/**/*.md*"],
   "useGitignore": true,
   "dictionaries": [
     "en_US",
@@ -104,6 +100,6 @@
     "go",
     "html",
     "python",
-    "npm",
+    "npm"
   ]
 }
