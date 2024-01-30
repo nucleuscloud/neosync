@@ -10,7 +10,7 @@ authors:
 
 # Introduction
 
-Maintaining the integrity and accuracy of data within a database is crticial. Understanding and implementing referential integrity is a crucial step in ensuring that data remains reliable and useful. This blog dives deep into referential integrity, its importance, and applications in both real-world databases and synthetic data.
+Maintaining the integrity and accuracy of data within a database is critical. Understanding and implementing referential integrity is a crucial step in ensuring that data remains reliable and useful. This blog dives deep into referential integrity, its importance, and applications in both real-world databases and synthetic data.
 
 # What is Referential Integrity
 
@@ -20,7 +20,7 @@ More generally, the primary table contains a primary key, a unique identifier fo
 
 # Why is Referential Integrity important?
 
-Referential integerity is a key part in enforcing data accuracy within a given data sets. Especially in environments where there are many tables with complex relationsips, referential integrity constraints provide a safety layer to ensure that records aren't being abandoned and data quality doesn't decrease.
+Referential integrity is a key part in enforcing data accuracy within a given data sets. Especially in environments where there are many tables with complex relationships, referential integrity constraints provide a safety layer to ensure that records aren't being abandoned and data quality doesn't decrease.
 
 The less commonly talked about use-case of referential integrity is that it also improves developer productivity. Most databases, have a `CASCADE` command which allows the database to do the heavy lifting of cleaning up records across tables if you delete a record that has foreign keys to it. Imagine having to write a `DELETE FROM ...` statement for ever single table where a record might have a foreign key to another record. That would be painful!
 
@@ -41,4 +41,4 @@ We've mentioned a few ways that databases handle referential integrity in the se
 
 # Wrapping up
 
-Referential integrity is a key component of relational databases where certain columns are linked to other columns in other tables, or even in a single table. It's also a key component of creating synthetic data that can be used for testing applications and training machine learning models. Ultimately, the goal is to enforce data quality and integrit.
+Referential integrity is a key component of relational databases where certain columns are linked to other columns in other tables, or even in a single table. It's also a key component of creating synthetic data that can be used for testing applications and training machine learning models. Ultimately, the goal is to enforce data quality and integrity.
