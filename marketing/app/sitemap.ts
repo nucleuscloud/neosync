@@ -18,7 +18,16 @@ export default async function sitemap() {
     });
   });
 
-  const routes = ['', '/about', '/docs', '/blog'].map((route) => ({
+  const routes = [
+    '',
+    '/about',
+    '/docs',
+    '/blog',
+    '/solutions/fix-staging-environments',
+    '/solutions/keep-environments-in-sync',
+    '/solutions/security-privacy',
+    '/solutions/unblock-local-development',
+  ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date().toISOString(),
   }));

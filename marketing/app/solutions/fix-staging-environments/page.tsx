@@ -1,11 +1,31 @@
-'use client';
 import CTA from '@/components/cta/CTA';
 import Intergrations from '@/components/landing-page/Integrations';
 import Platform from '@/components/landing-page/Platform';
+import { Metadata } from 'next';
 import { ReactElement } from 'react';
-import ComplySecurityPrivacy from './ComplySecurityPrivacy';
-import TransformerSection from './TransformerSection';
+import FixBrokenStaging from './FixBrokenStaging';
 import Hero from './hero';
+
+export const metadata: Metadata = {
+  metadataBase: new URL('https://assets.nucleuscloud.com/'),
+  openGraph: {
+    title: 'Neosync | Fix Staging Environments',
+    description:
+      'Fix broken staging environments and catch bugs before production. ',
+    url: 'https://neosync.dev/solutions/fix-staging-environments',
+    siteName: 'Neosync',
+    images: [
+      {
+        url: '/neosync/marketingsite/mainOGHero.svg',
+        width: 1200,
+        height: 630,
+        alt: 'mainOG',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+};
 
 export default function Page(): ReactElement {
   return (
@@ -15,10 +35,7 @@ export default function Page(): ReactElement {
           <Hero />
         </div>
         <div className="bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto pt-20 lg:pt-40">
-          <ComplySecurityPrivacy />
-        </div>
-        <div className="bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto pt-20 lg:pt-40">
-          <TransformerSection />
+          <FixBrokenStaging />
         </div>
         <div className=" bg-[#F5F5F5] lg:p-20 px-4">
           <div className=" bg-[#1E1E1E] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto rounded-3xl py-10">

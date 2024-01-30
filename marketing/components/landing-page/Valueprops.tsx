@@ -11,7 +11,7 @@ export default function ValueProps(): ReactElement {
         'Give developers the ability to self-serve de-identified and synthetic data locally whenever they need it without having to worry about sensitive data privacy or security. ',
       image:
         'https://assets.nucleuscloud.com/neosync/marketingsite/localdev.svg',
-      link: '/unblock-local-development',
+      link: '/solutions/unblock-local-development',
     },
     {
       title: 'Fix broken staging environments',
@@ -19,7 +19,7 @@ export default function ValueProps(): ReactElement {
         'Catch production bugs and ship faster when you hydrate your staging and QA environments with production-like data that is safe and fast to generate. ',
       image:
         'https://assets.nucleuscloud.com/neosync/marketingsite/stagingsvg.svg',
-      link: '/fix-staging-environments',
+      link: '/solutions/fix-staging-environments',
     },
     {
       title: 'Keep environments up to date',
@@ -27,14 +27,14 @@ export default function ValueProps(): ReactElement {
         'Speed up your dev and test cycles. Make sure your environments stay in sync with the latest de-identified and synthetic data that you can refresh whenever you need to.',
       image:
         'https://assets.nucleuscloud.com/neosync/marketingsite/syncenv.svg',
-      link: '/keep-environments-in-sync',
+      link: '/solutions/keep-environments-in-sync',
     },
     {
       title: `Frictionless security, privacy and compliance`,
       description: `Easily comply with laws like HIPAA, GDPR, and DPDP with de-identified and synthetic data that structurally and statistically looks just like your production data.`,
       image:
         'https://assets.nucleuscloud.com/neosync/marketingsite/compliance.svg',
-      link: '/frictionless-security-privacy',
+      link: '/solutions/security-privacy',
     },
   ];
 
