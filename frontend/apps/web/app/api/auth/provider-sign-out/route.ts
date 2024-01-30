@@ -17,13 +17,14 @@ export async function GET(): Promise<NextResponse> {
       throw new Error('no id token present in the session');
     }
 
-    await fetch(logoutUrl, {
-      method: 'POST',
-      body: new URLSearchParams({
-        id_token_hint: session.idToken,
-        // Needed for OAuth logout endpoint
-        post_logout_redirect_uri: nextauthUrl,
-      }),
+    const qp = new URLSearchParams({
+      id_token_hint: session.idToken,
+      // Needed for OAuth logout endpoint
+      post_logout_redirect_uri: nextauthUrl,
+    });
+
+    await fetch(`${logoutUrl}?${qp.toString()}`, {
+      method: 'GET',
     });
 
     return NextResponse.json({ success: true });
