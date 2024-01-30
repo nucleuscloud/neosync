@@ -60,7 +60,7 @@ const links: NavLinks[] = [
     children: [
       {
         title: 'Unblock local development',
-        href: '/unblock-local-development',
+        href: '/solutions/unblock-local-development',
         description:
           'Self-serve anonymized and synthetic data for local development',
         children: [],
@@ -68,14 +68,14 @@ const links: NavLinks[] = [
       },
       {
         title: 'Fix broken staging environments',
-        href: '/fix-staging-environments',
+        href: '/solutions/fix-staging-environments',
         description: 'Catch bugs faster with production-like data in staging',
         children: [],
         icon: <LucideServerCrash className="w-8 h-8" />,
       },
       {
         title: 'Keep environments up to date',
-        href: '/keep-environments-in-sync',
+        href: '/solutions/keep-environments-in-sync',
         description:
           'Effortlessly keep environments in sync with the latest data',
         children: [],
@@ -83,7 +83,7 @@ const links: NavLinks[] = [
       },
       {
         title: 'Comply with Security and Privacy',
-        href: '/security-privacy',
+        href: '/solutions/security-privacy',
         description: 'Easily comply with GDPR, HIPAA, DPDP and more',
         children: [],
         icon: <GoShieldCheck className="w-8 h-8" />,
