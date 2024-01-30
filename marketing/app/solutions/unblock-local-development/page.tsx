@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     title: 'Neosync | Unblock Local Development',
     description:
       'Unblock local development by using Neosync to anonymize sensitive data and generate synthetic data so that developers can self-serve data locally.  ',
-    url: 'https://neosync.dev/unblock-local-development',
+    url: 'https://neosync.dev/solutions/unblock-local-development',
     siteName: 'Neosync',
     images: [
       {
