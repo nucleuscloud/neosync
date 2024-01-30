@@ -126,3 +126,39 @@ func Test_IsValidUsername(t *testing.T) {
 	assert.True(t, IsValidUsername("test-TEST"), "Username should be an alphanumeric value comprised of  a-z A-Z 0-9 . - _ and starting and ending in alphanumeric chars with a max length of 63")
 	assert.False(t, IsValidUsername("eger?45//"), "Username contains non-alphanumeric characters")
 }
+
+func Test_isValidCharTrue(t *testing.T) {
+
+	val := "12wefg w1231"
+
+	res := IsValidChar(val)
+
+	assert.True(t, res)
+
+}
+
+func Test_isValidCharFalse(t *testing.T) {
+
+	val := "ij諏計"
+
+	res := IsValidChar(val)
+
+	assert.False(t, res)
+
+}
+
+func Test_IsAllowedSpecialCharTrue(t *testing.T) {
+	val := "$*#))"
+
+	for _, r := range val {
+		assert.True(t, IsAllowedSpecialChar(r), "Expected true for rune: %v", r)
+	}
+}
+
+func Test_IsAllowedSpecialCharFalse(t *testing.T) {
+	val := "諏計飯利"
+
+	for _, r := range val {
+		assert.False(t, IsAllowedSpecialChar(r), "Expected false for rune: %v", r)
+	}
+}

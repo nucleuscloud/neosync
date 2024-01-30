@@ -43,7 +43,7 @@ func init() {
 
 }
 
-// main transformer logic goes here
+// Transforms an existing string value into another string. Does not account for numbers and other characters. If you want to preserve spaces, capitalization and other characters, use the Transform_Characters transformer.
 func TransformString(value string, preserveLength bool) (*string, error) {
 
 	var returnValue string
