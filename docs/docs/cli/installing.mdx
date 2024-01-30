@@ -144,6 +144,6 @@ See the example below for how to login to the CLI, and then view a list of envir
 ➜  docker run -it --rm --mount source=neosynccfg,target=/root/.config/neosync ghcr.io/nucleuscloud/neosync/cli:latest accounts ls
 ```
 
-The command above will print out a list of enviornments that are in the account associated with the logged in credentials. Note that the port mapping isn't required here, as that is only necessary during the login flow.
+The command above will print out a list of environments that are in the account associated with the logged in credentials. Note that the port mapping isn't required here, as that is only necessary during the login flow.
 
 The docker volume is necessary in order to persist the Neosync CLI configuration data between runs. This today is namely used to persist auth data used during the login process so that it can be used with the other CLI commands.

@@ -23,7 +23,7 @@ export default function Pricing(): ReactElement {
 //       "Real time Run Logs",
 //       "Community Slack Support",
 //     ],
-//     lockedFeatures: ["Audit logging", "Custom Tranformers", "Private Support"],
+//     lockedFeatures: ["Audit logging", "Custom Transformers", "Private Support"],
 //     pricing: "Free",
 //   },
 //   {

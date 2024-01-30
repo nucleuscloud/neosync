@@ -89,6 +89,12 @@ Generally, we suggest going with a cloud provider to host the database, but if i
 Temporal can also be deployed to Kubernetes via a Helm chart that can be found in their [Github repo](https://github.com/temporalio/helm-charts). We suggest following their helm chart guide for deploying Temporal into Kubernetes.
 Temporal also has [Temporal Cloud](https://cloud.temporal.io/) that can be used if it's not desirable to self-host Temporal in a production environment.
 
+It's worth noting that Temporal does not publish their Helm Charts anywhere. To utilize them, you may have to re-publish them to your own internal chart repository, or figure out some means of installing them (either manually or some other automated fashion.)
+
+There is also a community maintained [Temporal Operator](https://github.com/alexandrevilain/temporal-operator) that could be of use to assist with Temporal management and upgrades. Use at your own risk.
+
+Here is a link to Temporal's thought on [Helm Chart Deployment](https://docs.temporal.io/self-hosted-guide/setup#helm-charts)
+
 ## Tilt for Development Deployments
 
 For development, we use Tilt to set up and deploy Neosync to Kubernetes.
@@ -114,7 +120,7 @@ spec:
 
 These options will allow injection of the istio sidecar, as well as hold the containers from starting until the Istio sidecar has started.
 
-Istio Gateway's and VirtualServices must be provided separately
+Istio Gateway's and VirtualServices must be provided separately.
 
 ## Datadog Support
 
@@ -165,13 +171,53 @@ This will generate a Kubernetes `Ingress` resource that is attached to each char
 See the `ingress.yaml` in each chart for a better understanding of what is available there.
 Each ingress has full support for specifying the classname and TLS options.
 
+Below is an example neosync-api Ingress that utilizes nginx, along with cert-manager for TLS decryption, which is required if exposing gRPC/Connect to the outside world.
+The TLS setup may be different depending on what your ingress class supports.
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: my-cluster-issuer
+    nginx.ingress.kubernetes.io/backend-protocol: GRPC
+    nginx.org/grpc-services: neosync-api
+  name: neosync-api
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: neosync-api.example.com
+      http:
+        paths:
+          - backend:
+              service:
+                name: neosync-api
+                port:
+                  number: 80
+            path: /
+            pathType: Prefix
+  tls:
+    - hosts:
+        - neosync-api.example.com
+      secretName: neosync-api-certificate
+```
+
+The corresponding helm chart values to generate the above would look like this for neosync-api:
+
 ```yaml
 ingress:
   enabled: true
-  className:
+  className: nginx
+  hosts:
+    - neosync-api.example.com
   tls:
-    hosts:
-    secretName:
+    - hosts:
+        - neosync-api.example.com
+      secretName: neosync-api-certificate
+  annotations:
+    cert-manager.io/cluster-issuer: my-cluster-issuer
+    nginx.ingress.kubernetes.io/backend-protocol: GRPC
+    nginx.org/grpc-services: neosync-api
 ```
 
 ## Configuring API and Worker charts with Temporal mTLS Certificates

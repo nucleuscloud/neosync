@@ -20,7 +20,7 @@ import UserDefinedTransformLastNameForm from './UserDefinedTransformLastNameForm
 import UserDefinedTransformPhoneNumberForm from './UserDefinedTransformPhoneNumberForm';
 import UserDefinedTransformStringForm from './UserDefinedTransformStringForm';
 
-// handles rendering custom tranformer configs
+// handles rendering custom transformer configs
 export function handleUserDefinedTransformerForm(
   value: string | undefined,
   disabled?: boolean
