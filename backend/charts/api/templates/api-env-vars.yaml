@@ -78,6 +78,14 @@ stringData:
     TEMPORAL_CERT: {{ .Values.temporal.certificate.certContents }}
     {{- end }}
 
+    {{- if and .Values.temporal .Values.temporal.defaultNamespace }}
+    TEMPORAL_DEFAULT_NAMESPACE: {{ .Values.temporal.defaultNamespace }}
+    {{- end }}
+
+    {{- if and .Values.temporal .Values.temporal.defaultSyncJobQueue }}
+    TEMPORAL_DEFAULT_SYNCJOB_QUEUE: {{ .Values.temporal.defaultSyncJobQueue }}
+    {{- end }}
+
     {{- if and .Values.auth .Values.auth.api .Values.auth.api.clientId }}
     AUTH_API_CLIENT_ID: {{ .Values.auth.api.clientId }}
     {{- end }}
@@ -94,7 +102,7 @@ stringData:
     NEOSYNC_CLOUD_ALLOWED_WORKER_API_KEYS: {{ join "," .Values.neosyncCloud.workerApiKeys }}
 
     KUBERNETES_ENABLED: {{ .Values.kubernetes.enabled | default "false" | quote }}
-    
+
     {{- if and .Values.kubernetes .Values.kubernetes.namespace }}
     KUBERNETES_NAMESPACE: {{ .Values.kubernetes.namespace }}
     {{- end }}
