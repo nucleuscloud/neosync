@@ -1,10 +1,31 @@
-'use client';
 import CTA from '@/components/cta/CTA';
 import Intergrations from '@/components/landing-page/Integrations';
 import Platform from '@/components/landing-page/Platform';
+import { Metadata } from 'next';
 import { ReactElement } from 'react';
 import FixBrokenStaging from './FixBrokenStaging';
 import Hero from './hero';
+
+export const metadata: Metadata = {
+  metadataBase: new URL('https://assets.nucleuscloud.com/'),
+  openGraph: {
+    title: 'Neosync | Fix Staging Environments',
+    description:
+      'Fix broken staging environments and catch bugs before production. ',
+    url: 'https://neosync.dev/fix-staging-environments',
+    siteName: 'Neosync',
+    images: [
+      {
+        url: '/neosync/marketingsite/mainOGHero.svg',
+        width: 1200,
+        height: 630,
+        alt: 'mainOG',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+};
 
 export default function Page(): ReactElement {
   return (
