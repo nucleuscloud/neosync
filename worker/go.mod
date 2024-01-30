@@ -10,7 +10,6 @@ require (
 	connectrpc.com/grpcreflect v1.2.0
 	github.com/benthosdev/benthos/v4 v4.24.0
 	github.com/google/uuid v1.6.0
-	github.com/jackc/pgx/v5 v5.5.2
 	github.com/nucleuscloud/neosync/backend v0.0.0-20231203015621-7d46ef5b9957
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.2
@@ -18,6 +17,7 @@ require (
 	go.temporal.io/sdk v1.25.1
 	go.uber.org/atomic v1.11.0
 	golang.org/x/net v0.20.0
+	golang.org/x/sync v0.6.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -129,6 +129,7 @@ require (
 	github.com/itchyny/timefmt-go v0.1.5 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
+	github.com/jackc/pgx/v5 v5.5.2 // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
@@ -225,7 +226,6 @@ require (
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
 	golang.org/x/mod v0.14.0 // indirect
 	golang.org/x/oauth2 v0.15.0 // indirect
-	golang.org/x/sync v0.6.0 // indirect
 	golang.org/x/sys v0.16.0 // indirect
 	golang.org/x/term v0.16.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
