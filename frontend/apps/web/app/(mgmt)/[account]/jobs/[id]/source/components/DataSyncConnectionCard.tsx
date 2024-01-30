@@ -355,6 +355,7 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
       },
       destinationIds: [],
       mappings: [],
+      connectionId: '',
     };
   }
   const schemaMap: SchemaMap = {};
@@ -450,6 +451,7 @@ function getJobSource(job?: Job, schema?: DatabaseColumn[]): SourceFormValues {
       ...mapping,
       transformer: mapping.transformer as JobMappingTransformerForm,
     })),
+    connectionId: getConnectionIdFromSource(job.source) || '',
   };
 
   switch (job?.source?.options?.config.case) {
@@ -520,6 +522,7 @@ async function getUpdatedValues(
     sourceOptions: {},
     destinationIds: originalValues.destinationIds,
     mappings: mappings || [],
+    connectionId: connectionId || '',
   };
 
   const yupValidationValues = {
