@@ -797,7 +797,6 @@ func (b *benthosBuilder) filterNullTables(mappings []*TableMapping) []string {
 	return tables
 }
 
-// todo fix this
 func (b *benthosBuilder) createSqlUpdateBenthosConfig(
 	ctx context.Context,
 	insertConfig *BenthosConfigResponse,
@@ -806,7 +805,13 @@ func (b *benthosBuilder) createSqlUpdateBenthosConfig(
 	colSourceMap map[string]string,
 ) (*BenthosConfigResponse, error) {
 	driver := insertConfig.Config.Input.SqlSelect.Driver
-	sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, []*TableMapping{tm}, insertConfig.Config.Input.SqlSelect.Dsn, driver, map[string]*sqlSourceTableOptions{})
+	sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(
+		ctx,
+		[]*TableMapping{tm},
+		"", // does not matter what is here. gets overwritten with insert config
+		driver,
+		map[string]*sqlSourceTableOptions{},
+	)
 	if err != nil {
 		return nil, err
 	}
