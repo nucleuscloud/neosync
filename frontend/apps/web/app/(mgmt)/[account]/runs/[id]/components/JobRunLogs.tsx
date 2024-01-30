@@ -6,9 +6,8 @@ import {
   useGetJobRunLogs,
 } from '@/libs/hooks/useGetJobRunLogs';
 import { ReloadIcon } from '@radix-ui/react-icons';
-import { ReactElement, useEffect, useRef, useState } from 'react';
-import AutoSizer from 'react-virtualized-auto-sizer';
-import { VariableSizeList as List } from 'react-window';
+import { useVirtualizer } from '@tanstack/react-virtual';
+import { ReactElement, useRef } from 'react';
 
 interface JobRunLogsProps {
   accountId: string;
@@ -28,36 +27,21 @@ export default function JobRunLogs({
   } = useGetJobRunLogs(runId, accountId, {
     refreshIntervalFn: refreshLogsWhenRunNotComplete,
   });
-
   const logs = logsData || [];
 
-  const [windowWidth, setWindowWidth] = useState<number>(window.innerWidth);
-  const listRef = useRef<List<string[]> | null>(null);
+  const parentRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    function handleResize() {
-      setWindowWidth(window.innerWidth);
-      if (listRef.current) {
-        listRef.current.resetAfterIndex(0);
-      }
-    }
+  const count = logs.length;
+  const virtualizer = useVirtualizer({
+    count,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 45,
+  });
 
-    window.addEventListener('resize', handleResize);
-    handleResize();
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  const items = virtualizer.getVirtualItems();
 
   function onRefreshClick(): void {
     logsMutate();
-  }
-
-  function getLogLineSize(index: number): number {
-    const log = logs[index];
-    const maxLineWidth = windowWidth;
-    const estimatedLineWidth = log.length * 10;
-    const numberOfLines = Math.ceil(estimatedLineWidth / maxLineWidth) + 1;
-    const height = 5 + numberOfLines * 20;
-    return height;
   }
 
   if (logsError) {
@@ -90,29 +74,30 @@ export default function JobRunLogs({
       {isLogsLoading ? (
         <SkeletonTable />
       ) : (
-        <div className="h-[500px] w-full">
-          <AutoSizer>
-            {({ height, width }) => (
-              <List
-                ref={listRef}
-                className="border rounded-md dark:border-gray-700"
-                height={height}
-                itemCount={logs.length}
-                itemSize={getLogLineSize}
-                width={width}
-                itemKey={(index: number) => logs[index]}
-                itemData={logs}
-              >
-                {({ index, style }) => {
-                  return (
-                    <p className="p-2 text-sm" style={style}>
-                      {logs[index]}
-                    </p>
-                  );
-                }}
-              </List>
-            )}
-          </AutoSizer>
+        <div
+          ref={parentRef}
+          className="w-100 h-[500px] p-2 border rounded-md dark:border-gray-700 overflow-y-auto	contain-[strict]"
+        >
+          <div className={`h-[${virtualizer.getTotalSize()}px] w-100 relative`}>
+            <div
+              className={`absolute w-100 top-0 left-0`}
+              style={{
+                transform: `translateY(${items[0]?.start ?? 0}px)`, // do not use tailwind for this
+              }}
+            >
+              {items.map((virtualRow) => (
+                <div
+                  key={virtualRow.key}
+                  data-index={virtualRow.index}
+                  ref={virtualizer.measureElement}
+                >
+                  <div className="p-1">
+                    <p className="text-sm">{logs[virtualRow.index]}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </div>
