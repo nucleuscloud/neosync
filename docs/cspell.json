@@ -55,13 +55,8 @@
     "evis",
     "drenova",
     "mgmt",
-    "johntest",
+    "johntest"
   ],
-  "flagWords": [
-    "hte"
-  ],
-  "files": [
-    "blog/**/*.md*",
-    "docs/**/*.md*"
-  ]
+  "flagWords": ["hte"],
+  "files": ["blog/**/*.md*", "docs/**/*.md*"]
 }
