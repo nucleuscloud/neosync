@@ -1,4 +1,3 @@
-'use client';
 import CTA from '@/components/cta/CTA';
 import Hero from '@/components/landing-page/Hero';
 import Intergrations from '@/components/landing-page/Integrations';
