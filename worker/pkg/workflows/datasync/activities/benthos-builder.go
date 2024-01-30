@@ -797,6 +797,7 @@ func (b *benthosBuilder) filterNullTables(mappings []*TableMapping) []string {
 	return tables
 }
 
+// todo fix this
 func (b *benthosBuilder) createSqlUpdateBenthosConfig(
 	ctx context.Context,
 	insertConfig *BenthosConfigResponse,
@@ -825,6 +826,7 @@ func (b *benthosBuilder) createSqlUpdateBenthosConfig(
 			output = out
 		}
 		newResp.Columns = output.Columns
+		newResp.BenthosDsns = insertConfig.BenthosDsns
 		newResp.Config.Output.Broker.Outputs = append(newResp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 			SqlRaw: &neosync_benthos.SqlRaw{
 				Driver: driver,
