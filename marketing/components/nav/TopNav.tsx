@@ -29,6 +29,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ReactElement, ReactNode, forwardRef } from 'react';
+import { AiOutlineCloudSync } from 'react-icons/ai';
 import { FaDiscord } from 'react-icons/fa';
 import { GiHamburgerMenu } from 'react-icons/gi';
 import { IoTerminalOutline } from 'react-icons/io5';
@@ -70,14 +71,14 @@ const links: NavLinks[] = [
       //   children: [],
       //   icon: <LucideServerCrash className="w-8 h-8" />,
       // },
-      // {
-      //   title: 'Keep environments up to date',
-      //   href: '/keep-environments-in-sync',
-      //   description:
-      //     'Effortlessly keep environments in sync with the latest data',
-      //   children: [],
-      //   icon: <AiOutlineCloudSync className="w-8 h-8" />,
-      // },
+      {
+        title: 'Keep environments up to date',
+        href: '/keep-environments-in-sync',
+        description:
+          'Effortlessly keep environments in sync with the latest data',
+        children: [],
+        icon: <AiOutlineCloudSync className="w-8 h-8" />,
+      },
       // {
       //   title: 'Comply with Security and Privacy',
       //   href: '/comply-security-privacy',

@@ -17,7 +17,7 @@ export const LocalDev = (props: Props) => {
           <path
             d="M284.798 248.206V326.304M284.798 326.304L409.016 393.947M284.798 326.304L159.965 393.947"
             stroke="black"
-            stroke-dasharray="8 8"
+            strokeDasharray="8 8"
             className="edge-path"
           />
         </g>
@@ -28,25 +28,25 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 285.754 285.103)"
           fill="white"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M241.154 321.515C241.154 328.625 246.146 335.061 254.216 339.721V351.858C246.146 347.199 241.154 340.762 241.154 333.652V321.515Z"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M254.215 339.721C271.63 349.776 299.867 349.776 317.282 339.721V351.858C299.867 361.913 271.63 361.913 254.215 351.858V339.721Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M330.341 321.515C330.341 328.625 325.349 335.061 317.279 339.721V351.858C325.349 347.199 330.341 340.762 330.341 333.652V321.515Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M302.722 311.918C304.053 311.15 304.718 310.766 305.03 310.338C305.466 309.739 305.459 309.062 305.012 308.46C304.692 308.03 304.019 307.642 302.674 306.865L302.674 306.865L294.019 301.868C291.231 300.259 289.838 299.454 288.116 299.449C286.394 299.443 285.015 300.239 282.259 301.831L276.959 304.89C272.711 307.343 270.586 308.57 271.134 309.875C271.682 311.181 274.555 311.738 280.3 312.853L291.276 314.983C293.192 315.354 293.78 316.756 292.364 317.574C291.644 317.989 290.576 318.132 289.603 317.943L268.095 313.77C265.722 313.31 264.536 313.079 263.39 313.233C262.244 313.386 261.367 313.893 259.612 314.906L257.862 315.916C255.106 317.508 253.727 318.303 253.737 319.298C253.746 320.292 255.14 321.097 257.927 322.706L266.301 327.541C267.646 328.317 268.319 328.706 268.639 329.136C269.086 329.737 269.092 330.415 268.657 331.013C268.345 331.441 267.68 331.825 266.349 332.593C265.018 333.362 264.353 333.746 264.041 334.174C263.606 334.772 263.612 335.45 264.059 336.051C264.379 336.481 265.052 336.87 266.397 337.646L275.053 342.644C277.84 344.253 279.233 345.057 280.955 345.063C282.678 345.068 284.056 344.273 286.813 342.681L286.813 342.681L292.112 339.621C296.361 337.168 298.485 335.942 297.937 334.636C297.39 333.331 294.517 332.774 288.771 331.659L277.795 329.529C275.88 329.157 275.291 327.756 276.708 326.938C277.427 326.523 278.495 326.38 279.468 326.568L300.976 330.742C303.349 331.202 304.536 331.432 305.681 331.279C306.827 331.126 307.704 330.619 309.459 329.606L311.209 328.596C313.966 327.004 315.344 326.208 315.334 325.214C315.325 324.22 313.931 323.415 311.144 321.806L302.77 316.971C301.425 316.194 300.752 315.806 300.432 315.376C299.985 314.775 299.979 314.097 300.415 313.499C300.726 313.071 301.392 312.686 302.722 311.918Z"
@@ -70,7 +70,7 @@ export const LocalDev = (props: Props) => {
             rx="8"
             transform="matrix(0.866025 -0.5 0 1 429.182 334.736)"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <rect
@@ -79,7 +79,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 411.688 340.242)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="131.196"
@@ -87,7 +87,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.866025 -0.5 0.866025 0.5 425.887 315.645)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <g filter="url(#filter2_d_2936_875)">
           <path
@@ -97,20 +97,20 @@ export const LocalDev = (props: Props) => {
           <path
             d="M429.44 481.689C429.44 485.886 430.827 489.283 433.6 490.884L415.847 480.634C413.074 479.033 411.688 475.636 411.688 471.439L429.44 481.689Z"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <path
           d="M429.44 350.493C429.44 341.436 435.799 330.423 443.643 325.894L425.89 315.645C418.046 320.173 411.688 331.187 411.688 340.244L429.44 350.493Z"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M567.299 259.301C564.526 257.7 560.892 258.197 557.257 260.296L539.504 250.046C543.139 247.948 546.773 247.45 549.546 249.051L567.299 259.301Z"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -118,7 +118,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 -0.865982 0.500075 284.914 111.298)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -126,7 +126,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 0 1 198.094 161.431)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -134,7 +134,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 -0.500075 0 1 284.914 211.568)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -142,7 +142,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 -0.865982 0.500075 284.914 58.1172)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -150,7 +150,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 0 1 198.094 108.251)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -158,7 +158,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 -0.500075 0 1 284.914 158.388)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -166,7 +166,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 -0.865982 0.500075 284.914 1.00098)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -174,7 +174,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 0 1 198.094 51.1348)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -182,7 +182,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 -0.500075 0 1 284.914 101.269)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -192,29 +192,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 299.693 112)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.594 115.45C302.08 116.333 302.766 116.886 303.535 116.901L299.597 116.824C298.828 116.809 298.143 116.255 297.656 115.372L301.594 115.45Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.593 115.449C300.542 113.544 300.603 110.49 301.727 108.628L297.79 108.55C296.665 110.412 296.605 113.466 297.655 115.372L301.593 115.449Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M303.726 107.255C302.957 107.239 302.25 107.766 301.729 108.628L297.791 108.551C298.312 107.688 299.019 107.162 299.788 107.177L303.726 107.255Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -224,29 +224,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 315.215 103.44)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.115 106.89C317.602 107.773 318.287 108.327 319.056 108.342L315.119 108.264C314.35 108.249 313.664 107.695 313.178 106.812L317.115 106.89Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.114 106.89C316.064 104.985 316.124 101.931 317.249 100.068L313.311 99.9906C312.187 101.853 312.126 104.907 313.177 106.812L317.114 106.89Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M319.247 98.695C318.478 98.6798 317.772 99.206 317.25 100.069L313.313 99.9912C313.834 99.1283 314.541 98.6021 315.31 98.6173L319.247 98.695Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -256,29 +256,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 327.281 96.7861)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.182 100.236C329.668 101.119 330.354 101.672 331.123 101.687L327.185 101.61C326.416 101.595 325.731 101.041 325.244 100.158L329.182 100.236Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.18 100.235C328.13 98.3303 328.191 95.2762 329.315 93.414L325.377 93.3363C324.253 95.1985 324.193 98.2526 325.243 100.158L329.18 100.235Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M331.314 92.0407C330.545 92.0255 329.838 92.5517 329.317 93.4146L325.379 93.3369C325.9 92.474 326.607 91.9478 327.376 91.963L331.314 92.0407Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -288,29 +288,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 299.693 167.147)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.594 170.597C302.08 171.48 302.766 172.034 303.535 172.049L299.597 171.971C298.828 171.956 298.143 171.402 297.656 170.52L301.594 170.597Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.593 170.597C300.542 168.692 300.603 165.638 301.727 163.775L297.79 163.698C296.665 165.56 296.605 168.614 297.655 170.519L301.593 170.597Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M303.726 162.402C302.957 162.387 302.25 162.913 301.729 163.776L297.791 163.698C298.312 162.835 299.019 162.309 299.788 162.324L303.726 162.402Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -320,29 +320,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 315.215 158.59)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.115 162.04C317.602 162.922 318.287 163.476 319.056 163.491L315.119 163.414C314.35 163.398 313.664 162.845 313.178 161.962L317.115 162.04Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.114 162.039C316.064 160.134 316.124 157.08 317.249 155.218L313.311 155.14C312.187 157.002 312.126 160.056 313.177 161.961L317.114 162.039Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M319.247 153.844C318.478 153.829 317.772 154.355 317.25 155.218L313.313 155.141C313.834 154.278 314.541 153.752 315.31 153.767L319.247 153.844Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -352,29 +352,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 327.281 151.937)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.182 155.386C329.668 156.269 330.354 156.823 331.123 156.838L327.185 156.76C326.416 156.745 325.731 156.191 325.244 155.309L329.182 155.386Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.18 155.386C328.13 153.481 328.191 150.427 329.315 148.564L325.377 148.487C324.253 150.349 324.193 153.403 325.243 155.308L329.18 155.386Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M331.314 147.191C330.545 147.176 329.838 147.702 329.317 148.565L325.379 148.487C325.9 147.624 326.607 147.098 327.376 147.113L331.314 147.191Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -384,29 +384,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 299.693 216.388)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.594 219.837C302.08 220.72 302.766 221.274 303.535 221.289L299.597 221.211C298.828 221.196 298.143 220.643 297.656 219.76L301.594 219.837Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.593 219.837C300.542 217.932 300.603 214.878 301.727 213.016L297.79 212.938C296.665 214.8 296.605 217.854 297.655 219.759L301.593 219.837Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M303.726 211.642C302.957 211.627 302.25 212.153 301.729 213.016L297.791 212.938C298.312 212.076 299.019 211.549 299.788 211.565L303.726 211.642Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -416,29 +416,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 315.215 207.828)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.115 211.278C317.602 212.161 318.287 212.714 319.056 212.729L315.119 212.652C314.35 212.637 313.664 212.083 313.178 211.2L317.115 211.278Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.114 211.277C316.064 209.372 316.124 206.318 317.249 204.456L313.311 204.378C312.187 206.241 312.126 209.295 313.177 211.2L317.114 211.277Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M319.247 203.083C318.478 203.067 317.772 203.594 317.25 204.457L313.313 204.379C313.834 203.516 314.541 202.99 315.31 203.005L319.247 203.083Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -448,29 +448,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 327.281 201.174)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.182 204.624C329.668 205.506 330.354 206.06 331.123 206.075L327.185 205.997C326.416 205.982 325.731 205.429 325.244 204.546L329.182 204.624Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.18 204.623C328.13 202.718 328.191 199.664 329.315 197.802L325.377 197.724C324.253 199.586 324.193 202.64 325.243 204.545L329.18 204.623Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M331.314 196.428C330.545 196.413 329.838 196.939 329.317 197.802L325.379 197.725C325.9 196.862 326.607 196.336 327.376 196.351L331.314 196.428Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -478,7 +478,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 -0.865982 0.500075 284.91 111.296)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -486,7 +486,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 0 1 198.09 161.429)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -494,7 +494,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 -0.500075 0 1 284.91 211.563)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -502,7 +502,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 -0.865982 0.500075 284.91 58.1191)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -510,7 +510,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 0 1 198.09 108.252)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -518,7 +518,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 -0.500075 0 1 284.91 158.39)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -526,7 +526,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 -0.865982 0.500075 284.91 1)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -534,7 +534,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 0 1 198.09 51.1328)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -542,7 +542,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 -0.500075 0 1 284.91 101.271)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -552,29 +552,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 299.691 112)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.592 115.45C302.079 116.333 302.764 116.886 303.533 116.901L299.595 116.824C298.826 116.809 298.141 116.255 297.654 115.372L301.592 115.45Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.591 115.449C300.54 113.544 300.601 110.49 301.725 108.628L297.788 108.55C296.663 110.412 296.603 113.466 297.653 115.372L301.591 115.449Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M303.724 107.255C302.955 107.239 302.248 107.766 301.727 108.628L297.789 108.551C298.311 107.688 299.017 107.162 299.786 107.177L303.724 107.255Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -584,29 +584,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 315.213 103.44)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.113 106.89C317.6 107.773 318.285 108.327 319.054 108.342L315.117 108.264C314.348 108.249 313.662 107.695 313.176 106.812L317.113 106.89Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.112 106.89C316.062 104.985 316.122 101.931 317.247 100.068L313.309 99.9906C312.185 101.853 312.124 104.907 313.175 106.812L317.112 106.89Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M319.245 98.695C318.476 98.6798 317.77 99.206 317.249 100.069L313.311 99.9912C313.832 99.1283 314.539 98.6021 315.308 98.6173L319.245 98.695Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -616,29 +616,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 327.279 96.7861)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.18 100.236C329.666 101.119 330.352 101.672 331.121 101.687L327.183 101.61C326.414 101.595 325.729 101.041 325.242 100.158L329.18 100.236Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.179 100.235C328.128 98.3303 328.189 95.2762 329.313 93.414L325.375 93.3363C324.251 95.1985 324.191 98.2526 325.241 100.158L329.179 100.235Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M331.312 92.0407C330.543 92.0255 329.836 92.5517 329.315 93.4146L325.377 93.3369C325.898 92.474 326.605 91.9478 327.374 91.963L331.312 92.0407Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -648,29 +648,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 299.691 167.146)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.592 170.595C302.079 171.478 302.764 172.032 303.533 172.047L299.595 171.969C298.826 171.954 298.141 171.4 297.654 170.518L301.592 170.595Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.591 170.595C300.54 168.69 300.601 165.636 301.725 163.773L297.788 163.696C296.663 165.558 296.603 168.612 297.653 170.517L301.591 170.595Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M303.724 162.4C302.955 162.385 302.248 162.911 301.727 163.774L297.789 163.696C298.311 162.833 299.017 162.307 299.786 162.322L303.724 162.4Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -680,29 +680,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 315.213 158.588)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.113 162.038C317.6 162.92 318.285 163.474 319.054 163.489L315.117 163.412C314.348 163.396 313.662 162.843 313.176 161.96L317.113 162.038Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.112 162.037C316.062 160.132 316.122 157.078 317.247 155.216L313.309 155.138C312.185 157 312.124 160.054 313.175 161.959L317.112 162.037Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M319.245 153.842C318.476 153.827 317.77 154.353 317.249 155.216L313.311 155.139C313.832 154.276 314.539 153.75 315.308 153.765L319.245 153.842Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -712,29 +712,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 327.279 151.934)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.18 155.383C329.666 156.266 330.352 156.82 331.121 156.835L327.183 156.757C326.414 156.742 325.729 156.188 325.242 155.306L329.18 155.383Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.179 155.383C328.128 153.478 328.189 150.424 329.313 148.561L325.375 148.484C324.251 150.346 324.191 153.4 325.241 155.305L329.179 155.383Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M331.312 147.188C330.543 147.173 329.836 147.699 329.315 148.562L325.377 148.484C325.898 147.621 326.605 147.095 327.374 147.11L331.312 147.188Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -744,29 +744,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 299.691 216.388)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.592 219.837C302.079 220.72 302.764 221.274 303.533 221.289L299.595 221.211C298.826 221.196 298.141 220.643 297.654 219.76L301.592 219.837Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.591 219.837C300.54 217.932 300.601 214.878 301.725 213.016L297.788 212.938C296.663 214.8 296.603 217.854 297.653 219.759L301.591 219.837Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M303.724 211.642C302.955 211.627 302.248 212.153 301.727 213.016L297.789 212.938C298.311 212.076 299.017 211.549 299.786 211.565L303.724 211.642Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -776,29 +776,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 315.213 207.827)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.113 211.277C317.6 212.16 318.285 212.713 319.054 212.728L315.117 212.651C314.348 212.636 313.662 212.082 313.176 211.199L317.113 211.277Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.112 211.276C316.062 209.371 316.122 206.317 317.247 204.455L313.309 204.377C312.185 206.24 312.124 209.294 313.175 211.199L317.112 211.276Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M319.245 203.082C318.476 203.067 317.77 203.593 317.249 204.456L313.311 204.378C313.832 203.515 314.539 202.989 315.308 203.004L319.245 203.082Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -808,29 +808,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 327.279 201.174)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.18 204.624C329.666 205.506 330.352 206.06 331.121 206.075L327.183 205.997C326.414 205.982 325.729 205.429 325.242 204.546L329.18 204.624Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.179 204.623C328.128 202.718 328.189 199.664 329.313 197.802L325.375 197.724C324.251 199.586 324.191 202.64 325.241 204.545L329.179 204.623Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M331.312 196.428C330.543 196.413 329.836 196.939 329.315 197.802L325.377 197.725C325.898 196.862 326.605 196.336 327.374 196.351L331.312 196.428Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -838,7 +838,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 -0.865982 0.500075 284.91 111.296)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -846,7 +846,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 0 1 198.09 161.429)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -854,7 +854,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 -0.500075 0 1 284.91 211.563)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -862,7 +862,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 -0.865982 0.500075 284.91 58.1191)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -870,7 +870,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 0 1 198.09 108.252)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -878,7 +878,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 -0.500075 0 1 284.91 158.39)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -886,7 +886,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 -0.865982 0.500075 284.91 1)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -894,7 +894,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 0 1 198.09 51.1328)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -902,7 +902,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 -0.500075 0 1 284.91 101.271)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -912,29 +912,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 299.691 112)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.592 115.45C302.079 116.333 302.764 116.886 303.533 116.901L299.595 116.824C298.826 116.809 298.141 116.255 297.654 115.372L301.592 115.45Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.591 115.449C300.54 113.544 300.601 110.49 301.725 108.628L297.788 108.55C296.663 110.412 296.603 113.466 297.653 115.372L301.591 115.449Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M303.724 107.255C302.955 107.239 302.248 107.766 301.727 108.628L297.789 108.551C298.311 107.688 299.017 107.162 299.786 107.177L303.724 107.255Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -944,29 +944,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 315.213 103.44)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.113 106.89C317.6 107.773 318.285 108.327 319.054 108.342L315.117 108.264C314.348 108.249 313.662 107.695 313.176 106.812L317.113 106.89Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.112 106.89C316.062 104.985 316.122 101.931 317.247 100.068L313.309 99.9906C312.185 101.853 312.124 104.907 313.175 106.812L317.112 106.89Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M319.245 98.695C318.476 98.6798 317.77 99.206 317.249 100.069L313.311 99.9912C313.832 99.1283 314.539 98.6021 315.308 98.6173L319.245 98.695Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -976,29 +976,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 327.279 96.7861)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.18 100.236C329.666 101.119 330.352 101.672 331.121 101.687L327.183 101.61C326.414 101.595 325.729 101.041 325.242 100.158L329.18 100.236Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.179 100.235C328.128 98.3303 328.189 95.2762 329.313 93.414L325.375 93.3363C324.251 95.1985 324.191 98.2526 325.241 100.158L329.179 100.235Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M331.312 92.0407C330.543 92.0255 329.836 92.5517 329.315 93.4146L325.377 93.3369C325.898 92.474 326.605 91.9478 327.374 91.963L331.312 92.0407Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -1008,29 +1008,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 299.691 167.147)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.592 170.597C302.079 171.48 302.764 172.034 303.533 172.049L299.595 171.971C298.826 171.956 298.141 171.402 297.654 170.52L301.592 170.597Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.591 170.597C300.54 168.692 300.601 165.638 301.725 163.775L297.788 163.698C296.663 165.56 296.603 168.614 297.653 170.519L301.591 170.597Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M303.724 162.402C302.955 162.387 302.248 162.913 301.727 163.776L297.789 163.698C298.311 162.835 299.017 162.309 299.786 162.324L303.724 162.402Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -1040,29 +1040,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 315.213 158.588)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.113 162.038C317.6 162.92 318.285 163.474 319.054 163.489L315.117 163.412C314.348 163.396 313.662 162.843 313.176 161.96L317.113 162.038Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.112 162.037C316.062 160.132 316.122 157.078 317.247 155.216L313.309 155.138C312.185 157 312.124 160.054 313.175 161.959L317.112 162.037Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M319.245 153.842C318.476 153.827 317.77 154.353 317.249 155.216L313.311 155.139C313.832 154.276 314.539 153.75 315.308 153.765L319.245 153.842Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -1072,29 +1072,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 327.279 151.934)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.18 155.383C329.666 156.266 330.352 156.82 331.121 156.835L327.183 156.757C326.414 156.742 325.729 156.188 325.242 155.306L329.18 155.383Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.179 155.383C328.128 153.478 328.189 150.424 329.313 148.561L325.375 148.484C324.251 150.346 324.191 153.4 325.241 155.305L329.179 155.383Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M331.312 147.188C330.543 147.173 329.836 147.699 329.315 148.562L325.377 148.484C325.898 147.621 326.605 147.095 327.374 147.11L331.312 147.188Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -1104,29 +1104,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 299.691 216.382)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.592 219.834C302.079 220.716 302.764 221.27 303.533 221.285L299.595 221.207C298.826 221.192 298.141 220.639 297.654 219.756L301.592 219.834Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.591 219.833C300.54 217.928 300.601 214.874 301.725 213.012L297.788 212.934C296.663 214.796 296.603 217.85 297.653 219.755L301.591 219.833Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M303.724 211.638C302.955 211.623 302.248 212.149 301.727 213.012L297.789 212.935C298.311 212.072 299.017 211.545 299.786 211.561L303.724 211.638Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -1136,29 +1136,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 315.213 207.826)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.113 211.276C317.6 212.159 318.285 212.712 319.054 212.728L315.117 212.65C314.348 212.635 313.662 212.081 313.176 211.198L317.113 211.276Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.112 211.275C316.062 209.37 316.122 206.316 317.247 204.454L313.309 204.376C312.185 206.239 312.124 209.293 313.175 211.198L317.112 211.275Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M319.245 203.081C318.476 203.066 317.77 203.592 317.249 204.455L313.311 204.377C313.832 203.514 314.539 202.988 315.308 203.003L319.245 203.081Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -1168,29 +1168,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 327.285 201.17)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.186 204.62C329.672 205.502 330.358 206.056 331.127 206.071L327.189 205.994C326.42 205.978 325.735 205.425 325.248 204.542L329.186 204.62Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.184 204.619C328.134 202.714 328.194 199.66 329.319 197.798L325.381 197.72C324.257 199.582 324.197 202.636 325.247 204.542L329.184 204.619Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M331.317 196.424C330.549 196.409 329.842 196.935 329.321 197.798L325.383 197.721C325.904 196.858 326.611 196.332 327.38 196.347L331.317 196.424Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -1198,7 +1198,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 -0.865982 0.500075 284.91 111.298)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -1206,7 +1206,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 0 1 198.09 161.431)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -1214,7 +1214,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 -0.500075 0 1 284.91 211.568)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -1222,7 +1222,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 -0.865982 0.500075 284.91 58.1182)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -1230,7 +1230,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 0 1 198.09 108.251)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -1238,7 +1238,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 -0.500075 0 1 284.91 158.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -1246,7 +1246,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 -0.865982 0.500075 284.91 1.00146)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -1254,7 +1254,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 0 1 198.09 51.1348)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -1262,7 +1262,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 -0.500075 0 1 284.91 101.27)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -1272,29 +1272,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 299.691 111.997)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.592 115.447C302.079 116.33 302.764 116.883 303.533 116.898L299.595 116.821C298.826 116.806 298.141 116.252 297.654 115.369L301.592 115.447Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.591 115.446C300.54 113.541 300.601 110.487 301.725 108.625L297.788 108.547C296.663 110.409 296.603 113.464 297.653 115.369L301.591 115.446Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M303.724 107.252C302.955 107.236 302.248 107.763 301.727 108.626L297.789 108.548C298.311 107.685 299.017 107.159 299.786 107.174L303.724 107.252Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -1304,29 +1304,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 315.209 103.439)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.109 106.889C317.596 107.772 318.282 108.326 319.05 108.341L315.113 108.263C314.344 108.248 313.659 107.694 313.172 106.812L317.109 106.889Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.108 106.889C316.058 104.984 316.118 101.93 317.243 100.067L313.305 99.9896C312.181 101.852 312.12 104.906 313.171 106.811L317.108 106.889Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M319.241 98.694C318.472 98.6788 317.766 99.205 317.245 100.068L313.307 99.9902C313.828 99.1273 314.535 98.6011 315.304 98.6163L319.241 98.694Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -1336,29 +1336,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 327.279 96.7822)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.18 100.232C329.666 101.115 330.352 101.668 331.121 101.684L327.183 101.606C326.414 101.591 325.729 101.037 325.242 100.154L329.18 100.232Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.179 100.231C328.128 98.3264 328.189 95.2723 329.313 93.4101L325.375 93.3324C324.251 95.1946 324.191 98.2487 325.241 100.154L329.179 100.231Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M331.312 92.0368C330.543 92.0216 329.836 92.5477 329.315 93.4107L325.377 93.333C325.898 92.4701 326.605 91.9439 327.374 91.9591L331.312 92.0368Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -1368,29 +1368,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 299.691 167.147)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.592 170.597C302.079 171.48 302.764 172.034 303.533 172.049L299.595 171.971C298.826 171.956 298.141 171.402 297.654 170.52L301.592 170.597Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.591 170.597C300.54 168.692 300.601 165.638 301.725 163.775L297.788 163.698C296.663 165.56 296.603 168.614 297.653 170.519L301.591 170.597Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M303.724 162.402C302.955 162.387 302.248 162.913 301.727 163.776L297.789 163.698C298.311 162.835 299.017 162.309 299.786 162.324L303.724 162.402Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -1400,29 +1400,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 315.209 158.588)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.109 162.038C317.596 162.92 318.282 163.474 319.05 163.489L315.113 163.412C314.344 163.396 313.659 162.843 313.172 161.96L317.109 162.038Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.108 162.037C316.058 160.132 316.118 157.078 317.243 155.216L313.305 155.138C312.181 157 312.12 160.054 313.171 161.959L317.108 162.037Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M319.241 153.842C318.472 153.827 317.766 154.353 317.245 155.216L313.307 155.139C313.828 154.276 314.535 153.75 315.304 153.765L319.241 153.842Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -1432,29 +1432,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 327.279 151.934)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.18 155.383C329.666 156.266 330.352 156.82 331.121 156.835L327.183 156.757C326.414 156.742 325.729 156.188 325.242 155.306L329.18 155.383Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.179 155.383C328.128 153.478 328.189 150.424 329.313 148.561L325.375 148.484C324.251 150.346 324.191 153.4 325.241 155.305L329.179 155.383Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M331.312 147.188C330.543 147.173 329.836 147.699 329.315 148.562L325.377 148.484C325.898 147.621 326.605 147.095 327.374 147.11L331.312 147.188Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -1464,29 +1464,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 299.691 216.387)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.592 219.836C302.079 220.719 302.764 221.273 303.533 221.288L299.595 221.21C298.826 221.195 298.141 220.642 297.654 219.759L301.592 219.836Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.591 219.836C300.54 217.931 300.601 214.877 301.725 213.015L297.788 212.937C296.663 214.799 296.603 217.853 297.653 219.758L301.591 219.836Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M303.724 211.641C302.955 211.626 302.248 212.152 301.727 213.015L297.789 212.938C298.311 212.075 299.017 211.548 299.786 211.564L303.724 211.641Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -1496,29 +1496,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 315.209 207.828)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.109 211.277C317.596 212.16 318.282 212.713 319.05 212.728L315.113 212.651C314.344 212.636 313.659 212.082 313.172 211.199L317.109 211.277Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.108 211.277C316.058 209.372 316.118 206.318 317.243 204.456L313.305 204.378C312.181 206.241 312.12 209.295 313.171 211.2L317.108 211.277Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M319.241 203.082C318.472 203.067 317.766 203.593 317.245 204.456L313.307 204.378C313.828 203.515 314.535 202.989 315.304 203.004L319.241 203.082Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -1528,29 +1528,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 327.279 201.173)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.18 204.623C329.666 205.505 330.352 206.059 331.121 206.074L327.183 205.997C326.414 205.981 325.729 205.428 325.242 204.545L329.18 204.623Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.179 204.622C328.128 202.717 328.189 199.663 329.313 197.801L325.375 197.723C324.251 199.585 324.191 202.639 325.241 204.544L329.179 204.622Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M331.312 196.427C330.543 196.412 329.836 196.938 329.315 197.801L325.377 197.724C325.898 196.861 326.605 196.335 327.374 196.35L331.312 196.427Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -1558,7 +1558,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 -0.865982 0.500075 284.908 111.297)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -1566,7 +1566,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 0 1 198.088 161.43)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -1574,7 +1574,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 -0.500075 0 1 284.908 211.567)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -1582,7 +1582,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 -0.865982 0.500075 284.908 58.1182)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -1590,7 +1590,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 0 1 198.088 108.251)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -1598,7 +1598,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 -0.500075 0 1 284.908 158.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -1606,7 +1606,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 -0.865982 0.500075 284.908 1.00098)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -1614,7 +1614,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 0 1 198.088 51.1338)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -1622,7 +1622,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 -0.500075 0 1 284.908 101.27)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -1632,29 +1632,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 299.691 111.997)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.592 115.447C302.079 116.33 302.764 116.883 303.533 116.898L299.595 116.821C298.826 116.806 298.141 116.252 297.654 115.369L301.592 115.447Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.591 115.446C300.54 113.541 300.601 110.487 301.725 108.625L297.788 108.547C296.663 110.409 296.603 113.464 297.653 115.369L301.591 115.446Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M303.724 107.252C302.955 107.236 302.248 107.763 301.727 108.626L297.789 108.548C298.311 107.685 299.017 107.159 299.786 107.174L303.724 107.252Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -1664,29 +1664,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 315.209 103.438)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.109 106.888C317.596 107.771 318.282 108.325 319.05 108.34L315.113 108.262C314.344 108.247 313.659 107.693 313.172 106.811L317.109 106.888Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.108 106.888C316.058 104.983 316.118 101.929 317.243 100.066L313.305 99.9886C312.181 101.851 312.12 104.905 313.171 106.81L317.108 106.888Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M319.241 98.693C318.472 98.6778 317.766 99.204 317.245 100.067L313.307 99.9893C313.828 99.1263 314.535 98.6002 315.304 98.6153L319.241 98.693Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -1696,29 +1696,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 327.287 96.7822)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.188 100.231C329.674 101.114 330.36 101.667 331.128 101.683L327.191 101.605C326.422 101.59 325.737 101.036 325.25 100.153L329.188 100.231Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.192 100.231C328.142 98.3264 328.202 95.2723 329.327 93.4101L325.389 93.3324C324.265 95.1946 324.204 98.2487 325.255 100.154L329.192 100.231Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M331.321 92.0368C330.552 92.0216 329.846 92.5477 329.325 93.4107L325.387 93.333C325.908 92.4701 326.615 91.9439 327.384 91.9591L331.321 92.0368Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -1728,29 +1728,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 299.691 167.144)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.592 170.593C302.079 171.476 302.764 172.03 303.533 172.045L299.595 171.967C298.826 171.952 298.141 171.398 297.654 170.516L301.592 170.593Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.591 170.593C300.54 168.688 300.601 165.634 301.725 163.771L297.788 163.694C296.663 165.556 296.603 168.61 297.653 170.515L301.591 170.593Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M303.724 162.398C302.955 162.383 302.248 162.909 301.727 163.772L297.789 163.694C298.311 162.831 299.017 162.305 299.786 162.32L303.724 162.398Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -1760,29 +1760,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 315.209 158.586)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.109 162.036C317.596 162.918 318.282 163.472 319.05 163.487L315.113 163.41C314.344 163.394 313.659 162.841 313.172 161.958L317.109 162.036Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.108 162.035C316.058 160.13 316.118 157.076 317.243 155.214L313.305 155.136C312.181 156.998 312.12 160.052 313.171 161.958L317.108 162.035Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M319.241 153.84C318.472 153.825 317.766 154.351 317.245 155.214L313.307 155.137C313.828 154.274 314.535 153.748 315.304 153.763L319.241 153.84Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -1792,29 +1792,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 327.287 151.932)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.188 155.38C329.674 156.263 330.36 156.817 331.128 156.832L327.191 156.754C326.422 156.739 325.737 156.186 325.25 155.303L329.188 155.38Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.192 155.381C328.142 153.476 328.202 150.422 329.327 148.559L325.389 148.482C324.265 150.344 324.204 153.398 325.255 155.303L329.192 155.381Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M331.321 147.186C330.552 147.171 329.846 147.697 329.325 148.56L325.387 148.482C325.908 147.619 326.615 147.093 327.384 147.109L331.321 147.186Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -1824,29 +1824,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 299.691 216.387)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.592 219.836C302.079 220.719 302.764 221.273 303.533 221.288L299.595 221.21C298.826 221.195 298.141 220.642 297.654 219.759L301.592 219.836Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.591 219.836C300.54 217.931 300.601 214.877 301.725 213.015L297.788 212.937C296.663 214.799 296.603 217.853 297.653 219.758L301.591 219.836Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M303.724 211.641C302.955 211.626 302.248 212.152 301.727 213.015L297.789 212.938C298.311 212.075 299.017 211.548 299.786 211.564L303.724 211.641Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -1856,29 +1856,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 315.209 207.827)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.109 211.277C317.596 212.16 318.282 212.713 319.05 212.728L315.113 212.651C314.344 212.636 313.659 212.082 313.172 211.199L317.109 211.277Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.108 211.276C316.058 209.371 316.118 206.317 317.243 204.455L313.305 204.377C312.181 206.24 312.12 209.294 313.171 211.199L317.108 211.276Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M319.241 203.082C318.472 203.067 317.766 203.593 317.245 204.456L313.307 204.378C313.828 203.515 314.535 202.989 315.304 203.004L319.241 203.082Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -1888,29 +1888,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 327.287 201.173)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.188 204.623C329.674 205.505 330.36 206.059 331.128 206.074L327.191 205.997C326.422 205.981 325.737 205.428 325.25 204.545L329.188 204.623Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.186 204.622C328.136 202.717 328.196 199.663 329.321 197.801L325.383 197.723C324.259 199.585 324.199 202.639 325.249 204.544L329.186 204.622Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M331.319 196.427C330.551 196.412 329.844 196.938 329.323 197.801L325.385 197.724C325.906 196.861 326.613 196.335 327.382 196.35L331.319 196.427Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -1918,7 +1918,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 -0.865982 0.500075 284.908 111.297)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -1926,7 +1926,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 0 1 198.088 161.43)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -1934,7 +1934,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 -0.500075 0 1 284.908 211.567)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -1942,7 +1942,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 -0.865982 0.500075 284.908 58.1182)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -1950,7 +1950,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 0 1 198.088 108.251)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -1958,7 +1958,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 -0.500075 0 1 284.908 158.389)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -1966,7 +1966,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 -0.865982 0.500075 284.908 1.00098)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -1974,7 +1974,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 0 1 198.088 51.1338)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -1982,7 +1982,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 -0.500075 0 1 284.908 101.27)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -1992,29 +1992,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 299.691 111.997)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.592 115.447C302.079 116.33 302.764 116.883 303.533 116.898L299.595 116.821C298.826 116.806 298.141 116.252 297.654 115.369L301.592 115.447Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.591 115.446C300.54 113.541 300.601 110.487 301.725 108.625L297.788 108.547C296.663 110.409 296.603 113.464 297.653 115.369L301.591 115.446Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M303.724 107.252C302.955 107.236 302.248 107.763 301.727 108.626L297.789 108.548C298.311 107.685 299.017 107.159 299.786 107.174L303.724 107.252Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -2024,29 +2024,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 315.209 103.438)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.109 106.888C317.596 107.771 318.282 108.325 319.05 108.34L315.113 108.262C314.344 108.247 313.659 107.693 313.172 106.811L317.109 106.888Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.108 106.888C316.058 104.983 316.118 101.929 317.243 100.066L313.305 99.9886C312.181 101.851 312.12 104.905 313.171 106.81L317.108 106.888Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M319.241 98.693C318.472 98.6778 317.766 99.204 317.245 100.067L313.307 99.9893C313.828 99.1263 314.535 98.6002 315.304 98.6153L319.241 98.693Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -2056,29 +2056,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 327.279 96.7822)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.18 100.231C329.666 101.114 330.352 101.667 331.121 101.683L327.183 101.605C326.414 101.59 325.729 101.036 325.242 100.153L329.18 100.231Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.184 100.231C328.134 98.3264 328.194 95.2723 329.319 93.4101L325.381 93.3324C324.257 95.1946 324.197 98.2487 325.247 100.154L329.184 100.231Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M331.314 92.0368C330.545 92.0216 329.838 92.5477 329.317 93.4107L325.379 93.333C325.9 92.4701 326.607 91.9439 327.376 91.9591L331.314 92.0368Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -2088,29 +2088,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 299.691 167.146)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.592 170.596C302.079 171.479 302.764 172.033 303.533 172.048L299.595 171.97C298.826 171.955 298.141 171.401 297.654 170.519L301.592 170.596Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.591 170.596C300.54 168.691 300.601 165.637 301.725 163.774L297.788 163.697C296.663 165.559 296.603 168.613 297.653 170.518L301.591 170.596Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M303.724 162.401C302.955 162.386 302.248 162.912 301.727 163.775L297.789 163.697C298.311 162.834 299.017 162.308 299.786 162.323L303.724 162.401Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -2120,29 +2120,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 315.209 158.587)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.109 162.037C317.596 162.919 318.282 163.473 319.05 163.488L315.113 163.411C314.344 163.395 313.659 162.842 313.172 161.959L317.109 162.037Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.108 162.036C316.058 160.131 316.118 157.077 317.243 155.215L313.305 155.137C312.181 156.999 312.12 160.053 313.171 161.959L317.108 162.036Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M319.241 153.841C318.472 153.826 317.766 154.352 317.245 155.215L313.307 155.138C313.828 154.275 314.535 153.749 315.304 153.764L319.241 153.841Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -2152,29 +2152,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 327.287 151.932)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.188 155.381C329.674 156.264 330.36 156.818 331.128 156.833L327.191 156.755C326.422 156.74 325.737 156.187 325.25 155.304L329.188 155.381Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.186 155.381C328.136 153.476 328.196 150.422 329.321 148.559L325.383 148.482C324.259 150.344 324.199 153.398 325.249 155.303L329.186 155.381Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M331.319 147.186C330.551 147.171 329.844 147.697 329.323 148.56L325.385 148.482C325.906 147.619 326.613 147.093 327.382 147.109L331.319 147.186Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -2184,29 +2184,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 299.691 216.387)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.592 219.836C302.079 220.719 302.764 221.273 303.533 221.288L299.595 221.21C298.826 221.195 298.141 220.642 297.654 219.759L301.592 219.836Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.591 219.836C300.54 217.931 300.601 214.877 301.725 213.015L297.788 212.937C296.663 214.799 296.603 217.853 297.653 219.758L301.591 219.836Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M303.724 211.641C302.955 211.626 302.248 212.152 301.727 213.015L297.789 212.938C298.311 212.075 299.017 211.548 299.786 211.564L303.724 211.641Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -2216,29 +2216,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 315.209 207.828)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.109 211.277C317.596 212.16 318.282 212.713 319.05 212.728L315.113 212.651C314.344 212.636 313.659 212.082 313.172 211.199L317.109 211.277Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.108 211.277C316.058 209.372 316.118 206.318 317.243 204.456L313.305 204.378C312.181 206.241 312.12 209.295 313.171 211.2L317.108 211.277Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M319.241 203.082C318.472 203.067 317.766 203.593 317.245 204.456L313.307 204.378C313.828 203.515 314.535 202.989 315.304 203.004L319.241 203.082Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -2248,29 +2248,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 327.281 201.173)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.182 204.623C329.668 205.505 330.354 206.059 331.123 206.074L327.185 205.997C326.416 205.981 325.731 205.428 325.244 204.545L329.182 204.623Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.18 204.622C328.13 202.717 328.191 199.663 329.315 197.801L325.377 197.723C324.253 199.585 324.193 202.639 325.243 204.544L329.18 204.622Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M331.314 196.427C330.545 196.412 329.838 196.938 329.317 197.801L325.379 197.724C325.9 196.861 326.607 196.335 327.376 196.35L331.314 196.427Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -2278,7 +2278,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 -0.865982 0.500075 284.908 111.296)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <g filter="url(#filter3_d_2936_875)">
           <rect
@@ -2292,7 +2292,7 @@ export const LocalDev = (props: Props) => {
             height="37.6007"
             transform="matrix(0.865982 0.500075 0 1 198.088 161.429)"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <g filter="url(#filter4_d_2936_875)">
@@ -2307,7 +2307,7 @@ export const LocalDev = (props: Props) => {
             height="37.6007"
             transform="matrix(0.865982 -0.500075 0 1 284.908 211.566)"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <rect
@@ -2316,7 +2316,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 -0.865982 0.500075 284.908 58.1162)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -2324,7 +2324,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 0 1 198.088 108.249)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -2332,7 +2332,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 -0.500075 0 1 284.908 158.387)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -2340,7 +2340,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 -0.865982 0.500075 284.908 1)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -2348,7 +2348,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 0.500075 0 1 198.088 51.1328)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="100.253"
@@ -2356,7 +2356,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.865982 -0.500075 0 1 284.908 101.268)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -2366,29 +2366,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 299.691 111.997)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.592 115.447C302.079 116.33 302.764 116.883 303.533 116.898L299.595 116.821C298.826 116.806 298.141 116.252 297.654 115.369L301.592 115.447Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.591 115.446C300.54 113.541 300.601 110.487 301.725 108.625L297.788 108.547C296.663 110.409 296.603 113.464 297.653 115.369L301.591 115.446Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M303.724 107.252C302.955 107.236 302.248 107.763 301.727 108.626L297.789 108.548C298.311 107.685 299.017 107.159 299.786 107.174L303.724 107.252Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -2398,29 +2398,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 315.209 103.438)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.109 106.888C317.596 107.771 318.282 108.325 319.05 108.34L315.113 108.262C314.344 108.247 313.659 107.693 313.172 106.811L317.109 106.888Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.108 106.888C316.058 104.983 316.118 101.929 317.243 100.066L313.305 99.9886C312.181 101.851 312.12 104.905 313.171 106.81L317.108 106.888Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M319.241 98.693C318.472 98.6778 317.766 99.204 317.245 100.067L313.307 99.9893C313.828 99.1263 314.535 98.6002 315.304 98.6153L319.241 98.693Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -2430,29 +2430,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 327.279 96.7822)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.18 100.231C329.666 101.114 330.352 101.667 331.121 101.683L327.183 101.605C326.414 101.59 325.729 101.036 325.242 100.153L329.18 100.231Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.184 100.231C328.134 98.3264 328.194 95.2723 329.319 93.4101L325.381 93.3324C324.257 95.1946 324.197 98.2487 325.247 100.154L329.184 100.231Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M331.314 92.0368C330.545 92.0216 329.838 92.5477 329.317 93.4107L325.379 93.333C325.9 92.4701 326.607 91.9439 327.376 91.9591L331.314 92.0368Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -2462,29 +2462,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 299.691 167.146)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.592 170.596C302.079 171.479 302.764 172.033 303.533 172.048L299.595 171.97C298.826 171.955 298.141 171.401 297.654 170.519L301.592 170.596Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.591 170.596C300.54 168.691 300.601 165.637 301.725 163.774L297.788 163.697C296.663 165.559 296.603 168.613 297.653 170.518L301.591 170.596Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M303.724 162.401C302.955 162.386 302.248 162.912 301.727 163.775L297.789 163.697C298.311 162.834 299.017 162.308 299.786 162.323L303.724 162.401Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -2494,29 +2494,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 315.209 158.587)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.109 162.037C317.596 162.919 318.282 163.473 319.05 163.488L315.113 163.411C314.344 163.395 313.659 162.842 313.172 161.959L317.109 162.037Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.108 162.036C316.058 160.131 316.118 157.077 317.243 155.215L313.305 155.137C312.181 156.999 312.12 160.053 313.171 161.959L317.108 162.036Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M319.241 153.841C318.472 153.826 317.766 154.352 317.245 155.215L313.307 155.138C313.828 154.275 314.535 153.749 315.304 153.764L319.241 153.841Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -2526,29 +2526,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 327.287 151.932)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.188 155.381C329.674 156.264 330.36 156.818 331.128 156.833L327.191 156.755C326.422 156.74 325.737 156.187 325.25 155.304L329.188 155.381Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.186 155.381C328.136 153.476 328.196 150.422 329.321 148.559L325.383 148.482C324.259 150.344 324.199 153.398 325.249 155.303L329.186 155.381Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M331.319 147.186C330.551 147.171 329.844 147.697 329.323 148.56L325.385 148.482C325.906 147.619 326.613 147.093 327.382 147.109L331.319 147.186Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -2558,29 +2558,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 299.691 216.386)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.592 219.835C302.079 220.717 302.764 221.271 303.533 221.286L299.595 221.208C298.826 221.193 298.141 220.64 297.654 219.757L301.592 219.835Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M301.591 219.835C300.54 217.93 300.601 214.876 301.725 213.014L297.788 212.936C296.663 214.798 296.603 217.852 297.653 219.757L301.591 219.835Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M303.724 211.639C302.955 211.624 302.248 212.15 301.727 213.013L297.789 212.936C298.311 212.073 299.017 211.546 299.786 211.562L303.724 211.639Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -2590,29 +2590,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 315.209 207.826)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.109 211.276C317.596 212.159 318.282 212.712 319.05 212.728L315.113 212.65C314.344 212.635 313.659 212.081 313.172 211.198L317.109 211.276Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M317.108 211.275C316.058 209.37 316.118 206.316 317.243 204.454L313.305 204.376C312.181 206.239 312.12 209.293 313.171 211.198L317.108 211.275Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M319.241 203.081C318.472 203.066 317.766 203.592 317.245 204.455L313.307 204.377C313.828 203.514 314.535 202.988 315.304 203.003L319.241 203.081Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <ellipse
           cx="3.93862"
@@ -2622,29 +2622,29 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.516941 -0.856107 0.482752 0.875757 327.281 201.171)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.182 204.621C329.668 205.503 330.354 206.057 331.123 206.072L327.185 205.995C326.416 205.979 325.731 205.426 325.244 204.543L329.182 204.621Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M329.18 204.62C328.13 202.715 328.191 199.661 329.315 197.799L325.377 197.721C324.253 199.583 324.193 202.637 325.243 204.542L329.18 204.62Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <path
           d="M331.314 196.425C330.545 196.41 329.838 196.936 329.317 197.799L325.379 197.722C325.9 196.859 326.607 196.333 327.376 196.348L331.314 196.425Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-width="0.25"
-          stroke-linejoin="bevel"
+          strokeWidth="0.25"
+          strokeLinejoin="bevel"
         />
         <line
           y1="-0.5"
@@ -2663,8 +2663,8 @@ export const LocalDev = (props: Props) => {
           y2="-4"
           transform="matrix(0.866025 -0.5 0 1 444.066 366.275)"
           stroke="black"
-          stroke-width="8"
-          stroke-dasharray="30 2"
+          strokeWidth="8"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <line
@@ -2673,8 +2673,8 @@ export const LocalDev = (props: Props) => {
           y2="-4"
           transform="matrix(0.866025 -0.5 0 1 444.066 379.804)"
           stroke="black"
-          stroke-width="8"
-          stroke-dasharray="30 2"
+          strokeWidth="8"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <line
@@ -2683,8 +2683,8 @@ export const LocalDev = (props: Props) => {
           y2="-4"
           transform="matrix(0.866025 -0.5 0 1 444.066 392.103)"
           stroke="black"
-          stroke-width="8"
-          stroke-dasharray="30 2"
+          strokeWidth="8"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <line
@@ -2693,8 +2693,8 @@ export const LocalDev = (props: Props) => {
           y2="-4"
           transform="matrix(0.866025 -0.5 0 1 444.066 416.7)"
           stroke="black"
-          stroke-width="8"
-          stroke-dasharray="30 2"
+          strokeWidth="8"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <line
@@ -2703,8 +2703,8 @@ export const LocalDev = (props: Props) => {
           y2="-4"
           transform="matrix(0.866025 -0.5 0 1 444.066 428.999)"
           stroke="black"
-          stroke-width="8"
-          stroke-dasharray="30 2"
+          strokeWidth="8"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <line
@@ -2713,8 +2713,8 @@ export const LocalDev = (props: Props) => {
           y2="-4"
           transform="matrix(0.866025 -0.5 0 1 444.066 465.896)"
           stroke="black"
-          stroke-width="8"
-          stroke-dasharray="30 2"
+          strokeWidth="8"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <line
@@ -2723,8 +2723,8 @@ export const LocalDev = (props: Props) => {
           y2="-4"
           transform="matrix(0.866025 -0.5 0 1 444.066 453.597)"
           stroke="black"
-          stroke-width="8"
-          stroke-dasharray="30 2"
+          strokeWidth="8"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <path
@@ -2739,26 +2739,26 @@ export const LocalDev = (props: Props) => {
           <path
             d="M5 274.31C5 270.996 7.3264 269.653 10.1962 271.31L136.457 344.206C139.327 345.863 141.653 349.893 141.653 353.206V499C141.653 502.314 139.327 503.657 136.457 502L10.1961 429.103C7.32639 427.446 5 423.417 5 420.103V274.31Z"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <path
           d="M141.65 359.041L158.732 349.179V486.188L141.65 495.127V359.041Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M6.23047 272.28C8.2317 271.125 10.8546 271.484 13.4776 272.998L30.5593 263.136C27.9363 261.621 25.3134 261.263 23.3121 262.418L6.23047 272.28Z"
           fill="#BDCBFD"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M141.653 359.042C141.653 352.506 137.065 344.558 131.404 341.29L148.486 331.428C154.146 334.696 158.735 342.643 158.735 349.18L141.653 359.042Z"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <g filter="url(#filter6_d_2936_875)">
           <path
@@ -2768,7 +2768,7 @@ export const LocalDev = (props: Props) => {
           <path
             d="M138.65 502.261C140.652 501.106 141.652 498.654 141.652 495.626L158.734 485.764C158.734 488.792 157.733 491.243 155.732 492.399L138.65 502.261Z"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <line
@@ -2777,8 +2777,8 @@ export const LocalDev = (props: Props) => {
           y2="-4"
           transform="matrix(0.866025 0.5 0 1 18.5273 321.999)"
           stroke="black"
-          stroke-width="8"
-          stroke-dasharray="30 2"
+          strokeWidth="8"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <line
@@ -2787,8 +2787,8 @@ export const LocalDev = (props: Props) => {
           y2="-4"
           transform="matrix(0.866025 0.5 0 1 18.5273 335.527)"
           stroke="black"
-          stroke-width="8"
-          stroke-dasharray="30 2"
+          strokeWidth="8"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <line
@@ -2797,8 +2797,8 @@ export const LocalDev = (props: Props) => {
           y2="-4"
           transform="matrix(0.866025 0.5 0 1 18.5273 347.826)"
           stroke="black"
-          stroke-width="8"
-          stroke-dasharray="30 2"
+          strokeWidth="8"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <line
@@ -2807,8 +2807,8 @@ export const LocalDev = (props: Props) => {
           y2="-4"
           transform="matrix(0.866025 0.5 0 1 18.5273 372.424)"
           stroke="black"
-          stroke-width="8"
-          stroke-dasharray="30 2"
+          strokeWidth="8"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <line
@@ -2817,8 +2817,8 @@ export const LocalDev = (props: Props) => {
           y2="-4"
           transform="matrix(0.866025 0.5 0 1 18.5273 384.723)"
           stroke="black"
-          stroke-width="8"
-          stroke-dasharray="30 2"
+          strokeWidth="8"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <line
@@ -2827,8 +2827,8 @@ export const LocalDev = (props: Props) => {
           y2="-4"
           transform="matrix(0.866025 0.5 0 1 18.5273 421.619)"
           stroke="black"
-          stroke-width="8"
-          stroke-dasharray="30 2"
+          strokeWidth="8"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <line
@@ -2837,8 +2837,8 @@ export const LocalDev = (props: Props) => {
           y2="-4"
           transform="matrix(0.866025 0.5 0 1 18.5273 409.32)"
           stroke="black"
-          stroke-width="8"
-          stroke-dasharray="30 2"
+          strokeWidth="8"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <line
@@ -2861,9 +2861,9 @@ export const LocalDev = (props: Props) => {
             width="257.529"
             height="154.181"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -2896,9 +2896,9 @@ export const LocalDev = (props: Props) => {
             width="148.816"
             height="243.259"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -2931,9 +2931,9 @@ export const LocalDev = (props: Props) => {
             width="30.6621"
             height="28.3096"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -2966,9 +2966,9 @@ export const LocalDev = (props: Props) => {
             width="95.6836"
             height="96.7354"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -3001,9 +3001,9 @@ export const LocalDev = (props: Props) => {
             width="95.6836"
             height="96.7344"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -3036,9 +3036,9 @@ export const LocalDev = (props: Props) => {
             width="145.52"
             height="241.228"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -3071,9 +3071,9 @@ export const LocalDev = (props: Props) => {
             width="28.834"
             height="25.3633"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"

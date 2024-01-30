@@ -46,7 +46,7 @@ export default function APISection(): ReactElement {
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <div className="pt-10 text-center text-gray-900 font-semibold  text-2xl lg:text-4xl font-satoshi z-10">
+      <div className="pt-10 text-center text-gray-900 font-semibold  text-2xl lg:text-4xl font-satoshi">
         Designed and Built for Developers
       </div>
       <div className="flex flex-col-reverse lg:flex-row lg:gap-10 p-4 mt-10">
