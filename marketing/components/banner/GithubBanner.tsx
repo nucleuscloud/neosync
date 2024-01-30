@@ -15,7 +15,7 @@ export default function GithubBanner(): ReactElement {
       <div className="top-0 hidden lg:flex flex-row gap-3 justify-center w-full h-[35px] items-center bg-slate-700 font-satoshi text-gray-100">
         <div>
           If you like Neosync, give it a{' '}
-          <StarFilledIcon className="text-yellow-500 inline h-[20px] w-[20px]" />
+          <StarFilledIcon className="text-yellow-500 inline h-[20px] w-[20px]" />{' '}
           on GitHub and follow us on Twitter
         </div>
         <div className="flex flex-row items-center">
