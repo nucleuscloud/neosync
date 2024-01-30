@@ -1,7 +1,5 @@
 'use client';
 
-import { DotsHorizontalIcon } from '@radix-ui/react-icons';
-import { Row } from '@tanstack/react-table';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
@@ -15,6 +13,8 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import { UserDefinedTransformer } from '@neosync/sdk';
+import { DotsHorizontalIcon } from '@radix-ui/react-icons';
+import { Row } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
 
 interface DataTableRowActionsProps<TData> {
@@ -41,7 +41,7 @@ export function DataTableRowActions<TData>({
       onDeleted();
     } catch (err) {
       toast({
-        title: 'Unable to remove tranformer',
+        title: 'Unable to remove transformer',
         description: getErrorMessage(err),
         variant: 'destructive',
       });

@@ -107,7 +107,7 @@ These environment variables are loaded when running the `worker serve` command w
 
 ## CLI
 
-There are some environment variables that the CLI accepts to override default behavior to accomodate different environments.
+There are some environment variables that the CLI accepts to override default behavior to accommodate different environments.
 
 | Variable            | Description                                                                                                        | Is Required | Default Value         |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------ | ----------- | --------------------- |
