@@ -25,15 +25,12 @@ import { env } from '@/env';
 import { FireMixpanel } from '@/lib/mixpanel';
 import { cn } from '@/lib/utils';
 import { GitHubLogoIcon } from '@radix-ui/react-icons';
-import { LucideServerCrash } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ReactElement, ReactNode, forwardRef } from 'react';
-import { AiOutlineCloudSync } from 'react-icons/ai';
 import { FaDiscord } from 'react-icons/fa';
 import { GiHamburgerMenu } from 'react-icons/gi';
-import { GoShieldCheck } from 'react-icons/go';
 import { IoTerminalOutline } from 'react-icons/io5';
 import PrivateBetaButton from '../buttons/PrivateBetaButton';
 import { Button } from '../ui/button';
@@ -66,28 +63,28 @@ const links: NavLinks[] = [
         children: [],
         icon: <IoTerminalOutline className="w-8 h-8" />,
       },
-      {
-        title: 'Fix broken staging environments',
-        href: '/fix-staging-environments',
-        description: 'Catch bugs faster with production-like data in staging',
-        children: [],
-        icon: <LucideServerCrash className="w-8 h-8" />,
-      },
-      {
-        title: 'Keep environments up to date',
-        href: '/keep-environments-in-sync',
-        description:
-          'Effortlessly keep environments in sync with the latest data',
-        children: [],
-        icon: <AiOutlineCloudSync className="w-8 h-8" />,
-      },
-      {
-        title: 'Comply with Security and Privacy',
-        href: '/comply-security-privacy',
-        description: 'Easily comply with GDPR, HIPAA, DPDP and more',
-        children: [],
-        icon: <GoShieldCheck className="w-8 h-8" />,
-      },
+      // {
+      //   title: 'Fix broken staging environments',
+      //   href: '/fix-staging-environments',
+      //   description: 'Catch bugs faster with production-like data in staging',
+      //   children: [],
+      //   icon: <LucideServerCrash className="w-8 h-8" />,
+      // },
+      // {
+      //   title: 'Keep environments up to date',
+      //   href: '/keep-environments-in-sync',
+      //   description:
+      //     'Effortlessly keep environments in sync with the latest data',
+      //   children: [],
+      //   icon: <AiOutlineCloudSync className="w-8 h-8" />,
+      // },
+      // {
+      //   title: 'Comply with Security and Privacy',
+      //   href: '/comply-security-privacy',
+      //   description: 'Easily comply with GDPR, HIPAA, DPDP and more',
+      //   children: [],
+      //   icon: <GoShieldCheck className="w-8 h-8" />,
+      // },
     ],
   },
   {
