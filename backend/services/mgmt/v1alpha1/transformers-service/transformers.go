@@ -548,7 +548,7 @@ return input;`},
 			},
 			{
 				Name:        "Transform Character Substitution",
-				Description: "Transforms a string value by substituting each character with another character in the same unicode block. Letters will be substitued with letters, numbers with numbers and special characters with special characters. Spaces and capitalization is preserved.",
+				Description: "Transforms a string value by substituting each character with another character in the same unicode block. Letters will be substituted with letters, numbers with numbers and special characters with special characters. Spaces and capitalization is preserved.",
 				DataType:    "string",
 				Source:      string(TransformCharacterSubstitution),
 				Config: &mgmtv1alpha1.TransformerConfig{

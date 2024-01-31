@@ -30,6 +30,7 @@ func Test_TransformCharacterSubstitutionCapitalizationLetters(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, res, "Result should not be nil")
 	assert.IsType(t, "", *res)
+	//nolint
 	assert.True(t, unicode.IsUpper([]rune(*res)[0]), "The first character of the output string should be uppercase")
 	assert.Equal(t, len(testStringValue), len(*res), "The output string should be as long as the input string")
 	assert.True(t, transformer_utils.IsValidChar(*res), "The output string should contain valid characters")
