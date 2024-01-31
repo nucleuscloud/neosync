@@ -11,7 +11,8 @@ import { joinTransformers } from '@/shared/transformers';
 import { JobMappingFormValues } from '@/yup-validations/jobs';
 import { GetConnectionSchemaResponse } from '@neosync/sdk';
 import { ReactElement } from 'react';
-import { Row, VirtualizedSchemaTable } from './VirtualizedSchemaTable';
+import SchemaTableTest from '../VirtualizedTanStack/main';
+import { Row } from './VirtualizedSchemaTable';
 
 interface Props {
   data: JobMappingFormValues[];
@@ -49,6 +50,7 @@ export function SchemaTable(props: Props): ReactElement {
       formIdx: idx, // this is very important because we need to retain this when updating the form due to the table being filterable. Otherwise the index used is incorrect.
     };
   });
+  console.log(mergedTransformers);
 
   if (
     systemTransformersIsLoading ||
@@ -61,10 +63,11 @@ export function SchemaTable(props: Props): ReactElement {
 
   return (
     <div>
-      <VirtualizedSchemaTable
+      {/* <VirtualizedSchemaTable
         data={tableData}
         transformers={mergedTransformers}
-      />
+      /> */}
+      <SchemaTableTest transformers={mergedTransformers} />
     </div>
   );
 }

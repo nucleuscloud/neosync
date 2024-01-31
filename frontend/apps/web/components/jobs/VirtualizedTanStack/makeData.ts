@@ -1,50 +1,73 @@
 import { faker } from '@faker-js/faker';
 
-export type Person = {
-  id: number;
-  firstName: string;
-  lastName: string;
-  age: number;
-  visits: number;
-  progress: number;
-  status: 'relationship' | 'complicated' | 'single';
-  createdAt: Date;
+export type JobMapRow = {
+  table: string;
+  transformer: {
+    value: string;
+    config: {};
+    // source: string;
+  };
+  schema: string;
+  column: string;
+  dataType: string;
+  isSelected: boolean;
+  formIdx: number;
 };
 
-const range = (len: number) => {
-  const arr: number[] = [];
-  for (let i = 0; i < len; i++) {
-    arr.push(i);
-  }
-  return arr;
-};
+const datatypes = [
+  'varchar',
+  'bigint',
+  'timestamp',
+  'int',
+  'text',
+  'time',
+  'binary',
+  'boolean',
+  'blob',
+  'bit',
+  'date',
+  'decimal',
+  'float',
+  'datetime',
+  'double',
+  'tinyint',
+];
 
-const newPerson = (index: number): Person => {
+const newRecord = (
+  schemas: string[],
+  tables: string[],
+  idx: number
+): JobMapRow => {
   return {
-    id: index + 1,
-    firstName: faker.person.firstName(),
-    lastName: faker.person.lastName(),
-    age: faker.number.int(40),
-    visits: faker.number.int(1000),
-    progress: faker.number.int(100),
-    createdAt: faker.date.anytime(),
-    status: faker.helpers.shuffle<Person['status']>([
-      'relationship',
-      'complicated',
-      'single',
-    ])[0]!,
+    dataType:
+      datatypes[faker.number.int({ min: 0, max: datatypes.length - 1 })],
+    transformer: {
+      value: 'passthrough',
+      config: {},
+      // source: 'generate_full_name',
+    },
+    table: tables[faker.number.int({ min: 0, max: tables.length - 1 })],
+    schema: schemas[faker.number.int({ min: 0, max: schemas.length - 1 })],
+    column: faker.database.column(),
+    isSelected: false,
+    formIdx: idx,
   };
 };
 
-export function makeData(...lens: number[]) {
-  const makeDataLevel = (depth = 0): Person[] => {
-    const len = lens[depth]!;
-    return range(len).map((d): Person => {
-      return {
-        ...newPerson(d),
-      };
-    });
-  };
+export function makeData(num: number, schemaCount: number, tableCount: number) {
+  // Generate random schema and table names
+  const schemas = Array.from({ length: schemaCount }, () =>
+    faker.company.name()
+  );
+  const tables = Array.from({ length: tableCount }, () =>
+    faker.company.buzzPhrase().replaceAll(' ', '_')
+  );
 
-  return makeDataLevel();
+  const rows: JobMapRow[] = [];
+
+  for (let i = 0; i < num; i++) {
+    rows[i] = newRecord(schemas, tables, i);
+  }
+
+  return rows;
 }

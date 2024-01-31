@@ -1,82 +1,256 @@
-import React, { ReactElement } from 'react';
+import React, { HTMLProps, ReactElement } from 'react';
 
 import './index.css';
 
 import {
+  Column,
   ColumnDef,
+  ColumnFiltersState,
   flexRender,
   getCoreRowModel,
+  getFacetedMinMaxValues,
+  getFacetedRowModel,
+  getFacetedUniqueValues,
+  getFilteredRowModel,
   getSortedRowModel,
   Row,
+  Table,
   useReactTable,
 } from '@tanstack/react-table';
 
+import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
+import EditTransformerOptions from '@/app/(mgmt)/[account]/transformers/EditTransformerOptions';
+import { FormControl, FormField, FormItem } from '@/components/ui/form';
+import {
+  isSystemTransformer,
+  isUserDefinedTransformer,
+  Transformer,
+} from '@/shared/transformers';
+import {
+  JobMappingTransformerForm,
+  SchemaFormValues,
+} from '@/yup-validations/jobs';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useVirtualizer } from '@tanstack/react-virtual';
 
-import { makeData, Person } from './makeData';
+import TransformerSelect from '../SchemaTable/TransformerSelect';
+import { JobMapRow, makeData } from './makeData';
 
-interface Props {}
+interface Props {
+  transformers: Transformer[];
+}
 
-export function SchemaTableTest(_: Props): ReactElement {
-  const columns = React.useMemo<ColumnDef<Person>[]>(
+export default function SchemaTableTest({ transformers }: Props): ReactElement {
+  const columns = React.useMemo<ColumnDef<JobMapRow>[]>(
     () => [
+      // {
+      //   accessorKey: 'schema',
+      //   header: ({ table }) => (
+      //     <>
+      //       <IndeterminateCheckbox
+      //         {...{
+      //           checked: table.getIsAllRowsSelected(),
+      //           indeterminate: table.getIsSomeRowsSelected(),
+      //           onChange: table.getToggleAllRowsSelectedHandler(),
+      //         }}
+      //       />
+      //       Schema
+      //     </>
+      //   ),
+      //   cell: ({ row, getValue }) => (
+      //     <div
+      //     // style={{
+      //     //   // Since rows are flattened by default,
+      //     //   // we can use the row.depth property
+      //     //   // and paddingLeft to visually indicate the depth
+      //     //   // of the row
+      //     //   paddingLeft: `${row.depth * 2}rem`,
+      //     // }}
+      //     >
+      //       <IndeterminateCheckbox
+      //         {...{
+      //           checked: row.getIsSelected(),
+      //           indeterminate: row.getIsSomeSelected(),
+      //           onChange: row.getToggleSelectedHandler(),
+      //         }}
+      //       />
+      //       <>{getValue()}</>
+      //     </div>
+      //   ),
+      //   enableSorting: false,
+      //   size: 60,
+      // },
       {
-        accessorKey: 'id',
-        header: 'ID',
+        accessorKey: 'isSelected',
+        header: ({ table }) => (
+          <IndeterminateCheckbox
+            {...{
+              checked: table.getIsAllRowsSelected(),
+              indeterminate: table.getIsSomeRowsSelected(),
+              onChange: table.getToggleAllRowsSelectedHandler(),
+            }}
+          />
+        ),
+        cell: ({ row }) => (
+          <div>
+            <IndeterminateCheckbox
+              {...{
+                checked: row.getIsSelected(),
+                indeterminate: row.getIsSomeSelected(),
+                onChange: row.getToggleSelectedHandler(),
+              }}
+            />
+          </div>
+        ),
+        enableSorting: false,
         size: 60,
       },
       {
-        accessorKey: 'firstName',
-        cell: (info) => info.getValue(),
+        accessorKey: 'schema',
+        header: 'Schema',
+        // cell: (info) => info.getValue(),
+        cell: ({ row }) => {
+          return (
+            <span className="max-w-[500px] truncate font-medium">
+              {row.getValue('schema')}
+            </span>
+          );
+        },
+        size: 260,
       },
       {
-        accessorFn: (row) => row.lastName,
-        id: 'lastName',
-        cell: (info) => info.getValue(),
-        header: () => <span>Last Name</span>,
+        accessorKey: 'table',
+        header: 'Table',
+        // cell: (info) => info.getValue(),
+        cell: ({ row }) => {
+          return (
+            <span className="max-w-[500px] truncate font-medium">
+              {row.getValue('table')}
+            </span>
+          );
+        },
+        size: 260,
       },
       {
-        accessorKey: 'age',
-        header: () => 'Age',
-        size: 50,
+        accessorKey: 'column',
+        header: 'Column',
+        // cell: (info) => info.getValue(),
+        cell: ({ row }) => {
+          return (
+            <span className="max-w-[500px] truncate font-medium">
+              {row.getValue('column')}
+            </span>
+          );
+        },
+        size: 260,
       },
       {
-        accessorKey: 'visits',
-        header: () => <span>Visits</span>,
-        size: 50,
+        accessorKey: 'dataType',
+        header: 'Data Type',
+        // cell: (info) => info.getValue(),
+        cell: ({ row }) => {
+          return (
+            <span className="max-w-[500px] truncate font-medium">
+              {row.getValue('dataType')}
+            </span>
+          );
+        },
+        size: 160,
       },
       {
-        accessorKey: 'status',
-        header: 'Status',
-      },
-      {
-        accessorKey: 'progress',
-        header: 'Profile Progress',
-        size: 80,
-      },
-      {
-        accessorKey: 'createdAt',
-        header: 'Created At',
-        cell: (info) => info.getValue<Date>().toLocaleString(),
-        size: 250,
+        accessorKey: 'transformer',
+        header: 'Transformer',
+        cell: (info) => {
+          return (
+            <div>
+              <FormField<SchemaFormValues | SingleTableSchemaFormValues>
+                name={`mappings.${info.row.original.formIdx}.transformer`}
+                render={({ field, fieldState, formState }) => {
+                  const fv = field.value as JobMappingTransformerForm;
+                  return (
+                    <FormItem>
+                      <FormControl>
+                        <div className="flex flex-row space-x-2">
+                          {formState.errors.mappings && (
+                            <div className="place-self-center">
+                              {fieldState.error ? (
+                                <div>
+                                  <ExclamationTriangleIcon className="h-4 w-4 text-destructive" />
+                                </div>
+                              ) : (
+                                <div className="w-4"></div>
+                              )}
+                            </div>
+                          )}
+
+                          <div>
+                            <TransformerSelect
+                              transformers={transformers}
+                              value={fv}
+                              onSelect={field.onChange}
+                              placeholder="Select Transformer..."
+                            />
+                          </div>
+                          <EditTransformerOptions
+                            transformer={transformers.find((t) => {
+                              if (!fv) {
+                                console.log('mjrj');
+                                return;
+                              }
+                              if (
+                                fv.source === 'custom' &&
+                                fv.config.case ===
+                                  'userDefinedTransformerConfig' &&
+                                isUserDefinedTransformer(t) &&
+                                t.id === fv.config.value.id
+                              ) {
+                                return t;
+                              }
+                              return (
+                                isSystemTransformer(t) && t.source === fv.source
+                              );
+                            })}
+                            index={info.row.original.formIdx}
+                          />
+                        </div>
+                      </FormControl>
+                    </FormItem>
+                  );
+                }}
+              />
+            </div>
+          );
+        },
+        size: 160,
       },
     ],
     []
   );
 
-  const [data, _setData] = React.useState(() => makeData(50_000));
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
+  const [data, _setData] = React.useState(() => makeData(10000, 10, 100));
 
   const table = useReactTable({
     data,
     columns,
+    state: {
+      columnFilters,
+    },
+    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getFacetedRowModel: getFacetedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
+    getFacetedMinMaxValues: getFacetedMinMaxValues(),
     debugTable: true,
   });
 
   const { rows } = table.getRowModel();
 
-  //The virtualizer needs to know the scrollable container element
+  //The virtualizer needs to know the scrollable container elementS
   const tableContainerRef = React.useRef<HTMLDivElement>(null);
 
   const rowVirtualizer = useVirtualizer({
@@ -95,21 +269,15 @@ export function SchemaTableTest(_: Props): ReactElement {
   //All important CSS styles are included as inline styles for this example. This is not recommended for your code.
   return (
     <div className="app">
-      {process.env.NODE_ENV === 'development' ? (
-        <p>
-          <strong>Notice:</strong> You are currently running React in
-          development mode. Virtualized rendering performance will be slightly
-          degraded until this application is built for production.
-        </p>
-      ) : null}
       ({data.length} rows)
       <div
-        className="container"
+        className="container rounded-md border"
         ref={tableContainerRef}
         style={{
           overflow: 'auto', //our scrollable table container
           position: 'relative', //needed for sticky header
-          height: '800px', //should be a fixed height
+          height: '500px', //should be a fixed height
+          width: '100%',
         }}
       >
         {/* Even though we're still using sematic table tags, we must use CSS grid and flexbox for dynamic row heights */}
@@ -121,6 +289,7 @@ export function SchemaTableTest(_: Props): ReactElement {
               top: 0,
               zIndex: 1,
             }}
+            className="bg-muted pb-4 rounded-md"
           >
             {table.getHeaderGroups().map((headerGroup) => (
               <tr
@@ -152,6 +321,11 @@ export function SchemaTableTest(_: Props): ReactElement {
                           asc: ' 🔼',
                           desc: ' 🔽',
                         }[header.column.getIsSorted() as string] ?? null}
+                        {header.column.getCanFilter() ? (
+                          <div>
+                            <Filter column={header.column} table={table} />
+                          </div>
+                        ) : null}
                       </div>
                     </th>
                   );
@@ -167,7 +341,7 @@ export function SchemaTableTest(_: Props): ReactElement {
             }}
           >
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-              const row = rows[virtualRow.index] as Row<Person>;
+              const row = rows[virtualRow.index] as Row<JobMapRow>;
               return (
                 <tr
                   data-index={virtualRow.index} //needed for dynamic row height measurement
@@ -177,7 +351,6 @@ export function SchemaTableTest(_: Props): ReactElement {
                     display: 'flex',
                     position: 'absolute',
                     transform: `translateY(${virtualRow.start}px)`, //this should always be a `style` as it changes on scroll
-                    width: '100%',
                   }}
                 >
                   {row.getVisibleCells().map((cell) => {
@@ -203,5 +376,139 @@ export function SchemaTableTest(_: Props): ReactElement {
         </table>
       </div>
     </div>
+  );
+}
+
+function IndeterminateCheckbox({
+  indeterminate,
+  className = '',
+  ...rest
+}: { indeterminate?: boolean } & HTMLProps<HTMLInputElement>) {
+  const ref = React.useRef<HTMLInputElement>(null!);
+
+  React.useEffect(() => {
+    if (typeof indeterminate === 'boolean') {
+      ref.current.indeterminate = !rest.checked && indeterminate;
+    }
+  }, [ref, indeterminate]);
+
+  return (
+    <input
+      type="checkbox"
+      ref={ref}
+      className={className + ' cursor-pointer mr-4'}
+      {...rest}
+    />
+  );
+}
+
+function Filter({
+  column,
+  table,
+}: {
+  column: Column<any, unknown>;
+  table: Table<any>;
+}) {
+  const firstValue = table
+    .getPreFilteredRowModel()
+    .flatRows[0]?.getValue(column.id);
+
+  const columnFilterValue = column.getFilterValue();
+
+  const sortedUniqueValues = React.useMemo(
+    () =>
+      typeof firstValue === 'number'
+        ? []
+        : Array.from(column.getFacetedUniqueValues().keys()).sort(),
+    [column.getFacetedUniqueValues()]
+  );
+
+  return typeof firstValue === 'number' ? (
+    <div>
+      <div className="flex space-x-2">
+        <DebouncedInput
+          type="number"
+          min={Number(column.getFacetedMinMaxValues()?.[0] ?? '')}
+          max={Number(column.getFacetedMinMaxValues()?.[1] ?? '')}
+          value={(columnFilterValue as [number, number])?.[0] ?? ''}
+          onChange={(value) =>
+            column.setFilterValue((old: [number, number]) => [value, old?.[1]])
+          }
+          placeholder={`Min ${
+            column.getFacetedMinMaxValues()?.[0]
+              ? `(${column.getFacetedMinMaxValues()?.[0]})`
+              : ''
+          }`}
+          className="w-24 border shadow rounded"
+        />
+        <DebouncedInput
+          type="number"
+          min={Number(column.getFacetedMinMaxValues()?.[0] ?? '')}
+          max={Number(column.getFacetedMinMaxValues()?.[1] ?? '')}
+          value={(columnFilterValue as [number, number])?.[1] ?? ''}
+          onChange={(value) =>
+            column.setFilterValue((old: [number, number]) => [old?.[0], value])
+          }
+          placeholder={`Max ${
+            column.getFacetedMinMaxValues()?.[1]
+              ? `(${column.getFacetedMinMaxValues()?.[1]})`
+              : ''
+          }`}
+          className="w-24 border shadow rounded"
+        />
+      </div>
+      <div className="h-1" />
+    </div>
+  ) : (
+    <>
+      <datalist id={column.id + 'list' + table + firstValue}>
+        {sortedUniqueValues.slice(0, 5000).map((value: any) => (
+          <option value={value} key={value} />
+        ))}
+      </datalist>
+      <DebouncedInput
+        type="text"
+        value={(columnFilterValue ?? '') as string}
+        onChange={(value) => column.setFilterValue(value)}
+        placeholder={`Search... (${column.getFacetedUniqueValues().size})`}
+        className="w-36 border shadow rounded"
+        list={column.id + 'list'}
+      />
+      <div className="h-1" />
+    </>
+  );
+}
+
+// A debounced input react component
+function DebouncedInput({
+  value: initialValue,
+  onChange,
+  debounce = 500,
+  ...props
+}: {
+  value: string | number;
+  onChange: (value: string | number) => void;
+  debounce?: number;
+} & Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'>) {
+  const [value, setValue] = React.useState(initialValue);
+
+  React.useEffect(() => {
+    setValue(initialValue);
+  }, [initialValue]);
+
+  React.useEffect(() => {
+    const timeout = setTimeout(() => {
+      onChange(value);
+    }, debounce);
+
+    return () => clearTimeout(timeout);
+  }, [value]);
+
+  return (
+    <input
+      {...props}
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+    />
   );
 }
