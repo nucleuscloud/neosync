@@ -149,6 +149,9 @@ func getSyncActivityOptionsFromJob(job *mgmtv1alpha1.Job) *workflow.ActivityOpti
 	if syncActivityOptions.StartToCloseTimeout == 0 && syncActivityOptions.ScheduleToCloseTimeout == 0 {
 		syncActivityOptions.StartToCloseTimeout = 10 * time.Minute
 	}
+	if syncActivityOptions.RetryPolicy == nil {
+		syncActivityOptions.RetryPolicy = &temporal.RetryPolicy{MaximumAttempts: 1}
+	}
 	return syncActivityOptions
 }
 
