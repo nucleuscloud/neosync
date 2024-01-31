@@ -38,7 +38,7 @@ Open Source Synthetic Data Orchestration
 
 ## Introduction
 
-![neosync-data-flow](https://assets.nucleuscloud.com/neosync/docs/readmeheader.svg)
+![neosync-data-flow](https://assets.nucleuscloud.com/neosync/docs/neosync-main-header-animated.svg)
 
 [Neosync](https://neosync.dev) is a developer-first way to create anonymized or synthetic data and sync it across all environments for high-quality local, stage and CI testing
 
