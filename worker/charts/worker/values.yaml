@@ -21,7 +21,6 @@ serviceAccount:
 # also adds a tag to the API logger
 nucleusEnv:
 
-otelExporterEnabled: false
 otel:
   enabled: false
   otlpPort: 4317
