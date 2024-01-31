@@ -1153,3 +1153,83 @@ func getConnectionMock(accountId, name string) db_queries.NeosyncApiConnection {
 		},
 	}
 }
+
+// SetJobWorkflowOptions
+func Test_SetJobWorkflowOptions(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+
+	userUuid, _ := nucleusdb.ToUuid(mockUserId)
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	destConn := getConnectionMock(mockAccountId, "test-1")
+	destConnAssociation := mockJobDestConnAssociation(job.ID, destConn.ID, &pg_models.JobDestinationOptions{})
+	jobId := nucleusdb.UUIDString(job.ID)
+
+	mockUserAccountCalls(m.UserAccountServiceMock, true)
+	mockGetJob(m.UserAccountServiceMock, m.QuerierMock, job, []db_queries.NeosyncApiJobDestinationConnectionAssociation{destConnAssociation})
+
+	m.QuerierMock.On("SetJobWorkflowOptions", mock.Anything, mock.Anything, db_queries.SetJobWorkflowOptionsParams{
+		ID: job.ID,
+		WorkflowOptions: &pg_models.WorkflowOptions{
+			RunTimeout: ptr(int64(123)),
+		},
+		UpdatedByID: userUuid,
+	}).Return(job, nil)
+
+	resp, err := m.Service.SetJobWorkflowOptions(context.Background(), &connect.Request[mgmtv1alpha1.SetJobWorkflowOptionsRequest]{
+		Msg: &mgmtv1alpha1.SetJobWorkflowOptionsRequest{
+			Id: jobId,
+			WorfklowOptions: &mgmtv1alpha1.WorkflowOptions{
+				RunTimeout: ptr(int64(123)),
+			},
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+}
+
+// SetJobSyncOptions
+func Test_SetJobSyncOptions(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+
+	userUuid, _ := nucleusdb.ToUuid(mockUserId)
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	destConn := getConnectionMock(mockAccountId, "test-1")
+	destConnAssociation := mockJobDestConnAssociation(job.ID, destConn.ID, &pg_models.JobDestinationOptions{})
+	jobId := nucleusdb.UUIDString(job.ID)
+
+	mockUserAccountCalls(m.UserAccountServiceMock, true)
+	mockGetJob(m.UserAccountServiceMock, m.QuerierMock, job, []db_queries.NeosyncApiJobDestinationConnectionAssociation{destConnAssociation})
+
+	m.QuerierMock.On("SetJobSyncOptions", mock.Anything, mock.Anything, db_queries.SetJobSyncOptionsParams{
+		ID: job.ID,
+		SyncOptions: &pg_models.ActivityOptions{
+			ScheduleToCloseTimeout: ptr(int64(1234)),
+			StartToCloseTimeout:    ptr(int64(123)),
+			RetryPolicy: &pg_models.RetryPolicy{
+				MaximumAttempts: ptr(int32(222)),
+			},
+		},
+		UpdatedByID: userUuid,
+	}).Return(job, nil)
+
+	resp, err := m.Service.SetJobSyncOptions(context.Background(), &connect.Request[mgmtv1alpha1.SetJobSyncOptionsRequest]{
+		Msg: &mgmtv1alpha1.SetJobSyncOptionsRequest{
+			Id: jobId,
+			SyncOptions: &mgmtv1alpha1.ActivityOptions{
+				ScheduleToCloseTimeout: ptr(int64(1234)),
+				StartToCloseTimeout:    ptr(int64(123)),
+				RetryPolicy: &mgmtv1alpha1.RetryPolicy{
+					MaximumAttempts: ptr(int32(222)),
+				},
+			},
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+}
+
+func ptr[T any](val T) *T {
+	return &val
+}
