@@ -127,14 +127,20 @@ message CreateJobRequest {
   // Initially trigger a run of this job regardless of its status or cron schedule
   bool initiate_job_run = 7;
 
-  // The timeout for a single workflow run.
-  // Measured in seconds
-  optional int64 run_timeout = 8;
+  WorkflowOptions workflow_options = 8;
 
   // Specify timeout and retry options for data synchronization activities
   // Data sync activities are any piece of work that involves actually synchronizing data from a source to a destination
   // For the data sync and generate jobs, this will be applied per table
   ActivityOptions sync_options = 9;
+}
+
+// Config that contains various timeouts that are configured in the underlying temporal workflow
+// More options will come in the future as needed
+message WorkflowOptions {
+  // The timeout for a single workflow run.
+  // Measured in seconds
+  optional int64 run_timeout = 8;
 }
 
 // Config that contains various timeouts that are configured in the underlying temporal workflow(s) and activities
@@ -328,9 +334,7 @@ message Job {
   // For the data sync and generate jobs, this will be applied per table
   ActivityOptions sync_options = 12;
 
-  // The timeout for a single workflow run.
-  // Measured in seconds
-  optional int64 run_timeout = 13;
+  WorkflowOptions workflow_options = 13;
 }
 
 message JobRecentRun {
@@ -490,6 +494,23 @@ message GetJobRunLogsStreamResponse {
   string log_line = 1;
 }
 
+message SetJobWorkflowOptionsRequest {
+  string job_id = 1 [(buf.validate.field).string.uuid = true];
+
+  WorkflowOptions worfklow_options = 2;
+}
+message SetJobWorkflowOptionsResponse {
+  Job job = 1;
+}
+message SetJobSyncOptionsRequest {
+  string job_id = 1 [(buf.validate.field).string.uuid = true];
+
+  ActivityOptions sync_options = 2;
+}
+message SetJobSyncOptionsResponse {
+  Job job = 1;
+}
+
 service JobService {
   rpc GetJobs(GetJobsRequest) returns (GetJobsResponse) {}
   rpc GetJob(GetJobRequest) returns (GetJobResponse) {}
@@ -521,4 +542,8 @@ service JobService {
   rpc TerminateJobRun(TerminateJobRunRequest) returns (TerminateJobRunResponse) {}
   // Returns a stream of logs from the worker nodes that pertain to a specific job run
   rpc GetJobRunLogsStream(GetJobRunLogsStreamRequest) returns (stream GetJobRunLogsStreamResponse) {}
+  // Set any job workflow options
+  rpc SetJobWorkflowOptions(SetJobWorkflowOptionsRequest) returns (SetJobWorkflowOptionsResponse) {}
+  // Set the job sync options
+  rpc SetJobSyncOptions(SetJobSyncOptionsRequest) returns (SetJobSyncOptionsResponse) {}
 }

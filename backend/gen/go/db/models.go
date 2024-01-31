@@ -74,7 +74,7 @@ type NeosyncApiJob struct {
 	CronSchedule      pgtype.Text
 	CreatedByID       pgtype.UUID
 	UpdatedByID       pgtype.UUID
-	RunTimeout        pgtype.Int8
+	WorkflowOptions   *pg_models.WorkflowOptions
 	SyncOptions       *pg_models.ActivityOptions
 }
 

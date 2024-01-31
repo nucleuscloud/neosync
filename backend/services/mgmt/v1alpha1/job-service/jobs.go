@@ -439,12 +439,9 @@ func (s *Service) CreateJob(
 		return nil, nucleuserrors.NewBadRequest("must first configure temporal namespace in account settings")
 	}
 
-	runTimeout := pgtype.Int8{}
-	if req.Msg.RunTimeout != nil {
-		err = runTimeout.Scan(*req.Msg.RunTimeout)
-		if err != nil {
-			return nil, err
-		}
+	workflowOptions := &pg_models.WorkflowOptions{}
+	if req.Msg.WorkflowOptions != nil {
+		workflowOptions.FromDto(req.Msg.WorkflowOptions)
 	}
 
 	activitySyncOptions := &pg_models.ActivityOptions{}
@@ -461,7 +458,7 @@ func (s *Service) CreateJob(
 		Mappings:          mappings,
 		CreatedByID:       *userUuid,
 		UpdatedByID:       *userUuid,
-		RunTimeout:        runTimeout,
+		WorkflowOptions:   workflowOptions,
 		SyncOptions:       activitySyncOptions,
 	}, connDestParams)
 	if err != nil {
@@ -492,8 +489,8 @@ func (s *Service) CreateJob(
 		TaskQueue: tconfig.SyncJobQueueName,
 		Args:      []any{&datasync_workflow.WorkflowRequest{JobId: jobUuid}},
 	}
-	if cj.RunTimeout.Valid {
-		action.WorkflowRunTimeout = time.Duration(cj.RunTimeout.Int64) * time.Second
+	if cj.WorkflowOptions != nil && cj.WorkflowOptions.RunTimeout != nil {
+		action.WorkflowRunTimeout = time.Duration(*cj.WorkflowOptions.RunTimeout)
 	}
 
 	scheduleHandle, err := tScheduleClient.Create(ctx, temporalclient.ScheduleOptions{
@@ -1320,4 +1317,18 @@ func verifyConnectionsAreCompatible(ctx context.Context, db *nucleusdb.NucleusDb
 	}
 
 	return true, nil
+}
+
+func (s *Service) SetJobWorkflowOptions(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.SetJobWorkflowOptionsRequest],
+) (*connect.Response[mgmtv1alpha1.SetJobWorkflowOptionsResponse], error) {
+	return connect.NewResponse(&mgmtv1alpha1.SetJobWorkflowOptionsResponse{}), nil
+}
+
+func (s *Service) SetJobSyncOptions(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.SetJobSyncOptionsRequest],
+) (*connect.Response[mgmtv1alpha1.SetJobSyncOptionsResponse], error) {
+	return connect.NewResponse(&mgmtv1alpha1.SetJobSyncOptionsResponse{}), nil
 }

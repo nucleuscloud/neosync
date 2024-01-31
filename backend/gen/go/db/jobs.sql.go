@@ -15,11 +15,11 @@ import (
 const createJob = `-- name: CreateJob :one
 INSERT INTO neosync_api.jobs (
   name, account_id, status, connection_options, mappings,
-  cron_schedule, created_by_id, updated_by_id, run_timeout, sync_options
+  cron_schedule, created_by_id, updated_by_id, workflow_options, sync_options
 ) VALUES (
   $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
 )
-RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, run_timeout, sync_options
+RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, workflow_options, sync_options
 `
 
 type CreateJobParams struct {
@@ -31,7 +31,7 @@ type CreateJobParams struct {
 	CronSchedule      pgtype.Text
 	CreatedByID       pgtype.UUID
 	UpdatedByID       pgtype.UUID
-	RunTimeout        pgtype.Int8
+	WorkflowOptions   *pg_models.WorkflowOptions
 	SyncOptions       *pg_models.ActivityOptions
 }
 
@@ -45,7 +45,7 @@ func (q *Queries) CreateJob(ctx context.Context, db DBTX, arg CreateJobParams) (
 		arg.CronSchedule,
 		arg.CreatedByID,
 		arg.UpdatedByID,
-		arg.RunTimeout,
+		arg.WorkflowOptions,
 		arg.SyncOptions,
 	)
 	var i NeosyncApiJob
@@ -61,7 +61,7 @@ func (q *Queries) CreateJob(ctx context.Context, db DBTX, arg CreateJobParams) (
 		&i.CronSchedule,
 		&i.CreatedByID,
 		&i.UpdatedByID,
-		&i.RunTimeout,
+		&i.WorkflowOptions,
 		&i.SyncOptions,
 	)
 	return i, err
@@ -114,7 +114,7 @@ func (q *Queries) DeleteJob(ctx context.Context, db DBTX, id pgtype.UUID) error 
 }
 
 const getJobById = `-- name: GetJobById :one
-SELECT id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, run_timeout, sync_options from neosync_api.jobs WHERE id = $1
+SELECT id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, workflow_options, sync_options from neosync_api.jobs WHERE id = $1
 `
 
 func (q *Queries) GetJobById(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiJob, error) {
@@ -132,14 +132,14 @@ func (q *Queries) GetJobById(ctx context.Context, db DBTX, id pgtype.UUID) (Neos
 		&i.CronSchedule,
 		&i.CreatedByID,
 		&i.UpdatedByID,
-		&i.RunTimeout,
+		&i.WorkflowOptions,
 		&i.SyncOptions,
 	)
 	return i, err
 }
 
 const getJobByNameAndAccount = `-- name: GetJobByNameAndAccount :one
-SELECT j.id, j.created_at, j.updated_at, j.name, j.account_id, j.status, j.connection_options, j.mappings, j.cron_schedule, j.created_by_id, j.updated_by_id, j.run_timeout, j.sync_options from neosync_api.jobs j
+SELECT j.id, j.created_at, j.updated_at, j.name, j.account_id, j.status, j.connection_options, j.mappings, j.cron_schedule, j.created_by_id, j.updated_by_id, j.workflow_options, j.sync_options from neosync_api.jobs j
 INNER JOIN neosync_api.accounts a ON a.id = j.account_id
 WHERE a.id = $1 AND j.name = $2
 `
@@ -164,7 +164,7 @@ func (q *Queries) GetJobByNameAndAccount(ctx context.Context, db DBTX, arg GetJo
 		&i.CronSchedule,
 		&i.CreatedByID,
 		&i.UpdatedByID,
-		&i.RunTimeout,
+		&i.WorkflowOptions,
 		&i.SyncOptions,
 	)
 	return i, err
@@ -256,7 +256,7 @@ func (q *Queries) GetJobConnectionDestinationsByJobIds(ctx context.Context, db D
 }
 
 const getJobsByAccount = `-- name: GetJobsByAccount :many
-SELECT j.id, j.created_at, j.updated_at, j.name, j.account_id, j.status, j.connection_options, j.mappings, j.cron_schedule, j.created_by_id, j.updated_by_id, j.run_timeout, j.sync_options from neosync_api.jobs j
+SELECT j.id, j.created_at, j.updated_at, j.name, j.account_id, j.status, j.connection_options, j.mappings, j.cron_schedule, j.created_by_id, j.updated_by_id, j.workflow_options, j.sync_options from neosync_api.jobs j
 INNER JOIN neosync_api.accounts a ON a.id = j.account_id
 WHERE a.id = $1
 ORDER BY j.created_at DESC
@@ -283,7 +283,7 @@ func (q *Queries) GetJobsByAccount(ctx context.Context, db DBTX, accountid pgtyp
 			&i.CronSchedule,
 			&i.CreatedByID,
 			&i.UpdatedByID,
-			&i.RunTimeout,
+			&i.WorkflowOptions,
 			&i.SyncOptions,
 		); err != nil {
 			return nil, err
@@ -375,7 +375,7 @@ UPDATE neosync_api.jobs
 SET mappings = $1,
 updated_by_id = $2
 WHERE id = $3
-RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, run_timeout, sync_options
+RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, workflow_options, sync_options
 `
 
 type UpdateJobMappingsParams struct {
@@ -399,7 +399,7 @@ func (q *Queries) UpdateJobMappings(ctx context.Context, db DBTX, arg UpdateJobM
 		&i.CronSchedule,
 		&i.CreatedByID,
 		&i.UpdatedByID,
-		&i.RunTimeout,
+		&i.WorkflowOptions,
 		&i.SyncOptions,
 	)
 	return i, err
@@ -410,7 +410,7 @@ UPDATE neosync_api.jobs
 SET cron_schedule = $1,
 updated_by_id = $2
 WHERE id = $3
-RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, run_timeout, sync_options
+RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, workflow_options, sync_options
 `
 
 type UpdateJobScheduleParams struct {
@@ -434,7 +434,7 @@ func (q *Queries) UpdateJobSchedule(ctx context.Context, db DBTX, arg UpdateJobS
 		&i.CronSchedule,
 		&i.CreatedByID,
 		&i.UpdatedByID,
-		&i.RunTimeout,
+		&i.WorkflowOptions,
 		&i.SyncOptions,
 	)
 	return i, err
@@ -445,7 +445,7 @@ UPDATE neosync_api.jobs
 SET connection_options = $1,
 updated_by_id = $2
 WHERE id = $3
-RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, run_timeout, sync_options
+RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, workflow_options, sync_options
 `
 
 type UpdateJobSourceParams struct {
@@ -469,7 +469,7 @@ func (q *Queries) UpdateJobSource(ctx context.Context, db DBTX, arg UpdateJobSou
 		&i.CronSchedule,
 		&i.CreatedByID,
 		&i.UpdatedByID,
-		&i.RunTimeout,
+		&i.WorkflowOptions,
 		&i.SyncOptions,
 	)
 	return i, err

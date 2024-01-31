@@ -23,9 +23,9 @@ func ToJobDto(
 		destinations = append(destinations, toDestinationDto(&dest))
 	}
 
-	var runTimeout *int64
-	if inputJob.RunTimeout.Valid {
-		runTimeout = &inputJob.RunTimeout.Int64
+	var workflowOptions *mgmtv1alpha1.WorkflowOptions
+	if inputJob.WorkflowOptions != nil {
+		workflowOptions = inputJob.WorkflowOptions.ToDto()
 	}
 
 	var syncOptions *mgmtv1alpha1.ActivityOptions
@@ -45,10 +45,10 @@ func ToJobDto(
 		Source: &mgmtv1alpha1.JobSource{
 			Options: inputJob.ConnectionOptions.ToDto(),
 		},
-		Destinations: destinations,
-		AccountId:    nucleusdb.UUIDString(inputJob.AccountID),
-		SyncOptions:  syncOptions,
-		RunTimeout:   runTimeout,
+		Destinations:    destinations,
+		AccountId:       nucleusdb.UUIDString(inputJob.AccountID),
+		SyncOptions:     syncOptions,
+		WorkflowOptions: workflowOptions,
 	}
 }
 

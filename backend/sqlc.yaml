@@ -54,6 +54,12 @@ sql:
               package: pg_models
               type: ActivityOptions
               pointer: true
+          - column: neosync_api.jobs.workflow_options
+            go_type:
+              import: github.com/nucleuscloud/neosync/backend/sql/postgresql/models
+              package: pg_models
+              type: WorkflowOptions
+              pointer: true
 
   - engine: "mysql"
     queries: "pkg/dbschemas/sql/mysql/queries"

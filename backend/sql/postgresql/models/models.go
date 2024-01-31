@@ -751,6 +751,20 @@ func (t *TemporalConfig) FromDto(dto *mgmtv1alpha1.AccountTemporalConfig) {
 	t.Url = dto.Url
 }
 
+type WorkflowOptions struct {
+	RunTimeout *int64 `json:"runTimeout,omitempty"`
+}
+
+func (a *WorkflowOptions) ToDto() *mgmtv1alpha1.WorkflowOptions {
+	return &mgmtv1alpha1.WorkflowOptions{
+		RunTimeout: a.RunTimeout,
+	}
+}
+
+func (a *WorkflowOptions) FromDto(dto *mgmtv1alpha1.WorkflowOptions) {
+	a.RunTimeout = dto.RunTimeout
+}
+
 type ActivityOptions struct {
 	ScheduleToCloseTimeout *int64       `json:"scheduleToCloseTimeout,omitempty"`
 	StartToCloseTimeout    *int64       `json:"startToCloseTimeout,omitempty"`

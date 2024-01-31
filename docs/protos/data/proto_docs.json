@@ -5956,15 +5956,15 @@
               "defaultValue": ""
             },
             {
-              "name": "run_timeout",
-              "description": "The timeout for a single workflow run.\nMeasured in seconds",
-              "label": "optional",
-              "type": "int64",
-              "longType": "int64",
-              "fullType": "int64",
+              "name": "workflow_options",
+              "description": "",
+              "label": "",
+              "type": "WorkflowOptions",
+              "longType": "WorkflowOptions",
+              "fullType": "mgmt.v1alpha1.WorkflowOptions",
               "ismap": false,
-              "isoneof": true,
-              "oneofdecl": "_run_timeout",
+              "isoneof": false,
+              "oneofdecl": "",
               "defaultValue": ""
             },
             {
@@ -7056,15 +7056,15 @@
               "defaultValue": ""
             },
             {
-              "name": "run_timeout",
-              "description": "The timeout for a single workflow run.\nMeasured in seconds",
-              "label": "optional",
-              "type": "int64",
-              "longType": "int64",
-              "fullType": "int64",
+              "name": "workflow_options",
+              "description": "",
+              "label": "",
+              "type": "WorkflowOptions",
+              "longType": "WorkflowOptions",
+              "fullType": "mgmt.v1alpha1.WorkflowOptions",
               "ismap": false,
-              "isoneof": true,
-              "oneofdecl": "_run_timeout",
+              "isoneof": false,
+              "oneofdecl": "",
               "defaultValue": ""
             }
           ]
@@ -8438,6 +8438,126 @@
           ]
         },
         {
+          "name": "SetJobSyncOptionsRequest",
+          "longName": "SetJobSyncOptionsRequest",
+          "fullName": "mgmt.v1alpha1.SetJobSyncOptionsRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "job_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "sync_options",
+              "description": "",
+              "label": "",
+              "type": "ActivityOptions",
+              "longType": "ActivityOptions",
+              "fullType": "mgmt.v1alpha1.ActivityOptions",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SetJobSyncOptionsResponse",
+          "longName": "SetJobSyncOptionsResponse",
+          "fullName": "mgmt.v1alpha1.SetJobSyncOptionsResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "job",
+              "description": "",
+              "label": "",
+              "type": "Job",
+              "longType": "Job",
+              "fullType": "mgmt.v1alpha1.Job",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SetJobWorkflowOptionsRequest",
+          "longName": "SetJobWorkflowOptionsRequest",
+          "fullName": "mgmt.v1alpha1.SetJobWorkflowOptionsRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "job_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "worfklow_options",
+              "description": "",
+              "label": "",
+              "type": "WorkflowOptions",
+              "longType": "WorkflowOptions",
+              "fullType": "mgmt.v1alpha1.WorkflowOptions",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SetJobWorkflowOptionsResponse",
+          "longName": "SetJobWorkflowOptionsResponse",
+          "fullName": "mgmt.v1alpha1.SetJobWorkflowOptionsResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "job",
+              "description": "",
+              "label": "",
+              "type": "Job",
+              "longType": "Job",
+              "fullType": "mgmt.v1alpha1.Job",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "TerminateJobRunRequest",
           "longName": "TerminateJobRunRequest",
           "fullName": "mgmt.v1alpha1.TerminateJobRunRequest",
@@ -8696,6 +8816,30 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "WorkflowOptions",
+          "longName": "WorkflowOptions",
+          "fullName": "mgmt.v1alpha1.WorkflowOptions",
+          "description": "Config that contains various timeouts that are configured in the underlying temporal workflow\nMore options will come in the future as needed",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "run_timeout",
+              "description": "The timeout for a single workflow run.\nMeasured in seconds",
+              "label": "optional",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_run_timeout",
               "defaultValue": ""
             }
           ]
@@ -8995,6 +9139,30 @@
               "responseLongType": "GetJobRunLogsStreamResponse",
               "responseFullType": "mgmt.v1alpha1.GetJobRunLogsStreamResponse",
               "responseStreaming": true
+            },
+            {
+              "name": "SetJobWorkflowOptions",
+              "description": "Set any job workflow options",
+              "requestType": "SetJobWorkflowOptionsRequest",
+              "requestLongType": "SetJobWorkflowOptionsRequest",
+              "requestFullType": "mgmt.v1alpha1.SetJobWorkflowOptionsRequest",
+              "requestStreaming": false,
+              "responseType": "SetJobWorkflowOptionsResponse",
+              "responseLongType": "SetJobWorkflowOptionsResponse",
+              "responseFullType": "mgmt.v1alpha1.SetJobWorkflowOptionsResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "SetJobSyncOptions",
+              "description": "Set the job sync options",
+              "requestType": "SetJobSyncOptionsRequest",
+              "requestLongType": "SetJobSyncOptionsRequest",
+              "requestFullType": "mgmt.v1alpha1.SetJobSyncOptionsRequest",
+              "requestStreaming": false,
+              "responseType": "SetJobSyncOptionsResponse",
+              "responseLongType": "SetJobSyncOptionsResponse",
+              "responseFullType": "mgmt.v1alpha1.SetJobSyncOptionsResponse",
+              "responseStreaming": false
             }
           ]
         }
