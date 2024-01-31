@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth, getLogoutUrl } from '../auth/[...nextauth]/auth';
+import { auth, getLogoutUrl } from '../[...nextauth]/auth';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const nextauthUrl = process.env.NEXTAUTH_URL!;

@@ -71,7 +71,7 @@ export function UserNav(): ReactElement | null {
               posthog.reset();
               try {
                 await signOut({
-                  callbackUrl: `/api/provider-sign-out?idToken=${session.data.idToken}`,
+                  callbackUrl: `/api/auth/provider-sign-out?idToken=${session.data.idToken}`,
                 });
               } catch (err) {
                 toast({
