@@ -115,14 +115,47 @@ message MysqlTruncateTableConfig {
 message AwsS3DestinationConnectionOptions {}
 
 message CreateJobRequest {
+  // The unique account identifier that this job will be associated with
   string account_id = 1 [(buf.validate.field).string.uuid = true];
+  // The unique, friendly name of the job. This is unique per account
   string job_name = 2 [(buf.validate.field).string.min_len = 1];
+  // Optionally provide a cron schedule. Goes into effect if the job status is set to enabled
   optional string cron_schedule = 3;
   repeated JobMapping mappings = 4;
   JobSource source = 5;
   repeated CreateJobDestination destinations = 6;
+  // Initially trigger a run of this job regardless of its status or cron schedule
   bool initiate_job_run = 7;
+
+  // Specify timeout and retry options for data synchronization activities
+  // Data sync activities are any piece of work that involves actually synchronizing data from a source to a destination
+  // For the data sync and generate jobs, this will be applied per table
+  ActivityOptions sync_options = 8;
 }
+
+// Config that contains various timeouts that are configured in the underlying temporal workflow(s) and activities
+message ActivityOptions {
+  // Total time that a workflow is willing to wait for an activity to complete, including retries.
+  // Measured in seconds
+  optional int64 schedule_to_close_timeout = 1 [(buf.validate.field).int64.gte = 1];
+  // Max time of a single Temporal Activity execution attempt.
+  // This timeout should be as short as the longest psosible execution of any activity (e.g. table sync).
+  // Important to know that this is per retry attempt. Defaults to the schedule to close timeout if not provided.
+  // Measured in seconds
+  optional int64 start_to_close_timeout = 2 [(buf.validate.field).int64.gte = 1];
+
+  // Optionally define a retry policy for the activity
+  // If max attempts is not set, the activity will retry indefinitely until the start to close timeout lapses
+  RetryPolicy retry_policy = 3;
+}
+
+// Defines the retry policy for an activity
+message RetryPolicy {
+  // Maximum number of attempts. When exceeded the retries stop even if not expired yet.
+  // If not set or set to 0, it means unlimited, and rely on activity ScheduleToCloseTimeout to stop.
+  optional int32 maximum_attempts = 1 [(buf.validate.field).int32.gte = 0];
+}
+
 message CreateJobResponse {
   Job job = 1;
 }

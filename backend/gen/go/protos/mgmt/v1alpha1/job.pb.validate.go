@@ -3140,6 +3140,35 @@ func (m *CreateJobRequest) validate(all bool) error {
 
 	// no validation rules for InitiateJobRun
 
+	if all {
+		switch v := interface{}(m.GetSyncOptions()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CreateJobRequestValidationError{
+					field:  "SyncOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CreateJobRequestValidationError{
+					field:  "SyncOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSyncOptions()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateJobRequestValidationError{
+				field:  "SyncOptions",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	if m.CronSchedule != nil {
 		// no validation rules for CronSchedule
 	}
@@ -3221,6 +3250,246 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = CreateJobRequestValidationError{}
+
+// Validate checks the field values on ActivityOptions with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *ActivityOptions) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ActivityOptions with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ActivityOptionsMultiError, or nil if none found.
+func (m *ActivityOptions) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ActivityOptions) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetRetryPolicy()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ActivityOptionsValidationError{
+					field:  "RetryPolicy",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ActivityOptionsValidationError{
+					field:  "RetryPolicy",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetRetryPolicy()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ActivityOptionsValidationError{
+				field:  "RetryPolicy",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.ScheduleToCloseTimeout != nil {
+		// no validation rules for ScheduleToCloseTimeout
+	}
+
+	if m.StartToCloseTimeout != nil {
+		// no validation rules for StartToCloseTimeout
+	}
+
+	if len(errors) > 0 {
+		return ActivityOptionsMultiError(errors)
+	}
+
+	return nil
+}
+
+// ActivityOptionsMultiError is an error wrapping multiple validation errors
+// returned by ActivityOptions.ValidateAll() if the designated constraints
+// aren't met.
+type ActivityOptionsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ActivityOptionsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ActivityOptionsMultiError) AllErrors() []error { return m }
+
+// ActivityOptionsValidationError is the validation error returned by
+// ActivityOptions.Validate if the designated constraints aren't met.
+type ActivityOptionsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ActivityOptionsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ActivityOptionsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ActivityOptionsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ActivityOptionsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ActivityOptionsValidationError) ErrorName() string { return "ActivityOptionsValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ActivityOptionsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sActivityOptions.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ActivityOptionsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ActivityOptionsValidationError{}
+
+// Validate checks the field values on RetryPolicy with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *RetryPolicy) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RetryPolicy with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in RetryPolicyMultiError, or
+// nil if none found.
+func (m *RetryPolicy) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RetryPolicy) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.MaximumAttempts != nil {
+		// no validation rules for MaximumAttempts
+	}
+
+	if len(errors) > 0 {
+		return RetryPolicyMultiError(errors)
+	}
+
+	return nil
+}
+
+// RetryPolicyMultiError is an error wrapping multiple validation errors
+// returned by RetryPolicy.ValidateAll() if the designated constraints aren't met.
+type RetryPolicyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RetryPolicyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RetryPolicyMultiError) AllErrors() []error { return m }
+
+// RetryPolicyValidationError is the validation error returned by
+// RetryPolicy.Validate if the designated constraints aren't met.
+type RetryPolicyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RetryPolicyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RetryPolicyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RetryPolicyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RetryPolicyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RetryPolicyValidationError) ErrorName() string { return "RetryPolicyValidationError" }
+
+// Error satisfies the builtin error interface
+func (e RetryPolicyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRetryPolicy.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RetryPolicyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RetryPolicyValidationError{}
 
 // Validate checks the field values on CreateJobResponse with the rules defined
 // in the proto definition for this message. If any rules are violated, the

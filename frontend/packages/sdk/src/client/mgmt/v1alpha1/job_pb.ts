@@ -1127,16 +1127,22 @@ export class AwsS3DestinationConnectionOptions extends Message<AwsS3DestinationC
  */
 export class CreateJobRequest extends Message<CreateJobRequest> {
   /**
+   * The unique account identifier that this job will be associated with
+   *
    * @generated from field: string account_id = 1;
    */
   accountId = "";
 
   /**
+   * The unique, friendly name of the job. This is unique per account
+   *
    * @generated from field: string job_name = 2;
    */
   jobName = "";
 
   /**
+   * Optionally provide a cron schedule. Goes into effect if the job status is set to enabled
+   *
    * @generated from field: optional string cron_schedule = 3;
    */
   cronSchedule?: string;
@@ -1157,9 +1163,20 @@ export class CreateJobRequest extends Message<CreateJobRequest> {
   destinations: CreateJobDestination[] = [];
 
   /**
+   * Initially trigger a run of this job regardless of its status or cron schedule
+   *
    * @generated from field: bool initiate_job_run = 7;
    */
   initiateJobRun = false;
+
+  /**
+   * Specify timeout and retry options for data synchronization activities
+   * Data sync activities are any piece of work that involves actually synchronizing data from a source to a destination
+   * For the data sync and generate jobs, this will be applied per table
+   *
+   * @generated from field: mgmt.v1alpha1.ActivityOptions sync_options = 8;
+   */
+  syncOptions?: ActivityOptions;
 
   constructor(data?: PartialMessage<CreateJobRequest>) {
     super();
@@ -1176,6 +1193,7 @@ export class CreateJobRequest extends Message<CreateJobRequest> {
     { no: 5, name: "source", kind: "message", T: JobSource },
     { no: 6, name: "destinations", kind: "message", T: CreateJobDestination, repeated: true },
     { no: 7, name: "initiate_job_run", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 8, name: "sync_options", kind: "message", T: ActivityOptions },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateJobRequest {
@@ -1192,6 +1210,110 @@ export class CreateJobRequest extends Message<CreateJobRequest> {
 
   static equals(a: CreateJobRequest | PlainMessage<CreateJobRequest> | undefined, b: CreateJobRequest | PlainMessage<CreateJobRequest> | undefined): boolean {
     return proto3.util.equals(CreateJobRequest, a, b);
+  }
+}
+
+/**
+ * Config that contains various timeouts that are configured in the underlying temporal workflow(s) and activities
+ *
+ * @generated from message mgmt.v1alpha1.ActivityOptions
+ */
+export class ActivityOptions extends Message<ActivityOptions> {
+  /**
+   * Total time that a workflow is willing to wait for an activity to complete, including retries.
+   * Measured in seconds
+   *
+   * @generated from field: optional int64 schedule_to_close_timeout = 1;
+   */
+  scheduleToCloseTimeout?: bigint;
+
+  /**
+   * Max time of a single Temporal Activity execution attempt.
+   * This timeout should be as short as the longest psosible execution of any activity (e.g. table sync).
+   * Important to know that this is per retry attempt. Defaults to the schedule to close timeout if not provided.
+   * Measured in seconds
+   *
+   * @generated from field: optional int64 start_to_close_timeout = 2;
+   */
+  startToCloseTimeout?: bigint;
+
+  /**
+   * Optionally define a retry policy for the activity
+   * If max attempts is not set, the activity will retry indefinitely until the start to close timeout lapses
+   *
+   * @generated from field: mgmt.v1alpha1.RetryPolicy retry_policy = 3;
+   */
+  retryPolicy?: RetryPolicy;
+
+  constructor(data?: PartialMessage<ActivityOptions>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.ActivityOptions";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "schedule_to_close_timeout", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
+    { no: 2, name: "start_to_close_timeout", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
+    { no: 3, name: "retry_policy", kind: "message", T: RetryPolicy },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ActivityOptions {
+    return new ActivityOptions().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ActivityOptions {
+    return new ActivityOptions().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ActivityOptions {
+    return new ActivityOptions().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ActivityOptions | PlainMessage<ActivityOptions> | undefined, b: ActivityOptions | PlainMessage<ActivityOptions> | undefined): boolean {
+    return proto3.util.equals(ActivityOptions, a, b);
+  }
+}
+
+/**
+ * Defines the retry policy for an activity
+ *
+ * @generated from message mgmt.v1alpha1.RetryPolicy
+ */
+export class RetryPolicy extends Message<RetryPolicy> {
+  /**
+   * Maximum number of attempts. When exceeded the retries stop even if not expired yet.
+   * If not set or set to 0, it means unlimited, and rely on activity ScheduleToCloseTimeout to stop.
+   *
+   * @generated from field: optional int32 maximum_attempts = 1;
+   */
+  maximumAttempts?: number;
+
+  constructor(data?: PartialMessage<RetryPolicy>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.RetryPolicy";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "maximum_attempts", kind: "scalar", T: 5 /* ScalarType.INT32 */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RetryPolicy {
+    return new RetryPolicy().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RetryPolicy {
+    return new RetryPolicy().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RetryPolicy {
+    return new RetryPolicy().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RetryPolicy | PlainMessage<RetryPolicy> | undefined, b: RetryPolicy | PlainMessage<RetryPolicy> | undefined): boolean {
+    return proto3.util.equals(RetryPolicy, a, b);
   }
 }
 
