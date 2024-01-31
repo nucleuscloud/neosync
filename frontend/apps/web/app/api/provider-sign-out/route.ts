@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth, getLogoutUrl } from '../[...nextauth]/auth';
+import { auth, getLogoutUrl } from '../auth/[...nextauth]/auth';
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const nextauthUrl = process.env.NEXTAUTH_URL!;
-
   try {
     const { searchParams } = new URL(req.url);
     const session = await auth();
