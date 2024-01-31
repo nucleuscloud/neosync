@@ -9,8 +9,10 @@ Open Source Synthetic Data Orchestration
 <div align='center'>
  | <a href="https://neosync.dev">Website</a> |
  <a href="https://docs.neosync.dev">Docs</a> |
+   <a href="https://discord.gg/HwrxVfNk">Discord</a> |
  <a href="https://neosync.dev/blog">Blog</a> |
  <a href="https://docs.neosync.dev/changelog">Changelog</a> |
+
  </div>
 
 <p align="center" style='padding-top: 20px'>
@@ -26,9 +28,6 @@ Open Source Synthetic Data Orchestration
     </a>
       <a href="https://x.com/neosynccloud">
     <img alt="Follow X" src="https://img.shields.io/twitter/follow/neosynccloud?label=Follow"/>
- <a href="https://github.com/orgs/nucleuscloud/projects/6">
-        <img alt="Roadmap" src="https://img.shields.io/badge/project%20roadmap-73C649"/>
- </a>
   </a>
 </p>
 
@@ -40,51 +39,57 @@ Open Source Synthetic Data Orchestration
 
 ![neosync-data-flow](https://assets.nucleuscloud.com/neosync/docs/neosync-main-header-animated.svg)
 
-[Neosync](https://neosync.dev) is a developer-first way to create anonymized or synthetic data and sync it across all environments for high-quality local, stage and CI testing
+[Neosync](https://neosync.dev) is a developer-first way to create anonymized or synthetic data and sync it across all environments.
 
-Our mission is to help developers build better, more resilient applications while protecting sensitive data. To do that, we built Neosync to give teams three things:
+Companies use Neosync to:
 
-1. A world-class developer experience that fits into any workflow and follows modern developer best practices such as GitOps
-2. A platform that can anonymize sensitive data or automatically generate synthetic data from a schema and sync that across all environments
-3. An open source approach that allows you to keep your most sensitive data in your infrastructure
+- **Unblock local development** - Give developers the ability to self-serve de-identified and synthetic data whenever they need it
+- **Fix broken staging environments** - Catch bugs before they hit production when you hydrate your staging and QA environments with production-like data
+- **Keep environments in sync** - Keep your environments in sync with the latest synthetic data so you never hear "it works for me locally" again
+- **Get frictionless security, privacy and compliance** - Easily comply with laws like HIPAA, GDPR, and DPDP with de-identified and synthetic
+- **Seed development databases** - Easily seed development databases with synthetic data for unit testing, demos and more
 
 ## Features
 
-- Automatically generate synthetic data based on your schema
-- Anonymize existing production-data to protect data
-- Create subsets of your production database for local and CI testing by filtering on an object, id or custom query
-- Complete async pipeline that automatically handles job retries, failures and playback using an event-sourcing model
-- Referential integrity for your data automatically - never worry about broken foreign keys again
-- Use our declarative, GitOps based configs as a step in your CI pipeline to hydrate your CI DB
-- Pre-built transformers for all major data types
-- Define custom transformers
-- Pre-built integrations with Postgres, Mysql, S3
+- **Generate synthetic data** based on your schema
+- **Anonymize existing production-data** to protect data
+- **Subset your production database** for local and CI testing by filtering on an object, id or custom query
+- **Complete async pipeline** that automatically handles job retries, failures and playback using an event-sourcing model
+- **Referential integrity** for your data automatically - never worry about broken foreign keys again
+- **Declarative, GitOps based configs** as a step in your CI pipeline to hydrate your CI DB
+- **Pre-built data transformers** for all major data types
+- **Custom data transformers**
+- **Pre-built integrations** with Postgres, Mysql, S3
+
+<!-- ## Getting started
+
+You can also check out our [Docs](https://docs.neosync.dev) for more guides including a production-ready guide. -->
 
 ## Getting started
 
-You can also check out our [Docs](https://docs.neosync.dev) for more guides including a production-ready guide.
+Neosync is a fully dockerized setup which makes it easy to get up and running.
 
-## Run Neosync locally
-
-Neosync is a fully dockerized setup. Due to this, there are many different ways to run Neosync.
+ <!-- Due to this, there are many different ways to run Neosync.
 
 There are three officially supported ways of running Neosync locally:
 
 1. Bare Metal
 2. `docker compose`
-3. Kubernetes via Tilt and Kind.
+3. Kubernetes via Tilt and Kind. -->
 
-For more in-depth details on environment variables as well as Kubernetes deployments, check out the [Deploy Neosync](https://docs.neosync.dev/deploy/introduction) section of our Docs.
+<!-- This readme will focus more on the development environment and simple steps to getting Neosync up on your system. -->
 
-This readme will focus more on the development environment and simple steps to getting Neosync up on your system.
+We provide a `compose.yml` file that contains production image references that allow you to get up and running with just a few commands without having to build anything on your system.
 
-### Simply trying Neosync
+To start Neosync, clone the repo into a local directory and then run:
+
+<!-- ### Simply trying Neosync
 
 If you just want to try out Neosync to see what it's like or get a feel for the product, most of the development setup guide below can be skipped.
 We provide a `compose.yml` file that contains production image references that allow you to get up and running with just a few commands without having to build anything on your system.
 
 The simplest configuration of Neosync is standing it up without any form of authentication.
-This can be done with the following command:
+This can be done with the following command: -->
 
 ```sh
 make compose-up
@@ -98,7 +103,11 @@ make compose-down
 
 Neosync will now be available on [http://localhost:3000](http://localhost:3000).
 
-A compose file is also provided that stands up [Keycloak](https://keycloak.org), an open source auth solution.
+## Kubernetes, Auth Mode and more
+
+For more in-depth details on environment variables, Kubernetes deployments, and a production-ready guide, check out the [Deploy Neosync](https://docs.neosync.dev/deploy/introduction) section of our Docs.
+
+<!-- A compose file is also provided that stands up [Keycloak](https://keycloak.org), an open source auth solution.
 
 To stand up Neosync with auth, simply run the following command:
 
@@ -113,8 +122,9 @@ make compose-auth-down
 ```
 
 Neosync will now be available on [http://localhost:3000](http://localhost:3000) with authentication pre-configured!
-Click the login with Keycloak button, register an account (locally) and you'll be logged in!
+Click the login with Keycloak button, register an account (locally) and you'll be logged in! -->
 
+<!--
 ### Neosync Development Environment
 
 This section goes into detail each tool that is used for development Neosync.
@@ -287,7 +297,7 @@ Analytics are used simply to get a better view into how people use Neosync.
 
 ### Disabling Analytics
 
-If allowing Neosync to capture analytics is not desired, simply remove the `POSTHOG_KEY` from the environment, or disable analytics via the `NEOSYNC_ANALYTICS_ENABLED=false` environment variable.
+If allowing Neosync to capture analytics is not desired, simply remove the `POSTHOG_KEY` from the environment, or disable analytics via the `NEOSYNC_ANALYTICS_ENABLED=false` environment variable. -->
 
 ## Resources
 
@@ -296,6 +306,7 @@ Some resources to help you along the way:
 - [Docs](https://docs.neosync.dev) for comprehensive documentation and guides: Note these are still a work in progress.
 - [Discord](https://discord.gg/HwrxVfNk) for discussion with the community and Neosync team
 - [X](https://x.com/neosynccloud) for the latest updates
+- Developing on Neosync
 <!-- - [Blog](https://neosync.com/blog) for insights, articles and more
 - [Roadmap](https://neosync.dev/roadmap) for future development -->
 
@@ -309,32 +320,14 @@ We love contributions big and small. Here are just a few ways that you can contr
 - Open a PR (see our instructions on [developing with Neosync locally](https://docs.neosync.dev/developing-locally))
 - Submit a [feature request](https://github.com/nucleuscloud/neosync/issues/new?assignees=&labels=enhancement%2C+feature&template=feature_request.md) or [bug report](https://github.com/nucleuscloud/neosync/issues/new?assignees=&labels=bug&template=bug_report.md)
 
+## Mission
+
+Our mission is to help developers build better, more resilient applications while protecting sensitive data. To do that, we built Neosync to give teams three things:
+
+1. A world-class developer experience that fits into any workflow and follows modern developer best practices such as GitOps
+2. A platform that can anonymize sensitive data or automatically generate synthetic data from a schema and sync that across all environments
+3. An open source approach that allows you to keep your most sensitive data in your infrastructure
+
 ## Licensing
 
 We strongly believe in free and open source software and make this repo is available under the [MIT expat license](./LICENSE.md).
-
-## Triggering a Release
-
-Triggering a release is done by cutting a git tag.
-This causes all artifacts for the various components in the system to build and publish.
-
-### Tag Format:
-
-The tag format is a semver compliant tag that starts with `v`.
-
-Examples:
-
-- `v0.0.1`
-- `v0.0.1-nick.1`
-
-This is done by running the `hack/tag.sh` script like so:
-
-```sh
-$ ./hack/tag.sh <tag>
-```
-
-Example:
-
-```sh
-$ ./hack/tag.sh v0.0.1
-```
