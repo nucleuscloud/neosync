@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -438,6 +439,19 @@ func (s *Service) CreateJob(
 		return nil, nucleuserrors.NewBadRequest("must first configure temporal namespace in account settings")
 	}
 
+	runTimeout := pgtype.Int8{}
+	if req.Msg.RunTimeout != nil {
+		err = runTimeout.Scan(*req.Msg.RunTimeout)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	activitySyncOptions := &pg_models.ActivityOptions{}
+	if req.Msg.SyncOptions != nil {
+		activitySyncOptions.FromDto(req.Msg.SyncOptions)
+	}
+
 	cj, err := s.db.CreateJob(ctx, &db_queries.CreateJobParams{
 		Name:              req.Msg.JobName,
 		AccountID:         *accountUuid,
@@ -447,6 +461,8 @@ func (s *Service) CreateJob(
 		Mappings:          mappings,
 		CreatedByID:       *userUuid,
 		UpdatedByID:       *userUuid,
+		RunTimeout:        runTimeout,
+		SyncOptions:       activitySyncOptions,
 	}, connDestParams)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create job: %w", err)
@@ -475,6 +491,9 @@ func (s *Service) CreateJob(
 		Workflow:  datasync_workflow.Workflow,
 		TaskQueue: tconfig.SyncJobQueueName,
 		Args:      []any{&datasync_workflow.WorkflowRequest{JobId: jobUuid}},
+	}
+	if cj.RunTimeout.Valid {
+		action.WorkflowRunTimeout = time.Duration(cj.RunTimeout.Int64) * time.Second
 	}
 
 	scheduleHandle, err := tScheduleClient.Create(ctx, temporalclient.ScheduleOptions{

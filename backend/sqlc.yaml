@@ -1,13 +1,13 @@
-version: '2'
+version: "2"
 sql:
-  - engine: 'postgresql'
-    queries: 'sql/postgresql/queries'
-    schema: 'sql/postgresql/schema'
+  - engine: "postgresql"
+    queries: "sql/postgresql/queries"
+    schema: "sql/postgresql/schema"
     gen:
       go:
-        package: 'db_queries'
-        out: 'gen/go/db'
-        sql_package: 'pgx/v5'
+        package: "db_queries"
+        out: "gen/go/db"
+        sql_package: "pgx/v5"
         emit_interface: true
         emit_methods_with_db_argument: true
         overrides:
@@ -48,27 +48,33 @@ sql:
               package: pg_models
               type: TemporalConfig
               pointer: true
+          - column: neosync_api.jobs.sync_options
+            go_type:
+              import: github.com/nucleuscloud/neosync/backend/sql/postgresql/models
+              package: pg_models
+              type: ActivityOptions
+              pointer: true
 
-  - engine: 'mysql'
-    queries: 'pkg/dbschemas/sql/mysql/queries'
-    schema: 'pkg/dbschemas/sql/mysql/schema'
+  - engine: "mysql"
+    queries: "pkg/dbschemas/sql/mysql/queries"
+    schema: "pkg/dbschemas/sql/mysql/schema"
     gen:
       go:
         package: mysql_queries
-        out: 'gen/go/db/dbschemas/mysql'
+        out: "gen/go/db/dbschemas/mysql"
         emit_interface: true
         emit_methods_with_db_argument: true
         emit_result_struct_pointers: true
         emit_params_struct_pointers: true
         emit_pointers_for_null_types: true
 
-  - engine: 'postgresql'
-    queries: 'pkg/dbschemas/sql/postgresql/queries'
+  - engine: "postgresql"
+    queries: "pkg/dbschemas/sql/postgresql/queries"
     gen:
       go:
-        package: 'pg_queries'
-        out: 'gen/go/db/dbschemas/postgresql'
-        sql_package: 'pgx/v5'
+        package: "pg_queries"
+        out: "gen/go/db/dbschemas/postgresql"
+        sql_package: "pgx/v5"
         emit_interface: true
         emit_methods_with_db_argument: true
         emit_result_struct_pointers: true
@@ -84,7 +90,7 @@ sql:
           - column: information_schema.columns.ordinal_position
             go_type: int
           - column: information_schema.columns.column_default
-            go_type: 'string'
+            go_type: "string"
             nullable: true # this only appears to work on models
           - column: information_schema.columns.is_nullable
             go_type: string

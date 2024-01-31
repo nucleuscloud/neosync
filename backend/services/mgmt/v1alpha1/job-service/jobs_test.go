@@ -400,6 +400,8 @@ func Test_CreateJob(t *testing.T) {
 		},
 		CreatedByID: userUuid,
 		UpdatedByID: userUuid,
+		RunTimeout:  pgtype.Int8{},
+		SyncOptions: &pg_models.ActivityOptions{},
 	}).Return(job1, nil)
 	m.QuerierMock.On("CreateJobConnectionDestinations", mock.Anything, mockTx, destinationParams).Return(int64(1), nil)
 	m.QuerierMock.On("GetJobConnectionDestinations", mock.Anything, mock.Anything, job1.ID).Return([]db_queries.NeosyncApiJobDestinationConnectionAssociation{destConnAssociation}, nil)
@@ -451,6 +453,8 @@ func Test_CreateJob(t *testing.T) {
 					Config: &mgmtv1alpha1.TransformerConfig{},
 				}},
 			},
+			RunTimeout:  nil,
+			SyncOptions: &mgmtv1alpha1.ActivityOptions{},
 		},
 	})
 

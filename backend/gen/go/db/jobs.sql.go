@@ -15,9 +15,9 @@ import (
 const createJob = `-- name: CreateJob :one
 INSERT INTO neosync_api.jobs (
   name, account_id, status, connection_options, mappings,
-  cron_schedule, created_by_id, updated_by_id
+  cron_schedule, created_by_id, updated_by_id, run_timeout, sync_options
 ) VALUES (
-  $1, $2, $3, $4, $5, $6, $7, $8
+  $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
 )
 RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, run_timeout, sync_options
 `
@@ -31,6 +31,8 @@ type CreateJobParams struct {
 	CronSchedule      pgtype.Text
 	CreatedByID       pgtype.UUID
 	UpdatedByID       pgtype.UUID
+	RunTimeout        pgtype.Int8
+	SyncOptions       *pg_models.ActivityOptions
 }
 
 func (q *Queries) CreateJob(ctx context.Context, db DBTX, arg CreateJobParams) (NeosyncApiJob, error) {
@@ -43,6 +45,8 @@ func (q *Queries) CreateJob(ctx context.Context, db DBTX, arg CreateJobParams) (
 		arg.CronSchedule,
 		arg.CreatedByID,
 		arg.UpdatedByID,
+		arg.RunTimeout,
+		arg.SyncOptions,
 	)
 	var i NeosyncApiJob
 	err := row.Scan(

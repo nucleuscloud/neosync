@@ -75,7 +75,7 @@ type NeosyncApiJob struct {
 	CreatedByID       pgtype.UUID
 	UpdatedByID       pgtype.UUID
 	RunTimeout        pgtype.Int8
-	SyncOptions       []byte
+	SyncOptions       *pg_models.ActivityOptions
 }
 
 type NeosyncApiJobDestinationConnectionAssociation struct {
