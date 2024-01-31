@@ -1419,8 +1419,8 @@ func Test_TransformerStringLint(t *testing.T) {
 		{
 			Name: "transform_character_substitution",
 			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_TransformCharacterSubstitutionConfig{
-					TransformCharacterSubstitutionConfig: &mgmtv1alpha1.TransformCharacterSubstitution{},
+				Config: &mgmtv1alpha1.TransformerConfig_TransformCharacterScrambleConfig{
+					TransformCharacterScrambleConfig: &mgmtv1alpha1.TransformCharacterScramble{},
 				},
 			},
 		},

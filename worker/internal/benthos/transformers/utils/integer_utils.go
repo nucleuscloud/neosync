@@ -8,7 +8,6 @@ import (
 )
 
 /* Generates a random int64 of length l. For example, given a length of 4, possible values will always have a length of 4 digits. */
-
 func GenerateRandomInt64FixedLength(l int64) (int64, error) {
 	if l <= 0 {
 		return 0, fmt.Errorf("the length has to be greater than zero")

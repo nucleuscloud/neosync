@@ -3745,7 +3745,7 @@ func (m *TransformerConfig) validate(all bool) error {
 			}
 		}
 
-	case *TransformerConfig_TransformCharacterSubstitutionConfig:
+	case *TransformerConfig_TransformCharacterScrambleConfig:
 		if v == nil {
 			err := TransformerConfigValidationError{
 				field:  "Config",
@@ -3758,11 +3758,11 @@ func (m *TransformerConfig) validate(all bool) error {
 		}
 
 		if all {
-			switch v := interface{}(m.GetTransformCharacterSubstitutionConfig()).(type) {
+			switch v := interface{}(m.GetTransformCharacterScrambleConfig()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "TransformCharacterSubstitutionConfig",
+						field:  "TransformCharacterScrambleConfig",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -3770,16 +3770,16 @@ func (m *TransformerConfig) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "TransformCharacterSubstitutionConfig",
+						field:  "TransformCharacterScrambleConfig",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
 				}
 			}
-		} else if v, ok := interface{}(m.GetTransformCharacterSubstitutionConfig()).(interface{ Validate() error }); ok {
+		} else if v, ok := interface{}(m.GetTransformCharacterScrambleConfig()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return TransformerConfigValidationError{
-					field:  "TransformCharacterSubstitutionConfig",
+					field:  "TransformCharacterScrambleConfig",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -8182,22 +8182,22 @@ var _ interface {
 	ErrorName() string
 } = GenerateCategoricalValidationError{}
 
-// Validate checks the field values on TransformCharacterSubstitution with the
+// Validate checks the field values on TransformCharacterScramble with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *TransformCharacterSubstitution) Validate() error {
+func (m *TransformCharacterScramble) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on TransformCharacterSubstitution with
-// the rules defined in the proto definition for this message. If any rules
-// are violated, the result is a list of violation errors wrapped in
-// TransformCharacterSubstitutionMultiError, or nil if none found.
-func (m *TransformCharacterSubstitution) ValidateAll() error {
+// ValidateAll checks the field values on TransformCharacterScramble with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// TransformCharacterScrambleMultiError, or nil if none found.
+func (m *TransformCharacterScramble) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *TransformCharacterSubstitution) validate(all bool) error {
+func (m *TransformCharacterScramble) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -8205,19 +8205,19 @@ func (m *TransformCharacterSubstitution) validate(all bool) error {
 	var errors []error
 
 	if len(errors) > 0 {
-		return TransformCharacterSubstitutionMultiError(errors)
+		return TransformCharacterScrambleMultiError(errors)
 	}
 
 	return nil
 }
 
-// TransformCharacterSubstitutionMultiError is an error wrapping multiple
-// validation errors returned by TransformCharacterSubstitution.ValidateAll()
-// if the designated constraints aren't met.
-type TransformCharacterSubstitutionMultiError []error
+// TransformCharacterScrambleMultiError is an error wrapping multiple
+// validation errors returned by TransformCharacterScramble.ValidateAll() if
+// the designated constraints aren't met.
+type TransformCharacterScrambleMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m TransformCharacterSubstitutionMultiError) Error() string {
+func (m TransformCharacterScrambleMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -8226,12 +8226,11 @@ func (m TransformCharacterSubstitutionMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m TransformCharacterSubstitutionMultiError) AllErrors() []error { return m }
+func (m TransformCharacterScrambleMultiError) AllErrors() []error { return m }
 
-// TransformCharacterSubstitutionValidationError is the validation error
-// returned by TransformCharacterSubstitution.Validate if the designated
-// constraints aren't met.
-type TransformCharacterSubstitutionValidationError struct {
+// TransformCharacterScrambleValidationError is the validation error returned
+// by TransformCharacterScramble.Validate if the designated constraints aren't met.
+type TransformCharacterScrambleValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -8239,24 +8238,24 @@ type TransformCharacterSubstitutionValidationError struct {
 }
 
 // Field function returns field value.
-func (e TransformCharacterSubstitutionValidationError) Field() string { return e.field }
+func (e TransformCharacterScrambleValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e TransformCharacterSubstitutionValidationError) Reason() string { return e.reason }
+func (e TransformCharacterScrambleValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e TransformCharacterSubstitutionValidationError) Cause() error { return e.cause }
+func (e TransformCharacterScrambleValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e TransformCharacterSubstitutionValidationError) Key() bool { return e.key }
+func (e TransformCharacterScrambleValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e TransformCharacterSubstitutionValidationError) ErrorName() string {
-	return "TransformCharacterSubstitutionValidationError"
+func (e TransformCharacterScrambleValidationError) ErrorName() string {
+	return "TransformCharacterScrambleValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e TransformCharacterSubstitutionValidationError) Error() string {
+func (e TransformCharacterScrambleValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -8268,14 +8267,14 @@ func (e TransformCharacterSubstitutionValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sTransformCharacterSubstitution.%s: %s%s",
+		"invalid %sTransformCharacterScramble.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = TransformCharacterSubstitutionValidationError{}
+var _ error = TransformCharacterScrambleValidationError{}
 
 var _ interface {
 	Field() string
@@ -8283,4 +8282,4 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = TransformCharacterSubstitutionValidationError{}
+} = TransformCharacterScrambleValidationError{}

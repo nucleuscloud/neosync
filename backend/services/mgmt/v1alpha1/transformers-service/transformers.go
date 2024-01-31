@@ -18,47 +18,47 @@ import (
 type Transformation string
 
 const (
-	GenerateEmail                  Transformation = "generate_email"
-	TransformEmail                 Transformation = "transform_email"
-	GenerateBool                   Transformation = "generate_bool"
-	GenerateCardNumber             Transformation = "generate_card_number"
-	GenerateCity                   Transformation = "generate_city"
-	GenerateDefault                Transformation = "generate_default"
-	GenerateE164PhoneNumber        Transformation = "generate_e164_phone_number"
-	GenerateFirstName              Transformation = "generate_first_name"
-	GenerateFloat64                Transformation = "generate_float64"
-	GenerateFullAddress            Transformation = "generate_full_address"
-	GenerateFullName               Transformation = "generate_full_name"
-	GenerateGender                 Transformation = "generate_gender"
-	GenerateInt64PhoneNumber       Transformation = "generate_int64_phone_number"
-	GenerateInt64                  Transformation = "generate_int64"
-	GenerateLastName               Transformation = "generate_last_name"
-	GenerateShaHash256             Transformation = "generate_sha256hash"
-	GenerateSSN                    Transformation = "generate_ssn"
-	GenerateState                  Transformation = "generate_state"
-	GenerateStreetAddress          Transformation = "generate_street_address"
-	GenerateStringPhoneNumber      Transformation = "generate_string_phone_number"
-	GenerateString                 Transformation = "generate_string"
-	GenerateUnixTimestamp          Transformation = "generate_unixtimestamp"
-	GenerateUsername               Transformation = "generate_username"
-	GenerateUtcTimestamp           Transformation = "generate_utctimestamp"
-	GenerateUuid                   Transformation = "generate_uuid"
-	GenerateZipcode                Transformation = "generate_zipcode"
-	TransformE164PhoneNumber       Transformation = "transform_e164_phone_number"
-	TransformFirstName             Transformation = "transform_first_name"
-	TransformFloat64               Transformation = "transform_float64"
-	TransformFullName              Transformation = "transform_full_name"
-	TransformInt64PhoneNumber      Transformation = "transform_int64_phone_number"
-	TransformInt64                 Transformation = "transform_int64"
-	TransformLastName              Transformation = "transform_last_name"
-	TransformPhoneNumber           Transformation = "transform_phone_number"
-	TransformString                Transformation = "transform_string"
-	Passthrough                    Transformation = "passthrough"
-	Null                           Transformation = "null"
-	Invalid                        Transformation = "invalid"
-	TransformJavascript            Transformation = "transform_javascript"
-	GenerateCategorical            Transformation = "generate_categorical"
-	TransformCharacterSubstitution Transformation = "transform_character_substitution"
+	GenerateEmail              Transformation = "generate_email"
+	TransformEmail             Transformation = "transform_email"
+	GenerateBool               Transformation = "generate_bool"
+	GenerateCardNumber         Transformation = "generate_card_number"
+	GenerateCity               Transformation = "generate_city"
+	GenerateDefault            Transformation = "generate_default"
+	GenerateE164PhoneNumber    Transformation = "generate_e164_phone_number"
+	GenerateFirstName          Transformation = "generate_first_name"
+	GenerateFloat64            Transformation = "generate_float64"
+	GenerateFullAddress        Transformation = "generate_full_address"
+	GenerateFullName           Transformation = "generate_full_name"
+	GenerateGender             Transformation = "generate_gender"
+	GenerateInt64PhoneNumber   Transformation = "generate_int64_phone_number"
+	GenerateInt64              Transformation = "generate_int64"
+	GenerateLastName           Transformation = "generate_last_name"
+	GenerateShaHash256         Transformation = "generate_sha256hash"
+	GenerateSSN                Transformation = "generate_ssn"
+	GenerateState              Transformation = "generate_state"
+	GenerateStreetAddress      Transformation = "generate_street_address"
+	GenerateStringPhoneNumber  Transformation = "generate_string_phone_number"
+	GenerateString             Transformation = "generate_string"
+	GenerateUnixTimestamp      Transformation = "generate_unixtimestamp"
+	GenerateUsername           Transformation = "generate_username"
+	GenerateUtcTimestamp       Transformation = "generate_utctimestamp"
+	GenerateUuid               Transformation = "generate_uuid"
+	GenerateZipcode            Transformation = "generate_zipcode"
+	TransformE164PhoneNumber   Transformation = "transform_e164_phone_number"
+	TransformFirstName         Transformation = "transform_first_name"
+	TransformFloat64           Transformation = "transform_float64"
+	TransformFullName          Transformation = "transform_full_name"
+	TransformInt64PhoneNumber  Transformation = "transform_int64_phone_number"
+	TransformInt64             Transformation = "transform_int64"
+	TransformLastName          Transformation = "transform_last_name"
+	TransformPhoneNumber       Transformation = "transform_phone_number"
+	TransformString            Transformation = "transform_string"
+	Passthrough                Transformation = "passthrough"
+	Null                       Transformation = "null"
+	Invalid                    Transformation = "invalid"
+	TransformJavascript        Transformation = "transform_javascript"
+	GenerateCategorical        Transformation = "generate_categorical"
+	TransformCharacterScramble Transformation = "transform_character_scramble"
 )
 
 func (s *Service) GetSystemTransformers(
@@ -547,13 +547,13 @@ return input;`},
 				},
 			},
 			{
-				Name:        "Transform Character Substitution",
-				Description: "Transforms a string value by substituting each character with another character in the same unicode block. Letters will be substituted with letters, numbers with numbers and special characters with special characters. Spaces and capitalization is preserved.",
+				Name:        "Transform Character Scramble",
+				Description: "Transforms a string value by scrambling each character with another character in the same unicode block. Letters will be substituted with letters, numbers with numbers and special characters with special characters. Spaces and capitalization is preserved.",
 				DataType:    "string",
-				Source:      string(TransformCharacterSubstitution),
+				Source:      string(TransformCharacterScramble),
 				Config: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_TransformCharacterSubstitutionConfig{
-						TransformCharacterSubstitutionConfig: &mgmtv1alpha1.TransformCharacterSubstitution{},
+					Config: &mgmtv1alpha1.TransformerConfig_TransformCharacterScrambleConfig{
+						TransformCharacterScrambleConfig: &mgmtv1alpha1.TransformCharacterScramble{},
 					},
 				},
 			},

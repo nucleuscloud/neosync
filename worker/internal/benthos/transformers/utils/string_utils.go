@@ -123,7 +123,7 @@ func IsValidUsername(username string) bool {
 	return matched
 }
 
-// use MaxASCII to ensure that the unicode value is only within the ASCII block which only contains latin numbers, letters and characters
+// use MaxASCII to ensure that the unicode value is only within the ASCII block which only contains latin numbers, letters and characters.
 func IsValidChar(s string) bool {
 	for _, r := range s {
 		if !(r <= unicode.MaxASCII && (unicode.IsNumber(r) || unicode.IsLetter(r) || unicode.IsSpace(r) || IsAllowedSpecialChar(r))) {
@@ -134,11 +134,12 @@ func IsValidChar(s string) bool {
 }
 
 func IsAllowedSpecialChar(r rune) bool {
-	allowedSpecialChars := "!@#$%^&*()-+=_[]{}|\\ ;\"<>,./?"
-	for _, allowedChar := range allowedSpecialChars {
-		if r == allowedChar {
-			return true
-		}
+	allowedSpecialChars := map[rune]struct{}{
+		'!': {}, '@': {}, '#': {}, '$': {}, '%': {}, '^': {}, '&': {}, '*': {}, '(': {}, ')': {},
+		'-': {}, '+': {}, '=': {}, '_': {}, '[': {}, ']': {}, '{': {}, '}': {}, '|': {}, '\\': {},
+		' ': {}, ';': {}, '"': {}, '<': {}, '>': {}, ',': {}, '.': {}, '/': {}, '?': {},
 	}
-	return false
+
+	_, ok := allowedSpecialChars[r]
+	return ok
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
+	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
 func init() {
@@ -13,7 +14,7 @@ func init() {
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewAnyParam("value").Optional())
 
-	err := bloblang.RegisterFunctionV2("transform_character_substitution", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("transform_character_scramble", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		valuePtr, err := args.GetOptionalString("value")
 		if err != nil {
@@ -26,7 +27,7 @@ func init() {
 		}
 
 		return func() (any, error) {
-			res, err := TransformCharacterSubstitution(value)
+			res, err := TransformCharacterScramble(value)
 			return res, err
 		}, nil
 	})
@@ -48,52 +49,57 @@ Substituted: Ifmmp Xpsme 234@%^
 Note that this does not work for hex values: 0x00 -> 0x1F
 */
 
-func TransformCharacterSubstitution(value string) (*string, error) {
+func TransformCharacterScramble(value string) (*string, error) {
 
-	transformedString := strings.Map(substituteChar, value)
+	transformedString := strings.Map(ScrambleChar, value)
 
 	return &transformedString, nil
 }
 
-func substituteChar(r rune) rune {
-	letterMap := map[rune]rune{
-		'a': 'b', 'b': 'c', 'c': 'd', 'd': 'e', 'e': 'f', 'f': 'g', 'g': 'h', 'h': 'i', 'i': 'j',
-		'j': 'k', 'k': 'l', 'l': 'm', 'm': 'n', 'n': 'o', 'o': 'p', 'p': 'q', 'q': 'r', 'r': 's',
-		's': 't', 't': 'u', 'u': 'v', 'v': 'w', 'w': 'x', 'x': 'y', 'y': 'z', 'z': 'a',
-	}
+func ScrambleChar(r rune) rune {
+	letterList := "abcdefghijklmnopqrstuvwxyz"
 
-	numberMap := map[rune]rune{
-		'0': '1', '1': '2', '2': '3', '3': '4', '4': '5', '5': '6', '6': '7', '7': '8', '8': '9', '9': '0',
-	}
+	numberList := "0123456789"
 
-	specialCharMap := map[rune]rune{
-		'!': '@', '@': '#', '#': '$', '$': '%', '%': '^', '^': '&', '&': '*',
-		'*': '(', '(': ')', ')': '-', '-': '+', '+': '=', '=': '_',
-		'_': '[', '[': ']', ']': '{', '{': '}', '}': '|', '|': '\\',
-		'\\': ':', ':': ';', ';': '\'', '\'': '"', '"': '<', '<': '>',
-		'>': ',', ',': '.', '.': '/', '/': '?', '?': '!',
+	specialCharList := "!@#$%^&*()-+=_ []{}|\\ ;\"<>,./?"
+
+	randStringListInd, err := transformer_utils.GenerateRandomInt64InValueRange(0, int64(len(letterList))-1)
+	if err != nil {
+		return r
 	}
 
 	if unicode.IsLetter(r) {
-		lowerR := unicode.ToLower(r)
-		sub, ok := letterMap[lowerR]
-		if ok {
-			if unicode.IsUpper(r) {
-				return unicode.ToUpper(sub)
-			}
-			return sub
+
+		sub := rune(letterList[randStringListInd])
+		if unicode.IsUpper(r) {
+			return unicode.ToUpper(sub)
 		}
+		return sub
+
+	}
+
+	randNumberListInd, err := transformer_utils.GenerateRandomInt64InValueRange(0, int64(len(numberList))-1)
+	if err != nil {
+		return r
 	}
 
 	if unicode.IsDigit(r) {
-		sub, ok := numberMap[r]
-		if ok {
-			return sub
-		}
+
+		return rune(numberList[randNumberListInd])
 	}
 
-	if sub, ok := specialCharMap[r]; ok {
-		return sub
+	randInd, err := transformer_utils.GenerateRandomInt64InValueRange(0, int64(len(specialCharList))-1)
+	if err != nil {
+		return r
+	}
+
+	if transformer_utils.IsAllowedSpecialChar(r) {
+		if unicode.IsSpace(r) {
+			return r
+		} else {
+			return rune(specialCharList[randInd])
+		}
+
 	}
 
 	return r

@@ -10,11 +10,24 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func Test_ScrambleCharacter(t *testing.T) {
+
+	testStringValue := "h"
+
+	testRune := rune(testStringValue[0])
+
+	res := ScrambleChar(testRune)
+
+	assert.IsType(t, "", string(res))
+	assert.Equal(t, len(testStringValue), len(string(res)), "The output string should be as long as the input string")
+	assert.True(t, transformer_utils.IsValidChar(string(res)), "The output string should contain valid characters")
+}
+
 func Test_TransformCharacterSubstitutionLetters(t *testing.T) {
 
 	testStringValue := "hello world"
 
-	res, err := TransformCharacterSubstitution(testStringValue)
+	res, err := TransformCharacterScramble(testStringValue)
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
@@ -25,7 +38,7 @@ func Test_TransformCharacterSubstitutionLetters(t *testing.T) {
 func Test_TransformCharacterSubstitutionCapitalizationLetters(t *testing.T) {
 	testStringValue := "Hello"
 
-	res, err := TransformCharacterSubstitution(testStringValue)
+	res, err := TransformCharacterScramble(testStringValue)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, res, "Result should not be nil")
@@ -40,7 +53,7 @@ func Test_TransformCharacterSubstitutionNumbers(t *testing.T) {
 
 	testStringValue := "41323421"
 
-	res, err := TransformCharacterSubstitution(testStringValue)
+	res, err := TransformCharacterScramble(testStringValue)
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
@@ -52,7 +65,7 @@ func Test_TransformCharacterSubstitutionLettersNumbers(t *testing.T) {
 
 	testStringValue := "hello wor23r2ld 221"
 
-	res, err := TransformCharacterSubstitution(testStringValue)
+	res, err := TransformCharacterScramble(testStringValue)
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
@@ -64,7 +77,7 @@ func Test_TransformCharacterSubstitutionLettersNumbersCharacters(t *testing.T) {
 
 	testStringValue := "h#*(&lo wor23r2ld 221"
 
-	res, err := TransformCharacterSubstitution(testStringValue)
+	res, err := TransformCharacterScramble(testStringValue)
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
@@ -76,7 +89,7 @@ func Test_TransformCharacterSubstitutionTransformer(t *testing.T) {
 
 	testStringValue := "h#*(&lo wor23r2ld 221"
 
-	mapping := fmt.Sprintf(`root = transform_character_substitution(value:%q)`, testStringValue)
+	mapping := fmt.Sprintf(`root = transform_character_scramble(value:%q)`, testStringValue)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the substitution transformer")
 
@@ -103,7 +116,7 @@ func Test_TransformCharacterSubstitutionTransformer(t *testing.T) {
 func Test_TransformCharacterSubstitutionTransformerWithEmptyValue(t *testing.T) {
 
 	nilString := ""
-	mapping := fmt.Sprintf(`root = transform_character_substitution(value:%q)`, nilString)
+	mapping := fmt.Sprintf(`root = transform_character_scramble(value:%q)`, nilString)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the character substitution transformer")
 

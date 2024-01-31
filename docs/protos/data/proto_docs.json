@@ -4240,9 +4240,9 @@
           ]
         },
         {
-          "name": "TransformCharacterSubstitution",
-          "longName": "TransformCharacterSubstitution",
-          "fullName": "mgmt.v1alpha1.TransformCharacterSubstitution",
+          "name": "TransformCharacterScramble",
+          "longName": "TransformCharacterScramble",
+          "fullName": "mgmt.v1alpha1.TransformCharacterScramble",
           "description": "",
           "hasExtensions": false,
           "hasFields": false,
@@ -5053,12 +5053,12 @@
               "defaultValue": ""
             },
             {
-              "name": "transform_character_substitution_config",
+              "name": "transform_character_scramble_config",
               "description": "",
               "label": "",
-              "type": "TransformCharacterSubstitution",
-              "longType": "TransformCharacterSubstitution",
-              "fullType": "mgmt.v1alpha1.TransformCharacterSubstitution",
+              "type": "TransformCharacterScramble",
+              "longType": "TransformCharacterScramble",
+              "fullType": "mgmt.v1alpha1.TransformCharacterScramble",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",
