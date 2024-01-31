@@ -471,15 +471,17 @@ func (s *Service) CreateJob(
 		spec.CronExpressions = []string{*schedule}
 		paused = false
 	}
+	action := &temporalclient.ScheduleWorkflowAction{
+		Workflow:  datasync_workflow.Workflow,
+		TaskQueue: tconfig.SyncJobQueueName,
+		Args:      []any{&datasync_workflow.WorkflowRequest{JobId: jobUuid}},
+	}
+
 	scheduleHandle, err := tScheduleClient.Create(ctx, temporalclient.ScheduleOptions{
 		ID:     jobUuid,
 		Spec:   spec,
 		Paused: paused,
-		Action: &temporalclient.ScheduleWorkflowAction{
-			Workflow:  datasync_workflow.Workflow,
-			TaskQueue: tconfig.SyncJobQueueName,
-			Args:      []any{&datasync_workflow.WorkflowRequest{JobId: jobUuid}},
-		},
+		Action: action,
 	})
 	if err != nil {
 		logger.Error(fmt.Errorf("unable to create schedule workflow: %w", err).Error())

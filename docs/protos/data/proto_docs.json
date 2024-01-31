@@ -5956,6 +5956,18 @@
               "defaultValue": ""
             },
             {
+              "name": "run_timeout",
+              "description": "The timeout for a single workflow run.\nMeasured in seconds",
+              "label": "optional",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_run_timeout",
+              "defaultValue": ""
+            },
+            {
               "name": "sync_options",
               "description": "Specify timeout and retry options for data synchronization activities\nData sync activities are any piece of work that involves actually synchronizing data from a source to a destination\nFor the data sync and generate jobs, this will be applied per table",
               "label": "",
@@ -7029,6 +7041,30 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "sync_options",
+              "description": "Specify timeout and retry options for data synchronization activities\nData sync activities are any piece of work that involves actually synchronizing data from a source to a destination\nFor the data sync and generate jobs, this will be applied per table",
+              "label": "",
+              "type": "ActivityOptions",
+              "longType": "ActivityOptions",
+              "fullType": "mgmt.v1alpha1.ActivityOptions",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "run_timeout",
+              "description": "The timeout for a single workflow run.\nMeasured in seconds",
+              "label": "optional",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_run_timeout",
               "defaultValue": ""
             }
           ]

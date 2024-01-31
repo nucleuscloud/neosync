@@ -3173,6 +3173,10 @@ func (m *CreateJobRequest) validate(all bool) error {
 		// no validation rules for CronSchedule
 	}
 
+	if m.RunTimeout != nil {
+		// no validation rules for RunTimeout
+	}
+
 	if len(errors) > 0 {
 		return CreateJobRequestMultiError(errors)
 	}
@@ -7914,8 +7918,41 @@ func (m *Job) validate(all bool) error {
 
 	// no validation rules for AccountId
 
+	if all {
+		switch v := interface{}(m.GetSyncOptions()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, JobValidationError{
+					field:  "SyncOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, JobValidationError{
+					field:  "SyncOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSyncOptions()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return JobValidationError{
+				field:  "SyncOptions",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	if m.CronSchedule != nil {
 		// no validation rules for CronSchedule
+	}
+
+	if m.RunTimeout != nil {
+		// no validation rules for RunTimeout
 	}
 
 	if len(errors) > 0 {

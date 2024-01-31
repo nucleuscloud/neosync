@@ -1170,11 +1170,19 @@ export class CreateJobRequest extends Message<CreateJobRequest> {
   initiateJobRun = false;
 
   /**
+   * The timeout for a single workflow run.
+   * Measured in seconds
+   *
+   * @generated from field: optional int64 run_timeout = 8;
+   */
+  runTimeout?: bigint;
+
+  /**
    * Specify timeout and retry options for data synchronization activities
    * Data sync activities are any piece of work that involves actually synchronizing data from a source to a destination
    * For the data sync and generate jobs, this will be applied per table
    *
-   * @generated from field: mgmt.v1alpha1.ActivityOptions sync_options = 8;
+   * @generated from field: mgmt.v1alpha1.ActivityOptions sync_options = 9;
    */
   syncOptions?: ActivityOptions;
 
@@ -1193,7 +1201,8 @@ export class CreateJobRequest extends Message<CreateJobRequest> {
     { no: 5, name: "source", kind: "message", T: JobSource },
     { no: 6, name: "destinations", kind: "message", T: CreateJobDestination, repeated: true },
     { no: 7, name: "initiate_job_run", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 8, name: "sync_options", kind: "message", T: ActivityOptions },
+    { no: 8, name: "run_timeout", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
+    { no: 9, name: "sync_options", kind: "message", T: ActivityOptions },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateJobRequest {
@@ -2738,6 +2747,23 @@ export class Job extends Message<Job> {
    */
   accountId = "";
 
+  /**
+   * Specify timeout and retry options for data synchronization activities
+   * Data sync activities are any piece of work that involves actually synchronizing data from a source to a destination
+   * For the data sync and generate jobs, this will be applied per table
+   *
+   * @generated from field: mgmt.v1alpha1.ActivityOptions sync_options = 12;
+   */
+  syncOptions?: ActivityOptions;
+
+  /**
+   * The timeout for a single workflow run.
+   * Measured in seconds
+   *
+   * @generated from field: optional int64 run_timeout = 13;
+   */
+  runTimeout?: bigint;
+
   constructor(data?: PartialMessage<Job>) {
     super();
     proto3.util.initPartial(data, this);
@@ -2757,6 +2783,8 @@ export class Job extends Message<Job> {
     { no: 9, name: "mappings", kind: "message", T: JobMapping, repeated: true },
     { no: 10, name: "cron_schedule", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 11, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 12, name: "sync_options", kind: "message", T: ActivityOptions },
+    { no: 13, name: "run_timeout", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Job {

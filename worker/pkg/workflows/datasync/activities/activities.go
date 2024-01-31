@@ -13,6 +13,8 @@ import (
 
 	"connectrpc.com/connect"
 	"go.temporal.io/sdk/activity"
+	"go.temporal.io/sdk/temporal"
+	"go.temporal.io/sdk/workflow"
 	"golang.org/x/sync/errgroup"
 
 	_ "github.com/benthosdev/benthos/v4/public/components/aws"
@@ -85,6 +87,59 @@ func getNeosyncUrl() string {
 }
 
 type Activities struct{}
+
+type RetrieveActivityOptionsRequest struct {
+	JobId string
+}
+type RetrieveActivityOptionsResponse struct {
+	SyncActivityOptions *workflow.ActivityOptions
+}
+
+func (a *Activities) RetrieveActivityOptions(
+	ctx context.Context,
+	req *RetrieveActivityOptionsRequest,
+	wfmetadata *WorkflowMetadata,
+) (*RetrieveActivityOptionsResponse, error) {
+	logger := activity.GetLogger(ctx)
+	_ = logger
+
+	neosyncUrl := getNeosyncUrl()
+	httpClient := getNeosyncHttpClient(viper.GetString("NEOSYNC_API_KEY"))
+
+	jobclient := mgmtv1alpha1connect.NewJobServiceClient(
+		httpClient,
+		neosyncUrl,
+	)
+
+	jobResp, err := jobclient.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{Id: req.JobId}))
+	if err != nil {
+		return nil, err
+	}
+	job := jobResp.Msg.Job
+	syncActivityOptions := &workflow.ActivityOptions{
+		StartToCloseTimeout: 10 * time.Minute, // backwards compatible default for pre-existing jobs that do not have sync options defined
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 1, // backwards compatible default for pre-existing jobs that do not have sync options defined
+		},
+	}
+	if job.SyncOptions != nil {
+		if job.SyncOptions.StartToCloseTimeout != nil {
+			syncActivityOptions.StartToCloseTimeout = time.Duration(*job.SyncOptions.StartToCloseTimeout) * time.Second
+		}
+		if job.SyncOptions.ScheduleToCloseTimeout != nil {
+			syncActivityOptions.ScheduleToCloseTimeout = time.Duration(*job.SyncOptions.ScheduleToCloseTimeout) * time.Second
+		}
+		if job.SyncOptions.RetryPolicy != nil {
+			if job.SyncOptions.RetryPolicy.MaximumAttempts != nil {
+				syncActivityOptions.RetryPolicy.MaximumAttempts = *job.SyncOptions.RetryPolicy.MaximumAttempts
+			}
+		}
+	}
+
+	return &RetrieveActivityOptionsResponse{
+		SyncActivityOptions: syncActivityOptions,
+	}, nil
+}
 
 func (a *Activities) GenerateBenthosConfigs(
 	ctx context.Context,

@@ -127,10 +127,14 @@ message CreateJobRequest {
   // Initially trigger a run of this job regardless of its status or cron schedule
   bool initiate_job_run = 7;
 
+  // The timeout for a single workflow run.
+  // Measured in seconds
+  optional int64 run_timeout = 8;
+
   // Specify timeout and retry options for data synchronization activities
   // Data sync activities are any piece of work that involves actually synchronizing data from a source to a destination
   // For the data sync and generate jobs, this will be applied per table
-  ActivityOptions sync_options = 8;
+  ActivityOptions sync_options = 9;
 }
 
 // Config that contains various timeouts that are configured in the underlying temporal workflow(s) and activities
@@ -318,6 +322,15 @@ message Job {
   optional string cron_schedule = 10;
 
   string account_id = 11;
+
+  // Specify timeout and retry options for data synchronization activities
+  // Data sync activities are any piece of work that involves actually synchronizing data from a source to a destination
+  // For the data sync and generate jobs, this will be applied per table
+  ActivityOptions sync_options = 12;
+
+  // The timeout for a single workflow run.
+  // Measured in seconds
+  optional int64 run_timeout = 13;
 }
 
 message JobRecentRun {

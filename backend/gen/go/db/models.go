@@ -74,6 +74,8 @@ type NeosyncApiJob struct {
 	CronSchedule      pgtype.Text
 	CreatedByID       pgtype.UUID
 	UpdatedByID       pgtype.UUID
+	RunTimeout        pgtype.Int8
+	SyncOptions       []byte
 }
 
 type NeosyncApiJobDestinationConnectionAssociation struct {
