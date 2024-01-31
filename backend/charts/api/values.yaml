@@ -106,8 +106,8 @@ neosyncCloud:
   workerApiKeys: []
 
 kubernetes:
-  enabled: false
-  namespace: neosync
+  enabled: true
+  namespace:
   workerAppName: neosync-worker
 
 ingress:
