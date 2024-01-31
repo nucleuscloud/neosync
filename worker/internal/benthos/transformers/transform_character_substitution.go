@@ -1,7 +1,6 @@
 package transformers
 
 import (
-	"fmt"
 	"strings"
 	"unicode"
 
@@ -50,8 +49,6 @@ Note that this does not work for hex values: 0x00 -> 0x1F
 */
 
 func TransformCharacterSubstitution(value string) (*string, error) {
-
-	fmt.Println("the value", value)
 
 	transformedString := strings.Map(substituteChar, value)
 
