@@ -495,16 +495,20 @@ message GetJobRunLogsStreamResponse {
 }
 
 message SetJobWorkflowOptionsRequest {
-  string job_id = 1 [(buf.validate.field).string.uuid = true];
+  // The unique identifier of the job
+  string id = 1 [(buf.validate.field).string.uuid = true];
 
+  // The workflow options object. The entire object must be provided and will fully overwrite the previous result
   WorkflowOptions worfklow_options = 2;
 }
 message SetJobWorkflowOptionsResponse {
   Job job = 1;
 }
 message SetJobSyncOptionsRequest {
-  string job_id = 1 [(buf.validate.field).string.uuid = true];
+  // The unique identifier of the job
+  string id = 1 [(buf.validate.field).string.uuid = true];
 
+  // The sync options object. The entire object must be provided and will fully overwrite the previous result
   ActivityOptions sync_options = 2;
 }
 message SetJobSyncOptionsResponse {

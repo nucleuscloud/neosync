@@ -4011,11 +4011,15 @@ export class GetJobRunLogsStreamResponse extends Message<GetJobRunLogsStreamResp
  */
 export class SetJobWorkflowOptionsRequest extends Message<SetJobWorkflowOptionsRequest> {
   /**
-   * @generated from field: string job_id = 1;
+   * The unique identifier of the job
+   *
+   * @generated from field: string id = 1;
    */
-  jobId = "";
+  id = "";
 
   /**
+   * The workflow options object. The entire object must be provided and will fully overwrite the previous result
+   *
    * @generated from field: mgmt.v1alpha1.WorkflowOptions worfklow_options = 2;
    */
   worfklowOptions?: WorkflowOptions;
@@ -4028,7 +4032,7 @@ export class SetJobWorkflowOptionsRequest extends Message<SetJobWorkflowOptionsR
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.SetJobWorkflowOptionsRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "job_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "worfklow_options", kind: "message", T: WorkflowOptions },
   ]);
 
@@ -4091,11 +4095,15 @@ export class SetJobWorkflowOptionsResponse extends Message<SetJobWorkflowOptions
  */
 export class SetJobSyncOptionsRequest extends Message<SetJobSyncOptionsRequest> {
   /**
-   * @generated from field: string job_id = 1;
+   * The unique identifier of the job
+   *
+   * @generated from field: string id = 1;
    */
-  jobId = "";
+  id = "";
 
   /**
+   * The sync options object. The entire object must be provided and will fully overwrite the previous result
+   *
    * @generated from field: mgmt.v1alpha1.ActivityOptions sync_options = 2;
    */
   syncOptions?: ActivityOptions;
@@ -4108,7 +4116,7 @@ export class SetJobSyncOptionsRequest extends Message<SetJobSyncOptionsRequest> 
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.SetJobSyncOptionsRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "job_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "sync_options", kind: "message", T: ActivityOptions },
   ]);
 

@@ -34,6 +34,20 @@ updated_by_id = $2
 WHERE id = $3
 RETURNING *;
 
+-- name: SetJobWorkflowOptions :one
+UPDATE neosync_api.jobs
+SET workflow_options = $1,
+updated_by_id = $2
+WHERE id = $3
+RETURNING *;
+
+-- name: SetJobSyncOptions :one
+UPDATE neosync_api.jobs
+SET sync_options = $1,
+updated_by_id = $2
+WHERE id = $3
+RETURNING *;
+
 -- name: UpdateJobMappings :one
 UPDATE neosync_api.jobs
 SET mappings = $1,

@@ -342,6 +342,76 @@ func (q *Queries) RemoveJobConnectionDestinations(ctx context.Context, db DBTX, 
 	return err
 }
 
+const setJobSyncOptions = `-- name: SetJobSyncOptions :one
+UPDATE neosync_api.jobs
+SET sync_options = $1,
+updated_by_id = $2
+WHERE id = $3
+RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, workflow_options, sync_options
+`
+
+type SetJobSyncOptionsParams struct {
+	SyncOptions *pg_models.ActivityOptions
+	UpdatedByID pgtype.UUID
+	ID          pgtype.UUID
+}
+
+func (q *Queries) SetJobSyncOptions(ctx context.Context, db DBTX, arg SetJobSyncOptionsParams) (NeosyncApiJob, error) {
+	row := db.QueryRow(ctx, setJobSyncOptions, arg.SyncOptions, arg.UpdatedByID, arg.ID)
+	var i NeosyncApiJob
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Name,
+		&i.AccountID,
+		&i.Status,
+		&i.ConnectionOptions,
+		&i.Mappings,
+		&i.CronSchedule,
+		&i.CreatedByID,
+		&i.UpdatedByID,
+		&i.WorkflowOptions,
+		&i.SyncOptions,
+	)
+	return i, err
+}
+
+const setJobWorkflowOptions = `-- name: SetJobWorkflowOptions :one
+UPDATE neosync_api.jobs
+SET workflow_options = $1,
+updated_by_id = $2
+WHERE id = $3
+RETURNING id, created_at, updated_at, name, account_id, status, connection_options, mappings, cron_schedule, created_by_id, updated_by_id, workflow_options, sync_options
+`
+
+type SetJobWorkflowOptionsParams struct {
+	WorkflowOptions *pg_models.WorkflowOptions
+	UpdatedByID     pgtype.UUID
+	ID              pgtype.UUID
+}
+
+func (q *Queries) SetJobWorkflowOptions(ctx context.Context, db DBTX, arg SetJobWorkflowOptionsParams) (NeosyncApiJob, error) {
+	row := db.QueryRow(ctx, setJobWorkflowOptions, arg.WorkflowOptions, arg.UpdatedByID, arg.ID)
+	var i NeosyncApiJob
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Name,
+		&i.AccountID,
+		&i.Status,
+		&i.ConnectionOptions,
+		&i.Mappings,
+		&i.CronSchedule,
+		&i.CreatedByID,
+		&i.UpdatedByID,
+		&i.WorkflowOptions,
+		&i.SyncOptions,
+	)
+	return i, err
+}
+
 const updateJobConnectionDestination = `-- name: UpdateJobConnectionDestination :one
 UPDATE neosync_api.job_destination_connection_associations
 SET options = $1,

@@ -8448,8 +8448,8 @@
           "extensions": [],
           "fields": [
             {
-              "name": "job_id",
-              "description": "",
+              "name": "id",
+              "description": "The unique identifier of the job",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -8461,7 +8461,7 @@
             },
             {
               "name": "sync_options",
-              "description": "",
+              "description": "The sync options object. The entire object must be provided and will fully overwrite the previous result",
               "label": "",
               "type": "ActivityOptions",
               "longType": "ActivityOptions",
@@ -8508,8 +8508,8 @@
           "extensions": [],
           "fields": [
             {
-              "name": "job_id",
-              "description": "",
+              "name": "id",
+              "description": "The unique identifier of the job",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -8521,7 +8521,7 @@
             },
             {
               "name": "worfklow_options",
-              "description": "",
+              "description": "The workflow options object. The entire object must be provided and will fully overwrite the previous result",
               "label": "",
               "type": "WorkflowOptions",
               "longType": "WorkflowOptions",

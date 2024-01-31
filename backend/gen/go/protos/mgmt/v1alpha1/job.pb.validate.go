@@ -11564,7 +11564,7 @@ func (m *SetJobWorkflowOptionsRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for JobId
+	// no validation rules for Id
 
 	if all {
 		switch v := interface{}(m.GetWorfklowOptions()).(type) {
@@ -11830,7 +11830,7 @@ func (m *SetJobSyncOptionsRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for JobId
+	// no validation rules for Id
 
 	if all {
 		switch v := interface{}(m.GetSyncOptions()).(type) {

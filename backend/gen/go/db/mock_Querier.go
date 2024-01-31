@@ -3602,6 +3602,122 @@ func (_c *MockQuerier_SetAnonymousUser_Call) RunAndReturn(run func(context.Conte
 	return _c
 }
 
+// SetJobSyncOptions provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) SetJobSyncOptions(ctx context.Context, db DBTX, arg SetJobSyncOptionsParams) (NeosyncApiJob, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetJobSyncOptions")
+	}
+
+	var r0 NeosyncApiJob
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, SetJobSyncOptionsParams) (NeosyncApiJob, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, SetJobSyncOptionsParams) NeosyncApiJob); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiJob)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, SetJobSyncOptionsParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_SetJobSyncOptions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetJobSyncOptions'
+type MockQuerier_SetJobSyncOptions_Call struct {
+	*mock.Call
+}
+
+// SetJobSyncOptions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg SetJobSyncOptionsParams
+func (_e *MockQuerier_Expecter) SetJobSyncOptions(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_SetJobSyncOptions_Call {
+	return &MockQuerier_SetJobSyncOptions_Call{Call: _e.mock.On("SetJobSyncOptions", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_SetJobSyncOptions_Call) Run(run func(ctx context.Context, db DBTX, arg SetJobSyncOptionsParams)) *MockQuerier_SetJobSyncOptions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(SetJobSyncOptionsParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_SetJobSyncOptions_Call) Return(_a0 NeosyncApiJob, _a1 error) *MockQuerier_SetJobSyncOptions_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_SetJobSyncOptions_Call) RunAndReturn(run func(context.Context, DBTX, SetJobSyncOptionsParams) (NeosyncApiJob, error)) *MockQuerier_SetJobSyncOptions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SetJobWorkflowOptions provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) SetJobWorkflowOptions(ctx context.Context, db DBTX, arg SetJobWorkflowOptionsParams) (NeosyncApiJob, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetJobWorkflowOptions")
+	}
+
+	var r0 NeosyncApiJob
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, SetJobWorkflowOptionsParams) (NeosyncApiJob, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, SetJobWorkflowOptionsParams) NeosyncApiJob); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiJob)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, SetJobWorkflowOptionsParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_SetJobWorkflowOptions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetJobWorkflowOptions'
+type MockQuerier_SetJobWorkflowOptions_Call struct {
+	*mock.Call
+}
+
+// SetJobWorkflowOptions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg SetJobWorkflowOptionsParams
+func (_e *MockQuerier_Expecter) SetJobWorkflowOptions(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_SetJobWorkflowOptions_Call {
+	return &MockQuerier_SetJobWorkflowOptions_Call{Call: _e.mock.On("SetJobWorkflowOptions", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_SetJobWorkflowOptions_Call) Run(run func(ctx context.Context, db DBTX, arg SetJobWorkflowOptionsParams)) *MockQuerier_SetJobWorkflowOptions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(SetJobWorkflowOptionsParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_SetJobWorkflowOptions_Call) Return(_a0 NeosyncApiJob, _a1 error) *MockQuerier_SetJobWorkflowOptions_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_SetJobWorkflowOptions_Call) RunAndReturn(run func(context.Context, DBTX, SetJobWorkflowOptionsParams) (NeosyncApiJob, error)) *MockQuerier_SetJobWorkflowOptions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateAccountApiKeyValue provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) UpdateAccountApiKeyValue(ctx context.Context, db DBTX, arg UpdateAccountApiKeyValueParams) (NeosyncApiAccountApiKey, error) {
 	ret := _m.Called(ctx, db, arg)

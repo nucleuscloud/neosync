@@ -1323,12 +1323,80 @@ func (s *Service) SetJobWorkflowOptions(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.SetJobWorkflowOptionsRequest],
 ) (*connect.Response[mgmtv1alpha1.SetJobWorkflowOptionsResponse], error) {
-	return connect.NewResponse(&mgmtv1alpha1.SetJobWorkflowOptionsResponse{}), nil
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("jobId", req.Msg.Id)
+
+	job, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
+		Id: req.Msg.Id,
+	}))
+	if err != nil {
+		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
+		return nil, err
+	}
+	_, err = s.verifyUserInAccount(ctx, job.Msg.Job.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	wfOptions := &pg_models.WorkflowOptions{}
+	if req.Msg.WorfklowOptions != nil {
+		wfOptions.FromDto(req.Msg.WorfklowOptions)
+	}
+
+	_, err = s.db.Q.SetJobWorkflowOptions(ctx, s.db.Db, db_queries.SetJobWorkflowOptionsParams{
+		WorkflowOptions: wfOptions,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	updatedJob, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
+		Id: req.Msg.Id,
+	}))
+	if err != nil {
+		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
+		return nil, err
+	}
+	return connect.NewResponse(&mgmtv1alpha1.SetJobWorkflowOptionsResponse{Job: updatedJob.Msg.Job}), nil
 }
 
 func (s *Service) SetJobSyncOptions(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.SetJobSyncOptionsRequest],
 ) (*connect.Response[mgmtv1alpha1.SetJobSyncOptionsResponse], error) {
-	return connect.NewResponse(&mgmtv1alpha1.SetJobSyncOptionsResponse{}), nil
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("jobId", req.Msg.Id)
+
+	job, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
+		Id: req.Msg.Id,
+	}))
+	if err != nil {
+		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
+		return nil, err
+	}
+	_, err = s.verifyUserInAccount(ctx, job.Msg.Job.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	syncOptions := &pg_models.ActivityOptions{}
+	if req.Msg.SyncOptions != nil {
+		syncOptions.FromDto(req.Msg.SyncOptions)
+	}
+
+	_, err = s.db.Q.SetJobSyncOptions(ctx, s.db.Db, db_queries.SetJobSyncOptionsParams{
+		SyncOptions: syncOptions,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	updatedJob, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
+		Id: req.Msg.Id,
+	}))
+	if err != nil {
+		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
+		return nil, err
+	}
+	return connect.NewResponse(&mgmtv1alpha1.SetJobSyncOptionsResponse{Job: updatedJob.Msg.Job}), nil
 }
