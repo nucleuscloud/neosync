@@ -1343,11 +1343,22 @@ func (s *Service) SetJobWorkflowOptions(
 		wfOptions.FromDto(req.Msg.WorfklowOptions)
 	}
 
-	_, err = s.db.Q.SetJobWorkflowOptions(ctx, s.db.Db, db_queries.SetJobWorkflowOptionsParams{
-		WorkflowOptions: wfOptions,
-	})
+	jobUuid, err := nucleusdb.ToUuid(req.Msg.Id)
 	if err != nil {
 		return nil, err
+	}
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.db.Q.SetJobWorkflowOptions(ctx, s.db.Db, db_queries.SetJobWorkflowOptionsParams{
+		ID:              jobUuid,
+		WorkflowOptions: wfOptions,
+		UpdatedByID:     *userUuid,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("unable to set job workflow options: %w", err)
 	}
 
 	updatedJob, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
@@ -1384,8 +1395,19 @@ func (s *Service) SetJobSyncOptions(
 		syncOptions.FromDto(req.Msg.SyncOptions)
 	}
 
+	jobUuid, err := nucleusdb.ToUuid(req.Msg.Id)
+	if err != nil {
+		return nil, err
+	}
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	_, err = s.db.Q.SetJobSyncOptions(ctx, s.db.Db, db_queries.SetJobSyncOptionsParams{
+		ID:          jobUuid,
 		SyncOptions: syncOptions,
+		UpdatedByID: *userUuid,
 	})
 	if err != nil {
 		return nil, err
