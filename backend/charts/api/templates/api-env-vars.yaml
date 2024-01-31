@@ -103,11 +103,8 @@ stringData:
     NEOSYNC_CLOUD: {{ .Values.neosyncCloud.enabled | default "false" | quote }}
     NEOSYNC_CLOUD_ALLOWED_WORKER_API_KEYS: {{ join "," .Values.neosyncCloud.workerApiKeys }}
 
-    KUBERNETES_ENABLED: {{ .Values.kubernetes.enabled | default "false" | quote }}
-
-    {{- if and .Values.kubernetes .Values.kubernetes.namespace }}
-    KUBERNETES_NAMESPACE: {{ .Values.kubernetes.namespace }}
-    {{- end }}
+    KUBERNETES_ENABLED: {{ .Values.kubernetes.enabled | default "true" | quote }}
+    KUBERNETES_NAMESPACE: {{ .Values.kubernetes.namespace | default .Release.Namespace }}
 
     {{- if and .Values.kubernetes .Values.kubernetes.workerAppName }}
     KUBERNETES_WORKER_APP_NAME: {{ .Values.kubernetes.workerAppName }}
