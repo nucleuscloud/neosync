@@ -9142,7 +9142,7 @@
             },
             {
               "name": "SetJobWorkflowOptions",
-              "description": "Set any job workflow options",
+              "description": "Set any job workflow options. Must provide entire object as is it will fully override the previous configuration",
               "requestType": "SetJobWorkflowOptionsRequest",
               "requestLongType": "SetJobWorkflowOptionsRequest",
               "requestFullType": "mgmt.v1alpha1.SetJobWorkflowOptionsRequest",
@@ -9154,7 +9154,7 @@
             },
             {
               "name": "SetJobSyncOptions",
-              "description": "Set the job sync options",
+              "description": "Set the job sync options. Must provide entire object as it will fully override the previous configuration",
               "requestType": "SetJobSyncOptionsRequest",
               "requestLongType": "SetJobSyncOptionsRequest",
               "requestFullType": "mgmt.v1alpha1.SetJobSyncOptionsRequest",

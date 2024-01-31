@@ -551,8 +551,8 @@ service JobService {
   rpc TerminateJobRun(TerminateJobRunRequest) returns (TerminateJobRunResponse) {}
   // Returns a stream of logs from the worker nodes that pertain to a specific job run
   rpc GetJobRunLogsStream(GetJobRunLogsStreamRequest) returns (stream GetJobRunLogsStreamResponse) {}
-  // Set any job workflow options
+  // Set any job workflow options. Must provide entire object as is it will fully override the previous configuration
   rpc SetJobWorkflowOptions(SetJobWorkflowOptionsRequest) returns (SetJobWorkflowOptionsResponse) {}
-  // Set the job sync options
+  // Set the job sync options. Must provide entire object as it will fully override the previous configuration
   rpc SetJobSyncOptions(SetJobSyncOptionsRequest) returns (SetJobSyncOptionsResponse) {}
 }

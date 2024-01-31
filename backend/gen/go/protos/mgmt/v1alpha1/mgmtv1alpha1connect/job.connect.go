@@ -164,9 +164,9 @@ type JobServiceClient interface {
 	TerminateJobRun(context.Context, *connect.Request[v1alpha1.TerminateJobRunRequest]) (*connect.Response[v1alpha1.TerminateJobRunResponse], error)
 	// Returns a stream of logs from the worker nodes that pertain to a specific job run
 	GetJobRunLogsStream(context.Context, *connect.Request[v1alpha1.GetJobRunLogsStreamRequest]) (*connect.ServerStreamForClient[v1alpha1.GetJobRunLogsStreamResponse], error)
-	// Set any job workflow options
+	// Set any job workflow options. Must provide entire object as is it will fully override the previous configuration
 	SetJobWorkflowOptions(context.Context, *connect.Request[v1alpha1.SetJobWorkflowOptionsRequest]) (*connect.Response[v1alpha1.SetJobWorkflowOptionsResponse], error)
-	// Set the job sync options
+	// Set the job sync options. Must provide entire object as it will fully override the previous configuration
 	SetJobSyncOptions(context.Context, *connect.Request[v1alpha1.SetJobSyncOptionsRequest]) (*connect.Response[v1alpha1.SetJobSyncOptionsResponse], error)
 }
 
@@ -530,9 +530,9 @@ type JobServiceHandler interface {
 	TerminateJobRun(context.Context, *connect.Request[v1alpha1.TerminateJobRunRequest]) (*connect.Response[v1alpha1.TerminateJobRunResponse], error)
 	// Returns a stream of logs from the worker nodes that pertain to a specific job run
 	GetJobRunLogsStream(context.Context, *connect.Request[v1alpha1.GetJobRunLogsStreamRequest], *connect.ServerStream[v1alpha1.GetJobRunLogsStreamResponse]) error
-	// Set any job workflow options
+	// Set any job workflow options. Must provide entire object as is it will fully override the previous configuration
 	SetJobWorkflowOptions(context.Context, *connect.Request[v1alpha1.SetJobWorkflowOptionsRequest]) (*connect.Response[v1alpha1.SetJobWorkflowOptionsResponse], error)
-	// Set the job sync options
+	// Set the job sync options. Must provide entire object as it will fully override the previous configuration
 	SetJobSyncOptions(context.Context, *connect.Request[v1alpha1.SetJobSyncOptionsRequest]) (*connect.Response[v1alpha1.SetJobSyncOptionsResponse], error)
 }
 

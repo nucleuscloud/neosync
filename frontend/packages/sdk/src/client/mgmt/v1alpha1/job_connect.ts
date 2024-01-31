@@ -239,7 +239,7 @@ export const JobService = {
       kind: MethodKind.ServerStreaming,
     },
     /**
-     * Set any job workflow options
+     * Set any job workflow options. Must provide entire object as is it will fully override the previous configuration
      *
      * @generated from rpc mgmt.v1alpha1.JobService.SetJobWorkflowOptions
      */
@@ -250,7 +250,7 @@ export const JobService = {
       kind: MethodKind.Unary,
     },
     /**
-     * Set the job sync options
+     * Set the job sync options. Must provide entire object as it will fully override the previous configuration
      *
      * @generated from rpc mgmt.v1alpha1.JobService.SetJobSyncOptions
      */
