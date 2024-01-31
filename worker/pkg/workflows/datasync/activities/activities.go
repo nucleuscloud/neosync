@@ -121,6 +121,11 @@ func (a *Activities) RetrieveActivityOptions(
 	}, nil
 }
 
+const (
+	defaultStartCloseTimeout = 10 * time.Minute
+	defaultMaxAttempts       = 1
+)
+
 func getSyncActivityOptionsFromJob(job *mgmtv1alpha1.Job) *workflow.ActivityOptions {
 	syncActivityOptions := &workflow.ActivityOptions{}
 	if job.SyncOptions != nil {
@@ -140,17 +145,17 @@ func getSyncActivityOptionsFromJob(job *mgmtv1alpha1.Job) *workflow.ActivityOpti
 		}
 	} else {
 		return &workflow.ActivityOptions{
-			StartToCloseTimeout: 10 * time.Minute, // backwards compatible default for pre-existing jobs that do not have sync options defined
+			StartToCloseTimeout: defaultStartCloseTimeout, // backwards compatible default for pre-existing jobs that do not have sync options defined
 			RetryPolicy: &temporal.RetryPolicy{
-				MaximumAttempts: 1, // backwards compatible default for pre-existing jobs that do not have sync options defined
+				MaximumAttempts: defaultMaxAttempts, // backwards compatible default for pre-existing jobs that do not have sync options defined
 			},
 		}
 	}
 	if syncActivityOptions.StartToCloseTimeout == 0 && syncActivityOptions.ScheduleToCloseTimeout == 0 {
-		syncActivityOptions.StartToCloseTimeout = 10 * time.Minute
+		syncActivityOptions.StartToCloseTimeout = defaultStartCloseTimeout
 	}
 	if syncActivityOptions.RetryPolicy == nil {
-		syncActivityOptions.RetryPolicy = &temporal.RetryPolicy{MaximumAttempts: 1}
+		syncActivityOptions.RetryPolicy = &temporal.RetryPolicy{MaximumAttempts: defaultMaxAttempts}
 	}
 	return syncActivityOptions
 }
