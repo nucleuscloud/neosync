@@ -26,7 +26,9 @@ stringData:
     NUCLEUS_ENV: {{ .Values.nucleusEnv }}
     {{- end }}
 
+    {{- if .Values.shutdownTimeoutSeconds }}
     SHUTDOWN_TIMEOUT_SECONDS: {{ .Values.shutdownTimeoutSeconds | quote }}
+    {{- end }}
 
     {{- if and .Values.auth .Values.auth.enabled }}
     AUTH_ENABLED: {{ .Values.auth.enabled | default "false" | quote }}
@@ -48,15 +50,15 @@ stringData:
     AUTH_CLIENTID_SECRET: {{ .Values.auth.clientMap | toJson | quote }}
     {{- end }}
 
-   {{- if and .Values.auth .Values.auth.cliClientId }}
+    {{- if and .Values.auth .Values.auth.cliClientId }}
     AUTH_CLI_CLIENT_ID: {{ .Values.auth.cliClientId }}
     {{- end }}
 
-   {{- if and .Values.auth .Values.auth.cliAudience }}
+    {{- if and .Values.auth .Values.auth.cliAudience }}
     AUTH_CLI_AUDIENCE: {{ .Values.auth.cliAudience }}
     {{- end }}
 
-   {{- if and .Values.auth .Values.auth.signatureAlgorithm }}
+    {{- if and .Values.auth .Values.auth.signatureAlgorithm }}
     AUTH_SIGNATURE_ALGORITHM: {{ .Values.auth.signatureAlgorithm }}
     {{- end }}
 
@@ -101,7 +103,9 @@ stringData:
     {{- end }}
 
     NEOSYNC_CLOUD: {{ .Values.neosyncCloud.enabled | default "false" | quote }}
+    {{- if .Values.neosyncCloud.enabled }}
     NEOSYNC_CLOUD_ALLOWED_WORKER_API_KEYS: {{ join "," .Values.neosyncCloud.workerApiKeys }}
+    {{- end }}
 
     KUBERNETES_ENABLED: {{ .Values.kubernetes.enabled | default "true" | quote }}
     KUBERNETES_NAMESPACE: {{ .Values.kubernetes.namespace | default .Release.Namespace }}
