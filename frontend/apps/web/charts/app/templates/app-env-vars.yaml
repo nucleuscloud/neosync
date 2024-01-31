@@ -11,11 +11,13 @@ stringData:
 
     PORT: {{ .Values.containerPort | quote }}
 
-    {{- if ne .Values.nucleusEnv "dev" }}
-    OTEL_EXPORTER_OTLP_PORT: "4317" # sends to gRPC receiver on port 4317
+    {{- if .Values.otel.enabled }}
+    OTEL_EXPORTER_OTLP_PORT: {{ .Values.otel.otlpPort | quote }} # sends to gRPC receiver
     {{- end }}
 
+    {{- if .Values.nucleusEnv }}
     NUCLEUS_ENV: {{ .Values.nucleusEnv }}
+    {{- end }}
 
     SHUTDOWN_TIMEOUT_SECONDS: {{ .Values.shutdownTimeoutSeconds | quote }}
 
@@ -81,5 +83,5 @@ stringData:
     {{- end }}
 
     NEOSYNC_CLOUD: {{ .Values.neosyncCloud.enabled | default "false" | quote }}
-    
+
     ENABLE_RUN_LOGS: {{ .Values.enableRunLogs | default "false" | quote }}

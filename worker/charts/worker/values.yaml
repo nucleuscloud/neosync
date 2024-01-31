@@ -17,7 +17,14 @@ serviceAccount:
   annotations: {}
   #   eks.amazonaws.com/role-arn: arn:aws:iam::AWS_ACCOUNT_ID:role/IAM_ROLE_NAME
 
+# Determines what .env file to load in if running bare metal
+# also adds a tag to the API logger
 nucleusEnv:
+
+otelExporterEnabled: false
+otel:
+  enabled: false
+  otlpPort: 4317
 
 resources:
   # These are low-usage defaults. Change these depending on your needs.
