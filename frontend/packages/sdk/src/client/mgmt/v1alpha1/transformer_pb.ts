@@ -959,6 +959,12 @@ export class TransformerConfig extends Message<TransformerConfig> {
      */
     value: GenerateCategorical;
     case: "generateCategoricalConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.TransformCharacterSubstitution transform_character_substitution_config = 41;
+     */
+    value: TransformCharacterSubstitution;
+    case: "transformCharacterSubstitutionConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<TransformerConfig>) {
@@ -1009,6 +1015,7 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 38, name: "generate_default_config", kind: "message", T: GenerateDefault, oneof: "config" },
     { no: 39, name: "transform_javascript_config", kind: "message", T: TransformJavascript, oneof: "config" },
     { no: 40, name: "generate_categorical_config", kind: "message", T: GenerateCategorical, oneof: "config" },
+    { no: 41, name: "transform_character_substitution_config", kind: "message", T: TransformCharacterSubstitution, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -2537,6 +2544,37 @@ export class GenerateCategorical extends Message<GenerateCategorical> {
 
   static equals(a: GenerateCategorical | PlainMessage<GenerateCategorical> | undefined, b: GenerateCategorical | PlainMessage<GenerateCategorical> | undefined): boolean {
     return proto3.util.equals(GenerateCategorical, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.TransformCharacterSubstitution
+ */
+export class TransformCharacterSubstitution extends Message<TransformCharacterSubstitution> {
+  constructor(data?: PartialMessage<TransformCharacterSubstitution>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.TransformCharacterSubstitution";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformCharacterSubstitution {
+    return new TransformCharacterSubstitution().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TransformCharacterSubstitution {
+    return new TransformCharacterSubstitution().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TransformCharacterSubstitution {
+    return new TransformCharacterSubstitution().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: TransformCharacterSubstitution | PlainMessage<TransformCharacterSubstitution> | undefined, b: TransformCharacterSubstitution | PlainMessage<TransformCharacterSubstitution> | undefined): boolean {
+    return proto3.util.equals(TransformCharacterSubstitution, a, b);
   }
 }
 

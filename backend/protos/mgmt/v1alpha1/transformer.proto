@@ -130,6 +130,7 @@ message TransformerConfig {
     GenerateDefault generate_default_config = 38;
     TransformJavascript transform_javascript_config = 39;
     GenerateCategorical generate_categorical_config = 40;
+    TransformCharacterSubstitution transform_character_substitution_config = 41;
   }
 }
 
@@ -274,6 +275,8 @@ message ValidateUserJavascriptCodeResponse {
 message GenerateCategorical {
   string categories = 1;
 }
+
+message TransformCharacterSubstitution {}
 
 service TransformersService {
   rpc GetSystemTransformers(GetSystemTransformersRequest) returns (GetSystemTransformersResponse) {}

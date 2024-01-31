@@ -1406,6 +1406,24 @@ func Test_TransformerStringLint(t *testing.T) {
 				},
 			},
 		},
+		{
+			Name: "generate_categorical",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateCategoricalConfig{
+					GenerateCategoricalConfig: &mgmtv1alpha1.GenerateCategorical{
+						Categories: "value1,value2",
+					},
+				},
+			},
+		},
+		{
+			Name: "transform_character_substitution",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformCharacterSubstitutionConfig{
+					TransformCharacterSubstitutionConfig: &mgmtv1alpha1.TransformCharacterSubstitution{},
+				},
+			},
+		},
 	}
 
 	for _, transformer := range transformers {
