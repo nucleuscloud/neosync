@@ -9,6 +9,12 @@ import (
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
+var (
+	letterList      = "abcdefghijklmnopqrstuvwxyz"
+	numberList      = "0123456789"
+	specialCharList = "!@#$%^&*()-+=_ []{}|\\ ;\"<>,./?"
+)
+
 func init() {
 
 	spec := bloblang.NewPluginSpec().
@@ -57,49 +63,36 @@ func TransformCharacterScramble(value string) (*string, error) {
 }
 
 func ScrambleChar(r rune) rune {
-	letterList := "abcdefghijklmnopqrstuvwxyz"
 
-	numberList := "0123456789"
-
-	specialCharList := "!@#$%^&*()-+=_ []{}|\\ ;\"<>,./?"
-
-	randStringListInd, err := transformer_utils.GenerateRandomInt64InValueRange(0, int64(len(letterList))-1)
-	if err != nil {
+	if unicode.IsSpace(r) {
 		return r
-	}
-
-	if unicode.IsLetter(r) {
-
+	} else if unicode.IsLetter(r) {
+		randStringListInd, err := transformer_utils.GenerateRandomInt64InValueRange(0, 25)
+		if err != nil {
+			return r
+		}
 		sub := rune(letterList[randStringListInd])
 		if unicode.IsUpper(r) {
 			return unicode.ToUpper(sub)
 		}
 		return sub
 
-	}
+	} else if unicode.IsDigit(r) {
 
-	randNumberListInd, err := transformer_utils.GenerateRandomInt64InValueRange(0, int64(len(numberList))-1)
-	if err != nil {
-		return r
-	}
-
-	if unicode.IsDigit(r) {
-
-		return rune(numberList[randNumberListInd])
-	}
-
-	randInd, err := transformer_utils.GenerateRandomInt64InValueRange(0, int64(len(specialCharList))-1)
-	if err != nil {
-		return r
-	}
-
-	if transformer_utils.IsAllowedSpecialChar(r) {
-		if unicode.IsSpace(r) {
+		randNumberListInd, err := transformer_utils.GenerateRandomInt64InValueRange(0, 9)
+		if err != nil {
 			return r
-		} else {
-			return rune(specialCharList[randInd])
 		}
 
+		return rune(numberList[randNumberListInd])
+
+	} else if transformer_utils.IsAllowedSpecialChar(r) {
+
+		randInd, err := transformer_utils.GenerateRandomInt64InValueRange(0, 34)
+		if err != nil {
+			return r
+		}
+		return rune(specialCharList[randInd])
 	}
 
 	return r

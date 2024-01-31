@@ -9,6 +9,12 @@ import (
 	"unicode"
 )
 
+var allowedSpecialChars = map[rune]struct{}{
+	'!': {}, '@': {}, '#': {}, '$': {}, '%': {}, '^': {}, '&': {}, '*': {}, '(': {}, ')': {},
+	'-': {}, '+': {}, '=': {}, '_': {}, '[': {}, ']': {}, '{': {}, '}': {}, '|': {}, '\\': {},
+	' ': {}, ';': {}, '"': {}, '<': {}, '>': {}, ',': {}, '.': {}, '/': {}, '?': {},
+}
+
 // substrings a string using rune length to account for multi-byte characters
 func SliceString(s string, l int) string {
 
@@ -134,12 +140,6 @@ func IsValidChar(s string) bool {
 }
 
 func IsAllowedSpecialChar(r rune) bool {
-	allowedSpecialChars := map[rune]struct{}{
-		'!': {}, '@': {}, '#': {}, '$': {}, '%': {}, '^': {}, '&': {}, '*': {}, '(': {}, ')': {},
-		'-': {}, '+': {}, '=': {}, '_': {}, '[': {}, ']': {}, '{': {}, '}': {}, '|': {}, '\\': {},
-		' ': {}, ';': {}, '"': {}, '<': {}, '>': {}, ',': {}, '.': {}, '/': {}, '?': {},
-	}
-
 	_, ok := allowedSpecialChars[r]
 	return ok
 }
