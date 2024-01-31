@@ -1,11 +1,15 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { auth, getLogoutUrl } from '../[...nextauth]/auth';
 
-export async function GET(): Promise<NextResponse> {
+export async function GET(req: NextRequest): Promise<NextResponse> {
+  const nextauthUrl = process.env.NEXTAUTH_URL!;
+
   try {
-    const nextauthUrl = process.env.NEXTAUTH_URL!;
+    const { searchParams } = new URL(req.url);
     const session = await auth();
-    if (!session) {
+    const idToken = session?.idToken ?? searchParams.get('idToken');
+    if (!idToken) {
+      console.error('there was no auth session');
       return NextResponse.redirect(nextauthUrl);
     }
 
@@ -13,26 +17,15 @@ export async function GET(): Promise<NextResponse> {
     if (!logoutUrl) {
       throw new Error('unable to locate logout url');
     }
-    if (!session.idToken) {
-      throw new Error('no id token present in the session');
-    }
 
     const qp = new URLSearchParams({
-      id_token_hint: session.idToken,
+      id_token_hint: idToken,
       // Needed for OAuth logout endpoint
       post_logout_redirect_uri: nextauthUrl,
     });
-
-    await fetch(`${logoutUrl}?${qp.toString()}`, {
-      method: 'GET',
-    });
-
-    return NextResponse.json({ success: true });
+    return NextResponse.redirect(`${logoutUrl}?${qp.toString()}`);
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({
-      success: false,
-      message: 'Could not sign out of auth provider',
-    });
+    console.error('unable to redirect to provider logout', 'error: ', error);
+    return NextResponse.redirect(nextauthUrl);
   }
 }

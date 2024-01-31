@@ -70,19 +70,8 @@ export function UserNav(): ReactElement | null {
             onClick={async () => {
               posthog.reset();
               try {
-                const resp = await fetch(`/api/auth/provider-sign-out`);
-                if (resp.ok) {
-                  const respbody = await resp.json();
-                  if (!respbody.success) {
-                    toast({
-                      title: 'Unable to sign out of provider session',
-                      description: respbody.message ?? undefined,
-                      variant: 'destructive',
-                    });
-                  }
-                }
                 await signOut({
-                  callbackUrl: '/',
+                  callbackUrl: `/api/auth/provider-sign-out?idToken=${session.data.idToken}`,
                 });
               } catch (err) {
                 toast({
