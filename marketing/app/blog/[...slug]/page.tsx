@@ -84,7 +84,7 @@ export async function generateMetadata({
       description: post.description,
       images: [ogUrl.toString()],
     },
-    metadataBase: url,
+    metadataBase: new URL(url),
   };
 }
 

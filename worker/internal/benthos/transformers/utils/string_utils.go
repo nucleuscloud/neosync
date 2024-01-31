@@ -6,7 +6,14 @@ import (
 	"net/mail"
 	"regexp"
 	"strings"
+	"unicode"
 )
+
+var allowedSpecialChars = map[rune]struct{}{
+	'!': {}, '@': {}, '#': {}, '$': {}, '%': {}, '^': {}, '&': {}, '*': {}, '(': {}, ')': {},
+	'-': {}, '+': {}, '=': {}, '_': {}, '[': {}, ']': {}, '{': {}, '}': {}, '|': {}, '\\': {},
+	' ': {}, ';': {}, '"': {}, '<': {}, '>': {}, ',': {}, '.': {}, '/': {}, '?': {},
+}
 
 // substrings a string using rune length to account for multi-byte characters
 func SliceString(s string, l int) string {
@@ -120,4 +127,19 @@ func IsValidUsername(username string) bool {
 	matched, _ := regexp.MatchString(rfcRegex, username)
 
 	return matched
+}
+
+// use MaxASCII to ensure that the unicode value is only within the ASCII block which only contains latin numbers, letters and characters.
+func IsValidChar(s string) bool {
+	for _, r := range s {
+		if !(r <= unicode.MaxASCII && (unicode.IsNumber(r) || unicode.IsLetter(r) || unicode.IsSpace(r) || IsAllowedSpecialChar(r))) {
+			return false
+		}
+	}
+	return true
+}
+
+func IsAllowedSpecialChar(r rune) bool {
+	_, ok := allowedSpecialChars[r]
+	return ok
 }

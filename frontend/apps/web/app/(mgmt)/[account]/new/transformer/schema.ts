@@ -232,6 +232,7 @@ const TRANSFORMER_SCHEMA_CONFIGS: Record<
   generateZipcodeConfig: EMPTY_TRANSFORMER_CONFIG,
   nullconfig: EMPTY_TRANSFORMER_CONFIG,
   passthroughConfig: EMPTY_TRANSFORMER_CONFIG,
+  transformCharacterScrambleConfig: EMPTY_TRANSFORMER_CONFIG,
 
   transformEmailConfig: transformEmailConfig,
   generateCardNumberConfig: generateCardNumberConfig,

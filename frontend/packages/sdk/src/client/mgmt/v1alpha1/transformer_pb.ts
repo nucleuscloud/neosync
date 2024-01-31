@@ -959,6 +959,12 @@ export class TransformerConfig extends Message<TransformerConfig> {
      */
     value: GenerateCategorical;
     case: "generateCategoricalConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.TransformCharacterScramble transform_character_scramble_config = 41;
+     */
+    value: TransformCharacterScramble;
+    case: "transformCharacterScrambleConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<TransformerConfig>) {
@@ -1009,6 +1015,7 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 38, name: "generate_default_config", kind: "message", T: GenerateDefault, oneof: "config" },
     { no: 39, name: "transform_javascript_config", kind: "message", T: TransformJavascript, oneof: "config" },
     { no: 40, name: "generate_categorical_config", kind: "message", T: GenerateCategorical, oneof: "config" },
+    { no: 41, name: "transform_character_scramble_config", kind: "message", T: TransformCharacterScramble, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -2537,6 +2544,37 @@ export class GenerateCategorical extends Message<GenerateCategorical> {
 
   static equals(a: GenerateCategorical | PlainMessage<GenerateCategorical> | undefined, b: GenerateCategorical | PlainMessage<GenerateCategorical> | undefined): boolean {
     return proto3.util.equals(GenerateCategorical, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.TransformCharacterScramble
+ */
+export class TransformCharacterScramble extends Message<TransformCharacterScramble> {
+  constructor(data?: PartialMessage<TransformCharacterScramble>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.TransformCharacterScramble";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformCharacterScramble {
+    return new TransformCharacterScramble().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TransformCharacterScramble {
+    return new TransformCharacterScramble().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TransformCharacterScramble {
+    return new TransformCharacterScramble().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: TransformCharacterScramble | PlainMessage<TransformCharacterScramble> | undefined, b: TransformCharacterScramble | PlainMessage<TransformCharacterScramble> | undefined): boolean {
+    return proto3.util.equals(TransformCharacterScramble, a, b);
   }
 }
 

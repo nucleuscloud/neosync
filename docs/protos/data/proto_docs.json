@@ -4240,6 +4240,17 @@
           ]
         },
         {
+          "name": "TransformCharacterScramble",
+          "longName": "TransformCharacterScramble",
+          "fullName": "mgmt.v1alpha1.TransformCharacterScramble",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": false,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": []
+        },
+        {
           "name": "TransformE164PhoneNumber",
           "longName": "TransformE164PhoneNumber",
           "fullName": "mgmt.v1alpha1.TransformE164PhoneNumber",
@@ -5036,6 +5047,18 @@
               "type": "GenerateCategorical",
               "longType": "GenerateCategorical",
               "fullType": "mgmt.v1alpha1.GenerateCategorical",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            },
+            {
+              "name": "transform_character_scramble_config",
+              "description": "",
+              "label": "",
+              "type": "TransformCharacterScramble",
+              "longType": "TransformCharacterScramble",
+              "fullType": "mgmt.v1alpha1.TransformCharacterScramble",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",

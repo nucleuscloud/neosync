@@ -1016,6 +1016,8 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		return "null", nil
 	case "generate_default":
 		return "default", nil
+	case "transform_character_scramble":
+		return fmt.Sprintf(`transform_character_scramble(value:this.%s)`, col.Column), nil
 	default:
 		return "", fmt.Errorf("unsupported transformer")
 	}
