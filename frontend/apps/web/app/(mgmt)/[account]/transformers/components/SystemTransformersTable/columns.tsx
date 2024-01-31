@@ -5,9 +5,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { PlainMessage } from '@bufbuild/protobuf';
 import { SystemTransformer } from '@neosync/sdk';
 import { ColumnDef } from '@tanstack/react-table';
+import NextLink from 'next/link';
 import { DataTableColumnHeader } from './data-table-column-header';
 import { DataTableRowActions } from './data-table-row-actions';
-import NextLink from 'next/link';
 
 interface GetSystemTransformercolumnsProps {
   accountName: string;
@@ -40,8 +40,8 @@ export function getSystemTransformerColumns(
       enableHiding: false,
     },
     {
-      id: 'value',
-      accessorKey: 'value',
+      id: 'name',
+      accessorKey: 'name',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Name" />
       ),
