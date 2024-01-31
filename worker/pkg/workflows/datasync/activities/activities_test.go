@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"connectrpc.com/connect"
 	"github.com/benthosdev/benthos/v4/public/bloblang"
@@ -26,7 +27,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/testsuite"
+	"go.temporal.io/sdk/workflow"
 )
 
 func TestAreMappingsSubsetOfSchemas(t *testing.T) {
@@ -1476,4 +1479,39 @@ func Test_syncMapToStringMap(t *testing.T) {
 	assert.Equal(t, out["bar"], "baz")
 
 	assert.Empty(t, syncMapToStringMap(nil))
+}
+
+func Test_getSyncActivityOptionsFromJob(t *testing.T) {
+	defaultOpts := &workflow.ActivityOptions{StartToCloseTimeout: 10 * time.Minute, RetryPolicy: &temporal.RetryPolicy{MaximumAttempts: 1}}
+	type testcase struct {
+		name     string
+		input    *mgmtv1alpha1.Job
+		expected *workflow.ActivityOptions
+	}
+	tests := []testcase{
+		{name: "nil sync opts", input: &mgmtv1alpha1.Job{}, expected: defaultOpts},
+		{name: "custom start to close timeout", input: &mgmtv1alpha1.Job{
+			SyncOptions: &mgmtv1alpha1.ActivityOptions{
+				StartToCloseTimeout: ptr(int64(2)),
+			},
+		}, expected: &workflow.ActivityOptions{StartToCloseTimeout: 2}},
+		{name: "custom schedule to close timeout", input: &mgmtv1alpha1.Job{
+			SyncOptions: &mgmtv1alpha1.ActivityOptions{
+				ScheduleToCloseTimeout: ptr(int64(2)),
+			},
+		}, expected: &workflow.ActivityOptions{ScheduleToCloseTimeout: 2}},
+		{name: "custom retry policy", input: &mgmtv1alpha1.Job{
+			SyncOptions: &mgmtv1alpha1.ActivityOptions{
+				RetryPolicy: &mgmtv1alpha1.RetryPolicy{
+					MaximumAttempts: ptr(int32(1)),
+				},
+			},
+		}, expected: &workflow.ActivityOptions{RetryPolicy: &temporal.RetryPolicy{MaximumAttempts: 1}}},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			output := getSyncActivityOptionsFromJob(test.input)
+			assert.Equal(t, test.expected, output)
+		})
+	}
 }

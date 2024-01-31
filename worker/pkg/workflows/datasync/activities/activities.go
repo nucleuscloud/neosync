@@ -116,29 +116,37 @@ func (a *Activities) RetrieveActivityOptions(
 		return nil, err
 	}
 	job := jobResp.Msg.Job
-	syncActivityOptions := &workflow.ActivityOptions{
-		StartToCloseTimeout: 10 * time.Minute, // backwards compatible default for pre-existing jobs that do not have sync options defined
-		RetryPolicy: &temporal.RetryPolicy{
-			MaximumAttempts: 1, // backwards compatible default for pre-existing jobs that do not have sync options defined
-		},
-	}
+	return &RetrieveActivityOptionsResponse{
+		SyncActivityOptions: getSyncActivityOptionsFromJob(job),
+	}, nil
+}
+
+func getSyncActivityOptionsFromJob(job *mgmtv1alpha1.Job) *workflow.ActivityOptions {
+	syncActivityOptions := &workflow.ActivityOptions{}
 	if job.SyncOptions != nil {
 		if job.SyncOptions.StartToCloseTimeout != nil {
-			syncActivityOptions.StartToCloseTimeout = time.Duration(*job.SyncOptions.StartToCloseTimeout) * time.Second
+			syncActivityOptions.StartToCloseTimeout = time.Duration(*job.SyncOptions.StartToCloseTimeout)
 		}
 		if job.SyncOptions.ScheduleToCloseTimeout != nil {
-			syncActivityOptions.ScheduleToCloseTimeout = time.Duration(*job.SyncOptions.ScheduleToCloseTimeout) * time.Second
+			syncActivityOptions.ScheduleToCloseTimeout = time.Duration(*job.SyncOptions.ScheduleToCloseTimeout)
 		}
 		if job.SyncOptions.RetryPolicy != nil {
 			if job.SyncOptions.RetryPolicy.MaximumAttempts != nil {
+				if syncActivityOptions.RetryPolicy == nil {
+					syncActivityOptions.RetryPolicy = &temporal.RetryPolicy{}
+				}
 				syncActivityOptions.RetryPolicy.MaximumAttempts = *job.SyncOptions.RetryPolicy.MaximumAttempts
 			}
 		}
+	} else {
+		return &workflow.ActivityOptions{
+			StartToCloseTimeout: 10 * time.Minute, // backwards compatible default for pre-existing jobs that do not have sync options defined
+			RetryPolicy: &temporal.RetryPolicy{
+				MaximumAttempts: 1, // backwards compatible default for pre-existing jobs that do not have sync options defined
+			},
+		}
 	}
-
-	return &RetrieveActivityOptionsResponse{
-		SyncActivityOptions: syncActivityOptions,
-	}, nil
+	return syncActivityOptions
 }
 
 func (a *Activities) GenerateBenthosConfigs(
