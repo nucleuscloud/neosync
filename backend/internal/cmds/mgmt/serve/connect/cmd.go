@@ -68,13 +68,14 @@ func serve(ctx context.Context) error {
 	if host == "" {
 		host = "127.0.0.1"
 	}
-	environment := viper.GetString("NUCLEUS_ENV")
-	if environment == "" {
-		environment = "unknown"
+
+	logger := neosynclogger.New(neosynclogger.ShouldFormatAsJson(), nil)
+
+	neoEnv := viper.GetString("NUCLEUS_ENV")
+	if neoEnv != "" {
+		logger = logger.With("nucleusEnv", neoEnv)
 	}
 
-	logger := neosynclogger.New(neosynclogger.ShouldFormatAsJson(), nil).
-		With("nucleusEnv", environment)
 	loglogger := neosynclogger.NewLogLogger(neosynclogger.ShouldFormatAsJson(), nil)
 
 	slog.SetDefault(logger) // set default logger for methods that can't easily access the configured logger
