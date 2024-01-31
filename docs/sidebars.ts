@@ -193,6 +193,16 @@ const sidebars: SidebarsConfig = {
       label: 'Using Neosync in CI',
     },
     {
+      type: 'doc',
+      id: 'guides/analytics',
+      label: 'Configuring Analytics',
+    },
+    {
+      type: 'doc',
+      id: 'guides/neosync-local-dev',
+      label: 'Developing Neosync Locally',
+    },
+    {
       type: 'html',
       value: '<div>Connections</div>',
       className: 'sidebarcategory',
