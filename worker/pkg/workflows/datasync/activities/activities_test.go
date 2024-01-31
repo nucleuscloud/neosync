@@ -1503,10 +1503,10 @@ func Test_getSyncActivityOptionsFromJob(t *testing.T) {
 		{name: "custom retry policy", input: &mgmtv1alpha1.Job{
 			SyncOptions: &mgmtv1alpha1.ActivityOptions{
 				RetryPolicy: &mgmtv1alpha1.RetryPolicy{
-					MaximumAttempts: ptr(int32(1)),
+					MaximumAttempts: ptr(int32(2)),
 				},
 			},
-		}, expected: &workflow.ActivityOptions{RetryPolicy: &temporal.RetryPolicy{MaximumAttempts: 1}}},
+		}, expected: &workflow.ActivityOptions{StartToCloseTimeout: 10 * time.Minute, RetryPolicy: &temporal.RetryPolicy{MaximumAttempts: 2}}},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
