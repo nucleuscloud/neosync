@@ -53,6 +53,7 @@ Neosync comes out of the box with 40+ system transformers in order to give you a
 | [Transform Last Name](/transformers/system#transform-last-name)                   | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_last_name.go)                                | Transforms an existing last name.                                                                                                |
 | [Transform Phone Number](/transformers/system#transform-phone-number)             | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_phone.go)                                    | Transforms an existing phone number that is typed as a string.                                                                   |
 | [Transform String](/transformers/system#transform-string)                         | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_string.go)                                   | Transforms an existing string value.                                                                                             |
+| [Transform Character Scramble](/transformers/system#transform-character-scramble) | string  | [Code](https://github.com/nucleuscloud/neosync/blob/main/worker/internal/benthos/transformers/transform_character_scramble.go)                       | Transforms an existing string value by scrambling the characters while maintaining the format.                                   |
 | [Passthrough](/transformers/system#passthrough)                                   | string  | [Code](https://github.com/nucleuscloud/neosync/blob/4e459151080109ffa0c5b0d9937f4f20fecfa6c6/worker/pkg/workflows/datasync/activities/activities.go) | Passes the input value through to the destination with no changes.                                                               |
 | [Null](/transformers/system#null)                                                 | string  | [Code](https://github.com/nucleuscloud/neosync/blob/4e459151080109ffa0c5b0d9937f4f20fecfa6c6/worker/pkg/workflows/datasync/activities/activities.go) | Inserts a `null` string instead of the source value.                                                                             |
 
@@ -886,6 +887,31 @@ There are several ways you can mix-and-match configurations to get different pot
 | -------------- | ------------- | -------------- |
 | false          | bill          | je7R6          |
 | true           | lorem         | i1NMe          |
+
+### Transform Character Scramble\{#transform-character-scramble}
+
+Transforms a string value with characters into an anonymized version of that string value while preserving spaces and capitalization. Letters will be replaced with letters, numbers with numbers and non-number or letter ASCII characters such as !&\* with other charaacters.
+
+For example:
+
+Original: Hello World 123!$%
+Substituted: Ifmmp Xpsme 234@%^
+
+Note that this does not work for hex values: 0x00 -> 0x1F such as chinese characters.
+
+**Configurations**
+
+There is no configuration for this transformer.
+
+**Examples**
+
+There are several ways you can mix-and-match configurations to get different potential random integer formats. Here are some possible combinations:
+
+| Example Input | Example Output |
+| ------------- | -------------- |
+| helloworld    | didlenfioq     |
+| Hello World!  | Ijalso Nfmsd&  |
+| Hello 1234    | Praji 2873     |
 
 ### Passthrough\{#passthrough}
 
