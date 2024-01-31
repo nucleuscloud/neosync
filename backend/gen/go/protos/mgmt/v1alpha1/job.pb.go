@@ -1531,7 +1531,8 @@ type CreateJobRequest struct {
 	Source       *JobSource              `protobuf:"bytes,5,opt,name=source,proto3" json:"source,omitempty"`
 	Destinations []*CreateJobDestination `protobuf:"bytes,6,rep,name=destinations,proto3" json:"destinations,omitempty"`
 	// Initially trigger a run of this job regardless of its status or cron schedule
-	InitiateJobRun  bool             `protobuf:"varint,7,opt,name=initiate_job_run,json=initiateJobRun,proto3" json:"initiate_job_run,omitempty"`
+	InitiateJobRun bool `protobuf:"varint,7,opt,name=initiate_job_run,json=initiateJobRun,proto3" json:"initiate_job_run,omitempty"`
+	// Specify timeouts and other workflow options for the underlying temporal workflow
 	WorkflowOptions *WorkflowOptions `protobuf:"bytes,8,opt,name=workflow_options,json=workflowOptions,proto3" json:"workflow_options,omitempty"`
 	// Specify timeout and retry options for data synchronization activities
 	// Data sync activities are any piece of work that involves actually synchronizing data from a source to a destination
@@ -3578,21 +3579,25 @@ type Job struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// The unique identifier of the job
 	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	CreatedByUserId string                 `protobuf:"bytes,2,opt,name=created_by_user_id,json=createdByUserId,proto3" json:"created_by_user_id,omitempty"`
 	CreatedAt       *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedByUserId string                 `protobuf:"bytes,4,opt,name=updated_by_user_id,json=updatedByUserId,proto3" json:"updated_by_user_id,omitempty"`
 	UpdatedAt       *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	Name            string                 `protobuf:"bytes,6,opt,name=name,proto3" json:"name,omitempty"`
-	Source          *JobSource             `protobuf:"bytes,7,opt,name=source,proto3" json:"source,omitempty"`
-	Destinations    []*JobDestination      `protobuf:"bytes,8,rep,name=destinations,proto3" json:"destinations,omitempty"`
-	Mappings        []*JobMapping          `protobuf:"bytes,9,rep,name=mappings,proto3" json:"mappings,omitempty"`
-	CronSchedule    *string                `protobuf:"bytes,10,opt,name=cron_schedule,json=cronSchedule,proto3,oneof" json:"cron_schedule,omitempty"`
-	AccountId       string                 `protobuf:"bytes,11,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
+	// The unique, friendly name of the job
+	Name         string            `protobuf:"bytes,6,opt,name=name,proto3" json:"name,omitempty"`
+	Source       *JobSource        `protobuf:"bytes,7,opt,name=source,proto3" json:"source,omitempty"`
+	Destinations []*JobDestination `protobuf:"bytes,8,rep,name=destinations,proto3" json:"destinations,omitempty"`
+	Mappings     []*JobMapping     `protobuf:"bytes,9,rep,name=mappings,proto3" json:"mappings,omitempty"`
+	CronSchedule *string           `protobuf:"bytes,10,opt,name=cron_schedule,json=cronSchedule,proto3,oneof" json:"cron_schedule,omitempty"`
+	// The account identifier that a job is associated with
+	AccountId string `protobuf:"bytes,11,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
 	// Specify timeout and retry options for data synchronization activities
 	// Data sync activities are any piece of work that involves actually synchronizing data from a source to a destination
 	// For the data sync and generate jobs, this will be applied per table
-	SyncOptions     *ActivityOptions `protobuf:"bytes,12,opt,name=sync_options,json=syncOptions,proto3" json:"sync_options,omitempty"`
+	SyncOptions *ActivityOptions `protobuf:"bytes,12,opt,name=sync_options,json=syncOptions,proto3" json:"sync_options,omitempty"`
+	// Specify timeouts and other workflow options for the underlying temporal workflow
 	WorkflowOptions *WorkflowOptions `protobuf:"bytes,13,opt,name=workflow_options,json=workflowOptions,proto3" json:"workflow_options,omitempty"`
 }
 

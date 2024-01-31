@@ -127,6 +127,7 @@ message CreateJobRequest {
   // Initially trigger a run of this job regardless of its status or cron schedule
   bool initiate_job_run = 7;
 
+  // Specify timeouts and other workflow options for the underlying temporal workflow
   WorkflowOptions workflow_options = 8;
 
   // Specify timeout and retry options for data synchronization activities
@@ -312,6 +313,7 @@ message CancelJobRunRequest {
 message CancelJobRunResponse {}
 
 message Job {
+  // The unique identifier of the job
   string id = 1;
 
   string created_by_user_id = 2;
@@ -320,6 +322,7 @@ message Job {
   string updated_by_user_id = 4;
   google.protobuf.Timestamp updated_at = 5;
 
+  // The unique, friendly name of the job
   string name = 6;
 
   JobSource source = 7;
@@ -327,6 +330,7 @@ message Job {
   repeated JobMapping mappings = 9;
   optional string cron_schedule = 10;
 
+  // The account identifier that a job is associated with
   string account_id = 11;
 
   // Specify timeout and retry options for data synchronization activities
@@ -334,6 +338,7 @@ message Job {
   // For the data sync and generate jobs, this will be applied per table
   ActivityOptions sync_options = 12;
 
+  // Specify timeouts and other workflow options for the underlying temporal workflow
   WorkflowOptions workflow_options = 13;
 }
 

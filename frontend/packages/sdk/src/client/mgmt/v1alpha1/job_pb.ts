@@ -1170,6 +1170,8 @@ export class CreateJobRequest extends Message<CreateJobRequest> {
   initiateJobRun = false;
 
   /**
+   * Specify timeouts and other workflow options for the underlying temporal workflow
+   *
    * @generated from field: mgmt.v1alpha1.WorkflowOptions workflow_options = 8;
    */
   workflowOptions?: WorkflowOptions;
@@ -2733,6 +2735,8 @@ export class CancelJobRunResponse extends Message<CancelJobRunResponse> {
  */
 export class Job extends Message<Job> {
   /**
+   * The unique identifier of the job
+   *
    * @generated from field: string id = 1;
    */
   id = "";
@@ -2758,6 +2762,8 @@ export class Job extends Message<Job> {
   updatedAt?: Timestamp;
 
   /**
+   * The unique, friendly name of the job
+   *
    * @generated from field: string name = 6;
    */
   name = "";
@@ -2783,6 +2789,8 @@ export class Job extends Message<Job> {
   cronSchedule?: string;
 
   /**
+   * The account identifier that a job is associated with
+   *
    * @generated from field: string account_id = 11;
    */
   accountId = "";
@@ -2797,6 +2805,8 @@ export class Job extends Message<Job> {
   syncOptions?: ActivityOptions;
 
   /**
+   * Specify timeouts and other workflow options for the underlying temporal workflow
+   *
    * @generated from field: mgmt.v1alpha1.WorkflowOptions workflow_options = 13;
    */
   workflowOptions?: WorkflowOptions;

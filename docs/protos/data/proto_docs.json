@@ -5957,7 +5957,7 @@
             },
             {
               "name": "workflow_options",
-              "description": "",
+              "description": "Specify timeouts and other workflow options for the underlying temporal workflow",
               "label": "",
               "type": "WorkflowOptions",
               "longType": "WorkflowOptions",
@@ -6913,7 +6913,7 @@
           "fields": [
             {
               "name": "id",
-              "description": "",
+              "description": "The unique identifier of the job",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -6973,7 +6973,7 @@
             },
             {
               "name": "name",
-              "description": "",
+              "description": "The unique, friendly name of the job",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -7033,7 +7033,7 @@
             },
             {
               "name": "account_id",
-              "description": "",
+              "description": "The account identifier that a job is associated with",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -7057,7 +7057,7 @@
             },
             {
               "name": "workflow_options",
-              "description": "",
+              "description": "Specify timeouts and other workflow options for the underlying temporal workflow",
               "label": "",
               "type": "WorkflowOptions",
               "longType": "WorkflowOptions",
