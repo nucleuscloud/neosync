@@ -12,7 +12,7 @@ import (
 var (
 	letterList      = "abcdefghijklmnopqrstuvwxyz"
 	numberList      = "0123456789"
-	specialCharList = "!@#$%^&*()-+=_ []{}|\\ ;\"<>,./?"
+	specialCharList = "!@#$%^&*()-+=_ []{}|\\;\"<>,./?"
 )
 
 func init() {
@@ -87,8 +87,7 @@ func ScrambleChar(r rune) rune {
 		return rune(numberList[randNumberListInd])
 
 	} else if transformer_utils.IsAllowedSpecialChar(r) {
-
-		randInd, err := transformer_utils.GenerateRandomInt64InValueRange(0, 34)
+		randInd, err := transformer_utils.GenerateRandomInt64InValueRange(0, 28)
 		if err != nil {
 			return r
 		}
