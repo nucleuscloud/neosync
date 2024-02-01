@@ -28,6 +28,7 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sshtunnel"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
@@ -154,6 +155,7 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 	dsnConnectionId string,
 	driver string,
 	sourceTableOpts map[string]*sqlSourceTableOptions,
+	groupedColumnInfo map[string]map[string]*dbschemas_utils.ColumnInfo,
 ) ([]*BenthosConfigResponse, error) {
 	responses := []*BenthosConfigResponse{}
 
@@ -171,6 +173,7 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 			where = *tableOpt.WhereClause
 		}
 
+		table := neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table)
 		bc := &neosync_benthos.BenthosConfig{
 			StreamConfig: neosync_benthos.StreamConfig{
 				Input: &neosync_benthos.InputConfig{
@@ -179,7 +182,7 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 							Driver: driver,
 							Dsn:    "${SOURCE_CONNECTION_DSN}",
 
-							Table:   neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table),
+							Table:   table,
 							Where:   where,
 							Columns: cols,
 						},
@@ -200,7 +203,7 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 			},
 		}
 
-		processorConfigs, err := b.buildProcessorConfigs(ctx, tableMapping.Mappings)
+		processorConfigs, err := b.buildProcessorConfigs(ctx, tableMapping.Mappings, groupedColumnInfo[table])
 		if err != nil {
 			return nil, err
 		}
@@ -255,7 +258,7 @@ func buildBenthosS3Credentials(mgmtCreds *mgmtv1alpha1.AwsS3Credentials) *neosyn
 }
 
 func areMappingsSubsetOfSchemas(
-	groupedSchemas map[string]map[string]struct{},
+	groupedSchemas map[string]map[string]*dbschemas_utils.ColumnInfo,
 	mappings []*mgmtv1alpha1.JobMapping,
 ) bool {
 	tableColMappings := getUniqueColMappingsMap(mappings)
@@ -377,7 +380,7 @@ func (a *Activities) RunSqlInitTableStatements(
 }
 
 func shouldHaltOnSchemaAddition(
-	groupedSchemas map[string]map[string]struct{},
+	groupedSchemas map[string]map[string]*dbschemas_utils.ColumnInfo,
 	mappings []*mgmtv1alpha1.JobMapping,
 ) bool {
 	tableColMappings := getUniqueColMappingsMap(mappings)
@@ -757,14 +760,14 @@ func getMysqlDsn(
 	}
 }
 
-func (b *benthosBuilder) buildProcessorConfigs(ctx context.Context, cols []*mgmtv1alpha1.JobMapping) ([]*neosync_benthos.ProcessorConfig, error) {
+func (b *benthosBuilder) buildProcessorConfigs(ctx context.Context, cols []*mgmtv1alpha1.JobMapping, tableColumnInfo map[string]*dbschemas_utils.ColumnInfo) ([]*neosync_benthos.ProcessorConfig, error) {
 
 	jsCode, err := b.extractJsFunctionsAndOutputs(ctx, cols)
 	if err != nil {
 		return nil, err
 	}
 
-	mutations, err := b.buildMutationConfigs(ctx, cols)
+	mutations, err := b.buildMutationConfigs(ctx, cols, tableColumnInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -811,11 +814,12 @@ func (b *benthosBuilder) extractJsFunctionsAndOutputs(ctx context.Context, cols 
 
 }
 
-func (b *benthosBuilder) buildMutationConfigs(ctx context.Context, cols []*mgmtv1alpha1.JobMapping) (string, error) {
+func (b *benthosBuilder) buildMutationConfigs(ctx context.Context, cols []*mgmtv1alpha1.JobMapping, tableColumnInfo map[string]*dbschemas_utils.ColumnInfo) (string, error) {
 
 	mutations := []string{}
 
 	for _, col := range cols {
+		colInfo := tableColumnInfo[col.Column]
 		if shouldProcessColumn(col.Transformer) {
 			if _, ok := col.Transformer.Config.Config.(*mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig); ok {
 				// handle user defined transformer -> get the user defined transformer configs using the id
@@ -826,7 +830,7 @@ func (b *benthosBuilder) buildMutationConfigs(ctx context.Context, cols []*mgmtv
 				col.Transformer = val
 			}
 			if col.Transformer.Source != "transform_javascript" {
-				mutation, err := computeMutationFunction(col)
+				mutation, err := computeMutationFunction(col, colInfo)
 				if err != nil {
 					return "", fmt.Errorf("%s is not a supported transformer: %w", col.Transformer, err)
 				}
@@ -909,7 +913,7 @@ function transformers
 root.{destination_col} = transformerfunction(args)
 */
 
-func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
+func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_utils.ColumnInfo) (string, error) {
 
 	switch col.Transformer.Source {
 	case "generate_categorical":
@@ -987,7 +991,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping) (string, error) {
 		return fmt.Sprintf("transform_e164_phone_number(value:this.%s,preserve_length:%t)", col.Column, pl), nil
 	case "transform_first_name":
 		pl := col.Transformer.Config.GetTransformFirstNameConfig().PreserveLength
-		return fmt.Sprintf("transform_first_name(value:this.%s,preserve_length:%t)", col.Column, pl), nil
+		return fmt.Sprintf("transform_first_name(value:this.%s,preserve_length:%t,max_length:%d)", col.Column, pl, *colInfo.CharacterMaximumLength), nil
 	case "transform_float64":
 		rMin := col.Transformer.Config.GetTransformFloat64Config().RandomizationRangeMin
 		rMax := col.Transformer.Config.GetTransformFloat64Config().RandomizationRangeMax

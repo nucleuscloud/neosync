@@ -17,7 +17,10 @@ SELECT
 	c.ordinal_position,
 	COALESCE(c.column_default, 'NULL') as column_default, -- must coalesce because sqlc doesn't appear to work for system structs to output a *string
 	c.is_nullable,
-	c.data_type
+	c.data_type,
+    COALESCE(c.character_maximum_length, -1) as character_maximum_length,
+    COALESCE(c.numeric_precision, -1) as numeric_precision,
+    COALESCE(c.numeric_scale, -1) as numeric_scale
 FROM
 	information_schema.columns AS c
 	JOIN information_schema.tables AS t ON c.table_schema = t.table_schema
@@ -28,13 +31,16 @@ WHERE
 `
 
 type GetDatabaseSchemaRow struct {
-	TableSchema     string
-	TableName       string
-	ColumnName      string
-	OrdinalPosition int
-	ColumnDefault   string
-	IsNullable      string
-	DataType        string
+	TableSchema            string
+	TableName              string
+	ColumnName             string
+	OrdinalPosition        int
+	ColumnDefault          string
+	IsNullable             string
+	DataType               string
+	CharacterMaximumLength int
+	NumericPrecision       int
+	NumericScale           int
 }
 
 func (q *Queries) GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabaseSchemaRow, error) {
@@ -54,6 +60,9 @@ func (q *Queries) GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabas
 			&i.ColumnDefault,
 			&i.IsNullable,
 			&i.DataType,
+			&i.CharacterMaximumLength,
+			&i.NumericPrecision,
+			&i.NumericScale,
 		); err != nil {
 			return nil, err
 		}
@@ -74,9 +83,9 @@ SELECT
 	COALESCE(c.column_default, 'NULL') as column_default, -- must coalesce because sqlc doesn't appear to work for system structs to output a *string
 	c.is_nullable,
 	c.data_type,
-    c.character_maximum_length,
-    c.numeric_precision,
-    c.numeric_scale
+    COALESCE(c.character_maximum_length, -1) as character_maximum_length,
+    COALESCE(c.numeric_precision, -1) as numeric_precision,
+    COALESCE(c.numeric_scale, -1) as numeric_scale
 FROM
 	information_schema.columns AS c
 	JOIN information_schema.tables AS t ON c.table_schema = t.table_schema
@@ -100,9 +109,9 @@ type GetDatabaseTableSchemaRow struct {
 	ColumnDefault          string
 	IsNullable             string
 	DataType               string
-	CharacterMaximumLength interface{}
-	NumericPrecision       interface{}
-	NumericScale           interface{}
+	CharacterMaximumLength int
+	NumericPrecision       int
+	NumericScale           int
 }
 
 func (q *Queries) GetDatabaseTableSchema(ctx context.Context, db DBTX, arg *GetDatabaseTableSchemaParams) ([]*GetDatabaseTableSchemaRow, error) {

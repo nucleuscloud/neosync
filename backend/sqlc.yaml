@@ -90,6 +90,12 @@ sql:
             go_type: string
           - column: information_schema.columns.data_type
             go_type: string
+          - column: information_schema.columns.character_maximum_length
+            go_type: int
+          - column: information_schema.columns.numeric_precision
+            go_type: int
+          - column: information_schema.columns.numeric_scale
+            go_type: int
           - column: information_schema.tables.table_schema
             go_type: string
           - column: information_schema.tables.table_name

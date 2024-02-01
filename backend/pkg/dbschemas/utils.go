@@ -18,6 +18,16 @@ type TableConstraints struct {
 }
 type TableDependency = map[string]*TableConstraints
 
+type ColumnInfo struct {
+	OrdinalPosition        int32
+	ColumnDefault          string
+	IsNullable             string
+	DataType               string
+	CharacterMaximumLength *int32
+	NumericPrecision       *int32
+	NumericScale           *int32
+}
+
 func BuildTable(schema, table string) string {
 	if schema != "" {
 		return fmt.Sprintf("%s.%s", schema, table)
