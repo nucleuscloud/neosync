@@ -67,7 +67,7 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
   }
 
   return (
-    <Card>
+    <Card className="overflow-hidden">
       {!data?.recentRuns || error ? (
         <Alert variant="destructive">
           <AlertTitle>{`Error: Unable to retrieve recent runs`}</AlertTitle>
