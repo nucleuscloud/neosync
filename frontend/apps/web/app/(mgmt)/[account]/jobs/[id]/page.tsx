@@ -91,27 +91,6 @@ export default function Page({ params }: PageProps): ReactElement {
             </AccordionContent>
           </AccordionItem>
         </Accordion>
-        {/* <div className="flex flex-col gap-3">
-          <div>
-            <h2 className="text-2xl font-semibold tracking-tight px-1">
-              Advanced Settings
-            </h2>
-          </div>
-          <div className="flex flex-col gap-3">
-            <div>
-              <WorkflowSettingsCard
-                job={data.job}
-                mutate={(newjob) => mutate(new GetJobResponse({ job: newjob }))}
-              />
-            </div>
-            <div>
-              <ActivitySyncOptionsCard
-                job={data.job}
-                mutate={(newjob) => mutate(new GetJobResponse({ job: newjob }))}
-              />
-            </div>
-          </div>
-        </div> */}
       </div>
     </div>
   );
