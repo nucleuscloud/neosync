@@ -15,7 +15,7 @@ Open Source Synthetic Data Orchestration
  <a href="https://docs.neosync.dev/changelog">Changelog</a> |
  </div>
 
- ##
+ <br>
 
 <div align="center">
 <p >
