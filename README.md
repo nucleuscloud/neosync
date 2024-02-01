@@ -47,7 +47,7 @@ Companies use Neosync to:
 
 <video src="https://github.com/nucleuscloud/neosync/assets/80707987/c23e55ba-c0ae-4412-ab46-f0ce2b6779e8" width="1000"></video>
 
-<iframe width="560" height="315" src="[https://www.youtube.com/embed/video-id](https://github.com/nucleuscloud/neosync/assets/80707987/c23e55ba-c0ae-4412-ab46-f0ce2b6779e8)" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://github.com/nucleuscloud/neosync/assets/80707987/c23e55ba-c0ae-4412-ab46-f0ce2b6779e8" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 
 ## Features
