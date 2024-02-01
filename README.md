@@ -34,7 +34,7 @@ Open Source Synthetic Data Orchestration
 
 ## Introduction
 
-[![Neosync Introduction](https://assets.nucleuscloud.com/neosync/docs/thumbnail.svg)](https://github.com/nucleuscloud/neosync/assets/80707987/c23e55ba-c0ae-4412-ab46-f0ce2b6779e8)
+<video src="[https://github.com/rayytsn9/ROBOTT/assets/79029536/62f541aa-aa8c-43f5-9ead-4b7a2e0d7c2a](https://github.com/nucleuscloud/neosync/assets/80707987/c23e55ba-c0ae-4412-ab46-f0ce2b6779e8)" width="1000" />
 
 
 [Neosync](https://neosync.dev) is a developer-first way to create anonymized or synthetic data and sync it across all environments.
