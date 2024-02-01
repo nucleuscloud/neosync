@@ -43,7 +43,10 @@ export default function Page({ params }: PageProps): ReactElement {
       <div className="flex flex-col gap-5">
         <div className="flex flex-row gap-5">
           <div className="flex-grow basis-3/4">
-            <JobScheduleCard job={data.job} mutate={mutate} />
+            <JobScheduleCard
+              job={data.job}
+              mutate={(newjob) => mutate(new GetJobResponse({ job: newjob }))}
+            />
           </div>
           <div className="flex-grow basis-1/4 overflow-y-auto rounded-xl border border-card-border">
             <JobNextRuns jobId={id} status={jobStatus?.status} />

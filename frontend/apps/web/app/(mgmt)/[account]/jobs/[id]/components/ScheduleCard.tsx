@@ -45,7 +45,7 @@ type ScheduleFormValues = Yup.InferType<typeof SCHEDULE_FORM_SCHEMA>;
 
 interface Props {
   job: Job;
-  mutate: () => void;
+  mutate: (newjob) => void;
 }
 
 export default function JobScheduleCard({ job, mutate }: Props): ReactElement {
@@ -60,12 +60,18 @@ export default function JobScheduleCard({ job, mutate }: Props): ReactElement {
 
   async function onSubmit(values: ScheduleFormValues) {
     try {
-      await updateJobSchedule(account?.id ?? '', job.id, values.cronSchedule);
+      const resp = await updateJobSchedule(
+        account?.id ?? '',
+        job.id,
+        values.cronSchedule
+      );
       toast({
         title: 'Successfully updated job schedule!',
         variant: 'success',
       });
-      mutate();
+      if (resp.job) {
+        mutate(resp.job);
+      }
     } catch (err) {
       console.error(err);
       toast({
