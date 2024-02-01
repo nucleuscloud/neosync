@@ -1,0 +1,6 @@
+load('ext://helm_resource', 'helm_resource', 'helm_repo')
+load('ext://namespace', 'namespace_create')
+
+namespace_create('redis')
+helm_repo('bitnami', 'https://charts.bitnami.com/bitnami')
+helm_resource('redis', 'bitnami/redis', resource_deps=['bitnami'], namespace="redis")
