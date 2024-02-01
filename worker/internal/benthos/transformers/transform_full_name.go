@@ -1,8 +1,6 @@
 package transformers
 
 import (
-	"strings"
-
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
 )
@@ -66,38 +64,42 @@ func GenerateFullName(name string, pl bool) (*string, error) {
 
 func GenerateFullNameWithRandomLength() (string, error) {
 
-	fn, err := GenerateRandomFirstName()
-	if err != nil {
-		return "", err
-	}
+	// fn, err := GenerateRandomFirstNameWithLength(int64(4), int64(4))
+	// if err != nil {
+	// 	return "", err
+	// }
 
-	ln, err := GenerateRandomLastName()
-	if err != nil {
-		return "", err
-	}
+	// ln, err := GenerateRandomLastName()
+	// if err != nil {
+	// 	return "", err
+	// }
 
-	returnValue := fn + " " + ln
+	// returnValue := fn + " " + ln
 
-	return returnValue, err
+	// return returnValue, err
+
+	return "fasfadf", nil
 
 }
 
 func GenerateFullNameWithLength(fn string) (string, error) {
 
-	parsedName := strings.Split(fn, " ")
+	// parsedName := strings.Split(fn, " ")
 
-	fn, err := GenerateRandomFirstNameWithLength(parsedName[0])
-	if err != nil {
-		return "", err
-	}
+	// fn, err := GenerateRandomFirstNameWithLength(parsedName[0])
+	// if err != nil {
+	// 	return "", err
+	// }
 
-	ln, err := GenerateRandomLastNameWithLength(parsedName[1])
-	if err != nil {
-		return "", err
-	}
+	// ln, err := GenerateRandomLastNameWithLength(parsedName[1])
+	// if err != nil {
+	// 	return "", err
+	// }
 
-	returnValue := fn + " " + ln
+	// returnValue := fn + " " + ln
 
-	return returnValue, err
+	// return returnValue, err
+
+	return "fasfadf", nil
 
 }

@@ -81,7 +81,7 @@ func GenerateEmailUsername() (string, error) {
 
 		return val, nil
 	} else {
-		fn, err := GenerateRandomFirstName()
+		fn, err := GenerateRandomFirstName(int64(23))
 		if err != nil {
 			return "", err
 		}

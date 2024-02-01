@@ -9,12 +9,13 @@ import (
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
-var firstNames = transformers_dataset.FirstNames.Names
+var firstNames = transformers_dataset.FirstNames
+var minNameLength = int64(2)
 
 func init() {
 
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewInt64Param("max_length").Optional()).
+		Param(bloblang.NewInt64Param("max_length")).
 		Param(bloblang.NewAnyParam("value").Optional()).
 		Param(bloblang.NewBoolParam("preserve_length"))
 
@@ -35,7 +36,7 @@ func init() {
 			return nil, err
 		}
 
-		maxLength, err := args.GetOptionalInt64("max_length")
+		maxLength, err := args.GetInt64("max_length")
 		if err != nil {
 			return nil, err
 		}
@@ -54,61 +55,85 @@ func init() {
 }
 
 // Generates a random first name which can be of either random length between [2,12] characters or as long as the input name
-func TransformFirstName(name string, preserveLength bool, maxLength *int64) (*string, error) {
+func TransformFirstName(name string, preserveLength bool, maxLength int64) (*string, error) {
 
 	if name == "" {
 		return nil, nil
 	}
 
+	nameLength := int64(len(name))
+
 	if preserveLength {
-		res, err := GenerateRandomFirstNameWithLength(name)
+		// assume that if pl is true than it already meets the maxCharacterLimit constraint
+		res, err := GenerateRandomFirstNameInLengthRange(nameLength, nameLength)
 		if err != nil {
 			return nil, err
 		}
 		return &res, nil
 	} else {
-		res, err := GenerateRandomFirstName()
+		res, err := GenerateRandomFirstNameInLengthRange(minNameLength, maxLength)
 		if err != nil {
 			return nil, err
 		}
-
-		if maxLength != nil {
-			if int64(len(res)) > *maxLength {
-				truncatedRes := res[:*maxLength]
-				return &truncatedRes, nil
-			}
-		}
-
 		return &res, nil
 	}
 }
 
-// Generates a random first name with the same length as the input first name if the length of the input first name
-// is between [2,12] characters long. Otherwise, it will return a name that is 4 characters long.
-func GenerateRandomFirstNameWithLength(fn string) (string, error) {
+// Generates a random first name with length [min, max]. If the length is greater than 12, a first name of length 12 will be returned.
+func GenerateRandomFirstNameInLengthRange(minLength, maxLength int64) (string, error) {
 
-	var returnValue string
+	if minLength == maxLength {
 
-	for _, v := range firstNames {
-		if v.NameLength == len(fn) {
-			res, err := transformer_utils.GetRandomValueFromSlice[string](v.Names)
+		if minLength > 12 {
+			names := firstNames[12]
+			res, err := transformer_utils.GetRandomValueFromSlice[string](names)
 			if err != nil {
 				return "", err
 			}
-			returnValue = res
-			break
+			return res, nil
+		} else if minLength < minNameLength {
+			names := firstNames[2]
+			res, err := transformer_utils.GetRandomValueFromSlice[string](names)
+			if err != nil {
+				return "", err
+			}
+			return res, nil
+		} else {
+			names := firstNames[minLength]
+			res, err := transformer_utils.GetRandomValueFromSlice[string](names)
+			if err != nil {
+				return "", err
+			}
+			return res, nil
+		}
+	} else {
+		if maxLength < 12 && maxLength >= 2 {
+			names := firstNames[maxLength]
+			res, err := transformer_utils.GetRandomValueFromSlice[string](names)
+			if err != nil {
+				return "", err
+			}
+			return res, nil
+
+		} else if maxLength < 2 {
+			res, err := transformer_utils.GenerateRandomStringWithDefinedLength(1)
+			if err != nil {
+				return "", err
+			}
+			return res, nil
+		} else {
+			randInd, err := transformer_utils.GenerateRandomInt64InValueRange(2, 12)
+			if err != nil {
+				return "", err
+			}
+
+			names := firstNames[randInd]
+			res, err := transformer_utils.GetRandomValueFromSlice[string](names)
+			if err != nil {
+				return "", err
+			}
+			return res, nil
 		}
 	}
 
-	if returnValue == "" {
-		res, err := transformer_utils.GetRandomValueFromSlice[string](firstNames[3].Names)
-		if err != nil {
-			return "", err
-		}
-
-		returnValue = res
-
-	}
-
-	return returnValue, nil
 }

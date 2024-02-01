@@ -8,7 +8,7 @@ import (
 )
 
 func Test_GenerateRandomFirstName(t *testing.T) {
-	res, err := GenerateRandomFirstName()
+	res, err := GenerateRandomFirstName(int64(323))
 
 	assert.NoError(t, err)
 	assert.Greater(t, len(res), 0, "The first name should be more than 0 characters")

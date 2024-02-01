@@ -26,7 +26,7 @@ func init() {
 /* Generates a random full name */
 func GenerateRandomFullName() (string, error) {
 
-	fn, err := GenerateRandomFirstName()
+	fn, err := GenerateRandomFirstName(int64(32))
 	if err != nil {
 		return "", err
 	}
