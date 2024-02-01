@@ -124,7 +124,7 @@ func (p *NeosyncProvider) Resources(ctx context.Context) []func() resource.Resou
 
 func (p *NeosyncProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		// NewExampleDataSource,
+		NewConnectionDataSource,
 	}
 }
 
