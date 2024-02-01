@@ -1,5 +1,6 @@
 <p align="center">
-  <img alt="neosyncbanner" src="https://assets.nucleuscloud.com/neosync/docs/readme_header_new_logo.png">
+  <!-- <img alt="neosyncbanner" src="https://assets.nucleuscloud.com/neosync/docs/readme_header_new_logo.png"> -->
+  <img alt="neosyncbanner" src="https://assets.nucleuscloud.com/neosync/docs/neosync-main-header-animated.svg" >
 </p>
 
 <p align="center" style="font-size: 24px;font-weight: 500;">
@@ -33,7 +34,7 @@ Open Source Synthetic Data Orchestration
 
 ## Introduction
 
-![neosync-data-flow](https://assets.nucleuscloud.com/neosync/docs/neosync-main-header-animated.svg)
+<video src="https://assets.nucleuscloud.com/neosync/docs/neosync-video-cropped.mp4" width='1400'></video>
 
 [Neosync](https://neosync.dev) is a developer-first way to create anonymized or synthetic data and sync it across all environments.
 

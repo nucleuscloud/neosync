@@ -158,11 +158,6 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'doc',
-      id: 'deploy/docker-compose',
-      label: 'Docker Compose',
-    },
-    {
-      type: 'doc',
       id: 'deploy/auth',
       label: 'Authentication',
     },
