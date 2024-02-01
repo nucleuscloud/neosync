@@ -144,8 +144,8 @@ export default function ActivitySyncOptionsCard({
                   <FormItem>
                     <FormLabel>Start to Close Timeout</FormLabel>
                     <FormDescription>
-                      Max time of a single Temporal Activity execution attempt
-                      in minutes. This timeout should be as short as the longest
+                      Max time of a single activity execution attempt in
+                      minutes. This timeout should be as short as the longest
                       psosible execution of any activity (e.g. table sync).
                       Important to know that this is per retry attempt. Defaults
                       to the schedule to close timeout if not provided.

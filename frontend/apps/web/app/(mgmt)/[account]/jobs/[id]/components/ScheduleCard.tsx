@@ -45,7 +45,7 @@ type ScheduleFormValues = Yup.InferType<typeof SCHEDULE_FORM_SCHEMA>;
 
 interface Props {
   job: Job;
-  mutate: (newjob) => void;
+  mutate: (newjob: Job) => void;
 }
 
 export default function JobScheduleCard({ job, mutate }: Props): ReactElement {
