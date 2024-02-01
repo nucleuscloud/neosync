@@ -115,14 +115,58 @@ message MysqlTruncateTableConfig {
 message AwsS3DestinationConnectionOptions {}
 
 message CreateJobRequest {
+  // The unique account identifier that this job will be associated with
   string account_id = 1 [(buf.validate.field).string.uuid = true];
+  // The unique, friendly name of the job. This is unique per account
   string job_name = 2 [(buf.validate.field).string.min_len = 1];
+  // Optionally provide a cron schedule. Goes into effect if the job status is set to enabled
   optional string cron_schedule = 3;
   repeated JobMapping mappings = 4;
   JobSource source = 5;
   repeated CreateJobDestination destinations = 6;
+  // Initially trigger a run of this job regardless of its status or cron schedule
   bool initiate_job_run = 7;
+
+  // Specify timeouts and other workflow options for the underlying temporal workflow
+  WorkflowOptions workflow_options = 8;
+
+  // Specify timeout and retry options for data synchronization activities
+  // Data sync activities are any piece of work that involves actually synchronizing data from a source to a destination
+  // For the data sync and generate jobs, this will be applied per table
+  ActivityOptions sync_options = 9;
 }
+
+// Config that contains various timeouts that are configured in the underlying temporal workflow
+// More options will come in the future as needed
+message WorkflowOptions {
+  // The timeout for a single workflow run.
+  // Measured in seconds
+  optional int64 run_timeout = 8;
+}
+
+// Config that contains various timeouts that are configured in the underlying temporal workflow(s) and activities
+message ActivityOptions {
+  // Total time that a workflow is willing to wait for an activity to complete, including retries.
+  // Measured in seconds
+  optional int64 schedule_to_close_timeout = 1 [(buf.validate.field).int64.gte = 1];
+  // Max time of a single Temporal Activity execution attempt.
+  // This timeout should be as short as the longest psosible execution of any activity (e.g. table sync).
+  // Important to know that this is per retry attempt. Defaults to the schedule to close timeout if not provided.
+  // Measured in seconds
+  optional int64 start_to_close_timeout = 2 [(buf.validate.field).int64.gte = 1];
+
+  // Optionally define a retry policy for the activity
+  // If max attempts is not set, the activity will retry indefinitely until the start to close timeout lapses
+  RetryPolicy retry_policy = 3;
+}
+
+// Defines the retry policy for an activity
+message RetryPolicy {
+  // Maximum number of attempts. When exceeded the retries stop even if not expired yet.
+  // If not set or set to 0, it means unlimited, and rely on activity ScheduleToCloseTimeout to stop.
+  optional int32 maximum_attempts = 1 [(buf.validate.field).int32.gte = 0];
+}
+
 message CreateJobResponse {
   Job job = 1;
 }
@@ -269,6 +313,7 @@ message CancelJobRunRequest {
 message CancelJobRunResponse {}
 
 message Job {
+  // The unique identifier of the job
   string id = 1;
 
   string created_by_user_id = 2;
@@ -277,6 +322,7 @@ message Job {
   string updated_by_user_id = 4;
   google.protobuf.Timestamp updated_at = 5;
 
+  // The unique, friendly name of the job
   string name = 6;
 
   JobSource source = 7;
@@ -284,7 +330,16 @@ message Job {
   repeated JobMapping mappings = 9;
   optional string cron_schedule = 10;
 
+  // The account identifier that a job is associated with
   string account_id = 11;
+
+  // Specify timeout and retry options for data synchronization activities
+  // Data sync activities are any piece of work that involves actually synchronizing data from a source to a destination
+  // For the data sync and generate jobs, this will be applied per table
+  ActivityOptions sync_options = 12;
+
+  // Specify timeouts and other workflow options for the underlying temporal workflow
+  WorkflowOptions workflow_options = 13;
 }
 
 message JobRecentRun {
@@ -444,6 +499,27 @@ message GetJobRunLogsStreamResponse {
   string log_line = 1;
 }
 
+message SetJobWorkflowOptionsRequest {
+  // The unique identifier of the job
+  string id = 1 [(buf.validate.field).string.uuid = true];
+
+  // The workflow options object. The entire object must be provided and will fully overwrite the previous result
+  WorkflowOptions worfklow_options = 2;
+}
+message SetJobWorkflowOptionsResponse {
+  Job job = 1;
+}
+message SetJobSyncOptionsRequest {
+  // The unique identifier of the job
+  string id = 1 [(buf.validate.field).string.uuid = true];
+
+  // The sync options object. The entire object must be provided and will fully overwrite the previous result
+  ActivityOptions sync_options = 2;
+}
+message SetJobSyncOptionsResponse {
+  Job job = 1;
+}
+
 service JobService {
   rpc GetJobs(GetJobsRequest) returns (GetJobsResponse) {}
   rpc GetJob(GetJobRequest) returns (GetJobResponse) {}
@@ -475,4 +551,8 @@ service JobService {
   rpc TerminateJobRun(TerminateJobRunRequest) returns (TerminateJobRunResponse) {}
   // Returns a stream of logs from the worker nodes that pertain to a specific job run
   rpc GetJobRunLogsStream(GetJobRunLogsStreamRequest) returns (stream GetJobRunLogsStreamResponse) {}
+  // Set any job workflow options. Must provide entire object as is it will fully override the previous configuration
+  rpc SetJobWorkflowOptions(SetJobWorkflowOptionsRequest) returns (SetJobWorkflowOptionsResponse) {}
+  // Set the job sync options. Must provide entire object as it will fully override the previous configuration
+  rpc SetJobSyncOptions(SetJobSyncOptionsRequest) returns (SetJobSyncOptionsResponse) {}
 }

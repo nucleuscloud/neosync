@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -438,6 +439,16 @@ func (s *Service) CreateJob(
 		return nil, nucleuserrors.NewBadRequest("must first configure temporal namespace in account settings")
 	}
 
+	workflowOptions := &pg_models.WorkflowOptions{}
+	if req.Msg.WorkflowOptions != nil {
+		workflowOptions.FromDto(req.Msg.WorkflowOptions)
+	}
+
+	activitySyncOptions := &pg_models.ActivityOptions{}
+	if req.Msg.SyncOptions != nil {
+		activitySyncOptions.FromDto(req.Msg.SyncOptions)
+	}
+
 	cj, err := s.db.CreateJob(ctx, &db_queries.CreateJobParams{
 		Name:              req.Msg.JobName,
 		AccountID:         *accountUuid,
@@ -447,6 +458,8 @@ func (s *Service) CreateJob(
 		Mappings:          mappings,
 		CreatedByID:       *userUuid,
 		UpdatedByID:       *userUuid,
+		WorkflowOptions:   workflowOptions,
+		SyncOptions:       activitySyncOptions,
 	}, connDestParams)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create job: %w", err)
@@ -471,15 +484,20 @@ func (s *Service) CreateJob(
 		spec.CronExpressions = []string{*schedule}
 		paused = false
 	}
+	action := &temporalclient.ScheduleWorkflowAction{
+		Workflow:  datasync_workflow.Workflow,
+		TaskQueue: tconfig.SyncJobQueueName,
+		Args:      []any{&datasync_workflow.WorkflowRequest{JobId: jobUuid}},
+	}
+	if cj.WorkflowOptions != nil && cj.WorkflowOptions.RunTimeout != nil {
+		action.WorkflowRunTimeout = time.Duration(*cj.WorkflowOptions.RunTimeout)
+	}
+
 	scheduleHandle, err := tScheduleClient.Create(ctx, temporalclient.ScheduleOptions{
 		ID:     jobUuid,
 		Spec:   spec,
 		Paused: paused,
-		Action: &temporalclient.ScheduleWorkflowAction{
-			Workflow:  datasync_workflow.Workflow,
-			TaskQueue: tconfig.SyncJobQueueName,
-			Args:      []any{&datasync_workflow.WorkflowRequest{JobId: jobUuid}},
-		},
+		Action: action,
 	})
 	if err != nil {
 		logger.Error(fmt.Errorf("unable to create schedule workflow: %w", err).Error())
@@ -1299,4 +1317,108 @@ func verifyConnectionsAreCompatible(ctx context.Context, db *nucleusdb.NucleusDb
 	}
 
 	return true, nil
+}
+
+func (s *Service) SetJobWorkflowOptions(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.SetJobWorkflowOptionsRequest],
+) (*connect.Response[mgmtv1alpha1.SetJobWorkflowOptionsResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("jobId", req.Msg.Id)
+
+	job, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
+		Id: req.Msg.Id,
+	}))
+	if err != nil {
+		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
+		return nil, err
+	}
+	_, err = s.verifyUserInAccount(ctx, job.Msg.Job.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	wfOptions := &pg_models.WorkflowOptions{}
+	if req.Msg.WorfklowOptions != nil {
+		wfOptions.FromDto(req.Msg.WorfklowOptions)
+	}
+
+	jobUuid, err := nucleusdb.ToUuid(req.Msg.Id)
+	if err != nil {
+		return nil, err
+	}
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.db.Q.SetJobWorkflowOptions(ctx, s.db.Db, db_queries.SetJobWorkflowOptionsParams{
+		ID:              jobUuid,
+		WorkflowOptions: wfOptions,
+		UpdatedByID:     *userUuid,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("unable to set job workflow options: %w", err)
+	}
+
+	updatedJob, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
+		Id: req.Msg.Id,
+	}))
+	if err != nil {
+		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
+		return nil, err
+	}
+	return connect.NewResponse(&mgmtv1alpha1.SetJobWorkflowOptionsResponse{Job: updatedJob.Msg.Job}), nil
+}
+
+func (s *Service) SetJobSyncOptions(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.SetJobSyncOptionsRequest],
+) (*connect.Response[mgmtv1alpha1.SetJobSyncOptionsResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	logger = logger.With("jobId", req.Msg.Id)
+
+	job, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
+		Id: req.Msg.Id,
+	}))
+	if err != nil {
+		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
+		return nil, err
+	}
+	_, err = s.verifyUserInAccount(ctx, job.Msg.Job.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	syncOptions := &pg_models.ActivityOptions{}
+	if req.Msg.SyncOptions != nil {
+		syncOptions.FromDto(req.Msg.SyncOptions)
+	}
+
+	jobUuid, err := nucleusdb.ToUuid(req.Msg.Id)
+	if err != nil {
+		return nil, err
+	}
+	userUuid, err := s.getUserUuid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.db.Q.SetJobSyncOptions(ctx, s.db.Db, db_queries.SetJobSyncOptionsParams{
+		ID:          jobUuid,
+		SyncOptions: syncOptions,
+		UpdatedByID: *userUuid,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	updatedJob, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
+		Id: req.Msg.Id,
+	}))
+	if err != nil {
+		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
+		return nil, err
+	}
+	return connect.NewResponse(&mgmtv1alpha1.SetJobSyncOptionsResponse{Job: updatedJob.Msg.Job}), nil
 }

@@ -21,16 +21,14 @@ type WorkflowRequest struct {
 type WorkflowResponse struct{}
 
 func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, error) {
-	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: 10 * time.Minute, // this will need to be drastically increased and probably settable via the UI
+	wfinfo := workflow.GetInfo(wfctx)
+
+	ctx := workflow.WithActivityOptions(wfctx, workflow.ActivityOptions{
+		StartToCloseTimeout: 5 * time.Minute,
 		RetryPolicy: &temporal.RetryPolicy{
 			MaximumAttempts: 1,
 		},
-	}
-
-	wfinfo := workflow.GetInfo(wfctx)
-
-	ctx := workflow.WithActivityOptions(wfctx, ao)
+	})
 	logger := workflow.GetLogger(ctx)
 	_ = logger
 
@@ -53,6 +51,22 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		return &WorkflowResponse{}, nil
 	}
 
+	var actOptResp *datasync_activities.RetrieveActivityOptionsResponse
+	logger.Info("executing retrieval of activity options activity")
+	ctx = workflow.WithActivityOptions(wfctx, workflow.ActivityOptions{
+		StartToCloseTimeout: 1 * time.Minute,
+		RetryPolicy: &temporal.RetryPolicy{
+			MaximumAttempts: 2,
+		},
+	})
+	err = workflow.ExecuteActivity(ctx, wfActivites.RetrieveActivityOptions, &datasync_activities.RetrieveActivityOptionsRequest{
+		JobId: req.JobId,
+	}, workflowMetadata).Get(ctx, &actOptResp)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx = workflow.WithActivityOptions(wfctx, *actOptResp.SyncActivityOptions)
 	logger.Info("executing running init statements in job destinations activity")
 	var resp *datasync_activities.RunSqlInitTableStatementsResponse
 	err = workflow.ExecuteActivity(ctx, wfActivites.RunSqlInitTableStatements, &datasync_activities.RunSqlInitTableStatementsRequest{
