@@ -18,7 +18,6 @@ Open Source Synthetic Data Orchestration
  <br>
 
 <div align="center">
-<p >
   <a href='http://makeapullrequest.com'>
     <img alt='PRs Welcome' src='https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=shields'/>
   </a>
@@ -32,7 +31,6 @@ Open Source Synthetic Data Orchestration
       <a href="https://x.com/neosynccloud">
     <img alt="Follow X" src="https://img.shields.io/twitter/follow/neosynccloud?label=Follow"/>
   </a>
-</p>
 </div>
 
 ## Introduction
