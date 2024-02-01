@@ -110,7 +110,7 @@ const config: Config = {
           'aria-label': 'GitHub repository',
         },
         {
-          href: 'https://discord.gg/UVmPTzn7dV',
+          href: 'https://discord.com/invite/MFAMgnp4HF',
           position: 'right',
           className: 'header-discord-link',
           'aria-label': 'Discord Server',

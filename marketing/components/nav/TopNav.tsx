@@ -111,7 +111,7 @@ const links: NavLinks[] = [
   },
   {
     title: '',
-    href: 'https://discord.gg/UVmPTzn7dV',
+    href: 'https://discord.com/invite/MFAMgnp4HF',
     description: '',
     icon: <FaDiscord className=" h-5 w-5" />,
     children: [],
