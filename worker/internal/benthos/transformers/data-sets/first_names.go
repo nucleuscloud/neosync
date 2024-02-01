@@ -1,14 +1,5 @@
 package transformers_dataset
 
-type Names struct {
-	Names []NameGroup
-}
-
-type NameGroup struct {
-	NameLength int
-	Names      []string
-}
-
 var FirstNames = map[int64][]string{
 	2: {
 		"Al",
