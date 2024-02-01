@@ -221,6 +221,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				}
 
 				sqlStatement := dbschemas_postgres.GetOrderedPostgresInitStatements(tableInitMap, dependencyMap)
+
 				pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(connection.PgConfig, ptr(uint32(5)), slogger)
 				if err != nil {
 					return nil, err
