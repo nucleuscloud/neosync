@@ -15,7 +15,9 @@ Open Source Synthetic Data Orchestration
  <a href="https://docs.neosync.dev/changelog">Changelog</a> |
  </div>
 
-<div align="center" style='padding-top: 20px'>
+ ##
+
+<div align="center">
 <p >
   <a href='http://makeapullrequest.com'>
     <img alt='PRs Welcome' src='https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=shields'/>
