@@ -100,29 +100,31 @@ export default function ActivitySyncOptionsCard({
   return (
     <Card className="overflow-hidden">
       <CardHeader>
-        <CardTitle>Sync Activity Options</CardTitle>
+        <CardTitle>Table Synchronization Options</CardTitle>
         <CardDescription>
-          Advanced timeout settings for synchronization activities (applied to
-          activites that actually process data between sources). If neither
-          ScheduleToClose or StartToClose Timeout are specified, the backend
-          will default the StarttoClose to 10 minutes. Provide a value here if
-          it takes longer to process the datasource.
+          Advanced settings that are applied to every table synchronization. A
+          table sync timout or max timeout must be configured to run.
         </CardDescription>
       </CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent className="space-y-6">
-            <div className="flex flex-row gap-3">
+            <div className="flex flex-row gap-3 justify-between">
               <FormField
                 control={form.control}
-                name="scheduleToCloseTimeout"
+                name="startToCloseTimeout"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Schedule to Close Timeout</FormLabel>
-                    <FormDescription>
-                      Total time in minutes that a workflow is willing to wait
-                      for an activity to complete, including retries.
-                    </FormDescription>
+                  <FormItem className="w-1/2 flex flex-col gap-2 justify-between space-y-0">
+                    <div>
+                      <FormLabel>Table Sync Timeout</FormLabel>
+                      <FormDescription>
+                        The max amount of time that a single table
+                        synchronization may run before it times out. This may
+                        need tuning depending on your datasize, and should be
+                        able to contain the table that contains the largest
+                        amount of data. This timeout is applied per retry.
+                      </FormDescription>
+                    </div>
                     <FormControl>
                       <Input
                         type="number"
@@ -139,17 +141,16 @@ export default function ActivitySyncOptionsCard({
               />
               <FormField
                 control={form.control}
-                name="startToCloseTimeout"
+                name="scheduleToCloseTimeout"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Start to Close Timeout</FormLabel>
-                    <FormDescription>
-                      Max time of a single activity execution attempt in
-                      minutes. This timeout should be as short as the longest
-                      psosible execution of any activity (e.g. table sync).
-                      Important to know that this is per retry attempt. Defaults
-                      to the schedule to close timeout if not provided.
-                    </FormDescription>
+                  <FormItem className="w-1/2 flex flex-col gap-2 justify-between space-y-0">
+                    <div>
+                      <FormLabel>Max Table Timeout including retries</FormLabel>
+                      <FormDescription>
+                        Total time in minutes that the table sync is allowed to
+                        run, including retires. 0 means no timeout.
+                      </FormDescription>
+                    </div>
                     <FormControl>
                       <Input
                         type="number"
@@ -178,8 +179,8 @@ export default function ActivitySyncOptionsCard({
                     <FormDescription>
                       Maximum number of attempts. When exceeded the retries stop
                       even if not expired yet. If not set or set to 0, it means
-                      unlimited, and relies on activity ScheduleToCloseTimeout
-                      to stop.
+                      unlimited, and relies on activity the max table timeout
+                      including retries to know when to stop. to stop.
                     </FormDescription>
                     <FormControl>
                       <Input

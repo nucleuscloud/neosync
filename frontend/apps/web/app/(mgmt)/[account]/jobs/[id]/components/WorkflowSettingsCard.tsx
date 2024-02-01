@@ -85,10 +85,9 @@ export default function WorkflowSettingsCard({
   return (
     <Card className="overflow-hidden">
       <CardHeader>
-        <CardTitle>Workflow Options</CardTitle>
+        <CardTitle>Job Run Options</CardTitle>
         <CardDescription>
-          Advanced workflow settings for configuring run timeouts and other
-          settings in the future.
+          Advanced settings for configuring run timeouts, etc.
         </CardDescription>
       </CardHeader>
       <Form {...form}>
