@@ -8,6 +8,7 @@ import { Alert, AlertTitle } from '@/components/ui/alert';
 import { useGetJobStatus } from '@/libs/hooks/useGetJobStatus';
 import { GetJobResponse } from '@neosync/sdk';
 import { ReactElement } from 'react';
+import ActivitySyncOptionsCard from './components/ActivitySyncOptionsCard';
 import JobNextRuns from './components/NextRuns';
 import JobRecentRuns from './components/RecentRuns';
 import JobScheduleCard from './components/ScheduleCard';
@@ -49,11 +50,26 @@ export default function Page({ params }: PageProps): ReactElement {
           </div>
         </div>
         <JobRecentRuns jobId={id} />
-        <div className="flex">
-          <WorkflowSettingsCard
-            job={data.job}
-            mutate={(newjob) => mutate(new GetJobResponse({ job: newjob }))}
-          />
+        <div className="flex flex-col gap-3">
+          <div>
+            <h2 className="text-2xl font-semibold tracking-tight px-1">
+              Advanced Settings
+            </h2>
+          </div>
+          <div className="flex flex-col lg:flex-row gap-3">
+            <div>
+              <WorkflowSettingsCard
+                job={data.job}
+                mutate={(newjob) => mutate(new GetJobResponse({ job: newjob }))}
+              />
+            </div>
+            <div>
+              <ActivitySyncOptionsCard
+                job={data.job}
+                mutate={(newjob) => mutate(new GetJobResponse({ job: newjob }))}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
