@@ -13,10 +13,10 @@ Open Source Synthetic Data Orchestration
    <a href="https://discord.gg/HwrxVfNk">Discord</a> |
  <a href="https://neosync.dev/blog">Blog</a> |
  <a href="https://docs.neosync.dev/changelog">Changelog</a> |
-
  </div>
 
-<p align="center" style='padding-top: 20px'>
+<div align="center" style='padding-top: 20px'>
+<p >
   <a href='http://makeapullrequest.com'>
     <img alt='PRs Welcome' src='https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=shields'/>
   </a>
@@ -31,6 +31,7 @@ Open Source Synthetic Data Orchestration
     <img alt="Follow X" src="https://img.shields.io/twitter/follow/neosynccloud?label=Follow"/>
   </a>
 </p>
+</div>
 
 ## Introduction
 
