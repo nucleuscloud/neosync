@@ -10,7 +10,7 @@ Open Source Synthetic Data Orchestration
 <div align='center'>
  | <a href="https://neosync.dev">Website</a> |
  <a href="https://docs.neosync.dev">Docs</a> |
-   <a href="https://discord.gg/HwrxVfNk">Discord</a> |
+   <a href="https://discord.com/invite/MFAMgnp4HF">Discord</a> |
  <a href="https://neosync.dev/blog">Blog</a> |
  <a href="https://docs.neosync.dev/changelog">Changelog</a> |
  </div>
@@ -86,14 +86,14 @@ For more in-depth details on environment variables, Kubernetes deployments, and 
 Some resources to help you along the way:
 
 - [Docs](https://docs.neosync.dev) for comprehensive documentation and guides: Note these are still a work in progress.
-- [Discord](https://discord.gg/HwrxVfNk) for discussion with the community and Neosync team
+- [Discord](https://discord.com/invite/MFAMgnp4HF) for discussion with the community and Neosync team
 - [X](https://x.com/neosynccloud) for the latest updates
 
 ## Contributing
 
 We love contributions big and small. Here are just a few ways that you can contribute to Neosync.
 
-- Join our [Discord](https://discord.gg/HwrxVfNk) channel and ask us any questions there
+- Join our [Discord](https://discord.com/invite/MFAMgnp4HF) channel and ask us any questions there
 - Open a PR (see our instructions on [developing with Neosync locally](https://docs.neosync.dev/guide/neosync-local-dev))
 - Submit a [feature request](https://github.com/nucleuscloud/neosync/issues/new?assignees=&labels=enhancement%2C+feature&template=feature_request.md) or [bug report](https://github.com/nucleuscloud/neosync/issues/new?assignees=&labels=bug&template=bug_report.md)
 
