@@ -98,3 +98,22 @@ Temporal has a guide for creating mTLS certs [here](https://docs.temporal.io/clo
 
 Once these have been created, they must be provided as environment variables to both the API and Worker processes.
 Reference the [environment variables](/deploy/environment-variables.md) page for the `TEMPORAL_*` environment variables.
+
+## Starting Neosync in Auth Mode
+
+Starting Neosync in Auth Mode is done in a similar way as starting Neosync in non-auth mode: using a compose file. A compose file is also provided that stands up [Keycloak](https://keycloak.org), an open source auth solution.
+
+To stand up Neosync with auth, simply run the following command from the repo root:
+
+```sh
+make compose-auth-up
+```
+
+To stop, run:
+
+```sh
+make compose-auth-down
+```
+
+Neosync will now be available on [http://localhost:3000](http://localhost:3000) with authentication pre-configured!
+Click the login with Keycloak button, register an account (locally) and you'll be logged in! -->
