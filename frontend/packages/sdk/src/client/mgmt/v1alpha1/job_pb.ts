@@ -1127,16 +1127,22 @@ export class AwsS3DestinationConnectionOptions extends Message<AwsS3DestinationC
  */
 export class CreateJobRequest extends Message<CreateJobRequest> {
   /**
+   * The unique account identifier that this job will be associated with
+   *
    * @generated from field: string account_id = 1;
    */
   accountId = "";
 
   /**
+   * The unique, friendly name of the job. This is unique per account
+   *
    * @generated from field: string job_name = 2;
    */
   jobName = "";
 
   /**
+   * Optionally provide a cron schedule. Goes into effect if the job status is set to enabled
+   *
    * @generated from field: optional string cron_schedule = 3;
    */
   cronSchedule?: string;
@@ -1157,9 +1163,27 @@ export class CreateJobRequest extends Message<CreateJobRequest> {
   destinations: CreateJobDestination[] = [];
 
   /**
+   * Initially trigger a run of this job regardless of its status or cron schedule
+   *
    * @generated from field: bool initiate_job_run = 7;
    */
   initiateJobRun = false;
+
+  /**
+   * Specify timeouts and other workflow options for the underlying temporal workflow
+   *
+   * @generated from field: mgmt.v1alpha1.WorkflowOptions workflow_options = 8;
+   */
+  workflowOptions?: WorkflowOptions;
+
+  /**
+   * Specify timeout and retry options for data synchronization activities
+   * Data sync activities are any piece of work that involves actually synchronizing data from a source to a destination
+   * For the data sync and generate jobs, this will be applied per table
+   *
+   * @generated from field: mgmt.v1alpha1.ActivityOptions sync_options = 9;
+   */
+  syncOptions?: ActivityOptions;
 
   constructor(data?: PartialMessage<CreateJobRequest>) {
     super();
@@ -1176,6 +1200,8 @@ export class CreateJobRequest extends Message<CreateJobRequest> {
     { no: 5, name: "source", kind: "message", T: JobSource },
     { no: 6, name: "destinations", kind: "message", T: CreateJobDestination, repeated: true },
     { no: 7, name: "initiate_job_run", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 8, name: "workflow_options", kind: "message", T: WorkflowOptions },
+    { no: 9, name: "sync_options", kind: "message", T: ActivityOptions },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateJobRequest {
@@ -1192,6 +1218,153 @@ export class CreateJobRequest extends Message<CreateJobRequest> {
 
   static equals(a: CreateJobRequest | PlainMessage<CreateJobRequest> | undefined, b: CreateJobRequest | PlainMessage<CreateJobRequest> | undefined): boolean {
     return proto3.util.equals(CreateJobRequest, a, b);
+  }
+}
+
+/**
+ * Config that contains various timeouts that are configured in the underlying temporal workflow
+ * More options will come in the future as needed
+ *
+ * @generated from message mgmt.v1alpha1.WorkflowOptions
+ */
+export class WorkflowOptions extends Message<WorkflowOptions> {
+  /**
+   * The timeout for a single workflow run.
+   * Measured in seconds
+   *
+   * @generated from field: optional int64 run_timeout = 8;
+   */
+  runTimeout?: bigint;
+
+  constructor(data?: PartialMessage<WorkflowOptions>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.WorkflowOptions";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 8, name: "run_timeout", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WorkflowOptions {
+    return new WorkflowOptions().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): WorkflowOptions {
+    return new WorkflowOptions().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): WorkflowOptions {
+    return new WorkflowOptions().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: WorkflowOptions | PlainMessage<WorkflowOptions> | undefined, b: WorkflowOptions | PlainMessage<WorkflowOptions> | undefined): boolean {
+    return proto3.util.equals(WorkflowOptions, a, b);
+  }
+}
+
+/**
+ * Config that contains various timeouts that are configured in the underlying temporal workflow(s) and activities
+ *
+ * @generated from message mgmt.v1alpha1.ActivityOptions
+ */
+export class ActivityOptions extends Message<ActivityOptions> {
+  /**
+   * Total time that a workflow is willing to wait for an activity to complete, including retries.
+   * Measured in seconds
+   *
+   * @generated from field: optional int64 schedule_to_close_timeout = 1;
+   */
+  scheduleToCloseTimeout?: bigint;
+
+  /**
+   * Max time of a single Temporal Activity execution attempt.
+   * This timeout should be as short as the longest psosible execution of any activity (e.g. table sync).
+   * Important to know that this is per retry attempt. Defaults to the schedule to close timeout if not provided.
+   * Measured in seconds
+   *
+   * @generated from field: optional int64 start_to_close_timeout = 2;
+   */
+  startToCloseTimeout?: bigint;
+
+  /**
+   * Optionally define a retry policy for the activity
+   * If max attempts is not set, the activity will retry indefinitely until the start to close timeout lapses
+   *
+   * @generated from field: mgmt.v1alpha1.RetryPolicy retry_policy = 3;
+   */
+  retryPolicy?: RetryPolicy;
+
+  constructor(data?: PartialMessage<ActivityOptions>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.ActivityOptions";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "schedule_to_close_timeout", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
+    { no: 2, name: "start_to_close_timeout", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
+    { no: 3, name: "retry_policy", kind: "message", T: RetryPolicy },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ActivityOptions {
+    return new ActivityOptions().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ActivityOptions {
+    return new ActivityOptions().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ActivityOptions {
+    return new ActivityOptions().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ActivityOptions | PlainMessage<ActivityOptions> | undefined, b: ActivityOptions | PlainMessage<ActivityOptions> | undefined): boolean {
+    return proto3.util.equals(ActivityOptions, a, b);
+  }
+}
+
+/**
+ * Defines the retry policy for an activity
+ *
+ * @generated from message mgmt.v1alpha1.RetryPolicy
+ */
+export class RetryPolicy extends Message<RetryPolicy> {
+  /**
+   * Maximum number of attempts. When exceeded the retries stop even if not expired yet.
+   * If not set or set to 0, it means unlimited, and rely on activity ScheduleToCloseTimeout to stop.
+   *
+   * @generated from field: optional int32 maximum_attempts = 1;
+   */
+  maximumAttempts?: number;
+
+  constructor(data?: PartialMessage<RetryPolicy>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.RetryPolicy";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "maximum_attempts", kind: "scalar", T: 5 /* ScalarType.INT32 */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RetryPolicy {
+    return new RetryPolicy().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RetryPolicy {
+    return new RetryPolicy().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RetryPolicy {
+    return new RetryPolicy().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RetryPolicy | PlainMessage<RetryPolicy> | undefined, b: RetryPolicy | PlainMessage<RetryPolicy> | undefined): boolean {
+    return proto3.util.equals(RetryPolicy, a, b);
   }
 }
 
@@ -2562,6 +2735,8 @@ export class CancelJobRunResponse extends Message<CancelJobRunResponse> {
  */
 export class Job extends Message<Job> {
   /**
+   * The unique identifier of the job
+   *
    * @generated from field: string id = 1;
    */
   id = "";
@@ -2587,6 +2762,8 @@ export class Job extends Message<Job> {
   updatedAt?: Timestamp;
 
   /**
+   * The unique, friendly name of the job
+   *
    * @generated from field: string name = 6;
    */
   name = "";
@@ -2612,9 +2789,27 @@ export class Job extends Message<Job> {
   cronSchedule?: string;
 
   /**
+   * The account identifier that a job is associated with
+   *
    * @generated from field: string account_id = 11;
    */
   accountId = "";
+
+  /**
+   * Specify timeout and retry options for data synchronization activities
+   * Data sync activities are any piece of work that involves actually synchronizing data from a source to a destination
+   * For the data sync and generate jobs, this will be applied per table
+   *
+   * @generated from field: mgmt.v1alpha1.ActivityOptions sync_options = 12;
+   */
+  syncOptions?: ActivityOptions;
+
+  /**
+   * Specify timeouts and other workflow options for the underlying temporal workflow
+   *
+   * @generated from field: mgmt.v1alpha1.WorkflowOptions workflow_options = 13;
+   */
+  workflowOptions?: WorkflowOptions;
 
   constructor(data?: PartialMessage<Job>) {
     super();
@@ -2635,6 +2830,8 @@ export class Job extends Message<Job> {
     { no: 9, name: "mappings", kind: "message", T: JobMapping, repeated: true },
     { no: 10, name: "cron_schedule", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 11, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 12, name: "sync_options", kind: "message", T: ActivityOptions },
+    { no: 13, name: "workflow_options", kind: "message", T: WorkflowOptions },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Job {
@@ -3816,6 +4013,174 @@ export class GetJobRunLogsStreamResponse extends Message<GetJobRunLogsStreamResp
 
   static equals(a: GetJobRunLogsStreamResponse | PlainMessage<GetJobRunLogsStreamResponse> | undefined, b: GetJobRunLogsStreamResponse | PlainMessage<GetJobRunLogsStreamResponse> | undefined): boolean {
     return proto3.util.equals(GetJobRunLogsStreamResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.SetJobWorkflowOptionsRequest
+ */
+export class SetJobWorkflowOptionsRequest extends Message<SetJobWorkflowOptionsRequest> {
+  /**
+   * The unique identifier of the job
+   *
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * The workflow options object. The entire object must be provided and will fully overwrite the previous result
+   *
+   * @generated from field: mgmt.v1alpha1.WorkflowOptions worfklow_options = 2;
+   */
+  worfklowOptions?: WorkflowOptions;
+
+  constructor(data?: PartialMessage<SetJobWorkflowOptionsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SetJobWorkflowOptionsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "worfklow_options", kind: "message", T: WorkflowOptions },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetJobWorkflowOptionsRequest {
+    return new SetJobWorkflowOptionsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetJobWorkflowOptionsRequest {
+    return new SetJobWorkflowOptionsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetJobWorkflowOptionsRequest {
+    return new SetJobWorkflowOptionsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetJobWorkflowOptionsRequest | PlainMessage<SetJobWorkflowOptionsRequest> | undefined, b: SetJobWorkflowOptionsRequest | PlainMessage<SetJobWorkflowOptionsRequest> | undefined): boolean {
+    return proto3.util.equals(SetJobWorkflowOptionsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.SetJobWorkflowOptionsResponse
+ */
+export class SetJobWorkflowOptionsResponse extends Message<SetJobWorkflowOptionsResponse> {
+  /**
+   * @generated from field: mgmt.v1alpha1.Job job = 1;
+   */
+  job?: Job;
+
+  constructor(data?: PartialMessage<SetJobWorkflowOptionsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SetJobWorkflowOptionsResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "job", kind: "message", T: Job },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetJobWorkflowOptionsResponse {
+    return new SetJobWorkflowOptionsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetJobWorkflowOptionsResponse {
+    return new SetJobWorkflowOptionsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetJobWorkflowOptionsResponse {
+    return new SetJobWorkflowOptionsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetJobWorkflowOptionsResponse | PlainMessage<SetJobWorkflowOptionsResponse> | undefined, b: SetJobWorkflowOptionsResponse | PlainMessage<SetJobWorkflowOptionsResponse> | undefined): boolean {
+    return proto3.util.equals(SetJobWorkflowOptionsResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.SetJobSyncOptionsRequest
+ */
+export class SetJobSyncOptionsRequest extends Message<SetJobSyncOptionsRequest> {
+  /**
+   * The unique identifier of the job
+   *
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * The sync options object. The entire object must be provided and will fully overwrite the previous result
+   *
+   * @generated from field: mgmt.v1alpha1.ActivityOptions sync_options = 2;
+   */
+  syncOptions?: ActivityOptions;
+
+  constructor(data?: PartialMessage<SetJobSyncOptionsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SetJobSyncOptionsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "sync_options", kind: "message", T: ActivityOptions },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetJobSyncOptionsRequest {
+    return new SetJobSyncOptionsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetJobSyncOptionsRequest {
+    return new SetJobSyncOptionsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetJobSyncOptionsRequest {
+    return new SetJobSyncOptionsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetJobSyncOptionsRequest | PlainMessage<SetJobSyncOptionsRequest> | undefined, b: SetJobSyncOptionsRequest | PlainMessage<SetJobSyncOptionsRequest> | undefined): boolean {
+    return proto3.util.equals(SetJobSyncOptionsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.SetJobSyncOptionsResponse
+ */
+export class SetJobSyncOptionsResponse extends Message<SetJobSyncOptionsResponse> {
+  /**
+   * @generated from field: mgmt.v1alpha1.Job job = 1;
+   */
+  job?: Job;
+
+  constructor(data?: PartialMessage<SetJobSyncOptionsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SetJobSyncOptionsResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "job", kind: "message", T: Job },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetJobSyncOptionsResponse {
+    return new SetJobSyncOptionsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetJobSyncOptionsResponse {
+    return new SetJobSyncOptionsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetJobSyncOptionsResponse {
+    return new SetJobSyncOptionsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetJobSyncOptionsResponse | PlainMessage<SetJobSyncOptionsResponse> | undefined, b: SetJobSyncOptionsResponse | PlainMessage<SetJobSyncOptionsResponse> | undefined): boolean {
+    return proto3.util.equals(SetJobSyncOptionsResponse, a, b);
   }
 }
 

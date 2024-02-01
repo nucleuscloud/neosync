@@ -5636,6 +5636,54 @@
           ]
         },
         {
+          "name": "ActivityOptions",
+          "longName": "ActivityOptions",
+          "fullName": "mgmt.v1alpha1.ActivityOptions",
+          "description": "Config that contains various timeouts that are configured in the underlying temporal workflow(s) and activities",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schedule_to_close_timeout",
+              "description": "Total time that a workflow is willing to wait for an activity to complete, including retries.\nMeasured in seconds",
+              "label": "optional",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_schedule_to_close_timeout",
+              "defaultValue": ""
+            },
+            {
+              "name": "start_to_close_timeout",
+              "description": "Max time of a single Temporal Activity execution attempt.\nThis timeout should be as short as the longest psosible execution of any activity (e.g. table sync).\nImportant to know that this is per retry attempt. Defaults to the schedule to close timeout if not provided.\nMeasured in seconds",
+              "label": "optional",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_start_to_close_timeout",
+              "defaultValue": ""
+            },
+            {
+              "name": "retry_policy",
+              "description": "Optionally define a retry policy for the activity\nIf max attempts is not set, the activity will retry indefinitely until the start to close timeout lapses",
+              "label": "",
+              "type": "RetryPolicy",
+              "longType": "RetryPolicy",
+              "fullType": "mgmt.v1alpha1.RetryPolicy",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "AwsS3DestinationConnectionOptions",
           "longName": "AwsS3DestinationConnectionOptions",
           "fullName": "mgmt.v1alpha1.AwsS3DestinationConnectionOptions",
@@ -5825,7 +5873,7 @@
           "fields": [
             {
               "name": "account_id",
-              "description": "",
+              "description": "The unique account identifier that this job will be associated with",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -5837,7 +5885,7 @@
             },
             {
               "name": "job_name",
-              "description": "",
+              "description": "The unique, friendly name of the job. This is unique per account",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -5849,7 +5897,7 @@
             },
             {
               "name": "cron_schedule",
-              "description": "",
+              "description": "Optionally provide a cron schedule. Goes into effect if the job status is set to enabled",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -5897,11 +5945,35 @@
             },
             {
               "name": "initiate_job_run",
-              "description": "",
+              "description": "Initially trigger a run of this job regardless of its status or cron schedule",
               "label": "",
               "type": "bool",
               "longType": "bool",
               "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "workflow_options",
+              "description": "Specify timeouts and other workflow options for the underlying temporal workflow",
+              "label": "",
+              "type": "WorkflowOptions",
+              "longType": "WorkflowOptions",
+              "fullType": "mgmt.v1alpha1.WorkflowOptions",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "sync_options",
+              "description": "Specify timeout and retry options for data synchronization activities\nData sync activities are any piece of work that involves actually synchronizing data from a source to a destination\nFor the data sync and generate jobs, this will be applied per table",
+              "label": "",
+              "type": "ActivityOptions",
+              "longType": "ActivityOptions",
+              "fullType": "mgmt.v1alpha1.ActivityOptions",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -6841,7 +6913,7 @@
           "fields": [
             {
               "name": "id",
-              "description": "",
+              "description": "The unique identifier of the job",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -6901,7 +6973,7 @@
             },
             {
               "name": "name",
-              "description": "",
+              "description": "The unique, friendly name of the job",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -6961,11 +7033,35 @@
             },
             {
               "name": "account_id",
-              "description": "",
+              "description": "The account identifier that a job is associated with",
               "label": "",
               "type": "string",
               "longType": "string",
               "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "sync_options",
+              "description": "Specify timeout and retry options for data synchronization activities\nData sync activities are any piece of work that involves actually synchronizing data from a source to a destination\nFor the data sync and generate jobs, this will be applied per table",
+              "label": "",
+              "type": "ActivityOptions",
+              "longType": "ActivityOptions",
+              "fullType": "mgmt.v1alpha1.ActivityOptions",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "workflow_options",
+              "description": "Specify timeouts and other workflow options for the underlying temporal workflow",
+              "label": "",
+              "type": "WorkflowOptions",
+              "longType": "WorkflowOptions",
+              "fullType": "mgmt.v1alpha1.WorkflowOptions",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -8258,6 +8354,30 @@
           ]
         },
         {
+          "name": "RetryPolicy",
+          "longName": "RetryPolicy",
+          "fullName": "mgmt.v1alpha1.RetryPolicy",
+          "description": "Defines the retry policy for an activity",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "maximum_attempts",
+              "description": "Maximum number of attempts. When exceeded the retries stop even if not expired yet.\nIf not set or set to 0, it means unlimited, and rely on activity ScheduleToCloseTimeout to stop.",
+              "label": "optional",
+              "type": "int32",
+              "longType": "int32",
+              "fullType": "int32",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_maximum_attempts",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "SetJobSourceSqlConnectionSubsetsRequest",
           "longName": "SetJobSourceSqlConnectionSubsetsRequest",
           "fullName": "mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsRequest",
@@ -8297,6 +8417,126 @@
           "name": "SetJobSourceSqlConnectionSubsetsResponse",
           "longName": "SetJobSourceSqlConnectionSubsetsResponse",
           "fullName": "mgmt.v1alpha1.SetJobSourceSqlConnectionSubsetsResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "job",
+              "description": "",
+              "label": "",
+              "type": "Job",
+              "longType": "Job",
+              "fullType": "mgmt.v1alpha1.Job",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SetJobSyncOptionsRequest",
+          "longName": "SetJobSyncOptionsRequest",
+          "fullName": "mgmt.v1alpha1.SetJobSyncOptionsRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "id",
+              "description": "The unique identifier of the job",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "sync_options",
+              "description": "The sync options object. The entire object must be provided and will fully overwrite the previous result",
+              "label": "",
+              "type": "ActivityOptions",
+              "longType": "ActivityOptions",
+              "fullType": "mgmt.v1alpha1.ActivityOptions",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SetJobSyncOptionsResponse",
+          "longName": "SetJobSyncOptionsResponse",
+          "fullName": "mgmt.v1alpha1.SetJobSyncOptionsResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "job",
+              "description": "",
+              "label": "",
+              "type": "Job",
+              "longType": "Job",
+              "fullType": "mgmt.v1alpha1.Job",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SetJobWorkflowOptionsRequest",
+          "longName": "SetJobWorkflowOptionsRequest",
+          "fullName": "mgmt.v1alpha1.SetJobWorkflowOptionsRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "id",
+              "description": "The unique identifier of the job",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "worfklow_options",
+              "description": "The workflow options object. The entire object must be provided and will fully overwrite the previous result",
+              "label": "",
+              "type": "WorkflowOptions",
+              "longType": "WorkflowOptions",
+              "fullType": "mgmt.v1alpha1.WorkflowOptions",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SetJobWorkflowOptionsResponse",
+          "longName": "SetJobWorkflowOptionsResponse",
+          "fullName": "mgmt.v1alpha1.SetJobWorkflowOptionsResponse",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -8576,6 +8816,30 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "WorkflowOptions",
+          "longName": "WorkflowOptions",
+          "fullName": "mgmt.v1alpha1.WorkflowOptions",
+          "description": "Config that contains various timeouts that are configured in the underlying temporal workflow\nMore options will come in the future as needed",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "run_timeout",
+              "description": "The timeout for a single workflow run.\nMeasured in seconds",
+              "label": "optional",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_run_timeout",
               "defaultValue": ""
             }
           ]
@@ -8875,6 +9139,30 @@
               "responseLongType": "GetJobRunLogsStreamResponse",
               "responseFullType": "mgmt.v1alpha1.GetJobRunLogsStreamResponse",
               "responseStreaming": true
+            },
+            {
+              "name": "SetJobWorkflowOptions",
+              "description": "Set any job workflow options. Must provide entire object as is it will fully override the previous configuration",
+              "requestType": "SetJobWorkflowOptionsRequest",
+              "requestLongType": "SetJobWorkflowOptionsRequest",
+              "requestFullType": "mgmt.v1alpha1.SetJobWorkflowOptionsRequest",
+              "requestStreaming": false,
+              "responseType": "SetJobWorkflowOptionsResponse",
+              "responseLongType": "SetJobWorkflowOptionsResponse",
+              "responseFullType": "mgmt.v1alpha1.SetJobWorkflowOptionsResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "SetJobSyncOptions",
+              "description": "Set the job sync options. Must provide entire object as it will fully override the previous configuration",
+              "requestType": "SetJobSyncOptionsRequest",
+              "requestLongType": "SetJobSyncOptionsRequest",
+              "requestFullType": "mgmt.v1alpha1.SetJobSyncOptionsRequest",
+              "requestStreaming": false,
+              "responseType": "SetJobSyncOptionsResponse",
+              "responseLongType": "SetJobSyncOptionsResponse",
+              "responseFullType": "mgmt.v1alpha1.SetJobSyncOptionsResponse",
+              "responseStreaming": false
             }
           ]
         }

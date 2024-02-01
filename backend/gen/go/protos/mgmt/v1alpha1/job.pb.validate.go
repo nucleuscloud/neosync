@@ -3140,6 +3140,64 @@ func (m *CreateJobRequest) validate(all bool) error {
 
 	// no validation rules for InitiateJobRun
 
+	if all {
+		switch v := interface{}(m.GetWorkflowOptions()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CreateJobRequestValidationError{
+					field:  "WorkflowOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CreateJobRequestValidationError{
+					field:  "WorkflowOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetWorkflowOptions()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateJobRequestValidationError{
+				field:  "WorkflowOptions",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetSyncOptions()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CreateJobRequestValidationError{
+					field:  "SyncOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CreateJobRequestValidationError{
+					field:  "SyncOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSyncOptions()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateJobRequestValidationError{
+				field:  "SyncOptions",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	if m.CronSchedule != nil {
 		// no validation rules for CronSchedule
 	}
@@ -3221,6 +3279,350 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = CreateJobRequestValidationError{}
+
+// Validate checks the field values on WorkflowOptions with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *WorkflowOptions) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on WorkflowOptions with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// WorkflowOptionsMultiError, or nil if none found.
+func (m *WorkflowOptions) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *WorkflowOptions) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.RunTimeout != nil {
+		// no validation rules for RunTimeout
+	}
+
+	if len(errors) > 0 {
+		return WorkflowOptionsMultiError(errors)
+	}
+
+	return nil
+}
+
+// WorkflowOptionsMultiError is an error wrapping multiple validation errors
+// returned by WorkflowOptions.ValidateAll() if the designated constraints
+// aren't met.
+type WorkflowOptionsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m WorkflowOptionsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m WorkflowOptionsMultiError) AllErrors() []error { return m }
+
+// WorkflowOptionsValidationError is the validation error returned by
+// WorkflowOptions.Validate if the designated constraints aren't met.
+type WorkflowOptionsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e WorkflowOptionsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e WorkflowOptionsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e WorkflowOptionsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e WorkflowOptionsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e WorkflowOptionsValidationError) ErrorName() string { return "WorkflowOptionsValidationError" }
+
+// Error satisfies the builtin error interface
+func (e WorkflowOptionsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sWorkflowOptions.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = WorkflowOptionsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = WorkflowOptionsValidationError{}
+
+// Validate checks the field values on ActivityOptions with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *ActivityOptions) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ActivityOptions with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ActivityOptionsMultiError, or nil if none found.
+func (m *ActivityOptions) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ActivityOptions) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetRetryPolicy()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ActivityOptionsValidationError{
+					field:  "RetryPolicy",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ActivityOptionsValidationError{
+					field:  "RetryPolicy",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetRetryPolicy()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ActivityOptionsValidationError{
+				field:  "RetryPolicy",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.ScheduleToCloseTimeout != nil {
+		// no validation rules for ScheduleToCloseTimeout
+	}
+
+	if m.StartToCloseTimeout != nil {
+		// no validation rules for StartToCloseTimeout
+	}
+
+	if len(errors) > 0 {
+		return ActivityOptionsMultiError(errors)
+	}
+
+	return nil
+}
+
+// ActivityOptionsMultiError is an error wrapping multiple validation errors
+// returned by ActivityOptions.ValidateAll() if the designated constraints
+// aren't met.
+type ActivityOptionsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ActivityOptionsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ActivityOptionsMultiError) AllErrors() []error { return m }
+
+// ActivityOptionsValidationError is the validation error returned by
+// ActivityOptions.Validate if the designated constraints aren't met.
+type ActivityOptionsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ActivityOptionsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ActivityOptionsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ActivityOptionsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ActivityOptionsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ActivityOptionsValidationError) ErrorName() string { return "ActivityOptionsValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ActivityOptionsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sActivityOptions.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ActivityOptionsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ActivityOptionsValidationError{}
+
+// Validate checks the field values on RetryPolicy with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *RetryPolicy) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RetryPolicy with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in RetryPolicyMultiError, or
+// nil if none found.
+func (m *RetryPolicy) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RetryPolicy) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.MaximumAttempts != nil {
+		// no validation rules for MaximumAttempts
+	}
+
+	if len(errors) > 0 {
+		return RetryPolicyMultiError(errors)
+	}
+
+	return nil
+}
+
+// RetryPolicyMultiError is an error wrapping multiple validation errors
+// returned by RetryPolicy.ValidateAll() if the designated constraints aren't met.
+type RetryPolicyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RetryPolicyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RetryPolicyMultiError) AllErrors() []error { return m }
+
+// RetryPolicyValidationError is the validation error returned by
+// RetryPolicy.Validate if the designated constraints aren't met.
+type RetryPolicyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RetryPolicyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RetryPolicyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RetryPolicyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RetryPolicyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RetryPolicyValidationError) ErrorName() string { return "RetryPolicyValidationError" }
+
+// Error satisfies the builtin error interface
+func (e RetryPolicyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRetryPolicy.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RetryPolicyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RetryPolicyValidationError{}
 
 // Validate checks the field values on CreateJobResponse with the rules defined
 // in the proto definition for this message. If any rules are violated, the
@@ -7645,6 +8047,64 @@ func (m *Job) validate(all bool) error {
 
 	// no validation rules for AccountId
 
+	if all {
+		switch v := interface{}(m.GetSyncOptions()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, JobValidationError{
+					field:  "SyncOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, JobValidationError{
+					field:  "SyncOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSyncOptions()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return JobValidationError{
+				field:  "SyncOptions",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetWorkflowOptions()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, JobValidationError{
+					field:  "WorkflowOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, JobValidationError{
+					field:  "WorkflowOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetWorkflowOptions()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return JobValidationError{
+				field:  "WorkflowOptions",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	if m.CronSchedule != nil {
 		// no validation rules for CronSchedule
 	}
@@ -11081,3 +11541,533 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GetJobRunLogsStreamResponseValidationError{}
+
+// Validate checks the field values on SetJobWorkflowOptionsRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SetJobWorkflowOptionsRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SetJobWorkflowOptionsRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SetJobWorkflowOptionsRequestMultiError, or nil if none found.
+func (m *SetJobWorkflowOptionsRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SetJobWorkflowOptionsRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	if all {
+		switch v := interface{}(m.GetWorfklowOptions()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SetJobWorkflowOptionsRequestValidationError{
+					field:  "WorfklowOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SetJobWorkflowOptionsRequestValidationError{
+					field:  "WorfklowOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetWorfklowOptions()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SetJobWorkflowOptionsRequestValidationError{
+				field:  "WorfklowOptions",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SetJobWorkflowOptionsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// SetJobWorkflowOptionsRequestMultiError is an error wrapping multiple
+// validation errors returned by SetJobWorkflowOptionsRequest.ValidateAll() if
+// the designated constraints aren't met.
+type SetJobWorkflowOptionsRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SetJobWorkflowOptionsRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SetJobWorkflowOptionsRequestMultiError) AllErrors() []error { return m }
+
+// SetJobWorkflowOptionsRequestValidationError is the validation error returned
+// by SetJobWorkflowOptionsRequest.Validate if the designated constraints
+// aren't met.
+type SetJobWorkflowOptionsRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SetJobWorkflowOptionsRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SetJobWorkflowOptionsRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SetJobWorkflowOptionsRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SetJobWorkflowOptionsRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SetJobWorkflowOptionsRequestValidationError) ErrorName() string {
+	return "SetJobWorkflowOptionsRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SetJobWorkflowOptionsRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSetJobWorkflowOptionsRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SetJobWorkflowOptionsRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SetJobWorkflowOptionsRequestValidationError{}
+
+// Validate checks the field values on SetJobWorkflowOptionsResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SetJobWorkflowOptionsResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SetJobWorkflowOptionsResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// SetJobWorkflowOptionsResponseMultiError, or nil if none found.
+func (m *SetJobWorkflowOptionsResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SetJobWorkflowOptionsResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetJob()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SetJobWorkflowOptionsResponseValidationError{
+					field:  "Job",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SetJobWorkflowOptionsResponseValidationError{
+					field:  "Job",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetJob()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SetJobWorkflowOptionsResponseValidationError{
+				field:  "Job",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SetJobWorkflowOptionsResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// SetJobWorkflowOptionsResponseMultiError is an error wrapping multiple
+// validation errors returned by SetJobWorkflowOptionsResponse.ValidateAll()
+// if the designated constraints aren't met.
+type SetJobWorkflowOptionsResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SetJobWorkflowOptionsResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SetJobWorkflowOptionsResponseMultiError) AllErrors() []error { return m }
+
+// SetJobWorkflowOptionsResponseValidationError is the validation error
+// returned by SetJobWorkflowOptionsResponse.Validate if the designated
+// constraints aren't met.
+type SetJobWorkflowOptionsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SetJobWorkflowOptionsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SetJobWorkflowOptionsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SetJobWorkflowOptionsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SetJobWorkflowOptionsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SetJobWorkflowOptionsResponseValidationError) ErrorName() string {
+	return "SetJobWorkflowOptionsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SetJobWorkflowOptionsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSetJobWorkflowOptionsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SetJobWorkflowOptionsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SetJobWorkflowOptionsResponseValidationError{}
+
+// Validate checks the field values on SetJobSyncOptionsRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SetJobSyncOptionsRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SetJobSyncOptionsRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SetJobSyncOptionsRequestMultiError, or nil if none found.
+func (m *SetJobSyncOptionsRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SetJobSyncOptionsRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	if all {
+		switch v := interface{}(m.GetSyncOptions()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SetJobSyncOptionsRequestValidationError{
+					field:  "SyncOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SetJobSyncOptionsRequestValidationError{
+					field:  "SyncOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSyncOptions()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SetJobSyncOptionsRequestValidationError{
+				field:  "SyncOptions",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SetJobSyncOptionsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// SetJobSyncOptionsRequestMultiError is an error wrapping multiple validation
+// errors returned by SetJobSyncOptionsRequest.ValidateAll() if the designated
+// constraints aren't met.
+type SetJobSyncOptionsRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SetJobSyncOptionsRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SetJobSyncOptionsRequestMultiError) AllErrors() []error { return m }
+
+// SetJobSyncOptionsRequestValidationError is the validation error returned by
+// SetJobSyncOptionsRequest.Validate if the designated constraints aren't met.
+type SetJobSyncOptionsRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SetJobSyncOptionsRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SetJobSyncOptionsRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SetJobSyncOptionsRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SetJobSyncOptionsRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SetJobSyncOptionsRequestValidationError) ErrorName() string {
+	return "SetJobSyncOptionsRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SetJobSyncOptionsRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSetJobSyncOptionsRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SetJobSyncOptionsRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SetJobSyncOptionsRequestValidationError{}
+
+// Validate checks the field values on SetJobSyncOptionsResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SetJobSyncOptionsResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SetJobSyncOptionsResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SetJobSyncOptionsResponseMultiError, or nil if none found.
+func (m *SetJobSyncOptionsResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SetJobSyncOptionsResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetJob()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SetJobSyncOptionsResponseValidationError{
+					field:  "Job",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SetJobSyncOptionsResponseValidationError{
+					field:  "Job",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetJob()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SetJobSyncOptionsResponseValidationError{
+				field:  "Job",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SetJobSyncOptionsResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// SetJobSyncOptionsResponseMultiError is an error wrapping multiple validation
+// errors returned by SetJobSyncOptionsResponse.ValidateAll() if the
+// designated constraints aren't met.
+type SetJobSyncOptionsResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SetJobSyncOptionsResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SetJobSyncOptionsResponseMultiError) AllErrors() []error { return m }
+
+// SetJobSyncOptionsResponseValidationError is the validation error returned by
+// SetJobSyncOptionsResponse.Validate if the designated constraints aren't met.
+type SetJobSyncOptionsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SetJobSyncOptionsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SetJobSyncOptionsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SetJobSyncOptionsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SetJobSyncOptionsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SetJobSyncOptionsResponseValidationError) ErrorName() string {
+	return "SetJobSyncOptionsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SetJobSyncOptionsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSetJobSyncOptionsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SetJobSyncOptionsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SetJobSyncOptionsResponseValidationError{}

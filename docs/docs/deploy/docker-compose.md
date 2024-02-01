@@ -18,8 +18,7 @@ To simplify the setup even further, a compose file is provided that does not sta
 Database volumes for both Temporal and Neosync are mapped to the `.data` folder inside of the repository. Note: If using Docker Desktop, this folder will have to be added to the list of allowed file system mappings prior to running docker compose.
 
 ```sh
-$ docker compose -f temporal/compose.yml up -d
-$ docker compose -f compose/compose-prod.yml up -d
+$ make compose-up
 ```
 
 Once all of the containers come online, the app is now routable via [http://localhost:3000](http://localhost:3000).
@@ -29,17 +28,12 @@ Once all of the containers come online, the app is now routable via [http://loca
 Neosync provides an auth friendly compose file that will stand up Neosync in auth-mode with Keycloak.
 
 ```sh
-$ docker compose -f temporal/compose.yml up -d
-$ docker compose -f compose/compose-auth-prod.yml up -d
+$ make compose-auth-up
 ```
 
 Keycloak comes default with two clients that allow the app and cli to login successfully.
 
 On first boot up, Keycloak will assert itself with the provided realm Neosync realm.
 
-When navigating to Neosync for the first time, you'll land on the Keycloak signin page. It is easy to create an account simply by going through the register flow.
+When navigating to Neosync for the first time, you'll land on the Keycloak sign-in page. It is easy to create an account simply by going through the register flow.
 This will persist restarts due to the postgres volume mapping. If you wish to start over, simply delete your `.data/neosync-postgres` folder to do so.
-
-## Developing Neosync with Compose
-
-Check out the README at the root of the Neosync Github repository to learn more about how to develop Neosync using compose and the dev-focused compose files.

@@ -750,3 +750,58 @@ func (t *TemporalConfig) FromDto(dto *mgmtv1alpha1.AccountTemporalConfig) {
 	t.SyncJobQueueName = dto.SyncJobQueueName
 	t.Url = dto.Url
 }
+
+type WorkflowOptions struct {
+	RunTimeout *int64 `json:"runTimeout,omitempty"`
+}
+
+func (a *WorkflowOptions) ToDto() *mgmtv1alpha1.WorkflowOptions {
+	return &mgmtv1alpha1.WorkflowOptions{
+		RunTimeout: a.RunTimeout,
+	}
+}
+
+func (a *WorkflowOptions) FromDto(dto *mgmtv1alpha1.WorkflowOptions) {
+	a.RunTimeout = dto.RunTimeout
+}
+
+type ActivityOptions struct {
+	ScheduleToCloseTimeout *int64       `json:"scheduleToCloseTimeout,omitempty"`
+	StartToCloseTimeout    *int64       `json:"startToCloseTimeout,omitempty"`
+	RetryPolicy            *RetryPolicy `json:"retryPolicy,omitempty"`
+}
+
+func (a *ActivityOptions) ToDto() *mgmtv1alpha1.ActivityOptions {
+	var retryPolicy *mgmtv1alpha1.RetryPolicy
+	if a.RetryPolicy != nil {
+		retryPolicy = a.RetryPolicy.ToDto()
+	}
+	return &mgmtv1alpha1.ActivityOptions{
+		ScheduleToCloseTimeout: a.ScheduleToCloseTimeout,
+		StartToCloseTimeout:    a.StartToCloseTimeout,
+		RetryPolicy:            retryPolicy,
+	}
+}
+
+func (a *ActivityOptions) FromDto(dto *mgmtv1alpha1.ActivityOptions) {
+	a.ScheduleToCloseTimeout = dto.ScheduleToCloseTimeout
+	a.StartToCloseTimeout = dto.StartToCloseTimeout
+	if dto.RetryPolicy != nil {
+		a.RetryPolicy = &RetryPolicy{}
+		a.RetryPolicy.FromDto(dto.RetryPolicy)
+	}
+}
+
+type RetryPolicy struct {
+	MaximumAttempts *int32 `json:"maximumAttempts,omitempty"`
+}
+
+func (r *RetryPolicy) ToDto() *mgmtv1alpha1.RetryPolicy {
+	return &mgmtv1alpha1.RetryPolicy{
+		MaximumAttempts: r.MaximumAttempts,
+	}
+}
+
+func (r *RetryPolicy) FromDto(dto *mgmtv1alpha1.RetryPolicy) {
+	r.MaximumAttempts = dto.MaximumAttempts
+}

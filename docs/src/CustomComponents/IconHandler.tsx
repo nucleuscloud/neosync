@@ -22,11 +22,11 @@ import {
   BiTerminal,
 } from 'react-icons/bi';
 import { BsFunnel, BsShieldCheck } from 'react-icons/bs';
-import { FaAws, FaDocker, FaFolder, FaKey } from 'react-icons/fa';
+import { FaAws, FaDocker, FaFolder, FaKey, FaLaptop } from 'react-icons/fa';
 import { GoLightBulb, GoSync } from 'react-icons/go';
 
 import { GoCode, GoTable, GoVersions } from 'react-icons/go';
-import { GrMysql } from 'react-icons/gr';
+import { GrAnalytics, GrMysql } from 'react-icons/gr';
 import { IoBuildOutline } from 'react-icons/io5';
 import { MdPassword, MdStart } from 'react-icons/md';
 import { PiArrowsSplitLight, PiFlaskLight } from 'react-icons/pi';
@@ -118,6 +118,10 @@ export function IconHandler(name: string): ReactElement {
       return <FaFolder />;
     case 'Authentication':
       return <FaKey />;
+    case 'Configuring Analytics':
+      return <GrAnalytics />;
+    case 'Developing Neosync Locally':
+      return <FaLaptop />;
     default:
       return <LayersIcon />;
   }

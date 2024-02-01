@@ -51,6 +51,7 @@ interface Props {
 export default function JobScheduleCard({ job, mutate }: Props): ReactElement {
   const { toast } = useToast();
   const form = useForm({
+    mode: 'onChange',
     resolver: yupResolver<ScheduleFormValues>(SCHEDULE_FORM_SCHEMA),
     defaultValues: { cronSchedule: '' },
     values: { cronSchedule: job?.cronSchedule },

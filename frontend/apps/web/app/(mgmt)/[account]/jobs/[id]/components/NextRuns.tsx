@@ -56,10 +56,10 @@ export default function JobNextRuns({ jobId, status }: Props): ReactElement {
                   </TableCell>
                 </TableRow>
               ) : (
-                data?.nextRuns?.nextRunTimes.map((r, index) => {
+                data?.nextRuns?.nextRunTimes.slice(0, 4).map((r, index) => {
                   return (
                     <TableRow key={`${r}-${index}`}>
-                      <TableCell>
+                      <TableCell className="py-3">
                         <span className="font-medium">
                           {formatDateTime(r.toDate())}
                         </span>

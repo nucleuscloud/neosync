@@ -1,7 +1,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  namespace: neosync
+  namespace: {{ .Release.Namespace }}
   name: {{ template "neosync-api.fullname" . }}-rolebinding
 roleRef:
   apiGroup: rbac.authorization.k8s.io

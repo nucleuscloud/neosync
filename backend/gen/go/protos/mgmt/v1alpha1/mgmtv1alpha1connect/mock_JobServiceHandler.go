@@ -1193,6 +1193,124 @@ func (_c *MockJobServiceHandler_SetJobSourceSqlConnectionSubsets_Call) RunAndRet
 	return _c
 }
 
+// SetJobSyncOptions provides a mock function with given fields: _a0, _a1
+func (_m *MockJobServiceHandler) SetJobSyncOptions(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.SetJobSyncOptionsRequest]) (*connect.Response[mgmtv1alpha1.SetJobSyncOptionsResponse], error) {
+	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetJobSyncOptions")
+	}
+
+	var r0 *connect.Response[mgmtv1alpha1.SetJobSyncOptionsResponse]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.SetJobSyncOptionsRequest]) (*connect.Response[mgmtv1alpha1.SetJobSyncOptionsResponse], error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.SetJobSyncOptionsRequest]) *connect.Response[mgmtv1alpha1.SetJobSyncOptionsResponse]); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.SetJobSyncOptionsResponse])
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.SetJobSyncOptionsRequest]) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockJobServiceHandler_SetJobSyncOptions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetJobSyncOptions'
+type MockJobServiceHandler_SetJobSyncOptions_Call struct {
+	*mock.Call
+}
+
+// SetJobSyncOptions is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *connect.Request[mgmtv1alpha1.SetJobSyncOptionsRequest]
+func (_e *MockJobServiceHandler_Expecter) SetJobSyncOptions(_a0 interface{}, _a1 interface{}) *MockJobServiceHandler_SetJobSyncOptions_Call {
+	return &MockJobServiceHandler_SetJobSyncOptions_Call{Call: _e.mock.On("SetJobSyncOptions", _a0, _a1)}
+}
+
+func (_c *MockJobServiceHandler_SetJobSyncOptions_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.SetJobSyncOptionsRequest])) *MockJobServiceHandler_SetJobSyncOptions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.SetJobSyncOptionsRequest]))
+	})
+	return _c
+}
+
+func (_c *MockJobServiceHandler_SetJobSyncOptions_Call) Return(_a0 *connect.Response[mgmtv1alpha1.SetJobSyncOptionsResponse], _a1 error) *MockJobServiceHandler_SetJobSyncOptions_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockJobServiceHandler_SetJobSyncOptions_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.SetJobSyncOptionsRequest]) (*connect.Response[mgmtv1alpha1.SetJobSyncOptionsResponse], error)) *MockJobServiceHandler_SetJobSyncOptions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SetJobWorkflowOptions provides a mock function with given fields: _a0, _a1
+func (_m *MockJobServiceHandler) SetJobWorkflowOptions(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.SetJobWorkflowOptionsRequest]) (*connect.Response[mgmtv1alpha1.SetJobWorkflowOptionsResponse], error) {
+	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetJobWorkflowOptions")
+	}
+
+	var r0 *connect.Response[mgmtv1alpha1.SetJobWorkflowOptionsResponse]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.SetJobWorkflowOptionsRequest]) (*connect.Response[mgmtv1alpha1.SetJobWorkflowOptionsResponse], error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.SetJobWorkflowOptionsRequest]) *connect.Response[mgmtv1alpha1.SetJobWorkflowOptionsResponse]); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.SetJobWorkflowOptionsResponse])
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.SetJobWorkflowOptionsRequest]) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockJobServiceHandler_SetJobWorkflowOptions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetJobWorkflowOptions'
+type MockJobServiceHandler_SetJobWorkflowOptions_Call struct {
+	*mock.Call
+}
+
+// SetJobWorkflowOptions is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *connect.Request[mgmtv1alpha1.SetJobWorkflowOptionsRequest]
+func (_e *MockJobServiceHandler_Expecter) SetJobWorkflowOptions(_a0 interface{}, _a1 interface{}) *MockJobServiceHandler_SetJobWorkflowOptions_Call {
+	return &MockJobServiceHandler_SetJobWorkflowOptions_Call{Call: _e.mock.On("SetJobWorkflowOptions", _a0, _a1)}
+}
+
+func (_c *MockJobServiceHandler_SetJobWorkflowOptions_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.SetJobWorkflowOptionsRequest])) *MockJobServiceHandler_SetJobWorkflowOptions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.SetJobWorkflowOptionsRequest]))
+	})
+	return _c
+}
+
+func (_c *MockJobServiceHandler_SetJobWorkflowOptions_Call) Return(_a0 *connect.Response[mgmtv1alpha1.SetJobWorkflowOptionsResponse], _a1 error) *MockJobServiceHandler_SetJobWorkflowOptions_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockJobServiceHandler_SetJobWorkflowOptions_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.SetJobWorkflowOptionsRequest]) (*connect.Response[mgmtv1alpha1.SetJobWorkflowOptionsResponse], error)) *MockJobServiceHandler_SetJobWorkflowOptions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // TerminateJobRun provides a mock function with given fields: _a0, _a1
 func (_m *MockJobServiceHandler) TerminateJobRun(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.TerminateJobRunRequest]) (*connect.Response[mgmtv1alpha1.TerminateJobRunResponse], error) {
 	ret := _m.Called(_a0, _a1)
