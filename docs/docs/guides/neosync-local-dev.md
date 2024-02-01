@@ -124,7 +124,7 @@ Once everything is up and running, the app can be accessed locally at [http://lo
 
 ### Running Compose with Authentication
 
-Note, a compose file with authentication pre-configured can be found [here](./compose/compose-auth.yml).
+Note, a compose file with authentication pre-configured can be found [here](https://github.com/nucleuscloud/neosync/tree/main/compose/compose-auth.yml).
 This will stand up Keycloak with a pre-configured realm that will allow logging in to Neosync with a standard username and password, completely offline!
 
 ```sh
@@ -150,16 +150,16 @@ This comes at a negative of the local database not surviving restarts.
 
 Step 1 is to ensure that the `kind` cluster is up and running along with its registry.
 This can be manually created, or done simply with `ctlptl`.
-The cluster is declaratively defined [here](./tilt/kind/cluster.yaml)
+The cluster is declaratively defined [here](https://github.com/nucleuscloud/neosync/tree/main//tilt/kind/cluster.yaml)
 
-The below command invokes the cluster-create script that can be found [here](./tilt/scripts/cluster-create.sh)
+The below command invokes the cluster-create script that can be found [here](https://github.com/nucleuscloud/neosync/tree/main//tilt/scripts/cluster-create.sh)
 
 ```
 make cluster-create
 ```
 
 After the cluster has been successfully created, `tilt up` can be run to start up `neosync`.
-Refer to the top-level [Tiltfile](./Tiltfile) for a clear picture of everything that runs.
+Refer to the top-level [Tiltfile](https://github.com/nucleuscloud/neosync/tree/main//Tiltfile) for a clear picture of everything that runs.
 Each dependency in the `neosync` repo is split into sub-Tiltfiles so that they can be run in isolation, or in combination with other sub-resources more easily.
 
 Once everything is up and running, the app can be accessed locally at [http://localhost:3000](http://localhost:3000). -->
