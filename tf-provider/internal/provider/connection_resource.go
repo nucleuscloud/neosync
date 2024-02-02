@@ -133,6 +133,10 @@ func (r *ConnectionResource) Schema(ctx context.Context, req resource.SchemaRequ
 								Description: "The name of the user that will be authenticated with",
 								Required:    true,
 							},
+							"known_host_public_key": schema.StringAttribute{
+								Description: "The known SSH public key of the tunnel server.",
+								Optional:    true,
+							},
 							"private_key": schema.StringAttribute{
 								Description: "If using key authentication, this must be a pem encoded private key",
 								Optional:    true,
