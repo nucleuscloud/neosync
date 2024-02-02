@@ -1019,7 +1019,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		precision := col.Transformer.Config.GetGenerateFloat64Config().Precision
 		return fmt.Sprintf(`generate_float64(randomize_sign:%t, min:%f, max:%f, precision:%d)`, randomSign, min, max, precision), nil
 	case "generate_full_address":
-		return "generate_full_address()", nil
+		return fmt.Sprintf(`root = generate_full_address(max_length:%d)`, *colInfo.CharacterMaximumLength), nil
 	case "generate_full_name":
 		return fmt.Sprintf(`root = generate_full_name(max_length:%d)`, *colInfo.CharacterMaximumLength), nil
 	case "generate_gender":
@@ -1041,7 +1041,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 	case "generate_state":
 		return "generate_state()", nil
 	case "generate_street_address":
-		return "generate_street_address()", nil
+		return fmt.Sprintf(`root = generate_street_address(max_length:%d)`, *colInfo.CharacterMaximumLength), nil
 	case "generate_string_phone_number":
 		ih := col.Transformer.Config.GetGenerateStringPhoneNumberConfig().IncludeHyphens
 		return fmt.Sprintf("generate_string_phone_number(include_hyphens:%t)", ih), nil

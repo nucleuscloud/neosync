@@ -25,7 +25,7 @@ func init() {
 	}
 }
 
-// Generates a randomly selected state that exists in the United States.
+// Generates a randomly selected state that exists in the United States and returns the two-letter state code.
 func GenerateRandomState() string {
 
 	addresses := transformers_dataset.Addresses

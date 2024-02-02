@@ -35,7 +35,6 @@ func init() {
 
 // Generates a randomly selected city that exists in the United States. Accounts for the maxLength of the column and searches for a city that is shorter than the maxLength. If not, it randomly generates a string that len(string) == maxLength
 func GenerateRandomCity(maxLength int64) (string, error) {
-
 	addresses := transformers_dataset.Addresses
 	var filteredCities []string
 
@@ -49,9 +48,7 @@ func GenerateRandomCity(maxLength int64) (string, error) {
 		city, err := transformer_utils.GenerateRandomStringWithDefinedLength(maxLength)
 		if err != nil {
 			return "", err
-
 		}
-
 		return city, nil
 	}
 
