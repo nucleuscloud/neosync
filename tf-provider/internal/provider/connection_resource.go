@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -33,7 +32,7 @@ type ConnectionResource struct {
 type ConnectionResourceModel struct {
 	Id        types.String `tfsdk:"id"`
 	Name      types.String `tfsdk:"name"`
-	AccountId types.String `tfsdk:"accountId"`
+	AccountId types.String `tfsdk:"account_id"`
 
 	Postgres *Postgres `tfsdk:"postgres"`
 }
@@ -42,11 +41,11 @@ type Postgres struct {
 	Url types.String `tfsdk:"url"`
 
 	Host    types.String `tfsdk:"host"`
-	Port    types.Int64  `tfsdk:"post"`
+	Port    types.Int64  `tfsdk:"port"`
 	Name    types.String `tfsdk:"name"`
 	User    types.String `tfsdk:"user"`
 	Pass    types.String `tfsdk:"pass"`
-	SslMode types.String `tfsdk:"sslMode"`
+	SslMode types.String `tfsdk:"ssl_mode"`
 
 	Tunnel *SSHTunnel `tfsdk:"tunnel"`
 }
@@ -75,9 +74,11 @@ func (r *ConnectionResource) Schema(ctx context.Context, req resource.SchemaRequ
 				MarkdownDescription: "The unique friendly name of the connection",
 				Required:            true,
 			},
-			"accountId": schema.StringAttribute{
+			"account_id": schema.StringAttribute{
 				MarkdownDescription: "The unique identifier of the account. Can be pulled from the API Key if present, or must be specified if using a user access token",
 				Optional:            true,
+				Computed:            true,
+				PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			"postgres": schema.SingleNestedAttribute{
 				Description: "The postgres database that will be associated with this connection",
@@ -86,34 +87,34 @@ func (r *ConnectionResource) Schema(ctx context.Context, req resource.SchemaRequ
 				Attributes: map[string]schema.Attribute{
 					"url": schema.StringAttribute{
 						Description: "Standard postgres url connection string. Must be uri compliant",
-						Required:    false,
+						Optional:    true,
 					},
 
 					"host": schema.StringAttribute{
 						Description: "The host name of the postgres server",
-						Required:    false,
+						Optional:    true,
 					},
 					"port": schema.Int64Attribute{
 						Description: "The post of the postgres server",
-						Required:    false,
-						Default:     int64default.StaticInt64(5432),
+						Optional:    true,
+						// Default:     int64default.StaticInt64(5432),
 					},
 					"name": schema.StringAttribute{
 						Description: "The name of the database that will be connected to",
-						Required:    false,
+						Optional:    true,
 					},
 					"user": schema.StringAttribute{
 						Description: "The name of the user that will be authenticated with",
-						Required:    false,
+						Optional:    true,
 					},
 					"pass": schema.StringAttribute{
 						Description: "The password that will be authenticated with",
-						Required:    false,
+						Optional:    true,
 						Sensitive:   true,
 					},
-					"sslMode": schema.StringAttribute{
+					"ssl_mode": schema.StringAttribute{
 						Description: "The SSL mode for the postgres server",
-						Required:    false,
+						Optional:    true,
 					},
 					"tunnel": schema.SingleNestedAttribute{
 						Description: "SSH tunnel that is used to access databases that are not publicly accessible to the internet",
@@ -126,7 +127,7 @@ func (r *ConnectionResource) Schema(ctx context.Context, req resource.SchemaRequ
 							"port": schema.Int64Attribute{
 								Description: "The post of the ssh server",
 								Required:    true,
-								Default:     int64default.StaticInt64(22),
+								// Default:     int64default.StaticInt64(22),
 							},
 							"user": schema.StringAttribute{
 								Description: "The name of the user that will be authenticated with",
@@ -134,12 +135,12 @@ func (r *ConnectionResource) Schema(ctx context.Context, req resource.SchemaRequ
 							},
 							"private_key": schema.StringAttribute{
 								Description: "If using key authentication, this must be a pem encoded private key",
-								Required:    false,
+								Optional:    true,
 								Sensitive:   true,
 							},
 							"passphrase": schema.StringAttribute{
 								Description: "If not using key authentication, a password must be provided. If a private key is provided, but encrypted, provide the passphrase here as it will be used to decrypt the private key",
-								Required:    false,
+								Optional:    true,
 								Sensitive:   true,
 							},
 						},
@@ -151,6 +152,7 @@ func (r *ConnectionResource) Schema(ctx context.Context, req resource.SchemaRequ
 				MarkdownDescription: "The unique identifier of the connection",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
+					stringplanmodifier.RequiresReplaceIfConfigured(),
 				},
 			},
 		},
@@ -237,16 +239,16 @@ func getConnectionConfigFromResourceModel(data *ConnectionResourceModel) (*mgmtv
 		var tunnel *mgmtv1alpha1.SSHTunnel
 		if data.Postgres.Tunnel != nil {
 			tunnel = &mgmtv1alpha1.SSHTunnel{
-				Host:               data.Postgres.Tunnel.Host.String(),
+				Host:               data.Postgres.Tunnel.Host.ValueString(),
 				Port:               int32(data.Postgres.Tunnel.Port.ValueInt64()),
-				User:               data.Postgres.Tunnel.User.String(),
+				User:               data.Postgres.Tunnel.User.ValueString(),
 				KnownHostPublicKey: data.Postgres.Tunnel.KnownHostPublicKey.ValueStringPointer(),
 			}
 			if data.Postgres.Tunnel.PrivateKey.ValueString() != "" {
 				tunnel.Authentication = &mgmtv1alpha1.SSHAuthentication{
 					AuthConfig: &mgmtv1alpha1.SSHAuthentication_PrivateKey{
 						PrivateKey: &mgmtv1alpha1.SSHPrivateKey{
-							Value:      data.Postgres.Tunnel.PrivateKey.String(),
+							Value:      data.Postgres.Tunnel.PrivateKey.ValueString(),
 							Passphrase: data.Postgres.Tunnel.Passphrase.ValueStringPointer(),
 						},
 					},
@@ -255,7 +257,7 @@ func getConnectionConfigFromResourceModel(data *ConnectionResourceModel) (*mgmtv
 				tunnel.Authentication = &mgmtv1alpha1.SSHAuthentication{
 					AuthConfig: &mgmtv1alpha1.SSHAuthentication_Passphrase{
 						Passphrase: &mgmtv1alpha1.SSHPassphrase{
-							Value: data.Postgres.Tunnel.Passphrase.String(),
+							Value: data.Postgres.Tunnel.Passphrase.ValueString(),
 						},
 					},
 				}
@@ -266,7 +268,7 @@ func getConnectionConfigFromResourceModel(data *ConnectionResourceModel) (*mgmtv
 				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
 					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
 						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-							Url: data.Postgres.Url.String(),
+							Url: data.Postgres.Url.ValueString(),
 						},
 						Tunnel: tunnel,
 					},
@@ -282,11 +284,11 @@ func getConnectionConfigFromResourceModel(data *ConnectionResourceModel) (*mgmtv
 					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
 						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Connection{
 							Connection: &mgmtv1alpha1.PostgresConnection{
-								Host:    pg.Host.String(),
+								Host:    pg.Host.ValueString(),
 								Port:    int32(pg.Port.ValueInt64()),
-								Name:    pg.Name.String(),
-								User:    pg.User.String(),
-								Pass:    pg.Pass.String(),
+								Name:    pg.Name.ValueString(),
+								User:    pg.User.ValueString(),
+								Pass:    pg.Pass.ValueString(),
 								SslMode: pg.SslMode.ValueStringPointer(),
 							},
 						},
@@ -316,7 +318,7 @@ func (r *ConnectionResource) Create(ctx context.Context, req resource.CreateRequ
 			accountId = *r.accountId
 		}
 	} else {
-		accountId = data.AccountId.String()
+		accountId = data.AccountId.ValueString()
 	}
 	if accountId == "" {
 		resp.Diagnostics.AddError("no account id", "must provide account id either on the resource or provide through environment configuration")
@@ -329,7 +331,7 @@ func (r *ConnectionResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 	connResp, err := r.client.CreateConnection(ctx, connect.NewRequest(&mgmtv1alpha1.CreateConnectionRequest{
-		Name:             data.Name.String(),
+		Name:             data.Name.ValueString(),
 		AccountId:        accountId, // compute account id
 		ConnectionConfig: cc,
 	}))
@@ -342,6 +344,12 @@ func (r *ConnectionResource) Create(ctx context.Context, req resource.CreateRequ
 
 	data.Id = types.StringValue(connection.Id)
 	data.Name = types.StringValue(connection.Name)
+	data.AccountId = types.StringValue(connection.AccountId)
+	err = hydrateResourceModelFromConnectionConfig(connection.ConnectionConfig, &data)
+	if err != nil {
+		resp.Diagnostics.AddError("connection config hydration error", err.Error())
+		return
+	}
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
@@ -363,7 +371,7 @@ func (r *ConnectionResource) Read(ctx context.Context, req resource.ReadRequest,
 	}
 
 	connResp, err := r.client.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: data.Id.String(),
+		Id: data.Id.ValueString(),
 	}))
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to get connection", err.Error())
@@ -403,8 +411,8 @@ func (r *ConnectionResource) Update(ctx context.Context, req resource.UpdateRequ
 	}
 
 	connResp, err := r.client.UpdateConnection(ctx, connect.NewRequest(&mgmtv1alpha1.UpdateConnectionRequest{
-		Id:               data.Id.String(),
-		Name:             data.Name.String(),
+		Id:               data.Id.ValueString(),
+		Name:             data.Name.ValueString(),
 		ConnectionConfig: cc,
 	}))
 	if err != nil {
@@ -440,7 +448,7 @@ func (r *ConnectionResource) Delete(ctx context.Context, req resource.DeleteRequ
 	}
 
 	_, err := r.client.DeleteConnection(ctx, connect.NewRequest(&mgmtv1alpha1.DeleteConnectionRequest{
-		Id: data.Id.String(),
+		Id: data.Id.ValueString(),
 	}))
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to delete connection", err.Error())

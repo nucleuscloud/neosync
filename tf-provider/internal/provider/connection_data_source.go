@@ -37,7 +37,7 @@ func (d *ConnectionDataSource) Metadata(ctx context.Context, req datasource.Meta
 func (d *ConnectionDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		// This description is used by the documentation generator and the language server.
-		MarkdownDescription: "Example data source",
+		MarkdownDescription: "Neosync Connection data source",
 
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
@@ -84,7 +84,7 @@ func (d *ConnectionDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	}
 
 	connResp, err := d.client.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: data.Id.String(),
+		Id: data.Id.ValueString(),
 	}))
 	if err != nil {
 		resp.Diagnostics.AddError("Unable to get connection by id", err.Error())
@@ -92,7 +92,7 @@ func (d *ConnectionDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	}
 
 	data.Name = types.StringValue(connResp.Msg.Connection.Name)
-	tflog.Trace(ctx, "read connection", map[string]any{"id": data.Id.String()})
+	tflog.Trace(ctx, "read connection", map[string]any{"id": data.Id.ValueString()})
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
