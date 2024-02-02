@@ -92,7 +92,7 @@ func (d *ConnectionDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	}
 
 	data.Name = types.StringValue(connResp.Msg.Connection.Name)
-	tflog.Info(ctx, "successfully found connection by id", map[string]any{"id": data.Id.String()})
+	tflog.Trace(ctx, "read connection", map[string]any{"id": data.Id.String()})
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
