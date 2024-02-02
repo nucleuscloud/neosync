@@ -94,4 +94,5 @@ goworksync:
 	cd worker && go mod tidy
 	cd cli && go mod tidy
 	cd backend && go mod tidy
+	cd terraform-provider && go mod tidy
 .PHONY: goworksync

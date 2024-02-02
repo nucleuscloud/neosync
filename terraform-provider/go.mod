@@ -1,6 +1,6 @@
 module github.com/nucleuscloud/neosync/terraform-provider
 
-go 1.21.6
+go 1.21.3
 
 replace github.com/nucleuscloud/neosync/backend => ../backend
 

@@ -461,6 +461,38 @@ jobs:
           # GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
           AUR_KEY: ${{ secrets.AUR_PRIVATE_KEY }}
 
+  terraform:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform-provider
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Allow goreleaser to access older tag information.
+          fetch-depth: 0
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: terraform-provider/go.mod
+          cache-dependency-path: terraform-provider/go.sum
+      # - name: Import GPG key
+      #   uses: crazy-max/ghaction-import-gpg@01dd5d3ca463c7f10f7f4f7b4f177225ac661ee4 # v6.1.0
+      #   id: import_gpg
+      #   with:
+      #     gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+      #     passphrase: ${{ secrets.PASSPHRASE }}
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v5
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --clean
+          workdir: terraform-provider
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
+
   ts-sdk:
     name: TypeScript SDK Release
     runs-on: ubuntu-latest
