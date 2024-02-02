@@ -1011,7 +1011,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		max := col.Transformer.Config.GetGenerateE164PhoneNumberConfig().Max
 		return fmt.Sprintf(`generate_e164_phone_number(min:%d, max: %d)`, min, max), nil
 	case "generate_first_name":
-		return "generate_first_name()", nil
+		return fmt.Sprintf(`root = generate_first_name(max_length:%d)`, *colInfo.CharacterMaximumLength), nil
 	case "generate_float64":
 		randomSign := col.Transformer.Config.GetGenerateFloat64Config().RandomizeSign
 		min := col.Transformer.Config.GetGenerateFloat64Config().Min
