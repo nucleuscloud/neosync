@@ -37,7 +37,7 @@ func GenerateUsername() (string, error) {
 	// randomly select a letter in the alphabet to use as a first initial
 	fn := string(alphabet[rand.Intn(len(alphabet))])
 
-	ln, err := GenerateRandomLastName()
+	ln, err := GenerateRandomLastName(int64(2))
 	if err != nil {
 		return "", err
 	}

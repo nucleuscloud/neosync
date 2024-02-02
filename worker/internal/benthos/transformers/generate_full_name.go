@@ -31,7 +31,7 @@ func GenerateRandomFullName() (string, error) {
 		return "", err
 	}
 
-	ln, err := GenerateRandomLastName()
+	ln, err := GenerateRandomLastName(int64(3))
 	if err != nil {
 		return "", err
 	}
