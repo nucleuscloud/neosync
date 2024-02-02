@@ -58,18 +58,18 @@ func (d *ConnectionDataSource) Configure(ctx context.Context, req datasource.Con
 		return
 	}
 
-	client, ok := req.ProviderData.(mgmtv1alpha1connect.ConnectionServiceClient)
+	providerData, ok := req.ProviderData.(*ConfigData)
 
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Data Source Configure Type",
-			fmt.Sprintf("Expected *mgmtv1alpha1connect.ConnectionServiceClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected mgmtv1alpha1connect.ConnectionServiceClient, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
 	}
 
-	d.client = client
+	d.client = providerData.ConnectionClient
 }
 
 // nolint

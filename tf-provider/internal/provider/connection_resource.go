@@ -122,7 +122,7 @@ func (r *ConnectionResource) Configure(ctx context.Context, req resource.Configu
 		return
 	}
 
-	client, ok := req.ProviderData.(mgmtv1alpha1connect.ConnectionServiceClient)
+	providerData, ok := req.ProviderData.(*ConfigData)
 
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -133,7 +133,8 @@ func (r *ConnectionResource) Configure(ctx context.Context, req resource.Configu
 		return
 	}
 
-	r.client = client
+	r.client = providerData.ConnectionClient
+	r.accountId = providerData.AccountId
 }
 
 func hydrateResourceModelFromConnectionConfig(cc *mgmtv1alpha1.ConnectionConfig, data *ConnectionResourceModel) error {
