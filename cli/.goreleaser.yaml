@@ -16,28 +16,28 @@ builds:
     main: ./cmd/neosync
 
 checksum:
-  name_template: 'checksums.txt'
-# signs:
-#   - artifacts: checksum
-#     # Used by GH Action to sign with a specific fingerprint
-#     args:
-#       [
-#         '--batch',
-#         '-u',
-#         '{{ .Env.GPG_FINGERPRINT }}',
-#         '--output',
-#         '${signature}',
-#         '--detach-sign',
-#         '${artifact}',
-#       ]
+  name_template: "checksums.txt"
+signs:
+  - artifacts: checksum
+    # Used by GH Action to sign with a specific fingerprint
+    args:
+      [
+        "--batch",
+        "-u",
+        "{{ .Env.GPG_FINGERPRINT }}",
+        "--output",
+        "${signature}",
+        "--detach-sign",
+        "${artifact}",
+      ]
 snapshot:
-  name_template: '{{ incpatch .Version }}-next'
+  name_template: "{{ incpatch .Version }}-next"
 changelog:
   sort: desc
   filters:
     exclude:
-      - '^docs:'
-      - '^test:'
+      - "^docs:"
+      - "^test:"
 brews:
   - repository:
       owner: nucleuscloud
@@ -47,15 +47,13 @@ brews:
     description: CLI for interfacing with Neosync
     license: MIT
 archives:
-  -
-    id: default
+  - id: default
     format_overrides:
       - goos: windows
         format: zip
 
 aurs:
-  -
-    homepage: https://neosync.dev
+  - homepage: https://neosync.dev
     description: CLI for interfacing with Neosync
     maintainers:
       - Devops <devops@nucleuscloud.com>
@@ -70,7 +68,7 @@ aurs:
     commit_author:
       name: nucleusbot
       email: devops@nucleuscloud.com
-    private_key: '{{ .Env.AUR_KEY }}'
+    private_key: "{{ .Env.AUR_KEY }}"
 
 dockers:
   - image_templates:
@@ -101,23 +99,23 @@ dockers:
       - --label=org.opencontainers.image.revision={{ .FullCommit }}
 
 docker_manifests:
-- name_template: ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}
-  image_templates:
-    - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-amd64
-    - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-arm64
-- name_template: ghcr.io/nucleuscloud/neosync/cli:latest
-  image_templates:
-    - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-amd64
-    - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-arm64
-- name_template: ghcr.io/nucleuscloud/neosync/cli:{{ .Tag }}
-  image_templates:
-    - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-amd64
-    - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-arm64
-- name_template: ghcr.io/nucleuscloud/neosync/cli:v{{ .Major }}
-  image_templates:
-    - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-amd64
-    - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-arm64
-- name_template: ghcr.io/nucleuscloud/neosync/cli:v{{ .Major }}.{{ .Minor }}
-  image_templates:
-    - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-amd64
-    - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-arm64
+  - name_template: ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}
+    image_templates:
+      - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-amd64
+      - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-arm64
+  - name_template: ghcr.io/nucleuscloud/neosync/cli:latest
+    image_templates:
+      - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-amd64
+      - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-arm64
+  - name_template: ghcr.io/nucleuscloud/neosync/cli:{{ .Tag }}
+    image_templates:
+      - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-amd64
+      - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-arm64
+  - name_template: ghcr.io/nucleuscloud/neosync/cli:v{{ .Major }}
+    image_templates:
+      - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-amd64
+      - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-arm64
+  - name_template: ghcr.io/nucleuscloud/neosync/cli:v{{ .Major }}.{{ .Minor }}
+    image_templates:
+      - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-amd64
+      - ghcr.io/nucleuscloud/neosync/cli:{{ .Version }}-arm64
