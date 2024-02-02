@@ -16,7 +16,8 @@ builds:
     main: ./cmd/neosync
 
 checksum:
-  name_template: "checksums.txt"
+  name_template: "{{ .ProjectName }}_{{ .Version }}_SHA256SUMS"
+  algorithm: sha256
 signs:
   - artifacts: checksum
     # Used by GH Action to sign with a specific fingerprint
