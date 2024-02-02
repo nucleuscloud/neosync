@@ -1,7 +1,6 @@
 package transformers
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
@@ -89,16 +88,12 @@ func TransformFullName(name string, preserveLength bool, maxLength int64) (*stri
 // Generates a random full name name with length [min, max]. If the length is greater than 12, a full name of length 12 will be returned.
 func GenerateRandomFullNameInLengthRange(fnLength, lnLength int64, minLength, maxLength int64) (string, error) {
 
-	fmt.Println("fn ln", fnLength, lnLength)
-
 	if maxLength < 12 && maxLength >= 5 {
 
 		// calc lengths of a first name and last name, also assumes a min maxLength of 4, since first and last names must be at least 2 letters in length, we will use the remainder for the space character
 		half := maxLength / 2
 		firstNameLength := half
 		lastNameLength := half
-
-		fmt.Println("max", maxLength)
 
 		fn, err := GenerateRandomFirstNameInLengthRange(minNameLength, firstNameLength)
 		if err != nil {

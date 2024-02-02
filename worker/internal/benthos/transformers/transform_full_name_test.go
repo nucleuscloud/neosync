@@ -34,8 +34,6 @@ func Test_TransformFullNameMaxLengthBetween12And5(t *testing.T) {
 
 	res, err := TransformFullName(fullName, false, 10)
 
-	fmt.Println("red", *res)
-
 	assert.NoError(t, err)
 	assert.True(t, len(*res) >= 6, "The name should be greater than the min length name")
 	assert.True(t, len(*res) <= 10, "The name should be less than the max character limit")

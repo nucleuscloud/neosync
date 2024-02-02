@@ -1021,7 +1021,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 	case "generate_full_address":
 		return "generate_full_address()", nil
 	case "generate_full_name":
-		return "generate_full_name()", nil
+		return fmt.Sprintf(`root = generate_full_name(max_length:%d)`, *colInfo.CharacterMaximumLength), nil
 	case "generate_gender":
 		ab := col.Transformer.Config.GetGenerateGenderConfig().Abbreviate
 		return fmt.Sprintf(`generate_gender(abbreviate:%t)`, ab), nil
@@ -1033,7 +1033,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		max := col.Transformer.Config.GetGenerateInt64Config().Max
 		return fmt.Sprintf(`generate_int64(randomize_sign:%t,min:%d, max:%d)`, sign, min, max), nil
 	case "generate_last_name":
-		return "generate_last_name()", nil
+		return fmt.Sprintf(`root = generate_last_name(max_length:%d)`, *colInfo.CharacterMaximumLength), nil
 	case "generate_sha256hash":
 		return `generate_sha256hash()`, nil
 	case "generate_ssn":
