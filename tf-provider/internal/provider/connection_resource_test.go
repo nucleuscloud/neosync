@@ -16,7 +16,13 @@ func TestAcc_Connection(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet("neosync_connection.test1", "id"),
 					resource.TestCheckResourceAttr("neosync_connection.test1", "name", "foo"),
-					// resource.TestCheckResourceAttr("data.neosync_connection.test", "name", "foosdf"),
+					resource.TestCheckResourceAttr("neosync_connection.test1", "postgres.url", "test-url"),
+				),
+			},
+			{
+				Config: testAccConnectionConfigUpdated,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("neosync_connection.test1", "postgres.url", "test-url2"),
 				),
 			},
 		},
@@ -29,6 +35,15 @@ resource "neosync_connection" "test1" {
 
 	postgres = {
 		url = "test-url"
+	}
+}
+`
+const testAccConnectionConfigUpdated = `
+resource "neosync_connection" "test1" {
+  name = "foo"
+
+	postgres = {
+		url = "test-url2"
 	}
 }
 `
