@@ -1005,7 +1005,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		luhn := col.Transformer.Config.GetGenerateCardNumberConfig().ValidLuhn
 		return fmt.Sprintf(`generate_card_number(valid_luhn:%t)`, luhn), nil
 	case "generate_city":
-		return "generate_city()", nil
+		return fmt.Sprintf(`generate_city(max_length:%d)`, *colInfo.CharacterMaximumLength), nil
 	case "generate_e164_phone_number":
 		min := col.Transformer.Config.GetGenerateE164PhoneNumberConfig().Min
 		max := col.Transformer.Config.GetGenerateE164PhoneNumberConfig().Max
