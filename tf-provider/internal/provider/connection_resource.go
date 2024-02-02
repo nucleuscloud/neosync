@@ -47,6 +47,18 @@ type Postgres struct {
 	User    types.String `tfsdk:"user"`
 	Pass    types.String `tfsdk:"pass"`
 	SslMode types.String `tfsdk:"sslMode"`
+
+	Tunnel *SSHTunnel `tfsdk:"tunnel"`
+}
+
+type SSHTunnel struct {
+	Host               types.String `tfsdk:"host"`
+	Port               types.Int64  `tfsdk:"port"`
+	User               types.String `tfsdk:"user"`
+	KnownHostPublicKey types.String `tfsdk:"known_host_public_key"`
+
+	PrivateKey types.String `tfsdk:"private_key"`
+	Passphrase types.String `tfsdk:"passphrase"`
 }
 
 func (r *ConnectionResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -103,6 +115,35 @@ func (r *ConnectionResource) Schema(ctx context.Context, req resource.SchemaRequ
 						Description: "The SSL mode for the postgres server",
 						Required:    false,
 					},
+					"tunnel": schema.SingleNestedAttribute{
+						Description: "SSH tunnel that is used to access databases that are not publicly accessible to the internet",
+						Optional:    true,
+						Attributes: map[string]schema.Attribute{
+							"host": schema.StringAttribute{
+								Description: "The host name of the server",
+								Required:    true,
+							},
+							"port": schema.Int64Attribute{
+								Description: "The post of the ssh server",
+								Required:    true,
+								Default:     int64default.StaticInt64(22),
+							},
+							"user": schema.StringAttribute{
+								Description: "The name of the user that will be authenticated with",
+								Required:    true,
+							},
+							"private_key": schema.StringAttribute{
+								Description: "If using key authentication, this must be a pem encoded private key",
+								Required:    false,
+								Sensitive:   true,
+							},
+							"passphrase": schema.StringAttribute{
+								Description: "If not using key authentication, a password must be provided. If a private key is provided, but encrypted, provide the passphrase here as it will be used to decrypt the private key",
+								Required:    false,
+								Sensitive:   true,
+							},
+						},
+					},
 				},
 			},
 			"id": schema.StringAttribute{
@@ -137,6 +178,30 @@ func (r *ConnectionResource) Configure(ctx context.Context, req resource.Configu
 	r.accountId = providerData.AccountId
 }
 
+func hydrateTunnelFromTunnelConfig(t *mgmtv1alpha1.SSHTunnel) *SSHTunnel {
+	if t == nil {
+		return nil
+	}
+
+	tunnel := &SSHTunnel{
+		Host:               types.StringValue(t.Host),
+		Port:               types.Int64Value(int64(t.Port)),
+		User:               types.StringValue(t.User),
+		KnownHostPublicKey: types.StringPointerValue(t.KnownHostPublicKey),
+	}
+
+	if t.Authentication != nil {
+		switch auth := t.Authentication.AuthConfig.(type) {
+		case *mgmtv1alpha1.SSHAuthentication_PrivateKey:
+			tunnel.PrivateKey = types.StringValue(auth.PrivateKey.Value)
+			tunnel.Passphrase = types.StringPointerValue(auth.PrivateKey.Passphrase)
+		case *mgmtv1alpha1.SSHAuthentication_Passphrase:
+			tunnel.Passphrase = types.StringValue(auth.Passphrase.Value)
+		}
+	}
+	return tunnel
+}
+
 func hydrateResourceModelFromConnectionConfig(cc *mgmtv1alpha1.ConnectionConfig, data *ConnectionResourceModel) error {
 	switch config := cc.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
@@ -149,16 +214,18 @@ func hydrateResourceModelFromConnectionConfig(cc *mgmtv1alpha1.ConnectionConfig,
 				User:    types.StringValue(pgcc.Connection.User),
 				Pass:    types.StringValue(pgcc.Connection.Pass),
 				SslMode: types.StringPointerValue(pgcc.Connection.SslMode),
+				Tunnel:  hydrateTunnelFromTunnelConfig(config.PgConfig.Tunnel),
 			}
+
 			return nil
 		case *mgmtv1alpha1.PostgresConnectionConfig_Url:
 			data.Postgres = &Postgres{
-				Url: types.StringValue(pgcc.Url),
+				Url:    types.StringValue(pgcc.Url),
+				Tunnel: hydrateTunnelFromTunnelConfig(config.PgConfig.Tunnel),
 			}
 			return nil
 		default:
 			return errors.New("unable to find a config to hydrate connection resource model")
-
 		}
 	default:
 		return errors.New("unable to find a config to hydrate connection resource model")
@@ -167,20 +234,47 @@ func hydrateResourceModelFromConnectionConfig(cc *mgmtv1alpha1.ConnectionConfig,
 
 func getConnectionConfigFromResourceModel(data *ConnectionResourceModel) (*mgmtv1alpha1.ConnectionConfig, error) {
 	if data.Postgres != nil {
-		if !data.Postgres.Url.IsNull() {
+		var tunnel *mgmtv1alpha1.SSHTunnel
+		if data.Postgres.Tunnel != nil {
+			tunnel = &mgmtv1alpha1.SSHTunnel{
+				Host:               data.Postgres.Tunnel.Host.String(),
+				Port:               int32(data.Postgres.Tunnel.Port.ValueInt64()),
+				User:               data.Postgres.Tunnel.User.String(),
+				KnownHostPublicKey: data.Postgres.Tunnel.KnownHostPublicKey.ValueStringPointer(),
+			}
+			if data.Postgres.Tunnel.PrivateKey.ValueString() != "" {
+				tunnel.Authentication = &mgmtv1alpha1.SSHAuthentication{
+					AuthConfig: &mgmtv1alpha1.SSHAuthentication_PrivateKey{
+						PrivateKey: &mgmtv1alpha1.SSHPrivateKey{
+							Value:      data.Postgres.Tunnel.PrivateKey.String(),
+							Passphrase: data.Postgres.Tunnel.Passphrase.ValueStringPointer(),
+						},
+					},
+				}
+			} else if data.Postgres.Tunnel.Passphrase.ValueString() != "" {
+				tunnel.Authentication = &mgmtv1alpha1.SSHAuthentication{
+					AuthConfig: &mgmtv1alpha1.SSHAuthentication_Passphrase{
+						Passphrase: &mgmtv1alpha1.SSHPassphrase{
+							Value: data.Postgres.Tunnel.Passphrase.String(),
+						},
+					},
+				}
+			}
+		}
+		if data.Postgres.Url.ValueString() != "" {
 			return &mgmtv1alpha1.ConnectionConfig{
 				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
 					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
 						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
 							Url: data.Postgres.Url.String(),
 						},
-						Tunnel: nil,
+						Tunnel: tunnel,
 					},
 				},
 			}, nil
 		} else {
 			pg := data.Postgres
-			if pg.Host.IsNull() || pg.Port.IsNull() || pg.Name.IsNull() || pg.User.IsNull() || pg.Pass.IsNull() {
+			if pg.Host.ValueString() == "" || pg.Port.ValueInt64() == 0 || pg.Name.ValueString() == "" || pg.User.ValueString() == "" || pg.Pass.ValueString() == "" {
 				return nil, fmt.Errorf("invalid postgres config")
 			}
 			return &mgmtv1alpha1.ConnectionConfig{
@@ -196,7 +290,7 @@ func getConnectionConfigFromResourceModel(data *ConnectionResourceModel) (*mgmtv
 								SslMode: pg.SslMode.ValueStringPointer(),
 							},
 						},
-						Tunnel: nil,
+						Tunnel: tunnel,
 					},
 				},
 			}, nil
@@ -217,7 +311,7 @@ func (r *ConnectionResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	var accountId string
-	if data.AccountId.IsUnknown() || data.AccountId.IsNull() {
+	if data.AccountId.ValueString() == "" {
 		if r.accountId != nil {
 			accountId = *r.accountId
 		}
