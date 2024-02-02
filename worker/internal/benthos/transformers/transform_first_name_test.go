@@ -49,7 +49,7 @@ func Test_GenerateRandomFirstNameInLengthRangeMinAndMaxSameTooShort(t *testing.T
 	res, err := GenerateRandomFirstNameInLengthRange(nameLength, nameLength)
 
 	assert.NoError(t, err)
-	assert.Equal(t, len(res), 2, "The length of the name should be two")
+	assert.Equal(t, len(res), 2, "The length of the name should be 2")
 	assert.IsType(t, "", res, "The first name should be a string")
 }
 
@@ -60,7 +60,7 @@ func Test_GenerateRandomFirstNameInLengthRangeMinAndMaxSameTooLong(t *testing.T)
 	res, err := GenerateRandomFirstNameInLengthRange(nameLength, nameLength)
 
 	assert.NoError(t, err)
-	assert.Equal(t, len(res), 12, "The length of the name should be two")
+	assert.Equal(t, len(res), 12, "The length of the name should be 12")
 	assert.IsType(t, "", res, "The first name should be a string")
 }
 

@@ -1072,7 +1072,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		return fmt.Sprintf(`transform_float64(value:this.%s,randomization_range_min:%f,randomization_range_max:%f)`, col.Column, rMin, rMax), nil
 	case "transform_full_name":
 		pl := col.Transformer.Config.GetTransformFullNameConfig().PreserveLength
-		return fmt.Sprintf("transform_full_name(value:this.%s,preserve_length:%t)", col.Column, pl), nil
+		return fmt.Sprintf("transform_full_name(value:this.%s,preserve_length:%t,max_length:%d)", col.Column, pl, *colInfo.CharacterMaximumLength), nil
 	case "transform_int64_phone_number":
 		pl := col.Transformer.Config.GetTransformInt64PhoneNumberConfig().PreserveLength
 		return fmt.Sprintf("transform_int64_phone_number(value:this.%s,preserve_length:%t)", col.Column, pl), nil
@@ -1082,7 +1082,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		return fmt.Sprintf(`transform_int64(value:this.%s,randomization_range_min:%d,randomization_range_max:%d)`, col.Column, rMin, rMax), nil
 	case "transform_last_name":
 		pl := col.Transformer.Config.GetTransformLastNameConfig().PreserveLength
-		return fmt.Sprintf("transform_last_name(value:this.%s,preserve_length:%t)", col.Column, pl), nil
+		return fmt.Sprintf("transform_last_name(value:this.%s,preserve_length:%t,max_length:%d)", col.Column, pl, *colInfo.CharacterMaximumLength), nil
 	case "transform_phone_number":
 		pl := col.Transformer.Config.GetTransformPhoneNumberConfig().PreserveLength
 		ih := col.Transformer.Config.GetTransformPhoneNumberConfig().IncludeHyphens

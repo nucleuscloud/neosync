@@ -24,8 +24,8 @@ func Test_TransformLastNamePreserveLengthTrue(t *testing.T) {
 	res, err := TransformLastName(name, true, maxCharacterLimit)
 
 	assert.NoError(t, err)
-	assert.Equal(t, nameLength, int64(len(*res)), "The first name output should be the same length as the input")
-	assert.IsType(t, "", *res, "The first name should be a string")
+	assert.Equal(t, nameLength, int64(len(*res)), "The last name output should be the same length as the input")
+	assert.IsType(t, "", *res, "The last name should be a string")
 }
 
 func Test_GenerateRandomLastNameInLengthRangeMinAndMaxSame(t *testing.T) {
@@ -35,8 +35,8 @@ func Test_GenerateRandomLastNameInLengthRangeMinAndMaxSame(t *testing.T) {
 	res, err := GenerateRandomLastNameInLengthRange(nameLength, nameLength)
 
 	assert.NoError(t, err)
-	assert.Equal(t, nameLength, int64(len(res)), "The first name output should be the same length as the input")
-	assert.IsType(t, "", res, "The first name should be a string")
+	assert.Equal(t, nameLength, int64(len(res)), "The last name output should be the same length as the input")
+	assert.IsType(t, "", res, "The last name should be a string")
 }
 
 func Test_GenerateRandomLastNameInLengthRangeMinAndMaxSameTooShort(t *testing.T) {
@@ -47,7 +47,7 @@ func Test_GenerateRandomLastNameInLengthRangeMinAndMaxSameTooShort(t *testing.T)
 
 	assert.NoError(t, err)
 	assert.Equal(t, len(res), 2, "The length of the name should be two")
-	assert.IsType(t, "", res, "The first name should be a string")
+	assert.IsType(t, "", res, "The last name should be a string")
 }
 
 func Test_GenerateRandomLastNameInLengthRangeMinAndMaxSameTooLong(t *testing.T) {
@@ -58,7 +58,7 @@ func Test_GenerateRandomLastNameInLengthRangeMinAndMaxSameTooLong(t *testing.T) 
 
 	assert.NoError(t, err)
 	assert.Equal(t, len(res), 12, "The length of the name should be two")
-	assert.IsType(t, "", res, "The first name should be a string")
+	assert.IsType(t, "", res, "The last name should be a string")
 }
 
 func Test_TransformLastNamePreserveLengthFalse(t *testing.T) {
@@ -68,7 +68,7 @@ func Test_TransformLastNamePreserveLengthFalse(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, len(*res) >= int(minNameLength), "The name should be greater than the min length name")
 	assert.True(t, len(*res) <= int(maxCharacterLimit), "The name should be less than the max character limit")
-	assert.IsType(t, "", *res, "The first name should be a string")
+	assert.IsType(t, "", *res, "The last name should be a string")
 }
 
 func Test_GenerateRandomLastNameInLengthRange(t *testing.T) {
@@ -78,7 +78,7 @@ func Test_GenerateRandomLastNameInLengthRange(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, len(res) >= int(minNameLength), "The name should be greater than the min length name")
 	assert.True(t, len(res) <= int(maxCharacterLimit), "The name should be less than the max character limit")
-	assert.IsType(t, "", res, "The first name should be a string")
+	assert.IsType(t, "", res, "The last name should be a string")
 
 }
 
@@ -90,7 +90,7 @@ func Test_GenerateRandomLastNameInLengthRangeMaxCharLimitMedum(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, len(res) >= int(minNameLength), "The name should be greater than the min length name")
 	assert.True(t, len(res) <= int(maxCharacterLimit), "The name should be less than the max character limit")
-	assert.IsType(t, "", res, "The first name should be a string")
+	assert.IsType(t, "", res, "The last name should be a string")
 
 }
 
@@ -102,15 +102,15 @@ func Test_GenerateRandomLastNameInLengthRangeLowMaxCharLimit(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.True(t, len(res) == 1, "The name should be greater than the min length name")
-	assert.IsType(t, "", res, "The first name should be a string")
+	assert.IsType(t, "", res, "The last name should be a string")
 
 }
 
 func Test_LastNameTransformer(t *testing.T) {
 	testVal := "bill"
-	mapping := fmt.Sprintf(`root = transform_first_name(value:%q,preserve_length:true,max_length:%d)`, testVal, maxCharacterLimit)
+	mapping := fmt.Sprintf(`root = transform_last_name(value:%q,preserve_length:true,max_length:%d)`, testVal, maxCharacterLimit)
 	ex, err := bloblang.Parse(mapping)
-	assert.NoError(t, err, "failed to parse the first name transformer")
+	assert.NoError(t, err, "failed to parse the last name transformer")
 
 	res, err := ex.Query(nil)
 	assert.NoError(t, err)
@@ -124,7 +124,7 @@ func Test_LastNameTransformer(t *testing.T) {
 	}
 
 	if resStr != nil {
-		assert.Equal(t, len(*resStr), len(testVal), "Generated first name must be as long as input first name")
+		assert.Equal(t, len(*resStr), len(testVal), "Generated last name must be as long as input last name")
 	} else {
 		t.Error("Pointer is nil, expected a valid string pointer")
 	}
@@ -133,9 +133,9 @@ func Test_LastNameTransformer(t *testing.T) {
 func Test_TransformLastNameTransformerWithEmptyValue(t *testing.T) {
 
 	nilName := ""
-	mapping := fmt.Sprintf(`root = transform_first_name(value:%q,preserve_length:true,max_length:%d)`, nilName, maxCharacterLimit)
+	mapping := fmt.Sprintf(`root = transform_last_name(value:%q,preserve_length:true,max_length:%d)`, nilName, maxCharacterLimit)
 	ex, err := bloblang.Parse(mapping)
-	assert.NoError(t, err, "failed to parse the first name transformer")
+	assert.NoError(t, err, "failed to parse the last name transformer")
 
 	_, err = ex.Query(nil)
 	assert.NoError(t, err)
