@@ -835,10 +835,10 @@ export class TransformerConfig extends Message<TransformerConfig> {
     case: "generateStringPhoneNumberConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenerateString generate_string_config = 20;
+     * @generated from field: mgmt.v1alpha1.GenerateRandomString generate_random_string_config = 20;
      */
-    value: GenerateString;
-    case: "generateStringConfig";
+    value: GenerateRandomString;
+    case: "generateRandomStringConfig";
   } | {
     /**
      * @generated from field: mgmt.v1alpha1.GenerateUnixTimestamp generate_unixtimestamp_config = 21;
@@ -994,7 +994,7 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 17, name: "generate_state_config", kind: "message", T: GenerateState, oneof: "config" },
     { no: 18, name: "generate_street_address_config", kind: "message", T: GenerateStreetAddress, oneof: "config" },
     { no: 19, name: "generate_string_phone_number_config", kind: "message", T: GenerateStringPhoneNumber, oneof: "config" },
-    { no: 20, name: "generate_string_config", kind: "message", T: GenerateString, oneof: "config" },
+    { no: 20, name: "generate_random_string_config", kind: "message", T: GenerateRandomString, oneof: "config" },
     { no: 21, name: "generate_unixtimestamp_config", kind: "message", T: GenerateUnixTimestamp, oneof: "config" },
     { no: 22, name: "generate_username_config", kind: "message", T: GenerateUsername, oneof: "config" },
     { no: 23, name: "generate_utctimestamp_config", kind: "message", T: GenerateUtcTimestamp, oneof: "config" },
@@ -1740,9 +1740,9 @@ export class GenerateStringPhoneNumber extends Message<GenerateStringPhoneNumber
 }
 
 /**
- * @generated from message mgmt.v1alpha1.GenerateString
+ * @generated from message mgmt.v1alpha1.GenerateRandomString
  */
-export class GenerateString extends Message<GenerateString> {
+export class GenerateRandomString extends Message<GenerateRandomString> {
   /**
    * @generated from field: int64 min = 1;
    */
@@ -1753,32 +1753,32 @@ export class GenerateString extends Message<GenerateString> {
    */
   max = protoInt64.zero;
 
-  constructor(data?: PartialMessage<GenerateString>) {
+  constructor(data?: PartialMessage<GenerateRandomString>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.GenerateString";
+  static readonly typeName = "mgmt.v1alpha1.GenerateRandomString";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "min", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
     { no: 2, name: "max", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateString {
-    return new GenerateString().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateRandomString {
+    return new GenerateRandomString().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GenerateString {
-    return new GenerateString().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GenerateRandomString {
+    return new GenerateRandomString().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GenerateString {
-    return new GenerateString().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GenerateRandomString {
+    return new GenerateRandomString().fromJsonString(jsonString, options);
   }
 
-  static equals(a: GenerateString | PlainMessage<GenerateString> | undefined, b: GenerateString | PlainMessage<GenerateString> | undefined): boolean {
-    return proto3.util.equals(GenerateString, a, b);
+  static equals(a: GenerateRandomString | PlainMessage<GenerateRandomString> | undefined, b: GenerateRandomString | PlainMessage<GenerateRandomString> | undefined): boolean {
+    return proto3.util.equals(GenerateRandomString, a, b);
   }
 }
 

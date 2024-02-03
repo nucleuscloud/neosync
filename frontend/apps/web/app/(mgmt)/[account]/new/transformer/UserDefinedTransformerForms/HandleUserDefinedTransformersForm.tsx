@@ -38,7 +38,7 @@ export function handleUserDefinedTransformerForm(
       return <UserDefinedGenerateGenderForm isDisabled={disabled} />;
     case 'generate_int64':
       return <UserDefinedGenerateInt64Form isDisabled={disabled} />;
-    case 'generate_string':
+    case 'generate_random_string':
       return <UserDefinedGenerateStringForm isDisabled={disabled} />;
     case 'generate_string_phone_number':
       return (

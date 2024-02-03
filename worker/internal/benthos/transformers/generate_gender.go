@@ -10,7 +10,8 @@ import (
 func init() {
 
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewBoolParam("abbreviate"))
+		Param(bloblang.NewBoolParam("abbreviate")).
+		Param(bloblang.NewInt64Param("max_length"))
 
 	err := bloblang.RegisterFunctionV2("generate_gender", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
@@ -19,9 +20,14 @@ func init() {
 			return nil, err
 		}
 
+		maxLength, err := args.GetInt64("max_length")
+		if err != nil {
+			return nil, err
+		}
+
 		return func() (any, error) {
 
-			res, err := GenerateRandomGender(ab)
+			res, err := GenerateRandomGender(ab, maxLength)
 
 			if err != nil {
 				return false, err
@@ -35,27 +41,21 @@ func init() {
 }
 
 /* Generates a randomly selected gender from a predefined list */
-func GenerateRandomGender(ab bool) (string, error) {
+func GenerateRandomGender(ab bool, maxLength int64) (string, error) {
 
 	//nolint:all
 	randomInt := rand.Intn(4)
 
-	var gender string
-
-	switch randomInt {
-	case 0:
-		gender = "undefined"
-	case 1:
-		gender = "nonbinary"
-	case 2:
-		gender = "female"
-	case 3:
-		gender = "male"
+	genderMap := map[int]string{
+		0: "undefined",
+		1: "nonbinary",
+		2: "female",
+		3: "male",
 	}
-
-	if ab {
-		gender = gender[:1]
+	// we check if the maxLength is less than 9 since our longest non-abbreviated gender is 9 digits long
+	if ab || maxLength < 9 {
+		return genderMap[randomInt][:1], nil
+	} else {
+		return genderMap[randomInt], nil
 	}
-
-	return gender, nil
 }

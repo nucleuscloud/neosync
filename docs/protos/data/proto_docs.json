@@ -3783,6 +3783,42 @@
           "fields": []
         },
         {
+          "name": "GenerateRandomString",
+          "longName": "GenerateRandomString",
+          "fullName": "mgmt.v1alpha1.GenerateRandomString",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "min",
+              "description": "",
+              "label": "",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "max",
+              "description": "",
+              "label": "",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "GenerateSSN",
           "longName": "GenerateSSN",
           "fullName": "mgmt.v1alpha1.GenerateSSN",
@@ -3825,42 +3861,6 @@
           "hasOneofs": false,
           "extensions": [],
           "fields": []
-        },
-        {
-          "name": "GenerateString",
-          "longName": "GenerateString",
-          "fullName": "mgmt.v1alpha1.GenerateString",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "min",
-              "description": "",
-              "label": "",
-              "type": "int64",
-              "longType": "int64",
-              "fullType": "int64",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "max",
-              "description": "",
-              "label": "",
-              "type": "int64",
-              "longType": "int64",
-              "fullType": "int64",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
         },
         {
           "name": "GenerateStringPhoneNumber",
@@ -4801,12 +4801,12 @@
               "defaultValue": ""
             },
             {
-              "name": "generate_string_config",
+              "name": "generate_random_string_config",
               "description": "",
               "label": "",
-              "type": "GenerateString",
-              "longType": "GenerateString",
-              "fullType": "mgmt.v1alpha1.GenerateString",
+              "type": "GenerateRandomString",
+              "longType": "GenerateRandomString",
+              "fullType": "mgmt.v1alpha1.GenerateRandomString",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",

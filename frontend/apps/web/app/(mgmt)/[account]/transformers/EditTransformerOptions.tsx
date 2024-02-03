@@ -159,7 +159,7 @@ function handleTransformerForm(
       );
     case 'generate_int64':
       return <GenerateIntForm index={index} setIsSheetOpen={setIsSheetOpen} />;
-    case 'generate_string':
+    case 'generate_random_string':
       return (
         <GenerateStringForm index={index} setIsSheetOpen={setIsSheetOpen} />
       );

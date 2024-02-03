@@ -1024,7 +1024,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		return fmt.Sprintf(`root = generate_full_name(max_length:%d)`, *colInfo.CharacterMaximumLength), nil
 	case "generate_gender":
 		ab := col.Transformer.Config.GetGenerateGenderConfig().Abbreviate
-		return fmt.Sprintf(`generate_gender(abbreviate:%t)`, ab), nil
+		return fmt.Sprintf(`generate_gender(abbreviate:%t,max_length:%d)`, ab, *colInfo.CharacterMaximumLength), nil
 	case "generate_int64_phone_number":
 		return "generate_int64_phone_number()", nil
 	case "generate_int64":
@@ -1045,10 +1045,10 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 	case "generate_string_phone_number":
 		ih := col.Transformer.Config.GetGenerateStringPhoneNumberConfig().IncludeHyphens
 		return fmt.Sprintf("generate_string_phone_number(include_hyphens:%t)", ih), nil
-	case "generate_string":
-		min := col.Transformer.Config.GetGenerateStringConfig().Min
-		max := col.Transformer.Config.GetGenerateStringConfig().Max
-		return fmt.Sprintf(`generate_string(min:%d, max: %d)`, min, max), nil
+	case "generate_random_string":
+		min := col.Transformer.Config.GetGenerateRandomStringConfig().Min
+		max := col.Transformer.Config.GetGenerateRandomStringConfig().Max
+		return fmt.Sprintf(`generate_random_string(min:%d,max:%d,max_length:%d)`, min, max, *colInfo.CharacterMaximumLength), nil
 	case "generate_unixtimestamp":
 		return "generate_unixtimestamp()", nil
 	case "generate_username":
@@ -1089,7 +1089,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		return fmt.Sprintf("transform_phone_number(value:this.%s,preserve_length:%t,include_hyphens:%t)", col.Column, pl, ih), nil
 	case "transform_string":
 		pl := col.Transformer.Config.GetTransformStringConfig().PreserveLength
-		return fmt.Sprintf(`transform_string(value:this.%s,preserve_length:%t)`, col.Column, pl), nil
+		return fmt.Sprintf(`transform_string(value:this.%s,preserve_length:%t,max_length:%d)`, col.Column, pl, *colInfo.CharacterMaximumLength), nil
 	case "null":
 		return "null", nil
 	case "generate_default":

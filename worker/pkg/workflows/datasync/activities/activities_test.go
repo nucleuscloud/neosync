@@ -1264,7 +1264,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_string",
+			Name: "generate_random_string",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
 					GenerateStringConfig: &mgmtv1alpha1.GenerateString{
