@@ -30,6 +30,7 @@
     "clsx": "^2.0.0",
     "contentlayer": "^0.3.4",
     "date-fns": "^2.30.0",
+    "date-fns-tz": "^2.0.0",
     "lucide-react": "^0.292.0",
     "mdast-util-toc": "^7.0.0",
     "mixpanel": "^0.17.0",
