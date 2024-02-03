@@ -994,11 +994,11 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		categories := col.Transformer.Config.GetGenerateCategoricalConfig().Categories
 		return fmt.Sprintf(`generate_categorical(categories: %q)`, categories), nil
 	case "generate_email":
-		return "generate_email()", nil
+		return fmt.Sprintf(`generate_email(max_length:%d)`, *colInfo.CharacterMaximumLength), nil
 	case "transform_email":
 		pd := col.Transformer.Config.GetTransformEmailConfig().PreserveDomain
 		pl := col.Transformer.Config.GetTransformEmailConfig().PreserveLength
-		return fmt.Sprintf("transform_email(email:this.%s,preserve_domain:%t,preserve_length:%t)", col.Column, pd, pl), nil
+		return fmt.Sprintf("transform_email(email:this.%s,preserve_domain:%t,preserve_length:%t,max_length:%d)", col.Column, pd, pl, *colInfo.CharacterMaximumLength), nil
 	case "generate_bool":
 		return "generate_bool()", nil
 	case "generate_card_number":
@@ -1052,7 +1052,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 	case "generate_unixtimestamp":
 		return "generate_unixtimestamp()", nil
 	case "generate_username":
-		return "generate_username()", nil
+		return fmt.Sprintf(`root = generate_username(max_length:%d)`, *colInfo.CharacterMaximumLength), nil
 	case "generate_utctimestamp":
 		return "generate_utctimestamp()", nil
 	case "generate_uuid":

@@ -1,10 +1,12 @@
 package transformers
 
 import (
+	"fmt"
 	"math/rand"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
+	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
 var emailDomains = []string{
@@ -23,7 +25,6 @@ var emailDomains = []string{
 	"yahoo.com.br",
 	"yahoo.co.in",
 	"live.com",
-	"rediffmail.com",
 	"free.fr",
 	"gmx.de",
 	"web.de",
@@ -32,14 +33,21 @@ var emailDomains = []string{
 
 func init() {
 
-	spec := bloblang.NewPluginSpec()
+	spec := bloblang.NewPluginSpec().Param(bloblang.NewInt64Param("max_length"))
 
 	err := bloblang.RegisterFunctionV2("generate_email", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+		maxLength, err := args.GetInt64("max_length")
+		if err != nil {
+			return nil, err
+		}
 
 		return func() (any, error) {
 
-			res, err := GenerateEmail()
-			return res, err
+			res, err := GenerateRandomEmail(maxLength)
+			if err != nil {
+				return nil, err
+			}
+			return res, nil
 		}, nil
 
 	})
@@ -51,54 +59,34 @@ func init() {
 }
 
 /* Generates an email in the format <username@domaion.tld> such as jdoe@gmail.com */
-func GenerateEmail() (string, error) {
+func GenerateRandomEmail(maxLength int64) (string, error) {
 
-	un, err := GenerateEmailUsername()
+	fn, err := GenerateRandomFirstName(maxLength)
+	if err != nil {
+		return "", err
+	}
+	ln, err := GenerateRandomLastName(int64(4))
 	if err != nil {
 		return "", err
 	}
 
-	domain, err := GenerateEmailDomain()
-	if err != nil {
-		return "", err
-	}
-
-	return un + domain, nil
-}
-
-// Generates an email username for an email address either as <firstinitial><lastName> for ex. jdoe or <firstname>.<lastname> such as john.doe
-func GenerateEmailUsername() (string, error) {
-
-	//nolint
-	// randomly generate a 0 or 1 in order to pick an email username format
-	randValue := rand.Intn(2)
-
-	if randValue == 1 {
-		val, err := GenerateUsername()
-		if err != nil {
-			return "", err
-		}
-
-		return val, nil
-	} else {
-		fn, err := GenerateRandomFirstName(int64(23))
-		if err != nil {
-			return "", err
-		}
-		ln, err := GenerateRandomLastName(int64(4))
-		if err != nil {
-			return "", err
-		}
-		return fn + "." + ln, nil
-	}
-
-}
-
-// Generates a realistic looking domain such as @gmail.com
-func GenerateEmailDomain() (string, error) {
-	//nolint
 	randValue := rand.Intn(len(emailDomains))
 
-	return "@" + emailDomains[randValue], nil
+	domain := "@" + emailDomains[randValue]
+
+	email := fmt.Sprintf(`%s.%s%s`, fn, ln, domain)
+
+	if len(email) > int(maxLength) {
+
+		un, err := transformer_utils.GenerateRandomStringWithDefinedLength(maxLength - int64(len(domain)))
+		if err != nil {
+			return "", err
+		}
+
+		return fmt.Sprintf(`%s%s`, un, domain), err
+
+	}
+
+	return email, nil
 
 }

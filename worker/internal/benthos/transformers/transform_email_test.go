@@ -10,11 +10,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const email = "evis@gmail.com"
+var email = "evis@gmail.com"
+var maxEmailCharLimit = int64(40)
 
 func Test_GenerateEmailPreserveLengthFalsePreserveDomainTrue(t *testing.T) {
 
-	res, err := TransformEmail(email, false, true)
+	res, err := TransformEmail(email, false, true, maxEmailCharLimit)
 
 	assert.NoError(t, err)
 	assert.Equal(t, true, transformer_utils.IsValidEmail(*res), "The expected email should be have a valid email structure")
@@ -24,7 +25,7 @@ func Test_GenerateEmailPreserveLengthFalsePreserveDomainTrue(t *testing.T) {
 
 func Test_GenerateEmailPreserveLengthFalsePreserveDomainFalse(t *testing.T) {
 
-	res, err := TransformEmail(email, false, false)
+	res, err := TransformEmail(email, false, false, maxEmailCharLimit)
 
 	assert.NoError(t, err)
 	assert.Equal(t, true, transformer_utils.IsValidEmail(*res), "The expected email should be have a valid email structure")
@@ -33,7 +34,7 @@ func Test_GenerateEmailPreserveLengthFalsePreserveDomainFalse(t *testing.T) {
 
 func Test_GenerateEmailPreserveLengthTruePreserveDomainFalse(t *testing.T) {
 
-	res, err := TransformEmail(email, true, false)
+	res, err := TransformEmail(email, true, false, maxEmailCharLimit)
 
 	assert.NoError(t, err)
 	assert.Equal(t, len(email), len(*res), "The expected email should be have a valid email structure")
@@ -41,7 +42,7 @@ func Test_GenerateEmailPreserveLengthTruePreserveDomainFalse(t *testing.T) {
 
 func Test_GenerateEmail(t *testing.T) {
 
-	res, err := TransformEmailPreserveDomain(email, true)
+	res, err := TransformEmailPreserveDomain(email, true, maxEmailCharLimit)
 
 	assert.NoError(t, err)
 	/* There is a very small chance that the randomly generated email address actually matches
@@ -52,7 +53,7 @@ func Test_GenerateEmail(t *testing.T) {
 
 func Test_GenerateEmailPreserveDomain(t *testing.T) {
 
-	res, err := TransformEmailPreserveDomain(email, true)
+	res, err := TransformEmailPreserveDomain(email, true, maxEmailCharLimit)
 
 	assert.NoError(t, err)
 	assert.Equal(t, true, transformer_utils.IsValidEmail(res), "true", "The domain should not explicitly be preserved but randomly generated.")
@@ -77,7 +78,7 @@ func Test_GenerateEmailPreserveLengthTruePreserveDomainTrue(t *testing.T) {
 
 func Test_GenerateEmailUsername(t *testing.T) {
 
-	res, err := GenerateEmailUsername()
+	res, err := GenerateUsername(int64(13))
 	assert.NoError(t, err)
 
 	assert.Equal(t, true, transformer_utils.IsValidUsername(res), "The expected email should have a valid username")
@@ -85,7 +86,7 @@ func Test_GenerateEmailUsername(t *testing.T) {
 }
 
 func Test_TransformEmailTransformerWithValue(t *testing.T) {
-	mapping := fmt.Sprintf(`root = transform_email(email:%q,preserve_domain:true,preserve_length:true)`, email)
+	mapping := fmt.Sprintf(`root = transform_email(email:%q,preserve_domain:true,preserve_length:true,max_length:%d)`, email, maxEmailCharLimit)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the email transformer")
 
@@ -112,7 +113,7 @@ func Test_TransformEmailTransformerWithValue(t *testing.T) {
 func Test_TransformEmailTransformerWithEmptyValue(t *testing.T) {
 
 	nilEmail := ""
-	mapping := fmt.Sprintf(`root = transform_email(email:%q,preserve_domain:true,preserve_length:true)`, nilEmail)
+	mapping := fmt.Sprintf(`root = transform_email(email:%q,preserve_domain:true,preserve_length:true,max_length:%d)`, nilEmail, maxEmailCharLimit)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the email transformer")
 

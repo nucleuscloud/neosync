@@ -14,7 +14,8 @@ func init() {
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewAnyParam("email").Optional()).
 		Param(bloblang.NewBoolParam("preserve_length")).
-		Param(bloblang.NewBoolParam("preserve_domain"))
+		Param(bloblang.NewBoolParam("preserve_domain")).
+		Param(bloblang.NewInt64Param("max_length"))
 
 	err := bloblang.RegisterFunctionV2("transform_email", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
@@ -38,9 +39,14 @@ func init() {
 			return nil, err
 		}
 
+		maxLength, err := args.GetInt64("max_length")
+		if err != nil {
+			return nil, err
+		}
+
 		return func() (any, error) {
 
-			res, err := TransformEmail(email, preserveLength, preserveDomain)
+			res, err := TransformEmail(email, preserveLength, preserveDomain, maxLength)
 			return res, err
 		}, nil
 
@@ -53,7 +59,7 @@ func init() {
 }
 
 // Anonymizes an existing email address. This function returns a string pointer to handle nullable email columns where an input email value may not exist.
-func TransformEmail(email string, preserveLength, preserveDomain bool) (*string, error) {
+func TransformEmail(email string, preserveLength, preserveDomain bool, maxLength int64) (*string, error) {
 
 	var returnValue string
 	var err error
@@ -64,7 +70,7 @@ func TransformEmail(email string, preserveLength, preserveDomain bool) (*string,
 
 	if !preserveLength && preserveDomain {
 
-		returnValue, err = TransformEmailPreserveDomain(email, true)
+		returnValue, err = TransformEmailPreserveDomain(email, true, maxLength)
 		if err != nil {
 			return nil, err
 		}
@@ -85,7 +91,12 @@ func TransformEmail(email string, preserveLength, preserveDomain bool) (*string,
 
 	} else {
 
-		e, err := GenerateEmail()
+		randLength, err := transformer_utils.GenerateRandomInt64InValueRange(8, maxLength)
+		if err != nil {
+			return nil, nil
+		}
+
+		e, err := GenerateRandomEmail(randLength)
 		if err != nil {
 			return nil, nil
 		}
@@ -97,14 +108,14 @@ func TransformEmail(email string, preserveLength, preserveDomain bool) (*string,
 }
 
 // Generate a random email and preserve the input email's domain
-func TransformEmailPreserveDomain(e string, pd bool) (string, error) {
+func TransformEmailPreserveDomain(email string, pd bool, maxLength int64) (string, error) {
 
-	parsedEmail, err := transformer_utils.ParseEmail(e)
+	parsedEmail, err := transformer_utils.ParseEmail(email)
 	if err != nil {
-		return "", fmt.Errorf("invalid email: %s", e)
+		return "", fmt.Errorf("invalid email: %s", email)
 	}
 
-	un, err := GenerateEmailUsername()
+	un, err := GenerateUsername(int64(len(parsedEmail[0])))
 	if err != nil {
 		return "", nil
 	}
