@@ -2884,7 +2884,7 @@ func (m *TransformerConfig) validate(all bool) error {
 			}
 		}
 
-	case *TransformerConfig_GenerateStringConfig:
+	case *TransformerConfig_GenerateRandomStringConfig:
 		if v == nil {
 			err := TransformerConfigValidationError{
 				field:  "Config",
@@ -2897,11 +2897,11 @@ func (m *TransformerConfig) validate(all bool) error {
 		}
 
 		if all {
-			switch v := interface{}(m.GetGenerateStringConfig()).(type) {
+			switch v := interface{}(m.GetGenerateRandomStringConfig()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "GenerateStringConfig",
+						field:  "GenerateRandomStringConfig",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -2909,16 +2909,16 @@ func (m *TransformerConfig) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "GenerateStringConfig",
+						field:  "GenerateRandomStringConfig",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
 				}
 			}
-		} else if v, ok := interface{}(m.GetGenerateStringConfig()).(interface{ Validate() error }); ok {
+		} else if v, ok := interface{}(m.GetGenerateRandomStringConfig()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return TransformerConfigValidationError{
-					field:  "GenerateStringConfig",
+					field:  "GenerateRandomStringConfig",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -5911,22 +5911,22 @@ var _ interface {
 	ErrorName() string
 } = GenerateStringPhoneNumberValidationError{}
 
-// Validate checks the field values on GenerateString with the rules defined in
-// the proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *GenerateString) Validate() error {
+// Validate checks the field values on GenerateRandomString with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GenerateRandomString) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on GenerateString with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in GenerateStringMultiError,
-// or nil if none found.
-func (m *GenerateString) ValidateAll() error {
+// ValidateAll checks the field values on GenerateRandomString with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GenerateRandomStringMultiError, or nil if none found.
+func (m *GenerateRandomString) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *GenerateString) validate(all bool) error {
+func (m *GenerateRandomString) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -5938,19 +5938,19 @@ func (m *GenerateString) validate(all bool) error {
 	// no validation rules for Max
 
 	if len(errors) > 0 {
-		return GenerateStringMultiError(errors)
+		return GenerateRandomStringMultiError(errors)
 	}
 
 	return nil
 }
 
-// GenerateStringMultiError is an error wrapping multiple validation errors
-// returned by GenerateString.ValidateAll() if the designated constraints
-// aren't met.
-type GenerateStringMultiError []error
+// GenerateRandomStringMultiError is an error wrapping multiple validation
+// errors returned by GenerateRandomString.ValidateAll() if the designated
+// constraints aren't met.
+type GenerateRandomStringMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m GenerateStringMultiError) Error() string {
+func (m GenerateRandomStringMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -5959,11 +5959,11 @@ func (m GenerateStringMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m GenerateStringMultiError) AllErrors() []error { return m }
+func (m GenerateRandomStringMultiError) AllErrors() []error { return m }
 
-// GenerateStringValidationError is the validation error returned by
-// GenerateString.Validate if the designated constraints aren't met.
-type GenerateStringValidationError struct {
+// GenerateRandomStringValidationError is the validation error returned by
+// GenerateRandomString.Validate if the designated constraints aren't met.
+type GenerateRandomStringValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -5971,22 +5971,24 @@ type GenerateStringValidationError struct {
 }
 
 // Field function returns field value.
-func (e GenerateStringValidationError) Field() string { return e.field }
+func (e GenerateRandomStringValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e GenerateStringValidationError) Reason() string { return e.reason }
+func (e GenerateRandomStringValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e GenerateStringValidationError) Cause() error { return e.cause }
+func (e GenerateRandomStringValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e GenerateStringValidationError) Key() bool { return e.key }
+func (e GenerateRandomStringValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e GenerateStringValidationError) ErrorName() string { return "GenerateStringValidationError" }
+func (e GenerateRandomStringValidationError) ErrorName() string {
+	return "GenerateRandomStringValidationError"
+}
 
 // Error satisfies the builtin error interface
-func (e GenerateStringValidationError) Error() string {
+func (e GenerateRandomStringValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -5998,14 +6000,14 @@ func (e GenerateStringValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sGenerateString.%s: %s%s",
+		"invalid %sGenerateRandomString.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = GenerateStringValidationError{}
+var _ error = GenerateRandomStringValidationError{}
 
 var _ interface {
 	Field() string
@@ -6013,7 +6015,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = GenerateStringValidationError{}
+} = GenerateRandomStringValidationError{}
 
 // Validate checks the field values on GenerateUnixTimestamp with the rules
 // defined in the proto definition for this message. If any rules are

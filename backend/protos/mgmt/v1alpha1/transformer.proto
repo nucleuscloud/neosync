@@ -109,7 +109,7 @@ message TransformerConfig {
     GenerateState generate_state_config = 17;
     GenerateStreetAddress generate_street_address_config = 18;
     GenerateStringPhoneNumber generate_string_phone_number_config = 19;
-    GenerateString generate_string_config = 20;
+    GenerateRandomString generate_random_string_config = 20;
     GenerateUnixTimestamp generate_unixtimestamp_config = 21;
     GenerateUsername generate_username_config = 22;
     GenerateUtcTimestamp generate_utctimestamp_config = 23;
@@ -195,7 +195,7 @@ message GenerateStringPhoneNumber {
   bool include_hyphens = 2;
 }
 
-message GenerateString {
+message GenerateRandomString {
   int64 min = 1;
   int64 max = 2;
 }

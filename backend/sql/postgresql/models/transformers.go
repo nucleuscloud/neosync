@@ -30,7 +30,7 @@ type TransformerConfigs struct {
 	GenerateState              *GenerateStateConfig             `json:"generateStateConfig,omitempty"`
 	GenerateStreetAddress      *GenerateStreetAddressConfig     `json:"generateStreetAddressConfig,omitempty"`
 	GenerateStringPhoneNumber  *GenerateStringPhoneNumberConfig `json:"generateStringPhoneNumber,omitempty"`
-	GenerateString             *GenerateStringConfig            `json:"generateString,omitempty"`
+	GenerateRandomString       *GenerateRandomStringConfig      `json:"generateRandomString,omitempty"`
 	GenerateUnixTimestamp      *GenerateUnixTimestampConfig     `json:"generateUnixTimestamp,omitempty"`
 	GenerateUsername           *GenerateUsernameConfig          `json:"generateUsername,omitempty"`
 	GenerateUtcTimestamp       *GenerateUtcTimestampConfig      `json:"generateUtcTimestamp,omitempty"`
@@ -114,7 +114,7 @@ type GenerateStringPhoneNumberConfig struct {
 	IncludeHyphens bool `json:"includeHyphens"`
 }
 
-type GenerateStringConfig struct {
+type GenerateRandomStringConfig struct {
 	Min int64 `json:"min"`
 	Max int64 `json:"max"`
 }
@@ -268,10 +268,10 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 		t.GenerateStringPhoneNumber = &GenerateStringPhoneNumberConfig{
 			IncludeHyphens: tr.GetGenerateStringPhoneNumberConfig().IncludeHyphens,
 		}
-	case *mgmtv1alpha1.TransformerConfig_GenerateStringConfig:
-		t.GenerateString = &GenerateStringConfig{
-			Min: tr.GetGenerateStringConfig().Min,
-			Max: tr.GetGenerateStringConfig().Max,
+	case *mgmtv1alpha1.TransformerConfig_GenerateRandomStringConfig:
+		t.GenerateRandomString = &GenerateRandomStringConfig{
+			Min: tr.GetGenerateRandomStringConfig().Min,
+			Max: tr.GetGenerateRandomStringConfig().Max,
 		}
 	case *mgmtv1alpha1.TransformerConfig_GenerateUnixtimestampConfig:
 		t.GenerateUnixTimestamp = &GenerateUnixTimestampConfig{}
@@ -499,12 +499,12 @@ func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerC
 				},
 			},
 		}
-	case t.GenerateString != nil:
+	case t.GenerateRandomString != nil:
 		return &mgmtv1alpha1.TransformerConfig{
-			Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
-				GenerateStringConfig: &mgmtv1alpha1.GenerateString{
-					Min: t.GenerateString.Min,
-					Max: t.GenerateString.Max,
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateRandomStringConfig{
+				GenerateRandomStringConfig: &mgmtv1alpha1.GenerateRandomString{
+					Min: t.GenerateRandomString.Min,
+					Max: t.GenerateRandomString.Max,
 				},
 			},
 		}

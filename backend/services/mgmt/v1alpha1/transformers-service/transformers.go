@@ -38,7 +38,7 @@ const (
 	GenerateState              Transformation = "generate_state"
 	GenerateStreetAddress      Transformation = "generate_street_address"
 	GenerateStringPhoneNumber  Transformation = "generate_string_phone_number"
-	GenerateString             Transformation = "generate_string"
+	GenerateString             Transformation = "generate_random_string"
 	GenerateUnixTimestamp      Transformation = "generate_unixtimestamp"
 	GenerateUsername           Transformation = "generate_username"
 	GenerateUtcTimestamp       Transformation = "generate_utctimestamp"
@@ -314,8 +314,8 @@ func (s *Service) GetSystemTransformers(
 				DataType:    "string",
 				Source:      string(GenerateString),
 				Config: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
-						GenerateStringConfig: &mgmtv1alpha1.GenerateString{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateRandomStringConfig{
+						GenerateRandomStringConfig: &mgmtv1alpha1.GenerateRandomString{
 							Min: 2,
 							Max: 7,
 						},
