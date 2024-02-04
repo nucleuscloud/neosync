@@ -22,20 +22,6 @@ func Test_GenerateE164FormatPhoneNumber(t *testing.T) {
 
 }
 
-func Test_GeneratePhoneNumberE164FormatPreserveLength(t *testing.T) {
-
-	min := int64(12)
-	max := int64(12)
-
-	res, err := GenerateRandomE164PhoneNumber(min, max, maxCharacterLimit)
-
-	assert.NoError(t, err)
-	assert.Equal(t, ValidateE164(res), true, "The actual value should be a valid e164 number")
-	assert.GreaterOrEqual(t, len(res), 8+1, "Should be greater than 9 characters in length. 9 for the number and 1 for the plus sign.")
-	assert.LessOrEqual(t, len(res), 15+1, "Should be less than 16 characters in length. 15 for the number and 1 for the plus sign.")
-
-}
-
 func Test_GeneratePhoneNumberE164FormatPreserveLengthEqualMinMax(t *testing.T) {
 
 	min := int64(12)

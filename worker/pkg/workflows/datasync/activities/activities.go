@@ -1031,7 +1031,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		sign := col.Transformer.Config.GetGenerateInt64Config().RandomizeSign
 		min := col.Transformer.Config.GetGenerateInt64Config().Min
 		max := col.Transformer.Config.GetGenerateInt64Config().Max
-		return fmt.Sprintf(`generate_int64(randomize_sign:%t,min:%d, max:%d)`, sign, min, max), nil
+		return fmt.Sprintf(`generate_int64(randomize_sign:%t,min:%d, max:%d,numeric_precision:%d,data_type:%d)`, sign, min, max, *colInfo.NumericPrecision, *&colInfo.CharacterMaximumLength), nil
 	case "generate_last_name":
 		return fmt.Sprintf(`root = generate_last_name(max_length:%d)`, *colInfo.CharacterMaximumLength), nil
 	case "generate_sha256hash":
@@ -1043,8 +1043,9 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 	case "generate_street_address":
 		return fmt.Sprintf(`root = generate_street_address(max_length:%d)`, *colInfo.CharacterMaximumLength), nil
 	case "generate_string_phone_number":
-		ih := col.Transformer.Config.GetGenerateStringPhoneNumberConfig().IncludeHyphens
-		return fmt.Sprintf("generate_string_phone_number(include_hyphens:%t)", ih), nil
+		min := col.Transformer.Config.GetGenerateStringPhoneNumberConfig().Min
+		max := col.Transformer.Config.GetGenerateStringPhoneNumberConfig().Max
+		return fmt.Sprintf("generate_string_phone_number(min:%d,max:%d,max_length:%d)", min, max, *colInfo.CharacterMaximumLength), nil
 	case "generate_random_string":
 		min := col.Transformer.Config.GetGenerateRandomStringConfig().Min
 		max := col.Transformer.Config.GetGenerateRandomStringConfig().Max
@@ -1083,10 +1084,9 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 	case "transform_last_name":
 		pl := col.Transformer.Config.GetTransformLastNameConfig().PreserveLength
 		return fmt.Sprintf("transform_last_name(value:this.%s,preserve_length:%t,max_length:%d)", col.Column, pl, *colInfo.CharacterMaximumLength), nil
-	case "transform_phone_number":
-		pl := col.Transformer.Config.GetTransformPhoneNumberConfig().PreserveLength
-		ih := col.Transformer.Config.GetTransformPhoneNumberConfig().IncludeHyphens
-		return fmt.Sprintf("transform_phone_number(value:this.%s,preserve_length:%t,include_hyphens:%t)", col.Column, pl, ih), nil
+	case "transform_string_phone_number":
+		pl := col.Transformer.Config.GetTransformStringPhoneNumberConfig().PreserveLength
+		return fmt.Sprintf("transform_string_phone_number(value:this.%s,preserve_length:%t,max_length:%d)", col.Column, pl, *colInfo.CharacterMaximumLength), nil
 	case "transform_string":
 		pl := col.Transformer.Config.GetTransformStringConfig().PreserveLength
 		return fmt.Sprintf(`transform_string(value:this.%s,preserve_length:%t,max_length:%d)`, col.Column, pl, *colInfo.CharacterMaximumLength), nil

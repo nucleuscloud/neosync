@@ -3873,12 +3873,24 @@
           "extensions": [],
           "fields": [
             {
-              "name": "include_hyphens",
+              "name": "min",
               "description": "",
               "label": "",
-              "type": "bool",
-              "longType": "bool",
-              "fullType": "bool",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "max",
+              "description": "",
+              "label": "",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -4503,9 +4515,9 @@
           ]
         },
         {
-          "name": "TransformPhoneNumber",
-          "longName": "TransformPhoneNumber",
-          "fullName": "mgmt.v1alpha1.TransformPhoneNumber",
+          "name": "TransformString",
+          "longName": "TransformString",
+          "fullName": "mgmt.v1alpha1.TransformString",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -4523,25 +4535,13 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
-            },
-            {
-              "name": "include_hyphens",
-              "description": "",
-              "label": "",
-              "type": "bool",
-              "longType": "bool",
-              "fullType": "bool",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
             }
           ]
         },
         {
-          "name": "TransformString",
-          "longName": "TransformString",
-          "fullName": "mgmt.v1alpha1.TransformString",
+          "name": "TransformStringPhoneNumber",
+          "longName": "TransformStringPhoneNumber",
+          "fullName": "mgmt.v1alpha1.TransformStringPhoneNumber",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -4957,12 +4957,12 @@
               "defaultValue": ""
             },
             {
-              "name": "transform_phone_number_config",
+              "name": "transform_string_phone_number_config",
               "description": "",
               "label": "",
-              "type": "TransformPhoneNumber",
-              "longType": "TransformPhoneNumber",
-              "fullType": "mgmt.v1alpha1.TransformPhoneNumber",
+              "type": "TransformStringPhoneNumber",
+              "longType": "TransformStringPhoneNumber",
+              "fullType": "mgmt.v1alpha1.TransformStringPhoneNumber",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",
