@@ -3417,7 +3417,7 @@ func (m *TransformerConfig) validate(all bool) error {
 			}
 		}
 
-	case *TransformerConfig_TransformPhoneNumberConfig:
+	case *TransformerConfig_TransformStringPhoneNumberConfig:
 		if v == nil {
 			err := TransformerConfigValidationError{
 				field:  "Config",
@@ -3430,11 +3430,11 @@ func (m *TransformerConfig) validate(all bool) error {
 		}
 
 		if all {
-			switch v := interface{}(m.GetTransformPhoneNumberConfig()).(type) {
+			switch v := interface{}(m.GetTransformStringPhoneNumberConfig()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "TransformPhoneNumberConfig",
+						field:  "TransformStringPhoneNumberConfig",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -3442,16 +3442,16 @@ func (m *TransformerConfig) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "TransformPhoneNumberConfig",
+						field:  "TransformStringPhoneNumberConfig",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
 				}
 			}
-		} else if v, ok := interface{}(m.GetTransformPhoneNumberConfig()).(interface{ Validate() error }); ok {
+		} else if v, ok := interface{}(m.GetTransformStringPhoneNumberConfig()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return TransformerConfigValidationError{
-					field:  "TransformPhoneNumberConfig",
+					field:  "TransformStringPhoneNumberConfig",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -5829,7 +5829,9 @@ func (m *GenerateStringPhoneNumber) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for IncludeHyphens
+	// no validation rules for Min
+
+	// no validation rules for Max
 
 	if len(errors) > 0 {
 		return GenerateStringPhoneNumberMultiError(errors)
@@ -7250,22 +7252,22 @@ var _ interface {
 	ErrorName() string
 } = TransformLastNameValidationError{}
 
-// Validate checks the field values on TransformPhoneNumber with the rules
-// defined in the proto definition for this message. If any rules are
+// Validate checks the field values on TransformStringPhoneNumber with the
+// rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *TransformPhoneNumber) Validate() error {
+func (m *TransformStringPhoneNumber) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on TransformPhoneNumber with the rules
-// defined in the proto definition for this message. If any rules are
+// ValidateAll checks the field values on TransformStringPhoneNumber with the
+// rules defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// TransformPhoneNumberMultiError, or nil if none found.
-func (m *TransformPhoneNumber) ValidateAll() error {
+// TransformStringPhoneNumberMultiError, or nil if none found.
+func (m *TransformStringPhoneNumber) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *TransformPhoneNumber) validate(all bool) error {
+func (m *TransformStringPhoneNumber) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -7274,22 +7276,20 @@ func (m *TransformPhoneNumber) validate(all bool) error {
 
 	// no validation rules for PreserveLength
 
-	// no validation rules for IncludeHyphens
-
 	if len(errors) > 0 {
-		return TransformPhoneNumberMultiError(errors)
+		return TransformStringPhoneNumberMultiError(errors)
 	}
 
 	return nil
 }
 
-// TransformPhoneNumberMultiError is an error wrapping multiple validation
-// errors returned by TransformPhoneNumber.ValidateAll() if the designated
-// constraints aren't met.
-type TransformPhoneNumberMultiError []error
+// TransformStringPhoneNumberMultiError is an error wrapping multiple
+// validation errors returned by TransformStringPhoneNumber.ValidateAll() if
+// the designated constraints aren't met.
+type TransformStringPhoneNumberMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m TransformPhoneNumberMultiError) Error() string {
+func (m TransformStringPhoneNumberMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -7298,11 +7298,11 @@ func (m TransformPhoneNumberMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m TransformPhoneNumberMultiError) AllErrors() []error { return m }
+func (m TransformStringPhoneNumberMultiError) AllErrors() []error { return m }
 
-// TransformPhoneNumberValidationError is the validation error returned by
-// TransformPhoneNumber.Validate if the designated constraints aren't met.
-type TransformPhoneNumberValidationError struct {
+// TransformStringPhoneNumberValidationError is the validation error returned
+// by TransformStringPhoneNumber.Validate if the designated constraints aren't met.
+type TransformStringPhoneNumberValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -7310,24 +7310,24 @@ type TransformPhoneNumberValidationError struct {
 }
 
 // Field function returns field value.
-func (e TransformPhoneNumberValidationError) Field() string { return e.field }
+func (e TransformStringPhoneNumberValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e TransformPhoneNumberValidationError) Reason() string { return e.reason }
+func (e TransformStringPhoneNumberValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e TransformPhoneNumberValidationError) Cause() error { return e.cause }
+func (e TransformStringPhoneNumberValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e TransformPhoneNumberValidationError) Key() bool { return e.key }
+func (e TransformStringPhoneNumberValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e TransformPhoneNumberValidationError) ErrorName() string {
-	return "TransformPhoneNumberValidationError"
+func (e TransformStringPhoneNumberValidationError) ErrorName() string {
+	return "TransformStringPhoneNumberValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e TransformPhoneNumberValidationError) Error() string {
+func (e TransformStringPhoneNumberValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -7339,14 +7339,14 @@ func (e TransformPhoneNumberValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sTransformPhoneNumber.%s: %s%s",
+		"invalid %sTransformStringPhoneNumber.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = TransformPhoneNumberValidationError{}
+var _ error = TransformStringPhoneNumberValidationError{}
 
 var _ interface {
 	Field() string
@@ -7354,7 +7354,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = TransformPhoneNumberValidationError{}
+} = TransformStringPhoneNumberValidationError{}
 
 // Validate checks the field values on TransformString with the rules defined
 // in the proto definition for this message. If any rules are violated, the

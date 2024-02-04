@@ -51,7 +51,7 @@ const (
 	TransformInt64PhoneNumber  Transformation = "transform_int64_phone_number"
 	TransformInt64             Transformation = "transform_int64"
 	TransformLastName          Transformation = "transform_last_name"
-	TransformPhoneNumber       Transformation = "transform_phone_number"
+	TransformStringPhoneNumber Transformation = "transform_string_phone_number"
 	TransformString            Transformation = "transform_string"
 	Passthrough                Transformation = "passthrough"
 	Null                       Transformation = "null"
@@ -303,7 +303,8 @@ func (s *Service) GetSystemTransformers(
 				Config: &mgmtv1alpha1.TransformerConfig{
 					Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneNumberConfig{
 						GenerateStringPhoneNumberConfig: &mgmtv1alpha1.GenerateStringPhoneNumber{
-							IncludeHyphens: false,
+							Min: 9,
+							Max: 14,
 						},
 					},
 				},
@@ -473,15 +474,14 @@ func (s *Service) GetSystemTransformers(
 				},
 			},
 			{
-				Name:        "Transform Phone Number",
+				Name:        "Transform String Phone Number",
 				Description: "Transforms an existing phone number that is typed as a string.",
 				DataType:    "string",
-				Source:      string(TransformPhoneNumber),
+				Source:      string(TransformStringPhoneNumber),
 				Config: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_TransformPhoneNumberConfig{
-						TransformPhoneNumberConfig: &mgmtv1alpha1.TransformPhoneNumber{
+					Config: &mgmtv1alpha1.TransformerConfig_TransformStringPhoneNumberConfig{
+						TransformStringPhoneNumberConfig: &mgmtv1alpha1.TransformStringPhoneNumber{
 							PreserveLength: false,
-							IncludeHyphens: false,
 						},
 					},
 				},

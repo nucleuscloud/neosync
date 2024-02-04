@@ -122,7 +122,7 @@ message TransformerConfig {
     TransformInt64PhoneNumber transform_int64_phone_number_config = 30;
     TransformInt64 transform_int64_config = 31;
     TransformLastName transform_last_name_config = 32;
-    TransformPhoneNumber transform_phone_number_config = 33;
+    TransformStringPhoneNumber transform_string_phone_number_config = 33;
     TransformString transform_string_config = 34;
     Passthrough passthrough_config = 35;
     Null nullconfig = 36;
@@ -192,7 +192,8 @@ message GenerateState {}
 message GenerateStreetAddress {}
 
 message GenerateStringPhoneNumber {
-  bool include_hyphens = 2;
+  int64 min = 2;
+  int64 max = 3;
 }
 
 message GenerateRandomString {
@@ -242,9 +243,8 @@ message TransformLastName {
   bool preserve_length = 1;
 }
 
-message TransformPhoneNumber {
+message TransformStringPhoneNumber {
   bool preserve_length = 1;
-  bool include_hyphens = 2;
 }
 
 message TransformString {
