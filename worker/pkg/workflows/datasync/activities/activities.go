@@ -1009,7 +1009,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 	case "generate_e164_phone_number":
 		min := col.Transformer.Config.GetGenerateE164PhoneNumberConfig().Min
 		max := col.Transformer.Config.GetGenerateE164PhoneNumberConfig().Max
-		return fmt.Sprintf(`generate_e164_phone_number(min:%d, max: %d)`, min, max), nil
+		return fmt.Sprintf(`generate_e164_phone_number(min:%d,max:%d,max_length:%d)`, min, max, *colInfo.CharacterMaximumLength), nil
 	case "generate_first_name":
 		return fmt.Sprintf(`root = generate_first_name(max_length:%d)`, *colInfo.CharacterMaximumLength), nil
 	case "generate_float64":
@@ -1062,7 +1062,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		return "generate_zipcode()", nil
 	case "transform_e164_phone_number":
 		pl := col.Transformer.Config.GetTransformE164PhoneNumberConfig().PreserveLength
-		return fmt.Sprintf("transform_e164_phone_number(value:this.%s,preserve_length:%t)", col.Column, pl), nil
+		return fmt.Sprintf("transform_e164_phone_number(value:this.%s,preserve_length:%t,max_length:%d)", col.Column, pl, *colInfo.CharacterMaximumLength), nil
 	case "transform_first_name":
 		pl := col.Transformer.Config.GetTransformFirstNameConfig().PreserveLength
 		return fmt.Sprintf("transform_first_name(value:this.%s,preserve_length:%t,max_length:%d)", col.Column, pl, *colInfo.CharacterMaximumLength), nil

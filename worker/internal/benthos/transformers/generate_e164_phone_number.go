@@ -14,7 +14,8 @@ func init() {
 
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewInt64Param("min")).
-		Param(bloblang.NewInt64Param("max"))
+		Param(bloblang.NewInt64Param("max")).
+		Param(bloblang.NewInt64Param("max_length"))
 
 	err := bloblang.RegisterFunctionV2("generate_e164_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
@@ -28,8 +29,13 @@ func init() {
 			return nil, err
 		}
 
+		maxLength, err := args.GetInt64("max_length")
+		if err != nil {
+			return nil, err
+		}
+
 		return func() (any, error) {
-			res, err := GenerateRandomE164PhoneNumber(min, max)
+			res, err := GenerateRandomE164PhoneNumber(min, max, maxLength)
 			return res, err
 		}, nil
 	})
@@ -42,23 +48,33 @@ func init() {
 
 /*  Generates a random phone number in e164 format in the length interval [min, max] with the min length == 9 and the max length == 15.
  */
-func GenerateRandomE164PhoneNumber(min, max int64) (string, error) {
+func GenerateRandomE164PhoneNumber(min, max, maxLength int64) (string, error) {
 
 	if min < 9 || max > 15 {
 		return "", errors.New("the length has between 9 and 15 characters long")
 	}
 
-	val, err := transformer_utils.GenerateRandomInt64InLengthRange(min, max)
-	if err != nil {
-		return "", nil
+	if max > maxLength {
+		val, err := transformer_utils.GenerateRandomInt64InLengthRange(min, maxLength-1)
+		if err != nil {
+			return "", nil
+		}
+
+		return fmt.Sprintf("+%d", val), nil
+	} else {
+		val, err := transformer_utils.GenerateRandomInt64InLengthRange(min, max)
+		if err != nil {
+			return "", nil
+		}
+
+		return fmt.Sprintf("+%d", val), nil
 	}
 
-	return fmt.Sprintf("+%d", val), nil
 }
 
 func ValidateE164(p string) bool {
 
-	if len(p) >= 10 && len(p) <= 15 && strings.Contains(p, "+") {
+	if len(p) >= 9 && len(p) <= 15 && strings.Contains(p, "+") {
 		return true
 	}
 	return false
