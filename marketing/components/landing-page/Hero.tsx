@@ -4,12 +4,20 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ReactElement } from 'react';
 import { PiBookOpenText } from 'react-icons/pi';
+import { SiYcombinator } from 'react-icons/si';
 import PrivateBetaButton from '../buttons/PrivateBetaButton';
+import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 
 export default function Hero(): ReactElement {
   return (
     <div className="flex flex-col items-center gap-10 py-20 z-40">
+      <Badge className="p-2 bg-white" variant="outline">
+        <div className="flex flex-row items-center gap-2">
+          <SiYcombinator className="w-4 h-4 text-orange-400 bg-white rounded-full" />
+          <div className="">Backed by Y Combinator</div>
+        </div>
+      </Badge>
       <div className="text-gray-900 font-semibold lg:text-6xl text-4xl leading-tight text-center z-20 px-2 relative">
         Open Source Synthetic Data Orchestration
       </div>
