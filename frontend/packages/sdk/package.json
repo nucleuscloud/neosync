@@ -36,7 +36,7 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@bufbuild/protobuf": "^1.7.1",
+    "@bufbuild/protobuf": "^1.7.2",
     "@connectrpc/connect": "^1.1.4"
   },
   "repository": {
