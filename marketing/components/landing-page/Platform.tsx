@@ -68,10 +68,10 @@ export default function Platform(): ReactElement {
       <div className="text-gray-200 font-semibold text-2xl lg:text-4xl font-satoshi text-center">
         A Modern Platform Built for Engineering Teams
       </div>
-      <div className=" p-6 lg:p-10 border border-gray-300 rounded-xl mt-10 shadow-lg">
+      <div className=" p-6 lg:p-10 border border-gray-600 rounded-xl mt-10 shadow-lg">
         <Tabs defaultValue="orchestration">
           <TabsList className="w-full bg-transparent  ">
-            <div className="border border-gray-500 rounded-lg p-2 justify-center flex lg:flex-row flex-col lg:gap-4 ">
+            <div className="border border-gray-600 rounded-lg p-2 justify-center flex lg:flex-row flex-col lg:gap-4 ">
               {tabs.map((tab) => (
                 <TabsTrigger
                   value={tab.key}
