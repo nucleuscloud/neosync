@@ -1,6 +1,8 @@
+'use client';
 import { ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { posthog } from 'posthog-js';
 import { ReactElement } from 'react';
 
@@ -38,6 +40,8 @@ export default function ValueProps(): ReactElement {
       link: '/solutions/security-privacy',
     },
   ];
+
+  const router = useRouter();
 
   return (
     <div>

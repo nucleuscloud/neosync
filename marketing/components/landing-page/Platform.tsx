@@ -1,3 +1,4 @@
+'use client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CheckCircledIcon } from '@radix-ui/react-icons';
 import Image from 'next/image';
