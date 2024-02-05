@@ -281,7 +281,16 @@ func (q *Queries) GetAccountUserAssociation(ctx context.Context, db DBTX, arg Ge
 }
 
 const getAccountsByUser = `-- name: GetAccountsByUser :many
-SELECT a.id, a.created_at, a.updated_at, a.account_type, a.account_slug, a.temporal_config from neosync_api.accounts a
+SELECT a.id, a.created_at, a.updated_at, a.account_type, a.account_slug, a.temporal_config
+FROM neosync_api.accounts a
+INNER JOIN neosync_api.account_api_keys aak ON aak.account_id = a.id
+INNER JOIN neosync_api.users u ON u.id = aak.user_id
+WHERE u.id = $1
+
+UNION
+
+SELECT a.id, a.created_at, a.updated_at, a.account_type, a.account_slug, a.temporal_config
+FROM neosync_api.accounts a
 INNER JOIN neosync_api.account_user_associations aua ON aua.account_id = a.id
 INNER JOIN neosync_api.users u ON u.id = aua.user_id
 WHERE u.id = $1
