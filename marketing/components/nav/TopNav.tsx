@@ -22,13 +22,13 @@ import {
   navigationMenuTriggerStyle,
 } from '@/components/ui/navigation-menu';
 import { env } from '@/env';
-import { FireMixpanel } from '@/lib/mixpanel';
 import { cn } from '@/lib/utils';
 import { GitHubLogoIcon } from '@radix-ui/react-icons';
 import { LucideServerCrash } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { posthog } from 'posthog-js';
 import { ReactElement, ReactNode, forwardRef } from 'react';
 import { AiOutlineCloudSync } from 'react-icons/ai';
 import { FaDiscord } from 'react-icons/fa';
@@ -140,15 +140,7 @@ export default function TopNav(): ReactElement {
           <NavigationMenuList>
             {links.map((link) =>
               link.children.length > 0 ? (
-                <NavigationMenuItem
-                  key={link.href}
-                  onClick={() =>
-                    FireMixpanel(`${link.title}`, {
-                      source: 'top-nav',
-                      type: 'click',
-                    })
-                  }
-                >
+                <NavigationMenuItem key={link.href}>
                   <NavigationMenuTrigger>{link.title}</NavigationMenuTrigger>
                   <NavigationMenuContent>
                     <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
@@ -169,9 +161,8 @@ export default function TopNav(): ReactElement {
                 <NavigationMenuItem
                   key={link.href}
                   onClick={() =>
-                    FireMixpanel(`${link.title}`, {
-                      source: 'top-nav',
-                      type: 'click',
+                    posthog.capture('user click', {
+                      page: link.title,
                     })
                   }
                 >
@@ -234,9 +225,8 @@ function MobileMenu(): ReactElement {
                     variant="mobileNavLink"
                     className="text-gray-900 w-full"
                     onClick={() => {
-                      FireMixpanel('About Section', {
-                        source: 'top-nav',
-                        type: 'about section',
+                      posthog.capture('user click', {
+                        page: link.title,
                       });
                     }}
                   >
@@ -279,6 +269,11 @@ const ListItem = forwardRef<HTMLAnchorElement, ListItemProps>(
               'block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
               className
             )}
+            onClick={() =>
+              posthog.capture('user click', {
+                page: title,
+              })
+            }
           >
             <div className="flex flex-row items-center gap-4 hover:text-blue-500">
               {icon && icon}

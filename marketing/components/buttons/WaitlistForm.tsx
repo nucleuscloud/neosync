@@ -1,11 +1,11 @@
 'use client';
-import { ReactElement, useState } from 'react';
-import { FireMixpanel } from '../../lib/mixpanel';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { ArrowRightIcon, ReloadIcon } from '@radix-ui/react-icons';
-import { Alert, AlertTitle } from '../ui/alert';
 import { CheckCheckIcon } from 'lucide-react';
+import { posthog } from 'posthog-js';
+import { ReactElement, useState } from 'react';
+import { Alert, AlertTitle } from '../ui/alert';
 
 type FormStatus = 'success' | 'error' | 'invalid email' | 'null';
 
@@ -16,9 +16,8 @@ export default function WaitlistForm(): ReactElement {
   const [formStatus, setFormStatus] = useState<FormStatus>('null');
 
   const handleSubmit = () => {
-    FireMixpanel('submitted demo', {
-      source: 'demo page',
-      type: 'submitted demo',
+    posthog.capture('user click', {
+      page: 'waitlist',
     });
 
     if (!isValidEmail(email)) {

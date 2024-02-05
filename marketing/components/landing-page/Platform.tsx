@@ -1,6 +1,8 @@
+'use client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CheckCircledIcon } from '@radix-ui/react-icons';
 import Image from 'next/image';
+import { posthog } from 'posthog-js';
 import { ReactElement } from 'react';
 
 export default function Platform(): ReactElement {
@@ -77,6 +79,11 @@ export default function Platform(): ReactElement {
                   value={tab.key}
                   className="data-[state=active]:bg-gray-300 data-[state=active]:text-gray-950"
                   key={tab.key}
+                  onClick={() => {
+                    posthog.capture('tab click', {
+                      page: tab.name,
+                    });
+                  }}
                 >
                   {tab.name}
                 </TabsTrigger>

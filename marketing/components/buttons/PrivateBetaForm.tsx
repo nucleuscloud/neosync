@@ -3,9 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowRightIcon, ReloadIcon } from '@radix-ui/react-icons';
 import { CheckCheckIcon } from 'lucide-react';
+import { posthog } from 'posthog-js';
 import { ReactElement, useState } from 'react';
 import { BiErrorCircle } from 'react-icons/bi';
-import { FireMixpanel } from '../../lib/mixpanel';
 import { Alert, AlertTitle } from '../ui/alert';
 
 type FormStatus = 'success' | 'error' | 'invalid email' | 'null';
@@ -18,9 +18,8 @@ export default function PrivateBetaForm(): ReactElement {
   const [formStatus, setFormStatus] = useState<FormStatus>('null');
 
   const handleSubmit = () => {
-    FireMixpanel('submitted private beta', {
-      source: 'private beta page',
-      type: 'submitted pivate beta',
+    posthog.capture('user click', {
+      page: 'private beta',
     });
 
     if (!isValidEmail(email)) {
