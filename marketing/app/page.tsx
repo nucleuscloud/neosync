@@ -15,7 +15,7 @@ export default function Home(): ReactElement {
           <Hero />
         </DotBackground>
       </div>
-      <div className=" bg-[#F5F5F5] lg:p-20 px-4">
+      <div className=" bg-[#F5F5F5] px-4">
         <div className="bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto pt-20 lg:pt-40">
           <ValueProps />
         </div>

@@ -10,7 +10,7 @@ import {
 import React, { useRef } from 'react';
 
 export function MovingBorderButton({
-  borderRadius = '.50rem',
+  borderRadius = '1.75rem',
   children,
   as: Component = 'button',
   containerClassName,
@@ -55,7 +55,7 @@ export function MovingBorderButton({
 
       <div
         className={cn(
-          'relative bg-slate-900/[0.8] border border-slate-800 backdrop-blur-xl text-white flex items-center justify-center w-full h-full antialiased',
+          'relative bg-slate-900/[0.8] border border-slate-800 backdrop-blur-xl text-white flex items-center justify-center w-full h-full text-sm antialiased',
           className
         )}
         style={{
@@ -81,7 +81,7 @@ export const MovingBorder = ({
   ry?: string;
   [key: string]: any;
 }) => {
-  const pathRef = useRef<any>();
+  const pathRef = useRef<SVGRectElement>(null);
   const progress = useMotionValue<number>(0);
 
   useAnimationFrame((time) => {
