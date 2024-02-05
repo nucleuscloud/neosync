@@ -66,6 +66,7 @@ window['__ls_script_url'] = 'https://cdn.livesession.io/track.js';
 
 __ls("init", "${process.env.LIVESESSION}", { keystrokes: false });
 __ls("newPageView");
+
 `}
         </Script>
         <div className="flex flex-col w-full relative">
