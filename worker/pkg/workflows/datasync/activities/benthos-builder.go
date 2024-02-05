@@ -2,6 +2,7 @@ package datasync_activities
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -111,12 +112,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			sourceTableOpts = groupPostgresSourceOptionsByTable(sqlOpts.Schemas)
 		}
 
-		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, jobSourceConfig.Postgres.ConnectionId, "postgres", sourceTableOpts)
-		if err != nil {
-			return nil, err
-		}
-		responses = append(responses, sourceResponses...)
-
 		if _, ok := b.pgpool[sourceConnection.Id]; !ok {
 			pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(pgconfig, ptr(uint32(5)), slogger)
 			if err != nil {
@@ -150,6 +145,15 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, err
 		}
 		td := dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
+		jsonF, _ := json.MarshalIndent(td, "", " ")
+		fmt.Printf("\n\n  %s \n\n", string(jsonF))
+
+		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, jobSourceConfig.Postgres.ConnectionId, "postgres", sourceTableOpts, td)
+		if err != nil {
+			return nil, err
+		}
+		responses = append(responses, sourceResponses...)
+
 		tables := b.filterNullTables(groupedMappings)
 		dependencyConfigs := tabledependency.GetRunConfigs(td, tables)
 		primaryKeys, err := b.getAllPostgresPkConstraints(ctx, pool, uniqueSchemas)

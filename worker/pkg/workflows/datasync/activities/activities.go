@@ -30,6 +30,7 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sshtunnel"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
@@ -61,6 +62,12 @@ type BenthosConfigResponse struct {
 	primaryKeys    []string
 	excludeColumns []string
 	updateConfig   *tabledependency.RunConfig
+	redisConfig    *BenthosRedisConfig
+}
+
+type BenthosRedisConfig struct {
+	Key   string // schema-table-column-value
+	Field string // column
 }
 
 type BenthosDsn struct {
@@ -222,14 +229,31 @@ type sqlSourceTableOptions struct {
 	WhereClause *string
 }
 
+// type colInfo struct {
+// 	ForeignKey    *dbschemas_utils.ForeignKey
+// 	HasTransfomer bool
+// }
+
 func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 	ctx context.Context,
 	mappings []*TableMapping,
 	dsnConnectionId string,
 	driver string,
 	sourceTableOpts map[string]*sqlSourceTableOptions,
+	tc map[string]*dbschemas_utils.TableConstraints,
 ) ([]*BenthosConfigResponse, error) {
 	responses := []*BenthosConfigResponse{}
+
+	tableConstraints := map[string]map[string]*dbschemas_utils.ForeignKey{} // schema.table -> column -> colInfo
+	for table, constraints := range tc {
+		_, ok := tableConstraints[table]
+		if !ok {
+			tableConstraints[table] = map[string]*dbschemas_utils.ForeignKey{}
+		}
+		for _, tc := range constraints.Constraints {
+			tableConstraints[table][tc.Column] = tc.ForeignKey
+		}
+	}
 
 	for i := range mappings {
 		tableMapping := mappings[i]
@@ -274,7 +298,8 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 			},
 		}
 
-		processorConfigs, err := b.buildProcessorConfigs(ctx, tableMapping.Mappings)
+		tableCon := tableConstraints[neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table)]
+		processorConfigs, err := b.buildProcessorConfigs(ctx, tableMapping.Mappings, tableCon)
 		if err != nil {
 			return nil, err
 		}
@@ -831,7 +856,7 @@ func getMysqlDsn(
 	}
 }
 
-func (b *benthosBuilder) buildProcessorConfigs(ctx context.Context, cols []*mgmtv1alpha1.JobMapping) ([]*neosync_benthos.ProcessorConfig, error) {
+func (b *benthosBuilder) buildProcessorConfigs(ctx context.Context, cols []*mgmtv1alpha1.JobMapping, tableConstraints map[string]*dbschemas_utils.ForeignKey) ([]*neosync_benthos.ProcessorConfig, error) {
 
 	jsCode, err := b.extractJsFunctionsAndOutputs(ctx, cols)
 	if err != nil {
