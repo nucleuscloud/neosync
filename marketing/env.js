@@ -11,7 +11,7 @@ function getNextPublicAppUrl() {
 const env = createEnv({
   server: {
     MIXPANEL_TOKEN: z.string().optional(),
-    LOOPS_FORM_ID: process.env.LOOPS_FORM_ID,
+    LOOPS_FORM_ID: z.string().optional(),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.string().min(1),
