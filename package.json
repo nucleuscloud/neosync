@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "clsx": "^2.1.0",
+    "framer-motion": "^11.0.3",
+    "mini-svg-data-uri": "^1.4.4",
+    "tailwind-merge": "^2.2.1"
+  }
+}
