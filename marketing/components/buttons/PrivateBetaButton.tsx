@@ -1,7 +1,6 @@
 import { ArrowRightIcon } from 'lucide-react';
 import Image from 'next/image';
 import { ReactElement } from 'react';
-import { Button } from '../ui/button';
 import {
   Dialog,
   DialogContent,
@@ -10,15 +9,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '../ui/dialog';
+import { MovingBorderButton } from './MovingBorderButton';
 import PrivateBetaForm from './PrivateBetaForm';
 
 export default function PrivateBetaButton(): ReactElement {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="default" className="px-6">
+        <MovingBorderButton className="bg-black dark:bg-slate-900 text-white dark:text-white border-neutral-200 dark:border-slate-800">
           Neosync Cloud <ArrowRightIcon className="ml-2 h-4 w-4" />
-        </Button>
+        </MovingBorderButton>
+        {/* <Button variant="default" className="px-6">
+          Neosync Cloud <ArrowRightIcon className="ml-2 h-4 w-4" />
+        </Button> */}
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg bg-white  p-6 shadow-xl">
         <DialogHeader>

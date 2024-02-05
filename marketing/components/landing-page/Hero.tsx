@@ -17,10 +17,9 @@ export default function Hero(): ReactElement {
         A developer-first way to create anonymized or synthetic data and sync it
         across all environments for stage, local and CI testing
       </h3>
-      <div className="flex flex-col lg:flex-row lg:space-y-0 space-y-2 lg:space-x-4 z-30">
+      <div className="flex flex-col lg:flex-row lg:space-y-0 space-y-2 lg:space-x-4 z-30 items-center">
         <PrivateBetaButton />
-
-        <Button variant="secondary" className="px-4">
+        <Button variant="secondary" className="px-4 border border-gray-300">
           <Link href="https://docs.neosync.dev">
             <div className="flex flex-row items-center gap-2">
               <PiBookOpenText className="mr-2 h-5 w-5" /> Documentation
