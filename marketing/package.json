@@ -30,11 +30,8 @@
     "clsx": "^2.1.0",
     "contentlayer": "^0.3.4",
     "date-fns": "^2.30.0",
-<<<<<<< HEAD
     "date-fns-tz": "^2.0.0",
-=======
     "framer-motion": "^11.0.3",
->>>>>>> 877aad82 (update hero)
     "lucide-react": "^0.292.0",
     "mdast-util-toc": "^7.0.0",
     "mini-svg-data-uri": "^1.4.4",
