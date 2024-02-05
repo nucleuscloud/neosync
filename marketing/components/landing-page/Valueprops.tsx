@@ -1,6 +1,7 @@
 import { ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { posthog } from 'posthog-js';
 import { ReactElement } from 'react';
 
 export default function ValueProps(): ReactElement {
@@ -70,6 +71,11 @@ export default function ValueProps(): ReactElement {
                 href={item.link}
                 target="_blank"
                 className="flex flex-row justify-end text-sm items-center gap-2"
+                onClick={() => {
+                  posthog.capture('user click', {
+                    page: item.title,
+                  });
+                }}
               >
                 <div className="text-gray-900">Learn more</div>
                 <div>
