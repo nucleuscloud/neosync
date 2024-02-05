@@ -38,6 +38,7 @@
     "mixpanel": "^0.17.0",
     "next": "^13.4.19",
     "next-contentlayer": "^0.3.4",
+    "posthog-js": "^1.104.4",
     "react": "18.2.0",
     "react-code-blocks": "^0.1.5",
     "react-dom": "18.2.0",
@@ -50,6 +51,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@posthog/plugin-scaffold": "^1.6.0",
     "@tailwindcss/aspect-ratio": "^0.4.2",
     "@types/node": "20.4.5",
     "@types/react": "18.2.17",
