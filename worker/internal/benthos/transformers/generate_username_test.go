@@ -14,7 +14,7 @@ func Test_GenerateUsername(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.IsType(t, "", res, "The expected username should have a valid username")
-	assert.LessOrEqual(t, int64(len(res)), int64(maxLength), fmt.Sprintf("The city should be less than or equal to the max length. This is the error city:%s", res))
+	assert.LessOrEqual(t, int64(len(res)), maxLength, fmt.Sprintf("The city should be less than or equal to the max length. This is the error city:%s", res))
 }
 
 func Test_GenerateUsernameShort(t *testing.T) {

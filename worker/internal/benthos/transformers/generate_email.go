@@ -70,6 +70,7 @@ func GenerateRandomEmail(maxLength int64) (string, error) {
 		return "", err
 	}
 
+	//nolint:all
 	randValue := rand.Intn(len(emailDomains))
 
 	domain := "@" + emailDomains[randValue]

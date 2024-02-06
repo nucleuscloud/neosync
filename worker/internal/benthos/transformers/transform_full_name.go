@@ -86,7 +86,7 @@ func TransformFullName(name string, preserveLength bool, maxLength int64) (*stri
 }
 
 // Generates a random full name name with length [min, max]. If the length is greater than 12, a full name of length 12 will be returned.
-func GenerateRandomFullNameInLengthRange(fnLength, lnLength int64, minLength, maxLength int64) (string, error) {
+func GenerateRandomFullNameInLengthRange(fnLength, lnLength, minLength, maxLength int64) (string, error) {
 
 	if maxLength < 12 && maxLength >= 5 {
 

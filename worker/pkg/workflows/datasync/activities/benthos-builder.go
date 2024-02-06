@@ -827,7 +827,6 @@ func (b *benthosBuilder) createSqlUpdateBenthosConfig(
 		return nil, err
 	}
 
-	fmt.Println("grouped", groupedColInfo)
 	if len(sourceResponses) > 0 {
 		newResp := sourceResponses[0]
 		newResp.Config.Input.SqlSelect.Where = insertConfig.Config.Input.SqlSelect.Where // keep the where clause the same as insert
