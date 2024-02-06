@@ -88,7 +88,7 @@ const config: Config = {
   ],
 
   themeConfig: {
-    image: 'img/docsOGimage.png',
+    image: 'img/docsOG.png',
     colorMode: {
       defaultMode: 'light',
       disableSwitch: false,
