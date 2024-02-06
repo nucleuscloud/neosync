@@ -8,3 +8,7 @@ func BuildBenthosTable(schema, table string) string {
 	}
 	return table
 }
+
+func BuildBenthosCacheKey(schema, table, col string) string {
+	return fmt.Sprintf("%s.%s.%s", schema, table, col)
+}

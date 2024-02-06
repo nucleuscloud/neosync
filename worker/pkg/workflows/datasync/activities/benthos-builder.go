@@ -88,6 +88,10 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	}
 	uniqueSchemas := getUniqueSchemasFromMappings(job.Mappings)
 
+	// reverse of table dependency
+	// map of foreign key to source table + column
+	var tableConstraintsSource map[string]map[string]*dbschemas_utils.ForeignKey // schema.table -> column -> ForeignKey
+
 	switch jobSourceConfig := job.Source.Options.Config.(type) {
 	case *mgmtv1alpha1.JobSourceOptions_Generate:
 		sourceTableOpts := groupGenerateSourceOptionsByTable(jobSourceConfig.Generate.Schemas)
@@ -147,6 +151,24 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		td := dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
 		jsonF, _ := json.MarshalIndent(td, "", " ")
 		fmt.Printf("\n\n  %s \n\n", string(jsonF))
+
+		// reverse of table dependency
+		// map of foreign key to source table + column
+		tc := map[string]map[string]*dbschemas_utils.ForeignKey{} // schema.table -> column -> ForeignKey
+		for table, constraints := range td {
+			for _, c := range constraints.Constraints {
+				_, ok := tc[c.ForeignKey.Table]
+				if !ok {
+					tc[c.ForeignKey.Table] = map[string]*dbschemas_utils.ForeignKey{}
+				}
+				tc[c.ForeignKey.Table][c.ForeignKey.Column] = &dbschemas_utils.ForeignKey{
+					Table:  table,
+					Column: c.Column,
+				}
+			}
+		}
+
+		tableConstraintsSource = tc
 
 		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, jobSourceConfig.Postgres.ConnectionId, "postgres", sourceTableOpts, td)
 		if err != nil {
@@ -214,12 +236,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			sourceTableOpts = groupMysqlSourceOptionsByTable(sqlOpts.Schemas)
 		}
 
-		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, jobSourceConfig.Mysql.ConnectionId, "mysql", sourceTableOpts)
-		if err != nil {
-			return nil, err
-		}
-		responses = append(responses, sourceResponses...)
-
 		if _, ok := b.mysqlpool[sourceConnection.Id]; !ok {
 			conn, err := b.sqlconnector.NewDbFromConnectionConfig(sourceConnection.ConnectionConfig, ptr(uint32(5)), slogger)
 			if err != nil {
@@ -253,6 +269,31 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, err
 		}
 		td := dbschemas_mysql.GetMysqlTableDependencies(allConstraints)
+
+		// reverse of table dependency
+		// map of foreign key to source table + column
+		tc := map[string]map[string]*dbschemas_utils.ForeignKey{} // schema.table -> column -> ForeignKey
+		for table, constraints := range td {
+			for _, c := range constraints.Constraints {
+				_, ok := tc[c.ForeignKey.Table]
+				if !ok {
+					tc[c.ForeignKey.Table] = map[string]*dbschemas_utils.ForeignKey{}
+				}
+				tc[c.ForeignKey.Table][c.ForeignKey.Column] = &dbschemas_utils.ForeignKey{
+					Table:  table,
+					Column: c.Column,
+				}
+			}
+		}
+
+		tableConstraintsSource = tc
+
+		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, jobSourceConfig.Mysql.ConnectionId, "mysql", sourceTableOpts, td)
+		if err != nil {
+			return nil, err
+		}
+		responses = append(responses, sourceResponses...)
+
 		tables := b.filterNullTables(groupedMappings)
 		dependencyConfigs := tabledependency.GetRunConfigs(td, tables)
 		primaryKeys, err := b.getAllMysqlPkConstraints(ctx, pool, uniqueSchemas)
@@ -315,6 +356,29 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			}
 			dstEnvVarKey := fmt.Sprintf("DESTINATION_%d_CONNECTION_DSN", destIdx)
 			dsn := fmt.Sprintf("${%s}", dstEnvVarKey)
+
+			// for each col thats foreign keyed
+			constraints := tableConstraintsSource[tableKey]
+			for col := range constraints {
+				// check if col has a transformer
+				// TODO make this more performant
+				for _, c := range tm.Mappings {
+					if c.Column == col {
+						if shouldProcessColumn(c.Transformer) {
+							resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
+								RedisHash: &neosync_benthos.RedisHashConfig{
+									Url:            "tcp://localhost:6379",
+									Key:            fmt.Sprintf(`%s.%s.${!json("%s")}"`, tableKey, col),
+									Fields:         neosync_benthos.RedisHashFields{Value: fmt.Sprintf(`${!json("%s")}"`, col)},
+									WalkMetadata:   false,
+									WalkJsonObject: false,
+								},
+							})
+						}
+					}
+				}
+
+			}
 
 			switch connection := destinationConnection.ConnectionConfig.Config.(type) {
 			case *mgmtv1alpha1.ConnectionConfig_PgConfig:
@@ -817,6 +881,7 @@ func (b *benthosBuilder) createSqlUpdateBenthosConfig(
 		"", // does not matter what is here. gets overwritten with insert config
 		driver,
 		map[string]*sqlSourceTableOptions{},
+		map[string]*dbschemas_utils.TableConstraints{},
 	)
 	if err != nil {
 		return nil, err
@@ -824,6 +889,7 @@ func (b *benthosBuilder) createSqlUpdateBenthosConfig(
 	if len(sourceResponses) > 0 {
 		newResp := sourceResponses[0]
 		newResp.Config.Input.SqlSelect.Where = insertConfig.Config.Input.SqlSelect.Where // keep the where clause the same as insert
+		newResp.Config.Pipeline = insertConfig.Config.Pipeline                           // keep processors the same as insert
 		newResp.updateConfig = insertConfig.updateConfig
 		newResp.DependsOn = insertConfig.updateConfig.DependsOn
 		newResp.Name = fmt.Sprintf("%s.update", insertConfig.Name)

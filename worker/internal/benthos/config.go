@@ -60,6 +60,22 @@ type PipelineConfig struct {
 type ProcessorConfig struct {
 	Mutation   *string           `json:"mutation,omitempty" yaml:"mutation,omitempty"`
 	Javascript *JavascriptConfig `json:"javascript,omitempty" yaml:"javascript,omitempty"`
+	Branch     *BranchConfig     `json:"branch,omitempty" yaml:"branch,omitempty"`
+	Cache      *CacheConfig      `json:"cache,omitempty" yaml:"cache,omitempty"`
+}
+
+type CacheConfig struct {
+	Resource string `json:"resource" yaml:"resource"`
+	Operator string `json:"operator" yaml:"operator"`
+	Key      string `json:"key" yaml:"key"`
+	Value    string `json:"value" yaml:"value"`
+	Ttl      string `json:"ttl" yaml:"ttl"`
+}
+
+type BranchConfig struct {
+	Processors []ProcessorConfig `json:"processors" yaml:"processors"`
+	RequestMap *string           `json:"request_map,omitempty" yaml:"request_map,omitempty"`
+	ResultMap  *string           `json:"result_map,omitempty" yaml:"result_map,omitempty"`
 }
 
 type JavascriptConfig struct {
@@ -82,6 +98,20 @@ type Outputs struct {
 	Drop      *DropConfig         `json:"drop,omitempty" yaml:"drop,omitempty"`
 	Resource  string              `json:"resource,omitempty" yaml:"resource,omitempty"`
 	Fallback  []Outputs           `json:"fallback,omitempty" yaml:"fallback,omitempty"`
+	RedisHash *RedisHashConfig    `json:"redis_hash,omitempty" yaml:"redis_hash,omitempty"`
+}
+
+type RedisHashConfig struct {
+	Url            string          `json:"url" yaml:"url"`
+	Key            string          `json:"key" yaml:"key"`
+	WalkMetadata   bool            `json:"walk_metadata" yaml:"walk_metadata"`
+	WalkJsonObject bool            `json:"walk_json_object" yaml:"walk_json_object"`
+	Fields         RedisHashFields `json:"fields" yaml:"fields"`
+	MaxInFlight    *int            `json:"max_in_flight,omitempty" yaml:"max_in_flight,omitempty"`
+}
+
+type RedisHashFields struct {
+	Value string `json:"value" yaml:"value"`
 }
 
 type DropConfig struct{}

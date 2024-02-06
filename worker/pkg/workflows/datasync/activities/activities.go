@@ -22,6 +22,7 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/javascript"
 	_ "github.com/benthosdev/benthos/v4/public/components/pure"
 	_ "github.com/benthosdev/benthos/v4/public/components/pure/extended"
+	_ "github.com/benthosdev/benthos/v4/public/components/redis"
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
 	"github.com/benthosdev/benthos/v4/public/service"
 	"github.com/spf13/viper"
@@ -868,12 +869,17 @@ func (b *benthosBuilder) buildProcessorConfigs(ctx context.Context, cols []*mgmt
 		return nil, err
 	}
 
+	cacheBranch := b.buildBranchCacheConfigs(ctx, cols, tableConstraints)
+
 	var processorConfigs []*neosync_benthos.ProcessorConfig
 	if len(mutations) > 0 {
 		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Mutation: &mutations})
 	}
 	if len(jsCode) > 0 {
 		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Javascript: &neosync_benthos.JavascriptConfig{Code: jsCode}})
+	}
+	if cacheBranch != nil {
+		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Branch: cacheBranch})
 	}
 
 	return processorConfigs, err
@@ -936,6 +942,36 @@ func (b *benthosBuilder) buildMutationConfigs(ctx context.Context, cols []*mgmtv
 
 	return strings.Join(mutations, "\n"), nil
 
+}
+
+func (b *benthosBuilder) buildBranchCacheConfigs(ctx context.Context, cols []*mgmtv1alpha1.JobMapping, tableConstraints map[string]*dbschemas_utils.ForeignKey) *neosync_benthos.BranchConfig {
+	branchConfig := &neosync_benthos.BranchConfig{}
+	processors := []neosync_benthos.ProcessorConfig{}
+	resultmap := []string{}
+
+	for _, col := range cols {
+		if shouldProcessColumn(col.Transformer) {
+			_, ok := tableConstraints[col.Column]
+			if ok {
+				processors = append(processors, neosync_benthos.ProcessorConfig{
+					Cache: &neosync_benthos.CacheConfig{
+						Resource: "rediscache",
+						Operator: "get",
+						Key:      fmt.Sprintf(`%s.'${! json("message.%s") }'`, neosync_benthos.BuildBenthosCacheKey(col.Schema, col.Table, col.Column), col.Column),
+					},
+				})
+				resultmap = append(resultmap, fmt.Sprintf("root.%s = this.value", col.Column))
+			}
+		}
+	}
+	if len(processors) == 0 {
+		return nil
+	}
+
+	rs := strings.Join(resultmap, " \n ")
+	branchConfig.ResultMap = &rs
+	branchConfig.Processors = processors
+	return branchConfig
 }
 
 func shouldProcessColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {
