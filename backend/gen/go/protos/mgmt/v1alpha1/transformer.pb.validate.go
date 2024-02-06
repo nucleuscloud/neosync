@@ -2310,7 +2310,7 @@ func (m *TransformerConfig) validate(all bool) error {
 			}
 		}
 
-	case *TransformerConfig_GenerateE164PhoneNumberConfig:
+	case *TransformerConfig_GenerateInternationalPhoneNumberConfig:
 		if v == nil {
 			err := TransformerConfigValidationError{
 				field:  "Config",
@@ -2323,11 +2323,11 @@ func (m *TransformerConfig) validate(all bool) error {
 		}
 
 		if all {
-			switch v := interface{}(m.GetGenerateE164PhoneNumberConfig()).(type) {
+			switch v := interface{}(m.GetGenerateInternationalPhoneNumberConfig()).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "GenerateE164PhoneNumberConfig",
+						field:  "GenerateInternationalPhoneNumberConfig",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -2335,16 +2335,16 @@ func (m *TransformerConfig) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, TransformerConfigValidationError{
-						field:  "GenerateE164PhoneNumberConfig",
+						field:  "GenerateInternationalPhoneNumberConfig",
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
 				}
 			}
-		} else if v, ok := interface{}(m.GetGenerateE164PhoneNumberConfig()).(interface{ Validate() error }); ok {
+		} else if v, ok := interface{}(m.GetGenerateInternationalPhoneNumberConfig()).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return TransformerConfigValidationError{
-					field:  "GenerateE164PhoneNumberConfig",
+					field:  "GenerateInternationalPhoneNumberConfig",
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -4476,22 +4476,23 @@ var _ interface {
 	ErrorName() string
 } = GenerateDefaultValidationError{}
 
-// Validate checks the field values on GenerateE164PhoneNumber with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *GenerateE164PhoneNumber) Validate() error {
+// Validate checks the field values on GenerateInternationalPhoneNumber with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *GenerateInternationalPhoneNumber) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on GenerateE164PhoneNumber with the
-// rules defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// GenerateE164PhoneNumberMultiError, or nil if none found.
-func (m *GenerateE164PhoneNumber) ValidateAll() error {
+// ValidateAll checks the field values on GenerateInternationalPhoneNumber with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// GenerateInternationalPhoneNumberMultiError, or nil if none found.
+func (m *GenerateInternationalPhoneNumber) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *GenerateE164PhoneNumber) validate(all bool) error {
+func (m *GenerateInternationalPhoneNumber) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -4503,19 +4504,20 @@ func (m *GenerateE164PhoneNumber) validate(all bool) error {
 	// no validation rules for Max
 
 	if len(errors) > 0 {
-		return GenerateE164PhoneNumberMultiError(errors)
+		return GenerateInternationalPhoneNumberMultiError(errors)
 	}
 
 	return nil
 }
 
-// GenerateE164PhoneNumberMultiError is an error wrapping multiple validation
-// errors returned by GenerateE164PhoneNumber.ValidateAll() if the designated
+// GenerateInternationalPhoneNumberMultiError is an error wrapping multiple
+// validation errors returned by
+// GenerateInternationalPhoneNumber.ValidateAll() if the designated
 // constraints aren't met.
-type GenerateE164PhoneNumberMultiError []error
+type GenerateInternationalPhoneNumberMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m GenerateE164PhoneNumberMultiError) Error() string {
+func (m GenerateInternationalPhoneNumberMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -4524,11 +4526,12 @@ func (m GenerateE164PhoneNumberMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m GenerateE164PhoneNumberMultiError) AllErrors() []error { return m }
+func (m GenerateInternationalPhoneNumberMultiError) AllErrors() []error { return m }
 
-// GenerateE164PhoneNumberValidationError is the validation error returned by
-// GenerateE164PhoneNumber.Validate if the designated constraints aren't met.
-type GenerateE164PhoneNumberValidationError struct {
+// GenerateInternationalPhoneNumberValidationError is the validation error
+// returned by GenerateInternationalPhoneNumber.Validate if the designated
+// constraints aren't met.
+type GenerateInternationalPhoneNumberValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -4536,24 +4539,24 @@ type GenerateE164PhoneNumberValidationError struct {
 }
 
 // Field function returns field value.
-func (e GenerateE164PhoneNumberValidationError) Field() string { return e.field }
+func (e GenerateInternationalPhoneNumberValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e GenerateE164PhoneNumberValidationError) Reason() string { return e.reason }
+func (e GenerateInternationalPhoneNumberValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e GenerateE164PhoneNumberValidationError) Cause() error { return e.cause }
+func (e GenerateInternationalPhoneNumberValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e GenerateE164PhoneNumberValidationError) Key() bool { return e.key }
+func (e GenerateInternationalPhoneNumberValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e GenerateE164PhoneNumberValidationError) ErrorName() string {
-	return "GenerateE164PhoneNumberValidationError"
+func (e GenerateInternationalPhoneNumberValidationError) ErrorName() string {
+	return "GenerateInternationalPhoneNumberValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e GenerateE164PhoneNumberValidationError) Error() string {
+func (e GenerateInternationalPhoneNumberValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -4565,14 +4568,14 @@ func (e GenerateE164PhoneNumberValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sGenerateE164PhoneNumber.%s: %s%s",
+		"invalid %sGenerateInternationalPhoneNumber.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = GenerateE164PhoneNumberValidationError{}
+var _ error = GenerateInternationalPhoneNumberValidationError{}
 
 var _ interface {
 	Field() string
@@ -4580,7 +4583,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = GenerateE164PhoneNumberValidationError{}
+} = GenerateInternationalPhoneNumberValidationError{}
 
 // Validate checks the field values on GenerateFirstName with the rules defined
 // in the proto definition for this message. If any rules are violated, the

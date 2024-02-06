@@ -95,7 +95,7 @@ message TransformerConfig {
     GenerateBool generate_bool_config = 3;
     GenerateCardNumber generate_card_number_config = 4;
     GenerateCity generate_city_config = 5;
-    GenerateE164PhoneNumber generate_e164_phone_number_config = 6;
+    GenerateInternationalPhoneNumber generate_international_phone_number_config = 6;
     GenerateFirstName generate_first_name_config = 7;
     GenerateFloat64 generate_float64_config = 8;
     GenerateFullAddress generate_full_address_config = 9;
@@ -151,7 +151,7 @@ message GenerateCity {}
 
 message GenerateDefault {}
 
-message GenerateE164PhoneNumber {
+message GenerateInternationalPhoneNumber {
   int64 min = 1;
   int64 max = 2;
 }
