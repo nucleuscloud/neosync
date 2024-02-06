@@ -218,10 +218,11 @@ TPhone numbers also vary in length with some international phone numbers reachin
 **Configurations**
 
 Depending on your validations, you may want to configure the output e164 phone number:
-| Name | Description | Default | Example Output |
-|------|----------------------------------------------|---------|----------------|
-| Min | Min is the lower range of the a length value. | 9 | +29748675 |
-| Max | Max is the upper range of a length value. | 12 | +2037486752 |
+
+| Name | Description                                   | Default | Example Output |
+| ---- | --------------------------------------------- | ------- | -------------- |
+| Min  | Min is the lower range of the a length value. | 9       | +29748675      |
+| Max  | Max is the upper range of a length value.     | 12      | +2037486752    |
 
 **Examples**
 
@@ -503,21 +504,22 @@ The generate string phone transformer generates a random string phone number. By
 
 **Configurations**
 
-Depending on your validations, you may want to configure the output phone number. The generate string phone number transformer has the following configuration:
+Here the configurations for the Generate String Phone Number Transformer:
 
-| Name            | Description                                                                                                              | Default | Example Output |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------ | ------- | -------------- |
-| Include hyphens | Includes hyphens in the output phone number. Note that this config can only be used with default 10 digit phone numbers. | false   | 290-374-8675   |
+| Name | Description                                                            | Default | Example Output |
+| ---- | ---------------------------------------------------------------------- | ------- | -------------- |
+| Min  | Min is the lower range of the a string length. The minimum range is 9. | 9       | 234232974865   |
+| Max  | Max is the upper range of a length value. The maximum range is 15.     | 15      | 2037486752     |
 
 **Examples**
 
 There are several ways you can mix-and-match configurations to get different potential phone number formats. Here are some possible combinations:
 
-| Include Hyphens | Example Output |
-| --------------- | -------------- |
-| false           | 5209273239     |
-| true            | 520-927-3239   |
-| false           | 2927323921     |
+| Min | Max | Example Output |
+| --- | --- | -------------- |
+| 10  | 14  | 5209273239     |
+| 11  | 15  | 520927323912   |
+| 12  | 12  | 520927323969   |
 
 ### Generate Random String\{#generate-random-string}
 
@@ -846,21 +848,18 @@ Would produce the following output value:
 
 Depending on your validations, you may want to configure the output phone number. Here are the configurations for the transform string phone number transformer.
 
-| Name            | Description                                                                                                              | Default | Example Input   | Example Output  |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------ | ------- | --------------- | --------------- |
-| Include hyphens | Includes hyphens in the output phone number. Note that this config can only be used with default 10 digit phone numbers. | false   | 9238724378      | 290-374-8675    |
-| PreserveLength  | Preserve Length will ensure that the output phone number is the same length as the input phone number.                   | false   | 892387243786243 | 290374867526392 |
+| Name           | Description                                                                                            | Default | Example Input   | Example Output  |
+| -------------- | ------------------------------------------------------------------------------------------------------ | ------- | --------------- | --------------- |
+| PreserveLength | Preserve Length will ensure that the output phone number is the same length as the input phone number. | false   | 892387243786243 | 290374867526392 |
 
 **Examples**
 
 There are several ways you can mix-and-match configurations to get different potential phone number formats. Here are some possible combinations:
 
-| PreserveLength | Include Hyphens | Example Input | Example Output |
-| -------------- | --------------- | ------------- | -------------- |
-| false          | false           | 2890923784    | 5209273239     |
-| false          | true            | 2890923784    | 520-927-3239   |
-| true           | false           | 289092378423  | 520927323239   |
-| true           | true            | 2890923784    | 520-922-3539   |
+| PreserveLength | Example Input | Example Output |
+| -------------- | ------------- | -------------- |
+| false          | 2890923784    | 520927323239   |
+| true           | 2890923784    | 5209223539     |
 
 ### Transform String\{#transform-string}
 
