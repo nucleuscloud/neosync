@@ -68,6 +68,7 @@ func generateCreateTableStatement(
 		record := tableSchemas[idx]
 		columns[idx] = buildTableCol(record)
 	}
+
 	constraints := make([]string, len(tableConstraints))
 	for idx := range tableConstraints {
 		constraint := tableConstraints[idx]
@@ -86,15 +87,18 @@ func buildTableCol(record *pg_queries.GetDatabaseTableSchemaRow) string {
 			pieces = append(pieces, "DEFAULT", record.ColumnDefault)
 		}
 	}
+
 	return strings.Join(pieces, " ")
 }
 
 func buildDataType(record *pg_queries.GetDatabaseTableSchemaRow) string {
-	if record.CharacterMaximumLength != nil {
+	if strings.EqualFold(record.DataType, "numeric") && record.NumericPrecision > -1 && record.NumericScale > -1 {
+		return fmt.Sprintf("%s(%d,%d)", record.DataType, record.NumericPrecision, record.NumericScale)
+	}
+
+	if record.CharacterMaximumLength > 0 {
 		if strings.EqualFold(record.DataType, "character varying") || strings.EqualFold(record.DataType, "character") || strings.EqualFold(record.DataType, "varchar") || strings.EqualFold(record.DataType, "bpchar") {
 			return fmt.Sprintf("%s(%d)", record.DataType, record.CharacterMaximumLength)
-		} else if strings.EqualFold(record.DataType, "numeric") {
-			return fmt.Sprintf("%s(%d,%d)", record.DataType, record.NumericPrecision, record.NumericScale)
 		}
 	}
 	return record.DataType
@@ -139,19 +143,40 @@ func GetPostgresTableDependencies(
 
 func GetUniqueSchemaColMappings(
 	schemas []*pg_queries.GetDatabaseSchemaRow,
-) map[string]map[string]struct{} {
-	groupedSchemas := map[string]map[string]struct{}{} // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
+) map[string]map[string]*dbschemas.ColumnInfo {
+	groupedSchemas := map[string]map[string]*dbschemas.ColumnInfo{} // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
 	for _, record := range schemas {
 		key := dbschemas.BuildTable(record.TableSchema, record.TableName)
 		if _, ok := groupedSchemas[key]; ok {
-			groupedSchemas[key][record.ColumnName] = struct{}{}
+			groupedSchemas[key][record.ColumnName] = toColumnInfo(record)
 		} else {
-			groupedSchemas[key] = map[string]struct{}{
-				record.ColumnName: {},
+			groupedSchemas[key] = map[string]*dbschemas.ColumnInfo{
+				record.ColumnName: toColumnInfo(record),
 			}
 		}
 	}
 	return groupedSchemas
+}
+
+func toColumnInfo(row *pg_queries.GetDatabaseSchemaRow) *dbschemas.ColumnInfo {
+	return &dbschemas.ColumnInfo{
+		OrdinalPosition:        int32(row.OrdinalPosition),
+		ColumnDefault:          row.ColumnDefault,
+		IsNullable:             row.IsNullable,
+		DataType:               row.DataType,
+		CharacterMaximumLength: toInt32Ptr(row.CharacterMaximumLength),
+		NumericPrecision:       toInt32Ptr(row.NumericPrecision),
+		NumericScale:           toInt32Ptr(row.NumericScale),
+	}
+}
+
+func toInt32Ptr(num int) *int32 {
+	var num32Ptr *int32
+	if num > 0 {
+		num32 := int32(num)
+		num32Ptr = &num32
+	}
+	return num32Ptr
 }
 
 func GetAllPostgresFkConstraints(

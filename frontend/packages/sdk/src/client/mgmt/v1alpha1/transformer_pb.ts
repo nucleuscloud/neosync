@@ -1707,9 +1707,14 @@ export class GenerateStreetAddress extends Message<GenerateStreetAddress> {
  */
 export class GenerateStringPhoneNumber extends Message<GenerateStringPhoneNumber> {
   /**
-   * @generated from field: bool include_hyphens = 2;
+   * @generated from field: int64 min = 2;
    */
-  includeHyphens = false;
+  min = protoInt64.zero;
+
+  /**
+   * @generated from field: int64 max = 3;
+   */
+  max = protoInt64.zero;
 
   constructor(data?: PartialMessage<GenerateStringPhoneNumber>) {
     super();
@@ -1719,7 +1724,8 @@ export class GenerateStringPhoneNumber extends Message<GenerateStringPhoneNumber
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GenerateStringPhoneNumber";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 2, name: "include_hyphens", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "min", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 3, name: "max", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateStringPhoneNumber {
@@ -2223,11 +2229,6 @@ export class TransformPhoneNumber extends Message<TransformPhoneNumber> {
    */
   preserveLength = false;
 
-  /**
-   * @generated from field: bool include_hyphens = 2;
-   */
-  includeHyphens = false;
-
   constructor(data?: PartialMessage<TransformPhoneNumber>) {
     super();
     proto3.util.initPartial(data, this);
@@ -2237,7 +2238,6 @@ export class TransformPhoneNumber extends Message<TransformPhoneNumber> {
   static readonly typeName = "mgmt.v1alpha1.TransformPhoneNumber";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 2, name: "include_hyphens", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformPhoneNumber {

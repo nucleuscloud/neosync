@@ -141,8 +141,8 @@ func (s *Service) GetSystemTransformers(
 				},
 			},
 			{
-				Name:        "Generate E164 Phone Number",
-				Description: "Generates a Generate phone number in e164 format.",
+				Name:        "Generate International Phone Number",
+				Description: "Generates a phone number in international format with the + character at the start of the phone number. Note that the + sign is not included in the min or max.",
 				DataType:    "string",
 				Source:      string(GenerateE164PhoneNumber),
 				Config: &mgmtv1alpha1.TransformerConfig{
@@ -297,13 +297,14 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Name:        "Generate String Phone Number",
-				Description: "Generates a Generate phone number and returns it as a string.",
+				Description: "Generates a phone number and returns it as a string.",
 				DataType:    "string",
 				Source:      string(GenerateStringPhoneNumber),
 				Config: &mgmtv1alpha1.TransformerConfig{
 					Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneNumberConfig{
 						GenerateStringPhoneNumberConfig: &mgmtv1alpha1.GenerateStringPhoneNumber{
-							IncludeHyphens: false,
+							Min: 9,
+							Max: 14,
 						},
 					},
 				},
@@ -473,7 +474,7 @@ func (s *Service) GetSystemTransformers(
 				},
 			},
 			{
-				Name:        "Transform Phone Number",
+				Name:        "Transform String Phone Number",
 				Description: "Transforms an existing phone number that is typed as a string.",
 				DataType:    "string",
 				Source:      string(TransformPhoneNumber),
@@ -481,7 +482,6 @@ func (s *Service) GetSystemTransformers(
 					Config: &mgmtv1alpha1.TransformerConfig_TransformPhoneNumberConfig{
 						TransformPhoneNumberConfig: &mgmtv1alpha1.TransformPhoneNumber{
 							PreserveLength: false,
-							IncludeHyphens: false,
 						},
 					},
 				},

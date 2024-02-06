@@ -2,11 +2,13 @@ package transformers
 
 import (
 	_ "embed"
+	"fmt"
 	"math/rand"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/data-sets"
+	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
 type Address struct {
@@ -19,12 +21,21 @@ type Address struct {
 
 func init() {
 
-	spec := bloblang.NewPluginSpec()
+	spec := bloblang.NewPluginSpec().Param(bloblang.NewInt64Param("max_length"))
 
 	err := bloblang.RegisterFunctionV2("generate_street_address", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
+		maxLength, err := args.GetInt64("max_length")
+		if err != nil {
+			return nil, err
+		}
+
 		return func() (any, error) {
-			return GenerateRandomStreetAddress(), nil
+			res, err := GenerateRandomStreetAddress(maxLength)
+			if err != nil {
+				return nil, err
+			}
+			return res, nil
 		}, nil
 	})
 	if err != nil {
@@ -33,13 +44,50 @@ func init() {
 }
 
 /* Generates a random street address in the United States in the format <house_number> <street name> <street ending>*/
-func GenerateRandomStreetAddress() string {
+func GenerateRandomStreetAddress(maxLength int64) (string, error) {
 
 	addresses := transformers_dataset.Addresses
+	var filteredAddresses []string
+
+	for _, address := range addresses {
+		if len(address.Address1) <= int(maxLength) {
+			filteredAddresses = append(filteredAddresses, address.City)
+		}
+	}
+
+	if len(filteredAddresses) == 0 {
+
+		if maxLength > 3 {
+			hn, err := transformer_utils.GenerateRandomInt64InValueRange(1, 20)
+			if err != nil {
+				return "", err
+			}
+
+			street, err := transformer_utils.GenerateRandomStringWithDefinedLength(maxLength - 3)
+			if err != nil {
+				return "", err
+
+			}
+
+			return fmt.Sprintf("%d %s", hn, street), nil
+
+		} else {
+
+			street, err := transformer_utils.GenerateRandomStringWithDefinedLength(maxLength)
+			if err != nil {
+				return "", err
+
+			}
+
+			return street, nil
+
+		}
+
+	}
 
 	// -1 because addresses is an array so we don't overflow
 	//nolint:all
-	randomIndex := rand.Intn(len(addresses) - 1)
+	randomIndex := rand.Intn(len(filteredAddresses) - 1)
 
-	return addresses[randomIndex].Address1
+	return filteredAddresses[randomIndex], nil
 }

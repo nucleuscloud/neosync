@@ -57,6 +57,7 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
       await removeJob(account?.id ?? '', id);
       toast({
         title: 'Job removed successfully!',
+        variant: 'success',
       });
       router.push(`/${account?.name}/jobs`);
     } catch (err) {

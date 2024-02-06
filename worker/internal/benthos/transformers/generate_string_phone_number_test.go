@@ -1,53 +1,64 @@
 package transformers
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/stretchr/testify/assert"
 )
 
-var testStringPhone = "6183849282"
-var testStringPhoneHyphens = "618-384-9282"
+func Test_GenerateStringPhoneNumber(t *testing.T) {
 
-func Test_GeneratePhoneNumberHyphens(t *testing.T) {
+	min := int64(9)
+	max := int64(14)
 
-	res, err := GenerateRandomPhoneNumber(true)
-
-	assert.NoError(t, err)
-	assert.Equal(t, len(testStringPhoneHyphens), len(res), "The length of the output phone number should be the same as the input phone number")
-}
-
-func Test_GeneratePhoneNumberNoHyphens(t *testing.T) {
-
-	res, err := GenerateRandomPhoneNumber(false)
+	res, err := GenerateStringPhoneNumber(min, max, maxCharacterLimit)
 
 	assert.NoError(t, err)
-	assert.Equal(t, len(testStringPhone), len(res), "The length of the output phone number should be the same as the input phone number")
+	assert.GreaterOrEqual(t, len(res), 9, "Should be greater than 10 characters in length. 9 for the number and 1 for the plus sign.")
+	assert.LessOrEqual(t, len(res), 15, "Should be less than 16 characters in length. 15 for the number and 1 for the plus sign.")
 }
 
-func Test_GenerateRandomPhoneNumberHyphens(t *testing.T) {
+func Test_GenerateStringPhoneNumberEqualMinMax(t *testing.T) {
 
-	res, err := GenerateRandomPhoneNumberHyphens()
-	assert.NoError(t, err)
-	assert.Equal(t, len(testStringPhoneHyphens), len(res), "The length of the output phone number should be the same as the input phone number")
-}
+	min := int64(12)
+	max := int64(12)
 
-func Test_GenerateRandomPhoneNumberNoHyphens(t *testing.T) {
-
-	res, err := GenerateRandomPhoneNumberNoHyphens()
+	res, err := GenerateStringPhoneNumber(min, max, maxCharacterLimit)
 
 	assert.NoError(t, err)
-	assert.Equal(t, len(testStringPhone), len(res), "The length of the output phone number should be the same as the input phone number")
+	assert.GreaterOrEqual(t, len(res), 8, "Should be greater than 9 characters in length. 9 for the number and 1 for the plus sign.")
+	assert.LessOrEqual(t, len(res), 15, "Should be less than 16 characters in length. 15 for the number and 1 for the plus sign.")
+	assert.Equal(t, int64(len(res)), max)
+
 }
 
-func Test_PhoneNumberTransformer(t *testing.T) {
-	mapping := `root = generate_string_phone_number(include_hyphens:false)`
+func Test_GenerateStringPhoneNumberShortMax(t *testing.T) {
+
+	min := int64(9)
+	max := int64(12)
+	maxPhoneLimit := 11
+
+	res, err := GenerateStringPhoneNumber(min, max, int64(maxPhoneLimit))
+
+	assert.NoError(t, err)
+	assert.GreaterOrEqual(t, len(res), 8, "Should be greater than 9 characters in length. 9 for the number and 1 for the plus sign.")
+	assert.LessOrEqual(t, len(res), maxPhoneLimit, "Should be less than 16 characters in length. 15 for the number and 1 for the plus sign.")
+
+}
+
+func Test_GenerateStringPhoneNumberTransformer(t *testing.T) {
+
+	min := int64(10)
+	max := int64(13)
+	mapping := fmt.Sprintf(`root = generate_string_phone_number(min:%d,max:%d,max_length:%d)`, min, max, maxCharacterLimit)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the phone transformer")
 
 	res, err := ex.Query(nil)
 	assert.NoError(t, err)
 
-	assert.Len(t, res.(string), len(testStringPhone), "Generated phone number must be the same length as the input phone number")
+	assert.GreaterOrEqual(t, len(res.(string)), 8, "Should be greater than 9 characters in length. 9 for the number and 1 for the plus sign.")
+	assert.LessOrEqual(t, len(res.(string)), 15, "Should be less than 16 characters in length. 15 for the number and 1 for the plus sign.")
 }

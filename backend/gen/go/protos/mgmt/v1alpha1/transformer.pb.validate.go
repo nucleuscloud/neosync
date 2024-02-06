@@ -5829,7 +5829,9 @@ func (m *GenerateStringPhoneNumber) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for IncludeHyphens
+	// no validation rules for Min
+
+	// no validation rules for Max
 
 	if len(errors) > 0 {
 		return GenerateStringPhoneNumberMultiError(errors)
@@ -7271,8 +7273,6 @@ func (m *TransformPhoneNumber) validate(all bool) error {
 	var errors []error
 
 	// no validation rules for PreserveLength
-
-	// no validation rules for IncludeHyphens
 
 	if len(errors) > 0 {
 		return TransformPhoneNumberMultiError(errors)

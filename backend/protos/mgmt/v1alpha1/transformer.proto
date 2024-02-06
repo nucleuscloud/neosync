@@ -192,7 +192,8 @@ message GenerateState {}
 message GenerateStreetAddress {}
 
 message GenerateStringPhoneNumber {
-  bool include_hyphens = 2;
+  int64 min = 2;
+  int64 max = 3;
 }
 
 message GenerateString {
@@ -244,7 +245,6 @@ message TransformLastName {
 
 message TransformPhoneNumber {
   bool preserve_length = 1;
-  bool include_hyphens = 2;
 }
 
 message TransformString {

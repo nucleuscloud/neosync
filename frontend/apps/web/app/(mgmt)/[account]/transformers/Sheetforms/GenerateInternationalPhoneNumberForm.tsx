@@ -17,7 +17,7 @@ interface Props {
   setIsSheetOpen?: (val: boolean) => void;
 }
 
-export default function GenerateE164PhoneNumberForm(
+export default function GenerateInternationalPhoneNumberForm(
   props: Props
 ): ReactElement {
   const { index, setIsSheetOpen } = props;

@@ -9,40 +9,38 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_GenerateRandomEmail(t *testing.T) {
+func Test_GenerateRandomEmailShort(t *testing.T) {
 
-	res, err := GenerateEmail()
+	shortMaxLength := int64(14)
+
+	res, err := GenerateRandomEmail(shortMaxLength)
 
 	assert.NoError(t, err)
 	assert.Equal(t, true, transformer_utils.IsValidEmail(res), fmt.Sprintf(`The expected email should be have a valid email format. Received:%s`, res))
+	assert.LessOrEqual(t, int64(len(res)), shortMaxLength, fmt.Sprintf("The city should be less than or equal to the max length. This is the error city:%s", res))
 }
 
-func Test_GenerateRandomDomain(t *testing.T) {
+func Test_GenerateRandomEmail(t *testing.T) {
 
-	res, err := GenerateEmailDomain()
+	res, err := GenerateRandomEmail(int64(40))
+
 	assert.NoError(t, err)
-
-	assert.Equal(t, true, transformer_utils.IsValidDomain(res), "The expected email should have a valid domain")
-
-}
-
-func Test_GenerateRandomUsername(t *testing.T) {
-
-	res, err := GenerateEmailUsername()
-	assert.NoError(t, err)
-
-	assert.Equal(t, true, transformer_utils.IsValidUsername(res), "The expected email should have a valid username")
-
+	assert.Equal(t, true, transformer_utils.IsValidEmail(res), fmt.Sprintf(`The expected email should be have a valid email format. Received:%s`, res))
+	assert.LessOrEqual(t, int64(len(res)), int64(40), fmt.Sprintf("The city should be less than or equal to the max length. This is the error city:%s", res))
 }
 
 func Test_RandomEmailTransformer(t *testing.T) {
-	mapping := `root = generate_email()`
+
+	maxLength := int64(40)
+	mapping := fmt.Sprintf(`root = generate_email(max_length:%d)`, maxLength)
 	ex, err := bloblang.Parse(mapping)
 
 	assert.NoError(t, err, "failed to parse the email transformer")
 
 	res, err := ex.Query(nil)
 	assert.NoError(t, err)
+
+	assert.LessOrEqual(t, int64(len(res.(string))), maxLength, fmt.Sprintf("The email should be less than or equal to the max length. This is the error email:%s", res))
 
 	assert.Equal(t, true, transformer_utils.IsValidEmail(res.(string)), "The expected email should have a valid email format")
 }

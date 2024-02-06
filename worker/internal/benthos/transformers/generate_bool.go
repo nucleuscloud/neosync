@@ -22,7 +22,7 @@ func init() {
 	}
 }
 
-// Generates a random bool value
+// Generates a random bool value and returns it as a bool type.
 func GenerateRandomBool() bool {
 
 	//nolint:all

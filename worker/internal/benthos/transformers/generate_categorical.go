@@ -33,7 +33,7 @@ func init() {
 	}
 }
 
-// Generates a randomly selected value from the provided list of categories
+// Generates a randomly selected value from the user-provided list of categories. We don't account for the maxLength param here because the input is user-provided. We assume that they values they provide in the set abide by the maxCharacterLength constraint.
 func GenerateCategorical(categories []string) string {
 
 	//nolint:all

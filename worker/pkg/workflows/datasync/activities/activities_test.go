@@ -21,6 +21,7 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
@@ -34,14 +35,14 @@ import (
 
 func TestAreMappingsSubsetOfSchemas(t *testing.T) {
 	ok := areMappingsSubsetOfSchemas(
-		map[string]map[string]struct{}{
+		map[string]map[string]*dbschemas_utils.ColumnInfo{
 			"public.users": {
-				"id":         struct{}{},
-				"created_by": struct{}{},
-				"updated_by": struct{}{},
+				"id":         &dbschemas_utils.ColumnInfo{},
+				"created_by": &dbschemas_utils.ColumnInfo{},
+				"updated_by": &dbschemas_utils.ColumnInfo{},
 			},
 			"neosync_api.accounts": {
-				"id": struct{}{},
+				"id": &dbschemas_utils.ColumnInfo{},
 			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
@@ -52,9 +53,9 @@ func TestAreMappingsSubsetOfSchemas(t *testing.T) {
 	assert.True(t, ok, "job mappings are a subset of the present database schemas")
 
 	ok = areMappingsSubsetOfSchemas(
-		map[string]map[string]struct{}{
+		map[string]map[string]*dbschemas_utils.ColumnInfo{
 			"public.users": {
-				"id": struct{}{},
+				"id": &dbschemas_utils.ColumnInfo{},
 			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
@@ -64,9 +65,9 @@ func TestAreMappingsSubsetOfSchemas(t *testing.T) {
 	assert.False(t, ok, "job mappings contain mapping that is not in the source schema")
 
 	ok = areMappingsSubsetOfSchemas(
-		map[string]map[string]struct{}{
+		map[string]map[string]*dbschemas_utils.ColumnInfo{
 			"public.users": {
-				"id": struct{}{},
+				"id": &dbschemas_utils.ColumnInfo{},
 			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
@@ -79,10 +80,10 @@ func TestAreMappingsSubsetOfSchemas(t *testing.T) {
 
 func TestShouldHaltOnSchemaAddition(t *testing.T) {
 	ok := shouldHaltOnSchemaAddition(
-		map[string]map[string]struct{}{
+		map[string]map[string]*dbschemas_utils.ColumnInfo{
 			"public.users": {
-				"id":         struct{}{},
-				"created_by": struct{}{},
+				"id":         &dbschemas_utils.ColumnInfo{},
+				"created_by": &dbschemas_utils.ColumnInfo{},
 			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
@@ -93,13 +94,13 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 	assert.False(t, ok, "job mappings are valid set of database schemas")
 
 	ok = shouldHaltOnSchemaAddition(
-		map[string]map[string]struct{}{
+		map[string]map[string]*dbschemas_utils.ColumnInfo{
 			"public.users": {
-				"id":         struct{}{},
-				"created_by": struct{}{},
+				"id":         &dbschemas_utils.ColumnInfo{},
+				"created_by": &dbschemas_utils.ColumnInfo{},
 			},
 			"neosync_api.accounts": {
-				"id": struct{}{},
+				"id": &dbschemas_utils.ColumnInfo{},
 			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
@@ -110,10 +111,10 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 	assert.True(t, ok, "job mappings are missing database schema mappings")
 
 	ok = shouldHaltOnSchemaAddition(
-		map[string]map[string]struct{}{
+		map[string]map[string]*dbschemas_utils.ColumnInfo{
 			"public.users": {
-				"id":         struct{}{},
-				"created_by": struct{}{},
+				"id":         &dbschemas_utils.ColumnInfo{},
+				"created_by": &dbschemas_utils.ColumnInfo{},
 			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
@@ -123,10 +124,10 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 	assert.True(t, ok, "job mappings are missing table column")
 
 	ok = shouldHaltOnSchemaAddition(
-		map[string]map[string]struct{}{
+		map[string]map[string]*dbschemas_utils.ColumnInfo{
 			"public.users": {
-				"id":         struct{}{},
-				"created_by": struct{}{},
+				"id":         &dbschemas_utils.ColumnInfo{},
+				"created_by": &dbschemas_utils.ColumnInfo{},
 			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
@@ -324,29 +325,29 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
 	ctx := context.Background()
 
-	output, err := bbuilder.buildProcessorConfigs(ctx, nil)
+	output, err := bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{}, map[string]*dbschemas_utils.ColumnInfo{})
 	assert.Nil(t, err)
 	assert.Empty(t, output)
 
-	output, err = bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{})
+	output, err = bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{}, map[string]*dbschemas_utils.ColumnInfo{})
 	assert.Nil(t, err)
 	assert.Empty(t, output)
 
 	output, err = bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id"},
-	})
+	}, map[string]*dbschemas_utils.ColumnInfo{})
 	assert.Nil(t, err)
 	assert.Empty(t, output)
 
 	output, err = bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{}},
-	})
+	}, map[string]*dbschemas_utils.ColumnInfo{})
 	assert.Nil(t, err)
 	assert.Empty(t, output)
 
 	output, err = bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "passthrough"}},
-	})
+	}, map[string]*dbschemas_utils.ColumnInfo{})
 	assert.Nil(t, err)
 	assert.Empty(t, output)
 
@@ -361,7 +362,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 				Nullconfig: &mgmtv1alpha1.Null{},
 			},
 		}}},
-	})
+	}, map[string]*dbschemas_utils.ColumnInfo{})
 
 	assert.Nil(t, err)
 
@@ -382,11 +383,26 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 		},
 	}
 
+	var email int32 = int32(40)
+
+	groupedSchemas := map[string]*dbschemas_utils.ColumnInfo{
+
+		"email": {
+			OrdinalPosition:        2,
+			ColumnDefault:          "",
+			IsNullable:             "true",
+			DataType:               "timestamptz",
+			CharacterMaximumLength: &email,
+			NumericPrecision:       nil,
+			NumericScale:           nil,
+		},
+	}
+
 	output, err = bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}})
+		{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, groupedSchemas)
 
 	assert.Nil(t, err)
-	assert.Equal(t, *output[0].Mutation, `root.email = transform_email(email:this.email,preserve_domain:true,preserve_length:false)`)
+	assert.Equal(t, *output[0].Mutation, `root.email = transform_email(email:this.email,preserve_domain:true,preserve_length:false,max_length:40)`)
 
 	output, err = bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "i_do_not_exist", Config: &mgmtv1alpha1.TransformerConfig{
@@ -394,7 +410,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 				Nullconfig: &mgmtv1alpha1.Null{},
 			},
 		}}},
-	})
+	}, map[string]*dbschemas_utils.ColumnInfo{})
 	assert.Error(t, err)
 	assert.Empty(t, output)
 
@@ -435,7 +451,7 @@ func Test_buildProcessorConfigsJavascript(t *testing.T) {
 	}
 
 	res, err := bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: col, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}})
+		{Schema: "public", Table: "users", Column: col, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, `
@@ -492,7 +508,7 @@ func Test_buildProcessorConfigsJavascriptMultiLineScript(t *testing.T) {
 	}
 
 	res, err := bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: col, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}})
+		{Schema: "public", Table: "users", Column: col, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, `
@@ -563,7 +579,7 @@ func Test_buildProcessorConfigsJavascriptMultiple(t *testing.T) {
 
 	res, err := bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: col, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}},
-		{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}})
+		{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}}, map[string]*dbschemas_utils.ColumnInfo{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, `
@@ -697,7 +713,7 @@ func Test_buildProcessorConfigsJavascriptEmpty(t *testing.T) {
 	}
 
 	resp, err := bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}})
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{})
 
 	assert.NoError(t, err)
 	assert.Empty(t, resp)
@@ -991,12 +1007,13 @@ func boolPtr(val bool) *bool {
 }
 
 func Test_computeMutationFunction_null(t *testing.T) {
+
 	val, err := computeMutationFunction(
 		&mgmtv1alpha1.JobMapping{
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Source: "null",
 			},
-		})
+		}, &dbschemas_utils.ColumnInfo{})
 	assert.NoError(t, err)
 	assert.Equal(t, val, "null")
 }
@@ -1163,6 +1180,7 @@ func Test_TransformerStringLint(t *testing.T) {
 						RandomizeSign: true,
 						Min:           1.00,
 						Max:           100.00,
+						Precision:     6,
 					},
 				},
 			},
@@ -1208,7 +1226,7 @@ func Test_TransformerStringLint(t *testing.T) {
 					GenerateInt64Config: &mgmtv1alpha1.GenerateInt64{
 						RandomizeSign: true,
 						Min:           1,
-						Max:           4,
+						Max:           40,
 					},
 				},
 			},
@@ -1258,7 +1276,8 @@ func Test_TransformerStringLint(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneNumberConfig{
 					GenerateStringPhoneNumberConfig: &mgmtv1alpha1.GenerateStringPhoneNumber{
-						IncludeHyphens: false,
+						Min: 9,
+						Max: 14,
 					},
 				},
 			},
@@ -1394,7 +1413,6 @@ func Test_TransformerStringLint(t *testing.T) {
 				Config: &mgmtv1alpha1.TransformerConfig_TransformPhoneNumberConfig{
 					TransformPhoneNumberConfig: &mgmtv1alpha1.TransformPhoneNumber{
 						PreserveLength: false,
-						IncludeHyphens: false,
 					},
 				},
 			},
@@ -1429,6 +1447,18 @@ func Test_TransformerStringLint(t *testing.T) {
 		},
 	}
 
+	var email int32 = int32(40)
+
+	emailColInfo := &dbschemas_utils.ColumnInfo{
+		OrdinalPosition:        2,
+		ColumnDefault:          "",
+		IsNullable:             "true",
+		DataType:               "timestamptz",
+		CharacterMaximumLength: &email,
+		NumericPrecision:       nil,
+		NumericScale:           nil,
+	}
+
 	for _, transformer := range transformers {
 
 		val, err := computeMutationFunction(
@@ -1438,12 +1468,12 @@ func Test_TransformerStringLint(t *testing.T) {
 					Source: transformer.Name,
 					Config: transformer.Config,
 				},
-			})
+			}, emailColInfo)
 
 		assert.NoError(t, err)
 
 		_, err = bloblang.Parse(val)
-		assert.NoError(t, err, "transformer lint failed, check that the transformer string is being constructed correctly.")
+		assert.NoError(t, err, fmt.Sprintf("transformer lint failed, check that the transformer string is being constructed correctly.Failed on this value: %s", transformer.Name))
 	}
 }
 

@@ -19,7 +19,7 @@ interface Props {
   isDisabled?: boolean;
 }
 
-export default function UserDefinedGenerateE164NumberForm(
+export default function UserDefinedGenerateInternationalPhoneNumberForm(
   props: Props
 ): ReactElement {
   const fc = useFormContext<

@@ -2,6 +2,7 @@ package dbschemas_mysql
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"strings"
 
@@ -113,19 +114,38 @@ func GetMysqlTablePrimaryKeys(
 
 func GetUniqueSchemaColMappings(
 	schemas []*mysql_queries.GetDatabaseSchemaRow,
-) map[string]map[string]struct{} {
-	groupedSchemas := map[string]map[string]struct{}{} // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
+) map[string]map[string]*dbschemas.ColumnInfo {
+	groupedSchemas := map[string]map[string]*dbschemas.ColumnInfo{} // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
 	for _, record := range schemas {
 		key := dbschemas.BuildTable(record.TableSchema, record.TableName)
 		if _, ok := groupedSchemas[key]; ok {
-			groupedSchemas[key][record.ColumnName] = struct{}{}
+			groupedSchemas[key][record.ColumnName] = toColumnInfo(record)
 		} else {
-			groupedSchemas[key] = map[string]struct{}{
-				record.ColumnName: {},
+			groupedSchemas[key] = map[string]*dbschemas.ColumnInfo{
+				record.ColumnName: toColumnInfo(record),
 			}
 		}
 	}
 	return groupedSchemas
+}
+
+func toColumnInfo(row *mysql_queries.GetDatabaseSchemaRow) *dbschemas.ColumnInfo {
+	return &dbschemas.ColumnInfo{
+		OrdinalPosition:        row.OrdinalPosition,
+		ColumnDefault:          row.ColumnDefault,
+		IsNullable:             row.IsNullable,
+		DataType:               row.DataType,
+		CharacterMaximumLength: fromSqlNullInt32(row.CharacterMaximumLength),
+		NumericPrecision:       fromSqlNullInt32(row.NumericPrecision),
+		NumericScale:           fromSqlNullInt32(row.NumericScale),
+	}
+}
+
+func fromSqlNullInt32(nullInt sql.NullInt32) *int32 {
+	if nullInt.Valid {
+		return &nullInt.Int32
+	}
+	return nil
 }
 
 func GetAllMysqlFkConstraints(

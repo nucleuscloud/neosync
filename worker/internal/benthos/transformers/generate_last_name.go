@@ -5,19 +5,22 @@ import (
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
-	transformers_dataset "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
 func init() {
 
-	spec := bloblang.NewPluginSpec()
+	spec := bloblang.NewPluginSpec().Param(bloblang.NewInt64Param("max_length"))
 
 	err := bloblang.RegisterFunctionV2("generate_last_name", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
+		maxLength, err := args.GetInt64("max_length")
+		if err != nil {
+			return nil, err
+		}
+
 		return func() (any, error) {
-			res, err := GenerateRandomLastName()
-			return res, err
+			return GenerateRandomLastName(maxLength)
 		}, nil
 	})
 
@@ -27,32 +30,27 @@ func init() {
 }
 
 /* Generates a random last name with a randomly selected length between [2,12] characters */
-func GenerateRandomLastName() (string, error) {
+func GenerateRandomLastName(maxLength int64) (string, error) {
 
-	var returnValue string
-
-	var nameLengths []int
-
-	var lastNames = transformers_dataset.LastNames.Names
-
-	for _, v := range lastNames {
-		nameLengths = append(nameLengths, v.NameLength)
-	}
-
-	randomNameLengthVal, err := transformer_utils.GetRandomValueFromSlice[int](nameLengths)
-	if err != nil {
-		return "", err
-	}
-
-	for _, v := range lastNames {
-		if v.NameLength == randomNameLengthVal {
-			res, err := transformer_utils.GetRandomValueFromSlice[string](v.Names)
-			if err != nil {
-				return "", err
-			}
-			returnValue = res
+	if maxLength < 12 && maxLength >= 2 {
+		names := lastNames[maxLength]
+		res, err := transformer_utils.GetRandomValueFromSlice[string](names)
+		if err != nil {
+			return "", err
 		}
-	}
+		return res, nil
+	} else {
+		randInd, err := transformer_utils.GenerateRandomInt64InValueRange(2, 12)
+		if err != nil {
+			return "", err
+		}
 
-	return returnValue, nil
+		names := lastNames[randInd]
+		res, err := transformer_utils.GetRandomValueFromSlice[string](names)
+		if err != nil {
+			return "", err
+		}
+		return res, nil
+
+	}
 }

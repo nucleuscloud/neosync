@@ -74,7 +74,6 @@ type GenerateE164PhoneNumberConfig struct {
 	Min int64 `json:"min"`
 	Max int64 `json:"max"`
 }
-
 type GenerateFirstNameConfig struct{}
 
 type GenerateFloat64Config struct {
@@ -111,14 +110,14 @@ type GenerateStateConfig struct{}
 type GenerateStreetAddressConfig struct{}
 
 type GenerateStringPhoneNumberConfig struct {
-	IncludeHyphens bool `json:"includeHyphens"`
+	Min int64 `json:"min"`
+	Max int64 `json:"max"`
 }
 
 type GenerateStringConfig struct {
 	Min int64 `json:"min"`
 	Max int64 `json:"max"`
 }
-
 type GenerateUnixTimestampConfig struct{}
 
 type GenerateUsernameConfig struct{}
@@ -163,7 +162,6 @@ type TransformLastNameConfig struct {
 
 type TransformPhoneNumberConfig struct {
 	PreserveLength bool `json:"preserveLength"`
-	IncludeHyphens bool `json:"includeHyphens"`
 }
 
 type TransformStringConfig struct {
@@ -266,7 +264,8 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 		t.GenerateStreetAddress = &GenerateStreetAddressConfig{}
 	case *mgmtv1alpha1.TransformerConfig_GenerateStringPhoneNumberConfig:
 		t.GenerateStringPhoneNumber = &GenerateStringPhoneNumberConfig{
-			IncludeHyphens: tr.GetGenerateStringPhoneNumberConfig().IncludeHyphens,
+			Min: tr.GetGenerateStringPhoneNumberConfig().Min,
+			Max: tr.GetGenerateStringPhoneNumberConfig().Max,
 		}
 	case *mgmtv1alpha1.TransformerConfig_GenerateStringConfig:
 		t.GenerateString = &GenerateStringConfig{
@@ -318,7 +317,6 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 	case *mgmtv1alpha1.TransformerConfig_TransformPhoneNumberConfig:
 		t.TransformPhoneNumber = &TransformPhoneNumberConfig{
 			PreserveLength: tr.GetTransformPhoneNumberConfig().PreserveLength,
-			IncludeHyphens: tr.GetTransformPhoneNumberConfig().IncludeHyphens,
 		}
 	case *mgmtv1alpha1.TransformerConfig_TransformStringConfig:
 		t.TransformString = &TransformStringConfig{
@@ -495,7 +493,8 @@ func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerC
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneNumberConfig{
 				GenerateStringPhoneNumberConfig: &mgmtv1alpha1.GenerateStringPhoneNumber{
-					IncludeHyphens: t.GenerateStringPhoneNumber.IncludeHyphens,
+					Min: t.GenerateStringPhoneNumber.Min,
+					Max: t.GenerateStringPhoneNumber.Max,
 				},
 			},
 		}
@@ -603,7 +602,6 @@ func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerC
 			Config: &mgmtv1alpha1.TransformerConfig_TransformPhoneNumberConfig{
 				TransformPhoneNumberConfig: &mgmtv1alpha1.TransformPhoneNumber{
 					PreserveLength: t.TransformPhoneNumber.PreserveLength,
-					IncludeHyphens: t.TransformPhoneNumber.IncludeHyphens,
 				},
 			},
 		}

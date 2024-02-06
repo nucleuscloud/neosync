@@ -12,7 +12,7 @@ func init() {
 
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewAnyParam("value").Optional()).
-		Param(bloblang.NewBoolParam("preserve_length"))
+		Param(bloblang.NewBoolParam("preserve_length")).Param(bloblang.NewInt64Param("max_length"))
 
 	err := bloblang.RegisterFunctionV2("transform_string", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
@@ -31,8 +31,13 @@ func init() {
 			return nil, err
 		}
 
+		maxLength, err := args.GetInt64("max_length")
+		if err != nil {
+			return nil, err
+		}
+
 		return func() (any, error) {
-			res, err := TransformString(value, preserveLength)
+			res, err := TransformString(value, preserveLength, maxLength)
 			return res, err
 		}, nil
 	})
@@ -44,7 +49,7 @@ func init() {
 }
 
 // Transforms an existing string value into another string. Does not account for numbers and other characters. If you want to preserve spaces, capitalization and other characters, use the Transform_Characters transformer.
-func TransformString(value string, preserveLength bool) (*string, error) {
+func TransformString(value string, preserveLength bool, maxLength int64) (*string, error) {
 
 	var returnValue string
 
@@ -65,8 +70,7 @@ func TransformString(value string, preserveLength bool) (*string, error) {
 
 	} else {
 		min := int64(3)
-		max := int64(12)
-		val, err := transformer_utils.GenerateRandomStringWithInclusiveBounds(min, max)
+		val, err := transformer_utils.GenerateRandomStringWithInclusiveBounds(min, maxLength)
 
 		if err != nil {
 			return nil, fmt.Errorf("unable to generate a random string with length")

@@ -13,7 +13,8 @@ func init() {
 
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewAnyParam("value").Optional()).
-		Param(bloblang.NewBoolParam("preserve_length"))
+		Param(bloblang.NewBoolParam("preserve_length")).
+		Param(bloblang.NewInt64Param("max_length"))
 
 	err := bloblang.RegisterFunctionV2("transform_e164_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
@@ -32,8 +33,13 @@ func init() {
 			return nil, err
 		}
 
+		maxLength, err := args.GetInt64("max_length")
+		if err != nil {
+			return nil, err
+		}
+
 		return func() (any, error) {
-			res, err := TransformE164PhoneNumber(value, preserveLength)
+			res, err := TransformE164PhoneNumber(value, preserveLength, maxLength)
 			return res, err
 		}, nil
 	})
@@ -45,7 +51,7 @@ func init() {
 }
 
 // Generates a random phone number and returns it as a string
-func TransformE164PhoneNumber(phone string, preserveLength bool) (*string, error) {
+func TransformE164PhoneNumber(phone string, preserveLength bool, maxLength int64) (*string, error) {
 
 	var returnValue string
 
@@ -66,7 +72,7 @@ func TransformE164PhoneNumber(phone string, preserveLength bool) (*string, error
 		min := int64(9)
 		max := int64(15)
 
-		res, err := GenerateRandomE164PhoneNumber(min, max)
+		res, err := GenerateInternationalPhoneNumber(min, max)
 		if err != nil {
 			return nil, err
 		}
