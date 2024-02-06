@@ -751,10 +751,10 @@ export class TransformerConfig extends Message<TransformerConfig> {
     case: "generateCityConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenerateE164PhoneNumber generate_e164_phone_number_config = 6;
+     * @generated from field: mgmt.v1alpha1.GenerateInternationalPhoneNumber generate_international_phone_number_config = 6;
      */
-    value: GenerateE164PhoneNumber;
-    case: "generateE164PhoneNumberConfig";
+    value: GenerateInternationalPhoneNumber;
+    case: "generateInternationalPhoneNumberConfig";
   } | {
     /**
      * @generated from field: mgmt.v1alpha1.GenerateFirstName generate_first_name_config = 7;
@@ -980,7 +980,7 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 3, name: "generate_bool_config", kind: "message", T: GenerateBool, oneof: "config" },
     { no: 4, name: "generate_card_number_config", kind: "message", T: GenerateCardNumber, oneof: "config" },
     { no: 5, name: "generate_city_config", kind: "message", T: GenerateCity, oneof: "config" },
-    { no: 6, name: "generate_e164_phone_number_config", kind: "message", T: GenerateE164PhoneNumber, oneof: "config" },
+    { no: 6, name: "generate_international_phone_number_config", kind: "message", T: GenerateInternationalPhoneNumber, oneof: "config" },
     { no: 7, name: "generate_first_name_config", kind: "message", T: GenerateFirstName, oneof: "config" },
     { no: 8, name: "generate_float64_config", kind: "message", T: GenerateFloat64, oneof: "config" },
     { no: 9, name: "generate_full_address_config", kind: "message", T: GenerateFullAddress, oneof: "config" },
@@ -1240,9 +1240,9 @@ export class GenerateDefault extends Message<GenerateDefault> {
 }
 
 /**
- * @generated from message mgmt.v1alpha1.GenerateE164PhoneNumber
+ * @generated from message mgmt.v1alpha1.GenerateInternationalPhoneNumber
  */
-export class GenerateE164PhoneNumber extends Message<GenerateE164PhoneNumber> {
+export class GenerateInternationalPhoneNumber extends Message<GenerateInternationalPhoneNumber> {
   /**
    * @generated from field: int64 min = 1;
    */
@@ -1253,32 +1253,32 @@ export class GenerateE164PhoneNumber extends Message<GenerateE164PhoneNumber> {
    */
   max = protoInt64.zero;
 
-  constructor(data?: PartialMessage<GenerateE164PhoneNumber>) {
+  constructor(data?: PartialMessage<GenerateInternationalPhoneNumber>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.GenerateE164PhoneNumber";
+  static readonly typeName = "mgmt.v1alpha1.GenerateInternationalPhoneNumber";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "min", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
     { no: 2, name: "max", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateE164PhoneNumber {
-    return new GenerateE164PhoneNumber().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateInternationalPhoneNumber {
+    return new GenerateInternationalPhoneNumber().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GenerateE164PhoneNumber {
-    return new GenerateE164PhoneNumber().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GenerateInternationalPhoneNumber {
+    return new GenerateInternationalPhoneNumber().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GenerateE164PhoneNumber {
-    return new GenerateE164PhoneNumber().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GenerateInternationalPhoneNumber {
+    return new GenerateInternationalPhoneNumber().fromJsonString(jsonString, options);
   }
 
-  static equals(a: GenerateE164PhoneNumber | PlainMessage<GenerateE164PhoneNumber> | undefined, b: GenerateE164PhoneNumber | PlainMessage<GenerateE164PhoneNumber> | undefined): boolean {
-    return proto3.util.equals(GenerateE164PhoneNumber, a, b);
+  static equals(a: GenerateInternationalPhoneNumber | PlainMessage<GenerateInternationalPhoneNumber> | undefined, b: GenerateInternationalPhoneNumber | PlainMessage<GenerateInternationalPhoneNumber> | undefined): boolean {
+    return proto3.util.equals(GenerateInternationalPhoneNumber, a, b);
   }
 }
 

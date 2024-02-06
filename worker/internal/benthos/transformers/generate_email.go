@@ -58,7 +58,7 @@ func init() {
 
 }
 
-/* Generates an email in the format <username@domaion.tld> such as jdoe@gmail.com */
+/* Generates an email in the format <username@domain.tld> such as jdoe@gmail.com */
 func GenerateRandomEmail(maxLength int64) (string, error) {
 
 	fn, err := GenerateRandomFirstName(maxLength)

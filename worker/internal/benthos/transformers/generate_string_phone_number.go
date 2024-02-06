@@ -34,7 +34,7 @@ func init() {
 		}
 
 		return func() (any, error) {
-			res, err := GenerateRandomE164PhoneNumber(min, max, maxLength)
+			res, err := GenerateStringPhoneNumber(min, max, maxLength)
 			return res, err
 		}, nil
 	})

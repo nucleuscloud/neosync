@@ -1139,8 +1139,8 @@ func Test_TransformerStringLint(t *testing.T) {
 		{
 			Name: "generate_e164_phone_number",
 			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateE164PhoneNumberConfig{
-					GenerateE164PhoneNumberConfig: &mgmtv1alpha1.GenerateE164PhoneNumber{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateInternationalPhoneNumberConfig{
+					GenerateInternationalPhoneNumberConfig: &mgmtv1alpha1.GenerateInternationalPhoneNumber{
 						Min: 9,
 						Max: 15,
 					},
@@ -1258,7 +1258,8 @@ func Test_TransformerStringLint(t *testing.T) {
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneNumberConfig{
 					GenerateStringPhoneNumberConfig: &mgmtv1alpha1.GenerateStringPhoneNumber{
-						IncludeHyphens: false,
+						Min: 10,
+						Max: 10,
 					},
 				},
 			},
@@ -1266,8 +1267,8 @@ func Test_TransformerStringLint(t *testing.T) {
 		{
 			Name: "generate_random_string",
 			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
-					GenerateStringConfig: &mgmtv1alpha1.GenerateString{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateRandomStringConfig{
+					GenerateRandomStringConfig: &mgmtv1alpha1.GenerateRandomString{
 						Min: 2,
 						Max: 7,
 					},

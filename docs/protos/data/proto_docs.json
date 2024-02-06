@@ -3549,42 +3549,6 @@
           "fields": []
         },
         {
-          "name": "GenerateE164PhoneNumber",
-          "longName": "GenerateE164PhoneNumber",
-          "fullName": "mgmt.v1alpha1.GenerateE164PhoneNumber",
-          "description": "",
-          "hasExtensions": false,
-          "hasFields": true,
-          "hasOneofs": false,
-          "extensions": [],
-          "fields": [
-            {
-              "name": "min",
-              "description": "",
-              "label": "",
-              "type": "int64",
-              "longType": "int64",
-              "fullType": "int64",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "max",
-              "description": "",
-              "label": "",
-              "type": "int64",
-              "longType": "int64",
-              "fullType": "int64",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            }
-          ]
-        },
-        {
           "name": "GenerateEmail",
           "longName": "GenerateEmail",
           "fullName": "mgmt.v1alpha1.GenerateEmail",
@@ -3770,6 +3734,42 @@
           "hasOneofs": false,
           "extensions": [],
           "fields": []
+        },
+        {
+          "name": "GenerateInternationalPhoneNumber",
+          "longName": "GenerateInternationalPhoneNumber",
+          "fullName": "mgmt.v1alpha1.GenerateInternationalPhoneNumber",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "min",
+              "description": "",
+              "label": "",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "max",
+              "description": "",
+              "label": "",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
         },
         {
           "name": "GenerateLastName",
@@ -4633,12 +4633,12 @@
               "defaultValue": ""
             },
             {
-              "name": "generate_e164_phone_number_config",
+              "name": "generate_international_phone_number_config",
               "description": "",
               "label": "",
-              "type": "GenerateE164PhoneNumber",
-              "longType": "GenerateE164PhoneNumber",
-              "fullType": "mgmt.v1alpha1.GenerateE164PhoneNumber",
+              "type": "GenerateInternationalPhoneNumber",
+              "longType": "GenerateInternationalPhoneNumber",
+              "fullType": "mgmt.v1alpha1.GenerateInternationalPhoneNumber",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",

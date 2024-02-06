@@ -14,7 +14,7 @@ const generateCardNumberConfig = Yup.object().shape({
   validLuhn: Yup.boolean().required('This field is required.'),
 });
 
-const generateE164PhoneNumberConfig = Yup.object().shape({
+const generateInternationalPhoneNumberConfig = Yup.object().shape({
   min: Yup.number()
     .min(9, 'The value must be greater than or equal to 9.')
     .max(15, 'The value must be less than or equal 15.')
@@ -57,7 +57,8 @@ const generateInt64Config = Yup.object().shape({
 });
 
 const generateStringPhoneNumberConfig = Yup.object().shape({
-  includeHyphens: Yup.boolean().required('This field is required.'),
+  min: Yup.number().required('This field is required.'),
+  max: Yup.number().required('This field is required.'),
 });
 
 const generateStringConfig = Yup.object().shape({
@@ -147,9 +148,8 @@ const transformLastNameConfig = Yup.object().shape({
   preserveLength: Yup.boolean().required('This field is required.'),
 });
 
-const transformPhoneNumberConfig = Yup.object().shape({
+const transformStringPhoneNumberConfig = Yup.object().shape({
   preserveLength: Yup.boolean().required('This field is required.'),
-  includeHyphens: Yup.boolean().required('This field is required.'),
 });
 
 const transformStringConfig = Yup.object().shape({
@@ -236,12 +236,13 @@ const TRANSFORMER_SCHEMA_CONFIGS: Record<
 
   transformEmailConfig: transformEmailConfig,
   generateCardNumberConfig: generateCardNumberConfig,
-  generateE164PhoneNumberConfig: generateE164PhoneNumberConfig,
+  generateInternationalPhoneNumberConfig:
+    generateInternationalPhoneNumberConfig,
   generateFloat64Config: generateFloat64Config,
   generateGenderConfig: generateGenderConfig,
   generateInt64Config: generateInt64Config,
   generateStringPhoneNumberConfig: generateStringPhoneNumberConfig,
-  generateStringConfig: generateStringConfig,
+  generateRandomStringConfig: generateStringConfig,
   generateUuidConfig: generateUuidConfig,
   transformE164PhoneNumberConfig: transformE164PhoneNumber,
   transformFirstNameConfig: transformFirstNameConfig,
@@ -250,7 +251,7 @@ const TRANSFORMER_SCHEMA_CONFIGS: Record<
   transformInt64PhoneNumberConfig: transformInt64PhoneNumberConfig,
   transformInt64Config: transformInt64Config,
   transformLastNameConfig: transformLastNameConfig,
-  transformPhoneNumberConfig: transformPhoneNumberConfig,
+  transformStringPhoneNumberConfig: transformStringPhoneNumberConfig,
   transformStringConfig: transformStringConfig,
   userDefinedTransformerConfig: userDefinedTransformerConfig,
   transformJavascriptConfig: transformJavascriptConfig,

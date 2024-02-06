@@ -9,7 +9,7 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { GenerateE164PhoneNumber } from '@neosync/sdk';
+import { GenerateRandomString } from '@neosync/sdk';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
@@ -17,16 +17,17 @@ interface Props {
   setIsSheetOpen?: (val: boolean) => void;
 }
 
-export default function GenerateE164PhoneNumberForm(
-  props: Props
-): ReactElement {
+export default function GenerateStringForm(props: Props): ReactElement {
   const { index, setIsSheetOpen } = props;
 
   const fc = useFormContext();
 
-  const minVal = fc.getValues(`mappings.${index}.transformer.config.value.min`);
+  const minValue = fc.getValues(
+    `mappings.${index}.transformer.config.value.min`
+  );
+  const [min, setMin] = useState<number>(minValue);
+
   const maxVal = fc.getValues(`mappings.${index}.transformer.config.value.max`);
-  const [min, setMin] = useState<number>(minVal);
   const [max, setMax] = useState<number>(maxVal);
   const [disableSave, setDisableSave] = useState<boolean>(false);
   const [minError, setMinError] = useState<string>('');
@@ -35,7 +36,7 @@ export default function GenerateE164PhoneNumberForm(
   const handleSubmit = () => {
     fc.setValue(
       `mappings.${index}.transformer.config.value`,
-      new GenerateE164PhoneNumber({
+      new GenerateRandomString({
         min: BigInt(min),
         max: BigInt(max),
       }),
@@ -47,9 +48,9 @@ export default function GenerateE164PhoneNumberForm(
   };
 
   const handleSettingMinRange = (value: number) => {
-    if (value < 9 || value > max) {
+    if (value < 1 || value > max) {
       setMinError(
-        'Minimum length cannot be less than 9 or greater than the max length'
+        'Minimum length cannot be less than 1 or greater than the max length'
       );
       setMin(value);
       setDisableSave(true);
@@ -60,7 +61,7 @@ export default function GenerateE164PhoneNumberForm(
     }
   };
   const handleSettingMaxRange = (value: number) => {
-    if (value > 15 || value < min) {
+    if (value < min) {
       setMaxError(
         'Maximum length cannot be greater than 15 or less than the min length'
       );
@@ -82,13 +83,14 @@ export default function GenerateE164PhoneNumberForm(
             <div className="space-y-0.5">
               <FormLabel>Minimum Length</FormLabel>
               <FormDescription>
-                Set the minimum length range of the output phone number. It
-                cannot be less than 9.
+                Set the minimum length range of the output string.
               </FormDescription>
             </div>
             <FormControl>
               <div className="max-w-[180px]">
                 <Input
+                  type="number"
+                  className="max-w-[180px]"
                   value={String(min)}
                   onChange={(event) =>
                     handleSettingMinRange(Number(event.target.value))
@@ -107,8 +109,7 @@ export default function GenerateE164PhoneNumberForm(
             <div className="space-y-0.5">
               <FormLabel>Maximum Length</FormLabel>
               <FormDescription>
-                Set the maximum length range of the output phone number. It
-                cannot be greater than 15.
+                Set the maximum length range of the output string.
               </FormDescription>
             </div>
             <FormControl>
