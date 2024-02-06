@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
 import { Transformer, isUserDefinedTransformer } from '@/shared/transformers';
-import { TransformStringPhoneNumber } from '@neosync/sdk';
+import { TransformPhoneNumber } from '@neosync/sdk';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
@@ -33,7 +33,7 @@ export default function TransformStringPhoneNumberForm(
   const handleSubmit = () => {
     fc.setValue(
       `mappings.${index}.transformer.config.value`,
-      new TransformStringPhoneNumber({ preserveLength: pl }),
+      new TransformPhoneNumber({ preserveLength: pl }),
       {
         shouldValidate: false,
       }

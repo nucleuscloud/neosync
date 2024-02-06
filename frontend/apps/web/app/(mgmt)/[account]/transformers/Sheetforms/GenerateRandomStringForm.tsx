@@ -9,7 +9,7 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { GenerateRandomString } from '@neosync/sdk';
+import { GenerateString } from '@neosync/sdk';
 import { ReactElement, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 interface Props {
@@ -36,7 +36,7 @@ export default function GenerateStringForm(props: Props): ReactElement {
   const handleSubmit = () => {
     fc.setValue(
       `mappings.${index}.transformer.config.value`,
-      new GenerateRandomString({
+      new GenerateString({
         min: BigInt(min),
         max: BigInt(max),
       }),
