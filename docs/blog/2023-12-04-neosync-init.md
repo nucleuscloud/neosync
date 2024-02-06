@@ -1,5 +1,5 @@
 ---
-title: Neosync init
+title: 12/04 - Neosync init
 hide_table_of_contents: false
 slug: /neosync-init
 authors:
