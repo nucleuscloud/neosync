@@ -1006,10 +1006,10 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		return fmt.Sprintf(`generate_card_number(valid_luhn:%t)`, luhn), nil
 	case "generate_city":
 		return fmt.Sprintf(`generate_city(max_length:%d)`, *colInfo.CharacterMaximumLength), nil
-	case "generate_international_phone_number":
-		min := col.Transformer.Config.GetGenerateInternationalPhoneNumberConfig().Min
-		max := col.Transformer.Config.GetGenerateInternationalPhoneNumberConfig().Max
-		return fmt.Sprintf(`generate_international_phone_number(min:%d,max:%d)`, min, max), nil
+	case "generate_e164_phone_number":
+		min := col.Transformer.Config.GetGenerateE164PhoneNumberConfig().Min
+		max := col.Transformer.Config.GetGenerateE164PhoneNumberConfig().Max
+		return fmt.Sprintf(`generate_e164_phone_number(min:%d,max:%d)`, min, max), nil
 	case "generate_first_name":
 		return fmt.Sprintf(`generate_first_name(max_length:%d)`, *colInfo.CharacterMaximumLength), nil
 	case "generate_float64":
@@ -1046,10 +1046,10 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		min := col.Transformer.Config.GetGenerateStringPhoneNumberConfig().Min
 		max := col.Transformer.Config.GetGenerateStringPhoneNumberConfig().Max
 		return fmt.Sprintf("generate_string_phone_number(min:%d,max:%d,max_length:%d)", min, max, *colInfo.CharacterMaximumLength), nil
-	case "generate_random_string":
-		min := col.Transformer.Config.GetGenerateRandomStringConfig().Min
-		max := col.Transformer.Config.GetGenerateRandomStringConfig().Max
-		return fmt.Sprintf(`generate_random_string(min:%d,max:%d,max_length:%d)`, min, max, *colInfo.CharacterMaximumLength), nil
+	case "generate_string":
+		min := col.Transformer.Config.GetGenerateStringConfig().Min
+		max := col.Transformer.Config.GetGenerateStringConfig().Max
+		return fmt.Sprintf(`generate_string(min:%d,max:%d,max_length:%d)`, min, max, *colInfo.CharacterMaximumLength), nil
 	case "generate_unixtimestamp":
 		return "generate_unixtimestamp()", nil
 	case "generate_username":
@@ -1084,9 +1084,9 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 	case "transform_last_name":
 		pl := col.Transformer.Config.GetTransformLastNameConfig().PreserveLength
 		return fmt.Sprintf("transform_last_name(value:this.%s,preserve_length:%t,max_length:%d)", col.Column, pl, *colInfo.CharacterMaximumLength), nil
-	case "transform_string_phone_number":
-		pl := col.Transformer.Config.GetTransformStringPhoneNumberConfig().PreserveLength
-		return fmt.Sprintf("transform_string_phone_number(value:this.%s,preserve_length:%t,max_length:%d)", col.Column, pl, *colInfo.CharacterMaximumLength), nil
+	case "transform_phone_number":
+		pl := col.Transformer.Config.GetTransformPhoneNumberConfig().PreserveLength
+		return fmt.Sprintf("transform_phone_number(value:this.%s,preserve_length:%t,max_length:%d)", col.Column, pl, *colInfo.CharacterMaximumLength), nil
 	case "transform_string":
 		pl := col.Transformer.Config.GetTransformStringConfig().PreserveLength
 		return fmt.Sprintf(`transform_string(value:this.%s,preserve_length:%t,max_length:%d)`, col.Column, pl, *colInfo.CharacterMaximumLength), nil

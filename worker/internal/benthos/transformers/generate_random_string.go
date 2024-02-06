@@ -15,7 +15,7 @@ func init() {
 		Param(bloblang.NewInt64Param("max")).
 		Param(bloblang.NewInt64Param("max_length"))
 
-	err := bloblang.RegisterFunctionV2("generate_random_string", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("generate_string", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		min, err := args.GetInt64("min")
 		if err != nil {

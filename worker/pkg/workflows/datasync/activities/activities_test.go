@@ -1154,10 +1154,10 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_international_phone_number",
+			Name: "generate_e164_phone_number",
 			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateInternationalPhoneNumberConfig{
-					GenerateInternationalPhoneNumberConfig: &mgmtv1alpha1.GenerateInternationalPhoneNumber{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateE164PhoneNumberConfig{
+					GenerateE164PhoneNumberConfig: &mgmtv1alpha1.GenerateE164PhoneNumber{
 						Min: 9,
 						Max: 15,
 					},
@@ -1272,7 +1272,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_string_phone_number",
+			Name: "generate_phone_number",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneNumberConfig{
 					GenerateStringPhoneNumberConfig: &mgmtv1alpha1.GenerateStringPhoneNumber{
@@ -1285,8 +1285,8 @@ func Test_TransformerStringLint(t *testing.T) {
 		{
 			Name: "generate_random_string",
 			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_GenerateRandomStringConfig{
-					GenerateRandomStringConfig: &mgmtv1alpha1.GenerateRandomString{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
+					GenerateStringConfig: &mgmtv1alpha1.GenerateString{
 						Min: 2,
 						Max: 7,
 					},
@@ -1408,10 +1408,10 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "transform_string_phone_number",
+			Name: "transform_phone_number",
 			Config: &mgmtv1alpha1.TransformerConfig{
-				Config: &mgmtv1alpha1.TransformerConfig_TransformStringPhoneNumberConfig{
-					TransformStringPhoneNumberConfig: &mgmtv1alpha1.TransformStringPhoneNumber{
+				Config: &mgmtv1alpha1.TransformerConfig_TransformPhoneNumberConfig{
+					TransformPhoneNumberConfig: &mgmtv1alpha1.TransformPhoneNumber{
 						PreserveLength: false,
 					},
 				},

@@ -30,7 +30,7 @@ func Test_TransformStringPhoneNumberEqualMinMax(t *testing.T) {
 
 func Test_TransformStringPhoneNumberTransformer(t *testing.T) {
 
-	mapping := fmt.Sprintf(`root = transform_string_phone_number(value:%q,preserve_length:true,max_length:%d)`, testPhone, maxCharacterLimit)
+	mapping := fmt.Sprintf(`root = transform_phone_number(value:%q,preserve_length:true,max_length:%d)`, testPhone, maxCharacterLimit)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the transform string phone transformer")
 
@@ -55,7 +55,7 @@ func Test_TransformStringPhoneNumberTransformer(t *testing.T) {
 func Test_TransformStringPhoneNumberTransformerWithEmptyValue(t *testing.T) {
 
 	nilString := ""
-	mapping := fmt.Sprintf(`root = transform_string_phone_number(value:%q,preserve_length:true,max_length:%d)`, nilString, maxCharacterLimit)
+	mapping := fmt.Sprintf(`root = transform_phone_number(value:%q,preserve_length:true,max_length:%d)`, nilString, maxCharacterLimit)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the transform phone transformer")
 

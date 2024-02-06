@@ -751,10 +751,10 @@ export class TransformerConfig extends Message<TransformerConfig> {
     case: "generateCityConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenerateInternationalPhoneNumber generate_international_phone_number_config = 6;
+     * @generated from field: mgmt.v1alpha1.GenerateE164PhoneNumber generate_e164_phone_number_config = 6;
      */
-    value: GenerateInternationalPhoneNumber;
-    case: "generateInternationalPhoneNumberConfig";
+    value: GenerateE164PhoneNumber;
+    case: "generateE164PhoneNumberConfig";
   } | {
     /**
      * @generated from field: mgmt.v1alpha1.GenerateFirstName generate_first_name_config = 7;
@@ -835,10 +835,10 @@ export class TransformerConfig extends Message<TransformerConfig> {
     case: "generateStringPhoneNumberConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.GenerateRandomString generate_random_string_config = 20;
+     * @generated from field: mgmt.v1alpha1.GenerateString generate_string_config = 20;
      */
-    value: GenerateRandomString;
-    case: "generateRandomStringConfig";
+    value: GenerateString;
+    case: "generateStringConfig";
   } | {
     /**
      * @generated from field: mgmt.v1alpha1.GenerateUnixTimestamp generate_unixtimestamp_config = 21;
@@ -913,10 +913,10 @@ export class TransformerConfig extends Message<TransformerConfig> {
     case: "transformLastNameConfig";
   } | {
     /**
-     * @generated from field: mgmt.v1alpha1.TransformStringPhoneNumber transform_string_phone_number_config = 33;
+     * @generated from field: mgmt.v1alpha1.TransformPhoneNumber transform_phone_number_config = 33;
      */
-    value: TransformStringPhoneNumber;
-    case: "transformStringPhoneNumberConfig";
+    value: TransformPhoneNumber;
+    case: "transformPhoneNumberConfig";
   } | {
     /**
      * @generated from field: mgmt.v1alpha1.TransformString transform_string_config = 34;
@@ -980,7 +980,7 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 3, name: "generate_bool_config", kind: "message", T: GenerateBool, oneof: "config" },
     { no: 4, name: "generate_card_number_config", kind: "message", T: GenerateCardNumber, oneof: "config" },
     { no: 5, name: "generate_city_config", kind: "message", T: GenerateCity, oneof: "config" },
-    { no: 6, name: "generate_international_phone_number_config", kind: "message", T: GenerateInternationalPhoneNumber, oneof: "config" },
+    { no: 6, name: "generate_e164_phone_number_config", kind: "message", T: GenerateE164PhoneNumber, oneof: "config" },
     { no: 7, name: "generate_first_name_config", kind: "message", T: GenerateFirstName, oneof: "config" },
     { no: 8, name: "generate_float64_config", kind: "message", T: GenerateFloat64, oneof: "config" },
     { no: 9, name: "generate_full_address_config", kind: "message", T: GenerateFullAddress, oneof: "config" },
@@ -994,7 +994,7 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 17, name: "generate_state_config", kind: "message", T: GenerateState, oneof: "config" },
     { no: 18, name: "generate_street_address_config", kind: "message", T: GenerateStreetAddress, oneof: "config" },
     { no: 19, name: "generate_string_phone_number_config", kind: "message", T: GenerateStringPhoneNumber, oneof: "config" },
-    { no: 20, name: "generate_random_string_config", kind: "message", T: GenerateRandomString, oneof: "config" },
+    { no: 20, name: "generate_string_config", kind: "message", T: GenerateString, oneof: "config" },
     { no: 21, name: "generate_unixtimestamp_config", kind: "message", T: GenerateUnixTimestamp, oneof: "config" },
     { no: 22, name: "generate_username_config", kind: "message", T: GenerateUsername, oneof: "config" },
     { no: 23, name: "generate_utctimestamp_config", kind: "message", T: GenerateUtcTimestamp, oneof: "config" },
@@ -1007,7 +1007,7 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 30, name: "transform_int64_phone_number_config", kind: "message", T: TransformInt64PhoneNumber, oneof: "config" },
     { no: 31, name: "transform_int64_config", kind: "message", T: TransformInt64, oneof: "config" },
     { no: 32, name: "transform_last_name_config", kind: "message", T: TransformLastName, oneof: "config" },
-    { no: 33, name: "transform_string_phone_number_config", kind: "message", T: TransformStringPhoneNumber, oneof: "config" },
+    { no: 33, name: "transform_phone_number_config", kind: "message", T: TransformPhoneNumber, oneof: "config" },
     { no: 34, name: "transform_string_config", kind: "message", T: TransformString, oneof: "config" },
     { no: 35, name: "passthrough_config", kind: "message", T: Passthrough, oneof: "config" },
     { no: 36, name: "nullconfig", kind: "message", T: Null, oneof: "config" },
@@ -1240,9 +1240,9 @@ export class GenerateDefault extends Message<GenerateDefault> {
 }
 
 /**
- * @generated from message mgmt.v1alpha1.GenerateInternationalPhoneNumber
+ * @generated from message mgmt.v1alpha1.GenerateE164PhoneNumber
  */
-export class GenerateInternationalPhoneNumber extends Message<GenerateInternationalPhoneNumber> {
+export class GenerateE164PhoneNumber extends Message<GenerateE164PhoneNumber> {
   /**
    * @generated from field: int64 min = 1;
    */
@@ -1253,32 +1253,32 @@ export class GenerateInternationalPhoneNumber extends Message<GenerateInternatio
    */
   max = protoInt64.zero;
 
-  constructor(data?: PartialMessage<GenerateInternationalPhoneNumber>) {
+  constructor(data?: PartialMessage<GenerateE164PhoneNumber>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.GenerateInternationalPhoneNumber";
+  static readonly typeName = "mgmt.v1alpha1.GenerateE164PhoneNumber";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "min", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
     { no: 2, name: "max", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateInternationalPhoneNumber {
-    return new GenerateInternationalPhoneNumber().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateE164PhoneNumber {
+    return new GenerateE164PhoneNumber().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GenerateInternationalPhoneNumber {
-    return new GenerateInternationalPhoneNumber().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GenerateE164PhoneNumber {
+    return new GenerateE164PhoneNumber().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GenerateInternationalPhoneNumber {
-    return new GenerateInternationalPhoneNumber().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GenerateE164PhoneNumber {
+    return new GenerateE164PhoneNumber().fromJsonString(jsonString, options);
   }
 
-  static equals(a: GenerateInternationalPhoneNumber | PlainMessage<GenerateInternationalPhoneNumber> | undefined, b: GenerateInternationalPhoneNumber | PlainMessage<GenerateInternationalPhoneNumber> | undefined): boolean {
-    return proto3.util.equals(GenerateInternationalPhoneNumber, a, b);
+  static equals(a: GenerateE164PhoneNumber | PlainMessage<GenerateE164PhoneNumber> | undefined, b: GenerateE164PhoneNumber | PlainMessage<GenerateE164PhoneNumber> | undefined): boolean {
+    return proto3.util.equals(GenerateE164PhoneNumber, a, b);
   }
 }
 
@@ -1746,9 +1746,9 @@ export class GenerateStringPhoneNumber extends Message<GenerateStringPhoneNumber
 }
 
 /**
- * @generated from message mgmt.v1alpha1.GenerateRandomString
+ * @generated from message mgmt.v1alpha1.GenerateString
  */
-export class GenerateRandomString extends Message<GenerateRandomString> {
+export class GenerateString extends Message<GenerateString> {
   /**
    * @generated from field: int64 min = 1;
    */
@@ -1759,32 +1759,32 @@ export class GenerateRandomString extends Message<GenerateRandomString> {
    */
   max = protoInt64.zero;
 
-  constructor(data?: PartialMessage<GenerateRandomString>) {
+  constructor(data?: PartialMessage<GenerateString>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.GenerateRandomString";
+  static readonly typeName = "mgmt.v1alpha1.GenerateString";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "min", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
     { no: 2, name: "max", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateRandomString {
-    return new GenerateRandomString().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateString {
+    return new GenerateString().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GenerateRandomString {
-    return new GenerateRandomString().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GenerateString {
+    return new GenerateString().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GenerateRandomString {
-    return new GenerateRandomString().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GenerateString {
+    return new GenerateString().fromJsonString(jsonString, options);
   }
 
-  static equals(a: GenerateRandomString | PlainMessage<GenerateRandomString> | undefined, b: GenerateRandomString | PlainMessage<GenerateRandomString> | undefined): boolean {
-    return proto3.util.equals(GenerateRandomString, a, b);
+  static equals(a: GenerateString | PlainMessage<GenerateString> | undefined, b: GenerateString | PlainMessage<GenerateString> | undefined): boolean {
+    return proto3.util.equals(GenerateString, a, b);
   }
 }
 
@@ -2221,39 +2221,39 @@ export class TransformLastName extends Message<TransformLastName> {
 }
 
 /**
- * @generated from message mgmt.v1alpha1.TransformStringPhoneNumber
+ * @generated from message mgmt.v1alpha1.TransformPhoneNumber
  */
-export class TransformStringPhoneNumber extends Message<TransformStringPhoneNumber> {
+export class TransformPhoneNumber extends Message<TransformPhoneNumber> {
   /**
    * @generated from field: bool preserve_length = 1;
    */
   preserveLength = false;
 
-  constructor(data?: PartialMessage<TransformStringPhoneNumber>) {
+  constructor(data?: PartialMessage<TransformPhoneNumber>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.TransformStringPhoneNumber";
+  static readonly typeName = "mgmt.v1alpha1.TransformPhoneNumber";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformStringPhoneNumber {
-    return new TransformStringPhoneNumber().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformPhoneNumber {
+    return new TransformPhoneNumber().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TransformStringPhoneNumber {
-    return new TransformStringPhoneNumber().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): TransformPhoneNumber {
+    return new TransformPhoneNumber().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TransformStringPhoneNumber {
-    return new TransformStringPhoneNumber().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): TransformPhoneNumber {
+    return new TransformPhoneNumber().fromJsonString(jsonString, options);
   }
 
-  static equals(a: TransformStringPhoneNumber | PlainMessage<TransformStringPhoneNumber> | undefined, b: TransformStringPhoneNumber | PlainMessage<TransformStringPhoneNumber> | undefined): boolean {
-    return proto3.util.equals(TransformStringPhoneNumber, a, b);
+  static equals(a: TransformPhoneNumber | PlainMessage<TransformPhoneNumber> | undefined, b: TransformPhoneNumber | PlainMessage<TransformPhoneNumber> | undefined): boolean {
+    return proto3.util.equals(TransformPhoneNumber, a, b);
   }
 }
 

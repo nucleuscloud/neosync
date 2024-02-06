@@ -16,7 +16,7 @@ func init() {
 		Param(bloblang.NewInt64Param("min")).
 		Param(bloblang.NewInt64Param("max"))
 
-	err := bloblang.RegisterFunctionV2("generate_international_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("generate_e164_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		min, err := args.GetInt64("min")
 		if err != nil {

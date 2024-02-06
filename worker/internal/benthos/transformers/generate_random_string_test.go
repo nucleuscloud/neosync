@@ -46,7 +46,7 @@ func Test_GenerateRandomStringTransformerWithValue(t *testing.T) {
 	min := int64(2)
 	max := int64(5)
 
-	mapping := fmt.Sprintf(`root = generate_random_string(min:%d,max:%d,max_length:%d)`, min, max, maxCharacterLimit)
+	mapping := fmt.Sprintf(`root = generate_string(min:%d,max:%d,max_length:%d)`, min, max, maxCharacterLimit)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the generate random string transformer")
 

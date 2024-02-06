@@ -40,7 +40,7 @@ func Test_GenerateInternationalPhoneNumberTransformer(t *testing.T) {
 
 	min := int64(10)
 	max := int64(13)
-	mapping := fmt.Sprintf(`root = generate_international_phone_number(min:%d, max: %d)`, min, max)
+	mapping := fmt.Sprintf(`root = generate_e164_phone_number(min:%d, max: %d)`, min, max)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the international phone number transformer")
 

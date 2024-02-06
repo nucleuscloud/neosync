@@ -12,7 +12,7 @@ func init() {
 		Param(bloblang.NewBoolParam("preserve_length")).
 		Param(bloblang.NewInt64Param("max_length"))
 
-	err := bloblang.RegisterFunctionV2("transform_string_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+	err := bloblang.RegisterFunctionV2("transform_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 
 		valuePtr, err := args.GetOptionalString("value")
 		if err != nil {
