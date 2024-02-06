@@ -1272,7 +1272,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_phone_number",
+			Name: "generate_string_phone_number",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneNumberConfig{
 					GenerateStringPhoneNumberConfig: &mgmtv1alpha1.GenerateStringPhoneNumber{
@@ -1283,7 +1283,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_random_string",
+			Name: "generate_string",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
 					GenerateStringConfig: &mgmtv1alpha1.GenerateString{
