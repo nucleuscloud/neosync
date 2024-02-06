@@ -18,47 +18,47 @@ import (
 type Transformation string
 
 const (
-	GenerateEmail                    Transformation = "generate_email"
-	TransformEmail                   Transformation = "transform_email"
-	GenerateBool                     Transformation = "generate_bool"
-	GenerateCardNumber               Transformation = "generate_card_number"
-	GenerateCity                     Transformation = "generate_city"
-	GenerateDefault                  Transformation = "generate_default"
-	GenerateInternationalPhoneNumber Transformation = "generate_international_phone_number"
-	GenerateFirstName                Transformation = "generate_first_name"
-	GenerateFloat64                  Transformation = "generate_float64"
-	GenerateFullAddress              Transformation = "generate_full_address"
-	GenerateFullName                 Transformation = "generate_full_name"
-	GenerateGender                   Transformation = "generate_gender"
-	GenerateInt64PhoneNumber         Transformation = "generate_int64_phone_number"
-	GenerateInt64                    Transformation = "generate_int64"
-	GenerateLastName                 Transformation = "generate_last_name"
-	GenerateShaHash256               Transformation = "generate_sha256hash"
-	GenerateSSN                      Transformation = "generate_ssn"
-	GenerateState                    Transformation = "generate_state"
-	GenerateStreetAddress            Transformation = "generate_street_address"
-	GenerateStringPhoneNumber        Transformation = "generate_string_phone_number"
-	GenerateString                   Transformation = "generate_random_string"
-	GenerateUnixTimestamp            Transformation = "generate_unixtimestamp"
-	GenerateUsername                 Transformation = "generate_username"
-	GenerateUtcTimestamp             Transformation = "generate_utctimestamp"
-	GenerateUuid                     Transformation = "generate_uuid"
-	GenerateZipcode                  Transformation = "generate_zipcode"
-	TransformE164PhoneNumber         Transformation = "transform_e164_phone_number"
-	TransformFirstName               Transformation = "transform_first_name"
-	TransformFloat64                 Transformation = "transform_float64"
-	TransformFullName                Transformation = "transform_full_name"
-	TransformInt64PhoneNumber        Transformation = "transform_int64_phone_number"
-	TransformInt64                   Transformation = "transform_int64"
-	TransformLastName                Transformation = "transform_last_name"
-	TransformStringPhoneNumber       Transformation = "transform_string_phone_number"
-	TransformString                  Transformation = "transform_string"
-	Passthrough                      Transformation = "passthrough"
-	Null                             Transformation = "null"
-	Invalid                          Transformation = "invalid"
-	TransformJavascript              Transformation = "transform_javascript"
-	GenerateCategorical              Transformation = "generate_categorical"
-	TransformCharacterScramble       Transformation = "transform_character_scramble"
+	GenerateEmail              Transformation = "generate_email"
+	TransformEmail             Transformation = "transform_email"
+	GenerateBool               Transformation = "generate_bool"
+	GenerateCardNumber         Transformation = "generate_card_number"
+	GenerateCity               Transformation = "generate_city"
+	GenerateDefault            Transformation = "generate_default"
+	GenerateE164PhoneNumber    Transformation = "generate_e164_phone_number"
+	GenerateFirstName          Transformation = "generate_first_name"
+	GenerateFloat64            Transformation = "generate_float64"
+	GenerateFullAddress        Transformation = "generate_full_address"
+	GenerateFullName           Transformation = "generate_full_name"
+	GenerateGender             Transformation = "generate_gender"
+	GenerateInt64PhoneNumber   Transformation = "generate_int64_phone_number"
+	GenerateInt64              Transformation = "generate_int64"
+	GenerateLastName           Transformation = "generate_last_name"
+	GenerateShaHash256         Transformation = "generate_sha256hash"
+	GenerateSSN                Transformation = "generate_ssn"
+	GenerateState              Transformation = "generate_state"
+	GenerateStreetAddress      Transformation = "generate_street_address"
+	GenerateStringPhoneNumber  Transformation = "generate_string_phone_number"
+	GenerateString             Transformation = "generate_string"
+	GenerateUnixTimestamp      Transformation = "generate_unixtimestamp"
+	GenerateUsername           Transformation = "generate_username"
+	GenerateUtcTimestamp       Transformation = "generate_utctimestamp"
+	GenerateUuid               Transformation = "generate_uuid"
+	GenerateZipcode            Transformation = "generate_zipcode"
+	TransformE164PhoneNumber   Transformation = "transform_e164_phone_number"
+	TransformFirstName         Transformation = "transform_first_name"
+	TransformFloat64           Transformation = "transform_float64"
+	TransformFullName          Transformation = "transform_full_name"
+	TransformInt64PhoneNumber  Transformation = "transform_int64_phone_number"
+	TransformInt64             Transformation = "transform_int64"
+	TransformLastName          Transformation = "transform_last_name"
+	TransformPhoneNumber       Transformation = "transform_phone_number"
+	TransformString            Transformation = "transform_string"
+	Passthrough                Transformation = "passthrough"
+	Null                       Transformation = "null"
+	Invalid                    Transformation = "invalid"
+	TransformJavascript        Transformation = "transform_javascript"
+	GenerateCategorical        Transformation = "generate_categorical"
+	TransformCharacterScramble Transformation = "transform_character_scramble"
 )
 
 func (s *Service) GetSystemTransformers(
@@ -144,10 +144,10 @@ func (s *Service) GetSystemTransformers(
 				Name:        "Generate International Phone Number",
 				Description: "Generates a phone number in international format with the + character at the start of the phone number. Note that the + sign is not included in the min or max.",
 				DataType:    "string",
-				Source:      string(GenerateInternationalPhoneNumber),
+				Source:      string(GenerateE164PhoneNumber),
 				Config: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_GenerateInternationalPhoneNumberConfig{
-						GenerateInternationalPhoneNumberConfig: &mgmtv1alpha1.GenerateInternationalPhoneNumber{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateE164PhoneNumberConfig{
+						GenerateE164PhoneNumberConfig: &mgmtv1alpha1.GenerateE164PhoneNumber{
 							Min: 9,
 							Max: 15,
 						},
@@ -315,8 +315,8 @@ func (s *Service) GetSystemTransformers(
 				DataType:    "string",
 				Source:      string(GenerateString),
 				Config: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_GenerateRandomStringConfig{
-						GenerateRandomStringConfig: &mgmtv1alpha1.GenerateRandomString{
+					Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
+						GenerateStringConfig: &mgmtv1alpha1.GenerateString{
 							Min: 2,
 							Max: 7,
 						},
@@ -477,10 +477,10 @@ func (s *Service) GetSystemTransformers(
 				Name:        "Transform String Phone Number",
 				Description: "Transforms an existing phone number that is typed as a string.",
 				DataType:    "string",
-				Source:      string(TransformStringPhoneNumber),
+				Source:      string(TransformPhoneNumber),
 				Config: &mgmtv1alpha1.TransformerConfig{
-					Config: &mgmtv1alpha1.TransformerConfig_TransformStringPhoneNumberConfig{
-						TransformStringPhoneNumberConfig: &mgmtv1alpha1.TransformStringPhoneNumber{
+					Config: &mgmtv1alpha1.TransformerConfig_TransformPhoneNumberConfig{
+						TransformPhoneNumberConfig: &mgmtv1alpha1.TransformPhoneNumber{
 							PreserveLength: false,
 						},
 					},

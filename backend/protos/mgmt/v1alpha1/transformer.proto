@@ -95,7 +95,7 @@ message TransformerConfig {
     GenerateBool generate_bool_config = 3;
     GenerateCardNumber generate_card_number_config = 4;
     GenerateCity generate_city_config = 5;
-    GenerateInternationalPhoneNumber generate_international_phone_number_config = 6;
+    GenerateE164PhoneNumber generate_e164_phone_number_config = 6;
     GenerateFirstName generate_first_name_config = 7;
     GenerateFloat64 generate_float64_config = 8;
     GenerateFullAddress generate_full_address_config = 9;
@@ -109,7 +109,7 @@ message TransformerConfig {
     GenerateState generate_state_config = 17;
     GenerateStreetAddress generate_street_address_config = 18;
     GenerateStringPhoneNumber generate_string_phone_number_config = 19;
-    GenerateRandomString generate_random_string_config = 20;
+    GenerateString generate_string_config = 20;
     GenerateUnixTimestamp generate_unixtimestamp_config = 21;
     GenerateUsername generate_username_config = 22;
     GenerateUtcTimestamp generate_utctimestamp_config = 23;
@@ -122,7 +122,7 @@ message TransformerConfig {
     TransformInt64PhoneNumber transform_int64_phone_number_config = 30;
     TransformInt64 transform_int64_config = 31;
     TransformLastName transform_last_name_config = 32;
-    TransformStringPhoneNumber transform_string_phone_number_config = 33;
+    TransformPhoneNumber transform_phone_number_config = 33;
     TransformString transform_string_config = 34;
     Passthrough passthrough_config = 35;
     Null nullconfig = 36;
@@ -151,7 +151,7 @@ message GenerateCity {}
 
 message GenerateDefault {}
 
-message GenerateInternationalPhoneNumber {
+message GenerateE164PhoneNumber {
   int64 min = 1;
   int64 max = 2;
 }
@@ -196,7 +196,7 @@ message GenerateStringPhoneNumber {
   int64 max = 3;
 }
 
-message GenerateRandomString {
+message GenerateString {
   int64 min = 1;
   int64 max = 2;
 }
@@ -243,7 +243,7 @@ message TransformLastName {
   bool preserve_length = 1;
 }
 
-message TransformStringPhoneNumber {
+message TransformPhoneNumber {
   bool preserve_length = 1;
 }
 
