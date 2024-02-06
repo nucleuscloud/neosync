@@ -1011,7 +1011,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		max := col.Transformer.Config.GetGenerateInternationalPhoneNumberConfig().Max
 		return fmt.Sprintf(`generate_international_phone_number(min:%d,max:%d)`, min, max), nil
 	case "generate_first_name":
-		return fmt.Sprintf(`root = generate_first_name(max_length:%d)`, *colInfo.CharacterMaximumLength), nil
+		return fmt.Sprintf(`generate_first_name(max_length:%d)`, *colInfo.CharacterMaximumLength), nil
 	case "generate_float64":
 		randomSign := col.Transformer.Config.GetGenerateFloat64Config().RandomizeSign
 		min := col.Transformer.Config.GetGenerateFloat64Config().Min
@@ -1019,9 +1019,9 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		precision := col.Transformer.Config.GetGenerateFloat64Config().Precision
 		return fmt.Sprintf(`generate_float64(randomize_sign:%t, min:%f, max:%f, precision:%d)`, randomSign, min, max, precision), nil
 	case "generate_full_address":
-		return fmt.Sprintf(`root = generate_full_address(max_length:%d)`, *colInfo.CharacterMaximumLength), nil
+		return fmt.Sprintf(`generate_full_address(max_length:%d)`, *colInfo.CharacterMaximumLength), nil
 	case "generate_full_name":
-		return fmt.Sprintf(`root = generate_full_name(max_length:%d)`, *colInfo.CharacterMaximumLength), nil
+		return fmt.Sprintf(`generate_full_name(max_length:%d)`, *colInfo.CharacterMaximumLength), nil
 	case "generate_gender":
 		ab := col.Transformer.Config.GetGenerateGenderConfig().Abbreviate
 		return fmt.Sprintf(`generate_gender(abbreviate:%t,max_length:%d)`, ab, *colInfo.CharacterMaximumLength), nil
@@ -1031,9 +1031,9 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		sign := col.Transformer.Config.GetGenerateInt64Config().RandomizeSign
 		min := col.Transformer.Config.GetGenerateInt64Config().Min
 		max := col.Transformer.Config.GetGenerateInt64Config().Max
-		return fmt.Sprintf(`generate_int64(randomize_sign:%t,min:%d, max:%d,numeric_precision:%d,data_type:%d)`, sign, min, max, *colInfo.NumericPrecision, *&colInfo.CharacterMaximumLength), nil
+		return fmt.Sprintf(`generate_int64(randomize_sign:%t,min:%d, max:%d)`, sign, min, max), nil
 	case "generate_last_name":
-		return fmt.Sprintf(`root = generate_last_name(max_length:%d)`, *colInfo.CharacterMaximumLength), nil
+		return fmt.Sprintf(`generate_last_name(max_length:%d)`, *colInfo.CharacterMaximumLength), nil
 	case "generate_sha256hash":
 		return `generate_sha256hash()`, nil
 	case "generate_ssn":
@@ -1041,7 +1041,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 	case "generate_state":
 		return "generate_state()", nil
 	case "generate_street_address":
-		return fmt.Sprintf(`root = generate_street_address(max_length:%d)`, *colInfo.CharacterMaximumLength), nil
+		return fmt.Sprintf(`generate_street_address(max_length:%d)`, *colInfo.CharacterMaximumLength), nil
 	case "generate_string_phone_number":
 		min := col.Transformer.Config.GetGenerateStringPhoneNumberConfig().Min
 		max := col.Transformer.Config.GetGenerateStringPhoneNumberConfig().Max
@@ -1053,7 +1053,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 	case "generate_unixtimestamp":
 		return "generate_unixtimestamp()", nil
 	case "generate_username":
-		return fmt.Sprintf(`root = generate_username(max_length:%d)`, *colInfo.CharacterMaximumLength), nil
+		return fmt.Sprintf(`generate_username(max_length:%d)`, *colInfo.CharacterMaximumLength), nil
 	case "generate_utctimestamp":
 		return "generate_utctimestamp()", nil
 	case "generate_uuid":
