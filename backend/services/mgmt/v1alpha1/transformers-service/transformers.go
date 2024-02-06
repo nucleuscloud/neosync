@@ -297,7 +297,7 @@ func (s *Service) GetSystemTransformers(
 			},
 			{
 				Name:        "Generate String Phone Number",
-				Description: "Generates a Generate phone number and returns it as a string.",
+				Description: "Generates a phone number and returns it as a string.",
 				DataType:    "string",
 				Source:      string(GenerateStringPhoneNumber),
 				Config: &mgmtv1alpha1.TransformerConfig{
