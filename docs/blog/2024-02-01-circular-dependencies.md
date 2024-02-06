@@ -1,5 +1,5 @@
 ---
-title: Circular Dependencies
+title: 2/01 - Circular Dependencies
 hide_table_of_contents: false
 slug: /circular-dependencies
 authors:
