@@ -26,18 +26,20 @@ export default async function BlogPage(): Promise<ReactElement> {
   const [headerPost, ...remainingPosts] = posts;
 
   return (
-    <div className="container lg:max-w-6xl py-6 lg:py-10">
-      {headerPost && <HeaderBlog post={headerPost} />}
+    <div className="container lg:max-w-6xl py-6 lg:py-10 ">
+      <div>{headerPost && <HeaderBlog post={headerPost} />}</div>
       <hr className="my-12" />
-      {posts?.length ? (
-        <div className="grid gap-10 sm:grid-cols-3">
-          {remainingPosts?.map((post, index) => (
-            <BlogSummary key={post._id} post={post} isPriority={index <= 1} />
-          ))}
-        </div>
-      ) : (
-        <p>No posts published.</p>
-      )}
+      <div>
+        {posts?.length ? (
+          <div className="grid gap-10 sm:grid-cols-3">
+            {remainingPosts?.map((post, index) => (
+              <BlogSummary key={post._id} post={post} isPriority={index <= 1} />
+            ))}
+          </div>
+        ) : (
+          <p>No posts published.</p>
+        )}
+      </div>
     </div>
   );
 }
@@ -52,11 +54,13 @@ function HeaderBlog(props: HeaderBlogProps): ReactElement {
   return (
     <div
       key={post._id}
-      className="group relative flex flex-col-reverse lg:flex-row gap-6 border border-gray-400 bg-white p-4 lg:p-10 rounded-xl shadow hover:shadow-lg"
+      className="flex flex-col-reverse lg:flex-row gap-6 border border-gray-400 bg-white p-4 lg:p-6 rounded-xl shadow hover:shadow-lg "
     >
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 w-3/5">
         <div>
-          <Badge variant="default">Latest blog</Badge>
+          <Badge variant="outline" className="border border-gray-300">
+            Latest blog
+          </Badge>
         </div>
         <div className="text-3xl">{post.title}</div>
         <div>{post.description}</div>
@@ -71,13 +75,15 @@ function HeaderBlog(props: HeaderBlogProps): ReactElement {
         </div>
         <Link href={post.slug} className="absolute inset-0"></Link>
       </div>
-      <Image
-        src={post.image}
-        alt={post.title}
-        width={500}
-        height={239}
-        className="rounded-md border bg-muted transition-colors"
-      />
+      <div className="2/5">
+        <Image
+          src={post.image}
+          alt={post.title}
+          width={500}
+          height={239}
+          className="rounded-md border bg-muted transition-colors"
+        />
+      </div>
     </div>
   );
 }
@@ -98,10 +104,9 @@ export function BlogSummary(props: BlogSummaryProps): ReactElement {
       <Image
         src={post.image}
         alt={post.title}
-        width={581}
-        height={352}
-        className="rounded-md border bg-muted transition-colors lg:w-[366px] lg:h-[209px]"
-        priority={isPriority}
+        width={1792}
+        height={1024}
+        className="w-auto h-auto"
       />
       <div className="flex flex-col p-2 gap-2">
         <h1 className="text-xl font-extrabold whitespace-nowrap max-w-[300px] text-ellipsis overflow-hidden">
