@@ -139,7 +139,7 @@ message SSHPrivateKey {
   // The private key in PEM format.
   string value = 1 [(buf.validate.field).string.min_len = 1];
   // If the private key is encrypted, this value should decrypt it.
-  optional string passphrase = 2 [(buf.validate.field).string.min_len = 1];
+  optional string passphrase = 2;
 }
 
 message PostgresConnection {
