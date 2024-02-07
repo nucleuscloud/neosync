@@ -71,13 +71,15 @@ function HeaderBlog(props: HeaderBlogProps): ReactElement {
         </div>
         <Link href={post.slug} className="absolute inset-0"></Link>
       </div>
-      <Image
-        src={post.image}
-        alt={post.title}
-        width={500}
-        height={239}
-        className="rounded-md border bg-muted transition-colors"
-      />
+      <div>
+        <Image
+          src={post.image}
+          alt={post.title}
+          width={1792}
+          height={1024}
+          className="rounded-md border bg-muted transition-colors"
+        />
+      </div>
     </div>
   );
 }
@@ -98,8 +100,8 @@ export function BlogSummary(props: BlogSummaryProps): ReactElement {
       <Image
         src={post.image}
         alt={post.title}
-        width={581}
-        height={352}
+        width={1792}
+        height={1024}
         className="rounded-md border bg-muted transition-colors lg:max-w-xs"
         priority={isPriority}
       />
