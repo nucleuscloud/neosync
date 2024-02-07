@@ -148,12 +148,9 @@ export default function ViewSystemTransformers({
             {handleUserDefinedTransformerForm(systemTransformer?.source, true)}
           </div>
           <div className="flex flex-row justify-start">
-            <Button
-              type="button"
-              onClick={() => router.push(`/${account?.name}/transformers`)}
-            >
-              Back
-            </Button>
+            <NextLink href={`/${account?.name}/transformers?tab=system`}>
+              <Button type="button">Back</Button>
+            </NextLink>
           </div>
         </form>
       </Form>
