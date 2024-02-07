@@ -30,7 +30,7 @@ import { GrAnalytics, GrMysql } from 'react-icons/gr';
 import { IoBuildOutline } from 'react-icons/io5';
 import { MdPassword, MdStart } from 'react-icons/md';
 import { PiArrowsSplitLight, PiFlaskLight } from 'react-icons/pi';
-import { SiGo, SiKubernetes, SiTypescript } from 'react-icons/si';
+import { SiGo, SiKubernetes, SiTerraform, SiTypescript } from 'react-icons/si';
 import { TbSdk, TbVariable } from 'react-icons/tb';
 
 export function IconHandler(name: string): ReactElement {
@@ -122,6 +122,8 @@ export function IconHandler(name: string): ReactElement {
       return <GrAnalytics />;
     case 'Developing Neosync Locally':
       return <FaLaptop />;
+    case 'Neosync Terraform Provider':
+      return <SiTerraform />;
     default:
       return <LayersIcon />;
   }
