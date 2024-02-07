@@ -26,7 +26,6 @@ import { convertTransformerConfigToForm } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Error from 'next/error';
 import NextLink from 'next/link';
-import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -36,7 +35,6 @@ export default function ViewSystemTransformers({
   const sourceParam = params?.name ?? '';
   const { data: systemTransformerData, isLoading } =
     useGetSystemTransformerBySource(sourceParam);
-  const router = useRouter();
   const { account } = useAccount();
   const systemTransformer = systemTransformerData?.transformer;
 
