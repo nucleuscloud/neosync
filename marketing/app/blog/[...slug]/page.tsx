@@ -148,7 +148,7 @@ export default async function PostPage({
             </time>
           </div>
         ) : null}
-        <div className="max-w-4xl">
+        <div className="max-w-2xl">
           <Mdx code={post.body.code} />
         </div>
         <hr className="mt-12" />
