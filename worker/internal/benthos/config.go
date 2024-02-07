@@ -17,19 +17,15 @@ type HTTPConfig struct {
 }
 
 type StreamConfig struct {
-	Input         *InputConfig         `json:"input" yaml:"input"`
-	Buffer        *BufferConfig        `json:"buffer" yaml:"buffer"`
-	Pipeline      *PipelineConfig      `json:"pipeline" yaml:"pipeline"`
-	Output        *OutputConfig        `json:"output" yaml:"output"`
-	CacheResource *CacheResourceConfig `json:"cache_resources,omitempty" yaml:"cache_resources,omitempty"`
+	Input          *InputConfig           `json:"input" yaml:"input"`
+	Buffer         *BufferConfig          `json:"buffer" yaml:"buffer"`
+	Pipeline       *PipelineConfig        `json:"pipeline" yaml:"pipeline"`
+	Output         *OutputConfig          `json:"output" yaml:"output"`
+	CacheResources []*CacheResourceConfig `json:"cache_resources,omitempty" yaml:"cache_resources,omitempty"`
 }
 
 type CacheResourceConfig struct {
-	Label          string `json:"label" yaml:"label"`
-	CacheResources `json:",inline" yaml:",inline"`
-}
-
-type CacheResources struct {
+	Label string            `json:"label" yaml:"label"`
 	Redis *RedisCacheConfig `json:"redis,omitempty" yaml:"redis,omitempty"`
 }
 
@@ -77,6 +73,7 @@ type ProcessorConfig struct {
 	Javascript *JavascriptConfig `json:"javascript,omitempty" yaml:"javascript,omitempty"`
 	Branch     *BranchConfig     `json:"branch,omitempty" yaml:"branch,omitempty"`
 	Cache      *CacheConfig      `json:"cache,omitempty" yaml:"cache,omitempty"`
+	Mapping    *string           `json:"mapping,omitempty" yaml:"mapping,omitempty"`
 }
 
 type CacheConfig struct {

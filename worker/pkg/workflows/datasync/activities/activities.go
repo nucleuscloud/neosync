@@ -316,11 +316,19 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 			bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *pc)
 			// TODO make this specific to redis
 			if pc.Branch != nil {
-				bc.StreamConfig.CacheResource = &neosync_benthos.CacheResourceConfig{
-					Label: []string{"rediscache"},
-					CacheResources: neosync_benthos.CacheResources{
+				// bc.StreamConfig.CacheResource = &neosync_benthos.CacheResourceConfig{
+				// 	Label: []string{"rediscache"},
+				// 	CacheResources: neosync_benthos.CacheResources{
+				// 		Redis: &neosync_benthos.RedisCacheConfig{
+				// 			Url: "tcp://default:Mu54QlvMS8@redis-master.redis.svc.cluster.local:6379",
+				// 		},
+				// 	},
+				// }
+
+				bc.StreamConfig.CacheResources = []*neosync_benthos.CacheResourceConfig{
+					{Label: "rediscache",
 						Redis: &neosync_benthos.RedisCacheConfig{
-							Url: "tcp://default:Mu54QlvMS8@redis-master.redis.svc.cluster.local:6379",
+							Url: "tcp://default:0hKTi4NVq9@redis-master.redis.svc.cluster.local:6379",
 						},
 					},
 				}
@@ -889,8 +897,12 @@ func (b *benthosBuilder) buildProcessorConfigs(ctx context.Context, cols []*mgmt
 	}
 
 	cacheBranch := b.buildBranchCacheConfigs(ctx, cols, tableConstraints)
+	metadataMapping := b.buildMetadataMappingConfigs(ctx, cols)
 
 	var processorConfigs []*neosync_benthos.ProcessorConfig
+	if len(metadataMapping) > 0 {
+		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Mapping: &metadataMapping})
+	}
 	if len(mutations) > 0 {
 		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Mutation: &mutations})
 	}
@@ -935,6 +947,23 @@ func (b *benthosBuilder) extractJsFunctionsAndOutputs(ctx context.Context, cols 
 
 }
 
+func (b *benthosBuilder) buildMetadataMappingConfigs(ctx context.Context, cols []*mgmtv1alpha1.JobMapping) string {
+
+	metadata := []string{}
+
+	for _, col := range cols {
+		if shouldProcessColumn(col.Transformer) {
+			// TODO fix this
+			// TODO make metadata private
+
+			metadata = append(metadata, fmt.Sprintf("meta %s = this.%s", col.Column, col.Column))
+		}
+	}
+
+	return strings.Join(metadata, "\n")
+
+}
+
 func (b *benthosBuilder) buildMutationConfigs(ctx context.Context, cols []*mgmtv1alpha1.JobMapping) (string, error) {
 
 	mutations := []string{}
@@ -971,13 +1000,13 @@ func (b *benthosBuilder) buildBranchCacheConfigs(ctx context.Context, cols []*mg
 	for _, col := range cols {
 		// need to check that source col has transformer
 
-		_, ok := tableConstraints[col.Column]
+		tc, ok := tableConstraints[col.Column]
 		if ok {
 			processors = append(processors, neosync_benthos.ProcessorConfig{
 				Cache: &neosync_benthos.CacheConfig{
 					Resource: "rediscache",
 					Operator: "get",
-					Key:      fmt.Sprintf(`%s.${! json("message.%s") }`, neosync_benthos.BuildBenthosCacheKey(col.Schema, col.Table, col.Column), col.Column),
+					Key:      fmt.Sprintf(`%s.%s.${! json("%s") }`, tc.Table, tc.Column, col.Column),
 				},
 			})
 			resultmap = append(resultmap, fmt.Sprintf("root.%s = this.value", col.Column))

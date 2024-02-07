@@ -362,11 +362,12 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 				for _, c := range tm.Mappings {
 					if c.Column == col {
 						if shouldProcessColumn(c.Transformer) {
+							// TODO make metadata private
 							resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 								RedisHash: &neosync_benthos.RedisHashConfig{
-									Url:            "tcp://default:Mu54QlvMS8@redis-master.redis.svc.cluster.local:6379",
-									Key:            fmt.Sprintf(`%s.%s.${!json("%s")}`, tableKey, col, col),
-									Fields:         neosync_benthos.RedisHashFields{Value: fmt.Sprintf(`${!json("%s")}"`, col)},
+									Url:            "tcp://default:0hKTi4NVq9@redis-master.redis.svc.cluster.local:6379",
+									Key:            fmt.Sprintf(`%s.%s.${!meta("%s")}`, tableKey, col, col),                     // this needs to be original col value
+									Fields:         neosync_benthos.RedisHashFields{Value: fmt.Sprintf(`${!json("%s")}"`, col)}, // this needs to be transformed col value
 									WalkMetadata:   false,
 									WalkJsonObject: false,
 								},
