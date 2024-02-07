@@ -86,6 +86,7 @@ func GenerateRandomEmail(maxLength int64) (string, error) {
 			}
 		}
 
+		//nolint:all
 		randValue := rand.Intn(len(filteredDomains))
 		domain := "@" + filteredDomains[randValue]
 
@@ -95,8 +96,6 @@ func GenerateRandomEmail(maxLength int64) (string, error) {
 		if err != nil {
 			return "", err
 		}
-
-		fmt.Println("un", un)
 
 		return fmt.Sprintf(`%s%s`, un, domain), err
 

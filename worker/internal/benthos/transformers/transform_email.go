@@ -101,8 +101,6 @@ func TransformEmail(email string, preserveLength, preserveDomain bool, maxLength
 			return nil, err
 		}
 
-		fmt.Println("e", e)
-
 		returnValue = e
 	}
 
