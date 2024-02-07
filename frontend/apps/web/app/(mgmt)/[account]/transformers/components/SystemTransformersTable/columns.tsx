@@ -66,12 +66,27 @@ export function getSystemTransformerColumns(
       id: 'type',
       accessorKey: 'type',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Type" />
+        <DataTableColumnHeader column={column} title="Data Type" />
       ),
       cell: ({ row }) => {
         return (
           <div className="flex space-x-2">
             <Badge variant="outline">{row.original.dataType}</Badge>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'source',
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Source" />
+      ),
+      cell: ({ row }) => {
+        return (
+          <div className="flex space-x-2">
+            <span className="max-w-[500px] truncate font-medium">
+              {row.original.source}
+            </span>
           </div>
         );
       },
