@@ -62,16 +62,16 @@ Tokenization is widely used to protect sensitive data in financial services and 
 
 Now that we've understood what encryption, tokenization and synthetic data are, let's look at the differences and similarities and better understand their use-cases.
 
-| Feature               | Synthetic Data                                     | Encryption                                 | Tokenization                                   |
-| --------------------- | -------------------------------------------------- | ------------------------------------------ | ---------------------------------------------- |
-| Input Format          | Raw data from real datasets                        | Any data type (text, files, images, etc.)  | Sensitive data (e.g., PII, payment info)       |
-| Output Format         | New, non-real dataset mimicking original patterns  | Ciphered text or binary data               | Non-sensitive token or identifier              |
-| Is Reversible         | Not applicable (generates new data)                | Yes (with the correct key)                 | Conditional (secure lookup required)           |
-| Generation Method     | Data modeling and algorithms                       | Cryptographic algorithms                   | Mapping to unique tokens                       |
-| Use-Cases             | Data analysis, machine learning training           | Secure data storage, secure communication  | Payment processing, data anonymization         |
-| Data Utility          | High (preserves statistical properties)            | None (data is unusable without decryption) | Low to medium (depends on tokenization scheme) |
-| Risk of Data Exposure | Low (no direct link to real data)                  | High (if encryption key is compromised)    | Low (tokens are not meaningful)                |
-| Regulatory Compliance | Can aid in compliance by avoiding use of real data | Required for data protection laws          | Often used for PCI-DSS, GDPR compliance        |
+| Feature               | Synthetic Data                                            | Encryption                                 | Tokenization                                   |
+| --------------------- | --------------------------------------------------------- | ------------------------------------------ | ---------------------------------------------- |
+| Input Format          | Raw data from real datasets                               | Any data type (text, files, images, etc.)  | Sensitive data (e.g., PII, payment info)       |
+| Output Format         | New, non-real dataset mimicking original patterns         | Ciphered text or binary data               | Non-sensitive token or identifier              |
+| Is Reversible         | Not applicable (generates new data)                       | Yes (with the correct key)                 | Conditional (secure lookup required)           |
+| Generation Method     | Data modeling and algorithms                              | Cryptographic algorithms                   | Mapping to unique tokens                       |
+| Use-Cases             | Seeding databases, bug bashing, machine learning training | Secure data storage, secure communication  | Payment processing, data anonymization         |
+| Data Utility          | High (preserves statistical properties)                   | None (data is unusable without decryption) | Low to medium (depends on tokenization scheme) |
+| Risk of Data Exposure | Low (no direct link to real data)                         | High (if encryption key is compromised)    | Low (tokens are not meaningful)                |
+| Regulatory Compliance | Can aid in compliance by avoiding use of real data        | Required for data protection laws          | Often used for PCI-DSS, GDPR compliance        |
 
 # Wrapping up
 
