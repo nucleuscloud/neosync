@@ -142,6 +142,65 @@ func (_c *MockTransformersServiceClient_DeleteUserDefinedTransformer_Call) RunAn
 	return _c
 }
 
+// GetSystemTransformerBySource provides a mock function with given fields: _a0, _a1
+func (_m *MockTransformersServiceClient) GetSystemTransformerBySource(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetSystemTransformerBySourceRequest]) (*connect.Response[mgmtv1alpha1.GetSystemTransformerBySourceResponse], error) {
+	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSystemTransformerBySource")
+	}
+
+	var r0 *connect.Response[mgmtv1alpha1.GetSystemTransformerBySourceResponse]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetSystemTransformerBySourceRequest]) (*connect.Response[mgmtv1alpha1.GetSystemTransformerBySourceResponse], error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetSystemTransformerBySourceRequest]) *connect.Response[mgmtv1alpha1.GetSystemTransformerBySourceResponse]); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.GetSystemTransformerBySourceResponse])
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.GetSystemTransformerBySourceRequest]) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockTransformersServiceClient_GetSystemTransformerBySource_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSystemTransformerBySource'
+type MockTransformersServiceClient_GetSystemTransformerBySource_Call struct {
+	*mock.Call
+}
+
+// GetSystemTransformerBySource is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *connect.Request[mgmtv1alpha1.GetSystemTransformerBySourceRequest]
+func (_e *MockTransformersServiceClient_Expecter) GetSystemTransformerBySource(_a0 interface{}, _a1 interface{}) *MockTransformersServiceClient_GetSystemTransformerBySource_Call {
+	return &MockTransformersServiceClient_GetSystemTransformerBySource_Call{Call: _e.mock.On("GetSystemTransformerBySource", _a0, _a1)}
+}
+
+func (_c *MockTransformersServiceClient_GetSystemTransformerBySource_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetSystemTransformerBySourceRequest])) *MockTransformersServiceClient_GetSystemTransformerBySource_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.GetSystemTransformerBySourceRequest]))
+	})
+	return _c
+}
+
+func (_c *MockTransformersServiceClient_GetSystemTransformerBySource_Call) Return(_a0 *connect.Response[mgmtv1alpha1.GetSystemTransformerBySourceResponse], _a1 error) *MockTransformersServiceClient_GetSystemTransformerBySource_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockTransformersServiceClient_GetSystemTransformerBySource_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.GetSystemTransformerBySourceRequest]) (*connect.Response[mgmtv1alpha1.GetSystemTransformerBySourceResponse], error)) *MockTransformersServiceClient_GetSystemTransformerBySource_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetSystemTransformers provides a mock function with given fields: _a0, _a1
 func (_m *MockTransformersServiceClient) GetSystemTransformers(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetSystemTransformersRequest]) (*connect.Response[mgmtv1alpha1.GetSystemTransformersResponse], error) {
 	ret := _m.Called(_a0, _a1)

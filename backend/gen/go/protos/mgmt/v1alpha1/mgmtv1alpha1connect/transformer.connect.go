@@ -36,6 +36,9 @@ const (
 	// TransformersServiceGetSystemTransformersProcedure is the fully-qualified name of the
 	// TransformersService's GetSystemTransformers RPC.
 	TransformersServiceGetSystemTransformersProcedure = "/mgmt.v1alpha1.TransformersService/GetSystemTransformers"
+	// TransformersServiceGetSystemTransformerBySourceProcedure is the fully-qualified name of the
+	// TransformersService's GetSystemTransformerBySource RPC.
+	TransformersServiceGetSystemTransformerBySourceProcedure = "/mgmt.v1alpha1.TransformersService/GetSystemTransformerBySource"
 	// TransformersServiceGetUserDefinedTransformersProcedure is the fully-qualified name of the
 	// TransformersService's GetUserDefinedTransformers RPC.
 	TransformersServiceGetUserDefinedTransformersProcedure = "/mgmt.v1alpha1.TransformersService/GetUserDefinedTransformers"
@@ -63,6 +66,7 @@ const (
 var (
 	transformersServiceServiceDescriptor                             = v1alpha1.File_mgmt_v1alpha1_transformer_proto.Services().ByName("TransformersService")
 	transformersServiceGetSystemTransformersMethodDescriptor         = transformersServiceServiceDescriptor.Methods().ByName("GetSystemTransformers")
+	transformersServiceGetSystemTransformerBySourceMethodDescriptor  = transformersServiceServiceDescriptor.Methods().ByName("GetSystemTransformerBySource")
 	transformersServiceGetUserDefinedTransformersMethodDescriptor    = transformersServiceServiceDescriptor.Methods().ByName("GetUserDefinedTransformers")
 	transformersServiceGetUserDefinedTransformerByIdMethodDescriptor = transformersServiceServiceDescriptor.Methods().ByName("GetUserDefinedTransformerById")
 	transformersServiceCreateUserDefinedTransformerMethodDescriptor  = transformersServiceServiceDescriptor.Methods().ByName("CreateUserDefinedTransformer")
@@ -75,6 +79,7 @@ var (
 // TransformersServiceClient is a client for the mgmt.v1alpha1.TransformersService service.
 type TransformersServiceClient interface {
 	GetSystemTransformers(context.Context, *connect.Request[v1alpha1.GetSystemTransformersRequest]) (*connect.Response[v1alpha1.GetSystemTransformersResponse], error)
+	GetSystemTransformerBySource(context.Context, *connect.Request[v1alpha1.GetSystemTransformerBySourceRequest]) (*connect.Response[v1alpha1.GetSystemTransformerBySourceResponse], error)
 	GetUserDefinedTransformers(context.Context, *connect.Request[v1alpha1.GetUserDefinedTransformersRequest]) (*connect.Response[v1alpha1.GetUserDefinedTransformersResponse], error)
 	GetUserDefinedTransformerById(context.Context, *connect.Request[v1alpha1.GetUserDefinedTransformerByIdRequest]) (*connect.Response[v1alpha1.GetUserDefinedTransformerByIdResponse], error)
 	CreateUserDefinedTransformer(context.Context, *connect.Request[v1alpha1.CreateUserDefinedTransformerRequest]) (*connect.Response[v1alpha1.CreateUserDefinedTransformerResponse], error)
@@ -98,6 +103,12 @@ func NewTransformersServiceClient(httpClient connect.HTTPClient, baseURL string,
 			httpClient,
 			baseURL+TransformersServiceGetSystemTransformersProcedure,
 			connect.WithSchema(transformersServiceGetSystemTransformersMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+		getSystemTransformerBySource: connect.NewClient[v1alpha1.GetSystemTransformerBySourceRequest, v1alpha1.GetSystemTransformerBySourceResponse](
+			httpClient,
+			baseURL+TransformersServiceGetSystemTransformerBySourceProcedure,
+			connect.WithSchema(transformersServiceGetSystemTransformerBySourceMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
 		getUserDefinedTransformers: connect.NewClient[v1alpha1.GetUserDefinedTransformersRequest, v1alpha1.GetUserDefinedTransformersResponse](
@@ -148,6 +159,7 @@ func NewTransformersServiceClient(httpClient connect.HTTPClient, baseURL string,
 // transformersServiceClient implements TransformersServiceClient.
 type transformersServiceClient struct {
 	getSystemTransformers         *connect.Client[v1alpha1.GetSystemTransformersRequest, v1alpha1.GetSystemTransformersResponse]
+	getSystemTransformerBySource  *connect.Client[v1alpha1.GetSystemTransformerBySourceRequest, v1alpha1.GetSystemTransformerBySourceResponse]
 	getUserDefinedTransformers    *connect.Client[v1alpha1.GetUserDefinedTransformersRequest, v1alpha1.GetUserDefinedTransformersResponse]
 	getUserDefinedTransformerById *connect.Client[v1alpha1.GetUserDefinedTransformerByIdRequest, v1alpha1.GetUserDefinedTransformerByIdResponse]
 	createUserDefinedTransformer  *connect.Client[v1alpha1.CreateUserDefinedTransformerRequest, v1alpha1.CreateUserDefinedTransformerResponse]
@@ -160,6 +172,12 @@ type transformersServiceClient struct {
 // GetSystemTransformers calls mgmt.v1alpha1.TransformersService.GetSystemTransformers.
 func (c *transformersServiceClient) GetSystemTransformers(ctx context.Context, req *connect.Request[v1alpha1.GetSystemTransformersRequest]) (*connect.Response[v1alpha1.GetSystemTransformersResponse], error) {
 	return c.getSystemTransformers.CallUnary(ctx, req)
+}
+
+// GetSystemTransformerBySource calls
+// mgmt.v1alpha1.TransformersService.GetSystemTransformerBySource.
+func (c *transformersServiceClient) GetSystemTransformerBySource(ctx context.Context, req *connect.Request[v1alpha1.GetSystemTransformerBySourceRequest]) (*connect.Response[v1alpha1.GetSystemTransformerBySourceResponse], error) {
+	return c.getSystemTransformerBySource.CallUnary(ctx, req)
 }
 
 // GetUserDefinedTransformers calls mgmt.v1alpha1.TransformersService.GetUserDefinedTransformers.
@@ -204,6 +222,7 @@ func (c *transformersServiceClient) ValidateUserJavascriptCode(ctx context.Conte
 // TransformersServiceHandler is an implementation of the mgmt.v1alpha1.TransformersService service.
 type TransformersServiceHandler interface {
 	GetSystemTransformers(context.Context, *connect.Request[v1alpha1.GetSystemTransformersRequest]) (*connect.Response[v1alpha1.GetSystemTransformersResponse], error)
+	GetSystemTransformerBySource(context.Context, *connect.Request[v1alpha1.GetSystemTransformerBySourceRequest]) (*connect.Response[v1alpha1.GetSystemTransformerBySourceResponse], error)
 	GetUserDefinedTransformers(context.Context, *connect.Request[v1alpha1.GetUserDefinedTransformersRequest]) (*connect.Response[v1alpha1.GetUserDefinedTransformersResponse], error)
 	GetUserDefinedTransformerById(context.Context, *connect.Request[v1alpha1.GetUserDefinedTransformerByIdRequest]) (*connect.Response[v1alpha1.GetUserDefinedTransformerByIdResponse], error)
 	CreateUserDefinedTransformer(context.Context, *connect.Request[v1alpha1.CreateUserDefinedTransformerRequest]) (*connect.Response[v1alpha1.CreateUserDefinedTransformerResponse], error)
@@ -223,6 +242,12 @@ func NewTransformersServiceHandler(svc TransformersServiceHandler, opts ...conne
 		TransformersServiceGetSystemTransformersProcedure,
 		svc.GetSystemTransformers,
 		connect.WithSchema(transformersServiceGetSystemTransformersMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	transformersServiceGetSystemTransformerBySourceHandler := connect.NewUnaryHandler(
+		TransformersServiceGetSystemTransformerBySourceProcedure,
+		svc.GetSystemTransformerBySource,
+		connect.WithSchema(transformersServiceGetSystemTransformerBySourceMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
 	transformersServiceGetUserDefinedTransformersHandler := connect.NewUnaryHandler(
@@ -271,6 +296,8 @@ func NewTransformersServiceHandler(svc TransformersServiceHandler, opts ...conne
 		switch r.URL.Path {
 		case TransformersServiceGetSystemTransformersProcedure:
 			transformersServiceGetSystemTransformersHandler.ServeHTTP(w, r)
+		case TransformersServiceGetSystemTransformerBySourceProcedure:
+			transformersServiceGetSystemTransformerBySourceHandler.ServeHTTP(w, r)
 		case TransformersServiceGetUserDefinedTransformersProcedure:
 			transformersServiceGetUserDefinedTransformersHandler.ServeHTTP(w, r)
 		case TransformersServiceGetUserDefinedTransformerByIdProcedure:
@@ -296,6 +323,10 @@ type UnimplementedTransformersServiceHandler struct{}
 
 func (UnimplementedTransformersServiceHandler) GetSystemTransformers(context.Context, *connect.Request[v1alpha1.GetSystemTransformersRequest]) (*connect.Response[v1alpha1.GetSystemTransformersResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.TransformersService.GetSystemTransformers is not implemented"))
+}
+
+func (UnimplementedTransformersServiceHandler) GetSystemTransformerBySource(context.Context, *connect.Request[v1alpha1.GetSystemTransformerBySourceRequest]) (*connect.Response[v1alpha1.GetSystemTransformerBySourceResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.TransformersService.GetSystemTransformerBySource is not implemented"))
 }
 
 func (UnimplementedTransformersServiceHandler) GetUserDefinedTransformers(context.Context, *connect.Request[v1alpha1.GetUserDefinedTransformersRequest]) (*connect.Response[v1alpha1.GetUserDefinedTransformersResponse], error) {

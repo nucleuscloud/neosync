@@ -11,6 +11,14 @@ message GetSystemTransformersResponse {
   repeated SystemTransformer transformers = 1;
 }
 
+message GetSystemTransformerBySourceRequest {
+  string source = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message GetSystemTransformerBySourceResponse {
+  SystemTransformer transformer = 1;
+}
+
 message GetUserDefinedTransformersRequest {
   string account_id = 1 [(buf.validate.field).string.uuid = true];
 }
@@ -280,6 +288,7 @@ message TransformCharacterScramble {}
 
 service TransformersService {
   rpc GetSystemTransformers(GetSystemTransformersRequest) returns (GetSystemTransformersResponse) {}
+  rpc GetSystemTransformerBySource(GetSystemTransformerBySourceRequest) returns (GetSystemTransformerBySourceResponse) {}
   rpc GetUserDefinedTransformers(GetUserDefinedTransformersRequest) returns (GetUserDefinedTransformersResponse) {}
   rpc GetUserDefinedTransformerById(GetUserDefinedTransformerByIdRequest) returns (GetUserDefinedTransformerByIdResponse) {}
   rpc CreateUserDefinedTransformer(CreateUserDefinedTransformerRequest) returns (CreateUserDefinedTransformerResponse) {}
