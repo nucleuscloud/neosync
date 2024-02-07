@@ -100,7 +100,7 @@ export default function TransformerSelect(props: Props): ReactElement {
                         <CheckIcon
                           className={cn(
                             'mr-2 h-4 w-4',
-                            value.config?.case ===
+                            value?.config?.case ===
                               'userDefinedTransformerConfig' &&
                               value?.source === 'custom' &&
                               value.config.value.id === t.id
@@ -172,11 +172,11 @@ function getPopoverTriggerButtonText(
   systemTransformerMap: Map<string, SystemTransformer>,
   placeholder: string
 ): string {
-  if (!value.config) {
+  if (!value?.config) {
     return placeholder;
   }
 
-  switch (value.config?.case) {
+  switch (value?.config?.case) {
     case 'userDefinedTransformerConfig':
       const id = value.config.value.id;
       return udfTransformerMap.get(id)?.name ?? placeholder;

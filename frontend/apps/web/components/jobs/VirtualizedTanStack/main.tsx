@@ -271,7 +271,7 @@ export default function SchemaTableTest({ transformers }: Props): ReactElement {
     <div className="app">
       ({data.length} rows)
       <div
-        className="container rounded-md border"
+        className="container //rounded-md border"
         ref={tableContainerRef}
         style={{
           overflow: 'auto', //our scrollable table container
@@ -406,7 +406,9 @@ function Filter({
   column,
   table,
 }: {
+  //eslint-disable-next-line
   column: Column<any, unknown>;
+  //eslint-disable-next-line
   table: Table<any>;
 }) {
   const firstValue = table
@@ -425,7 +427,8 @@ function Filter({
 
   return typeof firstValue === 'number' ? (
     <div>
-      <div className="flex space-x-2">
+      {/* <div style={{display:'flexzclassName="flex space-x-2"> */}
+      <div style={{ display: 'flex' }}>
         <DebouncedInput
           type="number"
           min={Number(column.getFacetedMinMaxValues()?.[0] ?? '')}
@@ -439,7 +442,7 @@ function Filter({
               ? `(${column.getFacetedMinMaxValues()?.[0]})`
               : ''
           }`}
-          className="w-24 border shadow rounded"
+          // className="w-24 border shadow rounded"
         />
         <DebouncedInput
           type="number"
@@ -454,10 +457,16 @@ function Filter({
               ? `(${column.getFacetedMinMaxValues()?.[1]})`
               : ''
           }`}
-          className="w-24 border shadow rounded"
+          // className="w-24 border shadow rounded"
+          style={{
+            width: '96px', // Equivalent to w-24
+            border: '1px solid', // Default border, you might need to adjust color
+            boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.1)', // This is a general shadow, adjust as needed
+            borderRadius: '0.25rem', // Default rounding, adjust as needed
+          }}
         />
       </div>
-      <div className="h-1" />
+      <div style={{ height: '4px' }} />
     </div>
   ) : (
     <>
@@ -471,10 +480,10 @@ function Filter({
         value={(columnFilterValue ?? '') as string}
         onChange={(value) => column.setFilterValue(value)}
         placeholder={`Search... (${column.getFacetedUniqueValues().size})`}
-        className="w-36 border shadow rounded"
+        // className="w-36 border shadow rounded"
         list={column.id + 'list'}
       />
-      <div className="h-1" />
+      {/* <div className="h-1" /> */}
     </>
   );
 }
