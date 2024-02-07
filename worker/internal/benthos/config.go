@@ -69,11 +69,18 @@ type PipelineConfig struct {
 }
 
 type ProcessorConfig struct {
-	Mutation   *string           `json:"mutation,omitempty" yaml:"mutation,omitempty"`
-	Javascript *JavascriptConfig `json:"javascript,omitempty" yaml:"javascript,omitempty"`
-	Branch     *BranchConfig     `json:"branch,omitempty" yaml:"branch,omitempty"`
-	Cache      *CacheConfig      `json:"cache,omitempty" yaml:"cache,omitempty"`
-	Mapping    *string           `json:"mapping,omitempty" yaml:"mapping,omitempty"`
+	Mutation   *string               `json:"mutation,omitempty" yaml:"mutation,omitempty"`
+	Javascript *JavascriptConfig     `json:"javascript,omitempty" yaml:"javascript,omitempty"`
+	Branch     *BranchConfig         `json:"branch,omitempty" yaml:"branch,omitempty"`
+	Cache      *CacheConfig          `json:"cache,omitempty" yaml:"cache,omitempty"`
+	Mapping    *string               `json:"mapping,omitempty" yaml:"mapping,omitempty"`
+	Redis      *RedisProcessorConfig `json:"redis,omitempty" yaml:"redis,omitempty"`
+}
+
+type RedisProcessorConfig struct {
+	Url         string `json:"url" yaml:"url"`
+	Command     string `json:"command" yaml:"command"`
+	ArgsMapping string `json:"args_mapping" yaml:"args_mapping"`
 }
 
 type CacheConfig struct {

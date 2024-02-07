@@ -1002,14 +1002,20 @@ func (b *benthosBuilder) buildBranchCacheConfigs(ctx context.Context, cols []*mg
 
 		tc, ok := tableConstraints[col.Column]
 		if ok {
+			// needs to be redis
 			processors = append(processors, neosync_benthos.ProcessorConfig{
-				Cache: &neosync_benthos.CacheConfig{
-					Resource: "rediscache",
-					Operator: "get",
-					Key:      fmt.Sprintf(`%s.%s.${! json("%s") }`, tc.Table, tc.Column, col.Column),
+				// Cache: &neosync_benthos.CacheConfig{
+				// 	Resource: "rediscache",
+				// 	Operator: "get",
+				// 	Key:      fmt.Sprintf(`%s.%s.${! json("%s") }`, tc.Table, tc.Column, col.Column),
+				// },
+				Redis: &neosync_benthos.RedisProcessorConfig{
+					Url:         "tcp://default:0hKTi4NVq9@redis-master.redis.svc.cluster.local:6379",
+					Command:     fmt.Sprintf(`hget %s.%s.${! json("%s") } value`, tc.Table, tc.Column, col.Column),
+					ArgsMapping: `root = []`,
 				},
 			})
-			resultmap = append(resultmap, fmt.Sprintf("root.%s = this.value", col.Column))
+			resultmap = append(resultmap, fmt.Sprintf("root.%s = this", col.Column))
 		}
 
 	}
