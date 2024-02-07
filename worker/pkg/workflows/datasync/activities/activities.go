@@ -847,10 +847,10 @@ func (b *benthosBuilder) buildProcessorConfigs(ctx context.Context, cols []*mgmt
 	}
 
 	var processorConfigs []*neosync_benthos.ProcessorConfig
-	if len(mutations) > 0 {
+	if mutations != "" {
 		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Mutation: &mutations})
 	}
-	if len(jsCode) > 0 {
+	if jsCode != "" {
 		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Javascript: &neosync_benthos.JavascriptConfig{Code: jsCode}})
 	}
 
