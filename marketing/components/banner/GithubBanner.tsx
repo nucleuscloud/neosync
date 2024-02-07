@@ -8,7 +8,7 @@ export default function GithubBanner(): ReactElement {
   const router = useRouter();
   return (
     <div>
-      <div className="top-0 hidden lg:flex flex-row gap-3 justify-center w-full h-[35px] items-center bg-gray-100 font-satoshi text-gray-900 text-sm ">
+      <div className="top-0 hidden lg:flex flex-row gap-3 justify-center w-full h-[35px] items-center bg-gray-100 font-satoshi text-gray-900 text-sm border border-b-gray-300 ">
         <div>
           If you like Neosync, give it a{' '}
           <StarFilledIcon className="text-yellow-500 inline h-[20px] w-[20px]" />{' '}
