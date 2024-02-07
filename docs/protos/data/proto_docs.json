@@ -3967,6 +3967,54 @@
           "fields": []
         },
         {
+          "name": "GetSystemTransformerBySourceRequest",
+          "longName": "GetSystemTransformerBySourceRequest",
+          "fullName": "mgmt.v1alpha1.GetSystemTransformerBySourceRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "source",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetSystemTransformerBySourceResponse",
+          "longName": "GetSystemTransformerBySourceResponse",
+          "fullName": "mgmt.v1alpha1.GetSystemTransformerBySourceResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "transformer",
+              "description": "",
+              "label": "",
+              "type": "SystemTransformer",
+              "longType": "SystemTransformer",
+              "fullType": "mgmt.v1alpha1.SystemTransformer",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "GetSystemTransformersRequest",
           "longName": "GetSystemTransformersRequest",
           "fullName": "mgmt.v1alpha1.GetSystemTransformersRequest",
@@ -5372,6 +5420,18 @@
               "responseType": "GetSystemTransformersResponse",
               "responseLongType": "GetSystemTransformersResponse",
               "responseFullType": "mgmt.v1alpha1.GetSystemTransformersResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "GetSystemTransformerBySource",
+              "description": "",
+              "requestType": "GetSystemTransformerBySourceRequest",
+              "requestLongType": "GetSystemTransformerBySourceRequest",
+              "requestFullType": "mgmt.v1alpha1.GetSystemTransformerBySourceRequest",
+              "requestStreaming": false,
+              "responseType": "GetSystemTransformerBySourceResponse",
+              "responseLongType": "GetSystemTransformerBySourceResponse",
+              "responseFullType": "mgmt.v1alpha1.GetSystemTransformerBySourceResponse",
               "responseStreaming": false
             },
             {

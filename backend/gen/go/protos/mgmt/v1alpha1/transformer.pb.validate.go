@@ -275,6 +275,247 @@ var _ interface {
 	ErrorName() string
 } = GetSystemTransformersResponseValidationError{}
 
+// Validate checks the field values on GetSystemTransformerBySourceRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *GetSystemTransformerBySourceRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetSystemTransformerBySourceRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// GetSystemTransformerBySourceRequestMultiError, or nil if none found.
+func (m *GetSystemTransformerBySourceRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetSystemTransformerBySourceRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Source
+
+	if len(errors) > 0 {
+		return GetSystemTransformerBySourceRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetSystemTransformerBySourceRequestMultiError is an error wrapping multiple
+// validation errors returned by
+// GetSystemTransformerBySourceRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetSystemTransformerBySourceRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetSystemTransformerBySourceRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetSystemTransformerBySourceRequestMultiError) AllErrors() []error { return m }
+
+// GetSystemTransformerBySourceRequestValidationError is the validation error
+// returned by GetSystemTransformerBySourceRequest.Validate if the designated
+// constraints aren't met.
+type GetSystemTransformerBySourceRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetSystemTransformerBySourceRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetSystemTransformerBySourceRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetSystemTransformerBySourceRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetSystemTransformerBySourceRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetSystemTransformerBySourceRequestValidationError) ErrorName() string {
+	return "GetSystemTransformerBySourceRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetSystemTransformerBySourceRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetSystemTransformerBySourceRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetSystemTransformerBySourceRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetSystemTransformerBySourceRequestValidationError{}
+
+// Validate checks the field values on GetSystemTransformerBySourceResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *GetSystemTransformerBySourceResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetSystemTransformerBySourceResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// GetSystemTransformerBySourceResponseMultiError, or nil if none found.
+func (m *GetSystemTransformerBySourceResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetSystemTransformerBySourceResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetTransformer()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetSystemTransformerBySourceResponseValidationError{
+					field:  "Transformer",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetSystemTransformerBySourceResponseValidationError{
+					field:  "Transformer",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetTransformer()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetSystemTransformerBySourceResponseValidationError{
+				field:  "Transformer",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetSystemTransformerBySourceResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetSystemTransformerBySourceResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// GetSystemTransformerBySourceResponse.ValidateAll() if the designated
+// constraints aren't met.
+type GetSystemTransformerBySourceResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetSystemTransformerBySourceResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetSystemTransformerBySourceResponseMultiError) AllErrors() []error { return m }
+
+// GetSystemTransformerBySourceResponseValidationError is the validation error
+// returned by GetSystemTransformerBySourceResponse.Validate if the designated
+// constraints aren't met.
+type GetSystemTransformerBySourceResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetSystemTransformerBySourceResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetSystemTransformerBySourceResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetSystemTransformerBySourceResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetSystemTransformerBySourceResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetSystemTransformerBySourceResponseValidationError) ErrorName() string {
+	return "GetSystemTransformerBySourceResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetSystemTransformerBySourceResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetSystemTransformerBySourceResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetSystemTransformerBySourceResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetSystemTransformerBySourceResponseValidationError{}
+
 // Validate checks the field values on GetUserDefinedTransformersRequest with
 // the rules defined in the proto definition for this message. If any rules
 // are violated, the first error encountered is returned, or nil if there are
