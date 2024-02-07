@@ -1164,66 +1164,6 @@ func (_c *MockQuerier_GetAccountApiKeys_Call) RunAndReturn(run func(context.Cont
 	return _c
 }
 
-// GetAccountByApiKeyUserId provides a mock function with given fields: ctx, db, id
-func (_m *MockQuerier) GetAccountByApiKeyUserId(ctx context.Context, db DBTX, id pgtype.UUID) ([]NeosyncApiAccount, error) {
-	ret := _m.Called(ctx, db, id)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetAccountByApiKeyUserId")
-	}
-
-	var r0 []NeosyncApiAccount
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) ([]NeosyncApiAccount, error)); ok {
-		return rf(ctx, db, id)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) []NeosyncApiAccount); ok {
-		r0 = rf(ctx, db, id)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]NeosyncApiAccount)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, DBTX, pgtype.UUID) error); ok {
-		r1 = rf(ctx, db, id)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// MockQuerier_GetAccountByApiKeyUserId_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAccountByApiKeyUserId'
-type MockQuerier_GetAccountByApiKeyUserId_Call struct {
-	*mock.Call
-}
-
-// GetAccountByApiKeyUserId is a helper method to define mock.On call
-//   - ctx context.Context
-//   - db DBTX
-//   - id pgtype.UUID
-func (_e *MockQuerier_Expecter) GetAccountByApiKeyUserId(ctx interface{}, db interface{}, id interface{}) *MockQuerier_GetAccountByApiKeyUserId_Call {
-	return &MockQuerier_GetAccountByApiKeyUserId_Call{Call: _e.mock.On("GetAccountByApiKeyUserId", ctx, db, id)}
-}
-
-func (_c *MockQuerier_GetAccountByApiKeyUserId_Call) Run(run func(ctx context.Context, db DBTX, id pgtype.UUID)) *MockQuerier_GetAccountByApiKeyUserId_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
-	})
-	return _c
-}
-
-func (_c *MockQuerier_GetAccountByApiKeyUserId_Call) Return(_a0 []NeosyncApiAccount, _a1 error) *MockQuerier_GetAccountByApiKeyUserId_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *MockQuerier_GetAccountByApiKeyUserId_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) ([]NeosyncApiAccount, error)) *MockQuerier_GetAccountByApiKeyUserId_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetAccountInvite provides a mock function with given fields: ctx, db, id
 func (_m *MockQuerier) GetAccountInvite(ctx context.Context, db DBTX, id pgtype.UUID) (NeosyncApiAccountInvite, error) {
 	ret := _m.Called(ctx, db, id)

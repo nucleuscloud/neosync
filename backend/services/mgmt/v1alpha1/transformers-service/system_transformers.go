@@ -5,6 +5,7 @@ import (
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 )
 
 type TransformerSource string
@@ -562,5 +563,18 @@ func (s *Service) GetSystemTransformers(
 ) (*connect.Response[mgmtv1alpha1.GetSystemTransformersResponse], error) {
 	return connect.NewResponse(&mgmtv1alpha1.GetSystemTransformersResponse{
 		Transformers: systemTransformers,
+	}), nil
+}
+
+func (s *Service) GetSystemTransformerBySource(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetSystemTransformerBySourceRequest],
+) (*connect.Response[mgmtv1alpha1.GetSystemTransformerBySourceResponse], error) {
+	transformer, ok := systemTransformerSourceMap[TransformerSource(req.Msg.Source)]
+	if !ok {
+		return nil, nucleuserrors.NewNotFound("unable to find system transformer with provided source")
+	}
+	return connect.NewResponse(&mgmtv1alpha1.GetSystemTransformerBySourceResponse{
+		Transformer: transformer,
 	}), nil
 }
