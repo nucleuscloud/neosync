@@ -91,14 +91,14 @@ func TransformEmail(email string, preserveLength, preserveDomain bool, maxLength
 
 	} else {
 
-		randLength, err := transformer_utils.GenerateRandomInt64InValueRange(8, maxLength)
+		randLength, err := transformer_utils.GenerateRandomInt64InValueRange(10, maxLength)
 		if err != nil {
-			return nil, nil
+			return nil, err
 		}
 
 		e, err := GenerateRandomEmail(randLength)
 		if err != nil {
-			return nil, nil
+			return nil, err
 		}
 
 		returnValue = e

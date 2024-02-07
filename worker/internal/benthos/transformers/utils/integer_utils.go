@@ -77,7 +77,7 @@ func FirstDigitIsNine(n int64) bool {
 	str := strconv.FormatInt(n, 10)
 
 	// Check if the string is empty or if the first character is '9'
-	if len(str) > 0 && str[0] == '9' {
+	if str != "" && str[0] == '9' {
 		return true
 	}
 
@@ -99,7 +99,7 @@ func IsLastInt64DigitZero(n int64) bool {
 	str := strconv.FormatInt(n, 10)
 
 	// Check if the string is empty or if the last character is '0'
-	if len(str) > 0 && str[len(str)-1] == '0' {
+	if str != "" && str[len(str)-1] == '0' {
 		return true
 	}
 
