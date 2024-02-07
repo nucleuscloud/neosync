@@ -369,6 +369,7 @@ export const SYSTEM_TRANSFORMER_SCHEMA = Yup.object({
   name: Yup.string(),
   type: Yup.string(),
   description: Yup.string().required(),
+  source: Yup.string().required(),
   config: TransformerConfigSchema,
 });
 

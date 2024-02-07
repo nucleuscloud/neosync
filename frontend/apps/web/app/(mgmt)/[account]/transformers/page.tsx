@@ -10,6 +10,7 @@ import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers'
 import { useGetUserDefinedTransformers } from '@/libs/hooks/useGetUserDefinedTransformers';
 import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
+import { ReadonlyURLSearchParams, useSearchParams } from 'next/navigation';
 import { ReactElement } from 'react';
 import { getSystemTransformerColumns } from './components/SystemTransformersTable/columns';
 import { SystemTransformersDataTable } from './components/SystemTransformersTable/data-table';
@@ -17,6 +18,8 @@ import { getUserDefinedTransformerColumns } from './components/UserDefinedTransf
 import { UserDefinedTransformersDataTable } from './components/UserDefinedTransformersTable/data-table';
 
 export default function Transformers(): ReactElement {
+  const searchParams = useSearchParams();
+  const defaultTab = getTableTabFromParams(searchParams);
   return (
     <OverviewContainer
       Header={
@@ -27,12 +30,30 @@ export default function Transformers(): ReactElement {
       }
       containerClassName="transformer-page"
     >
-      <TransformersTable />
+      <TransformersTable defaultTab={defaultTab} />
     </OverviewContainer>
   );
 }
 
-function TransformersTable(): ReactElement {
+function getTableTabFromParams(
+  searchParams: ReadonlyURLSearchParams
+): TableTab {
+  const tab = searchParams.get('tab');
+  return tab && isTableTab(tab) ? tab : 'ud';
+}
+
+function isTableTab(input: string): input is TableTab {
+  return input === 'ud' || input === 'system';
+}
+
+type TableTab = 'ud' | 'system';
+
+interface TransformersTableProps {
+  defaultTab: TableTab;
+}
+
+function TransformersTable(props: TransformersTableProps): ReactElement {
+  const { defaultTab } = props;
   const { data, isLoading: transformersIsLoading } = useGetSystemTransformers();
   const { account } = useAccount();
   const {
@@ -59,14 +80,12 @@ function TransformersTable(): ReactElement {
 
   return (
     <div>
-      <Tabs defaultValue="udtransformers" className="">
+      <Tabs defaultValue={defaultTab}>
         <TabsList>
-          <TabsTrigger value="udtransformers">
-            User Defined Transformers
-          </TabsTrigger>
+          <TabsTrigger value="ud">User Defined Transformers</TabsTrigger>
           <TabsTrigger value="system">System Transformers</TabsTrigger>
         </TabsList>
-        <TabsContent value="udtransformers">
+        <TabsContent value="ud">
           <UserDefinedTransformersDataTable
             columns={userDefinedTransformerColumns}
             data={userDefinedTransformers}

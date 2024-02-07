@@ -20,48 +20,49 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useGetSystemTransformerBySource } from '@/libs/hooks/useGetSystemTransformerBySource';
 import { convertTransformerConfigToForm } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { SystemTransformer } from '@neosync/sdk';
+import Error from 'next/error';
 import NextLink from 'next/link';
-import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 
 export default function ViewSystemTransformers({
   params,
 }: PageProps): ReactElement {
-  const { data: systemTransformers } = useGetSystemTransformers();
-
-  const tName = params?.name ?? '';
-
-  const currentTransformer = systemTransformers?.transformers.find(
-    (item: SystemTransformer) => item.source === tName
-  );
-
-  const router = useRouter();
+  const sourceParam = params?.name ?? '';
+  const { data: systemTransformerData, isLoading } =
+    useGetSystemTransformerBySource(sourceParam);
   const { account } = useAccount();
+  const systemTransformer = systemTransformerData?.transformer;
 
   const form = useForm<SystemTransformersSchema>({
     resolver: yupResolver(SYSTEM_TRANSFORMER_SCHEMA),
     values: {
-      name: currentTransformer?.name ?? '',
-      description: currentTransformer?.description ?? '',
-      type: currentTransformer?.dataType ?? '',
-      config: convertTransformerConfigToForm(currentTransformer?.config),
+      name: systemTransformer?.name ?? '',
+      description: systemTransformer?.description ?? '',
+      type: systemTransformer?.dataType ?? '',
+      source: systemTransformer?.source ?? '',
+      config: convertTransformerConfigToForm(systemTransformer?.config),
     },
   });
+
+  if (isLoading) {
+    return <Skeleton />;
+  }
+  if (!systemTransformer) {
+    return <Error statusCode={404} />;
+  }
 
   return (
     <OverviewContainer
       Header={
         <PageHeader
-          header={currentTransformer?.name ?? 'System Transformer'}
+          header={systemTransformer?.name ?? 'System Transformer'}
           extraHeading={
-            <CloneTransformerButton
-              transformer={currentTransformer?.source ?? ''}
-            />
+            <CloneTransformerButton source={systemTransformer?.source ?? ''} />
           }
         />
       }
@@ -111,7 +112,7 @@ export default function ViewSystemTransformers({
                 name="type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Type</FormLabel>
+                    <FormLabel>Data Type</FormLabel>
                     <FormDescription>The Transformer type.</FormDescription>
                     <FormControl>
                       <Input placeholder="Transformer type" {...field} />
@@ -121,17 +122,33 @@ export default function ViewSystemTransformers({
                 )}
               />
             </div>
+            <div className="pt-10">
+              <FormField
+                control={form.control}
+                disabled={true}
+                name="source"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Source</FormLabel>
+                    <FormDescription>
+                      The unique key associated with the transformer.
+                    </FormDescription>
+                    <FormControl>
+                      <Input placeholder="Transformer Source" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
           <div>
-            {handleUserDefinedTransformerForm(currentTransformer?.source, true)}
+            {handleUserDefinedTransformerForm(systemTransformer?.source, true)}
           </div>
           <div className="flex flex-row justify-start">
-            <Button
-              type="button"
-              onClick={() => router.push(`/${account?.name}/transformers`)}
-            >
-              Back
-            </Button>
+            <NextLink href={`/${account?.name}/transformers?tab=system`}>
+              <Button type="button">Back</Button>
+            </NextLink>
           </div>
         </form>
       </Form>
@@ -140,16 +157,14 @@ export default function ViewSystemTransformers({
 }
 
 interface CloneTransformerProps {
-  transformer: string;
+  source: string;
 }
 
 function CloneTransformerButton(props: CloneTransformerProps): ReactElement {
-  const { transformer } = props;
+  const { source } = props;
   const { account } = useAccount();
   return (
-    <NextLink
-      href={`/${account?.name}/new/transformer?transformer=${transformer}`}
-    >
+    <NextLink href={`/${account?.name}/new/transformer?transformer=${source}`}>
       <Button>
         <ButtonText text="Clone Transformer" />
       </Button>

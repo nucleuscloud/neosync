@@ -57,7 +57,7 @@ export function UserDefinedTransformersDataTable<TData, TValue>({
       columnFilters,
       pagination: { pageIndex: pagination, pageSize: pageSize },
     },
-    enableRowSelection: true,
+    enableRowSelection: false,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,

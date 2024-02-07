@@ -29,6 +29,7 @@ import {
   UpdateUserDefinedTransformerResponse,
   UserDefinedTransformer,
 } from '@neosync/sdk';
+import NextLink from 'next/link';
 import { ReactElement } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
@@ -153,7 +154,10 @@ export default function UpdateUserDefinedTransformerForm(
         <div>
           {handleUserDefinedTransformerForm(currentTransformer?.source)}
         </div>
-        <div className="flex flex-row justify-end">
+        <div className="flex flex-row justify-between">
+          <NextLink href={`/${account?.name}/transformers?tab=ud`}>
+            <Button type="button">Back</Button>
+          </NextLink>
           <Button type="submit">Save</Button>
         </div>
       </form>
