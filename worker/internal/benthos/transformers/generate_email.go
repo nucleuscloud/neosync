@@ -79,10 +79,24 @@ func GenerateRandomEmail(maxLength int64) (string, error) {
 
 	if len(email) > int(maxLength) {
 
+		var filteredDomains []string
+		for _, value := range emailDomains {
+			if len(value) < int(maxLength)-1 {
+				filteredDomains = append(filteredDomains, value)
+			}
+		}
+
+		randValue := rand.Intn(len(filteredDomains))
+		domain := "@" + filteredDomains[randValue]
+
+		// get new domain that is less than the max length by filtering it
+
 		un, err := transformer_utils.GenerateRandomStringWithDefinedLength(maxLength - int64(len(domain)))
 		if err != nil {
 			return "", err
 		}
+
+		fmt.Println("un", un)
 
 		return fmt.Sprintf(`%s%s`, un, domain), err
 
