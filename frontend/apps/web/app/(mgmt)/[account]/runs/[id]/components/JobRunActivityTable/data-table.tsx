@@ -65,73 +65,77 @@ export function DataTable({ columns, data, isError }: DataTableProps) {
   });
 
   return (
-    <div className="space-y-4 rounded-md border overflow-hidden dark:border-gray-700 ">
-      <div className="rounded-md border overflow-hidden dark:border-gray-700 ">
-        <Table>
-          <TableHeader className="bg-gray-100 dark:bg-gray-800">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
+    <div className="space-y-2 rounded-md border overflow-hidden dark:border-gray-700">
+      <div>
+        <div className="rounded-md border overflow-hidden dark:border-gray-700 ">
+          <Table>
+            <TableHeader className="bg-gray-100 dark:bg-gray-800">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => {
                   return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => {
-                return (
-                  <React.Fragment key={row.id}>
-                    <TableRow
-                      data-state={row.getIsSelected() && 'selected'}
-                      onClick={row.getToggleExpandedHandler()}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                    {row.getIsExpanded() && (
-                      <TableRow>
-                        <TableCell colSpan={row.getVisibleCells().length}>
-                          {renderSubComponent(row)}
-                        </TableCell>
+                    <React.Fragment key={row.id}>
+                      <TableRow
+                        data-state={row.getIsSelected() && 'selected'}
+                        onClick={row.getToggleExpandedHandler()}
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </TableCell>
+                        ))}
                       </TableRow>
-                    )}
-                  </React.Fragment>
-                );
-              })
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No active runs found
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+                      {row.getIsExpanded() && (
+                        <TableRow>
+                          <TableCell colSpan={row.getVisibleCells().length}>
+                            {renderSubComponent(row)}
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </React.Fragment>
+                  );
+                })
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No active runs found
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
-      <DataTablePagination
-        table={table}
-        setPagination={setPagination}
-        setPageSize={setPageSize}
-      />
+      <div className="pb-2">
+        <DataTablePagination
+          table={table}
+          setPagination={setPagination}
+          setPageSize={setPageSize}
+        />
+      </div>
     </div>
   );
 }
