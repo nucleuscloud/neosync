@@ -230,11 +230,6 @@ type sqlSourceTableOptions struct {
 	WhereClause *string
 }
 
-// type colInfo struct {
-// 	ForeignKey    *dbschemas_utils.ForeignKey
-// 	HasTransfomer bool
-// }
-
 func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 	ctx context.Context,
 	mappings []*TableMapping,
@@ -245,14 +240,26 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 ) ([]*BenthosConfigResponse, error) {
 	responses := []*BenthosConfigResponse{}
 
-	tableConstraints := map[string]map[string]*dbschemas_utils.ForeignKey{} // schema.table -> column -> colInfo
+	// filter this list by table constraints that has transformer
+	tableConstraints := map[string]map[string]*dbschemas_utils.ForeignKey{} // schema.table -> column -> foreignKey
 	for table, constraints := range tc {
 		_, ok := tableConstraints[table]
 		if !ok {
 			tableConstraints[table] = map[string]*dbschemas_utils.ForeignKey{}
 		}
 		for _, tc := range constraints.Constraints {
-			tableConstraints[table][tc.Column] = tc.ForeignKey
+			// only add constraint if foreign key has transformer
+			for _, m := range mappings {
+				if neosync_benthos.BuildBenthosTable(m.Schema, m.Table) == tc.ForeignKey.Table {
+					for _, mm := range m.Mappings {
+						if mm.Column == tc.ForeignKey.Column && shouldProcessColumn(mm.Transformer) {
+							tableConstraints[table][tc.Column] = tc.ForeignKey
+						}
+					}
+
+				}
+			}
+
 		}
 	}
 
@@ -307,6 +314,18 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 
 		for _, pc := range processorConfigs {
 			bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *pc)
+			// TODO make this specific to redis
+			if pc.Branch != nil {
+				bc.StreamConfig.CacheResource = &neosync_benthos.CacheResourceConfig{
+					Label: []string{"rediscache"},
+					CacheResources: neosync_benthos.CacheResources{
+						Redis: &neosync_benthos.RedisCacheConfig{
+							Url: "tcp://default:Mu54QlvMS8@redis-master.redis.svc.cluster.local:6379",
+						},
+					},
+				}
+
+			}
 		}
 
 		responses = append(responses, &BenthosConfigResponse{
@@ -950,19 +969,20 @@ func (b *benthosBuilder) buildBranchCacheConfigs(ctx context.Context, cols []*mg
 	resultmap := []string{}
 
 	for _, col := range cols {
-		if shouldProcessColumn(col.Transformer) {
-			_, ok := tableConstraints[col.Column]
-			if ok {
-				processors = append(processors, neosync_benthos.ProcessorConfig{
-					Cache: &neosync_benthos.CacheConfig{
-						Resource: "rediscache",
-						Operator: "get",
-						Key:      fmt.Sprintf(`%s.'${! json("message.%s") }'`, neosync_benthos.BuildBenthosCacheKey(col.Schema, col.Table, col.Column), col.Column),
-					},
-				})
-				resultmap = append(resultmap, fmt.Sprintf("root.%s = this.value", col.Column))
-			}
+		// need to check that source col has transformer
+
+		_, ok := tableConstraints[col.Column]
+		if ok {
+			processors = append(processors, neosync_benthos.ProcessorConfig{
+				Cache: &neosync_benthos.CacheConfig{
+					Resource: "rediscache",
+					Operator: "get",
+					Key:      fmt.Sprintf(`%s.${! json("message.%s") }`, neosync_benthos.BuildBenthosCacheKey(col.Schema, col.Table, col.Column), col.Column),
+				},
+			})
+			resultmap = append(resultmap, fmt.Sprintf("root.%s = this.value", col.Column))
 		}
+
 	}
 	if len(processors) == 0 {
 		return nil

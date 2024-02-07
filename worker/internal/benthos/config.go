@@ -17,10 +17,25 @@ type HTTPConfig struct {
 }
 
 type StreamConfig struct {
-	Input    *InputConfig    `json:"input" yaml:"input"`
-	Buffer   *BufferConfig   `json:"buffer" yaml:"buffer"`
-	Pipeline *PipelineConfig `json:"pipeline" yaml:"pipeline"`
-	Output   *OutputConfig   `json:"output" yaml:"output"`
+	Input         *InputConfig         `json:"input" yaml:"input"`
+	Buffer        *BufferConfig        `json:"buffer" yaml:"buffer"`
+	Pipeline      *PipelineConfig      `json:"pipeline" yaml:"pipeline"`
+	Output        *OutputConfig        `json:"output" yaml:"output"`
+	CacheResource *CacheResourceConfig `json:"cache_resources,omitempty" yaml:"cache_resources,omitempty"`
+}
+
+type CacheResourceConfig struct {
+	Label          string `json:"label" yaml:"label"`
+	CacheResources `json:",inline" yaml:",inline"`
+}
+
+type CacheResources struct {
+	Redis *RedisCacheConfig `json:"redis,omitempty" yaml:"redis,omitempty"`
+}
+
+type RedisCacheConfig struct {
+	Url    string  `json:"url" yaml:"url"`
+	Prefix *string `json:"prefix,omitempty" yaml:"prefix,omitempty"`
 }
 
 type InputConfig struct {

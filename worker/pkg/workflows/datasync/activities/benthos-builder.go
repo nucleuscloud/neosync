@@ -2,7 +2,6 @@ package datasync_activities
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -149,8 +148,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, err
 		}
 		td := dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
-		jsonF, _ := json.MarshalIndent(td, "", " ")
-		fmt.Printf("\n\n  %s \n\n", string(jsonF))
 
 		// reverse of table dependency
 		// map of foreign key to source table + column
@@ -367,8 +364,8 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						if shouldProcessColumn(c.Transformer) {
 							resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 								RedisHash: &neosync_benthos.RedisHashConfig{
-									Url:            "tcp://localhost:6379",
-									Key:            fmt.Sprintf(`%s.%s.${!json("%s")}"`, tableKey, col),
+									Url:            "tcp://default:Mu54QlvMS8@redis-master.redis.svc.cluster.local:6379",
+									Key:            fmt.Sprintf(`%s.%s.${!json("%s")}`, tableKey, col, col),
 									Fields:         neosync_benthos.RedisHashFields{Value: fmt.Sprintf(`${!json("%s")}"`, col)},
 									WalkMetadata:   false,
 									WalkJsonObject: false,
