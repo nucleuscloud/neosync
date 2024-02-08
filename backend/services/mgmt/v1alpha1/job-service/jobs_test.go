@@ -3,6 +3,7 @@ package v1alpha1_jobservice
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"testing"
 	"time"
 
@@ -460,6 +461,299 @@ func Test_CreateJob(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
+}
+
+// CreateJob
+func Test_CreateJob_Schedule_Creation_Error(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+	mockTx := new(nucleusdb.MockTx)
+	mockHandle := new(MockScheduleHandle)
+	mockScheduleClient := new(MockScheduleClient)
+	mockScheduleClient.Handle = mockHandle
+
+	cronSchedule := "* * * * *"
+	whereClause := "where"
+	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
+	userUuid, _ := nucleusdb.ToUuid(mockUserId)
+	job1 := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	srcConn := getConnectionMock(mockAccountId, "test-4")
+	destConn := getConnectionMock(mockAccountId, "test-1")
+
+	cron := pgtype.Text{}
+	_ = cron.Scan(cronSchedule)
+	destinationParams := []db_queries.CreateJobConnectionDestinationsParams{
+		{JobID: job1.ID, ConnectionID: destConn.ID, Options: &pg_models.JobDestinationOptions{
+			PostgresOptions: &pg_models.PostgresDestinationOptions{
+				TruncateTableConfig: &pg_models.PostgresTruncateTableConfig{
+					TruncateBeforeInsert: true,
+					TruncateCascade:      true,
+				},
+				InitTableSchema: true,
+			},
+		}},
+	}
+
+	mockUserAccountCalls(m.UserAccountServiceMock, true)
+	mockDbTransaction(m.DbtxMock, mockTx)
+	m.QuerierMock.On("AreConnectionsInAccount", mock.Anything, mock.Anything, db_queries.AreConnectionsInAccountParams{
+		AccountId:     accountUuid,
+		ConnectionIds: []pgtype.UUID{destConn.ID},
+	}).Return(int64(1), nil)
+	m.QuerierMock.On("IsConnectionInAccount", mock.Anything, mock.Anything, db_queries.IsConnectionInAccountParams{
+		AccountId:    accountUuid,
+		ConnectionId: srcConn.ID,
+	}).Return(int64(1), nil)
+	m.QuerierMock.On("GetConnectionById", mock.Anything, mock.Anything, srcConn.ID).Return(srcConn, nil)
+	m.QuerierMock.On("GetConnectionById", mock.Anything, mock.Anything, destConn.ID).Return(destConn, nil)
+	m.TemporalWfManagerMock.On("DoesAccountHaveTemporalWorkspace", mock.Anything, mockAccountId, mock.Anything).Return(true, nil)
+	m.TemporalWfManagerMock.On("GetTemporalConfigByAccount", mock.Anything, mockAccountId).Return(&pg_models.TemporalConfig{
+		Namespace:        "default",
+		SyncJobQueueName: "sync-job",
+		Url:              "localhost:7233",
+	}, nil)
+	m.TemporalWfManagerMock.On("GetScheduleClientByAccount", mock.Anything, mockAccountId, mock.Anything).Return(mockScheduleClient, nil)
+	m.QuerierMock.On("CreateJob", mock.Anything, mockTx, db_queries.CreateJobParams{
+		Name:         job1.Name,
+		AccountID:    accountUuid,
+		Status:       int16(mgmtv1alpha1.JobStatus_JOB_STATUS_ENABLED),
+		CronSchedule: cron,
+		ConnectionOptions: &pg_models.JobSourceOptions{
+			PostgresOptions: &pg_models.PostgresSourceOptions{
+				ConnectionId:            nucleusdb.UUIDString(srcConn.ID),
+				HaltOnNewColumnAddition: true,
+				Schemas: []*pg_models.PostgresSourceSchemaOption{
+					{Schema: "schema-1", Tables: []*pg_models.PostgresSourceTableOption{
+						{Table: "table-1", WhereClause: &whereClause},
+					}},
+					{Schema: "schema-2", Tables: []*pg_models.PostgresSourceTableOption{
+						{Table: "table-2", WhereClause: &whereClause},
+					}},
+				},
+			},
+		},
+		Mappings: []*pg_models.JobMapping{
+			{Schema: "schema-1", Table: "table-1", Column: "col", JobMappingTransformer: &pg_models.JobMappingTransformerModel{
+				Source: "passthrough",
+				Config: &pg_models.TransformerConfigs{},
+			}},
+			{Schema: "schema-2", Table: "table-2", Column: "col", JobMappingTransformer: &pg_models.JobMappingTransformerModel{
+				Source: "passthrough",
+				Config: &pg_models.TransformerConfigs{},
+			}},
+		},
+		CreatedByID:     userUuid,
+		UpdatedByID:     userUuid,
+		WorkflowOptions: &pg_models.WorkflowOptions{},
+		SyncOptions:     &pg_models.ActivityOptions{},
+	}).Return(job1, nil)
+	m.QuerierMock.On("CreateJobConnectionDestinations", mock.Anything, mockTx, destinationParams).Return(int64(1), nil)
+
+	mockScheduleClient.On("Create", mock.Anything, mock.Anything).Return(nil, errors.New("test: unable to create temporal schedule"))
+	m.QuerierMock.On("RemoveJobById", mock.Anything, mock.Anything, job1.ID).Return(nil) // job deletion succeeds
+
+	resp, err := m.Service.CreateJob(context.Background(), &connect.Request[mgmtv1alpha1.CreateJobRequest]{
+		Msg: &mgmtv1alpha1.CreateJobRequest{
+			AccountId:      mockAccountId,
+			JobName:        job1.Name,
+			CronSchedule:   &cronSchedule,
+			InitiateJobRun: true,
+			Source: &mgmtv1alpha1.JobSource{
+				Options: &mgmtv1alpha1.JobSourceOptions{
+					Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
+						Postgres: &mgmtv1alpha1.PostgresSourceConnectionOptions{
+							ConnectionId:            nucleusdb.UUIDString(srcConn.ID),
+							HaltOnNewColumnAddition: true,
+							Schemas: []*mgmtv1alpha1.PostgresSourceSchemaOption{
+								{Schema: "schema-1", Tables: []*mgmtv1alpha1.PostgresSourceTableOption{
+									{Table: "table-1", WhereClause: &whereClause},
+								}},
+								{Schema: "schema-2", Tables: []*mgmtv1alpha1.PostgresSourceTableOption{
+									{Table: "table-2", WhereClause: &whereClause},
+								}},
+							},
+						},
+					},
+				},
+			},
+			Destinations: []*mgmtv1alpha1.CreateJobDestination{
+				{ConnectionId: nucleusdb.UUIDString(destConn.ID), Options: &mgmtv1alpha1.JobDestinationOptions{
+					Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
+						PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{
+							TruncateTable: &mgmtv1alpha1.PostgresTruncateTableConfig{
+								TruncateBeforeInsert: true,
+								Cascade:              true,
+							},
+							InitTableSchema: true,
+						},
+					},
+				}},
+			},
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{Schema: "schema-1", Table: "table-1", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
+					Source: "passthrough",
+					Config: &mgmtv1alpha1.TransformerConfig{},
+				}},
+				{Schema: "schema-2", Table: "table-2", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
+					Source: "passthrough",
+					Config: &mgmtv1alpha1.TransformerConfig{},
+				}},
+			},
+			WorkflowOptions: &mgmtv1alpha1.WorkflowOptions{},
+			SyncOptions:     &mgmtv1alpha1.ActivityOptions{},
+		},
+	})
+
+	assert.Error(t, err)
+	assert.ErrorContains(t, err, "unable to create scheduled job")
+	assert.ErrorContains(t, err, "test: unable to create temporal schedule")
+	assert.Nil(t, resp)
+}
+
+// CreateJob
+func Test_CreateJob_Schedule_Creation_Error_JobCleanup_Error(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+	mockTx := new(nucleusdb.MockTx)
+	mockHandle := new(MockScheduleHandle)
+	mockScheduleClient := new(MockScheduleClient)
+	mockScheduleClient.Handle = mockHandle
+
+	cronSchedule := "* * * * *"
+	whereClause := "where"
+	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
+	userUuid, _ := nucleusdb.ToUuid(mockUserId)
+	job1 := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	srcConn := getConnectionMock(mockAccountId, "test-4")
+	destConn := getConnectionMock(mockAccountId, "test-1")
+
+	cron := pgtype.Text{}
+	_ = cron.Scan(cronSchedule)
+	destinationParams := []db_queries.CreateJobConnectionDestinationsParams{
+		{JobID: job1.ID, ConnectionID: destConn.ID, Options: &pg_models.JobDestinationOptions{
+			PostgresOptions: &pg_models.PostgresDestinationOptions{
+				TruncateTableConfig: &pg_models.PostgresTruncateTableConfig{
+					TruncateBeforeInsert: true,
+					TruncateCascade:      true,
+				},
+				InitTableSchema: true,
+			},
+		}},
+	}
+
+	mockUserAccountCalls(m.UserAccountServiceMock, true)
+	mockDbTransaction(m.DbtxMock, mockTx)
+	m.QuerierMock.On("AreConnectionsInAccount", mock.Anything, mock.Anything, db_queries.AreConnectionsInAccountParams{
+		AccountId:     accountUuid,
+		ConnectionIds: []pgtype.UUID{destConn.ID},
+	}).Return(int64(1), nil)
+	m.QuerierMock.On("IsConnectionInAccount", mock.Anything, mock.Anything, db_queries.IsConnectionInAccountParams{
+		AccountId:    accountUuid,
+		ConnectionId: srcConn.ID,
+	}).Return(int64(1), nil)
+	m.QuerierMock.On("GetConnectionById", mock.Anything, mock.Anything, srcConn.ID).Return(srcConn, nil)
+	m.QuerierMock.On("GetConnectionById", mock.Anything, mock.Anything, destConn.ID).Return(destConn, nil)
+	m.TemporalWfManagerMock.On("DoesAccountHaveTemporalWorkspace", mock.Anything, mockAccountId, mock.Anything).Return(true, nil)
+	m.TemporalWfManagerMock.On("GetTemporalConfigByAccount", mock.Anything, mockAccountId).Return(&pg_models.TemporalConfig{
+		Namespace:        "default",
+		SyncJobQueueName: "sync-job",
+		Url:              "localhost:7233",
+	}, nil)
+	m.TemporalWfManagerMock.On("GetScheduleClientByAccount", mock.Anything, mockAccountId, mock.Anything).Return(mockScheduleClient, nil)
+	m.QuerierMock.On("CreateJob", mock.Anything, mockTx, db_queries.CreateJobParams{
+		Name:         job1.Name,
+		AccountID:    accountUuid,
+		Status:       int16(mgmtv1alpha1.JobStatus_JOB_STATUS_ENABLED),
+		CronSchedule: cron,
+		ConnectionOptions: &pg_models.JobSourceOptions{
+			PostgresOptions: &pg_models.PostgresSourceOptions{
+				ConnectionId:            nucleusdb.UUIDString(srcConn.ID),
+				HaltOnNewColumnAddition: true,
+				Schemas: []*pg_models.PostgresSourceSchemaOption{
+					{Schema: "schema-1", Tables: []*pg_models.PostgresSourceTableOption{
+						{Table: "table-1", WhereClause: &whereClause},
+					}},
+					{Schema: "schema-2", Tables: []*pg_models.PostgresSourceTableOption{
+						{Table: "table-2", WhereClause: &whereClause},
+					}},
+				},
+			},
+		},
+		Mappings: []*pg_models.JobMapping{
+			{Schema: "schema-1", Table: "table-1", Column: "col", JobMappingTransformer: &pg_models.JobMappingTransformerModel{
+				Source: "passthrough",
+				Config: &pg_models.TransformerConfigs{},
+			}},
+			{Schema: "schema-2", Table: "table-2", Column: "col", JobMappingTransformer: &pg_models.JobMappingTransformerModel{
+				Source: "passthrough",
+				Config: &pg_models.TransformerConfigs{},
+			}},
+		},
+		CreatedByID:     userUuid,
+		UpdatedByID:     userUuid,
+		WorkflowOptions: &pg_models.WorkflowOptions{},
+		SyncOptions:     &pg_models.ActivityOptions{},
+	}).Return(job1, nil)
+	m.QuerierMock.On("CreateJobConnectionDestinations", mock.Anything, mockTx, destinationParams).Return(int64(1), nil)
+
+	mockScheduleClient.On("Create", mock.Anything, mock.Anything).Return(nil, errors.New("test: unable to create temporal schedule"))
+	m.QuerierMock.On("RemoveJobById", mock.Anything, mock.Anything, job1.ID).Return(errors.New("test: unable to remove job")) // job deletion succeeds
+
+	resp, err := m.Service.CreateJob(context.Background(), &connect.Request[mgmtv1alpha1.CreateJobRequest]{
+		Msg: &mgmtv1alpha1.CreateJobRequest{
+			AccountId:      mockAccountId,
+			JobName:        job1.Name,
+			CronSchedule:   &cronSchedule,
+			InitiateJobRun: true,
+			Source: &mgmtv1alpha1.JobSource{
+				Options: &mgmtv1alpha1.JobSourceOptions{
+					Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
+						Postgres: &mgmtv1alpha1.PostgresSourceConnectionOptions{
+							ConnectionId:            nucleusdb.UUIDString(srcConn.ID),
+							HaltOnNewColumnAddition: true,
+							Schemas: []*mgmtv1alpha1.PostgresSourceSchemaOption{
+								{Schema: "schema-1", Tables: []*mgmtv1alpha1.PostgresSourceTableOption{
+									{Table: "table-1", WhereClause: &whereClause},
+								}},
+								{Schema: "schema-2", Tables: []*mgmtv1alpha1.PostgresSourceTableOption{
+									{Table: "table-2", WhereClause: &whereClause},
+								}},
+							},
+						},
+					},
+				},
+			},
+			Destinations: []*mgmtv1alpha1.CreateJobDestination{
+				{ConnectionId: nucleusdb.UUIDString(destConn.ID), Options: &mgmtv1alpha1.JobDestinationOptions{
+					Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
+						PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{
+							TruncateTable: &mgmtv1alpha1.PostgresTruncateTableConfig{
+								TruncateBeforeInsert: true,
+								Cascade:              true,
+							},
+							InitTableSchema: true,
+						},
+					},
+				}},
+			},
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{Schema: "schema-1", Table: "table-1", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
+					Source: "passthrough",
+					Config: &mgmtv1alpha1.TransformerConfig{},
+				}},
+				{Schema: "schema-2", Table: "table-2", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
+					Source: "passthrough",
+					Config: &mgmtv1alpha1.TransformerConfig{},
+				}},
+			},
+			WorkflowOptions: &mgmtv1alpha1.WorkflowOptions{},
+			SyncOptions:     &mgmtv1alpha1.ActivityOptions{},
+		},
+	})
+
+	assert.Error(t, err)
+	assert.ErrorContains(t, err, "unable to create scheduled job")
+	assert.ErrorContains(t, err, "test: unable to create temporal schedule")
+	assert.ErrorContains(t, err, "test: unable to remove job")
+	assert.Nil(t, resp)
 }
 
 // CreateJobDestinationConnections

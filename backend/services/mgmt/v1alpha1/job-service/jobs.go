@@ -509,7 +509,7 @@ func (s *Service) CreateJob(
 		if err != nil {
 			return nil, fmt.Errorf("unable to create scheduled job and was unable to fully cleanup partially created resources: %w: %w", removeJobErr, err)
 		}
-		return nil, fmt.Errorf("unable to create schedule job: %w", err)
+		return nil, fmt.Errorf("unable to create scheduled job: %w", err)
 	}
 	logger.Info("scheduled workflow", "workflowId", scheduleHandle.GetID())
 
