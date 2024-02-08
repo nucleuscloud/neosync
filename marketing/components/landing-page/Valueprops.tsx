@@ -25,7 +25,7 @@ export default function ValueProps(): ReactElement {
       link: '/solutions/fix-staging-environments',
     },
     {
-      title: 'Keep environments up to date',
+      title: 'Keep environments in sync',
       description:
         'Speed up your dev and test cycles. Make sure your environments stay in sync with the latest de-identified and synthetic data that you can refresh whenever you need to.',
       image:

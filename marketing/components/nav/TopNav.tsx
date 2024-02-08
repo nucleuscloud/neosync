@@ -74,7 +74,7 @@ const links: NavLinks[] = [
         icon: <LucideServerCrash className="w-8 h-8" />,
       },
       {
-        title: 'Keep environments up to date',
+        title: 'Keep environments in sync',
         href: '/solutions/keep-environments-in-sync',
         description:
           'Effortlessly keep environments in sync with the latest data',
@@ -169,7 +169,7 @@ export default function TopNav(): ReactElement {
                   <Link href={link.href} passHref legacyBehavior>
                     <NavigationMenuLink
                       className={navigationMenuTriggerStyle()}
-                      target="_blank"
+                      target={link.title !== 'About' ? '_blank' : ''}
                     >
                       {link.title ? link.title : link.icon}
                     </NavigationMenuLink>
