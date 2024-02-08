@@ -292,8 +292,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                     onValueChange={(value: string) => {
                                       if (value === NEW_CONNECTION_VALUE) {
                                         router.push(
-                                          `/new/connection?returnTo=${encodeURIComponent(
-                                            `/new/job/connect?sessionId=${sessionPrefix}`
+                                          `/${account?.name}/new/connection?returnTo=${encodeURIComponent(
+                                            `/${account?.name}/new/job/connect?sessionId=${sessionPrefix}`
                                           )}`
                                         );
                                         return;
