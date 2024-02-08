@@ -1,6 +1,7 @@
 'use client';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { useNeosyncUser } from '@/libs/hooks/useNeosyncUser';
+import { useSession } from 'next-auth/react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import posthog from 'posthog-js';
 import { PostHogProvider, usePostHog } from 'posthog-js/react';
@@ -61,8 +62,10 @@ export function PostHogIdentifier(): ReactElement {
   const { data: systemAppConfig, isLoading: isSystemAppConfigLoading } =
     useGetSystemAppConfig();
   const { data: userData, isLoading: isUserDataLoading } = useNeosyncUser();
+  const { data: session } = useSession();
   const { account, isLoading: isAccountLoading } = useAccount();
   const posthog = usePostHog();
+  const user = session?.user;
 
   useEffect(() => {
     if (
@@ -80,6 +83,9 @@ export function PostHogIdentifier(): ReactElement {
     posthog.identify(userId, {
       accountName: account.name,
       accountId: account.id,
+      email: user?.email,
+      name: user?.name,
+      neosyncCloud: systemAppConfig?.isNeosyncCloud ?? false,
     });
   }, [
     isUserDataLoading,
@@ -89,6 +95,9 @@ export function PostHogIdentifier(): ReactElement {
     account?.name,
     userData?.userId,
     systemAppConfig?.isAuthEnabled,
+    systemAppConfig?.isNeosyncCloud,
+    user?.email,
+    user?.name,
   ]);
   return <></>;
 }
