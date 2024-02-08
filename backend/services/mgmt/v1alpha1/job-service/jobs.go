@@ -449,6 +449,17 @@ func (s *Service) CreateJob(
 		activitySyncOptions.FromDto(req.Msg.SyncOptions)
 	}
 
+	tScheduleClient, err := s.temporalWfManager.GetScheduleClientByAccount(ctx, req.Msg.AccountId, logger)
+	if err != nil {
+		return nil, fmt.Errorf("unable to build temporal schedule client by account: %w", err)
+	}
+	logger.Info("successfully created temporal schedule client")
+	tconfig, err := s.temporalWfManager.GetTemporalConfigByAccount(ctx, req.Msg.AccountId)
+	if err != nil {
+		return nil, fmt.Errorf("unable to retrieve temporal config by account: %w", err)
+	}
+	logger.Info("successfully retrieved temporal account config")
+
 	cj, err := s.db.CreateJob(ctx, &db_queries.CreateJobParams{
 		Name:              req.Msg.JobName,
 		AccountID:         *accountUuid,
@@ -464,18 +475,10 @@ func (s *Service) CreateJob(
 	if err != nil {
 		return nil, fmt.Errorf("unable to create job: %w", err)
 	}
-	logger.Info("created job", "jobId", cj.ID)
-
-	tScheduleClient, err := s.temporalWfManager.GetScheduleClientByAccount(ctx, req.Msg.AccountId, logger)
-	if err != nil {
-		return nil, fmt.Errorf("unable to build temporal schedule client by account: %w", err)
-	}
-	tconfig, err := s.temporalWfManager.GetTemporalConfigByAccount(ctx, req.Msg.AccountId)
-	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve temporal config by account: %w", err)
-	}
-
 	jobUuid := nucleusdb.UUIDString(cj.ID)
+	logger = logger.With("jobId", jobUuid)
+	logger.Info("created job")
+
 	logger = logger.With("jobId", jobUuid)
 	schedule := nucleusdb.ToNullableString(cj.CronSchedule)
 	paused := true
@@ -500,8 +503,13 @@ func (s *Service) CreateJob(
 		Action: action,
 	})
 	if err != nil {
-		logger.Error(fmt.Errorf("unable to create schedule workflow: %w", err).Error())
-		return nil, err
+		logger.Error(fmt.Errorf("unable to create schedule workflow in temporal: %w", err).Error())
+		logger.Info("deleting newly created job")
+		removeJobErr := s.db.Q.RemoveJobById(ctx, s.db.Db, cj.ID)
+		if err != nil {
+			return nil, fmt.Errorf("unable to create scheduled job and was unable to fully cleanup partially created resources: %w: %w", removeJobErr, err)
+		}
+		return nil, fmt.Errorf("unable to create schedule job: %w", err)
 	}
 	logger.Info("scheduled workflow", "workflowId", scheduleHandle.GetID())
 
