@@ -68,24 +68,21 @@ export function PostHogIdentifier(): ReactElement {
   const user = session?.user;
 
   useEffect(() => {
-    if (
-      isUserDataLoading ||
-      isAccountLoading ||
-      !account?.name ||
-      !account?.id ||
-      !userData?.userId
-    ) {
+    if (isUserDataLoading || isAccountLoading || isSystemAppConfigLoading) {
       return;
     }
     // we only want to set the user id if auth is enabled, otherwise it is always the same
     // so it makes it harder to identify unique posthog sessions when running in un-auth mode.
-    const userId = systemAppConfig?.isAuthEnabled ? userData.userId : undefined;
+    const userId = systemAppConfig?.isAuthEnabled
+      ? userData?.userId
+      : undefined;
     posthog.identify(userId, {
-      accountName: account.name,
-      accountId: account.id,
+      accountName: account?.name,
+      accountId: account?.id,
       email: user?.email,
       name: user?.name,
       neosyncCloud: systemAppConfig?.isNeosyncCloud ?? false,
+      userId,
     });
   }, [
     isUserDataLoading,
