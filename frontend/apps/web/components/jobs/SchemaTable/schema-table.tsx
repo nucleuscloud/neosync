@@ -10,7 +10,8 @@ import { useGetUserDefinedTransformers } from '@/libs/hooks/useGetUserDefinedTra
 import { joinTransformers } from '@/shared/transformers';
 import { JobMappingFormValues } from '@/yup-validations/jobs';
 import { GetConnectionSchemaResponse } from '@neosync/sdk';
-import { ReactElement } from 'react';
+import { ReactElement, useMemo } from 'react';
+import { getSchemaColumns } from '../VirtualizedTanStack/SchemaColumns';
 import SchemaTableTest from '../VirtualizedTanStack/main';
 import { Row } from './VirtualizedSchemaTable';
 
@@ -50,7 +51,11 @@ export function SchemaTable(props: Props): ReactElement {
       formIdx: idx, // this is very important because we need to retain this when updating the form due to the table being filterable. Otherwise the index used is incorrect.
     };
   });
-  console.log(mergedTransformers);
+
+  const columns = useMemo(
+    () => getSchemaColumns({ transformers: mergedTransformers }),
+    [mergedTransformers] // Use mergedTransformers instead of transformers
+  );
 
   if (
     systemTransformersIsLoading ||
@@ -67,7 +72,7 @@ export function SchemaTable(props: Props): ReactElement {
         data={tableData}
         transformers={mergedTransformers}
       /> */}
-      <SchemaTableTest transformers={mergedTransformers} />
+      <SchemaTableTest columns={columns} />
     </div>
   );
 }
