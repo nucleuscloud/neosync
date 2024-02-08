@@ -5,7 +5,28 @@ import Intergrations from '@/components/landing-page/Integrations';
 import Platform from '@/components/landing-page/Platform';
 import UseNeosync from '@/components/landing-page/UseNeosync';
 import ValueProps from '@/components/landing-page/Valueprops';
+import { Metadata } from 'next';
 import { ReactElement } from 'react';
+
+export const metadata: Metadata = {
+  metadataBase: new URL('https://assets.nucleuscloud.com/'),
+  openGraph: {
+    title: 'Neosync',
+    description: 'Open Source Synthetic Data Orchestration',
+    url: 'https://neosync.dev',
+    siteName: 'Neosync',
+    images: [
+      {
+        url: '/neosync/marketingsite/mainOGHero.svg',
+        width: 1200,
+        height: 630,
+        alt: 'mainOG',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+};
 
 export default function Home(): ReactElement {
   return (

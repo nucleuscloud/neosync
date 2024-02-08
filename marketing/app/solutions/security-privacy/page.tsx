@@ -1,4 +1,5 @@
 import CTA from '@/components/cta/CTA';
+import { DotBackground } from '@/components/landing-page/DotBackground';
 import Intergrations from '@/components/landing-page/Integrations';
 import Platform from '@/components/landing-page/Platform';
 import { Metadata } from 'next';
@@ -9,6 +10,7 @@ import Hero from './hero';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://assets.nucleuscloud.com/'),
+  title: 'Neosync | Easily comply with Data Privacy, Security and Compliance',
   openGraph: {
     title: 'Neosync | Easily comply with Data Privacy, Security and Compliance',
     description:
@@ -31,10 +33,12 @@ export const metadata: Metadata = {
 export default function Page(): ReactElement {
   return (
     <div>
-      <div>
-        <div className="py-20 bg-[#FFFFFF] border-b border-b-gray-200 mx-6 lg:mx-40">
+      <div className="bg-[#FFFFFF] border-b border-b-gray-200">
+        <DotBackground>
           <Hero />
-        </div>
+        </DotBackground>
+      </div>
+      <div className=" bg-[#F5F5F5] px-4">
         <div className="bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto pt-20 lg:pt-40">
           <ComplySecurityPrivacy />
         </div>
