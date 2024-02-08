@@ -38,6 +38,8 @@ import { CONNECT_FORM_SCHEMA, ConnectFormValues } from '../schema';
 
 const NEW_CONNECTION_VALUE = 'new-connection';
 
+const isBrowser = () => typeof window !== 'undefined';
+
 export default function Page({ searchParams }: PageProps): ReactElement {
   const { account } = useAccount();
   const router = useRouter();
@@ -48,16 +50,16 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   }, [searchParams?.sessionId]);
 
   const sessionPrefix = searchParams?.sessionId ?? '';
-  const [defaultValues] = useSessionStorage<ConnectFormValues>(
-    `${sessionPrefix}-new-job-connect`,
-    {
-      sourceId: '',
-      sourceOptions: {},
-      destinations: [{ connectionId: '', destinationOptions: {} }],
-    }
-  );
+  const sessionKey = `${sessionPrefix}-new-job-connect`;
+  const [defaultValues] = useSessionStorage<ConnectFormValues>(sessionKey, {
+    sourceId: '',
+    sourceOptions: {},
+    destinations: [{ connectionId: '', destinationOptions: {} }],
+  });
+  console.log(sessionKey, defaultValues);
 
   const form = useForm<ConnectFormValues>({
+    mode: 'onChange',
     resolver: yupResolver<ConnectFormValues>(CONNECT_FORM_SCHEMA),
     values: defaultValues,
   });
@@ -67,10 +69,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     name: 'destinations',
   });
 
-  useFormPersist(`${sessionPrefix}-new-job-connect`, {
+  useFormPersist(sessionKey, {
     watch: form.watch,
     setValue: form.setValue,
-    storage: window.sessionStorage,
+    storage: isBrowser() ? window.sessionStorage : undefined,
   });
   const { isLoading: isConnectionsLoading, data: connectionsData } =
     useGetConnections(account?.id ?? '');
@@ -194,16 +196,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   )
                               )
                             ) {
-                              // set the error on the source
-                              // const isSource = true;
-                              // form.setError(`sourceId`, {
-                              //   type: 'string',
-                              //   message: `Source connection type must one of ${getErrorConnectionTypes(
-                              //     isSource,
-                              //     value,
-                              //     connections
-                              //   )}`,
-                              // });
                               // set the error on any of the destinations that are invalid
                               destinationIds.forEach((did, idx) => {
                                 if (
@@ -396,15 +388,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                             )
                                         )
                                       ) {
-                                        // set the error on the source
-                                        // form.setError(`sourceId`, {
-                                        //   type: 'string',
-                                        //   message: `Source connection type must be one of ${getErrorConnectionTypes(
-                                        //     true,
-                                        //     value,
-                                        //     connections
-                                        //   )}`,
-                                        // });
                                         // set the error on any of the destinations that are invalid
                                         destinationIds.forEach((did, idx) => {
                                           if (
