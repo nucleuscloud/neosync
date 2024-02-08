@@ -308,6 +308,11 @@ func Test_GetJobStatuses(t *testing.T) {
 
 }
 
+var (
+	cronSchedule = "* * * * *"
+	whereClause  = "where"
+)
+
 // CreateJob
 func Test_CreateJob(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
@@ -316,8 +321,6 @@ func Test_CreateJob(t *testing.T) {
 	mockScheduleClient := new(MockScheduleClient)
 	mockScheduleClient.Handle = mockHandle
 
-	cronSchedule := "* * * * *"
-	whereClause := "where"
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
 	job1 := mockJob(mockAccountId, mockUserId, uuid.NewString())
@@ -471,8 +474,6 @@ func Test_CreateJob_Schedule_Creation_Error(t *testing.T) {
 	mockScheduleClient := new(MockScheduleClient)
 	mockScheduleClient.Handle = mockHandle
 
-	cronSchedule := "* * * * *"
-	whereClause := "where"
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
 	job1 := mockJob(mockAccountId, mockUserId, uuid.NewString())
@@ -617,8 +618,6 @@ func Test_CreateJob_Schedule_Creation_Error_JobCleanup_Error(t *testing.T) {
 	mockScheduleClient := new(MockScheduleClient)
 	mockScheduleClient.Handle = mockHandle
 
-	cronSchedule := "* * * * *"
-	whereClause := "where"
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
 	job1 := mockJob(mockAccountId, mockUserId, uuid.NewString())
