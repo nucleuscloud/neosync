@@ -169,7 +169,7 @@ export default function TopNav(): ReactElement {
                   <Link href={link.href} passHref legacyBehavior>
                     <NavigationMenuLink
                       className={navigationMenuTriggerStyle()}
-                      target="_blank"
+                      target={link.title !== 'About' ? '_blank' : ''}
                     >
                       {link.title ? link.title : link.icon}
                     </NavigationMenuLink>
