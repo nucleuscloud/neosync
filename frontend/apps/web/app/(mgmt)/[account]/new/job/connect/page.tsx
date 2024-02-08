@@ -59,7 +59,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const form = useForm<ConnectFormValues>({
     resolver: yupResolver<ConnectFormValues>(CONNECT_FORM_SCHEMA),
-    defaultValues,
+    values: defaultValues,
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -82,8 +82,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   }
 
   const errors = form.formState.errors;
-
   const { postgres, mysql, s3 } = splitConnections(connections);
+
   return (
     <div
       id="newjobflowcontainer"
@@ -142,17 +142,48 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               );
                               return;
                             }
+                            // set value
+                            field.onChange(value);
+                            form.setValue('sourceOptions', {
+                              haltOnNewColumnAddition: false,
+                            });
+
+                            // handle validation
+                            // initially reset the source state
+                            form.clearErrors('sourceId');
+
                             const destinationIds = form
                               .getValues('destinations')
                               .map((d) => d.connectionId);
-
+                            // initially reset the destinationIds state
+                            destinationIds.forEach((_, idx) =>
+                              form.clearErrors(
+                                `destinations.${idx}.connectionId`
+                              )
+                            );
+                            // re-evaluate form state
+                            // first make sure that every source and destination are unique
                             if (destinationIds.some((id) => id === value)) {
                               form.setError(`sourceId`, {
                                 type: 'string',
                                 message:
                                   'Source must be different from destination',
                               });
+                              destinationIds.forEach((did, idx) => {
+                                if (did === value) {
+                                  form.setError(
+                                    `destinations.${idx}.connectionId`,
+                                    {
+                                      type: 'string',
+                                      message:
+                                        'Destination must be different from the source',
+                                    }
+                                  );
+                                }
+                              });
+                              return;
                             }
+                            // then we check to make sure the pairs are allowable
                             if (
                               destinationIds.some(
                                 (did) =>
@@ -163,22 +194,73 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   )
                               )
                             ) {
-                              const isSource = true;
-                              form.setError(`sourceId`, {
-                                type: 'string',
-                                message: `Source connection type must one of ${getErrorConnectionTypes(
-                                  isSource,
-                                  value,
-                                  connections
-                                )}`,
+                              // set the error on the source
+                              // const isSource = true;
+                              // form.setError(`sourceId`, {
+                              //   type: 'string',
+                              //   message: `Source connection type must one of ${getErrorConnectionTypes(
+                              //     isSource,
+                              //     value,
+                              //     connections
+                              //   )}`,
+                              // });
+                              // set the error on any of the destinations that are invalid
+                              destinationIds.forEach((did, idx) => {
+                                if (
+                                  !isValidConnectionPair(
+                                    value,
+                                    did,
+                                    connections
+                                  )
+                                ) {
+                                  form.setError(
+                                    `destinations.${idx}.connectionId`,
+                                    {
+                                      type: 'string',
+                                      message: `Destination connection type must one of ${getErrorConnectionTypes(
+                                        false,
+                                        value,
+                                        connections
+                                      )}`,
+                                    }
+                                  );
+                                }
                               });
-                            } else {
-                              form.clearErrors('sourceId');
+                              return;
                             }
-                            field.onChange(value);
-                            form.setValue('sourceOptions', {
-                              haltOnNewColumnAddition: false,
-                            });
+
+                            // check to make sure that all destination ids are unique
+                            if (
+                              destinationIds.length !==
+                              new Set(destinationIds).size
+                            ) {
+                              const valueIdxMap = new Map<string, number[]>();
+                              destinationIds.forEach((dstId, idx) => {
+                                const idxs = valueIdxMap.get(dstId);
+                                if (idxs !== undefined) {
+                                  idxs.push(idx);
+                                } else {
+                                  valueIdxMap.set(dstId, [idx]);
+                                }
+                              });
+
+                              Array.from(valueIdxMap.values()).forEach(
+                                (indices) => {
+                                  if (indices.length > 1) {
+                                    indices.forEach((idx) =>
+                                      form.setError(
+                                        `destinations.${idx}.connectionId`,
+                                        {
+                                          type: 'string',
+                                          message:
+                                            'Destination connections must be unique from one another',
+                                        }
+                                      )
+                                    );
+                                  }
+                                }
+                              );
+                            }
                           }}
                           value={field.value}
                         >
@@ -189,7 +271,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                             <ConnectionSelectContent
                               postgres={postgres}
                               mysql={mysql}
-                              s3={s3}
+                              s3={[]}
                             />
                           </SelectContent>
                         </Select>
@@ -222,7 +304,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               </p>
             </div>
             <div className="space-y-12 col-span-2">
-              {fields.map(({}, index) => {
+              {fields.map((_, index) => {
                 return (
                   <div className="space-y-4 col-span-2" key={index}>
                     <div className="flex flew-row space-x-4">
@@ -249,44 +331,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                         );
                                         return;
                                       }
-                                      const sourceId =
-                                        form.getValues('sourceId');
-                                      if (value === sourceId) {
-                                        form.setError(
-                                          `destinations.${index}.connectionId`,
-                                          {
-                                            type: 'string',
-                                            message:
-                                              'Destination must be different from source',
-                                          }
-                                        );
-                                        return;
-                                      }
-                                      if (
-                                        !isValidConnectionPair(
-                                          value,
-                                          sourceId,
-                                          connections
-                                        )
-                                      ) {
-                                        const isSource = false;
-                                        form.setError(
-                                          `destinations.${index}.connectionId`,
-                                          {
-                                            type: 'string',
-                                            message: `Destination connection type must one of ${getErrorConnectionTypes(
-                                              isSource,
-                                              sourceId,
-                                              connections
-                                            )}`,
-                                          }
-                                        );
-                                      } else {
-                                        form.clearErrors(
-                                          `destinations.${index}.connectionId`
-                                        );
-                                      }
-
+                                      // set values
                                       form.setValue(
                                         `destinations.${index}.destinationOptions`,
                                         {
@@ -296,6 +341,130 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                         }
                                       );
                                       field.onChange(value);
+
+                                      // clear source error before re-evaluation
+                                      form.clearErrors('sourceId');
+
+                                      const sourceId =
+                                        form.getValues('sourceId');
+
+                                      const destinationIds = form
+                                        .getValues('destinations')
+                                        .map((d) => d.connectionId);
+
+                                      // initially reset the destinationIds state
+                                      destinationIds.forEach((_, idx) =>
+                                        form.clearErrors(
+                                          `destinations.${idx}.connectionId`
+                                        )
+                                      );
+
+                                      // check to make sure that source->destination are unique
+                                      if (
+                                        destinationIds.some(
+                                          (id) => id === sourceId
+                                        )
+                                      ) {
+                                        form.setError(`sourceId`, {
+                                          type: 'string',
+                                          message:
+                                            'Source must be different from destination',
+                                        });
+                                        destinationIds.forEach((did, idx) => {
+                                          if (did === sourceId) {
+                                            form.setError(
+                                              `destinations.${idx}.connectionId`,
+                                              {
+                                                type: 'string',
+                                                message:
+                                                  'Destination must be different from the source',
+                                              }
+                                            );
+                                          }
+                                        });
+                                        return;
+                                      }
+
+                                      // check to make sure all source->destination pairs of valid
+                                      if (
+                                        destinationIds.some(
+                                          (did) =>
+                                            !isValidConnectionPair(
+                                              sourceId,
+                                              did,
+                                              connections
+                                            )
+                                        )
+                                      ) {
+                                        // set the error on the source
+                                        // form.setError(`sourceId`, {
+                                        //   type: 'string',
+                                        //   message: `Source connection type must be one of ${getErrorConnectionTypes(
+                                        //     true,
+                                        //     value,
+                                        //     connections
+                                        //   )}`,
+                                        // });
+                                        // set the error on any of the destinations that are invalid
+                                        destinationIds.forEach((did, idx) => {
+                                          if (
+                                            !isValidConnectionPair(
+                                              sourceId,
+                                              did,
+                                              connections
+                                            )
+                                          ) {
+                                            form.setError(
+                                              `destinations.${idx}.connectionId`,
+                                              {
+                                                type: 'string',
+                                                message: `Destination connection type must one of ${getErrorConnectionTypes(
+                                                  false,
+                                                  sourceId,
+                                                  connections
+                                                )}`,
+                                              }
+                                            );
+                                          }
+                                        });
+                                        return;
+                                      }
+
+                                      // check to make sure that all destination ids are unique
+                                      if (
+                                        destinationIds.length !==
+                                        new Set(destinationIds).size
+                                      ) {
+                                        const valueIdxMap = new Map<
+                                          string,
+                                          number[]
+                                        >();
+                                        destinationIds.forEach((dstId, idx) => {
+                                          const idxs = valueIdxMap.get(dstId);
+                                          if (idxs !== undefined) {
+                                            idxs.push(idx);
+                                          } else {
+                                            valueIdxMap.set(dstId, [idx]);
+                                          }
+                                        });
+
+                                        Array.from(
+                                          valueIdxMap.values()
+                                        ).forEach((indices) => {
+                                          if (indices.length > 1) {
+                                            indices.forEach((idx) =>
+                                              form.setError(
+                                                `destinations.${idx}.connectionId`,
+                                                {
+                                                  type: 'string',
+                                                  message:
+                                                    'Destination connections must be unique from one another',
+                                                }
+                                              )
+                                            );
+                                          }
+                                        });
+                                      }
                                     }}
                                     value={field.value}
                                   >
