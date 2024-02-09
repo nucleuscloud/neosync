@@ -36,7 +36,7 @@ export default function TransformEmailForm(props: Props): ReactElement {
   const [pl, setPl] = useState<boolean>(plValue);
 
   const doms = fc.getValues(
-    `mappings.${index}.transformer.config.value.exclusionList`
+    `mappings.${index}.transformer.config.value.excludedDomains`
   );
 
   const [domains, setDomains] = useState<string>(doms.join(','));
@@ -48,7 +48,7 @@ export default function TransformEmailForm(props: Props): ReactElement {
       new TransformEmail({
         preserveDomain: pd,
         preserveLength: pl,
-        exclusionList: val,
+        excludedDomains: val,
       }),
       {
         shouldValidate: false,
@@ -106,11 +106,11 @@ export default function TransformEmailForm(props: Props): ReactElement {
         )}
       />
       <FormField
-        name={`mappings.${index}.transformer.config.value.exclusionList`}
+        name={`mappings.${index}.transformer.config.value.excludedDomains`}
         render={() => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm gap-4 ">
             <div className="space-y-0.5">
-              <FormLabel>Exclusion List</FormLabel>
+              <FormLabel>Excluded Domains</FormLabel>
               <FormDescription>
                 Provide a list of comma-separated domains that you want to be
                 excluded from the transformer. Do not provide an @ with the

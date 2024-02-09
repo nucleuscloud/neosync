@@ -128,24 +128,24 @@ Would produce the following output value:
 
 Depending on your logic, you may want to configure the output email. The transform email transformer has the following configurations:
 
-| Name           | Description                                                                     | Default | Example Input           | Example Output      |
-| -------------- | ------------------------------------------------------------------------------- | ------- | ----------------------- | ------------------- |
-| PreserveDomain | Carries over the input domain and top-level to the output email address.        | false   | `john@gmail.com`        | `fjf2903@gmail.com` |
-| PreserveLength | Ensures the output email address is the same length as the input email address. | false   | `john@gmail.com`        | `hw98@gmail.edu `   |
-| Exclude List   | Specify a list of comma separated domains to exclude from transformation logic. | empty   | `gmail.com,hotmail.com` | `hw98@gmail.edu `   |
+| Name             | Description                                                                     | Default | Example Input           | Example Output      |
+| ---------------- | ------------------------------------------------------------------------------- | ------- | ----------------------- | ------------------- |
+| PreserveDomain   | Carries over the input domain and top-level to the output email address.        | false   | `john@gmail.com`        | `fjf2903@gmail.com` |
+| PreserveLength   | Ensures the output email address is the same length as the input email address. | false   | `john@gmail.com`        | `hw98@gmail.edu `   |
+| Excluded Domains | Specify a list of comma separated domains to exclude from transformation logic. | empty   | `gmail.com,hotmail.com` | `hw98@gmail.edu `   |
 
 **Examples**
 
-There are several ways you can mix-and-match configurations to get different potential email formats. Note that the Exclude List pertains to the transformed emails. If the PreserverDomain is true and there is a domain in the ExcludeList, then the default logic would be to **not** preserve the domain but since we are excluding those domains from the transformation logic via the exclude list, then those domains **will** be excluded.
+There are several ways you can mix-and-match configurations to get different potential email formats. Note that the Excluded Domains List pertains to the transformed emails. If the PreserverDomain is true and there is a domain in the Excluded Domains list, then the default logic would be to **not** preserve the domain but since we are excluding those domains from the transformation logic via the exclude list, then those domains **will** be excluded.
 
 Here are some possible combinations:
 
-| PreserveLength | PreserveDomain | Exclude list | Example Input        | Example Output        |
-| -------------- | -------------- | ------------ | -------------------- | --------------------- |
-| false          | true           | `gmail.com`  | `evis@gmail.com`     | `f9nkeuh@ergwer.wewe` |
-| true           | false          | `gmail.com`  | `f98723uh@gmail.com` | `f98723uh@gmail.com`  |
-| true           | true           | `gmail.com`  | `evis@gmail.com`     | `f98723uh@weefw.wefw` |
-| false          | false          | `gmail.com`  | `evis@gmail.com`     | `f98723uh@gmail.com`  |
+| PreserveLength | PreserveDomain | Exclude Domains | Example Input        | Example Output        |
+| -------------- | -------------- | --------------- | -------------------- | --------------------- |
+| false          | true           | `gmail.com`     | `evis@gmail.com`     | `f9nkeuh@ergwer.wewe` |
+| true           | false          | `gmail.com`     | `f98723uh@gmail.com` | `f98723uh@gmail.com`  |
+| true           | true           | `gmail.com`     | `evis@gmail.com`     | `f98723uh@weefw.wefw` |
+| false          | false          | `gmail.com`     | `evis@gmail.com`     | `f98723uh@gmail.com`  |
 
 ### Generate Boolean\{#generate-boolean}
 

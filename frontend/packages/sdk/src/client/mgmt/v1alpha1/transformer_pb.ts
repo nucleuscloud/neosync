@@ -1155,9 +1155,9 @@ export class TransformEmail extends Message<TransformEmail> {
   preserveLength = false;
 
   /**
-   * @generated from field: repeated string exclusion_list = 3;
+   * @generated from field: repeated string excluded_domains = 3;
    */
-  exclusionList: string[] = [];
+  excludedDomains: string[] = [];
 
   constructor(data?: PartialMessage<TransformEmail>) {
     super();
@@ -1169,7 +1169,7 @@ export class TransformEmail extends Message<TransformEmail> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "preserve_domain", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 2, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 3, name: "exclusion_list", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 3, name: "excluded_domains", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformEmail {

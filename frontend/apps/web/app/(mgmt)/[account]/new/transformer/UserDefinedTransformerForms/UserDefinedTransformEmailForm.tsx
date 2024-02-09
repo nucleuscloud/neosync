@@ -75,11 +75,11 @@ export default function UserDefinedTransformEmailForm(
         )}
       />
       <FormField
-        name={`config.value.exclusionList`}
+        name={`config.value.excludedDomains`}
         render={({ field }) => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm gap-4 ">
             <div className="space-y-0.5">
-              <FormLabel>Exclusion List</FormLabel>
+              <FormLabel>Excluded Domains</FormLabel>
               <FormDescription>
                 Provide a list of comma-separated domains that you want to be
                 excluded from the transformer. Do not provide an @ with the
