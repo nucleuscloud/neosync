@@ -121,12 +121,12 @@ type Outputs struct {
 }
 
 type RedisHashConfig struct {
-	Url            string          `json:"url" yaml:"url"`
-	Key            string          `json:"key" yaml:"key"`
-	WalkMetadata   bool            `json:"walk_metadata" yaml:"walk_metadata"`
-	WalkJsonObject bool            `json:"walk_json_object" yaml:"walk_json_object"`
-	Fields         RedisHashFields `json:"fields" yaml:"fields"`
-	MaxInFlight    *int            `json:"max_in_flight,omitempty" yaml:"max_in_flight,omitempty"`
+	Url            string         `json:"url" yaml:"url"`
+	Key            string         `json:"key" yaml:"key"`
+	WalkMetadata   bool           `json:"walk_metadata" yaml:"walk_metadata"`
+	WalkJsonObject bool           `json:"walk_json_object" yaml:"walk_json_object"`
+	Fields         map[string]any `json:"fields" yaml:"fields"`
+	MaxInFlight    *int           `json:"max_in_flight,omitempty" yaml:"max_in_flight,omitempty"`
 }
 
 type RedisHashFields struct {

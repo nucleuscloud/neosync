@@ -41,6 +41,9 @@ type benthosBuilder struct {
 	jobclient         mgmtv1alpha1connect.JobServiceClient
 	connclient        mgmtv1alpha1connect.ConnectionServiceClient
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient
+
+	jobId string
+	runId string
 }
 
 func newBenthosBuilder(
@@ -56,6 +59,8 @@ func newBenthosBuilder(
 
 	sqlconnector sqlconnect.SqlConnector,
 
+	jobId, runId string,
+
 ) *benthosBuilder {
 	return &benthosBuilder{
 		pgpool:            pgpool,
@@ -66,6 +71,8 @@ func newBenthosBuilder(
 		jobclient:         jobclient,
 		connclient:        connclient,
 		transformerclient: transformerclient,
+		jobId:             jobId,
+		runId:             runId,
 	}
 }
 
@@ -86,6 +93,14 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		groupedTableMapping[neosync_benthos.BuildBenthosTable(tm.Schema, tm.Table)] = tm
 	}
 	uniqueSchemas := getUniqueSchemasFromMappings(job.Mappings)
+
+	colTransformerMap := map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{} // schema.table ->  column -> transformer
+	for table, mapping := range groupedTableMapping {
+		colTransformerMap[table] = map[string]*mgmtv1alpha1.JobMappingTransformer{}
+		for _, m := range mapping.Mappings {
+			colTransformerMap[table][m.Column] = m.Transformer
+		}
+	}
 
 	// reverse of table dependency
 	// map of foreign key to source table + column
@@ -151,23 +166,8 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 		// reverse of table dependency
 		// map of foreign key to source table + column
-		tc := map[string]map[string]*dbschemas_utils.ForeignKey{} // schema.table -> column -> ForeignKey
-		for table, constraints := range td {
-			for _, c := range constraints.Constraints {
-				_, ok := tc[c.ForeignKey.Table]
-				if !ok {
-					tc[c.ForeignKey.Table] = map[string]*dbschemas_utils.ForeignKey{}
-				}
-				tc[c.ForeignKey.Table][c.ForeignKey.Column] = &dbschemas_utils.ForeignKey{
-					Table:  table,
-					Column: c.Column,
-				}
-			}
-		}
-
-		tableConstraintsSource = tc
-
-		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, jobSourceConfig.Postgres.ConnectionId, "postgres", sourceTableOpts, td)
+		tableConstraintsSource = b.getForeignKeyToSourceMap(td)
+		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, jobSourceConfig.Postgres.ConnectionId, "postgres", sourceTableOpts, td, colTransformerMap)
 		if err != nil {
 			return nil, err
 		}
@@ -269,23 +269,8 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 		// reverse of table dependency
 		// map of foreign key to source table + column
-		tc := map[string]map[string]*dbschemas_utils.ForeignKey{} // schema.table -> column -> ForeignKey
-		for table, constraints := range td {
-			for _, c := range constraints.Constraints {
-				_, ok := tc[c.ForeignKey.Table]
-				if !ok {
-					tc[c.ForeignKey.Table] = map[string]*dbschemas_utils.ForeignKey{}
-				}
-				tc[c.ForeignKey.Table][c.ForeignKey.Column] = &dbschemas_utils.ForeignKey{
-					Table:  table,
-					Column: c.Column,
-				}
-			}
-		}
-
-		tableConstraintsSource = tc
-
-		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, jobSourceConfig.Mysql.ConnectionId, "mysql", sourceTableOpts, td)
+		tableConstraintsSource = b.getForeignKeyToSourceMap(td)
+		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, jobSourceConfig.Mysql.ConnectionId, "mysql", sourceTableOpts, td, colTransformerMap)
 		if err != nil {
 			return nil, err
 		}
@@ -354,26 +339,20 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			dstEnvVarKey := fmt.Sprintf("DESTINATION_%d_CONNECTION_DSN", destIdx)
 			dsn := fmt.Sprintf("${%s}", dstEnvVarKey)
 
-			// for each col thats foreign keyed
 			constraints := tableConstraintsSource[tableKey]
 			for col := range constraints {
-				// check if col has a transformer
-				// TODO make this more performant
-				for _, c := range tm.Mappings {
-					if c.Column == col {
-						if shouldProcessColumn(c.Transformer) {
-							// TODO make metadata private
-							resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-								RedisHash: &neosync_benthos.RedisHashConfig{
-									Url:            "tcp://default:0hKTi4NVq9@redis-master.redis.svc.cluster.local:6379",
-									Key:            fmt.Sprintf(`%s.%s.${!meta("%s")}`, tableKey, col, col),                     // this needs to be original col value
-									Fields:         neosync_benthos.RedisHashFields{Value: fmt.Sprintf(`${!json("%s")}"`, col)}, // this needs to be transformed col value
-									WalkMetadata:   false,
-									WalkJsonObject: false,
-								},
-							})
-						}
-					}
+				transformer := colTransformerMap[tableKey][col]
+				if shouldProcessColumn(transformer) {
+					// originalValue := fmt.Sprintf(`${!meta("neosync_%s")}`, col)
+					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
+						RedisHash: &neosync_benthos.RedisHashConfig{
+							Url:            "tcp://default:0hKTi4NVq9@redis-master.redis.svc.cluster.local:6379",
+							Key:            fmt.Sprintf(`%s.%s.%s.%s`, b.jobId, b.runId, tableKey, col),                                    // original col value stored in metadata
+							Fields:         map[string]any{fmt.Sprintf(`${!meta("neosync_%s")}`, col): fmt.Sprintf(`${!json("%s")}`, col)}, // transformed col value
+							WalkMetadata:   false,
+							WalkJsonObject: false,
+						},
+					})
 				}
 
 			}
@@ -546,6 +525,23 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	return &GenerateBenthosConfigsResponse{
 		BenthosConfigs: responses,
 	}, nil
+}
+
+func (b *benthosBuilder) getForeignKeyToSourceMap(tableDependencies map[string]*dbschemas_utils.TableConstraints) map[string]map[string]*dbschemas_utils.ForeignKey {
+	tc := map[string]map[string]*dbschemas_utils.ForeignKey{} // schema.table -> column -> ForeignKey
+	for table, constraints := range tableDependencies {
+		for _, c := range constraints.Constraints {
+			_, ok := tc[c.ForeignKey.Table]
+			if !ok {
+				tc[c.ForeignKey.Table] = map[string]*dbschemas_utils.ForeignKey{}
+			}
+			tc[c.ForeignKey.Table][c.ForeignKey.Column] = &dbschemas_utils.ForeignKey{
+				Table:  table,
+				Column: c.Column,
+			}
+		}
+	}
+	return tc
 }
 
 type sqlOutput struct {
@@ -880,6 +876,7 @@ func (b *benthosBuilder) createSqlUpdateBenthosConfig(
 		driver,
 		map[string]*sqlSourceTableOptions{},
 		map[string]*dbschemas_utils.TableConstraints{},
+		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
 	)
 	if err != nil {
 		return nil, err

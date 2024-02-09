@@ -217,6 +217,8 @@ func (a *Activities) GenerateBenthosConfigs(
 		connclient,
 		transformerclient,
 		&sqlconnect.SqlOpenConnector{},
+		req.JobId,
+		wfmetadata.RunId,
 	)
 	slogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
 	slogger = slogger.With(
@@ -236,30 +238,24 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 	dsnConnectionId string,
 	driver string,
 	sourceTableOpts map[string]*sqlSourceTableOptions,
-	tc map[string]*dbschemas_utils.TableConstraints,
+	tableDependencies map[string]*dbschemas_utils.TableConstraints,
+	colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,
 ) ([]*BenthosConfigResponse, error) {
 	responses := []*BenthosConfigResponse{}
 
 	// filter this list by table constraints that has transformer
 	tableConstraints := map[string]map[string]*dbschemas_utils.ForeignKey{} // schema.table -> column -> foreignKey
-	for table, constraints := range tc {
+	for table, constraints := range tableDependencies {
 		_, ok := tableConstraints[table]
 		if !ok {
 			tableConstraints[table] = map[string]*dbschemas_utils.ForeignKey{}
 		}
 		for _, tc := range constraints.Constraints {
 			// only add constraint if foreign key has transformer
-			for _, m := range mappings {
-				if neosync_benthos.BuildBenthosTable(m.Schema, m.Table) == tc.ForeignKey.Table {
-					for _, mm := range m.Mappings {
-						if mm.Column == tc.ForeignKey.Column && shouldProcessColumn(mm.Transformer) {
-							tableConstraints[table][tc.Column] = tc.ForeignKey
-						}
-					}
-
-				}
+			transformer, transformerOk := colTransformerMap[tc.ForeignKey.Table][tc.ForeignKey.Column]
+			if transformerOk && shouldProcessColumn(transformer) {
+				tableConstraints[table][tc.Column] = tc.ForeignKey
 			}
-
 		}
 	}
 
@@ -314,26 +310,6 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 
 		for _, pc := range processorConfigs {
 			bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *pc)
-			// TODO make this specific to redis
-			if pc.Branch != nil {
-				// bc.StreamConfig.CacheResource = &neosync_benthos.CacheResourceConfig{
-				// 	Label: []string{"rediscache"},
-				// 	CacheResources: neosync_benthos.CacheResources{
-				// 		Redis: &neosync_benthos.RedisCacheConfig{
-				// 			Url: "tcp://default:Mu54QlvMS8@redis-master.redis.svc.cluster.local:6379",
-				// 		},
-				// 	},
-				// }
-
-				bc.StreamConfig.CacheResources = []*neosync_benthos.CacheResourceConfig{
-					{Label: "rediscache",
-						Redis: &neosync_benthos.RedisCacheConfig{
-							Url: "tcp://default:0hKTi4NVq9@redis-master.redis.svc.cluster.local:6379",
-						},
-					},
-				}
-
-			}
 		}
 
 		responses = append(responses, &BenthosConfigResponse{
@@ -897,11 +873,11 @@ func (b *benthosBuilder) buildProcessorConfigs(ctx context.Context, cols []*mgmt
 	}
 
 	cacheBranch := b.buildBranchCacheConfigs(ctx, cols, tableConstraints)
-	metadataMapping := b.buildMetadataMappingConfigs(ctx, cols)
+	mapping := b.buildMappingConfigs(ctx, cols, tableConstraints)
 
 	var processorConfigs []*neosync_benthos.ProcessorConfig
-	if len(metadataMapping) > 0 {
-		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Mapping: &metadataMapping})
+	if len(mapping) > 0 {
+		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Mapping: &mapping})
 	}
 	if len(mutations) > 0 {
 		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Mutation: &mutations})
@@ -947,21 +923,14 @@ func (b *benthosBuilder) extractJsFunctionsAndOutputs(ctx context.Context, cols 
 
 }
 
-func (b *benthosBuilder) buildMetadataMappingConfigs(ctx context.Context, cols []*mgmtv1alpha1.JobMapping) string {
-
-	metadata := []string{}
-
+func (b *benthosBuilder) buildMappingConfigs(ctx context.Context, cols []*mgmtv1alpha1.JobMapping, tableConstraints map[string]*dbschemas_utils.ForeignKey) string {
+	mappings := []string{}
 	for _, col := range cols {
 		if shouldProcessColumn(col.Transformer) {
-			// TODO fix this
-			// TODO make metadata private
-
-			metadata = append(metadata, fmt.Sprintf("meta %s = this.%s", col.Column, col.Column))
+			mappings = append(mappings, fmt.Sprintf("meta neosync_%s = this.%s", col.Column, col.Column))
 		}
 	}
-
-	return strings.Join(metadata, "\n")
-
+	return strings.Join(mappings, "\n")
 }
 
 func (b *benthosBuilder) buildMutationConfigs(ctx context.Context, cols []*mgmtv1alpha1.JobMapping) (string, error) {
@@ -998,21 +967,14 @@ func (b *benthosBuilder) buildBranchCacheConfigs(ctx context.Context, cols []*mg
 	resultmap := []string{}
 
 	for _, col := range cols {
-		// need to check that source col has transformer
-
-		tc, ok := tableConstraints[col.Column]
+		fk, ok := tableConstraints[col.Column]
 		if ok {
-			// needs to be redis
 			processors = append(processors, neosync_benthos.ProcessorConfig{
-				// Cache: &neosync_benthos.CacheConfig{
-				// 	Resource: "rediscache",
-				// 	Operator: "get",
-				// 	Key:      fmt.Sprintf(`%s.%s.${! json("%s") }`, tc.Table, tc.Column, col.Column),
-				// },
 				Redis: &neosync_benthos.RedisProcessorConfig{
-					Url:         "tcp://default:0hKTi4NVq9@redis-master.redis.svc.cluster.local:6379",
-					Command:     fmt.Sprintf(`hget %s.%s.${! json("%s") } value`, tc.Table, tc.Column, col.Column),
-					ArgsMapping: `root = []`,
+					Url:     "tcp://default:0hKTi4NVq9@redis-master.redis.svc.cluster.local:6379",
+					Command: "hget",
+					// ArgsMapping: fmt.Sprintf(`root = [["%s", "%s", json("%s")].join("."), "%s"]`, fk.Table, fk.Column, col.Column, fk.Column),
+					ArgsMapping: fmt.Sprintf(`root = ["%s.%s.%s.%s", json("%s")]`, b.jobId, b.runId, fk.Table, fk.Column, col.Column),
 				},
 			})
 			resultmap = append(resultmap, fmt.Sprintf("root.%s = this", col.Column))
