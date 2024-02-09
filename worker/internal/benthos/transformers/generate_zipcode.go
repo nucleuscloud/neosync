@@ -10,13 +10,10 @@ import (
 )
 
 func init() {
-
 	spec := bloblang.NewPluginSpec()
 
 	err := bloblang.RegisterFunctionV2("generate_zipcode", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-
 		return func() (any, error) {
-
 			return GenerateRandomZipcode(), nil
 		}, nil
 	})
@@ -27,7 +24,6 @@ func init() {
 
 // Generates a randomly selected zip code that exists in the United States.
 func GenerateRandomZipcode() string {
-
 	addresses := transformers_dataset.Addresses
 
 	// -1 because addresses is an array so we don't overflow

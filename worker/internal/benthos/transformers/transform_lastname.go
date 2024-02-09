@@ -12,14 +12,12 @@ import (
 var lastNames = transformers_dataset.LastNames
 
 func init() {
-
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewInt64Param("max_length")).
 		Param(bloblang.NewAnyParam("value").Optional()).
 		Param(bloblang.NewBoolParam("preserve_length"))
 
 	err := bloblang.RegisterFunctionV2("transform_last_name", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-
 		valuePtr, err := args.GetOptionalString("value")
 		if err != nil {
 			return nil, err
@@ -43,18 +41,15 @@ func init() {
 			res, err := TransformLastName(value, preserveLength, maxLength)
 			return res, err
 		}, nil
-
 	})
 
 	if err != nil {
 		panic(err)
 	}
-
 }
 
 // Generates a random last name which can be of either random length between [2,12] characters or as long as the input name
 func TransformLastName(name string, preserveLength bool, maxLength int64) (*string, error) {
-
 	if name == "" {
 		return nil, nil
 	}
@@ -79,9 +74,7 @@ func TransformLastName(name string, preserveLength bool, maxLength int64) (*stri
 
 // Generates a random last name with length [min, max]. If the length is greater than 12, a last name of length 12 will be returned.
 func GenerateRandomLastNameInLengthRange(minLength, maxLength int64) (string, error) {
-
 	if minLength == maxLength {
-
 		if minLength > 12 {
 			names := lastNames[12]
 			res, err := transformer_utils.GetRandomValueFromSlice[string](names)
@@ -112,7 +105,6 @@ func GenerateRandomLastNameInLengthRange(minLength, maxLength int64) (string, er
 				return "", err
 			}
 			return res, nil
-
 		} else if maxLength < 2 {
 			res, err := transformer_utils.GenerateRandomStringWithDefinedLength(1)
 			if err != nil {
@@ -133,5 +125,4 @@ func GenerateRandomLastNameInLengthRange(minLength, maxLength int64) (string, er
 			return res, nil
 		}
 	}
-
 }

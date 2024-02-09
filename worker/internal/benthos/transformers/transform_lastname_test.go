@@ -9,7 +9,6 @@ import (
 )
 
 func Test_TranformLastNameEmptyName(t *testing.T) {
-
 	emptyName := ""
 
 	res, err := TransformLastName(emptyName, true, maxCharacterLimit)
@@ -18,7 +17,6 @@ func Test_TranformLastNameEmptyName(t *testing.T) {
 }
 
 func Test_TransformLastNamePreserveLengthTrue(t *testing.T) {
-
 	nameLength := int64(len(name))
 
 	res, err := TransformLastName(name, true, maxCharacterLimit)
@@ -29,7 +27,6 @@ func Test_TransformLastNamePreserveLengthTrue(t *testing.T) {
 }
 
 func Test_GenerateRandomLastNameInLengthRangeMinAndMaxSame(t *testing.T) {
-
 	nameLength := int64(len(name))
 
 	res, err := GenerateRandomLastNameInLengthRange(nameLength, nameLength)
@@ -40,7 +37,6 @@ func Test_GenerateRandomLastNameInLengthRangeMinAndMaxSame(t *testing.T) {
 }
 
 func Test_GenerateRandomLastNameInLengthRangeMinAndMaxSameTooShort(t *testing.T) {
-
 	nameLength := int64(len("a"))
 
 	res, err := GenerateRandomLastNameInLengthRange(nameLength, nameLength)
@@ -51,7 +47,6 @@ func Test_GenerateRandomLastNameInLengthRangeMinAndMaxSameTooShort(t *testing.T)
 }
 
 func Test_GenerateRandomLastNameInLengthRangeMinAndMaxSameTooLong(t *testing.T) {
-
 	nameLength := int64(len("wkepofkwepofe"))
 
 	res, err := GenerateRandomLastNameInLengthRange(nameLength, nameLength)
@@ -62,7 +57,6 @@ func Test_GenerateRandomLastNameInLengthRangeMinAndMaxSameTooLong(t *testing.T) 
 }
 
 func Test_TransformLastNamePreserveLengthFalse(t *testing.T) {
-
 	res, err := TransformLastName(name, false, maxCharacterLimit)
 
 	assert.NoError(t, err)
@@ -72,14 +66,12 @@ func Test_TransformLastNamePreserveLengthFalse(t *testing.T) {
 }
 
 func Test_GenerateRandomLastNameInLengthRange(t *testing.T) {
-
 	res, err := GenerateRandomLastNameInLengthRange(int64(len(name)), maxCharacterLimit)
 
 	assert.NoError(t, err)
 	assert.True(t, len(res) >= int(minNameLength), "The name should be greater than the min length name")
 	assert.True(t, len(res) <= int(maxCharacterLimit), "The name should be less than the max character limit")
 	assert.IsType(t, "", res, "The last name should be a string")
-
 }
 
 func Test_GenerateRandomLastNameInLengthRangeMaxCharLimitMedum(t *testing.T) {
@@ -91,11 +83,9 @@ func Test_GenerateRandomLastNameInLengthRangeMaxCharLimitMedum(t *testing.T) {
 	assert.True(t, len(res) >= int(minNameLength), "The name should be greater than the min length name")
 	assert.True(t, len(res) <= int(maxCharacterLimit), "The name should be less than the max character limit")
 	assert.IsType(t, "", res, "The last name should be a string")
-
 }
 
 func Test_GenerateRandomLastNameInLengthRangeLowMaxCharLimit(t *testing.T) {
-
 	// tests where we have a very low max char limit and we want to create a name that will fit in that eact max char limit
 
 	res, err := GenerateRandomLastNameInLengthRange(minNameLength, int64(1))
@@ -103,7 +93,6 @@ func Test_GenerateRandomLastNameInLengthRangeLowMaxCharLimit(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, len(res) == 1, "The name should be greater than the min length name")
 	assert.IsType(t, "", res, "The last name should be a string")
-
 }
 
 func Test_LastNameTransformer(t *testing.T) {
@@ -131,7 +120,6 @@ func Test_LastNameTransformer(t *testing.T) {
 }
 
 func Test_TransformLastNameTransformerWithEmptyValue(t *testing.T) {
-
 	nilName := ""
 	mapping := fmt.Sprintf(`root = transform_last_name(value:%q,preserve_length:true,max_length:%d)`, nilName, maxCharacterLimit)
 	ex, err := bloblang.Parse(mapping)

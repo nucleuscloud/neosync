@@ -10,7 +10,6 @@ import (
 )
 
 func init() {
-
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewAnyParam("email").Optional()).
 		Param(bloblang.NewBoolParam("preserve_length")).
@@ -19,7 +18,6 @@ func init() {
 		Param(bloblang.NewInt64Param("max_length"))
 
 	err := bloblang.RegisterFunctionV2("transform_email", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-
 		emailPtr, err := args.GetOptionalString("email")
 		if err != nil {
 			return nil, err
@@ -61,29 +59,24 @@ func init() {
 			val, ok := str.(string)
 			if !ok {
 				return nil, fmt.Errorf("expected string, got :%T", str)
-
 			}
 
 			excludeStringSlice = append(excludeStringSlice, val)
 		}
 
 		return func() (any, error) {
-
 			res, err := TransformEmail(email, preserveLength, preserveDomain, maxLength, excludeStringSlice)
 			return res, err
 		}, nil
-
 	})
 
 	if err != nil {
 		panic(err)
 	}
-
 }
 
 // Anonymizes an existing email address. This function returns a string pointer to handle nullable email columns where an input email value may not exist.
 func TransformEmail(email string, preserveLength, preserveDomain bool, maxLength int64, excludeList []string) (*string, error) {
-
 	var returnValue string
 	var err error
 
@@ -92,26 +85,22 @@ func TransformEmail(email string, preserveLength, preserveDomain bool, maxLength
 	}
 
 	if !preserveLength && preserveDomain {
-
 		returnValue, err = TransformEmailPreserveDomain(email, true, maxLength, excludeList)
 		if err != nil {
 			return nil, err
 		}
-
 	} else if preserveLength && !preserveDomain {
 
 		returnValue, err = TransformEmailPreserveLength(email, excludeList)
 		if err != nil {
 			return nil, err
 		}
-
 	} else if preserveLength && preserveDomain {
 
 		returnValue, err = TransformEmailPreserveDomainAndLength(email, maxLength, excludeList)
 		if err != nil {
 			return nil, err
 		}
-
 	} else {
 
 		randLength, err := transformer_utils.GenerateRandomInt64InValueRange(10, maxLength)
@@ -138,11 +127,9 @@ func TransformEmail(email string, preserveLength, preserveDomain bool, maxLength
 
 		// handle exclusion list
 		if transformer_utils.StringInSlice(parsedInputEmail[1], excludeList) {
-
 			domain := parsedInputEmail[1]
 
 			returnValue = un + "@" + domain
-
 		} else {
 			splitDomain := strings.Split(parsedInputEmail[1], ".")
 
@@ -161,7 +148,6 @@ func TransformEmail(email string, preserveLength, preserveDomain bool, maxLength
 
 			returnValue = un + "@" + domain
 		}
-
 	}
 
 	return &returnValue, nil
@@ -169,7 +155,6 @@ func TransformEmail(email string, preserveLength, preserveDomain bool, maxLength
 
 // Generate a random email and preserve the input email's domain
 func TransformEmailPreserveDomain(email string, pd bool, maxLength int64, excludeList []string) (string, error) {
-
 	parsedEmail, err := transformer_utils.ParseEmail(email)
 	if err != nil {
 		return "", fmt.Errorf("invalid email: %s", email)
@@ -177,7 +162,6 @@ func TransformEmailPreserveDomain(email string, pd bool, maxLength int64, exclud
 
 	// handle exclusion list
 	if transformer_utils.StringInSlice(parsedEmail[1], excludeList) {
-
 		randLength, err := transformer_utils.GenerateRandomInt64InValueRange(10, maxLength)
 		if err != nil {
 			return "", err
@@ -197,12 +181,10 @@ func TransformEmailPreserveDomain(email string, pd bool, maxLength int64, exclud
 		}
 		return strings.ToLower(un) + "@" + parsedEmail[1], err
 	}
-
 }
 
 // Preserve the length of email but not the domain name. If domain is in the exclusion list, then it will preserve the domain
 func TransformEmailPreserveLength(email string, excludeList []string) (string, error) {
-
 	var res string
 
 	parsedEmail, err := transformer_utils.ParseEmail(email)
@@ -223,9 +205,7 @@ func TransformEmailPreserveLength(email string, excludeList []string) (string, e
 
 	// handle exclusion list
 	if transformer_utils.StringInSlice(parsedEmail[1], excludeList) {
-
 		domain = parsedEmail[1]
-
 	} else {
 
 		// generate a random domain
@@ -240,18 +220,15 @@ func TransformEmailPreserveLength(email string, excludeList []string) (string, e
 			return "", nil
 		}
 		domain = dom + "." + tld
-
 	}
 
 	res = transformer_utils.SliceString(un, len(parsedEmail[0])) + "@" + domain
 
 	return res, err
-
 }
 
 // preserve domain and length of the email -> keep the domain the same but slice the username to be the same length as the input username
 func TransformEmailPreserveDomainAndLength(e string, maxLength int64, excludeList []string) (string, error) {
-
 	parsedEmail, err := transformer_utils.ParseEmail(e)
 	if err != nil {
 		return "", fmt.Errorf("invalid email: %s", e)
@@ -267,7 +244,6 @@ func TransformEmailPreserveDomainAndLength(e string, maxLength int64, excludeLis
 
 	// handle exclusion list
 	if transformer_utils.StringInSlice(parsedEmail[1], excludeList) {
-
 		splitDomain := strings.Split(parsedEmail[1], ".")
 
 		// generate a random domain
@@ -286,7 +262,6 @@ func TransformEmailPreserveDomainAndLength(e string, maxLength int64, excludeLis
 		res := un + "@" + domain
 
 		return res, nil
-
 	} else {
 		// generate a random username and preserve the domain
 		un, err := GenerateUsername(int64(len(parsedEmail[0])))

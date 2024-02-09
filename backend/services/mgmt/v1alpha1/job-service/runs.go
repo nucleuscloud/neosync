@@ -229,7 +229,6 @@ func (s *Service) GetJobRunEvents(
 		case enums.EVENT_TYPE_WORKFLOW_EXECUTION_TIMED_OUT:
 			isRunComplete = true
 		default:
-
 		}
 	}
 

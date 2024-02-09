@@ -8,13 +8,11 @@ import (
 )
 
 func init() {
-
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewBoolParam("abbreviate")).
 		Param(bloblang.NewInt64Param("max_length"))
 
 	err := bloblang.RegisterFunctionV2("generate_gender", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-
 		ab, err := args.GetBool("abbreviate")
 		if err != nil {
 			return nil, err
@@ -26,7 +24,6 @@ func init() {
 		}
 
 		return func() (any, error) {
-
 			res, err := GenerateRandomGender(ab, maxLength)
 
 			if err != nil {
@@ -42,7 +39,6 @@ func init() {
 
 /* Generates a randomly selected gender from a predefined list */
 func GenerateRandomGender(ab bool, maxLength int64) (string, error) {
-
 	//nolint:all
 	randomInt := rand.Intn(4)
 

@@ -11,7 +11,6 @@ import (
 )
 
 func Test_ScrambleCharacter(t *testing.T) {
-
 	testStringValue := "h"
 
 	testRune := rune(testStringValue[0])
@@ -24,7 +23,6 @@ func Test_ScrambleCharacter(t *testing.T) {
 }
 
 func Test_TransformCharacterSubstitutionLetters(t *testing.T) {
-
 	testStringValue := "hello world"
 
 	res, err := TransformCharacterScramble(testStringValue)
@@ -50,7 +48,6 @@ func Test_TransformCharacterSubstitutionCapitalizationLetters(t *testing.T) {
 }
 
 func Test_TransformCharacterSubstitutionNumbers(t *testing.T) {
-
 	testStringValue := "41323421"
 
 	res, err := TransformCharacterScramble(testStringValue)
@@ -62,7 +59,6 @@ func Test_TransformCharacterSubstitutionNumbers(t *testing.T) {
 }
 
 func Test_TransformCharacterSubstitutionLettersNumbers(t *testing.T) {
-
 	testStringValue := "hello wor23r2ld 221"
 
 	res, err := TransformCharacterScramble(testStringValue)
@@ -74,7 +70,6 @@ func Test_TransformCharacterSubstitutionLettersNumbers(t *testing.T) {
 }
 
 func Test_TransformCharacterSubstitutionLettersNumbersCharacters(t *testing.T) {
-
 	testStringValue := "h#*(&lo wor23r2ld 221"
 
 	res, err := TransformCharacterScramble(testStringValue)
@@ -86,7 +81,6 @@ func Test_TransformCharacterSubstitutionLettersNumbersCharacters(t *testing.T) {
 }
 
 func Test_TransformCharacterSubstitutionTransformer(t *testing.T) {
-
 	testStringValue := "h#*(&lo wor23r2ld 221"
 
 	mapping := fmt.Sprintf(`root = transform_character_scramble(value:%q)`, testStringValue)
@@ -114,7 +108,6 @@ func Test_TransformCharacterSubstitutionTransformer(t *testing.T) {
 }
 
 func Test_TransformCharacterSubstitutionTransformerWithEmptyValue(t *testing.T) {
-
 	nilString := ""
 	mapping := fmt.Sprintf(`root = transform_character_scramble(value:%q)`, nilString)
 	ex, err := bloblang.Parse(mapping)

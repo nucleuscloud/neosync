@@ -9,11 +9,9 @@ import (
 )
 
 func init() {
-
 	spec := bloblang.NewPluginSpec().Param(bloblang.NewInt64Param("max_length"))
 
 	err := bloblang.RegisterFunctionV2("generate_last_name", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-
 		maxLength, err := args.GetInt64("max_length")
 		if err != nil {
 			return nil, err
@@ -31,7 +29,6 @@ func init() {
 
 /* Generates a random last name with a randomly selected length between [2,12] characters */
 func GenerateRandomLastName(maxLength int64) (string, error) {
-
 	if maxLength < 12 && maxLength >= 2 {
 		names := lastNames[maxLength]
 		res, err := transformer_utils.GetRandomValueFromSlice[string](names)
@@ -51,6 +48,5 @@ func GenerateRandomLastName(maxLength int64) (string, error) {
 			return "", err
 		}
 		return res, nil
-
 	}
 }

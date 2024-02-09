@@ -122,7 +122,6 @@ func (n *NeosyncAwsManager) getAwsConfig(ctx context.Context, config *mgmtv1alph
 			return nil, err
 		}
 		awsCfg = &cfg
-
 	}
 
 	if role := configCreds.GetRoleArn(); role != "" {

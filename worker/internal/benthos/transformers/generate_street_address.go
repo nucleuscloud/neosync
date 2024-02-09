@@ -20,11 +20,9 @@ type Address struct {
 }
 
 func init() {
-
 	spec := bloblang.NewPluginSpec().Param(bloblang.NewInt64Param("max_length"))
 
 	err := bloblang.RegisterFunctionV2("generate_street_address", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-
 		maxLength, err := args.GetInt64("max_length")
 		if err != nil {
 			return nil, err
@@ -45,7 +43,6 @@ func init() {
 
 /* Generates a random street address in the United States in the format <house_number> <street name> <street ending>*/
 func GenerateRandomStreetAddress(maxLength int64) (string, error) {
-
 	addresses := transformers_dataset.Addresses
 	var filteredAddresses []string
 
@@ -56,7 +53,6 @@ func GenerateRandomStreetAddress(maxLength int64) (string, error) {
 	}
 
 	if len(filteredAddresses) == 0 {
-
 		if maxLength > 3 {
 			hn, err := transformer_utils.GenerateRandomInt64InValueRange(1, 20)
 			if err != nil {
@@ -66,23 +62,18 @@ func GenerateRandomStreetAddress(maxLength int64) (string, error) {
 			street, err := transformer_utils.GenerateRandomStringWithDefinedLength(maxLength - 3)
 			if err != nil {
 				return "", err
-
 			}
 
 			return fmt.Sprintf("%d %s", hn, street), nil
-
 		} else {
 
 			street, err := transformer_utils.GenerateRandomStringWithDefinedLength(maxLength)
 			if err != nil {
 				return "", err
-
 			}
 
 			return street, nil
-
 		}
-
 	}
 
 	// -1 because addresses is an array so we don't overflow

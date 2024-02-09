@@ -11,13 +11,10 @@ import (
 )
 
 func init() {
-
 	spec := bloblang.NewPluginSpec()
 
 	err := bloblang.RegisterFunctionV2("generate_unixtimestamp", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-
 		return func() (any, error) {
-
 			val, err := GenerateRandomUnixTimestamp()
 
 			if err != nil {

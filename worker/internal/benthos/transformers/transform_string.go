@@ -9,13 +9,11 @@ import (
 )
 
 func init() {
-
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewAnyParam("value").Optional()).
 		Param(bloblang.NewBoolParam("preserve_length")).Param(bloblang.NewInt64Param("max_length"))
 
 	err := bloblang.RegisterFunctionV2("transform_string", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-
 		valuePtr, err := args.GetOptionalString("value")
 		if err != nil {
 			return nil, err
@@ -45,12 +43,10 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-
 }
 
 // Transforms an existing string value into another string. Does not account for numbers and other characters. If you want to preserve spaces, capitalization and other characters, use the Transform_Characters transformer.
 func TransformString(value string, preserveLength bool, maxLength int64) (*string, error) {
-
 	var returnValue string
 
 	if value == "" {
@@ -58,7 +54,6 @@ func TransformString(value string, preserveLength bool, maxLength int64) (*strin
 	}
 
 	if preserveLength {
-
 		l := int64(len(value))
 		val, err := transformer_utils.GenerateRandomStringWithDefinedLength(l)
 
@@ -67,7 +62,6 @@ func TransformString(value string, preserveLength bool, maxLength int64) (*strin
 		}
 
 		returnValue = val
-
 	} else {
 		min := int64(3)
 		val, err := transformer_utils.GenerateRandomStringWithInclusiveBounds(min, maxLength)
@@ -77,7 +71,6 @@ func TransformString(value string, preserveLength bool, maxLength int64) (*strin
 		}
 
 		returnValue = val
-
 	}
 
 	return &returnValue, nil

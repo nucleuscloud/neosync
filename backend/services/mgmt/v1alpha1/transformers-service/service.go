@@ -19,7 +19,6 @@ func New(
 	db *nucleusdb.NucleusDb,
 	useraccountService mgmtv1alpha1connect.UserAccountServiceClient,
 ) *Service {
-
 	return &Service{
 		cfg:                cfg,
 		db:                 db,

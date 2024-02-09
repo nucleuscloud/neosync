@@ -321,7 +321,6 @@ func (s *Service) GetConnectionDataStream(
 	}
 
 	return nil
-
 }
 
 func (s *Service) GetConnectionSchema(

@@ -148,7 +148,6 @@ func Test_clampInt(t *testing.T) {
 	assert.Equal(t, clampInt(1, 1, 1), 1)
 
 	assert.Equal(t, clampInt(1, 3, 2), 3, "low is evaluated first, order is relevant")
-
 }
 
 func Test_computeMaxPgBatchCount(t *testing.T) {

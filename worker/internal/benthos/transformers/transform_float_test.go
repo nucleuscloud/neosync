@@ -10,18 +10,15 @@ import (
 )
 
 func Test_TransformFloat64ErrorNotInRange(t *testing.T) {
-
 	val := float64(27.1)
 	rMin := float64(22.9)
 	rMax := float64(25.333)
 
 	res := transformer_utils.IsFloat64InRandomizationRange(val, rMin, rMax)
 	assert.Equal(t, false, res, "The value should not be in the range")
-
 }
 
 func Test_TransformFloat64InRange(t *testing.T) {
-
 	val := float64(27.2323)
 	rMin := float64(22.12)
 	rMax := float64(29.9823)
@@ -31,11 +28,9 @@ func Test_TransformFloat64InRange(t *testing.T) {
 
 	assert.GreaterOrEqual(t, *res, val-rMin, "The result should be greater than the min")
 	assert.LessOrEqual(t, *res, val+rMax, "The result should be less than the max")
-
 }
 
 func Test_TransformFloat64PhoneTransformerWithNilValue(t *testing.T) {
-
 	val := float64(27.35)
 	rMin := float64(22.24)
 	rMax := float64(29.928)
@@ -59,5 +54,4 @@ func Test_TransformFloat64PhoneTransformerWithNilValue(t *testing.T) {
 	} else {
 		assert.Error(t, err, "Expected the pointer to resolve to an float64")
 	}
-
 }

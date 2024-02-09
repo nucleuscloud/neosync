@@ -10,13 +10,10 @@ import (
 )
 
 func init() {
-
 	spec := bloblang.NewPluginSpec()
 
 	err := bloblang.RegisterFunctionV2("generate_state", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-
 		return func() (any, error) {
-
 			return GenerateRandomState(), nil
 		}, nil
 	})
@@ -27,7 +24,6 @@ func init() {
 
 // Generates a randomly selected state that exists in the United States and returns the two-letter state code.
 func GenerateRandomState() string {
-
 	addresses := transformers_dataset.Addresses
 
 	// -1 because addresses is an array so we don't overflow

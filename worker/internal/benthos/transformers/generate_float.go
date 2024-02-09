@@ -10,7 +10,6 @@ import (
 )
 
 func init() {
-
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewBoolParam("randomize_sign")).
 		Param(bloblang.NewFloat64Param("min")).
@@ -18,7 +17,6 @@ func init() {
 		Param(bloblang.NewInt64Param("precision"))
 
 	err := bloblang.RegisterFunctionV2("generate_float64", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-
 		randomizeSign, err := args.GetBool("randomize_sign")
 		if err != nil {
 			return nil, err
@@ -42,19 +40,16 @@ func init() {
 		return func() (any, error) {
 			res, err := GenerateRandomFloat64(randomizeSign, min, max, precision)
 			return res, err
-
 		}, nil
 	})
 
 	if err != nil {
 		panic(err)
 	}
-
 }
 
 /* Generates a random float64 value within the interval [min, max]*/
 func GenerateRandomFloat64(randomizeSign bool, min, max float64, precision int64) (float64, error) {
-
 	var returnValue float64
 
 	if randomizeSign {

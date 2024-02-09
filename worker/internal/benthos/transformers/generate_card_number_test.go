@@ -9,7 +9,6 @@ import (
 )
 
 func Test_GenerateValidLuhnCardNumber(t *testing.T) {
-
 	val, err := GenerateValidLuhnCheckCardNumber()
 
 	assert.NoError(t, err)
@@ -18,7 +17,6 @@ func Test_GenerateValidLuhnCardNumber(t *testing.T) {
 }
 
 func Test_GenerateCardNumber(t *testing.T) {
-
 	val, err := GenerateCardNumber(false)
 
 	assert.NoError(t, err)
@@ -38,9 +36,7 @@ func Test_GenerateCardNumberTransformer(t *testing.T) {
 }
 
 func isValidLuhn(cc int64) bool {
-
 	return (cc%10+checksum(cc/10))%10 == 0
-
 }
 
 func checksum(number int64) int64 {

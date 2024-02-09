@@ -64,7 +64,6 @@ func UpWithDb(
 	schemaDir string,
 	logger *slog.Logger,
 ) error {
-
 	return nil
 }
 

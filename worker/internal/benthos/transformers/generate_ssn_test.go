@@ -9,7 +9,6 @@ import (
 )
 
 func Test_GenerateSSN(t *testing.T) {
-
 	res, err := GenerateRandomSSN()
 
 	assert.NoError(t, err)

@@ -305,7 +305,6 @@ func Test_GetJobStatuses(t *testing.T) {
 	assert.NotNil(t, resp)
 	assert.Equal(t, 1, len(resp.Msg.Statuses))
 	assert.Equal(t, mgmtv1alpha1.JobStatus(1), resp.Msg.Statuses[0].Status)
-
 }
 
 var (

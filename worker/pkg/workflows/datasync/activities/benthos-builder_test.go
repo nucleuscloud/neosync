@@ -498,7 +498,6 @@ output:
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
 	assert.NoError(t, err)
-
 }
 
 func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_Default(t *testing.T) {
@@ -2998,7 +2997,6 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts, groupedSchemas)
 	assert.Nil(t, err)
 	assert.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)
-
 }
 func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
@@ -3062,7 +3060,6 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts, groupedSchemas)
 	assert.Nil(t, err)
 	assert.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)
-
 }
 
 func Test_ProcessorConfigMultiJavascript(t *testing.T) {
@@ -3252,5 +3249,4 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
         benthos.v0_msg_set_structured(output);
         })();
 	    `), strings.TrimSpace(string(out)))
-
 }

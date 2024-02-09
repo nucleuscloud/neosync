@@ -56,5 +56,4 @@ func Test_GenerateRandomStringTransformerWithValue(t *testing.T) {
 	assert.IsType(t, res, "", "The actual value type should be a string")
 	assert.GreaterOrEqual(t, int64(len(res.(string))), min, "The output string should be greater than or equal to the min")
 	assert.LessOrEqual(t, int64(len(res.(string))), max, "The output string should be less than or equal to the max")
-
 }

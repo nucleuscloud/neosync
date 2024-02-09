@@ -11,7 +11,6 @@ import (
 var maxLength = int64(20)
 
 func Test_GenerateCity(t *testing.T) {
-
 	res, err := GenerateRandomCity(maxLength)
 	assert.NoError(t, err)
 
@@ -20,7 +19,6 @@ func Test_GenerateCity(t *testing.T) {
 }
 
 func Test_GenerateCityShortMax(t *testing.T) {
-
 	res, err := GenerateRandomCity(int64(3))
 	assert.NoError(t, err)
 

@@ -9,7 +9,6 @@ import (
 )
 
 func Test_GenerateRandomLastName(t *testing.T) {
-
 	res, err := GenerateRandomLastName(maxCharacterLimit)
 
 	assert.NoError(t, err)
@@ -19,7 +18,6 @@ func Test_GenerateRandomLastName(t *testing.T) {
 }
 
 func Test_GenerateRandomLastNameMaxlengthLessThan12(t *testing.T) {
-
 	lowMaxCharLimit := int64(6)
 
 	res, err := GenerateRandomLastName(lowMaxCharLimit)
@@ -28,7 +26,6 @@ func Test_GenerateRandomLastNameMaxlengthLessThan12(t *testing.T) {
 	assert.Greater(t, len(res), 2, "The last name should be more than 2 characters")
 	assert.Equal(t, int64(len(res)), lowMaxCharLimit, "The last name should be less than or equal to the max character limit")
 	assert.IsType(t, "", res, "The last name should be a string")
-
 }
 
 func Test_GenerateRandomLastNameTransformer(t *testing.T) {

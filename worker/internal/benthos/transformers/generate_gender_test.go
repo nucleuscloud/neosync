@@ -18,11 +18,9 @@ func Test_GenerateGenderAbbreviateTrue(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, res, 1, "Generated gender must have a length of one")
 	assert.Contains(t, valid, res, "Gender should be one of female, male, undefined, nonbinary")
-
 }
 
 func Test_GenerateGenderAbbreviateFalse(t *testing.T) {
-
 	res, err := GenerateRandomGender(false, int64(20))
 
 	valid := []string{"female", "male", "undefined", "nonbinary"}
@@ -44,5 +42,4 @@ func Test_GenderTransformer(t *testing.T) {
 	assert.Len(t, res, 1, "Generated gender must have a length of one")
 	assert.Contains(t, valid, res, "Gender should be one of female, male, undefined, nonbinary")
 	assert.Equal(t, int64(len(res.(string))), int64(1), "the length should be 1")
-
 }

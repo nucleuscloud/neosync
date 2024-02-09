@@ -263,7 +263,6 @@ func Test_DeleteConnection_UnverifiedUserError(t *testing.T) {
 }
 
 func Test_UpdateTransformer(t *testing.T) {
-
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
@@ -300,7 +299,6 @@ func Test_UpdateTransformer(t *testing.T) {
 }
 
 func Test_UpdateTransformer_UpdateError(t *testing.T) {
-
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
@@ -336,7 +334,6 @@ func Test_UpdateTransformer_UpdateError(t *testing.T) {
 }
 
 func Test_UpdateTransformer_GetTransformerError(t *testing.T) {
-
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
@@ -361,7 +358,6 @@ func Test_UpdateTransformer_GetTransformerError(t *testing.T) {
 }
 
 func Test_UpdateTransformer_UnverifiedUser(t *testing.T) {
-
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 

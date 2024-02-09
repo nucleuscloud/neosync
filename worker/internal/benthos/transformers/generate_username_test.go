@@ -9,7 +9,6 @@ import (
 )
 
 func Test_GenerateUsername(t *testing.T) {
-
 	res, err := GenerateUsername(maxLength)
 	assert.NoError(t, err)
 
@@ -18,7 +17,6 @@ func Test_GenerateUsername(t *testing.T) {
 }
 
 func Test_GenerateUsernameShort(t *testing.T) {
-
 	res, err := GenerateUsername(3)
 	assert.NoError(t, err)
 

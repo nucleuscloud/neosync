@@ -11,7 +11,6 @@ import (
 var testPhone = "1234567890"
 
 func Test_TransformStringPhoneNumber(t *testing.T) {
-
 	res, err := TransformPhoneNumber(testPhone, true, maxCharacterLimit)
 
 	assert.NoError(t, err)
@@ -19,17 +18,14 @@ func Test_TransformStringPhoneNumber(t *testing.T) {
 }
 
 func Test_TransformStringPhoneNumberEqualMinMax(t *testing.T) {
-
 	res, err := TransformPhoneNumber(testPhone, false, maxCharacterLimit)
 
 	assert.NoError(t, err)
 	assert.GreaterOrEqual(t, len(*res), 8, "Should be greater than 9 characters in length. 9 for the number and 1 for the plus sign.")
 	assert.LessOrEqual(t, len(*res), 15, "Should be less than 16 characters in length. 15 for the number and 1 for the plus sign.")
-
 }
 
 func Test_TransformStringPhoneNumberTransformer(t *testing.T) {
-
 	mapping := fmt.Sprintf(`root = transform_phone_number(value:%q,preserve_length:true,max_length:%d)`, testPhone, maxCharacterLimit)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the transform string phone transformer")
@@ -49,11 +45,9 @@ func Test_TransformStringPhoneNumberTransformer(t *testing.T) {
 	} else {
 		t.Error("Pointer is nil, expected a valid string pointer")
 	}
-
 }
 
 func Test_TransformStringPhoneNumberTransformerWithEmptyValue(t *testing.T) {
-
 	nilString := ""
 	mapping := fmt.Sprintf(`root = transform_phone_number(value:%q,preserve_length:true,max_length:%d)`, nilString, maxCharacterLimit)
 	ex, err := bloblang.Parse(mapping)
