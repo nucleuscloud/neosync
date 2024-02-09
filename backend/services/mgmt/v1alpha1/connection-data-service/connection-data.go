@@ -34,7 +34,7 @@ type DateScanner struct {
 	val *time.Time
 }
 
-func (ds *DateScanner) Scan(input interface{}) error { //nolint
+func (ds *DateScanner) Scan(input any) error {
 	if input == nil {
 		return nil
 	}
@@ -266,7 +266,7 @@ func (s *Service) GetConnectionDataStream(
 				scanner := bufio.NewScanner(gzr)
 				for scanner.Scan() {
 					line := scanner.Bytes()
-					var data map[string]interface{} //nolint
+					var data map[string]any
 					err = json.Unmarshal(line, &data)
 					if err != nil {
 						result.Body.Close()
@@ -497,7 +497,7 @@ func (s *Service) GetConnectionSchema(
 				scanner := bufio.NewScanner(gzr)
 				if scanner.Scan() {
 					line := scanner.Bytes()
-					var data map[string]interface{} //nolint
+					var data map[string]any
 					err = json.Unmarshal(line, &data)
 					if err != nil {
 						result.Body.Close()
