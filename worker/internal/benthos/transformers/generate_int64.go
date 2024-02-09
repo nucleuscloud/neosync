@@ -80,7 +80,6 @@ func GenerateRandomInt64(randomizeSign bool, min, max int64) (int64, error) {
 			return returnValue * -1, nil
 		}
 	} else {
-
 		res, err := transformer_utils.GenerateRandomInt64InValueRange(min, max)
 		if err != nil {
 			return 0, err

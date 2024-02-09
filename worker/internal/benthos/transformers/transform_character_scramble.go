@@ -72,7 +72,6 @@ func ScrambleChar(r rune) rune {
 		}
 		return sub
 	} else if unicode.IsDigit(r) {
-
 		randNumberListInd, err := transformer_utils.GenerateRandomInt64InValueRange(0, 9)
 		if err != nil {
 			return r

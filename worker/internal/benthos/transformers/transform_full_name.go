@@ -70,7 +70,6 @@ func TransformFullName(name string, preserveLength bool, maxLength int64) (*stri
 		res := fn + " " + ln
 		return &res, nil
 	} else {
-
 		res, err := GenerateRandomFullNameInLengthRange(fnLength, lnLength, minNameLength, maxLength)
 		if err != nil {
 			return nil, err

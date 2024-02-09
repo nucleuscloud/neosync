@@ -63,7 +63,6 @@ func TransformE164PhoneNumber(phone string, preserveLength bool, maxLength int64
 
 		returnValue = res
 	} else {
-
 		min := int64(9)
 		max := int64(15)
 

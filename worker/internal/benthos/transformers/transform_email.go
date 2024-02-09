@@ -90,19 +90,16 @@ func TransformEmail(email string, preserveLength, preserveDomain bool, maxLength
 			return nil, err
 		}
 	} else if preserveLength && !preserveDomain {
-
 		returnValue, err = TransformEmailPreserveLength(email, excludeList)
 		if err != nil {
 			return nil, err
 		}
 	} else if preserveLength && preserveDomain {
-
 		returnValue, err = TransformEmailPreserveDomainAndLength(email, maxLength, excludeList)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-
 		randLength, err := transformer_utils.GenerateRandomInt64InValueRange(10, maxLength)
 		if err != nil {
 			return nil, err
@@ -207,7 +204,6 @@ func TransformEmailPreserveLength(email string, excludeList []string) (string, e
 	if transformer_utils.StringInSlice(parsedEmail[1], excludeList) {
 		domain = parsedEmail[1]
 	} else {
-
 		// generate a random domain
 		dom, err := transformer_utils.GenerateRandomStringWithDefinedLength(int64(len(splitDomain[0])))
 		if err != nil {

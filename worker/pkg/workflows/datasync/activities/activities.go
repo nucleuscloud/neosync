@@ -836,7 +836,6 @@ func getMysqlDsn(
 }
 
 func (b *benthosBuilder) buildProcessorConfigs(ctx context.Context, cols []*mgmtv1alpha1.JobMapping, tableColumnInfo map[string]*dbschemas_utils.ColumnInfo) ([]*neosync_benthos.ProcessorConfig, error) {
-
 	jsCode, err := b.extractJsFunctionsAndOutputs(ctx, cols)
 	if err != nil {
 		return nil, err
@@ -886,11 +885,9 @@ func (b *benthosBuilder) extractJsFunctionsAndOutputs(ctx context.Context, cols 
 	} else {
 		return "", nil
 	}
-
 }
 
 func (b *benthosBuilder) buildMutationConfigs(ctx context.Context, cols []*mgmtv1alpha1.JobMapping, tableColumnInfo map[string]*dbschemas_utils.ColumnInfo) (string, error) {
-
 	mutations := []string{}
 
 	for _, col := range cols {
@@ -915,7 +912,6 @@ func (b *benthosBuilder) buildMutationConfigs(ctx context.Context, cols []*mgmtv
 	}
 
 	return strings.Join(mutations, "\n"), nil
-
 }
 
 func shouldProcessColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {
@@ -938,7 +934,6 @@ function fn_%s(value, input){
 }
 
 func constructBenthosJsProcessor(jsFunctions, benthosOutputs []string) string {
-
 	jsFunctionStrings := strings.Join(jsFunctions, "\n")
 
 	benthosOutputString := strings.Join(benthosOutputs, "\n")
@@ -960,7 +955,6 @@ func constructBenthosOutput(col string) string {
 
 // takes in an user defined config with just an id field and return the right transformer config for that user defined function id
 func (b *benthosBuilder) convertUserDefinedFunctionConfig(ctx context.Context, t *mgmtv1alpha1.JobMappingTransformer) (*mgmtv1alpha1.JobMappingTransformer, error) {
-
 	transformer, err := b.transformerclient.GetUserDefinedTransformerById(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserDefinedTransformerByIdRequest{TransformerId: t.Config.GetUserDefinedTransformerConfig().Id}))
 	if err != nil {
 		return nil, err
@@ -989,7 +983,6 @@ root.{destination_col} = transformerfunction(args)
 */
 
 func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_utils.ColumnInfo) (string, error) {
-
 	var maxLen int32 = 10000
 	if colInfo != nil && colInfo.CharacterMaximumLength != nil {
 		maxLen = *colInfo.CharacterMaximumLength

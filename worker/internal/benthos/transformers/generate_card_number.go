@@ -45,7 +45,6 @@ func GenerateCardNumber(luhn bool) (int64, error) {
 
 		returnValue = val
 	} else {
-
 		val, err := transformer_utils.GenerateRandomInt64FixedLength(defaultCCLength)
 		if err != nil {
 			return 0, err

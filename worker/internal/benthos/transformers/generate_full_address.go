@@ -55,7 +55,6 @@ func GenerateRandomFullAddress(maxLength int64) (string, error) {
 			}
 			return str, nil
 		} else {
-
 			sa, err := GenerateRandomStreetAddress(5)
 			if err != nil {
 				return "", err

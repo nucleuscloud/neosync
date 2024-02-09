@@ -66,7 +66,6 @@ func GenerateRandomStreetAddress(maxLength int64) (string, error) {
 
 			return fmt.Sprintf("%d %s", hn, street), nil
 		} else {
-
 			street, err := transformer_utils.GenerateRandomStringWithDefinedLength(maxLength)
 			if err != nil {
 				return "", err

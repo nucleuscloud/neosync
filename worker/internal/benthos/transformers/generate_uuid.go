@@ -40,7 +40,6 @@ func GenerateUuid(include_hyphen bool) (string, error) {
 		// generate uuid with hyphens
 		return uuid.NewString(), nil
 	} else {
-
 		/*generates uuid with no hyphens
 		for postgres, if the dest column is defined as a UUID column then it will automatically
 		convert the UUID with no hyphens to having hyphens
