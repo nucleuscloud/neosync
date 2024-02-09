@@ -7,6 +7,7 @@ import (
 	"time"
 
 	datasync_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities"
+	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
 	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/temporal"
 
@@ -94,7 +95,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		future := invokeSync(bc, childctx, started, completed, workflowMetadata, logger)
 		workselector.AddFuture(future, func(f workflow.Future) {
 			logger.Info("config sync completed", "name", bc.Name)
-			var result datasync_activities.SyncResponse
+			var result sync_activity.SyncResponse
 			err := f.Get(childctx, &result)
 			if err != nil {
 				logger.Error("activity did not complete", "err", err)
@@ -125,7 +126,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 			future := invokeSync(bc, childctx, started, completed, workflowMetadata, logger)
 			workselector.AddFuture(future, func(f workflow.Future) {
 				logger.Info("config sync completed", "name", bc.Name)
-				var result datasync_activities.SyncResponse
+				var result sync_activity.SyncResponse
 				err := f.Get(childctx, &result)
 				if err != nil {
 					logger.Error("activity did not complete", "err", err)
@@ -159,7 +160,6 @@ func invokeSync(
 	future, settable := workflow.NewFuture(ctx)
 	logger.Info("triggering config sync", "name", config.Name, "metadata", metadata)
 	started[config.Name] = struct{}{}
-	var wfActivites *datasync_activities.Activities
 	workflow.GoNamed(ctx, config.Name, func(ctx workflow.Context) {
 		configbits, err := yaml.Marshal(config.Config)
 		if err != nil {
@@ -167,11 +167,11 @@ func invokeSync(
 			settable.SetError(fmt.Errorf("unable to marshal benthos config: %w", err))
 			return
 		}
-		var result datasync_activities.SyncResponse
+		var result sync_activity.SyncResponse
 		err = workflow.ExecuteActivity(
 			ctx,
-			wfActivites.Sync,
-			&datasync_activities.SyncRequest{BenthosConfig: string(configbits), BenthosDsns: config.BenthosDsns}, metadata, workflowMetadata).Get(ctx, &result)
+			sync_activity.Sync,
+			&sync_activity.SyncRequest{BenthosConfig: string(configbits), BenthosDsns: config.BenthosDsns}, metadata, workflowMetadata).Get(ctx, &result)
 		tn := fmt.Sprintf("%s.%s", config.TableSchema, config.TableName)
 		_, ok := completed[tn]
 		if ok {
