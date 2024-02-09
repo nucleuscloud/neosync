@@ -65,10 +65,6 @@ function TransformersTable(props: TransformersTableProps): ReactElement {
   const systemTransformers = data?.transformers ?? [];
   const userDefinedTransformers = udTransformers?.transformers ?? [];
 
-  if (transformersIsLoading || userDefinedTransformersLoading) {
-    return <SkeletonTable />;
-  }
-
   // memoizing these columns to prevent infinite re-render when hovering over next link
   const systemTransformerColumns = useMemo(
     () =>
@@ -88,6 +84,10 @@ function TransformersTable(props: TransformersTableProps): ReactElement {
       }),
     [account?.name]
   );
+
+  if (transformersIsLoading || userDefinedTransformersLoading) {
+    return <SkeletonTable />;
+  }
 
   return (
     <div>
