@@ -85,7 +85,7 @@ type RetrieveActivityOptionsResponse struct {
 func (a *Activities) RetrieveActivityOptions(
 	ctx context.Context,
 	req *RetrieveActivityOptionsRequest,
-	wfmetadata *WorkflowMetadata,
+	wfmetadata *shared.WorkflowMetadata,
 ) (*RetrieveActivityOptionsResponse, error) {
 	logger := activity.GetLogger(ctx)
 	_ = logger
@@ -150,7 +150,7 @@ func getSyncActivityOptionsFromJob(job *mgmtv1alpha1.Job) *workflow.ActivityOpti
 func (a *Activities) GenerateBenthosConfigs(
 	ctx context.Context,
 	req *GenerateBenthosConfigsRequest,
-	wfmetadata *WorkflowMetadata,
+	wfmetadata *shared.WorkflowMetadata,
 ) (*GenerateBenthosConfigsResponse, error) {
 	logger := activity.GetLogger(ctx)
 	_ = logger
@@ -489,16 +489,6 @@ func splitTableKey(key string) (schema, table string) {
 		return "public", pieces[0]
 	}
 	return pieces[0], pieces[1]
-}
-
-// used to record metadata in activity event history
-type SyncMetadata struct {
-	Schema string
-	Table  string
-}
-type WorkflowMetadata struct {
-	WorkflowId string
-	RunId      string
 }
 
 func groupGenerateSourceOptionsByTable(

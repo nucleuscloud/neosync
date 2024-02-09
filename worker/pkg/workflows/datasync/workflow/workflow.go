@@ -7,6 +7,7 @@ import (
 	"time"
 
 	datasync_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities"
+	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
 	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/temporal"
@@ -33,7 +34,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	logger := workflow.GetLogger(ctx)
 	_ = logger
 
-	workflowMetadata := &datasync_activities.WorkflowMetadata{
+	workflowMetadata := &shared.WorkflowMetadata{
 		WorkflowId: wfinfo.WorkflowExecution.ID,
 		RunId:      wfinfo.WorkflowExecution.RunID,
 	}
@@ -142,10 +143,10 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	return &WorkflowResponse{}, nil
 }
 
-func getSyncMetadata(config *datasync_activities.BenthosConfigResponse) *datasync_activities.SyncMetadata {
+func getSyncMetadata(config *datasync_activities.BenthosConfigResponse) *sync_activity.SyncMetadata {
 	names := strings.Split(config.Name, ".")
 	schema, table := names[0], names[1]
-	return &datasync_activities.SyncMetadata{Schema: schema, Table: table}
+	return &sync_activity.SyncMetadata{Schema: schema, Table: table}
 }
 
 func invokeSync(
@@ -153,7 +154,7 @@ func invokeSync(
 	ctx workflow.Context,
 	started map[string]struct{},
 	completed map[string][]string,
-	workflowMetadata *datasync_activities.WorkflowMetadata,
+	workflowMetadata *shared.WorkflowMetadata,
 	logger log.Logger,
 ) workflow.Future {
 	metadata := getSyncMetadata(config)
