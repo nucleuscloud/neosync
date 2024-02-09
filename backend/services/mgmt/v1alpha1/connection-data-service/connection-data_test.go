@@ -548,7 +548,7 @@ func createServiceMock(t *testing.T) *serviceMocks {
 	}
 }
 
-func mockIsUserInAccount(userAccountServiceMock *mgmtv1alpha1connect.MockUserAccountServiceClient, isInAccount bool) { // nolint
+func mockIsUserInAccount(userAccountServiceMock *mgmtv1alpha1connect.MockUserAccountServiceClient, isInAccount bool) { //nolint
 	userAccountServiceMock.On("IsUserInAccount", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.IsUserInAccountResponse{
 		Ok: isInAccount,
 	}), nil)

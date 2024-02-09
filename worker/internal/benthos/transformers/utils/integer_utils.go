@@ -49,7 +49,6 @@ func GenerateRandomInt64InLengthRange(min, max int64) (int64, error) {
 		return 0, fmt.Errorf("unable to generate a value in the range provided")
 	}
 
-	//nolint:all
 	return res, nil
 }
 
@@ -65,7 +64,7 @@ func GenerateRandomInt64InValueRange(min, max int64) (int64, error) {
 
 	rangeVal := max - min + 1
 
-	//nolint:all
+	//nolint:gosec
 	return min + rand.Int63n(rangeVal), nil
 }
 
