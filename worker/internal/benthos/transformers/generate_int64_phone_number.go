@@ -10,11 +10,9 @@ import (
 var defaultPhoneNumberLength = int64(10)
 
 func init() {
-
 	spec := bloblang.NewPluginSpec()
 
 	err := bloblang.RegisterFunctionV2("generate_int64_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-
 		return func() (any, error) {
 			res, err := GenerateRandomInt64PhoneNumber()
 			return res, err
@@ -24,12 +22,10 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-
 }
 
 /* Generates a random 10 digit phone number with a valid US area code and returns it as an int64. */
 func GenerateRandomInt64PhoneNumber() (int64, error) {
-
 	ac := transformers_dataset.AreaCodes
 
 	// get a random area code from the areacodes data set

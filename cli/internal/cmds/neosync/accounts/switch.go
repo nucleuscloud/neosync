@@ -74,7 +74,6 @@ func switchAccount(
 	ctx context.Context,
 	apiKey, accountIdOrName *string,
 ) error {
-
 	isAuthEnabled, err := auth.IsAuthEnabled(ctx)
 	if err != nil {
 		return err
@@ -153,7 +152,6 @@ func switchAccount(
 			os.Exit(1)
 		}
 		return nil
-
 	}
 
 	var account *mgmtv1alpha1.UserAccount

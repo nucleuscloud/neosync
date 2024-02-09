@@ -16,12 +16,10 @@ var (
 )
 
 func init() {
-
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewAnyParam("value").Optional())
 
 	err := bloblang.RegisterFunctionV2("transform_character_scramble", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-
 		valuePtr, err := args.GetOptionalString("value")
 		if err != nil {
 			return nil, err
@@ -41,7 +39,6 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-
 }
 
 /*
@@ -56,14 +53,12 @@ Note that this does not work for hex values: 0x00 -> 0x1F
 */
 
 func TransformCharacterScramble(value string) (*string, error) {
-
 	transformedString := strings.Map(ScrambleChar, value)
 
 	return &transformedString, nil
 }
 
 func ScrambleChar(r rune) rune {
-
 	if unicode.IsSpace(r) {
 		return r
 	} else if unicode.IsLetter(r) {
@@ -76,16 +71,13 @@ func ScrambleChar(r rune) rune {
 			return unicode.ToUpper(sub)
 		}
 		return sub
-
 	} else if unicode.IsDigit(r) {
-
 		randNumberListInd, err := transformer_utils.GenerateRandomInt64InValueRange(0, 9)
 		if err != nil {
 			return r
 		}
 
 		return rune(numberList[randNumberListInd])
-
 	} else if transformer_utils.IsAllowedSpecialChar(r) {
 		randInd, err := transformer_utils.GenerateRandomInt64InValueRange(0, 28)
 		if err != nil {

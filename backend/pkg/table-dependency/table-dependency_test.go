@@ -453,5 +453,4 @@ func Test_GetRunConfigs_MultipleExclude(t *testing.T) {
 			assert.Equal(t, expect[a.Table], a.DependsOn[0].Table)
 		}
 	}
-
 }

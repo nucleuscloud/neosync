@@ -8,13 +8,11 @@ import (
 )
 
 func init() {
-
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewAnyParam("value").Optional()).
 		Param(bloblang.NewBoolParam("preserve_length"))
 
 	err := bloblang.RegisterFunctionV2("transform_int64_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-
 		valuePtr, err := args.GetOptionalInt64("value")
 		if err != nil {
 			return nil, err
@@ -39,39 +37,31 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-
 }
 
 // generates a random phone number and returns it as an int64
 func TransformInt64PhoneNumber(number int64, preserveLength bool) (*int64, error) {
-
 	if number == 0 {
 		return nil, nil
 	}
 
 	if preserveLength {
-
 		res, err := GenerateIntPhoneNumberPreserveLength(number)
 		if err != nil {
 			return nil, err
 		}
 		return &res, err
-
 	} else {
-
 		res, err := GenerateRandomInt64PhoneNumber()
 		if err != nil {
 			return nil, err
 		}
 
 		return &res, err
-
 	}
-
 }
 
 func GenerateIntPhoneNumberPreserveLength(number int64) (int64, error) {
-
 	ac := transformers_dataset.AreaCodes
 
 	// get a random area code from the areacodes data set
@@ -86,5 +76,4 @@ func GenerateIntPhoneNumberPreserveLength(number int64) (int64, error) {
 	}
 
 	return randAreaCode*1e7 + pn, nil
-
 }

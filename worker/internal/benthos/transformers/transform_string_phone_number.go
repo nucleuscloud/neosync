@@ -6,14 +6,12 @@ import (
 )
 
 func init() {
-
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewAnyParam("value").Optional()).
 		Param(bloblang.NewBoolParam("preserve_length")).
 		Param(bloblang.NewInt64Param("max_length"))
 
 	err := bloblang.RegisterFunctionV2("transform_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-
 		valuePtr, err := args.GetOptionalString("value")
 		if err != nil {
 			return nil, err
@@ -43,12 +41,10 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-
 }
 
 // Generates a random phone number and returns it as a string
 func TransformPhoneNumber(value string, preserveLength bool, maxLength int64) (*string, error) {
-
 	if value == "" {
 		return nil, nil
 	}
@@ -61,13 +57,11 @@ func TransformPhoneNumber(value string, preserveLength bool, maxLength int64) (*
 
 		return &val, nil
 	} else {
-
 		val, err := GenerateStringPhoneNumber(int64(9), int64(15), maxLength)
 		if err != nil {
 			return nil, err
 		}
 
 		return &val, nil
-
 	}
 }

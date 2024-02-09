@@ -10,7 +10,6 @@ import (
 )
 
 func Test_GenerateRandomFloatPositiveRange(t *testing.T) {
-
 	min := float64(12.3)
 	max := float64(19.2)
 	precision := int64(7)
@@ -23,7 +22,6 @@ func Test_GenerateRandomFloatPositiveRange(t *testing.T) {
 }
 
 func Test_GenerateRandomFloatNegativeRange(t *testing.T) {
-
 	min := float64(-12.3)
 	max := float64(-19.2)
 	precision := int64(7)
@@ -37,7 +35,6 @@ func Test_GenerateRandomFloatNegativeRange(t *testing.T) {
 }
 
 func Test_GenerateRandomFloatNegativetoPositiveRange(t *testing.T) {
-
 	min := float64(-12.3)
 	max := float64(19.2)
 	precision := int64(3)
@@ -50,7 +47,6 @@ func Test_GenerateRandomFloatNegativetoPositiveRange(t *testing.T) {
 }
 
 func Test_GenerateRandomFloatRandomizePositive(t *testing.T) {
-
 	min := float64(12.3)
 	max := float64(19.2)
 	precision := int64(7)
@@ -62,7 +58,6 @@ func Test_GenerateRandomFloatRandomizePositive(t *testing.T) {
 		// res is positive
 		assert.GreaterOrEqual(t, res, min, "The result should be greater or equal to the minimum")
 		assert.LessOrEqual(t, res, max, "The result should be less or equal to the maximum")
-
 	} else {
 		// res is negative
 		assert.GreaterOrEqual(t, res, -max, "The result should be greater or equal to the minimum")
@@ -71,7 +66,6 @@ func Test_GenerateRandomFloatRandomizePositive(t *testing.T) {
 }
 
 func Test_GenerateRandomFloatRandomizeNegative(t *testing.T) {
-
 	min := float64(-12.3)
 	max := float64(-19.2)
 	precision := int64(7)
@@ -91,7 +85,6 @@ func Test_GenerateRandomFloatRandomizeNegative(t *testing.T) {
 }
 
 func Test_GenerateRandomFloatRandomizeNegativeToPositive(t *testing.T) {
-
 	min := float64(-12.3)
 	max := float64(19.2)
 	precision := int64(7)
@@ -111,7 +104,6 @@ func Test_GenerateRandomFloatRandomizeNegativeToPositive(t *testing.T) {
 }
 
 func Test_GenerateRandomFloatTransformer(t *testing.T) {
-
 	min := float64(9.2)
 	max := float64(9.7)
 	randomizeSign := false

@@ -9,7 +9,6 @@ import (
 )
 
 func Test_GenerateRandomFullNamePreserveLengthTrue(t *testing.T) {
-
 	res, err := GenerateRandomFullName(maxCharacterLimit)
 
 	assert.NoError(t, err)
@@ -19,27 +18,22 @@ func Test_GenerateRandomFullNamePreserveLengthTrue(t *testing.T) {
 }
 
 func Test_GenerateRandomFullNameMaxLengthBetween12And5(t *testing.T) {
-
 	res, err := GenerateRandomFullName(10)
 
 	assert.NoError(t, err)
 	assert.True(t, len(res) >= 6, "The name should be greater than the min length name")
 	assert.True(t, len(res) <= 10, "The name should be less than the max character limit")
 	assert.IsType(t, "", res, "The first name should be a string")
-
 }
 
 func Test_GenerateRandomFullNameMaxLengthLessThan5(t *testing.T) {
-
 	res, err := GenerateRandomFullName(4)
 	assert.NoError(t, err)
 	assert.Equal(t, len(res), 4, "The name should be greater than the min length name")
 	assert.IsType(t, "", res, "The first name should be a string")
-
 }
 
 func Test_GenerateFullNamePreserveLengthFalse(t *testing.T) {
-
 	res, err := GenerateRandomFullName(maxCharacterLimit)
 
 	assert.NoError(t, err)

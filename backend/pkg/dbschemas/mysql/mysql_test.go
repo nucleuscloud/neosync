@@ -95,5 +95,4 @@ func TestGetUniqueSchemaColMappings(t *testing.T) {
 	assert.Contains(t, mappings["public.users"], "created_by", "")
 	assert.Contains(t, mappings["public.users"], "updated_by", "")
 	assert.Contains(t, mappings["neosync_api.accounts"], "id", "")
-
 }

@@ -9,7 +9,6 @@ import (
 )
 
 func Test_ProcessUTCTimestamp(t *testing.T) {
-
 	timestamp, err := GenerateRandomUTCTimestamp()
 	assert.NoError(t, err, "Error generating random UTC timestamp")
 

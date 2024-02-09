@@ -414,7 +414,6 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 	}, map[string]*dbschemas_utils.ColumnInfo{})
 	assert.Error(t, err)
 	assert.Empty(t, output)
-
 }
 
 const code = `var payload = value+=" hello";return payload;`
@@ -531,7 +530,6 @@ benthos.v0_msg_set_structured(output);
 }
 
 func Test_buildProcessorConfigsJavascriptMultiple(t *testing.T) {
-
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
@@ -606,7 +604,6 @@ benthos.v0_msg_set_structured(output);
 }
 
 func Test_ShouldProcessColumnTrue(t *testing.T) {
-
 	val := &mgmtv1alpha1.JobMappingTransformer{
 		Source: "generate_email",
 		Config: &mgmtv1alpha1.TransformerConfig{
@@ -621,7 +618,6 @@ func Test_ShouldProcessColumnTrue(t *testing.T) {
 }
 
 func Test_ShouldProcessColumnFalse(t *testing.T) {
-
 	val := &mgmtv1alpha1.JobMappingTransformer{
 		Source: "passthrough",
 		Config: &mgmtv1alpha1.TransformerConfig{
@@ -636,7 +632,6 @@ func Test_ShouldProcessColumnFalse(t *testing.T) {
 }
 
 func Test_ConstructJsFunction(t *testing.T) {
-
 	col := "col"
 
 	res := constructJsFunction(code, col)
@@ -648,7 +643,6 @@ function fn_col(value, input){
 }
 
 func Test_ConstructBenthosJsProcessor(t *testing.T) {
-
 	jsFunctions := []string{}
 	benthosOutputs := []string{}
 
@@ -675,7 +669,6 @@ benthos.v0_msg_set_structured(output);
 }
 
 func Test_ConstructBenthosOutput(t *testing.T) {
-
 	col := "col"
 
 	res := constructBenthosOutput(col)
@@ -718,11 +711,9 @@ func Test_buildProcessorConfigsJavascriptEmpty(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Empty(t, resp)
-
 }
 
 func Test_convertUserDefinedFunctionConfig(t *testing.T) {
-
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
@@ -790,7 +781,6 @@ func Test_convertUserDefinedFunctionConfig(t *testing.T) {
 	resp, err := bbuilder.convertUserDefinedFunctionConfig(ctx, jmt)
 	assert.NoError(t, err)
 	assert.Equal(t, resp, expected)
-
 }
 
 //nolint:all
@@ -1010,7 +1000,6 @@ func boolPtr(val bool) *bool {
 }
 
 func Test_computeMutationFunction_null(t *testing.T) {
-
 	val, err := computeMutationFunction(
 		&mgmtv1alpha1.JobMapping{
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
@@ -1106,7 +1095,6 @@ func Test_sha256Hash_transformer_float(t *testing.T) {
 }
 
 func Test_TransformerStringLint(t *testing.T) {
-
 	col := "email"
 
 	transformers := []*mgmtv1alpha1.SystemTransformer{
@@ -1464,7 +1452,6 @@ func Test_TransformerStringLint(t *testing.T) {
 	}
 
 	for _, transformer := range transformers {
-
 		val, err := computeMutationFunction(
 			&mgmtv1alpha1.JobMapping{
 				Column: col,

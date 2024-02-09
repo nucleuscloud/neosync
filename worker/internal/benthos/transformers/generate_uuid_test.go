@@ -10,23 +10,19 @@ import (
 )
 
 func Test_GenerateUuidPreserveHyphhensTrue(t *testing.T) {
-
 	res, err := GenerateUuid(true)
 
 	assert.NoError(t, err)
 	assert.True(t, strings.Contains(res, "-"), "The actual value should contain hyphens")
 	assert.True(t, isValidUuid(res), "The UUID should have the right format and be valid")
-
 }
 
 func TestProcessUuidPreserveHyphhensFalse(t *testing.T) {
-
 	res, err := GenerateUuid(false)
 
 	assert.NoError(t, err)
 	assert.True(t, isValidUuid(res), "The UUID should have the right format and be valid")
 	assert.False(t, strings.Contains(res, "-"), "The actual value should contain hyphens")
-
 }
 
 // the uuid lib will validate both hyphens and hyphens

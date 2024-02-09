@@ -30,7 +30,6 @@ func GenerateRandomInt64FixedLength(l int64) (int64, error) {
 Generates a random int64 with length in the inclusive range of [min, max]. For example, given a length range of [4, 7], possible values will have a length ranging from 4 -> 7 digits.
 */
 func GenerateRandomInt64InLengthRange(min, max int64) (int64, error) {
-
 	if min > max {
 		min, max = max, min
 	}
@@ -52,12 +51,10 @@ func GenerateRandomInt64InLengthRange(min, max int64) (int64, error) {
 
 	//nolint:all
 	return res, nil
-
 }
 
 /* Generates a random int64 in the inclusive range of [min, max]. For example, given a range of [40, 50], possible values range from 40 -> 50, inclusive. */
 func GenerateRandomInt64InValueRange(min, max int64) (int64, error) {
-
 	if min > max {
 		min, max = max, min
 	}
@@ -123,7 +120,6 @@ func AbsInt64(n int64) int64 {
 
 // Returns the int64 range between the min and max
 func GetInt64Range(min, max int64) (int64, error) {
-
 	if min > max {
 		return 0, fmt.Errorf("min cannot be greater than max")
 	}
@@ -133,11 +129,9 @@ func GetInt64Range(min, max int64) (int64, error) {
 	}
 
 	return max - min, nil
-
 }
 
 func IsInt64InRandomizationRange(value, rMin, rMax int64) bool {
-
 	if rMin > rMax {
 		rMin, rMax = rMax, rMin
 	}

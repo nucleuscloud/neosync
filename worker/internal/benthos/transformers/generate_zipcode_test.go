@@ -9,7 +9,6 @@ import (
 )
 
 func Test_GenerateZipcode(t *testing.T) {
-
 	res := GenerateRandomZipcode()
 
 	assert.IsType(t, "", res, "The returned zipcode should be a string")

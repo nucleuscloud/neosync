@@ -185,7 +185,6 @@ func (d *NucleusDb) CreateTeamAccountInvite(
 		accountInvite = &invite
 		return nil
 	}); err != nil {
-
 		return nil, err
 	}
 	return accountInvite, nil

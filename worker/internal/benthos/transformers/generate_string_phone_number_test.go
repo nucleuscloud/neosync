@@ -9,7 +9,6 @@ import (
 )
 
 func Test_GenerateStringPhoneNumber(t *testing.T) {
-
 	min := int64(9)
 	max := int64(14)
 
@@ -21,7 +20,6 @@ func Test_GenerateStringPhoneNumber(t *testing.T) {
 }
 
 func Test_GenerateStringPhoneNumberEqualMinMax(t *testing.T) {
-
 	min := int64(12)
 	max := int64(12)
 
@@ -31,11 +29,9 @@ func Test_GenerateStringPhoneNumberEqualMinMax(t *testing.T) {
 	assert.GreaterOrEqual(t, len(res), 8, "Should be greater than 9 characters in length. 9 for the number and 1 for the plus sign.")
 	assert.LessOrEqual(t, len(res), 15, "Should be less than 16 characters in length. 15 for the number and 1 for the plus sign.")
 	assert.Equal(t, int64(len(res)), max)
-
 }
 
 func Test_GenerateStringPhoneNumberShortMax(t *testing.T) {
-
 	min := int64(9)
 	max := int64(12)
 	maxPhoneLimit := 11
@@ -45,11 +41,9 @@ func Test_GenerateStringPhoneNumberShortMax(t *testing.T) {
 	assert.NoError(t, err)
 	assert.GreaterOrEqual(t, len(res), 8, "Should be greater than 9 characters in length. 9 for the number and 1 for the plus sign.")
 	assert.LessOrEqual(t, len(res), maxPhoneLimit, "Should be less than 16 characters in length. 15 for the number and 1 for the plus sign.")
-
 }
 
 func Test_GenerateStringPhoneNumberTransformer(t *testing.T) {
-
 	min := int64(10)
 	max := int64(13)
 	mapping := fmt.Sprintf(`root = generate_string_phone_number(min:%d,max:%d,max_length:%d)`, min, max, maxCharacterLimit)

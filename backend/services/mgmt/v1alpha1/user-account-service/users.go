@@ -152,7 +152,6 @@ func (s *Service) ConvertPersonalToTeamAccount(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.ConvertPersonalToTeamAccountRequest],
 ) (*connect.Response[mgmtv1alpha1.ConvertPersonalToTeamAccountResponse], error) {
-
 	return connect.NewResponse(&mgmtv1alpha1.ConvertPersonalToTeamAccountResponse{}), nil
 }
 

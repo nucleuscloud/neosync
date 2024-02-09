@@ -191,7 +191,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						resp.primaryKeys = pks
 					}
 				}
-
 			} else if len(configs) == 1 {
 				resp.DependsOn = configs[0].DependsOn
 			} else {
@@ -291,7 +290,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						resp.primaryKeys = primaryKeys[tableName]
 					}
 				}
-
 			} else if len(configs) == 1 {
 				resp.DependsOn = configs[0].DependsOn
 			} else {
@@ -352,7 +350,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						}
 						updateResponses = append(updateResponses, updateResp)
 					}
-
 				} else if resp.Config.Input.Generate != nil {
 					cols := buildPlainColumns(tm.Mappings)
 					colSourceMap := map[string]string{}
@@ -376,7 +373,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 							},
 						},
 					})
-
 				} else {
 					return nil, errors.New("unable to build destination connection due to unsupported source connection")
 				}
@@ -509,7 +505,6 @@ func (b *benthosBuilder) buildPostgresOutputQueryAndArgs(resp *BenthosConfigResp
 			ArgsMapping: buildPlainInsertArgs(filteredInsertCols),
 			Columns:     insertCols,
 		}
-
 	} else if resp.updateConfig != nil && resp.updateConfig.Columns != nil && len(resp.updateConfig.Columns.Include) > 0 {
 		filteredUpdateMappings := []*mgmtv1alpha1.JobMapping{}
 
@@ -529,7 +524,6 @@ func (b *benthosBuilder) buildPostgresOutputQueryAndArgs(resp *BenthosConfigResp
 			ArgsMapping: buildPlainInsertArgs(updateArgsMapping),
 			Columns:     updateCols,
 		}
-
 	} else {
 		cols := buildPlainColumns(tm.Mappings)
 		filteredCols := b.filterColsBySource(cols, colSourceMap) // filters out default columns
@@ -556,7 +550,6 @@ func (b *benthosBuilder) buildMysqlOutputQueryAndArgs(resp *BenthosConfigRespons
 			ArgsMapping: buildPlainInsertArgs(filteredInsertCols),
 			Columns:     insertCols,
 		}
-
 	} else if resp.updateConfig != nil && resp.updateConfig.Columns != nil && len(resp.updateConfig.Columns.Include) > 0 {
 		filteredUpdateMappings := []*mgmtv1alpha1.JobMapping{}
 
@@ -576,7 +569,6 @@ func (b *benthosBuilder) buildMysqlOutputQueryAndArgs(resp *BenthosConfigRespons
 			ArgsMapping: buildPlainInsertArgs(updateArgsMapping),
 			Columns:     updateCols,
 		}
-
 	} else {
 		cols := buildPlainColumns(tm.Mappings)
 		filteredCols := b.filterColsBySource(cols, colSourceMap) // filters out default columns

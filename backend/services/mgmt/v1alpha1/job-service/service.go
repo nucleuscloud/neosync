@@ -29,7 +29,6 @@ func New(
 	connectionService mgmtv1alpha1connect.ConnectionServiceClient,
 	useraccountService mgmtv1alpha1connect.UserAccountServiceClient,
 ) *Service {
-
 	return &Service{
 		cfg:                cfg,
 		db:                 db,

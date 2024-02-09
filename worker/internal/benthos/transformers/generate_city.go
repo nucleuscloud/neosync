@@ -10,11 +10,9 @@ import (
 )
 
 func init() {
-
 	spec := bloblang.NewPluginSpec().Param(bloblang.NewInt64Param("max_length"))
 
 	err := bloblang.RegisterFunctionV2("generate_city", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-
 		maxLength, err := args.GetInt64("max_length")
 		if err != nil {
 			return nil, err

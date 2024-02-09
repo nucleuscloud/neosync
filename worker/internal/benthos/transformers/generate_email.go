@@ -32,7 +32,6 @@ var emailDomains = []string{
 }
 
 func init() {
-
 	spec := bloblang.NewPluginSpec().Param(bloblang.NewInt64Param("max_length"))
 
 	err := bloblang.RegisterFunctionV2("generate_email", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
@@ -42,25 +41,21 @@ func init() {
 		}
 
 		return func() (any, error) {
-
 			res, err := GenerateRandomEmail(maxLength)
 			if err != nil {
 				return nil, err
 			}
 			return res, nil
 		}, nil
-
 	})
 
 	if err != nil {
 		panic(err)
 	}
-
 }
 
 /* Generates an email in the format <username@domain.tld> such as jdoe@gmail.com */
 func GenerateRandomEmail(maxLength int64) (string, error) {
-
 	fn, err := GenerateRandomFirstName(maxLength)
 	if err != nil {
 		return "", err
@@ -78,7 +73,6 @@ func GenerateRandomEmail(maxLength int64) (string, error) {
 	email := fmt.Sprintf(`%s.%s%s`, fn, ln, domain)
 
 	if len(email) > int(maxLength) {
-
 		var filteredDomains []string
 		for _, value := range emailDomains {
 			if len(value) < int(maxLength)-1 {
@@ -98,9 +92,7 @@ func GenerateRandomEmail(maxLength int64) (string, error) {
 		}
 
 		return fmt.Sprintf(`%s%s`, un, domain), err
-
 	}
 
 	return email, nil
-
 }

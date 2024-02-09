@@ -10,7 +10,6 @@ import (
 )
 
 func Test_GenerateRandomEmailShort(t *testing.T) {
-
 	shortMaxLength := int64(14)
 
 	res, err := GenerateRandomEmail(shortMaxLength)
@@ -21,7 +20,6 @@ func Test_GenerateRandomEmailShort(t *testing.T) {
 }
 
 func Test_GenerateRandomEmail(t *testing.T) {
-
 	res, err := GenerateRandomEmail(int64(40))
 
 	assert.NoError(t, err)
@@ -30,7 +28,6 @@ func Test_GenerateRandomEmail(t *testing.T) {
 }
 
 func Test_RandomEmailTransformer(t *testing.T) {
-
 	maxLength := int64(40)
 	mapping := fmt.Sprintf(`root = generate_email(max_length:%d)`, maxLength)
 	ex, err := bloblang.Parse(mapping)

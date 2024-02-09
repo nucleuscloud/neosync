@@ -13,14 +13,12 @@ var firstNames = transformers_dataset.FirstNames
 var minNameLength = int64(2)
 
 func init() {
-
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewInt64Param("max_length")).
 		Param(bloblang.NewAnyParam("value").Optional()).
 		Param(bloblang.NewBoolParam("preserve_length"))
 
 	err := bloblang.RegisterFunctionV2("transform_first_name", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-
 		valuePtr, err := args.GetOptionalString("value")
 		if err != nil {
 			return nil, err
@@ -45,18 +43,15 @@ func init() {
 			res, err := TransformFirstName(value, preserveLength, maxLength)
 			return res, err
 		}, nil
-
 	})
 
 	if err != nil {
 		panic(err)
 	}
-
 }
 
 // Generates a random first name which can be of either random length between [2,12] characters or as long as the input name
 func TransformFirstName(name string, preserveLength bool, maxLength int64) (*string, error) {
-
 	if name == "" {
 		return nil, nil
 	}
@@ -81,9 +76,7 @@ func TransformFirstName(name string, preserveLength bool, maxLength int64) (*str
 
 // Generates a random first name with length [min, max]. If the length is greater than 12, a first name of length 12 will be returned.
 func GenerateRandomFirstNameInLengthRange(minLength, maxLength int64) (string, error) {
-
 	if minLength == maxLength {
-
 		if minLength > 12 {
 			names := firstNames[12]
 			res, err := transformer_utils.GetRandomValueFromSlice[string](names)
@@ -114,7 +107,6 @@ func GenerateRandomFirstNameInLengthRange(minLength, maxLength int64) (string, e
 				return "", err
 			}
 			return res, nil
-
 		} else if maxLength < 2 {
 			res, err := transformer_utils.GenerateRandomStringWithDefinedLength(1)
 			if err != nil {
@@ -135,5 +127,4 @@ func GenerateRandomFirstNameInLengthRange(minLength, maxLength int64) (string, e
 			return res, nil
 		}
 	}
-
 }

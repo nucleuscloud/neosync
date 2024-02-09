@@ -18,7 +18,6 @@ func Test_GenerateRandomFirstName(t *testing.T) {
 }
 
 func Test_GenerateRandomFirstNameMaxlengthLessThan12(t *testing.T) {
-
 	lowMaxCharLimit := int64(6)
 
 	res, err := GenerateRandomFirstName(lowMaxCharLimit)
@@ -27,7 +26,6 @@ func Test_GenerateRandomFirstNameMaxlengthLessThan12(t *testing.T) {
 	assert.Greater(t, len(res), 2, "The first name should be more than 2 characters")
 	assert.Equal(t, int64(len(res)), lowMaxCharLimit, "The first name should be less than or equal to the max character limit")
 	assert.IsType(t, "", res, "The first name should be a string")
-
 }
 
 func Test_GenerateRandomFirstNameTransformer(t *testing.T) {

@@ -11,19 +11,16 @@ import (
 )
 
 func init() {
-
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewBoolParam("include_hyphens"))
 
 	err := bloblang.RegisterFunctionV2("generate_uuid", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-
 		include_hyphen, err := args.GetBool("include_hyphens")
 		if err != nil {
 			return nil, err
 		}
 
 		return func() (any, error) {
-
 			val, err := GenerateUuid(include_hyphen)
 
 			if err != nil {
@@ -39,14 +36,10 @@ func init() {
 
 // main transformer logic goes here
 func GenerateUuid(include_hyphen bool) (string, error) {
-
 	if include_hyphen {
-
 		// generate uuid with hyphens
 		return uuid.NewString(), nil
-
 	} else {
-
 		/*generates uuid with no hyphens
 		for postgres, if the dest column is defined as a UUID column then it will automatically
 		convert the UUID with no hyphens to having hyphens
@@ -56,6 +49,5 @@ func GenerateUuid(include_hyphen bool) (string, error) {
 		newUUID := uuid.New()
 		uuidWithHyphens := newUUID.String()
 		return strings.ReplaceAll(uuidWithHyphens, "-", ""), nil
-
 	}
 }

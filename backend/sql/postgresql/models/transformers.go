@@ -189,7 +189,6 @@ type TransformCharacterScramble struct{}
 
 // from API -> DB
 func (t *JobMappingTransformerModel) FromTransformerDto(tr *mgmtv1alpha1.JobMappingTransformer) error {
-
 	t.Source = tr.Source
 
 	config := &TransformerConfigs{}
@@ -204,7 +203,6 @@ func (t *JobMappingTransformerModel) FromTransformerDto(tr *mgmtv1alpha1.JobMapp
 }
 
 func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.TransformerConfig) error {
-
 	switch tr.Config.(type) {
 	case *mgmtv1alpha1.TransformerConfig_GenerateEmailConfig:
 		t.GenerateEmail = &GenerateEmailConfig{}

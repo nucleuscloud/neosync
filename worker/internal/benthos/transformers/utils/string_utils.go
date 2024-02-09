@@ -17,7 +17,6 @@ var allowedSpecialChars = map[rune]struct{}{
 
 // substrings a string using rune length to account for multi-byte characters
 func SliceString(s string, l int) string {
-
 	// use runes instead of strings in order to avoid slicing a multi-byte character and returning invalid UTF-8
 	runes := []rune(s)
 
@@ -30,7 +29,6 @@ func SliceString(s string, l int) string {
 
 // Generate a random alphanumeric string of length l
 func GenerateRandomStringWithDefinedLength(length int64) (string, error) {
-
 	if length < 1 {
 		return "", fmt.Errorf("the length of the string can't be less than 1")
 	}
@@ -51,7 +49,6 @@ func GenerateRandomStringWithDefinedLength(length int64) (string, error) {
 
 // Generate a random alphanumeric string within the interval [min, max]
 func GenerateRandomStringWithInclusiveBounds(min, max int64) (string, error) {
-
 	if min < 0 || max < 0 || min > max {
 		return "", fmt.Errorf("the min and max can't be less than 0 and the min can't be greater than the max")
 	}
@@ -61,7 +58,6 @@ func GenerateRandomStringWithInclusiveBounds(min, max int64) (string, error) {
 	if min == max {
 		length = min
 	} else {
-
 		randlength, err := GenerateRandomInt64InValueRange(min, max)
 		if err != nil {
 			return "", fmt.Errorf("unable to generate a random length for the string")
@@ -85,7 +81,6 @@ func GenerateRandomStringWithInclusiveBounds(min, max int64) (string, error) {
 }
 
 func ParseEmail(email string) ([]string, error) {
-
 	inputEmail, err := mail.ParseAddress(email)
 	if err != nil {
 		return nil, fmt.Errorf("invalid email format: %s", email)
@@ -115,7 +110,6 @@ func IsValidDomain(domain string) bool {
 }
 
 func IsValidUsername(username string) bool {
-
 	// Regex to match RFC 5322 username
 	// Chars allowed: a-z A-Z 0-9 . - _
 	// First char must be alphanumeric

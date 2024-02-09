@@ -101,7 +101,6 @@ func (s *Service) CreateUserDefinedTransformer(ctx context.Context, req *connect
 	return connect.NewResponse(&mgmtv1alpha1.CreateUserDefinedTransformerResponse{
 		Transformer: dtomaps.ToUserDefinedTransformerDto(&ct),
 	}), nil
-
 }
 
 func (s *Service) DeleteUserDefinedTransformer(ctx context.Context, req *connect.Request[mgmtv1alpha1.DeleteUserDefinedTransformerRequest]) (*connect.Response[mgmtv1alpha1.DeleteUserDefinedTransformerResponse], error) {

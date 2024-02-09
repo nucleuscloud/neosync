@@ -8,7 +8,6 @@ import (
 )
 
 func Test_GenerateSHA256Hash(t *testing.T) {
-
 	res, err := GenerateRandomSHA256Hash()
 	assert.NoError(t, err)
 
@@ -16,7 +15,6 @@ func Test_GenerateSHA256Hash(t *testing.T) {
 }
 
 func Test_GenerateSHA256HashTransformer(t *testing.T) {
-
 	mapping := `root = generate_sha256hash()`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the random float transformer")

@@ -25,14 +25,12 @@ So we will need to understand what type of column the user is trying to insert t
 */
 
 func init() {
-
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewBoolParam("randomize_sign")).
 		Param(bloblang.NewInt64Param("min")).
 		Param(bloblang.NewInt64Param("max"))
 
 	err := bloblang.RegisterFunctionV2("generate_int64", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-
 		randomizeSign, err := args.GetBool("randomize_sign")
 		if err != nil {
 			return nil, err
@@ -57,18 +55,15 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-
 }
 
 /*
 Generates a random int64 up to 18 digits in the interval [min, max].
 */
 func GenerateRandomInt64(randomizeSign bool, min, max int64) (int64, error) {
-
 	var returnValue int64
 
 	if randomizeSign {
-
 		res, err := transformer_utils.GenerateRandomInt64InValueRange(transformer_utils.AbsInt64(min), transformer_utils.AbsInt64(max))
 		if err != nil {
 			return 0, err
@@ -84,18 +79,14 @@ func GenerateRandomInt64(randomizeSign bool, min, max int64) (int64, error) {
 			// return the negative value
 			return returnValue * -1, nil
 		}
-
 	} else {
-
 		res, err := transformer_utils.GenerateRandomInt64InValueRange(min, max)
 		if err != nil {
 			return 0, err
 		}
 
 		returnValue = res
-
 	}
 
 	return returnValue, nil
-
 }
