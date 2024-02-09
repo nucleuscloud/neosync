@@ -15,7 +15,7 @@ func init() {
 		Param(bloblang.NewAnyParam("email").Optional()).
 		Param(bloblang.NewBoolParam("preserve_length")).
 		Param(bloblang.NewBoolParam("preserve_domain")).
-		Param(bloblang.NewAnyParam("exclusion_list")).
+		Param(bloblang.NewAnyParam("excluded_domains")).
 		Param(bloblang.NewInt64Param("max_length"))
 
 	err := bloblang.RegisterFunctionV2("transform_email", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
@@ -45,7 +45,7 @@ func init() {
 			return nil, err
 		}
 
-		eL, err := args.Get("exclusion_list")
+		eL, err := args.Get("excluded_domains")
 		if err != nil {
 			return nil, err
 		}

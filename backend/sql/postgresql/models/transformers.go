@@ -56,9 +56,9 @@ type TransformerConfigs struct {
 type GenerateEmailConfig struct{}
 
 type TransformEmailConfig struct {
-	PreserveLength bool     `json:"preserveLength"`
-	PreserveDomain bool     `json:"preserveDomain"`
-	ExclusionList  []string `json:"exclusionList"`
+	PreserveLength  bool     `json:"preserveLength"`
+	PreserveDomain  bool     `json:"preserveDomain"`
+	ExcludedDomains []string `json:"excludedDomains"`
 }
 
 type GenerateBoolConfig struct{}
@@ -210,9 +210,9 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 		t.GenerateEmail = &GenerateEmailConfig{}
 	case *mgmtv1alpha1.TransformerConfig_TransformEmailConfig:
 		t.TransformEmail = &TransformEmailConfig{
-			PreserveLength: tr.GetTransformEmailConfig().PreserveLength,
-			PreserveDomain: tr.GetTransformEmailConfig().PreserveDomain,
-			ExclusionList:  tr.GetTransformEmailConfig().ExclusionList,
+			PreserveLength:  tr.GetTransformEmailConfig().PreserveLength,
+			PreserveDomain:  tr.GetTransformEmailConfig().PreserveDomain,
+			ExcludedDomains: tr.GetTransformEmailConfig().ExcludedDomains,
 		}
 	case *mgmtv1alpha1.TransformerConfig_GenerateBoolConfig:
 		t.GenerateBool = &GenerateBoolConfig{}
@@ -370,9 +370,9 @@ func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerC
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
 				TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
-					PreserveDomain: t.TransformEmail.PreserveDomain,
-					PreserveLength: t.TransformEmail.PreserveLength,
-					ExclusionList:  t.TransformEmail.ExclusionList,
+					PreserveDomain:  t.TransformEmail.PreserveDomain,
+					PreserveLength:  t.TransformEmail.PreserveLength,
+					ExcludedDomains: t.TransformEmail.ExcludedDomains,
 				},
 			},
 		}

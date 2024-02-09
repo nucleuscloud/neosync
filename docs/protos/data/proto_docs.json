@@ -4369,7 +4369,7 @@
               "defaultValue": ""
             },
             {
-              "name": "exclusion_list",
+              "name": "excluded_domains",
               "description": "",
               "label": "repeated",
               "type": "string",
