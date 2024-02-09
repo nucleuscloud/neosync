@@ -14,7 +14,7 @@ var emailDomains = []string{
 	"yahoo.com",
 	"hotmail.com",
 	"aol.com",
-	"hotmail.co",
+	"hotmail.com",
 	"hotmail.fr",
 	"msn.com",
 	"yahoo.fr",

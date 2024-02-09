@@ -2,6 +2,7 @@ package datasync_activities
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -998,8 +999,15 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 	case "transform_email":
 		pd := col.Transformer.Config.GetTransformEmailConfig().PreserveDomain
 		pl := col.Transformer.Config.GetTransformEmailConfig().PreserveLength
-		el := col.Transformer.Config.GetTransformEmailConfig().ExclusionList
-		return fmt.Sprintf("transform_email(email:this.%s,preserve_domain:%t,preserve_length:%t,exclusion_list:%v,max_length:%d)", col.Column, pd, pl, el, *colInfo.CharacterMaximumLength), nil
+		exclusionList := col.Transformer.Config.GetTransformEmailConfig().ExclusionList
+
+		sliceBytes, err := json.Marshal(exclusionList)
+		if err != nil {
+			return "", err
+		}
+
+		exclusionListStr := string(sliceBytes)
+		return fmt.Sprintf("transform_email(email:this.%s,preserve_domain:%t,preserve_length:%t,exclusion_list:%v,max_length:%d)", col.Column, pd, pl, exclusionListStr, *colInfo.CharacterMaximumLength), nil
 	case "generate_bool":
 		return "generate_bool()", nil
 	case "generate_card_number":

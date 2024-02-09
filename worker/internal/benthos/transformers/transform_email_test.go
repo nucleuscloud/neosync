@@ -123,7 +123,7 @@ func Test_TransformEmailPreserveDomainFalsePreserveLengthTrueExclusionListTrue(t
 	assert.Equal(t, true, transformer_utils.IsValidEmail(*res), "The expected email should be have a valid email structure")
 	pEmail, _ := transformer_utils.ParseEmail(email)
 	assert.Equal(t, pEmail[1], strings.Split(*res, "@")[1], "The domains should be the same")
-
+	assert.Equal(t, len(email), len(*res), "The emails should have the same length")
 }
 
 func Test_TransformEmailPreserveDomainFalsePreserveLengthTrueExclusionListEmpty(t *testing.T) {
@@ -131,6 +131,8 @@ func Test_TransformEmailPreserveDomainFalsePreserveLengthTrueExclusionListEmpty(
 	elEmpty := []string{}
 
 	res, err := TransformEmail(email, true, false, 40, elEmpty)
+
+	fmt.Println("res", *res)
 
 	assert.NoError(t, err)
 	assert.Equal(t, true, transformer_utils.IsValidEmail(*res), "The expected email should be have a valid email structure")
@@ -148,6 +150,7 @@ func Test_TransformEmailPreserveDomainTruePreserveLengthTrueExclusionList(t *tes
 	assert.Equal(t, true, transformer_utils.IsValidEmail(*res), "The expected email should be have a valid email structure")
 	pEmail, _ := transformer_utils.ParseEmail(email)
 	assert.NotEqual(t, pEmail[1], strings.Split(*res, "@")[1], "The domains should be different")
+	assert.Equal(t, len(email), len(*res), "The emails should have the same length")
 
 }
 
@@ -161,17 +164,19 @@ func Test_TransformEmailPreserveDomainTruePreserveLengthTrueExclusionListEmpty(t
 	assert.Equal(t, true, transformer_utils.IsValidEmail(*res), "The expected email should be have a valid email structure")
 	pEmail, _ := transformer_utils.ParseEmail(email)
 	assert.Equal(t, pEmail[1], strings.Split(*res, "@")[1], "The domains should be different")
-
+	assert.Equal(t, len(email), len(*res), "The emails should have the same length")
 }
 
 func Test_TransformEmailPreserveDomainFalsePreserveLengthFalseExclusionListTrue(t *testing.T) {
 
-	res, err := TransformEmail(email, true, true, 40, exclusionList)
+	res, err := TransformEmail(email, false, false, 40, exclusionList)
+
+	fmt.Println("res", *res)
 
 	assert.NoError(t, err)
 	assert.Equal(t, true, transformer_utils.IsValidEmail(*res), "The expected email should be have a valid email structure")
 	pEmail, _ := transformer_utils.ParseEmail(email)
-	assert.NotEqual(t, pEmail[1], strings.Split(*res, "@")[1], "The domains should be different")
+	assert.Equal(t, pEmail[1], strings.Split(*res, "@")[1], "The domains should be the same")
 
 }
 
@@ -179,12 +184,14 @@ func Test_TransformEmailPreserveDomainFalsePreserveLengthFalseExclusionListEmpty
 
 	elEmpty := []string{}
 
-	res, err := TransformEmail(email, true, true, 40, elEmpty)
+	res, err := TransformEmail(email, false, false, 40, elEmpty)
+
+	fmt.Println("res", *res)
 
 	assert.NoError(t, err)
 	assert.Equal(t, true, transformer_utils.IsValidEmail(*res), "The expected email should be have a valid email structure")
 	pEmail, _ := transformer_utils.ParseEmail(email)
-	assert.Equal(t, pEmail[1], strings.Split(*res, "@")[1], "The domains should be different")
+	assert.NotEqual(t, pEmail[1], strings.Split(*res, "@")[1], "The domains should be different")
 
 }
 
