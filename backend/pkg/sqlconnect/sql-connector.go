@@ -95,6 +95,7 @@ func (s *PgPool) Open(ctx context.Context) (pg_queries.DBTX, error) {
 		dsn := details.GeneralDbConnectConfig.String()
 		db, err := pgxpool.New(ctx, dsn)
 		if err != nil {
+			details.Tunnel.Close()
 			return nil, err
 		}
 		s.dsn = dsn
