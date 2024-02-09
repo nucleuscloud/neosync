@@ -1,6 +1,9 @@
 package shared
 
 import (
+	"net/http"
+
+	http_client "github.com/nucleuscloud/neosync/worker/internal/http/client"
 	"github.com/spf13/viper"
 )
 
@@ -22,6 +25,12 @@ func GetNeosyncUrl() string {
 		return "http://localhost:8080"
 	}
 	return neosyncUrl
+}
+
+// Returns an instance of *http.Client that includes the Neosync API Token if one was found in the environment
+func GetNeosyncHttpClient() *http.Client {
+	apikey := viper.GetString("NEOSYNC_API_KEY")
+	return http_client.NewWithAuth(&apikey)
 }
 
 func Ptr[T any](val T) *T {

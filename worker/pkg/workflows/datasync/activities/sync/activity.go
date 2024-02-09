@@ -21,9 +21,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sshtunnel"
-	http_client "github.com/nucleuscloud/neosync/worker/internal/http/client"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
-	"github.com/spf13/viper"
 	"go.temporal.io/sdk/activity"
 	"golang.org/x/sync/errgroup"
 )
@@ -69,8 +67,7 @@ func Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata, workflo
 	}()
 
 	neosyncUrl := shared.GetNeosyncUrl()
-	apikey := viper.GetString("NEOSYNC_API_KEY")
-	httpClient := http_client.NewWithAuth(&apikey)
+	httpClient := shared.GetNeosyncHttpClient()
 
 	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(
 		httpClient,
