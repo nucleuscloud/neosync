@@ -37,7 +37,7 @@
     "mini-svg-data-uri": "^1.4.4",
     "next": "^13.4.19",
     "next-contentlayer": "^0.3.4",
-    "posthog-js": "^1.104.4",
+    "posthog-js": "^1.105.6",
     "react": "18.2.0",
     "react-code-blocks": "^0.1.5",
     "react-dom": "18.2.0",
