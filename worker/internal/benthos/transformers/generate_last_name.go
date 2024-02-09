@@ -40,7 +40,7 @@ func GenerateRandomLastName(maxLength int64) (string, error) {
 		}
 		return res, nil
 	} else {
-		randInd, err := transformer_utils.GenerateRandomInt64InValueRange(3, 12)
+		randInd, err := transformer_utils.GenerateRandomInt64InValueRange(2, 12)
 		if err != nil {
 			return "", err
 		}
