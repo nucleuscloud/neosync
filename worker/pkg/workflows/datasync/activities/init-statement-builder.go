@@ -221,6 +221,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				}
 
 				sqlStatement := dbschemas_postgres.GetOrderedPostgresInitStatements(tableInitMap, dependencyMap)
+
 				pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(connection.PgConfig, ptr(uint32(5)), slogger)
 				if err != nil {
 					return nil, err
@@ -235,7 +236,6 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					return nil, err
 				}
 				pgconn.Close()
-
 			} else {
 				return nil, errors.New("unable to build destination connection due to unsupported source connection")
 			}
@@ -301,7 +301,6 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				if err := conn.Close(); err != nil {
 					slogger.Error(err.Error())
 				}
-
 			} else {
 				return nil, errors.New("unable to build destination connection due to unsupported source connection")
 			}
@@ -356,7 +355,6 @@ func (b *initStatementBuilder) getInitStatementFromPostgres(
 	table string,
 	opts *initStatementOpts,
 ) (string, error) {
-
 	statements := []string{}
 	if opts != nil && opts.InitSchema {
 		stmt, err := dbschemas_postgres.GetTableCreateStatement(ctx, conn, b.pgquerier, schema, table)

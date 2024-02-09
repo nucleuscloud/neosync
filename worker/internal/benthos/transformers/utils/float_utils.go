@@ -11,7 +11,6 @@ import (
 
 // Generates a random float64 in the range of the min and max float64 values
 func GenerateRandomFloat64WithInclusiveBounds(min, max float64) (float64, error) {
-
 	if min > max {
 		min, max = max, min
 	}
@@ -49,7 +48,6 @@ func GetFloat64Length(i float64) int64 {
 
 // Returns the float64 range between the min and max
 func GetFloat64Range(min, max float64) (float64, error) {
-
 	if min > max {
 		return 0, fmt.Errorf("min cannot be greater than max")
 	}
@@ -59,7 +57,6 @@ func GetFloat64Range(min, max float64) (float64, error) {
 	}
 
 	return max - min, nil
-
 }
 
 func IsNegativeFloat64(val float64) bool {
@@ -71,7 +68,6 @@ func IsNegativeFloat64(val float64) bool {
 }
 
 func IsFloat64InRandomizationRange(value, rMin, rMax float64) bool {
-
 	if rMin > rMax {
 		rMin, rMax = rMax, rMin
 	}
@@ -100,7 +96,6 @@ func GetFloatLength(i float64) *FloatLength {
 }
 
 func ReduceFloat64Precision(precision int, value float64) (float64, error) {
-
 	if precision < 1 {
 		return 0, fmt.Errorf("precision cannot be less than 1")
 	}

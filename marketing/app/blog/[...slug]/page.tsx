@@ -14,6 +14,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { env } from '@/env';
 import { absoluteUrl, cn, formatDate } from '@/lib/utils';
 import { ChevronLeftIcon } from '@radix-ui/react-icons';
+import { compareDesc } from 'date-fns';
 import Image from 'next/image';
 import { ReactElement } from 'react';
 import { BlogSummary } from '../page';
@@ -148,12 +149,16 @@ export default async function PostPage({
             </time>
           </div>
         ) : null}
-        <div className="max-w-4xl">
+        <div className="max-w-[706px]">
           <Mdx code={post.body.code} />
         </div>
         <hr className="mt-12" />
         <div className="flex flex-col lg:flex-row items-center gap-8 pt-10">
           {footerPosts
+            .filter((post) => post.published)
+            .sort((a, b) => {
+              return compareDesc(new Date(a.date), new Date(b.date));
+            })
             .slice(0, 2)
             ?.map((post, index) => (
               <BlogSummary key={post._id} post={post} isPriority={index <= 1} />
@@ -169,7 +174,7 @@ export default async function PostPage({
           </Link>
         </div>
       </div>
-      <div className="hidden lg:block sticky top-10 max-h-[calc(100vh-4rem)] overflow-y-auto">
+      <div className="hidden lg:block sticky top-10 max-h-[calc(100vh-4rem)] overflow-y-auto py-6 lg:py-10 ">
         <BlogTableOfContents toc={toc} />
       </div>
     </div>

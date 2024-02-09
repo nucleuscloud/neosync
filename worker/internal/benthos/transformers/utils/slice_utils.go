@@ -25,7 +25,6 @@ func GetRandomValueFromSlice[T any](arr []T) (T, error) {
 
 // converts a slice of int to a slice of strings
 func IntSliceToStringSlice(ints []int64) []string {
-
 	var str []string
 
 	if len(ints) == 0 {
@@ -34,7 +33,6 @@ func IntSliceToStringSlice(ints []int64) []string {
 
 	for i := range ints {
 		str = append(str, strconv.Itoa((i)))
-
 	}
 
 	return str

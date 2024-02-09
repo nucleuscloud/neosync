@@ -441,13 +441,12 @@ jobs:
       - name: Fetch all tags
         run: git fetch --force --tags
 
-      # - name: Import GPG Key
-      #   id: import_gpg
-      #   uses: crazy-max/ghaction-import-gpg@v5
-      #   with:
-      #     gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-      #     passphrase: ${{ secrets.GPG_PASSPHRASE }}
-      #     fingerprint: ${{ secrets.GPG_FINGERPRINT }}
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@01dd5d3ca463c7f10f7f4f7b4f177225ac661ee4 # v6.1.0
+        id: import_gpg
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v5
@@ -458,7 +457,7 @@ jobs:
           workdir: cli
         env:
           GITHUB_TOKEN: ${{ secrets.PUBLISH_PAT }} # needs to be a non-action token because this also pushes to the homebrew repo
-          # GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
+          GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
           AUR_KEY: ${{ secrets.AUR_PRIVATE_KEY }}
 
   ts-sdk:

@@ -32,8 +32,8 @@ linters-settings:
     min-complexity: 15
   gofmt:
     rewrite-rules:
-      - pattern: 'interface{}'
-        replacement: 'any'
+      - pattern: "interface{}"
+        replacement: "any"
   goimports:
     local-prefixes: github.com/golangci/golangci-lint
   gomnd:
@@ -44,12 +44,12 @@ linters-settings:
       - condition
       - return
     ignored-numbers:
-      - '0'
-      - '1'
-      - '2'
-      - '3'
-      - '4'
-      - '5'
+      - "0"
+      - "1"
+      - "2"
+      - "3"
+      - "4"
+      - "5"
     ignored-functions:
       - strings.SplitN
 
@@ -103,7 +103,7 @@ linters:
     - misspell
     - nakedret
     - noctx
-    # - nolintlint
+    - nolintlint
     - revive
     - staticcheck
     # - stylecheck
@@ -111,7 +111,7 @@ linters:
     - unconvert
     - unparam
     - unused
-    # - whitespace
+    - whitespace
 
   # don't enable:
   # - asciicheck
@@ -128,12 +128,13 @@ linters:
   # - testpackage
   # - wsl
 
-# issues:
-#   # Excluding configuration per-path, per-linter, per-text and per-source
-#   exclude-rules:
-#     - path: _test\.go
-#       linters:
-#         - gomnd
+issues:
+  #   # Excluding configuration per-path, per-linter, per-text and per-source
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - gomnd
+        - lll
 
 #     - path: pkg/golinters/errcheck.go
 #       text: "SA1019: errCfg.Exclude is deprecated: use ExcludeFunctions instead"

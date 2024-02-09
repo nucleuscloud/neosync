@@ -1,12 +1,11 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
-import { Checkbox } from '@/components/ui/checkbox';
-import NextLink from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { formatDateTime } from '@/util/util';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
 import { UserDefinedTransformer } from '@neosync/sdk';
+import { ColumnDef } from '@tanstack/react-table';
+import NextLink from 'next/link';
 import { DataTableColumnHeader } from './data-table-column-header';
 import { DataTableRowActions } from './data-table-row-actions';
 
@@ -21,27 +20,6 @@ export function getUserDefinedTransformerColumns(
   const { onTransformerDeleted, accountName } = props;
 
   return [
-    {
-      id: 'select',
-      header: ({ table }) => (
-        <Checkbox
-          checked={table.getIsAllPageRowsSelected()}
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-          className="translate-y-[2px]"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-          className="translate-y-[2px]"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
     {
       id: 'name',
       accessorKey: 'name',

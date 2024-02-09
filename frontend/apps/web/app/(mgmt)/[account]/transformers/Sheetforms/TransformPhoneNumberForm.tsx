@@ -18,15 +18,12 @@ interface Props {
   setIsSheetOpen?: (val: boolean) => void;
 }
 
-export default function TransformPhoneNumberForm(props: Props): ReactElement {
+export default function TransformStringPhoneNumberForm(
+  props: Props
+): ReactElement {
   const { index, setIsSheetOpen, transformer } = props;
 
   const fc = useFormContext();
-  const ihValue = fc.getValues(
-    `mappings.${index}.transformer.config.value.includeHyphens`
-  );
-
-  const [ih, setIh] = useState<boolean>(ihValue);
   const plValue = fc.getValues(
     `mappings.${index}.transformer.config.value.preserveLength`
   );
@@ -36,7 +33,7 @@ export default function TransformPhoneNumberForm(props: Props): ReactElement {
   const handleSubmit = () => {
     fc.setValue(
       `mappings.${index}.transformer.config.value`,
-      new TransformPhoneNumber({ includeHyphens: ih, preserveLength: pl }),
+      new TransformPhoneNumber({ preserveLength: pl }),
       {
         shouldValidate: false,
       }
@@ -60,29 +57,8 @@ export default function TransformPhoneNumberForm(props: Props): ReactElement {
             <FormControl>
               <Switch
                 checked={pl}
-                disabled={ih || isUserDefinedTransformer(transformer)}
+                disabled={isUserDefinedTransformer(transformer)}
                 onCheckedChange={() => setPl(!pl)}
-              />
-            </FormControl>
-          </FormItem>
-        )}
-      />
-      <FormField
-        name={`mappings.${index}.transformer.config.value.includeHyphens`}
-        render={() => (
-          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-            <div className="space-y-0.5">
-              <FormLabel>Include Hyphens</FormLabel>
-              <FormDescription className="w-[90%]">
-                Include hyphens in the output phone number. Note: this only
-                works with 10 digit phone numbers.
-              </FormDescription>
-            </div>
-            <FormControl>
-              <Switch
-                checked={ih}
-                disabled={pl || isUserDefinedTransformer(transformer)}
-                onCheckedChange={() => setIh(!ih)}
               />
             </FormControl>
           </FormItem>

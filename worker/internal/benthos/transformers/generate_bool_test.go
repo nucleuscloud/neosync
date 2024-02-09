@@ -8,10 +8,8 @@ import (
 )
 
 func Test_GenerateRandomBool(t *testing.T) {
-
 	res := GenerateRandomBool()
 	assert.IsType(t, res, false)
-
 }
 
 func Test_GenerateRandomBoolTransformer(t *testing.T) {

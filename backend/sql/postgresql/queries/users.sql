@@ -82,10 +82,20 @@ INSERT INTO neosync_api.accounts (
 RETURNING *;
 
 -- name: GetAccountsByUser :many
-SELECT a.* from neosync_api.accounts a
+SELECT a.*
+FROM neosync_api.accounts a
+INNER JOIN neosync_api.account_api_keys aak ON aak.account_id = a.id
+INNER JOIN neosync_api.users u ON u.id = aak.user_id
+WHERE u.id = $1
+
+UNION
+
+SELECT a.*
+FROM neosync_api.accounts a
 INNER JOIN neosync_api.account_user_associations aua ON aua.account_id = a.id
 INNER JOIN neosync_api.users u ON u.id = aua.user_id
 WHERE u.id = $1;
+
 
 -- name: CreateAccountUserAssociation :one
 INSERT INTO neosync_api.account_user_associations (

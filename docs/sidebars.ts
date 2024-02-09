@@ -203,6 +203,11 @@ const sidebars: SidebarsConfig = {
       label: 'Developing Neosync Locally',
     },
     {
+      type: 'doc',
+      id: 'guides/terraform',
+      label: 'Neosync Terraform Provider',
+    },
+    {
       type: 'html',
       value: '<div>Connections</div>',
       className: 'sidebarcategory',

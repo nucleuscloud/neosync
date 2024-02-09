@@ -12,6 +12,7 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/stretchr/testify/assert"
@@ -77,10 +78,10 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Pg(t *testing.T) 
 						Table:  "users",
 						Column: "name",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: "generate_full_name",
+							Source: "generate_ssn",
 							Config: &mgmtv1alpha1.TransformerConfig{
-								Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
-									GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
+								Config: &mgmtv1alpha1.TransformerConfig_GenerateSsnConfig{
+									GenerateSsnConfig: &mgmtv1alpha1.GenerateSSN{},
 								},
 							},
 						},
@@ -139,7 +140,7 @@ input:
     generate:
         mapping: |-
             root.id = generate_uuid(include_hyphens:true)
-            root.name = generate_full_name()
+            root.name = generate_ssn()
         interval: ""
         count: 10
 buffer: null
@@ -229,10 +230,10 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Generate_Pg_Default(t *testing.T
 						Table:  "users",
 						Column: "name",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: "generate_full_name",
+							Source: "generate_ssn",
 							Config: &mgmtv1alpha1.TransformerConfig{
-								Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
-									GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
+								Config: &mgmtv1alpha1.TransformerConfig_GenerateSsnConfig{
+									GenerateSsnConfig: &mgmtv1alpha1.GenerateSSN{},
 								},
 							},
 						},
@@ -289,7 +290,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Generate_Pg_Default(t *testing.T
 input:
     label: ""
     generate:
-        mapping: root.name = generate_full_name()
+        mapping: root.name = generate_ssn()
         interval: ""
         count: 10
 buffer: null
@@ -497,7 +498,6 @@ output:
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
 	assert.NoError(t, err)
-
 }
 
 func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_Default(t *testing.T) {
@@ -1732,10 +1732,10 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Mysql(t *testing.
 						Table:  "users",
 						Column: "name",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: "generate_full_name",
+							Source: "generate_ssn",
 							Config: &mgmtv1alpha1.TransformerConfig{
-								Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
-									GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
+								Config: &mgmtv1alpha1.TransformerConfig_GenerateSsnConfig{
+									GenerateSsnConfig: &mgmtv1alpha1.GenerateSSN{},
 								},
 							},
 						},
@@ -1795,7 +1795,7 @@ input:
     generate:
         mapping: |-
             root.id = generate_uuid(include_hyphens:true)
-            root.name = generate_full_name()
+            root.name = generate_ssn()
         interval: ""
         count: 10
 buffer: null
@@ -2656,10 +2656,10 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Mysql_Default(t *
 						Table:  "users",
 						Column: "name",
 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: "generate_full_name",
+							Source: "generate_ssn",
 							Config: &mgmtv1alpha1.TransformerConfig{
-								Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
-									GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
+								Config: &mgmtv1alpha1.TransformerConfig_GenerateSsnConfig{
+									GenerateSsnConfig: &mgmtv1alpha1.GenerateSSN{},
 								},
 							},
 						},
@@ -2717,7 +2717,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Mysql_Default(t *
 input:
     label: ""
     generate:
-        mapping: root.name = generate_full_name()
+        mapping: root.name = generate_ssn()
         interval: ""
         count: 10
 buffer: null
@@ -2980,10 +2980,23 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 
 	sourceTableOpts := map[string]*sqlSourceTableOptions{"where": {WhereClause: &dsn}}
 
-	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts)
+	groupedSchemas := map[string]map[string]*dbschemas_utils.ColumnInfo{
+		"public.users": {
+			"id": &dbschemas_utils.ColumnInfo{
+				OrdinalPosition:        1,
+				ColumnDefault:          "324",
+				IsNullable:             "false",
+				DataType:               "",
+				CharacterMaximumLength: nil,
+				NumericPrecision:       nil,
+				NumericScale:           nil,
+			},
+		},
+	}
+
+	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts, groupedSchemas)
 	assert.Nil(t, err)
 	assert.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)
-
 }
 func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
@@ -3030,10 +3043,23 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 
 	sourceTableOpts := map[string]*sqlSourceTableOptions{"where": {WhereClause: &dsn}}
 
-	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts)
+	groupedSchemas := map[string]map[string]*dbschemas_utils.ColumnInfo{
+		"public.users": {
+			"id": &dbschemas_utils.ColumnInfo{
+				OrdinalPosition:        1,
+				ColumnDefault:          "324",
+				IsNullable:             "false",
+				DataType:               "",
+				CharacterMaximumLength: nil,
+				NumericPrecision:       nil,
+				NumericScale:           nil,
+			},
+		},
+	}
+
+	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts, groupedSchemas)
 	assert.Nil(t, err)
 	assert.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)
-
 }
 
 func Test_ProcessorConfigMultiJavascript(t *testing.T) {
@@ -3087,7 +3113,21 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 
 	sourceTableOpts := map[string]*sqlSourceTableOptions{"test": {WhereClause: &dsn}}
 
-	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts)
+	groupedSchemas := map[string]map[string]*dbschemas_utils.ColumnInfo{
+		"public.users": {
+			"id": &dbschemas_utils.ColumnInfo{
+				OrdinalPosition:        1,
+				ColumnDefault:          "324",
+				IsNullable:             "false",
+				DataType:               "",
+				CharacterMaximumLength: nil,
+				NumericPrecision:       nil,
+				NumericScale:           nil,
+			},
+		},
+	}
+
+	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts, groupedSchemas)
 	assert.Nil(t, err)
 
 	out, err := yaml.Marshal(res[0].Config.Pipeline.Processors)
@@ -3167,7 +3207,23 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
 
 	sourceTableOpts := map[string]*sqlSourceTableOptions{"test": {WhereClause: &dsn}}
 
-	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts)
+	var email int32 = int32(40)
+
+	groupedSchemas := map[string]map[string]*dbschemas_utils.ColumnInfo{
+		"public.users": {
+			"email": &dbschemas_utils.ColumnInfo{
+				OrdinalPosition:        2,
+				ColumnDefault:          "",
+				IsNullable:             "true",
+				DataType:               "timestamptz",
+				CharacterMaximumLength: &email,
+				NumericPrecision:       nil,
+				NumericScale:           nil,
+			},
+		},
+	}
+
+	res, err := bbuilder.buildBenthosSqlSourceConfigResponses(context.Background(), tableMappings, dsn, driver, sourceTableOpts, groupedSchemas)
 
 	assert.Nil(t, err)
 
@@ -3178,7 +3234,7 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
 	assert.Equal(
 		t,
 		strings.TrimSpace(`
-- mutation: root.email = generate_email()
+- mutation: root.email = generate_email(max_length:40)
 - javascript:
     code: |4-
         (() => {
@@ -3193,5 +3249,4 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
         benthos.v0_msg_set_structured(output);
         })();
 	    `), strings.TrimSpace(string(out)))
-
 }

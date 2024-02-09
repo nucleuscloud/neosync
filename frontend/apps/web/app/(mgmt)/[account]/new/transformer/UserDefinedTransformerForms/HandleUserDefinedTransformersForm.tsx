@@ -1,10 +1,10 @@
 import { ReactElement } from 'react';
 import UserDefinedGenerateCardNumberForm from './UserDefinedGenerateCardNumber';
 import UserDefinedGenerateCategoricalForm from './UserDefinedGenerateCategoricalForm';
-import UserDefinedGenerateE164NumberForm from './UserDefinedGenerateE164PhoneNumberForm';
 import UserDefinedGenerateFloat64Form from './UserDefinedGenerateFloat64Form';
 import UserDefinedGenerateGenderForm from './UserDefinedGenerateGenderForm';
 import UserDefinedGenerateInt64Form from './UserDefinedGenerateInt64Form';
+import UserDefinedGenerateInternationalPhoneNumberForm from './UserDefinedGenerateInternationalPhoneNumberForm';
 import UserDefinedGenerateStringForm from './UserDefinedGenerateStringForm';
 import UserDefinedGenerateStringPhoneNumberNumberForm from './UserDefinedGenerateStringPhoneNumberForm';
 import UserDefinedGenerateUuidForm from './UserDefinedGenerateUuidForm';
@@ -30,15 +30,19 @@ export function handleUserDefinedTransformerForm(
       return <UserDefinedGenerateCardNumberForm isDisabled={disabled} />;
     case 'generate_categorical':
       return <UserDefinedGenerateCategoricalForm isDisabled={disabled} />;
-    case 'generate_e164_phone_number':
-      return <UserDefinedGenerateE164NumberForm isDisabled={disabled} />;
+    case 'generate_international_phone_number':
+      return (
+        <UserDefinedGenerateInternationalPhoneNumberForm
+          isDisabled={disabled}
+        />
+      );
     case 'generate_float64':
       return <UserDefinedGenerateFloat64Form isDisabled={disabled} />;
     case 'generate_gender':
       return <UserDefinedGenerateGenderForm isDisabled={disabled} />;
     case 'generate_int64':
       return <UserDefinedGenerateInt64Form isDisabled={disabled} />;
-    case 'generate_string':
+    case 'generate_random_string':
       return <UserDefinedGenerateStringForm isDisabled={disabled} />;
     case 'generate_string_phone_number':
       return (

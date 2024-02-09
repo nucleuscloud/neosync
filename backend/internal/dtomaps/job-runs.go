@@ -65,7 +65,6 @@ func ToJobRunEventTaskErrorDto(failure *temporalfailure.Failure, retryState enum
 		Message:    failure.Message,
 		RetryState: retryState.String(),
 	}
-
 }
 
 func toPendingActivitiesDto(activities []*workflowpb.PendingActivityInfo) []*mgmtv1alpha1.PendingActivity {
@@ -97,7 +96,6 @@ func toActivityStatus(state enums.PendingActivityState) mgmtv1alpha1.ActivitySta
 	default:
 		return mgmtv1alpha1.ActivityStatus_ACTIVITY_STATUS_UNSPECIFIED
 	}
-
 }
 
 func toWorfklowStatus(input enums.WorkflowExecutionStatus) mgmtv1alpha1.JobRunStatus {

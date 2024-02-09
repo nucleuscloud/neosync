@@ -8,6 +8,7 @@ type Address struct {
 	Zipcode  string
 }
 
+// we could prob optimize this by creating map[string][]string{} for each field of the address where each key is the length of the cities in that []string{}. This is how we have the names datasets. Then it becomes easier to handle maxLength params and also we can create way more addresses, since we'll be able to mix-and-match fields.
 var Addresses = []Address{
 	{
 		Address1: "1745 T Street Southeast",
@@ -306,6 +307,7 @@ var Addresses = []Address{
 	{
 		Address1: "388 East Main Street",
 		Address2: "",
+		City:     "Middlebury",
 		State:    "VT",
 		Zipcode:  "05753",
 	},
@@ -557,6 +559,7 @@ var Addresses = []Address{
 	{
 		Address1: "270 Chrissy's Court",
 		Address2: "",
+		City:     "Chester",
 		State:    "VT",
 		Zipcode:  "05443",
 	},
@@ -843,6 +846,7 @@ var Addresses = []Address{
 	{
 		Address1: "8 Watkins Road",
 		Address2: "",
+		City:     "Middlebury",
 		State:    "VT",
 		Zipcode:  "05468",
 	},
@@ -1073,6 +1077,7 @@ var Addresses = []Address{
 	{
 		Address1: "9 Brooklyn Street",
 		Address2: "",
+		City:     "Burlington",
 		State:    "VT",
 		Zipcode:  "05488",
 	},
@@ -1758,6 +1763,7 @@ var Addresses = []Address{
 	{
 		Address1: "3 Southerberry Drive",
 		Address2: "",
+		City:     "Chester",
 		State:    "VT",
 		Zipcode:  "05468",
 	},
@@ -2485,6 +2491,7 @@ var Addresses = []Address{
 	{
 		Address1: "95 Woods Hill Road",
 		Address2: "",
+		City:     "Manchester",
 		State:    "VT",
 		Zipcode:  "05488",
 	},

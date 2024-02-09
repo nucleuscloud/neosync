@@ -11,7 +11,7 @@ function getNextPublicAppUrl() {
 const env = createEnv({
   server: {
     MIXPANEL_TOKEN: z.string().optional(),
-    HUBSPOT_TOKEN: z.string().optional(),
+    LOOPS_FORM_ID: z.string().optional(),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.string().min(1),
@@ -20,6 +20,7 @@ const env = createEnv({
     NEXT_PUBLIC_APP_URL: getNextPublicAppUrl(),
     MIXPANEL_TOKEN: process.env.MIXPANEL_TOKEN,
     HUBSPOT_TOKEN: process.env.HUBSPOT_TOKEN,
+    LOOPS_FORM_ID: process.env.LOOPS_FORM_ID,
   },
 });
 module.exports = { env };

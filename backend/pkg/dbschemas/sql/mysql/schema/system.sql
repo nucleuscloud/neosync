@@ -6,7 +6,10 @@ CREATE TABLE information_schema.columns (
   ordinal_position int not null,
   column_default text null,
   is_nullable text not null,
-  data_type text not null
+  data_type text not null,
+  character_maximum_length int,
+  numeric_precision int,
+  numeric_scale int
 );
 
 create table information_schema.tables (

@@ -10,7 +10,6 @@ import (
 )
 
 func Test_GenerateRandomIntPositive(t *testing.T) {
-
 	min := int64(10)
 	max := int64(20)
 
@@ -19,11 +18,9 @@ func Test_GenerateRandomIntPositive(t *testing.T) {
 
 	assert.GreaterOrEqual(t, res, min, "The value should be greater than or equal to the min")
 	assert.LessOrEqual(t, res, max, "The value should be less than or equal the max")
-
 }
 
 func Test_GenerateRandomIntNegative(t *testing.T) {
-
 	min := int64(-10)
 	max := int64(-20)
 
@@ -35,7 +32,6 @@ func Test_GenerateRandomIntNegative(t *testing.T) {
 }
 
 func Test_GenerateRandomIntNegativetoPositive(t *testing.T) {
-
 	min := int64(-10)
 	max := int64(20)
 
@@ -47,7 +43,6 @@ func Test_GenerateRandomIntNegativetoPositive(t *testing.T) {
 }
 
 func Test_GenerateRandomIntPositiveRandomSign(t *testing.T) {
-
 	min := int64(10)
 	max := int64(20)
 
@@ -63,11 +58,9 @@ func Test_GenerateRandomIntPositiveRandomSign(t *testing.T) {
 		assert.GreaterOrEqual(t, res, -max, "The result should be greater or equal to the minimum")
 		assert.LessOrEqual(t, res, -min, "The result should be less or equal to the maximum")
 	}
-
 }
 
 func Test_GenerateRandomIntNegativeRandomSign(t *testing.T) {
-
 	min := int64(-10)
 	max := int64(-20)
 
@@ -83,11 +76,9 @@ func Test_GenerateRandomIntNegativeRandomSign(t *testing.T) {
 		assert.GreaterOrEqual(t, res, max, "The result should be greater or equal to the minimum")
 		assert.LessOrEqual(t, res, min, "The result should be less or equal to the maximum")
 	}
-
 }
 
 func Test_GenerateRandomIntNegativeToPositiveRandomSign(t *testing.T) {
-
 	min := int64(-10)
 	max := int64(20)
 
@@ -103,11 +94,9 @@ func Test_GenerateRandomIntNegativeToPositiveRandomSign(t *testing.T) {
 		assert.GreaterOrEqual(t, res, -max, "The result should be greater or equal to the minimum")
 		assert.LessOrEqual(t, res, min, "The result should be less or equal to the maximum")
 	}
-
 }
 
 func Test_GenerateRandomIntRandomSign(t *testing.T) {
-
 	min := int64(2)
 	max := int64(9)
 	randomizeSign := false

@@ -1,5 +1,7 @@
 import { env } from '@/env';
 import { clsx, type ClassValue } from 'clsx';
+import { format } from 'date-fns';
+import { utcToZonedTime } from 'date-fns-tz';
 import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
@@ -8,11 +10,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatDate(input: string | number): string {
   const date = new Date(input);
-  return date.toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  });
+  return format(utcToZonedTime(date, 'UTC'), 'MMMM do, yyyy');
 }
 
 export function absoluteUrl(path: string) {

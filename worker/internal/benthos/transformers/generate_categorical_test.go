@@ -10,7 +10,6 @@ import (
 )
 
 func Test_GenerateCategorical(t *testing.T) {
-
 	categories := []string{"test", "me", "please", "sir"}
 
 	res := GenerateCategorical(categories)
@@ -27,7 +26,6 @@ func Test_GenerateCategorical(t *testing.T) {
 }
 
 func Test_GenerateCategoricalTransformer(t *testing.T) {
-
 	categories := []string{"test", "me", "please", "sir"}
 
 	stringVal := strings.Join(categories, ",")
@@ -50,5 +48,4 @@ func Test_GenerateCategoricalTransformer(t *testing.T) {
 	}
 
 	assert.True(t, valueInCategory, "The generated caetgories should exist in the categories slice")
-
 }

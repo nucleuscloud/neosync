@@ -9,7 +9,6 @@ import (
 )
 
 func Test_GenerateRandomIntPhoneNumber(t *testing.T) {
-
 	res, err := GenerateRandomInt64PhoneNumber()
 	assert.NoError(t, err)
 

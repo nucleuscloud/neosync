@@ -11,13 +11,10 @@ import (
 var defaultSSNLength = int64(10)
 
 func init() {
-
 	spec := bloblang.NewPluginSpec()
 
 	err := bloblang.RegisterFunctionV2("generate_ssn", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-
 		return func() (any, error) {
-
 			val, err := GenerateRandomSSN()
 
 			if err != nil {
@@ -33,7 +30,6 @@ func init() {
 
 /* Generates a random social security number in the format XXX-XX-XXXX */
 func GenerateRandomSSN() (string, error) {
-
 	val, err := transformer_utils.GenerateRandomInt64InLengthRange(defaultSSNLength, defaultSSNLength)
 	if err != nil {
 		return "", err

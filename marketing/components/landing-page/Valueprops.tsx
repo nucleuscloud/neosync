@@ -1,6 +1,9 @@
+'use client';
 import { ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { posthog } from 'posthog-js';
 import { ReactElement } from 'react';
 
 export default function ValueProps(): ReactElement {
@@ -22,7 +25,7 @@ export default function ValueProps(): ReactElement {
       link: '/solutions/fix-staging-environments',
     },
     {
-      title: 'Keep environments up to date',
+      title: 'Keep environments in sync',
       description:
         'Speed up your dev and test cycles. Make sure your environments stay in sync with the latest de-identified and synthetic data that you can refresh whenever you need to.',
       image:
@@ -37,6 +40,8 @@ export default function ValueProps(): ReactElement {
       link: '/solutions/security-privacy',
     },
   ];
+
+  const router = useRouter();
 
   return (
     <div>
@@ -70,6 +75,11 @@ export default function ValueProps(): ReactElement {
                 href={item.link}
                 target="_blank"
                 className="flex flex-row justify-end text-sm items-center gap-2"
+                onClick={() => {
+                  posthog.capture('user click', {
+                    page: item.title,
+                  });
+                }}
               >
                 <div className="text-gray-900">Learn more</div>
                 <div>

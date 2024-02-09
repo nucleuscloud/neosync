@@ -75,6 +75,80 @@ export class GetSystemTransformersResponse extends Message<GetSystemTransformers
 }
 
 /**
+ * @generated from message mgmt.v1alpha1.GetSystemTransformerBySourceRequest
+ */
+export class GetSystemTransformerBySourceRequest extends Message<GetSystemTransformerBySourceRequest> {
+  /**
+   * @generated from field: string source = 1;
+   */
+  source = "";
+
+  constructor(data?: PartialMessage<GetSystemTransformerBySourceRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetSystemTransformerBySourceRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "source", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetSystemTransformerBySourceRequest {
+    return new GetSystemTransformerBySourceRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetSystemTransformerBySourceRequest {
+    return new GetSystemTransformerBySourceRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetSystemTransformerBySourceRequest {
+    return new GetSystemTransformerBySourceRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetSystemTransformerBySourceRequest | PlainMessage<GetSystemTransformerBySourceRequest> | undefined, b: GetSystemTransformerBySourceRequest | PlainMessage<GetSystemTransformerBySourceRequest> | undefined): boolean {
+    return proto3.util.equals(GetSystemTransformerBySourceRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetSystemTransformerBySourceResponse
+ */
+export class GetSystemTransformerBySourceResponse extends Message<GetSystemTransformerBySourceResponse> {
+  /**
+   * @generated from field: mgmt.v1alpha1.SystemTransformer transformer = 1;
+   */
+  transformer?: SystemTransformer;
+
+  constructor(data?: PartialMessage<GetSystemTransformerBySourceResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetSystemTransformerBySourceResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "transformer", kind: "message", T: SystemTransformer },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetSystemTransformerBySourceResponse {
+    return new GetSystemTransformerBySourceResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetSystemTransformerBySourceResponse {
+    return new GetSystemTransformerBySourceResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetSystemTransformerBySourceResponse {
+    return new GetSystemTransformerBySourceResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetSystemTransformerBySourceResponse | PlainMessage<GetSystemTransformerBySourceResponse> | undefined, b: GetSystemTransformerBySourceResponse | PlainMessage<GetSystemTransformerBySourceResponse> | undefined): boolean {
+    return proto3.util.equals(GetSystemTransformerBySourceResponse, a, b);
+  }
+}
+
+/**
  * @generated from message mgmt.v1alpha1.GetUserDefinedTransformersRequest
  */
 export class GetUserDefinedTransformersRequest extends Message<GetUserDefinedTransformersRequest> {
@@ -1080,6 +1154,11 @@ export class TransformEmail extends Message<TransformEmail> {
    */
   preserveLength = false;
 
+  /**
+   * @generated from field: repeated string excluded_domains = 3;
+   */
+  excludedDomains: string[] = [];
+
   constructor(data?: PartialMessage<TransformEmail>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1090,6 +1169,7 @@ export class TransformEmail extends Message<TransformEmail> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "preserve_domain", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 2, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 3, name: "excluded_domains", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformEmail {
@@ -1707,9 +1787,14 @@ export class GenerateStreetAddress extends Message<GenerateStreetAddress> {
  */
 export class GenerateStringPhoneNumber extends Message<GenerateStringPhoneNumber> {
   /**
-   * @generated from field: bool include_hyphens = 2;
+   * @generated from field: int64 min = 2;
    */
-  includeHyphens = false;
+  min = protoInt64.zero;
+
+  /**
+   * @generated from field: int64 max = 3;
+   */
+  max = protoInt64.zero;
 
   constructor(data?: PartialMessage<GenerateStringPhoneNumber>) {
     super();
@@ -1719,7 +1804,8 @@ export class GenerateStringPhoneNumber extends Message<GenerateStringPhoneNumber
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GenerateStringPhoneNumber";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 2, name: "include_hyphens", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "min", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 3, name: "max", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateStringPhoneNumber {
@@ -2223,11 +2309,6 @@ export class TransformPhoneNumber extends Message<TransformPhoneNumber> {
    */
   preserveLength = false;
 
-  /**
-   * @generated from field: bool include_hyphens = 2;
-   */
-  includeHyphens = false;
-
   constructor(data?: PartialMessage<TransformPhoneNumber>) {
     super();
     proto3.util.initPartial(data, this);
@@ -2237,7 +2318,6 @@ export class TransformPhoneNumber extends Message<TransformPhoneNumber> {
   static readonly typeName = "mgmt.v1alpha1.TransformPhoneNumber";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 2, name: "include_hyphens", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformPhoneNumber {

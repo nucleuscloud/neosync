@@ -11,6 +11,14 @@ message GetSystemTransformersResponse {
   repeated SystemTransformer transformers = 1;
 }
 
+message GetSystemTransformerBySourceRequest {
+  string source = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message GetSystemTransformerBySourceResponse {
+  SystemTransformer transformer = 1;
+}
+
 message GetUserDefinedTransformersRequest {
   string account_id = 1 [(buf.validate.field).string.uuid = true];
 }
@@ -139,6 +147,7 @@ message GenerateEmail {}
 message TransformEmail {
   bool preserve_domain = 1;
   bool preserve_length = 2;
+  repeated string excluded_domains = 3;
 }
 
 message GenerateBool {}
@@ -192,7 +201,8 @@ message GenerateState {}
 message GenerateStreetAddress {}
 
 message GenerateStringPhoneNumber {
-  bool include_hyphens = 2;
+  int64 min = 2;
+  int64 max = 3;
 }
 
 message GenerateString {
@@ -244,7 +254,6 @@ message TransformLastName {
 
 message TransformPhoneNumber {
   bool preserve_length = 1;
-  bool include_hyphens = 2;
 }
 
 message TransformString {
@@ -280,6 +289,7 @@ message TransformCharacterScramble {}
 
 service TransformersService {
   rpc GetSystemTransformers(GetSystemTransformersRequest) returns (GetSystemTransformersResponse) {}
+  rpc GetSystemTransformerBySource(GetSystemTransformerBySourceRequest) returns (GetSystemTransformerBySourceResponse) {}
   rpc GetUserDefinedTransformers(GetUserDefinedTransformersRequest) returns (GetUserDefinedTransformersResponse) {}
   rpc GetUserDefinedTransformerById(GetUserDefinedTransformerByIdRequest) returns (GetUserDefinedTransformerByIdResponse) {}
   rpc CreateUserDefinedTransformer(CreateUserDefinedTransformerRequest) returns (CreateUserDefinedTransformerResponse) {}

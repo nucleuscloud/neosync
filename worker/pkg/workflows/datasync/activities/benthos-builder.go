@@ -105,11 +105,13 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	// reverse of table dependency
 	// map of foreign key to source table + column
 	var tableConstraintsSource map[string]map[string]*dbschemas_utils.ForeignKey // schema.table -> column -> ForeignKey
+	var groupedColInfoMap map[string]map[string]*dbschemas_utils.ColumnInfo
 
 	switch jobSourceConfig := job.Source.Options.Config.(type) {
 	case *mgmtv1alpha1.JobSourceOptions_Generate:
 		sourceTableOpts := groupGenerateSourceOptionsByTable(jobSourceConfig.Generate.Schemas)
-		sourceResponses, err := b.buildBenthosGenerateSourceConfigResponses(ctx, groupedMappings, sourceTableOpts)
+		// TODO this needs to be updated to get db schema
+		sourceResponses, err := b.buildBenthosGenerateSourceConfigResponses(ctx, groupedMappings, sourceTableOpts, map[string]*dbschemas_utils.ColumnInfo{})
 		if err != nil {
 			return nil, err
 		}
@@ -158,6 +160,8 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, errors.New(haltOnSchemaAdditionErrMsg)
 		}
 
+		groupedColInfoMap = groupedSchemas
+
 		allConstraints, err := dbschemas_postgres.GetAllPostgresFkConstraints(b.pgquerier, ctx, pool, uniqueSchemas)
 		if err != nil {
 			return nil, err
@@ -167,7 +171,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		// reverse of table dependency
 		// map of foreign key to source table + column
 		tableConstraintsSource = b.getForeignKeyToSourceMap(td)
-		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, jobSourceConfig.Postgres.ConnectionId, "postgres", sourceTableOpts, td, colTransformerMap)
+		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, jobSourceConfig.Postgres.ConnectionId, "postgres", sourceTableOpts, groupedSchemas, td, colTransformerMap)
 		if err != nil {
 			return nil, err
 		}
@@ -209,7 +213,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						resp.primaryKeys = pks
 					}
 				}
-
 			} else if len(configs) == 1 {
 				resp.DependsOn = configs[0].DependsOn
 			} else {
@@ -260,6 +263,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			shouldHaltOnSchemaAddition(groupedSchemas, job.Mappings) {
 			return nil, errors.New(haltOnSchemaAdditionErrMsg)
 		}
+		groupedColInfoMap = groupedSchemas
 
 		allConstraints, err := dbschemas_mysql.GetAllMysqlFkConstraints(b.mysqlquerier, ctx, pool, uniqueSchemas)
 		if err != nil {
@@ -270,7 +274,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		// reverse of table dependency
 		// map of foreign key to source table + column
 		tableConstraintsSource = b.getForeignKeyToSourceMap(td)
-		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, jobSourceConfig.Mysql.ConnectionId, "mysql", sourceTableOpts, td, colTransformerMap)
+		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, jobSourceConfig.Mysql.ConnectionId, "mysql", sourceTableOpts, groupedSchemas, td, colTransformerMap)
 		if err != nil {
 			return nil, err
 		}
@@ -312,7 +316,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						resp.primaryKeys = primaryKeys[tableName]
 					}
 				}
-
 			} else if len(configs) == 1 {
 				resp.DependsOn = configs[0].DependsOn
 			} else {
@@ -385,13 +388,12 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					})
 					if resp.updateConfig != nil {
 						// circular dependency -> create update benthos config
-						updateResp, err := b.createSqlUpdateBenthosConfig(ctx, resp, dsn, tableKey, tm, colSourceMap)
+						updateResp, err := b.createSqlUpdateBenthosConfig(ctx, resp, dsn, tableKey, tm, colSourceMap, groupedColInfoMap)
 						if err != nil {
 							return nil, err
 						}
 						updateResponses = append(updateResponses, updateResp)
 					}
-
 				} else if resp.Config.Input.Generate != nil {
 					cols := buildPlainColumns(tm.Mappings)
 					colSourceMap := map[string]string{}
@@ -415,7 +417,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 							},
 						},
 					})
-
 				} else {
 					return nil, errors.New("unable to build destination connection due to unsupported source connection")
 				}
@@ -446,7 +447,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					})
 					if resp.updateConfig != nil {
 						// circular dependency -> create update benthos config
-						updateResp, err := b.createSqlUpdateBenthosConfig(ctx, resp, dsn, tableKey, tm, colSourceMap)
+						updateResp, err := b.createSqlUpdateBenthosConfig(ctx, resp, dsn, tableKey, tm, colSourceMap, groupedColInfoMap)
 						if err != nil {
 							return nil, err
 						}
@@ -565,7 +566,6 @@ func (b *benthosBuilder) buildPostgresOutputQueryAndArgs(resp *BenthosConfigResp
 			ArgsMapping: buildPlainInsertArgs(filteredInsertCols),
 			Columns:     insertCols,
 		}
-
 	} else if resp.updateConfig != nil && resp.updateConfig.Columns != nil && len(resp.updateConfig.Columns.Include) > 0 {
 		filteredUpdateMappings := []*mgmtv1alpha1.JobMapping{}
 
@@ -585,7 +585,6 @@ func (b *benthosBuilder) buildPostgresOutputQueryAndArgs(resp *BenthosConfigResp
 			ArgsMapping: buildPlainInsertArgs(updateArgsMapping),
 			Columns:     updateCols,
 		}
-
 	} else {
 		cols := buildPlainColumns(tm.Mappings)
 		filteredCols := b.filterColsBySource(cols, colSourceMap) // filters out default columns
@@ -612,7 +611,6 @@ func (b *benthosBuilder) buildMysqlOutputQueryAndArgs(resp *BenthosConfigRespons
 			ArgsMapping: buildPlainInsertArgs(filteredInsertCols),
 			Columns:     insertCols,
 		}
-
 	} else if resp.updateConfig != nil && resp.updateConfig.Columns != nil && len(resp.updateConfig.Columns.Include) > 0 {
 		filteredUpdateMappings := []*mgmtv1alpha1.JobMapping{}
 
@@ -632,7 +630,6 @@ func (b *benthosBuilder) buildMysqlOutputQueryAndArgs(resp *BenthosConfigRespons
 			ArgsMapping: buildPlainInsertArgs(updateArgsMapping),
 			Columns:     updateCols,
 		}
-
 	} else {
 		cols := buildPlainColumns(tm.Mappings)
 		filteredCols := b.filterColsBySource(cols, colSourceMap) // filters out default columns
@@ -652,6 +649,7 @@ func (b *benthosBuilder) buildBenthosGenerateSourceConfigResponses(
 	ctx context.Context,
 	mappings []*TableMapping,
 	sourceTableOpts map[string]*generateSourceTableOptions,
+	columnInfo map[string]*dbschemas_utils.ColumnInfo,
 ) ([]*BenthosConfigResponse, error) {
 	responses := []*BenthosConfigResponse{}
 
@@ -667,7 +665,7 @@ func (b *benthosBuilder) buildBenthosGenerateSourceConfigResponses(
 			count = tableOpt.Count
 		}
 
-		mapping, err := b.buildMutationConfigs(ctx, tableMapping.Mappings)
+		mapping, err := b.buildMutationConfigs(ctx, tableMapping.Mappings, columnInfo)
 		if err != nil {
 			return nil, err
 		}
@@ -867,6 +865,7 @@ func (b *benthosBuilder) createSqlUpdateBenthosConfig(
 	dsn, tableKey string,
 	tm *TableMapping,
 	colSourceMap map[string]string,
+	groupedColInfo map[string]map[string]*dbschemas_utils.ColumnInfo,
 ) (*BenthosConfigResponse, error) {
 	driver := insertConfig.Config.Input.SqlSelect.Driver
 	sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(
@@ -875,12 +874,14 @@ func (b *benthosBuilder) createSqlUpdateBenthosConfig(
 		"", // does not matter what is here. gets overwritten with insert config
 		driver,
 		map[string]*sqlSourceTableOptions{},
+		groupedColInfo,
 		map[string]*dbschemas_utils.TableConstraints{},
 		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
 	)
 	if err != nil {
 		return nil, err
 	}
+
 	if len(sourceResponses) > 0 {
 		newResp := sourceResponses[0]
 		newResp.Config.Input.SqlSelect.Where = insertConfig.Config.Input.SqlSelect.Where // keep the where clause the same as insert

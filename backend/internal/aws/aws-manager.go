@@ -109,7 +109,7 @@ func (n *NeosyncAwsManager) getAwsConfig(ctx context.Context, config *mgmtv1alph
 		awsCfg.Region = region
 	}
 	if endpoint := config.GetEndpoint(); endpoint != "" {
-		customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) { // nolint
+		customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...any) (aws.Endpoint, error) {
 			return aws.Endpoint{
 				PartitionID:   "aws",
 				URL:           endpoint,
@@ -122,7 +122,6 @@ func (n *NeosyncAwsManager) getAwsConfig(ctx context.Context, config *mgmtv1alph
 			return nil, err
 		}
 		awsCfg = &cfg
-
 	}
 
 	if role := configCreds.GetRoleArn(); role != "" {

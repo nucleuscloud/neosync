@@ -13,12 +13,10 @@ const defaultCCLength = 16
 const defaultIIN = 400000
 
 func init() {
-
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewBoolParam("valid_luhn"))
 
 	err := bloblang.RegisterFunctionV2("generate_card_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-
 		luhn, err := args.GetBool("valid_luhn")
 		if err != nil {
 			return nil, err
@@ -33,7 +31,6 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-
 }
 
 // Generates a 16 digit card number that can pass a luhn check if the validLuhn param is set to true. Otherwise will generate a random 16 digit card number.
@@ -41,23 +38,19 @@ func GenerateCardNumber(luhn bool) (int64, error) {
 	var returnValue int64
 
 	if luhn {
-
 		val, err := GenerateValidLuhnCheckCardNumber()
 		if err != nil {
 			return 0, err
 		}
 
 		returnValue = val
-
 	} else {
-
 		val, err := transformer_utils.GenerateRandomInt64FixedLength(defaultCCLength)
 		if err != nil {
 			return 0, err
 		}
 
 		returnValue = val
-
 	}
 
 	return returnValue, nil
@@ -65,7 +58,6 @@ func GenerateCardNumber(luhn bool) (int64, error) {
 
 // generates a card number that passes luhn validation
 func GenerateValidLuhnCheckCardNumber() (int64, error) {
-
 	// To find the checksum digit on
 	cardNo := make([]int, 0)
 	for _, c := range fmt.Sprintf("%d", defaultIIN) {

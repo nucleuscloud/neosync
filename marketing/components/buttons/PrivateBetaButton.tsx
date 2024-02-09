@@ -16,8 +16,8 @@ export default function PrivateBetaButton(): ReactElement {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="default">
-          Neosync Cloud <ArrowRightIcon className="ml-2 h-5 w-5" />
+        <Button variant="default" className="px-6">
+          Neosync Cloud <ArrowRightIcon className="ml-2 h-4 w-4" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg bg-white  p-6 shadow-xl">
@@ -35,7 +35,7 @@ export default function PrivateBetaButton(): ReactElement {
           </DialogTitle>
           <DialogDescription className="pt-6 text-gray-900 text-md text-center">
             Want to use Neosync but don&apos;t want to host it yourself? Sign up
-            for the private beta of Neosync Cloud and get an environment.
+            for the Neosync Cloud Private Beta and get an environment.
           </DialogDescription>
         </DialogHeader>
         <div className="flex items-center space-x-2">

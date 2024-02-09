@@ -14,6 +14,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/backend/internal/apikey"
 	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
 	authjwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt/auth0"
@@ -101,7 +102,7 @@ func Test_GetUser_SetAnonymous(t *testing.T) {
 func Test_GetUser(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 
-	ctx := getAuthenticatedCtxMock(mockAuthProvider)
+	ctx := getJwtAuthenticatedCtxMock(mockAuthProvider)
 	userAssociation := getUserIdentityProviderAssociationMock(mockUserId, mockAuthProvider)
 	m.QuerierMock.On("GetUserAssociationByProviderSub", ctx, mock.Anything, mockAuthProvider).Return(userAssociation, nil)
 
@@ -125,7 +126,7 @@ func Test_GetUser_InvalidToken(t *testing.T) {
 func Test_GetUser_AssociationError(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 
-	ctx := getAuthenticatedCtxMock(mockAuthProvider)
+	ctx := getJwtAuthenticatedCtxMock(mockAuthProvider)
 	var nilUserAssociation db_queries.NeosyncApiUserIdentityProviderAssociation
 
 	m.QuerierMock.On("GetUserAssociationByProviderSub", ctx, mock.Anything, mockAuthProvider).Return(nilUserAssociation, sql.ErrNoRows)
@@ -198,7 +199,7 @@ func Test_SetUser_InvalidToken(t *testing.T) {
 func Test_GetUserAccounts(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 
-	ctx := getAuthenticatedCtxMock(mockAuthProvider)
+	ctx := getJwtAuthenticatedCtxMock(mockAuthProvider)
 	userAssociation := getUserIdentityProviderAssociationMock(mockUserId, mockAuthProvider)
 	slug := "slug"
 	accounts := []db_queries.NeosyncApiAccount{
@@ -217,13 +218,34 @@ func Test_GetUserAccounts(t *testing.T) {
 	assert.Equal(t, slug, resp.Msg.GetAccounts()[0].Name)
 }
 
+func Test_GetUserAccounts_By_ApiKey(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+
+	ctx := getApiKeyAuthenticatedCtxMock(mockUserId)
+
+	slug := "slug"
+	accounts := []db_queries.NeosyncApiAccount{
+		getUserAccountMock(mockAccountId, slug, 0),
+	}
+	userUuid, _ := nucleusdb.ToUuid(mockUserId)
+	m.QuerierMock.On("GetAccountsByUser", ctx, mock.Anything, userUuid).Return(accounts, nil)
+
+	resp, err := m.Service.GetUserAccounts(ctx, &connect.Request[mgmtv1alpha1.GetUserAccountsRequest]{})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, 1, len(resp.Msg.GetAccounts()))
+	assert.Equal(t, mockAccountId, resp.Msg.GetAccounts()[0].Id)
+	assert.Equal(t, slug, resp.Msg.GetAccounts()[0].Name)
+}
+
 func Test_SetPersonalAccount(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 	mockTx := new(nucleusdb.MockTx)
 
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
-	ctx := getAuthenticatedCtxMock(mockAuthProvider)
+	ctx := getJwtAuthenticatedCtxMock(mockAuthProvider)
 	userAssociation := getUserIdentityProviderAssociationMock(mockUserId, mockAuthProvider)
 	m.QuerierMock.On("GetUserAssociationByProviderSub", ctx, mock.Anything, mockAuthProvider).Return(userAssociation, nil)
 	m.DbtxMock.On("Begin", ctx).Return(mockTx, nil)
@@ -248,7 +270,7 @@ func Test_SetPersonalAccount(t *testing.T) {
 func Test_IsUserInAccount_True(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 
-	ctx := getAuthenticatedCtxMock(mockAuthProvider)
+	ctx := getJwtAuthenticatedCtxMock(mockAuthProvider)
 	userAssociation := getUserIdentityProviderAssociationMock(mockUserId, mockAuthProvider)
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
@@ -272,7 +294,7 @@ func Test_IsUserInAccount_True(t *testing.T) {
 func Test_IsUserInAccount_False(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 
-	ctx := getAuthenticatedCtxMock(mockAuthProvider)
+	ctx := getJwtAuthenticatedCtxMock(mockAuthProvider)
 	userAssociation := getUserIdentityProviderAssociationMock(mockUserId, mockAuthProvider)
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
@@ -296,7 +318,7 @@ func Test_IsUserInAccount_False(t *testing.T) {
 func Test_IsUserInAccount_ApiKey(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 
-	ctx := getAuthenticatedCtxMock(mockAuthProvider)
+	ctx := getJwtAuthenticatedCtxMock(mockAuthProvider)
 	userAssociation := getUserIdentityProviderAssociationMock(mockUserId, mockAuthProvider)
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
@@ -318,7 +340,7 @@ func Test_CreateTeamAccount(t *testing.T) {
 	mockTx := new(nucleusdb.MockTx)
 
 	mockTeamName := "team-name"
-	ctx := getAuthenticatedCtxMock(mockAuthProvider)
+	ctx := getJwtAuthenticatedCtxMock(mockAuthProvider)
 	userAssociation := getUserIdentityProviderAssociationMock(mockUserId, mockAuthProvider)
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
@@ -343,7 +365,7 @@ func Test_CreateTeamAccount(t *testing.T) {
 // GetTeamAccountMembers
 func Test_GetTeamAccountMembers(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	ctx := getAuthenticatedCtxMock(mockAuthProvider)
+	ctx := getJwtAuthenticatedCtxMock(mockAuthProvider)
 
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
@@ -369,7 +391,7 @@ func Test_GetTeamAccountMembers(t *testing.T) {
 
 func Test_GetTeamAccountMembers_NoAuthUser(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	ctx := getAuthenticatedCtxMock(mockAuthProvider)
+	ctx := getJwtAuthenticatedCtxMock(mockAuthProvider)
 
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
@@ -394,7 +416,7 @@ func Test_GetTeamAccountMembers_NoAuthUser(t *testing.T) {
 // RemoveTeamAccountMember
 func Test_RemoveTeamAccountMember(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	ctx := getAuthenticatedCtxMock(mockAuthProvider)
+	ctx := getJwtAuthenticatedCtxMock(mockAuthProvider)
 
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
@@ -413,7 +435,7 @@ func Test_RemoveTeamAccountMember(t *testing.T) {
 
 func Test_RemoveTeamAccountMember_NoRows(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	ctx := getAuthenticatedCtxMock(mockAuthProvider)
+	ctx := getJwtAuthenticatedCtxMock(mockAuthProvider)
 
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
@@ -433,7 +455,7 @@ func Test_RemoveTeamAccountMember_NoRows(t *testing.T) {
 // InviteUserToTeamAccount
 func Test_InviteUserToTeamAccount_Unauthorized(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	ctx := getAuthenticatedCtxMock(mockAuthProvider)
+	ctx := getJwtAuthenticatedCtxMock(mockAuthProvider)
 
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
@@ -450,7 +472,7 @@ func Test_InviteUserToTeamAccount_Unauthorized(t *testing.T) {
 
 func Test_InviteUserToTeamAccount_NotTeamAccount(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	ctx := getAuthenticatedCtxMock(mockAuthProvider)
+	ctx := getJwtAuthenticatedCtxMock(mockAuthProvider)
 
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
@@ -469,7 +491,7 @@ func Test_InviteUserToTeamAccount_NotTeamAccount(t *testing.T) {
 // GetTeamAccountInvites
 func Test_GetTeamAccountInvites(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	ctx := getAuthenticatedCtxMock(mockAuthProvider)
+	ctx := getJwtAuthenticatedCtxMock(mockAuthProvider)
 
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
@@ -488,7 +510,7 @@ func Test_GetTeamAccountInvites(t *testing.T) {
 
 func Test_GetTeamAccountInvites_NoRows(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	ctx := getAuthenticatedCtxMock(mockAuthProvider)
+	ctx := getJwtAuthenticatedCtxMock(mockAuthProvider)
 	var nilInvites []db_queries.NeosyncApiAccountInvite
 
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
@@ -507,7 +529,7 @@ func Test_GetTeamAccountInvites_NoRows(t *testing.T) {
 // RemoveTeamAccountInvite
 func Test_RemoveTeamAccountInvite(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	ctx := getAuthenticatedCtxMock(mockAuthProvider)
+	ctx := getJwtAuthenticatedCtxMock(mockAuthProvider)
 
 	inviteId := uuid.NewString()
 	inviteUuid, _ := nucleusdb.ToUuid(inviteId)
@@ -529,7 +551,7 @@ func Test_RemoveTeamAccountInvite(t *testing.T) {
 
 func Test_RemoveTeamAccountInvite_NotFound(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	ctx := getAuthenticatedCtxMock(mockAuthProvider)
+	ctx := getJwtAuthenticatedCtxMock(mockAuthProvider)
 
 	var nilInvite db_queries.NeosyncApiAccountInvite
 	inviteId := uuid.NewString()
@@ -550,7 +572,7 @@ func Test_AcceptTeamAccountInvite(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 	mockTx := new(nucleusdb.MockTx)
 
-	ctx := getAuthenticatedCtxMock(mockAuthProvider)
+	ctx := getJwtAuthenticatedCtxMock(mockAuthProvider)
 	userAssociation := getUserIdentityProviderAssociationMock(mockUserId, mockAuthProvider)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
 	token := uuid.NewString()
@@ -696,9 +718,17 @@ func getUserMock(userId string) db_queries.NeosyncApiUser {
 }
 
 //nolint:all
-func getAuthenticatedCtxMock(authProviderId string) context.Context {
+func getJwtAuthenticatedCtxMock(authProviderId string) context.Context {
 	data := &authjwt.TokenContextData{AuthUserId: authProviderId}
 	return context.WithValue(context.Background(), authjwt.TokenContextKey{}, data)
+}
+
+func getApiKeyAuthenticatedCtxMock(userId string) context.Context {
+	idUuid, _ := nucleusdb.ToUuid(userId)
+	data := auth_apikey.TokenContextData{ApiKeyType: apikey.AccountApiKey, RawToken: "", ApiKey: &db_queries.NeosyncApiAccountApiKey{
+		UserID: idUuid,
+	}}
+	return context.WithValue(context.Background(), auth_apikey.TokenContextKey{}, &data)
 }
 
 //nolint:all

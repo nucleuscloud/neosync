@@ -30,7 +30,6 @@ func GenerateRandomInt64FixedLength(l int64) (int64, error) {
 Generates a random int64 with length in the inclusive range of [min, max]. For example, given a length range of [4, 7], possible values will have a length ranging from 4 -> 7 digits.
 */
 func GenerateRandomInt64InLengthRange(min, max int64) (int64, error) {
-
 	if min > max {
 		min, max = max, min
 	}
@@ -50,14 +49,11 @@ func GenerateRandomInt64InLengthRange(min, max int64) (int64, error) {
 		return 0, fmt.Errorf("unable to generate a value in the range provided")
 	}
 
-	//nolint:all
 	return res, nil
-
 }
 
 /* Generates a random int64 in the inclusive range of [min, max]. For example, given a range of [40, 50], possible values range from 40 -> 50, inclusive. */
 func GenerateRandomInt64InValueRange(min, max int64) (int64, error) {
-
 	if min > max {
 		min, max = max, min
 	}
@@ -68,7 +64,7 @@ func GenerateRandomInt64InValueRange(min, max int64) (int64, error) {
 
 	rangeVal := max - min + 1
 
-	//nolint:all
+	//nolint:gosec
 	return min + rand.Int63n(rangeVal), nil
 }
 
@@ -77,7 +73,7 @@ func FirstDigitIsNine(n int64) bool {
 	str := strconv.FormatInt(n, 10)
 
 	// Check if the string is empty or if the first character is '9'
-	if len(str) > 0 && str[0] == '9' {
+	if str != "" && str[0] == '9' {
 		return true
 	}
 
@@ -99,7 +95,7 @@ func IsLastInt64DigitZero(n int64) bool {
 	str := strconv.FormatInt(n, 10)
 
 	// Check if the string is empty or if the last character is '0'
-	if len(str) > 0 && str[len(str)-1] == '0' {
+	if str != "" && str[len(str)-1] == '0' {
 		return true
 	}
 
@@ -123,7 +119,6 @@ func AbsInt64(n int64) int64 {
 
 // Returns the int64 range between the min and max
 func GetInt64Range(min, max int64) (int64, error) {
-
 	if min > max {
 		return 0, fmt.Errorf("min cannot be greater than max")
 	}
@@ -133,11 +128,9 @@ func GetInt64Range(min, max int64) (int64, error) {
 	}
 
 	return max - min, nil
-
 }
 
 func IsInt64InRandomizationRange(value, rMin, rMax int64) bool {
-
 	if rMin > rMax {
 		rMin, rMax = rMax, rMin
 	}

@@ -1,0 +1,82 @@
+---
+title: What is the difference between Synthetic Data, Encryption and Tokenization?
+description: What is the difference between synthetic data, encryption and tokenization and what are their use cases?
+date: 2024-02-06
+published: true
+image: /images/blogs/est.png
+authors:
+  - evis
+---
+
+# Introduction
+
+For any engineer working with data, it's important that they understand the tools that are available to them to protect data and when to use them. Especially, in today's world, as more of the traditional security and data privacy work is shifting left toward developers. Three of the most effective methods to protect data are: encryption, tokenization and synthetic data. In this blog we introduce all three, talk about their use-cases and compare and contrast them.
+
+Let's jump in.
+
+# Synthetic Data
+
+Synthetic data is getting more and more attention these days with the rise of AI/ML and LLMs. Increasingly, more companies are using synthetic data for security and privacy reasons as well as to train models. We think of this as [Synthetic Data Engineering](/synthetic-data-engineering.mdx). In the simplest definition, synthetic data is data that a machine has completely made up from scratch. For example, you can program a pseudo-random number generator (PRNG) to randomly select 5 numbers between 0 and 25. You can then use these randomly selected numbers as indexes in the alphabet to randomly select 5 letters. If you put those 5 letters together, you've created a synthetic string!
+
+Obviously, this is a very simple example but the point remains. You can write programs to create data that "looks" just like real data. Additionally, using machine learning models such as generative adversarial networks or GANs, you can create synthetic data that has the same statistical characteristics as your real data. There are a number of synthetic data generators available that address different use cases. The key is to balance generation speed and accuracy. Some use cases such as analytics call for more accuracy (statistically) while other use cases, developer testing, call for more generation speed.
+
+## Synthetic Data Use cases
+
+Synthetic data is being used by developers to build applications and machine learning engineers to train models. For developers, synthetic data is helpful:
+
+1. **Seeding Databases** - hydrating a database with synthetic data for testing, debugging, feature development or demos
+2. **Staging Environments** - many companies only create data to test happy paths within their applications and generally don't do a good job of catching edge cases. Creating synthetic data that models after production data is a great to way to catch more bugs before your push to production.
+3. **Training ML Models** - high-quality data is one of the main bottlenecks for ML engineers in training models. Synthetic data can be used to augment an existing data set so that you have more data or to generate data from scratch to train a model. Generally, this synthetic data is in a tabular format while for developers, it's in a relational format.
+4. **Data Privacy Laws** - many countries have data privacy laws to protect to PII from inappropriate use or access. Synthetic data can be used in place of production data to still give consumers of that data something to work with without the burden of security and privacy.
+
+We're seeing new use cases come up for synthetic data all of the time as more attention and time is being spent on methods to generate higher-quality synthetic data for developers and ML engineers.
+
+# Encryption
+
+Encryption has been around for decades and is a primary method for protecting data at rest and in transit. There are generally two ways to encrypt data: asymmetric encryption and symmetric encryption. The main difference is that in asymmetric encryption, you use a public key to encrypt data and then a primary key to decrypt data while in symmetric encryption, the same key is used to encrypt and decrypt data. There are pros and cons to both of these approaches and in another blog post we'll discuss what those pros and cons are. In today's world, we generally see more asymmetric encryption because it's more secure than we see symmetric encryption.
+
+When you encrypt data you generally produce some alphanumeric text that can be decrypted to get back to the original data set. Although there are ways to still make the cipher text, what the encryption outputs, useful. Different types of encryption allow you to perform mathematical operations on data such as [partially homomorphic encryption](https://www.splunk.com/en_us/blog/learn/homomorphic-encryption.html) and preserve the [format of the original data](https://en.wikipedia.org/wiki/Format-preserving_encryption). This can be helpful in use cases such as third party data sharing and encrypted analytics.
+
+## Encryption Use cases
+
+Encryption is widely used for a number of use cases. Here are some of the most common:
+
+1. **Encrypting Databases** - almost every single database natively supports encryption at rest. This ensures that data that is being stored in your database is encrypted while it's not being processed such that a hacker was ever to try to dump the database, the resulting text would be useless.
+2. **Internet security** - almost every website on the internet these days, encrypts traffic between the client and server using TLS. TLS is a form of asymmetric encryption that happens when a website is first loading and ensures that no hacker can man-in-the-middle your data as you interact with the website.
+3. **VPNs** - creates a secure and encrypted connection over a less secure network, such as the internet, ensuring privacy and protection from eavesdropping. Most corporations use some type of VPN as a way to protect their network traffic.
+4. **Authentication** - Uses encryption to verify the authenticity of digital documents and messages, ensuring that they have not been altered and confirming the identity of the sender.
+
+# Tokenization
+
+Tokenization is encryption's lesser known cousin that can be even more secure than encryption! Tokenization is the process of converting a piece of data to another representation by using a look-up table of pre-generated tokens that have no relation to the original data. Another way to think about tokenization is to imagine a casino. When you go into a casino, you exchange cash for chips then use those chips in the casino and then when you're done, you swap the chips for cash again. Tokenization works in a similar way. You have some data that you give to a look up table, the look up table returns back a randomly generated token, then you can use that data until you're ready to swap it back for the original data.
+
+The main difference between tokenization and encryption is that encryption is reversible from ciphertext -> plain-text while tokenization is not reversible. Meaning that if you have a token, there is no possible way to retrieve the original value without the look up table. No public or private key can reverse the data for you. This is why in some cases, tokenization can be more secure than encryption (at least theoretically). Encryption can be reversed with a key, tokenization cannot.
+
+Lastly, similar to encryption, you can create different types of tokens that preserve the length, format and other characteristics of the input data. This is particularly useful for data processing such as lookups across databases.
+
+## Tokenization use cases
+
+Tokenization is widely used to protect sensitive data in financial services and card networks and is starting to gain popularity in other use cases as well.
+
+1. **Card Networks** - most card networks such as Visa, MasterCard, etc. tokenize your card number so that it's not floating around in clear text. Tokenization can happen at many different layers in the payment processing workflows and sometimes happens in multiple layers. The key is here is that the tokenizer (the party tokenizing the data), has access to the lookup table to convert the tokenized data to a card number that it can process.
+2. **Third party data sharing** - tokenization can be used to protect data for third party data sharing. For example, you can tokenize certain columns in data set, such as name, age, email and then share that data set with an untrusted third party. They can process that data without being able to see the sensitve data, and then you can de-tokenize the sensitive data for your processing.
+3. **Securing PII data** - tokenization can be a powerful tool for internal data tokenization to ensure that sensitive data is secure as it travels across your internal systems.
+
+# Compare and Contrast
+
+Now that we've understood what encryption, tokenization and synthetic data are, let's look at the differences and similarities and better understand their use cases.
+
+| Feature               | Synthetic Data                                            | Encryption                                 | Tokenization                                   |
+| --------------------- | --------------------------------------------------------- | ------------------------------------------ | ---------------------------------------------- |
+| Input Format          | Raw data from real datasets                               | Any data type (text, files, images, etc.)  | Sensitive data (e.g., PII, payment info)       |
+| Output Format         | New, non-real dataset mimicking original patterns         | Ciphered text or binary data               | Non-sensitive token or identifier              |
+| Is Reversible         | Not applicable (generates new data)                       | Yes (with the correct key)                 | Conditional (secure lookup required)           |
+| Generation Method     | Data modeling and algorithms                              | Cryptographic algorithms                   | Mapping to unique tokens                       |
+| Use-Cases             | Seeding databases, bug bashing, machine learning training | Secure data storage, secure communication  | Payment processing, data anonymization         |
+| Data Utility          | High (preserves statistical properties)                   | None (data is unusable without decryption) | Low to medium (depends on tokenization scheme) |
+| Risk of Data Exposure | Low (no direct link to real data)                         | High (if encryption key is compromised)    | Low (tokens are not meaningful)                |
+| Regulatory Compliance | Can aid in compliance by avoiding use of real data        | Required for data protection laws          | Often used for PCI-DSS, GDPR compliance        |
+
+# Wrapping up
+
+Encryption, tokenization and synthetic data have similarities but also have key differences that are important for engineering and security teams to understand. These are all tools that every developer should be able to use given the right use cases. Hopefully, this was a good intro into the differences between encryption, tokenization and synthetic data.

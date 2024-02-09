@@ -110,7 +110,6 @@ func isInCycle(dep string, cycles [][]string) bool {
 		}
 	}
 	return false
-
 }
 
 type circularDependencyConfig struct {

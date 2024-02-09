@@ -29,6 +29,8 @@ import JobsProgressSteps, {
 import { NewJobType } from '../page';
 import { DEFINE_FORM_SCHEMA, DefineFormValues } from '../schema';
 
+const isBrowser = () => typeof window !== 'undefined';
+
 export default function Page({ searchParams }: PageProps): ReactElement {
   const router = useRouter();
   const { account } = useAccount();
@@ -55,8 +57,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     defaultValues,
     context: { accountId: account?.id ?? '', showSchedule: showSchedule },
   });
-
-  const isBrowser = () => typeof window !== 'undefined';
 
   useFormPersist(`${sessionPrefix}-new-job-define`, {
     watch: form.watch,

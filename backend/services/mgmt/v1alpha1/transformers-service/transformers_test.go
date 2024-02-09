@@ -33,17 +33,6 @@ const (
 	mockTransformerId          = "884765c6-1708-488d-b03a-70a02b12c81e"
 )
 
-func Test_GetSystemTransformers(t *testing.T) {
-	m := createServiceMock(t)
-	defer m.SqlDbMock.Close()
-
-	resp, err := m.Service.GetSystemTransformers(context.Background(), &connect.Request[mgmtv1alpha1.GetSystemTransformersRequest]{})
-
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
-	assert.NotEmpty(t, resp.Msg.GetTransformers())
-}
-
 func Test_GetUserDefinedTransformers(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
@@ -274,7 +263,6 @@ func Test_DeleteConnection_UnverifiedUserError(t *testing.T) {
 }
 
 func Test_UpdateTransformer(t *testing.T) {
-
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
@@ -311,7 +299,6 @@ func Test_UpdateTransformer(t *testing.T) {
 }
 
 func Test_UpdateTransformer_UpdateError(t *testing.T) {
-
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
@@ -347,7 +334,6 @@ func Test_UpdateTransformer_UpdateError(t *testing.T) {
 }
 
 func Test_UpdateTransformer_GetTransformerError(t *testing.T) {
-
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
@@ -372,7 +358,6 @@ func Test_UpdateTransformer_GetTransformerError(t *testing.T) {
 }
 
 func Test_UpdateTransformer_UnverifiedUser(t *testing.T) {
-
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 

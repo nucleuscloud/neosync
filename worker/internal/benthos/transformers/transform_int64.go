@@ -9,14 +9,12 @@ import (
 )
 
 func init() {
-
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewAnyParam("value").Optional()).
 		Param(bloblang.NewInt64Param("randomization_range_min")).
 		Param(bloblang.NewInt64Param("randomization_range_max"))
 
 	err := bloblang.RegisterFunctionV2("transform_int64", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-
 		valuePtr, err := args.GetOptionalInt64("value")
 		if err != nil {
 			return nil, err
@@ -45,11 +43,9 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-
 }
 
 func TransformInt(value, rMin, rMax int64) (*int64, error) {
-
 	if value == 0 {
 		return nil, nil
 	}
@@ -67,9 +63,7 @@ func TransformInt(value, rMin, rMax int64) (*int64, error) {
 
 	val, err := transformer_utils.GenerateRandomInt64InValueRange(minRange, maxRange)
 	if err != nil {
-
 		return nil, fmt.Errorf("unable to generate a random string with length")
-
 	}
 
 	return &val, nil

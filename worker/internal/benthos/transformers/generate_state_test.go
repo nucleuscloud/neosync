@@ -9,7 +9,6 @@ import (
 )
 
 func Test_GenerateState(t *testing.T) {
-
 	res := GenerateRandomState()
 
 	assert.IsType(t, "", res, "The returned state should be a string")

@@ -34,7 +34,7 @@ type DateScanner struct {
 	val *time.Time
 }
 
-func (ds *DateScanner) Scan(input interface{}) error { // nolint
+func (ds *DateScanner) Scan(input any) error {
 	if input == nil {
 		return nil
 	}
@@ -90,7 +90,7 @@ func (s *Service) GetConnectionDataStream(
 		defer cancel()
 
 		// used to get column names
-		query := fmt.Sprintf("SELECT * FROM %s.%s LIMIT 1;", req.Msg.Schema, req.Msg.Table) //nolint
+		query := fmt.Sprintf("SELECT * FROM %s.%s LIMIT 1;", req.Msg.Schema, req.Msg.Table)
 		r, err := db.QueryContext(cctx, query)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return err
@@ -101,7 +101,7 @@ func (s *Service) GetConnectionDataStream(
 			return err
 		}
 
-		selectQuery := fmt.Sprintf("SELECT %s FROM %s.%s;", strings.Join(columnNames, ", "), req.Msg.Schema, req.Msg.Table) //nolint
+		selectQuery := fmt.Sprintf("SELECT %s FROM %s.%s;", strings.Join(columnNames, ", "), req.Msg.Schema, req.Msg.Table)
 		rows, err := db.QueryContext(cctx, selectQuery)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return err
@@ -147,7 +147,7 @@ func (s *Service) GetConnectionDataStream(
 		defer cancel()
 
 		// used to get column names
-		query := fmt.Sprintf("SELECT * FROM %s.%s LIMIT 1;", req.Msg.Schema, req.Msg.Table) //nolint
+		query := fmt.Sprintf("SELECT * FROM %s.%s LIMIT 1;", req.Msg.Schema, req.Msg.Table)
 		r, err := db.Query(cctx, query)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return err
@@ -159,7 +159,7 @@ func (s *Service) GetConnectionDataStream(
 			columnNames = append(columnNames, col.Name)
 		}
 
-		selectQuery := fmt.Sprintf("SELECT %s FROM %s.%s;", strings.Join(columnNames, ", "), req.Msg.Schema, req.Msg.Table) //nolint
+		selectQuery := fmt.Sprintf("SELECT %s FROM %s.%s;", strings.Join(columnNames, ", "), req.Msg.Schema, req.Msg.Table)
 		rows, err := db.Query(cctx, selectQuery)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return err
@@ -266,7 +266,7 @@ func (s *Service) GetConnectionDataStream(
 				scanner := bufio.NewScanner(gzr)
 				for scanner.Scan() {
 					line := scanner.Bytes()
-					var data map[string]interface{} // nolint
+					var data map[string]any
 					err = json.Unmarshal(line, &data)
 					if err != nil {
 						result.Body.Close()
@@ -321,7 +321,6 @@ func (s *Service) GetConnectionDataStream(
 	}
 
 	return nil
-
 }
 
 func (s *Service) GetConnectionSchema(
@@ -498,7 +497,7 @@ func (s *Service) GetConnectionSchema(
 				scanner := bufio.NewScanner(gzr)
 				if scanner.Scan() {
 					line := scanner.Bytes()
-					var data map[string]interface{} // nolint
+					var data map[string]any
 					err = json.Unmarshal(line, &data)
 					if err != nil {
 						result.Body.Close()

@@ -13,7 +13,7 @@ import (
 func (s *Service) verifyUserInAccount(
 	ctx context.Context,
 	accountId string,
-) (*pgtype.UUID, error) { // nolint
+) (*pgtype.UUID, error) { //nolint
 	resp, err := s.useraccountService.IsUserInAccount(ctx, connect.NewRequest(&mgmtv1alpha1.IsUserInAccountRequest{AccountId: accountId}))
 	if err != nil {
 		return nil, err

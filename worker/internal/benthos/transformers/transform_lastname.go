@@ -9,16 +9,15 @@ import (
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
-var lastNames = transformers_dataset.LastNames.Names
+var lastNames = transformers_dataset.LastNames
 
 func init() {
-
 	spec := bloblang.NewPluginSpec().
+		Param(bloblang.NewInt64Param("max_length")).
 		Param(bloblang.NewAnyParam("value").Optional()).
 		Param(bloblang.NewBoolParam("preserve_length"))
 
 	err := bloblang.RegisterFunctionV2("transform_last_name", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-
 		valuePtr, err := args.GetOptionalString("value")
 		if err != nil {
 			return nil, err
@@ -33,34 +32,39 @@ func init() {
 			return nil, err
 		}
 
+		maxLength, err := args.GetInt64("max_length")
+		if err != nil {
+			return nil, err
+		}
+
 		return func() (any, error) {
-			res, err := TransformLastName(value, preserveLength)
+			res, err := TransformLastName(value, preserveLength, maxLength)
 			return res, err
 		}, nil
-
 	})
 
 	if err != nil {
 		panic(err)
 	}
-
 }
 
 // Generates a random last name which can be of either random length between [2,12] characters or as long as the input name
-func TransformLastName(name string, preserveLength bool) (*string, error) {
-
+func TransformLastName(name string, preserveLength bool, maxLength int64) (*string, error) {
 	if name == "" {
 		return nil, nil
 	}
 
+	nameLength := int64(len(name))
+
 	if preserveLength {
-		res, err := GenerateRandomLastNameWithLength(name)
+		// assume that if pl is true than it already meets the maxCharacterLimit constraint
+		res, err := GenerateRandomLastNameInLengthRange(nameLength, nameLength)
 		if err != nil {
 			return nil, err
 		}
 		return &res, nil
 	} else {
-		res, err := GenerateRandomLastName()
+		res, err := GenerateRandomLastNameInLengthRange(minNameLength, maxLength)
 		if err != nil {
 			return nil, err
 		}
@@ -68,31 +72,57 @@ func TransformLastName(name string, preserveLength bool) (*string, error) {
 	}
 }
 
-// Generates a random last name with the same length as the input last name if the length of the input last name
-// is between [2,12] characters long. Otherwise, it will return a name that is 4 characters long.
-func GenerateRandomLastNameWithLength(ln string) (string, error) {
-
-	var returnValue string
-	for _, v := range lastNames {
-		if v.NameLength == len(ln) {
-			res, err := transformer_utils.GetRandomValueFromSlice[string](v.Names)
+// Generates a random last name with length [min, max]. If the length is greater than 12, a last name of length 12 will be returned.
+func GenerateRandomLastNameInLengthRange(minLength, maxLength int64) (string, error) {
+	if minLength == maxLength {
+		if minLength > 12 {
+			names := lastNames[12]
+			res, err := transformer_utils.GetRandomValueFromSlice[string](names)
 			if err != nil {
 				return "", err
 			}
-			returnValue = res
-			break
+			return res, nil
+		} else if minLength < minNameLength {
+			names := lastNames[2]
+			res, err := transformer_utils.GetRandomValueFromSlice[string](names)
+			if err != nil {
+				return "", err
+			}
+			return res, nil
+		} else {
+			names := lastNames[minLength]
+			res, err := transformer_utils.GetRandomValueFromSlice[string](names)
+			if err != nil {
+				return "", err
+			}
+			return res, nil
+		}
+	} else {
+		if maxLength < 12 && maxLength >= 2 {
+			names := lastNames[maxLength]
+			res, err := transformer_utils.GetRandomValueFromSlice[string](names)
+			if err != nil {
+				return "", err
+			}
+			return res, nil
+		} else if maxLength < 2 {
+			res, err := transformer_utils.GenerateRandomStringWithDefinedLength(1)
+			if err != nil {
+				return "", err
+			}
+			return res, nil
+		} else {
+			randInd, err := transformer_utils.GenerateRandomInt64InValueRange(2, 12)
+			if err != nil {
+				return "", err
+			}
+
+			names := lastNames[randInd]
+			res, err := transformer_utils.GetRandomValueFromSlice[string](names)
+			if err != nil {
+				return "", err
+			}
+			return res, nil
 		}
 	}
-
-	if returnValue == "" {
-		res, err := transformer_utils.GetRandomValueFromSlice[string](lastNames[3].Names)
-		if err != nil {
-			return "", err
-		}
-
-		returnValue = res
-
-	}
-
-	return returnValue, nil
 }

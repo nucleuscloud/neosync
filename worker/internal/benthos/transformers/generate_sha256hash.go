@@ -12,13 +12,10 @@ import (
 )
 
 func init() {
-
 	spec := bloblang.NewPluginSpec()
 
 	err := bloblang.RegisterFunctionV2("generate_sha256hash", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-
 		return func() (any, error) {
-
 			val, err := GenerateRandomSHA256Hash()
 
 			if err != nil {
@@ -34,7 +31,6 @@ func init() {
 
 /* Generates a random SHA256 hashed value */
 func GenerateRandomSHA256Hash() (string, error) {
-
 	min := int64(1)
 	max := int64(9)
 

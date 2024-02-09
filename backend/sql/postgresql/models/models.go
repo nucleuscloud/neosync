@@ -358,7 +358,6 @@ type JobMapping struct {
 }
 
 func (jm *JobMapping) ToDto() *mgmtv1alpha1.JobMapping {
-
 	return &mgmtv1alpha1.JobMapping{
 		Schema:      jm.Schema,
 		Table:       jm.Table,

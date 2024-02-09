@@ -9,11 +9,9 @@ import (
 )
 
 func init() {
-
 	spec := bloblang.NewPluginSpec().Param(bloblang.NewStringParam("categories"))
 
 	err := bloblang.RegisterFunctionV2("generate_categorical", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-
 		// get stringified categories
 		catString, err := args.GetString("categories")
 		if err != nil {
@@ -33,9 +31,8 @@ func init() {
 	}
 }
 
-// Generates a randomly selected value from the provided list of categories
+// Generates a randomly selected value from the user-provided list of categories. We don't account for the maxLength param here because the input is user-provided. We assume that they values they provide in the set abide by the maxCharacterLength constraint.
 func GenerateCategorical(categories []string) string {
-
 	//nolint:all
 	randomIndex := rand.Intn(len(categories))
 

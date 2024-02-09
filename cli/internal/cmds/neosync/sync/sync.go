@@ -324,7 +324,7 @@ func sync(
 		} else {
 			accessToken, err := userconfig.GetAccessToken()
 			if err != nil {
-				fmt.Println("Unable to retrieve access token. Please use neosync login command and try again.") // nolint
+				fmt.Println("Unable to retrieve access token. Please use neosync login command and try again.") //nolint:forbidigo
 				return err
 			}
 			token = &accessToken
@@ -332,7 +332,7 @@ func sync(
 			if accountId == nil || *accountId == "" {
 				aId, err := userconfig.GetAccountId()
 				if err != nil {
-					fmt.Println("Unable to retrieve account id. Please use account switch command to set account.") // nolint
+					fmt.Println("Unable to retrieve account id. Please use account switch command to set account.") //nolint:forbidigo
 					return err
 				}
 				accountId = &aId
@@ -343,7 +343,7 @@ func sync(
 			}
 
 			if connection.AccountId != *accountId {
-				return errors.New(fmt.Sprintf("Connection not found. AccountId: %s", *accountId)) // nolint
+				return fmt.Errorf("Connection not found. AccountId: %s", *accountId)
 			}
 		}
 	}
@@ -353,8 +353,8 @@ func sync(
 		return err
 	}
 
-	fmt.Println(header.Render("\n── Preparing ─────────────────────────────────────")) // nolint
-	fmt.Println(printlog.Render("Retrieving connection schema..."))                    // nolint
+	fmt.Println(header.Render("\n── Preparing ─────────────────────────────────────")) //nolint:forbidigo
+	fmt.Println(printlog.Render("Retrieving connection schema..."))                    //nolint:forbidigo
 
 	syncConfigs := []*syncConfig{}
 	var schemaConfig *schemaConfig
@@ -377,7 +377,7 @@ func sync(
 			return err
 		}
 		if len(schemaCfg.Schemas) == 0 {
-			fmt.Println(bold.Render("No tables found.")) // nolint
+			fmt.Println(bold.Render("No tables found.")) //nolint:forbidigo
 			return nil
 		}
 		schemaConfig = schemaCfg
@@ -397,7 +397,7 @@ func sync(
 		}
 
 	case mysqlConnection:
-		fmt.Println(printlog.Render("Building schema and table constraints...")) // nolint
+		fmt.Println(printlog.Render("Building schema and table constraints...")) //nolint:forbidigo
 		mysqlCfg := &mgmtv1alpha1.ConnectionSchemaConfig{
 			Config: &mgmtv1alpha1.ConnectionSchemaConfig_MysqlConfig{
 				MysqlConfig: &mgmtv1alpha1.MysqlSchemaConfig{},
@@ -408,7 +408,7 @@ func sync(
 			return err
 		}
 		if len(schemaCfg.Schemas) == 0 {
-			fmt.Println(bold.Render("No tables found.")) // nolint
+			fmt.Println(bold.Render("No tables found.")) //nolint:forbidigo
 			return nil
 		}
 		schemaConfig = schemaCfg
@@ -420,7 +420,7 @@ func sync(
 		syncConfigs = append(syncConfigs, configs...)
 
 	case postgresConnection:
-		fmt.Println(printlog.Render("Building schema and table constraints...")) // nolint
+		fmt.Println(printlog.Render("Building schema and table constraints...")) //nolint:forbidigo
 		postgresConfig := &mgmtv1alpha1.ConnectionSchemaConfig{
 			Config: &mgmtv1alpha1.ConnectionSchemaConfig_PgConfig{
 				PgConfig: &mgmtv1alpha1.PostgresSchemaConfig{},
@@ -431,7 +431,7 @@ func sync(
 			return err
 		}
 		if len(schemaCfg.Schemas) == 0 {
-			fmt.Println(bold.Render("No tables found.")) // nolint
+			fmt.Println(bold.Render("No tables found.")) //nolint:forbidigo
 			return nil
 		}
 		schemaConfig = schemaCfg
@@ -446,7 +446,7 @@ func sync(
 		return fmt.Errorf("this connection type is not currently supported")
 	}
 
-	fmt.Println(printlog.Render("Running table init statements...")) // nolint
+	fmt.Println(printlog.Render("Running table init statements...")) //nolint:forbidigo
 	dependencyMap := buildDependencyMap(syncConfigs)
 	if cmd.Destination.Driver == postgresDriver {
 		orderedInitStatements := dbschemas_postgres.GetOrderedPostgresInitStatements(schemaConfig.InitTableStatementsMap, dependencyMap)
@@ -475,7 +475,7 @@ func sync(
 		pool.Close()
 	}
 
-	fmt.Println(printlog.Render("Generating configs... \n")) // nolint
+	fmt.Println(printlog.Render("Generating configs... \n")) //nolint:forbidigo
 	configs := []*benthosConfigResponse{}
 	for _, cfg := range syncConfigs {
 		benthosConfig := generateBenthosConfig(cmd, connectionType, serverconfig.GetApiBaseUrl(), cfg, token)
@@ -496,9 +496,9 @@ func sync(
 		// TUI mode, discard log output
 		log.SetOutput(io.Discard)
 	}
-	fmt.Println(header.Render("── Syncing Tables ────────────────────────────────")) // nolint
+	fmt.Println(header.Render("── Syncing Tables ────────────────────────────────")) //nolint:forbidigo
 	if _, err := tea.NewProgram(newModel(ctx, groupedConfigs), opts...).Run(); err != nil {
-		fmt.Println("Error syncing data:", err) // nolint
+		fmt.Println("Error syncing data:", err) //nolint:forbidigo
 		os.Exit(1)
 	}
 
@@ -530,7 +530,7 @@ func syncData(ctx context.Context, cfg *benthosConfigResponse) error {
 
 	var benthosStream *service.Stream
 	go func() {
-		for { // nolint
+		for { //nolint
 			select {
 			case <-ctx.Done():
 				if benthosStream != nil {
@@ -538,7 +538,7 @@ func syncData(ctx context.Context, cfg *benthosConfigResponse) error {
 					// a sink is in an error state. We want to explicitly call stop here because the workflow has been canceled.
 					err := benthosStream.Stop(ctx)
 					if err != nil {
-						fmt.Println(err.Error()) // nolint
+						fmt.Println(err.Error()) //nolint:forbidigo
 					}
 				}
 				return
@@ -609,7 +609,7 @@ func buildSyncConfigs(
 				} else if c.Columns != nil && c.Columns.Include != nil && len(c.Columns.Include) > 0 {
 					primaryKeyCols := schemaConfig.TablePrimaryKeys[table].GetColumns()
 					if len(primaryKeyCols) == 0 {
-						fmt.Println(bold.Render(fmt.Sprintf("No primary keys found for table (%s). Unable to build update query.", table))) // nolint
+						fmt.Println(bold.Render(fmt.Sprintf("No primary keys found for table (%s). Unable to build update query.", table))) //nolint:forbidigo
 						return nil
 					}
 					argCols := []string{}
@@ -662,7 +662,7 @@ func buildDependencyMap(syncConfigs []*syncConfig) map[string][]string {
 
 func getTableInitStatementMap(ctx context.Context, connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient, connectionId string, opts *destinationConfig) (map[string]string, error) {
 	if opts.InitSchema || opts.TruncateBeforeInsert || opts.TruncateCascade {
-		fmt.Println(printlog.Render("Creating init statements...")) // nolint
+		fmt.Println(printlog.Render("Creating init statements...")) //nolint:forbidigo
 		initStatementResp, err := connectiondataclient.GetConnectionInitStatements(ctx,
 			connect.NewRequest(&mgmtv1alpha1.GetConnectionInitStatementsRequest{
 				ConnectionId: connectionId,
@@ -786,7 +786,7 @@ func groupConfigsByDependency(configs []*benthosConfigResponse) [][]*benthosConf
 		}
 	}
 	if len(rootConfigs) == 0 {
-		fmt.Println(bold.Render("No root configs found. There must be one config with no dependencies.")) // nolint
+		fmt.Println(bold.Render("No root configs found. There must be one config with no dependencies.")) //nolint:forbidigo
 		return nil
 	}
 	groupedConfigs = append(groupedConfigs, rootConfigs)
@@ -936,7 +936,7 @@ func syncConfigs(ctx context.Context, configs []*benthosConfigResponse) tea.Cmd 
 				log.Printf("Syncing table %s \n", cfg.Name)
 				err := syncData(errctx, cfg)
 				if err != nil {
-					fmt.Printf("Error syncing table: %s \n", err.Error()) // nolint
+					fmt.Printf("Error syncing table: %s \n", err.Error()) //nolint:forbidigo
 					return err
 				}
 				return nil
@@ -1062,7 +1062,7 @@ func getDestinationSchemaConfig(
 
 	tableColMap := getTableColMap(schemaResp.Msg.GetSchemas())
 	if len(tableColMap) == 0 {
-		fmt.Println(bold.Render("No tables found.")) // nolint
+		fmt.Println(bold.Render("No tables found.")) //nolint:forbidigo
 		return nil, nil
 	}
 
@@ -1075,13 +1075,13 @@ func getDestinationSchemaConfig(
 		schemas = append(schemas, s)
 	}
 
-	fmt.Println(printlog.Render("Building foreign table constraints...")) // nolint
+	fmt.Println(printlog.Render("Building foreign table constraints...")) //nolint:forbidigo
 	tableConstraints, err := getDestinationForeignConstraints(ctx, cmd.Destination.Driver, cmd.Destination.ConnectionUrl, schemas)
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Println(printlog.Render("Building primary key table constraints...")) // nolint
+	fmt.Println(printlog.Render("Building primary key table constraints...")) //nolint:forbidigo
 	tablePrimaryKeys, err := getDestinationPrimaryKeyConstraints(ctx, cmd.Destination.Driver, cmd.Destination.ConnectionUrl, schemas)
 	if err != nil {
 		return nil, err
@@ -1132,7 +1132,7 @@ func getDestinationForeignConstraints(ctx context.Context, connectionDriver Driv
 		}
 		defer func() {
 			if err := conn.Close(); err != nil {
-				fmt.Println(fmt.Errorf("failed to close mysql connection: %w", err).Error()) // nolint
+				fmt.Println(fmt.Errorf("failed to close mysql connection: %w", err).Error()) //nolint:forbidigo
 			}
 		}()
 		cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
@@ -1173,7 +1173,7 @@ func getDestinationPrimaryKeyConstraints(ctx context.Context, connectionDriver D
 		}
 		defer func() {
 			if err := conn.Close(); err != nil {
-				fmt.Println(fmt.Errorf("failed to close mysql connection: %w", err).Error()) // nolint
+				fmt.Println(fmt.Errorf("failed to close mysql connection: %w", err).Error()) //nolint:forbidigo
 			}
 		}()
 		cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
