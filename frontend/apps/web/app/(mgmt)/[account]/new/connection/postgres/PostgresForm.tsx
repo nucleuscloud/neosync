@@ -404,6 +404,7 @@ export default function PostgresForm() {
                 to the tunnel. This should be in the format like what is found
                 in the `~/.ssh/known_hosts` file, excluding the hostname. If
                 this is not provided, any host public key will be accepted.
+                Currently only a single host key is supported.
               </FormDescription>
               <FormControl>
                 <Input
