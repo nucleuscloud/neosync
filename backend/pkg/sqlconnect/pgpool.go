@@ -2,11 +2,9 @@ package sqlconnect
 
 import (
 	context "context"
-	slog "log/slog"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
-	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/sshtunnel"
 )
 
@@ -19,13 +17,18 @@ type PgPoolContainer interface {
 type PgPool struct {
 	pool *pgxpool.Pool
 
-	connectionConfig *mgmtv1alpha1.PostgresConnectionConfig
-	tunnel           *sshtunnel.Sshtunnel
-	logger           *slog.Logger
+	details *ConnectionDetails
 
-	connectionTimeout *uint32
+	// instance of the created tunnel
+	tunnel *sshtunnel.Sshtunnel
 
 	dsn string
+}
+
+func newPgPool(details *ConnectionDetails) *PgPool {
+	return &PgPool{
+		details: details,
+	}
 }
 
 func (s *PgPool) GetDsn() string {
@@ -33,35 +36,27 @@ func (s *PgPool) GetDsn() string {
 }
 
 func (s *PgPool) Open(ctx context.Context) (pg_queries.DBTX, error) {
-	details, err := GetConnectionDetails(&mgmtv1alpha1.ConnectionConfig{
-		Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
-			PgConfig: s.connectionConfig,
-		},
-	}, s.connectionTimeout, s.logger)
-	if err != nil {
-		return nil, err
-	}
-	if details.Tunnel != nil {
-		ready, err := details.Tunnel.Start()
+	if s.details.Tunnel != nil {
+		ready, err := s.details.Tunnel.Start()
 		if err != nil {
 			return nil, err
 		}
 		<-ready
-		newPort := int32(details.Tunnel.Local.Port)
-		details.GeneralDbConnectConfig.Port = newPort
-		dsn := details.GeneralDbConnectConfig.String()
+		newPort := int32(s.details.Tunnel.Local.Port)
+		s.details.GeneralDbConnectConfig.Port = newPort
+		dsn := s.details.GeneralDbConnectConfig.String()
 		db, err := pgxpool.New(ctx, dsn)
 		if err != nil {
-			details.Tunnel.Close()
+			s.details.Tunnel.Close()
 			return nil, err
 		}
 		s.dsn = dsn
 		s.pool = db
-		s.tunnel = details.Tunnel
+		s.tunnel = s.details.Tunnel
 		return db, nil
 	}
 
-	dsn := details.GeneralDbConnectConfig.String()
+	dsn := s.details.GeneralDbConnectConfig.String()
 	db, err := pgxpool.New(ctx, dsn)
 	if err != nil {
 		return nil, err

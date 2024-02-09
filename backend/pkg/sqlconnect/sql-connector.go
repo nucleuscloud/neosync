@@ -33,19 +33,23 @@ type SqlConnector interface {
 type SqlOpenConnector struct{}
 
 func (rc *SqlOpenConnector) NewDbFromConnectionConfig(connectionConfig *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (SqlDbContainer, error) {
-	return &SqlDb{
-		connectionConfig:  connectionConfig,
-		logger:            logger,
-		connectionTimeout: connectionTimeout,
-	}, nil
+	details, err := GetConnectionDetails(connectionConfig, connectionTimeout, logger)
+	if err != nil {
+		return nil, err
+	}
+	return newSqlDb(details), nil
 }
 
 func (rc *SqlOpenConnector) NewPgPoolFromConnectionConfig(pgconfig *mgmtv1alpha1.PostgresConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (PgPoolContainer, error) {
-	return &PgPool{
-		connectionConfig:  pgconfig,
-		logger:            logger,
-		connectionTimeout: connectionTimeout,
-	}, nil
+	details, err := GetConnectionDetails(&mgmtv1alpha1.ConnectionConfig{
+		Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+			PgConfig: pgconfig,
+		},
+	}, connectionTimeout, logger)
+	if err != nil {
+		return nil, err
+	}
+	return newPgPool(details), nil
 }
 
 type ConnectionDetails struct {

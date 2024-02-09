@@ -2,9 +2,7 @@ package sqlconnect
 
 import (
 	"database/sql"
-	slog "log/slog"
 
-	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/sshtunnel"
 )
 
@@ -17,42 +15,40 @@ type SqlDbContainer interface {
 type SqlDb struct {
 	db *sql.DB
 
-	connectionConfig *mgmtv1alpha1.ConnectionConfig
-	tunnel           *sshtunnel.Sshtunnel
-	logger           *slog.Logger
+	details *ConnectionDetails
 
-	connectionTimeout *uint32
+	tunnel *sshtunnel.Sshtunnel
 
 	dsn string
 }
 
+func newSqlDb(details *ConnectionDetails) *SqlDb {
+	return &SqlDb{details: details}
+}
+
 func (s *SqlDb) Open() (SqlDBTX, error) {
-	details, err := GetConnectionDetails(s.connectionConfig, s.connectionTimeout, s.logger)
-	if err != nil {
-		return nil, err
-	}
-	if details.Tunnel != nil {
-		ready, err := details.Tunnel.Start()
+	if s.details.Tunnel != nil {
+		ready, err := s.details.Tunnel.Start()
 		if err != nil {
 			return nil, err
 		}
 		<-ready
 
-		newPort := int32(details.Tunnel.Local.Port)
-		details.GeneralDbConnectConfig.Port = newPort
-		dsn := details.GeneralDbConnectConfig.String()
-		db, err := sql.Open(details.GeneralDbConnectConfig.Driver, dsn)
+		newPort := int32(s.details.Tunnel.Local.Port)
+		s.details.GeneralDbConnectConfig.Port = newPort
+		dsn := s.details.GeneralDbConnectConfig.String()
+		db, err := sql.Open(s.details.GeneralDbConnectConfig.Driver, dsn)
 		if err != nil {
-			details.Tunnel.Close()
+			s.details.Tunnel.Close()
 			return nil, err
 		}
 		s.db = db
 		s.dsn = dsn
-		s.tunnel = details.Tunnel
+		s.tunnel = s.details.Tunnel
 		return db, nil
 	}
-	dsn := details.GeneralDbConnectConfig.String()
-	db, err := sql.Open(details.GeneralDbConnectConfig.Driver, dsn)
+	dsn := s.details.GeneralDbConnectConfig.String()
+	db, err := sql.Open(s.details.GeneralDbConnectConfig.Driver, dsn)
 	s.db = db
 	if err != nil {
 		return nil, err
