@@ -36,6 +36,10 @@ func New(
 	serverPublicKey ssh.PublicKey,
 	logger *slog.Logger,
 ) *Sshtunnel {
+	authmethods := []ssh.AuthMethod{}
+	if auth != nil {
+		authmethods = append(authmethods, auth)
+	}
 	return &Sshtunnel{
 		logger: logger,
 		close:  make(chan any),
@@ -48,7 +52,7 @@ func New(
 
 		Config: &ssh.ClientConfig{
 			User:            tunnel.User,
-			Auth:            []ssh.AuthMethod{auth},
+			Auth:            authmethods,
 			HostKeyCallback: getHostKeyCallback(serverPublicKey),
 		},
 	}

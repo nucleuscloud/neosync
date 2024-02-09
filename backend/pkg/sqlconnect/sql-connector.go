@@ -84,7 +84,7 @@ func GetConnectionDetails(c *mgmtv1alpha1.ConnectionConfig, connectionTimeout *u
 			if err != nil {
 				return nil, err
 			}
-			authmethod, err := getTunnelAuthMethodFromSshConfig(config.PgConfig.Tunnel.Authentication)
+			authmethod, err := getTunnelAuthMethodFromSshConfig(config.PgConfig.GetTunnel().GetAuthentication())
 			if err != nil {
 				return nil, err
 			}
