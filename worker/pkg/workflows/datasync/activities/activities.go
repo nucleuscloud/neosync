@@ -992,7 +992,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 
 	var maxLen int32 = 10000
 	if colInfo != nil && colInfo.CharacterMaximumLength != nil {
-		maxLen = maxLen
+		maxLen = *colInfo.CharacterMaximumLength
 	}
 
 	switch col.Transformer.Source {
