@@ -140,7 +140,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                             if (value === NEW_CONNECTION_VALUE) {
                               router.push(
                                 `/${account?.name}/new/connection?returnTo=${encodeURIComponent(
-                                  `/${account?.name}/new/job/generate/single/connect?sessionId=${sessionPrefix}`
+                                  `/${account?.name}/new/job/generate/single/connect?sessionId=${sessionPrefix}&from=new-connection`
                                 )}`
                               );
                               return;
@@ -217,7 +217,18 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           <Separator className="my-6" />
 
           <div className="flex flex-row gap-1 justify-between">
-            <Button type="button" onClick={() => router.back()}>
+            <Button
+              type="button"
+              onClick={() => {
+                if (searchParams?.from === 'new-connection') {
+                  router.push(
+                    `/${account?.name}/new/job/define?sessionId=${sessionPrefix}`
+                  );
+                  return;
+                }
+                router.back();
+              }}
+            >
               Back
             </Button>
             <Button

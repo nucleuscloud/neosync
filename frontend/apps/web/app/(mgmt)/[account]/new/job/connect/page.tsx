@@ -28,8 +28,8 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { Connection } from '@neosync/sdk';
 import { Cross2Icon, PlusIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
-import { ReactElement, useEffect, useState } from 'react';
-import { useFieldArray, useForm } from 'react-hook-form';
+import { ReactElement, useEffect } from 'react';
+import { UseFormReturn, useFieldArray, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import DestinationOptionsForm from '../../../../../../components/jobs/Form/DestinationOptionsForm';
@@ -37,6 +37,8 @@ import JobsProgressSteps, { DATA_SYNC_STEPS } from '../JobsProgressSteps';
 import { CONNECT_FORM_SCHEMA, ConnectFormValues } from '../schema';
 
 const NEW_CONNECTION_VALUE = 'new-connection';
+
+const isBrowser = () => typeof window !== 'undefined';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
   const { account } = useAccount();
@@ -48,18 +50,17 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   }, [searchParams?.sessionId]);
 
   const sessionPrefix = searchParams?.sessionId ?? '';
-  const [defaultValues] = useSessionStorage<ConnectFormValues>(
-    `${sessionPrefix}-new-job-connect`,
-    {
-      sourceId: '',
-      sourceOptions: {},
-      destinations: [{ connectionId: '', destinationOptions: {} }],
-    }
-  );
+  const sessionKey = `${sessionPrefix}-new-job-connect`;
+  const [defaultValues] = useSessionStorage<ConnectFormValues>(sessionKey, {
+    sourceId: '',
+    sourceOptions: {},
+    destinations: [{ connectionId: '', destinationOptions: {} }],
+  });
 
-  const form = useForm({
+  const form = useForm<ConnectFormValues>({
+    mode: 'onChange',
     resolver: yupResolver<ConnectFormValues>(CONNECT_FORM_SCHEMA),
-    defaultValues,
+    values: defaultValues,
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -67,10 +68,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     name: 'destinations',
   });
 
-  useFormPersist(`${sessionPrefix}-new-job-connect`, {
+  useFormPersist(sessionKey, {
     watch: form.watch,
     setValue: form.setValue,
-    storage: window.sessionStorage,
+    storage: isBrowser() ? window.sessionStorage : undefined,
   });
   const { isLoading: isConnectionsLoading, data: connectionsData } =
     useGetConnections(account?.id ?? '');
@@ -81,23 +82,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     router.push(`/${account?.name}/new/job/schema?sessionId=${sessionPrefix}`);
   }
 
-  const [sourceConn, setSourceConn] = useState<string>(
-    form.getValues().sourceId
-  );
-
-  const [destConn, setDestConn] = useState<string>(form.getValues().sourceId);
-
-  const errors = form.formState.errors;
-
-  const mysqlConns = connections.filter(
-    (c) => c.connectionConfig?.config.case === 'mysqlConfig'
-  );
-  const postgresConns = connections.filter(
-    (c) => c.connectionConfig?.config.case === 'pgConfig'
-  );
-  const awsS3Conns = connections.filter(
-    (c) => c.connectionConfig?.config.case === 'awsS3Config'
-  );
+  const { postgres, mysql, s3 } = splitConnections(connections);
 
   return (
     <div
@@ -146,57 +131,24 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                       ) : (
                         <Select
                           onValueChange={(value: string) => {
+                            if (!value) {
+                              return;
+                            }
                             if (value === NEW_CONNECTION_VALUE) {
                               router.push(
                                 `/${account?.name}/new/connection?returnTo=${encodeURIComponent(
-                                  `/${account?.name}/new/job/connect?sessionId=${sessionPrefix}`
+                                  `/${account?.name}/new/job/connect?sessionId=${sessionPrefix}&from=new-connection`
                                 )}`
                               );
                               return;
                             }
-                            if (value === destConn) {
-                              form.setError(`sourceId`, {
-                                type: 'string',
-                                message:
-                                  'Source must be different from destination',
-                              });
-                            }
-                            if (
-                              !isValidConnectionPair(
-                                value,
-                                destConn,
-                                connections
-                              )
-                            ) {
-                              const isSource = true;
-                              form.setError(`sourceId`, {
-                                type: 'string',
-                                message: `Source connection type must one of ${getErrorConnectionTypes(
-                                  isSource,
-                                  value,
-                                  connections
-                                )}`,
-                              });
-                            }
-
-                            if (
-                              isValidConnectionPair(
-                                value,
-                                destConn,
-                                connections
-                              ) &&
-                              value != destConn
-                            ) {
-                              form.clearErrors();
-                            }
-                            setSourceConn(value);
-                            if (form.formState.errors) {
-                              form.clearErrors;
-                            }
+                            // set value
                             field.onChange(value);
                             form.setValue('sourceOptions', {
                               haltOnNewColumnAddition: false,
                             });
+                            // clear form state for source+dst connection ids and re-evaluate the form state
+                            handleConnectionValidation(form, connections);
                           }}
                           value={field.value}
                         >
@@ -204,45 +156,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                             <SelectValue placeholder="Select a source ..." />
                           </SelectTrigger>
                           <SelectContent>
-                            {postgresConns.length > 0 && (
-                              <SelectGroup>
-                                <SelectLabel>Postgres</SelectLabel>
-                                {postgresConns.map((connection) => (
-                                  <SelectItem
-                                    className="cursor-pointer"
-                                    key={connection.id}
-                                    value={connection.id}
-                                  >
-                                    {connection.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectGroup>
-                            )}
-
-                            {mysqlConns.length > 0 && (
-                              <SelectGroup>
-                                <SelectLabel>Mysql</SelectLabel>
-                                {mysqlConns.map((connection) => (
-                                  <SelectItem
-                                    className="cursor-pointer"
-                                    key={connection.id}
-                                    value={connection.id}
-                                  >
-                                    {connection.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectGroup>
-                            )}
-                            <SelectItem
-                              className="cursor-pointer"
-                              key="new-src-connection"
-                              value={NEW_CONNECTION_VALUE}
-                            >
-                              <div className="flex flex-row gap-1 items-center">
-                                <PlusIcon />
-                                <p>New Connection</p>
-                              </div>
-                            </SelectItem>
+                            <ConnectionSelectContent
+                              postgres={postgres}
+                              mysql={mysql}
+                              s3={[]}
+                            />
                           </SelectContent>
                         </Select>
                       )}
@@ -274,7 +192,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               </p>
             </div>
             <div className="space-y-12 col-span-2">
-              {fields.map(({}, index) => {
+              {fields.map((_, index) => {
                 return (
                   <div className="space-y-4 col-span-2" key={index}>
                     <div className="flex flew-row space-x-4">
@@ -290,55 +208,18 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                 ) : (
                                   <Select
                                     onValueChange={(value: string) => {
+                                      if (!value) {
+                                        return;
+                                      }
                                       if (value === NEW_CONNECTION_VALUE) {
                                         router.push(
                                           `/${account?.name}/new/connection?returnTo=${encodeURIComponent(
-                                            `/${account?.name}/new/job/connect?sessionId=${sessionPrefix}`
+                                            `/${account?.name}/new/job/connect?sessionId=${sessionPrefix}&from=new-connection`
                                           )}`
                                         );
                                         return;
                                       }
-                                      setDestConn(value);
-                                      if (value === sourceConn) {
-                                        form.setError(
-                                          `destinations.${index}.connectionId`,
-                                          {
-                                            type: 'string',
-                                            message:
-                                              'Destination must be different from source',
-                                          }
-                                        );
-                                      }
-                                      if (
-                                        !isValidConnectionPair(
-                                          value,
-                                          sourceConn,
-                                          connections
-                                        )
-                                      ) {
-                                        const isSource = false;
-                                        form.setError(
-                                          `destinations.${index}.connectionId`,
-                                          {
-                                            type: 'string',
-                                            message: `Destination connection type must one of ${getErrorConnectionTypes(
-                                              isSource,
-                                              sourceConn,
-                                              connections
-                                            )}`,
-                                          }
-                                        );
-                                      }
-                                      if (
-                                        isValidConnectionPair(
-                                          value,
-                                          sourceConn,
-                                          connections
-                                        ) &&
-                                        value != sourceConn
-                                      ) {
-                                        form.clearErrors();
-                                      }
+                                      // set values
                                       form.setValue(
                                         `destinations.${index}.destinationOptions`,
                                         {
@@ -348,6 +229,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                         }
                                       );
                                       field.onChange(value);
+
+                                      // clear form state for source+dst connection ids and re-evaluate the form state
+                                      handleConnectionValidation(
+                                        form,
+                                        connections
+                                      );
                                     }}
                                     value={field.value}
                                   >
@@ -355,59 +242,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                       <SelectValue placeholder="Select a destination ..." />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      {postgresConns.length > 0 && (
-                                        <SelectGroup>
-                                          <SelectLabel>Postgres</SelectLabel>
-                                          {postgresConns.map((connection) => (
-                                            <SelectItem
-                                              className="cursor-pointer"
-                                              key={connection.id}
-                                              value={connection.id}
-                                            >
-                                              {connection.name}
-                                            </SelectItem>
-                                          ))}
-                                        </SelectGroup>
-                                      )}
-
-                                      {mysqlConns.length > 0 && (
-                                        <SelectGroup>
-                                          <SelectLabel>Mysql</SelectLabel>
-                                          {mysqlConns.map((connection) => (
-                                            <SelectItem
-                                              className="cursor-pointer"
-                                              key={connection.id}
-                                              value={connection.id}
-                                            >
-                                              {connection.name}
-                                            </SelectItem>
-                                          ))}
-                                        </SelectGroup>
-                                      )}
-                                      {awsS3Conns.length > 0 && (
-                                        <SelectGroup>
-                                          <SelectLabel>AWS S3</SelectLabel>
-                                          {awsS3Conns.map((connection) => (
-                                            <SelectItem
-                                              className="cursor-pointer"
-                                              key={connection.id}
-                                              value={connection.id}
-                                            >
-                                              {connection.name}
-                                            </SelectItem>
-                                          ))}
-                                        </SelectGroup>
-                                      )}
-                                      <SelectItem
-                                        className="cursor-pointer"
-                                        key="new-dst-connection"
-                                        value={NEW_CONNECTION_VALUE}
-                                      >
-                                        <div className="flex flex-row gap-1 items-center">
-                                          <PlusIcon />
-                                          <p>New Connection</p>
-                                        </div>
-                                      </SelectItem>
+                                      <ConnectionSelectContent
+                                        postgres={postgres}
+                                        mysql={mysql}
+                                        s3={s3}
+                                      />
                                     </SelectContent>
                                   </Select>
                                 )}
@@ -462,22 +301,121 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           </div>
 
           <div className="flex flex-row gap-1 justify-between">
-            <Button type="button" onClick={() => router.back()}>
+            <Button
+              type="button"
+              onClick={() => {
+                if (searchParams?.from === 'new-connection') {
+                  router.push(
+                    `/${account?.name}/new/job/define?sessionId=${sessionPrefix}`
+                  );
+                  return;
+                }
+                router.back();
+              }}
+            >
               Back
             </Button>
-            <Button
-              type="submit"
-              disabled={
-                (errors?.destinations?.length ?? 0) > 0 ||
-                (errors.sourceId?.message?.length ?? 0) > 0
-              }
-            >
+            <Button type="submit" disabled={!form.formState.isValid}>
               Next
             </Button>
           </div>
         </form>
       </Form>
     </div>
+  );
+}
+
+function splitConnections(connections: Connection[]): {
+  postgres: Connection[];
+  mysql: Connection[];
+  s3: Connection[];
+} {
+  const postgres: Connection[] = [];
+  const mysql: Connection[] = [];
+  const s3: Connection[] = [];
+
+  connections.forEach((connection) => {
+    if (connection.connectionConfig?.config.case === 'pgConfig') {
+      postgres.push(connection);
+    } else if (connection.connectionConfig?.config.case === 'mysqlConfig') {
+      mysql.push(connection);
+    } else if (connection.connectionConfig?.config.case === 'awsS3Config') {
+      s3.push(connection);
+    }
+  });
+
+  return {
+    postgres,
+    mysql,
+    s3,
+  };
+}
+
+interface ConnectionSelectContentProps {
+  postgres: Connection[];
+  mysql: Connection[];
+  s3: Connection[];
+}
+function ConnectionSelectContent(
+  props: ConnectionSelectContentProps
+): ReactElement {
+  const { postgres, mysql, s3 } = props;
+  return (
+    <>
+      {postgres.length > 0 && (
+        <SelectGroup>
+          <SelectLabel>Postgres</SelectLabel>
+          {postgres.map((connection) => (
+            <SelectItem
+              className="cursor-pointer"
+              key={connection.id}
+              value={connection.id}
+            >
+              {connection.name}
+            </SelectItem>
+          ))}
+        </SelectGroup>
+      )}
+
+      {mysql.length > 0 && (
+        <SelectGroup>
+          <SelectLabel>Mysql</SelectLabel>
+          {mysql.map((connection) => (
+            <SelectItem
+              className="cursor-pointer"
+              key={connection.id}
+              value={connection.id}
+            >
+              {connection.name}
+            </SelectItem>
+          ))}
+        </SelectGroup>
+      )}
+      {s3.length > 0 && (
+        <SelectGroup>
+          <SelectLabel>AWS S3</SelectLabel>
+          {s3.map((connection) => (
+            <SelectItem
+              className="cursor-pointer"
+              key={connection.id}
+              value={connection.id}
+            >
+              {connection.name}
+            </SelectItem>
+          ))}
+        </SelectGroup>
+      )}
+      <SelectItem
+        className="cursor-pointer"
+        key="new-dst-connection"
+        value={NEW_CONNECTION_VALUE}
+      >
+        <div className="flex flex-row gap-1 items-center">
+          <PlusIcon />
+          <p>New Connection</p>
+        </div>
+      </SelectItem>
+    </>
   );
 }
 
@@ -528,4 +466,90 @@ function isValidConnectionPair(
   }
 
   return false;
+}
+
+function handleConnectionValidation(
+  form: UseFormReturn<ConnectFormValues>,
+  connections: Connection[]
+): void {
+  // clear source error before re-evaluation
+  form.clearErrors('sourceId');
+
+  const sourceId = form.getValues('sourceId');
+
+  const destinationIds = form
+    .getValues('destinations')
+    .map((d) => d.connectionId);
+
+  // initially reset the destinationIds state
+  destinationIds.forEach((_, idx) =>
+    form.clearErrors(`destinations.${idx}.connectionId`)
+  );
+
+  // check to make sure that source->destination are unique
+  if (destinationIds.some((id) => id === sourceId)) {
+    // for whatever reason this only propagates if the destination is what triggers the error
+    // at one point it worked and then it mystically stopped working, but overall it seems to still get the point across
+    // to the user
+    // if you console log the form state, it does set the sourceId error, but then it will unset it for some reason
+    form.setError(`sourceId`, {
+      type: 'string',
+      message: 'Source must be different from destination',
+    });
+    destinationIds.forEach((did, idx) => {
+      if (did === sourceId) {
+        form.setError(`destinations.${idx}.connectionId`, {
+          type: 'string',
+          message: 'Destination must be different from the source',
+        });
+      }
+    });
+    return;
+  }
+
+  // check to make sure all source->destination pairs of valid
+  if (
+    destinationIds.some(
+      (did) => !isValidConnectionPair(sourceId, did, connections)
+    )
+  ) {
+    // set the error on any of the destinations that are invalid
+    destinationIds.forEach((did, idx) => {
+      if (!isValidConnectionPair(sourceId, did, connections)) {
+        form.setError(`destinations.${idx}.connectionId`, {
+          type: 'string',
+          message: `Destination connection type must one of ${getErrorConnectionTypes(
+            false,
+            sourceId,
+            connections
+          )}`,
+        });
+      }
+    });
+    return;
+  }
+
+  // check to make sure that all destination ids are unique
+  if (destinationIds.length !== new Set(destinationIds).size) {
+    const valueIdxMap = new Map<string, number[]>();
+    destinationIds.forEach((dstId, idx) => {
+      const idxs = valueIdxMap.get(dstId);
+      if (idxs !== undefined) {
+        idxs.push(idx);
+      } else {
+        valueIdxMap.set(dstId, [idx]);
+      }
+    });
+
+    Array.from(valueIdxMap.values()).forEach((indices) => {
+      if (indices.length > 1) {
+        indices.forEach((idx) =>
+          form.setError(`destinations.${idx}.connectionId`, {
+            type: 'string',
+            message: 'Destination connections must be unique from one another',
+          })
+        );
+      }
+    });
+  }
 }
