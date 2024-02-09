@@ -55,7 +55,7 @@ func listConnections(
 	if accountId == nil || *accountId == "" {
 		aId, err := userconfig.GetAccountId()
 		if err != nil {
-			fmt.Println("Unable to retrieve account id. Please use account switch command to set account.") // nolint
+			fmt.Println("Unable to retrieve account id. Please use account switch command to set account.") //nolint:forbidigo
 			return err
 		}
 		accountId = &aId
@@ -79,9 +79,9 @@ func listConnections(
 		return err
 	}
 
-	fmt.Println() // nolint
+	fmt.Println() //nolint:forbidigo
 	printConnectionsTable(res.Msg.Connections)
-	fmt.Println() // nolint
+	fmt.Println() //nolint:forbidigo
 	return nil
 }
 

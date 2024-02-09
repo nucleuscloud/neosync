@@ -148,7 +148,7 @@ func switchAccount(
 		m := &model{list: l}
 
 		if _, err := tea.NewProgram(m).Run(); err != nil {
-			fmt.Println("Error running program:", err) // nolint
+			fmt.Println("Error running program:", err) //nolint:forbidigo
 			os.Exit(1)
 		}
 		return nil
@@ -167,11 +167,11 @@ func switchAccount(
 
 	err = userconfig.SetAccountId(account.Id)
 	if err != nil {
-		fmt.Println("unable to switch accounts") // nolint
+		fmt.Println("unable to switch accounts") //nolint:forbidigo
 		return err
 	}
 
-	fmt.Println(itemStyle.Render(fmt.Sprintf("\n Switched account to %s (%s) \n", account.Name, account.Id))) // nolint
+	fmt.Println(itemStyle.Render(fmt.Sprintf("\n Switched account to %s (%s) \n", account.Name, account.Id))) //nolint:forbidigo
 
 	return nil
 }
@@ -203,7 +203,7 @@ type itemDelegate struct{}
 func (d itemDelegate) Height() int                             { return 1 }
 func (d itemDelegate) Spacing() int                            { return 0 }
 func (d itemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
-func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) { // nolint
+func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) { //nolint:gocritic
 	i, ok := listItem.(item)
 	if !ok {
 		return
