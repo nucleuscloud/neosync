@@ -157,6 +157,7 @@ func (s *SqlDb) Open() (SqlDBTX, error) {
 		dsn := details.GeneralDbConnectConfig.String()
 		db, err := sql.Open(details.GeneralDbConnectConfig.Driver, dsn)
 		if err != nil {
+			details.Tunnel.Close()
 			return nil, err
 		}
 		s.db = db
