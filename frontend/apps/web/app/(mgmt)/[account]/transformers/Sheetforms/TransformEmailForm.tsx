@@ -7,6 +7,7 @@ import {
   FormItem,
   FormLabel,
 } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Transformer, isUserDefinedTransformer } from '@/shared/transformers';
 import { TransformEmail } from '@neosync/sdk';
@@ -34,12 +35,20 @@ export default function TransformEmailForm(props: Props): ReactElement {
   );
   const [pl, setPl] = useState<boolean>(plValue);
 
+  const doms = fc.getValues(
+    `mappings.${index}.transformer.config.value.exclusionList`
+  );
+
+  const [domains, setDomains] = useState<string>(doms.join(','));
+
   const handleSubmit = () => {
+    const val = domains.split(',');
     fc.setValue(
       `mappings.${index}.transformer.config.value`,
       new TransformEmail({
         preserveDomain: pd,
         preserveLength: pl,
+        exclusionList: val,
       }),
       {
         shouldValidate: false,
@@ -92,6 +101,31 @@ export default function TransformEmailForm(props: Props): ReactElement {
                   pd ? setPd(false) : setPd(true);
                 }}
               />
+            </FormControl>
+          </FormItem>
+        )}
+      />
+      <FormField
+        name={`mappings.${index}.transformer.config.value.exclusionList`}
+        render={() => (
+          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm gap-4 ">
+            <div className="space-y-0.5">
+              <FormLabel>Exclusion List</FormLabel>
+              <FormDescription>
+                Provide a list of comma-separated domains that you want to be
+                excluded from the transformer. Do not provide an @ with the
+                domains.{' '}
+              </FormDescription>
+            </div>
+            <FormControl>
+              <div className="min-w-[300px]">
+                <Input
+                  type="string"
+                  className="min-w-[300px]"
+                  value={domains}
+                  onChange={(event) => setDomains(event.target.value)}
+                />
+              </div>
             </FormControl>
           </FormItem>
         )}

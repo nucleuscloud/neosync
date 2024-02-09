@@ -162,3 +162,21 @@ func Test_IsAllowedSpecialCharFalse(t *testing.T) {
 		assert.False(t, IsAllowedSpecialChar(r), "Expected false for rune: %v", r)
 	}
 }
+
+func Test_StringinSliceTrue(t *testing.T) {
+	slice := []string{"hello", "world"}
+	val := "hello"
+
+	res := StringInSlice(val, slice)
+
+	assert.True(t, res)
+}
+
+func Test_StringinSliceFalse(t *testing.T) {
+	slice := []string{"hello", "world"}
+	val := "hellomeow"
+
+	res := StringInSlice(val, slice)
+
+	assert.False(t, res)
+}

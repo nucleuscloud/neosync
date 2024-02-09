@@ -77,6 +77,7 @@ var (
 					TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
 						PreserveDomain: false,
 						PreserveLength: false,
+						ExclusionList:  []string{},
 					},
 				},
 			},

@@ -378,6 +378,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 				TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
 					PreserveDomain: true,
 					PreserveLength: false,
+					ExclusionList:  []string{},
 				},
 			},
 		},
@@ -402,7 +403,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 		{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, groupedSchemas)
 
 	assert.Nil(t, err)
-	assert.Equal(t, *output[0].Mutation, `root.email = transform_email(email:this.email,preserve_domain:true,preserve_length:false,max_length:40)`)
+	assert.Equal(t, *output[0].Mutation, `root.email = transform_email(email:this.email,preserve_domain:true,preserve_length:false,exclusion_list:[],max_length:40)`)
 
 	output, err = bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "i_do_not_exist", Config: &mgmtv1alpha1.TransformerConfig{
@@ -755,6 +756,7 @@ func Test_convertUserDefinedFunctionConfig(t *testing.T) {
 					TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
 						PreserveDomain: true,
 						PreserveLength: false,
+						ExclusionList:  []string{},
 					},
 				},
 			},
@@ -779,6 +781,7 @@ func Test_convertUserDefinedFunctionConfig(t *testing.T) {
 				TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
 					PreserveDomain: true,
 					PreserveLength: false,
+					ExclusionList:  []string{},
 				},
 			},
 		},
@@ -1123,6 +1126,7 @@ func Test_TransformerStringLint(t *testing.T) {
 					TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
 						PreserveDomain: false,
 						PreserveLength: false,
+						ExclusionList:  []string{},
 					},
 				},
 			},

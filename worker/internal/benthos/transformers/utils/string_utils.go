@@ -98,7 +98,7 @@ func ParseEmail(email string) ([]string, error) {
 
 func IsValidEmail(email string) bool {
 	// Regular expression pattern for a simple email validation
-	emailPattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+	emailPattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z0-9]{2,}$`
 	regex := regexp.MustCompile(emailPattern)
 	return regex.MatchString(email)
 }
@@ -142,4 +142,15 @@ func IsValidChar(s string) bool {
 func IsAllowedSpecialChar(r rune) bool {
 	_, ok := allowedSpecialChars[r]
 	return ok
+}
+
+// stringInSlice checks if a string is present in a slice of strings.
+// It returns true if the string is found, and false otherwise.
+func StringInSlice(str string, list []string) bool {
+	for _, item := range list {
+		if item == str {
+			return true
+		}
+	}
+	return false
 }

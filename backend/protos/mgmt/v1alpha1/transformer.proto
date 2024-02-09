@@ -147,6 +147,7 @@ message GenerateEmail {}
 message TransformEmail {
   bool preserve_domain = 1;
   bool preserve_length = 2;
+  repeated string exclusion_list = 3;
 }
 
 message GenerateBool {}
