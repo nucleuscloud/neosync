@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-// Returns an http client that with an auth header applied if the token is not empty or nil
+// Returns an http client that includes an auth header if the token is not empty or nil
 func NewWithAuth(token *string) *http.Client {
 	if token == nil || *token == "" {
 		return http.DefaultClient
