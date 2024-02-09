@@ -11,7 +11,7 @@ import { useGetUserDefinedTransformers } from '@/libs/hooks/useGetUserDefinedTra
 import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
 import { ReadonlyURLSearchParams, useSearchParams } from 'next/navigation';
-import { ReactElement } from 'react';
+import { ReactElement, useMemo } from 'react';
 import { getSystemTransformerColumns } from './components/SystemTransformersTable/columns';
 import { SystemTransformersDataTable } from './components/SystemTransformersTable/data-table';
 import { getUserDefinedTransformerColumns } from './components/UserDefinedTransformersTable/columns';
@@ -68,15 +68,26 @@ function TransformersTable(props: TransformersTableProps): ReactElement {
   if (transformersIsLoading || userDefinedTransformersLoading) {
     return <SkeletonTable />;
   }
-  const systemTransformerColumns = getSystemTransformerColumns({
-    accountName: account?.name ?? '',
-  });
-  const userDefinedTransformerColumns = getUserDefinedTransformerColumns({
-    onTransformerDeleted() {
-      userDefinedTransformerMutate();
-    },
-    accountName: account?.name ?? '',
-  });
+
+  // memoizing these columns to prevent infinite re-render when hovering over next link
+  const systemTransformerColumns = useMemo(
+    () =>
+      getSystemTransformerColumns({
+        accountName: account?.name ?? '',
+      }),
+    [account?.name]
+  );
+  // memoizing these columns to prevent infinite re-render when hovering over next link
+  const userDefinedTransformerColumns = useMemo(
+    () =>
+      getUserDefinedTransformerColumns({
+        onTransformerDeleted() {
+          userDefinedTransformerMutate();
+        },
+        accountName: account?.name ?? '',
+      }),
+    [account?.name]
+  );
 
   return (
     <div>
