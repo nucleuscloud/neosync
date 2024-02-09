@@ -488,6 +488,10 @@ function handleConnectionValidation(
 
   // check to make sure that source->destination are unique
   if (destinationIds.some((id) => id === sourceId)) {
+    // for whatever reason this only propagates if the destination is what triggers the error
+    // at one point it worked and then it mystically stopped working, but overall it seems to still get the point across
+    // to the user
+    // if you console log the form state, it does set the sourceId error, but then it will unset it for some reason
     form.setError(`sourceId`, {
       type: 'string',
       message: 'Source must be different from destination',
