@@ -998,7 +998,8 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 	case "transform_email":
 		pd := col.Transformer.Config.GetTransformEmailConfig().PreserveDomain
 		pl := col.Transformer.Config.GetTransformEmailConfig().PreserveLength
-		return fmt.Sprintf("transform_email(email:this.%s,preserve_domain:%t,preserve_length:%t,max_length:%d)", col.Column, pd, pl, *colInfo.CharacterMaximumLength), nil
+		el := col.Transformer.Config.GetTransformEmailConfig().ExclusionList
+		return fmt.Sprintf("transform_email(email:this.%s,preserve_domain:%t,preserve_length:%t,exclusion_list:%s,max_length:%d)", col.Column, pd, pl, el, *colInfo.CharacterMaximumLength), nil
 	case "generate_bool":
 		return "generate_bool()", nil
 	case "generate_card_number":
