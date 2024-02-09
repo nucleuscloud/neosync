@@ -83,10 +83,10 @@ func login(ctx context.Context) error {
 			// set account to personal
 			err = userconfig.SetAccountId(a.Id)
 			if err != nil {
-				fmt.Println("unable to switch accounts") // nolint
+				fmt.Println("unable to switch accounts") //nolint:forbidigo
 				return err
 			}
-			fmt.Printf("  Account set to %s \n", a.Name) // nolint
+			fmt.Printf("  Account set to %s \n", a.Name) //nolint:forbidigo
 		}
 	}
 	return nil

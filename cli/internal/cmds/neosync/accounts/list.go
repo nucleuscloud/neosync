@@ -60,9 +60,9 @@ func listAccounts(
 	if len(accounts) == 0 {
 		return errors.New("unable to find accounts for user")
 	}
-	fmt.Println() // nolint
+	fmt.Println() //nolint:forbidigo
 	printAccountTable(accounts)
-	fmt.Println() // nolint
+	fmt.Println() //nolint:forbidigo
 	return nil
 }
 

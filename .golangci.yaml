@@ -103,7 +103,7 @@ linters:
     - misspell
     - nakedret
     - noctx
-    # - nolintlint
+    - nolintlint
     - revive
     - staticcheck
     # - stylecheck
@@ -128,12 +128,13 @@ linters:
   # - testpackage
   # - wsl
 
-# issues:
-#   # Excluding configuration per-path, per-linter, per-text and per-source
-#   exclude-rules:
-#     - path: _test\.go
-#       linters:
-#         - gomnd
+issues:
+  #   # Excluding configuration per-path, per-linter, per-text and per-source
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - gomnd
+        - lll
 
 #     - path: pkg/golinters/errcheck.go
 #       text: "SA1019: errCfg.Exclude is deprecated: use ExcludeFunctions instead"

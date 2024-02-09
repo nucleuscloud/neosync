@@ -783,9 +783,7 @@ func Test_convertUserDefinedFunctionConfig(t *testing.T) {
 	assert.Equal(t, resp, expected)
 }
 
-//nolint:all
 func MockJobMappingTransformer(source, transformerId string) db_queries.NeosyncApiTransformer {
-
 	return db_queries.NeosyncApiTransformer{
 		Source:            source,
 		TransformerConfig: &pg_models.TransformerConfigs{},
@@ -1010,10 +1008,8 @@ func Test_computeMutationFunction_null(t *testing.T) {
 	assert.Equal(t, val, "null")
 }
 
-// nolint
 func Test_sha256Hash_transformer_string(t *testing.T) {
-
-	mapping := `root = this.bytes().hash("sha256").encode("hex")`
+	mapping := `root = this.bytes().hash("sha256").encode("hex")` //nolint:goconst
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the sha256 transformer")
 
@@ -1038,9 +1034,7 @@ func Test_sha256Hash_transformer_string(t *testing.T) {
 	assert.Equal(t, res, buf.String())
 }
 
-// nolint
 func Test_sha256Hash_transformer_int64(t *testing.T) {
-
 	mapping := `root = this.bytes().hash("sha256").encode("hex")`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the sha256 transformer")
@@ -1066,9 +1060,7 @@ func Test_sha256Hash_transformer_int64(t *testing.T) {
 	assert.Equal(t, res, buf.String())
 }
 
-// nolint
 func Test_sha256Hash_transformer_float(t *testing.T) {
-
 	mapping := `root = this.bytes().hash("sha256").encode("hex")`
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the sha256 transformer")
