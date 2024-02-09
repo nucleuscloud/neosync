@@ -358,6 +358,29 @@ export default function PostgresForm(props: Props) {
             </FormItem>
           )}
         />
+        <FormField
+          control={form.control}
+          name="tunnel.knownHostPublicKey"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Known Host Public Key</FormLabel>
+              <FormDescription>
+                The public key of the host that will be expected when connecting
+                to the tunnel. This should be in the format like what is found
+                in the `~/.ssh/known_hosts` file, excluding the hostname. If
+                this is not provided, any host public key will be accepted.
+                Currently only a single host key is supported.
+              </FormDescription>
+              <FormControl>
+                <Input
+                  placeholder="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAlkjd9s7aJkfdLk3jSLkfj2lk3j2lkfj2l3kjf2lkfj2l"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <Separator />
 
         <TestConnectionResult resp={checkResp} />
