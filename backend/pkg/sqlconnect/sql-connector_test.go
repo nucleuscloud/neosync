@@ -56,6 +56,13 @@ func Test_NewDbFromConnectionConfig(t *testing.T) {
 	assert.NotNil(t, sqldb)
 }
 
+func Test_NewDbFromConnectionConfig_BadConfig(t *testing.T) {
+	c := &SqlOpenConnector{}
+	sqldb, err := c.NewDbFromConnectionConfig(nil, nil, nil)
+	assert.Error(t, err)
+	assert.Nil(t, sqldb)
+}
+
 func Test_NewPgPoolFromConnectionConfig(t *testing.T) {
 	c := &SqlOpenConnector{}
 	sqldb, err := c.NewPgPoolFromConnectionConfig(&mgmtv1alpha1.PostgresConnectionConfig{
@@ -65,6 +72,13 @@ func Test_NewPgPoolFromConnectionConfig(t *testing.T) {
 	}, nil, nil)
 	assert.NoError(t, err)
 	assert.NotNil(t, sqldb)
+}
+
+func Test_NewPgPoolFromConnectionConfig_BadConfig(t *testing.T) {
+	c := &SqlOpenConnector{}
+	sqldb, err := c.NewPgPoolFromConnectionConfig(nil, nil, nil)
+	assert.Error(t, err)
+	assert.Nil(t, sqldb)
 }
 
 func Test_getGeneralDbConnectConfigFromPg_Connection(t *testing.T) {

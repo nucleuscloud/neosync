@@ -33,6 +33,9 @@ type SqlConnector interface {
 type SqlOpenConnector struct{}
 
 func (rc *SqlOpenConnector) NewDbFromConnectionConfig(connectionConfig *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (SqlDbContainer, error) {
+	if connectionConfig == nil {
+		return nil, errors.New("connectionConfig was nil, expected *mgmtv1alpha1.ConnectionConfig")
+	}
 	details, err := GetConnectionDetails(connectionConfig, connectionTimeout, logger)
 	if err != nil {
 		return nil, err
@@ -41,6 +44,9 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(connectionConfig *mgmtv1al
 }
 
 func (rc *SqlOpenConnector) NewPgPoolFromConnectionConfig(pgconfig *mgmtv1alpha1.PostgresConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (PgPoolContainer, error) {
+	if pgconfig == nil {
+		return nil, errors.New("pgconfig was nil, expected *mgmtv1alpha1.PostgresConnectionConfig")
+	}
 	details, err := GetConnectionDetails(&mgmtv1alpha1.ConnectionConfig{
 		Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
 			PgConfig: pgconfig,
@@ -68,6 +74,9 @@ const (
 // Method for retrieving connection details, including tunneling information.
 // Only use if requiring direct access to the SSH Tunnel, otherwise the SqlConnector should be used instead.
 func GetConnectionDetails(c *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (*ConnectionDetails, error) {
+	if c == nil {
+		return nil, errors.New("connection config was nil, expected *mgmtv1alpha1.ConnectionConfig")
+	}
 	switch config := c.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		if config.PgConfig.Tunnel != nil {
