@@ -52,7 +52,7 @@ function getFuzzyPossibleFilters(
   return fuzziedPossibleFilters.map((pf) => pf.item);
 }
 
-export default function SchemaColumnFilter(props: Props) {
+export default function SchemaTableColumnFilterSelect(props: Props) {
   const { allColumnFilters, setColumnFilters, columnId, possibleFilters } =
     props;
   const [open, setOpen] = useState(false);
@@ -108,7 +108,9 @@ export default function SchemaColumnFilter(props: Props) {
         </div>
         <div
           className="flex pt-1"
-          style={{ height: Math.min(40 * filteredPossibleFilters.length, 300) }}
+          style={{
+            height: Math.min(40 * filteredPossibleFilters?.length, 300),
+          }}
         >
           <AutoSizer>
             {({ height, width }) => (

@@ -56,6 +56,7 @@ const newRecord = (
 
 export function makeData(num: number, schemaCount: number, tableCount: number) {
   // Generate random schema and table names
+
   const schemas = Array.from({ length: schemaCount }, () =>
     faker.company.name()
   );

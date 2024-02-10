@@ -72,7 +72,11 @@ export function SchemaTable(props: Props): ReactElement {
         data={tableData}
         transformers={mergedTransformers}
       /> */}
-      <SchemaTableTest columns={columns} />
+      <SchemaTableTest
+        columns={columns}
+        data={tableData}
+        transformers={mergedTransformers}
+      />
     </div>
   );
 }
