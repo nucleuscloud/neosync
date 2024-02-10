@@ -26,3 +26,6 @@ frontend/out
 
 # contentlayer
 .contentlayer
+
+/package.json
+/package-lock.json
