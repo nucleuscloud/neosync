@@ -164,12 +164,31 @@ func TransformEmailPreserveDomain(email string, pd bool, maxLength int64, exclud
 			return "", err
 		}
 
+		// create filtered list of domains to ensure that we don't randomly return a domain that shouldn't be there
+		var filteredDomains []string
+		for _, value := range emailDomains {
+			if parsedEmail[1] != value {
+				filteredDomains = append(filteredDomains, value)
+			}
+		}
+
 		e, err := GenerateRandomEmail(randLength)
 		if err != nil {
 			return "", err
 		}
 
-		return e, nil
+		parsedEmail, err := transformer_utils.ParseEmail(e)
+		if err != nil {
+			return "", fmt.Errorf("invalid email: %s", email)
+		}
+
+		domain, err := transformer_utils.GetRandomValueFromSlice[string](filteredDomains)
+		if err != nil {
+			return "", err
+		}
+
+		return parsedEmail[0] + "@" + domain, nil
+
 	} else {
 		// generate a random username and preserve the domain
 		un, err := GenerateUsername(int64(len(parsedEmail[0])))

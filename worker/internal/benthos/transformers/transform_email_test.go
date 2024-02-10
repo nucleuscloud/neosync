@@ -80,6 +80,7 @@ func Test_TransformEmailUsername(t *testing.T) {
 }
 
 func Test_TransformEmailPreserveDomainTrueExclusionListTrue(t *testing.T) {
+
 	res, err := TransformEmailPreserveDomain(email, true, 40, excludedDomains)
 
 	assert.NoError(t, err)
