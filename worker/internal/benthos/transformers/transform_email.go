@@ -188,7 +188,6 @@ func TransformEmailPreserveDomain(email string, pd bool, maxLength int64, exclud
 		}
 
 		return parsedEmail[0] + "@" + domain, nil
-
 	} else {
 		// generate a random username and preserve the domain
 		un, err := GenerateUsername(int64(len(parsedEmail[0])))
