@@ -185,12 +185,16 @@ type SSHTunnel struct {
 }
 
 func (s *SSHTunnel) ToDto() *mgmtv1alpha1.SSHTunnel {
+	var auth *mgmtv1alpha1.SSHAuthentication
+	if s.SSHAuthentication != nil {
+		auth = s.SSHAuthentication.ToDto()
+	}
 	return &mgmtv1alpha1.SSHTunnel{
 		Host:               s.Host,
 		Port:               s.Port,
 		User:               s.User,
 		KnownHostPublicKey: s.KnownHostPublicKey,
-		Authentication:     s.SSHAuthentication.ToDto(),
+		Authentication:     auth,
 	}
 }
 

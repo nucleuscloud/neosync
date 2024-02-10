@@ -10,9 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
-	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/pkg/sshtunnel"
@@ -26,16 +24,7 @@ type SqlDBTX interface {
 	BeginTx(context.Context, *sql.TxOptions) (*sql.Tx, error)
 }
 
-type SqlDbContainer interface {
-	Open() (SqlDBTX, error)
-	Close() error
-}
-
-type PgPoolContainer interface {
-	Open(context.Context) (pg_queries.DBTX, error)
-	Close()
-}
-
+// Allows instantiating a sql db or pg pool container that includes SSH tunneling if the config requires it
 type SqlConnector interface {
 	NewDbFromConnectionConfig(connectionConfig *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (SqlDbContainer, error)
 	NewPgPoolFromConnectionConfig(pgconfig *mgmtv1alpha1.PostgresConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (PgPoolContainer, error)
@@ -44,153 +33,29 @@ type SqlConnector interface {
 type SqlOpenConnector struct{}
 
 func (rc *SqlOpenConnector) NewDbFromConnectionConfig(connectionConfig *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (SqlDbContainer, error) {
-	return &SqlDb{
-		connectionConfig:  connectionConfig,
-		logger:            logger,
-		connectionTimeout: connectionTimeout,
-	}, nil
+	if connectionConfig == nil {
+		return nil, errors.New("connectionConfig was nil, expected *mgmtv1alpha1.ConnectionConfig")
+	}
+	details, err := GetConnectionDetails(connectionConfig, connectionTimeout, logger)
+	if err != nil {
+		return nil, err
+	}
+	return newSqlDb(details), nil
 }
 
 func (rc *SqlOpenConnector) NewPgPoolFromConnectionConfig(pgconfig *mgmtv1alpha1.PostgresConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (PgPoolContainer, error) {
-	return &PgPool{
-		connectionConfig:  pgconfig,
-		logger:            logger,
-		connectionTimeout: connectionTimeout,
-	}, nil
-}
-
-type PgPool struct {
-	pool *pgxpool.Pool
-
-	connectionConfig *mgmtv1alpha1.PostgresConnectionConfig
-	tunnel           *sshtunnel.Sshtunnel
-	logger           *slog.Logger
-
-	connectionTimeout *uint32
-
-	dsn string
-}
-
-func (s *PgPool) GetDsn() string {
-	return s.dsn
-}
-
-func (s *PgPool) Open(ctx context.Context) (pg_queries.DBTX, error) {
+	if pgconfig == nil {
+		return nil, errors.New("pgconfig was nil, expected *mgmtv1alpha1.PostgresConnectionConfig")
+	}
 	details, err := GetConnectionDetails(&mgmtv1alpha1.ConnectionConfig{
 		Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
-			PgConfig: s.connectionConfig,
+			PgConfig: pgconfig,
 		},
-	}, s.connectionTimeout, s.logger)
+	}, connectionTimeout, logger)
 	if err != nil {
 		return nil, err
 	}
-	if details.Tunnel != nil {
-		ready, err := details.Tunnel.Start()
-		if err != nil {
-			return nil, err
-		}
-		<-ready
-		newPort := int32(details.Tunnel.Local.Port)
-		details.GeneralDbConnectConfig.Port = newPort
-		dsn := details.GeneralDbConnectConfig.String()
-		db, err := pgxpool.New(ctx, dsn)
-		if err != nil {
-			return nil, err
-		}
-		s.dsn = dsn
-		s.pool = db
-		s.tunnel = details.Tunnel
-		return db, nil
-	}
-
-	dsn := details.GeneralDbConnectConfig.String()
-	db, err := pgxpool.New(ctx, dsn)
-	if err != nil {
-		return nil, err
-	}
-	s.pool = db
-	s.dsn = dsn
-	return db, nil
-}
-
-func (s *PgPool) Close() {
-	if s.pool == nil {
-		return
-	}
-	s.dsn = ""
-	db := s.pool
-	s.pool = nil
-	db.Close()
-	if s.tunnel != nil {
-		tunnel := s.tunnel
-		s.tunnel = nil
-		tunnel.Close()
-	}
-}
-
-type SqlDb struct {
-	db *sql.DB
-
-	connectionConfig *mgmtv1alpha1.ConnectionConfig
-	tunnel           *sshtunnel.Sshtunnel
-	logger           *slog.Logger
-
-	connectionTimeout *uint32
-
-	dsn string
-}
-
-func (s *SqlDb) Open() (SqlDBTX, error) {
-	details, err := GetConnectionDetails(s.connectionConfig, s.connectionTimeout, s.logger)
-	if err != nil {
-		return nil, err
-	}
-	if details.Tunnel != nil {
-		ready, err := details.Tunnel.Start()
-		if err != nil {
-			return nil, err
-		}
-		<-ready
-
-		newPort := int32(details.Tunnel.Local.Port)
-		details.GeneralDbConnectConfig.Port = newPort
-		dsn := details.GeneralDbConnectConfig.String()
-		db, err := sql.Open(details.GeneralDbConnectConfig.Driver, dsn)
-		if err != nil {
-			return nil, err
-		}
-		s.db = db
-		s.dsn = dsn
-		s.tunnel = details.Tunnel
-		return db, nil
-	}
-	dsn := details.GeneralDbConnectConfig.String()
-	db, err := sql.Open(details.GeneralDbConnectConfig.Driver, dsn)
-	s.db = db
-	if err != nil {
-		return nil, err
-	}
-	s.dsn = dsn
-	return db, nil
-}
-
-func (s *SqlDb) GetDsn() string {
-	return s.dsn
-}
-
-func (s *SqlDb) Close() error {
-	if s.db == nil {
-		return nil
-	}
-	db := s.db
-	s.dsn = ""
-	s.db = nil
-	err := db.Close()
-	if s.tunnel != nil {
-		s.tunnel.Close()
-		s.tunnel = nil
-	}
-	return err
+	return newPgPool(details), nil
 }
 
 type ConnectionDetails struct {
@@ -206,7 +71,12 @@ const (
 	randomPort     = 0
 )
 
+// Method for retrieving connection details, including tunneling information.
+// Only use if requiring direct access to the SSH Tunnel, otherwise the SqlConnector should be used instead.
 func GetConnectionDetails(c *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (*ConnectionDetails, error) {
+	if c == nil {
+		return nil, errors.New("connection config was nil, expected *mgmtv1alpha1.ConnectionConfig")
+	}
 	switch config := c.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		if config.PgConfig.Tunnel != nil {
@@ -214,7 +84,7 @@ func GetConnectionDetails(c *mgmtv1alpha1.ConnectionConfig, connectionTimeout *u
 			if err != nil {
 				return nil, err
 			}
-			authmethod, err := getTunnelAuthMethodFromSshConfig(config.PgConfig.Tunnel.Authentication)
+			authmethod, err := getTunnelAuthMethodFromSshConfig(config.PgConfig.GetTunnel().GetAuthentication())
 			if err != nil {
 				return nil, err
 			}

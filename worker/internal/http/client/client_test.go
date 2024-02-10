@@ -64,3 +64,24 @@ func (m *mockRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) 
 	args := m.Called(req)
 	return args.Get(0).(*http.Response), args.Error(1)
 }
+
+func Test_NewWithAuth(t *testing.T) {
+	client := NewWithAuth(nil)
+	assert.NotNil(t, client)
+
+	empty := ""
+	client = NewWithAuth(&empty)
+	assert.NotNil(t, client)
+
+	token := "foo"
+	client = NewWithAuth(&token)
+	assert.NotNil(t, client)
+}
+
+func Test_getAuthHeaders(t *testing.T) {
+	assert.Equal(
+		t,
+		getAuthHeaders("foo"),
+		map[string]string{"Authorization": "Bearer foo"},
+	)
+}

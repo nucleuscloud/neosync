@@ -1,18 +1,28 @@
 package http_client
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+)
+
+// Returns an http client that includes an auth header if the token is not empty or nil
+func NewWithAuth(token *string) *http.Client {
+	if token == nil || *token == "" {
+		return http.DefaultClient
+	}
+	return NewWithHeaders(getAuthHeaders(*token))
+}
 
 // Returns a new http client that will send headers along with the request
 func NewWithHeaders(
 	headers map[string]string,
 ) *http.Client {
-	client := &http.Client{
+	return &http.Client{
 		Transport: &headerTransport{
 			Transport: http.DefaultTransport,
 			Headers:   headers,
 		},
 	}
-	return client
 }
 
 type headerTransport struct {
@@ -28,4 +38,8 @@ func (t *headerTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 		req.Header.Add(key, value)
 	}
 	return t.Transport.RoundTrip(req)
+}
+
+func getAuthHeaders(token string) map[string]string {
+	return map[string]string{"Authorization": fmt.Sprintf("Bearer %s", token)}
 }
