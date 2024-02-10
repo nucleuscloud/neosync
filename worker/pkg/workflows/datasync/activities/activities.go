@@ -971,7 +971,7 @@ func (b *benthosBuilder) buildBranchCacheConfigs(ctx context.Context, cols []*mg
 		if ok {
 			processors = append(processors, neosync_benthos.ProcessorConfig{
 				Redis: &neosync_benthos.RedisProcessorConfig{
-					Url:     "tcp://default:0hKTi4NVq9@redis-master.redis.svc.cluster.local:6379",
+					Url:     "tcp://default:VfZevfp7wK@redis-master.redis.svc.cluster.local:6379",
 					Command: "hget",
 					// ArgsMapping: fmt.Sprintf(`root = [["%s", "%s", json("%s")].join("."), "%s"]`, fk.Table, fk.Column, col.Column, fk.Column),
 					ArgsMapping: fmt.Sprintf(`root = ["%s.%s.%s.%s", json("%s")]`, b.jobId, b.runId, fk.Table, fk.Column, col.Column),

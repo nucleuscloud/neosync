@@ -19,6 +19,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
+	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/redis"
 )
 
 const (
@@ -348,16 +349,15 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 				if shouldProcessColumn(transformer) {
 					// originalValue := fmt.Sprintf(`${!meta("neosync_%s")}`, col)
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-						RedisHash: &neosync_benthos.RedisHashConfig{
-							Url:            "tcp://default:0hKTi4NVq9@redis-master.redis.svc.cluster.local:6379",
-							Key:            fmt.Sprintf(`%s.%s.%s.%s`, b.jobId, b.runId, tableKey, col),                                    // original col value stored in metadata
-							Fields:         map[string]any{fmt.Sprintf(`${!meta("neosync_%s")}`, col): fmt.Sprintf(`${!json("%s")}`, col)}, // transformed col value
+						RedisHashTest: &neosync_benthos.RedisHashTestConfig{
+							Url:            "tcp://default:VfZevfp7wK@redis-master.redis.svc.cluster.local:6379",
+							Key:            fmt.Sprintf(`%s.%s.%s.%s`, b.jobId, b.runId, tableKey, col),
+							FieldsMapping:  fmt.Sprintf(`root = {meta("neosync_%s"): json("%s")}`, col, col), // map of original value to transformed value
 							WalkMetadata:   false,
 							WalkJsonObject: false,
 						},
 					})
 				}
-
 			}
 
 			switch connection := destinationConnection.ConnectionConfig.Config.(type) {
