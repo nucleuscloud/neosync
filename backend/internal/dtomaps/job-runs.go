@@ -29,14 +29,14 @@ func ToJobRunDto(
 func ToJobRunDtoFromWorkflowExecutionInfo(workflow *workflowpb.WorkflowExecutionInfo, logger *slog.Logger) *mgmtv1alpha1.JobRun {
 	var completedTime *timestamppb.Timestamp
 	if workflow.GetCloseTime() != nil {
-		completedTime = timestamppb.New(*workflow.GetCloseTime())
+		completedTime = workflow.GetCloseTime()
 	}
 	return &mgmtv1alpha1.JobRun{
 		Id:          workflow.Execution.WorkflowId,
 		JobId:       GetJobIdFromWorkflow(logger, workflow.GetSearchAttributes()),
 		Name:        workflow.Type.Name,
 		Status:      toWorfklowStatus(workflow.Status),
-		StartedAt:   timestamppb.New(*workflow.StartTime),
+		StartedAt:   workflow.StartTime,
 		CompletedAt: completedTime,
 	}
 }
@@ -55,7 +55,7 @@ func ToJobRunEventTaskDto(event *history.HistoryEvent, taskError *mgmtv1alpha1.J
 	return &mgmtv1alpha1.JobRunEventTask{
 		Id:        event.EventId,
 		Type:      event.EventType.String(),
-		EventTime: timestamppb.New(*event.EventTime),
+		EventTime: event.EventTime,
 		Error:     taskError,
 	}
 }

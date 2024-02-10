@@ -3,7 +3,6 @@ package v1alpha1_jobservice
 import (
 	"context"
 	"testing"
-	"time"
 
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
@@ -21,6 +20,7 @@ import (
 	"go.temporal.io/api/workflowservice/v1"
 	temporalclient "go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/converter"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // GetJobRuns
@@ -201,11 +201,11 @@ func getDescribeWorkflowExecutionResponseMock(jobId, workflowId string) *workflo
 }
 
 func getWorfklowExecutionInfoMock(jobId, workflowId string) *workflowpb.WorkflowExecutionInfo {
-	now := time.Now()
+	now := timestamppb.Now()
 	payload, _ := converter.GetDefaultDataConverter().ToPayload(jobId)
 	return &workflowpb.WorkflowExecutionInfo{
-		CloseTime: &now,
-		StartTime: &now,
+		CloseTime: now,
+		StartTime: now,
 		Type: &common.WorkflowType{
 			Name: "name",
 		},
