@@ -9,6 +9,8 @@ import (
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	datasync_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities"
+	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
+	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"go.temporal.io/sdk/temporal"
@@ -82,7 +84,7 @@ func Test_Workflow_Succeeds_SingleSync(t *testing.T) {
 		}, nil)
 	env.OnActivity(activities.RunSqlInitTableStatements, mock.Anything, mock.Anything).
 		Return(&datasync_activities.RunSqlInitTableStatementsResponse{}, nil)
-	env.OnActivity(activities.Sync, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&datasync_activities.SyncResponse{}, nil)
+	env.OnActivity(sync_activity.Sync, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&sync_activity.SyncResponse{}, nil)
 
 	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
 
@@ -153,18 +155,18 @@ func Test_Workflow_Follows_Synchronous_DependentFlow(t *testing.T) {
 		Return(&datasync_activities.RunSqlInitTableStatementsResponse{}, nil)
 	count := 0
 	env.
-		OnActivity(activities.Sync, mock.Anything, mock.Anything, &datasync_activities.SyncMetadata{Schema: "public", Table: "users"}, mock.Anything).
-		Return(func(ctx context.Context, req *datasync_activities.SyncRequest, metadata *datasync_activities.SyncMetadata, workflowMetadata *datasync_activities.WorkflowMetadata) (*datasync_activities.SyncResponse, error) {
+		OnActivity(sync_activity.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "users"}, mock.Anything).
+		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata, workflowMetadata *shared.WorkflowMetadata) (*sync_activity.SyncResponse, error) {
 			assert.Equal(t, count, 0)
 			count += 1
-			return &datasync_activities.SyncResponse{}, nil
+			return &sync_activity.SyncResponse{}, nil
 		})
 	env.
-		OnActivity(activities.Sync, mock.Anything, mock.Anything, &datasync_activities.SyncMetadata{Schema: "public", Table: "foo"}, mock.Anything).
-		Return(func(ctx context.Context, req *datasync_activities.SyncRequest, metadata *datasync_activities.SyncMetadata, workflowMetadata *datasync_activities.WorkflowMetadata) (*datasync_activities.SyncResponse, error) {
+		OnActivity(sync_activity.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "foo"}, mock.Anything).
+		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata, workflowMetadata *shared.WorkflowMetadata) (*sync_activity.SyncResponse, error) {
 			assert.Equal(t, count, 1)
 			count += 1
-			return &datasync_activities.SyncResponse{}, nil
+			return &sync_activity.SyncResponse{}, nil
 		})
 
 	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
@@ -255,23 +257,23 @@ func Test_Workflow_Follows_Multiple_Dependents(t *testing.T) {
 		Return(&datasync_activities.RunSqlInitTableStatementsResponse{}, nil)
 	counter := atomic.NewInt32(0)
 	env.
-		OnActivity(activities.Sync, mock.Anything, mock.Anything, &datasync_activities.SyncMetadata{Schema: "public", Table: "users"}, mock.Anything).
-		Return(func(ctx context.Context, req *datasync_activities.SyncRequest, metadata *datasync_activities.SyncMetadata, workflowMetadata *datasync_activities.WorkflowMetadata) (*datasync_activities.SyncResponse, error) {
+		OnActivity(sync_activity.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "users"}, mock.Anything).
+		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata, workflowMetadata *shared.WorkflowMetadata) (*sync_activity.SyncResponse, error) {
 			counter.Add(1)
-			return &datasync_activities.SyncResponse{}, nil
+			return &sync_activity.SyncResponse{}, nil
 		})
 	env.
-		OnActivity(activities.Sync, mock.Anything, mock.Anything, &datasync_activities.SyncMetadata{Schema: "public", Table: "accounts"}, mock.Anything).
-		Return(func(ctx context.Context, req *datasync_activities.SyncRequest, metadata *datasync_activities.SyncMetadata, workflowMetadata *datasync_activities.WorkflowMetadata) (*datasync_activities.SyncResponse, error) {
+		OnActivity(sync_activity.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "accounts"}, mock.Anything).
+		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata, workflowMetadata *shared.WorkflowMetadata) (*sync_activity.SyncResponse, error) {
 			counter.Add(1)
-			return &datasync_activities.SyncResponse{}, nil
+			return &sync_activity.SyncResponse{}, nil
 		})
 	env.
-		OnActivity(activities.Sync, mock.Anything, mock.Anything, &datasync_activities.SyncMetadata{Schema: "public", Table: "foo"}, mock.Anything).
-		Return(func(ctx context.Context, req *datasync_activities.SyncRequest, metadata *datasync_activities.SyncMetadata, workflowMetadata *datasync_activities.WorkflowMetadata) (*datasync_activities.SyncResponse, error) {
+		OnActivity(sync_activity.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "foo"}, mock.Anything).
+		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata, workflowMetadata *shared.WorkflowMetadata) (*sync_activity.SyncResponse, error) {
 			assert.Equal(t, counter.Load(), int32(2))
 			counter.Add(1)
-			return &datasync_activities.SyncResponse{}, nil
+			return &sync_activity.SyncResponse{}, nil
 		})
 
 	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
@@ -362,12 +364,12 @@ func Test_Workflow_Halts_Activities_OnError(t *testing.T) {
 		}, nil)
 
 	env.
-		OnActivity(activities.Sync, mock.Anything, mock.Anything, &datasync_activities.SyncMetadata{Schema: "public", Table: "users"}, mock.Anything).
-		Return(func(ctx context.Context, req *datasync_activities.SyncRequest, metadata *datasync_activities.SyncMetadata, workflowMetadata *datasync_activities.WorkflowMetadata) (*datasync_activities.SyncResponse, error) {
-			return &datasync_activities.SyncResponse{}, nil
+		OnActivity(sync_activity.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "users"}, mock.Anything).
+		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata, workflowMetadata *shared.WorkflowMetadata) (*sync_activity.SyncResponse, error) {
+			return &sync_activity.SyncResponse{}, nil
 		})
 	env.
-		OnActivity(activities.Sync, mock.Anything, mock.Anything, &datasync_activities.SyncMetadata{Schema: "public", Table: "accounts"}, mock.Anything).
+		OnActivity(sync_activity.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "accounts"}, mock.Anything).
 		Return(nil, errors.New("TestFailure"))
 
 	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})

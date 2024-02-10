@@ -19,6 +19,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
+	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
 const (
@@ -318,7 +319,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 			switch connection := destinationConnection.ConnectionConfig.Config.(type) {
 			case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-				resp.BenthosDsns = append(resp.BenthosDsns, &BenthosDsn{EnvVarKey: dstEnvVarKey, ConnectionId: destinationConnection.Id})
+				resp.BenthosDsns = append(resp.BenthosDsns, &shared.BenthosDsn{EnvVarKey: dstEnvVarKey, ConnectionId: destinationConnection.Id})
 
 				if resp.Config.Input.SqlSelect != nil {
 					colSourceMap := map[string]string{}
@@ -377,7 +378,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					return nil, errors.New("unable to build destination connection due to unsupported source connection")
 				}
 			case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-				resp.BenthosDsns = append(resp.BenthosDsns, &BenthosDsn{EnvVarKey: dstEnvVarKey, ConnectionId: destination.Id})
+				resp.BenthosDsns = append(resp.BenthosDsns, &shared.BenthosDsn{EnvVarKey: dstEnvVarKey, ConnectionId: destination.Id})
 
 				if resp.Config.Input.SqlSelect != nil {
 					colSourceMap := map[string]string{}
