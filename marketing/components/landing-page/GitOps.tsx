@@ -1,6 +1,7 @@
 'use client';
-import { GitHubLogoIcon } from '@radix-ui/react-icons';
+import { ExternalLinkIcon, GitHubLogoIcon } from '@radix-ui/react-icons';
 import Image from 'next/image';
+import Link from 'next/link';
 import { ReactElement } from 'react';
 import { SiTerraform } from 'react-icons/si';
 
@@ -45,46 +46,56 @@ export default function GitOpsSection(): ReactElement {
         and even create new jobs.
       </div>
       <div className="flex flex-col lg:flex-row items-center justify-center pt-20 gap-4">
-        <div className="border border-gray-400 rounded-xl shadow-xl p-4">
-          <Image
-            src="/images/neosync-ci.svg"
-            alt="pre"
-            width="514"
-            height="617"
-            className="w-full"
-          />
-
-          <div className="pt-8">
-            <GitHubLogoIcon className="text-gray-800 w-4 h-4" />
-            <div className="font-sans font-bold text-gray-800 mb-2 mt-2">
-              Neosync in CI
-            </div>
-            <div className="font-sans font-normal text-gray-800 text-sm">
-              Use Neosync in your CI pipeline to hydrate CI databases with
-              synthetic and anonymized data
-            </div>
-          </div>
-        </div>
-        <div className="border border-gray-400 rounded-xl shadow-xl p-4">
-          <div>
+        <Link href="https://docs.neosync.dev/guides/using-neosync-in-ci">
+          <div className="border border-gray-400 rounded-xl shadow-xl p-4">
             <Image
-              src="/images/neosync-tf.svg"
+              src="/images/neosync-ci.svg"
               alt="pre"
-              width="566"
-              height="697"
+              width="514"
+              height="617"
+              className="w-full"
             />
-          </div>
-          <div className="pt-8">
-            <SiTerraform className="text-gray-800 w-4 h-4" />
-            <div className="font-sans font-bold text-gray-800 mb-2 mt-2">
-              Neosync Terraform Provider
+
+            <div className="pt-8">
+              <GitHubLogoIcon className="text-gray-800 w-4 h-4" />
+              <div className="flex flex-row gap-4 items-center">
+                <div className="font-sans font-bold text-gray-800 mb-2 mt-2">
+                  Neosync in CI
+                </div>
+                <ExternalLinkIcon className="text-gray-800 w-4 h-4" />
+              </div>
+              <div className="font-sans font-normal text-gray-800 text-sm">
+                Use Neosync in your CI pipeline to hydrate CI databases with
+                synthetic and anonymized data
+              </div>
             </div>
-            <div className="font-sans font-normal text-gray-800 text-sm">
-              Use the Neosync Terraform provider to manage your Neosync
-              resources in code.
+          </div>
+        </Link>
+        <Link href="https://docs.neosync.dev/guides/terraform">
+          <div className="border border-gray-400 rounded-xl shadow-xl p-4">
+            <div>
+              <Image
+                src="/images/neosync-tf.svg"
+                alt="pre"
+                width="566"
+                height="697"
+              />
+            </div>
+            <div className="pt-8">
+              <SiTerraform className="text-gray-800 w-4 h-4" />
+              <div className="flex flex-row gap-4 items-center">
+                <div className="font-sans font-bold text-gray-800 mb-2 mt-2">
+                  Neosync Terraform Provider
+                </div>
+                <ExternalLinkIcon className="text-gray-800 w-4 h-4" />
+              </div>
+              <div className="font-sans font-normal text-gray-800 text-sm">
+                Use the Neosync Terraform provider to manage your Neosync
+                resources in code.
+              </div>
             </div>
           </div>
-        </div>
+        </Link>
       </div>
     </div>
   );
