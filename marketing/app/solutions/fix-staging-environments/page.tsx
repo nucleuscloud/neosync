@@ -42,7 +42,7 @@ export default function Page(): ReactElement {
           <FixBrokenStaging />
         </div>
         <div className=" bg-[#F5F5F5] lg:p-20 px-4">
-          <div className=" bg-[#1E1E1E] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto rounded-3xl py-10">
+          <div className=" bg-[#1E1E1E] px-5 sm:px-10 md:px-20 lg:px-40 sm:mx-10 md:mx-20 lg:mx-20 max-w-[1800px] mx-auto rounded-3xl py-10">
             <div className="pt-4 lg:pt-20">
               <Platform />
             </div>

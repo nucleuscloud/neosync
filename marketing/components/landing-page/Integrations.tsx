@@ -1,4 +1,5 @@
-import { GitHubLogoIcon } from '@radix-ui/react-icons';
+import { ExternalLinkIcon, GitHubLogoIcon } from '@radix-ui/react-icons';
+import Link from 'next/link';
 import { ReactElement } from 'react';
 import { DiMysql } from 'react-icons/di';
 import { FaAws, FaDocker } from 'react-icons/fa';
@@ -9,52 +10,61 @@ export default function Intergrations(): ReactElement {
     {
       name: 'Postgres',
       logo: <SiPostgresql className="text-gray-300 bg-transparent w-12 h-12" />,
+      href: 'https://docs.neosync.dev/connections/postgres',
     },
     {
       name: 'Mysql',
       logo: <DiMysql className="text-gray-300 bg-transparent w-12 h-12" />,
+      href: 'https://docs.neosync.dev/connections/mysql',
     },
     {
       name: 'AWS S3',
       logo: <FaAws className="text-gray-300 bg-transparent w-12 h-12" />,
+      href: 'https://docs.neosync.dev/connections/s3',
     },
     {
       name: 'Github Actions',
       logo: (
         <GitHubLogoIcon className="text-gray-300 bg-transparent w-12 h-12" />
       ),
+      href: 'https://docs.neosync.dev/guides/using-neosync-in-ci',
     },
     {
       name: 'Kubernetes',
       logo: <SiKubernetes className="text-gray-300 bg-transparent w-12 h-12" />,
+      href: 'https://docs.neosync.dev/deploy/kubernetes',
     },
     {
       name: 'Docker',
       logo: <FaDocker className="text-gray-300 bg-transparent w-12 h-12" />,
+      href: 'https://docs.neosync.dev/deploy/docker-compose',
     },
   ];
   return (
     <div>
       <div className="text-gray-200 font-semibold text-2xl lg:text-4xl font-satoshi text-center">
-        Integrations With Your Favorite Tools
+        Integrate Your Stack
       </div>
       <div className="text-md text-gray-400 font-satoshi font-semibold pt-10 lg:px-60 text-center">
         Seamlessly integrate Neosync into your stack with out-of-the box
         integrations
       </div>
+
       <div className="lg:p-6  mt-10 lg:mx-40">
         <div className="flex justify-center">
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             {integrations.map((item) => (
-              <div
-                key={item.name}
-                className=" p-6 lg:px-16 lg:py-10 border border-gray-600 rounded-xl shadow-xl"
-              >
-                <div className="flex flex-col gap-4 justify-center items-center">
-                  <div>{item.logo}</div>
-                  <div className="text-gray-300 text-sm">{item.name}</div>
+              <Link key={item.name} href={item.href}>
+                <div className="p-6 lg:px-16 lg:py-10 border border-gray-600 bg-gradient-to-tr from-[#1E1E1E] to-[#232222] rounded-xl shadow-xl transition duration-150 ease-in-out hover:-translate-y-1 relative">
+                  <div className="absolute top-0 right-0 p-2">
+                    <ExternalLinkIcon className="w-4 h-4 text-gray-500" />
+                  </div>
+                  <div className="flex flex-col gap-4 justify-center items-center">
+                    <div>{item.logo}</div>
+                    <div className="text-gray-300 text-sm">{item.name}</div>
+                  </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

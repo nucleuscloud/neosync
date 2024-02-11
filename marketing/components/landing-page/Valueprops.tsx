@@ -33,7 +33,7 @@ export default function ValueProps(): ReactElement {
       link: '/solutions/keep-environments-in-sync',
     },
     {
-      title: `Frictionless security, privacy and compliance`,
+      title: `Frictionless privacy and compliance`,
       description: `Easily comply with laws like HIPAA, GDPR, and DPDP with de-identified and synthetic data that structurally and statistically looks just like your production data.`,
       image:
         'https://assets.nucleuscloud.com/neosync/marketingsite/compliance.svg',

@@ -40,18 +40,17 @@ export default function Home(): ReactElement {
         <div className="bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto pt-20 lg:pt-40">
           <ValueProps />
         </div>
-        <div className="bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto pt-20 lg:py-40">
-          <UseNeosync />
-        </div>
-        <div className=" bg-[#1E1E1E] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto rounded-3xl py-10">
+        <div className=" bg-[#1E1E1E] px-5 sm:px-10 md:px-20 lg:px-20 sm:mx-10 md:mx-20 lg:mx-40 max-w-[1800px] mx-auto rounded-3xl mt-20 lg:mt-40 py-10">
           <div className="pt-4 lg:pt-20">
             <Platform />
           </div>
-          <div className="pt-20 lg:pt-40">
+          <div className="pt-20 lg:pt-20">
             <Intergrations />
           </div>
         </div>
-
+        <div className="bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto pt-20 lg:py-40">
+          <UseNeosync />
+        </div>
         <div className="bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto py-10 lg:py-20">
           <CTA />
         </div>
