@@ -46,15 +46,14 @@ export default function GitOpsSection(): ReactElement {
       </div>
       <div className="flex flex-col lg:flex-row items-center justify-center pt-20 gap-4">
         <div className="border border-gray-400 rounded-xl shadow-xl p-4">
-          <div className="bg-red-200">
-            <Image
-              src="/images/neosync-ci.svg"
-              alt="pre"
-              width="514"
-              height="617"
-              className="w-full"
-            />
-          </div>
+          <Image
+            src="/images/neosync-ci.svg"
+            alt="pre"
+            width="514"
+            height="617"
+            className="w-full"
+          />
+
           <div className="pt-8">
             <GitHubLogoIcon className="text-gray-800 w-4 h-4" />
             <div className="font-sans font-bold text-gray-800 mb-2 mt-2">
@@ -71,9 +70,8 @@ export default function GitOpsSection(): ReactElement {
             <Image
               src="/images/neosync-tf.svg"
               alt="pre"
-              width="514"
-              height="617"
-              className="w-full"
+              width="566"
+              height="697"
             />
           </div>
           <div className="pt-8">
