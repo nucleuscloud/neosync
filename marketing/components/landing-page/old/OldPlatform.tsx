@@ -65,7 +65,6 @@ export default function Platform(): ReactElement {
       <div className="text-gray-200 font-semibold text-2xl lg:text-4xl font-satoshi text-center">
         A Modern Platform Built for Teams Who Care About Data Security
       </div>
-
       <div className=" p-6 lg:p-10 rounded-xl mt-10 ">
         <Tabs defaultValue="orchestration">
           <TabsList className="w-full bg-transparent  ">
