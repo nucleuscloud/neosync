@@ -48,7 +48,7 @@ export default function Intergrations(): ReactElement {
             {integrations.map((item) => (
               <div
                 key={item.name}
-                className=" p-6 lg:px-16 lg:py-10 border border-gray-600 rounded-xl shadow-xl"
+                className=" p-6 lg:px-16 lg:py-10 border border-gray-600 bg-gradient-to-tr from-[#1E1E1E] to-[#232222] rounded-xl shadow-xl"
               >
                 <div className="flex flex-col gap-4 justify-center items-center">
                   <div>{item.logo}</div>

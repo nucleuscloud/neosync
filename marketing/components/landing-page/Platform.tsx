@@ -1,9 +1,6 @@
 'use client';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CheckCircledIcon } from '@radix-ui/react-icons';
-import Image from 'next/image';
-import { posthog } from 'posthog-js';
 import { ReactElement } from 'react';
+import { BentoGridSecondDemo } from './bentoPlatform';
 
 export default function Platform(): ReactElement {
   const tabs = [
@@ -12,14 +9,9 @@ export default function Platform(): ReactElement {
       key: 'orchestration',
       description:
         'Neosync handles all of the orchestration heavy lifting for you and allows you to move data from a source system to multiple destination systems on any schedule you want. Neosync handles:',
-      usecases: [
-        'Scheduling and executing async jobs to move data',
-        'Retries and back-offs',
-        'Alerting and logging when jobs are taking longer than normal or failing',
-        'Syncing across destination types such as from RDS to S3',
-      ],
+      usecases: ['Scheduling', 'Retries', 'Alerting', 'Destination(s)'],
       image:
-        'https://assets.nucleuscloud.com/neosync/marketingsite/schemaconnect.png',
+        'https://assets.nucleuscloud.com/neosync/marketingsite/connect-dark.png',
     },
     {
       name: 'Anonymization',
@@ -27,16 +19,16 @@ export default function Platform(): ReactElement {
       description:
         'Neosync ships with over 35+ Transformers that enable you to anonymize sensitive data. This is great for:',
       usecases: [
-        'Creating privacy-safe data that can be shared across regions and environments',
+        'Custom Transformers',
         'Certain types of machine learning analytics and use-cases',
         'Protecting user data privacy',
         'Following compliance requirements such as HIPAA and GDPR',
       ],
       image:
-        'https://assets.nucleuscloud.com/neosync/marketingsite/customTransformersNew.png',
+        'https://assets.nucleuscloud.com/neosync/marketingsite/customTransformer-dark.png',
     },
     {
-      name: ' Synthetic Data',
+      name: 'Synthetic Data',
       key: 'synthetic_data',
       description:
         'Neosync ships with over 35+ Transformers that enable you to create truly privacy-safe synthetic data. This is great for:',
@@ -47,7 +39,7 @@ export default function Platform(): ReactElement {
         'Following compliance requirements such as HIPAA and GDPR',
       ],
       image:
-        'https://assets.nucleuscloud.com/neosync/marketingsite/systemTransformers.png',
+        'https://assets.nucleuscloud.com/neosync/marketingsite/systemTransformer-dark.png',
     },
     {
       name: 'Subsetting',
@@ -61,17 +53,19 @@ export default function Platform(): ReactElement {
         'Reducing data transfer costs across environments',
       ],
       image:
-        'https://assets.nucleuscloud.com/neosync/marketingsite/subsets.png',
+        'https://assets.nucleuscloud.com/neosync/marketingsite/subset-dark.png',
     },
   ];
 
   return (
     <div>
       <div className="text-gray-200 font-semibold text-2xl lg:text-4xl font-satoshi text-center">
-        A Modern Platform Built for Engineering Teams
+        A Modern Platform Built for Teams Who Care About Data Security
       </div>
-      <div className=" p-6 lg:p-10 border border-gray-600 rounded-xl mt-10 shadow-lg">
-        <Tabs defaultValue="orchestration">
+
+      <div className=" p-6 lg:p-10 rounded-xl mt-10 ">
+        <BentoGridSecondDemo />
+        {/* <Tabs defaultValue="orchestration">
           <TabsList className="w-full bg-transparent  ">
             <div className="border border-gray-600 rounded-lg p-2 justify-center flex lg:flex-row flex-col lg:gap-4 ">
               {tabs.map((tab) => (
@@ -90,40 +84,37 @@ export default function Platform(): ReactElement {
               ))}
             </div>
           </TabsList>
-          <div className="pt-10">
+          <div>
             {tabs.map((tab) => (
               <TabsContent value={tab.key} className="pt-10" key={tab.key}>
-                <div className="flex flex-col lg:flex-row justify-start gap-6 lg:gap-20">
-                  <div className="flex flex-col gap-2">
-                    <div className="text-gray-300">{tab.description}</div>
-                    <div className="pt-10">
-                      <div className="flex flex-col gap-4 text-gray-300">
-                        {tab.usecases.map((item) => (
-                          <div
-                            className="flex flex-row items-center gap-4"
-                            key={item}
-                          >
-                            <div>
-                              <CheckCircledIcon className="min-w-4 min-h-4" />{' '}
-                            </div>
-                            {item}
+                <div className="flex flex-col justify-center items-center gap-6 lg:gap-10">
+                  <div className="flex flex-col gap-2 justify-center">
+                    <div className="flex flex-row gap-4 text-gray-300">
+                      {tab.usecases.map((item) => (
+                        <div
+                          className="flex flex-row items-center gap-2"
+                          key={item}
+                        >
+                          <div>
+                            <CheckCircledIcon className="min-w-4 min-h-4" />
                           </div>
-                        ))}
-                      </div>
+                          {item}
+                        </div>
+                      ))}
                     </div>
                   </div>
                   <Image
                     src={tab.image}
                     alt="st"
-                    width="650"
-                    height="400"
-                    className="rounded-xl border border-gray-400 shadow-xl"
+                    width="1050"
+                    height="800"
+                    className="rounded-xl border border-gray-700 shadow-xl"
                   />
                 </div>
               </TabsContent>
             ))}
           </div>
-        </Tabs>
+        </Tabs> */}
       </div>
     </div>
   );
