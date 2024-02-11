@@ -1,5 +1,6 @@
 import CTA from '@/components/cta/CTA';
 import { DotBackground } from '@/components/landing-page/DotBackground';
+import GitOpsSection from '@/components/landing-page/GitOps';
 import Hero from '@/components/landing-page/Hero';
 import Intergrations from '@/components/landing-page/Integrations';
 import Platform from '@/components/landing-page/Platform';
@@ -48,8 +49,11 @@ export default function Home(): ReactElement {
             <Intergrations />
           </div>
         </div>
-        <div className="bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto pt-20 lg:py-40">
+        <div className="bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto pt-20 lg:pt-40">
           <UseNeosync />
+        </div>
+        <div className="bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto py-10 lg:py-20">
+          <GitOpsSection />
         </div>
         <div className="bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto py-10 lg:py-20">
           <CTA />

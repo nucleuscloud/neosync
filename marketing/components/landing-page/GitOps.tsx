@@ -1,11 +1,8 @@
 'use client';
-import CodeBlock from '@/components/codeblocks/TerraformCode';
-import IconContainer from '@/components/containers/IconContainer';
-import { CheckCircledIcon } from '@radix-ui/react-icons';
+import { GitHubLogoIcon } from '@radix-ui/react-icons';
+import Image from 'next/image';
 import { ReactElement } from 'react';
-import { AiOutlineAudit, AiOutlineCloudSync } from 'react-icons/ai';
-import { BiGitBranch } from 'react-icons/bi';
-import { BsFileCode } from 'react-icons/bs';
+import { SiTerraform } from 'react-icons/si';
 
 export default function GitOpsSection(): ReactElement {
   const jobCode = `resource "neosync_job" "staging-sync-job" {
@@ -37,77 +34,57 @@ export default function GitOpsSection(): ReactElement {
     ]
   }`;
 
-  const vp = [
-    {
-      name: 'iac',
-      icon: (
-        <IconContainer
-          icon={<BsFileCode className="text-gray-400 w-[30px] h-[30px]" />}
-        />
-      ),
-      description: ' Manage your test infrastructure in code',
-    },
-    {
-      name: 'create',
-      icon: (
-        <IconContainer
-          icon={<BiGitBranch className="text-gray-400 w-[30px] h-[30px]" />}
-        />
-      ),
-      description: '  Easily create jobs, connections, mappings and more',
-    },
-    {
-      name: 'audit',
-      icon: (
-        <IconContainer
-          icon={<AiOutlineAudit className="text-gray-400 w-[30px] h-[30px]" />}
-        />
-      ),
-      description: ' Audit and track changes across teams',
-    },
-    {
-      name: 'centralize',
-      icon: (
-        <IconContainer
-          icon={
-            <AiOutlineCloudSync className="text-gray-400 w-[30px] h-[30px]" />
-          }
-        />
-      ),
-      description: 'Centralize your configurations in one place',
-    },
-  ];
   return (
-    <div className="bg-[#F5F5F5] pt-20">
-      <div className="flex flex-col items-center lg:py-40 bg-[#F5F5F5]  pt-5 lg:pt-40 px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto">
-        <div className="text-gray-900 font-semibold  text-2xl lg:text-4xl font-satoshi z-10 w-full">
-          Synthetic Data meets GitOps
-        </div>
-        <div className="flex flex-col lg:flex-row p-4 mt-10 border border-gray-400 shadow-lg rounded-xl text-gray-200 bg-white">
-          <div className="flex flex-col p-2 lg:p-10">
-            <div className=" pl-2 text-xl font-satoshi font-normal text-gray-900">
-              Neosync is built with DevOps and infrastructure teams in mind. Use
-              frameworks you know like terraform to manage your Neosync
-              infrastructure and even create new jobs.
+    <div className="px-6">
+      <div className="text-gray-900 font-semibold text-2xl lg:text-4xl font-satoshi text-center">
+        Synthetic Data meets GitOps
+      </div>
+      <div className="text-md text-gray-700 font-satoshi font-semibold pt-10 lg:px-60 text-center">
+        Neosync is built with DevOps and infrastructure teams in mind. Use
+        frameworks you know like terraform to manage your Neosync infrastructure
+        and even create new jobs.
+      </div>
+      <div className="flex flex-col lg:flex-row items-center justify-center pt-20 gap-4">
+        <div className="border border-gray-400 rounded-xl shadow-xl p-4">
+          <div className="bg-red-200">
+            <Image
+              src="/images/neosync-ci.svg"
+              alt="pre"
+              width="514"
+              height="617"
+              className="w-full"
+            />
+          </div>
+          <div className="pt-8">
+            <GitHubLogoIcon className="text-gray-800 w-4 h-4" />
+            <div className="font-sans font-bold text-gray-800 mb-2 mt-2">
+              Neosync in CI
             </div>
-            <div className="flex flex-col pt-10 space-y-10 pl-2">
-              <div className="flex flex-col justify-start">
-                {vp.map((item) => (
-                  <div
-                    className="flex flex-row space-x-4 items-center pt-6"
-                    key={item.name}
-                  >
-                    <CheckCircledIcon className="w-6 h-6 text-gray-700" />{' '}
-                    <div className="text-sm lg:text-lg text-gray-700 font-satoshi font-semibold">
-                      {item.description}
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <div className="font-sans font-normal text-gray-800 text-sm">
+              Use Neosync in your CI pipeline to hydrate CI databases with
+              synthetic and anonymized data
             </div>
           </div>
-          <div className="z-1 lg:text-md text-sm">
-            <CodeBlock code={jobCode} />
+        </div>
+        <div className="border border-gray-400 rounded-xl shadow-xl p-4">
+          <div>
+            <Image
+              src="/images/neosync-tf.svg"
+              alt="pre"
+              width="514"
+              height="617"
+              className="w-full"
+            />
+          </div>
+          <div className="pt-8">
+            <SiTerraform className="text-gray-800 w-4 h-4" />
+            <div className="font-sans font-bold text-gray-800 mb-2 mt-2">
+              Neosync Terraform Provider
+            </div>
+            <div className="font-sans font-normal text-gray-800 text-sm">
+              Use the Neosync Terraform provider to manage your Neosync
+              resources in code.
+            </div>
           </div>
         </div>
       </div>
