@@ -1,6 +1,9 @@
 'use client';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CheckCircledIcon } from '@radix-ui/react-icons';
+import Image from 'next/image';
+import posthog from 'posthog-js';
 import { ReactElement } from 'react';
-import { BentoGridSecondDemo } from '../bentoPlatform';
 
 export default function Platform(): ReactElement {
   const tabs = [
@@ -64,8 +67,7 @@ export default function Platform(): ReactElement {
       </div>
 
       <div className=" p-6 lg:p-10 rounded-xl mt-10 ">
-        <BentoGridSecondDemo />
-        {/* <Tabs defaultValue="orchestration">
+        <Tabs defaultValue="orchestration">
           <TabsList className="w-full bg-transparent  ">
             <div className="border border-gray-600 rounded-lg p-2 justify-center flex lg:flex-row flex-col lg:gap-4 ">
               {tabs.map((tab) => (
@@ -114,7 +116,7 @@ export default function Platform(): ReactElement {
               </TabsContent>
             ))}
           </div>
-        </Tabs> */}
+        </Tabs>
       </div>
     </div>
   );
