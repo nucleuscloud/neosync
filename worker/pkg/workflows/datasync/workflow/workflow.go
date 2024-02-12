@@ -9,6 +9,7 @@ import (
 	datasync_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
+	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
 	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/temporal"
 
@@ -53,7 +54,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		return &WorkflowResponse{}, nil
 	}
 
-	var actOptResp *datasync_activities.RetrieveActivityOptionsResponse
+	var actOptResp *syncactivityopts_activity.RetrieveActivityOptionsResponse
 	logger.Info("executing retrieval of activity options activity")
 	ctx = workflow.WithActivityOptions(wfctx, workflow.ActivityOptions{
 		StartToCloseTimeout: 1 * time.Minute,
@@ -61,7 +62,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 			MaximumAttempts: 2,
 		},
 	})
-	err = workflow.ExecuteActivity(ctx, wfActivites.RetrieveActivityOptions, &datasync_activities.RetrieveActivityOptionsRequest{
+	err = workflow.ExecuteActivity(ctx, syncactivityopts_activity.RetrieveActivityOptions, &syncactivityopts_activity.RetrieveActivityOptionsRequest{
 		JobId: req.JobId,
 	}, workflowMetadata).Get(ctx, &actOptResp)
 	if err != nil {

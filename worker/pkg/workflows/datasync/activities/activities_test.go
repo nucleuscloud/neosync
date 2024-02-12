@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"strconv"
 	"testing"
-	"time"
 
 	"connectrpc.com/connect"
 	"github.com/benthosdev/benthos/v4/public/bloblang"
@@ -24,8 +23,6 @@ import (
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.temporal.io/sdk/temporal"
-	"go.temporal.io/sdk/workflow"
 )
 
 func TestAreMappingsSubsetOfSchemas(t *testing.T) {
@@ -1281,40 +1278,5 @@ func Test_TransformerStringLint(t *testing.T) {
 
 		_, err = bloblang.Parse(val)
 		assert.NoError(t, err, fmt.Sprintf("transformer lint failed, check that the transformer string is being constructed correctly.Failed on this value: %s", transformer.Name))
-	}
-}
-
-func Test_getSyncActivityOptionsFromJob(t *testing.T) {
-	defaultOpts := &workflow.ActivityOptions{StartToCloseTimeout: 10 * time.Minute, RetryPolicy: &temporal.RetryPolicy{MaximumAttempts: 1}}
-	type testcase struct {
-		name     string
-		input    *mgmtv1alpha1.Job
-		expected *workflow.ActivityOptions
-	}
-	tests := []testcase{
-		{name: "nil sync opts", input: &mgmtv1alpha1.Job{}, expected: defaultOpts},
-		{name: "custom start to close timeout", input: &mgmtv1alpha1.Job{
-			SyncOptions: &mgmtv1alpha1.ActivityOptions{
-				StartToCloseTimeout: ptr(int64(2)),
-			},
-		}, expected: &workflow.ActivityOptions{StartToCloseTimeout: 2, RetryPolicy: defaultOpts.RetryPolicy}},
-		{name: "custom schedule to close timeout", input: &mgmtv1alpha1.Job{
-			SyncOptions: &mgmtv1alpha1.ActivityOptions{
-				ScheduleToCloseTimeout: ptr(int64(2)),
-			},
-		}, expected: &workflow.ActivityOptions{ScheduleToCloseTimeout: 2, RetryPolicy: defaultOpts.RetryPolicy}},
-		{name: "custom retry policy", input: &mgmtv1alpha1.Job{
-			SyncOptions: &mgmtv1alpha1.ActivityOptions{
-				RetryPolicy: &mgmtv1alpha1.RetryPolicy{
-					MaximumAttempts: ptr(int32(2)),
-				},
-			},
-		}, expected: &workflow.ActivityOptions{StartToCloseTimeout: defaultOpts.StartToCloseTimeout, RetryPolicy: &temporal.RetryPolicy{MaximumAttempts: 2}}},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			output := getSyncActivityOptionsFromJob(test.input)
-			assert.Equal(t, test.expected, output)
-		})
 	}
 }

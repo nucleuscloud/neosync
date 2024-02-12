@@ -11,6 +11,7 @@ import (
 	datasync_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
+	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"go.temporal.io/sdk/temporal"
@@ -76,8 +77,8 @@ func Test_Workflow_Succeeds_SingleSync(t *testing.T) {
 				Config:    &neosync_benthos.BenthosConfig{},
 			},
 		}}, nil)
-	env.OnActivity(activities.RetrieveActivityOptions, mock.Anything, mock.Anything, mock.Anything).
-		Return(&datasync_activities.RetrieveActivityOptionsResponse{
+	env.OnActivity(syncactivityopts_activity.RetrieveActivityOptions, mock.Anything, mock.Anything, mock.Anything).
+		Return(&syncactivityopts_activity.RetrieveActivityOptionsResponse{
 			SyncActivityOptions: &workflow.ActivityOptions{
 				StartToCloseTimeout: time.Minute,
 			},
@@ -145,8 +146,8 @@ func Test_Workflow_Follows_Synchronous_DependentFlow(t *testing.T) {
 				Columns:     []string{"id"},
 			},
 		}}, nil)
-	env.OnActivity(activities.RetrieveActivityOptions, mock.Anything, mock.Anything, mock.Anything).
-		Return(&datasync_activities.RetrieveActivityOptionsResponse{
+	env.OnActivity(syncactivityopts_activity.RetrieveActivityOptions, mock.Anything, mock.Anything, mock.Anything).
+		Return(&syncactivityopts_activity.RetrieveActivityOptionsResponse{
 			SyncActivityOptions: &workflow.ActivityOptions{
 				StartToCloseTimeout: time.Minute,
 			},
@@ -247,8 +248,8 @@ func Test_Workflow_Follows_Multiple_Dependents(t *testing.T) {
 				},
 			},
 		}}, nil)
-	env.OnActivity(activities.RetrieveActivityOptions, mock.Anything, mock.Anything, mock.Anything).
-		Return(&datasync_activities.RetrieveActivityOptionsResponse{
+	env.OnActivity(syncactivityopts_activity.RetrieveActivityOptions, mock.Anything, mock.Anything, mock.Anything).
+		Return(&syncactivityopts_activity.RetrieveActivityOptionsResponse{
 			SyncActivityOptions: &workflow.ActivityOptions{
 				StartToCloseTimeout: time.Minute,
 			},
@@ -356,8 +357,8 @@ func Test_Workflow_Halts_Activities_OnError(t *testing.T) {
 		}}, nil)
 	env.OnActivity(activities.RunSqlInitTableStatements, mock.Anything, mock.Anything).
 		Return(&datasync_activities.RunSqlInitTableStatementsResponse{}, nil)
-	env.OnActivity(activities.RetrieveActivityOptions, mock.Anything, mock.Anything, mock.Anything).
-		Return(&datasync_activities.RetrieveActivityOptionsResponse{
+	env.OnActivity(syncactivityopts_activity.RetrieveActivityOptions, mock.Anything, mock.Anything, mock.Anything).
+		Return(&syncactivityopts_activity.RetrieveActivityOptionsResponse{
 			SyncActivityOptions: &workflow.ActivityOptions{
 				StartToCloseTimeout: time.Minute,
 			},
