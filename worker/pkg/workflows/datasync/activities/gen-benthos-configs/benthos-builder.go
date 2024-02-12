@@ -1425,9 +1425,9 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 	case "transform_string":
 		pl := col.Transformer.Config.GetTransformStringConfig().PreserveLength
 		return fmt.Sprintf(`transform_string(value:this.%s,preserve_length:%t,max_length:%d)`, col.Column, pl, maxLen), nil
-	case "null":
-		return "null", nil
-	case "generate_default":
+	case shared.NullString:
+		return shared.NullString, nil
+	case generateDefault:
 		return "default", nil
 	case "transform_character_scramble":
 		return fmt.Sprintf(`transform_character_scramble(value:this.%s)`, col.Column), nil
