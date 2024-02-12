@@ -2957,7 +2957,7 @@ var driver = "driver"
 func Test_ProcessorConfigEmpty(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 
-	tableMappings := []*TableMapping{
+	tableMappings := []*tableMapping{
 		{Schema: "public",
 			Table: "users",
 			Mappings: []*mgmtv1alpha1.JobMapping{
@@ -3003,7 +3003,7 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 
-	tableMappings := []*TableMapping{
+	tableMappings := []*tableMapping{
 		{Schema: "public",
 			Table: "users",
 			Mappings: []*mgmtv1alpha1.JobMapping{
@@ -3055,7 +3055,7 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 
-	tableMappings := []*TableMapping{
+	tableMappings := []*tableMapping{
 		{Schema: "public",
 			Table: "users",
 			Mappings: []*mgmtv1alpha1.JobMapping{
@@ -3137,7 +3137,7 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 
-	tableMappings := []*TableMapping{
+	tableMappings := []*tableMapping{
 		{Schema: "public",
 			Table: "users",
 			Mappings: []*mgmtv1alpha1.JobMapping{

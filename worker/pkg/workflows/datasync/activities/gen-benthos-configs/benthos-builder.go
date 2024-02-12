@@ -83,7 +83,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	responses := []*BenthosConfigResponse{}
 
 	groupedMappings := groupMappingsByTable(job.Mappings)
-	groupedTableMapping := map[string]*TableMapping{}
+	groupedTableMapping := map[string]*tableMapping{}
 	for _, tm := range groupedMappings {
 		groupedTableMapping[neosync_benthos.BuildBenthosTable(tm.Schema, tm.Table)] = tm
 	}
@@ -492,7 +492,7 @@ type sqlOutput struct {
 	Columns     []string
 }
 
-func buildPostgresOutputQueryAndArgs(resp *BenthosConfigResponse, tm *TableMapping, tableKey string, colSourceMap map[string]string) *sqlOutput {
+func buildPostgresOutputQueryAndArgs(resp *BenthosConfigResponse, tm *tableMapping, tableKey string, colSourceMap map[string]string) *sqlOutput {
 	if len(resp.excludeColumns) > 0 {
 		filteredInsertMappings := []*mgmtv1alpha1.JobMapping{}
 		for _, m := range tm.Mappings {
@@ -537,7 +537,7 @@ func buildPostgresOutputQueryAndArgs(resp *BenthosConfigResponse, tm *TableMappi
 	}
 }
 
-func buildMysqlOutputQueryAndArgs(resp *BenthosConfigResponse, tm *TableMapping, tableKey string, colSourceMap map[string]string) *sqlOutput {
+func buildMysqlOutputQueryAndArgs(resp *BenthosConfigResponse, tm *tableMapping, tableKey string, colSourceMap map[string]string) *sqlOutput {
 	if len(resp.excludeColumns) > 0 {
 		filteredInsertMappings := []*mgmtv1alpha1.JobMapping{}
 		for _, m := range tm.Mappings {
@@ -589,7 +589,7 @@ type generateSourceTableOptions struct {
 func buildBenthosGenerateSourceConfigResponses(
 	ctx context.Context,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
-	mappings []*TableMapping,
+	mappings []*tableMapping,
 	sourceTableOpts map[string]*generateSourceTableOptions,
 	columnInfo map[string]*dbschemas_utils.ColumnInfo,
 ) ([]*BenthosConfigResponse, error) {
@@ -789,7 +789,7 @@ func filterColsBySource(columns []string, colSourceMap map[string]string) []stri
 }
 
 // filters out tables where all cols are set to null
-func filterNullTables(mappings []*TableMapping) []string {
+func filterNullTables(mappings []*tableMapping) []string {
 	tables := []string{}
 	for _, group := range mappings {
 		if !shared.AreAllColsNull(group.Mappings) {
@@ -806,7 +806,7 @@ func createSqlUpdateBenthosConfig(
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	insertConfig *BenthosConfigResponse,
 	dsn, tableKey string,
-	tm *TableMapping,
+	tm *tableMapping,
 	colSourceMap map[string]string,
 	groupedColInfo map[string]map[string]*dbschemas_utils.ColumnInfo,
 ) (*BenthosConfigResponse, error) {
@@ -814,7 +814,7 @@ func createSqlUpdateBenthosConfig(
 	sourceResponses, err := buildBenthosSqlSourceConfigResponses(
 		ctx,
 		transformerclient,
-		[]*TableMapping{tm},
+		[]*tableMapping{tm},
 		"", // does not matter what is here. gets overwritten with insert config
 		driver,
 		map[string]*sqlSourceTableOptions{},
@@ -867,7 +867,7 @@ type sqlSourceTableOptions struct {
 func buildBenthosSqlSourceConfigResponses(
 	ctx context.Context,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
-	mappings []*TableMapping,
+	mappings []*tableMapping,
 	dsnConnectionId string,
 	driver string,
 	sourceTableOpts map[string]*sqlSourceTableOptions,
@@ -1128,7 +1128,7 @@ func groupMysqlSourceOptionsByTable(
 
 func groupMappingsByTable(
 	mappings []*mgmtv1alpha1.JobMapping,
-) []*TableMapping {
+) []*tableMapping {
 	groupedMappings := map[string][]*mgmtv1alpha1.JobMapping{}
 
 	for _, mapping := range mappings {
@@ -1136,10 +1136,10 @@ func groupMappingsByTable(
 		groupedMappings[key] = append(groupedMappings[key], mapping)
 	}
 
-	output := make([]*TableMapping, 0, len(groupedMappings))
+	output := make([]*tableMapping, 0, len(groupedMappings))
 	for key, mappings := range groupedMappings {
 		schema, table := splitTableKey(key)
-		output = append(output, &TableMapping{
+		output = append(output, &tableMapping{
 			Schema:   schema,
 			Table:    table,
 			Mappings: mappings,
@@ -1148,7 +1148,7 @@ func groupMappingsByTable(
 	return output
 }
 
-type TableMapping struct {
+type tableMapping struct {
 	Schema   string
 	Table    string
 	Mappings []*mgmtv1alpha1.JobMapping
