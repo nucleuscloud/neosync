@@ -3417,14 +3417,12 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 	assert.Empty(t, output)
 }
 
-const code = `var payload = value+=" hello";return payload;`
+const defaultJavascriptCodeFnStr = `var payload = value+=" hello";return payload;`
 
 func Test_buildProcessorConfigsJavascript(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 
 	ctx := context.Background()
-
-	col := "address"
 
 	jsT := mgmtv1alpha1.SystemTransformer{
 		Name:        "stage",
@@ -3434,14 +3432,14 @@ func Test_buildProcessorConfigsJavascript(t *testing.T) {
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
-					Code: code,
+					Code: defaultJavascriptCodeFnStr,
 				},
 			},
 		},
 	}
 
 	res, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: col, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{})
+		{Schema: "public", Table: "users", Column: "address", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, `
@@ -3460,7 +3458,7 @@ benthos.v0_msg_set_structured(output);
 	)
 }
 
-const col = "name"
+const nameCol = "name"
 
 func Test_buildProcessorConfigsJavascriptMultiLineScript(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
@@ -3487,7 +3485,7 @@ func Test_buildProcessorConfigsJavascriptMultiLineScript(t *testing.T) {
 	}
 
 	res, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: col, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{})
+		{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, `
@@ -3523,7 +3521,7 @@ func Test_buildProcessorConfigsJavascriptMultiple(t *testing.T) {
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
-					Code: code,
+					Code: defaultJavascriptCodeFnStr,
 				},
 			},
 		},
@@ -3544,7 +3542,7 @@ func Test_buildProcessorConfigsJavascriptMultiple(t *testing.T) {
 	}
 
 	res, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: col, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}},
+		{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}},
 		{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}}, map[string]*dbschemas_utils.ColumnInfo{})
 
 	assert.NoError(t, err)
@@ -3599,9 +3597,7 @@ func Test_ShouldProcessColumnFalse(t *testing.T) {
 }
 
 func Test_ConstructJsFunction(t *testing.T) {
-	col := "col"
-
-	res := constructJsFunction(code, col)
+	res := constructJsFunction(defaultJavascriptCodeFnStr, "col")
 	assert.Equal(t, `
 function fn_col(value, input){
   var payload = value+=" hello";return payload;
@@ -3613,8 +3609,8 @@ func Test_ConstructBenthosJsProcessor(t *testing.T) {
 	jsFunctions := []string{}
 	benthosOutputs := []string{}
 
-	benthosOutput := constructBenthosOutput(col)
-	jsFunction := constructJsFunction(code, col)
+	benthosOutput := constructBenthosOutput(nameCol)
+	jsFunction := constructJsFunction(defaultJavascriptCodeFnStr, nameCol)
 	benthosOutputs = append(benthosOutputs, benthosOutput)
 
 	jsFunctions = append(jsFunctions, jsFunction)
@@ -3636,10 +3632,7 @@ benthos.v0_msg_set_structured(output);
 }
 
 func Test_ConstructBenthosOutput(t *testing.T) {
-	col := "col"
-
-	res := constructBenthosOutput(col)
-
+	res := constructBenthosOutput("col")
 	assert.Equal(t, `output["col"] = fn_col(input["col"], input);`, res)
 }
 
@@ -3841,13 +3834,10 @@ func Test_computeMutationFunction_null(t *testing.T) {
 	assert.Equal(t, val, "null")
 }
 
-func Test_TransformerStringLint(t *testing.T) {
-	col := "email"
-
+func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 	transformers := []*mgmtv1alpha1.SystemTransformer{
 		{
-
-			Name: "generate_email",
+			Source: "generate_email",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateEmailConfig{
 					GenerateEmailConfig: &mgmtv1alpha1.GenerateEmail{},
@@ -3855,7 +3845,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "transform_email",
+			Source: "transform_email",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
 					TransformEmailConfig: &mgmtv1alpha1.TransformEmail{
@@ -3867,7 +3857,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_bool",
+			Source: "generate_bool",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateBoolConfig{
 					GenerateBoolConfig: &mgmtv1alpha1.GenerateBool{},
@@ -3875,7 +3865,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_card_number",
+			Source: "generate_card_number",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateCardNumberConfig{
 					GenerateCardNumberConfig: &mgmtv1alpha1.GenerateCardNumber{
@@ -3885,7 +3875,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_city",
+			Source: "generate_city",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateCityConfig{
 					GenerateCityConfig: &mgmtv1alpha1.GenerateCity{},
@@ -3893,7 +3883,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_e164_phone_number",
+			Source: "generate_e164_phone_number",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateE164PhoneNumberConfig{
 					GenerateE164PhoneNumberConfig: &mgmtv1alpha1.GenerateE164PhoneNumber{
@@ -3904,7 +3894,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_first_name",
+			Source: "generate_first_name",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig{
 					GenerateFirstNameConfig: &mgmtv1alpha1.GenerateFirstName{},
@@ -3912,7 +3902,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_float64",
+			Source: "generate_float64",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateFloat64Config{
 					GenerateFloat64Config: &mgmtv1alpha1.GenerateFloat64{
@@ -3925,7 +3915,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_full_address",
+			Source: "generate_full_address",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateFullAddressConfig{
 					GenerateFullAddressConfig: &mgmtv1alpha1.GenerateFullAddress{},
@@ -3933,7 +3923,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_full_name",
+			Source: "generate_full_name",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
 					GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
@@ -3941,7 +3931,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_gender",
+			Source: "generate_gender",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateGenderConfig{
 					GenerateGenderConfig: &mgmtv1alpha1.GenerateGender{
@@ -3951,7 +3941,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_int64_phone_number",
+			Source: "generate_int64_phone_number",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64PhoneNumberConfig{
 					GenerateInt64PhoneNumberConfig: &mgmtv1alpha1.GenerateInt64PhoneNumber{},
@@ -3959,7 +3949,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_int64",
+			Source: "generate_int64",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{
 					GenerateInt64Config: &mgmtv1alpha1.GenerateInt64{
@@ -3971,7 +3961,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_last_name",
+			Source: "generate_last_name",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateLastNameConfig{
 					GenerateLastNameConfig: &mgmtv1alpha1.GenerateLastName{},
@@ -3979,7 +3969,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_sha256hash",
+			Source: "generate_sha256hash",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateSha256HashConfig{
 					GenerateSha256HashConfig: &mgmtv1alpha1.GenerateSha256Hash{},
@@ -3987,7 +3977,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_ssn",
+			Source: "generate_ssn",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateSsnConfig{
 					GenerateSsnConfig: &mgmtv1alpha1.GenerateSSN{},
@@ -3995,7 +3985,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_state",
+			Source: "generate_state",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStateConfig{
 					GenerateStateConfig: &mgmtv1alpha1.GenerateState{},
@@ -4003,7 +3993,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_street_address",
+			Source: "generate_street_address",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStreetAddressConfig{
 					GenerateStreetAddressConfig: &mgmtv1alpha1.GenerateStreetAddress{},
@@ -4011,7 +4001,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_string_phone_number",
+			Source: "generate_string_phone_number",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneNumberConfig{
 					GenerateStringPhoneNumberConfig: &mgmtv1alpha1.GenerateStringPhoneNumber{
@@ -4022,7 +4012,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_string",
+			Source: "generate_string",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
 					GenerateStringConfig: &mgmtv1alpha1.GenerateString{
@@ -4033,7 +4023,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_unixtimestamp",
+			Source: "generate_unixtimestamp",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateUnixtimestampConfig{
 					GenerateUnixtimestampConfig: &mgmtv1alpha1.GenerateUnixTimestamp{},
@@ -4041,7 +4031,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_username",
+			Source: "generate_username",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateUsernameConfig{
 					GenerateUsernameConfig: &mgmtv1alpha1.GenerateUsername{},
@@ -4049,7 +4039,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_utctimestamp",
+			Source: "generate_utctimestamp",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateUtctimestampConfig{
 					GenerateUtctimestampConfig: &mgmtv1alpha1.GenerateUtcTimestamp{},
@@ -4057,7 +4047,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_uuid",
+			Source: "generate_uuid",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
 					GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
@@ -4067,7 +4057,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_zipcode",
+			Source: "generate_zipcode",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateZipcodeConfig{
 					GenerateZipcodeConfig: &mgmtv1alpha1.GenerateZipcode{},
@@ -4075,7 +4065,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "transform_e164_phone_number",
+			Source: "transform_e164_phone_number",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformE164PhoneNumberConfig{
 					TransformE164PhoneNumberConfig: &mgmtv1alpha1.TransformE164PhoneNumber{
@@ -4085,7 +4075,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "transform_first_name",
+			Source: "transform_first_name",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{
 					TransformFirstNameConfig: &mgmtv1alpha1.TransformFirstName{
@@ -4095,7 +4085,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "transform_float64",
+			Source: "transform_float64",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformFloat64Config{
 					TransformFloat64Config: &mgmtv1alpha1.TransformFloat64{
@@ -4106,7 +4096,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "transform_full_name",
+			Source: "transform_full_name",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformFullNameConfig{
 					TransformFullNameConfig: &mgmtv1alpha1.TransformFullName{
@@ -4116,7 +4106,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "transform_int64_phone_number",
+			Source: "transform_int64_phone_number",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformInt64PhoneNumberConfig{
 					TransformInt64PhoneNumberConfig: &mgmtv1alpha1.TransformInt64PhoneNumber{
@@ -4126,7 +4116,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "transform_int64",
+			Source: "transform_int64",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformInt64Config{
 					TransformInt64Config: &mgmtv1alpha1.TransformInt64{
@@ -4137,7 +4127,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "transform_last_name",
+			Source: "transform_last_name",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformLastNameConfig{
 					TransformLastNameConfig: &mgmtv1alpha1.TransformLastName{
@@ -4147,7 +4137,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "transform_phone_number",
+			Source: "transform_phone_number",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformPhoneNumberConfig{
 					TransformPhoneNumberConfig: &mgmtv1alpha1.TransformPhoneNumber{
@@ -4157,7 +4147,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "transform_string",
+			Source: "transform_string",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{
 					TransformStringConfig: &mgmtv1alpha1.TransformString{
@@ -4167,7 +4157,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "generate_categorical",
+			Source: "generate_categorical",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateCategoricalConfig{
 					GenerateCategoricalConfig: &mgmtv1alpha1.GenerateCategorical{
@@ -4177,7 +4167,7 @@ func Test_TransformerStringLint(t *testing.T) {
 			},
 		},
 		{
-			Name: "transform_character_scramble",
+			Source: "transform_character_scramble",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformCharacterScrambleConfig{
 					TransformCharacterScrambleConfig: &mgmtv1alpha1.TransformCharacterScramble{},
@@ -4186,14 +4176,12 @@ func Test_TransformerStringLint(t *testing.T) {
 		},
 	}
 
-	var email int32 = int32(40)
-
 	emailColInfo := &dbschemas_utils.ColumnInfo{
 		OrdinalPosition:        2,
 		ColumnDefault:          "",
 		IsNullable:             "true",
 		DataType:               "timestamptz",
-		CharacterMaximumLength: &email,
+		CharacterMaximumLength: shared.Ptr(int32(40)),
 		NumericPrecision:       nil,
 		NumericScale:           nil,
 	}
@@ -4201,16 +4189,15 @@ func Test_TransformerStringLint(t *testing.T) {
 	for _, transformer := range transformers {
 		val, err := computeMutationFunction(
 			&mgmtv1alpha1.JobMapping{
-				Column: col,
+				Column: "email",
 				Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: transformer.Name,
+					Source: transformer.Source,
 					Config: transformer.Config,
 				},
 			}, emailColInfo)
 
 		assert.NoError(t, err)
-
 		_, err = bloblang.Parse(val)
-		assert.NoError(t, err, fmt.Sprintf("transformer lint failed, check that the transformer string is being constructed correctly.Failed on this value: %s", transformer.Name))
+		assert.NoError(t, err, fmt.Sprintf("transformer lint failed, check that the transformer string is being constructed correctly. Failing source: %s", transformer.Source))
 	}
 }
