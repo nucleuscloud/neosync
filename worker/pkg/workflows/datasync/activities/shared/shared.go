@@ -3,8 +3,15 @@ package shared
 import (
 	"net/http"
 
+	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	http_client "github.com/nucleuscloud/neosync/worker/internal/http/client"
 	"github.com/spf13/viper"
+)
+
+const (
+	// The benthos value for null
+	NullString = "null"
 )
 
 // General workflow metadata struct that is intended to be common across activities
@@ -38,4 +45,53 @@ func GetNeosyncHttpClient() *http.Client {
 // Generic util method that turns any value into its pointer
 func Ptr[T any](val T) *T {
 	return &val
+}
+
+// Parses the job mappings and returns the unique set of schemas found
+func GetUniqueSchemasFromMappings(mappings []*mgmtv1alpha1.JobMapping) []string {
+	schemas := map[string]struct{}{}
+	for _, mapping := range mappings {
+		schemas[mapping.Schema] = struct{}{}
+	}
+
+	output := make([]string, 0, len(schemas))
+
+	for schema := range schemas {
+		output = append(output, schema)
+	}
+	return output
+}
+
+// Parses the job mappings and returns the unique set of tables.
+// Does not include a table if all of the columns are set to null
+func GetUniqueTablesFromMappings(mappings []*mgmtv1alpha1.JobMapping) map[string]struct{} {
+	groupedMappings := map[string][]*mgmtv1alpha1.JobMapping{}
+	for _, mapping := range mappings {
+		tableName := dbschemas_utils.BuildTable(mapping.Schema, mapping.Table)
+		_, ok := groupedMappings[tableName]
+		if ok {
+			groupedMappings[tableName] = append(groupedMappings[tableName], mapping)
+		} else {
+			groupedMappings[tableName] = []*mgmtv1alpha1.JobMapping{mapping}
+		}
+	}
+
+	filteredTables := map[string]struct{}{}
+
+	for table, mappings := range groupedMappings {
+		if !AreAllColsNull(mappings) {
+			filteredTables[table] = struct{}{}
+		}
+	}
+	return filteredTables
+}
+
+// Checks each transformer source in the set of mappings and returns true if they are all source=null
+func AreAllColsNull(mappings []*mgmtv1alpha1.JobMapping) bool {
+	for _, col := range mappings {
+		if col.Transformer.Source != NullString {
+			return false
+		}
+	}
+	return true
 }

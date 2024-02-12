@@ -148,7 +148,7 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 	for i := range mappings {
 		tableMapping := mappings[i]
 		cols := buildPlainColumns(tableMapping.Mappings)
-		if areAllColsNull(tableMapping.Mappings) {
+		if shared.AreAllColsNull(tableMapping.Mappings) {
 			// skipping table as no columns are mapped
 			continue
 		}
@@ -323,15 +323,6 @@ func shouldHaltOnSchemaAddition(
 	return false
 }
 
-func areAllColsNull(mappings []*mgmtv1alpha1.JobMapping) bool {
-	for _, col := range mappings {
-		if col.Transformer.Source != nullString {
-			return false
-		}
-	}
-	return true
-}
-
 func buildPlainColumns(mappings []*mgmtv1alpha1.JobMapping) []string {
 	columns := make([]string, len(mappings))
 	for idx := range mappings {
@@ -431,20 +422,6 @@ type TableMapping struct {
 	Schema   string
 	Table    string
 	Mappings []*mgmtv1alpha1.JobMapping
-}
-
-func getUniqueSchemasFromMappings(mappings []*mgmtv1alpha1.JobMapping) []string {
-	schemas := map[string]struct{}{}
-	for _, mapping := range mappings {
-		schemas[mapping.Schema] = struct{}{}
-	}
-
-	output := make([]string, 0, len(schemas))
-
-	for schema := range schemas {
-		output = append(output, schema)
-	}
-	return output
 }
 
 func getPgDsn(
