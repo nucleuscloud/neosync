@@ -1,4 +1,4 @@
-package datasync_activities
+package runsqlinittablestmts_activity
 
 import (
 	"context"
@@ -419,6 +419,31 @@ func getUniqueTablesFromMappings(mappings []*mgmtv1alpha1.JobMapping) map[string
 		}
 	}
 	return filteredTables
+}
+
+const nullString = "null"
+
+func areAllColsNull(mappings []*mgmtv1alpha1.JobMapping) bool {
+	for _, col := range mappings {
+		if col.Transformer.Source != nullString {
+			return false
+		}
+	}
+	return true
+}
+
+func getUniqueSchemasFromMappings(mappings []*mgmtv1alpha1.JobMapping) []string {
+	schemas := map[string]struct{}{}
+	for _, mapping := range mappings {
+		schemas[mapping.Schema] = struct{}{}
+	}
+
+	output := make([]string, 0, len(schemas))
+
+	for schema := range schemas {
+		output = append(output, schema)
+	}
+	return output
 }
 
 func getDependencyMap(td map[string]*dbschemas_utils.TableConstraints, uniqueTables map[string]struct{}) map[string][]string {

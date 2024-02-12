@@ -116,7 +116,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		}
 
 		if _, ok := b.pgpool[sourceConnection.Id]; !ok {
-			pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(pgconfig, ptr(uint32(5)), slogger)
+			pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(pgconfig, shared.Ptr(uint32(5)), slogger)
 			if err != nil {
 				return nil, err
 			}
@@ -216,7 +216,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		}
 
 		if _, ok := b.mysqlpool[sourceConnection.Id]; !ok {
-			conn, err := b.sqlconnector.NewDbFromConnectionConfig(sourceConnection.ConnectionConfig, ptr(uint32(5)), slogger)
+			conn, err := b.sqlconnector.NewDbFromConnectionConfig(sourceConnection.ConnectionConfig, shared.Ptr(uint32(5)), slogger)
 			if err != nil {
 				return nil, err
 			}
