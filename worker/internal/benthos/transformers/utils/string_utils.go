@@ -28,7 +28,7 @@ func SliceString(s string, l int) string {
 }
 
 // Generate a random alphanumeric string of length l
-func GenerateRandomStringWithDefinedLength(length int64) (string, error) {
+func GenerateRandomStringWithDefinedLength(length int64, randomizer *rand.Rand) (string, error) {
 	if length < 1 {
 		return "", fmt.Errorf("the length of the string can't be less than 1")
 	}
@@ -38,7 +38,7 @@ func GenerateRandomStringWithDefinedLength(length int64) (string, error) {
 	for i := int64(0); i < length; i++ {
 		// Generate a random index in the range [0, len(alphabet))
 		//nolint:all
-		index := rand.Intn(len(alphanumeric))
+		index := randomizer.Intn(len(alphanumeric))
 
 		// Get the character at the generated index and append it to the result
 		result[i] = alphanumeric[index]
@@ -48,7 +48,7 @@ func GenerateRandomStringWithDefinedLength(length int64) (string, error) {
 }
 
 // Generate a random alphanumeric string within the interval [min, max]
-func GenerateRandomStringWithInclusiveBounds(min, max int64) (string, error) {
+func GenerateRandomStringWithInclusiveBounds(min, max int64, randomizer *rand.Rand) (string, error) {
 	if min < 0 || max < 0 || min > max {
 		return "", fmt.Errorf("the min and max can't be less than 0 and the min can't be greater than the max")
 	}
@@ -58,7 +58,7 @@ func GenerateRandomStringWithInclusiveBounds(min, max int64) (string, error) {
 	if min == max {
 		length = min
 	} else {
-		randlength, err := GenerateRandomInt64InValueRange(min, max)
+		randlength, err := GenerateRandomInt64InValueRange(min, max, randomizer)
 		if err != nil {
 			return "", fmt.Errorf("unable to generate a random length for the string")
 		}
