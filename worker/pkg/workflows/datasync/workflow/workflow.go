@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	datasync_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities"
+	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
@@ -41,10 +41,9 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		RunId:      wfinfo.WorkflowExecution.RunID,
 	}
 
-	var wfActivites *datasync_activities.Activities
-	var bcResp *datasync_activities.GenerateBenthosConfigsResponse
+	var bcResp *genbenthosconfigs_activity.GenerateBenthosConfigsResponse
 	logger.Info("executing generate benthos configs activity")
-	err := workflow.ExecuteActivity(ctx, wfActivites.GenerateBenthosConfigs, &datasync_activities.GenerateBenthosConfigsRequest{
+	err := workflow.ExecuteActivity(ctx, genbenthosconfigs_activity.GenerateBenthosConfigs, &genbenthosconfigs_activity.GenerateBenthosConfigsRequest{
 		JobId: req.JobId,
 	}, workflowMetadata).Get(ctx, &bcResp)
 	if err != nil {
@@ -145,14 +144,14 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	return &WorkflowResponse{}, nil
 }
 
-func getSyncMetadata(config *datasync_activities.BenthosConfigResponse) *sync_activity.SyncMetadata {
+func getSyncMetadata(config *genbenthosconfigs_activity.BenthosConfigResponse) *sync_activity.SyncMetadata {
 	names := strings.Split(config.Name, ".")
 	schema, table := names[0], names[1]
 	return &sync_activity.SyncMetadata{Schema: schema, Table: table}
 }
 
 func invokeSync(
-	config *datasync_activities.BenthosConfigResponse,
+	config *genbenthosconfigs_activity.BenthosConfigResponse,
 	ctx workflow.Context,
 	started map[string]struct{},
 	completed map[string][]string,
@@ -187,7 +186,7 @@ func invokeSync(
 	return future
 }
 
-func isConfigReady(config *datasync_activities.BenthosConfigResponse, completed map[string][]string) bool {
+func isConfigReady(config *genbenthosconfigs_activity.BenthosConfigResponse, completed map[string][]string) bool {
 	if config == nil {
 		return false
 	}
@@ -211,14 +210,14 @@ func isConfigReady(config *datasync_activities.BenthosConfigResponse, completed 
 }
 
 type SplitConfigs struct {
-	Root       []*datasync_activities.BenthosConfigResponse
-	Dependents []*datasync_activities.BenthosConfigResponse
+	Root       []*genbenthosconfigs_activity.BenthosConfigResponse
+	Dependents []*genbenthosconfigs_activity.BenthosConfigResponse
 }
 
-func splitBenthosConfigs(configs []*datasync_activities.BenthosConfigResponse) *SplitConfigs {
+func splitBenthosConfigs(configs []*genbenthosconfigs_activity.BenthosConfigResponse) *SplitConfigs {
 	out := &SplitConfigs{
-		Root:       []*datasync_activities.BenthosConfigResponse{},
-		Dependents: []*datasync_activities.BenthosConfigResponse{},
+		Root:       []*genbenthosconfigs_activity.BenthosConfigResponse{},
+		Dependents: []*genbenthosconfigs_activity.BenthosConfigResponse{},
 	}
 	for _, cfg := range configs {
 		if len(cfg.DependsOn) == 0 {
