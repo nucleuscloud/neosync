@@ -20,14 +20,13 @@ type Address struct {
 }
 
 func init() {
-	spec := bloblang.NewPluginSpec().Param(bloblang.NewInt64Param("max_length"))
+	spec := bloblang.NewPluginSpec().Param(bloblang.NewInt64Param("max_length")).Param(bloblang.NewFloat64Param("foo").Optional())
 
 	err := bloblang.RegisterFunctionV2("generate_street_address", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		maxLength, err := args.GetInt64("max_length")
 		if err != nil {
 			return nil, err
 		}
-
 		return func() (any, error) {
 			res, err := GenerateRandomStreetAddress(maxLength)
 			if err != nil {
