@@ -686,7 +686,7 @@ func (b *benthosBuilder) buildProcessorConfigs(ctx context.Context, cols []*mgmt
 		return nil, err
 	}
 
-	cacheBranch := b.buildBranchCacheConfigs(ctx, cols, tableConstraints)
+	cacheBranches := b.buildBranchCacheConfigs(ctx, cols, tableConstraints)
 	mapping := b.buildMappingConfigs(ctx, cols, tableConstraints)
 
 	var processorConfigs []*neosync_benthos.ProcessorConfig
@@ -699,8 +699,10 @@ func (b *benthosBuilder) buildProcessorConfigs(ctx context.Context, cols []*mgmt
 	if jsCode != "" {
 		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Javascript: &neosync_benthos.JavascriptConfig{Code: jsCode}})
 	}
-	if cacheBranch != nil {
-		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Branch: cacheBranch})
+	if len(cacheBranches) > 0 {
+		for _, config := range cacheBranches {
+			processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Branch: config})
+		}
 	}
 
 	return processorConfigs, err
@@ -773,34 +775,28 @@ func (b *benthosBuilder) buildMutationConfigs(ctx context.Context, cols []*mgmtv
 	return strings.Join(mutations, "\n"), nil
 }
 
-func (b *benthosBuilder) buildBranchCacheConfigs(ctx context.Context, cols []*mgmtv1alpha1.JobMapping, tableConstraints map[string]*dbschemas_utils.ForeignKey) *neosync_benthos.BranchConfig {
-	branchConfig := &neosync_benthos.BranchConfig{}
-	processors := []neosync_benthos.ProcessorConfig{}
-	resultmap := []string{}
-
+func (b *benthosBuilder) buildBranchCacheConfigs(ctx context.Context, cols []*mgmtv1alpha1.JobMapping, tableConstraints map[string]*dbschemas_utils.ForeignKey) []*neosync_benthos.BranchConfig {
+	branchConfigs := []*neosync_benthos.BranchConfig{}
 	for _, col := range cols {
 		fk, ok := tableConstraints[col.Column]
 		if ok {
-			processors = append(processors, neosync_benthos.ProcessorConfig{
-				Redis: &neosync_benthos.RedisProcessorConfig{
-					Url:     "tcp://default:VfZevfp7wK@redis-master.redis.svc.cluster.local:6379",
-					Command: "hget",
-					// ArgsMapping: fmt.Sprintf(`root = [["%s", "%s", json("%s")].join("."), "%s"]`, fk.Table, fk.Column, col.Column, fk.Column),
-					ArgsMapping: fmt.Sprintf(`root = ["%s.%s.%s.%s", json("%s")]`, b.jobId, b.runId, fk.Table, fk.Column, col.Column),
+			resultmap := fmt.Sprintf("root.%s = this", col.Column)
+			branchConfigs = append(branchConfigs, &neosync_benthos.BranchConfig{
+				Processors: []neosync_benthos.ProcessorConfig{
+					{
+						Redis: &neosync_benthos.RedisProcessorConfig{
+							Url:         "tcp://default:zS9DdBnPsb@redis-master.redis.svc.cluster.local:6379",
+							Command:     "hget",
+							ArgsMapping: fmt.Sprintf(`root = ["%s.%s.%s.%s", json("%s")]`, b.jobId, b.runId, fk.Table, fk.Column, col.Column),
+						},
+					},
 				},
+				ResultMap: &resultmap,
 			})
-			resultmap = append(resultmap, fmt.Sprintf("root.%s = this", col.Column))
 		}
 
 	}
-	if len(processors) == 0 {
-		return nil
-	}
-
-	rs := strings.Join(resultmap, " \n ")
-	branchConfig.ResultMap = &rs
-	branchConfig.Processors = processors
-	return branchConfig
+	return branchConfigs
 }
 
 func shouldProcessColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {

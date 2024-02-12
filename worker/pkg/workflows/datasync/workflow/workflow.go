@@ -1,6 +1,7 @@
 package datasync_workflow
 
 import (
+	"encoding/json"
 	"fmt"
 	"slices"
 	"strings"
@@ -162,6 +163,8 @@ func invokeSync(
 	logger.Info("triggering config sync", "name", config.Name, "metadata", metadata)
 	started[config.Name] = struct{}{}
 	workflow.GoNamed(ctx, config.Name, func(ctx workflow.Context) {
+		jsonF, _ := json.MarshalIndent(config, "", " ")
+		fmt.Printf("\n\n  %s \n\n", string(jsonF))
 		configbits, err := yaml.Marshal(config.Config)
 		if err != nil {
 			logger.Error("unable to marshal benthos config", "err", err)

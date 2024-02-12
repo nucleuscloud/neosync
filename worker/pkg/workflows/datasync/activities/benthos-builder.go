@@ -351,7 +351,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					// originalValue := fmt.Sprintf(`${!meta("neosync_%s")}`, col)
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						RedisHashTest: &neosync_benthos.RedisHashTestConfig{
-							Url:            "tcp://default:VfZevfp7wK@redis-master.redis.svc.cluster.local:6379",
+							Url:            "tcp://default:zS9DdBnPsb@redis-master.redis.svc.cluster.local:6379",
 							Key:            fmt.Sprintf(`%s.%s.%s.%s`, b.jobId, b.runId, tableKey, col),
 							FieldsMapping:  fmt.Sprintf(`root = {meta("neosync_%s"): json("%s")}`, col, col), // map of original value to transformed value
 							WalkMetadata:   false,
