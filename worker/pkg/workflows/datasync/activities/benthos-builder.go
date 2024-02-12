@@ -86,7 +86,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	for _, tm := range groupedMappings {
 		groupedTableMapping[neosync_benthos.BuildBenthosTable(tm.Schema, tm.Table)] = tm
 	}
-	uniqueSchemas := getUniqueSchemasFromMappings(job.Mappings)
+	uniqueSchemas := shared.GetUniqueSchemasFromMappings(job.Mappings)
 
 	var groupedColInfoMap map[string]map[string]*dbschemas_utils.ColumnInfo
 
@@ -116,7 +116,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		}
 
 		if _, ok := b.pgpool[sourceConnection.Id]; !ok {
-			pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(pgconfig, ptr(uint32(5)), slogger)
+			pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(pgconfig, shared.Ptr(uint32(5)), slogger)
 			if err != nil {
 				return nil, err
 			}
@@ -216,7 +216,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		}
 
 		if _, ok := b.mysqlpool[sourceConnection.Id]; !ok {
-			conn, err := b.sqlconnector.NewDbFromConnectionConfig(sourceConnection.ConnectionConfig, ptr(uint32(5)), slogger)
+			conn, err := b.sqlconnector.NewDbFromConnectionConfig(sourceConnection.ConnectionConfig, shared.Ptr(uint32(5)), slogger)
 			if err != nil {
 				return nil, err
 			}
@@ -594,7 +594,7 @@ func (b *benthosBuilder) buildBenthosGenerateSourceConfigResponses(
 	responses := []*BenthosConfigResponse{}
 
 	for _, tableMapping := range mappings {
-		if areAllColsNull(tableMapping.Mappings) {
+		if shared.AreAllColsNull(tableMapping.Mappings) {
 			// skiping table as no columns are mapped
 			continue
 		}
@@ -790,7 +790,7 @@ func (b *benthosBuilder) filterColsBySource(columns []string, colSourceMap map[s
 func (b *benthosBuilder) filterNullTables(mappings []*TableMapping) []string {
 	tables := []string{}
 	for _, group := range mappings {
-		if !areAllColsNull(group.Mappings) {
+		if !shared.AreAllColsNull(group.Mappings) {
 			tables = append(tables, dbschemas_utils.BuildTable(group.Schema, group.Table))
 		}
 	}

@@ -9,6 +9,7 @@ import (
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	datasync_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities"
+	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
 	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
@@ -83,8 +84,8 @@ func Test_Workflow_Succeeds_SingleSync(t *testing.T) {
 				StartToCloseTimeout: time.Minute,
 			},
 		}, nil)
-	env.OnActivity(activities.RunSqlInitTableStatements, mock.Anything, mock.Anything).
-		Return(&datasync_activities.RunSqlInitTableStatementsResponse{}, nil)
+	env.OnActivity(runsqlinittablestmts_activity.RunSqlInitTableStatements, mock.Anything, mock.Anything).
+		Return(&runsqlinittablestmts_activity.RunSqlInitTableStatementsResponse{}, nil)
 	env.OnActivity(sync_activity.Sync, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&sync_activity.SyncResponse{}, nil)
 
 	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
@@ -152,8 +153,8 @@ func Test_Workflow_Follows_Synchronous_DependentFlow(t *testing.T) {
 				StartToCloseTimeout: time.Minute,
 			},
 		}, nil)
-	env.OnActivity(activities.RunSqlInitTableStatements, mock.Anything, mock.Anything).
-		Return(&datasync_activities.RunSqlInitTableStatementsResponse{}, nil)
+	env.OnActivity(runsqlinittablestmts_activity.RunSqlInitTableStatements, mock.Anything, mock.Anything).
+		Return(&runsqlinittablestmts_activity.RunSqlInitTableStatementsResponse{}, nil)
 	count := 0
 	env.
 		OnActivity(sync_activity.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "users"}, mock.Anything).
@@ -254,8 +255,8 @@ func Test_Workflow_Follows_Multiple_Dependents(t *testing.T) {
 				StartToCloseTimeout: time.Minute,
 			},
 		}, nil)
-	env.OnActivity(activities.RunSqlInitTableStatements, mock.Anything, mock.Anything).
-		Return(&datasync_activities.RunSqlInitTableStatementsResponse{}, nil)
+	env.OnActivity(runsqlinittablestmts_activity.RunSqlInitTableStatements, mock.Anything, mock.Anything).
+		Return(&runsqlinittablestmts_activity.RunSqlInitTableStatementsResponse{}, nil)
 	counter := atomic.NewInt32(0)
 	env.
 		OnActivity(sync_activity.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "users"}, mock.Anything).
@@ -355,8 +356,8 @@ func Test_Workflow_Halts_Activities_OnError(t *testing.T) {
 				},
 			},
 		}}, nil)
-	env.OnActivity(activities.RunSqlInitTableStatements, mock.Anything, mock.Anything).
-		Return(&datasync_activities.RunSqlInitTableStatementsResponse{}, nil)
+	env.OnActivity(runsqlinittablestmts_activity.RunSqlInitTableStatements, mock.Anything, mock.Anything).
+		Return(&runsqlinittablestmts_activity.RunSqlInitTableStatementsResponse{}, nil)
 	env.OnActivity(syncactivityopts_activity.RetrieveActivityOptions, mock.Anything, mock.Anything, mock.Anything).
 		Return(&syncactivityopts_activity.RetrieveActivityOptionsResponse{
 			SyncActivityOptions: &workflow.ActivityOptions{

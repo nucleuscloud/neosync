@@ -1,4 +1,4 @@
-package datasync_activities
+package runsqlinittablestmts_activity
 
 import (
 	"context"
@@ -16,6 +16,7 @@ import (
 	dbschemas_mysql "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/mysql"
 	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/postgres"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
 type initStatementBuilder struct {
@@ -67,8 +68,8 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 
 	var sourceConnectionId string
 	var dependencyMap map[string][]string
-	uniqueTables := getUniqueTablesFromMappings(job.Mappings)
-	uniqueSchemas := getUniqueSchemasFromMappings(job.Mappings)
+	uniqueTables := shared.GetUniqueTablesFromMappings(job.Mappings)
+	uniqueSchemas := shared.GetUniqueSchemasFromMappings(job.Mappings)
 
 	switch jobSourceConfig := job.Source.Options.Config.(type) {
 	case *mgmtv1alpha1.JobSourceOptions_Generate:
@@ -79,7 +80,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		switch connConfig := sourceConnection.ConnectionConfig.Config.(type) {
 		case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 			if _, ok := b.pgpool[sourceConnection.Id]; !ok {
-				pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(connConfig.PgConfig, ptr(uint32(5)), slogger)
+				pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(connConfig.PgConfig, shared.Ptr(uint32(5)), slogger)
 				if err != nil {
 					return nil, err
 				}
@@ -94,7 +95,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 
 		case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 			if _, ok := b.mysqlpool[sourceConnection.Id]; !ok {
-				conn, err := b.sqlconnector.NewDbFromConnectionConfig(sourceConnection.ConnectionConfig, ptr(uint32(5)), slogger)
+				conn, err := b.sqlconnector.NewDbFromConnectionConfig(sourceConnection.ConnectionConfig, shared.Ptr(uint32(5)), slogger)
 				if err != nil {
 					return nil, err
 				}
@@ -117,7 +118,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		}
 
 		if _, ok := b.pgpool[sourceConnection.Id]; !ok {
-			pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(sourceConnection.ConnectionConfig.GetPgConfig(), ptr(uint32(5)), slogger)
+			pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(sourceConnection.ConnectionConfig.GetPgConfig(), shared.Ptr(uint32(5)), slogger)
 			if err != nil {
 				return nil, err
 			}
@@ -145,7 +146,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		}
 
 		if _, ok := b.pgpool[sourceConnection.Id]; !ok {
-			conn, err := b.sqlconnector.NewDbFromConnectionConfig(sourceConnection.ConnectionConfig, ptr(uint32(5)), slogger)
+			conn, err := b.sqlconnector.NewDbFromConnectionConfig(sourceConnection.ConnectionConfig, shared.Ptr(uint32(5)), slogger)
 			if err != nil {
 				return nil, err
 			}
@@ -222,7 +223,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 
 				sqlStatement := dbschemas_postgres.GetOrderedPostgresInitStatements(tableInitMap, dependencyMap)
 
-				pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(connection.PgConfig, ptr(uint32(5)), slogger)
+				pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(connection.PgConfig, shared.Ptr(uint32(5)), slogger)
 				if err != nil {
 					return nil, err
 				}
@@ -280,7 +281,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				}
 
 				sqlStatements := dbschemas_mysql.GetOrderedMysqlInitStatements(tableInitMap, dependencyMap)
-				conn, err := b.sqlconnector.NewDbFromConnectionConfig(destinationConnection.ConnectionConfig, ptr(uint32(5)), slogger)
+				conn, err := b.sqlconnector.NewDbFromConnectionConfig(destinationConnection.ConnectionConfig, shared.Ptr(uint32(5)), slogger)
 				if err != nil {
 					return nil, err
 				}
@@ -397,30 +398,6 @@ func (b *initStatementBuilder) getInitStatementFromMysql(
 	return statements, nil
 }
 
-// filters out tables where all col mappings are set to null
-// returns unique list of tables
-func getUniqueTablesFromMappings(mappings []*mgmtv1alpha1.JobMapping) map[string]struct{} {
-	groupedMappings := map[string][]*mgmtv1alpha1.JobMapping{}
-	for _, mapping := range mappings {
-		tableName := dbschemas_utils.BuildTable(mapping.Schema, mapping.Table)
-		_, ok := groupedMappings[tableName]
-		if ok {
-			groupedMappings[tableName] = append(groupedMappings[tableName], mapping)
-		} else {
-			groupedMappings[tableName] = []*mgmtv1alpha1.JobMapping{mapping}
-		}
-	}
-
-	filteredTables := map[string]struct{}{}
-
-	for table, mappings := range groupedMappings {
-		if !areAllColsNull(mappings) {
-			filteredTables[table] = struct{}{}
-		}
-	}
-	return filteredTables
-}
-
 func getDependencyMap(td map[string]*dbschemas_utils.TableConstraints, uniqueTables map[string]struct{}) map[string][]string {
 	dpMap := map[string][]string{}
 	for table, constraints := range td {
@@ -438,8 +415,4 @@ func getDependencyMap(td map[string]*dbschemas_utils.TableConstraints, uniqueTab
 		}
 	}
 	return dpMap
-}
-
-func ptr[T any](val T) *T {
-	return &val
 }

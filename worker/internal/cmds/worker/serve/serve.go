@@ -14,6 +14,7 @@ import (
 	"connectrpc.com/grpchealth"
 	"connectrpc.com/grpcreflect"
 	datasync_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities"
+	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
 	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
@@ -87,6 +88,7 @@ func serve() error {
 	w.RegisterWorkflow(datasync_workflow.Workflow)
 	w.RegisterActivity(sync_activity.Sync)
 	w.RegisterActivity(syncactivityopts_activity.RetrieveActivityOptions)
+	w.RegisterActivity(runsqlinittablestmts_activity.RunSqlInitTableStatements)
 	w.RegisterActivity(&datasync_activities.Activities{})
 
 	if err := w.Start(); err != nil {

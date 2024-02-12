@@ -7,6 +7,7 @@ import (
 	"time"
 
 	datasync_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities"
+	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
 	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
@@ -71,8 +72,8 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 
 	ctx = workflow.WithActivityOptions(wfctx, *actOptResp.SyncActivityOptions)
 	logger.Info("executing running init statements in job destinations activity")
-	var resp *datasync_activities.RunSqlInitTableStatementsResponse
-	err = workflow.ExecuteActivity(ctx, wfActivites.RunSqlInitTableStatements, &datasync_activities.RunSqlInitTableStatementsRequest{
+	var resp *runsqlinittablestmts_activity.RunSqlInitTableStatementsResponse
+	err = workflow.ExecuteActivity(ctx, runsqlinittablestmts_activity.RunSqlInitTableStatements, &runsqlinittablestmts_activity.RunSqlInitTableStatementsRequest{
 		JobId:      req.JobId,
 		WorkflowId: wfinfo.WorkflowExecution.ID,
 	}).Get(ctx, &resp)

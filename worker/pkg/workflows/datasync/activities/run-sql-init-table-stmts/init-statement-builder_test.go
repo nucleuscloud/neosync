@@ -1,4 +1,4 @@
-package datasync_activities
+package runsqlinittablestmts_activity
 
 import (
 	"context"
