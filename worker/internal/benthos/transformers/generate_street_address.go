@@ -20,7 +20,7 @@ type Address struct {
 }
 
 func init() {
-	spec := bloblang.NewPluginSpec().Param(bloblang.NewInt64Param("max_length")).Param(bloblang.NewInt64Param("seed"))
+	spec := bloblang.NewPluginSpec().Param(bloblang.NewInt64Param("max_length")).Param(bloblang.NewInt64Param("seed").Optional())
 
 	err := bloblang.RegisterFunctionV2("generate_street_address", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		maxLength, err := args.GetInt64("max_length")
@@ -35,7 +35,7 @@ func init() {
 
 		var randomizer *rand.Rand
 		if seed == nil {
-			randomizer = rand.New(rand.NewSource(int64(rand.Int())))
+			randomizer = rand.New(rand.NewSource(rand.Int63()))
 		} else {
 			randomizer = rand.New(rand.NewSource(*seed))
 		}

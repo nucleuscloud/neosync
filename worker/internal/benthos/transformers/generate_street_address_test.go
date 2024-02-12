@@ -52,8 +52,7 @@ func Test_StreetAddressTransformer(t *testing.T) {
 
 func Test_StreetAddressTransformerNoSeed(t *testing.T) {
 
-	var noSeed *int64
-	mapping := fmt.Sprintf(`root = generate_street_address(max_length:%d: seed:%d)`, maxLength, noSeed)
+	mapping := fmt.Sprintf(`root = generate_street_address(max_length:%d)`, maxLength)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the street address transformer")
 

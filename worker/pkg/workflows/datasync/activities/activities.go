@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"math/rand"
 	"net/http"
 	"os"
 	"strings"
@@ -728,11 +727,6 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		maxLen = *colInfo.CharacterMaximumLength
 	}
 
-	// Use the global RNG to seed the transformer RNGs
-	seed := rand.Int()
-
-	seedValue := rand.New(rand.NewSource(int64(seed)))
-
 	switch col.Transformer.Source {
 	case "generate_categorical":
 		categories := col.Transformer.Config.GetGenerateCategoricalConfig().Categories
@@ -793,7 +787,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 	case "generate_state":
 		return "generate_state()", nil
 	case "generate_street_address":
-		return fmt.Sprintf(`generate_street_address(max_length:%d, seed:%d)`, maxLen, seedValue), nil
+		return fmt.Sprintf(`generate_street_address(max_length:%d)`, maxLen), nil
 	case "generate_string_phone_number":
 		min := col.Transformer.Config.GetGenerateStringPhoneNumberConfig().Min
 		max := col.Transformer.Config.GetGenerateStringPhoneNumberConfig().Max
