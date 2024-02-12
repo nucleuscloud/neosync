@@ -29,8 +29,6 @@ import (
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
-const nullString = "null"
-
 type GenerateBenthosConfigsRequest struct {
 	JobId      string
 	WorkflowId string
