@@ -9,7 +9,6 @@ import (
 )
 
 func Test_GenerateRandomFirstName(t *testing.T) {
-
 	res, err := GenerateRandomFirstName(maxCharacterLimit)
 
 	assert.NoError(t, err)
