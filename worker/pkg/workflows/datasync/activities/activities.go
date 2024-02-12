@@ -13,8 +13,6 @@ import (
 
 	"connectrpc.com/connect"
 	"go.temporal.io/sdk/activity"
-	"go.temporal.io/sdk/temporal"
-	"go.temporal.io/sdk/workflow"
 
 	"github.com/spf13/viper"
 
@@ -74,78 +72,6 @@ func getNeosyncUrl() string {
 }
 
 type Activities struct{}
-
-type RetrieveActivityOptionsRequest struct {
-	JobId string
-}
-type RetrieveActivityOptionsResponse struct {
-	SyncActivityOptions *workflow.ActivityOptions
-}
-
-func (a *Activities) RetrieveActivityOptions(
-	ctx context.Context,
-	req *RetrieveActivityOptionsRequest,
-	wfmetadata *shared.WorkflowMetadata,
-) (*RetrieveActivityOptionsResponse, error) {
-	logger := activity.GetLogger(ctx)
-	_ = logger
-
-	neosyncUrl := getNeosyncUrl()
-	httpClient := getNeosyncHttpClient(viper.GetString("NEOSYNC_API_KEY"))
-
-	jobclient := mgmtv1alpha1connect.NewJobServiceClient(
-		httpClient,
-		neosyncUrl,
-	)
-
-	jobResp, err := jobclient.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{Id: req.JobId}))
-	if err != nil {
-		return nil, err
-	}
-	job := jobResp.Msg.Job
-	return &RetrieveActivityOptionsResponse{
-		SyncActivityOptions: getSyncActivityOptionsFromJob(job),
-	}, nil
-}
-
-const (
-	defaultStartCloseTimeout = 10 * time.Minute
-	defaultMaxAttempts       = 1
-)
-
-func getSyncActivityOptionsFromJob(job *mgmtv1alpha1.Job) *workflow.ActivityOptions {
-	syncActivityOptions := &workflow.ActivityOptions{}
-	if job.SyncOptions != nil {
-		if job.SyncOptions.StartToCloseTimeout != nil {
-			syncActivityOptions.StartToCloseTimeout = time.Duration(*job.SyncOptions.StartToCloseTimeout)
-		}
-		if job.SyncOptions.ScheduleToCloseTimeout != nil {
-			syncActivityOptions.ScheduleToCloseTimeout = time.Duration(*job.SyncOptions.ScheduleToCloseTimeout)
-		}
-		if job.SyncOptions.RetryPolicy != nil {
-			if job.SyncOptions.RetryPolicy.MaximumAttempts != nil {
-				if syncActivityOptions.RetryPolicy == nil {
-					syncActivityOptions.RetryPolicy = &temporal.RetryPolicy{}
-				}
-				syncActivityOptions.RetryPolicy.MaximumAttempts = *job.SyncOptions.RetryPolicy.MaximumAttempts
-			}
-		}
-	} else {
-		return &workflow.ActivityOptions{
-			StartToCloseTimeout: defaultStartCloseTimeout, // backwards compatible default for pre-existing jobs that do not have sync options defined
-			RetryPolicy: &temporal.RetryPolicy{
-				MaximumAttempts: defaultMaxAttempts, // backwards compatible default for pre-existing jobs that do not have sync options defined
-			},
-		}
-	}
-	if syncActivityOptions.StartToCloseTimeout == 0 && syncActivityOptions.ScheduleToCloseTimeout == 0 {
-		syncActivityOptions.StartToCloseTimeout = defaultStartCloseTimeout
-	}
-	if syncActivityOptions.RetryPolicy == nil {
-		syncActivityOptions.RetryPolicy = &temporal.RetryPolicy{MaximumAttempts: defaultMaxAttempts}
-	}
-	return syncActivityOptions
-}
 
 func (a *Activities) GenerateBenthosConfigs(
 	ctx context.Context,

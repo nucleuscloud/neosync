@@ -15,6 +15,7 @@ import (
 	"connectrpc.com/grpcreflect"
 	datasync_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
+	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
 	datasync_workflow "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/workflow"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -85,6 +86,7 @@ func serve() error {
 
 	w.RegisterWorkflow(datasync_workflow.Workflow)
 	w.RegisterActivity(sync_activity.Sync)
+	w.RegisterActivity(syncactivityopts_activity.RetrieveActivityOptions)
 	w.RegisterActivity(&datasync_activities.Activities{})
 
 	if err := w.Start(); err != nil {
