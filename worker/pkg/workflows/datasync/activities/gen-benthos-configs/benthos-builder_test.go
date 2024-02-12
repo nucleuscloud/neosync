@@ -4174,6 +4174,22 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 				},
 			},
 		},
+		{
+			Source: "generate_default",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{
+					GenerateDefaultConfig: &mgmtv1alpha1.GenerateDefault{},
+				},
+			},
+		},
+		{
+			Source: "null",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
+					Nullconfig: &mgmtv1alpha1.Null{},
+				},
+			},
+		},
 	}
 
 	emailColInfo := &dbschemas_utils.ColumnInfo{
@@ -4187,17 +4203,19 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 	}
 
 	for _, transformer := range transformers {
-		val, err := computeMutationFunction(
-			&mgmtv1alpha1.JobMapping{
-				Column: "email",
-				Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: transformer.Source,
-					Config: transformer.Config,
-				},
-			}, emailColInfo)
+		t.Run(fmt.Sprintf("%s_lint", transformer.Source), func(t *testing.T) {
+			val, err := computeMutationFunction(
+				&mgmtv1alpha1.JobMapping{
+					Column: "email",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: transformer.Source,
+						Config: transformer.Config,
+					},
+				}, emailColInfo)
 
-		assert.NoError(t, err)
-		_, err = bloblang.Parse(val)
-		assert.NoError(t, err, fmt.Sprintf("transformer lint failed, check that the transformer string is being constructed correctly. Failing source: %s", transformer.Source))
+			assert.NoError(t, err)
+			_, err = bloblang.Parse(val)
+			assert.NoError(t, err, fmt.Sprintf("transformer lint failed, check that the transformer string is being constructed correctly. Failing source: %s", transformer.Source))
+		})
 	}
 }
