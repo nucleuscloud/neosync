@@ -13,7 +13,7 @@ import (
 
 	"connectrpc.com/grpchealth"
 	"connectrpc.com/grpcreflect"
-	datasync_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities"
+	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
 	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
@@ -89,7 +89,7 @@ func serve() error {
 	w.RegisterActivity(sync_activity.Sync)
 	w.RegisterActivity(syncactivityopts_activity.RetrieveActivityOptions)
 	w.RegisterActivity(runsqlinittablestmts_activity.RunSqlInitTableStatements)
-	w.RegisterActivity(&datasync_activities.Activities{})
+	w.RegisterActivity(genbenthosconfigs_activity.GenerateBenthosConfigs)
 
 	if err := w.Start(); err != nil {
 		return err

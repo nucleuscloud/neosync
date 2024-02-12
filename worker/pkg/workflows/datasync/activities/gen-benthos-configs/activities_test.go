@@ -1,4 +1,4 @@
-package datasync_activities
+package genbenthosconfigs_activity
 
 import (
 	"bytes"

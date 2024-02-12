@@ -1,4 +1,4 @@
-package datasync_activities
+package genbenthosconfigs_activity
 
 import (
 	"context"
@@ -6,16 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"net/http"
 	"os"
 	"strings"
 	"time"
 
 	"connectrpc.com/connect"
-	"go.temporal.io/sdk/activity"
-
-	"github.com/spf13/viper"
-
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -24,9 +19,8 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
-	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
-	http_client "github.com/nucleuscloud/neosync/worker/internal/http/client"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
+	"go.temporal.io/sdk/activity"
 )
 
 type GenerateBenthosConfigsRequest struct {
@@ -52,26 +46,7 @@ type BenthosConfigResponse struct {
 	updateConfig   *tabledependency.RunConfig
 }
 
-func getNeosyncHttpClient(apiKey string) *http.Client {
-	if apiKey != "" {
-		return http_client.NewWithHeaders(
-			map[string]string{"Authorization": fmt.Sprintf("Bearer %s", apiKey)},
-		)
-	}
-	return http.DefaultClient
-}
-
-func getNeosyncUrl() string {
-	neosyncUrl := viper.GetString("NEOSYNC_URL")
-	if neosyncUrl == "" {
-		return "http://localhost:8080"
-	}
-	return neosyncUrl
-}
-
-type Activities struct{}
-
-func (a *Activities) GenerateBenthosConfigs(
+func GenerateBenthosConfigs(
 	ctx context.Context,
 	req *GenerateBenthosConfigsRequest,
 	wfmetadata *shared.WorkflowMetadata,
@@ -89,8 +64,8 @@ func (a *Activities) GenerateBenthosConfigs(
 		}
 	}()
 
-	neosyncUrl := getNeosyncUrl()
-	httpClient := getNeosyncHttpClient(viper.GetString("NEOSYNC_API_KEY"))
+	neosyncUrl := shared.GetNeosyncUrl()
+	httpClient := shared.GetNeosyncHttpClient()
 
 	pgpoolmap := map[string]pg_queries.DBTX{}
 	pgquerier := pg_queries.New()
