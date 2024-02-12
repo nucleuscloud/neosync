@@ -32,7 +32,6 @@ func init() {
 		if err != nil {
 			return nil, err
 		}
-
 		var randomizer *rand.Rand
 		if seed == nil {
 			randomizer = rand.New(rand.NewSource(rand.Int63()))
