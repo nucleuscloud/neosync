@@ -1154,64 +1154,6 @@ type TableMapping struct {
 	Mappings []*mgmtv1alpha1.JobMapping
 }
 
-func getPgDsn(
-	config *mgmtv1alpha1.PostgresConnectionConfig,
-) (string, error) {
-	if config == nil {
-		return "", errors.New("must provide non-nil config")
-	}
-	switch cfg := config.ConnectionConfig.(type) {
-	case *mgmtv1alpha1.PostgresConnectionConfig_Connection:
-		if cfg.Connection == nil {
-			return "", errors.New("must provide non-nil connection config")
-		}
-		dburl := fmt.Sprintf(
-			"postgres://%s:%s@%s:%d/%s",
-			cfg.Connection.User,
-			cfg.Connection.Pass,
-			cfg.Connection.Host,
-			cfg.Connection.Port,
-			cfg.Connection.Name,
-		)
-		if cfg.Connection.SslMode != nil && *cfg.Connection.SslMode != "" {
-			dburl = fmt.Sprintf("%s?sslmode=%s", dburl, *cfg.Connection.SslMode)
-		}
-		return dburl, nil
-	case *mgmtv1alpha1.PostgresConnectionConfig_Url:
-		return cfg.Url, nil
-	default:
-		return "", fmt.Errorf("unsupported postgres connection config type")
-	}
-}
-
-func getMysqlDsn(
-	config *mgmtv1alpha1.MysqlConnectionConfig,
-) (string, error) {
-	if config == nil {
-		return "", errors.New("must provide non-nil config")
-	}
-	switch cfg := config.ConnectionConfig.(type) {
-	case *mgmtv1alpha1.MysqlConnectionConfig_Connection:
-		if cfg.Connection == nil {
-			return "", errors.New("must provide non-nil connection config")
-		}
-		dburl := fmt.Sprintf(
-			"%s:%s@%s(%s:%d)/%s",
-			cfg.Connection.User,
-			cfg.Connection.Pass,
-			cfg.Connection.Protocol,
-			cfg.Connection.Host,
-			cfg.Connection.Port,
-			cfg.Connection.Name,
-		)
-		return dburl, nil
-	case *mgmtv1alpha1.MysqlConnectionConfig_Url:
-		return cfg.Url, nil
-	default:
-		return "", fmt.Errorf("unsupported mysql connection config type")
-	}
-}
-
 func buildProcessorConfigs(ctx context.Context, transformerclient mgmtv1alpha1connect.TransformersServiceClient, cols []*mgmtv1alpha1.JobMapping, tableColumnInfo map[string]*dbschemas_utils.ColumnInfo) ([]*neosync_benthos.ProcessorConfig, error) {
 	jsCode, err := extractJsFunctionsAndOutputs(ctx, transformerclient, cols)
 	if err != nil {

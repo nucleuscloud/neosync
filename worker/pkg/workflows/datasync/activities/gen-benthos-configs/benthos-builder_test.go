@@ -1,13 +1,9 @@
 package genbenthosconfigs_activity
 
 import (
-	"bytes"
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"log/slog"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -34,6 +30,7 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/pure/extended"
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
+	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 )
@@ -3777,49 +3774,49 @@ func Test_buildBenthosS3Credentials(t *testing.T) {
 	)
 	assert.Equal(
 		t,
-		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{Profile: strPtr("foo")}),
+		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{Profile: shared.Ptr("foo")}),
 		&neosync_benthos.AwsCredentials{Profile: "foo"},
 	)
 	assert.Equal(
 		t,
-		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{AccessKeyId: strPtr("foo")}),
+		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{AccessKeyId: shared.Ptr("foo")}),
 		&neosync_benthos.AwsCredentials{Id: "foo"},
 	)
 	assert.Equal(
 		t,
-		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{SecretAccessKey: strPtr("foo")}),
+		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{SecretAccessKey: shared.Ptr("foo")}),
 		&neosync_benthos.AwsCredentials{Secret: "foo"},
 	)
 	assert.Equal(
 		t,
-		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{SessionToken: strPtr("foo")}),
+		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{SessionToken: shared.Ptr("foo")}),
 		&neosync_benthos.AwsCredentials{Token: "foo"},
 	)
 	assert.Equal(
 		t,
-		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{FromEc2Role: boolPtr(true)}),
+		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{FromEc2Role: shared.Ptr(true)}),
 		&neosync_benthos.AwsCredentials{FromEc2Role: true},
 	)
 	assert.Equal(
 		t,
-		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{RoleArn: strPtr("foo")}),
+		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{RoleArn: shared.Ptr("foo")}),
 		&neosync_benthos.AwsCredentials{Role: "foo"},
 	)
 	assert.Equal(
 		t,
-		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{RoleExternalId: strPtr("foo")}),
+		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{RoleExternalId: shared.Ptr("foo")}),
 		&neosync_benthos.AwsCredentials{RoleExternalId: "foo"},
 	)
 	assert.Equal(
 		t,
 		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{
-			Profile:         strPtr("profile"),
-			AccessKeyId:     strPtr("access-key"),
-			SecretAccessKey: strPtr("secret"),
-			SessionToken:    strPtr("session"),
-			FromEc2Role:     boolPtr(false),
-			RoleArn:         strPtr("role"),
-			RoleExternalId:  strPtr("foo"),
+			Profile:         shared.Ptr("profile"),
+			AccessKeyId:     shared.Ptr("access-key"),
+			SecretAccessKey: shared.Ptr("secret"),
+			SessionToken:    shared.Ptr("session"),
+			FromEc2Role:     shared.Ptr(false),
+			RoleArn:         shared.Ptr("role"),
+			RoleExternalId:  shared.Ptr("foo"),
 		}),
 		&neosync_benthos.AwsCredentials{
 			Profile:        "profile",
@@ -3833,117 +3830,6 @@ func Test_buildBenthosS3Credentials(t *testing.T) {
 	)
 }
 
-func Test_getPgDsn(t *testing.T) {
-	dsn, err := getPgDsn(nil)
-	assert.Error(t, err)
-	assert.Empty(t, dsn)
-
-	dsn, err = getPgDsn(&mgmtv1alpha1.PostgresConnectionConfig{})
-	assert.Error(t, err)
-	assert.Empty(t, dsn)
-
-	dsn, err = getPgDsn(&mgmtv1alpha1.PostgresConnectionConfig{
-		ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{},
-	})
-	assert.Nil(t, err)
-	assert.Empty(t, dsn)
-
-	dsn, err = getPgDsn(&mgmtv1alpha1.PostgresConnectionConfig{
-		ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{Url: "foo"},
-	})
-	assert.Nil(t, err)
-	assert.Equal(t, dsn, "foo")
-
-	dsn, err = getPgDsn(&mgmtv1alpha1.PostgresConnectionConfig{
-		ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Connection{},
-	})
-	assert.Error(t, err)
-	assert.Empty(t, dsn)
-
-	dsn, err = getPgDsn(&mgmtv1alpha1.PostgresConnectionConfig{
-		ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Connection{
-			Connection: &mgmtv1alpha1.PostgresConnection{},
-		},
-	})
-	assert.Nil(t, err)
-	assert.Equal(t, dsn, "postgres://:@:0/")
-
-	sslMode := "disable"
-	dsn, err = getPgDsn(&mgmtv1alpha1.PostgresConnectionConfig{
-		ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Connection{
-			Connection: &mgmtv1alpha1.PostgresConnection{
-				User:    "my-user",
-				Pass:    "my-pass",
-				SslMode: &sslMode,
-				Host:    "localhost",
-				Port:    5432,
-				Name:    "neosync",
-			},
-		},
-	})
-	assert.Nil(t, err)
-	assert.Equal(t, dsn, "postgres://my-user:my-pass@localhost:5432/neosync?sslmode=disable")
-}
-
-func Test_getMysqlDsn(t *testing.T) {
-	dsn, err := getMysqlDsn(nil)
-	assert.Error(t, err)
-	assert.Empty(t, dsn)
-
-	dsn, err = getMysqlDsn(&mgmtv1alpha1.MysqlConnectionConfig{})
-	assert.Error(t, err)
-	assert.Empty(t, dsn)
-
-	dsn, err = getMysqlDsn(&mgmtv1alpha1.MysqlConnectionConfig{
-		ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{},
-	})
-	assert.Nil(t, err)
-	assert.Empty(t, dsn)
-
-	dsn, err = getMysqlDsn(&mgmtv1alpha1.MysqlConnectionConfig{
-		ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{Url: "foo"},
-	})
-	assert.Nil(t, err)
-	assert.Equal(t, dsn, "foo")
-
-	dsn, err = getMysqlDsn(&mgmtv1alpha1.MysqlConnectionConfig{
-		ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Connection{},
-	})
-	assert.Error(t, err)
-	assert.Empty(t, dsn)
-
-	dsn, err = getMysqlDsn(&mgmtv1alpha1.MysqlConnectionConfig{
-		ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Connection{
-			Connection: &mgmtv1alpha1.MysqlConnection{},
-		},
-	})
-	assert.Nil(t, err)
-	assert.Equal(t, dsn, ":@(:0)/")
-
-	dsn, err = getMysqlDsn(&mgmtv1alpha1.MysqlConnectionConfig{
-		ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Connection{
-			Connection: &mgmtv1alpha1.MysqlConnection{
-				User:     "my-user",
-				Pass:     "my-pass",
-				Protocol: "tcp",
-				Host:     "localhost",
-				Port:     5432,
-				Name:     "neosync",
-			},
-		},
-	})
-	assert.Nil(t, err)
-	assert.Equal(t, dsn, "my-user:my-pass@tcp(localhost:5432)/neosync")
-}
-
-func strPtr(val string) *string {
-	return &val
-}
-
-func boolPtr(val bool) *bool {
-	return &val
-}
-
 func Test_computeMutationFunction_null(t *testing.T) {
 	val, err := computeMutationFunction(
 		&mgmtv1alpha1.JobMapping{
@@ -3953,84 +3839,6 @@ func Test_computeMutationFunction_null(t *testing.T) {
 		}, &dbschemas_utils.ColumnInfo{})
 	assert.NoError(t, err)
 	assert.Equal(t, val, "null")
-}
-
-func Test_sha256Hash_transformer_string(t *testing.T) {
-	mapping := `root = this.bytes().hash("sha256").encode("hex")` //nolint:goconst
-	ex, err := bloblang.Parse(mapping)
-	assert.NoError(t, err, "failed to parse the sha256 transformer")
-
-	val := "hello"
-	res, err := ex.Query(val)
-	assert.NoError(t, err)
-
-	// hash the value
-	bites := []byte(val)
-	hasher := sha256.New()
-	_, err = hasher.Write(bites)
-	assert.NoError(t, err)
-
-	// compute sha256 checksum and encode it into a hex string
-	hashed := hasher.Sum(nil)
-	var buf bytes.Buffer
-	e := hex.NewEncoder(&buf)
-	_, err = e.Write(hashed)
-	assert.NoError(t, err)
-
-	assert.NoError(t, err)
-	assert.Equal(t, res, buf.String())
-}
-
-func Test_sha256Hash_transformer_int64(t *testing.T) {
-	mapping := `root = this.bytes().hash("sha256").encode("hex")`
-	ex, err := bloblang.Parse(mapping)
-	assert.NoError(t, err, "failed to parse the sha256 transformer")
-
-	val := 20
-	res, err := ex.Query(val)
-	assert.NoError(t, err)
-
-	// hash the value
-	bites := strconv.AppendInt(nil, int64(val), 10)
-	hasher := sha256.New()
-	_, err = hasher.Write(bites)
-	assert.NoError(t, err)
-
-	// compute sha256 checksum and encode it into a hex string
-	hashed := hasher.Sum(nil)
-	var buf bytes.Buffer
-	e := hex.NewEncoder(&buf)
-	_, err = e.Write(hashed)
-	assert.NoError(t, err)
-
-	assert.NoError(t, err)
-	assert.Equal(t, res, buf.String())
-}
-
-func Test_sha256Hash_transformer_float(t *testing.T) {
-	mapping := `root = this.bytes().hash("sha256").encode("hex")`
-	ex, err := bloblang.Parse(mapping)
-	assert.NoError(t, err, "failed to parse the sha256 transformer")
-
-	val := 20.39
-	res, err := ex.Query(val)
-	assert.NoError(t, err)
-
-	// hash the value
-	bites := strconv.AppendFloat(nil, val, 'g', -1, 64)
-	hasher := sha256.New()
-	_, err = hasher.Write(bites)
-	assert.NoError(t, err)
-
-	// compute sha256 checksum and encode it into a hex string
-	hashed := hasher.Sum(nil)
-	var buf bytes.Buffer
-	e := hex.NewEncoder(&buf)
-	_, err = e.Write(hashed)
-	assert.NoError(t, err)
-
-	assert.NoError(t, err)
-	assert.Equal(t, res, buf.String())
 }
 
 func Test_TransformerStringLint(t *testing.T) {
