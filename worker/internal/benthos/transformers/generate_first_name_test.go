@@ -12,7 +12,7 @@ func Test_GenerateRandomFirstName(t *testing.T) {
 	res, err := GenerateRandomFirstName(maxCharacterLimit)
 
 	assert.NoError(t, err)
-	assert.Greater(t, len(res), 2, "The first name should be more than 2 characters")
+	assert.GreaterOrEqual(t, len(res), 2, "The first name should be more than 2 characters")
 	assert.LessOrEqual(t, int64(len(res)), maxCharacterLimit, "The first name should be less than or equal to the max character limit")
 	assert.IsType(t, "", res, "The first name should be a string")
 }

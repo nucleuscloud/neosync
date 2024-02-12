@@ -13,8 +13,6 @@ import (
 
 	"connectrpc.com/connect"
 	"go.temporal.io/sdk/activity"
-	"go.temporal.io/sdk/temporal"
-	"go.temporal.io/sdk/workflow"
 
 	"github.com/spf13/viper"
 
@@ -31,8 +29,6 @@ import (
 	http_client "github.com/nucleuscloud/neosync/worker/internal/http/client"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
-
-const nullString = "null"
 
 type GenerateBenthosConfigsRequest struct {
 	JobId      string
@@ -81,78 +77,6 @@ func getNeosyncUrl() string {
 }
 
 type Activities struct{}
-
-type RetrieveActivityOptionsRequest struct {
-	JobId string
-}
-type RetrieveActivityOptionsResponse struct {
-	SyncActivityOptions *workflow.ActivityOptions
-}
-
-func (a *Activities) RetrieveActivityOptions(
-	ctx context.Context,
-	req *RetrieveActivityOptionsRequest,
-	wfmetadata *shared.WorkflowMetadata,
-) (*RetrieveActivityOptionsResponse, error) {
-	logger := activity.GetLogger(ctx)
-	_ = logger
-
-	neosyncUrl := getNeosyncUrl()
-	httpClient := getNeosyncHttpClient(viper.GetString("NEOSYNC_API_KEY"))
-
-	jobclient := mgmtv1alpha1connect.NewJobServiceClient(
-		httpClient,
-		neosyncUrl,
-	)
-
-	jobResp, err := jobclient.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{Id: req.JobId}))
-	if err != nil {
-		return nil, err
-	}
-	job := jobResp.Msg.Job
-	return &RetrieveActivityOptionsResponse{
-		SyncActivityOptions: getSyncActivityOptionsFromJob(job),
-	}, nil
-}
-
-const (
-	defaultStartCloseTimeout = 10 * time.Minute
-	defaultMaxAttempts       = 1
-)
-
-func getSyncActivityOptionsFromJob(job *mgmtv1alpha1.Job) *workflow.ActivityOptions {
-	syncActivityOptions := &workflow.ActivityOptions{}
-	if job.SyncOptions != nil {
-		if job.SyncOptions.StartToCloseTimeout != nil {
-			syncActivityOptions.StartToCloseTimeout = time.Duration(*job.SyncOptions.StartToCloseTimeout)
-		}
-		if job.SyncOptions.ScheduleToCloseTimeout != nil {
-			syncActivityOptions.ScheduleToCloseTimeout = time.Duration(*job.SyncOptions.ScheduleToCloseTimeout)
-		}
-		if job.SyncOptions.RetryPolicy != nil {
-			if job.SyncOptions.RetryPolicy.MaximumAttempts != nil {
-				if syncActivityOptions.RetryPolicy == nil {
-					syncActivityOptions.RetryPolicy = &temporal.RetryPolicy{}
-				}
-				syncActivityOptions.RetryPolicy.MaximumAttempts = *job.SyncOptions.RetryPolicy.MaximumAttempts
-			}
-		}
-	} else {
-		return &workflow.ActivityOptions{
-			StartToCloseTimeout: defaultStartCloseTimeout, // backwards compatible default for pre-existing jobs that do not have sync options defined
-			RetryPolicy: &temporal.RetryPolicy{
-				MaximumAttempts: defaultMaxAttempts, // backwards compatible default for pre-existing jobs that do not have sync options defined
-			},
-		}
-	}
-	if syncActivityOptions.StartToCloseTimeout == 0 && syncActivityOptions.ScheduleToCloseTimeout == 0 {
-		syncActivityOptions.StartToCloseTimeout = defaultStartCloseTimeout
-	}
-	if syncActivityOptions.RetryPolicy == nil {
-		syncActivityOptions.RetryPolicy = &temporal.RetryPolicy{MaximumAttempts: defaultMaxAttempts}
-	}
-	return syncActivityOptions
-}
 
 func (a *Activities) GenerateBenthosConfigs(
 	ctx context.Context,
@@ -249,7 +173,7 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 	for i := range mappings {
 		tableMapping := mappings[i]
 		cols := buildPlainColumns(tableMapping.Mappings)
-		if areAllColsNull(tableMapping.Mappings) {
+		if shared.AreAllColsNull(tableMapping.Mappings) {
 			// skipping table as no columns are mapped
 			continue
 		}
@@ -398,75 +322,6 @@ func getUniqueColMappingsMap(
 	return tableColMappings
 }
 
-type RunSqlInitTableStatementsRequest struct {
-	JobId      string
-	WorkflowId string
-}
-
-type RunSqlInitTableStatementsResponse struct {
-}
-
-func (a *Activities) RunSqlInitTableStatements(
-	ctx context.Context,
-	req *RunSqlInitTableStatementsRequest,
-) (*RunSqlInitTableStatementsResponse, error) {
-	logger := activity.GetLogger(ctx)
-	_ = logger
-	go func() {
-		for {
-			select {
-			case <-time.After(1 * time.Second):
-				activity.RecordHeartbeat(ctx)
-			case <-ctx.Done():
-				return
-			}
-		}
-	}()
-
-	neosyncUrl := viper.GetString("NEOSYNC_URL")
-	if neosyncUrl == "" {
-		neosyncUrl = "http://localhost:8080"
-	}
-
-	neosyncApiKey := viper.GetString("NEOSYNC_API_KEY")
-
-	pgpoolmap := map[string]pg_queries.DBTX{}
-	pgquerier := pg_queries.New()
-	mysqlpoolmap := map[string]mysql_queries.DBTX{}
-	mysqlquerier := mysql_queries.New()
-
-	httpClient := http.DefaultClient
-	if neosyncApiKey != "" {
-		httpClient = http_client.NewWithHeaders(
-			map[string]string{"Authorization": fmt.Sprintf("Bearer %s", neosyncApiKey)},
-		)
-	}
-
-	jobclient := mgmtv1alpha1connect.NewJobServiceClient(
-		httpClient,
-		neosyncUrl,
-	)
-
-	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(
-		httpClient,
-		neosyncUrl,
-	)
-	builder := newInitStatementBuilder(
-		pgpoolmap,
-		pgquerier,
-		mysqlpoolmap,
-		mysqlquerier,
-		jobclient,
-		connclient,
-		&sqlconnect.SqlOpenConnector{},
-	)
-	slogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
-	slogger = slogger.With(
-		"WorkflowID", req.WorkflowId,
-	)
-	return builder.RunSqlInitTableStatements(ctx, req, slogger)
-}
-
 func shouldHaltOnSchemaAddition(
 	groupedSchemas map[string]map[string]*dbschemas_utils.ColumnInfo,
 	mappings []*mgmtv1alpha1.JobMapping,
@@ -492,15 +347,6 @@ func shouldHaltOnSchemaAddition(
 		}
 	}
 	return false
-}
-
-func areAllColsNull(mappings []*mgmtv1alpha1.JobMapping) bool {
-	for _, col := range mappings {
-		if col.Transformer.Source != nullString {
-			return false
-		}
-	}
-	return true
 }
 
 func buildPlainColumns(mappings []*mgmtv1alpha1.JobMapping) []string {
@@ -602,20 +448,6 @@ type TableMapping struct {
 	Schema   string
 	Table    string
 	Mappings []*mgmtv1alpha1.JobMapping
-}
-
-func getUniqueSchemasFromMappings(mappings []*mgmtv1alpha1.JobMapping) []string {
-	schemas := map[string]struct{}{}
-	for _, mapping := range mappings {
-		schemas[mapping.Schema] = struct{}{}
-	}
-
-	output := make([]string, 0, len(schemas))
-
-	for schema := range schemas {
-		output = append(output, schema)
-	}
-	return output
 }
 
 func getPgDsn(
