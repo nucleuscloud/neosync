@@ -32,12 +32,8 @@ func init() {
 		if err != nil {
 			return nil, err
 		}
-		var randomizer *rand.Rand
-		if seed == nil {
-			randomizer = rand.New(rand.NewSource(rand.Int63()))
-		} else {
-			randomizer = rand.New(rand.NewSource(*seed))
-		}
+
+		randomizer := transformer_utils.GetRandomizer(seed)
 
 		return func() (any, error) {
 			res, err := GenerateRandomStreetAddress(maxLength, randomizer)
