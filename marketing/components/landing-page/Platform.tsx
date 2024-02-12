@@ -18,7 +18,7 @@ export default function Platform(): ReactElement {
           alt="st"
           width="690"
           height="290"
-          className="rounded-xl border border-gray-700 shadow-xl max-h-[290px]"
+          className="rounded-xl border border-gray-700 shadow-xl max-h-[290px] "
         />
       ),
       className: 'md:col-span-2',
