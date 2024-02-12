@@ -55,7 +55,7 @@ export default function Intergrations(): ReactElement {
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             {integrations.map((item) => (
               <Link key={item.name} href={item.href}>
-                <div className="p-6 lg:px-16 lg:py-10 border border-gray-600 bg-gradient-to-tr from-[#1E1E1E] to-[#232222] rounded-xl shadow-xl transition duration-150 ease-in-out hover:-translate-y-1 relative">
+                <div className="p-6 lg:px-16 lg:py-10 border border-gray-600 bg-gradient-to-tr from-[#1E1E1E] to-[#2c2b2b] rounded-xl shadow-xl transition duration-150 ease-in-out hover:-translate-y-1 relative">
                   <div className="absolute top-0 right-0 p-2">
                     <ExternalLinkIcon className="w-4 h-4 text-gray-500" />
                   </div>
