@@ -6,6 +6,7 @@ import './index.css';
 import {
   Column,
   ColumnDef,
+  ColumnFiltersState,
   flexRender,
   getCoreRowModel,
   getFacetedMinMaxValues,
@@ -13,7 +14,6 @@ import {
   getFacetedUniqueValues,
   getFilteredRowModel,
   getSortedRowModel,
-  Row,
   useReactTable,
 } from '@tanstack/react-table';
 
@@ -27,31 +27,34 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Transformer } from '@/shared/transformers';
-import { JobMapRow, makeData } from './makeData';
-import { DataRow } from './SchemaTableColumnHeader';
+import { JobMappingFormValues } from '@/yup-validations/jobs';
 import { SchemaTableTableToolbar } from './SchemaTableToolBar';
+import { JobMapRow } from './makeData';
 
-interface Props {
-  columns: ColumnDef<JobMapRow>[];
-  data: DataRow[];
+export type Row = JobMappingFormValues & {
+  // isSelected: boolean;
+  formIdx: number;
+};
+
+interface DataTableProps<TData, TValue> {
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
   transformers: Transformer[];
 }
 
-// type ColumnFilters = Record<string, string[]>;
-
-export default function SchemaTableTest(props: Props): ReactElement {
-  const { columns } = props;
-  // const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [data, _setData] = useState(() => makeData(10000, 10, 100));
-  // const [_, setRows] = useState<JobMapRow[]>(data);
+export default function SchemaTableTest<TData, TValue>({
+  columns,
+  data,
+}: DataTableProps<TData, TValue>): ReactElement {
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   const table = useReactTable({
     data,
     columns,
-    // state: {
-    //   columnFilters,
-    // },
-    // onColumnFiltersChange: setColumnFilters,
+    state: {
+      columnFilters,
+    },
+    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -98,7 +101,6 @@ export default function SchemaTableTest(props: Props): ReactElement {
   //   [data, columnFilters]
   // );
 
-  //All important CSS styles are included as inline styles for this example. This is not recommended for your code.
   return (
     <div className="app">
       All rows: ({data.length} rows) -- Currently showing: (
@@ -107,23 +109,20 @@ export default function SchemaTableTest(props: Props): ReactElement {
         <SchemaTableTableToolbar table={table} />
       </div>
       <div
-        className="container rounded-md border"
+        className="container rounded-md border max-h-[500px] relative overflow-auto"
         ref={tableContainerRef}
-        style={{
-          overflow: 'auto', //our scrollable table container
-          position: 'relative', //needed for sticky header
-          height: '500px', //should be a fixed height
-          width: '100%',
-        }}
       >
-        {/* Even though we're still using sematic table tags, we must use CSS grid and flexbox for dynamic row heights */}
         <Table>
+          {/* this should work to make the table sticky but isn't working here: https://uxdesign.cc/position-stuck-96c9f55d9526 */}
           <TableHeader className="bg-gray-100 dark:bg-gray-800">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead
+                      key={header.id}
+                      className="sticky top-0 z-50 h-[50px]"
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(

@@ -16,13 +16,13 @@ import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ColumnDef } from '@tanstack/react-table';
 import { HTMLProps, useEffect, useRef } from 'react';
 import TransformerSelect from '../SchemaTable/TransformerSelect';
-import { JobMapRow } from './makeData';
+import { Row } from './main';
 
 interface Props {
   transformers: Transformer[];
 }
 
-export function getSchemaColumns(props: Props): ColumnDef<JobMapRow>[] {
+export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
   const { transformers } = props;
   return [
     {
