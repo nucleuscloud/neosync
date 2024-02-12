@@ -95,7 +95,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	case *mgmtv1alpha1.JobSourceOptions_Generate:
 		sourceTableOpts := groupGenerateSourceOptionsByTable(jobSourceConfig.Generate.Schemas)
 		// TODO this needs to be updated to get db schema
-		sourceResponses, err := b.buildBenthosGenerateSourceConfigResponses(ctx, groupedMappings, sourceTableOpts, map[string]*dbschemas_utils.ColumnInfo{})
+		sourceResponses, err := buildBenthosGenerateSourceConfigResponses(ctx, b.transformerclient, groupedMappings, sourceTableOpts, map[string]*dbschemas_utils.ColumnInfo{})
 		if err != nil {
 			return nil, err
 		}
@@ -146,7 +146,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 		groupedColInfoMap = groupedSchemas
 
-		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, jobSourceConfig.Postgres.ConnectionId, "postgres", sourceTableOpts, groupedSchemas)
+		sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedMappings, jobSourceConfig.Postgres.ConnectionId, "postgres", sourceTableOpts, groupedSchemas)
 		if err != nil {
 			return nil, err
 		}
@@ -157,7 +157,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, err
 		}
 		td := dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
-		tables := b.filterNullTables(groupedMappings)
+		tables := filterNullTables(groupedMappings)
 		dependencyConfigs := tabledependency.GetRunConfigs(td, tables)
 		primaryKeys, err := b.getAllPostgresPkConstraints(ctx, pool, uniqueSchemas)
 		if err != nil {
@@ -245,7 +245,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		}
 		groupedColInfoMap = groupedSchemas
 
-		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, jobSourceConfig.Mysql.ConnectionId, "mysql", sourceTableOpts, groupedSchemas)
+		sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedMappings, jobSourceConfig.Mysql.ConnectionId, "mysql", sourceTableOpts, groupedSchemas)
 		if err != nil {
 			return nil, err
 		}
@@ -256,7 +256,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, err
 		}
 		td := dbschemas_mysql.GetMysqlTableDependencies(allConstraints)
-		tables := b.filterNullTables(groupedMappings)
+		tables := filterNullTables(groupedMappings)
 		dependencyConfigs := tabledependency.GetRunConfigs(td, tables)
 		primaryKeys, err := b.getAllMysqlPkConstraints(ctx, pool, uniqueSchemas)
 		if err != nil {
@@ -328,7 +328,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						colSourceMap[col.Column] = col.GetTransformer().Source
 					}
 
-					out := b.buildPostgresOutputQueryAndArgs(resp, tm, tableKey, colSourceMap)
+					out := buildPostgresOutputQueryAndArgs(resp, tm, tableKey, colSourceMap)
 					resp.Columns = out.Columns
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						SqlRaw: &neosync_benthos.SqlRaw{
@@ -346,7 +346,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					})
 					if resp.updateConfig != nil {
 						// circular dependency -> create update benthos config
-						updateResp, err := b.createSqlUpdateBenthosConfig(ctx, resp, dsn, tableKey, tm, colSourceMap, groupedColInfoMap)
+						updateResp, err := createSqlUpdateBenthosConfig(ctx, b.transformerclient, resp, dsn, tableKey, tm, colSourceMap, groupedColInfoMap)
 						if err != nil {
 							return nil, err
 						}
@@ -359,14 +359,14 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						colSourceMap[col.Column] = col.GetTransformer().Source
 					}
 
-					filteredCols := b.filterColsBySource(cols, colSourceMap) // filters out default columns
+					filteredCols := filterColsBySource(cols, colSourceMap) // filters out default columns
 
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						SqlRaw: &neosync_benthos.SqlRaw{
 							Driver: "postgres",
 							Dsn:    dsn,
 
-							Query:       b.buildPostgresInsertQuery(tableKey, cols, colSourceMap),
+							Query:       buildPostgresInsertQuery(tableKey, cols, colSourceMap),
 							ArgsMapping: buildPlainInsertArgs(filteredCols),
 
 							Batching: &neosync_benthos.Batching{
@@ -387,7 +387,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						colSourceMap[col.Column] = col.GetTransformer().Source
 					}
 
-					out := b.buildMysqlOutputQueryAndArgs(resp, tm, tableKey, colSourceMap)
+					out := buildMysqlOutputQueryAndArgs(resp, tm, tableKey, colSourceMap)
 					resp.Columns = out.Columns
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						SqlRaw: &neosync_benthos.SqlRaw{
@@ -405,7 +405,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					})
 					if resp.updateConfig != nil {
 						// circular dependency -> create update benthos config
-						updateResp, err := b.createSqlUpdateBenthosConfig(ctx, resp, dsn, tableKey, tm, colSourceMap, groupedColInfoMap)
+						updateResp, err := createSqlUpdateBenthosConfig(ctx, b.transformerclient, resp, dsn, tableKey, tm, colSourceMap, groupedColInfoMap)
 						if err != nil {
 							return nil, err
 						}
@@ -418,14 +418,14 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						colSourceMap[col.Column] = col.GetTransformer().Source
 					}
 					// filters out default columns
-					filteredCols := b.filterColsBySource(cols, colSourceMap)
+					filteredCols := filterColsBySource(cols, colSourceMap)
 
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						SqlRaw: &neosync_benthos.SqlRaw{
 							Driver: "mysql",
 							Dsn:    dsn,
 
-							Query:       b.buildMysqlInsertQuery(tableKey, cols, colSourceMap),
+							Query:       buildMysqlInsertQuery(tableKey, cols, colSourceMap),
 							ArgsMapping: buildPlainInsertArgs(filteredCols),
 
 							Batching: &neosync_benthos.Batching{
@@ -492,7 +492,7 @@ type sqlOutput struct {
 	Columns     []string
 }
 
-func (b *benthosBuilder) buildPostgresOutputQueryAndArgs(resp *BenthosConfigResponse, tm *TableMapping, tableKey string, colSourceMap map[string]string) *sqlOutput {
+func buildPostgresOutputQueryAndArgs(resp *BenthosConfigResponse, tm *TableMapping, tableKey string, colSourceMap map[string]string) *sqlOutput {
 	if len(resp.excludeColumns) > 0 {
 		filteredInsertMappings := []*mgmtv1alpha1.JobMapping{}
 		for _, m := range tm.Mappings {
@@ -501,9 +501,9 @@ func (b *benthosBuilder) buildPostgresOutputQueryAndArgs(resp *BenthosConfigResp
 			}
 		}
 		insertCols := buildPlainColumns(filteredInsertMappings)
-		filteredInsertCols := b.filterColsBySource(insertCols, colSourceMap) // filters out default columns
+		filteredInsertCols := filterColsBySource(insertCols, colSourceMap) // filters out default columns
 		return &sqlOutput{
-			Query:       b.buildPostgresInsertQuery(tableKey, insertCols, colSourceMap),
+			Query:       buildPostgresInsertQuery(tableKey, insertCols, colSourceMap),
 			ArgsMapping: buildPlainInsertArgs(filteredInsertCols),
 			Columns:     insertCols,
 		}
@@ -516,28 +516,28 @@ func (b *benthosBuilder) buildPostgresOutputQueryAndArgs(resp *BenthosConfigResp
 			}
 		}
 		updateCols := buildPlainColumns(filteredUpdateMappings)
-		filteredUpdateCols := b.filterColsBySource(updateCols, colSourceMap) // filters out default columns
+		filteredUpdateCols := filterColsBySource(updateCols, colSourceMap) // filters out default columns
 		updateArgsMapping := []string{}
 		updateArgsMapping = append(updateArgsMapping, filteredUpdateCols...)
 		updateArgsMapping = append(updateArgsMapping, resp.primaryKeys...)
 
 		return &sqlOutput{
-			Query:       b.buildPostgresUpdateQuery(tableKey, updateCols, colSourceMap, resp.primaryKeys),
+			Query:       buildPostgresUpdateQuery(tableKey, updateCols, colSourceMap, resp.primaryKeys),
 			ArgsMapping: buildPlainInsertArgs(updateArgsMapping),
 			Columns:     updateCols,
 		}
 	} else {
 		cols := buildPlainColumns(tm.Mappings)
-		filteredCols := b.filterColsBySource(cols, colSourceMap) // filters out default columns
+		filteredCols := filterColsBySource(cols, colSourceMap) // filters out default columns
 		return &sqlOutput{
-			Query:       b.buildPostgresInsertQuery(tableKey, cols, colSourceMap),
+			Query:       buildPostgresInsertQuery(tableKey, cols, colSourceMap),
 			ArgsMapping: buildPlainInsertArgs(filteredCols),
 			Columns:     cols,
 		}
 	}
 }
 
-func (b *benthosBuilder) buildMysqlOutputQueryAndArgs(resp *BenthosConfigResponse, tm *TableMapping, tableKey string, colSourceMap map[string]string) *sqlOutput {
+func buildMysqlOutputQueryAndArgs(resp *BenthosConfigResponse, tm *TableMapping, tableKey string, colSourceMap map[string]string) *sqlOutput {
 	if len(resp.excludeColumns) > 0 {
 		filteredInsertMappings := []*mgmtv1alpha1.JobMapping{}
 		for _, m := range tm.Mappings {
@@ -546,9 +546,9 @@ func (b *benthosBuilder) buildMysqlOutputQueryAndArgs(resp *BenthosConfigRespons
 			}
 		}
 		insertCols := buildPlainColumns(filteredInsertMappings)
-		filteredInsertCols := b.filterColsBySource(insertCols, colSourceMap) // filters out default columns
+		filteredInsertCols := filterColsBySource(insertCols, colSourceMap) // filters out default columns
 		return &sqlOutput{
-			Query:       b.buildMysqlInsertQuery(tableKey, insertCols, colSourceMap),
+			Query:       buildMysqlInsertQuery(tableKey, insertCols, colSourceMap),
 			ArgsMapping: buildPlainInsertArgs(filteredInsertCols),
 			Columns:     insertCols,
 		}
@@ -561,21 +561,21 @@ func (b *benthosBuilder) buildMysqlOutputQueryAndArgs(resp *BenthosConfigRespons
 			}
 		}
 		updateCols := buildPlainColumns(filteredUpdateMappings)
-		filteredUpdateCols := b.filterColsBySource(updateCols, colSourceMap) // filters out default columns
+		filteredUpdateCols := filterColsBySource(updateCols, colSourceMap) // filters out default columns
 		updateArgsMapping := []string{}
 		updateArgsMapping = append(updateArgsMapping, filteredUpdateCols...)
 		updateArgsMapping = append(updateArgsMapping, resp.primaryKeys...)
 
 		return &sqlOutput{
-			Query:       b.buildMysqlUpdateQuery(tableKey, updateCols, colSourceMap, resp.primaryKeys),
+			Query:       buildMysqlUpdateQuery(tableKey, updateCols, colSourceMap, resp.primaryKeys),
 			ArgsMapping: buildPlainInsertArgs(updateArgsMapping),
 			Columns:     updateCols,
 		}
 	} else {
 		cols := buildPlainColumns(tm.Mappings)
-		filteredCols := b.filterColsBySource(cols, colSourceMap) // filters out default columns
+		filteredCols := filterColsBySource(cols, colSourceMap) // filters out default columns
 		return &sqlOutput{
-			Query:       b.buildMysqlInsertQuery(tableKey, cols, colSourceMap),
+			Query:       buildMysqlInsertQuery(tableKey, cols, colSourceMap),
 			ArgsMapping: buildPlainInsertArgs(filteredCols),
 			Columns:     cols,
 		}
@@ -586,8 +586,9 @@ type generateSourceTableOptions struct {
 	Count int
 }
 
-func (b *benthosBuilder) buildBenthosGenerateSourceConfigResponses(
+func buildBenthosGenerateSourceConfigResponses(
 	ctx context.Context,
+	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	mappings []*TableMapping,
 	sourceTableOpts map[string]*generateSourceTableOptions,
 	columnInfo map[string]*dbschemas_utils.ColumnInfo,
@@ -606,7 +607,7 @@ func (b *benthosBuilder) buildBenthosGenerateSourceConfigResponses(
 			count = tableOpt.Count
 		}
 
-		mapping, err := b.buildMutationConfigs(ctx, tableMapping.Mappings, columnInfo)
+		mapping, err := buildMutationConfigs(ctx, transformerclient, tableMapping.Mappings, columnInfo)
 		if err != nil {
 			return nil, err
 		}
@@ -703,7 +704,7 @@ func (b *benthosBuilder) getAllMysqlPkConstraints(
 	return pkMap, nil
 }
 
-func (b *benthosBuilder) buildPostgresUpdateQuery(table string, columns []string, colSourceMap map[string]string, primaryKeys []string) string {
+func buildPostgresUpdateQuery(table string, columns []string, colSourceMap map[string]string, primaryKeys []string) string {
 	values := make([]string, len(columns))
 	var where string
 	paramCount := 1
@@ -727,7 +728,7 @@ func (b *benthosBuilder) buildPostgresUpdateQuery(table string, columns []string
 	return fmt.Sprintf("UPDATE %s SET %s %s;", table, strings.Join(values, ", "), where)
 }
 
-func (b *benthosBuilder) buildPostgresInsertQuery(table string, columns []string, colSourceMap map[string]string) string {
+func buildPostgresInsertQuery(table string, columns []string, colSourceMap map[string]string) string {
 	values := make([]string, len(columns))
 	paramCount := 1
 	for i, col := range columns {
@@ -742,7 +743,7 @@ func (b *benthosBuilder) buildPostgresInsertQuery(table string, columns []string
 	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, strings.Join(columns, ", "), strings.Join(values, ", "))
 }
 
-func (b *benthosBuilder) buildMysqlInsertQuery(table string, columns []string, colSourceMap map[string]string) string {
+func buildMysqlInsertQuery(table string, columns []string, colSourceMap map[string]string) string {
 	values := make([]string, len(columns))
 	for i, col := range columns {
 		colSource := colSourceMap[col]
@@ -755,7 +756,7 @@ func (b *benthosBuilder) buildMysqlInsertQuery(table string, columns []string, c
 	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, strings.Join(columns, ", "), strings.Join(values, ", "))
 }
 
-func (b *benthosBuilder) buildMysqlUpdateQuery(table string, columns []string, colSourceMap map[string]string, primaryKeys []string) string {
+func buildMysqlUpdateQuery(table string, columns []string, colSourceMap map[string]string, primaryKeys []string) string {
 	values := make([]string, len(columns))
 	var where string
 	for i, col := range columns {
@@ -776,7 +777,7 @@ func (b *benthosBuilder) buildMysqlUpdateQuery(table string, columns []string, c
 	return fmt.Sprintf("UPDATE %s SET %s %s;", table, strings.Join(values, ", "), where)
 }
 
-func (b *benthosBuilder) filterColsBySource(columns []string, colSourceMap map[string]string) []string {
+func filterColsBySource(columns []string, colSourceMap map[string]string) []string {
 	filteredCols := []string{}
 	for _, col := range columns {
 		colSource := colSourceMap[col]
@@ -788,7 +789,7 @@ func (b *benthosBuilder) filterColsBySource(columns []string, colSourceMap map[s
 }
 
 // filters out tables where all cols are set to null
-func (b *benthosBuilder) filterNullTables(mappings []*TableMapping) []string {
+func filterNullTables(mappings []*TableMapping) []string {
 	tables := []string{}
 	for _, group := range mappings {
 		if !shared.AreAllColsNull(group.Mappings) {
@@ -800,8 +801,9 @@ func (b *benthosBuilder) filterNullTables(mappings []*TableMapping) []string {
 
 // creates copy of benthos insert config
 // changes query and argsmapping to sql update statement
-func (b *benthosBuilder) createSqlUpdateBenthosConfig(
+func createSqlUpdateBenthosConfig(
 	ctx context.Context,
+	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	insertConfig *BenthosConfigResponse,
 	dsn, tableKey string,
 	tm *TableMapping,
@@ -809,8 +811,9 @@ func (b *benthosBuilder) createSqlUpdateBenthosConfig(
 	groupedColInfo map[string]map[string]*dbschemas_utils.ColumnInfo,
 ) (*BenthosConfigResponse, error) {
 	driver := insertConfig.Config.Input.SqlSelect.Driver
-	sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(
+	sourceResponses, err := buildBenthosSqlSourceConfigResponses(
 		ctx,
+		transformerclient,
 		[]*TableMapping{tm},
 		"", // does not matter what is here. gets overwritten with insert config
 		driver,
@@ -830,10 +833,10 @@ func (b *benthosBuilder) createSqlUpdateBenthosConfig(
 		newResp.primaryKeys = insertConfig.primaryKeys
 		var output *sqlOutput
 		if driver == "postgres" {
-			out := b.buildPostgresOutputQueryAndArgs(newResp, tm, tableKey, colSourceMap)
+			out := buildPostgresOutputQueryAndArgs(newResp, tm, tableKey, colSourceMap)
 			output = out
 		} else if driver == "mysql" {
-			out := b.buildMysqlOutputQueryAndArgs(newResp, tm, tableKey, colSourceMap)
+			out := buildMysqlOutputQueryAndArgs(newResp, tm, tableKey, colSourceMap)
 			output = out
 		}
 		newResp.Columns = output.Columns
@@ -861,8 +864,9 @@ type sqlSourceTableOptions struct {
 	WhereClause *string
 }
 
-func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
+func buildBenthosSqlSourceConfigResponses(
 	ctx context.Context,
+	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	mappings []*TableMapping,
 	dsnConnectionId string,
 	driver string,
@@ -915,7 +919,7 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 			},
 		}
 
-		processorConfigs, err := b.buildProcessorConfigs(ctx, tableMapping.Mappings, groupedColumnInfo[table])
+		processorConfigs, err := buildProcessorConfigs(ctx, transformerclient, tableMapping.Mappings, groupedColumnInfo[table])
 		if err != nil {
 			return nil, err
 		}
@@ -1208,13 +1212,13 @@ func getMysqlDsn(
 	}
 }
 
-func (b *benthosBuilder) buildProcessorConfigs(ctx context.Context, cols []*mgmtv1alpha1.JobMapping, tableColumnInfo map[string]*dbschemas_utils.ColumnInfo) ([]*neosync_benthos.ProcessorConfig, error) {
-	jsCode, err := b.extractJsFunctionsAndOutputs(ctx, cols)
+func buildProcessorConfigs(ctx context.Context, transformerclient mgmtv1alpha1connect.TransformersServiceClient, cols []*mgmtv1alpha1.JobMapping, tableColumnInfo map[string]*dbschemas_utils.ColumnInfo) ([]*neosync_benthos.ProcessorConfig, error) {
+	jsCode, err := extractJsFunctionsAndOutputs(ctx, transformerclient, cols)
 	if err != nil {
 		return nil, err
 	}
 
-	mutations, err := b.buildMutationConfigs(ctx, cols, tableColumnInfo)
+	mutations, err := buildMutationConfigs(ctx, transformerclient, cols, tableColumnInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -1230,14 +1234,14 @@ func (b *benthosBuilder) buildProcessorConfigs(ctx context.Context, cols []*mgmt
 	return processorConfigs, err
 }
 
-func (b *benthosBuilder) extractJsFunctionsAndOutputs(ctx context.Context, cols []*mgmtv1alpha1.JobMapping) (string, error) {
+func extractJsFunctionsAndOutputs(ctx context.Context, transformerclient mgmtv1alpha1connect.TransformersServiceClient, cols []*mgmtv1alpha1.JobMapping) (string, error) {
 	var benthosOutputs []string
 	var jsFunctions []string
 
 	for _, col := range cols {
 		if shouldProcessColumn(col.Transformer) {
 			if _, ok := col.Transformer.Config.Config.(*mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig); ok {
-				val, err := b.convertUserDefinedFunctionConfig(ctx, col.Transformer)
+				val, err := convertUserDefinedFunctionConfig(ctx, transformerclient, col.Transformer)
 				if err != nil {
 					return "", errors.New("unable to look up user defined transformer config by id")
 				}
@@ -1260,7 +1264,12 @@ func (b *benthosBuilder) extractJsFunctionsAndOutputs(ctx context.Context, cols 
 	}
 }
 
-func (b *benthosBuilder) buildMutationConfigs(ctx context.Context, cols []*mgmtv1alpha1.JobMapping, tableColumnInfo map[string]*dbschemas_utils.ColumnInfo) (string, error) {
+func buildMutationConfigs(
+	ctx context.Context,
+	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
+	cols []*mgmtv1alpha1.JobMapping,
+	tableColumnInfo map[string]*dbschemas_utils.ColumnInfo,
+) (string, error) {
 	mutations := []string{}
 
 	for _, col := range cols {
@@ -1268,7 +1277,7 @@ func (b *benthosBuilder) buildMutationConfigs(ctx context.Context, cols []*mgmtv
 		if shouldProcessColumn(col.Transformer) {
 			if _, ok := col.Transformer.Config.Config.(*mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig); ok {
 				// handle user defined transformer -> get the user defined transformer configs using the id
-				val, err := b.convertUserDefinedFunctionConfig(ctx, col.Transformer)
+				val, err := convertUserDefinedFunctionConfig(ctx, transformerclient, col.Transformer)
 				if err != nil {
 					return "", errors.New("unable to look up user defined transformer config by id")
 				}
@@ -1327,8 +1336,12 @@ func constructBenthosOutput(col string) string {
 }
 
 // takes in an user defined config with just an id field and return the right transformer config for that user defined function id
-func (b *benthosBuilder) convertUserDefinedFunctionConfig(ctx context.Context, t *mgmtv1alpha1.JobMappingTransformer) (*mgmtv1alpha1.JobMappingTransformer, error) {
-	transformer, err := b.transformerclient.GetUserDefinedTransformerById(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserDefinedTransformerByIdRequest{TransformerId: t.Config.GetUserDefinedTransformerConfig().Id}))
+func convertUserDefinedFunctionConfig(
+	ctx context.Context,
+	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
+	t *mgmtv1alpha1.JobMappingTransformer,
+) (*mgmtv1alpha1.JobMappingTransformer, error) {
+	transformer, err := transformerclient.GetUserDefinedTransformerById(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserDefinedTransformerByIdRequest{TransformerId: t.Config.GetUserDefinedTransformerConfig().Id}))
 	if err != nil {
 		return nil, err
 	}
