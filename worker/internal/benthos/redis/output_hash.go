@@ -36,8 +36,6 @@ func redisHashOutputConfig() *service.ConfigSpec {
 				Description("Whether to walk each message as a JSON object and add each key/value pair to the list of hash fields to set.").
 				Default(false),
 			service.NewBloblangField(hoFieldFieldsMapping),
-			// 	Description("A map of key/value pairs to set as hash fields.").
-			// 	Default(map[string]any{}),
 			service.NewOutputMaxInFlightField(),
 		)
 }
@@ -162,11 +160,6 @@ func (r *redisHashWriter) Write(ctx context.Context, msg *service.Message) error
 			return err
 		}
 	}
-	// for k, v := range r.fields {
-	// 	if fields[k], err = v.TryString(msg); err != nil {
-	// 		return fmt.Errorf("field %v interpolation error: %w", k, err)
-	// 	}
-	// }
 
 	if r.fieldsMapping != nil {
 		mapMsg, err := msg.BloblangQuery(r.fieldsMapping)

@@ -18,6 +18,7 @@ import (
 
 	"github.com/spf13/viper"
 
+	_ "github.com/benthosdev/benthos/v4/public/components/redis"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -785,7 +786,7 @@ func (b *benthosBuilder) buildBranchCacheConfigs(ctx context.Context, cols []*mg
 				Processors: []neosync_benthos.ProcessorConfig{
 					{
 						Redis: &neosync_benthos.RedisProcessorConfig{
-							Url:         "tcp://default:zS9DdBnPsb@redis-master.redis.svc.cluster.local:6379",
+							Url:         "tcp://default:sszbTQN3Dm@redis-master.redis.svc.cluster.local:6379",
 							Command:     "hget",
 							ArgsMapping: fmt.Sprintf(`root = ["%s.%s.%s.%s", json("%s")]`, b.jobId, b.runId, fk.Table, fk.Column, col.Column),
 						},
