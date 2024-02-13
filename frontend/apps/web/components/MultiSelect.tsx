@@ -338,7 +338,7 @@ export const MultiSelect = React.forwardRef<
       >
         <div
           className={cn(
-            'group rounded-md border border-input px-3 py-1 text-sm ',
+            'group rounded-md border border-input px-3 py-1 h-9 text-sm focus-within:ring-1 focus-within:ring-gray-00',
             className
           )}
         >

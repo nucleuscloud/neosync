@@ -1,5 +1,5 @@
 'use client';
-import React, { ReactElement, useState } from 'react';
+import React, { ReactElement } from 'react';
 
 import {
   ColumnDef,
@@ -23,22 +23,15 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Transformer } from '@/shared/transformers';
-import {
-  JobMappingFormValues,
-  JobMappingTransformerForm,
-  SchemaFormValues,
-} from '@/yup-validations/jobs';
+import { JobMappingFormValues } from '@/yup-validations/jobs';
 import { SchemaTableToolbar } from './SchemaTableToolBar';
 
-import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useFormContext } from 'react-hook-form';
-import TransformerSelect from '../SchemaTable/TransformerSelect';
 
 export type Row = JobMappingFormValues & {
   formIdx: number;
@@ -55,11 +48,6 @@ export default function SchemaTableTest<TData, TValue>({
   data,
   transformers,
 }: DataTableProps<TData, TValue>): ReactElement {
-  const [bulkTransformer, setBulkTransformer] =
-    useState<JobMappingTransformerForm>({
-      source: '',
-      config: { case: '', value: {} },
-    });
   // const [columnVisibility, setColumnVisibility] =
   //   React.useState<VisibilityState>({ schema: false });
 
@@ -84,8 +72,6 @@ export default function SchemaTableTest<TData, TValue>({
 
   const tableContainerRef = React.useRef<HTMLDivElement>(null);
 
-  const form = useFormContext<SingleTableSchemaFormValues | SchemaFormValues>();
-
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
     estimateSize: () => 33,
@@ -100,30 +86,12 @@ export default function SchemaTableTest<TData, TValue>({
 
   return (
     <div>
-      <div className="pb-6 z-50 flex flex-col gap-2">
-        <div className="text-sm pb-10 ">
-          Use the Schema Table below to map your columns to Transformers.{' '}
-        </div>
-        <SchemaTableToolbar table={table} data={data} />
-        <div className="w-[250px]">
-          <TransformerSelect
-            transformers={transformers}
-            value={bulkTransformer}
-            side={'bottom'}
-            onSelect={(value) => {
-              table.getSelectedRowModel().rows.forEach((r) => {
-                form.setValue(`mappings.${r.index}.transformer`, value, {
-                  shouldDirty: true,
-                });
-              });
-              setBulkTransformer({
-                source: '',
-                config: { case: '', value: {} },
-              });
-            }}
-            placeholder="Bulk update Transformers..."
-          />
-        </div>
+      <div className="z-50">
+        <SchemaTableToolbar
+          table={table}
+          data={data}
+          transformers={transformers}
+        />
       </div>
       <div
         className="rounded-md border max-h-[500px] relative overflow-auto"
