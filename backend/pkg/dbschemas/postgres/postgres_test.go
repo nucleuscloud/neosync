@@ -111,7 +111,7 @@ func TestGenerateCreateTableStatement(t *testing.T) {
 			},
 			{
 				ColumnName:             "name",
-				DataType:               "varchar",
+				DataType:               "varchar(40)",
 				OrdinalPosition:        6,
 				IsNullable:             "YES",
 				CharacterMaximumLength: 40,

@@ -23,8 +23,8 @@ func GetTableCreateStatement(
 	var tableSchemas []*pg_queries.GetDatabaseTableSchemaRow
 	errgrp.Go(func() error {
 		result, err := q.GetDatabaseTableSchema(errctx, conn, &pg_queries.GetDatabaseTableSchemaParams{
-			TableSchema: schema,
-			TableName:   table,
+			Schema: schema,
+			Table:  table,
 		})
 		if err != nil {
 			return fmt.Errorf("unable to generate database table schema: %w", err)
@@ -80,27 +80,22 @@ func generateCreateTableStatement(
 
 func buildTableCol(record *pg_queries.GetDatabaseTableSchemaRow) string {
 	pieces := []string{record.ColumnName, buildDataType(record), buildNullableText(record)}
-	if record.ColumnDefault != "" && record.ColumnDefault != "NULL" {
-		if strings.HasPrefix(record.ColumnDefault, "nextval") && record.DataType == "integer" {
+	if record.ColumnDefault != nil && record.ColumnDefault != "" && record.ColumnDefault != "NULL" {
+		colDefault := record.ColumnDefault.(string)
+		if strings.HasPrefix(colDefault, "nextval") && record.DataType == "integer" {
 			pieces = []string{record.ColumnName, "SERIAL"}
+		} else if strings.HasPrefix(colDefault, "nextval") && record.DataType == "bigint" {
+			pieces = []string{record.ColumnName, "BIGSERIAL"}
+		} else if strings.HasPrefix(colDefault, "nextval") && record.DataType == "smallint" {
+			pieces = []string{record.ColumnName, "SMALLSERIAL"}
 		} else {
-			pieces = append(pieces, "DEFAULT", record.ColumnDefault)
+			pieces = append(pieces, "DEFAULT", colDefault)
 		}
 	}
-
 	return strings.Join(pieces, " ")
 }
 
 func buildDataType(record *pg_queries.GetDatabaseTableSchemaRow) string {
-	if strings.EqualFold(record.DataType, "numeric") && record.NumericPrecision > -1 && record.NumericScale > -1 {
-		return fmt.Sprintf("%s(%d,%d)", record.DataType, record.NumericPrecision, record.NumericScale)
-	}
-
-	if record.CharacterMaximumLength > 0 {
-		if strings.EqualFold(record.DataType, "character varying") || strings.EqualFold(record.DataType, "character") || strings.EqualFold(record.DataType, "varchar") || strings.EqualFold(record.DataType, "bpchar") {
-			return fmt.Sprintf("%s(%d)", record.DataType, record.CharacterMaximumLength)
-		}
-	}
 	return record.DataType
 }
 

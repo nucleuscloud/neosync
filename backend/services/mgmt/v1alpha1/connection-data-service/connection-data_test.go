@@ -450,8 +450,8 @@ func Test_GetConnectionInitStatements_Postgres(t *testing.T) {
 			},
 		}, nil)
 	m.PgQueierMock.On("GetDatabaseTableSchema", mock.Anything, mock.Anything, &pg_queries.GetDatabaseTableSchemaParams{
-		TableSchema: "public",
-		TableName:   "users",
+		Schema: "public",
+		Table:  "users",
 	}).Return([]*pg_queries.GetDatabaseTableSchemaRow{
 		{
 			ColumnName:      "id",
@@ -462,7 +462,7 @@ func Test_GetConnectionInitStatements_Postgres(t *testing.T) {
 		},
 		{
 			ColumnName:             "name",
-			DataType:               "varchar",
+			DataType:               "varchar(40)",
 			OrdinalPosition:        6,
 			IsNullable:             "YES",
 			CharacterMaximumLength: 40,
