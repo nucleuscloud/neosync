@@ -65,8 +65,7 @@
     "tailwindcss-animate": "^1.0.7",
     "use-resize-observer": "^9.1.0",
     "usehooks-ts": "^2.13.0",
-    "yup": "^1.3.2",
-    "zod": "^3.22.4"
+    "yup": "^1.3.2"
   },
   "devDependencies": {
     "@types/node": "20.11.16",
