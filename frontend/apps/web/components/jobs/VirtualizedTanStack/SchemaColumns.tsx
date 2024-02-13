@@ -108,6 +108,7 @@ export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
     },
     {
       accessorKey: 'transformer',
+      id: 'transformer',
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Transformer" />
       ),

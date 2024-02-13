@@ -27,6 +27,13 @@ import { Transformer } from '@/shared/transformers';
 import { JobMappingFormValues } from '@/yup-validations/jobs';
 import { SchemaTableToolbar } from './SchemaTableToolBar';
 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+
 export type Row = JobMappingFormValues & {
   formIdx: number;
 };
@@ -126,11 +133,9 @@ export default function SchemaTableTest<TData, TValue>({
                   ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
                   key={row.id}
                   style={{
-                    display: 'flex',
-                    position: 'absolute', // must be absolute or hits unlimited renders
                     transform: `translateY(${virtualRow.start}px)`,
                   }}
-                  className="items-center"
+                  className="items-center flex absolute"
                 >
                   {row.getVisibleCells().map((cell) => {
                     return (
@@ -139,10 +144,24 @@ export default function SchemaTableTest<TData, TValue>({
                         className="flex items-start px-6 py-2"
                         style={{ width: cell.column.columnDef.size }}
                       >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="truncate">
+                                {flexRender(
+                                  cell.column.columnDef.cell,
+                                  cell.getContext()
+                                )}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent
+                              className="w-auto p-2 z-50"
+                              side="right"
+                            >
+                              {getCellDisplayValue(cell.getValue())}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </td>
                     );
                   })}
@@ -155,3 +174,10 @@ export default function SchemaTableTest<TData, TValue>({
     </div>
   );
 }
+
+const getCellDisplayValue = (value: unknown): string => {
+  if (typeof value === 'object' && value !== null && 'source' in value) {
+    return (value as { source: unknown }).source as string;
+  }
+  return String(value);
+};
