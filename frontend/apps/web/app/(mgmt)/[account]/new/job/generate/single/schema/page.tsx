@@ -27,7 +27,7 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
-import { getErrorMessage } from '@/util/util';
+import { convertMinutesToNanoseconds, getErrorMessage } from '@/util/util';
 import {
   JobMappingFormValues,
   JobMappingTransformerForm,
@@ -37,6 +37,7 @@ import {
 } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
+  ActivityOptions,
   Connection,
   CreateJobRequest,
   CreateJobResponse,
@@ -49,6 +50,8 @@ import {
   JobMappingTransformer,
   JobSource,
   JobSourceOptions,
+  RetryPolicy,
+  WorkflowOptions,
 } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
@@ -352,6 +355,31 @@ async function createNewJob(
   const connectionIdMap = new Map(
     connections.map((connection) => [connection.id, connection])
   );
+  let workflowOptions: WorkflowOptions | undefined = undefined;
+  if (define.workflowSettings?.runTimeout) {
+    workflowOptions = new WorkflowOptions({
+      runTimeout: convertMinutesToNanoseconds(
+        define.workflowSettings.runTimeout
+      ),
+    });
+  }
+  let syncOptions: ActivityOptions | undefined = undefined;
+  if (define.syncActivityOptions) {
+    const formSyncOpts = define.syncActivityOptions;
+    syncOptions = new ActivityOptions({
+      scheduleToCloseTimeout:
+        formSyncOpts.scheduleToCloseTimeout !== undefined
+          ? convertMinutesToNanoseconds(formSyncOpts.scheduleToCloseTimeout)
+          : undefined,
+      startToCloseTimeout:
+        formSyncOpts.startToCloseTimeout !== undefined
+          ? convertMinutesToNanoseconds(formSyncOpts.startToCloseTimeout)
+          : undefined,
+      retryPolicy: new RetryPolicy({
+        maximumAttempts: formSyncOpts.retryPolicy?.maximumAttempts,
+      }),
+    });
+  }
   const body = new CreateJobRequest({
     accountId,
     jobName: define.jobName,
@@ -397,6 +425,8 @@ async function createNewJob(
         ),
       }),
     ],
+    workflowOptions: workflowOptions,
+    syncOptions: syncOptions,
   });
 
   const res = await fetch(`/api/accounts/${accountId}/jobs`, {

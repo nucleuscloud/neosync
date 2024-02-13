@@ -87,42 +87,6 @@ export const DEFINE_FORM_SCHEMA = Yup.object({
   workflowSettings: WorkflowSettingsSchema.optional(),
   syncActivityOptions: ActivityOptionsSchema.optional(),
 });
-// .test('sync-activ-opts-non-zero-schedule', '', function (value) {
-//   const { syncActivityOptions } = value;
-//   if (!syncActivityOptions) {
-//     return true;
-//   }
-//   const { scheduleToCloseTimeout, startToCloseTimeout } = syncActivityOptions;
-//   if (
-//     (scheduleToCloseTimeout === undefined &&
-//       startToCloseTimeout === undefined) ||
-//     (scheduleToCloseTimeout === 0 && startToCloseTimeout === 0)
-//   ) {
-//     return this.createError({
-//       path: 'syncActivityOptions.scheduleToCloseTimeout',
-//       message: 'at least one table sync timeout must be defined',
-//     });
-//   }
-//   return true;
-// })
-// .test('sync-activ-opts-non-zero-start', '', function (value) {
-//   const { syncActivityOptions } = value;
-//   if (!syncActivityOptions) {
-//     return true;
-//   }
-//   const { scheduleToCloseTimeout, startToCloseTimeout } = syncActivityOptions;
-//   if (
-//     (scheduleToCloseTimeout === undefined &&
-//       startToCloseTimeout === undefined) ||
-//     (scheduleToCloseTimeout === 0 && startToCloseTimeout === 0)
-//   ) {
-//     return this.createError({
-//       path: 'syncActivityOptions.startToCloseTimeout',
-//       message: 'at least one table sync timeout must be defined',
-//     });
-//   }
-//   return true;
-// });
 
 export type DefineFormValues = Yup.InferType<typeof DEFINE_FORM_SCHEMA>;
 
@@ -130,74 +94,78 @@ export const CONNECT_FORM_SCHEMA = SOURCE_FORM_SCHEMA.concat(
   Yup.object({
     destinations: Yup.array(DESTINATION_FORM_SCHEMA).required(),
   })
-).test('nick', 'nick is cool', function (value, ctx) {
-  const connections: Connection[] = ctx.options.context?.connections ?? [];
+).test(
+  'unique-connections',
+  'connections must be unique and type specific', // this message isn't exposed anywhere
+  function (value, ctx) {
+    const connections: Connection[] = ctx.options.context?.connections ?? [];
 
-  const destinationIds = value.destinations.map((dst) => dst.connectionId);
+    const destinationIds = value.destinations.map((dst) => dst.connectionId);
 
-  const errors: Yup.ValidationError[] = [];
+    const errors: Yup.ValidationError[] = [];
 
-  if (destinationIds.some((destId) => value.sourceId === destId)) {
-    errors.push(
-      ctx.createError({
-        path: 'sourceId',
-        message: 'Source must be different from destination',
-      })
-    );
-  }
+    if (destinationIds.some((destId) => value.sourceId === destId)) {
+      errors.push(
+        ctx.createError({
+          path: 'sourceId',
+          message: 'Source must be different from destination',
+        })
+      );
+    }
 
-  if (
-    destinationIds.some(
-      (destId) => !isValidConnectionPair(value.sourceId, destId, connections)
-    )
-  ) {
-    destinationIds.forEach((destId, idx) => {
-      if (!isValidConnectionPair(value.sourceId, destId, connections)) {
-        errors.push(
-          ctx.createError({
-            path: `destinations.${idx}.connectionId`,
-            message: `Destination connection type must be one of: ${getErrorConnectionTypes(
-              false,
-              value.sourceId,
-              connections
-            )}`,
-          })
-        );
-      }
-    });
-  }
-
-  if (destinationIds.length !== new Set(destinationIds).size) {
-    const valueIdxMap = new Map<string, number[]>();
-    destinationIds.forEach((dstId, idx) => {
-      const idxs = valueIdxMap.get(dstId);
-      if (idxs !== undefined) {
-        idxs.push(idx);
-      } else {
-        valueIdxMap.set(dstId, [idx]);
-      }
-    });
-
-    Array.from(valueIdxMap.values()).forEach((indices) => {
-      if (indices.length > 1) {
-        indices.forEach((idx) =>
+    if (
+      destinationIds.some(
+        (destId) => !isValidConnectionPair(value.sourceId, destId, connections)
+      )
+    ) {
+      destinationIds.forEach((destId, idx) => {
+        if (!isValidConnectionPair(value.sourceId, destId, connections)) {
           errors.push(
             ctx.createError({
               path: `destinations.${idx}.connectionId`,
-              message:
-                'Destination connections must be unique from one another',
+              message: `Destination connection type must be one of: ${getErrorConnectionTypes(
+                false,
+                value.sourceId,
+                connections
+              )}`,
             })
-          )
-        );
-      }
-    });
-  }
+          );
+        }
+      });
+    }
 
-  if (errors.length > 0) {
-    return new Yup.ValidationError(errors);
+    if (destinationIds.length !== new Set(destinationIds).size) {
+      const valueIdxMap = new Map<string, number[]>();
+      destinationIds.forEach((dstId, idx) => {
+        const idxs = valueIdxMap.get(dstId);
+        if (idxs !== undefined) {
+          idxs.push(idx);
+        } else {
+          valueIdxMap.set(dstId, [idx]);
+        }
+      });
+
+      Array.from(valueIdxMap.values()).forEach((indices) => {
+        if (indices.length > 1) {
+          indices.forEach((idx) =>
+            errors.push(
+              ctx.createError({
+                path: `destinations.${idx}.connectionId`,
+                message:
+                  'Destination connections must be unique from one another',
+              })
+            )
+          );
+        }
+      });
+    }
+
+    if (errors.length > 0) {
+      return new Yup.ValidationError(errors);
+    }
+    return true;
   }
-  return true;
-});
+);
 
 export type ConnectFormValues = Yup.InferType<typeof CONNECT_FORM_SCHEMA>;
 
