@@ -101,8 +101,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   }, [setShowSchedule, form]);
 
-  console.log(form.formState.errors);
-
   return (
     <div
       id="newjobdefine"
