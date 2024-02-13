@@ -74,7 +74,7 @@ func generateCreateTableStatement(
 		constraint := tableConstraints[idx]
 		constraints[idx] = fmt.Sprintf("CONSTRAINT %s %s", constraint.ConstraintName, constraint.ConstraintDefinition)
 	}
-	tableDefs := append(columns, constraints...) //nolint
+	tableDefs := append(columns, constraints...) //nolint:gocritic
 	return fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s.%s (%s);`, schema, table, strings.Join(tableDefs, ", "))
 }
 
@@ -83,11 +83,11 @@ func buildTableCol(record *pg_queries.GetDatabaseTableSchemaRow) string {
 	if record.ColumnDefault != nil && record.ColumnDefault != "" && record.ColumnDefault != "NULL" {
 		colDefault := record.ColumnDefault.(string)
 		if strings.HasPrefix(colDefault, "nextval") && record.DataType == "integer" {
-			pieces = []string{record.ColumnName, "SERIAL"}
+			pieces = []string{record.ColumnName, "SERIAL", buildNullableText(record)}
 		} else if strings.HasPrefix(colDefault, "nextval") && record.DataType == "bigint" {
-			pieces = []string{record.ColumnName, "BIGSERIAL"}
+			pieces = []string{record.ColumnName, "BIGSERIAL", buildNullableText(record)}
 		} else if strings.HasPrefix(colDefault, "nextval") && record.DataType == "smallint" {
-			pieces = []string{record.ColumnName, "SMALLSERIAL"}
+			pieces = []string{record.ColumnName, "SMALLSERIAL", buildNullableText(record)}
 		} else {
 			pieces = append(pieces, "DEFAULT", colDefault)
 		}
