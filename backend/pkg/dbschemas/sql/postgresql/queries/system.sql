@@ -3,9 +3,9 @@ SELECT
     n.nspname AS table_schema,
     c.relname AS table_name,
     a.attname AS column_name,
-    pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type,
+    pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type, -- This formats the type into something that should always be a valid postgres type. It also includes constraints if there are any
     COALESCE(
-        substring(pg_catalog.pg_get_expr(d.adbin, d.adrelid) for 128),
+        pg_catalog.pg_get_expr(d.adbin, d.adrelid),
         ''
     ) AS column_default,
     CASE
@@ -66,9 +66,9 @@ SELECT
     n.nspname AS schema_name,
     c.relname AS table_name,
     a.attname AS column_name,
-    pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type,
+    pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type,  -- This formats the type into something that should always be a valid postgres type. It also includes constraints if there are any
     COALESCE(
-        substring(pg_catalog.pg_get_expr(d.adbin, d.adrelid) for 128),
+        pg_catalog.pg_get_expr(d.adbin, d.adrelid),
         ''
     ) AS column_default,
     CASE
