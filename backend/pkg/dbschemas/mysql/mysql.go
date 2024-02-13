@@ -28,7 +28,7 @@ func GetTableCreateStatement(
 	result.CreateTable = strings.Replace(
 		result.CreateTable,
 		fmt.Sprintf("CREATE TABLE `%s`", req.Table),
-		fmt.Sprintf("CREATE TABLE %s", dbschemas.BuildTable(req.Schema, req.Table)),
+		fmt.Sprintf("CREATE TABLE %s", dbschemas.BuildTableWithEscape(req.Schema, req.Table)),
 		1, // do it once
 	)
 	split := strings.Split(result.CreateTable, "CREATE TABLE")
