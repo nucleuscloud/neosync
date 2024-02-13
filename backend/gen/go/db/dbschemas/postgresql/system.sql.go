@@ -14,9 +14,9 @@ SELECT
     n.nspname AS table_schema,
     c.relname AS table_name,
     a.attname AS column_name,
-    pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type,
+    pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type, -- This formats the type into something that should always be a valid postgres type. It also includes constraints if there are any
     COALESCE(
-        substring(pg_catalog.pg_get_expr(d.adbin, d.adrelid) for 128),
+        pg_catalog.pg_get_expr(d.adbin, d.adrelid),
         ''
     ) AS column_default,
     CASE
@@ -25,13 +25,15 @@ SELECT
     END AS is_nullable,
     CASE
         WHEN pg_catalog.format_type(a.atttypid, a.atttypmod) LIKE 'character varying%' THEN
-            a.atttypmod - 4
+            a.atttypmod - 4 -- The -4 removes the extra bits that postgres uses for internal use
         ELSE
             -1
     END AS character_maximum_length,
     CASE
         WHEN a.atttypid = pg_catalog.regtype 'numeric'::regtype THEN
             (a.atttypmod - 4) >> 16
+        -- Precision is technically only necessary for numeric values, but we are populating these here for simplicity in knowing what the type of integer is.
+        -- This operates similar to the precision column in the information_schema.columns table
         WHEN a.atttypid = pg_catalog.regtype 'smallint'::regtype THEN
             16
         WHEN a.atttypid = pg_catalog.regtype 'integer'::regtype THEN
@@ -44,6 +46,8 @@ SELECT
     CASE
         WHEN a.atttypid = pg_catalog.regtype 'numeric'::regtype THEN
             (a.atttypmod - 4) & 65535
+        -- Scale is technically only necessary for numeric values, but we are populating these here for simplicity in knowing what the type of integer is.
+        -- This operates similar to the scake column in the information_schema.columns table
         WHEN a.atttypid = pg_catalog.regtype 'smallint'::regtype THEN
             0
         WHEN a.atttypid = pg_catalog.regtype 'integer'::regtype THEN
@@ -118,9 +122,9 @@ SELECT
     n.nspname AS schema_name,
     c.relname AS table_name,
     a.attname AS column_name,
-    pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type,
+    pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type,  -- This formats the type into something that should always be a valid postgres type. It also includes constraints if there are any
     COALESCE(
-        substring(pg_catalog.pg_get_expr(d.adbin, d.adrelid) for 128),
+        pg_catalog.pg_get_expr(d.adbin, d.adrelid),
         ''
     ) AS column_default,
     CASE
@@ -129,13 +133,15 @@ SELECT
     END AS is_nullable,
     CASE
         WHEN pg_catalog.format_type(a.atttypid, a.atttypmod) LIKE 'character varying%' THEN
-            a.atttypmod - 4
+            a.atttypmod - 4 -- The -4 removes the extra bits that postgres uses for internal use
         ELSE
             -1
     END AS character_maximum_length,
     CASE
         WHEN a.atttypid = pg_catalog.regtype 'numeric'::regtype THEN
             (a.atttypmod - 4) >> 16
+        -- Precision is technically only necessary for numeric values, but we are populating these here for simplicity in knowing what the type of integer is.
+        -- This operates similar to the precision column in the information_schema.columns table
         WHEN a.atttypid = pg_catalog.regtype 'smallint'::regtype THEN
             16
         WHEN a.atttypid = pg_catalog.regtype 'integer'::regtype THEN
@@ -148,6 +154,8 @@ SELECT
     CASE
         WHEN a.atttypid = pg_catalog.regtype 'numeric'::regtype THEN
             (a.atttypmod - 4) & 65535
+        -- Scale is technically only necessary for numeric values, but we are populating these here for simplicity in knowing what the type of integer is.
+        -- This operates similar to the scake column in the information_schema.columns table
         WHEN a.atttypid = pg_catalog.regtype 'smallint'::regtype THEN
             0
         WHEN a.atttypid = pg_catalog.regtype 'integer'::regtype THEN
