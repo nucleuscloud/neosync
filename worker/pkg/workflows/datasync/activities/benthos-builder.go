@@ -348,14 +348,20 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			for col := range constraints {
 				transformer := colTransformerMap[tableKey][col]
 				if shouldProcessColumn(transformer) {
+					hashKey := fmt.Sprintf(`%s.%s.%s.%s`, b.jobId, b.runId, tableKey, col)
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-						RedisHashTest: &neosync_benthos.RedisHashTestConfig{
-							Url:            "tcp://default:sszbTQN3Dm@redis-master.redis.svc.cluster.local:6379",
-							Key:            fmt.Sprintf(`%s.%s.%s.%s`, b.jobId, b.runId, tableKey, col),
+						RedisHashOutput: &neosync_benthos.RedisHashOutputConfig{
+							Url:            "tcp://default:pKycbtEGYG@redis-master.redis.svc.cluster.local:6379",
+							Key:            hashKey,
 							FieldsMapping:  fmt.Sprintf(`root = {meta("neosync_%s"): json("%s")}`, col, col), // map of original value to transformed value
 							WalkMetadata:   false,
 							WalkJsonObject: false,
 						},
+					})
+					resp.RedisConfig = append(resp.RedisConfig, &BenthosRedisConfig{
+						Key:    hashKey,
+						Table:  tableKey,
+						Column: col,
 					})
 				}
 			}
@@ -388,7 +394,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					})
 					if resp.updateConfig != nil {
 						// circular dependency -> create update benthos config
-						updateResp, err := b.createSqlUpdateBenthosConfig(ctx, resp, dsn, tableKey, tm, colSourceMap, groupedColInfoMap)
+						updateResp, err := b.createSqlUpdateBenthosConfig(ctx, resp, dsn, tableKey, tm, colSourceMap, groupedColInfoMap, tableConstraintsSource[neosync_benthos.BuildBenthosTable(resp.TableSchema, resp.TableName)])
 						if err != nil {
 							return nil, err
 						}
@@ -447,7 +453,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					})
 					if resp.updateConfig != nil {
 						// circular dependency -> create update benthos config
-						updateResp, err := b.createSqlUpdateBenthosConfig(ctx, resp, dsn, tableKey, tm, colSourceMap, groupedColInfoMap)
+						updateResp, err := b.createSqlUpdateBenthosConfig(ctx, resp, dsn, tableKey, tm, colSourceMap, groupedColInfoMap, tableConstraintsSource[neosync_benthos.BuildBenthosTable(resp.TableSchema, resp.TableName)])
 						if err != nil {
 							return nil, err
 						}
@@ -866,6 +872,7 @@ func (b *benthosBuilder) createSqlUpdateBenthosConfig(
 	tm *TableMapping,
 	colSourceMap map[string]string,
 	groupedColInfo map[string]map[string]*dbschemas_utils.ColumnInfo,
+	fkMap map[string]*dbschemas_utils.ForeignKey,
 ) (*BenthosConfigResponse, error) {
 	driver := insertConfig.Config.Input.SqlSelect.Driver
 	sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(
@@ -884,8 +891,32 @@ func (b *benthosBuilder) createSqlUpdateBenthosConfig(
 
 	if len(sourceResponses) > 0 {
 		newResp := sourceResponses[0]
+
+		// create processor
+		if insertConfig.updateConfig != nil && insertConfig.updateConfig.Columns != nil && insertConfig.updateConfig.Columns.Include != nil {
+			processorConfigs := []neosync_benthos.ProcessorConfig{}
+			for pkCol, fk := range fkMap {
+
+				if hasTransformer(colSourceMap[pkCol]) && slices.Contains(insertConfig.updateConfig.Columns.Include, fk.Column) {
+					// circular dependent foreign key
+					requestMap := fmt.Sprintf(`root = if this.%s == null { deleted() } else { this }`, fk.Column)
+					argsMapping := fmt.Sprintf(`root = ["%s.%s.%s.%s", json("%s")]`, b.jobId, b.runId, fk.Table, pkCol, fk.Column)
+					resultMap := fmt.Sprintf("root.%s = this", fk.Column)
+					fkBranch := b.buildRedisGetBranchConfig(resultMap, argsMapping, &requestMap)
+					processorConfigs = append(processorConfigs, neosync_benthos.ProcessorConfig{Branch: fkBranch})
+
+					// primary key
+					pkRequestMap := fmt.Sprintf(`root = if this.%s == null { deleted() } else { this }`, pkCol)
+					pkArgsMapping := fmt.Sprintf(`root = ["%s.%s.%s.%s", json("%s")]`, b.jobId, b.runId, fk.Table, pkCol, pkCol)
+					pkResultMap := fmt.Sprintf("root.%s = this", pkCol)
+					pkBranch := b.buildRedisGetBranchConfig(pkResultMap, pkArgsMapping, &pkRequestMap)
+					processorConfigs = append(processorConfigs, neosync_benthos.ProcessorConfig{Branch: pkBranch})
+				}
+			}
+			newResp.Config.StreamConfig.Pipeline.Processors = processorConfigs
+		}
+
 		newResp.Config.Input.SqlSelect.Where = insertConfig.Config.Input.SqlSelect.Where // keep the where clause the same as insert
-		newResp.Config.Pipeline = insertConfig.Config.Pipeline                           // keep processors the same as insert
 		newResp.updateConfig = insertConfig.updateConfig
 		newResp.DependsOn = insertConfig.updateConfig.DependsOn
 		newResp.Name = fmt.Sprintf("%s.update", insertConfig.Name)
@@ -917,4 +948,9 @@ func (b *benthosBuilder) createSqlUpdateBenthosConfig(
 		return newResp, nil
 	}
 	return nil, errors.New("unable to build sql update benthos config")
+}
+
+func hasTransformer(t string) bool {
+	return t != "" &&
+		t != "passthrough"
 }

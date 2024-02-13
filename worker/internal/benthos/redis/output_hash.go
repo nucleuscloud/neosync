@@ -42,7 +42,7 @@ func redisHashOutputConfig() *service.ConfigSpec {
 
 func init() {
 	err := service.RegisterOutput(
-		"redis_hash_test", redisHashOutputConfig(),
+		"redis_hash_output", redisHashOutputConfig(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (out service.Output, maxInFlight int, err error) {
 			if maxInFlight, err = conf.FieldMaxInFlight(); err != nil {
 				return

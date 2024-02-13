@@ -444,3 +444,37 @@ func Test_isConfigReady(t *testing.T) {
 		"not all dependencies columns are finished",
 	)
 }
+
+func Test_isReadyForCleanUp(t *testing.T) {
+	assert.True(t, isReadyForCleanUp("", "", nil), "no dependencies")
+
+	assert.False(
+		t,
+		isReadyForCleanUp(
+			"table",
+			"col",
+			map[string][]*tabledependency.DependsOn{
+				"config": {{
+					Table:   "table",
+					Columns: []string{"col"},
+				}},
+			},
+		),
+		"has dependency",
+	)
+
+	assert.True(
+		t,
+		isReadyForCleanUp(
+			"table",
+			"col",
+			map[string][]*tabledependency.DependsOn{
+				"config": {{
+					Table:   "table",
+					Columns: []string{"col1"},
+				}},
+			},
+		),
+		"has dependency",
+	)
+}
