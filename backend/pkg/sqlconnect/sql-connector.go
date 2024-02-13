@@ -280,7 +280,7 @@ func getGeneralDbConnectionConfigFromMysql(config *mgmtv1alpha1.ConnectionConfig
 	case *mgmtv1alpha1.MysqlConnectionConfig_Connection:
 		query := url.Values{}
 		if connectionTimeout != nil {
-			query.Add("timeout", fmt.Sprintf("%d", *connectionTimeout))
+			query.Add("timeout", fmt.Sprintf("%ds", *connectionTimeout))
 		}
 		return &GeneralDbConnectConfig{
 			Driver:      mysqlDriver,

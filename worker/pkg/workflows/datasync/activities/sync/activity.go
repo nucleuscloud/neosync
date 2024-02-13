@@ -84,14 +84,14 @@ func Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata, workflo
 		errgrp.Go(func() error {
 			resp, err := connclient.GetConnection(errctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{Id: bdns.ConnectionId}))
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to retrieve connection: %w", err)
 			}
 			connections[idx] = resp.Msg.Connection
 			return nil
 		})
 	}
 	if err := errgrp.Wait(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to retrieve all or some connections: %w", err)
 	}
 
 	envKeyDsnSyncMap := sync.Map{}

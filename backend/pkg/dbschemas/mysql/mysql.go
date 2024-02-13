@@ -25,6 +25,12 @@ func GetTableCreateStatement(
 	if err != nil {
 		return "", fmt.Errorf("unable to get table create statement: %w", err)
 	}
+	result.CreateTable = strings.Replace(
+		result.CreateTable,
+		fmt.Sprintf("CREATE TABLE `%s`", req.Table),
+		fmt.Sprintf("CREATE TABLE %s", dbschemas.BuildTableWithEscape(req.Schema, req.Table)),
+		1, // do it once
+	)
 	split := strings.Split(result.CreateTable, "CREATE TABLE")
 	return fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s;", split[1]), nil
 }
