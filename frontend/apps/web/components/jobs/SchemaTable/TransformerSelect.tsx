@@ -26,15 +26,20 @@ import {
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 
+type Side = (typeof SIDE_OPTIONS)[number];
+
+export var SIDE_OPTIONS: readonly ['top', 'right', 'bottom', 'left'];
+
 interface Props {
   transformers: Transformer[];
   value: JobMappingTransformerForm;
   onSelect(value: JobMappingTransformerForm): void;
   placeholder: string;
+  side: Side;
 }
 
 export default function TransformerSelect(props: Props): ReactElement {
-  const { transformers, value, onSelect, placeholder } = props;
+  const { transformers, value, onSelect, placeholder, side } = props;
   const [open, setOpen] = useState(false);
 
   const udfTransformers = transformers.filter(isUserDefinedTransformer);
@@ -56,7 +61,7 @@ export default function TransformerSelect(props: Props): ReactElement {
               : 'justify-between w-[175px]'
           )}
         >
-          <div className="whitespace-nowrap truncate w-[175px]">
+          <div className="whitespace-nowrap truncate w-[200px]">
             {getPopoverTriggerButtonText(
               value,
               udfTransformerMap,
@@ -70,7 +75,7 @@ export default function TransformerSelect(props: Props): ReactElement {
       <PopoverContent
         className="w-[350px] p-0"
         avoidCollisions={false}
-        side="left"
+        side={side}
       >
         <Command>
           <CommandInput placeholder={placeholder} />

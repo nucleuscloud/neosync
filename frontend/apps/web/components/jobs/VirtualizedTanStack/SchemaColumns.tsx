@@ -141,6 +141,7 @@ export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
                             value={fv}
                             onSelect={field.onChange}
                             placeholder="Select Transformer..."
+                            side={'left'}
                           />
                         </div>
                         <EditTransformerOptions

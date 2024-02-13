@@ -1,9 +1,8 @@
 'use client';
-import React, { ReactElement } from 'react';
+import React, { ReactElement, useState } from 'react';
 
 import {
   ColumnDef,
-  ColumnFiltersState,
   flexRender,
   getCoreRowModel,
   getFacetedMinMaxValues,
@@ -24,15 +23,22 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Transformer } from '@/shared/transformers';
-import { JobMappingFormValues } from '@/yup-validations/jobs';
+import {
+  JobMappingFormValues,
+  JobMappingTransformerForm,
+  SchemaFormValues,
+} from '@/yup-validations/jobs';
 import { SchemaTableToolbar } from './SchemaTableToolBar';
 
+import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useFormContext } from 'react-hook-form';
+import TransformerSelect from '../SchemaTable/TransformerSelect';
 
 export type Row = JobMappingFormValues & {
   formIdx: number;
@@ -47,10 +53,13 @@ interface DataTableProps<TData, TValue> {
 export default function SchemaTableTest<TData, TValue>({
   columns,
   data,
+  transformers,
 }: DataTableProps<TData, TValue>): ReactElement {
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  );
+  const [bulkTransformer, setBulkTransformer] =
+    useState<JobMappingTransformerForm>({
+      source: '',
+      config: { case: '', value: {} },
+    });
   // const [columnVisibility, setColumnVisibility] =
   //   React.useState<VisibilityState>({ schema: false });
 
@@ -58,10 +67,9 @@ export default function SchemaTableTest<TData, TValue>({
     data,
     columns,
     state: {
-      columnFilters,
       // columnVisibility,
     },
-    onColumnFiltersChange: setColumnFilters,
+
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -76,6 +84,8 @@ export default function SchemaTableTest<TData, TValue>({
 
   const tableContainerRef = React.useRef<HTMLDivElement>(null);
 
+  const form = useFormContext<SingleTableSchemaFormValues | SchemaFormValues>();
+
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
     estimateSize: () => 33,
@@ -89,9 +99,31 @@ export default function SchemaTableTest<TData, TValue>({
   });
 
   return (
-    <div className="app">
-      <div className="pb-6 z-50">
+    <div>
+      <div className="pb-6 z-50 flex flex-col gap-2">
+        <div className="text-sm pb-10 ">
+          Use the Schema Table below to map your columns to Transformers.{' '}
+        </div>
         <SchemaTableToolbar table={table} data={data} />
+        <div className="w-[250px]">
+          <TransformerSelect
+            transformers={transformers}
+            value={bulkTransformer}
+            side={'bottom'}
+            onSelect={(value) => {
+              table.getSelectedRowModel().rows.forEach((r) => {
+                form.setValue(`mappings.${r.index}.transformer`, value, {
+                  shouldDirty: true,
+                });
+              });
+              setBulkTransformer({
+                source: '',
+                config: { case: '', value: {} },
+              });
+            }}
+            placeholder="Bulk update Transformers..."
+          />
+        </div>
       </div>
       <div
         className="rounded-md border max-h-[500px] relative overflow-auto"
@@ -176,7 +208,12 @@ export default function SchemaTableTest<TData, TValue>({
 }
 
 const getCellDisplayValue = (value: unknown): string => {
-  if (typeof value === 'object' && value !== null && 'source' in value) {
+  if (
+    typeof value === 'object' &&
+    value !== null &&
+    'source' in value &&
+    value != undefined
+  ) {
     return (value as { source: unknown }).source as string;
   }
   return String(value);

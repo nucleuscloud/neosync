@@ -128,6 +128,7 @@ function removePickedOption(groupOption: GroupOption, picked: Option[]) {
   return cloneOption;
 }
 
+// using the multi-select component from here: https://shadcnui-expansions.typeart.cc/docs/multiple-selector
 export const MultiSelect = React.forwardRef<
   MultipleSelectorRef,
   MultipleSelectorProps

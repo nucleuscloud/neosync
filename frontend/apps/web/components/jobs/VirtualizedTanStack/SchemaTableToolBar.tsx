@@ -34,13 +34,25 @@ export function SchemaTableToolbar<TData>({
   const handleMultiSelectChange = (selectedOptions: Option[]) => {
     setSelectedOptions(selectedOptions);
     const filteredValues = selectedOptions.map((option) => option.value);
-    table.getColumn('schema')?.setFilterValue(filteredValues);
+    if (filteredValues.length > 0) {
+      table.getColumn('schema')?.setFilterValue(filteredValues);
+    } else {
+      table.getColumn('schema')?.setFilterValue(undefined);
+    }
   };
 
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
         <div className="w-[150px] lg:w-[650px] z-50 flex flex-col">
+          <div className="text-xs text-gray-600 dark:text-300">
+            Total rows: ({new Intl.NumberFormat('en-US').format(data.length)})
+            Rows visible: (
+            {new Intl.NumberFormat('en-US').format(
+              table.getRowModel().rows.length
+            )}
+            )
+          </div>
           <MultiSelect
             defaultOptions={schemaValues}
             placeholder="Filter by schema(s)..."
@@ -55,14 +67,6 @@ export function SchemaTableToolbar<TData>({
               handleMultiSelectChange(selectedOptions)
             }
           />
-          <div className="text-xs text-gray-600 dark:text-300">
-            Total rows: ({new Intl.NumberFormat('en-US').format(data.length)})
-            Rows visible: (
-            {new Intl.NumberFormat('en-US').format(
-              table.getRowModel().rows.length
-            )}
-            )
-          </div>
         </div>
       </div>
       <div className="flex flex-row gap-2 pb-2">
