@@ -29,7 +29,7 @@ import { Connection } from '@neosync/sdk';
 import { Cross2Icon, PlusIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect } from 'react';
-import { UseFormReturn, useFieldArray, useForm } from 'react-hook-form';
+import { useFieldArray, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import DestinationOptionsForm from '../../../../../../components/jobs/Form/DestinationOptionsForm';
@@ -57,10 +57,16 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     destinations: [{ connectionId: '', destinationOptions: {} }],
   });
 
+  const { isLoading: isConnectionsLoading, data: connectionsData } =
+    useGetConnections(account?.id ?? '');
+
+  const connections = connectionsData?.connections ?? [];
+
   const form = useForm<ConnectFormValues>({
     mode: 'onChange',
     resolver: yupResolver<ConnectFormValues>(CONNECT_FORM_SCHEMA),
     values: defaultValues,
+    context: { connections },
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -73,16 +79,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     setValue: form.setValue,
     storage: isBrowser() ? window.sessionStorage : undefined,
   });
-  const { isLoading: isConnectionsLoading, data: connectionsData } =
-    useGetConnections(account?.id ?? '');
-
-  const connections = connectionsData?.connections ?? [];
 
   async function onSubmit(_values: ConnectFormValues) {
     router.push(`/${account?.name}/new/job/schema?sessionId=${sessionPrefix}`);
   }
 
   const { postgres, mysql, s3 } = splitConnections(connections);
+
+  console.log(form.formState.errors);
 
   return (
     <div
@@ -130,6 +134,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                         <Skeleton className="w-full h-12 rounded-lg" />
                       ) : (
                         <Select
+                          name={field.name}
+                          disabled={field.disabled}
                           onValueChange={(value: string) => {
                             if (!value) {
                               return;
@@ -147,13 +153,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                             form.setValue('sourceOptions', {
                               haltOnNewColumnAddition: false,
                             });
-                            // clear form state for source+dst connection ids and re-evaluate the form state
-                            handleConnectionValidation(form, connections);
                           }}
                           value={field.value}
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder="Select a source ..." />
+                            <SelectValue
+                              ref={field.ref}
+                              placeholder="Select a source ..."
+                            />
                           </SelectTrigger>
                           <SelectContent>
                             <ConnectionSelectContent
@@ -192,9 +199,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               </p>
             </div>
             <div className="space-y-12 col-span-2">
-              {fields.map((_, index) => {
+              {fields.map((val, index) => {
                 return (
-                  <div className="space-y-4 col-span-2" key={index}>
+                  <div className="space-y-4 col-span-2" key={val.id}>
                     <div className="flex flew-row space-x-4">
                       <div className="basis-11/12">
                         <FormField
@@ -207,6 +214,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   <Skeleton className="w-full h-12 rounded-lg" />
                                 ) : (
                                   <Select
+                                    name={field.name}
+                                    disabled={field.disabled}
                                     onValueChange={(value: string) => {
                                       if (!value) {
                                         return;
@@ -220,6 +229,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                         return;
                                       }
                                       // set values
+                                      field.onChange(value);
                                       form.setValue(
                                         `destinations.${index}.destinationOptions`,
                                         {
@@ -228,18 +238,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                           initTableSchema: false,
                                         }
                                       );
-                                      field.onChange(value);
-
-                                      // clear form state for source+dst connection ids and re-evaluate the form state
-                                      handleConnectionValidation(
-                                        form,
-                                        connections
-                                      );
                                     }}
                                     value={field.value}
                                   >
                                     <SelectTrigger>
-                                      <SelectValue placeholder="Select a destination ..." />
+                                      <SelectValue
+                                        ref={field.ref}
+                                        placeholder="Select a destination ..."
+                                      />
                                     </SelectTrigger>
                                     <SelectContent>
                                       <ConnectionSelectContent
@@ -417,139 +423,4 @@ function ConnectionSelectContent(
       </SelectItem>
     </>
   );
-}
-
-function getErrorConnectionTypes(
-  isSource: boolean,
-  connId: string,
-  connections: Connection[]
-): string {
-  const conn = connections.find((c) => c.id === connId);
-  if (!conn) {
-    return isSource ? '[Postgres, Mysql]' : '[Postgres, Mysql, AWS S3]';
-  }
-  if (conn.connectionConfig?.config.case === 'awsS3Config') {
-    return '[Mysql, Postgres]';
-  }
-  if (conn.connectionConfig?.config.case === 'mysqlConfig') {
-    return isSource ? '[Postgres]' : '[Mysql, AWS S3]';
-  }
-
-  if (conn.connectionConfig?.config.case === 'pgConfig') {
-    return isSource ? '[Mysql]' : '[Postgres, AWS S3]';
-  }
-  return '';
-}
-
-function isValidConnectionPair(
-  connId1: string,
-  connId2: string,
-  connections: Connection[]
-): boolean {
-  const conn1 = connections.find((c) => c.id === connId1);
-  const conn2 = connections.find((c) => c.id === connId2);
-
-  if (!conn1 || !conn2) {
-    return true;
-  }
-  if (
-    conn1.connectionConfig?.config.case === 'awsS3Config' ||
-    conn2.connectionConfig?.config.case === 'awsS3Config'
-  ) {
-    return true;
-  }
-
-  if (
-    conn1.connectionConfig?.config.case === conn2.connectionConfig?.config.case
-  ) {
-    return true;
-  }
-
-  return false;
-}
-
-function handleConnectionValidation(
-  form: UseFormReturn<ConnectFormValues>,
-  connections: Connection[]
-): void {
-  // clear source error before re-evaluation
-  form.clearErrors('sourceId');
-
-  const sourceId = form.getValues('sourceId');
-
-  const destinationIds = form
-    .getValues('destinations')
-    .map((d) => d.connectionId);
-
-  // initially reset the destinationIds state
-  destinationIds.forEach((_, idx) =>
-    form.clearErrors(`destinations.${idx}.connectionId`)
-  );
-
-  // check to make sure that source->destination are unique
-  if (destinationIds.some((id) => id === sourceId)) {
-    // for whatever reason this only propagates if the destination is what triggers the error
-    // at one point it worked and then it mystically stopped working, but overall it seems to still get the point across
-    // to the user
-    // if you console log the form state, it does set the sourceId error, but then it will unset it for some reason
-    form.setError(`sourceId`, {
-      type: 'string',
-      message: 'Source must be different from destination',
-    });
-    destinationIds.forEach((did, idx) => {
-      if (did === sourceId) {
-        form.setError(`destinations.${idx}.connectionId`, {
-          type: 'string',
-          message: 'Destination must be different from the source',
-        });
-      }
-    });
-    return;
-  }
-
-  // check to make sure all source->destination pairs of valid
-  if (
-    destinationIds.some(
-      (did) => !isValidConnectionPair(sourceId, did, connections)
-    )
-  ) {
-    // set the error on any of the destinations that are invalid
-    destinationIds.forEach((did, idx) => {
-      if (!isValidConnectionPair(sourceId, did, connections)) {
-        form.setError(`destinations.${idx}.connectionId`, {
-          type: 'string',
-          message: `Destination connection type must one of ${getErrorConnectionTypes(
-            false,
-            sourceId,
-            connections
-          )}`,
-        });
-      }
-    });
-    return;
-  }
-
-  // check to make sure that all destination ids are unique
-  if (destinationIds.length !== new Set(destinationIds).size) {
-    const valueIdxMap = new Map<string, number[]>();
-    destinationIds.forEach((dstId, idx) => {
-      const idxs = valueIdxMap.get(dstId);
-      if (idxs !== undefined) {
-        idxs.push(idx);
-      } else {
-        valueIdxMap.set(dstId, [idx]);
-      }
-    });
-
-    Array.from(valueIdxMap.values()).forEach((indices) => {
-      if (indices.length > 1) {
-        indices.forEach((idx) =>
-          form.setError(`destinations.${idx}.connectionId`, {
-            type: 'string',
-            message: 'Destination connections must be unique from one another',
-          })
-        );
-      }
-    });
-  }
 }

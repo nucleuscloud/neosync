@@ -31,17 +31,7 @@ import {
 } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
-import * as Yup from 'yup';
-
-const ACTIVITY_OPTIONS_SCHEMA = Yup.object({
-  scheduleToCloseTimeout: Yup.number().optional().min(0),
-  startToCloseTimeout: Yup.number().optional().min(0),
-  retryPolicy: Yup.object({
-    maximumAttempts: Yup.number().optional().min(0),
-  }),
-});
-
-type FormValues = Yup.InferType<typeof ACTIVITY_OPTIONS_SCHEMA>;
+import { ActivityOptionsSchema } from '../../../new/job/schema';
 
 interface Props {
   job: Job;
@@ -53,9 +43,9 @@ export default function ActivitySyncOptionsCard({
   mutate,
 }: Props): ReactElement {
   const { toast } = useToast();
-  const form = useForm<FormValues>({
+  const form = useForm<ActivityOptionsSchema>({
     mode: 'onChange',
-    resolver: yupResolver<FormValues>(ACTIVITY_OPTIONS_SCHEMA),
+    resolver: yupResolver<ActivityOptionsSchema>(ActivityOptionsSchema),
     values: {
       scheduleToCloseTimeout: job?.syncOptions?.scheduleToCloseTimeout
         ? convertNanosecondsToMinutes(job.syncOptions.scheduleToCloseTimeout)
@@ -70,7 +60,7 @@ export default function ActivitySyncOptionsCard({
   });
   const { account } = useAccount();
 
-  async function onSubmit(values: FormValues) {
+  async function onSubmit(values: ActivityOptionsSchema) {
     if (!account?.id) {
       return;
     }
@@ -109,12 +99,12 @@ export default function ActivitySyncOptionsCard({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent className="space-y-6">
-            <div className="flex flex-row gap-3 justify-between">
+            <div className="flex flex-col md:flex-row gap-3 justify-between">
               <FormField
                 control={form.control}
                 name="startToCloseTimeout"
                 render={({ field }) => (
-                  <FormItem className="w-1/2 flex flex-col gap-2 justify-between space-y-0">
+                  <FormItem className="w-full md:w-1/2 flex flex-col gap-2 justify-between space-y-0">
                     <div>
                       <FormLabel>Table Sync Timeout</FormLabel>
                       <FormDescription>
@@ -143,12 +133,12 @@ export default function ActivitySyncOptionsCard({
                 control={form.control}
                 name="scheduleToCloseTimeout"
                 render={({ field }) => (
-                  <FormItem className="w-1/2 flex flex-col gap-2 justify-between space-y-0">
+                  <FormItem className="w-full md:w-1/2 flex flex-col gap-2 justify-between space-y-0">
                     <div>
                       <FormLabel>Max Table Timeout including retries</FormLabel>
                       <FormDescription>
-                        Total time in minutes that the table sync is allowed to
-                        run, including retires. 0 means no timeout.
+                        Total time in minutes that a single table sync is
+                        allowed to run, including retires. 0 means no timeout.
                       </FormDescription>
                     </div>
                     <FormControl>
@@ -180,7 +170,7 @@ export default function ActivitySyncOptionsCard({
                       Maximum number of attempts. When exceeded the retries stop
                       even if not expired yet. If not set or set to 0, it means
                       unlimited, and relies on activity the max table timeout
-                      including retries to know when to stop. to stop.
+                      including retries to know when to stop.
                     </FormDescription>
                     <FormControl>
                       <Input
@@ -214,7 +204,7 @@ export default function ActivitySyncOptionsCard({
 async function updateJobSyncActivityOptions(
   accountId: string,
   jobId: string,
-  values: FormValues
+  values: ActivityOptionsSchema
 ): Promise<SetJobWorkflowOptionsResponse> {
   const res = await fetch(
     `/api/accounts/${accountId}/jobs/${jobId}/syncoptions`,
@@ -238,7 +228,7 @@ async function updateJobSyncActivityOptions(
                 ? convertMinutesToNanoseconds(values.scheduleToCloseTimeout)
                 : undefined,
             retryPolicy: new RetryPolicy({
-              maximumAttempts: values.retryPolicy.maximumAttempts,
+              maximumAttempts: values.retryPolicy?.maximumAttempts,
             }),
           }),
         })

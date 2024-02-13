@@ -16,7 +16,7 @@ import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
-import { getErrorMessage } from '@/util/util';
+import { convertMinutesToNanoseconds, getErrorMessage } from '@/util/util';
 import {
   SchemaFormValues,
   convertJobMappingTransformerFormToJobMappingTransformer,
@@ -24,6 +24,7 @@ import {
 } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
+  ActivityOptions,
   Connection,
   CreateJobRequest,
   CreateJobResponse,
@@ -33,6 +34,8 @@ import {
   JobSourceOptions,
   MysqlSourceConnectionOptions,
   PostgresSourceConnectionOptions,
+  RetryPolicy,
+  WorkflowOptions,
 } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useState } from 'react';
@@ -296,6 +299,32 @@ async function createNewJob(
     (c) => c.id === formData.connect.sourceId
   );
 
+  let workflowOptions: WorkflowOptions | undefined = undefined;
+  if (formData.define.workflowSettings?.runTimeout) {
+    workflowOptions = new WorkflowOptions({
+      runTimeout: convertMinutesToNanoseconds(
+        formData.define.workflowSettings.runTimeout
+      ),
+    });
+  }
+  let syncOptions: ActivityOptions | undefined = undefined;
+  if (formData.define.syncActivityOptions) {
+    const formSyncOpts = formData.define.syncActivityOptions;
+    syncOptions = new ActivityOptions({
+      scheduleToCloseTimeout:
+        formSyncOpts.scheduleToCloseTimeout !== undefined
+          ? convertMinutesToNanoseconds(formSyncOpts.scheduleToCloseTimeout)
+          : undefined,
+      startToCloseTimeout:
+        formSyncOpts.startToCloseTimeout !== undefined
+          ? convertMinutesToNanoseconds(formSyncOpts.startToCloseTimeout)
+          : undefined,
+      retryPolicy: new RetryPolicy({
+        maximumAttempts: formSyncOpts.retryPolicy?.maximumAttempts,
+      }),
+    });
+  }
+
   const body = new CreateJobRequest({
     accountId,
     jobName: formData.define.jobName,
@@ -323,6 +352,8 @@ async function createNewJob(
         ),
       });
     }),
+    workflowOptions: workflowOptions,
+    syncOptions: syncOptions,
   });
 
   function toJobSourceOptions(

@@ -4,8 +4,49 @@ import {
   SCHEMA_FORM_SCHEMA,
   SOURCE_FORM_SCHEMA,
 } from '@/yup-validations/jobs';
-import { IsJobNameAvailableResponse } from '@neosync/sdk';
+import { Connection, IsJobNameAvailableResponse } from '@neosync/sdk';
 import * as Yup from 'yup';
+
+// Schema for a job's workflow settings
+export const WorkflowSettingsSchema = Yup.object({
+  runTimeout: Yup.number().optional().min(0),
+});
+
+export type WorkflowSettingsSchema = Yup.InferType<
+  typeof WorkflowSettingsSchema
+>;
+
+export const ActivityOptionsSchema = Yup.object({
+  scheduleToCloseTimeout: Yup.number()
+    .optional()
+    .min(0)
+    .test(
+      'non-zero-both',
+      'Both timeouts cannot be 0',
+      function (value, context) {
+        // Checking the other field's value from the context
+        const startToCloseTimeout = context.parent.startToCloseTimeout;
+        return !(value === 0 && startToCloseTimeout === 0);
+      }
+    ),
+  startToCloseTimeout: Yup.number()
+    .optional()
+    .min(0)
+    .test(
+      'non-zero-both',
+      'Both timeouts cannot be 0',
+      function (value, context) {
+        // Checking the other field's value from the context
+        const scheduleToCloseTimeout = context.parent.scheduleToCloseTimeout;
+        return !(value === 0 && scheduleToCloseTimeout === 0);
+      }
+    ),
+  retryPolicy: Yup.object({
+    maximumAttempts: Yup.number().optional().min(0),
+  }).optional(),
+});
+
+export type ActivityOptionsSchema = Yup.InferType<typeof ActivityOptionsSchema>;
 
 const cronRegex = new RegExp(
   '^([0-5]?\\d|\\*) \\s*([01]?\\d|2[0-3]|\\*) \\s*([0-2]?\\d|3[01]|\\*|\\?) \\s*([1-9]|1[0-2]|\\*|\\?) \\s*([0-6]|\\*|\\?)$'
@@ -43,7 +84,45 @@ export const DEFINE_FORM_SCHEMA = Yup.object({
       }
     }),
   initiateJobRun: Yup.boolean(),
+  workflowSettings: WorkflowSettingsSchema.optional(),
+  syncActivityOptions: ActivityOptionsSchema.optional(),
 });
+// .test('sync-activ-opts-non-zero-schedule', '', function (value) {
+//   const { syncActivityOptions } = value;
+//   if (!syncActivityOptions) {
+//     return true;
+//   }
+//   const { scheduleToCloseTimeout, startToCloseTimeout } = syncActivityOptions;
+//   if (
+//     (scheduleToCloseTimeout === undefined &&
+//       startToCloseTimeout === undefined) ||
+//     (scheduleToCloseTimeout === 0 && startToCloseTimeout === 0)
+//   ) {
+//     return this.createError({
+//       path: 'syncActivityOptions.scheduleToCloseTimeout',
+//       message: 'at least one table sync timeout must be defined',
+//     });
+//   }
+//   return true;
+// })
+// .test('sync-activ-opts-non-zero-start', '', function (value) {
+//   const { syncActivityOptions } = value;
+//   if (!syncActivityOptions) {
+//     return true;
+//   }
+//   const { scheduleToCloseTimeout, startToCloseTimeout } = syncActivityOptions;
+//   if (
+//     (scheduleToCloseTimeout === undefined &&
+//       startToCloseTimeout === undefined) ||
+//     (scheduleToCloseTimeout === 0 && startToCloseTimeout === 0)
+//   ) {
+//     return this.createError({
+//       path: 'syncActivityOptions.startToCloseTimeout',
+//       message: 'at least one table sync timeout must be defined',
+//     });
+//   }
+//   return true;
+// });
 
 export type DefineFormValues = Yup.InferType<typeof DEFINE_FORM_SCHEMA>;
 
@@ -51,11 +130,127 @@ export const CONNECT_FORM_SCHEMA = SOURCE_FORM_SCHEMA.concat(
   Yup.object({
     destinations: Yup.array(DESTINATION_FORM_SCHEMA).required(),
   })
-);
+).test('nick', 'nick is cool', function (value, ctx) {
+  const connections: Connection[] = ctx.options.context?.connections ?? [];
+
+  const destinationIds = value.destinations.map((dst) => dst.connectionId);
+
+  const errors: Yup.ValidationError[] = [];
+
+  if (destinationIds.some((destId) => value.sourceId === destId)) {
+    errors.push(
+      ctx.createError({
+        path: 'sourceId',
+        message: 'Source must be different from destination',
+      })
+    );
+  }
+
+  if (
+    destinationIds.some(
+      (destId) => !isValidConnectionPair(value.sourceId, destId, connections)
+    )
+  ) {
+    destinationIds.forEach((destId, idx) => {
+      if (!isValidConnectionPair(value.sourceId, destId, connections)) {
+        errors.push(
+          ctx.createError({
+            path: `destinations.${idx}.connectionId`,
+            message: `Destination connection type must be one of: ${getErrorConnectionTypes(
+              false,
+              value.sourceId,
+              connections
+            )}`,
+          })
+        );
+      }
+    });
+  }
+
+  if (destinationIds.length !== new Set(destinationIds).size) {
+    const valueIdxMap = new Map<string, number[]>();
+    destinationIds.forEach((dstId, idx) => {
+      const idxs = valueIdxMap.get(dstId);
+      if (idxs !== undefined) {
+        idxs.push(idx);
+      } else {
+        valueIdxMap.set(dstId, [idx]);
+      }
+    });
+
+    Array.from(valueIdxMap.values()).forEach((indices) => {
+      if (indices.length > 1) {
+        indices.forEach((idx) =>
+          errors.push(
+            ctx.createError({
+              path: `destinations.${idx}.connectionId`,
+              message:
+                'Destination connections must be unique from one another',
+            })
+          )
+        );
+      }
+    });
+  }
+
+  if (errors.length > 0) {
+    return new Yup.ValidationError(errors);
+  }
+  return true;
+});
 
 export type ConnectFormValues = Yup.InferType<typeof CONNECT_FORM_SCHEMA>;
 
-const SINGLE_SUBSET_FORM_SCSHEMA = Yup.object({
+function isValidConnectionPair(
+  connId1: string,
+  connId2: string,
+  connections: Connection[]
+): boolean {
+  const conn1 = connections.find((c) => c.id === connId1);
+  const conn2 = connections.find((c) => c.id === connId2);
+
+  if (!conn1 || !conn2) {
+    return true;
+  }
+  if (
+    conn1.connectionConfig?.config.case === 'awsS3Config' ||
+    conn2.connectionConfig?.config.case === 'awsS3Config'
+  ) {
+    return true;
+  }
+
+  if (
+    conn1.connectionConfig?.config.case === conn2.connectionConfig?.config.case
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+function getErrorConnectionTypes(
+  isSource: boolean,
+  connId: string,
+  connections: Connection[]
+): string {
+  const conn = connections.find((c) => c.id === connId);
+  if (!conn) {
+    return isSource ? '[Postgres, Mysql]' : '[Postgres, Mysql, AWS S3]';
+  }
+  if (conn.connectionConfig?.config.case === 'awsS3Config') {
+    return '[Mysql, Postgres]';
+  }
+  if (conn.connectionConfig?.config.case === 'mysqlConfig') {
+    return isSource ? '[Postgres]' : '[Mysql, AWS S3]';
+  }
+
+  if (conn.connectionConfig?.config.case === 'pgConfig') {
+    return isSource ? '[Mysql]' : '[Postgres, AWS S3]';
+  }
+  return '';
+}
+
+const SINGLE_SUBSET_FORM_SCHEMA = Yup.object({
   schema: Yup.string().trim().required(),
   table: Yup.string().trim().required(),
   whereClause: Yup.string().trim().optional(),
@@ -80,7 +275,7 @@ export type SingleTableSchemaFormValues = Yup.InferType<
 >;
 
 export const SUBSET_FORM_SCHEMA = Yup.object({
-  subsets: Yup.array(SINGLE_SUBSET_FORM_SCSHEMA).required(),
+  subsets: Yup.array(SINGLE_SUBSET_FORM_SCHEMA).required(),
 });
 
 export type SubsetFormValues = Yup.InferType<typeof SUBSET_FORM_SCHEMA>;
