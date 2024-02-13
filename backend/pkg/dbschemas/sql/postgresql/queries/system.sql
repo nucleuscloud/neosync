@@ -21,6 +21,8 @@ SELECT
     CASE
         WHEN a.atttypid = pg_catalog.regtype 'numeric'::regtype THEN
             (a.atttypmod - 4) >> 16
+        -- Precision is technically only necessary for numeric values, but we are populating these here for simplicity in knowing what the type of integer is.
+        -- This operates similar to the precision column in the information_schema.columns table
         WHEN a.atttypid = pg_catalog.regtype 'smallint'::regtype THEN
             16
         WHEN a.atttypid = pg_catalog.regtype 'integer'::regtype THEN
@@ -33,6 +35,8 @@ SELECT
     CASE
         WHEN a.atttypid = pg_catalog.regtype 'numeric'::regtype THEN
             (a.atttypmod - 4) & 65535
+        -- Scale is technically only necessary for numeric values, but we are populating these here for simplicity in knowing what the type of integer is.
+        -- This operates similar to the scake column in the information_schema.columns table
         WHEN a.atttypid = pg_catalog.regtype 'smallint'::regtype THEN
             0
         WHEN a.atttypid = pg_catalog.regtype 'integer'::regtype THEN
@@ -80,6 +84,8 @@ SELECT
     CASE
         WHEN a.atttypid = pg_catalog.regtype 'numeric'::regtype THEN
             (a.atttypmod - 4) >> 16
+        -- Precision is technically only necessary for numeric values, but we are populating these here for simplicity in knowing what the type of integer is.
+        -- This operates similar to the precision column in the information_schema.columns table
         WHEN a.atttypid = pg_catalog.regtype 'smallint'::regtype THEN
             16
         WHEN a.atttypid = pg_catalog.regtype 'integer'::regtype THEN
@@ -92,6 +98,8 @@ SELECT
     CASE
         WHEN a.atttypid = pg_catalog.regtype 'numeric'::regtype THEN
             (a.atttypmod - 4) & 65535
+        -- Scale is technically only necessary for numeric values, but we are populating these here for simplicity in knowing what the type of integer is.
+        -- This operates similar to the scake column in the information_schema.columns table
         WHEN a.atttypid = pg_catalog.regtype 'smallint'::regtype THEN
             0
         WHEN a.atttypid = pg_catalog.regtype 'integer'::regtype THEN
