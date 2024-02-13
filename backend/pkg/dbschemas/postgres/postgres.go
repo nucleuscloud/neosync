@@ -154,24 +154,26 @@ func GetUniqueSchemaColMappings(
 }
 
 func toColumnInfo(row *pg_queries.GetDatabaseSchemaRow) *dbschemas.ColumnInfo {
+	var colDefault string
+	if row.ColumnDefault != nil {
+		val, ok := row.ColumnDefault.(string)
+		if ok {
+			colDefault = val
+		}
+	}
 	return &dbschemas.ColumnInfo{
 		OrdinalPosition:        int32(row.OrdinalPosition),
-		ColumnDefault:          row.ColumnDefault,
+		ColumnDefault:          colDefault,
 		IsNullable:             row.IsNullable,
 		DataType:               row.DataType,
-		CharacterMaximumLength: toInt32Ptr(row.CharacterMaximumLength),
-		NumericPrecision:       toInt32Ptr(row.NumericPrecision),
-		NumericScale:           toInt32Ptr(row.NumericScale),
+		CharacterMaximumLength: ptr(row.CharacterMaximumLength),
+		NumericPrecision:       ptr(row.NumericPrecision),
+		NumericScale:           ptr(row.NumericScale),
 	}
 }
 
-func toInt32Ptr(num int) *int32 {
-	var num32Ptr *int32
-	if num > 0 {
-		num32 := int32(num)
-		num32Ptr = &num32
-	}
-	return num32Ptr
+func ptr[T any](val T) *T {
+	return &val
 }
 
 func GetAllPostgresFkConstraints(
