@@ -86,8 +86,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const { postgres, mysql, s3 } = splitConnections(connections);
 
-  console.log(form.formState.errors);
-
   return (
     <div
       id="newjobflowcontainer"
