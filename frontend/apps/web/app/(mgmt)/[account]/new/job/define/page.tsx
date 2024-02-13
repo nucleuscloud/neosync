@@ -6,6 +6,13 @@ import SwitchCard from '@/components/switches/SwitchCard';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
   Form,
   FormControl,
   FormDescription,
@@ -47,6 +54,13 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       jobName: '',
       cronSchedule: '',
       initiateJobRun: false,
+      workflowSettings: {},
+      syncActivityOptions: {
+        startToCloseTimeout: 10,
+        retryPolicy: {
+          maximumAttempts: 1,
+        },
+      },
     }
   );
   const [showSchedule, setShowSchedule] = useState<boolean>(false);
@@ -120,7 +134,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 <FormLabel>Name</FormLabel>
                 <FormDescription>The unique name of the job.</FormDescription>
                 <FormControl>
-                  <Input placeholder="Job Name" {...field} />
+                  <Input placeholder="prod-to-stage" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -156,7 +170,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             )}
           />
           <div>
-            <FormLabel>Settings</FormLabel>
+            <FormLabel>
+              <h2 className="text-xl font-semibold tracking-tight">Settings</h2>
+            </FormLabel>
+            <FormDescription>
+              Extra settings to tweak how a job will execute
+            </FormDescription>
             <div className="pt-4">
               <FormField
                 name="initiateJobRun"
@@ -175,6 +194,150 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 )}
               />
             </div>
+          </div>
+          <div className="job-run-opts-container">
+            <Card className="overflow-hidden">
+              <CardHeader>
+                <CardTitle>Job Run Options</CardTitle>
+                <CardDescription>
+                  Advanced settings for configuring run timeouts, etc.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <FormField
+                  control={form.control}
+                  name="workflowSettings.runTimeout"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Run Timeout</FormLabel>
+                      <FormDescription>
+                        The maximum length of time in minutes that a single job
+                        run is allowed to span before it times out. 0 means no
+                        overall timeout.
+                      </FormDescription>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          {...field}
+                          value={field.value || 0}
+                          onChange={(e) => {
+                            field.onChange(e.target.valueAsNumber);
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+          </div>
+          <div className="sync-job-opts-container">
+            <Card className="overflow-hidden">
+              <CardHeader>
+                <CardTitle>Table Synchronization Options</CardTitle>
+                <CardDescription>
+                  Advanced settings that are applied to every table
+                  synchronization. A table sync timout or max timeout must be
+                  configured to run.
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="space-y-6">
+                <div className="flex flex-col md:flex-row gap-3 justify-between">
+                  <FormField
+                    control={form.control}
+                    name="syncActivityOptions.startToCloseTimeout"
+                    render={({ field }) => (
+                      <FormItem className="w-full md:w-1/2 flex flex-col gap-2 justify-between space-y-0">
+                        <div>
+                          <FormLabel>Table Sync Timeout</FormLabel>
+                          <FormDescription>
+                            The max amount of time that a single table
+                            synchronization may run before it times out. This
+                            may need tuning depending on your datasize, and
+                            should be able to contain the table that contains
+                            the largest amount of data. This timeout is applied
+                            per retry.
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            {...field}
+                            value={field.value || 0}
+                            onChange={(e) => {
+                              field.onChange(e.target.valueAsNumber);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="syncActivityOptions.scheduleToCloseTimeout"
+                    render={({ field }) => (
+                      <FormItem className="w-full md:w-1/2 flex flex-col gap-2 justify-between space-y-0">
+                        <div>
+                          <FormLabel>
+                            Max Table Timeout including retries
+                          </FormLabel>
+                          <FormDescription>
+                            Total time in minutes that a single table sync is
+                            allowed to run, including retires. 0 means no
+                            timeout.
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            {...field}
+                            value={field.value || 0}
+                            onChange={(e) => {
+                              field.onChange(e.target.valueAsNumber);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold tracking-tight">
+                    Retry Policy
+                  </h2>
+                  <FormField
+                    control={form.control}
+                    name="syncActivityOptions.retryPolicy.maximumAttempts"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Maximum Attempts</FormLabel>
+                        <FormDescription>
+                          Maximum number of attempts. When exceeded the retries
+                          stop even if not expired yet. If not set or set to 0,
+                          it means unlimited, and relies on activity the max
+                          table timeout including retries to know when to stop.
+                        </FormDescription>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            {...field}
+                            value={field.value || 0}
+                            onChange={(e) => {
+                              field.onChange(e.target.valueAsNumber);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </CardContent>
+            </Card>
           </div>
           <div className="flex flex-row justify-between">
             <Button
