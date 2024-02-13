@@ -13,9 +13,10 @@ import {
   SchemaFormValues,
 } from '@/yup-validations/jobs';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
-import { ColumnDef } from '@tanstack/react-table';
+import { ColumnDef, FilterFn } from '@tanstack/react-table';
 import { HTMLProps, useEffect, useRef } from 'react';
 import TransformerSelect from '../SchemaTable/TransformerSelect';
+import { SchemaColumnHeader } from './SchemaColumnHeader';
 import { Row } from './main';
 
 interface Props {
@@ -24,6 +25,7 @@ interface Props {
 
 export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
   const { transformers } = props;
+
   return [
     {
       accessorKey: 'isSelected',
@@ -48,13 +50,11 @@ export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
         </div>
       ),
       enableSorting: false,
-      size: 260,
+      size: 60,
     },
     {
       accessorKey: 'schema',
-      // header: ({ column }) => (
-      //   <SchemaTableColumnHeader column={column} title="Schema" />
-      // ),
+      filterFn: exactMatchFilterFn, //handles the multi-select on the schema drop down
       cell: ({ row }) => {
         return (
           <span className="max-w-[500px] truncate font-medium">
@@ -62,13 +62,13 @@ export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
           </span>
         );
       },
-      size: 260,
+      size: 200,
     },
     {
       accessorKey: 'table',
-      // header: ({ column }) => (
-      //   <SchemaTableColumnHeader column={column} title="Table" />
-      // ),
+      header: ({ column }) => (
+        <SchemaColumnHeader column={column} title="Table" />
+      ),
       cell: ({ row }) => {
         return (
           <span className="max-w-[500px] truncate font-medium">
@@ -76,13 +76,13 @@ export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
           </span>
         );
       },
-      size: 260,
+      size: 200,
     },
     {
       accessorKey: 'column',
-      // header: ({ column }) => (
-      //    <SchemaTableColumnHeader column={column} title="Column" />
-      // ),
+      header: ({ column }) => (
+        <SchemaColumnHeader column={column} title="Column" />
+      ),
       cell: ({ row }) => {
         return (
           <span className="max-w-[500px] truncate font-medium">
@@ -90,13 +90,13 @@ export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
           </span>
         );
       },
-      size: 260,
+      size: 200,
     },
     {
       accessorKey: 'dataType',
-      // header: ({ column }) => (
-      //   <SchemaTableColumnHeader column={column} title="Data Type" />
-      // ),
+      header: ({ column }) => (
+        <SchemaColumnHeader column={column} title="Data Type" />
+      ),
       cell: ({ row }) => {
         return (
           <span className="max-w-[500px] truncate font-medium">
@@ -104,13 +104,13 @@ export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
           </span>
         );
       },
-      size: 160,
+      size: 200,
     },
     {
       accessorKey: 'transformer',
-      // header: ({ column }) => (
-      //   <SchemaTableColumnHeader column={column} title="Transformer" />
-      // ),
+      header: ({ column }) => (
+        <SchemaColumnHeader column={column} title="Transformer" />
+      ),
       cell: (info) => {
         return (
           <div>
@@ -172,7 +172,7 @@ export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
           </div>
         );
       },
-      size: 160,
+      size: 200,
     },
   ];
 }
@@ -188,14 +188,44 @@ function IndeterminateCheckbox({
     if (typeof indeterminate === 'boolean') {
       ref.current.indeterminate = !rest.checked && indeterminate;
     }
-  }, [ref, indeterminate]);
+  }, [ref, indeterminate, rest.checked]);
 
   return (
     <input
       type="checkbox"
       ref={ref}
-      className={className + ' cursor-pointer mr-4'}
+      className={className + ' cursor-pointer '}
       {...rest}
     />
   );
 }
+
+/* Custom filter function that does an exact match. The out of the box filter function -arrIncludeSome- matches unnecessary elements. If you filtered a schema by a value  - customer_1, it matches customer_1, customer_10, customer_11, etc. The underlying implementation is:
+
+*******
+const arrIncludesSome: FilterFn<any> = (
+  row,
+  columnId: string,
+  filterValue: unknown[]
+) => {
+  return filterValue.some(
+    val => row.getValue<unknown[]>(columnId)?.includes(val)
+  )
+}
+
+arrIncludesSome.autoRemove = (val: any) => testFalsey(val) || !val?.length
+
+*******
+
+This filter function does an exact match to avoid unnecessary values. 
+*/
+// eslint-disable-next-line
+const exactMatchFilterFn: FilterFn<any> = (
+  row,
+  columnId: string,
+  filterValue: unknown[]
+) => {
+  // Ensure the filter value and row value are exactly the same
+  const rowValue = row.getValue(columnId);
+  return filterValue.includes(rowValue); // This checks for an exact match in the filterValue array
+};
