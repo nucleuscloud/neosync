@@ -14,7 +14,7 @@ SELECT
     END AS is_nullable,
     CASE
         WHEN pg_catalog.format_type(a.atttypid, a.atttypmod) LIKE 'character varying%' THEN
-            a.atttypmod - 4
+            a.atttypmod - 4 -- The -4 removes the extra bits that postgres uses for internal use
         ELSE
             -1
     END AS character_maximum_length,
@@ -77,7 +77,7 @@ SELECT
     END AS is_nullable,
     CASE
         WHEN pg_catalog.format_type(a.atttypid, a.atttypmod) LIKE 'character varying%' THEN
-            a.atttypmod - 4
+            a.atttypmod - 4 -- The -4 removes the extra bits that postgres uses for internal use
         ELSE
             -1
     END AS character_maximum_length,
