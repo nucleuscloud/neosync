@@ -1,6 +1,9 @@
 package neosync_benthos
 
-import "fmt"
+import (
+	"crypto/sha256"
+	"fmt"
+)
 
 func BuildBenthosTable(schema, table string) string {
 	if schema != "" {
@@ -9,6 +12,13 @@ func BuildBenthosTable(schema, table string) string {
 	return table
 }
 
-func BuildBenthosCacheKey(schema, table, col string) string {
-	return fmt.Sprintf("%s.%s.%s", schema, table, col)
+func HashBenthosCacheKey(jobId, runId, table, col string) string {
+	return ToSha256(fmt.Sprintf("%s.%s.%s.%s", jobId, runId, table, col))
+}
+
+func ToSha256(input string) string {
+	h := sha256.New()
+	h.Write([]byte(input))
+	bs := h.Sum(nil)
+	return fmt.Sprintf("%x", bs)
 }

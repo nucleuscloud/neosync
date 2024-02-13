@@ -348,18 +348,18 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			for col := range constraints {
 				transformer := colTransformerMap[tableKey][col]
 				if shouldProcessColumn(transformer) {
-					hashKey := fmt.Sprintf(`%s.%s.%s.%s`, b.jobId, b.runId, tableKey, col)
+					hashedKey := neosync_benthos.HashBenthosCacheKey(b.jobId, b.runId, tableKey, col)
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						RedisHashOutput: &neosync_benthos.RedisHashOutputConfig{
 							Url:            "tcp://default:pKycbtEGYG@redis-master.redis.svc.cluster.local:6379",
-							Key:            hashKey,
+							Key:            hashedKey,
 							FieldsMapping:  fmt.Sprintf(`root = {meta("neosync_%s"): json("%s")}`, col, col), // map of original value to transformed value
 							WalkMetadata:   false,
 							WalkJsonObject: false,
 						},
 					})
 					resp.RedisConfig = append(resp.RedisConfig, &BenthosRedisConfig{
-						Key:    hashKey,
+						Key:    hashedKey,
 						Table:  tableKey,
 						Column: col,
 					})
@@ -899,15 +899,16 @@ func (b *benthosBuilder) createSqlUpdateBenthosConfig(
 
 				if hasTransformer(colSourceMap[pkCol]) && slices.Contains(insertConfig.updateConfig.Columns.Include, fk.Column) {
 					// circular dependent foreign key
+					hashedKey := neosync_benthos.HashBenthosCacheKey(b.jobId, b.runId, fk.Table, pkCol)
 					requestMap := fmt.Sprintf(`root = if this.%s == null { deleted() } else { this }`, fk.Column)
-					argsMapping := fmt.Sprintf(`root = ["%s.%s.%s.%s", json("%s")]`, b.jobId, b.runId, fk.Table, pkCol, fk.Column)
+					argsMapping := fmt.Sprintf(`root = ["%s", json("%s")]`, hashedKey, fk.Column)
 					resultMap := fmt.Sprintf("root.%s = this", fk.Column)
 					fkBranch := b.buildRedisGetBranchConfig(resultMap, argsMapping, &requestMap)
 					processorConfigs = append(processorConfigs, neosync_benthos.ProcessorConfig{Branch: fkBranch})
 
 					// primary key
 					pkRequestMap := fmt.Sprintf(`root = if this.%s == null { deleted() } else { this }`, pkCol)
-					pkArgsMapping := fmt.Sprintf(`root = ["%s.%s.%s.%s", json("%s")]`, b.jobId, b.runId, fk.Table, pkCol, pkCol)
+					pkArgsMapping := fmt.Sprintf(`root = ["%s", json("%s")]`, hashedKey, pkCol)
 					pkResultMap := fmt.Sprintf("root.%s = this", pkCol)
 					pkBranch := b.buildRedisGetBranchConfig(pkResultMap, pkArgsMapping, &pkRequestMap)
 					processorConfigs = append(processorConfigs, neosync_benthos.ProcessorConfig{Branch: pkBranch})

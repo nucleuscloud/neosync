@@ -622,7 +622,6 @@ func (b *benthosBuilder) buildBranchCacheConfigs(
 	cols []*mgmtv1alpha1.JobMapping,
 	columnConstraints map[string]*dbschemas_utils.ForeignKey,
 ) []*neosync_benthos.BranchConfig {
-
 	branchConfigs := []*neosync_benthos.BranchConfig{}
 	for _, col := range cols {
 		fk, ok := columnConstraints[col.Column]
@@ -631,13 +630,12 @@ func (b *benthosBuilder) buildBranchCacheConfigs(
 			if fk.Table == fmt.Sprintf("%s.%s", col.Schema, col.Table) {
 				continue
 			}
-
+			hashedKey := neosync_benthos.HashBenthosCacheKey(b.jobId, b.runId, fk.Table, fk.Column)
 			requestMap := fmt.Sprintf(`root = if this.%s == null { deleted() } else { this }`, col.Column)
-			argsMapping := fmt.Sprintf(`root = ["%s.%s.%s.%s", json("%s")]`, b.jobId, b.runId, fk.Table, fk.Column, col.Column)
+			argsMapping := fmt.Sprintf(`root = ["%s", json("%s")]`, hashedKey, col.Column)
 			resultMap := fmt.Sprintf("root.%s = this", col.Column)
 			branchConfigs = append(branchConfigs, b.buildRedisGetBranchConfig(resultMap, argsMapping, &requestMap))
 		}
-
 	}
 	return branchConfigs
 }
