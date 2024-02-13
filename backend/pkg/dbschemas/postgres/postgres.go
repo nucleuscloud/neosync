@@ -80,8 +80,8 @@ func generateCreateTableStatement(
 
 func buildTableCol(record *pg_queries.GetDatabaseTableSchemaRow) string {
 	pieces := []string{record.ColumnName, buildDataType(record), buildNullableText(record)}
-	if record.ColumnDefault != nil && record.ColumnDefault != "" && record.ColumnDefault != "NULL" {
-		colDefault := record.ColumnDefault.(string)
+	colDefault, ok := record.ColumnDefault.(string)
+	if ok && colDefault != "" && colDefault != "NULL" {
 		if strings.HasPrefix(colDefault, "nextval") && record.DataType == "integer" {
 			pieces = []string{record.ColumnName, "SERIAL", buildNullableText(record)}
 		} else if strings.HasPrefix(colDefault, "nextval") && record.DataType == "bigint" {
