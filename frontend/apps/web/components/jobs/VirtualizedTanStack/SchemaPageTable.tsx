@@ -26,13 +26,6 @@ import { Transformer } from '@/shared/transformers';
 import { JobMappingFormValues } from '@/yup-validations/jobs';
 import { SchemaTableToolbar } from './SchemaTableToolBar';
 
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-
 export type Row = JobMappingFormValues & {
   formIdx: number;
 };
@@ -153,33 +146,12 @@ export default function SchemaPageTable<TData, TValue>({
                         //       : 'auto',
                         // }}
                       >
-                        {cell.getValue() != undefined ? (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div className="truncate">
-                                  {flexRender(
-                                    cell.column.columnDef.cell,
-                                    cell.getContext()
-                                  )}
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent
-                                className="w-auto p-2 z-50"
-                                side="right"
-                              >
-                                {getCellDisplayValue(cell.getValue())}
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        ) : (
-                          <div className="truncate">
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </div>
-                        )}
+                        <div className="truncate">
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </div>
                       </td>
                     );
                   })}
@@ -192,10 +164,3 @@ export default function SchemaPageTable<TData, TValue>({
     </div>
   );
 }
-
-const getCellDisplayValue = (value: unknown): string => {
-  if (typeof value === 'object' && value !== null && 'source' in value) {
-    return (value as { source: unknown }).source as string;
-  }
-  return String(value);
-};
