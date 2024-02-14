@@ -142,6 +142,7 @@ export const VirtualizedSchemaTable = function VirtualizedSchemaTable({
           <div className="w-[250px]">
             <TransformerSelect
               transformers={transformers}
+              side={'left'}
               value={bulkTransformer}
               onSelect={(value) => {
                 rows.forEach((r) => {
@@ -256,6 +257,7 @@ const TableRow = function Row({ data, index, style }: TableRowProps) {
                           value={fv}
                           onSelect={field.onChange}
                           placeholder="Select Transformer..."
+                          side={'left'}
                         />
                       </div>
                       <EditTransformerOptions

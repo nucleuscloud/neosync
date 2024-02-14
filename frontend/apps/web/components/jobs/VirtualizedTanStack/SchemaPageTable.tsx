@@ -23,15 +23,17 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Transformer } from '@/shared/transformers';
-import { JobMappingFormValues } from '@/yup-validations/jobs';
+import { JobMappingFormValues, SchemaFormValues } from '@/yup-validations/jobs';
 import { SchemaTableToolbar } from './SchemaTableToolBar';
 
+import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useFormContext } from 'react-hook-form';
 
 export type Row = JobMappingFormValues & {
   formIdx: number;
@@ -43,13 +45,13 @@ interface DataTableProps<TData, TValue> {
   transformers: Transformer[];
 }
 
-export default function SchemaTableTest<TData, TValue>({
+export default function SchemaPageTable<TData, TValue>({
   columns,
   data,
   transformers,
 }: DataTableProps<TData, TValue>): ReactElement {
   // const [columnVisibility, setColumnVisibility] =
-  //   React.useState<VisibilityState>({ schema: false });
+  //   React.useState<VisibilityState>({ schema: false }); // hides the schema column
 
   const table = useReactTable({
     data,
@@ -83,6 +85,10 @@ export default function SchemaTableTest<TData, TValue>({
         : undefined,
     overscan: 5,
   });
+
+  const form = useFormContext<SingleTableSchemaFormValues | SchemaFormValues>();
+
+  console.log('form', form.getValues().mappings);
 
   return (
     <div>
@@ -142,7 +148,12 @@ export default function SchemaTableTest<TData, TValue>({
                       <td
                         key={cell.id}
                         className="flex items-start px-6 py-2"
-                        style={{ width: cell.column.columnDef.size }}
+                        style={{
+                          width:
+                            cell.column.columnDef.id != 'transformer'
+                              ? cell.column.columnDef.size
+                              : 'auto',
+                        }}
                       >
                         <TooltipProvider>
                           <Tooltip>

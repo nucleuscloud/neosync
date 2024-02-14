@@ -14,8 +14,8 @@ import { Cross2Icon } from '@radix-ui/react-icons';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import TransformerSelect from '../SchemaTable/TransformerSelect';
+import { Row } from './SchemaPageTable';
 import { SchemaTableViewOptions } from './SchemaTableViewOptions';
-import { Row } from './main';
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -42,7 +42,7 @@ export function SchemaTableToolbar<TData>({
   const handleMultiSelectChange = (selectedOptions: Option[]) => {
     setSelectedOptions(selectedOptions);
     const filteredValues = selectedOptions.map((option) => option.value);
-    // handles the user removing items from the multi-se
+    // handles the user removing items from the multi-select
     if (filteredValues.length > 0) {
       table.getColumn('schema')?.setFilterValue(filteredValues);
     } else {
@@ -102,7 +102,7 @@ export function SchemaTableToolbar<TData>({
                 config: { case: '', value: {} },
               });
             }}
-            placeholder="Bulk update Transformers..."
+            placeholder="Bulk update Transformers"
           />
         </div>
         <div className="flex flex-row items-center gap-2">

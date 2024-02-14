@@ -17,7 +17,7 @@ import { ColumnDef, FilterFn } from '@tanstack/react-table';
 import { HTMLProps, useEffect, useRef } from 'react';
 import TransformerSelect from '../SchemaTable/TransformerSelect';
 import { SchemaColumnHeader } from './SchemaColumnHeader';
-import { Row } from './main';
+import { Row } from './SchemaPageTable';
 
 interface Props {
   transformers: Transformer[];
@@ -127,6 +127,7 @@ export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
                           <div className="place-self-center">
                             {fieldState.error ? (
                               <div>
+                                <div>{fieldState.error.message}</div>
                                 <ExclamationTriangleIcon className="h-4 w-4 text-destructive" />
                               </div>
                             ) : (
@@ -147,7 +148,6 @@ export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
                         <EditTransformerOptions
                           transformer={transformers.find((t) => {
                             if (!fv) {
-                              console.log('mjrj');
                               return;
                             }
                             if (
@@ -174,7 +174,7 @@ export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
           </div>
         );
       },
-      size: 200,
+      size: 300,
     },
   ];
 }

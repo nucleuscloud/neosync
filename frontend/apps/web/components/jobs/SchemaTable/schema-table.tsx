@@ -12,7 +12,7 @@ import { JobMappingFormValues } from '@/yup-validations/jobs';
 import { GetConnectionSchemaResponse } from '@neosync/sdk';
 import { ReactElement, useMemo } from 'react';
 import { getSchemaColumns } from '../VirtualizedTanStack/SchemaColumns';
-import SchemaTableTest from '../VirtualizedTanStack/main';
+import SchemaPageTable from '../VirtualizedTanStack/SchemaPageTable';
 import { Row } from './VirtualizedSchemaTable';
 
 interface Props {
@@ -72,7 +72,7 @@ export function SchemaTable(props: Props): ReactElement {
         data={tableData}
         transformers={mergedTransformers}
       /> */}
-      <SchemaTableTest
+      <SchemaPageTable
         columns={columns}
         data={tableData}
         transformers={mergedTransformers}

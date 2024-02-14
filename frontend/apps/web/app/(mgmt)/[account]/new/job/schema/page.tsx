@@ -125,6 +125,7 @@ function getFormValues(
   existingData: SchemaFormValues | undefined
 ): SchemaFormValues {
   const existingMappings = existingData?.mappings ?? [];
+  console.log('exist', existingMappings);
   if (
     existingData &&
     existingMappings.length > 0 &&
