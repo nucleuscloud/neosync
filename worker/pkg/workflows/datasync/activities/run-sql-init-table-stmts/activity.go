@@ -12,6 +12,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"go.temporal.io/sdk/activity"
+	"go.temporal.io/sdk/log"
 )
 
 type RunSqlInitTableStatementsRequest struct {
@@ -26,8 +27,14 @@ func RunSqlInitTableStatements(
 	ctx context.Context,
 	req *RunSqlInitTableStatementsRequest,
 ) (*RunSqlInitTableStatementsResponse, error) {
-	logger := activity.GetLogger(ctx)
+	logger := log.With(
+		activity.GetLogger(ctx),
+		"jobId", req.JobId,
+		"WorkflowID", req.WorkflowId,
+		// "RunID", wfmetadata.RunId,
+	)
 	_ = logger
+
 	go func() {
 		for {
 			select {
@@ -67,6 +74,7 @@ func RunSqlInitTableStatements(
 	)
 	slogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
 	slogger = slogger.With(
+		"jobId", req.JobId,
 		"WorkflowID", req.WorkflowId,
 	)
 	return builder.RunSqlInitTableStatements(ctx, req, slogger)
