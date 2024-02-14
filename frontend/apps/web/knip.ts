@@ -27,7 +27,7 @@ const config = {
     //'eslint-config-next',
     // 'memoize-one',
     'monaco-editor',
-    // 'tailwindcss-animate',
+    'tailwindcss-animate',
     'use-resize-observer',
     'react-dom',
     'eslint',
