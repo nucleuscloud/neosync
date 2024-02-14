@@ -49,6 +49,7 @@ func DeleteRedisHash(
 		"RedisHashKey", req.HashKey,
 	)
 	redisConfig := shared.GetRedisConfig()
+
 	if redisConfig == nil {
 		return nil, fmt.Errorf("missing redis config. this operation requires redis.")
 	}
@@ -95,7 +96,7 @@ func DeleteRedisHash(
 		Password:  pass,
 		TLSConfig: tlsConf,
 	}
-	switch *redisConfig.Kind {
+	switch redisConfig.Kind {
 	case "simple":
 		client = redis.NewClient(opts.Simple())
 	case "cluster":
@@ -104,7 +105,7 @@ func DeleteRedisHash(
 		opts.MasterName = *redisConfig.Master
 		client = redis.NewFailoverClient(opts.Failover())
 	default:
-		return nil, fmt.Errorf("invalid redis kind: %s", *redisConfig.Kind)
+		return nil, fmt.Errorf("invalid redis kind: %s", redisConfig.Kind)
 	}
 
 	err = deleteRedisHashByKey(slogger, ctx, client, req.HashKey)

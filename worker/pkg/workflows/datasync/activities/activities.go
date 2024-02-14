@@ -664,7 +664,7 @@ func (b *benthosBuilder) buildRedisGetBranchConfig(
 					Url:         b.redisConfig.Url,
 					Command:     "hget",
 					ArgsMapping: argsMapping,
-					Kind:        b.redisConfig.Kind,
+					Kind:        &b.redisConfig.Kind,
 					Master:      b.redisConfig.Master,
 					Tls:         shared.BuildBenthosRedisTlsConfig(b.redisConfig),
 				},

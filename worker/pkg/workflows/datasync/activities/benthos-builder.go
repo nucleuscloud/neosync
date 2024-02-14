@@ -364,7 +364,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 							FieldsMapping:  fmt.Sprintf(`root = {meta("neosync_%s"): json("%s")}`, col, col), // map of original value to transformed value
 							WalkMetadata:   false,
 							WalkJsonObject: false,
-							Kind:           b.redisConfig.Kind,
+							Kind:           &b.redisConfig.Kind,
 							Master:         b.redisConfig.Master,
 							Tls:            shared.BuildBenthosRedisTlsConfig(b.redisConfig),
 						},

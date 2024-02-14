@@ -99,7 +99,7 @@ func AreAllColsNull(mappings []*mgmtv1alpha1.JobMapping) bool {
 
 type RedisConfig struct {
 	Url    string
-	Kind   *string
+	Kind   string
 	Master *string
 	Tls    *RedisTlsConfig
 }
@@ -118,14 +118,24 @@ func GetRedisConfig() *RedisConfig {
 		return nil
 	}
 
-	kind := viper.GetString("REDIS_KIND")
-	master := viper.GetString("REDIS_MASTER")
+	kindEv := viper.GetString("REDIS_KIND")
+	masterEv := viper.GetString("REDIS_MASTER")
 	rootCertAuthority := viper.GetString("REDIS_TLS_ROOT_CERT_AUTHORITY")
 	rootCertAuthorityFile := viper.GetString("REDIS_TLS_ROOT_CERT_AUTHORITY_FILE")
+	var kind string
+	var master *string
+	if kindEv != "" {
+		kind = kindEv
+	} else {
+		kind = "simple"
+	}
+	if masterEv != "" {
+		master = &masterEv
+	}
 	return &RedisConfig{
 		Url:    redisUrl,
-		Kind:   &kind,
-		Master: &master,
+		Kind:   kind,
+		Master: master,
 		Tls: &RedisTlsConfig{
 			Enabled:               viper.GetBool("REDIS_TLS_ENABLED"),
 			SkipCertVerify:        viper.GetBool("REDIS_TLS_SKIP_CERT_VERIFY"),
