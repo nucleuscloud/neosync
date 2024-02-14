@@ -58,7 +58,7 @@ export default function SchemaPageTable<TData, TValue>({
     getFacetedUniqueValues: getFacetedUniqueValues(),
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
     // onColumnVisibilityChange: setColumnVisibility,
-    debugTable: true,
+    // debugTable: true, // useful for debugging and printing to the console, turn off in prod
   });
 
   const { rows } = table.getRowModel();
@@ -91,18 +91,18 @@ export default function SchemaPageTable<TData, TValue>({
         ref={tableContainerRef}
       >
         <StickyHeaderTable>
-          <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 flex pl-6">
+          <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 flex pl-6 pt-2">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
-                className="flex flex-row w-full justify-between items-center"
+                className="lg:flex flex-row items-center justify-between w-full"
               >
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead
                       key={header.id}
-                      // style={{ width: header.getSize() }}
-                      className="flex py-2 w-full"
+                      style={{ width: `${header.getSize()}px` }}
+                      colSpan={header.colSpan}
                     >
                       {header.isPlaceholder
                         ? null
@@ -132,19 +132,16 @@ export default function SchemaPageTable<TData, TValue>({
                   style={{
                     transform: `translateY(${virtualRow.start}px)`,
                   }}
-                  className="items-center flex absolute w-full pl-6"
+                  className="items-center flex absolute w-full pl-6 justify-between"
                 >
                   {row.getVisibleCells().map((cell) => {
                     return (
                       <td
                         key={cell.id}
-                        className="flex items-start py-2 w-full"
-                        // style={{
-                        //   width:
-                        //     cell.column.columnDef.id != 'transformer'
-                        //       ? cell.column.columnDef.size
-                        //       : 'auto',
-                        // }}
+                        className="flex flex-row py-2 justify-between w-full"
+                        style={{
+                          width: cell.column.getSize(),
+                        }}
                       >
                         <div className="truncate">
                           {flexRender(
@@ -160,6 +157,12 @@ export default function SchemaPageTable<TData, TValue>({
             })}
           </TableBody>
         </StickyHeaderTable>
+      </div>
+      <div className="text-xs text-gray-600 dark:text-300 pt-4">
+        Total rows: ({new Intl.NumberFormat('en-US').format(data.length)}) Rows
+        visible: (
+        {new Intl.NumberFormat('en-US').format(table.getRowModel().rows.length)}
+        )
       </div>
     </div>
   );

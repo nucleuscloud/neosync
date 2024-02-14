@@ -2,6 +2,7 @@
 
 import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
 import EditTransformerOptions from '@/app/(mgmt)/[account]/transformers/EditTransformerOptions';
+import { Button } from '@/components/ui/button';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
 import {
   Transformer,
@@ -12,7 +13,12 @@ import {
   JobMappingTransformerForm,
   SchemaFormValues,
 } from '@/yup-validations/jobs';
-import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  CaretSortIcon,
+  ExclamationTriangleIcon,
+} from '@radix-ui/react-icons';
 import { ColumnDef, FilterFn } from '@tanstack/react-table';
 import { HTMLProps, useEffect, useRef } from 'react';
 import TransformerSelect from '../SchemaTable/TransformerSelect';
@@ -50,10 +56,26 @@ export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
         </div>
       ),
       enableSorting: false,
-      size: 60,
+      size: 30,
     },
     {
       accessorKey: 'schema',
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="-ml-3 h-8 data-[state=open]:bg-accent hover:border hover:border-gray-400"
+        >
+          <span>{'Schema'}</span>
+          {column.getIsSorted() === 'desc' ? (
+            <ArrowDownIcon className="ml-2 h-4 w-4" />
+          ) : column.getIsSorted() === 'asc' ? (
+            <ArrowUpIcon className="ml-2 h-4 w-4" />
+          ) : (
+            <CaretSortIcon className="ml-2 h-4 w-4" />
+          )}
+        </Button>
+      ),
       filterFn: exactMatchFilterFn, //handles the multi-select on the schema drop down
       cell: ({ row }) => {
         return (
@@ -91,6 +113,7 @@ export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
         );
       },
       size: 200,
+      maxSize: 200,
     },
     {
       accessorKey: 'dataType',
@@ -174,14 +197,14 @@ export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
           </div>
         );
       },
-      size: 100,
+      size: 300,
     },
   ];
 }
 
 function IndeterminateCheckbox({
   indeterminate,
-  className = '',
+  className = 'w-4 h-4 mt-2',
   ...rest
 }: { indeterminate?: boolean } & HTMLProps<HTMLInputElement>) {
   const ref = useRef<HTMLInputElement>(null!);

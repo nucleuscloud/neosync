@@ -30,6 +30,8 @@ export function SchemaTableToolbar<TData>({
 }: DataTableToolbarProps<TData>) {
   const [selectedOptions, setSelectedOptions] = useState<Option[]>([]);
 
+  const isFiltered = table.getState().columnFilters.length > 0;
+
   const dataRow = data as Row[];
 
   const schemaSet = new Set(dataRow.map((obj) => obj.schema));
@@ -60,15 +62,7 @@ export function SchemaTableToolbar<TData>({
   return (
     <div className="flex flex-col items-start w-full">
       <div className="flex flex-1 items-center space-x-2">
-        <div className="w-[150px] lg:w-[650px] z-50 flex flex-col">
-          <div className="text-xs text-gray-600 dark:text-300">
-            Total rows: ({new Intl.NumberFormat('en-US').format(data.length)})
-            Rows visible: (
-            {new Intl.NumberFormat('en-US').format(
-              table.getRowModel().rows.length
-            )}
-            )
-          </div>
+        <div className="w-[275px] lg:w-[650px] z-50 flex flex-col">
           <MultiSelect
             defaultOptions={schemaValues}
             placeholder="Filter by schema(s)..."
@@ -106,18 +100,20 @@ export function SchemaTableToolbar<TData>({
           />
         </div>
         <div className="flex flex-row items-center gap-2">
-          <Button
-            variant="outline"
-            type="button"
-            onClick={() => {
-              setSelectedOptions([]);
-              table.resetColumnFilters();
-            }}
-            className="h-8 px-2 lg:px-3"
-          >
-            <Cross2Icon className="mr-2 h-3 w-3" />
-            Clear Filters
-          </Button>
+          {isFiltered && (
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => {
+                setSelectedOptions([]);
+                table.resetColumnFilters();
+              }}
+              className="h-8 px-2 lg:px-3"
+            >
+              <Cross2Icon className="mr-2 h-3 w-3" />
+              Clear Filters
+            </Button>
+          )}
           <SchemaTableViewOptions table={table} />
         </div>
       </div>

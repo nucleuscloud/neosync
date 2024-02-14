@@ -23,7 +23,7 @@ export function SchemaTableViewOptions<TData>({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="ml-auto hidden h-8 lg:flex">
+        <Button variant="outline" className="ml-auto h-8 flex">
           <MixerHorizontalIcon className="mr-2 h-4 w-4" />
           View
         </Button>
@@ -35,9 +35,9 @@ export function SchemaTableViewOptions<TData>({
           .getAllColumns()
           .filter(
             (column) =>
-              typeof column.accessorFn !== 'undefined' &&
-              column.getCanHide() &&
-              column.id != 'schema' //filters the schema column from view
+              typeof column.accessorFn !== 'undefined' && column.getCanHide()
+            //  &&
+            // column.id != 'schema' //filters the schema column from view
           )
           .map((column) => {
             return (

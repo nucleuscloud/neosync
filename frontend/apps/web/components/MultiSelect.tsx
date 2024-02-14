@@ -234,7 +234,7 @@ export const MultiSelect = React.forwardRef<
                   : placeholder
               }
               className={cn(
-                'ml-2 flex-1 bg-transparent outline-none placeholder:text-muted-foreground',
+                'ml-2 flex-1 bg-transparent outline-none placeholder:text-muted-foreground h-7',
                 inputProps?.className
               )}
             />
