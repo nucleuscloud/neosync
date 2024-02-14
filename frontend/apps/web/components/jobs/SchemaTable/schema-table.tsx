@@ -11,9 +11,8 @@ import { joinTransformers } from '@/shared/transformers';
 import { JobMappingFormValues } from '@/yup-validations/jobs';
 import { GetConnectionSchemaResponse } from '@neosync/sdk';
 import { ReactElement, useMemo } from 'react';
-import { getSchemaColumns } from '../VirtualizedTanStack/SchemaColumns';
-import SchemaPageTable from '../VirtualizedTanStack/SchemaPageTable';
-import { Row } from './VirtualizedSchemaTable';
+import { getSchemaColumns } from './SchemaColumns';
+import SchemaPageTable, { Row } from './SchemaPageTable';
 
 interface Props {
   data: JobMappingFormValues[];
@@ -68,10 +67,6 @@ export function SchemaTable(props: Props): ReactElement {
 
   return (
     <div>
-      {/* <VirtualizedSchemaTable
-        data={tableData}
-        transformers={mergedTransformers}
-      /> */}
       <SchemaPageTable
         columns={columns}
         data={tableData}

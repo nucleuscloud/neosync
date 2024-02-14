@@ -13,9 +13,9 @@ import {
 import { Cross2Icon } from '@radix-ui/react-icons';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
-import TransformerSelect from '../SchemaTable/TransformerSelect';
 import { Row } from './SchemaPageTable';
 import { SchemaTableViewOptions } from './SchemaTableViewOptions';
+import TransformerSelect from './TransformerSelect';
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;

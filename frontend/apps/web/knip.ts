@@ -6,7 +6,7 @@ const config = {
     'postcss.config.cjs',
   ],
   ignoreDependencies: [
-    '@radix-ui/react-accordion',
+    //'@radix-ui/react-accordion',
     // '@radix-ui/react-avatar',
     // '@radix-ui/react-checkbox',
     // '@radix-ui/react-dialog',
@@ -22,16 +22,19 @@ const config = {
     // '@radix-ui/react-tooltip',
     '@radix-ui/react-radio-group',
     // 'class-variance-authority',
-    'autoprefixer',
+    //'autoprefixer',
     'postcss',
-    'eslint-config-next',
+    //'eslint-config-next',
     // 'memoize-one',
     'monaco-editor',
-    'tailwindcss-animate',
+    // 'tailwindcss-animate',
     'use-resize-observer',
     'react-dom',
+    'eslint',
+    'prettier',
+    '@types/react-dom',
   ],
-  ignoreBinaries: ['tail', 'next', 'knip'],
+  ignoreBinaries: ['tail', 'next'],
 };
 
 export default config;

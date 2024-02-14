@@ -21,9 +21,9 @@ import {
 } from '@radix-ui/react-icons';
 import { ColumnDef, FilterFn } from '@tanstack/react-table';
 import { HTMLProps, useEffect, useRef } from 'react';
-import TransformerSelect from '../SchemaTable/TransformerSelect';
 import { SchemaColumnHeader } from './SchemaColumnHeader';
 import { Row } from './SchemaPageTable';
+import TransformerSelect from './TransformerSelect';
 
 interface Props {
   transformers: Transformer[];
