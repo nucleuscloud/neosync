@@ -107,6 +107,7 @@ export const MYSQL_FORM_SCHEMA = Yup.object({
     port: Yup.number().integer().positive().required(),
     protocol: Yup.string().required(),
   }).required(),
+  tunnel: SSH_TUNNEL_FORM_SCHEMA,
 });
 
 export type MysqlFormValues = Yup.InferType<typeof MYSQL_FORM_SCHEMA>;
