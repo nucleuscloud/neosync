@@ -240,7 +240,7 @@ export default function MysqlForm() {
               </FormLabel>
               <FormDescription>The database password</FormDescription>
               <FormControl>
-                <Input placeholder="mysql" {...field} />
+                <Input type="password" placeholder="mysql" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
