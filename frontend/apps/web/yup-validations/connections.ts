@@ -1,4 +1,5 @@
 import { isConnectionNameAvailable } from '@/app/(mgmt)/[account]/new/connection/postgres/PostgresForm';
+import { getErrorMessage } from '@/util/util';
 import * as Yup from 'yup';
 
 export const POSTGRES_CONNECTION = Yup.object({
@@ -58,7 +59,7 @@ const connectionNameSchema = Yup.string()
         return false;
       }
 
-      const regex = /^[a-z0-9-]+$/;
+      const regex = /^[a-z0-9-]{3,50}$/;
       if (!regex.test(value)) {
         return context.createError({
           message:
@@ -89,7 +90,7 @@ const connectionNameSchema = Yup.string()
         return true;
       } catch (error) {
         return context.createError({
-          message: 'Error validating name availability.',
+          message: `Error: ${getErrorMessage(error)}`,
         });
       }
     }
