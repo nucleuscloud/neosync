@@ -152,6 +152,25 @@ export function getConnectionComponentDetails(
                     pass: mysqlValue.connectionConfig.value.pass,
                     protocol: mysqlValue.connectionConfig.value.protocol,
                   },
+                  tunnel: {
+                    host: mysqlValue.tunnel?.host ?? '',
+                    port: mysqlValue.tunnel?.port ?? 22,
+                    knownHostPublicKey:
+                      mysqlValue.tunnel?.knownHostPublicKey ?? '',
+                    user: mysqlValue.tunnel?.user ?? '',
+                    passphrase:
+                      mysqlValue.tunnel && mysqlValue.tunnel.authentication
+                        ? getPassphraseFromSshAuthentication(
+                            mysqlValue.tunnel.authentication
+                          ) ?? ''
+                        : '',
+                    privateKey:
+                      mysqlValue.tunnel && mysqlValue.tunnel.authentication
+                        ? getPrivateKeyFromSshAuthentication(
+                            mysqlValue.tunnel.authentication
+                          ) ?? ''
+                        : '',
+                  },
                 }}
                 onSaved={(resp) => onSaved(resp)}
                 onSaveFailed={onSaveFailed}
