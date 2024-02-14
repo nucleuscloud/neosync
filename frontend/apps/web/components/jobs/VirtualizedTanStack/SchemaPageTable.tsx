@@ -23,17 +23,15 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Transformer } from '@/shared/transformers';
-import { JobMappingFormValues, SchemaFormValues } from '@/yup-validations/jobs';
+import { JobMappingFormValues } from '@/yup-validations/jobs';
 import { SchemaTableToolbar } from './SchemaTableToolBar';
 
-import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useFormContext } from 'react-hook-form';
 
 export type Row = JobMappingFormValues & {
   formIdx: number;
@@ -86,10 +84,6 @@ export default function SchemaPageTable<TData, TValue>({
     overscan: 5,
   });
 
-  const form = useFormContext<SingleTableSchemaFormValues | SchemaFormValues>();
-
-  console.log('form', form.getValues().mappings);
-
   return (
     <div>
       <div className="z-50">
@@ -141,7 +135,7 @@ export default function SchemaPageTable<TData, TValue>({
                   style={{
                     transform: `translateY(${virtualRow.start}px)`,
                   }}
-                  className="items-center flex absolute"
+                  className="items-center flex absolute w-full"
                 >
                   {row.getVisibleCells().map((cell) => {
                     return (

@@ -174,7 +174,7 @@ export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
           </div>
         );
       },
-      size: 300,
+      size: 100,
     },
   ];
 }
