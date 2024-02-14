@@ -66,8 +66,6 @@ interface MultipleSelectorProps {
    * @reference: https://github.com/pacocoursey/cmdk/issues/171
    */
   selectFirstItem?: boolean;
-  /** Allow user to create option when there is no option matched. */
-  creatable?: boolean;
   /** Props of `Command` */
   commandProps?: React.ComponentPropsWithoutRef<typeof Command>;
   /** Props of `CommandInput` */
@@ -77,12 +75,12 @@ interface MultipleSelectorProps {
   >;
 }
 
-export interface MultipleSelectorRef {
+interface MultipleSelectorRef {
   selectedValue: Option[];
   input: HTMLInputElement;
 }
 
-export function useDebounce<T>(value: T, delay?: number): T {
+function useDebounce<T>(value: T, delay?: number): T {
   const [debouncedValue, setDebouncedValue] = React.useState<T>(value);
 
   useEffect(() => {
@@ -152,7 +150,6 @@ export const MultiSelect = React.forwardRef<
       className,
       badgeClassName,
       selectFirstItem = true,
-      creatable = false,
       triggerSearchOnFocus = false,
       commandProps,
       inputProps,
@@ -246,48 +243,11 @@ export const MultiSelect = React.forwardRef<
       void exec();
     }, [debouncedSearchTerm, open]);
 
-    const CreatableItem = () => {
-      if (!creatable) return undefined;
-
-      const Item = (
-        <CommandItem
-          value={inputValue}
-          className="cursor-pointer"
-          onMouseDown={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-          onSelect={(value: string) => {
-            if (selected.length >= maxSelected) {
-              onMaxSelected?.(selected.length);
-              return;
-            }
-            setInputValue('');
-            const newOptions = [...selected, { value, label: value }];
-            setSelected(newOptions);
-            onChange?.(newOptions);
-          }}
-        >{`Create "${inputValue}"`}</CommandItem>
-      );
-
-      // For normal creatable
-      if (!onSearch && inputValue.length > 0) {
-        return Item;
-      }
-
-      // For async search creatable. avoid showing creatable item before loading at first.
-      if (onSearch && debouncedSearchTerm.length > 0 && !isLoading) {
-        return Item;
-      }
-
-      return undefined;
-    };
-
     const EmptyItem = React.useCallback(() => {
       if (!emptyIndicator) return undefined;
 
       // For async search that showing emptyIndicator
-      if (onSearch && !creatable && Object.keys(options).length === 0) {
+      if (onSearch && Object.keys(options).length === 0) {
         return (
           <CommandItem value="-" disabled>
             {emptyIndicator}
@@ -296,7 +256,7 @@ export const MultiSelect = React.forwardRef<
       }
 
       return <CommandEmpty>{emptyIndicator}</CommandEmpty>;
-    }, [creatable, emptyIndicator, onSearch, options]);
+    }, [emptyIndicator, onSearch, options]);
 
     const selectables = React.useMemo<GroupOption>(
       () => removePickedOption(options, selected),
@@ -308,15 +268,9 @@ export const MultiSelect = React.forwardRef<
       if (commandProps?.filter) {
         return commandProps.filter;
       }
-
-      if (creatable) {
-        return (value: string, search: string) => {
-          return value.toLowerCase().includes(search.toLowerCase()) ? 1 : -1;
-        };
-      }
       // Using default filter in `cmdk`. We don't have to provide it.
       return undefined;
-    }, [creatable, commandProps?.filter]);
+    }, [commandProps?.filter]);
 
     return (
       <Command
@@ -417,7 +371,6 @@ export const MultiSelect = React.forwardRef<
               ) : (
                 <>
                   {EmptyItem()}
-                  {CreatableItem()}
                   {!selectFirstItem && (
                     <CommandItem value="-" className="hidden" />
                   )}

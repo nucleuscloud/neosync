@@ -28,7 +28,7 @@ import { ReactElement, useState } from 'react';
 
 type Side = (typeof SIDE_OPTIONS)[number];
 
-export var SIDE_OPTIONS: readonly ['top', 'right', 'bottom', 'left'];
+var SIDE_OPTIONS: readonly ['top', 'right', 'bottom', 'left'];
 
 interface Props {
   transformers: Transformer[];

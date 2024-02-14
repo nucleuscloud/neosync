@@ -98,14 +98,18 @@ export default function SchemaPageTable<TData, TValue>({
         ref={tableContainerRef}
       >
         <StickyHeaderTable>
-          <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 flex justify-start px-6">
+          <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 flex pl-6">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow
+                key={headerGroup.id}
+                className="flex flex-row w-full justify-between items-center"
+              >
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead
                       key={header.id}
-                      style={{ width: header.getSize() }}
+                      // style={{ width: header.getSize() }}
+                      className="flex py-2 w-full"
                     >
                       {header.isPlaceholder
                         ? null
@@ -135,38 +139,47 @@ export default function SchemaPageTable<TData, TValue>({
                   style={{
                     transform: `translateY(${virtualRow.start}px)`,
                   }}
-                  className="items-center flex absolute w-full"
+                  className="items-center flex absolute w-full pl-6"
                 >
                   {row.getVisibleCells().map((cell) => {
                     return (
                       <td
                         key={cell.id}
-                        className="flex items-start px-6 py-2"
-                        style={{
-                          width:
-                            cell.column.columnDef.id != 'transformer'
-                              ? cell.column.columnDef.size
-                              : 'auto',
-                        }}
+                        className="flex items-start py-2 w-full"
+                        // style={{
+                        //   width:
+                        //     cell.column.columnDef.id != 'transformer'
+                        //       ? cell.column.columnDef.size
+                        //       : 'auto',
+                        // }}
                       >
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="truncate">
-                                {flexRender(
-                                  cell.column.columnDef.cell,
-                                  cell.getContext()
-                                )}
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent
-                              className="w-auto p-2 z-50"
-                              side="right"
-                            >
-                              {getCellDisplayValue(cell.getValue())}
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                        {cell.getValue() != undefined ? (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="truncate">
+                                  {flexRender(
+                                    cell.column.columnDef.cell,
+                                    cell.getContext()
+                                  )}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent
+                                className="w-auto p-2 z-50"
+                                side="right"
+                              >
+                                {getCellDisplayValue(cell.getValue())}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        ) : (
+                          <div className="truncate">
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </div>
+                        )}
                       </td>
                     );
                   })}
@@ -181,12 +194,7 @@ export default function SchemaPageTable<TData, TValue>({
 }
 
 const getCellDisplayValue = (value: unknown): string => {
-  if (
-    typeof value === 'object' &&
-    value !== null &&
-    'source' in value &&
-    value != undefined
-  ) {
+  if (typeof value === 'object' && value !== null && 'source' in value) {
     return (value as { source: unknown }).source as string;
   }
   return String(value);
