@@ -142,33 +142,35 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mysqlcache := map[string]mysql_queries.DBTX{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
+	mockJobId := "d7b105de-a4d9-433b-8f0a-2ed6931c5dc0"
+	mockRunId := "b1767636-3992-4cb4-9bf2-4bb9bddbf43c"
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil)
 	ctx := context.Background()
 
-	output, err := bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{}, map[string]*dbschemas_utils.ColumnInfo{})
+	output, err := bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{})
 	assert.Nil(t, err)
 	assert.Empty(t, output)
 
-	output, err = bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{}, map[string]*dbschemas_utils.ColumnInfo{})
+	output, err = bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{})
 	assert.Nil(t, err)
 	assert.Empty(t, output)
 
 	output, err = bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id"},
-	}, map[string]*dbschemas_utils.ColumnInfo{})
+	}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{})
 	assert.Nil(t, err)
 	assert.Empty(t, output)
 
 	output, err = bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{}},
-	}, map[string]*dbschemas_utils.ColumnInfo{})
+	}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{})
 	assert.Nil(t, err)
 	assert.Empty(t, output)
 
 	output, err = bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "passthrough"}},
-	}, map[string]*dbschemas_utils.ColumnInfo{})
+	}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{})
 	assert.Nil(t, err)
 	assert.Empty(t, output)
 
@@ -183,7 +185,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 				Nullconfig: &mgmtv1alpha1.Null{},
 			},
 		}}},
-	}, map[string]*dbschemas_utils.ColumnInfo{})
+	}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{})
 
 	assert.Nil(t, err)
 
@@ -221,8 +223,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 	}
 
 	output, err = bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, groupedSchemas)
-
+		{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, groupedSchemas, map[string]*dbschemas_utils.ForeignKey{}, []string{})
 	assert.Nil(t, err)
 	assert.Equal(t, *output[0].Mutation, `root.email = transform_email(email:this.email,preserve_domain:true,preserve_length:false,excluded_domains:[],max_length:40)`)
 
@@ -232,7 +233,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 				Nullconfig: &mgmtv1alpha1.Null{},
 			},
 		}}},
-	}, map[string]*dbschemas_utils.ColumnInfo{})
+	}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{})
 	assert.Error(t, err)
 	assert.Empty(t, output)
 }
@@ -251,8 +252,10 @@ func Test_buildProcessorConfigsJavascript(t *testing.T) {
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mysqlcache := map[string]mysql_queries.DBTX{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
+	mockJobId := "d7b105de-a4d9-433b-8f0a-2ed6931c5dc0"
+	mockRunId := "b1767636-3992-4cb4-9bf2-4bb9bddbf43c"
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil)
 	ctx := context.Background()
 
 	col := "address"
@@ -272,7 +275,7 @@ func Test_buildProcessorConfigsJavascript(t *testing.T) {
 	}
 
 	res, err := bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: col, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{})
+		{Schema: "public", Table: "users", Column: col, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, `
@@ -305,8 +308,10 @@ func Test_buildProcessorConfigsJavascriptMultiLineScript(t *testing.T) {
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mysqlcache := map[string]mysql_queries.DBTX{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
+	mockJobId := "d7b105de-a4d9-433b-8f0a-2ed6931c5dc0"
+	mockRunId := "b1767636-3992-4cb4-9bf2-4bb9bddbf43c"
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil)
 	ctx := context.Background()
 
 	code :=
@@ -329,7 +334,7 @@ func Test_buildProcessorConfigsJavascriptMultiLineScript(t *testing.T) {
 	}
 
 	res, err := bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: col, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{})
+		{Schema: "public", Table: "users", Column: col, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, `
@@ -362,8 +367,10 @@ func Test_buildProcessorConfigsJavascriptMultiple(t *testing.T) {
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mysqlcache := map[string]mysql_queries.DBTX{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
+	mockJobId := "d7b105de-a4d9-433b-8f0a-2ed6931c5dc0"
+	mockRunId := "b1767636-3992-4cb4-9bf2-4bb9bddbf43c"
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil)
 	ctx := context.Background()
 
 	code2 := `var payload = value*2;return payload;`
@@ -399,7 +406,7 @@ func Test_buildProcessorConfigsJavascriptMultiple(t *testing.T) {
 
 	res, err := bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: col, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}},
-		{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}}, map[string]*dbschemas_utils.ColumnInfo{})
+		{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, `
@@ -509,8 +516,10 @@ func Test_buildProcessorConfigsJavascriptEmpty(t *testing.T) {
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mysqlcache := map[string]mysql_queries.DBTX{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
+	mockJobId := "d7b105de-a4d9-433b-8f0a-2ed6931c5dc0"
+	mockRunId := "b1767636-3992-4cb4-9bf2-4bb9bddbf43c"
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil)
 	ctx := context.Background()
 
 	jsT := mgmtv1alpha1.SystemTransformer{
@@ -528,7 +537,7 @@ func Test_buildProcessorConfigsJavascriptEmpty(t *testing.T) {
 	}
 
 	resp, err := bbuilder.buildProcessorConfigs(ctx, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{})
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{})
 
 	assert.NoError(t, err)
 	assert.Empty(t, resp)
@@ -546,8 +555,10 @@ func Test_convertUserDefinedFunctionConfig(t *testing.T) {
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mysqlcache := map[string]mysql_queries.DBTX{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
+	mockJobId := "d7b105de-a4d9-433b-8f0a-2ed6931c5dc0"
+	mockRunId := "b1767636-3992-4cb4-9bf2-4bb9bddbf43c"
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil)
 	ctx := context.Background()
 
 	mockTransformerClient.On(

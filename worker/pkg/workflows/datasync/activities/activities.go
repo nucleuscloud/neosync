@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"slices"
 	"strings"
 	"time"
 
@@ -155,6 +156,7 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 	groupedColumnInfo map[string]map[string]*dbschemas_utils.ColumnInfo,
 	tableDependencies map[string]*dbschemas_utils.TableConstraints,
 	colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,
+	primaryKeys map[string][]string,
 ) ([]*BenthosConfigResponse, error) {
 	responses := []*BenthosConfigResponse{}
 
@@ -219,7 +221,7 @@ func (b *benthosBuilder) buildBenthosSqlSourceConfigResponses(
 		}
 
 		columnConstraints := tableConstraints[neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table)]
-		processorConfigs, err := b.buildProcessorConfigs(ctx, tableMapping.Mappings, groupedColumnInfo[table], columnConstraints)
+		processorConfigs, err := b.buildProcessorConfigs(ctx, tableMapping.Mappings, groupedColumnInfo[table], columnConstraints, primaryKeys[table])
 		if err != nil {
 			return nil, err
 		}
@@ -519,6 +521,7 @@ func (b *benthosBuilder) buildProcessorConfigs(
 	cols []*mgmtv1alpha1.JobMapping,
 	tableColumnInfo map[string]*dbschemas_utils.ColumnInfo,
 	columnConstraints map[string]*dbschemas_utils.ForeignKey,
+	primaryKeys []string,
 ) ([]*neosync_benthos.ProcessorConfig, error) {
 	jsCode, err := b.extractJsFunctionsAndOutputs(ctx, cols)
 	if err != nil {
@@ -530,15 +533,16 @@ func (b *benthosBuilder) buildProcessorConfigs(
 		return nil, err
 	}
 
-	cacheBranches, err := b.buildBranchCacheConfigs(ctx, cols, columnConstraints)
+	cacheBranches, err := b.buildBranchCacheConfigs(cols, columnConstraints)
 	if err != nil {
 		return nil, err
 	}
-	mapping := b.buildMappingConfigs(ctx, cols)
+
+	pkMapping := b.buildPrimaryKeyMappingConfigs(cols, primaryKeys)
 
 	var processorConfigs []*neosync_benthos.ProcessorConfig
-	if mapping != "" {
-		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Mapping: &mapping})
+	if pkMapping != "" {
+		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Mapping: &pkMapping})
 	}
 	if mutations != "" {
 		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Mutation: &mutations})
@@ -585,10 +589,10 @@ func (b *benthosBuilder) extractJsFunctionsAndOutputs(ctx context.Context, cols 
 	}
 }
 
-func (b *benthosBuilder) buildMappingConfigs(ctx context.Context, cols []*mgmtv1alpha1.JobMapping) string {
+func (b *benthosBuilder) buildPrimaryKeyMappingConfigs(cols []*mgmtv1alpha1.JobMapping, primaryKeys []string) string {
 	mappings := []string{}
 	for _, col := range cols {
-		if shouldProcessColumn(col.Transformer) {
+		if shouldProcessColumn(col.Transformer) && slices.Contains(primaryKeys, col.Column) {
 			mappings = append(mappings, fmt.Sprintf("meta neosync_%s = this.%s", col.Column, col.Column))
 		}
 	}
@@ -623,7 +627,6 @@ func (b *benthosBuilder) buildMutationConfigs(ctx context.Context, cols []*mgmtv
 }
 
 func (b *benthosBuilder) buildBranchCacheConfigs(
-	ctx context.Context,
 	cols []*mgmtv1alpha1.JobMapping,
 	columnConstraints map[string]*dbschemas_utils.ForeignKey,
 ) ([]*neosync_benthos.BranchConfig, error) {

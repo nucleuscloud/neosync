@@ -174,11 +174,15 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, err
 		}
 		td := dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
+		primaryKeys, err := b.getAllPostgresPkConstraints(ctx, pool, uniqueSchemas)
+		if err != nil {
+			return nil, err
+		}
 
 		// reverse of table dependency
 		// map of foreign key to source table + column
 		tableConstraintsSource = b.getForeignKeyToSourceMap(td)
-		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, jobSourceConfig.Postgres.ConnectionId, "postgres", sourceTableOpts, groupedSchemas, td, colTransformerMap)
+		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, jobSourceConfig.Postgres.ConnectionId, "postgres", sourceTableOpts, groupedSchemas, td, colTransformerMap, primaryKeys)
 		if err != nil {
 			return nil, err
 		}
@@ -186,10 +190,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 		tables := b.filterNullTables(groupedMappings)
 		dependencyConfigs := tabledependency.GetRunConfigs(td, tables)
-		primaryKeys, err := b.getAllPostgresPkConstraints(ctx, pool, uniqueSchemas)
-		if err != nil {
-			return nil, err
-		}
 		dependencyMap := map[string][]*tabledependency.RunConfig{}
 		for _, cfg := range dependencyConfigs {
 			_, ok := dependencyMap[cfg.Table]
@@ -277,11 +277,15 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, err
 		}
 		td := dbschemas_mysql.GetMysqlTableDependencies(allConstraints)
+		primaryKeys, err := b.getAllMysqlPkConstraints(ctx, pool, uniqueSchemas)
+		if err != nil {
+			return nil, err
+		}
 
 		// reverse of table dependency
 		// map of foreign key to source table + column
 		tableConstraintsSource = b.getForeignKeyToSourceMap(td)
-		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, jobSourceConfig.Mysql.ConnectionId, "mysql", sourceTableOpts, groupedSchemas, td, colTransformerMap)
+		sourceResponses, err := b.buildBenthosSqlSourceConfigResponses(ctx, groupedMappings, jobSourceConfig.Mysql.ConnectionId, "mysql", sourceTableOpts, groupedSchemas, td, colTransformerMap, primaryKeys)
 		if err != nil {
 			return nil, err
 		}
@@ -289,10 +293,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 		tables := b.filterNullTables(groupedMappings)
 		dependencyConfigs := tabledependency.GetRunConfigs(td, tables)
-		primaryKeys, err := b.getAllMysqlPkConstraints(ctx, pool, uniqueSchemas)
-		if err != nil {
-			return nil, err
-		}
 
 		dependencyMap := map[string][]*tabledependency.RunConfig{}
 		for _, cfg := range dependencyConfigs {
@@ -895,6 +895,7 @@ func (b *benthosBuilder) createSqlUpdateBenthosConfig(
 		groupedColInfo,
 		map[string]*dbschemas_utils.TableConstraints{},
 		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
+		map[string][]string{},
 	)
 	if err != nil {
 		return nil, err
