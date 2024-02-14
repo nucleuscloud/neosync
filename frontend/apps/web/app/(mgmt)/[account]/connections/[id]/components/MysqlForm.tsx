@@ -24,6 +24,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
 import {
   MYSQL_CONNECTION_PROTOCOLS,
   MYSQL_FORM_SCHEMA,
@@ -35,6 +37,10 @@ import {
   ConnectionConfig,
   MysqlConnection,
   MysqlConnectionConfig,
+  SSHAuthentication,
+  SSHPassphrase,
+  SSHPrivateKey,
+  SSHTunnel,
   UpdateConnectionRequest,
   UpdateConnectionResponse,
 } from '@neosync/sdk';
@@ -75,6 +81,7 @@ export default function MysqlForm(props: Props) {
         connectionId,
         values.connectionName,
         values.db,
+        values.tunnel,
         account?.id ?? ''
       );
       onSaved(connectionResp);
@@ -241,6 +248,132 @@ export default function MysqlForm(props: Props) {
             </FormItem>
           )}
         />
+        <Separator />
+        <div className="flex flex-col gap-2">
+          <h2 className="text-xl font-semibold tracking-tight">
+            Bastion Host Configuration
+          </h2>
+          <p>
+            This section is optional and only necessary if your database is not
+            publicly accessible to the internet.
+          </p>
+        </div>
+        <FormField
+          control={form.control}
+          name="tunnel.host"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Host</FormLabel>
+              <FormDescription>
+                The hostname of the bastion server that will be used for SSH
+                tunneling.
+              </FormDescription>
+              <FormControl>
+                <Input placeholder="bastion.example.com" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="tunnel.port"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Port</FormLabel>
+              <FormDescription>
+                The port of the bastion host. Typically this is port 22.
+              </FormDescription>
+              <FormControl>
+                <Input
+                  type="number"
+                  placeholder="22"
+                  {...field}
+                  onChange={(e) => {
+                    field.onChange(e.target.valueAsNumber);
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="tunnel.user"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>User</FormLabel>
+              <FormDescription>
+                The name of the user that will be used to authenticate.
+              </FormDescription>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="tunnel.privateKey"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Private Key</FormLabel>
+              <FormDescription>
+                The private key that will be used to authenticate against the
+                SSH server. If using passphrase auth, provide that in the
+                appropriate field below.
+              </FormDescription>
+              <FormControl>
+                <Textarea {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="tunnel.passphrase"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Passphrase / Private Key Password</FormLabel>
+              <FormDescription>
+                The passphrase that will be used to authenticate with. If the
+                SSH Key provided above is encrypted, provide the password for it
+                here.
+              </FormDescription>
+              <FormControl>
+                <Input type="password" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="tunnel.knownHostPublicKey"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Known Host Public Key</FormLabel>
+              <FormDescription>
+                The public key of the host that will be expected when connecting
+                to the tunnel. This should be in the format like what is found
+                in the `~/.ssh/known_hosts` file, excluding the hostname. If
+                this is not provided, any host public key will be accepted.
+                Currently only a single host key is supported.
+              </FormDescription>
+              <FormControl>
+                <Input
+                  placeholder="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAlkjd9s7aJkfdLk3jSLkfj2lk3j2lkfj2l3kjf2lkfj2l"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Separator />
         <TestConnectionResult resp={checkResp} />
         <div className="flex flex-row gap-3 justify-between">
           <Button
@@ -251,6 +384,7 @@ export default function MysqlForm(props: Props) {
               try {
                 const resp = await checkMysqlConnection(
                   form.getValues('db'),
+                  form.getValues('tunnel'),
                   account?.id ?? ''
                 );
                 setCheckResp(resp);
@@ -350,8 +484,52 @@ async function updateMysqlConnection(
   connectionId: string,
   connectionName: string,
   db: MysqlFormValues['db'],
+  tunnel: MysqlFormValues['tunnel'],
   accountId: string
 ): Promise<UpdateConnectionResponse> {
+  const myconfig = new MysqlConnectionConfig({
+    connectionConfig: {
+      case: 'connection',
+      value: new MysqlConnection({
+        host: db.host,
+        name: db.name,
+        user: db.user,
+        pass: db.pass,
+        port: db.port,
+        protocol: db.protocol,
+      }),
+    },
+  });
+  if (tunnel && tunnel.host) {
+    myconfig.tunnel = new SSHTunnel({
+      host: tunnel.host,
+      port: tunnel.port,
+      user: tunnel.user,
+      knownHostPublicKey: tunnel.knownHostPublicKey
+        ? tunnel.knownHostPublicKey
+        : undefined,
+    });
+    if (tunnel.privateKey) {
+      myconfig.tunnel.authentication = new SSHAuthentication({
+        authConfig: {
+          case: 'privateKey',
+          value: new SSHPrivateKey({
+            value: tunnel.privateKey,
+            passphrase: tunnel.passphrase,
+          }),
+        },
+      });
+    } else if (tunnel.passphrase) {
+      myconfig.tunnel.authentication = new SSHAuthentication({
+        authConfig: {
+          case: 'passphrase',
+          value: new SSHPassphrase({
+            value: tunnel.passphrase,
+          }),
+        },
+      });
+    }
+  }
   const res = await fetch(
     `/api/accounts/${accountId}/connections/${connectionId}`,
     {
@@ -366,19 +544,7 @@ async function updateMysqlConnection(
           connectionConfig: new ConnectionConfig({
             config: {
               case: 'mysqlConfig',
-              value: new MysqlConnectionConfig({
-                connectionConfig: {
-                  case: 'connection',
-                  value: new MysqlConnection({
-                    host: db.host,
-                    name: db.name,
-                    user: db.user,
-                    pass: db.pass,
-                    port: db.port,
-                    protocol: db.protocol,
-                  }),
-                },
-              }),
+              value: myconfig,
             },
           }),
         })
