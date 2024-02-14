@@ -16,7 +16,6 @@ import {
 import { useGetJobRecentRuns } from '@/libs/hooks/useGetJobRecentRuns';
 import { useGetJobRunsByJob } from '@/libs/hooks/useGetJobRunsByJob';
 import { formatDateTime } from '@/util/util';
-import { JobRun } from '@neosync/sdk';
 import { ArrowRightIcon, ReloadIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { ReactElement } from 'react';
@@ -35,7 +34,7 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
     isValidating,
   } = useGetJobRecentRuns(account?.id ?? '', jobId);
   const {
-    data: jobRuns,
+    data: jobRunsData,
     isLoading: jobRunsLoading,
     mutate: jobsRunsMutate,
     isValidating: jobRunsValidating,
@@ -48,13 +47,7 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
     jobsRunsMutate();
   }
 
-  const jobRunsIdMap =
-    jobRuns?.jobRuns.reduce(
-      (prev, curr) => {
-        return { ...prev, [curr.id]: curr };
-      },
-      {} as Record<string, JobRun>
-    ) || {};
+  const jobRunsIdMap = new Map(jobRunsData?.jobRuns.map((jr) => [jr.id, jr]));
 
   if (isLoading || jobRunsLoading) {
     return <Skeleton className="w-full h-full" />;
@@ -94,7 +87,7 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
             </TableHeader>
             <TableBody>
               {recentRuns.reverse().map((r) => {
-                const jobRun: JobRun | undefined = jobRunsIdMap[r.jobRunId];
+                const jobRun = jobRunsIdMap.get(r.jobRunId);
                 return (
                   <TableRow key={r.jobRunId}>
                     <TableCell className="pl-6">
