@@ -40,17 +40,18 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
     isValidating: jobRunsValidating,
   } = useGetJobRunsByJob(account?.id ?? '', jobId);
 
-  const recentRuns = recentRunsData?.recentRuns ?? [];
+  const recentRuns = (recentRunsData?.recentRuns ?? []).toReversed();
+  const jobRunsIdMap = new Map(
+    (jobRunsData?.jobRuns ?? []).map((jr) => [jr.id, jr])
+  );
+
+  if (isLoading || jobRunsLoading) {
+    return <Skeleton className="w-full h-full" />;
+  }
 
   function onRefreshClick(): void {
     recentRunsMutate();
     jobsRunsMutate();
-  }
-
-  const jobRunsIdMap = new Map(jobRunsData?.jobRuns.map((jr) => [jr.id, jr]));
-
-  if (isLoading || jobRunsLoading) {
-    return <Skeleton className="w-full h-full" />;
   }
 
   return (
@@ -86,7 +87,7 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {recentRuns.reverse().map((r) => {
+              {recentRuns.map((r) => {
                 const jobRun = jobRunsIdMap.get(r.jobRunId);
                 return (
                   <TableRow key={r.jobRunId}>
