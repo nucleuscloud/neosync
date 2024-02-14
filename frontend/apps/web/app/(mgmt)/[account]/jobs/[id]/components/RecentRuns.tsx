@@ -2,7 +2,6 @@
 import JobRunStatus from '@/app/(mgmt)/[account]/runs/components/JobRunStatus';
 import { useAccount } from '@/components/providers/account-provider';
 import { Alert, AlertTitle } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -20,7 +19,7 @@ import { formatDateTime } from '@/util/util';
 import { JobRun } from '@neosync/sdk';
 import { ArrowRightIcon, ReloadIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
-import { ReactElement, useEffect } from 'react';
+import { ReactElement } from 'react';
 
 interface Props {
   jobId: string;
@@ -28,11 +27,13 @@ interface Props {
 
 export default function JobRecentRuns({ jobId }: Props): ReactElement {
   const { account } = useAccount();
-  const { data, isLoading, error, mutate, isValidating } = useGetJobRecentRuns(
-    account?.id ?? '',
-    jobId
-  );
-
+  const {
+    data: recentRunsData,
+    isLoading,
+    error: recentRunsError,
+    mutate: recentRunsMutate,
+    isValidating,
+  } = useGetJobRecentRuns(account?.id ?? '', jobId);
   const {
     data: jobRuns,
     isLoading: jobRunsLoading,
@@ -40,19 +41,12 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
     isValidating: jobRunsValidating,
   } = useGetJobRunsByJob(account?.id ?? '', jobId);
 
+  const recentRuns = recentRunsData?.recentRuns ?? [];
+
   function onRefreshClick(): void {
-    mutate();
+    recentRunsMutate();
     jobsRunsMutate();
   }
-
-  useEffect(() => {
-    // Set a timeout to refresh once after 3 second
-    // used to show new runs after trigger
-    const timeoutId = setTimeout(() => {
-      onRefreshClick();
-    }, 3000);
-    return () => clearTimeout(timeoutId);
-  }, []);
 
   const jobRunsIdMap =
     jobRuns?.jobRuns.reduce(
@@ -68,7 +62,7 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
 
   return (
     <Card className="overflow-hidden">
-      {!data?.recentRuns || error ? (
+      {recentRunsError ? (
         <Alert variant="destructive">
           <AlertTitle>{`Error: Unable to retrieve recent runs`}</AlertTitle>
         </Alert>
@@ -99,8 +93,8 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data?.recentRuns?.reverse().map((r) => {
-                const jobRun = jobRunsIdMap[r.jobRunId];
+              {recentRuns.reverse().map((r) => {
+                const jobRun: JobRun | undefined = jobRunsIdMap[r.jobRunId];
                 return (
                   <TableRow key={r.jobRunId}>
                     <TableCell className="pl-6">
@@ -127,11 +121,7 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
                     </TableCell>
                     <TableCell>
                       <span className="font-medium">
-                        {jobRun ? (
-                          <JobRunStatus status={jobRun.status} />
-                        ) : (
-                          <Badge className="bg-gray-600">Archived</Badge>
-                        )}
+                        <JobRunStatus status={jobRun?.status} />
                       </span>
                     </TableCell>
                     <TableCell>

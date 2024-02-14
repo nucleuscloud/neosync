@@ -1,4 +1,10 @@
 import { Badge } from '@/components/ui/badge';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/libs/utils';
 import { JobRunStatus as JobRunStatusEnum } from '@neosync/sdk';
 import { ReactElement } from 'react';
@@ -10,9 +16,6 @@ interface Props {
 
 export default function JobRunStatus(props: Props): ReactElement {
   const { status, className } = props;
-  if (!status) {
-    return <Badge variant="outline">Unknown</Badge>;
-  }
   switch (status) {
     case JobRunStatusEnum.ERROR:
       return (
@@ -31,16 +34,29 @@ export default function JobRunStatus(props: Props): ReactElement {
     case JobRunStatusEnum.RUNNING:
       return <Badge className={cn('bg-blue-600', className)}>Running</Badge>;
     case JobRunStatusEnum.PENDING:
-      return <Badge className={cn('bg-purple-600', className)}>Running</Badge>;
+      return <Badge className={cn('bg-purple-600', className)}>Pending</Badge>;
     case JobRunStatusEnum.TERMINATED:
       return <Badge className={cn('bg-gray-600', className)}>Terminated</Badge>;
     case JobRunStatusEnum.CANCELED:
       return <Badge className={cn('bg-gray-600', className)}>Canceled</Badge>;
     default:
       return (
-        <Badge variant="outline" className={cn(className)}>
-          Unknown
-        </Badge>
+        <TooltipProvider>
+          <Tooltip delayDuration={500}>
+            <TooltipTrigger asChild>
+              <div>
+                <Badge variant="outline" className={cn(className)}>
+                  Unknown
+                </Badge>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>
+                This run has been archived by the system or manually deleted
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       );
   }
 }

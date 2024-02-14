@@ -11,6 +11,8 @@ import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { useGetJob } from '@/libs/hooks/useGetJob';
+import { useGetJobRecentRuns } from '@/libs/hooks/useGetJobRecentRuns';
+import { useGetJobRunsByJob } from '@/libs/hooks/useGetJobRunsByJob';
 import { useGetJobStatus } from '@/libs/hooks/useGetJobStatus';
 import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
@@ -30,6 +32,14 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
     account?.id ?? '',
     id
   );
+  const { mutate: mutateRecentRuns } = useGetJobRecentRuns(
+    account?.id ?? '',
+    id
+  );
+  const { mutate: mutateJobRunsByJob } = useGetJobRunsByJob(
+    account?.id ?? '',
+    id
+  );
 
   async function onTriggerJobRun(): Promise<void> {
     try {
@@ -38,7 +48,10 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
         title: 'Job run triggered successfully!',
         variant: 'success',
       });
-      router.push(`/${account?.name}/jobs/${id}`);
+      setTimeout(() => {
+        mutateRecentRuns();
+        mutateJobRunsByJob();
+      }, 3000); // delay briefly as there can sometimes be a trigger delay in temporal
     } catch (err) {
       console.error(err);
       toast({
