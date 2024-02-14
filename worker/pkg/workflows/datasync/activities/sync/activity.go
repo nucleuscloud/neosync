@@ -14,6 +14,7 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/pure"
 	_ "github.com/benthosdev/benthos/v4/public/components/pure/extended"
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
+	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
 
 	"connectrpc.com/connect"
 	"github.com/benthosdev/benthos/v4/public/service"
@@ -23,6 +24,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/sshtunnel"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"go.temporal.io/sdk/activity"
+	"go.temporal.io/sdk/log"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -39,13 +41,13 @@ type SyncResponse struct{}
 
 // Temporal activity that runs benthos and syncs a source connection to one or more destination connections
 func Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata, workflowMetadata *shared.WorkflowMetadata) (*SyncResponse, error) {
-	logger := activity.GetLogger(ctx)
-	slogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
-	slogger = slogger.With(
+	loggerKeyVals := []any{
 		"metadata", metadata,
 		"WorkflowID", workflowMetadata.WorkflowId,
 		"RunID", workflowMetadata.RunId,
-	)
+	}
+	logger := log.With(activity.GetLogger(ctx), loggerKeyVals...)
+	slogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{})).With(loggerKeyVals...)
 	var benthosStream *service.Stream
 	go func() {
 		for {
@@ -83,14 +85,14 @@ func Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata, workflo
 		errgrp.Go(func() error {
 			resp, err := connclient.GetConnection(errctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{Id: bdns.ConnectionId}))
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to retrieve connection: %w", err)
 			}
 			connections[idx] = resp.Msg.Connection
 			return nil
 		})
 	}
 	if err := errgrp.Wait(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to retrieve all or some connections: %w", err)
 	}
 
 	envKeyDsnSyncMap := sync.Map{}
@@ -99,7 +101,7 @@ func Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata, workflo
 		tunnelMap.Range(func(key, value any) bool {
 			tunnel, ok := value.(*sshtunnel.Sshtunnel)
 			if !ok {
-				logger.Warn("was unable to convert value to Sshtunnel for key", "key", key)
+				logger.Warn("unable to convert value to Sshtunnel for key", "key", key)
 				return true
 			}
 			tunnel.Close()
@@ -114,25 +116,29 @@ func Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata, workflo
 			connection := connections[idx]
 			details, err := sqlconnect.GetConnectionDetails(connection.ConnectionConfig, shared.Ptr(uint32(5)), slogger)
 			if err != nil {
-				return err
+				return fmt.Errorf("unable to get connection details for the given connection id: %s: %w", connection.Id, err)
 			}
 			if details.Tunnel != nil {
 				ready, err := details.Tunnel.Start()
 				if err != nil {
-					return err
+					return fmt.Errorf("unable to start ssh tunnel: %w", err)
 				}
 				tunnelMap.Store(bdns.EnvVarKey, details.Tunnel)
 				<-ready
 				details.GeneralDbConnectConfig.Host = details.Tunnel.Local.Host
 				details.GeneralDbConnectConfig.Port = int32(details.Tunnel.Local.Port)
-				logger.Info("tunnel is ready, updated configuration host and port", "host", details.Tunnel.Local.Host, "port", details.Tunnel.Local.Port)
+				logger.Debug(
+					"ssh tunnel is ready, updated configuration host and port",
+					"host", details.Tunnel.Local.Host,
+					"port", details.Tunnel.Local.Port,
+				)
 			}
 			envKeyDsnSyncMap.Store(bdns.EnvVarKey, details.GeneralDbConnectConfig.String())
 			return nil
 		})
 	}
 	if err := errgrp.Wait(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("was unable to build connection details for some or all connections: %w", err)
 	}
 
 	envKeyDnsMap := syncMapToStringMap(&envKeyDsnSyncMap)
@@ -153,7 +159,7 @@ func Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata, workflo
 
 	stream, err := streambldr.Build()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to build benthos config: %w", err)
 	}
 	benthosStream = stream
 	err = stream.Run(ctx)
@@ -161,6 +167,7 @@ func Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata, workflo
 		return nil, fmt.Errorf("unable to run benthos stream: %w", err)
 	}
 	benthosStream = nil
+	logger.Info("sync complete")
 	return &SyncResponse{}, nil
 }
 

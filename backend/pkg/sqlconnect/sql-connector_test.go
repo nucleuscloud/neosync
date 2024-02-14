@@ -146,7 +146,7 @@ func Test_getGeneralDbConnectionConfigFromMysql_Connection(t *testing.T) {
 		User:        "test-user",
 		Pass:        "test-pass",
 		Protocol:    ptr("tcp"),
-		QueryParams: url.Values{"timeout": []string{"5"}},
+		QueryParams: url.Values{"timeout": []string{"5s"}},
 	})
 }
 

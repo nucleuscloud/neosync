@@ -73,6 +73,13 @@ func BuildTable(schema, table string) string {
 	return table
 }
 
+func BuildTableWithEscape(schema, table string) string {
+	if schema != "" {
+		return fmt.Sprintf("`%s`.`%s`", schema, table)
+	}
+	return fmt.Sprintf("`%s`", table)
+}
+
 func BuildDependsOnSlice(constraintsMap map[string]*TableConstraints) map[string][]string {
 	dependsOn := map[string][]string{}
 

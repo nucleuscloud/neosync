@@ -8,7 +8,7 @@ import (
 
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
-	datasync_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities"
+	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
@@ -25,8 +25,7 @@ func Test_Workflow_BenthosConfigsFails(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
 
-	activities := &datasync_activities.Activities{}
-	env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything, mock.Anything).Return(nil, errors.New("TestFailure"))
+	env.OnActivity(genbenthosconfigs_activity.GenerateBenthosConfigs, mock.Anything, mock.Anything, mock.Anything).Return(nil, errors.New("TestFailure"))
 
 	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
 
@@ -46,9 +45,8 @@ func Test_Workflow_Succeeds_Zero_BenthosConfigs(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
 
-	activities := &datasync_activities.Activities{}
-	env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything, mock.Anything).
-		Return(&datasync_activities.GenerateBenthosConfigsResponse{BenthosConfigs: []*datasync_activities.BenthosConfigResponse{}}, nil)
+	env.OnActivity(genbenthosconfigs_activity.GenerateBenthosConfigs, mock.Anything, mock.Anything, mock.Anything).
+		Return(&genbenthosconfigs_activity.GenerateBenthosConfigsResponse{BenthosConfigs: []*genbenthosconfigs_activity.BenthosConfigResponse{}}, nil)
 
 	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
 
@@ -69,9 +67,8 @@ func Test_Workflow_Succeeds_SingleSync(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
 
-	activities := &datasync_activities.Activities{}
-	env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything, mock.Anything).
-		Return(&datasync_activities.GenerateBenthosConfigsResponse{BenthosConfigs: []*datasync_activities.BenthosConfigResponse{
+	env.OnActivity(genbenthosconfigs_activity.GenerateBenthosConfigs, mock.Anything, mock.Anything, mock.Anything).
+		Return(&genbenthosconfigs_activity.GenerateBenthosConfigsResponse{BenthosConfigs: []*genbenthosconfigs_activity.BenthosConfigResponse{
 			{
 				Name:      "public.users",
 				DependsOn: []*tabledependency.DependsOn{},
@@ -107,9 +104,8 @@ func Test_Workflow_Follows_Synchronous_DependentFlow(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
 
-	activities := &datasync_activities.Activities{}
-	env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything, mock.Anything).
-		Return(&datasync_activities.GenerateBenthosConfigsResponse{BenthosConfigs: []*datasync_activities.BenthosConfigResponse{
+	env.OnActivity(genbenthosconfigs_activity.GenerateBenthosConfigs, mock.Anything, mock.Anything, mock.Anything).
+		Return(&genbenthosconfigs_activity.GenerateBenthosConfigsResponse{BenthosConfigs: []*genbenthosconfigs_activity.BenthosConfigResponse{
 			{
 				Name:      "public.users",
 				DependsOn: []*tabledependency.DependsOn{},
@@ -191,9 +187,8 @@ func Test_Workflow_Follows_Multiple_Dependents(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
 
-	activities := &datasync_activities.Activities{}
-	env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything, mock.Anything).
-		Return(&datasync_activities.GenerateBenthosConfigsResponse{BenthosConfigs: []*datasync_activities.BenthosConfigResponse{
+	env.OnActivity(genbenthosconfigs_activity.GenerateBenthosConfigs, mock.Anything, mock.Anything, mock.Anything).
+		Return(&genbenthosconfigs_activity.GenerateBenthosConfigsResponse{BenthosConfigs: []*genbenthosconfigs_activity.BenthosConfigResponse{
 			{
 				Name:        "public.users",
 				DependsOn:   []*tabledependency.DependsOn{},
@@ -298,9 +293,8 @@ func Test_Workflow_Halts_Activities_OnError(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
 
-	activities := &datasync_activities.Activities{}
-	env.OnActivity(activities.GenerateBenthosConfigs, mock.Anything, mock.Anything, mock.Anything).
-		Return(&datasync_activities.GenerateBenthosConfigsResponse{BenthosConfigs: []*datasync_activities.BenthosConfigResponse{
+	env.OnActivity(genbenthosconfigs_activity.GenerateBenthosConfigs, mock.Anything, mock.Anything, mock.Anything).
+		Return(&genbenthosconfigs_activity.GenerateBenthosConfigsResponse{BenthosConfigs: []*genbenthosconfigs_activity.BenthosConfigResponse{
 			{
 				Name:        "public.users",
 				DependsOn:   []*tabledependency.DependsOn{},
@@ -392,7 +386,7 @@ func Test_isConfigReady(t *testing.T) {
 	assert.True(
 		t,
 		isConfigReady(
-			&datasync_activities.BenthosConfigResponse{
+			&genbenthosconfigs_activity.BenthosConfigResponse{
 				Name:      "foo",
 				DependsOn: []*tabledependency.DependsOn{},
 			},
@@ -404,7 +398,7 @@ func Test_isConfigReady(t *testing.T) {
 	assert.False(
 		t,
 		isConfigReady(
-			&datasync_activities.BenthosConfigResponse{
+			&genbenthosconfigs_activity.BenthosConfigResponse{
 				Name:      "foo",
 				DependsOn: []*tabledependency.DependsOn{{Table: "bar", Columns: []string{"id"}}, {Table: "baz", Columns: []string{"id"}}},
 			},
@@ -418,7 +412,7 @@ func Test_isConfigReady(t *testing.T) {
 	assert.True(
 		t,
 		isConfigReady(
-			&datasync_activities.BenthosConfigResponse{
+			&genbenthosconfigs_activity.BenthosConfigResponse{
 				Name:      "foo",
 				DependsOn: []*tabledependency.DependsOn{{Table: "bar", Columns: []string{"id"}}, {Table: "baz", Columns: []string{"id"}}},
 			},
@@ -433,7 +427,7 @@ func Test_isConfigReady(t *testing.T) {
 	assert.False(
 		t,
 		isConfigReady(
-			&datasync_activities.BenthosConfigResponse{
+			&genbenthosconfigs_activity.BenthosConfigResponse{
 				Name:      "foo",
 				DependsOn: []*tabledependency.DependsOn{{Table: "bar", Columns: []string{"id", "f_id"}}},
 			},

@@ -48,7 +48,7 @@ func GenerateRandomStreetAddress(maxLength int64) (string, error) {
 
 	for _, address := range addresses {
 		if len(address.Address1) <= int(maxLength) {
-			filteredAddresses = append(filteredAddresses, address.City)
+			filteredAddresses = append(filteredAddresses, address.Address1)
 		}
 	}
 

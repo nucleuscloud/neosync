@@ -8,6 +8,7 @@ import (
 
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	datasync_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities"
+	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
@@ -38,15 +39,17 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	logger := workflow.GetLogger(ctx)
 	_ = logger
 
+	logger = log.With(logger, "jobId", req.JobId)
+	logger.Info("data sync workflow starting")
+
 	workflowMetadata := &shared.WorkflowMetadata{
 		WorkflowId: wfinfo.WorkflowExecution.ID,
 		RunId:      wfinfo.WorkflowExecution.RunID,
 	}
 
-	var wfActivites *datasync_activities.Activities
-	var bcResp *datasync_activities.GenerateBenthosConfigsResponse
-	logger.Info("executing generate benthos configs activity")
-	err := workflow.ExecuteActivity(ctx, wfActivites.GenerateBenthosConfigs, &datasync_activities.GenerateBenthosConfigsRequest{
+	var bcResp *genbenthosconfigs_activity.GenerateBenthosConfigsResponse
+	logger.Info("scheduling GenerateBenthosConfigs for execution.")
+	err := workflow.ExecuteActivity(ctx, genbenthosconfigs_activity.GenerateBenthosConfigs, &genbenthosconfigs_activity.GenerateBenthosConfigsRequest{
 		JobId: req.JobId,
 	}, workflowMetadata).Get(ctx, &bcResp)
 	if err != nil {
@@ -54,17 +57,18 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	}
 
 	if len(bcResp.BenthosConfigs) == 0 {
+		logger.Info("found 0 benthos configs, ending workflow.")
 		return &WorkflowResponse{}, nil
 	}
 
 	var actOptResp *syncactivityopts_activity.RetrieveActivityOptionsResponse
-	logger.Info("executing retrieval of activity options activity")
 	ctx = workflow.WithActivityOptions(wfctx, workflow.ActivityOptions{
 		StartToCloseTimeout: 1 * time.Minute,
 		RetryPolicy: &temporal.RetryPolicy{
 			MaximumAttempts: 2,
 		},
 	})
+	logger.Info("scheduling RetrieveActivityOptions for execution.")
 	err = workflow.ExecuteActivity(ctx, syncactivityopts_activity.RetrieveActivityOptions, &syncactivityopts_activity.RetrieveActivityOptionsRequest{
 		JobId: req.JobId,
 	}, workflowMetadata).Get(ctx, &actOptResp)
@@ -73,7 +77,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	}
 
 	ctx = workflow.WithActivityOptions(wfctx, *actOptResp.SyncActivityOptions)
-	logger.Info("executing running init statements in job destinations activity")
+	logger.Info("scheduling RunSqlInitTableStatements for execution.")
 	var resp *runsqlinittablestmts_activity.RunSqlInitTableStatementsResponse
 	err = workflow.ExecuteActivity(ctx, runsqlinittablestmts_activity.RunSqlInitTableStatements, &runsqlinittablestmts_activity.RunSqlInitTableStatementsRequest{
 		JobId:      req.JobId,
@@ -108,7 +112,8 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		bc := bc
 		future := invokeSync(bc, childctx, started, completed, workflowMetadata, logger)
 		workselector.AddFuture(future, func(f workflow.Future) {
-			logger.Info("config sync completed", "name", bc.Name)
+			logger = log.With(logger, withBenthosConfigResponseLoggerTags(bc)...)
+			logger.Info("config sync completed")
 			var result sync_activity.SyncResponse
 			err := f.Get(childctx, &result)
 			if err != nil {
@@ -117,6 +122,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 				if err != nil {
 					logger.Error("redis clean up activity did not complete")
 				}
+				logger.Error("sync activity did not complete", "err", err)
 				cancelHandler()
 				activityErr = err
 			}
@@ -130,6 +136,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	}
 
 	for i := 0; i < len(bcResp.BenthosConfigs); i++ {
+		logger = log.With(logger, withBenthosConfigResponseLoggerTags(bcResp.BenthosConfigs[i])...)
 		logger.Debug("*** blocking select ***", "i", i)
 		workselector.Select(ctx)
 		if activityErr != nil {
@@ -170,7 +177,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 			})
 		}
 	}
-	logger.Info("workflow completed")
+	logger.Info("data sync workflow completed")
 
 	return &WorkflowResponse{}, nil
 }
@@ -216,14 +223,30 @@ func isReadyForCleanUp(table, col string, dependsOnMap map[string][]*tabledepend
 	return true
 }
 
-func getSyncMetadata(config *datasync_activities.BenthosConfigResponse) *sync_activity.SyncMetadata {
+func withBenthosConfigResponseLoggerTags(bc *genbenthosconfigs_activity.BenthosConfigResponse) []any {
+	keyvals := []any{}
+
+	if bc.Name != "" {
+		keyvals = append(keyvals, "name", bc.Name)
+	}
+	if bc.TableSchema != "" {
+		keyvals = append(keyvals, "schema", bc.TableSchema)
+	}
+	if bc.TableName != "" {
+		keyvals = append(keyvals, "table", bc.TableName)
+	}
+
+	return keyvals
+}
+
+func getSyncMetadata(config *genbenthosconfigs_activity.BenthosConfigResponse) *sync_activity.SyncMetadata {
 	names := strings.Split(config.Name, ".")
 	schema, table := names[0], names[1]
 	return &sync_activity.SyncMetadata{Schema: schema, Table: table}
 }
 
 func invokeSync(
-	config *datasync_activities.BenthosConfigResponse,
+	config *genbenthosconfigs_activity.BenthosConfigResponse,
 	ctx workflow.Context,
 	started map[string]struct{},
 	completed map[string][]string,
@@ -232,7 +255,8 @@ func invokeSync(
 ) workflow.Future {
 	metadata := getSyncMetadata(config)
 	future, settable := workflow.NewFuture(ctx)
-	logger.Info("triggering config sync", "name", config.Name, "metadata", metadata)
+	logger = log.With(logger, "name", config.Name, "metadata", metadata)
+	logger.Info("triggering config sync")
 	started[config.Name] = struct{}{}
 	workflow.GoNamed(ctx, config.Name, func(ctx workflow.Context) {
 		configbits, err := yaml.Marshal(config.Config)
@@ -241,7 +265,9 @@ func invokeSync(
 			settable.SetError(fmt.Errorf("unable to marshal benthos config: %w", err))
 			return
 		}
-		fmt.Println(string(configbits))
+
+		logger.Info("scheduling Sync for execution.")
+
 		var result sync_activity.SyncResponse
 		err = workflow.ExecuteActivity(
 			ctx,
@@ -259,7 +285,7 @@ func invokeSync(
 	return future
 }
 
-func isConfigReady(config *datasync_activities.BenthosConfigResponse, completed map[string][]string) bool {
+func isConfigReady(config *genbenthosconfigs_activity.BenthosConfigResponse, completed map[string][]string) bool {
 	if config == nil {
 		return false
 	}
@@ -283,14 +309,14 @@ func isConfigReady(config *datasync_activities.BenthosConfigResponse, completed 
 }
 
 type SplitConfigs struct {
-	Root       []*datasync_activities.BenthosConfigResponse
-	Dependents []*datasync_activities.BenthosConfigResponse
+	Root       []*genbenthosconfigs_activity.BenthosConfigResponse
+	Dependents []*genbenthosconfigs_activity.BenthosConfigResponse
 }
 
-func splitBenthosConfigs(configs []*datasync_activities.BenthosConfigResponse) *SplitConfigs {
+func splitBenthosConfigs(configs []*genbenthosconfigs_activity.BenthosConfigResponse) *SplitConfigs {
 	out := &SplitConfigs{
-		Root:       []*datasync_activities.BenthosConfigResponse{},
-		Dependents: []*datasync_activities.BenthosConfigResponse{},
+		Root:       []*genbenthosconfigs_activity.BenthosConfigResponse{},
+		Dependents: []*genbenthosconfigs_activity.BenthosConfigResponse{},
 	}
 	for _, cfg := range configs {
 		if len(cfg.DependsOn) == 0 {

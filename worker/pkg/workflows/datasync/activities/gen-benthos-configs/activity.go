@@ -1,4 +1,4 @@
-package runsqlinittablestmts_activity
+package genbenthosconfigs_activity
 
 import (
 	"context"
@@ -10,31 +10,51 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
+	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/log"
 )
 
-type RunSqlInitTableStatementsRequest struct {
+type GenerateBenthosConfigsRequest struct {
 	JobId      string
 	WorkflowId string
 }
-
-type RunSqlInitTableStatementsResponse struct {
+type GenerateBenthosConfigsResponse struct {
+	BenthosConfigs []*BenthosConfigResponse
 }
 
-func RunSqlInitTableStatements(
+type BenthosConfigResponse struct {
+	Name        string
+	DependsOn   []*tabledependency.DependsOn
+	Config      *neosync_benthos.BenthosConfig
+	TableSchema string
+	TableName   string
+	Columns     []string
+
+	BenthosDsns []*shared.BenthosDsn
+
+	primaryKeys    []string
+	excludeColumns []string
+	updateConfig   *tabledependency.RunConfig
+}
+
+func GenerateBenthosConfigs(
 	ctx context.Context,
-	req *RunSqlInitTableStatementsRequest,
-) (*RunSqlInitTableStatementsResponse, error) {
+	req *GenerateBenthosConfigsRequest,
+	wfmetadata *shared.WorkflowMetadata,
+) (*GenerateBenthosConfigsResponse, error) {
+	loggerKeyVals := []any{
+		"jobId", req.JobId,
+		"WorkflowID", wfmetadata.WorkflowId,
+		"RunID", wfmetadata.RunId,
+	}
 	logger := log.With(
 		activity.GetLogger(ctx),
-		"jobId", req.JobId,
-		"WorkflowID", req.WorkflowId,
-		// "RunID", wfmetadata.RunId,
+		loggerKeyVals...,
 	)
 	_ = logger
-
 	go func() {
 		for {
 			select {
@@ -59,23 +79,25 @@ func RunSqlInitTableStatements(
 		neosyncUrl,
 	)
 
+	transformerclient := mgmtv1alpha1connect.NewTransformersServiceClient(
+		httpClient,
+		neosyncUrl,
+	)
+
 	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(
 		httpClient,
 		neosyncUrl,
 	)
-	builder := newInitStatementBuilder(
+	bbuilder := newBenthosBuilder(
 		pgpoolmap,
 		pgquerier,
 		mysqlpoolmap,
 		mysqlquerier,
 		jobclient,
 		connclient,
+		transformerclient,
 		&sqlconnect.SqlOpenConnector{},
 	)
-	slogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
-	slogger = slogger.With(
-		"jobId", req.JobId,
-		"WorkflowID", req.WorkflowId,
-	)
-	return builder.RunSqlInitTableStatements(ctx, req, slogger)
+	slogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{})).With(loggerKeyVals...)
+	return bbuilder.GenerateBenthosConfigs(ctx, req, slogger)
 }

@@ -63,7 +63,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 ) (*RunSqlInitTableStatementsResponse, error) {
 	job, err := b.getJobById(ctx, req.JobId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to get job by id: %w", err)
 	}
 
 	var sourceConnectionId string
@@ -75,18 +75,18 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 	case *mgmtv1alpha1.JobSourceOptions_Generate:
 		sourceConnection, err := b.getConnectionById(ctx, *jobSourceConfig.Generate.FkSourceConnectionId)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to get connection by fk source connection id: %w", err)
 		}
 		switch connConfig := sourceConnection.ConnectionConfig.Config.(type) {
 		case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 			if _, ok := b.pgpool[sourceConnection.Id]; !ok {
 				pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(connConfig.PgConfig, shared.Ptr(uint32(5)), slogger)
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("unable to create new postgres pool from connection config: %w", err)
 				}
 				pool, err := pgconn.Open(ctx)
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("unable to open postgres connection: %w", err)
 				}
 				defer pgconn.Close()
 				b.pgpool[sourceConnection.Id] = pool
@@ -97,11 +97,11 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 			if _, ok := b.mysqlpool[sourceConnection.Id]; !ok {
 				conn, err := b.sqlconnector.NewDbFromConnectionConfig(sourceConnection.ConnectionConfig, shared.Ptr(uint32(5)), slogger)
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("unable to create new mysql pool from connection config: %w", err)
 				}
 				db, err := conn.Open()
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("unable to open mysql connection: %w", err)
 				}
 				defer conn.Close()
 				b.mysqlpool[sourceConnection.Id] = db
@@ -114,17 +114,17 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 	case *mgmtv1alpha1.JobSourceOptions_Postgres:
 		sourceConnection, err := b.getConnectionById(ctx, jobSourceConfig.Postgres.ConnectionId)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to get connection by id (%s): %w", jobSourceConfig.Postgres.ConnectionId, err)
 		}
 
 		if _, ok := b.pgpool[sourceConnection.Id]; !ok {
 			pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(sourceConnection.ConnectionConfig.GetPgConfig(), shared.Ptr(uint32(5)), slogger)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("unable to create new postgres pool from connection config: %w", err)
 			}
 			pool, err := pgconn.Open(ctx)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("unable to open postgres connection: %w", err)
 			}
 			defer pgconn.Close()
 			b.pgpool[sourceConnection.Id] = pool
@@ -134,7 +134,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 
 		allConstraints, err := dbschemas_postgres.GetAllPostgresFkConstraints(b.pgquerier, ctx, pool, uniqueSchemas)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to retrieve postgres foreign key constraints: %w", err)
 		}
 		td := dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
 		dependencyMap = getDependencyMap(td, uniqueTables)
@@ -142,17 +142,17 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 	case *mgmtv1alpha1.JobSourceOptions_Mysql:
 		sourceConnection, err := b.getConnectionById(ctx, jobSourceConfig.Mysql.ConnectionId)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to get connection by id (%s): %w", jobSourceConfig.Mysql.ConnectionId, err)
 		}
 
 		if _, ok := b.pgpool[sourceConnection.Id]; !ok {
 			conn, err := b.sqlconnector.NewDbFromConnectionConfig(sourceConnection.ConnectionConfig, shared.Ptr(uint32(5)), slogger)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("unable to create new mysql pool from connection config: %w", err)
 			}
 			pool, err := conn.Open()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("unable to open mysql connection: %w", err)
 			}
 			defer conn.Close()
 			b.mysqlpool[sourceConnection.Id] = pool
@@ -162,19 +162,19 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 
 		allConstraints, err := dbschemas_mysql.GetAllMysqlFkConstraints(b.mysqlquerier, ctx, pool, uniqueSchemas)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to retrieve mysql foreign key constraints")
 		}
 		td := dbschemas_mysql.GetMysqlTableDependencies(allConstraints)
 		dependencyMap = getDependencyMap(td, uniqueTables)
 
 	default:
-		return nil, errors.New("unsupported job source")
+		return nil, fmt.Errorf("unsupported job source: %T", jobSourceConfig)
 	}
 
 	for _, destination := range job.Destinations {
 		destinationConnection, err := b.getConnectionById(ctx, destination.ConnectionId)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to get destination connection by id (%s): %w", destination.ConnectionId, err)
 		}
 		switch connection := destinationConnection.ConnectionConfig.Config.(type) {
 		case *mgmtv1alpha1.ConnectionConfig_PgConfig:
@@ -195,6 +195,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 			}
 
 			if !truncateBeforeInsert && !truncateCascade && !initSchema {
+				slogger.Info("skipping truncate and schema init as none were set to true")
 				continue
 			}
 
@@ -216,7 +217,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 						},
 					)
 					if err != nil {
-						return nil, err
+						return nil, fmt.Errorf("unable to build init statement for postgres: %w", err)
 					}
 					tableInitMap[table] = initStmt
 				}
@@ -225,16 +226,17 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 
 				pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(connection.PgConfig, shared.Ptr(uint32(5)), slogger)
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("unable to create new postgres pool from connection config: %w", err)
 				}
 				pool, err := pgconn.Open(ctx)
 				if err != nil {
 					return nil, err
 				}
+				slogger.Info(fmt.Sprintf("executing %d sql statements that will initialize tables", len(sqlStatement)))
 				_, err = pool.Exec(ctx, strings.Join(sqlStatement, "\n"))
 				if err != nil {
 					pgconn.Close()
-					return nil, err
+					return nil, fmt.Errorf("unable to open postgres connection: %w", err)
 				}
 				pgconn.Close()
 			} else {
@@ -255,6 +257,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 			}
 
 			if !truncateBeforeInsert && !initSchema {
+				slogger.Info("skipping truncate and schema init as none were set to true")
 				continue
 			}
 
@@ -275,7 +278,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 						},
 					)
 					if err != nil {
-						return nil, err
+						return nil, fmt.Errorf("unable to build init statement for postgres: %w", err)
 					}
 					tableInitMap[table] = initStmt
 				}
@@ -283,12 +286,14 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				sqlStatements := dbschemas_mysql.GetOrderedMysqlInitStatements(tableInitMap, dependencyMap)
 				conn, err := b.sqlconnector.NewDbFromConnectionConfig(destinationConnection.ConnectionConfig, shared.Ptr(uint32(5)), slogger)
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("unable to create new mysql pool from connection config: %w", err)
 				}
 				pool, err := conn.Open()
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("unable to open mysql connection: %w", err)
 				}
+
+				slogger.Info(fmt.Sprintf("executing %d sql statements that will initialize tables", len(sqlStatements)))
 
 				for _, statement := range sqlStatements {
 					_, err = pool.ExecContext(ctx, statement)
@@ -326,7 +331,6 @@ func (b *initStatementBuilder) getJobById(
 	if err != nil {
 		return nil, err
 	}
-
 	return getjobResp.Msg.Job, nil
 }
 

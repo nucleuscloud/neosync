@@ -79,57 +79,98 @@ func TestGetPostgresTableDependenciesExtraEdgeCases(t *testing.T) {
 }
 
 func TestGenerateCreateTableStatement(t *testing.T) {
-	result := generateCreateTableStatement(
-		"public", "users",
-		[]*pg_queries.GetDatabaseTableSchemaRow{
-			{
-				ColumnName:      "id",
-				DataType:        "uuid",
-				OrdinalPosition: 1,
-				IsNullable:      "NO",
-				ColumnDefault:   "gen_random_uuid()",
+	type testcase struct {
+		schema      string
+		table       string
+		rows        []*pg_queries.GetDatabaseTableSchemaRow
+		constraints []*pg_queries.GetTableConstraintsRow
+		expected    string
+	}
+	cases := []testcase{
+		{
+			schema: "public",
+			table:  "users",
+			rows: []*pg_queries.GetDatabaseTableSchemaRow{
+				{
+					ColumnName:      "id",
+					DataType:        "uuid",
+					OrdinalPosition: 1,
+					IsNullable:      "NO",
+					ColumnDefault:   "gen_random_uuid()",
+				},
+				{
+					ColumnName:      "created_at",
+					DataType:        "timestamp without time zone",
+					OrdinalPosition: 2,
+					IsNullable:      "NO",
+					ColumnDefault:   "now()",
+				},
+				{
+					ColumnName:      "updated_at",
+					DataType:        "timestamp",
+					OrdinalPosition: 3,
+					IsNullable:      "NO",
+					ColumnDefault:   "CURRENT_TIMESTAMP",
+				},
+				{
+					ColumnName:      "extra",
+					DataType:        "varchar",
+					OrdinalPosition: 5,
+					IsNullable:      "YES",
+				},
+				{
+					ColumnName:             "name",
+					DataType:               "varchar(40)",
+					OrdinalPosition:        6,
+					IsNullable:             "YES",
+					CharacterMaximumLength: 40,
+				},
 			},
-			{
-				ColumnName:      "created_at",
-				DataType:        "timestamp without time zone",
-				OrdinalPosition: 2,
-				IsNullable:      "NO",
-				ColumnDefault:   "now()",
+			constraints: []*pg_queries.GetTableConstraintsRow{
+				{
+					ConstraintName:       "users_pkey",
+					ConstraintDefinition: "PRIMARY KEY (id)",
+				},
 			},
-			{
-				ColumnName:      "updated_at",
-				DataType:        "timestamp",
-				OrdinalPosition: 3,
-				IsNullable:      "NO",
-				ColumnDefault:   "CURRENT_TIMESTAMP",
-			},
-			{
-				ColumnName:      "extra",
-				DataType:        "varchar",
-				OrdinalPosition: 5,
-				IsNullable:      "YES",
-			},
-			{
-				ColumnName:             "name",
-				DataType:               "varchar",
-				OrdinalPosition:        6,
-				IsNullable:             "YES",
-				CharacterMaximumLength: 40,
-			},
+			expected: "CREATE TABLE IF NOT EXISTS public.users (id uuid NOT NULL DEFAULT gen_random_uuid(), created_at timestamp without time zone NOT NULL DEFAULT now(), updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, extra varchar NULL, name varchar(40) NULL, CONSTRAINT users_pkey PRIMARY KEY (id));",
 		},
-		[]*pg_queries.GetTableConstraintsRow{
-			{
-				ConstraintName:       "users_pkey",
-				ConstraintDefinition: "PRIMARY KEY (id)",
+		{
+			schema: "public",
+			table:  "users",
+			rows: []*pg_queries.GetDatabaseTableSchemaRow{
+				{
+					ColumnName:      "id",
+					DataType:        "integer",
+					OrdinalPosition: 1,
+					IsNullable:      "NO",
+					ColumnDefault:   "nextval('users_id_seq'::regclass)",
+				},
+				{
+					ColumnName:      "id2",
+					DataType:        "smallint",
+					OrdinalPosition: 2,
+					IsNullable:      "NO",
+					ColumnDefault:   "nextval('users_id2_seq'::regclass)",
+				},
+				{
+					ColumnName:      "id3",
+					DataType:        "bigint",
+					OrdinalPosition: 3,
+					IsNullable:      "NO",
+					ColumnDefault:   "nextval('users_id3_seq'::regclass)",
+				},
 			},
+			constraints: []*pg_queries.GetTableConstraintsRow{},
+			expected:    "CREATE TABLE IF NOT EXISTS public.users (id SERIAL NOT NULL, id2 SMALLSERIAL NOT NULL, id3 BIGSERIAL NOT NULL);",
 		},
-	)
+	}
 
-	assert.Equal(
-		t,
-		result,
-		"CREATE TABLE IF NOT EXISTS public.users (id uuid NOT NULL DEFAULT gen_random_uuid(), created_at timestamp without time zone NOT NULL DEFAULT now(), updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, extra varchar NULL, name varchar(40) NULL, CONSTRAINT users_pkey PRIMARY KEY (id));",
-	)
+	for _, testcase := range cases {
+		t.Run(t.Name(), func(t *testing.T) {
+			actual := generateCreateTableStatement(testcase.schema, testcase.table, testcase.rows, testcase.constraints)
+			assert.Equal(t, testcase.expected, actual)
+		})
+	}
 }
 
 func TestGetUniqueSchemaColMappings(t *testing.T) {
