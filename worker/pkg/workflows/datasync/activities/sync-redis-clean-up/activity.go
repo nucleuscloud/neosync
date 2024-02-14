@@ -2,12 +2,17 @@ package syncrediscleanup_activity
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
+	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/url"
 	"os"
 	"time"
 
+	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	redis "github.com/redis/go-redis/v9"
 	"go.temporal.io/sdk/activity"
 )
@@ -43,15 +48,27 @@ func DeleteRedisHash(
 		"WorkflowID", req.WorkflowId,
 		"RedisHashKey", req.HashKey,
 	)
+	redisConfig := shared.GetRedisConfig()
+	if redisConfig == nil {
+		return nil, fmt.Errorf("missing redis config. this operation requires redis.")
+	}
+
+	var tlsConf *tls.Config
+	if redisConfig.Tls != nil && redisConfig.Tls.Enabled {
+		tlsc, err := getTlsConfig(redisConfig.Tls)
+		if err != nil {
+			return nil, err
+		}
+		tlsConf = tlsc
+	}
 
 	// build redis client
 	var redisDB int
 	var user string
 	var pass string
 	var addrs []string
-	v := "tcp://default:pKycbtEGYG@redis-master.redis.svc.cluster.local:6379"
 
-	redisUrl, err := url.Parse(v)
+	redisUrl, err := url.Parse(redisConfig.Url)
 	if err != nil {
 		return nil, err
 	}
@@ -70,13 +87,25 @@ func DeleteRedisHash(
 	user = rurl.Username
 	pass = rurl.Password
 
+	var client redis.UniversalClient
 	opts := &redis.UniversalOptions{
-		Addrs:    addrs,
-		DB:       redisDB,
-		Username: user,
-		Password: pass,
+		Addrs:     addrs,
+		DB:        redisDB,
+		Username:  user,
+		Password:  pass,
+		TLSConfig: tlsConf,
 	}
-	client := redis.NewClient(opts.Simple())
+	switch *redisConfig.Kind {
+	case "simple":
+		client = redis.NewClient(opts.Simple())
+	case "cluster":
+		client = redis.NewClusterClient(opts.Cluster())
+	case "failover":
+		opts.MasterName = *redisConfig.Master
+		client = redis.NewFailoverClient(opts.Failover())
+	default:
+		return nil, fmt.Errorf("invalid redis kind: %s", *redisConfig.Kind)
+	}
 
 	err = deleteRedisHashByKey(slogger, ctx, client, req.HashKey)
 	if err != nil {
@@ -93,4 +122,78 @@ func deleteRedisHashByKey(logger *slog.Logger, ctx context.Context, client redis
 		return err
 	}
 	return nil
+}
+
+func defaultTLSConfig() *tls.Config {
+	return &tls.Config{
+		MinVersion: tls.VersionTLS13,
+	}
+}
+
+func getTlsConfig(c *shared.RedisTlsConfig) (*tls.Config, error) {
+	var tlsConf *tls.Config
+	initConf := func() {
+		if tlsConf != nil {
+			return
+		}
+		tlsConf = defaultTLSConfig()
+	}
+
+	if len(*c.RootCertAuthority) > 0 && len(*c.RootCertAuthorityFile) > 0 {
+		return nil, errors.New("only one field between root_cas and root_cas_file can be specified")
+	}
+
+	if c.RootCertAuthorityFile != nil && len(*c.RootCertAuthorityFile) > 0 {
+		caCert, err := readFile(*c.RootCertAuthorityFile)
+		if err != nil {
+			return nil, err
+		}
+		initConf()
+		tlsConf.RootCAs = x509.NewCertPool()
+		tlsConf.RootCAs.AppendCertsFromPEM(caCert)
+	}
+
+	if c.RootCertAuthority != nil && len(*c.RootCertAuthority) > 0 {
+		initConf()
+		tlsConf.RootCAs = x509.NewCertPool()
+		tlsConf.RootCAs.AppendCertsFromPEM([]byte(*c.RootCertAuthority))
+	}
+
+	// for _, conf := range c.ClientCertificates {
+	// 	cert, err := conf.Load(f)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	initConf()
+	// 	tlsConf.Certificates = append(tlsConf.Certificates, cert)
+	// }
+
+	if c.EnableRenegotiation {
+		initConf()
+		tlsConf.Renegotiation = tls.RenegotiateFreelyAsClient
+	}
+
+	if c.SkipCertVerify {
+		initConf()
+		tlsConf.InsecureSkipVerify = true
+	}
+
+	return tlsConf, nil
+}
+
+func readFile(filename string) ([]byte, error) {
+	// Open the file with RDONLY flag
+	file, err := os.OpenFile(filename, os.O_RDONLY, 0)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	// Read all bytes from the file
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }

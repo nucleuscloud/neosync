@@ -98,6 +98,7 @@ func (a *Activities) GenerateBenthosConfigs(
 		}
 	}()
 
+	redisConfig := shared.GetRedisConfig()
 	neosyncUrl := getNeosyncUrl()
 	httpClient := getNeosyncHttpClient(viper.GetString("NEOSYNC_API_KEY"))
 
@@ -131,6 +132,7 @@ func (a *Activities) GenerateBenthosConfigs(
 		&sqlconnect.SqlOpenConnector{},
 		req.JobId,
 		wfmetadata.RunId,
+		redisConfig,
 	)
 	slogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
 	slogger = slogger.With(
@@ -528,7 +530,10 @@ func (b *benthosBuilder) buildProcessorConfigs(
 		return nil, err
 	}
 
-	cacheBranches := b.buildBranchCacheConfigs(ctx, cols, columnConstraints)
+	cacheBranches, err := b.buildBranchCacheConfigs(ctx, cols, columnConstraints)
+	if err != nil {
+		return nil, err
+	}
 	mapping := b.buildMappingConfigs(ctx, cols)
 
 	var processorConfigs []*neosync_benthos.ProcessorConfig
@@ -621,7 +626,7 @@ func (b *benthosBuilder) buildBranchCacheConfigs(
 	ctx context.Context,
 	cols []*mgmtv1alpha1.JobMapping,
 	columnConstraints map[string]*dbschemas_utils.ForeignKey,
-) []*neosync_benthos.BranchConfig {
+) ([]*neosync_benthos.BranchConfig, error) {
 	branchConfigs := []*neosync_benthos.BranchConfig{}
 	for _, col := range cols {
 		fk, ok := columnConstraints[col.Column]
@@ -634,29 +639,39 @@ func (b *benthosBuilder) buildBranchCacheConfigs(
 			requestMap := fmt.Sprintf(`root = if this.%s == null { deleted() } else { this }`, col.Column)
 			argsMapping := fmt.Sprintf(`root = ["%s", json("%s")]`, hashedKey, col.Column)
 			resultMap := fmt.Sprintf("root.%s = this", col.Column)
-			branchConfigs = append(branchConfigs, b.buildRedisGetBranchConfig(resultMap, argsMapping, &requestMap))
+			br, err := b.buildRedisGetBranchConfig(resultMap, argsMapping, &requestMap)
+			if err != nil {
+				return nil, err
+			}
+			branchConfigs = append(branchConfigs, br)
 		}
 	}
-	return branchConfigs
+	return branchConfigs, nil
 }
 
 func (b *benthosBuilder) buildRedisGetBranchConfig(
 	resultMap, argsMapping string,
 	requestMap *string,
-) *neosync_benthos.BranchConfig {
+) (*neosync_benthos.BranchConfig, error) {
+	if b.redisConfig == nil {
+		return nil, fmt.Errorf("missing redis config. this operation requires redis.")
+	}
 	return &neosync_benthos.BranchConfig{
 		RequestMap: requestMap,
 		Processors: []neosync_benthos.ProcessorConfig{
 			{
 				Redis: &neosync_benthos.RedisProcessorConfig{
-					Url:         "tcp://default:pKycbtEGYG@redis-master.redis.svc.cluster.local:6379",
+					Url:         b.redisConfig.Url,
 					Command:     "hget",
 					ArgsMapping: argsMapping,
+					Kind:        b.redisConfig.Kind,
+					Master:      b.redisConfig.Master,
+					Tls:         shared.BuildBenthosRedisTlsConfig(b.redisConfig),
 				},
 			},
 		},
 		ResultMap: &resultMap,
-	}
+	}, nil
 }
 
 func shouldProcessColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {

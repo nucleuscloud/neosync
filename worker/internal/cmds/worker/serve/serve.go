@@ -170,38 +170,3 @@ func getTemporalAuthCertificate() ([]tls.Certificate, error) {
 	}
 	return []tls.Certificate{}, nil
 }
-
-type RedisConfig struct {
-	Url    string
-	Kind   *string
-	Master *string
-	Tls *RedisTlsConfig
-}
-
-type RedisTlsConfig struct {
-	Enabled               bool
-	skipCertVerify        bool
-	enableRenegotiation   bool
-	rootCertAuthority     *string
-	rootCertAuthorityFile *string
-}
-
-// redis://<user>:<password>@<host>:<port>/<db_number>
-func getRedisUrl() *RedisConfig {
-	redisUrl := viper.GetString("REDIS_URL")
-	if redisUrl == "" {
-		return nil
-	}
-
-	kind := viper.GetString("REDIS_KIND")
-	master := viper.GetString("REDIS_MASTER")
-	return &RedisConfig{
-		Url:    redisUrl,
-		Kind:   &kind,
-		Master: &master,
-		Tls: &RedisTlsConfig{
-			Enable: 
-		},
-	}
-
-}
