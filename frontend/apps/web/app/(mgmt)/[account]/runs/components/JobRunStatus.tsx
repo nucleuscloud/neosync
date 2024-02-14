@@ -52,7 +52,8 @@ export default function JobRunStatus(props: Props): ReactElement {
             </TooltipTrigger>
             <TooltipContent>
               <p>
-                This run has been archived by the system or manually deleted
+                This run is un-started, archived by the system, or has been
+                deleted.
               </p>
             </TooltipContent>
           </Tooltip>
