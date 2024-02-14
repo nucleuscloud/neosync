@@ -2,6 +2,7 @@ package syncactivityopts_activity
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"connectrpc.com/connect"
@@ -9,6 +10,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"go.temporal.io/sdk/activity"
+	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 )
@@ -25,7 +27,12 @@ func RetrieveActivityOptions(
 	req *RetrieveActivityOptionsRequest,
 	wfmetadata *shared.WorkflowMetadata,
 ) (*RetrieveActivityOptionsResponse, error) {
-	logger := activity.GetLogger(ctx)
+	logger := log.With(
+		activity.GetLogger(ctx),
+		"jobId", req.JobId,
+		"WorkflowID", wfmetadata.WorkflowId,
+		"RunID", wfmetadata.RunId,
+	)
 	_ = logger
 
 	neosyncUrl := shared.GetNeosyncUrl()
@@ -38,7 +45,7 @@ func RetrieveActivityOptions(
 
 	jobResp, err := jobclient.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{Id: req.JobId}))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to get job by id: %w", err)
 	}
 	job := jobResp.Msg.Job
 	return &RetrieveActivityOptionsResponse{

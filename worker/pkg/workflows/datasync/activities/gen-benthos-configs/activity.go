@@ -14,6 +14,7 @@ import (
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"go.temporal.io/sdk/activity"
+	"go.temporal.io/sdk/log"
 )
 
 type GenerateBenthosConfigsRequest struct {
@@ -44,7 +45,15 @@ func GenerateBenthosConfigs(
 	req *GenerateBenthosConfigsRequest,
 	wfmetadata *shared.WorkflowMetadata,
 ) (*GenerateBenthosConfigsResponse, error) {
-	logger := activity.GetLogger(ctx)
+	loggerKeyVals := []any{
+		"jobId", req.JobId,
+		"WorkflowID", wfmetadata.WorkflowId,
+		"RunID", wfmetadata.RunId,
+	}
+	logger := log.With(
+		activity.GetLogger(ctx),
+		loggerKeyVals...,
+	)
 	_ = logger
 	go func() {
 		for {
@@ -89,10 +98,6 @@ func GenerateBenthosConfigs(
 		transformerclient,
 		&sqlconnect.SqlOpenConnector{},
 	)
-	slogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
-	slogger = slogger.With(
-		"WorkflowID", wfmetadata.WorkflowId,
-		"RunID", wfmetadata.RunId,
-	)
+	slogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{})).With(loggerKeyVals...)
 	return bbuilder.GenerateBenthosConfigs(ctx, req, slogger)
 }

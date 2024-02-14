@@ -78,7 +78,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 ) (*GenerateBenthosConfigsResponse, error) {
 	job, err := b.getJobById(ctx, req.JobId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to get job by id: %w", err)
 	}
 	responses := []*BenthosConfigResponse{}
 
@@ -97,18 +97,18 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		// TODO this needs to be updated to get db schema
 		sourceResponses, err := buildBenthosGenerateSourceConfigResponses(ctx, b.transformerclient, groupedMappings, sourceTableOpts, map[string]*dbschemas_utils.ColumnInfo{})
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to build benthos generate source config responses: %w", err)
 		}
 		responses = append(responses, sourceResponses...)
 
 	case *mgmtv1alpha1.JobSourceOptions_Postgres:
 		sourceConnection, err := b.getConnectionById(ctx, jobSourceConfig.Postgres.ConnectionId)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to get connection by id (%s): %w", jobSourceConfig.Postgres.ConnectionId, err)
 		}
 		pgconfig := sourceConnection.ConnectionConfig.GetPgConfig()
 		if pgconfig == nil {
-			return nil, errors.New("source connection is not a postgres config")
+			return nil, fmt.Errorf("source connection (%s) is not a postgres config", jobSourceConfig.Postgres.ConnectionId)
 		}
 		sqlOpts := jobSourceConfig.Postgres
 		var sourceTableOpts map[string]*sqlSourceTableOptions
@@ -119,11 +119,11 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		if _, ok := b.pgpool[sourceConnection.Id]; !ok {
 			pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(pgconfig, shared.Ptr(uint32(5)), slogger)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("unable to create new postgres pool from connection config: %w", err)
 			}
 			pool, err := pgconn.Open(ctx)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("unable to open postgres connection: %w", err)
 			}
 			defer pgconn.Close()
 			b.pgpool[sourceConnection.Id] = pool
@@ -133,7 +133,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		// validate job mappings align with sql connections
 		dbschemas, err := b.pgquerier.GetDatabaseSchema(ctx, pool)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to get database schema for postgres connection: %w", err)
 		}
 		groupedSchemas := dbschemas_postgres.GetUniqueSchemaColMappings(dbschemas)
 		if !areMappingsSubsetOfSchemas(groupedSchemas, job.Mappings) {
@@ -148,20 +148,20 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 		sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedMappings, jobSourceConfig.Postgres.ConnectionId, "postgres", sourceTableOpts, groupedSchemas)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to build postgres benthos sql source config responses: %w", err)
 		}
 		responses = append(responses, sourceResponses...)
 
 		allConstraints, err := dbschemas_postgres.GetAllPostgresFkConstraints(b.pgquerier, ctx, pool, uniqueSchemas)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to retrieve postgres foreign key constraints: %w", err)
 		}
 		td := dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
 		tables := filterNullTables(groupedMappings)
 		dependencyConfigs := tabledependency.GetRunConfigs(td, tables)
 		primaryKeys, err := b.getAllPostgresPkConstraints(ctx, pool, uniqueSchemas)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to get all postgres primary key constraints: %w", err)
 		}
 		dependencyMap := map[string][]*tabledependency.RunConfig{}
 		for _, cfg := range dependencyConfigs {
@@ -203,11 +203,11 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	case *mgmtv1alpha1.JobSourceOptions_Mysql:
 		sourceConnection, err := b.getConnectionById(ctx, jobSourceConfig.Mysql.ConnectionId)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to get connection (%s) by id: %w", jobSourceConfig.Mysql.ConnectionId, err)
 		}
 		mysqlconfig := sourceConnection.ConnectionConfig.GetMysqlConfig()
 		if mysqlconfig == nil {
-			return nil, errors.New("source connection is not a mysql config")
+			return nil, fmt.Errorf("source connection (%s) is not a mysql config", jobSourceConfig.Mysql.ConnectionId)
 		}
 
 		sqlOpts := jobSourceConfig.Mysql
@@ -219,11 +219,11 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		if _, ok := b.mysqlpool[sourceConnection.Id]; !ok {
 			conn, err := b.sqlconnector.NewDbFromConnectionConfig(sourceConnection.ConnectionConfig, shared.Ptr(uint32(5)), slogger)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("unable to create new mysql pool from connection config: %w", err)
 			}
 			pool, err := conn.Open()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("unable to open mysql connection: %w", err)
 			}
 			defer conn.Close()
 			b.mysqlpool[sourceConnection.Id] = pool
@@ -233,7 +233,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		// validate job mappings align with sql connections
 		dbschemas, err := b.mysqlquerier.GetDatabaseSchema(ctx, pool)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to get database schema for mysql connection: %w", err)
 		}
 		groupedSchemas := dbschemas_mysql.GetUniqueSchemaColMappings(dbschemas)
 		if !areMappingsSubsetOfSchemas(groupedSchemas, job.Mappings) {
@@ -247,20 +247,20 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 		sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedMappings, jobSourceConfig.Mysql.ConnectionId, "mysql", sourceTableOpts, groupedSchemas)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to build mysql benthos sql source config responses: %w", err)
 		}
 		responses = append(responses, sourceResponses...)
 
 		allConstraints, err := dbschemas_mysql.GetAllMysqlFkConstraints(b.mysqlquerier, ctx, pool, uniqueSchemas)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to retrieve mysql foreign key constraints: %w", err)
 		}
 		td := dbschemas_mysql.GetMysqlTableDependencies(allConstraints)
 		tables := filterNullTables(groupedMappings)
 		dependencyConfigs := tabledependency.GetRunConfigs(td, tables)
 		primaryKeys, err := b.getAllMysqlPkConstraints(ctx, pool, uniqueSchemas)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to get all mysql primary key constraints: %w", err)
 		}
 
 		dependencyMap := map[string][]*tabledependency.RunConfig{}
@@ -307,13 +307,13 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	for destIdx, destination := range job.Destinations {
 		destinationConnection, err := b.getConnectionById(ctx, destination.ConnectionId)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to get destination connection (%s) by id: %w", destination.ConnectionId, err)
 		}
 		for _, resp := range responses {
 			tableKey := neosync_benthos.BuildBenthosTable(resp.TableSchema, resp.TableName)
 			tm := groupedTableMapping[tableKey]
 			if tm == nil {
-				return nil, errors.New("unable to find table mapping for key")
+				return nil, fmt.Errorf("unable to find table mapping for key (%s) when building destination connection", tableKey)
 			}
 			dstEnvVarKey := fmt.Sprintf("DESTINATION_%d_CONNECTION_DSN", destIdx)
 			dsn := fmt.Sprintf("${%s}", dstEnvVarKey)
@@ -348,7 +348,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						// circular dependency -> create update benthos config
 						updateResp, err := createSqlUpdateBenthosConfig(ctx, b.transformerclient, resp, dsn, tableKey, tm, colSourceMap, groupedColInfoMap)
 						if err != nil {
-							return nil, err
+							return nil, fmt.Errorf("unable to create sql update benthos config: %w", err)
 						}
 						updateResponses = append(updateResponses, updateResp)
 					}
@@ -407,7 +407,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						// circular dependency -> create update benthos config
 						updateResp, err := createSqlUpdateBenthosConfig(ctx, b.transformerclient, resp, dsn, tableKey, tm, colSourceMap, groupedColInfoMap)
 						if err != nil {
-							return nil, err
+							return nil, fmt.Errorf("unable to create sql update benthos config: %w", err)
 						}
 						updateResponses = append(updateResponses, updateResp)
 					}
@@ -481,6 +481,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	}
 
 	responses = append(responses, updateResponses...)
+	slogger.Info(fmt.Sprintf("successfully built %d benthos configs", len(responses)))
 	return &GenerateBenthosConfigsResponse{
 		BenthosConfigs: responses,
 	}, nil
