@@ -23,8 +23,8 @@ func GetTableCreateStatement(
 	var tableSchemas []*pg_queries.GetDatabaseTableSchemaRow
 	errgrp.Go(func() error {
 		result, err := q.GetDatabaseTableSchema(errctx, conn, &pg_queries.GetDatabaseTableSchemaParams{
-			TableSchema: schema,
-			TableName:   table,
+			Schema: schema,
+			Table:  table,
 		})
 		if err != nil {
 			return fmt.Errorf("unable to generate database table schema: %w", err)
@@ -74,33 +74,29 @@ func generateCreateTableStatement(
 		constraint := tableConstraints[idx]
 		constraints[idx] = fmt.Sprintf("CONSTRAINT %s %s", constraint.ConstraintName, constraint.ConstraintDefinition)
 	}
-	tableDefs := append(columns, constraints...) //nolint
+	tableDefs := append(columns, constraints...) //nolint:gocritic
 	return fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s.%s (%s);`, schema, table, strings.Join(tableDefs, ", "))
 }
 
 func buildTableCol(record *pg_queries.GetDatabaseTableSchemaRow) string {
 	pieces := []string{record.ColumnName, buildDataType(record), buildNullableText(record)}
-	if record.ColumnDefault != "" && record.ColumnDefault != "NULL" {
-		if strings.HasPrefix(record.ColumnDefault, "nextval") && record.DataType == "integer" {
-			pieces = []string{record.ColumnName, "SERIAL"}
-		} else {
-			pieces = append(pieces, "DEFAULT", record.ColumnDefault)
+	colDefault, ok := record.ColumnDefault.(string)
+	if ok && colDefault != "" {
+		if strings.HasPrefix(colDefault, "nextval") && record.DataType == "integer" {
+			pieces[1] = "SERIAL"
+			pieces = []string{record.ColumnName, "SERIAL", buildNullableText(record)}
+		} else if strings.HasPrefix(colDefault, "nextval") && record.DataType == "bigint" {
+			pieces[1] = "BIGSERIAL"
+		} else if strings.HasPrefix(colDefault, "nextval") && record.DataType == "smallint" {
+			pieces[1] = "SMALLSERIAL"
+		} else if colDefault != "NULL" {
+			pieces = append(pieces, "DEFAULT", colDefault)
 		}
 	}
-
 	return strings.Join(pieces, " ")
 }
 
 func buildDataType(record *pg_queries.GetDatabaseTableSchemaRow) string {
-	if strings.EqualFold(record.DataType, "numeric") && record.NumericPrecision > -1 && record.NumericScale > -1 {
-		return fmt.Sprintf("%s(%d,%d)", record.DataType, record.NumericPrecision, record.NumericScale)
-	}
-
-	if record.CharacterMaximumLength > 0 {
-		if strings.EqualFold(record.DataType, "character varying") || strings.EqualFold(record.DataType, "character") || strings.EqualFold(record.DataType, "varchar") || strings.EqualFold(record.DataType, "bpchar") {
-			return fmt.Sprintf("%s(%d)", record.DataType, record.CharacterMaximumLength)
-		}
-	}
 	return record.DataType
 }
 
@@ -159,24 +155,26 @@ func GetUniqueSchemaColMappings(
 }
 
 func toColumnInfo(row *pg_queries.GetDatabaseSchemaRow) *dbschemas.ColumnInfo {
+	var colDefault string
+	if row.ColumnDefault != nil {
+		val, ok := row.ColumnDefault.(string)
+		if ok {
+			colDefault = val
+		}
+	}
 	return &dbschemas.ColumnInfo{
 		OrdinalPosition:        int32(row.OrdinalPosition),
-		ColumnDefault:          row.ColumnDefault,
+		ColumnDefault:          colDefault,
 		IsNullable:             row.IsNullable,
 		DataType:               row.DataType,
-		CharacterMaximumLength: toInt32Ptr(row.CharacterMaximumLength),
-		NumericPrecision:       toInt32Ptr(row.NumericPrecision),
-		NumericScale:           toInt32Ptr(row.NumericScale),
+		CharacterMaximumLength: ptr(row.CharacterMaximumLength),
+		NumericPrecision:       ptr(row.NumericPrecision),
+		NumericScale:           ptr(row.NumericScale),
 	}
 }
 
-func toInt32Ptr(num int) *int32 {
-	var num32Ptr *int32
-	if num > 0 {
-		num32 := int32(num)
-		num32Ptr = &num32
-	}
-	return num32Ptr
+func ptr[T any](val T) *T {
+	return &val
 }
 
 func GetAllPostgresFkConstraints(
