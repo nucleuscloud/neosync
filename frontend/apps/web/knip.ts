@@ -34,7 +34,7 @@ const config = {
     'prettier',
     '@types/react-dom',
   ],
-  ignoreBinaries: ['tailwind', 'next'],
+  ignoreBinaries: ['tail', 'next'],
 };
 
 export default config;
