@@ -103,6 +103,36 @@ func Test_TransformCharacterSubstitutionLettersMultipleMatches(t *testing.T) {
 
 }
 
+func Test_TransformCharacterSubstitutionLettersNoMatches(t *testing.T) {
+
+	// should match the first two sections and not that last i.e. h_ello_ello_elo
+	testStringValue := "helloelloelo"
+
+	res, err := TransformCharacterScramble(testStringValue, `123`)
+
+	assert.NoError(t, err)
+	assert.IsType(t, "", *res)
+	assert.Equal(t, len(testStringValue), len(*res), "The output string should be as long as the input string")
+	assert.True(t, transformer_utils.IsValidChar(*res), "The output string should contain valid characters")
+	assert.False(t, testStringValue == *res, "The first letter should be the same")
+
+}
+
+func Test_TransformCharacterSubstitutionLettersNilregex(t *testing.T) {
+
+	// should match the first two sections and not that last i.e. h_ello_ello_elo
+	testStringValue := "helloelloelo"
+
+	res, err := TransformCharacterScramble(testStringValue, ``)
+
+	assert.NoError(t, err)
+	assert.IsType(t, "", *res)
+	assert.Equal(t, len(testStringValue), len(*res), "The output string should be as long as the input string")
+	assert.True(t, transformer_utils.IsValidChar(*res), "The output string should contain valid characters")
+	assert.False(t, testStringValue == *res, "The first letter should be the same")
+
+}
+
 func Test_TransformCharacterSubstitutionLettersMatchNumbers(t *testing.T) {
 
 	// should match all numbers

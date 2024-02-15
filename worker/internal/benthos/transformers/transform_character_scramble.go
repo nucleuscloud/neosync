@@ -80,7 +80,7 @@ func TransformCharacterScramble(value, regex string) (*string, error) {
 		matches := reg.FindAllStringIndex(value, -1)
 		transformedString := value
 
-		// if no matches are found just scramble the entire string to preserve privacy
+		// if no matches are found just scramble the entire string
 		if matches == nil {
 			transformedString := strings.Map(ScrambleChar, value)
 			return &transformedString, nil
@@ -98,8 +98,8 @@ func TransformCharacterScramble(value, regex string) (*string, error) {
 		return &transformedString, nil
 
 	} else {
-		transformedString := strings.Map(ScrambleChar, value)
 
+		transformedString := strings.Map(ScrambleChar, value)
 		return &transformedString, nil
 	}
 
