@@ -87,15 +87,14 @@ func Test_TransformCharacterSubstitutionLettersNumbersCharacters(t *testing.T) {
 
 func Test_TransformCharacterSubstitutionLettersMultipleMatches(t *testing.T) {
 	// should match the first two sections and not that last i.e. h_ello_ello_elo
-
 	res, err := TransformCharacterScramble(helloTest, `ello`)
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
-	assert.Equal(t, len(testStringValue), len(*res), "The output string should be as long as the input string")
+	assert.Equal(t, len(helloTest), len(*res), "The output string should be as long as the input string")
 	assert.True(t, transformer_utils.IsValidChar(*res), "The output string should contain valid characters")
-	assert.Equal(t, testStringValue[:1], (*res)[:1], "The first letter should be the same")
-	assert.Equal(t, testStringValue[9:], (*res)[9:], "The last three letters should be the same")
+	assert.Equal(t, helloTest[:1], (*res)[:1], "The first letter should be the same")
+	assert.Equal(t, helloTest[9:], (*res)[9:], "The last three letters should be the same")
 }
 
 func Test_TransformCharacterSubstitutionLettersNoMatches(t *testing.T) {
@@ -104,9 +103,9 @@ func Test_TransformCharacterSubstitutionLettersNoMatches(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
-	assert.Equal(t, len(testStringValue), len(*res), "The output string should be as long as the input string")
+	assert.Equal(t, len(helloTest), len(*res), "The output string should be as long as the input string")
 	assert.True(t, transformer_utils.IsValidChar(*res), "The output string should contain valid characters")
-	assert.False(t, testStringValue == *res, "The first letter should be the same")
+	assert.False(t, helloTest == *res, "The first letter should be the same")
 }
 
 func Test_TransformCharacterSubstitutionLettersNilregex(t *testing.T) {
