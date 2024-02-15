@@ -1,17 +1,12 @@
 'use client';
-import {
-  filterInputFreeSystemTransformers,
-  filterInputFreeUdfTransformers,
-} from '@/app/(mgmt)/[account]/transformers/EditTransformerOptions';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
-import { useGetSystemTransformers } from '@/libs/hooks/useGetSystemTransformers';
-import { useGetUserDefinedTransformers } from '@/libs/hooks/useGetUserDefinedTransformers';
-import { joinTransformers } from '@/shared/transformers';
+import { useGetMergedTransformers } from '@/libs/hooks/useGetMergedTransformers';
 import { JobMappingFormValues } from '@/yup-validations/jobs';
 import { GetConnectionSchemaResponse } from '@neosync/sdk';
 import { ReactElement } from 'react';
-import { Row, VirtualizedSchemaTable } from './VirtualizedSchemaTable';
+import { getSchemaColumns } from './SchemaColumns';
+import SchemaPageTable, { Row } from './SchemaPageTable';
 
 interface Props {
   data: JobMappingFormValues[];
@@ -22,25 +17,9 @@ export function SchemaTable(props: Props): ReactElement {
   const { data, excludeInputReqTransformers } = props;
 
   const { account } = useAccount();
-  const { data: systemTransformers, isLoading: systemTransformersIsLoading } =
-    useGetSystemTransformers();
-  const { data: customTransformers, isLoading: customTransformersIsLoading } =
-    useGetUserDefinedTransformers(account?.id ?? '');
-
-  const filteredSystemTransformers = excludeInputReqTransformers
-    ? filterInputFreeSystemTransformers(systemTransformers?.transformers ?? [])
-    : systemTransformers?.transformers ?? [];
-
-  const filteredCustomTransformers = excludeInputReqTransformers
-    ? filterInputFreeUdfTransformers(
-        customTransformers?.transformers ?? [],
-        filteredSystemTransformers
-      )
-    : customTransformers?.transformers ?? [];
-
-  const mergedTransformers = joinTransformers(
-    filteredSystemTransformers,
-    filteredCustomTransformers
+  const { mergedTransformers, isLoading } = useGetMergedTransformers(
+    excludeInputReqTransformers ?? false,
+    account?.id ?? ''
   );
 
   const tableData = data.map((d, idx): Row => {
@@ -50,18 +29,16 @@ export function SchemaTable(props: Props): ReactElement {
     };
   });
 
-  if (
-    systemTransformersIsLoading ||
-    customTransformersIsLoading ||
-    !tableData ||
-    tableData.length == 0
-  ) {
+  const columns = getSchemaColumns({ transformers: mergedTransformers });
+
+  if (isLoading || !tableData || tableData.length == 0) {
     return <SkeletonTable />;
   }
 
   return (
     <div>
-      <VirtualizedSchemaTable
+      <SchemaPageTable
+        columns={columns}
         data={tableData}
         transformers={mergedTransformers}
       />
