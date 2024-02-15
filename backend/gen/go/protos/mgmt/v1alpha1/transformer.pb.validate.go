@@ -8445,6 +8445,8 @@ func (m *TransformCharacterScramble) validate(all bool) error {
 
 	var errors []error
 
+	// no validation rules for Regex
+
 	if len(errors) > 0 {
 		return TransformCharacterScrambleMultiError(errors)
 	}

@@ -285,7 +285,9 @@ message GenerateCategorical {
   string categories = 1;
 }
 
-message TransformCharacterScramble {}
+message TransformCharacterScramble {
+  string regex = 1;
+}
 
 service TransformersService {
   rpc GetSystemTransformers(GetSystemTransformersRequest) returns (GetSystemTransformersResponse) {}

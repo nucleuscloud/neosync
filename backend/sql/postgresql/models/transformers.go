@@ -185,7 +185,9 @@ type GenerateCategoricalConfig struct {
 	Categories string `json:"categories"`
 }
 
-type TransformCharacterScramble struct{}
+type TransformCharacterScramble struct {
+	Regex string `json:"regex"`
+}
 
 // from API -> DB
 func (t *JobMappingTransformerModel) FromTransformerDto(tr *mgmtv1alpha1.JobMappingTransformer) error {
@@ -339,7 +341,9 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 			Categories: tr.GetGenerateCategoricalConfig().Categories,
 		}
 	case *mgmtv1alpha1.TransformerConfig_TransformCharacterScrambleConfig:
-		t.TransformCharacterScramble = &TransformCharacterScramble{}
+		t.TransformCharacterScramble = &TransformCharacterScramble{
+			Regex: tr.GetTransformCharacterScrambleConfig().Regex,
+		}
 	default:
 		t = &TransformerConfigs{}
 	}
@@ -653,7 +657,9 @@ func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerC
 	case t.TransformCharacterScramble != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformCharacterScrambleConfig{
-				TransformCharacterScrambleConfig: &mgmtv1alpha1.TransformCharacterScramble{},
+				TransformCharacterScrambleConfig: &mgmtv1alpha1.TransformCharacterScramble{
+					Regex: t.TransformCharacterScramble.Regex,
+				},
 			},
 		}
 	default:
