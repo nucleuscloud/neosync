@@ -132,7 +132,7 @@ func TestGenerateCreateTableStatement(t *testing.T) {
 					ConstraintDefinition: "PRIMARY KEY (id)",
 				},
 			},
-			expected: "CREATE TABLE IF NOT EXISTS public.users (id uuid NOT NULL DEFAULT gen_random_uuid(), created_at timestamp without time zone NOT NULL DEFAULT now(), updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, extra varchar NULL, name varchar(40) NULL, CONSTRAINT users_pkey PRIMARY KEY (id));",
+			expected: `CREATE TABLE IF NOT EXISTS public.users ("id" uuid NOT NULL DEFAULT gen_random_uuid(), "created_at" timestamp without time zone NOT NULL DEFAULT now(), "updated_at" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, "extra" varchar NULL, "name" varchar(40) NULL, CONSTRAINT users_pkey PRIMARY KEY (id));`,
 		},
 		{
 			schema: "public",
@@ -161,7 +161,7 @@ func TestGenerateCreateTableStatement(t *testing.T) {
 				},
 			},
 			constraints: []*pg_queries.GetTableConstraintsRow{},
-			expected:    "CREATE TABLE IF NOT EXISTS public.users (id SERIAL NOT NULL, id2 SMALLSERIAL NOT NULL, id3 BIGSERIAL NOT NULL);",
+			expected:    `CREATE TABLE IF NOT EXISTS public.users ("id" SERIAL NOT NULL, "id2" SMALLSERIAL NOT NULL, "id3" BIGSERIAL NOT NULL);`,
 		},
 	}
 
