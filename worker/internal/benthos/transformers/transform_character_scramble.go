@@ -64,13 +64,11 @@ Note that this does not work for hex values: 0x00 -> 0x1F
 */
 
 func TransformCharacterScramble(value, regex string) (*string, error) {
-
 	if value == "" {
 		return nil, nil
 	}
 
 	if regex != "" {
-
 		reg, err := regexp.Compile(regex)
 		if err != nil {
 			return nil, err
@@ -96,13 +94,10 @@ func TransformCharacterScramble(value, regex string) (*string, error) {
 		}
 
 		return &transformedString, nil
-
 	} else {
-
 		transformedString := strings.Map(ScrambleChar, value)
 		return &transformedString, nil
 	}
-
 }
 
 func ScrambleChar(r rune) rune {

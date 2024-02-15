@@ -11,9 +11,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var nilRegex = ""
 var helloWorldRegex = "ell"
 var numberRegex = "1323"
+var helloTest = "helloelloelo"
 
 func Test_ScrambleCharacter(t *testing.T) {
 	testStringValue := "h"
@@ -57,8 +57,6 @@ func Test_TransformCharacterSubstitutionNumbers(t *testing.T) {
 
 	res, err := TransformCharacterScramble(testStringValue, numberRegex)
 
-	fmt.Println("res", *res)
-
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
 	assert.Equal(t, len(testStringValue), len(*res), "The output string should be as long as the input string")
@@ -88,11 +86,9 @@ func Test_TransformCharacterSubstitutionLettersNumbersCharacters(t *testing.T) {
 }
 
 func Test_TransformCharacterSubstitutionLettersMultipleMatches(t *testing.T) {
-
 	// should match the first two sections and not that last i.e. h_ello_ello_elo
-	testStringValue := "helloelloelo"
 
-	res, err := TransformCharacterScramble(testStringValue, `ello`)
+	res, err := TransformCharacterScramble(helloTest, `ello`)
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
@@ -100,29 +96,21 @@ func Test_TransformCharacterSubstitutionLettersMultipleMatches(t *testing.T) {
 	assert.True(t, transformer_utils.IsValidChar(*res), "The output string should contain valid characters")
 	assert.Equal(t, testStringValue[:1], (*res)[:1], "The first letter should be the same")
 	assert.Equal(t, testStringValue[9:], (*res)[9:], "The last three letters should be the same")
-
 }
 
 func Test_TransformCharacterSubstitutionLettersNoMatches(t *testing.T) {
-
 	// should match the first two sections and not that last i.e. h_ello_ello_elo
-	testStringValue := "helloelloelo"
-
-	res, err := TransformCharacterScramble(testStringValue, `123`)
+	res, err := TransformCharacterScramble(helloTest, `123`)
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
 	assert.Equal(t, len(testStringValue), len(*res), "The output string should be as long as the input string")
 	assert.True(t, transformer_utils.IsValidChar(*res), "The output string should contain valid characters")
 	assert.False(t, testStringValue == *res, "The first letter should be the same")
-
 }
 
 func Test_TransformCharacterSubstitutionLettersNilregex(t *testing.T) {
-
 	// should match the first two sections and not that last i.e. h_ello_ello_elo
-	testStringValue := "helloelloelo"
-
 	res, err := TransformCharacterScramble(testStringValue, ``)
 
 	assert.NoError(t, err)
@@ -130,13 +118,11 @@ func Test_TransformCharacterSubstitutionLettersNilregex(t *testing.T) {
 	assert.Equal(t, len(testStringValue), len(*res), "The output string should be as long as the input string")
 	assert.True(t, transformer_utils.IsValidChar(*res), "The output string should contain valid characters")
 	assert.False(t, testStringValue == *res, "The first letter should be the same")
-
 }
 
 func Test_TransformCharacterSubstitutionLettersMatchNumbers(t *testing.T) {
-
 	// should match all numbers
-	testStringValue := "MED-133-I123"
+	testStringValue := "MED-133-R123"
 	complexRegex := `\d+`
 
 	res, err := TransformCharacterScramble(testStringValue, complexRegex)
@@ -158,13 +144,11 @@ func Test_TransformCharacterSubstitutionLettersMatchNumbers(t *testing.T) {
 			assert.True(t, unicode.IsDigit(char), "Each character in the numeric matches should still be a digit")
 		}
 	}
-
 }
 
 func Test_TransformCharacterSubstitutionLettersSemiComplexRegex(t *testing.T) {
-
 	// should match the first everything between the MED and 123)
-	testStringValue := "MED-133-I123"
+	testStringValue := "MED-133-L123"
 	complexRegex := `-(.+?)-`
 
 	res, err := TransformCharacterScramble(testStringValue, complexRegex)
@@ -175,18 +159,14 @@ func Test_TransformCharacterSubstitutionLettersSemiComplexRegex(t *testing.T) {
 	assert.True(t, transformer_utils.IsValidChar(*res), "The output string should contain valid characters")
 	assert.Equal(t, testStringValue[:3], (*res)[:3], "The first letter should be the same")
 	assert.Equal(t, testStringValue[10:], (*res)[10:], "The last three letters should be the same")
-
 }
 
 func Test_TransformCharacterSubstitutionLettersComplexRegex(t *testing.T) {
-
 	// should match the first everything between the MED and 123)
-	testStringValue := "MED-133-I123"
+	testStringValue := "MED-133-A123"
 	complexRegex := `-(.+?)-`
 
 	res, err := TransformCharacterScramble(testStringValue, complexRegex)
-
-	fmt.Println("res", *res)
 
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
@@ -194,7 +174,6 @@ func Test_TransformCharacterSubstitutionLettersComplexRegex(t *testing.T) {
 	assert.True(t, transformer_utils.IsValidChar(*res), "The output string should contain valid characters")
 	assert.Equal(t, testStringValue[:3], (*res)[:3], "The first letter should be the same")
 	assert.Equal(t, testStringValue[10:], (*res)[10:], "The last three letters should be the same")
-
 }
 
 func Test_TransformCharacterSubstitutionTransformer(t *testing.T) {
