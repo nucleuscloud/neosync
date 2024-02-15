@@ -1,38 +1,42 @@
 ---
-title: The Official Github Metrics Guide for Open Source Projects
+title: The Official Guide to Github Metrics for Open Source Projects
 description: If you're building an open source project, then you need to be looking at these Github metrics.
-date: 2024-02-14
+date: 2024-02-15
 published: true
-image: https://assets.nucleuscloud.com/neosync/blog/what-is-test-data.png
+image: https://assets.nucleuscloud.com/neosync/blog/github-oss-metrics/github-guide-oss.png
 authors:
   - evis
 ---
 
 # Introduction
 
-If you're working on an open source project, then you know that usage metrics can be hard to come by. With a hosted or private platform, it's easy to implement product metrics from Posthog or Mixpanel and fire off events everytime a user does something. You can use these metrics to better understand user workflows and actions, usage, friction points and the overall customer journey. With an open source project, you don't get the same luxury. Even if you implement product tracking and eventing in your application, you typically have to provide customers a way to turn that off. And most do. So then how do you understand who is using your product?
+If you're working on an open source project, then you know that usage metrics can be hard to come by. With a hosted or private platform, it's easy to implement product metrics from Posthog or Mixpanel and fire off events every time a user does something. You can use these metrics to better understand user workflows and actions, usage, friction points and the overall customer journey. With an open source project, you don't get the same luxury. Even if you implement product tracking and eventing in your application, you typically have to provide customers with a way to turn that off. And most do. So then how do you understand who is using your product? And where to invest your time?
 
-We wrestled with this question for a while when we started working on [Neosync](https://github.com/nucleuscloud/neosync) and after some digging around, we were surprised to find that Github, surpsinginly, had a lot of useful information. You just have to look for it.
+We wrestled with this question for a while when we started working on [Neosync](https://github.com/nucleuscloud/neosync) and after some digging around, we were surprised to find that Github, actually had a lot of useful information. You just have to look for it.
 
 Below we're going to outline all of the metrics you can pull from Github for your open source project and how to interpret them.
 
 # The Basics
 
-First lets cover the basic metrics that are easy to see on every single repo since they're presented front and center.
+![basics](https://assets.nucleuscloud.com/neosync/blog/github-oss-metrics/repo-basic.png)
+
+First, let's cover the basic metrics that are easy to see on every single repo since they're presented front and center. Here is a snapshot of the current Neosync repo that you find on the right hand side of the repo's main page.
 
 ## Github Stars
 
-The first and most obvious metrics is Github Stars. This can be found on the right hand side of any repository. These are equivalent to "likes" on a social media platform.
+The first and most obvious metric is Github Stars. These are equivalent to "likes" on a social media platform. It's a signal of whether people are interested in your project. I don't think this is the strongest signal you can have but it's a signal nonetheless.
 
 ## Watchers
 
-Watchers are Github users who have signed up to get alerts about new discussions, pull requests and issues for your repo. It's a signal that someone wants to stay up to date on your repo. Watchers can be found right underneath Stars.
+Watchers are Github users who have signed up to get alerts about new discussions, pull requests and issues for your repo. Watchers can be found right underneath Stars. It's a signal that someone wants to stay up to date on your repo.
 
 ## Forks
 
-Forks occur when a Github user clicks on the "Fork" button on the repo. This effectively clones the repo directly into a new repo in their Github account. Note: a Fork is different than a clone. We'll touch on that soon. I think forks are a stronger signal than Watchers and Stars because someone is saying "Yes, I want to clone what you have and use it for myself and I plan on contributing to it." It doesn't always work out this way, someone can fork the repo and never touch it, but it's a mentally more expensive action than a Star.
+Forks occur when a Github user clicks on the "Fork" button on the repo. This effectively clones your repo into a new repo in their Github account. **Note:** A Fork is different than a clone. We'll touch on that soon. I think forks are a stronger signal than Watchers and Stars because someone is saying "Yes, I want to clone what you have and use it for myself." It doesn't always work out this way, someone can fork the repo and never touch it, but it's a mentally more expensive action than a Star so I think it deserves a bit more weight than a star.
 
 ## Contributors
+
+![contribs](https://assets.nucleuscloud.com/neosync/blog/github-oss-metrics/contribs.png)
 
 Contributors are Github users who have contributed in some way to your repo. This is typically in the form of a pull request but it doesn't always have to be code. It can be documentation, issues discussions etc.
 
@@ -42,36 +46,44 @@ Now we can get onto the more interesting metrics.
 
 ## Package Downloads
 
-If you're publishing packages on Github, you can click on the **Packages** link on the right hand side of the repo and see every package you publish. To the right of the Package Name you'll see how many times that package has been downloaded. The implicit assumption is that someone is using that package in one of their projects. This can be a indicator of how popular a package is within the community.
+![package](https://assets.nucleuscloud.com/neosync/blog/github-oss-metrics/repo-packages.png)
+
+If you're publishing packages on Github, you can click on the **Packages** link on the right hand side of the repo and see every package you publish. To the right of the Package Name, you'll see how many times that package has been downloaded. This is a good indicator of how often people are downloading your packages within their projects.
 
 ## Community Insights
 
+![community](https://assets.nucleuscloud.com/neosync/blog/github-oss-metrics/community.png)
+
 Github has a number of community insights that can give you a look into how your community is interacting with your repo from a contribution, discussion and activity perspective. To access the community insights, navigate to your repo and click on **Insights** -> **Community** This can be pretty useful to see if your community is consistently engaging with you and how they're spending their time.
 
-## Traffic
+# Traffic
 
-In my opinion, this section is probably the most useful in growing your community. There are four parts to it.
+![traffic](https://assets.nucleuscloud.com/neosync/blog/github-oss-metrics/traffic.png)
 
-### Git clones
+In my opinion, this section is probably the most useful in growing your community. It's in the same section as the community insights. You can get there by navigating to your repo and clicking on **Insights** -> **Community** There are four parts to it.
 
-This graph gives you the total number of `git clone` for your repo a well as a 2 week rolling view. As we mentioned above, git clones differ from Forks in that git clones are just local clones, while forks set up a remote repo. If you hover over the graph. you can also see the breakdown between **clones** and **unique cloners**. This can give you an understanding of the number of unique users that are cloning your repo as well as, on average, how many tmes each user is cloning your repo by dividing clones/cloners.
+## Git clones
 
-### Visitors
+This graph gives you the total number of `git clone` for your repo as well as a 2 week rolling view. As we mentioned above, git clones differ from Forks in that git clones are just local clones, while forks set up a remote repo. If you hover over the graph. you can also see the breakdown between **clones** and **unique cloners**. This can give you an understanding of the number of unique users that are cloning your repo as well as, on average, how many times each user is cloning your repo by dividing clones/cloners.
+
+## Visitors
 
 This graph is identical in layout to the git clones graph above but refers to visitors instead of clones. This is useful to understand the overall number of visitors to your repo and how often users are returning.
 
-### Referring sites
+## Referring sites
 
 Referring sites are useful to understand where your users are coming from. This list is also on a 14 day window. If you're doing any sort of SEO or even direct advertising, you can see which channels are driving the most traffic to your repo.
 
-### Popular content
+## Popular content
 
-Popular content tells you which pages in your repo are getting the most views and visitors. Typically youre repo homepage will be in the lead here but it's also helpful to see if users are reading any particular file or your roadmap or your issues. This can help you focus your time on improving those experiences.
+Popular content tells you which pages in your repo are getting the most views and visitors. Typically your repo homepage will be in the lead here but it's also helpful to see if users are reading any particular file or your roadmap or your issues. This can help you focus your time on improving those experiences.
 
-### Forks
+## Forks
 
-The forks section in the **Insights** page tells you exactly who forked your repo. This is helpful because with a little bit of linkedin magic, you can try and see which organizations are using your project. The forks page also gives you some stats on when that user forked the project and the last time they updated it. This can help you understand how frequently they're using the project. There are also filters for the time period, repository type and a way to sort those forks so you can slice and dice the data however you'd like.
+![traffic](https://assets.nucleuscloud.com/neosync/blog/github-oss-metrics/forks.png)
+
+The forks section in the **Insights** page tells you exactly who forked your repo. This is helpful because, with a little bit of Linkedin magic, you can try and see which organizations are using your project. The forks page also gives you some stats on when that user forked the project and the last time they updated it. This can help you understand how frequently they're using the project. There are also filters for the time period, repository type and a way to sort those forks so you can slice and dice the data however you'd like.
 
 # Wrapping up
 
-One of the challenges of running an open source project is getting insights into where your users and visitors are coming from and what they're doing in your repo. Luckily, Github can help answer some of these questions with the metrics we went over above. There are a few other sections of the **Insights** page that we didn't cover such as the Code frequency, Dependency graph, Network, Commits, etc. In my opinion, these are less interesting than the metrics above at helping you understand who is vsiting your repo but they can be interesting nonetheless. Of course, this is just one piece of the puzzle and you should really consider product metrics as well to help you understand what users are doing in your application.
+One of the challenges of running an open source project is getting insights into where your users and visitors are coming from and what they're doing in your repo. Luckily, Github can help answer some of these questions with the metrics we went over above. There are a few other sections of the **Insights** page that we didn't cover such as the Code frequency, Dependency graph, Network, Commits, etc. In my opinion, these are less interesting than the metrics above at helping you understand who is visiting your repo but they can be interesting nonetheless. Of course, this is just one piece of the puzzle and you should consider product metrics as well to help you understand what users are doing in your application.
