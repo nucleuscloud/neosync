@@ -160,15 +160,6 @@ func getTlsConfig(c *shared.RedisTlsConfig) (*tls.Config, error) {
 		tlsConf.RootCAs.AppendCertsFromPEM([]byte(*c.RootCertAuthority))
 	}
 
-	// for _, conf := range c.ClientCertificates {
-	// 	cert, err := conf.Load(f)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	initConf()
-	// 	tlsConf.Certificates = append(tlsConf.Certificates, cert)
-	// }
-
 	if c.EnableRenegotiation {
 		initConf()
 		tlsConf.Renegotiation = tls.RenegotiateFreelyAsClient
