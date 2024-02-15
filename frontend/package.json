@@ -1,25 +1,23 @@
 {
-	"scripts": {
-		"build": "turbo run build",
-		"clean": "turbo run clean",
-		"dev": "turbo run dev",
-		"lint": "turbo run lint",
-		"test": "turbo run test",
-		"typecheck": "turbo run typecheck",
-		"docker": "turbo prune @neosync/app --docker",
-		"prettier:check": "prettier --check .",
-		"prettier:write": "prettier --write ."
-	},
-	"devDependencies": {
-		"knip": "^3.13.2",
-		"prettier": "^3.2.5",
-		"turbo": "^1.12.3"
-	},
-	"workspaces": [
-		"apps/*",
-		"packages/*"
-	],
-	"dependencies": {
-		"@faker-js/faker": "^8.4.0"
-	}
+  "scripts": {
+    "build": "turbo run build",
+    "clean": "turbo run clean",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "docker": "turbo prune @neosync/app --docker",
+    "prettier:check": "prettier --check .",
+    "prettier:write": "prettier --write ."
+  },
+  "devDependencies": {
+    "knip": "^3.13.2",
+    "prettier": "^3.2.5",
+    "turbo": "^1.12.3"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "dependencies": {}
 }
