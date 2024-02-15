@@ -3733,74 +3733,38 @@ func Test_buildPlainInsertArgs(t *testing.T) {
 	assert.Equal(t, buildPlainInsertArgs([]string{"foo", "bar", "baz"}), "root = [this.foo, this.bar, this.baz]")
 }
 
-// func Test_buildPlainColumnsWithEscape(t *testing.T) {
-// 	assert.Empty(t, buildPlainColumnsWithEscape(nil, ""))
-// 	assert.Empty(t, buildPlainColumnsWithEscape([]*mgmtv1alpha1.JobMapping{}, ""))
-// 	assert.Equal(
-// 		t,
-// 		buildPlainColumnsWithEscape([]*mgmtv1alpha1.JobMapping{
-// 			{Column: "foo"},
-// 			{Column: "bar"},
-// 			{Column: "baz"},
-// 		}, ""),
-// 		[]string{"foo", "bar", "baz"},
-// 	)
-// 	assert.Equal(
-// 		t,
-// 		buildPlainColumnsWithEscape([]*mgmtv1alpha1.JobMapping{
-// 			{Column: "foo"},
-// 			{Column: "bar"},
-// 			{Column: "baz"},
-// 		}, "postgres"),
-// 		[]string{`"foo"`, `"bar"`, `"baz"`},
-// 	)
-// 	assert.Equal(
-// 		t,
-// 		buildPlainColumnsWithEscape([]*mgmtv1alpha1.JobMapping{
-// 			{Column: "foo"},
-// 			{Column: "bar"},
-// 			{Column: "baz"},
-// 		}, "mysql"),
-// 		[]string{"`foo`", "`bar`", "`baz`"},
-// 	)
-// 	assert.Equal(
-// 		t,
-// 		buildPlainColumnsWithEscape([]*mgmtv1alpha1.JobMapping{
-// 			{Column: "foo"},
-// 			{Column: "bar"},
-// 			{Column: "baz"},
-// 		}, "awss3"),
-// 		[]string{"foo", "bar", "baz"},
-// 	)
-// }
+func Test_escapeColsByDriver(t *testing.T) {
+	assert.Empty(t, escapeColsByDriver(nil, ""))
+	assert.Equal(
+		t,
+		escapeColsByDriver([]string{"foo", "bar", "baz"}, "postgres"),
+		[]string{`"foo"`, `"bar"`, `"baz"`},
+	)
+	assert.Equal(
+		t,
+		escapeColsByDriver([]string{"foo", "bar", "baz"}, "mysql"),
+		[]string{"`foo`", "`bar`", "`baz`"},
+	)
+	assert.Equal(
+		t,
+		escapeColsByDriver([]string{"foo", "bar", "baz"}, ""),
+		[]string{"foo", "bar", "baz"},
+	)
+}
 
-// func Test_buildPlainEscapedPgColumns(t *testing.T) {
-// 	assert.Empty(t, buildPlainEscapedPgColumns(nil))
-// 	assert.Empty(t, buildPlainEscapedPgColumns([]*mgmtv1alpha1.JobMapping{}))
-// 	assert.Equal(
-// 		t,
-// 		buildPlainEscapedPgColumns([]*mgmtv1alpha1.JobMapping{
-// 			{Column: "foo"},
-// 			{Column: "bar"},
-// 			{Column: "baz"},
-// 		}),
-// 		[]string{`"foo"`, `"bar"`, `"baz"`},
-// 	)
-// }
-
-// func Test_buildPlainEscapedMysqlColumns(t *testing.T) {
-// 	assert.Empty(t, buildPlainEscapedMysqlColumns(nil))
-// 	assert.Empty(t, buildPlainEscapedMysqlColumns([]*mgmtv1alpha1.JobMapping{}))
-// 	assert.Equal(
-// 		t,
-// 		buildPlainEscapedMysqlColumns([]*mgmtv1alpha1.JobMapping{
-// 			{Column: "foo"},
-// 			{Column: "bar"},
-// 			{Column: "baz"},
-// 		}),
-// 		[]string{"`foo`", "`bar`", "`baz`"},
-// 	)
-// }
+func Test_buildPlainColumns(t *testing.T) {
+	assert.Empty(t, buildPlainColumns(nil))
+	assert.Empty(t, buildPlainColumns([]*mgmtv1alpha1.JobMapping{}))
+	assert.Equal(
+		t,
+		buildPlainColumns([]*mgmtv1alpha1.JobMapping{
+			{Column: "foo"},
+			{Column: "bar"},
+			{Column: "baz"},
+		}),
+		[]string{"foo", "bar", "baz"},
+	)
+}
 
 func Test_splitTableKey(t *testing.T) {
 	schema, table := splitTableKey("foo")
