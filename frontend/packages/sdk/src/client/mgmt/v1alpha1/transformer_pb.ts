@@ -2631,6 +2631,11 @@ export class GenerateCategorical extends Message<GenerateCategorical> {
  * @generated from message mgmt.v1alpha1.TransformCharacterScramble
  */
 export class TransformCharacterScramble extends Message<TransformCharacterScramble> {
+  /**
+   * @generated from field: string regex = 1;
+   */
+  regex = "";
+
   constructor(data?: PartialMessage<TransformCharacterScramble>) {
     super();
     proto3.util.initPartial(data, this);
@@ -2639,6 +2644,7 @@ export class TransformCharacterScramble extends Message<TransformCharacterScramb
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.TransformCharacterScramble";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "regex", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformCharacterScramble {

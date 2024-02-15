@@ -185,7 +185,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					} else if c.Columns != nil && c.Columns.Include != nil && len(c.Columns.Include) > 0 {
 						pks := primaryKeys[tableName]
 						if len(pks) == 0 {
-							return nil, fmt.Errorf("No primary keys found for table (%s). Unable to build update query.", tableName)
+							return nil, fmt.Errorf("no primary keys found for table (%s). Unable to build update query", tableName)
 						}
 
 						// config for sql update
@@ -285,7 +285,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					} else if c.Columns != nil && c.Columns.Include != nil && len(c.Columns.Include) > 0 {
 						pks := primaryKeys[tableName]
 						if len(pks) == 0 {
-							return nil, fmt.Errorf("No primary keys found for table (%s). Unable to build update query.", tableName)
+							return nil, fmt.Errorf("no primary keys found for table (%s). Unable to build update query", tableName)
 						}
 						// config for sql update
 						resp.updateConfig = c
@@ -1431,7 +1431,8 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 	case generateDefault:
 		return "default", nil
 	case "transform_character_scramble":
-		return fmt.Sprintf(`transform_character_scramble(value:this.%s)`, col.Column), nil
+		regex := col.Transformer.Config.GetTransformCharacterScrambleConfig().Regex
+		return fmt.Sprintf(`transform_character_scramble(value:this.%s,regex:%q)`, col.Column, regex), nil
 	default:
 		return "", fmt.Errorf("unsupported transformer")
 	}

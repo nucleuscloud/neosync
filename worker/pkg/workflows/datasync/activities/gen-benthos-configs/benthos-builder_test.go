@@ -4170,7 +4170,9 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 			Source: "transform_character_scramble",
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformCharacterScrambleConfig{
-					TransformCharacterScrambleConfig: &mgmtv1alpha1.TransformCharacterScramble{},
+					TransformCharacterScrambleConfig: &mgmtv1alpha1.TransformCharacterScramble{
+						Regex: "",
+					},
 				},
 			},
 		},
