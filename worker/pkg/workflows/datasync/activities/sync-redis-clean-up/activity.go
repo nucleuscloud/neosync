@@ -140,7 +140,7 @@ func getTlsConfig(c *shared.RedisTlsConfig) (*tls.Config, error) {
 		tlsConf = defaultTLSConfig()
 	}
 
-	if len(*c.RootCertAuthority) > 0 && len(*c.RootCertAuthorityFile) > 0 {
+	if *c.RootCertAuthority != "" && *c.RootCertAuthorityFile != "" {
 		return nil, errors.New("only one field between root_cas and root_cas_file can be specified")
 	}
 
