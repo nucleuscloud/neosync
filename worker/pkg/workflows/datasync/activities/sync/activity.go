@@ -13,7 +13,9 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/javascript"
 	_ "github.com/benthosdev/benthos/v4/public/components/pure"
 	_ "github.com/benthosdev/benthos/v4/public/components/pure/extended"
+	_ "github.com/benthosdev/benthos/v4/public/components/redis"
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
+	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/redis"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
 
 	"connectrpc.com/connect"

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
-	datasync_activities "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -91,7 +90,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	completed := map[string][]string{}
 
 	allDependsOn := map[string][]*tabledependency.DependsOn{} // configName -> dependson
-	redisConfigs := map[string]*datasync_activities.BenthosRedisConfig{}
+	redisConfigs := map[string]*genbenthosconfigs_activity.BenthosRedisConfig{}
 	for _, cfg := range bcResp.BenthosConfigs {
 		for _, redisCfg := range cfg.RedisConfig {
 			redisConfigs[redisCfg.Key] = redisCfg
@@ -188,7 +187,7 @@ func runRedisCleanUpActivity(
 	actOptResp *syncactivityopts_activity.RetrieveActivityOptionsResponse,
 	dependsOnMap map[string][]*tabledependency.DependsOn,
 	jobId, workflowId string,
-	redisConfigs map[string]*datasync_activities.BenthosRedisConfig,
+	redisConfigs map[string]*genbenthosconfigs_activity.BenthosRedisConfig,
 ) error {
 	if len(redisConfigs) > 0 {
 		for k, cfg := range redisConfigs {
@@ -267,6 +266,7 @@ func invokeSync(
 		}
 
 		logger.Info("scheduling Sync for execution.")
+		fmt.Println(string(configbits))
 
 		var result sync_activity.SyncResponse
 		err = workflow.ExecuteActivity(
