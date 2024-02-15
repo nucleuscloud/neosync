@@ -72,16 +72,16 @@ func getClient(parsedConf *service.ParsedConfig) (redis.UniversalClient, error) 
 
 	// handle comma-separated urls
 	for _, v := range strings.Split(urlStr, ",") {
-		url, err := url.Parse(v)
+		redisUrl, err := url.Parse(v)
 		if err != nil {
 			return nil, err
 		}
 
-		if url.Scheme == "tcp" {
-			url.Scheme = "redis"
+		if redisUrl.Scheme == "tcp" {
+			redisUrl.Scheme = "redis"
 		}
 
-		rurl, err := redis.ParseURL(url.String())
+		rurl, err := redis.ParseURL(redisUrl.String())
 		if err != nil {
 			return nil, err
 		}

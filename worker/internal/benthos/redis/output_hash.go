@@ -58,10 +58,9 @@ func init() {
 type redisHashWriter struct {
 	log *service.Logger
 
-	key          *service.InterpolatedString
-	walkMetadata bool
-	walkJSON     bool
-	// fields        map[string]*service.InterpolatedString
+	key           *service.InterpolatedString
+	walkMetadata  bool
+	walkJSON      bool
 	fieldsMapping *bloblang.Executor
 
 	clientCtor func() (redis.UniversalClient, error)
@@ -175,7 +174,7 @@ func (r *redisHashWriter) Write(ctx context.Context, msg *service.Message) error
 		}
 
 		if mapVal != nil {
-			fieldMappings, ok := mapVal.(map[string]interface{})
+			fieldMappings, ok := mapVal.(map[string]interface{}) //nolint:gofmt
 			if !ok {
 				return fmt.Errorf("fieldMappings resulted in a non-object mapping: %T", mapVal)
 			}

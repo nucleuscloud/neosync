@@ -338,6 +338,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		if err != nil {
 			return nil, fmt.Errorf("unable to get destination connection (%s) by id: %w", destination.ConnectionId, err)
 		}
+
 		for _, resp := range responses {
 			tableKey := neosync_benthos.BuildBenthosTable(resp.TableSchema, resp.TableName)
 			tm := groupedTableMapping[tableKey]
@@ -360,7 +361,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						RedisHashOutput: &neosync_benthos.RedisHashOutputConfig{
 							Url:            b.redisConfig.Url,
 							Key:            hashedKey,
-							FieldsMapping:  fmt.Sprintf(`root = {meta("neosync_%s"): json("%s")}`, col, col), // map of original value to transformed value
+							FieldsMapping:  fmt.Sprintf(`root = {meta("neosync_%s"): json(%q)}`, col, col), // map of original value to transformed value
 							WalkMetadata:   false,
 							WalkJsonObject: false,
 							Kind:           &b.redisConfig.Kind,
@@ -402,6 +403,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 							},
 						},
 					})
+
 					if resp.updateConfig != nil {
 						// circular dependency -> create update benthos config
 						updateResp, err := createSqlUpdateBenthosConfig(ctx, b.transformerclient, resp, dsn, tableKey, tm, colSourceMap, groupedColInfoMap, tableConstraintsSource[neosync_benthos.BuildBenthosTable(resp.TableSchema, resp.TableName)], b.jobId, b.runId, b.redisConfig)
@@ -916,29 +918,31 @@ func createSqlUpdateBenthosConfig(
 		if insertConfig.updateConfig != nil && insertConfig.updateConfig.Columns != nil && insertConfig.updateConfig.Columns.Include != nil {
 			processorConfigs := []neosync_benthos.ProcessorConfig{}
 			for pkCol, fk := range fkMap {
-
-				if hasTransformer(colSourceMap[pkCol]) && slices.Contains(insertConfig.updateConfig.Columns.Include, fk.Column) {
-					// circular dependent foreign key
-					hashedKey := neosync_benthos.HashBenthosCacheKey(jobId, runId, fk.Table, pkCol)
-					requestMap := fmt.Sprintf(`root = if this.%s == null { deleted() } else { this }`, fk.Column)
-					argsMapping := fmt.Sprintf(`root = ["%s", json("%s")]`, hashedKey, fk.Column)
-					resultMap := fmt.Sprintf("root.%s = this", fk.Column)
-					fkBranch, err := buildRedisGetBranchConfig(resultMap, argsMapping, &requestMap, redisConfig)
-					if err != nil {
-						return nil, err
-					}
-					processorConfigs = append(processorConfigs, neosync_benthos.ProcessorConfig{Branch: fkBranch})
-
-					// primary key
-					pkRequestMap := fmt.Sprintf(`root = if this.%s == null { deleted() } else { this }`, pkCol)
-					pkArgsMapping := fmt.Sprintf(`root = ["%s", json("%s")]`, hashedKey, pkCol)
-					pkResultMap := fmt.Sprintf("root.%s = this", pkCol)
-					pkBranch, err := buildRedisGetBranchConfig(pkResultMap, pkArgsMapping, &pkRequestMap, redisConfig)
-					if err != nil {
-						return nil, err
-					}
-					processorConfigs = append(processorConfigs, neosync_benthos.ProcessorConfig{Branch: pkBranch})
+				// only need redis processors if the primary key has a transformer
+				if !hasTransformer(colSourceMap[pkCol]) || !slices.Contains(insertConfig.updateConfig.Columns.Include, fk.Column) {
+					continue
 				}
+
+				// circular dependent foreign key
+				hashedKey := neosync_benthos.HashBenthosCacheKey(jobId, runId, fk.Table, pkCol)
+				requestMap := fmt.Sprintf(`root = if this.%s == null { deleted() } else { this }`, fk.Column)
+				argsMapping := fmt.Sprintf(`root = [%q, json(%q)]`, hashedKey, fk.Column)
+				resultMap := fmt.Sprintf("root.%s = this", fk.Column)
+				fkBranch, err := buildRedisGetBranchConfig(resultMap, argsMapping, &requestMap, redisConfig)
+				if err != nil {
+					return nil, err
+				}
+				processorConfigs = append(processorConfigs, neosync_benthos.ProcessorConfig{Branch: fkBranch})
+
+				// primary key
+				pkRequestMap := fmt.Sprintf(`root = if this.%s == null { deleted() } else { this }`, pkCol)
+				pkArgsMapping := fmt.Sprintf(`root = [%q, json(%q)]`, hashedKey, pkCol)
+				pkResultMap := fmt.Sprintf("root.%s = this", pkCol)
+				pkBranch, err := buildRedisGetBranchConfig(pkResultMap, pkArgsMapping, &pkRequestMap, redisConfig)
+				if err != nil {
+					return nil, err
+				}
+				processorConfigs = append(processorConfigs, neosync_benthos.ProcessorConfig{Branch: pkBranch})
 			}
 			newResp.Config.StreamConfig.Pipeline.Processors = processorConfigs
 		}
@@ -1062,7 +1066,11 @@ func buildBenthosSqlSourceConfigResponses(
 			},
 		}
 
-		columnConstraints := tableConstraints[table]
+		columnConstraints, ok := tableConstraints[table]
+		if !ok {
+			columnConstraints = map[string]*dbschemas_utils.ForeignKey{}
+		}
+
 		processorConfigs, err := buildProcessorConfigs(ctx, transformerclient, tableMapping.Mappings, groupedColumnInfo[table], columnConstraints, primaryKeys[table], jobId, runId, redisConfig)
 		if err != nil {
 			return nil, err
@@ -1323,7 +1331,7 @@ func buildProcessorConfigs(
 		return nil, err
 	}
 
-	pkMapping := buildPrimaryKeyMappingConfigs(cols, primaryKeys, jobId, runId)
+	pkMapping := buildPrimaryKeyMappingConfigs(cols, primaryKeys)
 
 	var processorConfigs []*neosync_benthos.ProcessorConfig
 	if pkMapping != "" {
@@ -1406,7 +1414,7 @@ func buildMutationConfigs(
 	return strings.Join(mutations, "\n"), nil
 }
 
-func buildPrimaryKeyMappingConfigs(cols []*mgmtv1alpha1.JobMapping, primaryKeys []string, jobId, runId string) string {
+func buildPrimaryKeyMappingConfigs(cols []*mgmtv1alpha1.JobMapping, primaryKeys []string) string {
 	mappings := []string{}
 	for _, col := range cols {
 		if shouldProcessColumn(col.Transformer) && slices.Contains(primaryKeys, col.Column) {
@@ -1430,9 +1438,10 @@ func buildBranchCacheConfigs(
 			if fk.Table == fmt.Sprintf("%s.%s", col.Schema, col.Table) {
 				continue
 			}
+
 			hashedKey := neosync_benthos.HashBenthosCacheKey(jobId, runId, fk.Table, fk.Column)
 			requestMap := fmt.Sprintf(`root = if this.%s == null { deleted() } else { this }`, col.Column)
-			argsMapping := fmt.Sprintf(`root = ["%s", json("%s")]`, hashedKey, col.Column)
+			argsMapping := fmt.Sprintf(`root = [%q, json(%q)]`, hashedKey, col.Column)
 			resultMap := fmt.Sprintf("root.%s = this", col.Column)
 			br, err := buildRedisGetBranchConfig(resultMap, argsMapping, &requestMap, redisConfig)
 			if err != nil {
