@@ -95,9 +95,11 @@ export default function TransformJavascriptForm(props: Props): ReactElement {
                 <div className="text-[0.8rem] text-muted-foreground">
                   Define your own Transformation below using Javascript. The
                   source column value will be available at the{' '}
-                  <code className="bg-gray-200 px-1 py-0.5 rounded">value</code>{' '}
+                  <code className="bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-300 px-1 py-0.5 rounded">
+                    value
+                  </code>{' '}
                   keyword. While additional columns can be accessed at{' '}
-                  <code className="bg-gray-200 px-1 py-0.5 rounded">
+                  <code className="bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-300 px-1 py-0.5 rounded">
                     input.{'{'}column_name{'}'}
                   </code>
                   .{' '}
