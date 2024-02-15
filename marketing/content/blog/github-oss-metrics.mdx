@@ -1,5 +1,5 @@
 ---
-title: The Hidden Github Metrics Every Open Source Project Needs To See
+title: The Official Github Metrics Guide for Open Source Projects
 description: If you're building an open source project, then you need to be looking at these Github metrics.
 date: 2024-02-14
 published: true
@@ -9,3 +9,53 @@ authors:
 ---
 
 # Introduction
+
+If you're working on an open source project, then you know that usage metrics can be hard to come by. With a hosted or private platform, it's easy to implement product metrics from Posthog or Mixpanel and fire off events everytime a user does something. You can use these metrics to better understand user workflows and actions, usage, friction points and the overall customer journey. With an open source project, you don't get the same luxury. Even if you implement product tracking and eventing in your application, you typically have to provide customers a way to turn that off. And most do. So then how do you understand who is using your product?
+
+We wrestled with this question for a while when we started working on [Neosync](https://github.com/nucleuscloud/neosync) and after some digging around, we were surprised to find that Github, surpsinginly, had a lot of useful information. You just have to look for it.
+
+Below we're going to outline all of the metrics you can pull from Github for your open source project and how to interpret them.
+
+# The Basics
+
+First lets cover the basic metrics that are easy to see on every single repo since they're presented front and center.
+
+## Github Stars
+
+The first and most obvious metrics is Github Stars. This can be found on the right hand side of any repository. These are equivalent to "likes" on a social media platform.
+
+## Watchers
+
+Watchers are Github users who have signed up to get alerts about new discussions, pull requests and issues for your repo. It's a signal that someone wants to stay up to date on your repo. Watchers can be found right underneath Stars.
+
+## Forks
+
+Forks occur when a Github user clicks on the "Fork" button on the repo. This effectively clones the repo directly into a new repo in their Github account. Note: a Fork is different than a clone. We'll touch on that soon. I think forks are a stronger signal than Watchers and Stars because someone is saying "Yes, I want to clone what you have and use it for myself and I plan on contributing to it." It doesn't always work out this way, someone can fork the repo and never touch it, but it's a mentally more expensive action than a Star.
+
+## Contributors
+
+Contributors are Github users who have contributed in some way to your repo. This is typically in the form of a pull request but it doesn't always have to be code. It can be documentation, issues discussions etc.
+
+# More Interesting Metrics
+
+Now we can get onto the more interesting metrics.
+
+## Package Downloads
+
+If you're publishing packages on Github, you can click on the **Packages** link on the right hand side of the repo and see every package you publish. To the right of the Package Name you'll see how many times that package has been downloaded. The implicit assumption is that someone is using that package in one of their projects. This can be a indicator of how popular a package is within the community.
+
+## Community Insights
+
+Github has a number of community insights that can give you a look into how your community is interacting with your repo from a contribution, discussion and activity perspective. To access the community insights, navigate to your repo and click on **Insights** -> **Community** This can be pretty useful to see if your community is consistently engaging with you and how they're spending their time.
+
+## Traffic
+
+In my opinion, this section is probably the most useful in growing your community. There are four parts to it.
+
+### Git clones
+
+This graph gives you the total number of `git clone` for your repo a well as a 2 week rolling view. As we mentioned above, git clones differ from Forks in that git clones are just local clones, while forks set up a remote repo. If you hover over the graph. you can also see the breakdown between **clones** and **unique cloners**. This can give you an understanding of the number of unique users that are cloning your repo as well as, on average, how many tmes each user is cloning your repo by dividing clones/cloners.
+
+### Visitors
+
+This graph gives you the total number of views and the
