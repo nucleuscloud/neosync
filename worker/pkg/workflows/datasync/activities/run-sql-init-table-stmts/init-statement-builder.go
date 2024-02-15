@@ -232,6 +232,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				if err != nil {
 					return nil, err
 				}
+				slogger.Info(fmt.Sprintf("executing %d sql statements that will initialize tables", len(sqlStatement)))
 				_, err = pool.Exec(ctx, strings.Join(sqlStatement, "\n"))
 				if err != nil {
 					pgconn.Close()
@@ -291,6 +292,8 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				if err != nil {
 					return nil, fmt.Errorf("unable to open mysql connection: %w", err)
 				}
+
+				slogger.Info(fmt.Sprintf("executing %d sql statements that will initialize tables", len(sqlStatements)))
 
 				for _, statement := range sqlStatements {
 					_, err = pool.ExecContext(ctx, statement)
