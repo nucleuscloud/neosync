@@ -117,8 +117,8 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 			err := f.Get(childctx, &result)
 			if err != nil {
 				logger.Error("activity did not complete", "err", err)
-				err = runRedisCleanUpActivity(wfctx, logger, actOptResp, map[string][]*tabledependency.DependsOn{}, req.JobId, wfinfo.WorkflowExecution.ID, redisConfigs)
-				if err != nil {
+				redisErr := runRedisCleanUpActivity(wfctx, logger, actOptResp, map[string][]*tabledependency.DependsOn{}, req.JobId, wfinfo.WorkflowExecution.ID, redisConfigs)
+				if redisErr != nil {
 					logger.Error("redis clean up activity did not complete")
 				}
 				logger.Error("sync activity did not complete", "err", err)
@@ -160,8 +160,8 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 				err := f.Get(childctx, &result)
 				if err != nil {
 					logger.Error("activity did not complete", "err", err)
-					err = runRedisCleanUpActivity(wfctx, logger, actOptResp, map[string][]*tabledependency.DependsOn{}, req.JobId, wfinfo.WorkflowExecution.ID, redisConfigs)
-					if err != nil {
+					redisErr := runRedisCleanUpActivity(wfctx, logger, actOptResp, map[string][]*tabledependency.DependsOn{}, req.JobId, wfinfo.WorkflowExecution.ID, redisConfigs)
+					if redisErr != nil {
 						logger.Error("redis clean up activity did not complete")
 					}
 					cancelHandler()
@@ -266,7 +266,6 @@ func invokeSync(
 		}
 
 		logger.Info("scheduling Sync for execution.")
-		fmt.Println(string(configbits))
 
 		var result sync_activity.SyncResponse
 		err = workflow.ExecuteActivity(
