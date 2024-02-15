@@ -35,6 +35,11 @@ import (
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 )
 
+const (
+	mockJobId = "b1767636-3992-4cb4-9bf2-4bb9bddbf43c"
+	mockRunId = "26444272-0bb0-4325-ae60-17dcd9744785"
+)
+
 func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Pg(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
@@ -49,11 +54,6 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Pg(t *testing.T) 
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mysqlcache := map[string]mysql_queries.DBTX{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
-	mockRedisConfig := &shared.RedisConfig{
-		Url: "redis-url",
-	}
-	mockJobId := "d7b105de-a4d9-433b-8f0a-2ed6931c5dc0"
-	mockRunId := "b1767636-3992-4cb4-9bf2-4bb9bddbf43c"
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
@@ -137,7 +137,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Pg(t *testing.T) 
 		},
 	}), nil)
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, mockRedisConfig)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil)
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
@@ -3022,21 +3022,6 @@ var driver = "driver"
 func Test_ProcessorConfigEmpty(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 
-	pgcache := map[string]pg_queries.DBTX{
-		"123": pg_queries.NewMockDBTX(t),
-		"456": pg_queries.NewMockDBTX(t),
-	}
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{}
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
-	mockRedisConfig := &shared.RedisConfig{
-		Url: "redis-url",
-	}
-	mockJobId := "d7b105de-a4d9-433b-8f0a-2ed6931c5dc0"
-	mockRunId := "b1767636-3992-4cb4-9bf2-4bb9bddbf43c"
-
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, mockRedisConfig)
-
 	tableMappings := []*tableMapping{
 		{Schema: "public",
 			Table: "users",
@@ -3076,7 +3061,21 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 		},
 	}
 
-	res, err := buildBenthosSqlSourceConfigResponses(context.Background(), mockTransformerClient, tableMappings, dsn, driver, sourceTableOpts, groupedSchemas, map[string]*dbschemas_utils.TableConstraints{}, map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{}, map[string][]string{})
+	res, err := buildBenthosSqlSourceConfigResponses(
+		context.Background(),
+		mockTransformerClient,
+		tableMappings,
+		dsn,
+		driver,
+		sourceTableOpts,
+		groupedSchemas,
+		map[string]*dbschemas_utils.TableConstraints{},
+		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
+		map[string][]string{},
+		mockJobId,
+		mockRunId,
+		nil,
+	)
 	assert.Nil(t, err)
 	assert.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)
 }
@@ -3127,7 +3126,21 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 		},
 	}
 
-	res, err := buildBenthosSqlSourceConfigResponses(context.Background(), mockTransformerClient, tableMappings, dsn, driver, sourceTableOpts, groupedSchemas, map[string]*dbschemas_utils.TableConstraints{}, map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{}, map[string][]string{})
+	res, err := buildBenthosSqlSourceConfigResponses(
+		context.Background(),
+		mockTransformerClient,
+		tableMappings,
+		dsn,
+		driver,
+		sourceTableOpts,
+		groupedSchemas,
+		map[string]*dbschemas_utils.TableConstraints{},
+		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
+		map[string][]string{},
+		mockJobId,
+		mockRunId,
+		nil,
+	)
 	assert.Nil(t, err)
 	assert.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)
 }
@@ -3184,7 +3197,21 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 		},
 	}
 
-	res, err := buildBenthosSqlSourceConfigResponses(context.Background(), mockTransformerClient, tableMappings, dsn, driver, sourceTableOpts, groupedSchemas, map[string]*dbschemas_utils.TableConstraints{}, map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{}, map[string][]string{})
+	res, err := buildBenthosSqlSourceConfigResponses(
+		context.Background(),
+		mockTransformerClient,
+		tableMappings,
+		dsn,
+		driver,
+		sourceTableOpts,
+		groupedSchemas,
+		map[string]*dbschemas_utils.TableConstraints{},
+		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
+		map[string][]string{},
+		mockJobId,
+		mockRunId,
+		nil,
+	)
 	assert.Nil(t, err)
 
 	out, err := yaml.Marshal(res[0].Config.Pipeline.Processors)
@@ -3268,7 +3295,21 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
 		},
 	}
 
-	res, err := buildBenthosSqlSourceConfigResponses(context.Background(), mockTransformerClient, tableMappings, dsn, driver, sourceTableOpts, groupedSchemas, map[string]*dbschemas_utils.TableConstraints{}, map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{}, map[string][]string{})
+	res, err := buildBenthosSqlSourceConfigResponses(
+		context.Background(),
+		mockTransformerClient,
+		tableMappings,
+		dsn,
+		driver,
+		sourceTableOpts,
+		groupedSchemas,
+		map[string]*dbschemas_utils.TableConstraints{},
+		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
+		map[string][]string{},
+		mockJobId,
+		mockRunId,
+		nil,
+	)
 
 	assert.Nil(t, err)
 
@@ -3406,29 +3447,29 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 
 	ctx := context.Background()
 
-	output, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{}, map[string]*dbschemas_utils.ColumnInfo{})
+	output, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 	assert.Nil(t, err)
 	assert.Empty(t, output)
 
-	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{}, map[string]*dbschemas_utils.ColumnInfo{})
+	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 	assert.Nil(t, err)
 	assert.Empty(t, output)
 
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id"},
-	}, map[string]*dbschemas_utils.ColumnInfo{})
+	}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 	assert.Nil(t, err)
 	assert.Empty(t, output)
 
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{}},
-	}, map[string]*dbschemas_utils.ColumnInfo{})
+	}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 	assert.Nil(t, err)
 	assert.Empty(t, output)
 
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "passthrough"}},
-	}, map[string]*dbschemas_utils.ColumnInfo{})
+	}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 	assert.Nil(t, err)
 	assert.Empty(t, output)
 
@@ -3443,7 +3484,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 				Nullconfig: &mgmtv1alpha1.Null{},
 			},
 		}}},
-	}, map[string]*dbschemas_utils.ColumnInfo{})
+	}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	assert.Nil(t, err)
 
@@ -3481,7 +3522,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 	}
 
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, groupedSchemas)
+		{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, groupedSchemas, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	assert.Nil(t, err)
 	assert.Equal(t, *output[0].Mutation, `root.email = transform_email(email:this.email,preserve_domain:true,preserve_length:false,excluded_domains:[],max_length:40)`)
@@ -3492,7 +3533,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 				Nullconfig: &mgmtv1alpha1.Null{},
 			},
 		}}},
-	}, map[string]*dbschemas_utils.ColumnInfo{})
+	}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 	assert.Error(t, err)
 	assert.Empty(t, output)
 }
@@ -3519,7 +3560,7 @@ func Test_buildProcessorConfigsJavascript(t *testing.T) {
 	}
 
 	res, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "address", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{})
+		{Schema: "public", Table: "users", Column: "address", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, `
@@ -3565,7 +3606,7 @@ func Test_buildProcessorConfigsJavascriptMultiLineScript(t *testing.T) {
 	}
 
 	res, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{})
+		{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, `
@@ -3623,7 +3664,7 @@ func Test_buildProcessorConfigsJavascriptMultiple(t *testing.T) {
 
 	res, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}},
-		{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}}, map[string]*dbschemas_utils.ColumnInfo{})
+		{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, `
@@ -3735,7 +3776,7 @@ func Test_buildProcessorConfigsJavascriptEmpty(t *testing.T) {
 	}
 
 	resp, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{})
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	assert.NoError(t, err)
 	assert.Empty(t, resp)
