@@ -75,7 +75,7 @@ export default function NewJob({ params }: PageProps): ReactElement {
   return (
     <div
       id="newjobdefine"
-      className="px-12 md:px-24 lg:px-96 flex flex-col pt-4 gap-16"
+      className="px-12 md:px-48 lg:px-96 flex flex-col pt-4 gap-16"
     >
       <OverviewContainer Header={<PageHeader header="Select a Job type" />}>
         <div className="flex flex-col justify-center gap-6 pt-8">
@@ -98,7 +98,7 @@ export default function NewJob({ params }: PageProps): ReactElement {
                             <p>{jd.name}</p>
                           </div>
                         </CardTitle>
-                        <CardDescription className="pl-6">
+                        <CardDescription className="pl-6 pt-2">
                           {jd.description}
                         </CardDescription>
                       </div>

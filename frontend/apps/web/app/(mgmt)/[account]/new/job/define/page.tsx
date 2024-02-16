@@ -250,7 +250,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                             the largest amount of data. This timeout is applied
                             per retry.
                           </FormDescription>
-
                           <FormControl>
                             <Input
                               type="number"
@@ -306,9 +305,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                           <FormDescription>
                             When exceeded, the retries stop even if they're not
                             expired yet. If not set or set to 0, it means
-                            unlimited retry attemps and we rely on activity the
-                            max table timeout including retries to know when to
-                            stop.
+                            unlimited retry attemps and we rely on the max table
+                            timeout including retries to know when to stop.
                           </FormDescription>
                           <FormControl>
                             <Input
