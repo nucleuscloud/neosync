@@ -5,13 +5,6 @@ import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
   Form,
   FormControl,
   FormDescription,
@@ -41,7 +34,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 const isBrowser = () => typeof window !== 'undefined';
 
@@ -111,7 +105,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   return (
     <div
       id="newjobdefine"
-      className="px-12 md:px-24 lg:px-32 flex flex-col gap-5"
+      className="px-12 md:px-24 lg:px-96 flex flex-col gap-5"
     >
       <OverviewContainer
         Header={
@@ -179,183 +173,158 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             )}
           />
           <div>
-            <div>
-              <FormField
-                name="initiateJobRun"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <div className="flex flex-row items-center justify-between">
-                        <div className="space-y-0.5">
-                          <Label className="text-sm">Initiate Job Run</Label>
-                          <p className="text-xs text-muted-foreground">
-                            Initiates a single job run immediately after job is
-                            created.
-                          </p>
-                        </div>
-                        <Switch
-                          checked={field.value || false}
-                          onCheckedChange={field.onChange}
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              name="initiateJobRun"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Initiate Job Run</FormLabel>
+                  <FormDescription>
+                    Initiates a single job run immediately after the job is
+                    created.
+                  </FormDescription>
+                  <FormControl>
+                    <ToggleGroup
+                      type="single"
+                      className="flex justify-start"
+                      onValueChange={(value) =>
+                        field.onChange(value === 'true')
+                      }
+                      value={field.value ? 'true' : 'false'}
+                    >
+                      <ToggleGroupItem value="false">No</ToggleGroupItem>
+                      <ToggleGroupItem value="true">Yes</ToggleGroupItem>
+                    </ToggleGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
-
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="settings">
-              <AccordionTrigger>
-                <Button
-                  variant="ghost"
-                  className="hover:bg-gray-100 -ml-4"
-                  type="button"
-                >
+              <AccordionTrigger className="-ml-2">
+                <div className="hover:bg-gray-100 p-2 rounded-lg">
                   Advanced Settings
-                </Button>
+                </div>
               </AccordionTrigger>
               <AccordionContent>
-                <div className="pt-6">
-                  <Card className="overflow-hidden">
-                    <CardContent className="pt-4">
-                      <FormField
-                        control={form.control}
-                        name="workflowSettings.runTimeout"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel> Job Run Timeout</FormLabel>
-                            <FormDescription>
-                              The maximum length of time, in minutes, that a
-                              single job run is allowed to span before it times
-                              out. 0 means no overall timeout.
-                            </FormDescription>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                {...field}
-                                value={field.value || 0}
-                                onChange={(e) => {
-                                  field.onChange(e.target.valueAsNumber);
-                                }}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </CardContent>
-                  </Card>
-                </div>
-                <div className="pt-10">
-                  <Card className="overflow-hidden">
-                    <CardHeader>
-                      <CardTitle>Table Synchronization Options</CardTitle>
-                      <CardDescription>
-                        Advanced settings that are applied to every table
-                        synchronization. A table sync timout or max timeout must
-                        be configured to run.
-                      </CardDescription>
-                    </CardHeader>
+                <Separator />
+                <div className="flex flex-col gap-6 pt-6">
+                  <FormField
+                    control={form.control}
+                    name="workflowSettings.runTimeout"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel> Job Run Timeout</FormLabel>
+                        <FormDescription>
+                          The maximum length of time (in minutes) that a single
+                          job run is allowed to span before it times out.{' '}
+                          <code>0</code> means no overall timeout.
+                        </FormDescription>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            {...field}
+                            value={field.value || 0}
+                            onChange={(e) => {
+                              field.onChange(e.target.valueAsNumber);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="flex flex-col gap-6">
+                    <FormField
+                      control={form.control}
+                      name="syncActivityOptions.startToCloseTimeout"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Table Sync Timeout</FormLabel>
+                          <FormDescription>
+                            The maximum amount of time (in minutes) a single
+                            table synchronization may run before it times out.
+                            This may need tuning depending on your datasize, and
+                            should be able to contain the table that contains
+                            the largest amount of data. This timeout is applied
+                            per retry.
+                          </FormDescription>
 
-                    <CardContent className="space-y-6">
-                      <div className="flex flex-col md:flex-row gap-3 justify-between">
-                        <FormField
-                          control={form.control}
-                          name="syncActivityOptions.startToCloseTimeout"
-                          render={({ field }) => (
-                            <FormItem className="w-full md:w-1/2 flex flex-col gap-2 justify-between space-y-0">
-                              <div>
-                                <FormLabel>Table Sync Timeout</FormLabel>
-                                <FormDescription>
-                                  The max amount of time that a single table
-                                  synchronization may run before it times out.
-                                  This may need tuning depending on your
-                                  datasize, and should be able to contain the
-                                  table that contains the largest amount of
-                                  data. This timeout is applied per retry.
-                                </FormDescription>
-                              </div>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  {...field}
-                                  value={field.value || 0}
-                                  onChange={(e) => {
-                                    field.onChange(e.target.valueAsNumber);
-                                  }}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="syncActivityOptions.scheduleToCloseTimeout"
-                          render={({ field }) => (
-                            <FormItem className="w-full md:w-1/2 flex flex-col gap-2 justify-between space-y-0">
-                              <div>
-                                <FormLabel>
-                                  Max Table Timeout including retries
-                                </FormLabel>
-                                <FormDescription>
-                                  Total time in minutes that a single table sync
-                                  is allowed to run, including retires. 0 means
-                                  no timeout.
-                                </FormDescription>
-                              </div>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  {...field}
-                                  value={field.value || 0}
-                                  onChange={(e) => {
-                                    field.onChange(e.target.valueAsNumber);
-                                  }}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <div>
-                        <h2 className="text-xl font-semibold tracking-tight">
-                          Retry Policy
-                        </h2>
-                        <FormField
-                          control={form.control}
-                          name="syncActivityOptions.retryPolicy.maximumAttempts"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Maximum Attempts</FormLabel>
-                              <FormDescription>
-                                Maximum number of attempts. When exceeded the
-                                retries stop even if not expired yet. If not set
-                                or set to 0, it means unlimited, and relies on
-                                activity the max table timeout including retries
-                                to know when to stop.
-                              </FormDescription>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  {...field}
-                                  value={field.value || 0}
-                                  onChange={(e) => {
-                                    field.onChange(e.target.valueAsNumber);
-                                  }}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              {...field}
+                              value={field.value || 0}
+                              onChange={(e) => {
+                                field.onChange(e.target.valueAsNumber);
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="syncActivityOptions.scheduleToCloseTimeout"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            Max Table Timeout including retries
+                          </FormLabel>
+                          <FormDescription>
+                            The total time (in minutes) that a single table sync
+                            is allowed to run,{' '}
+                            <strong>
+                              <u>including</u>
+                            </strong>{' '}
+                            retries. 0 means no timeout.
+                          </FormDescription>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              {...field}
+                              value={field.value || 0}
+                              onChange={(e) => {
+                                field.onChange(e.target.valueAsNumber);
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div>
+                    <FormField
+                      control={form.control}
+                      name="syncActivityOptions.retryPolicy.maximumAttempts"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Maximum Retry Attempts</FormLabel>
+                          <FormDescription>
+                            When exceeded, the retries stop even if they're not
+                            expired yet. If not set or set to 0, it means
+                            unlimited retry attemps and we rely on activity the
+                            max table timeout including retries to know when to
+                            stop.
+                          </FormDescription>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              {...field}
+                              value={field.value || 0}
+                              onChange={(e) => {
+                                field.onChange(e.target.valueAsNumber);
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
               </AccordionContent>
             </AccordionItem>
