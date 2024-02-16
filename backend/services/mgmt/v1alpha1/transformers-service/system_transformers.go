@@ -542,7 +542,7 @@ return input;`},
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformCharacterScrambleConfig{
 					TransformCharacterScrambleConfig: &mgmtv1alpha1.TransformCharacterScramble{
-						Regex: "",
+						UserProvidedRegex: nil,
 					},
 				},
 			},

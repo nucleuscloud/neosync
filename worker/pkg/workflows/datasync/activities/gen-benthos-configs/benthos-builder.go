@@ -1431,7 +1431,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 	case generateDefault:
 		return "default", nil
 	case "transform_character_scramble":
-		regex := col.Transformer.Config.GetTransformCharacterScrambleConfig().Regex
+		regex := col.Transformer.Config.GetTransformCharacterScrambleConfig().UserProvidedRegex
 		return fmt.Sprintf(`transform_character_scramble(value:this.%s,regex:%q)`, col.Column, regex), nil
 	default:
 		return "", fmt.Errorf("unsupported transformer")

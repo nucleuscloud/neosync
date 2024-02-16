@@ -136,7 +136,7 @@ export async function ValidateUserRegex(
   accountId: string
 ): Promise<ValidateUserRegexCodeResponse> {
   const body = new ValidateUserRegexCodeRequest({
-    regex: regex,
+    userProvidedRegex: regex,
     accountId: accountId,
   });
   const res = await fetch(

@@ -286,12 +286,13 @@ message GenerateCategorical {
 }
 
 message TransformCharacterScramble {
-  string regex = 1;
+  // a user provided regular expression that they wish to validate if it compiles in GO
+  optional string user_provided_regex = 1;
 }
 
 message ValidateUserRegexCodeRequest {
   string account_id = 1 [(buf.validate.field).string.uuid = true];
-  string regex = 2;
+  string user_provided_regex = 2;
 }
 
 message ValidateUserRegexCodeResponse {

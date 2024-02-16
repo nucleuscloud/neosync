@@ -2632,9 +2632,11 @@ export class GenerateCategorical extends Message<GenerateCategorical> {
  */
 export class TransformCharacterScramble extends Message<TransformCharacterScramble> {
   /**
-   * @generated from field: string regex = 1;
+   * a user provided regular expression that they wish to validate if it compiles in GO
+   *
+   * @generated from field: optional string user_provided_regex = 1;
    */
-  regex = "";
+  userProvidedRegex?: string;
 
   constructor(data?: PartialMessage<TransformCharacterScramble>) {
     super();
@@ -2644,7 +2646,7 @@ export class TransformCharacterScramble extends Message<TransformCharacterScramb
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.TransformCharacterScramble";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "regex", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "user_provided_regex", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformCharacterScramble {
@@ -2674,9 +2676,9 @@ export class ValidateUserRegexCodeRequest extends Message<ValidateUserRegexCodeR
   accountId = "";
 
   /**
-   * @generated from field: string regex = 2;
+   * @generated from field: string user_provided_regex = 2;
    */
-  regex = "";
+  userProvidedRegex = "";
 
   constructor(data?: PartialMessage<ValidateUserRegexCodeRequest>) {
     super();
@@ -2687,7 +2689,7 @@ export class ValidateUserRegexCodeRequest extends Message<ValidateUserRegexCodeR
   static readonly typeName = "mgmt.v1alpha1.ValidateUserRegexCodeRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "regex", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "user_provided_regex", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ValidateUserRegexCodeRequest {

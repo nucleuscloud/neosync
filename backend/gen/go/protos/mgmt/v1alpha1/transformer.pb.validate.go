@@ -8445,7 +8445,9 @@ func (m *TransformCharacterScramble) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Regex
+	if m.UserProvidedRegex != nil {
+		// no validation rules for UserProvidedRegex
+	}
 
 	if len(errors) > 0 {
 		return TransformCharacterScrambleMultiError(errors)
@@ -8551,7 +8553,7 @@ func (m *ValidateUserRegexCodeRequest) validate(all bool) error {
 
 	// no validation rules for AccountId
 
-	// no validation rules for Regex
+	// no validation rules for UserProvidedRegex
 
 	if len(errors) > 0 {
 		return ValidateUserRegexCodeRequestMultiError(errors)

@@ -186,7 +186,7 @@ type GenerateCategoricalConfig struct {
 }
 
 type TransformCharacterScramble struct {
-	Regex string `json:"regex"`
+	UserProvidedRegex *string `json:"userProvidedRegex,omitempty"`
 }
 
 // from API -> DB
@@ -342,7 +342,7 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 		}
 	case *mgmtv1alpha1.TransformerConfig_TransformCharacterScrambleConfig:
 		t.TransformCharacterScramble = &TransformCharacterScramble{
-			Regex: tr.GetTransformCharacterScrambleConfig().Regex,
+			UserProvidedRegex: tr.GetTransformCharacterScrambleConfig().UserProvidedRegex,
 		}
 	default:
 		t = &TransformerConfigs{}
@@ -658,7 +658,7 @@ func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerC
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformCharacterScrambleConfig{
 				TransformCharacterScrambleConfig: &mgmtv1alpha1.TransformCharacterScramble{
-					Regex: t.TransformCharacterScramble.Regex,
+					UserProvidedRegex: t.TransformCharacterScramble.UserProvidedRegex,
 				},
 			},
 		}

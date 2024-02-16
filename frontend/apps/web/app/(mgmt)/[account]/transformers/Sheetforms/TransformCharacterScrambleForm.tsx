@@ -49,7 +49,7 @@ export default function TransformCharacterScrambleForm(
   const handleSubmit = () => {
     fc.setValue(
       `mappings.${index}.transformer.config.value`,
-      new TransformCharacterScramble({ regex: regex }),
+      new TransformCharacterScramble({ userProvidedRegex: regex }),
       {
         shouldValidate: false,
       }

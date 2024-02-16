@@ -4306,19 +4306,19 @@
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
-          "hasOneofs": false,
+          "hasOneofs": true,
           "extensions": [],
           "fields": [
             {
-              "name": "regex",
-              "description": "",
-              "label": "",
+              "name": "user_provided_regex",
+              "description": "a user provided regular expression that they wish to validate if it compiles in GO",
+              "label": "optional",
               "type": "string",
               "longType": "string",
               "fullType": "string",
               "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
+              "isoneof": true,
+              "oneofdecl": "_user_provided_regex",
               "defaultValue": ""
             }
           ]
@@ -5450,7 +5450,7 @@
               "defaultValue": ""
             },
             {
-              "name": "regex",
+              "name": "user_provided_regex",
               "description": "",
               "label": "",
               "type": "string",
