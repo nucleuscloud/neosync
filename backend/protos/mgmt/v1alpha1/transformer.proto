@@ -289,6 +289,15 @@ message TransformCharacterScramble {
   string regex = 1;
 }
 
+message ValidateUserRegexCodeRequest {
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+  string regex = 2;
+}
+
+message ValidateUserRegexCodeResponse {
+  bool valid = 1;
+}
+
 service TransformersService {
   rpc GetSystemTransformers(GetSystemTransformersRequest) returns (GetSystemTransformersResponse) {}
   rpc GetSystemTransformerBySource(GetSystemTransformerBySourceRequest) returns (GetSystemTransformerBySourceResponse) {}
@@ -299,4 +308,5 @@ service TransformersService {
   rpc UpdateUserDefinedTransformer(UpdateUserDefinedTransformerRequest) returns (UpdateUserDefinedTransformerResponse) {}
   rpc IsTransformerNameAvailable(IsTransformerNameAvailableRequest) returns (IsTransformerNameAvailableResponse) {}
   rpc ValidateUserJavascriptCode(ValidateUserJavascriptCodeRequest) returns (ValidateUserJavascriptCodeResponse) {}
+  rpc ValidateUserRegexCode(ValidateUserRegexCodeRequest) returns (ValidateUserRegexCodeResponse) {}
 }

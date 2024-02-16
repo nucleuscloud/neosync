@@ -3,6 +3,7 @@ package v1alpha1_transformersservice
 import (
 	"context"
 	"fmt"
+	"regexp"
 
 	"connectrpc.com/connect"
 	"github.com/dop251/goja"
@@ -227,4 +228,19 @@ func constructJavascriptCode(jsCode string) string {
 	} else {
 		return ""
 	}
+}
+
+func (s *Service) ValidateUserRegex(ctx context.Context, req *connect.Request[mgmtv1alpha1.ValidateUserRegexCodeRequest]) (*connect.Response[mgmtv1alpha1.ValidateUserRegexCodeResponse], error) {
+
+	_, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	// validates the user provided regex
+	_, err = regexp.Compile(req.Msg.Regex)
+
+	return connect.NewResponse(&mgmtv1alpha1.ValidateUserRegexCodeResponse{
+		Valid: err == nil,
+	}), err
 }

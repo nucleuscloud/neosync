@@ -27,6 +27,7 @@ import GenerateInternationalPhoneNumberForm from './Sheetforms/GenerateInternati
 import GenerateStringForm from './Sheetforms/GenerateRandomStringForm';
 import GenerateStringPhoneNumberForm from './Sheetforms/GenerateStringPhoneNumberForm';
 import GenerateUuidForm from './Sheetforms/GenerateUuidForm';
+import TransformCharacterScrambleForm from './Sheetforms/TransformCharacterScrambleForm';
 import TransformE164NumberForm from './Sheetforms/TransformE164PhoneNumberForm';
 import TransformEmailForm from './Sheetforms/TransformEmailForm';
 import TransformFirstNameForm from './Sheetforms/TransformFirstNameForm';
@@ -265,6 +266,14 @@ function handleTransformerForm(
         <GenerateCategoricalForm
           index={index}
           setIsSheetOpen={setIsSheetOpen}
+        />
+      );
+    case 'transform_character_scramble':
+      return (
+        <TransformCharacterScrambleForm
+          index={index}
+          setIsSheetOpen={setIsSheetOpen}
+          transformer={transformer}
         />
       );
 

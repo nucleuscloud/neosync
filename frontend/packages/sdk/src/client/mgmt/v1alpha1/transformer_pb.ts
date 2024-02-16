@@ -2664,3 +2664,83 @@ export class TransformCharacterScramble extends Message<TransformCharacterScramb
   }
 }
 
+/**
+ * @generated from message mgmt.v1alpha1.ValidateUserRegexCodeRequest
+ */
+export class ValidateUserRegexCodeRequest extends Message<ValidateUserRegexCodeRequest> {
+  /**
+   * @generated from field: string account_id = 1;
+   */
+  accountId = "";
+
+  /**
+   * @generated from field: string regex = 2;
+   */
+  regex = "";
+
+  constructor(data?: PartialMessage<ValidateUserRegexCodeRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.ValidateUserRegexCodeRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "regex", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ValidateUserRegexCodeRequest {
+    return new ValidateUserRegexCodeRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ValidateUserRegexCodeRequest {
+    return new ValidateUserRegexCodeRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ValidateUserRegexCodeRequest {
+    return new ValidateUserRegexCodeRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ValidateUserRegexCodeRequest | PlainMessage<ValidateUserRegexCodeRequest> | undefined, b: ValidateUserRegexCodeRequest | PlainMessage<ValidateUserRegexCodeRequest> | undefined): boolean {
+    return proto3.util.equals(ValidateUserRegexCodeRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.ValidateUserRegexCodeResponse
+ */
+export class ValidateUserRegexCodeResponse extends Message<ValidateUserRegexCodeResponse> {
+  /**
+   * @generated from field: bool valid = 1;
+   */
+  valid = false;
+
+  constructor(data?: PartialMessage<ValidateUserRegexCodeResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.ValidateUserRegexCodeResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "valid", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ValidateUserRegexCodeResponse {
+    return new ValidateUserRegexCodeResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ValidateUserRegexCodeResponse {
+    return new ValidateUserRegexCodeResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ValidateUserRegexCodeResponse {
+    return new ValidateUserRegexCodeResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ValidateUserRegexCodeResponse | PlainMessage<ValidateUserRegexCodeResponse> | undefined, b: ValidateUserRegexCodeResponse | PlainMessage<ValidateUserRegexCodeResponse> | undefined): boolean {
+    return proto3.util.equals(ValidateUserRegexCodeResponse, a, b);
+  }
+}
+

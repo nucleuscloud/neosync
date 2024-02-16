@@ -5426,6 +5426,66 @@
               "defaultValue": ""
             }
           ]
+        },
+        {
+          "name": "ValidateUserRegexCodeRequest",
+          "longName": "ValidateUserRegexCodeRequest",
+          "fullName": "mgmt.v1alpha1.ValidateUserRegexCodeRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "regex",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "ValidateUserRegexCodeResponse",
+          "longName": "ValidateUserRegexCodeResponse",
+          "fullName": "mgmt.v1alpha1.ValidateUserRegexCodeResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "valid",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
         }
       ],
       "services": [
@@ -5541,6 +5601,18 @@
               "responseType": "ValidateUserJavascriptCodeResponse",
               "responseLongType": "ValidateUserJavascriptCodeResponse",
               "responseFullType": "mgmt.v1alpha1.ValidateUserJavascriptCodeResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "ValidateUserRegexCode",
+              "description": "",
+              "requestType": "ValidateUserRegexCodeRequest",
+              "requestLongType": "ValidateUserRegexCodeRequest",
+              "requestFullType": "mgmt.v1alpha1.ValidateUserRegexCodeRequest",
+              "requestStreaming": false,
+              "responseType": "ValidateUserRegexCodeResponse",
+              "responseLongType": "ValidateUserRegexCodeResponse",
+              "responseFullType": "mgmt.v1alpha1.ValidateUserRegexCodeResponse",
               "responseStreaming": false
             }
           ]
