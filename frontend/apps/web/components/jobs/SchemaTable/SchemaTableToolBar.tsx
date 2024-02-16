@@ -67,15 +67,18 @@ export function SchemaTableToolbar<TData>({
   };
 
   const handleMultiSelectTableChange = (selectedOptions: Option[]) => {
-    setSelectedSchemaOptions(selectedOptions);
+    setSelectedTableOptions(selectedOptions);
     const filteredValues = selectedOptions.map((option) => option.value);
     // handles the user removing items from the multi-select
     if (filteredValues.length > 0) {
-      table.getColumn('schema')?.setFilterValue(filteredValues);
+      table.getColumn('table')?.setFilterValue(filteredValues);
     } else {
-      table.getColumn('schema')?.setFilterValue(undefined);
+      table.getColumn('table')?.setFilterValue(undefined);
     }
   };
+
+  // TODO: update filtering logic in the table
+  // update the message that shows that there is nothing left when someone selects a schema is there is only one left
 
   const [bulkTransformer, setBulkTransformer] =
     useState<JobMappingTransformerForm>({

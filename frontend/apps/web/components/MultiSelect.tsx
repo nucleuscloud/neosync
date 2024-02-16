@@ -254,7 +254,7 @@ export const MultiSelect = React.forwardRef<
                   inputRef.current?.focus();
                 }
               }}
-              size={14}
+              size={12}
             />
           </div>
         </div>
@@ -287,7 +287,7 @@ export const MultiSelect = React.forwardRef<
                               onChange?.(newOptions);
                             }}
                             className={cn(
-                              'cursor-pointer',
+                              'cursor-pointer text-sm',
                               option.disable &&
                                 'cursor-default text-muted-foreground'
                             )}

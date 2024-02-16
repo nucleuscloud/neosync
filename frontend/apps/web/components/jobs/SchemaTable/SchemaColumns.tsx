@@ -88,6 +88,7 @@ export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
     },
     {
       accessorKey: 'table',
+      filterFn: exactMatchFilterFn,
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Table" />
       ),
