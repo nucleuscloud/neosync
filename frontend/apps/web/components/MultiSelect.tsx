@@ -187,7 +187,7 @@ export const MultiSelect = React.forwardRef<
                   key={option.value}
                   className={cn(
                     'data-[disabled]:bg-muted-foreground data-[disabled]:text-muted data-[disabled]:hover:bg-muted-foreground',
-                    'data-[fixed]:bg-muted-foreground data-[fixed]:text-muted data-[fixed]:hover:bg-muted-foreground'
+                    'data-[fixed]:bg-muted-foreground data-[fixed]:text-muted data-[fixed]:hover:bg-muted-foreground mt-[1px]'
                   )}
                   variant="outline"
                   data-fixed={option.fixed}
@@ -260,7 +260,7 @@ export const MultiSelect = React.forwardRef<
         </div>
         <div className="relative mt-2">
           {open && (
-            <CommandList className="absolute top-0 z-50 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in">
+            <CommandList className="absolute top-0 z-50 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in ">
               <>
                 {EmptyItem()}
                 {Object.entries(selectables).map(([key, dropdowns]) => (
