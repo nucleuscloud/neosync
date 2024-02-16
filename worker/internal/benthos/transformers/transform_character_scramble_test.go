@@ -209,8 +209,6 @@ func Test_TransformCharacterSubsitutitionRegexEmail(t *testing.T) {
 
 	res, err := TransformCharacterScramble(testEmail, emailregex)
 
-	fmt.Println("res", *res)
-
 	assert.NoError(t, err)
 	assert.IsType(t, "", *res)
 	assert.Equal(t, len(testEmail), len(*res), "The output string should be as long as the input string")
