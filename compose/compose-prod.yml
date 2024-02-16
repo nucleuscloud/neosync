@@ -81,7 +81,7 @@ services:
       - TEMPORAL_NAMESPACE=default
       - TEMPORAL_TASK_QUEUE=sync-job
       - NEOSYNC_URL=http://api:8080
-      - REDIS_URL=redis://default:foofar@redis-master.redis.svc.cluster.local:6379
+      - REDIS_URL=redis://default:foofar@redis:6379
     networks:
       - neosync-network
       - temporal-network
