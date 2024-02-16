@@ -541,7 +541,9 @@ return input;`},
 			Source:      string(TransformCharacterScramble),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformCharacterScrambleConfig{
-					TransformCharacterScrambleConfig: &mgmtv1alpha1.TransformCharacterScramble{},
+					TransformCharacterScrambleConfig: &mgmtv1alpha1.TransformCharacterScramble{
+						UserProvidedRegex: nil,
+					},
 				},
 			},
 		},

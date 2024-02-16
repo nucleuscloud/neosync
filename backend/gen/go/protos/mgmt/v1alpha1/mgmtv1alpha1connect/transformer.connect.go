@@ -60,6 +60,9 @@ const (
 	// TransformersServiceValidateUserJavascriptCodeProcedure is the fully-qualified name of the
 	// TransformersService's ValidateUserJavascriptCode RPC.
 	TransformersServiceValidateUserJavascriptCodeProcedure = "/mgmt.v1alpha1.TransformersService/ValidateUserJavascriptCode"
+	// TransformersServiceValidateUserRegexCodeProcedure is the fully-qualified name of the
+	// TransformersService's ValidateUserRegexCode RPC.
+	TransformersServiceValidateUserRegexCodeProcedure = "/mgmt.v1alpha1.TransformersService/ValidateUserRegexCode"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
@@ -74,6 +77,7 @@ var (
 	transformersServiceUpdateUserDefinedTransformerMethodDescriptor  = transformersServiceServiceDescriptor.Methods().ByName("UpdateUserDefinedTransformer")
 	transformersServiceIsTransformerNameAvailableMethodDescriptor    = transformersServiceServiceDescriptor.Methods().ByName("IsTransformerNameAvailable")
 	transformersServiceValidateUserJavascriptCodeMethodDescriptor    = transformersServiceServiceDescriptor.Methods().ByName("ValidateUserJavascriptCode")
+	transformersServiceValidateUserRegexCodeMethodDescriptor         = transformersServiceServiceDescriptor.Methods().ByName("ValidateUserRegexCode")
 )
 
 // TransformersServiceClient is a client for the mgmt.v1alpha1.TransformersService service.
@@ -87,6 +91,7 @@ type TransformersServiceClient interface {
 	UpdateUserDefinedTransformer(context.Context, *connect.Request[v1alpha1.UpdateUserDefinedTransformerRequest]) (*connect.Response[v1alpha1.UpdateUserDefinedTransformerResponse], error)
 	IsTransformerNameAvailable(context.Context, *connect.Request[v1alpha1.IsTransformerNameAvailableRequest]) (*connect.Response[v1alpha1.IsTransformerNameAvailableResponse], error)
 	ValidateUserJavascriptCode(context.Context, *connect.Request[v1alpha1.ValidateUserJavascriptCodeRequest]) (*connect.Response[v1alpha1.ValidateUserJavascriptCodeResponse], error)
+	ValidateUserRegexCode(context.Context, *connect.Request[v1alpha1.ValidateUserRegexCodeRequest]) (*connect.Response[v1alpha1.ValidateUserRegexCodeResponse], error)
 }
 
 // NewTransformersServiceClient constructs a client for the mgmt.v1alpha1.TransformersService
@@ -153,6 +158,12 @@ func NewTransformersServiceClient(httpClient connect.HTTPClient, baseURL string,
 			connect.WithSchema(transformersServiceValidateUserJavascriptCodeMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		validateUserRegexCode: connect.NewClient[v1alpha1.ValidateUserRegexCodeRequest, v1alpha1.ValidateUserRegexCodeResponse](
+			httpClient,
+			baseURL+TransformersServiceValidateUserRegexCodeProcedure,
+			connect.WithSchema(transformersServiceValidateUserRegexCodeMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -167,6 +178,7 @@ type transformersServiceClient struct {
 	updateUserDefinedTransformer  *connect.Client[v1alpha1.UpdateUserDefinedTransformerRequest, v1alpha1.UpdateUserDefinedTransformerResponse]
 	isTransformerNameAvailable    *connect.Client[v1alpha1.IsTransformerNameAvailableRequest, v1alpha1.IsTransformerNameAvailableResponse]
 	validateUserJavascriptCode    *connect.Client[v1alpha1.ValidateUserJavascriptCodeRequest, v1alpha1.ValidateUserJavascriptCodeResponse]
+	validateUserRegexCode         *connect.Client[v1alpha1.ValidateUserRegexCodeRequest, v1alpha1.ValidateUserRegexCodeResponse]
 }
 
 // GetSystemTransformers calls mgmt.v1alpha1.TransformersService.GetSystemTransformers.
@@ -219,6 +231,11 @@ func (c *transformersServiceClient) ValidateUserJavascriptCode(ctx context.Conte
 	return c.validateUserJavascriptCode.CallUnary(ctx, req)
 }
 
+// ValidateUserRegexCode calls mgmt.v1alpha1.TransformersService.ValidateUserRegexCode.
+func (c *transformersServiceClient) ValidateUserRegexCode(ctx context.Context, req *connect.Request[v1alpha1.ValidateUserRegexCodeRequest]) (*connect.Response[v1alpha1.ValidateUserRegexCodeResponse], error) {
+	return c.validateUserRegexCode.CallUnary(ctx, req)
+}
+
 // TransformersServiceHandler is an implementation of the mgmt.v1alpha1.TransformersService service.
 type TransformersServiceHandler interface {
 	GetSystemTransformers(context.Context, *connect.Request[v1alpha1.GetSystemTransformersRequest]) (*connect.Response[v1alpha1.GetSystemTransformersResponse], error)
@@ -230,6 +247,7 @@ type TransformersServiceHandler interface {
 	UpdateUserDefinedTransformer(context.Context, *connect.Request[v1alpha1.UpdateUserDefinedTransformerRequest]) (*connect.Response[v1alpha1.UpdateUserDefinedTransformerResponse], error)
 	IsTransformerNameAvailable(context.Context, *connect.Request[v1alpha1.IsTransformerNameAvailableRequest]) (*connect.Response[v1alpha1.IsTransformerNameAvailableResponse], error)
 	ValidateUserJavascriptCode(context.Context, *connect.Request[v1alpha1.ValidateUserJavascriptCodeRequest]) (*connect.Response[v1alpha1.ValidateUserJavascriptCodeResponse], error)
+	ValidateUserRegexCode(context.Context, *connect.Request[v1alpha1.ValidateUserRegexCodeRequest]) (*connect.Response[v1alpha1.ValidateUserRegexCodeResponse], error)
 }
 
 // NewTransformersServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -292,6 +310,12 @@ func NewTransformersServiceHandler(svc TransformersServiceHandler, opts ...conne
 		connect.WithSchema(transformersServiceValidateUserJavascriptCodeMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	transformersServiceValidateUserRegexCodeHandler := connect.NewUnaryHandler(
+		TransformersServiceValidateUserRegexCodeProcedure,
+		svc.ValidateUserRegexCode,
+		connect.WithSchema(transformersServiceValidateUserRegexCodeMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/mgmt.v1alpha1.TransformersService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case TransformersServiceGetSystemTransformersProcedure:
@@ -312,6 +336,8 @@ func NewTransformersServiceHandler(svc TransformersServiceHandler, opts ...conne
 			transformersServiceIsTransformerNameAvailableHandler.ServeHTTP(w, r)
 		case TransformersServiceValidateUserJavascriptCodeProcedure:
 			transformersServiceValidateUserJavascriptCodeHandler.ServeHTTP(w, r)
+		case TransformersServiceValidateUserRegexCodeProcedure:
+			transformersServiceValidateUserRegexCodeHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -355,4 +381,8 @@ func (UnimplementedTransformersServiceHandler) IsTransformerNameAvailable(contex
 
 func (UnimplementedTransformersServiceHandler) ValidateUserJavascriptCode(context.Context, *connect.Request[v1alpha1.ValidateUserJavascriptCodeRequest]) (*connect.Response[v1alpha1.ValidateUserJavascriptCodeResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.TransformersService.ValidateUserJavascriptCode is not implemented"))
+}
+
+func (UnimplementedTransformersServiceHandler) ValidateUserRegexCode(context.Context, *connect.Request[v1alpha1.ValidateUserRegexCodeRequest]) (*connect.Response[v1alpha1.ValidateUserRegexCodeResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.TransformersService.ValidateUserRegexCode is not implemented"))
 }

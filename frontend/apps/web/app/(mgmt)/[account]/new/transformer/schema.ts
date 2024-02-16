@@ -203,6 +203,10 @@ type ExtractCase<T> = T extends { case: infer U } ? U : never;
 // Computed type that extracts all case types from the config union
 type TransformerConfigCase = ExtractCase<ConfigType>;
 
+const transformCharacterScrambleConfig = Yup.object().shape({
+  userProvidedRegex: Yup.string().optional(),
+});
+
 const EMPTY_TRANSFORMER_CONFIG = Yup.object({
   case: Yup.string(),
   value: Yup.object(),
@@ -254,7 +258,7 @@ const TRANSFORMER_SCHEMA_CONFIGS: Record<
   transformStringConfig: transformStringConfig,
   userDefinedTransformerConfig: userDefinedTransformerConfig,
   transformJavascriptConfig: transformJavascriptConfig,
-  generateCategoricalConfig: generateCategoricalConfig,
+  generateCategoricalConfig: transformCharacterScrambleConfig,
 };
 
 export const TransformerConfigSchema = Yup.lazy((v) => {
