@@ -268,9 +268,10 @@ func invokeSync(
 		logger.Info("scheduling Sync for execution.")
 
 		var result sync_activity.SyncResponse
+		activity := sync_activity.Activity{}
 		err = workflow.ExecuteActivity(
 			ctx,
-			sync_activity.Sync,
+			activity.Sync,
 			&sync_activity.SyncRequest{BenthosConfig: string(configbits), BenthosDsns: config.BenthosDsns}, metadata, workflowMetadata).Get(ctx, &result)
 		tn := fmt.Sprintf("%s.%s", config.TableSchema, config.TableName)
 		_, ok := completed[tn]

@@ -41,8 +41,18 @@ type SyncRequest struct {
 }
 type SyncResponse struct{}
 
+func New(
+	connclient mgmtv1alpha1connect.ConnectionServiceClient,
+) *Activity {
+	return &Activity{connclient: connclient}
+}
+
+type Activity struct {
+	connclient mgmtv1alpha1connect.ConnectionServiceClient
+}
+
 // Temporal activity that runs benthos and syncs a source connection to one or more destination connections
-func Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata, workflowMetadata *shared.WorkflowMetadata) (*SyncResponse, error) {
+func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata, workflowMetadata *shared.WorkflowMetadata) (*SyncResponse, error) {
 	loggerKeyVals := []any{
 		"metadata", metadata,
 		"WorkflowID", workflowMetadata.WorkflowId,
@@ -70,14 +80,6 @@ func Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata, workflo
 		}
 	}()
 
-	neosyncUrl := shared.GetNeosyncUrl()
-	httpClient := shared.GetNeosyncHttpClient()
-
-	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(
-		httpClient,
-		neosyncUrl,
-	)
-
 	connections := make([]*mgmtv1alpha1.Connection, len(req.BenthosDsns))
 
 	errgrp, errctx := errgroup.WithContext(ctx)
@@ -85,7 +87,7 @@ func Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata, workflo
 		idx := idx
 		bdns := bdns
 		errgrp.Go(func() error {
-			resp, err := connclient.GetConnection(errctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{Id: bdns.ConnectionId}))
+			resp, err := a.connclient.GetConnection(errctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{Id: bdns.ConnectionId}))
 			if err != nil {
 				return fmt.Errorf("failed to retrieve connection: %w", err)
 			}

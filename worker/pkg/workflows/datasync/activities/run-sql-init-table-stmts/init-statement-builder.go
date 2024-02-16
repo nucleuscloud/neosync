@@ -235,7 +235,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					_, err = pool.Exec(ctx, strings.Join(tableCreateStmts, "\n"))
 					if err != nil {
 						pgconn.Close()
-						return nil, fmt.Errorf("unable to open postgres connection: %w", err)
+						return nil, fmt.Errorf("unable to exec postgres table create statements: %w", err)
 					}
 				}
 

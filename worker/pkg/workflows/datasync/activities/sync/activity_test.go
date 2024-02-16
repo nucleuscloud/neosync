@@ -17,9 +17,11 @@ func Test_Sync_Run_Success(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 
-	env.RegisterActivity(Sync)
+	activity := New(nil)
 
-	val, err := env.ExecuteActivity(Sync, &SyncRequest{
+	env.RegisterActivity(activity.Sync)
+
+	val, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
 		BenthosConfig: strings.TrimSpace(`
 input:
   generate:
@@ -42,9 +44,10 @@ func Test_Sync_Fake_Mutation_Success(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 
-	env.RegisterActivity(Sync)
+	activity := New(nil)
+	env.RegisterActivity(activity.Sync)
 
-	val, err := env.ExecuteActivity(Sync, &SyncRequest{
+	val, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
 		BenthosConfig: strings.TrimSpace(`
 input:
   generate:
@@ -72,7 +75,8 @@ func Test_Sync_Run_Success_Javascript(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 
-	env.RegisterActivity(Sync)
+	activity := New(nil)
+	env.RegisterActivity(activity.Sync)
 
 	tmpFile, err := os.CreateTemp("", "test")
 	if err != nil {
@@ -80,7 +84,7 @@ func Test_Sync_Run_Success_Javascript(t *testing.T) {
 	}
 	defer os.Remove(tmpFile.Name())
 
-	val, err := env.ExecuteActivity(Sync, &SyncRequest{
+	val, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
 		BenthosConfig: strings.TrimSpace(fmt.Sprintf(`
 input:
   generate:
@@ -126,8 +130,8 @@ output:
 func Test_Sync_Run_Success_MutataionAndJavascript(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
-
-	env.RegisterActivity(Sync)
+	activity := New(nil)
+	env.RegisterActivity(activity.Sync)
 
 	tmpFile, err := os.CreateTemp("", "test")
 	if err != nil {
@@ -135,7 +139,7 @@ func Test_Sync_Run_Success_MutataionAndJavascript(t *testing.T) {
 	}
 	defer os.Remove(tmpFile.Name())
 
-	val, err := env.ExecuteActivity(Sync, &SyncRequest{
+	val, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
 		BenthosConfig: strings.TrimSpace(fmt.Sprintf(`
 input:
   generate:
