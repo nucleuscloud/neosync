@@ -1,14 +1,7 @@
 'use client';
 import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -82,12 +75,6 @@ export default function WorkflowSettingsCard({
 
   return (
     <Card className="overflow-hidden">
-      <CardHeader>
-        <CardTitle>Job Run Options</CardTitle>
-        <CardDescription>
-          Advanced settings for configuring run timeouts, etc.
-        </CardDescription>
-      </CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent>
@@ -95,12 +82,12 @@ export default function WorkflowSettingsCard({
               control={form.control}
               name="runTimeout"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Run Timeout</FormLabel>
+                <FormItem className="pt-4">
+                  <FormLabel> Job Run Timeout</FormLabel>
                   <FormDescription>
-                    The maximum length of time in minutes that a single job run
-                    is allowed to span before it times out. 0 means no overall
-                    timeout.
+                    The maximum length of time (in minutes) that a single job
+                    run is allowed to span before it times out. <code>0</code>{' '}
+                    means no overall timeout.
                   </FormDescription>
                   <FormControl>
                     <Input

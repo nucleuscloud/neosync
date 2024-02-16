@@ -1,14 +1,7 @@
 'use client';
 import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -89,26 +82,19 @@ export default function ActivitySyncOptionsCard({
 
   return (
     <Card className="overflow-hidden">
-      <CardHeader>
-        <CardTitle>Table Synchronization Options</CardTitle>
-        <CardDescription>
-          Advanced settings that are applied to every table synchronization. A
-          table sync timout or max timeout must be configured to run.
-        </CardDescription>
-      </CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent className="space-y-6">
-            <div className="flex flex-col md:flex-row gap-3 justify-between">
+            <div className="flex flex-col gap-6 ">
               <FormField
                 control={form.control}
                 name="startToCloseTimeout"
                 render={({ field }) => (
-                  <FormItem className="w-full md:w-1/2 flex flex-col gap-2 justify-between space-y-0">
-                    <div>
+                  <FormItem>
+                    <div className="pt-4">
                       <FormLabel>Table Sync Timeout</FormLabel>
                       <FormDescription>
-                        The max amount of time that a single table
+                        The maximum amount of time (in minutes) a single table
                         synchronization may run before it times out. This may
                         need tuning depending on your datasize, and should be
                         able to contain the table that contains the largest
@@ -133,14 +119,17 @@ export default function ActivitySyncOptionsCard({
                 control={form.control}
                 name="scheduleToCloseTimeout"
                 render={({ field }) => (
-                  <FormItem className="w-full md:w-1/2 flex flex-col gap-2 justify-between space-y-0">
-                    <div>
-                      <FormLabel>Max Table Timeout including retries</FormLabel>
-                      <FormDescription>
-                        Total time in minutes that a single table sync is
-                        allowed to run, including retires. 0 means no timeout.
-                      </FormDescription>
-                    </div>
+                  <FormItem>
+                    <FormLabel>Max Table Timeout including retries</FormLabel>
+                    <FormDescription>
+                      The total time (in minutes) that a single table sync is
+                      allowed to run,{' '}
+                      <strong>
+                        <u>including</u>
+                      </strong>{' '}
+                      retries. 0 means no timeout.
+                    </FormDescription>
+
                     <FormControl>
                       <Input
                         type="number"
@@ -157,19 +146,16 @@ export default function ActivitySyncOptionsCard({
               />
             </div>
             <div>
-              <h2 className="text-xl font-semibold tracking-tight">
-                Retry Policy
-              </h2>
               <FormField
                 control={form.control}
                 name="retryPolicy.maximumAttempts"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Maximum Attempts</FormLabel>
+                    <FormLabel>Maximum Retry Attempts</FormLabel>
                     <FormDescription>
-                      Maximum number of attempts. When exceeded the retries stop
-                      even if not expired yet. If not set or set to 0, it means
-                      unlimited, and relies on activity the max table timeout
+                      When exceeded, the retries stop even if they're not
+                      expired yet. If not set or set to 0, it means unlimited
+                      retry attemps and we rely on the max table timeout
                       including retries to know when to stop.
                     </FormDescription>
                     <FormControl>
