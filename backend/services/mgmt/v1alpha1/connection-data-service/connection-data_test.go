@@ -489,7 +489,7 @@ func Test_GetConnectionInitStatements_Postgres(t *testing.T) {
 		},
 	})
 
-	actual := "CREATE TABLE IF NOT EXISTS public.users (id uuid NOT NULL DEFAULT gen_random_uuid(), name varchar(40) NULL, CONSTRAINT users_pkey PRIMARY KEY (id));\nTRUNCATE TABLE public.users;"
+	actual := "CREATE TABLE IF NOT EXISTS public.users (\"id\" uuid NOT NULL DEFAULT gen_random_uuid(), \"name\" varchar(40) NULL, CONSTRAINT users_pkey PRIMARY KEY (id));\nTRUNCATE TABLE public.users;"
 	assert.Nil(t, err)
 	assert.Len(t, resp.Msg.TableInitStatements, 1)
 	assert.Equal(t, actual, resp.Msg.TableInitStatements["public.users"])

@@ -501,12 +501,12 @@ func buildPostgresOutputQueryAndArgs(resp *BenthosConfigResponse, tm *tableMappi
 				filteredInsertMappings = append(filteredInsertMappings, m)
 			}
 		}
-		insertCols := buildPlainColumns(filteredInsertMappings)
-		filteredInsertCols := filterColsBySource(insertCols, colSourceMap) // filters out default columns
+		escapedInsertColumns := buildPlainColumns(filteredInsertMappings)
+		filteredInsertCols := filterColsBySource(buildPlainColumns(filteredInsertMappings), colSourceMap) // filters out default columns
 		return &sqlOutput{
-			Query:       buildPostgresInsertQuery(tableKey, insertCols, colSourceMap),
+			Query:       buildPostgresInsertQuery(tableKey, escapedInsertColumns, colSourceMap),
 			ArgsMapping: buildPlainInsertArgs(filteredInsertCols),
-			Columns:     insertCols,
+			Columns:     escapedInsertColumns,
 		}
 	} else if resp.updateConfig != nil && resp.updateConfig.Columns != nil && len(resp.updateConfig.Columns.Include) > 0 {
 		filteredUpdateMappings := []*mgmtv1alpha1.JobMapping{}
@@ -714,14 +714,14 @@ func buildPostgresUpdateQuery(table string, columns []string, colSourceMap map[s
 		if colSource == generateDefault {
 			values[i] = dbDefault
 		} else {
-			values[i] = fmt.Sprintf("%s = $%d", col, paramCount)
+			values[i] = fmt.Sprintf("%s = $%d", escapePgColumn(col), paramCount)
 			paramCount++
 		}
 	}
 	if len(primaryKeys) > 0 {
 		clauses := []string{}
 		for _, col := range primaryKeys {
-			clauses = append(clauses, fmt.Sprintf("%s = $%d", col, paramCount))
+			clauses = append(clauses, fmt.Sprintf("%s = $%d", escapePgColumn(col), paramCount))
 			paramCount++
 		}
 		where = fmt.Sprintf("WHERE %s", strings.Join(clauses, " AND "))
@@ -741,7 +741,7 @@ func buildPostgresInsertQuery(table string, columns []string, colSourceMap map[s
 			paramCount++
 		}
 	}
-	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, strings.Join(columns, ", "), strings.Join(values, ", "))
+	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, strings.Join(escapePgColumns(columns), ", "), strings.Join(values, ", "))
 }
 
 func buildMysqlInsertQuery(table string, columns []string, colSourceMap map[string]string) string {
@@ -754,7 +754,7 @@ func buildMysqlInsertQuery(table string, columns []string, colSourceMap map[stri
 			values[i] = "?"
 		}
 	}
-	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, strings.Join(columns, ", "), strings.Join(values, ", "))
+	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, strings.Join(escapeMysqlColumns(columns), ", "), strings.Join(values, ", "))
 }
 
 func buildMysqlUpdateQuery(table string, columns []string, colSourceMap map[string]string, primaryKeys []string) string {
@@ -765,13 +765,13 @@ func buildMysqlUpdateQuery(table string, columns []string, colSourceMap map[stri
 		if colSource == generateDefault {
 			values[i] = dbDefault
 		} else {
-			values[i] = fmt.Sprintf("%s = ?", col)
+			values[i] = fmt.Sprintf("%s = ?", escapeMysqlColumn(col))
 		}
 	}
 	if len(primaryKeys) > 0 {
 		clauses := []string{}
 		for _, col := range primaryKeys {
-			clauses = append(clauses, fmt.Sprintf("%s = ?", col))
+			clauses = append(clauses, fmt.Sprintf("%s = ?", escapeMysqlColumn(col)))
 		}
 		where = fmt.Sprintf("WHERE %s", strings.Join(clauses, " AND "))
 	}
@@ -878,7 +878,6 @@ func buildBenthosSqlSourceConfigResponses(
 
 	for i := range mappings {
 		tableMapping := mappings[i]
-		cols := buildPlainColumns(tableMapping.Mappings)
 		if shared.AreAllColsNull(tableMapping.Mappings) {
 			// skipping table as no columns are mapped
 			continue
@@ -901,7 +900,7 @@ func buildBenthosSqlSourceConfigResponses(
 
 							Table:   table,
 							Where:   where,
-							Columns: cols,
+							Columns: escapeColsByDriver(buildPlainColumns(tableMapping.Mappings), driver),
 						},
 					},
 				},
@@ -1052,6 +1051,41 @@ func shouldHaltOnSchemaAddition(
 		}
 	}
 	return false
+}
+
+func escapeColsByDriver(cols []string, driver string) []string {
+	switch driver {
+	case "postgres":
+		return escapePgColumns(cols)
+	case "mysql":
+		return escapeMysqlColumns(cols)
+	default:
+		return cols
+	}
+}
+
+func escapePgColumns(cols []string) []string {
+	outcols := make([]string, len(cols))
+	for idx := range cols {
+		outcols[idx] = escapePgColumn(cols[idx])
+	}
+	return outcols
+}
+
+func escapePgColumn(col string) string {
+	return fmt.Sprintf("%q", col)
+}
+
+func escapeMysqlColumns(cols []string) []string {
+	outcols := make([]string, len(cols))
+	for idx := range cols {
+		outcols[idx] = escapeMysqlColumn(cols[idx])
+	}
+	return outcols
+}
+
+func escapeMysqlColumn(col string) string {
+	return fmt.Sprintf("`%s`", col)
 }
 
 func buildPlainColumns(mappings []*mgmtv1alpha1.JobMapping) []string {

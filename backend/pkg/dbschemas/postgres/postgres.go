@@ -79,12 +79,11 @@ func generateCreateTableStatement(
 }
 
 func buildTableCol(record *pg_queries.GetDatabaseTableSchemaRow) string {
-	pieces := []string{record.ColumnName, buildDataType(record), buildNullableText(record)}
+	pieces := []string{escapeColumnName(record.ColumnName), buildDataType(record), buildNullableText(record)}
 	colDefault, ok := record.ColumnDefault.(string)
 	if ok && colDefault != "" {
 		if strings.HasPrefix(colDefault, "nextval") && record.DataType == "integer" {
 			pieces[1] = "SERIAL"
-			pieces = []string{record.ColumnName, "SERIAL", buildNullableText(record)}
 		} else if strings.HasPrefix(colDefault, "nextval") && record.DataType == "bigint" {
 			pieces[1] = "BIGSERIAL"
 		} else if strings.HasPrefix(colDefault, "nextval") && record.DataType == "smallint" {
@@ -94,6 +93,11 @@ func buildTableCol(record *pg_queries.GetDatabaseTableSchemaRow) string {
 		}
 	}
 	return strings.Join(pieces, " ")
+}
+
+// To escape a column name in postgres, they must be wrapped with double quotes ""
+func escapeColumnName(columnName string) string {
+	return fmt.Sprintf("%q", columnName)
 }
 
 func buildDataType(record *pg_queries.GetDatabaseTableSchemaRow) string {
