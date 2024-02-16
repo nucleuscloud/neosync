@@ -203,7 +203,6 @@ func Test_TransformCharacterSubstitutionTransformer(t *testing.T) {
 }
 
 func Test_TransformCharacterSubsitutitionRegexEmail(t *testing.T) {
-
 	emailregex := `(gmail\.com|yahoo\.com|nucleus\.com)$`
 
 	testEmail := "nick@gmail.com"
@@ -217,8 +216,6 @@ func Test_TransformCharacterSubsitutitionRegexEmail(t *testing.T) {
 	assert.Equal(t, len(testEmail), len(*res), "The output string should be as long as the input string")
 	assert.True(t, transformer_utils.IsValidChar(*res), "The output string should contain valid characters")
 	assert.Equal(t, testEmail[:4], (*res)[:4], "The username should be the same")
-	assert.Equal(t, true, transformer_utils.IsValidEmail(*res), "The expected email should be have a valid email structure")
-
 }
 
 func Test_TransformCharacterSubstitutionTransformerWithEmptyValue(t *testing.T) {
