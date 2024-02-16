@@ -719,8 +719,8 @@ input:
         dsn: ${SOURCE_CONNECTION_DSN}
         table: public.users
         columns:
-            - id
-            - name
+            - '"id"'
+            - '"name"'
 buffer: null
 pipeline:
     threads: -1
@@ -742,7 +742,7 @@ output:
             - sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO public.users (id, name) VALUES ($1, $2);
+                query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
                 args_mapping: root = [this.id, this.name]
                 init_statement: ""
                 batching:
@@ -771,8 +771,8 @@ input:
         dsn: ${SOURCE_CONNECTION_DSN}
         table: public.orders
         columns:
-            - id
-            - buyer_id
+            - '"id"'
+            - '"buyer_id"'
 buffer: null
 pipeline:
     threads: -1
@@ -794,7 +794,7 @@ output:
             - sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO public.orders (id, buyer_id) VALUES ($1, $2);
+                query: INSERT INTO public.orders ("id", "buyer_id") VALUES ($1, $2);
                 args_mapping: root = [this.id, this.buyer_id]
                 init_statement: ""
                 batching:
@@ -998,8 +998,8 @@ input:
         dsn: ${SOURCE_CONNECTION_DSN}
         table: public.users
         columns:
-            - id
-            - name
+            - '"id"'
+            - '"name"'
 buffer: null
 pipeline:
     threads: -1
@@ -1012,7 +1012,7 @@ output:
             - sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO public.users (id, name) VALUES ($1, $2);
+                query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
                 args_mapping: root = [this.id, this.name]
                 init_statement: ""
                 batching:
@@ -1041,8 +1041,8 @@ input:
         dsn: ${SOURCE_CONNECTION_DSN}
         table: public.orders
         columns:
-            - id
-            - buyer_id
+            - '"id"'
+            - '"buyer_id"'
 buffer: null
 pipeline:
     threads: -1
@@ -1055,7 +1055,7 @@ output:
             - sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO public.orders (id, buyer_id) VALUES ($1, $2);
+                query: INSERT INTO public.orders ("id", "buyer_id") VALUES ($1, $2);
                 args_mapping: root = [this.id, this.buyer_id]
                 init_statement: ""
                 batching:
@@ -1241,8 +1241,8 @@ input:
         dsn: ${SOURCE_CONNECTION_DSN}
         table: public.jobs
         columns:
-            - id
-            - parent_id
+            - '"id"'
+            - '"parent_id"'
 buffer: null
 pipeline:
     threads: -1
@@ -1264,7 +1264,7 @@ output:
             - sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO public.jobs (id) VALUES ($1);
+                query: INSERT INTO public.jobs ("id") VALUES ($1);
                 args_mapping: root = [this.id]
                 init_statement: ""
                 batching:
@@ -1293,8 +1293,8 @@ input:
         dsn: ${SOURCE_CONNECTION_DSN}
         table: public.jobs
         columns:
-            - id
-            - parent_id
+            - '"id"'
+            - '"parent_id"'
 buffer: null
 pipeline:
     threads: -1
@@ -1325,7 +1325,7 @@ output:
             - sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: UPDATE public.jobs SET parent_id = $1 WHERE id = $2;
+                query: UPDATE public.jobs SET "parent_id" = $1 WHERE "id" = $2;
                 args_mapping: root = [this.parent_id, this.id]
                 init_statement: ""
                 batching:
