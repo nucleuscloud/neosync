@@ -5,6 +5,7 @@ import { Table } from '@tanstack/react-table';
 import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
 import { MultiSelect, Option } from '@/components/MultiSelect';
 import { Button } from '@/components/ui/button';
+import { FormLabel } from '@/components/ui/form';
 import { Transformer } from '@/shared/transformers';
 import {
   JobMappingTransformerForm,
@@ -28,7 +29,13 @@ export function SchemaTableToolbar<TData>({
   data,
   transformers,
 }: DataTableToolbarProps<TData>) {
-  const [selectedOptions, setSelectedOptions] = useState<Option[]>([]);
+  const [selectedSchemaOptions, setSelectedSchemaOptions] = useState<Option[]>(
+    []
+  );
+
+  const [selectedTableOptions, setSelectedTableOptions] = useState<Option[]>(
+    []
+  );
 
   const isFiltered = table.getState().columnFilters.length > 0;
 
@@ -36,13 +43,20 @@ export function SchemaTableToolbar<TData>({
 
   const schemaSet = new Set(dataRow.map((obj) => obj.schema));
 
+  const tableSet = new Set(dataRow.map((obj) => obj.table));
+
   const schemaValues: Option[] = Array.from(schemaSet).map((item) => ({
     value: item,
     label: item,
   }));
 
-  const handleMultiSelectChange = (selectedOptions: Option[]) => {
-    setSelectedOptions(selectedOptions);
+  const tableValues: Option[] = Array.from(tableSet).map((item) => ({
+    value: item,
+    label: item,
+  }));
+
+  const handleMultiSelectSchemaChange = (selectedOptions: Option[]) => {
+    setSelectedSchemaOptions(selectedOptions);
     const filteredValues = selectedOptions.map((option) => option.value);
     // handles the user removing items from the multi-select
     if (filteredValues.length > 0) {
@@ -51,6 +65,18 @@ export function SchemaTableToolbar<TData>({
       table.getColumn('schema')?.setFilterValue(undefined);
     }
   };
+
+  const handleMultiSelectTableChange = (selectedOptions: Option[]) => {
+    setSelectedSchemaOptions(selectedOptions);
+    const filteredValues = selectedOptions.map((option) => option.value);
+    // handles the user removing items from the multi-select
+    if (filteredValues.length > 0) {
+      table.getColumn('schema')?.setFilterValue(filteredValues);
+    } else {
+      table.getColumn('schema')?.setFilterValue(undefined);
+    }
+  };
+
   const [bulkTransformer, setBulkTransformer] =
     useState<JobMappingTransformerForm>({
       source: '',
@@ -60,21 +86,39 @@ export function SchemaTableToolbar<TData>({
   const form = useFormContext<SingleTableSchemaFormValues | SchemaFormValues>();
 
   return (
-    <div className="flex flex-col items-start w-full">
-      <div className="flex flex-1 items-center space-x-2">
-        <div className="w-[275px] lg:w-[650px] z-50 flex flex-col">
+    <div className="flex flex-col items-start w-full gap-2">
+      <div className="flex flex-col items-center gap-2">
+        <div className="w-[275px] lg:w-[650px] z-50 flex flex-col gap-2">
+          <FormLabel>Filter Schema(s)</FormLabel>
           <MultiSelect
             defaultOptions={schemaValues}
             placeholder="Filter by schema(s)..."
             emptyIndicator={
-              <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
+              <p className="text-center text-sm leading-10 text-gray-600 dark:text-gray-400">
                 No schemas available to filter
               </p>
             }
-            value={selectedOptions}
+            value={selectedSchemaOptions}
             hidePlaceholderWhenSelected={true}
             onChange={(selectedOptions) =>
-              handleMultiSelectChange(selectedOptions)
+              handleMultiSelectSchemaChange(selectedOptions)
+            }
+          />
+        </div>
+        <div className="w-[275px] lg:w-[650px] z-40 flex flex-col gap-2">
+          <FormLabel>Filter Table(s)</FormLabel>
+          <MultiSelect
+            defaultOptions={tableValues}
+            placeholder="Filter by table(s)..."
+            emptyIndicator={
+              <p className="text-center text-sm leading-10 text-gray-600 dark:text-gray-400">
+                No tables available to filter
+              </p>
+            }
+            value={selectedTableOptions}
+            hidePlaceholderWhenSelected={true}
+            onChange={(selectedOptions) =>
+              handleMultiSelectTableChange(selectedOptions)
             }
           />
         </div>
@@ -105,7 +149,8 @@ export function SchemaTableToolbar<TData>({
               variant="outline"
               type="button"
               onClick={() => {
-                setSelectedOptions([]);
+                setSelectedSchemaOptions([]);
+                setSelectedTableOptions([]);
                 table.resetColumnFilters();
               }}
               className="h-8 px-2 lg:px-3"
