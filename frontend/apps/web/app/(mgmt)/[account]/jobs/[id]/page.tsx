@@ -61,12 +61,9 @@ export default function Page({ params }: PageProps): ReactElement {
         <JobRecentRuns jobId={id} />
         <Accordion type="single" collapsible>
           <AccordionItem value="advanced-settings">
-            <AccordionTrigger className="hover:no-underline">
-              <div className="flex flex-col gap-1 px-1 items-center">
-                <h2 className="text-2xl font-semibold">Advanced Settings</h2>
-                <p className="text-xs text-muted-foreground">
-                  Click to see more advanced options
-                </p>
+            <AccordionTrigger className="-ml-2">
+              <div className="hover:bg-gray-100 p-2 rounded-lg">
+                Advanced Settings
               </div>
             </AccordionTrigger>
             <AccordionContent>

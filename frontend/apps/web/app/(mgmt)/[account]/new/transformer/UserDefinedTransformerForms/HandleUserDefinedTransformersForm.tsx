@@ -8,6 +8,7 @@ import UserDefinedGenerateInternationalPhoneNumberForm from './UserDefinedGenera
 import UserDefinedGenerateStringForm from './UserDefinedGenerateStringForm';
 import UserDefinedGenerateStringPhoneNumberNumberForm from './UserDefinedGenerateStringPhoneNumberForm';
 import UserDefinedGenerateUuidForm from './UserDefinedGenerateUuidForm';
+import UserDefinedTransformCharacterScrambleForm from './UserDefinedTransformCharacterScrambleForm';
 import UserDefinedTransformE164NumberForm from './UserDefinedTransformE164PhoneNumberForm';
 import UserDefinedTransformEmailForm from './UserDefinedTransformEmailForm';
 import UserDefinedTransformFirstNameForm from './UserDefinedTransformFirstNameForm';
@@ -72,6 +73,10 @@ export function handleUserDefinedTransformerForm(
       return <UserDefinedTransformStringForm isDisabled={disabled} />;
     case 'transform_javascript':
       return <UserDefinedTransformJavascriptForm isDisabled={disabled} />;
+    case 'transform_character_scramble':
+      return (
+        <UserDefinedTransformCharacterScrambleForm isDisabled={disabled} />
+      );
     default:
       <div>No transformer found</div>;
   }

@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CreateUserDefinedTransformerRequest, CreateUserDefinedTransformerResponse, DeleteUserDefinedTransformerRequest, DeleteUserDefinedTransformerResponse, GetSystemTransformerBySourceRequest, GetSystemTransformerBySourceResponse, GetSystemTransformersRequest, GetSystemTransformersResponse, GetUserDefinedTransformerByIdRequest, GetUserDefinedTransformerByIdResponse, GetUserDefinedTransformersRequest, GetUserDefinedTransformersResponse, IsTransformerNameAvailableRequest, IsTransformerNameAvailableResponse, UpdateUserDefinedTransformerRequest, UpdateUserDefinedTransformerResponse, ValidateUserJavascriptCodeRequest, ValidateUserJavascriptCodeResponse } from "./transformer_pb.js";
+import { CreateUserDefinedTransformerRequest, CreateUserDefinedTransformerResponse, DeleteUserDefinedTransformerRequest, DeleteUserDefinedTransformerResponse, GetSystemTransformerBySourceRequest, GetSystemTransformerBySourceResponse, GetSystemTransformersRequest, GetSystemTransformersResponse, GetUserDefinedTransformerByIdRequest, GetUserDefinedTransformerByIdResponse, GetUserDefinedTransformersRequest, GetUserDefinedTransformersResponse, IsTransformerNameAvailableRequest, IsTransformerNameAvailableResponse, UpdateUserDefinedTransformerRequest, UpdateUserDefinedTransformerResponse, ValidateUserJavascriptCodeRequest, ValidateUserJavascriptCodeResponse, ValidateUserRegexCodeRequest, ValidateUserRegexCodeResponse } from "./transformer_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -91,6 +91,15 @@ export const TransformersService = {
       name: "ValidateUserJavascriptCode",
       I: ValidateUserJavascriptCodeRequest,
       O: ValidateUserJavascriptCodeResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc mgmt.v1alpha1.TransformersService.ValidateUserRegexCode
+     */
+    validateUserRegexCode: {
+      name: "ValidateUserRegexCode",
+      I: ValidateUserRegexCodeRequest,
+      O: ValidateUserRegexCodeResponse,
       kind: MethodKind.Unary,
     },
   }

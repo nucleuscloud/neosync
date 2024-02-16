@@ -12,7 +12,7 @@ export default function LearnMoreTag(props: Props): ReactElement {
   return (
     <Link href={href} target="_blank" className="underline inline-block">
       <div className="flex flex-row items-center gap-1">
-        <div>Learn more</div>
+        <div className="text-sm text-muted-foreground">Learn more</div>
         <ExternalLinkIcon />
       </div>
     </Link>
