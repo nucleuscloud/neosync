@@ -14,6 +14,7 @@ import { cn } from '@/libs/utils';
 import { Cross2Icon } from '@radix-ui/react-icons';
 import { Command as CommandPrimitive } from 'cmdk';
 import { useEffect } from 'react';
+import { AiOutlineCaretDown } from 'react-icons/ai';
 
 export interface Option {
   value: string;
@@ -178,7 +179,7 @@ export const MultiSelect = React.forwardRef<
           commandProps?.className
         )}
       >
-        <div className="group rounded-md border border-input px-3 py-1  text-sm focus-within:ring-1 focus-within:ring-gray-400">
+        <div className="group rounded-md border border-input px-3 py-1 text-sm focus-within:ring-1 focus-within:ring-gray-400">
           <div className="flex flex-wrap gap-1">
             {selected.map((option) => {
               return (
@@ -213,7 +214,6 @@ export const MultiSelect = React.forwardRef<
                 </Badge>
               );
             })}
-            {/* Avoid having the "Search" Icon */}
             <CommandPrimitive.Input
               {...inputProps}
               ref={inputRef}
@@ -234,9 +234,27 @@ export const MultiSelect = React.forwardRef<
                   : placeholder
               }
               className={cn(
-                'ml-2 flex-1 bg-transparent outline-none placeholder:text-muted-foreground h-7',
+                'ml-2 flex-1 bg-transparent outline-none placeholder:text-muted-foreground h-7 placeholder:text-xs ',
                 inputProps?.className
               )}
+            />
+            <AiOutlineCaretDown
+              className={cn(
+                'top-2 relative right-2 transition-transform duration-200 text-gray-300',
+                {
+                  'rotate-180': open, // Rotates the caret up when open
+                  'rotate-0': !open, // Keeps the caret down when not open
+                }
+              )}
+              style={{ transformOrigin: 'center' }} // Ensures rotation happens around the icon's center
+              onClick={() => {
+                // Toggle open state and focus input on caret click
+                setOpen(!open);
+                if (!open) {
+                  inputRef.current?.focus();
+                }
+              }}
+              size={14}
             />
           </div>
         </div>
