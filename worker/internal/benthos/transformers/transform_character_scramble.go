@@ -18,7 +18,7 @@ var (
 
 func init() {
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewAnyParam("value").Optional()).Param(bloblang.NewStringParam("regex").Optional())
+		Param(bloblang.NewAnyParam("value").Optional()).Param(bloblang.NewStringParam("user_provided_regex").Optional())
 
 	err := bloblang.RegisterFunctionV2("transform_character_scramble", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		valuePtr, err := args.GetOptionalString("value")
@@ -31,7 +31,7 @@ func init() {
 			value = *valuePtr
 		}
 
-		regexPtr, err := args.GetOptionalString("regex")
+		regexPtr, err := args.GetOptionalString("user_provided_regex")
 		if err != nil {
 			return nil, err
 		}

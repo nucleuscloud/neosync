@@ -1435,7 +1435,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 
 		if regex != nil {
 			regexValue := *regex
-			return fmt.Sprintf(`transform_character_scramble(value:this.%s,regex:%q)`, col.Column, regexValue), nil
+			return fmt.Sprintf(`transform_character_scramble(value:this.%s,user_provided_regex:%q)`, col.Column, regexValue), nil
 		} else {
 			return fmt.Sprintf(`transform_character_scramble(value:this.%s)`, col.Column), nil
 		}

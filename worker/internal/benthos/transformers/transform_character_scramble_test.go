@@ -178,7 +178,7 @@ func Test_TransformCharacterSubstitutionLettersComplexRegex(t *testing.T) {
 func Test_TransformCharacterSubstitutionTransformer(t *testing.T) {
 	testStringValue := "hello wor23r2ld 221"
 
-	mapping := fmt.Sprintf(`root = transform_character_scramble(value:%q,regex:%q)`, testStringValue, helloWorldRegex)
+	mapping := fmt.Sprintf(`root = transform_character_scramble(value:%q,user_provided_regex:%q)`, testStringValue, helloWorldRegex)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the substitution transformer")
 
@@ -218,7 +218,7 @@ func Test_TransformCharacterSubsitutitionRegexEmail(t *testing.T) {
 
 func Test_TransformCharacterSubstitutionTransformerWithEmptyValue(t *testing.T) {
 	nilString := ""
-	mapping := fmt.Sprintf(`root = transform_character_scramble(value:%q,regex:%q)`, nilString, nilString)
+	mapping := fmt.Sprintf(`root = transform_character_scramble(value:%q,user_provided_regex:%q)`, nilString, nilString)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the character substitution transformer")
 

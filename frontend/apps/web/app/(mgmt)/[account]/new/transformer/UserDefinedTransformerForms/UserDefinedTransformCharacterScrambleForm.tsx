@@ -41,7 +41,7 @@ export default function UserDefinedTransformCharacterScrambleForm(
   >();
 
   const [userRegex, setRegex] = useState<string>(
-    fc.getValues('config.value.regex')
+    fc.getValues('config.value.userProvidedRegex')
   );
 
   const [isValidatingRegex, setIsValidatingRegex] = useState<boolean>(false);
@@ -97,7 +97,7 @@ export default function UserDefinedTransformCharacterScrambleForm(
         </Button>
       </div>
       <FormField
-        name={`config.value.regex`}
+        name={`config.value.userProvidedRegex`}
         render={({ field }) => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
