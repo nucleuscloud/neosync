@@ -29,7 +29,7 @@ services:
       - POSTGRES_PASSWORD=foofar
       - PGUSER=postgres
     healthcheck:
-      test: ["CMD", "pg_isready"]
+      test: ['CMD', 'pg_isready']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -81,9 +81,25 @@ services:
       - TEMPORAL_NAMESPACE=default
       - TEMPORAL_TASK_QUEUE=sync-job
       - NEOSYNC_URL=http://api:8080
+      - REDIS_URL=redis://default:foofar@redis-master.redis.svc.cluster.local:6379
     networks:
       - neosync-network
       - temporal-network
+
+  redis:
+    container_name: neosync-redis
+    image: redis:7.2.4
+    ports:
+      - 6379:6379
+    command: redis-server --save 20 1 --loglevel warning --requirepass foofar
+    networks:
+      - neosync-network
+    volumes:
+      - cache:/data
+
+volumes:
+  cache:
+    driver: local
 
 networks:
   neosync-network:

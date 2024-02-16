@@ -1,7 +1,6 @@
 default: help
 
 TEMPORAL_COMPOSE_FILE = temporal/compose.yml
-REDIS_COMPOSE_FILE = redis/compose.yml
 PROD_COMPOSE_FILE = compose/compose-prod.yml
 PROD_AUTH_COMPOSE_FILE = compose/compose-auth-prod.yml
 DEV_COMPOSE_FILE = compose.yml
@@ -52,7 +51,6 @@ rebuild: clean build
 
 compose-up:
 	sh -c "docker compose -f $(TEMPORAL_COMPOSE_FILE) up -d"
-	sh -c "docker compose -f $(REDIS_COMPOSE_FILE) up -d"
 	sh -c "docker compose -f $(PROD_COMPOSE_FILE) up -d"
 .PHONY: compose-up
 
