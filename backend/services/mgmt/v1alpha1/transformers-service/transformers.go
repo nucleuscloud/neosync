@@ -230,7 +230,7 @@ func constructJavascriptCode(jsCode string) string {
 	}
 }
 
-func (s *Service) ValidateUserRegex(ctx context.Context, req *connect.Request[mgmtv1alpha1.ValidateUserRegexCodeRequest]) (*connect.Response[mgmtv1alpha1.ValidateUserRegexCodeResponse], error) {
+func (s *Service) ValidateUserRegexCode(ctx context.Context, req *connect.Request[mgmtv1alpha1.ValidateUserRegexCodeRequest]) (*connect.Response[mgmtv1alpha1.ValidateUserRegexCodeResponse], error) {
 	_, err := s.verifyUserInAccount(ctx, req.Msg.AccountId)
 	if err != nil {
 		return nil, err
