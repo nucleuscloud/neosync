@@ -144,7 +144,7 @@ func getTlsConfig(c *shared.RedisTlsConfig) (*tls.Config, error) {
 		return nil, errors.New("only one field between root_cas and root_cas_file can be specified")
 	}
 
-	if c.RootCertAuthorityFile != nil && len(*c.RootCertAuthorityFile) > 0 {
+	if c.RootCertAuthorityFile != nil && *c.RootCertAuthorityFile == "" {
 		caCert, err := readFile(*c.RootCertAuthorityFile)
 		if err != nil {
 			return nil, err
@@ -154,7 +154,7 @@ func getTlsConfig(c *shared.RedisTlsConfig) (*tls.Config, error) {
 		tlsConf.RootCAs.AppendCertsFromPEM(caCert)
 	}
 
-	if c.RootCertAuthority != nil && len(*c.RootCertAuthority) > 0 {
+	if c.RootCertAuthority != nil && *c.RootCertAuthority == "" {
 		initConf()
 		tlsConf.RootCAs = x509.NewCertPool()
 		tlsConf.RootCAs.AppendCertsFromPEM([]byte(*c.RootCertAuthority))
