@@ -2,7 +2,6 @@
 
 import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
 import EditTransformerOptions from '@/app/(mgmt)/[account]/transformers/EditTransformerOptions';
-import { Button } from '@/components/ui/button';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
 import {
   Transformer,
@@ -13,12 +12,7 @@ import {
   JobMappingTransformerForm,
   SchemaFormValues,
 } from '@/yup-validations/jobs';
-import {
-  ArrowDownIcon,
-  ArrowUpIcon,
-  CaretSortIcon,
-  ExclamationTriangleIcon,
-} from '@radix-ui/react-icons';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ColumnDef, FilterFn } from '@tanstack/react-table';
 import { HTMLProps, useEffect, useRef } from 'react';
 import { SchemaColumnHeader } from './SchemaColumnHeader';
@@ -61,21 +55,9 @@ export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
     {
       accessorKey: 'schema',
       header: ({ column }) => (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="-ml-3 h-8 data-[state=open]:bg-accent hover:border hover:border-gray-400"
-        >
-          <span>{'Schema'}</span>
-          {column.getIsSorted() === 'desc' ? (
-            <ArrowDownIcon className="ml-2 h-4 w-4" />
-          ) : column.getIsSorted() === 'asc' ? (
-            <ArrowUpIcon className="ml-2 h-4 w-4" />
-          ) : (
-            <CaretSortIcon className="ml-2 h-4 w-4" />
-          )}
-        </Button>
+        <SchemaColumnHeader column={column} title="Schema" />
       ),
+
       filterFn: exactMatchFilterFn, //handles the multi-select on the schema drop down
       cell: ({ row }) => {
         return (

@@ -45,40 +45,110 @@ export function SchemaTableToolbar<TData>({
 
   const tableSet = new Set(dataRow.map((obj) => obj.table));
 
-  const schemaValues: Option[] = Array.from(schemaSet).map((item) => ({
+  const defaultSchemaValues: Option[] = Array.from(schemaSet).map((item) => ({
     value: item,
     label: item,
   }));
 
-  const tableValues: Option[] = Array.from(tableSet).map((item) => ({
-    value: item,
-    label: item,
-  }));
+  const [schemaOptions, setSchemaOptions] =
+    useState<Option[]>(defaultSchemaValues);
+
+  // table names might not be unique across schemas so append a schema to create a unique value
+  // const defaultTableValues: Option[] = Array.from(dataRow).map((item) => ({
+  //   value: item.schema + '_' + item.table,
+  //   label: item.table,
+  //   schema: item.schema,
+  // }));
+
+  const tableSchemaSet = new Set(
+    dataRow.map((obj) => obj.schema + '*' + obj.table)
+  );
+
+  const defaultTableValues: Option[] = Array.from(tableSchemaSet.values()).map(
+    (item) => ({
+      value: item,
+      label: item.split('*')[1],
+      schema: item.split('*')[0],
+    })
+  );
+
+  console.log('default table', tableSchemaSet);
+  console.log('default table', defaultTableValues);
+
+  const [tableOptions, setTableOptions] =
+    useState<Option[]>(defaultTableValues);
+
+  const schemaTableMap: Record<string, string[]> = {};
+  const tableSchemaMap: Record<string, string[]> = {};
+
+  // creates the schemaTableMap and tableSchemaMap
+  dataRow.forEach((row) => {
+    const { schema, table } = row;
+    // update schemaTableMap
+    if (!schemaTableMap[schema]) {
+      schemaTableMap[schema] = [table];
+    } else if (!schemaTableMap[schema].includes(table)) {
+      schemaTableMap[schema].push(table);
+    }
+
+    // update tableSchemaMap
+    if (!tableSchemaMap[row.schema + '_' + row.table]) {
+      tableSchemaMap[row.schema + '_' + row.table] = [schema];
+    } else if (!tableSchemaMap[row.schema + '_' + row.table].includes(schema)) {
+      tableSchemaMap[row.schema + '_' + row.table].push(schema);
+    }
+  });
 
   const handleMultiSelectSchemaChange = (selectedOptions: Option[]) => {
     setSelectedSchemaOptions(selectedOptions);
-    const filteredValues = selectedOptions.map((option) => option.value);
+    const filteredSchemaValues = selectedOptions.map((option) => option.value);
     // handles the user removing items from the multi-select
-    if (filteredValues.length > 0) {
-      table.getColumn('schema')?.setFilterValue(filteredValues);
+    if (filteredSchemaValues.length > 0) {
+      //create the table object [] to update the tables options
+      const filteredTableOptions = filteredSchemaValues.flatMap(
+        (schema) =>
+          schemaTableMap[schema]?.map((table) => ({
+            value: schema + '_' + table,
+            label: table,
+          })) || []
+      );
+
+      // setSelectedTableOptions(filteredTableOptions)
+      setTableOptions(filteredTableOptions);
+
+      table.getColumn('schema')?.setFilterValue(filteredSchemaValues);
+      table
+        .getColumn('table')
+        ?.setFilterValue(filteredTableOptions.map((option) => option.value));
     } else {
       table.getColumn('schema')?.setFilterValue(undefined);
+      table.getColumn('table')?.setFilterValue(undefined);
     }
   };
 
   const handleMultiSelectTableChange = (selectedOptions: Option[]) => {
     setSelectedTableOptions(selectedOptions);
-    const filteredValues = selectedOptions.map((option) => option.value);
+    const filteredTableValues = selectedOptions.map((option) => option.value);
     // handles the user removing items from the multi-select
-    if (filteredValues.length > 0) {
-      table.getColumn('table')?.setFilterValue(filteredValues);
+    if (filteredTableValues.length > 0) {
+      const uniqueSchemas = new Set<string>();
+      filteredTableValues.forEach((table) => {
+        const schemasForTable = tableSchemaMap[table] || [];
+        schemasForTable.forEach((schema) => uniqueSchemas.add(schema));
+      });
+
+      const filteredSchemaOptions = Array.from(uniqueSchemas).map((schema) => ({
+        value: schema,
+        label: schema,
+      }));
+
+      setSchemaOptions(filteredSchemaOptions);
+      table.getColumn('table')?.setFilterValue(filteredTableValues);
     } else {
+      setSchemaOptions(defaultSchemaValues);
       table.getColumn('table')?.setFilterValue(undefined);
     }
   };
-
-  // TODO: update filtering logic in the table
-  // update the message that shows that there is nothing left when someone selects a schema is there is only one left
 
   const [bulkTransformer, setBulkTransformer] =
     useState<JobMappingTransformerForm>({
@@ -94,7 +164,8 @@ export function SchemaTableToolbar<TData>({
         <div className="w-[275px] lg:w-[650px] z-50 flex flex-col gap-2">
           <FormLabel>Filter Schema(s)</FormLabel>
           <MultiSelect
-            defaultOptions={schemaValues}
+            defaultOptions={defaultSchemaValues}
+            options={schemaOptions}
             placeholder="Filter by schema(s)..."
             emptyIndicator={
               <p className="text-center text-sm leading-10 text-gray-600 dark:text-gray-400">
@@ -111,7 +182,8 @@ export function SchemaTableToolbar<TData>({
         <div className="w-[275px] lg:w-[650px] z-40 flex flex-col gap-2">
           <FormLabel>Filter Table(s)</FormLabel>
           <MultiSelect
-            defaultOptions={tableValues}
+            defaultOptions={defaultTableValues}
+            options={tableOptions}
             placeholder="Filter by table(s)..."
             emptyIndicator={
               <p className="text-center text-sm leading-10 text-gray-600 dark:text-gray-400">

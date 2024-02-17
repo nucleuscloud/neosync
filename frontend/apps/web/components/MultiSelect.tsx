@@ -40,6 +40,7 @@ interface MultipleSelectorProps {
     React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>,
     'value' | 'placeholder' | 'disabled'
   >;
+  options?: Option[];
 }
 
 interface MultipleSelectorRef {
@@ -90,6 +91,7 @@ export const MultiSelect = React.forwardRef<
       onChange,
       placeholder,
       defaultOptions: arrayDefaultOptions = [],
+      options: arrayOptions,
       emptyIndicator,
       hidePlaceholderWhenSelected,
       commandProps,
@@ -101,7 +103,7 @@ export const MultiSelect = React.forwardRef<
     const [open, setOpen] = React.useState(false);
 
     const [selected, setSelected] = React.useState<Option[]>(value || []);
-    const [options, _] = React.useState<GroupOption>(
+    const [options, setOptions] = React.useState<GroupOption>(
       transToGroupOption(arrayDefaultOptions)
     );
     const [inputValue, setInputValue] = React.useState('');
@@ -146,6 +148,17 @@ export const MultiSelect = React.forwardRef<
         setSelected(value);
       }
     }, [value]);
+
+    useEffect(() => {
+      /** If `onSearch` is provided, do not trigger options updated. */
+      if (!arrayOptions) {
+        return;
+      }
+      const newOption = transToGroupOption(arrayOptions || []);
+      if (JSON.stringify(newOption) !== JSON.stringify(options)) {
+        setOptions(newOption);
+      }
+    }, [arrayDefaultOptions, arrayOptions, options]);
 
     const selectables = React.useMemo<GroupOption>(
       () => removePickedOption(options, selected),
@@ -198,6 +211,7 @@ export const MultiSelect = React.forwardRef<
                       'ml-1 rounded-full outline-none ring-offset-background ',
                       option.fixed && 'hidden'
                     )}
+                    type="button"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         handleUnselect(option);
@@ -292,7 +306,14 @@ export const MultiSelect = React.forwardRef<
                                 'cursor-default text-muted-foreground'
                             )}
                           >
-                            {option.label}
+                            <div className="flex flex-row items-center gap-4">
+                              <div>{option.label}</div>
+                              {option.schema && (
+                                <div className="text-xs text-gray-400">
+                                  {option.schema}
+                                </div>
+                              )}
+                            </div>
                           </CommandItem>
                         );
                       })}
