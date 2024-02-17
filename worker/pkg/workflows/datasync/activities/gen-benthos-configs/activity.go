@@ -25,6 +25,12 @@ type GenerateBenthosConfigsResponse struct {
 	BenthosConfigs []*BenthosConfigResponse
 }
 
+type BenthosRedisConfig struct {
+	Key    string
+	Table  string // schema.table
+	Column string
+}
+
 type BenthosConfigResponse struct {
 	Name        string
 	DependsOn   []*tabledependency.DependsOn
@@ -34,6 +40,7 @@ type BenthosConfigResponse struct {
 	Columns     []string
 
 	BenthosDsns []*shared.BenthosDsn
+	RedisConfig []*BenthosRedisConfig
 
 	primaryKeys    []string
 	excludeColumns []string
@@ -66,6 +73,7 @@ func GenerateBenthosConfigs(
 		}
 	}()
 
+	redisConfig := shared.GetRedisConfig()
 	neosyncUrl := shared.GetNeosyncUrl()
 	httpClient := shared.GetNeosyncHttpClient()
 
@@ -97,6 +105,9 @@ func GenerateBenthosConfigs(
 		connclient,
 		transformerclient,
 		&sqlconnect.SqlOpenConnector{},
+		req.JobId,
+		wfmetadata.RunId,
+		redisConfig,
 	)
 	slogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{})).With(loggerKeyVals...)
 	return bbuilder.GenerateBenthosConfigs(ctx, req, slogger)

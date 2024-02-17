@@ -28,11 +28,11 @@ otel:
 resources:
   # These are low-usage defaults. Change these depending on your needs.
   requests:
-    cpu: "100m"
-    memory: "128Mi"
+    cpu: '100m'
+    memory: '128Mi'
   limits:
-    cpu: "300m"
-    memory: "384Mi"
+    cpu: '300m'
+    memory: '384Mi'
 
 autoscaling:
   enabled: true
@@ -64,6 +64,18 @@ temporal:
 
     keyContents:
     certContents:
+
+redis:
+  url:
+  kind:
+  master:
+  tls:
+    enabled: false
+    skipCertVerify: false
+    enableRenegotiation: false
+    rootCertAuthority:
+    rootCertAuthorityFile:
+    clientCerts: []
 
 host: 0.0.0.0
 servicePort: 80

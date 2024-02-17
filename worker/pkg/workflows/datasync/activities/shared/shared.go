@@ -5,6 +5,7 @@ import (
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
+	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	http_client "github.com/nucleuscloud/neosync/worker/internal/http/client"
 	"github.com/spf13/viper"
 )
@@ -94,4 +95,67 @@ func AreAllColsNull(mappings []*mgmtv1alpha1.JobMapping) bool {
 		}
 	}
 	return true
+}
+
+type RedisConfig struct {
+	Url    string
+	Kind   string
+	Master *string
+	Tls    *RedisTlsConfig
+}
+
+type RedisTlsConfig struct {
+	Enabled               bool
+	SkipCertVerify        bool
+	EnableRenegotiation   bool
+	RootCertAuthority     *string
+	RootCertAuthorityFile *string
+}
+
+func GetRedisConfig() *RedisConfig {
+	redisUrl := viper.GetString("REDIS_URL")
+	if redisUrl == "" {
+		return nil
+	}
+
+	kindEv := viper.GetString("REDIS_KIND")
+	masterEv := viper.GetString("REDIS_MASTER")
+	rootCertAuthority := viper.GetString("REDIS_TLS_ROOT_CERT_AUTHORITY")
+	rootCertAuthorityFile := viper.GetString("REDIS_TLS_ROOT_CERT_AUTHORITY_FILE")
+	var kind string
+	var master *string
+	if kindEv != "" {
+		kind = kindEv
+	} else {
+		kind = "simple"
+	}
+	if masterEv != "" {
+		master = &masterEv
+	}
+	return &RedisConfig{
+		Url:    redisUrl,
+		Kind:   kind,
+		Master: master,
+		Tls: &RedisTlsConfig{
+			Enabled:               viper.GetBool("REDIS_TLS_ENABLED"),
+			SkipCertVerify:        viper.GetBool("REDIS_TLS_SKIP_CERT_VERIFY"),
+			EnableRenegotiation:   viper.GetBool("REDIS_TLS_ENABLE_RENEGOTIATION"),
+			RootCertAuthority:     &rootCertAuthority,
+			RootCertAuthorityFile: &rootCertAuthorityFile,
+		},
+	}
+}
+
+func BuildBenthosRedisTlsConfig(redisConfig *RedisConfig) *neosync_benthos.RedisTlsConfig {
+	var tls *neosync_benthos.RedisTlsConfig
+	if redisConfig.Tls != nil && redisConfig.Tls.Enabled {
+		tls = &neosync_benthos.RedisTlsConfig{
+			Enabled:             redisConfig.Tls.Enabled,
+			SkipCertVerify:      redisConfig.Tls.SkipCertVerify,
+			EnableRenegotiation: redisConfig.Tls.EnableRenegotiation,
+			RootCas:             redisConfig.Tls.RootCertAuthority,
+			RootCasFile:         redisConfig.Tls.RootCertAuthorityFile,
+		}
+	}
+	return tls
 }

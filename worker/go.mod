@@ -11,6 +11,7 @@ require (
 	github.com/benthosdev/benthos/v4 v4.24.0
 	github.com/google/uuid v1.6.0
 	github.com/nucleuscloud/neosync/backend v0.0.0-20231203015621-7d46ef5b9957
+	github.com/redis/go-redis/v9 v9.4.0
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.2
 	github.com/stretchr/testify v1.8.4
@@ -64,12 +65,14 @@ require (
 	github.com/bufbuild/protocompile v0.6.0 // indirect
 	github.com/bwmarrin/snowflake v0.3.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
+	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/clbanning/mxj/v2 v2.7.0 // indirect
 	github.com/cockroachdb/apd/v3 v3.2.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.3 // indirect
 	github.com/danieljoos/wincred v1.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/denisenkom/go-mssqldb v0.12.3 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/dlclark/regexp2 v1.7.0 // indirect
 	github.com/docker/docker v24.0.7+incompatible // indirect
 	github.com/dop251/goja v0.0.0-20231027120936-b396bb4c349d // indirect

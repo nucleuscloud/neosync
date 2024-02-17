@@ -6,8 +6,7 @@ releases:
     createNamespace: false
 
     values:
-      -
-        image:
+      - image:
           repository: neosync-worker
         serviceAccount:
           create: true
@@ -28,6 +27,9 @@ releases:
         temporal:
           url: temporal.temporal:7233
           namespace: default
-          taskQueue: "sync-job"
+          taskQueue: 'sync-job'
+
+        redis:
+          url: redis://default:foofar@redis-master.redis.svc.cluster.local:6379
 
         containerPort: 8080

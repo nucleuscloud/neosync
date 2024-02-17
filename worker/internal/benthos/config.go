@@ -17,10 +17,21 @@ type HTTPConfig struct {
 }
 
 type StreamConfig struct {
-	Input    *InputConfig    `json:"input" yaml:"input"`
-	Buffer   *BufferConfig   `json:"buffer" yaml:"buffer"`
-	Pipeline *PipelineConfig `json:"pipeline" yaml:"pipeline"`
-	Output   *OutputConfig   `json:"output" yaml:"output"`
+	Input          *InputConfig           `json:"input" yaml:"input"`
+	Buffer         *BufferConfig          `json:"buffer" yaml:"buffer"`
+	Pipeline       *PipelineConfig        `json:"pipeline" yaml:"pipeline"`
+	Output         *OutputConfig          `json:"output" yaml:"output"`
+	CacheResources []*CacheResourceConfig `json:"cache_resources,omitempty" yaml:"cache_resources,omitempty"`
+}
+
+type CacheResourceConfig struct {
+	Label string            `json:"label" yaml:"label"`
+	Redis *RedisCacheConfig `json:"redis,omitempty" yaml:"redis,omitempty"`
+}
+
+type RedisCacheConfig struct {
+	Url    string  `json:"url" yaml:"url"`
+	Prefix *string `json:"prefix,omitempty" yaml:"prefix,omitempty"`
 }
 
 type InputConfig struct {
@@ -58,8 +69,43 @@ type PipelineConfig struct {
 }
 
 type ProcessorConfig struct {
-	Mutation   *string           `json:"mutation,omitempty" yaml:"mutation,omitempty"`
-	Javascript *JavascriptConfig `json:"javascript,omitempty" yaml:"javascript,omitempty"`
+	Mutation   *string               `json:"mutation,omitempty" yaml:"mutation,omitempty"`
+	Javascript *JavascriptConfig     `json:"javascript,omitempty" yaml:"javascript,omitempty"`
+	Branch     *BranchConfig         `json:"branch,omitempty" yaml:"branch,omitempty"`
+	Cache      *CacheConfig          `json:"cache,omitempty" yaml:"cache,omitempty"`
+	Mapping    *string               `json:"mapping,omitempty" yaml:"mapping,omitempty"`
+	Redis      *RedisProcessorConfig `json:"redis,omitempty" yaml:"redis,omitempty"`
+}
+
+type RedisProcessorConfig struct {
+	Url         string          `json:"url" yaml:"url"`
+	Command     string          `json:"command" yaml:"command"`
+	ArgsMapping string          `json:"args_mapping" yaml:"args_mapping"`
+	Kind        *string         `json:"kind,omitempty" yaml:"kind,omitempty"`
+	Master      *string         `json:"master,omitempty" yaml:"master,omitempty"`
+	Tls         *RedisTlsConfig `json:"tls,omitempty" yaml:"tls,omitempty"`
+}
+
+type RedisTlsConfig struct {
+	Enabled             bool    `json:"enabled" yaml:"enabled"`
+	SkipCertVerify      bool    `json:"skip_cert_verify" yaml:"skip_cert_verify"`
+	EnableRenegotiation bool    `json:"enable_renegotiation" yaml:"enable_renegotiation"`
+	RootCas             *string `json:"root_cas,omitempty" yaml:"root_cas,omitempty"`
+	RootCasFile         *string `json:"root_cas_file,omitempty"  yaml:"root_cas_file,omitempty"`
+}
+
+type CacheConfig struct {
+	Resource string `json:"resource" yaml:"resource"`
+	Operator string `json:"operator" yaml:"operator"`
+	Key      string `json:"key" yaml:"key"`
+	Value    string `json:"value" yaml:"value"`
+	Ttl      string `json:"ttl" yaml:"ttl"`
+}
+
+type BranchConfig struct {
+	Processors []ProcessorConfig `json:"processors" yaml:"processors"`
+	RequestMap *string           `json:"request_map,omitempty" yaml:"request_map,omitempty"`
+	ResultMap  *string           `json:"result_map,omitempty" yaml:"result_map,omitempty"`
 }
 
 type JavascriptConfig struct {
@@ -73,15 +119,41 @@ type OutputConfig struct {
 }
 
 type Outputs struct {
-	SqlInsert *SqlInsert          `json:"sql_insert,omitempty" yaml:"sql_insert,omitempty"`
-	SqlRaw    *SqlRaw             `json:"sql_raw,omitempty" yaml:"sql_raw,omitempty"`
-	AwsS3     *AwsS3Insert        `json:"aws_s3,omitempty" yaml:"aws_s3,omitempty"`
-	Retry     *RetryConfig        `json:"retry,omitempty" yaml:"retry,omitempty"`
-	Broker    *OutputBrokerConfig `json:"broker,omitempty" yaml:"broker,omitempty"`
-	DropOn    *DropOnConfig       `json:"drop_on,omitempty" yaml:"drop_on,omitempty"`
-	Drop      *DropConfig         `json:"drop,omitempty" yaml:"drop,omitempty"`
-	Resource  string              `json:"resource,omitempty" yaml:"resource,omitempty"`
-	Fallback  []Outputs           `json:"fallback,omitempty" yaml:"fallback,omitempty"`
+	SqlInsert       *SqlInsert             `json:"sql_insert,omitempty" yaml:"sql_insert,omitempty"`
+	SqlRaw          *SqlRaw                `json:"sql_raw,omitempty" yaml:"sql_raw,omitempty"`
+	AwsS3           *AwsS3Insert           `json:"aws_s3,omitempty" yaml:"aws_s3,omitempty"`
+	Retry           *RetryConfig           `json:"retry,omitempty" yaml:"retry,omitempty"`
+	Broker          *OutputBrokerConfig    `json:"broker,omitempty" yaml:"broker,omitempty"`
+	DropOn          *DropOnConfig          `json:"drop_on,omitempty" yaml:"drop_on,omitempty"`
+	Drop            *DropConfig            `json:"drop,omitempty" yaml:"drop,omitempty"`
+	Resource        string                 `json:"resource,omitempty" yaml:"resource,omitempty"`
+	Fallback        []Outputs              `json:"fallback,omitempty" yaml:"fallback,omitempty"`
+	RedisHashOutput *RedisHashOutputConfig `json:"redis_hash_output,omitempty" yaml:"redis_hash_output,omitempty"`
+}
+
+type RedisHashOutputConfig struct {
+	Url            string          `json:"url" yaml:"url"`
+	Key            string          `json:"key" yaml:"key"`
+	WalkMetadata   bool            `json:"walk_metadata" yaml:"walk_metadata"`
+	WalkJsonObject bool            `json:"walk_json_object" yaml:"walk_json_object"`
+	FieldsMapping  string          `json:"fields_mapping" yaml:"fields_mapping"`
+	MaxInFlight    *int            `json:"max_in_flight,omitempty" yaml:"max_in_flight,omitempty"`
+	Kind           *string         `json:"kind,omitempty" yaml:"kind,omitempty"`
+	Master         *string         `json:"master,omitempty" yaml:"master,omitempty"`
+	Tls            *RedisTlsConfig `json:"tls,omitempty" yaml:"tls,omitempty"`
+}
+
+type RedisHashConfig struct {
+	Url            string         `json:"url" yaml:"url"`
+	Key            string         `json:"key" yaml:"key"`
+	WalkMetadata   bool           `json:"walk_metadata" yaml:"walk_metadata"`
+	WalkJsonObject bool           `json:"walk_json_object" yaml:"walk_json_object"`
+	Fields         map[string]any `json:"fields" yaml:"fields"`
+	MaxInFlight    *int           `json:"max_in_flight,omitempty" yaml:"max_in_flight,omitempty"`
+}
+
+type RedisHashFields struct {
+	Value string `json:"value" yaml:"value"`
 }
 
 type DropConfig struct{}

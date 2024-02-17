@@ -19,6 +19,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
+	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"gopkg.in/yaml.v3"
@@ -28,11 +29,17 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/javascript"
 	_ "github.com/benthosdev/benthos/v4/public/components/pure"
 	_ "github.com/benthosdev/benthos/v4/public/components/pure/extended"
+	_ "github.com/benthosdev/benthos/v4/public/components/redis"
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
+	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/redis"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
-	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
+)
+
+const (
+	mockJobId = "b1767636-3992-4cb4-9bf2-4bb9bddbf43c"
+	mockRunId = "26444272-0bb0-4325-ae60-17dcd9744785"
 )
 
 func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Pg(t *testing.T) {
@@ -132,7 +139,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Pg(t *testing.T) 
 		},
 	}), nil)
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil)
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
@@ -284,7 +291,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Generate_Pg_Default(t *testing.T
 		},
 	}), nil)
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil)
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
@@ -456,7 +463,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg(t *testing.T) {
 			ConstraintName: "name",
 			ColumnName:     "id",
 		}}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -505,6 +512,829 @@ output:
                     period: 5s
                     check: ""
                     processors: []
+`),
+	)
+
+	newSB := sb.NewStreamBuilder()
+
+	// SetYAML parses a full Benthos config and uses it to configure the builder.
+	err = newSB.SetYAML(string(out))
+	assert.NoError(t, err)
+}
+
+func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Transformer_Pg_Pg(t *testing.T) {
+	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
+	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
+	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
+
+	pgcache := map[string]pg_queries.DBTX{
+		"123": pg_queries.NewMockDBTX(t),
+		"456": pg_queries.NewMockDBTX(t),
+	}
+	pgquerier := pg_queries.NewMockQuerier(t)
+	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlquerier := mysql_queries.NewMockQuerier(t)
+	redisConfig := &shared.RedisConfig{
+		Url:  "redis://localhost:6379",
+		Kind: "simple",
+	}
+
+	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
+		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
+			Job: &mgmtv1alpha1.Job{
+				Source: &mgmtv1alpha1.JobSource{
+					Options: &mgmtv1alpha1.JobSourceOptions{
+						Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
+							Postgres: &mgmtv1alpha1.PostgresSourceConnectionOptions{
+								ConnectionId: "123",
+							},
+						},
+					},
+				},
+				Mappings: []*mgmtv1alpha1.JobMapping{
+					{
+						Schema: "public",
+						Table:  "users",
+						Column: "id",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Source: "generate_uuid",
+							Config: &mgmtv1alpha1.TransformerConfig{
+								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
+									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
+										IncludeHyphens: true,
+									},
+								},
+							},
+						},
+					},
+					{
+						Schema: "public",
+						Table:  "users",
+						Column: "name",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Source: "passthrough",
+						},
+					},
+					{
+						Schema: "public",
+						Table:  "orders",
+						Column: "id",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Source: "passthrough",
+						},
+					},
+					{
+						Schema: "public",
+						Table:  "orders",
+						Column: "buyer_id",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Source: "passthrough",
+						},
+					},
+				},
+				Destinations: []*mgmtv1alpha1.JobDestination{
+					{
+						ConnectionId: "456",
+					},
+				},
+			},
+		}), nil)
+	mockConnectionClient.On(
+		"GetConnection",
+		mock.Anything,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+			Id: "123",
+		}),
+	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+		Connection: &mgmtv1alpha1.Connection{
+			Id:   "123",
+			Name: "prod",
+			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
+							Url: "fake-prod-url",
+						},
+					},
+				},
+			},
+		},
+	}), nil)
+	mockConnectionClient.On(
+		"GetConnection",
+		mock.Anything,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+			Id: "456",
+		}),
+	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+		Connection: &mgmtv1alpha1.Connection{
+			Id:   "456",
+			Name: "stage",
+			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
+							Url: "fake-stage-url",
+						},
+					},
+				},
+			},
+		},
+	}), nil)
+
+	pgquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
+		Return([]*pg_queries.GetDatabaseSchemaRow{
+			{
+				TableSchema: "public",
+				TableName:   "users",
+				ColumnName:  "id",
+			},
+			{
+				TableSchema: "public",
+				TableName:   "users",
+				ColumnName:  "name",
+			},
+			{
+				TableSchema: "public",
+				TableName:   "orders",
+				ColumnName:  "id",
+			},
+			{
+				TableSchema: "public",
+				TableName:   "orders",
+				ColumnName:  "buyer_id",
+			},
+		}, nil)
+	pgquerier.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*pg_queries.GetForeignKeyConstraintsRow{
+			{
+				ConstraintName:    "fk_user_account_associations_user_id_users_id",
+				SchemaName:        "public",
+				TableName:         "orders",
+				ColumnName:        "buyer_id",
+				ForeignSchemaName: "public",
+				ForeignTableName:  "users",
+				ForeignColumnName: "id",
+			},
+		}, nil)
+	pgquerier.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*pg_queries.GetPrimaryKeyConstraintsRow{{
+			SchemaName:     "public",
+			TableName:      "users",
+			ConstraintName: "users",
+			ColumnName:     "id",
+		}, {
+			SchemaName:     "public",
+			TableName:      "orders",
+			ConstraintName: "orders",
+			ColumnName:     "id",
+		}}, nil)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, redisConfig)
+
+	resp, err := bbuilder.GenerateBenthosConfigs(
+		context.Background(),
+		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
+		slog.Default(),
+	)
+
+	assert.Nil(t, err)
+	assert.NotEmpty(t, resp.BenthosConfigs)
+	assert.Len(t, resp.BenthosConfigs, 2)
+	bc := resp.BenthosConfigs[0]
+	assert.Equal(t, bc.Name, "public.users")
+	assert.Len(t, bc.RedisConfig, 1)
+	assert.Equal(t, bc.RedisConfig[0].Table, "public.users")
+	assert.Equal(t, bc.RedisConfig[0].Column, "id")
+	out, err := yaml.Marshal(bc.Config)
+	assert.NoError(t, err)
+	assert.Equal(
+		t,
+		strings.TrimSpace(string(out)),
+		strings.TrimSpace(`
+input:
+    label: ""
+    sql_select:
+        driver: postgres
+        dsn: ${SOURCE_CONNECTION_DSN}
+        table: public.users
+        columns:
+            - '"id"'
+            - '"name"'
+buffer: null
+pipeline:
+    threads: -1
+    processors:
+        - mapping: meta neosync_id = this.id
+        - mutation: root.id = generate_uuid(include_hyphens:true)
+output:
+    label: ""
+    broker:
+        pattern: fan_out
+        outputs:
+            - redis_hash_output:
+                url: redis://localhost:6379
+                key: 03d74b3f8146d46519bb4cb56b2f7b327e603540eb4d96a0feb9acba88a4d79d
+                walk_metadata: false
+                walk_json_object: false
+                fields_mapping: 'root = {meta("neosync_id"): json("id")}'
+                kind: simple
+            - sql_raw:
+                driver: postgres
+                dsn: ${DESTINATION_0_CONNECTION_DSN}
+                query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
+                args_mapping: root = [this.id, this.name]
+                init_statement: ""
+                batching:
+                    count: 100
+                    byte_size: 0
+                    period: 5s
+                    check: ""
+                    processors: []
+
+`),
+	)
+
+	bc = resp.BenthosConfigs[1]
+	assert.Equal(t, bc.Name, "public.orders")
+	assert.Empty(t, bc.RedisConfig)
+	out, err = yaml.Marshal(bc.Config)
+	assert.NoError(t, err)
+	assert.Equal(
+		t,
+		strings.TrimSpace(string(out)),
+		strings.TrimSpace(`
+input:
+    label: ""
+    sql_select:
+        driver: postgres
+        dsn: ${SOURCE_CONNECTION_DSN}
+        table: public.orders
+        columns:
+            - '"id"'
+            - '"buyer_id"'
+buffer: null
+pipeline:
+    threads: -1
+    processors:
+        - branch:
+            processors:
+                - redis:
+                    url: redis://localhost:6379
+                    command: hget
+                    args_mapping: root = ["03d74b3f8146d46519bb4cb56b2f7b327e603540eb4d96a0feb9acba88a4d79d", json("buyer_id")]
+                    kind: simple
+            request_map: root = if this.buyer_id == null { deleted() } else { this }
+            result_map: root.buyer_id = this
+output:
+    label: ""
+    broker:
+        pattern: fan_out
+        outputs:
+            - sql_raw:
+                driver: postgres
+                dsn: ${DESTINATION_0_CONNECTION_DSN}
+                query: INSERT INTO public.orders ("id", "buyer_id") VALUES ($1, $2);
+                args_mapping: root = [this.id, this.buyer_id]
+                init_statement: ""
+                batching:
+                    count: 100
+                    byte_size: 0
+                    period: 5s
+                    check: ""
+                    processors: []
+
+`),
+	)
+
+	newSB := sb.NewStreamBuilder()
+
+	// SetYAML parses a full Benthos config and uses it to configure the builder.
+	err = newSB.SetYAML(string(out))
+	assert.NoError(t, err)
+}
+
+func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Passthrough_Pg_Pg(t *testing.T) {
+	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
+	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
+	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
+
+	pgcache := map[string]pg_queries.DBTX{
+		"123": pg_queries.NewMockDBTX(t),
+		"456": pg_queries.NewMockDBTX(t),
+	}
+	pgquerier := pg_queries.NewMockQuerier(t)
+	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlquerier := mysql_queries.NewMockQuerier(t)
+
+	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
+		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
+			Job: &mgmtv1alpha1.Job{
+				Source: &mgmtv1alpha1.JobSource{
+					Options: &mgmtv1alpha1.JobSourceOptions{
+						Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
+							Postgres: &mgmtv1alpha1.PostgresSourceConnectionOptions{
+								ConnectionId: "123",
+							},
+						},
+					},
+				},
+				Mappings: []*mgmtv1alpha1.JobMapping{
+					{
+						Schema: "public",
+						Table:  "users",
+						Column: "id",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Source: "passthrough",
+						},
+					},
+					{
+						Schema: "public",
+						Table:  "users",
+						Column: "name",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Source: "passthrough",
+						},
+					},
+					{
+						Schema: "public",
+						Table:  "orders",
+						Column: "id",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Source: "passthrough",
+						},
+					},
+					{
+						Schema: "public",
+						Table:  "orders",
+						Column: "buyer_id",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Source: "passthrough",
+						},
+					},
+				},
+				Destinations: []*mgmtv1alpha1.JobDestination{
+					{
+						ConnectionId: "456",
+					},
+				},
+			},
+		}), nil)
+	mockConnectionClient.On(
+		"GetConnection",
+		mock.Anything,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+			Id: "123",
+		}),
+	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+		Connection: &mgmtv1alpha1.Connection{
+			Id:   "123",
+			Name: "prod",
+			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
+							Url: "fake-prod-url",
+						},
+					},
+				},
+			},
+		},
+	}), nil)
+	mockConnectionClient.On(
+		"GetConnection",
+		mock.Anything,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+			Id: "456",
+		}),
+	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+		Connection: &mgmtv1alpha1.Connection{
+			Id:   "456",
+			Name: "stage",
+			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
+							Url: "fake-stage-url",
+						},
+					},
+				},
+			},
+		},
+	}), nil)
+
+	pgquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
+		Return([]*pg_queries.GetDatabaseSchemaRow{
+			{
+				TableSchema: "public",
+				TableName:   "users",
+				ColumnName:  "id",
+			},
+			{
+				TableSchema: "public",
+				TableName:   "users",
+				ColumnName:  "name",
+			},
+			{
+				TableSchema: "public",
+				TableName:   "orders",
+				ColumnName:  "id",
+			},
+			{
+				TableSchema: "public",
+				TableName:   "orders",
+				ColumnName:  "buyer_id",
+			},
+		}, nil)
+	pgquerier.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*pg_queries.GetForeignKeyConstraintsRow{
+			{
+				ConstraintName:    "fk_user_account_associations_user_id_users_id",
+				SchemaName:        "public",
+				TableName:         "orders",
+				ColumnName:        "buyer_id",
+				ForeignSchemaName: "public",
+				ForeignTableName:  "users",
+				ForeignColumnName: "id",
+			},
+		}, nil)
+	pgquerier.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*pg_queries.GetPrimaryKeyConstraintsRow{{
+			SchemaName:     "public",
+			TableName:      "users",
+			ConstraintName: "users",
+			ColumnName:     "id",
+		}, {
+			SchemaName:     "public",
+			TableName:      "orders",
+			ConstraintName: "orders",
+			ColumnName:     "id",
+		}}, nil)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil)
+
+	resp, err := bbuilder.GenerateBenthosConfigs(
+		context.Background(),
+		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
+		slog.Default(),
+	)
+
+	assert.Nil(t, err)
+	assert.NotEmpty(t, resp.BenthosConfigs)
+	assert.Len(t, resp.BenthosConfigs, 2)
+	bc := resp.BenthosConfigs[0]
+	assert.Equal(t, bc.Name, "public.users")
+	assert.Empty(t, bc.RedisConfig)
+	out, err := yaml.Marshal(bc.Config)
+	assert.NoError(t, err)
+	assert.Equal(
+		t,
+		strings.TrimSpace(string(out)),
+		strings.TrimSpace(`
+input:
+    label: ""
+    sql_select:
+        driver: postgres
+        dsn: ${SOURCE_CONNECTION_DSN}
+        table: public.users
+        columns:
+            - '"id"'
+            - '"name"'
+buffer: null
+pipeline:
+    threads: -1
+    processors: []
+output:
+    label: ""
+    broker:
+        pattern: fan_out
+        outputs:
+            - sql_raw:
+                driver: postgres
+                dsn: ${DESTINATION_0_CONNECTION_DSN}
+                query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
+                args_mapping: root = [this.id, this.name]
+                init_statement: ""
+                batching:
+                    count: 100
+                    byte_size: 0
+                    period: 5s
+                    check: ""
+                    processors: []
+
+`),
+	)
+
+	bc = resp.BenthosConfigs[1]
+	assert.Equal(t, bc.Name, "public.orders")
+	assert.Empty(t, bc.RedisConfig)
+	out, err = yaml.Marshal(bc.Config)
+	assert.NoError(t, err)
+	assert.Equal(
+		t,
+		strings.TrimSpace(string(out)),
+		strings.TrimSpace(`
+input:
+    label: ""
+    sql_select:
+        driver: postgres
+        dsn: ${SOURCE_CONNECTION_DSN}
+        table: public.orders
+        columns:
+            - '"id"'
+            - '"buyer_id"'
+buffer: null
+pipeline:
+    threads: -1
+    processors: []
+output:
+    label: ""
+    broker:
+        pattern: fan_out
+        outputs:
+            - sql_raw:
+                driver: postgres
+                dsn: ${DESTINATION_0_CONNECTION_DSN}
+                query: INSERT INTO public.orders ("id", "buyer_id") VALUES ($1, $2);
+                args_mapping: root = [this.id, this.buyer_id]
+                init_statement: ""
+                batching:
+                    count: 100
+                    byte_size: 0
+                    period: 5s
+                    check: ""
+                    processors: []
+
+`),
+	)
+
+	newSB := sb.NewStreamBuilder()
+
+	// SetYAML parses a full Benthos config and uses it to configure the builder.
+	err = newSB.SetYAML(string(out))
+	assert.NoError(t, err)
+}
+
+func Test_BenthosBuilder_GenerateBenthosConfigs_CircularDependency_PrimaryKey_Transformer_Pg_Pg(t *testing.T) {
+	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
+	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
+	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
+
+	pgcache := map[string]pg_queries.DBTX{
+		"123": pg_queries.NewMockDBTX(t),
+		"456": pg_queries.NewMockDBTX(t),
+	}
+	pgquerier := pg_queries.NewMockQuerier(t)
+	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlquerier := mysql_queries.NewMockQuerier(t)
+	redisConfig := &shared.RedisConfig{
+		Url:  "redis://localhost:6379",
+		Kind: "simple",
+	}
+
+	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
+		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
+			Job: &mgmtv1alpha1.Job{
+				Source: &mgmtv1alpha1.JobSource{
+					Options: &mgmtv1alpha1.JobSourceOptions{
+						Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
+							Postgres: &mgmtv1alpha1.PostgresSourceConnectionOptions{
+								ConnectionId: "123",
+							},
+						},
+					},
+				},
+				Mappings: []*mgmtv1alpha1.JobMapping{
+					{
+						Schema: "public",
+						Table:  "jobs",
+						Column: "id",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Source: "generate_uuid",
+							Config: &mgmtv1alpha1.TransformerConfig{
+								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
+									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
+										IncludeHyphens: true,
+									},
+								},
+							},
+						},
+					},
+					{
+						Schema: "public",
+						Table:  "jobs",
+						Column: "parent_id",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Source: "passthrough",
+						},
+					},
+				},
+				Destinations: []*mgmtv1alpha1.JobDestination{
+					{
+						ConnectionId: "456",
+					},
+				},
+			},
+		}), nil)
+	mockConnectionClient.On(
+		"GetConnection",
+		mock.Anything,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+			Id: "123",
+		}),
+	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+		Connection: &mgmtv1alpha1.Connection{
+			Id:   "123",
+			Name: "prod",
+			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
+							Url: "fake-prod-url",
+						},
+					},
+				},
+			},
+		},
+	}), nil)
+	mockConnectionClient.On(
+		"GetConnection",
+		mock.Anything,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+			Id: "456",
+		}),
+	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+		Connection: &mgmtv1alpha1.Connection{
+			Id:   "456",
+			Name: "stage",
+			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
+							Url: "fake-stage-url",
+						},
+					},
+				},
+			},
+		},
+	}), nil)
+
+	pgquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
+		Return([]*pg_queries.GetDatabaseSchemaRow{
+			{
+				TableSchema: "public",
+				TableName:   "jobs",
+				ColumnName:  "id",
+			},
+			{
+				TableSchema: "public",
+				TableName:   "jobs",
+				ColumnName:  "parent_id",
+			},
+		}, nil)
+	pgquerier.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*pg_queries.GetForeignKeyConstraintsRow{
+			{
+				ConstraintName:    "fk_user_account_associations_user_id_users_id",
+				SchemaName:        "public",
+				TableName:         "jobs",
+				ColumnName:        "parent_id",
+				ForeignSchemaName: "public",
+				ForeignTableName:  "jobs",
+				ForeignColumnName: "id",
+			},
+		}, nil)
+	pgquerier.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*pg_queries.GetPrimaryKeyConstraintsRow{{
+			SchemaName:     "public",
+			TableName:      "jobs",
+			ConstraintName: "job",
+			ColumnName:     "id",
+		}}, nil)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, redisConfig)
+
+	resp, err := bbuilder.GenerateBenthosConfigs(
+		context.Background(),
+		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
+		slog.Default(),
+	)
+
+	assert.Nil(t, err)
+	assert.NotEmpty(t, resp.BenthosConfigs)
+	assert.Len(t, resp.BenthosConfigs, 2)
+	bc := resp.BenthosConfigs[0]
+	assert.Equal(t, bc.Name, "public.jobs")
+	assert.Len(t, bc.RedisConfig, 1)
+	assert.Equal(t, bc.RedisConfig[0].Table, "public.jobs")
+	assert.Equal(t, bc.RedisConfig[0].Column, "id")
+	out, err := yaml.Marshal(bc.Config)
+	assert.NoError(t, err)
+	assert.Equal(
+		t,
+		strings.TrimSpace(string(out)),
+		strings.TrimSpace(`
+input:
+    label: ""
+    sql_select:
+        driver: postgres
+        dsn: ${SOURCE_CONNECTION_DSN}
+        table: public.jobs
+        columns:
+            - '"id"'
+            - '"parent_id"'
+buffer: null
+pipeline:
+    threads: -1
+    processors:
+        - mapping: meta neosync_id = this.id
+        - mutation: root.id = generate_uuid(include_hyphens:true)
+output:
+    label: ""
+    broker:
+        pattern: fan_out
+        outputs:
+            - redis_hash_output:
+                url: redis://localhost:6379
+                key: 60c88959dfc6d1e114ca65511290b36786e08961ee1acc3c2b605e1468b561cb
+                walk_metadata: false
+                walk_json_object: false
+                fields_mapping: 'root = {meta("neosync_id"): json("id")}'
+                kind: simple
+            - sql_raw:
+                driver: postgres
+                dsn: ${DESTINATION_0_CONNECTION_DSN}
+                query: INSERT INTO public.jobs ("id") VALUES ($1);
+                args_mapping: root = [this.id]
+                init_statement: ""
+                batching:
+                    count: 100
+                    byte_size: 0
+                    period: 5s
+                    check: ""
+                    processors: []
+
+`),
+	)
+
+	bc = resp.BenthosConfigs[1]
+	assert.Equal(t, bc.Name, "public.jobs.update")
+	assert.Empty(t, bc.RedisConfig)
+	out, err = yaml.Marshal(bc.Config)
+	assert.NoError(t, err)
+	assert.Equal(
+		t,
+		strings.TrimSpace(string(out)),
+		strings.TrimSpace(`
+input:
+    label: ""
+    sql_select:
+        driver: postgres
+        dsn: ${SOURCE_CONNECTION_DSN}
+        table: public.jobs
+        columns:
+            - '"id"'
+            - '"parent_id"'
+buffer: null
+pipeline:
+    threads: -1
+    processors:
+        - branch:
+            processors:
+                - redis:
+                    url: redis://localhost:6379
+                    command: hget
+                    args_mapping: root = ["60c88959dfc6d1e114ca65511290b36786e08961ee1acc3c2b605e1468b561cb", json("parent_id")]
+                    kind: simple
+            request_map: root = if this.parent_id == null { deleted() } else { this }
+            result_map: root.parent_id = this
+        - branch:
+            processors:
+                - redis:
+                    url: redis://localhost:6379
+                    command: hget
+                    args_mapping: root = ["60c88959dfc6d1e114ca65511290b36786e08961ee1acc3c2b605e1468b561cb", json("id")]
+                    kind: simple
+            request_map: root = if this.id == null { deleted() } else { this }
+            result_map: root.id = this
+output:
+    label: ""
+    broker:
+        pattern: fan_out
+        outputs:
+            - sql_raw:
+                driver: postgres
+                dsn: ${DESTINATION_0_CONNECTION_DSN}
+                query: UPDATE public.jobs SET "parent_id" = $1 WHERE "id" = $2;
+                args_mapping: root = [this.parent_id, this.id]
+                init_statement: ""
+                batching:
+                    count: 100
+                    byte_size: 0
+                    period: 5s
+                    check: ""
+                    processors: []
+
 `),
 	)
 
@@ -631,7 +1461,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_Default(t *testing.T
 			ConstraintName: "name",
 			ColumnName:     "id",
 		}}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -848,7 +1678,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 			ConstraintName: "acc_assoc_constraint",
 			ColumnName:     "id",
 		}}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -1137,7 +1967,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 			ColumnName:     "id",
 		},
 	}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -1501,7 +2331,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 			ColumnName:     "id",
 		},
 	}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -1786,7 +2616,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Mysql(t *testing.
 		},
 	}), nil)
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -1960,7 +2790,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) 
 			ConstraintName: "pk-id",
 			ColumnName:     "id",
 		}}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -2176,7 +3006,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Constrain
 			ConstraintName: "pk-users-assoc-id",
 			ColumnName:     "id",
 		}}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformersClient, mockSqlConnector)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformersClient, mockSqlConnector, mockJobId, mockRunId, nil)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -2465,7 +3295,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_
 			ColumnName:     "id",
 		},
 	}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -2710,7 +3540,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Mysql_Default(t *
 		},
 	}), nil)
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -2883,7 +3713,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Default(t *testing.T
 			ConstraintName: "pk-id",
 			ColumnName:     "id",
 		}}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector)
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -2996,9 +3826,84 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 		},
 	}
 
-	res, err := buildBenthosSqlSourceConfigResponses(context.Background(), mockTransformerClient, tableMappings, dsn, driver, sourceTableOpts, groupedSchemas)
+	res, err := buildBenthosSqlSourceConfigResponses(
+		context.Background(),
+		mockTransformerClient,
+		tableMappings,
+		dsn,
+		driver,
+		sourceTableOpts,
+		groupedSchemas,
+		map[string]*dbschemas_utils.TableConstraints{},
+		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
+		map[string][]string{},
+		mockJobId,
+		mockRunId,
+		nil,
+	)
 	assert.Nil(t, err)
 	assert.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)
+}
+
+func Test_buildBenthosSqlSourceConfigResponses_skipTable(t *testing.T) {
+	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+
+	tableMappings := []*tableMapping{
+		{Schema: "public",
+			Table: "users",
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "public",
+					Table:  "users",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "null",
+					},
+				},
+				{
+					Schema: "public",
+					Table:  "users",
+					Column: "name",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "null",
+					},
+				},
+			},
+		}}
+
+	sourceTableOpts := map[string]*sqlSourceTableOptions{"where": {WhereClause: &dsn}}
+
+	groupedSchemas := map[string]map[string]*dbschemas_utils.ColumnInfo{
+		"public.users": {
+			"id": &dbschemas_utils.ColumnInfo{
+				OrdinalPosition:        1,
+				ColumnDefault:          "324",
+				IsNullable:             "false",
+				DataType:               "",
+				CharacterMaximumLength: nil,
+				NumericPrecision:       nil,
+				NumericScale:           nil,
+			},
+		},
+	}
+
+	res, err := buildBenthosSqlSourceConfigResponses(
+		context.Background(),
+		mockTransformerClient,
+		tableMappings,
+		dsn,
+		driver,
+		sourceTableOpts,
+		groupedSchemas,
+		map[string]*dbschemas_utils.TableConstraints{},
+		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
+		map[string][]string{},
+		mockJobId,
+		mockRunId,
+		nil,
+	)
+	assert.Nil(t, err)
+	assert.Len(t, res, 0)
 }
 func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
@@ -3047,7 +3952,21 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 		},
 	}
 
-	res, err := buildBenthosSqlSourceConfigResponses(context.Background(), mockTransformerClient, tableMappings, dsn, driver, sourceTableOpts, groupedSchemas)
+	res, err := buildBenthosSqlSourceConfigResponses(
+		context.Background(),
+		mockTransformerClient,
+		tableMappings,
+		dsn,
+		driver,
+		sourceTableOpts,
+		groupedSchemas,
+		map[string]*dbschemas_utils.TableConstraints{},
+		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
+		map[string][]string{},
+		mockJobId,
+		mockRunId,
+		nil,
+	)
 	assert.Nil(t, err)
 	assert.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)
 }
@@ -3104,7 +4023,21 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 		},
 	}
 
-	res, err := buildBenthosSqlSourceConfigResponses(context.Background(), mockTransformerClient, tableMappings, dsn, driver, sourceTableOpts, groupedSchemas)
+	res, err := buildBenthosSqlSourceConfigResponses(
+		context.Background(),
+		mockTransformerClient,
+		tableMappings,
+		dsn,
+		driver,
+		sourceTableOpts,
+		groupedSchemas,
+		map[string]*dbschemas_utils.TableConstraints{},
+		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
+		map[string][]string{},
+		mockJobId,
+		mockRunId,
+		nil,
+	)
 	assert.Nil(t, err)
 
 	out, err := yaml.Marshal(res[0].Config.Pipeline.Processors)
@@ -3188,7 +4121,21 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
 		},
 	}
 
-	res, err := buildBenthosSqlSourceConfigResponses(context.Background(), mockTransformerClient, tableMappings, dsn, driver, sourceTableOpts, groupedSchemas)
+	res, err := buildBenthosSqlSourceConfigResponses(
+		context.Background(),
+		mockTransformerClient,
+		tableMappings,
+		dsn,
+		driver,
+		sourceTableOpts,
+		groupedSchemas,
+		map[string]*dbschemas_utils.TableConstraints{},
+		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
+		map[string][]string{},
+		mockJobId,
+		mockRunId,
+		nil,
+	)
 
 	assert.Nil(t, err)
 
@@ -3326,29 +4273,29 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 
 	ctx := context.Background()
 
-	output, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{}, map[string]*dbschemas_utils.ColumnInfo{})
+	output, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 	assert.Nil(t, err)
 	assert.Empty(t, output)
 
-	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{}, map[string]*dbschemas_utils.ColumnInfo{})
+	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 	assert.Nil(t, err)
 	assert.Empty(t, output)
 
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id"},
-	}, map[string]*dbschemas_utils.ColumnInfo{})
+	}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 	assert.Nil(t, err)
 	assert.Empty(t, output)
 
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{}},
-	}, map[string]*dbschemas_utils.ColumnInfo{})
+	}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 	assert.Nil(t, err)
 	assert.Empty(t, output)
 
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "passthrough"}},
-	}, map[string]*dbschemas_utils.ColumnInfo{})
+	}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 	assert.Nil(t, err)
 	assert.Empty(t, output)
 
@@ -3363,7 +4310,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 				Nullconfig: &mgmtv1alpha1.Null{},
 			},
 		}}},
-	}, map[string]*dbschemas_utils.ColumnInfo{})
+	}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	assert.Nil(t, err)
 
@@ -3401,7 +4348,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 	}
 
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, groupedSchemas)
+		{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, groupedSchemas, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	assert.Nil(t, err)
 	assert.Equal(t, *output[0].Mutation, `root.email = transform_email(email:this.email,preserve_domain:true,preserve_length:false,excluded_domains:[],max_length:40)`)
@@ -3412,7 +4359,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 				Nullconfig: &mgmtv1alpha1.Null{},
 			},
 		}}},
-	}, map[string]*dbschemas_utils.ColumnInfo{})
+	}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 	assert.Error(t, err)
 	assert.Empty(t, output)
 }
@@ -3439,7 +4386,7 @@ func Test_buildProcessorConfigsJavascript(t *testing.T) {
 	}
 
 	res, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "address", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{})
+		{Schema: "public", Table: "users", Column: "address", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, `
@@ -3485,7 +4432,7 @@ func Test_buildProcessorConfigsJavascriptMultiLineScript(t *testing.T) {
 	}
 
 	res, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{})
+		{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, `
@@ -3543,7 +4490,7 @@ func Test_buildProcessorConfigsJavascriptMultiple(t *testing.T) {
 
 	res, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}},
-		{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}}, map[string]*dbschemas_utils.ColumnInfo{})
+		{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, `
@@ -3655,7 +4602,7 @@ func Test_buildProcessorConfigsJavascriptEmpty(t *testing.T) {
 	}
 
 	resp, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{})
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	assert.NoError(t, err)
 	assert.Empty(t, resp)
@@ -4239,4 +5186,103 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 			assert.NoError(t, err, fmt.Sprintf("transformer lint failed, check that the transformer string is being constructed correctly. Failing source: %s", transformer.Source))
 		})
 	}
+}
+
+func Test_buildBranchCacheConfigs_null(t *testing.T) {
+	cols := []*mgmtv1alpha1.JobMapping{
+		{
+			Schema: "public",
+			Table:  "users",
+			Column: "user_id",
+		},
+	}
+
+	constraints := map[string]*dbschemas_utils.ForeignKey{
+		"name": {
+			Table:  "public.orders",
+			Column: "buyer_id",
+		},
+	}
+
+	resp, err := buildBranchCacheConfigs(cols, constraints, mockJobId, mockRunId, nil)
+	assert.NoError(t, err)
+	assert.Len(t, resp, 0)
+}
+
+func Test_buildBranchCacheConfigs_missing_redis(t *testing.T) {
+	cols := []*mgmtv1alpha1.JobMapping{
+		{
+			Schema: "public",
+			Table:  "users",
+			Column: "user_id",
+		},
+	}
+
+	constraints := map[string]*dbschemas_utils.ForeignKey{
+		"user_id": {
+			Table:  "public.orders",
+			Column: "buyer_id",
+		},
+	}
+
+	_, err := buildBranchCacheConfigs(cols, constraints, mockJobId, mockRunId, nil)
+	assert.Error(t, err)
+}
+
+func Test_buildBranchCacheConfigs_success(t *testing.T) {
+	cols := []*mgmtv1alpha1.JobMapping{
+		{
+			Schema: "public",
+			Table:  "users",
+			Column: "user_id",
+		},
+		{
+			Schema: "public",
+			Table:  "users",
+			Column: "name",
+		},
+	}
+
+	constraints := map[string]*dbschemas_utils.ForeignKey{
+		"user_id": {
+			Table:  "public.orders",
+			Column: "buyer_id",
+		},
+	}
+	redisConfig := &shared.RedisConfig{
+		Url:  "redis://localhost:6379",
+		Kind: "simple",
+	}
+
+	resp, err := buildBranchCacheConfigs(cols, constraints, mockJobId, mockRunId, redisConfig)
+
+	assert.NoError(t, err)
+	assert.Len(t, resp, 1)
+	assert.Equal(t, *resp[0].RequestMap, "root = if this.user_id == null { deleted() } else { this }")
+	assert.Equal(t, *resp[0].ResultMap, "root.user_id = this")
+}
+
+func Test_buildBranchCacheConfigs_self_referencing(t *testing.T) {
+	cols := []*mgmtv1alpha1.JobMapping{
+		{
+			Schema: "public",
+			Table:  "users",
+			Column: "user_id",
+		},
+	}
+
+	constraints := map[string]*dbschemas_utils.ForeignKey{
+		"user_id": {
+			Table:  "public.users",
+			Column: "other_id",
+		},
+	}
+	redisConfig := &shared.RedisConfig{
+		Url:  "redis://localhost:6379",
+		Kind: "simple",
+	}
+
+	resp, err := buildBranchCacheConfigs(cols, constraints, mockJobId, mockRunId, redisConfig)
+	assert.NoError(t, err)
+	assert.Len(t, resp, 0)
 }

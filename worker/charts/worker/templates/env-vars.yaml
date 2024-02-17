@@ -60,3 +60,35 @@ stringData:
     {{- if and .Values.neosync .Values.neosync.apiKey }}
     NEOSYNC_API_KEY: {{ .Values.neosync.apiKey }}
     {{- end }}
+
+    {{- if .Values.redis.url }}
+    REDIS_URL: {{ .Values.redis.url }}
+    {{- end }}
+    
+    {{- if .Values.redis.kind }}
+    REDIS_KIND: {{ .Values.redis.kind }}
+    {{- end }}
+
+    {{- if .Values.redis.master }}
+    REDIS_MASTER: {{ .Values.redis.master }}
+    {{- end }}
+    
+    {{- if and .Values.redis .Values.redis.tls .Values.redis.tls.enabled }}
+    REDIS_TLS_ENABLED: {{ .Values.redis.tls.enabled }}
+    {{- end }}
+
+    {{- if and .Values.redis .Values.redis.tls .Values.redis.tls.skipCertVerify }}
+    REDIS_TLS_SKIP_CERT_VERIFY: {{ .Values.redis.tls.skipCertVerify }}
+    {{- end }}
+
+    {{- if and .Values.redis .Values.redis.tls .Values.redis.tls.enableRenegotiation }}
+    REDIS_TLS_ENABLE_RENEGOTIATION: {{ .Values.redis.tls.enableRenegotiation }}
+    {{- end }}
+    
+    {{- if and .Values.redis .Values.redis.tls .Values.redis.tls.rootCertAuthority }}
+    REDIS_TLS_ROOT_CERT_AUTHORITY: {{ .Values.redis.tls.rootCertAuthority }}
+    {{- end }}
+
+    {{- if and .Values.redis .Values.redis.tls .Values.redis.tls.rootCertAuthorityFile }}
+    REDIS_TLS_ROOT_CERT_AUTHORITY_FILE: {{ .Values.redis.tls.rootCertAuthorityFile }}
+    {{- end }}
