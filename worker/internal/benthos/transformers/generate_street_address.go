@@ -20,7 +20,7 @@ type Address struct {
 }
 
 func init() {
-	spec := bloblang.NewPluginSpec().Param(bloblang.NewInt64Param("max_length"))
+	spec := bloblang.NewPluginSpec().Param(bloblang.NewInt64Param("max_length")).Param(bloblang.NewInt64Param("seed").Optional())
 
 	err := bloblang.RegisterFunctionV2("generate_street_address", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		maxLength, err := args.GetInt64("max_length")
@@ -28,8 +28,19 @@ func init() {
 			return nil, err
 		}
 
+		seed, err := args.GetOptionalInt64("seed")
+		if err != nil {
+			return nil, err
+		}
+		var randomizer *rand.Rand
+		if seed == nil {
+			randomizer = rand.New(rand.NewSource(rand.Int63()))
+		} else {
+			randomizer = rand.New(rand.NewSource(*seed))
+		}
+
 		return func() (any, error) {
-			res, err := GenerateRandomStreetAddress(maxLength)
+			res, err := GenerateRandomStreetAddress(maxLength, randomizer)
 			if err != nil {
 				return nil, err
 			}
@@ -42,7 +53,7 @@ func init() {
 }
 
 /* Generates a random street address in the United States in the format <house_number> <street name> <street ending>*/
-func GenerateRandomStreetAddress(maxLength int64) (string, error) {
+func GenerateRandomStreetAddress(maxLength int64, randomizer *rand.Rand) (string, error) {
 	addresses := transformers_dataset.Addresses
 	var filteredAddresses []string
 
@@ -54,19 +65,19 @@ func GenerateRandomStreetAddress(maxLength int64) (string, error) {
 
 	if len(filteredAddresses) == 0 {
 		if maxLength > 3 {
-			hn, err := transformer_utils.GenerateRandomInt64InValueRange(1, 20)
+			hn, err := transformer_utils.GenerateRandomInt64InValueRange(1, 20, randomizer)
 			if err != nil {
 				return "", err
 			}
 
-			street, err := transformer_utils.GenerateRandomStringWithDefinedLength(maxLength - 3)
+			street, err := transformer_utils.GenerateRandomStringWithDefinedLength(maxLength-3, randomizer)
 			if err != nil {
 				return "", err
 			}
 
 			return fmt.Sprintf("%d %s", hn, street), nil
 		} else {
-			street, err := transformer_utils.GenerateRandomStringWithDefinedLength(maxLength)
+			street, err := transformer_utils.GenerateRandomStringWithDefinedLength(maxLength, randomizer)
 			if err != nil {
 				return "", err
 			}

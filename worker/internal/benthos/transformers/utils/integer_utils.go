@@ -29,7 +29,7 @@ func GenerateRandomInt64FixedLength(l int64) (int64, error) {
 /*
 Generates a random int64 with length in the inclusive range of [min, max]. For example, given a length range of [4, 7], possible values will have a length ranging from 4 -> 7 digits.
 */
-func GenerateRandomInt64InLengthRange(min, max int64) (int64, error) {
+func GenerateRandomInt64InLengthRange(min, max int64, randomizer *rand.Rand) (int64, error) {
 	if min > max {
 		min, max = max, min
 	}
@@ -39,7 +39,7 @@ func GenerateRandomInt64InLengthRange(min, max int64) (int64, error) {
 		return 0, fmt.Errorf("length is too large")
 	}
 
-	val, err := GenerateRandomInt64InValueRange(min, max)
+	val, err := GenerateRandomInt64InValueRange(min, max, randomizer)
 	if err != nil {
 		return 0, fmt.Errorf("unable to generate a value in the range provided")
 	}
@@ -53,7 +53,7 @@ func GenerateRandomInt64InLengthRange(min, max int64) (int64, error) {
 }
 
 /* Generates a random int64 in the inclusive range of [min, max]. For example, given a range of [40, 50], possible values range from 40 -> 50, inclusive. */
-func GenerateRandomInt64InValueRange(min, max int64) (int64, error) {
+func GenerateRandomInt64InValueRange(min, max int64, randomizer *rand.Rand) (int64, error) {
 	if min > max {
 		min, max = max, min
 	}
@@ -65,7 +65,7 @@ func GenerateRandomInt64InValueRange(min, max int64) (int64, error) {
 	rangeVal := max - min + 1
 
 	//nolint:gosec
-	return min + rand.Int63n(rangeVal), nil
+	return min + randomizer.Int63n(rangeVal), nil
 }
 
 func FirstDigitIsNine(n int64) bool {
