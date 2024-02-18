@@ -57,7 +57,7 @@ export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Schema" />
       ),
-
+      sortDescFirst: true,
       filterFn: exactMatchFilterFn, //handles the multi-select on the schema drop down
       cell: ({ row }) => {
         return (
@@ -71,6 +71,7 @@ export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
     {
       accessorKey: 'table',
       filterFn: exactMatchFilterFn,
+      sortDescFirst: true,
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Table" />
       ),

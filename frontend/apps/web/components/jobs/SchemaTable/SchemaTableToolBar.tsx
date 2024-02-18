@@ -43,8 +43,6 @@ export function SchemaTableToolbar<TData>({
 
   const schemaSet = new Set(dataRow.map((obj) => obj.schema));
 
-  const tableSet = new Set(dataRow.map((obj) => obj.table));
-
   const defaultSchemaValues: Option[] = Array.from(schemaSet).map((item) => ({
     value: item,
     label: item,
@@ -53,35 +51,31 @@ export function SchemaTableToolbar<TData>({
   const [schemaOptions, setSchemaOptions] =
     useState<Option[]>(defaultSchemaValues);
 
-  // table names might not be unique across schemas so append a schema to create a unique value
-  // const defaultTableValues: Option[] = Array.from(dataRow).map((item) => ({
-  //   value: item.schema + '_' + item.table,
-  //   label: item.table,
-  //   schema: item.schema,
-  // }));
-
+  /* table names might not be unique across schemas so create a unique value to get unique combination of table and schema to show in drop down. We have to use a character that someone won't put in their schema or table name. So _ and - are out of the picture. It's highly unlikely that someone would put *** in their schema or table name. There is probably a better way to do this but going with this for right now.
+   */
   const tableSchemaSet = new Set(
-    dataRow.map((obj) => obj.schema + '*' + obj.table)
+    dataRow.map((obj) => obj.schema + '***' + obj.table)
   );
 
-  const defaultTableValues: Option[] = Array.from(tableSchemaSet.values()).map(
+  const defaultTableValues: Option[] = Array.from(tableSchemaSet).map(
     (item) => ({
       value: item,
-      label: item.split('*')[1],
-      schema: item.split('*')[0],
+      label: item.split('***')[1],
+      schema: item.split('***')[0],
     })
   );
-
-  console.log('default table', tableSchemaSet);
-  console.log('default table', defaultTableValues);
 
   const [tableOptions, setTableOptions] =
     useState<Option[]>(defaultTableValues);
 
   const schemaTableMap: Record<string, string[]> = {};
-  const tableSchemaMap: Record<string, string[]> = {};
+  const tableSchemaMap: Record<string, string> = {};
 
-  // creates the schemaTableMap and tableSchemaMap
+  /* creates the schemaTableMap <schema:[tables]> and tableSchemaMap <schema***table:schema>
+   this is used to correctly filter for values both ways. If you select a schema you should only see the 
+   tables in that schema and if you select a table, you should only see the schema that table belongs to 
+   */
+
   dataRow.forEach((row) => {
     const { schema, table } = row;
     // update schemaTableMap
@@ -92,11 +86,9 @@ export function SchemaTableToolbar<TData>({
     }
 
     // update tableSchemaMap
-    if (!tableSchemaMap[row.schema + '_' + row.table]) {
-      tableSchemaMap[row.schema + '_' + row.table] = [schema];
-    } else if (!tableSchemaMap[row.schema + '_' + row.table].includes(schema)) {
-      tableSchemaMap[row.schema + '_' + row.table].push(schema);
-    }
+    if (!tableSchemaMap[row.schema + '***' + row.table]) {
+      tableSchemaMap[row.schema + '***' + row.table] = schema;
+    } else !tableSchemaMap[row.schema + '***' + row.table].includes(schema);
   });
 
   const handleMultiSelectSchemaChange = (selectedOptions: Option[]) => {
@@ -108,19 +100,16 @@ export function SchemaTableToolbar<TData>({
       const filteredTableOptions = filteredSchemaValues.flatMap(
         (schema) =>
           schemaTableMap[schema]?.map((table) => ({
-            value: schema + '_' + table,
+            value: schema + '***' + table,
             label: table,
+            schema: schema,
           })) || []
       );
 
-      // setSelectedTableOptions(filteredTableOptions)
       setTableOptions(filteredTableOptions);
-
       table.getColumn('schema')?.setFilterValue(filteredSchemaValues);
-      table
-        .getColumn('table')
-        ?.setFilterValue(filteredTableOptions.map((option) => option.value));
     } else {
+      setSelectedTableOptions([]);
       table.getColumn('schema')?.setFilterValue(undefined);
       table.getColumn('table')?.setFilterValue(undefined);
     }
@@ -128,25 +117,48 @@ export function SchemaTableToolbar<TData>({
 
   const handleMultiSelectTableChange = (selectedOptions: Option[]) => {
     setSelectedTableOptions(selectedOptions);
-    const filteredTableValues = selectedOptions.map((option) => option.value);
     // handles the user removing items from the multi-select
-    if (filteredTableValues.length > 0) {
-      const uniqueSchemas = new Set<string>();
-      filteredTableValues.forEach((table) => {
-        const schemasForTable = tableSchemaMap[table] || [];
-        schemasForTable.forEach((schema) => uniqueSchemas.add(schema));
+    if (selectedOptions.length > 0) {
+      const uniqueSchemaOptions = new Set<string>();
+      // iterate over selected table options and add them to the uniqueSchemaOptions to get list of unique schemas in case a user adds multiple tables from the same schema, we don't want to show the same schema more than once
+      selectedOptions.forEach((table) => {
+        // add a new schema to the set
+        uniqueSchemaOptions.add(tableSchemaMap[table.value].split('***')[0]);
       });
 
-      const filteredSchemaOptions = Array.from(uniqueSchemas).map((schema) => ({
-        value: schema,
-        label: schema,
-      }));
-
-      setSchemaOptions(filteredSchemaOptions);
-      table.getColumn('table')?.setFilterValue(filteredTableValues);
+      const selectedSchemaValues: Option[] = [];
+      // iterate over the unique schema options and structure them as Option types so that we can render the selected schema badges in the multi-select
+      Array.from(uniqueSchemaOptions.values()).map((item: string) => {
+        selectedSchemaValues.push({
+          value: item,
+          label: item,
+        });
+      });
+      // update the schema options that show up in the drop down, should be whatever schemas are remaining that aren't selected
+      setSchemaOptions(
+        defaultSchemaValues.filter(
+          (item) => !uniqueSchemaOptions.has(item.value)
+        )
+      );
+      // update the selected schemas that show up as badges in the multi select to only be the schemas of the selected tables
+      setSelectedSchemaOptions(selectedSchemaValues);
+      // filter the table column by only the tables that were selected
+      table
+        .getColumn('table')
+        ?.setFilterValue(selectedOptions.map((option) => option.label));
+      // filter the schema column by only the tables that were selected. This handles the edge case where two tables have the same name, so we need to differentiate by schema as well
+      table
+        .getColumn('schema')
+        ?.setFilterValue(
+          selectedOptions.map((option) => option.value.split('***')[0])
+        );
     } else {
+      // reset tbale and schema options
+      setSelectedSchemaOptions([]);
       setSchemaOptions(defaultSchemaValues);
+      setTableOptions(defaultTableValues);
       table.getColumn('table')?.setFilterValue(undefined);
+      table.getColumn('schema')?.setFilterValue(undefined);
     }
   };
 
@@ -161,7 +173,7 @@ export function SchemaTableToolbar<TData>({
   return (
     <div className="flex flex-col items-start w-full gap-2">
       <div className="flex flex-col items-center gap-2">
-        <div className="w-[275px] lg:w-[650px] z-50 flex flex-col gap-2">
+        <div className="w-[275px] lg:w-[650px] z-40 flex flex-col gap-2">
           <FormLabel>Filter Schema(s)</FormLabel>
           <MultiSelect
             defaultOptions={defaultSchemaValues}
@@ -179,7 +191,7 @@ export function SchemaTableToolbar<TData>({
             }
           />
         </div>
-        <div className="w-[275px] lg:w-[650px] z-40 flex flex-col gap-2">
+        <div className="w-[275px] lg:w-[650px] z-30 flex flex-col gap-2">
           <FormLabel>Filter Table(s)</FormLabel>
           <MultiSelect
             defaultOptions={defaultTableValues}
