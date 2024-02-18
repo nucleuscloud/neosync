@@ -110,6 +110,8 @@ export function SchemaTableToolbar<TData>({
       table.getColumn('schema')?.setFilterValue(filteredSchemaValues);
     } else {
       setSelectedTableOptions([]);
+      setSchemaOptions(defaultSchemaValues);
+      setTableOptions(defaultTableValues);
       table.getColumn('schema')?.setFilterValue(undefined);
       table.getColumn('table')?.setFilterValue(undefined);
     }
@@ -117,7 +119,6 @@ export function SchemaTableToolbar<TData>({
 
   const handleMultiSelectTableChange = (selectedOptions: Option[]) => {
     setSelectedTableOptions(selectedOptions);
-    // handles the user removing items from the multi-select
     if (selectedOptions.length > 0) {
       const uniqueSchemaOptions = new Set<string>();
       // iterate over selected table options and add them to the uniqueSchemaOptions to get list of unique schemas in case a user adds multiple tables from the same schema, we don't want to show the same schema more than once
@@ -153,12 +154,15 @@ export function SchemaTableToolbar<TData>({
           selectedOptions.map((option) => option.value.split('***')[0])
         );
     } else {
-      // reset tbale and schema options
-      setSelectedSchemaOptions([]);
-      setSchemaOptions(defaultSchemaValues);
+      // handle table unselecting
       setTableOptions(defaultTableValues);
       table.getColumn('table')?.setFilterValue(undefined);
-      table.getColumn('schema')?.setFilterValue(undefined);
+      //if i have a schema selected and a table and then remove the table, filter the schema to include the currently selected schema
+      table
+        .getColumn('schema')
+        ?.setFilterValue(
+          selectedSchemaOptions.map((item) => item.value.split('***')[0])
+        );
     }
   };
 
