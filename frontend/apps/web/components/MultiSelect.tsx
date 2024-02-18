@@ -14,6 +14,7 @@ import { cn } from '@/libs/utils';
 import { Cross2Icon } from '@radix-ui/react-icons';
 import { Command as CommandPrimitive } from 'cmdk';
 import { useEffect } from 'react';
+import { AiOutlineCaretDown } from 'react-icons/ai';
 
 export interface Option {
   value: string;
@@ -39,6 +40,7 @@ interface MultipleSelectorProps {
     React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>,
     'value' | 'placeholder' | 'disabled'
   >;
+  options?: Option[];
 }
 
 interface MultipleSelectorRef {
@@ -89,6 +91,7 @@ export const MultiSelect = React.forwardRef<
       onChange,
       placeholder,
       defaultOptions: arrayDefaultOptions = [],
+      options: arrayOptions,
       emptyIndicator,
       hidePlaceholderWhenSelected,
       commandProps,
@@ -100,7 +103,7 @@ export const MultiSelect = React.forwardRef<
     const [open, setOpen] = React.useState(false);
 
     const [selected, setSelected] = React.useState<Option[]>(value || []);
-    const [options, _] = React.useState<GroupOption>(
+    const [options, setOptions] = React.useState<GroupOption>(
       transToGroupOption(arrayDefaultOptions)
     );
     const [inputValue, setInputValue] = React.useState('');
@@ -146,6 +149,17 @@ export const MultiSelect = React.forwardRef<
       }
     }, [value]);
 
+    useEffect(() => {
+      /** If `onSearch` is provided, do not trigger options updated. */
+      if (!arrayOptions) {
+        return;
+      }
+      const newOption = transToGroupOption(arrayOptions || []);
+      if (JSON.stringify(newOption) !== JSON.stringify(options)) {
+        setOptions(newOption);
+      }
+    }, [arrayDefaultOptions, arrayOptions, options]);
+
     const selectables = React.useMemo<GroupOption>(
       () => removePickedOption(options, selected),
       [options, selected]
@@ -178,7 +192,7 @@ export const MultiSelect = React.forwardRef<
           commandProps?.className
         )}
       >
-        <div className="group rounded-md border border-input px-3 py-1  text-sm focus-within:ring-1 focus-within:ring-gray-400">
+        <div className="group rounded-md border border-input px-3 py-1 text-sm focus-within:ring-1 focus-within:ring-gray-400">
           <div className="flex flex-wrap gap-1">
             {selected.map((option) => {
               return (
@@ -186,7 +200,7 @@ export const MultiSelect = React.forwardRef<
                   key={option.value}
                   className={cn(
                     'data-[disabled]:bg-muted-foreground data-[disabled]:text-muted data-[disabled]:hover:bg-muted-foreground',
-                    'data-[fixed]:bg-muted-foreground data-[fixed]:text-muted data-[fixed]:hover:bg-muted-foreground'
+                    'data-[fixed]:bg-muted-foreground data-[fixed]:text-muted data-[fixed]:hover:bg-muted-foreground mt-[1px]'
                   )}
                   variant="outline"
                   data-fixed={option.fixed}
@@ -197,6 +211,7 @@ export const MultiSelect = React.forwardRef<
                       'ml-1 rounded-full outline-none ring-offset-background ',
                       option.fixed && 'hidden'
                     )}
+                    type="button"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         handleUnselect(option);
@@ -213,7 +228,6 @@ export const MultiSelect = React.forwardRef<
                 </Badge>
               );
             })}
-            {/* Avoid having the "Search" Icon */}
             <CommandPrimitive.Input
               {...inputProps}
               ref={inputRef}
@@ -234,15 +248,33 @@ export const MultiSelect = React.forwardRef<
                   : placeholder
               }
               className={cn(
-                'ml-2 flex-1 bg-transparent outline-none placeholder:text-muted-foreground h-7',
+                'ml-2 flex-1 bg-transparent outline-none placeholder:text-muted-foreground h-7 placeholder:text-xs ',
                 inputProps?.className
               )}
+            />
+            <AiOutlineCaretDown
+              className={cn(
+                'top-2 relative right-2 transition-transform duration-200 text-gray-300',
+                {
+                  'rotate-180': open, // Rotates the caret up when open
+                  'rotate-0': !open, // Keeps the caret down when not open
+                }
+              )}
+              style={{ transformOrigin: 'center' }} // Ensures rotation happens around the icon's center
+              onClick={() => {
+                // Toggle open state and focus input on caret click
+                setOpen(!open);
+                if (!open) {
+                  inputRef.current?.focus();
+                }
+              }}
+              size={12}
             />
           </div>
         </div>
         <div className="relative mt-2">
           {open && (
-            <CommandList className="absolute top-0 z-50 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in">
+            <CommandList className="absolute top-0 z-50 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in ">
               <>
                 {EmptyItem()}
                 {Object.entries(selectables).map(([key, dropdowns]) => (
@@ -269,12 +301,19 @@ export const MultiSelect = React.forwardRef<
                               onChange?.(newOptions);
                             }}
                             className={cn(
-                              'cursor-pointer',
+                              'cursor-pointer text-sm',
                               option.disable &&
                                 'cursor-default text-muted-foreground'
                             )}
                           >
-                            {option.label}
+                            <div className="flex flex-row items-center gap-4">
+                              <div>{option.label}</div>
+                              {option.schema && (
+                                <div className="text-xs text-gray-400">
+                                  {option.schema}
+                                </div>
+                              )}
+                            </div>
                           </CommandItem>
                         );
                       })}
