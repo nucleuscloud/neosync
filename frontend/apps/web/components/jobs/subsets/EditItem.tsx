@@ -42,7 +42,7 @@ export default function EditItem(props: Props): ReactElement {
       const resp = await validateSql(
         account?.id ?? '',
         connectionId,
-        `select * from ${item?.schema}.${item?.table} WHERE ${item?.where};`
+        `select * from ${item?.schema}."${item?.table}" WHERE ${item?.where};`
       );
       setValidateResp(resp);
     } catch (err) {
