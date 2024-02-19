@@ -1,5 +1,6 @@
 import Footer from '@/components/Footer';
 import GithubBanner from '@/components/banner/GithubBanner';
+import GithubButton from '@/components/banner/GithubButton';
 import TopNav from '@/components/nav/TopNav';
 import { Metadata } from 'next';
 import Script from 'next/script';
@@ -57,7 +58,12 @@ export default function RootLayout({
             }}
           ></Script>
           <div className="flex flex-col w-full relative">
-            <GithubBanner />
+            <div className="flex md:hidden lg:hidden">
+              <GithubBanner />
+            </div>
+            <div className="hidden lg:flex">
+              <GithubButton />
+            </div>
             <TopNav />
             <div>{children}</div>
             <Footer />
