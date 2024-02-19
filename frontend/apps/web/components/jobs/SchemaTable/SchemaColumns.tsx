@@ -118,7 +118,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
             <div className="flex flex-col lg:flex-row items-start gap-1">
               <div>
                 {row.original.primaryConstraints && (
-                  <Badge variant="outline" className="text-xs">
+                  <Badge className="text-xs bg-blue-100 text-gray-800">
                     {row.original.primaryConstraints}
                   </Badge>
                 )}
@@ -128,7 +128,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger>
-                        <Badge variant="outline" className="text-xs delay-0">
+                        <Badge className="text-xs bg-orange-100 text-gray-800 ">
                           {/* need this here so we can sort by it */}
                           {row.original.foreignConstraints?.value}
                         </Badge>
