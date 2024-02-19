@@ -70,7 +70,7 @@ export function SchemaTable(props: Props): ReactElement {
     ) {
       const fk = foreignConstraints[schemaTable]?.constraints;
       row.foreignConstraints = {
-        table: fk[0].foreignKey?.table ?? '', // for some reason the foreignKey constraints object comes back from the API with two identical objects in an array, so just getting the first one. Need to investigate further.
+        table: fk[0].foreignKey?.table ?? '', // the foreignKey constraints object comes back from the API with two identical objects in an array, so just getting the first one. Need to investigate why it returns two.
         column: fk[0].foreignKey?.column ?? '',
         value: 'Foreign Key',
       };

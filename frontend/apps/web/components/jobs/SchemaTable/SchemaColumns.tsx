@@ -335,18 +335,18 @@ const sortConstraints: SortingFn<any> = (
 // custom filter for the constrainst column
 const filterConstraints: FilterFn<RowData> = (
   row: Row<RowData>,
+  columnId: string, // even though we don't use this, we need this here or the filter value returns the id
   filterValue: string
 ): boolean => {
-  const filterValueLower = filterValue.toLowerCase();
+  const filterValueStr = filterValue.toLowerCase();
 
   const matchesPrimary =
-    row.original.primaryConstraints?.toLowerCase().includes(filterValueLower) ??
+    row.original.primaryConstraints?.toLowerCase().includes(filterValueStr) ??
     false;
-
   const matchesForeign =
     row.original.foreignConstraints?.value
       ?.toLowerCase()
-      .includes(filterValueLower) ?? false;
+      .includes(filterValueStr) ?? false;
 
   return matchesPrimary || matchesForeign;
 };
