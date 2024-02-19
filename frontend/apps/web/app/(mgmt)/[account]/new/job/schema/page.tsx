@@ -7,6 +7,7 @@ import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
+import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectionForeignConstraints';
 import { useGetConnectionPrimaryConstraints } from '@/libs/hooks/useGetConnectionPrimaryConstraints';
 import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
 import {
@@ -70,6 +71,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     connectFormValues.sourceId
   );
 
+  const { data: foreignConstraints } = useGetConnectionForeignConstraints(
+    account?.id ?? '',
+    connectFormValues.sourceId
+  );
+
   const form = useForm<SchemaFormValues>({
     resolver: yupResolver<SchemaFormValues>(SCHEMA_FORM_SCHEMA),
     values: getFormValues(
@@ -113,6 +119,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           <SchemaTable
             data={form.watch().mappings}
             primaryConstraints={primaryConstraints?.tableConstraints}
+            foreignConstraints={foreignConstraints?.tableConstraints}
           />
           <div className="flex flex-row gap-1 justify-between">
             <Button key="back" type="button" onClick={() => router.back()}>

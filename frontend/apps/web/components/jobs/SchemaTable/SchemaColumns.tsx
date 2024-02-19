@@ -5,6 +5,12 @@ import EditTransformerOptions from '@/app/(mgmt)/[account]/transformers/EditTran
 import { Badge } from '@/components/ui/badge';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
   Transformer,
   isSystemTransformer,
   isUserDefinedTransformer,
@@ -13,20 +19,23 @@ import {
   JobMappingTransformerForm,
   SchemaFormValues,
 } from '@/yup-validations/jobs';
-import { PrimaryConstraint } from '@neosync/sdk';
-import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { ForeignConstraintTables, PrimaryConstraint } from '@neosync/sdk';
+import {
+  ExclamationTriangleIcon
+} from '@radix-ui/react-icons';
 import { ColumnDef, FilterFn } from '@tanstack/react-table';
 import { HTMLProps, useEffect, useRef } from 'react';
 import { SchemaColumnHeader } from './SchemaColumnHeader';
-import { Row } from './SchemaPageTable';
+import { Row as RowData } from './SchemaPageTable';
 import TransformerSelect from './TransformerSelect';
 
 interface Props {
   transformers: Transformer[];
   primaryConstraints?: { [key: string]: PrimaryConstraint };
+  foreignConstraints?: { [key: string]: ForeignConstraintTables };
 }
 
-export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
+export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
   const { transformers, primaryConstraints } = props;
 
   return [
@@ -72,6 +81,7 @@ export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
     },
     {
       accessorKey: 'table',
+      filterFn: exactMatchFilterFn,
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Table" />
       ),
@@ -100,20 +110,42 @@ export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
       maxSize: 200,
     },
     {
-      accessorKey: 'primaryConstraints',
-      id: 'primaryConstraints',
+      id: 'constraints',
+      accessorKey: 'constraints',
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Constraints" />
       ),
-      filterFn: 'includesString',
+      filterFn: filterConstraints,
+      sortingFn: sortConstraints,
       cell: ({ row }) => {
         return (
           <span className="max-w-[500px] truncate font-medium">
-            {(row.getValue('primaryConstraints') as string) && (
-              <Badge variant="outline" className="text-xs">
-                {row.getValue('primaryConstraints') as string}
-              </Badge>
-            )}
+            <div className="flex flex-col lg:flex-row items-start gap-1">
+              <div>
+                {row.original.primaryConstraints && (
+                  <Badge variant="outline" className="text-xs">
+                    {row.original.primaryConstraints}
+                  </Badge>
+                )}
+              </div>
+              <div>
+                {row.original.foreignConstraints?.column && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Badge variant="outline" className="text-xs">
+                          {/* need this here so we can sort by it */}
+                          {row.original.foreignConstraints?.value}
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {`Primary Key: ${row.original.foreignConstraints?.table}.${row.original.foreignConstraints?.column}`}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+              </div>
+            </div>
           </span>
         );
       },
@@ -261,6 +293,7 @@ const exactMatchFilterFn: FilterFn<any> = (
   return filterValue.includes(rowValue); // This checks for an exact match in the filterValue array
 };
 
+<<<<<<< HEAD
 // cleans up the data type values since some are too long , can add on more here as we
 function handleDataTypeBadge(dataType: string): string {
   const splitDt = dataType.split('(');
@@ -271,3 +304,49 @@ function handleDataTypeBadge(dataType: string): string {
       return dataType;
   }
 }
+=======
+const sortConstraints: SortingFn<any> = (
+  rowA: Row<RowData>,
+  rowB: Row<RowData>
+): number => {
+  console.log(
+    'rows',
+    rowA.original.primaryConstraints,
+    rowB.original.foreignConstraints?.value
+  );
+  const valueA: string =
+    rowA.original.primaryConstraints ??
+    rowA.original.foreignConstraints?.value ??
+    '';
+  const valueB: string =
+    rowB.original.primaryConstraints ??
+    rowB.original.foreignConstraints?.value ??
+    '';
+
+  // Prioritize "Primary Key", then "Foreign Key", then empty strings
+  if (valueA === 'Primary Key' || valueB === 'Primary Key') {
+    return valueA === 'Primary Key' ? -1 : 1;
+  } else if (valueA === 'Foreign Key' || valueB === 'Foreign Key') {
+    return valueA === 'Foreign Key' ? -1 : 1;
+  } else if (valueA === '' && valueB !== '') {
+    return 1;
+  } else if (valueA !== '' && valueB === '') {
+    return -1;
+  }
+
+  return valueA.localeCompare(valueB);
+};
+
+// eslint-disable-next-line
+const filterConstraints: FilterFn<any> = (
+  row,
+  columnId: string,
+  filterValue: unknown[]
+) => {
+  // Ensure the filter value and row value are exactly the same
+
+  console.log('filterVlaues', filterValue);
+  const rowValue = row.original();
+  return filterValue.some(rowValue);
+};
+>>>>>>> 0758dda2 (update sorting of constraints column to work)

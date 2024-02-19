@@ -3,7 +3,11 @@ import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { useGetMergedTransformers } from '@/libs/hooks/useGetMergedTransformers';
 import { JobMappingFormValues } from '@/yup-validations/jobs';
-import { GetConnectionSchemaResponse, PrimaryConstraint } from '@neosync/sdk';
+import {
+  ForeignConstraintTables,
+  GetConnectionSchemaResponse,
+  PrimaryConstraint,
+} from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { getSchemaColumns } from './SchemaColumns';
 import SchemaPageTable, { Row } from './SchemaPageTable';
@@ -12,10 +16,16 @@ interface Props {
   data: JobMappingFormValues[];
   excludeInputReqTransformers?: boolean; // will result in only generators (functions with no data input)
   primaryConstraints?: { [key: string]: PrimaryConstraint };
+  foreignConstraints?: { [key: string]: ForeignConstraintTables };
 }
 
 export function SchemaTable(props: Props): ReactElement {
-  const { data, excludeInputReqTransformers, primaryConstraints } = props;
+  const {
+    data,
+    excludeInputReqTransformers,
+    primaryConstraints,
+    foreignConstraints,
+  } = props;
 
   const { account } = useAccount();
   const { mergedTransformers, isLoading } = useGetMergedTransformers(
@@ -33,22 +43,36 @@ export function SchemaTable(props: Props): ReactElement {
   const columns = getSchemaColumns({
     transformers: mergedTransformers,
     primaryConstraints: primaryConstraints,
+    foreignConstraints: foreignConstraints,
   });
 
   if (isLoading || !tableData || tableData.length == 0) {
     return <SkeletonTable />;
   }
 
-  // tie in primary key data to the rows so we can filter by them
-  data.forEach((row: any) => {
-    const schemaTable = row.schema + '.' + row.table;
-    if (
-      primaryConstraints &&
-      primaryConstraints[schemaTable].columns.includes(row.column)
-    ) {
-      // add primary key constraints field so that we can filter by it in the table
-      // set it to primary key so that's what gets rendered in the table
+  // tie in constraint data to the rows so we can display and filter by them
+  data.forEach((row: JobMappingFormValues) => {
+    // build map look up key
+    const schemaTable = `${row.schema}.${row.table}`;
+
+    // add primary key constraints field so that we can filter by it in the table
+    // set it to string literal 'Primary Key' so that's what gets rendered in the table
+    if (primaryConstraints?.[schemaTable]?.columns.includes(row.column)) {
       row.primaryConstraints = 'Primary Key';
+    }
+
+    // check to see if foreign key exists and if it does then add it to the row
+    if (
+      foreignConstraints &&
+      foreignConstraints[schemaTable]?.constraints.filter(
+        (item) => item.column == row.column
+      ).length > 0
+    ) {
+      row.foreignConstraints = {
+        table: 'neosync_test.users',
+        column: 'email',
+        value: 'Foreign Key',
+      };
     }
   });
 
@@ -58,7 +82,6 @@ export function SchemaTable(props: Props): ReactElement {
         columns={columns}
         data={tableData}
         transformers={mergedTransformers}
-        // primaryConstraints={primaryConstraints}
       />
     </div>
   );
