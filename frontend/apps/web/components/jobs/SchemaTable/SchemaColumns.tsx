@@ -20,7 +20,7 @@ import {
   SchemaFormValues,
 } from '@/yup-validations/jobs';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
-import { ColumnDef, FilterFn } from '@tanstack/react-table';
+import { ColumnDef, FilterFn, Row, SortingFn } from '@tanstack/react-table';
 import { HTMLProps, useEffect, useRef } from 'react';
 import { SchemaColumnHeader } from './SchemaColumnHeader';
 import { Row as RowData } from './SchemaPageTable';
@@ -288,7 +288,6 @@ const exactMatchFilterFn: FilterFn<any> = (
   return filterValue.includes(rowValue); // this checks for an exact match in the filterValue array
 };
 
-<<<<<<< HEAD
 // cleans up the data type values since some are too long , can add on more here as we
 function handleDataTypeBadge(dataType: string): string {
   const splitDt = dataType.split('(');
@@ -299,7 +298,6 @@ function handleDataTypeBadge(dataType: string): string {
       return dataType;
   }
 }
-=======
 const sortConstraints: SortingFn<any> = (
   rowA: Row<RowData>,
   rowB: Row<RowData>
@@ -345,4 +343,3 @@ const filterConstraints: FilterFn<RowData> = (
 
   return matchesPrimary || matchesForeign;
 };
->>>>>>> 0758dda2 (update sorting of constraints column to work)
