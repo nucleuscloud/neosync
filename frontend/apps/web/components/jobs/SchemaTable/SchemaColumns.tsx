@@ -323,7 +323,7 @@ const sortConstraints: SortingFn<any> = (
     rowB.original.foreignConstraints?.value ??
     '';
 
-  // Prioritize "Primary Key", then "Foreign Key", then empty strings
+  // prioritize "Primary Key", then "Foreign Key", then empty strings
   if (valueA === 'Primary Key' || valueB === 'Primary Key') {
     return valueA === 'Primary Key' ? -1 : 1;
   } else if (valueA === 'Foreign Key' || valueB === 'Foreign Key') {
@@ -337,16 +337,20 @@ const sortConstraints: SortingFn<any> = (
   return valueA.localeCompare(valueB);
 };
 
-// eslint-disable-next-line
-const filterConstraints: FilterFn<any> = (
-  row,
-  columnId: string,
-  filterValue: unknown[]
-) => {
-  // Ensure the filter value and row value are exactly the same
+const filterConstraints: FilterFn<RowData> = (
+  row: Row<RowData>,
+  filterValue: string
+): boolean => {
+  const filterValueLower = filterValue.toLowerCase();
 
-  console.log('filterVlaues', filterValue);
-  const rowValue = row.original();
-  return filterValue.some(rowValue);
+  const matchesPrimary =
+    row.original.primaryConstraints?.toLowerCase().includes(filterValueLower) ??
+    false;
+  const matchesForeign =
+    row.original.foreignConstraints?.value
+      ?.toLowerCase()
+      .includes(filterValueLower) ?? false;
+
+  return matchesPrimary || matchesForeign;
 };
 >>>>>>> 0758dda2 (update sorting of constraints column to work)
