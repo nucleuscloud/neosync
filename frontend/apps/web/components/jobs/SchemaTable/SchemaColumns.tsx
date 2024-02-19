@@ -13,6 +13,7 @@ import {
   JobMappingTransformerForm,
   SchemaFormValues,
 } from '@/yup-validations/jobs';
+import { PrimaryConstraint } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ColumnDef, FilterFn } from '@tanstack/react-table';
 import { HTMLProps, useEffect, useRef } from 'react';
@@ -22,10 +23,11 @@ import TransformerSelect from './TransformerSelect';
 
 interface Props {
   transformers: Transformer[];
+  primaryConstraints?: { [key: string]: PrimaryConstraint };
 }
 
 export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
-  const { transformers } = props;
+  const { transformers, primaryConstraints } = props;
 
   return [
     {
@@ -58,7 +60,6 @@ export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Schema" />
       ),
-      sortDescFirst: true,
       filterFn: exactMatchFilterFn, //handles the multi-select on the schema drop down
       cell: ({ row }) => {
         return (
@@ -71,8 +72,6 @@ export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
     },
     {
       accessorKey: 'table',
-      filterFn: exactMatchFilterFn,
-      sortDescFirst: true,
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Table" />
       ),
@@ -99,6 +98,26 @@ export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
       },
       size: 200,
       maxSize: 200,
+    },
+    {
+      accessorKey: 'primaryConstraints',
+      id: 'primaryConstraints',
+      header: ({ column }) => (
+        <SchemaColumnHeader column={column} title="Constraints" />
+      ),
+      filterFn: 'includesString',
+      cell: ({ row }) => {
+        return (
+          <span className="max-w-[500px] truncate font-medium">
+            {(row.getValue('primaryConstraints') as string) && (
+              <Badge variant="outline" className="text-xs">
+                {row.getValue('primaryConstraints') as string}
+              </Badge>
+            )}
+          </span>
+        );
+      },
+      size: 200,
     },
     {
       accessorKey: 'dataType',

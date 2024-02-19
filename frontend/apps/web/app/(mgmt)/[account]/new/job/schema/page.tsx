@@ -2,11 +2,12 @@
 
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
-import { SchemaTable } from '@/components/jobs/SchemaTable/schema-table';
+import { SchemaTable } from '@/components/jobs/SchemaTable/SchemaTable';
 import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
+import { useGetConnectionPrimaryConstraints } from '@/libs/hooks/useGetConnectionPrimaryConstraints';
 import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
 import {
   SCHEMA_FORM_SCHEMA,
@@ -64,6 +65,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     connectFormValues.sourceId
   );
 
+  const { data: primaryConstraints } = useGetConnectionPrimaryConstraints(
+    account?.id ?? '',
+    connectFormValues.sourceId
+  );
+
   const form = useForm<SchemaFormValues>({
     resolver: yupResolver<SchemaFormValues>(SCHEMA_FORM_SCHEMA),
     values: getFormValues(
@@ -104,7 +110,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <SchemaTable data={form.watch().mappings} />
+          <SchemaTable
+            data={form.watch().mappings}
+            primaryConstraints={primaryConstraints?.tableConstraints}
+          />
           <div className="flex flex-row gap-1 justify-between">
             <Button key="back" type="button" onClick={() => router.back()}>
               Back

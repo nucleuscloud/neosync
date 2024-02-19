@@ -34,12 +34,14 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   transformers: Transformer[];
+  // primaryConstraints?: { [key: string]: PrimaryConstraint };
 }
 
 export default function SchemaPageTable<TData, TValue>({
   columns,
   data,
   transformers,
+  // primaryConstraints,
 }: DataTableProps<TData, TValue>): ReactElement {
   // const [columnVisibility, setColumnVisibility] =
   //   React.useState<VisibilityState>({ schema: false }); // hides the schema column

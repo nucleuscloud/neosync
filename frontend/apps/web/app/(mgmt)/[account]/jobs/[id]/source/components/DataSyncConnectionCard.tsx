@@ -3,7 +3,7 @@ import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
 import {
   SchemaTable,
   getConnectionSchema,
-} from '@/components/jobs/SchemaTable/schema-table';
+} from '@/components/jobs/SchemaTable/SchemaTable';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Button } from '@/components/ui/button';
