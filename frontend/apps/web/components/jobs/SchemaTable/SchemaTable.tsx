@@ -68,9 +68,10 @@ export function SchemaTable(props: Props): ReactElement {
         (item) => item.column == row.column
       ).length > 0
     ) {
+      const fk = foreignConstraints[schemaTable]?.constraints;
       row.foreignConstraints = {
-        table: 'neosync_test.users',
-        column: 'email',
+        table: fk[0].foreignKey?.table ?? '', // for some reason the foreignKey constraints object comes back from the API with two identical objects in an array, so just getting the first one. Need to investigate further.
+        column: fk[0].foreignKey?.column ?? '',
         value: 'Foreign Key',
       };
     }

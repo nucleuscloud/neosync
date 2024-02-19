@@ -133,7 +133,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger>
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-xs delay-0">
                           {/* need this here so we can sort by it */}
                           {row.original.foreignConstraints?.value}
                         </Badge>
@@ -288,9 +288,9 @@ const exactMatchFilterFn: FilterFn<any> = (
   columnId: string,
   filterValue: unknown[]
 ) => {
-  // Ensure the filter value and row value are exactly the same
+  // ensure the filter value and row value are exactly the same
   const rowValue = row.getValue(columnId);
-  return filterValue.includes(rowValue); // This checks for an exact match in the filterValue array
+  return filterValue.includes(rowValue); // this checks for an exact match in the filterValue array
 };
 
 <<<<<<< HEAD
@@ -309,11 +309,6 @@ const sortConstraints: SortingFn<any> = (
   rowA: Row<RowData>,
   rowB: Row<RowData>
 ): number => {
-  console.log(
-    'rows',
-    rowA.original.primaryConstraints,
-    rowB.original.foreignConstraints?.value
-  );
   const valueA: string =
     rowA.original.primaryConstraints ??
     rowA.original.foreignConstraints?.value ??
@@ -337,6 +332,7 @@ const sortConstraints: SortingFn<any> = (
   return valueA.localeCompare(valueB);
 };
 
+// custom filter for the constrainst column
 const filterConstraints: FilterFn<RowData> = (
   row: Row<RowData>,
   filterValue: string
@@ -346,6 +342,7 @@ const filterConstraints: FilterFn<RowData> = (
   const matchesPrimary =
     row.original.primaryConstraints?.toLowerCase().includes(filterValueLower) ??
     false;
+
   const matchesForeign =
     row.original.foreignConstraints?.value
       ?.toLowerCase()
