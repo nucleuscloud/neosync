@@ -19,7 +19,6 @@ import {
   JobMappingTransformerForm,
   SchemaFormValues,
 } from '@/yup-validations/jobs';
-import { ForeignConstraintTables, PrimaryConstraint } from '@neosync/sdk';
 import {
   ExclamationTriangleIcon
 } from '@radix-ui/react-icons';
@@ -31,12 +30,10 @@ import TransformerSelect from './TransformerSelect';
 
 interface Props {
   transformers: Transformer[];
-  primaryConstraints?: { [key: string]: PrimaryConstraint };
-  foreignConstraints?: { [key: string]: ForeignConstraintTables };
 }
 
 export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
-  const { transformers, primaryConstraints } = props;
+  const { transformers } = props;
 
   return [
     {
