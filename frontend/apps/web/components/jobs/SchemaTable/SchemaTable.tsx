@@ -42,8 +42,6 @@ export function SchemaTable(props: Props): ReactElement {
 
   const columns = getSchemaColumns({
     transformers: mergedTransformers,
-    primaryConstraints: primaryConstraints,
-    foreignConstraints: foreignConstraints,
   });
 
   if (isLoading || !tableData || tableData.length == 0) {
