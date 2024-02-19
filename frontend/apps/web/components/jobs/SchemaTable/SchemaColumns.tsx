@@ -2,6 +2,7 @@
 
 import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
 import EditTransformerOptions from '@/app/(mgmt)/[account]/transformers/EditTransformerOptions';
+import { Badge } from '@/components/ui/badge';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
 import {
   Transformer,
@@ -107,7 +108,9 @@ export function getSchemaColumns(props: Props): ColumnDef<Row>[] {
       cell: ({ row }) => {
         return (
           <span className="max-w-[500px] truncate font-medium">
-            {row.getValue('dataType')}
+            <Badge variant="outline">
+              {handleDataTypeBadge(row.getValue('dataType'))}
+            </Badge>
           </span>
         );
       },
@@ -238,3 +241,14 @@ const exactMatchFilterFn: FilterFn<any> = (
   const rowValue = row.getValue(columnId);
   return filterValue.includes(rowValue); // This checks for an exact match in the filterValue array
 };
+
+// cleans up the data type values since some are too long , can add on more here as we
+function handleDataTypeBadge(dataType: string): string {
+  const splitDt = dataType.split('(');
+  switch (splitDt[0]) {
+    case 'character varying':
+      return 'varchar(' + splitDt[1];
+    default:
+      return dataType;
+  }
+}
