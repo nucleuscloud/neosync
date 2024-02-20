@@ -12,24 +12,21 @@ export default function ValueProps(): ReactElement {
       title: 'Unblock local development ',
       description:
         'Give developers the ability to self-serve de-identified and synthetic data locally whenever they need it without having to worry about sensitive data privacy or security. ',
-      image:
-        'https://assets.nucleuscloud.com/neosync/marketingsite/localdev.svg',
+      image: '/images/unblocklocal.svg',
       link: '/solutions/unblock-local-development',
     },
     {
       title: 'Fix broken staging environments',
       description:
         'Catch production bugs and ship faster when you hydrate your staging and QA environments with production-like data that is safe and fast to generate. ',
-      image:
-        'https://assets.nucleuscloud.com/neosync/marketingsite/stagingsvg.svg',
+      image: '/images/brokenenv.svg',
       link: '/solutions/fix-staging-environments',
     },
     {
       title: 'Keep environments in sync',
       description:
         'Speed up your dev and test cycles. Make sure your environments stay in sync with the latest de-identified and synthetic data that you can refresh whenever you need to.',
-      image:
-        'https://assets.nucleuscloud.com/neosync/marketingsite/syncenv.svg',
+      image: '/images/envsync3.svg',
       link: '/solutions/keep-environments-in-sync',
     },
     {

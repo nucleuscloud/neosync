@@ -19,7 +19,7 @@ you're ready, deploy Neosync using a Helm Chart or Docker
     Compose.`,
       image: (
         <Image
-          src="https://assets.nucleuscloud.com/neosync/marketingsite/deploy.svg"
+          src="/images/deploystep.svg"
           alt="pre"
           width="800"
           height="317"
