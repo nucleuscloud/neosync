@@ -29,13 +29,16 @@ export default function TeamSection(): ReactElement {
     },
   ];
   return (
-    <div className="flex px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px]">
-      <div className="flex flex-col-reverse lg:flex-row  shadow-lg rounded-xl bg-gradient-to-tr from-[#0F0F0F] to-[#262626] text-gray-200">
-        <div className="flex flex-col text-center pb-[15px] lg:pb-[64px] items-center pt-[44px] lg:mx-40px">
+    <div className="">
+      <div className="text-gray-200 font-semibold text-2xl lg:text-4xl font-satoshi text-center">
+        Our Team
+      </div>
+      <div className="flex flex-col-reverse lg:flex-row  shadow-lg rounded-xltext-gray-200">
+        <div className="flex flex-col text-center pb-[15px] lg:pb-[64px] items-center">
           <div className="font-satoshi pt-16 text-lg px-2 lg:px-40">
             Neosync is built by a small, focused team based in San Francisco,
             California working on challenging problems at the intersection of
-            data privacy, security and developer experience.
+            data privacy, security and distributed systems.
           </div>
           <div className="flex flex-col lg:flex-row gap-4 pt-10">
             {team.map((item) => (
