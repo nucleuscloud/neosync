@@ -465,7 +465,7 @@ export const LocalDev = (props: Props) => {
             width="257.529"
             height="154.181"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
             <feFlood flood-opacity="0" result="BackgroundImageFix" />
             <feColorMatrix
@@ -500,7 +500,7 @@ export const LocalDev = (props: Props) => {
             width="148.816"
             height="243.259"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
             <feFlood flood-opacity="0" result="BackgroundImageFix" />
             <feColorMatrix
@@ -535,7 +535,7 @@ export const LocalDev = (props: Props) => {
             width="30.6621"
             height="28.3101"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
             <feFlood flood-opacity="0" result="BackgroundImageFix" />
             <feColorMatrix
@@ -570,7 +570,7 @@ export const LocalDev = (props: Props) => {
             width="145.52"
             height="241.229"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
             <feFlood flood-opacity="0" result="BackgroundImageFix" />
             <feColorMatrix
@@ -605,7 +605,7 @@ export const LocalDev = (props: Props) => {
             width="28.834"
             height="25.3633"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
             <feFlood flood-opacity="0" result="BackgroundImageFix" />
             <feColorMatrix
@@ -640,7 +640,7 @@ export const LocalDev = (props: Props) => {
             width="92.2637"
             height="72.8652"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
             <feFlood flood-opacity="0" result="BackgroundImageFix" />
             <feColorMatrix
@@ -675,7 +675,7 @@ export const LocalDev = (props: Props) => {
             width="139.391"
             height="90.5908"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
             <feFlood flood-opacity="0" result="BackgroundImageFix" />
             <feColorMatrix
@@ -710,7 +710,7 @@ export const LocalDev = (props: Props) => {
             width="56.0664"
             height="69.2866"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
             <feFlood flood-opacity="0" result="BackgroundImageFix" />
             <feColorMatrix

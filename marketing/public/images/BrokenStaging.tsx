@@ -539,7 +539,7 @@ export const BrokenStaging = (props: Props) => {
             width="157.822"
             height="95.5"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
             <feFlood flood-opacity="0" result="BackgroundImageFix" />
             <feColorMatrix
@@ -574,7 +574,7 @@ export const BrokenStaging = (props: Props) => {
             width="176.009"
             height="106"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
             <feFlood flood-opacity="0" result="BackgroundImageFix" />
             <feColorMatrix
@@ -609,7 +609,7 @@ export const BrokenStaging = (props: Props) => {
             width="120.584"
             height="74"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
             <feFlood flood-opacity="0" result="BackgroundImageFix" />
             <feColorMatrix
@@ -644,7 +644,7 @@ export const BrokenStaging = (props: Props) => {
             width="198.525"
             height="119"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
             <feFlood flood-opacity="0" result="BackgroundImageFix" />
             <feColorMatrix
@@ -679,7 +679,7 @@ export const BrokenStaging = (props: Props) => {
             width="169.08"
             height="102"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
             <feFlood flood-opacity="0" result="BackgroundImageFix" />
             <feColorMatrix
@@ -714,7 +714,7 @@ export const BrokenStaging = (props: Props) => {
             width="155.225"
             height="94"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
             <feFlood flood-opacity="0" result="BackgroundImageFix" />
             <feColorMatrix
@@ -749,7 +749,7 @@ export const BrokenStaging = (props: Props) => {
             width="92.2637"
             height="72.8652"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
             <feFlood flood-opacity="0" result="BackgroundImageFix" />
             <feColorMatrix
@@ -784,7 +784,7 @@ export const BrokenStaging = (props: Props) => {
             width="139.391"
             height="90.5908"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
             <feFlood flood-opacity="0" result="BackgroundImageFix" />
             <feColorMatrix
@@ -819,7 +819,7 @@ export const BrokenStaging = (props: Props) => {
             width="56.0664"
             height="69.2866"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
             <feFlood flood-opacity="0" result="BackgroundImageFix" />
             <feColorMatrix
@@ -854,7 +854,7 @@ export const BrokenStaging = (props: Props) => {
             width="92.2637"
             height="72.8652"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
             <feFlood flood-opacity="0" result="BackgroundImageFix" />
             <feColorMatrix
@@ -889,7 +889,7 @@ export const BrokenStaging = (props: Props) => {
             width="139.392"
             height="90.5908"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
             <feFlood flood-opacity="0" result="BackgroundImageFix" />
             <feColorMatrix
@@ -924,7 +924,7 @@ export const BrokenStaging = (props: Props) => {
             width="56.0664"
             height="69.2866"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
             <feFlood flood-opacity="0" result="BackgroundImageFix" />
             <feColorMatrix
@@ -959,7 +959,7 @@ export const BrokenStaging = (props: Props) => {
             width="92.2637"
             height="72.8652"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
             <feFlood flood-opacity="0" result="BackgroundImageFix" />
             <feColorMatrix
@@ -994,7 +994,7 @@ export const BrokenStaging = (props: Props) => {
             width="139.391"
             height="90.5908"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
             <feFlood flood-opacity="0" result="BackgroundImageFix" />
             <feColorMatrix
@@ -1029,7 +1029,7 @@ export const BrokenStaging = (props: Props) => {
             width="56.0664"
             height="69.2866"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
             <feFlood flood-opacity="0" result="BackgroundImageFix" />
             <feColorMatrix
