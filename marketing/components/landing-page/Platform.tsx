@@ -14,7 +14,7 @@ export default function Platform(): ReactElement {
         'Neosync supports async scheduling, retries, alerting and syncing across multiple destinations.',
       header: (
         <Image
-          src={'/images/bento-orchestration.svg'}
+          src={'/images/conn.svg'}
           alt="st"
           width="690"
           height="290"
@@ -61,7 +61,7 @@ export default function Platform(): ReactElement {
         'Use a Transformer to anonymize your data or create you own transformation in code. ',
       header: (
         <Image
-          src={'/images/bento-data-anon.svg'}
+          src={'/images/datanon.svg'}
           alt="st"
           width="690"
           height="290"

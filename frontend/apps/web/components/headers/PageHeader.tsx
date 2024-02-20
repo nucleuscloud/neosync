@@ -54,7 +54,7 @@ export default function PageHeader(props: Props) {
         {copyIcon && copyIcon}
       </div>
 
-      <Separator />
+      <Separator className="dark:bg-gray-600" />
     </div>
   );
 }

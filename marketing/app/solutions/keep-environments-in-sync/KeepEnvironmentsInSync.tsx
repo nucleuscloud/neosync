@@ -7,22 +7,19 @@ export default function KeepEnvironmentsInSync(): ReactElement {
       title: 'No more environment mismatches',
       description:
         'Keep dev, staging and CI all in sync with the latest data. No more "well, it works locally!"',
-      image:
-        'https://assets.nucleuscloud.com/neosync/marketingsite/stagingsvg.svg',
+      image: '/images/brokenenv.svg',
     },
     {
       title: 'Enable developers to self-service',
       description:
         'Developers can self-serve de-identified or synthetic data whenever they need to without waiting on other teams. ',
-      image:
-        'https://assets.nucleuscloud.com/neosync/marketingsite/localdev.svg',
+      image: '/images/unblocklocal.svg',
     },
     {
       title: 'Run syncs ad-hoc or on a schedule',
       description:
         'Configure your data syncs to run on a schedule or trigger then ad-hoc to get the latest data. ',
-      image:
-        'https://assets.nucleuscloud.com/neosync/marketingsite/syncenv.svg',
+      image: '/images/envsync3.svg',
     },
     {
       title: `Frictionless security, privacy and compliance`,
