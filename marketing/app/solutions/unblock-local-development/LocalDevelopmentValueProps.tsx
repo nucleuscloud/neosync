@@ -14,15 +14,13 @@ export default function LocalDevelopmentValueProps(): ReactElement {
       title: 'Enable developers to self-service',
       description:
         'Developers can self-serve de-identified or synthetic data whenever they need to without waiting on other teams. ',
-      image:
-        'https://assets.nucleuscloud.com/neosync/marketingsite/localdev.svg',
+      image: '/images/unblocklocal.svg',
     },
     {
       title: 'Hydrate local databases',
       description:
         'Automate hydrating local databases with the latest anonymized production data. Use the Neosync CLI to run ad-hoc jobs. ',
-      image:
-        'https://assets.nucleuscloud.com/neosync/marketingsite/syncenv.svg',
+      image: '/images/envsync3.svg',
     },
     {
       title: `Frictionless security, privacy and compliance`,

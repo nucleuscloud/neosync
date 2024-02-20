@@ -7,7 +7,7 @@ import { PiBookOpenText } from 'react-icons/pi';
 
 export default function Hero(): ReactElement {
   return (
-    <div className="flex flex-col lg:flex-row items-center lg:pb-20 z-20">
+    <div className="flex flex-col lg:flex-row items-center pb-8 lg:pb-20 z-40 mx-10 lg:mx-40">
       <div className="flex flex-col items-center lg:items-start gap-2 lg:gap-10">
         <div className="text-gray-900 font-semibold lg:text-6xl text-4xl leading-tight text-center lg:text-left">
           Fix Broken Staging Environments

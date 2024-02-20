@@ -53,7 +53,7 @@ export default function Intergrations(): ReactElement {
     },
     {
       name: 'AWS RDS',
-      logo: <Image src="/images/rds.svg" width="48" height="48" alt="rds" />,
+      logo: <Image src="/images/rds.svg" width="40" height="48" alt="rds" />,
       href: 'https://docs.neosync.dev/connections/postgres',
     },
   ];

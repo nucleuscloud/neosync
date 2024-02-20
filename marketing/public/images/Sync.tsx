@@ -610,7 +610,7 @@ export const SyncDash = () => {
           y2="-1.5"
           transform="matrix(0.866025 -0.5 0 1 646 242.473)"
           stroke="#2246C8"
-          strokeWidth="3"
+          stroke-width="3"
           strokeDasharray="30 2"
           className="edge-path"
         />
@@ -620,7 +620,7 @@ export const SyncDash = () => {
           y2="-1.5"
           transform="matrix(0.866025 -0.5 0 1 646 252.304)"
           stroke="#2246C8"
-          strokeWidth="3"
+          stroke-width="3"
           strokeDasharray="30 2"
           className="edge-path"
         />
@@ -630,7 +630,7 @@ export const SyncDash = () => {
           y2="-1.5"
           transform="matrix(0.866025 -0.5 0 1 646 261.241)"
           stroke="#2246C8"
-          strokeWidth="3"
+          stroke-width="3"
           strokeDasharray="30 2"
           className="edge-path"
         />
@@ -640,7 +640,7 @@ export const SyncDash = () => {
           y2="-1.5"
           transform="matrix(0.866025 -0.5 0 1 646 279.116)"
           stroke="#2246C8"
-          strokeWidth="3"
+          stroke-width="3"
           strokeDasharray="30 2"
           className="edge-path"
         />
@@ -650,7 +650,7 @@ export const SyncDash = () => {
           y2="-1.5"
           transform="matrix(0.866025 -0.5 0 1 646 288.053)"
           stroke="#2246C8"
-          strokeWidth="3"
+          stroke-width="3"
           strokeDasharray="30 2"
         />
         <line
@@ -659,7 +659,7 @@ export const SyncDash = () => {
           y2="-1.5"
           transform="matrix(0.866025 -0.5 0 1 646 314.865)"
           stroke="#2246C8"
-          strokeWidth="3"
+          stroke-width="3"
           strokeDasharray="30 2"
           className="edge-path"
         />
@@ -669,7 +669,7 @@ export const SyncDash = () => {
           y2="-1.5"
           transform="matrix(0.866025 -0.5 0 1 646 305.927)"
           stroke="#2246C8"
-          strokeWidth="3"
+          stroke-width="3"
           strokeDasharray="30 2"
           className="edge-path"
         />

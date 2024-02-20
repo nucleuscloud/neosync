@@ -14,15 +14,13 @@ export default function FixBrokenStaging(): ReactElement {
       title: 'Quickly refresh environments',
       description:
         'Configure your data syncs to run on a schedule or trigger then ad-hoc to get the latest data. ',
-      image:
-        'https://assets.nucleuscloud.com/neosync/marketingsite/syncenv.svg',
+      image: '/images/envsync3.svg',
     },
     {
       title: 'Enable developers to self-service',
       description:
         'Developers can self-serve de-identified or synthetic data whenever they need to without waiting on other teams. ',
-      image:
-        'https://assets.nucleuscloud.com/neosync/marketingsite/localdev.svg',
+      image: '/images/unblocklocal.svg',
     },
     {
       title: `Frictionless security, privacy and compliance`,
