@@ -903,17 +903,19 @@ Note that this does not work for hex values: 0x00 -> 0x1F such as chinese charac
 
 **Configurations**
 
-There is no configuration for this transformer.
+| Name  | Description                                                                                                                       | Default | Example Input | Example Output |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------- | -------------- |
+| Regex | A regular expression to match a part of the string to scramble. If no regex is specified that we will scramble the entire string. | empty   | ello          | hello -> hmato |
 
 **Examples**
 
 There are several ways you can mix-and-match configurations to get different potential random integer formats. Here are some possible combinations:
 
-| Example Input | Example Output |
-| ------------- | -------------- |
-| helloworld    | didlenfioq     |
-| Hello World!  | Ijalso Nfmsd&  |
-| Hello 1234    | Praji 2873     |
+| Regex    | Example Input | Example Output |
+| -------- | ------------- | -------------- |
+|          | helloworld    | didlenfioq     |
+| ello     | Hello World!  | Hjiqs World!   |
+| Hello 12 | Hello 1234    | Praji 2834     |
 
 ### Passthrough\{#passthrough}
 
