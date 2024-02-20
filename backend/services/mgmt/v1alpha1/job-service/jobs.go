@@ -1359,14 +1359,42 @@ func (s *Service) SetJobWorkflowOptions(
 	if err != nil {
 		return nil, err
 	}
-
-	_, err = s.db.Q.SetJobWorkflowOptions(ctx, s.db.Db, db_queries.SetJobWorkflowOptionsParams{
-		ID:              jobUuid,
-		WorkflowOptions: wfOptions,
-		UpdatedByID:     *userUuid,
-	})
+	// update temporal scheduled job
+	scheduleHandle, err := s.temporalWfManager.GetScheduleHandleClientByAccount(ctx, job.Msg.Job.AccountId, job.Msg.Job.Id, logger)
 	if err != nil {
-		return nil, fmt.Errorf("unable to set job workflow options: %w", err)
+		return nil, fmt.Errorf("unable to retrieve temproal schedule client by job: %w", err)
+	}
+
+	if err := s.db.WithTx(ctx, nil, func(dbtx nucleusdb.BaseDBTX) error {
+		_, err = s.db.Q.SetJobWorkflowOptions(ctx, dbtx, db_queries.SetJobWorkflowOptionsParams{
+			ID:              jobUuid,
+			WorkflowOptions: wfOptions,
+			UpdatedByID:     *userUuid,
+		})
+		if err != nil {
+			return fmt.Errorf("unable to set job workflow options: %w", err)
+		}
+
+		err = scheduleHandle.Update(ctx, temporalclient.ScheduleUpdateOptions{
+			DoUpdate: func(schedule temporalclient.ScheduleUpdateInput) (*temporalclient.ScheduleUpdate, error) {
+				action, ok := schedule.Description.Schedule.Action.(*temporalclient.ScheduleWorkflowAction)
+				if !ok {
+					return nil, fmt.Errorf("unable to cast temporal action to *temporalclient.ScheduleWorkflowAction. Type was: %T", schedule.Description.Schedule.Action)
+				}
+				action.WorkflowRunTimeout = getDurationFromInt(wfOptions.RunTimeout)
+				schedule.Description.Schedule.Action = action
+				return &temporalclient.ScheduleUpdate{
+					Schedule: &schedule.Description.Schedule,
+				}, nil
+			},
+		})
+		if err != nil {
+			logger.Error(fmt.Errorf("unable to update schedule: %w", err).Error())
+			return fmt.Errorf("unable to update workflow run timeout on temporal schedule: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return nil, err
 	}
 
 	updatedJob, err := s.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{
@@ -1376,7 +1404,15 @@ func (s *Service) SetJobWorkflowOptions(
 		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
 		return nil, err
 	}
+
 	return connect.NewResponse(&mgmtv1alpha1.SetJobWorkflowOptionsResponse{Job: updatedJob.Msg.Job}), nil
+}
+
+func getDurationFromInt(input *int64) time.Duration {
+	if input == nil {
+		return time.Duration(0)
+	}
+	return time.Duration(*input)
 }
 
 func (s *Service) SetJobSyncOptions(
