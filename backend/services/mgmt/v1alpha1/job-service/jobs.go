@@ -1366,7 +1366,7 @@ func (s *Service) SetJobWorkflowOptions(
 	}
 
 	if err := s.db.WithTx(ctx, nil, func(dbtx nucleusdb.BaseDBTX) error {
-		_, err = s.db.Q.SetJobWorkflowOptions(ctx, s.db.Db, db_queries.SetJobWorkflowOptionsParams{
+		_, err = s.db.Q.SetJobWorkflowOptions(ctx, dbtx, db_queries.SetJobWorkflowOptionsParams{
 			ID:              jobUuid,
 			WorkflowOptions: wfOptions,
 			UpdatedByID:     *userUuid,
