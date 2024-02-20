@@ -88,11 +88,11 @@ func (t *Sshtunnel) Serve(listener net.Listener, ready chan<- any) {
 		c := make(chan net.Conn)
 		go newConnectionWaiter(listener, c, ready, hasSignaledReady, t.logger) // beings accepting connections and sends the connection onto the channel
 		hasSignaledReady = true
-		t.logger.Info(fmt.Sprintf("listening for new connections on %s", t.Local.String()))
+		t.logger.Debug(fmt.Sprintf("listening for new connections on %s", t.Local.String()))
 
 		select {
 		case <-t.close:
-			t.logger.Info("received close signal...")
+			t.logger.Debug("received close signal...")
 			t.isOpen = false
 			go func() {
 				if err := listener.Close(); err != nil {
@@ -101,14 +101,14 @@ func (t *Sshtunnel) Serve(listener net.Listener, ready chan<- any) {
 			}()
 		case conn := <-c:
 			t.connections = append(t.connections, conn)
-			t.logger.Info(fmt.Sprintf("accepted connection from %s", conn.RemoteAddr().String()))
+			t.logger.Debug(fmt.Sprintf("accepted connection from %s", conn.RemoteAddr().String()))
 			go t.forward(conn)
 		}
 	}
 	total := len(t.connections)
-	t.logger.Info(fmt.Sprintf("attempting to close %d connections", total))
+	t.logger.Debug(fmt.Sprintf("attempting to close %d connections", total))
 	for i, conn := range t.connections {
-		t.logger.Info(fmt.Sprintf("closing the netConn (%d of %d)", i+1, total))
+		t.logger.Debug(fmt.Sprintf("closing the netConn (%d of %d)", i+1, total))
 		err := conn.Close()
 		if err != nil {
 			if errors.Is(err, net.ErrClosed) {
@@ -118,16 +118,16 @@ func (t *Sshtunnel) Serve(listener net.Listener, ready chan<- any) {
 		}
 	}
 	total = len(t.serverConnections)
-	t.logger.Info(fmt.Sprintf("attempting to close %d server connections", total))
+	t.logger.Debug(fmt.Sprintf("attempting to close %d server connections", total))
 	for i, conn := range t.serverConnections {
-		t.logger.Info(fmt.Sprintf("closing the serverConn (%d of %d)", i+1, total))
+		t.logger.Debug(fmt.Sprintf("closing the serverConn (%d of %d)", i+1, total))
 		err := conn.Close()
 		if err != nil {
 			t.logger.Error(fmt.Sprintf("failed to close server connection: %s", err.Error()))
 		}
 	}
 
-	t.logger.Info("tunnel closed")
+	t.logger.Debug("tunnel closed")
 }
 
 func (t *Sshtunnel) forward(localConnection net.Conn) {
@@ -141,13 +141,13 @@ func (t *Sshtunnel) forward(localConnection net.Conn) {
 			attemptsLeft--
 
 			if attemptsLeft <= 0 {
-				t.logger.Info(fmt.Sprintf("server dial error: %v: exceeded %d attempts", err, t.maxConnectionAttempts))
+				t.logger.Warn(fmt.Sprintf("server dial error: %v: exceeded %d attempts", err, t.maxConnectionAttempts))
 
 				if err := localConnection.Close(); err != nil {
 					t.logger.Error(fmt.Sprintf("failed to close local connection: %v", err))
 					return
 				}
-				t.logger.Info("closed local connection")
+				t.logger.Debug("closed local connection")
 				return
 			}
 			t.logger.Error(fmt.Sprintf("server dial error: %v: attempt %d/%d", err, t.maxConnectionAttempts-attemptsLeft, t.maxConnectionAttempts))
@@ -156,7 +156,7 @@ func (t *Sshtunnel) forward(localConnection net.Conn) {
 		}
 	}
 
-	t.logger.Info(fmt.Sprintf("connected to %s (1 of 2)", t.Server.String()))
+	t.logger.Debug(fmt.Sprintf("connected to %s (1 of 2)", t.Server.String()))
 	t.serverConnections = append(t.serverConnections, serverConn)
 
 	remoteConnection, err := serverConn.Dial("tcp", t.Remote.String())
@@ -171,7 +171,7 @@ func (t *Sshtunnel) forward(localConnection net.Conn) {
 		return
 	}
 	t.connections = append(t.connections, remoteConnection)
-	t.logger.Info(fmt.Sprintf("connected to %s (2 of 2)", t.Remote.String()))
+	t.logger.Debug(fmt.Sprintf("connected to %s (2 of 2)", t.Remote.String()))
 	go copyConnection(localConnection, remoteConnection, t.logger)
 	go copyConnection(remoteConnection, localConnection, t.logger)
 }
@@ -186,7 +186,7 @@ func copyConnection(writer, reader net.Conn, logger *slog.Logger) {
 func newConnectionWaiter(listener net.Listener, c chan<- net.Conn, ready chan<- any, hasSignaledReady bool, logger *slog.Logger) {
 	go func() {
 		if !hasSignaledReady {
-			logger.Info("notifying ready channel")
+			logger.Debug("notifying ready channel")
 			ready <- struct{}{}
 		}
 	}()
@@ -197,7 +197,7 @@ func newConnectionWaiter(listener net.Listener, c chan<- net.Conn, ready chan<- 
 		}
 		return
 	}
-	logger.Info("sending connection to channel")
+	logger.Debug("sending connection to channel")
 	c <- conn
 }
 

@@ -100,17 +100,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	}
 
 	envKeyDsnSyncMap := sync.Map{}
-	// tunnelMap := sync.Map{}
 	defer func() {
-		// tunnelMap.Range(func(key, value any) bool {
-		// 	tunnel, ok := value.(*sshtunnel.Sshtunnel)
-		// 	if !ok {
-		// 		logger.Warn("unable to convert value to Sshtunnel for key", "key", key)
-		// 		return true
-		// 	}
-		// 	tunnel.Close()
-		// 	return true
-		// })
 		for _, conn := range connections {
 			a.tunnelmanager.Release(conn.Id)
 		}
@@ -126,28 +116,6 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 			if err != nil {
 				return err
 			}
-			logger.Info("***LOCAL CONN STR", "conn", localConnStr)
-
-			// details, err := sqlconnect.GetConnectionDetails(connection.ConnectionConfig, shared.Ptr(uint32(5)), slogger)
-			// if err != nil {
-			// 	return fmt.Errorf("unable to get connection details for the given connection id: %s: %w", connection.Id, err)
-			// }
-			// if details.Tunnel != nil {
-			// 	ready, err := details.Tunnel.Start()
-			// 	if err != nil {
-			// 		return fmt.Errorf("unable to start ssh tunnel: %w", err)
-			// 	}
-			// 	tunnelMap.Store(bdns.EnvVarKey, details.Tunnel)
-			// 	<-ready
-			// 	details.GeneralDbConnectConfig.Host = details.Tunnel.Local.Host
-			// 	details.GeneralDbConnectConfig.Port = int32(details.Tunnel.Local.Port)
-			// 	logger.Debug(
-			// 		"ssh tunnel is ready, updated configuration host and port",
-			// 		"host", details.Tunnel.Local.Host,
-			// 		"port", details.Tunnel.Local.Port,
-			// 	)
-			// }
-			// envKeyDsnSyncMap.Store(bdns.EnvVarKey, details.GeneralDbConnectConfig.String())
 			envKeyDsnSyncMap.Store(bdns.EnvVarKey, localConnStr)
 			return nil
 		})
