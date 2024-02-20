@@ -22,8 +22,6 @@ import (
 	"github.com/benthosdev/benthos/v4/public/service"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
-	"github.com/nucleuscloud/neosync/backend/pkg/sshtunnel"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/log"
@@ -43,12 +41,14 @@ type SyncResponse struct{}
 
 func New(
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
+	tunnelmanager *ConnectionTunnelManager,
 ) *Activity {
-	return &Activity{connclient: connclient}
+	return &Activity{connclient: connclient, tunnelmanager: tunnelmanager}
 }
 
 type Activity struct {
-	connclient mgmtv1alpha1connect.ConnectionServiceClient
+	connclient    mgmtv1alpha1connect.ConnectionServiceClient
+	tunnelmanager *ConnectionTunnelManager
 }
 
 // Temporal activity that runs benthos and syncs a source connection to one or more destination connections
@@ -100,17 +100,20 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	}
 
 	envKeyDsnSyncMap := sync.Map{}
-	tunnelMap := sync.Map{}
+	// tunnelMap := sync.Map{}
 	defer func() {
-		tunnelMap.Range(func(key, value any) bool {
-			tunnel, ok := value.(*sshtunnel.Sshtunnel)
-			if !ok {
-				logger.Warn("unable to convert value to Sshtunnel for key", "key", key)
-				return true
-			}
-			tunnel.Close()
-			return true
-		})
+		// tunnelMap.Range(func(key, value any) bool {
+		// 	tunnel, ok := value.(*sshtunnel.Sshtunnel)
+		// 	if !ok {
+		// 		logger.Warn("unable to convert value to Sshtunnel for key", "key", key)
+		// 		return true
+		// 	}
+		// 	tunnel.Close()
+		// 	return true
+		// })
+		for _, conn := range connections {
+			a.tunnelmanager.Release(conn.Id)
+		}
 	}()
 	errgrp, errctx = errgroup.WithContext(ctx)
 	for idx, bdns := range req.BenthosDsns {
@@ -118,26 +121,34 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		bdns := bdns
 		errgrp.Go(func() error {
 			connection := connections[idx]
-			details, err := sqlconnect.GetConnectionDetails(connection.ConnectionConfig, shared.Ptr(uint32(5)), slogger)
+
+			localConnStr, err := a.tunnelmanager.GetConnectionString(connection, slogger)
 			if err != nil {
-				return fmt.Errorf("unable to get connection details for the given connection id: %s: %w", connection.Id, err)
+				return err
 			}
-			if details.Tunnel != nil {
-				ready, err := details.Tunnel.Start()
-				if err != nil {
-					return fmt.Errorf("unable to start ssh tunnel: %w", err)
-				}
-				tunnelMap.Store(bdns.EnvVarKey, details.Tunnel)
-				<-ready
-				details.GeneralDbConnectConfig.Host = details.Tunnel.Local.Host
-				details.GeneralDbConnectConfig.Port = int32(details.Tunnel.Local.Port)
-				logger.Debug(
-					"ssh tunnel is ready, updated configuration host and port",
-					"host", details.Tunnel.Local.Host,
-					"port", details.Tunnel.Local.Port,
-				)
-			}
-			envKeyDsnSyncMap.Store(bdns.EnvVarKey, details.GeneralDbConnectConfig.String())
+			logger.Info("***LOCAL CONN STR", "conn", localConnStr)
+
+			// details, err := sqlconnect.GetConnectionDetails(connection.ConnectionConfig, shared.Ptr(uint32(5)), slogger)
+			// if err != nil {
+			// 	return fmt.Errorf("unable to get connection details for the given connection id: %s: %w", connection.Id, err)
+			// }
+			// if details.Tunnel != nil {
+			// 	ready, err := details.Tunnel.Start()
+			// 	if err != nil {
+			// 		return fmt.Errorf("unable to start ssh tunnel: %w", err)
+			// 	}
+			// 	tunnelMap.Store(bdns.EnvVarKey, details.Tunnel)
+			// 	<-ready
+			// 	details.GeneralDbConnectConfig.Host = details.Tunnel.Local.Host
+			// 	details.GeneralDbConnectConfig.Port = int32(details.Tunnel.Local.Port)
+			// 	logger.Debug(
+			// 		"ssh tunnel is ready, updated configuration host and port",
+			// 		"host", details.Tunnel.Local.Host,
+			// 		"port", details.Tunnel.Local.Port,
+			// 	)
+			// }
+			// envKeyDsnSyncMap.Store(bdns.EnvVarKey, details.GeneralDbConnectConfig.String())
+			envKeyDsnSyncMap.Store(bdns.EnvVarKey, localConnStr)
 			return nil
 		})
 	}
