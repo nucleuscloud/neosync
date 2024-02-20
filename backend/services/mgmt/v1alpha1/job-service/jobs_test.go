@@ -1449,6 +1449,7 @@ func getConnectionMock(accountId, name string) db_queries.NeosyncApiConnection {
 // SetJobWorkflowOptions
 func Test_SetJobWorkflowOptions(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+	mockTx := new(nucleusdb.MockTx)
 
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
 	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
@@ -1458,6 +1459,7 @@ func Test_SetJobWorkflowOptions(t *testing.T) {
 
 	mockUserAccountCalls(m.UserAccountServiceMock, true)
 	mockGetJob(m.UserAccountServiceMock, m.QuerierMock, job, []db_queries.NeosyncApiJobDestinationConnectionAssociation{destConnAssociation})
+	mockDbTransaction(m.DbtxMock, mockTx)
 
 	m.QuerierMock.On("SetJobWorkflowOptions", mock.Anything, mock.Anything, db_queries.SetJobWorkflowOptionsParams{
 		ID: job.ID,
@@ -1466,6 +1468,9 @@ func Test_SetJobWorkflowOptions(t *testing.T) {
 		},
 		UpdatedByID: userUuid,
 	}).Return(job, nil)
+	mockHandle := new(MockScheduleHandle)
+	m.TemporalWfManagerMock.On("GetScheduleHandleClientByAccount", mock.Anything, mockAccountId, jobId, mock.Anything).Return(mockHandle, nil)
+	mockHandle.On("Update", mock.Anything, mock.Anything).Return(nil)
 
 	resp, err := m.Service.SetJobWorkflowOptions(context.Background(), &connect.Request[mgmtv1alpha1.SetJobWorkflowOptionsRequest]{
 		Msg: &mgmtv1alpha1.SetJobWorkflowOptionsRequest{
@@ -1520,6 +1525,12 @@ func Test_SetJobSyncOptions(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
+}
+
+func Test_getDurationFromInt(t *testing.T) {
+	assert.Equal(t, getDurationFromInt(nil), time.Duration(0))
+	assert.Equal(t, getDurationFromInt(ptr(int64(0))), time.Duration(0))
+	assert.Equal(t, getDurationFromInt(ptr(int64(1))), time.Duration(1))
 }
 
 func ptr[T any](val T) *T {

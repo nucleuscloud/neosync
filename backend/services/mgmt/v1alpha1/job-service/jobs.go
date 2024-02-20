@@ -1381,11 +1381,7 @@ func (s *Service) SetJobWorkflowOptions(
 				if !ok {
 					return nil, fmt.Errorf("unable to cast temporal action to *temporalclient.ScheduleWorkflowAction. Type was: %T", schedule.Description.Schedule.Action)
 				}
-				if wfOptions.RunTimeout == nil {
-					action.WorkflowRunTimeout = time.Duration(0)
-				} else {
-					action.WorkflowRunTimeout = time.Duration(*wfOptions.RunTimeout)
-				}
+				action.WorkflowRunTimeout = getDurationFromInt(wfOptions.RunTimeout)
 				schedule.Description.Schedule.Action = action
 				return &temporalclient.ScheduleUpdate{
 					Schedule: &schedule.Description.Schedule,
@@ -1410,6 +1406,13 @@ func (s *Service) SetJobWorkflowOptions(
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.SetJobWorkflowOptionsResponse{Job: updatedJob.Msg.Job}), nil
+}
+
+func getDurationFromInt(input *int64) time.Duration {
+	if input == nil {
+		return time.Duration(0)
+	}
+	return time.Duration(*input)
 }
 
 func (s *Service) SetJobSyncOptions(
