@@ -1,7 +1,11 @@
 import GradientTag from '@/components/GradientTag';
+import ShimmeringButton from '@/components/buttons/ShimmeringButton';
+import { ArrowRightIcon } from '@radix-ui/react-icons';
 import { Metadata } from 'next';
 import Image from 'next/image';
+import Link from 'next/link';
 import { ReactElement } from 'react';
+import { DotBackground } from './DotBackground';
 
 export const metadata: Metadata = {
   title: 'About | Neosync',
@@ -9,29 +13,49 @@ export const metadata: Metadata = {
 
 export default function About() {
   return (
-    <div className="flex flex-col gap-20 items-center">
-      <Hero />
-      <TeamSection />
-      <InvestorSection />
+    <div className="bg-[#FFFFFF] border-b border-b-gray-200 pt-5">
+      <DotBackground>
+        <Hero />
+      </DotBackground>
+      <div className=" bg-[#F5F5F5] px-4">
+        <div className="bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto pt-20 lg:pt-40">
+          <TeamSection />
+        </div>
+        <div className="bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto pt-20 lg:pt-40">
+          <InvestorSection />
+        </div>
+      </div>
     </div>
   );
 }
 
 function Hero(): ReactElement {
   return (
-    <div className="flex flex-col text-center gap-10">
-      <GradientTag tagValue={'About us'} />
-      <div className="text-center text-gray-900 font-semibold text-5xl font-satoshi">
-        We are Neosync.
+    <div className="flex flex-col gap-6 justify-center z-50 py-20">
+      <div className="flex justify-center">
+        <Image src="/images/nlogo.svg" alt="logo" width={350} height={350} />
       </div>
-      <div className="text-center text-[#606060] font-semibold text-lg font-satoshi mx-6 sm:mx-2 md:mx-40 lg:mx-72 xl:mx-80 2xl:px-72 flex-wrap">
-        We are on a mission to introduce Synthetic Data Engineering. Modern
-        engineering teams need to balance protecting customer data privacy and
-        having usable data for testing and debugging. This is where synthetic
-        data comes into play. Synthetic data that statistically and
-        schematically looks like your production data is the best way to protect
-        customer data privacy while have production-like data to use for
-        testing. We aim to bring this to the world.
+      <div className="text-center text-gray-900 font-semibold text-5xl font-satoshi pt-10 bg-white/50">
+        The Future is Synthetic Data Engineering
+      </div>
+      <div className="text-center text-gray-800 font-semibold text-lg font-satoshi mx-60 bg-white/50">
+        Synthetic Data Engineering represents the next step in customer data
+        security and privacy. Imagine having endless data, at your fingertips,
+        without the security, privacy and compliance risk. When we can create
+        synthetic data that is structurally and statistically exactly like your
+        production data, it opens up a world of possibilities.
+      </div>
+      <div className="z-50 justify-center flex pt-10">
+        <ShimmeringButton>
+          <Link
+            href="https://www.neosync.dev/blog/synthetic-data-engineering"
+            target="_blank"
+            className="flex flex-row items-center text-gray-300"
+          >
+            Read more
+            <ArrowRightIcon className="ml-2 w-4 h-4" />
+          </Link>
+        </ShimmeringButton>
       </div>
     </div>
   );
