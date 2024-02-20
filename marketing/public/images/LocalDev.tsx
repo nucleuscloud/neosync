@@ -17,7 +17,7 @@ export const LocalDev = (props: Props) => {
           <path
             d="M284.798 236.206V314.304M284.798 314.304L409.016 381.947M284.798 314.304L159.965 381.947"
             stroke="black"
-            stroke-dasharray="8 8"
+            strokeDasharray="8 8"
             className="edge-path"
           />
         </g>
@@ -28,25 +28,25 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 285.754 273.103)"
           fill="white"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M241.154 309.515C241.154 316.625 246.146 323.062 254.216 327.721V339.858C246.146 335.199 241.154 328.762 241.154 321.652V309.515Z"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M254.215 327.721C271.63 337.776 299.867 337.776 317.282 327.721V339.858C299.867 349.913 271.63 349.913 254.215 339.858V327.721Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M330.341 309.515C330.341 316.625 325.349 323.062 317.279 327.721V339.858C325.349 335.199 330.341 328.762 330.341 321.652V309.515Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M302.722 299.918C304.053 299.15 304.718 298.765 305.03 298.337C305.466 297.739 305.459 297.061 305.012 296.46C304.692 296.03 304.019 295.642 302.674 294.865L302.674 294.865L294.019 289.867C291.231 288.258 289.838 287.454 288.116 287.448C286.394 287.443 285.015 288.239 282.259 289.83L276.959 292.89C272.711 295.343 270.586 296.569 271.134 297.875C271.682 299.18 274.555 299.738 280.3 300.852L291.276 302.982C293.192 303.354 293.78 304.756 292.364 305.573C291.644 305.989 290.576 306.132 289.603 305.943L268.095 301.77C265.722 301.309 264.536 301.079 263.39 301.232C262.244 301.386 261.367 301.892 259.612 302.905L257.862 303.916C255.106 305.507 253.727 306.303 253.737 307.297C253.746 308.292 255.14 309.096 257.927 310.705L266.301 315.54C267.646 316.317 268.319 316.705 268.639 317.135C269.086 317.736 269.092 318.414 268.657 319.013C268.345 319.441 267.68 319.825 266.349 320.593C265.018 321.361 264.353 321.745 264.041 322.173C263.606 322.772 263.612 323.45 264.059 324.051C264.379 324.481 265.052 324.869 266.397 325.646L275.053 330.643C277.84 332.252 279.233 333.057 280.955 333.062C282.678 333.068 284.056 332.272 286.813 330.681L286.813 330.68L292.112 327.621C296.361 325.168 298.485 323.941 297.937 322.636C297.39 321.331 294.517 320.773 288.771 319.658L277.795 317.528C275.88 317.157 275.291 315.755 276.708 314.937C277.427 314.522 278.495 314.379 279.468 314.568L300.976 318.741C303.349 319.202 304.536 319.432 305.681 319.278C306.827 319.125 307.704 318.619 309.459 317.605L311.209 316.595C313.966 315.004 315.344 314.208 315.334 313.214C315.325 312.219 313.931 311.415 311.144 309.806L302.77 304.971C301.425 304.194 300.752 303.806 300.432 303.376C299.985 302.774 299.979 302.097 300.415 301.498C300.726 301.07 301.392 300.686 302.722 299.918Z"
@@ -70,7 +70,7 @@ export const LocalDev = (props: Props) => {
             rx="8"
             transform="matrix(0.866025 -0.5 0 1 429.182 322.736)"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <rect
@@ -79,7 +79,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.866025 0.5 0 1 411.688 328.242)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="131.196"
@@ -87,7 +87,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.866025 -0.5 0.866025 0.5 425.887 303.645)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <g filter="url(#filter2_d_3089_3971)">
           <path
@@ -97,20 +97,20 @@ export const LocalDev = (props: Props) => {
           <path
             d="M429.44 469.689C429.44 473.886 430.827 477.283 433.6 478.884L415.847 468.634C413.074 467.033 411.688 463.636 411.688 459.439L429.44 469.689Z"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <path
           d="M429.44 338.493C429.44 329.436 435.799 318.423 443.643 313.894L425.89 303.645C418.046 308.173 411.688 319.187 411.688 328.244L429.44 338.493Z"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M567.299 247.301C564.526 245.7 560.892 246.197 557.257 248.296L539.504 238.046C543.139 235.948 546.773 235.45 549.546 237.051L567.299 247.301Z"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <line
           y1="-0.5"
@@ -129,8 +129,8 @@ export const LocalDev = (props: Props) => {
           y2="-4"
           transform="matrix(0.866025 -0.5 0 1 444.066 354.275)"
           stroke="#758AD5"
-          stroke-width="8"
-          stroke-dasharray="30 2"
+          strokeWidth="8"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <line
@@ -139,8 +139,8 @@ export const LocalDev = (props: Props) => {
           y2="-4"
           transform="matrix(0.866025 -0.5 0 1 444.066 367.804)"
           stroke="#758AD5"
-          stroke-width="8"
-          stroke-dasharray="30 2"
+          strokeWidth="8"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <line
@@ -149,8 +149,8 @@ export const LocalDev = (props: Props) => {
           y2="-4"
           transform="matrix(0.866025 -0.5 0 1 444.066 380.103)"
           stroke="#758AD5"
-          stroke-width="8"
-          stroke-dasharray="30 2"
+          strokeWidth="8"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <line
@@ -159,8 +159,8 @@ export const LocalDev = (props: Props) => {
           y2="-4"
           transform="matrix(0.866025 -0.5 0 1 444.066 404.701)"
           stroke="#758AD5"
-          stroke-width="8"
-          stroke-dasharray="30 2"
+          strokeWidth="8"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <line
@@ -169,8 +169,8 @@ export const LocalDev = (props: Props) => {
           y2="-4"
           transform="matrix(0.866025 -0.5 0 1 444.066 417)"
           stroke="#758AD5"
-          stroke-width="8"
-          stroke-dasharray="30 2"
+          strokeWidth="8"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <line
@@ -179,8 +179,8 @@ export const LocalDev = (props: Props) => {
           y2="-4"
           transform="matrix(0.866025 -0.5 0 1 444.066 453.896)"
           stroke="#758AD5"
-          stroke-width="8"
-          stroke-dasharray="30 2"
+          strokeWidth="8"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <line
@@ -189,8 +189,8 @@ export const LocalDev = (props: Props) => {
           y2="-4"
           transform="matrix(0.866025 -0.5 0 1 444.066 441.597)"
           stroke="#758AD5"
-          stroke-width="8"
-          stroke-dasharray="30 2"
+          strokeWidth="8"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <path
@@ -209,26 +209,26 @@ export const LocalDev = (props: Props) => {
           <path
             d="M5 262.31C5 258.996 7.3264 257.653 10.1962 259.31L136.457 332.207C139.327 333.864 141.653 337.893 141.653 341.207V487.001C141.653 490.314 139.327 491.657 136.457 490.001L10.1961 417.104C7.32639 415.447 5 411.417 5 408.104V262.31Z"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <path
           d="M141.65 347.042L158.732 337.179V474.189L141.65 483.127V347.042Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M6.23047 260.28C8.2317 259.125 10.8546 259.484 13.4776 260.998L30.5593 251.136C27.9363 249.621 25.3134 249.263 23.3121 250.418L6.23047 260.28Z"
           fill="#BDCBFD"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M141.653 347.042C141.653 340.506 137.065 332.558 131.404 329.29L148.486 319.428C154.146 322.696 158.735 330.643 158.735 337.18L141.653 347.042Z"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <g filter="url(#filter4_d_3089_3971)">
           <path
@@ -238,7 +238,7 @@ export const LocalDev = (props: Props) => {
           <path
             d="M138.65 490.261C140.652 489.106 141.652 486.654 141.652 483.626L158.734 473.764C158.734 476.792 157.733 479.243 155.732 480.399L138.65 490.261Z"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <line
@@ -247,8 +247,8 @@ export const LocalDev = (props: Props) => {
           y2="-4"
           transform="matrix(0.866025 0.5 0 1 18.5273 309.999)"
           stroke="#758AD5"
-          stroke-width="8"
-          stroke-dasharray="30 2"
+          strokeWidth="8"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <line
@@ -257,8 +257,8 @@ export const LocalDev = (props: Props) => {
           y2="-4"
           transform="matrix(0.866025 0.5 0 1 18.5273 323.528)"
           stroke="#758AD5"
-          stroke-width="8"
-          stroke-dasharray="30 2"
+          strokeWidth="8"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <line
@@ -267,8 +267,8 @@ export const LocalDev = (props: Props) => {
           y2="-4"
           transform="matrix(0.866025 0.5 0 1 18.5273 335.827)"
           stroke="#758AD5"
-          stroke-width="8"
-          stroke-dasharray="30 2"
+          strokeWidth="8"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <line
@@ -277,8 +277,8 @@ export const LocalDev = (props: Props) => {
           y2="-4"
           transform="matrix(0.866025 0.5 0 1 18.5273 360.424)"
           stroke="#758AD5"
-          stroke-width="8"
-          stroke-dasharray="30 2"
+          strokeWidth="8"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <line
@@ -287,8 +287,8 @@ export const LocalDev = (props: Props) => {
           y2="-4"
           transform="matrix(0.866025 0.5 0 1 18.5273 372.723)"
           stroke="#758AD5"
-          stroke-width="8"
-          stroke-dasharray="30 2"
+          strokeWidth="8"
+          strokeDasharray="30 2"
         />
         <line
           y1="-4"
@@ -296,8 +296,8 @@ export const LocalDev = (props: Props) => {
           y2="-4"
           transform="matrix(0.866025 0.5 0 1 18.5273 409.62)"
           stroke="#758AD5"
-          stroke-width="8"
-          stroke-dasharray="30 2"
+          strokeWidth="8"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <line
@@ -306,8 +306,8 @@ export const LocalDev = (props: Props) => {
           y2="-4"
           transform="matrix(0.866025 0.5 0 1 18.5273 397.321)"
           stroke="#758AD5"
-          stroke-width="8"
-          stroke-dasharray="30 2"
+          strokeWidth="8"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <line
@@ -346,7 +346,7 @@ export const LocalDev = (props: Props) => {
             rx="24"
             transform="matrix(0.846632 0.532179 -0.846632 0.532179 284 122.775)"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <path
@@ -391,7 +391,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.846632 0.532179 -0.846632 0.532179 284 69.8872)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M314.127 159.612C314.127 161.541 312.89 163.828 311.418 164.753C309.946 165.679 308.708 164.947 308.708 163.018C308.708 161.089 309.946 158.802 311.418 157.876C312.89 156.951 314.127 157.683 314.127 159.612Z"
@@ -430,7 +430,7 @@ export const LocalDev = (props: Props) => {
           transform="matrix(0.846632 0.532179 -0.846632 0.532179 284 17)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M314.127 106.725C314.127 108.654 312.89 110.941 311.418 111.867C309.946 112.792 308.708 112.06 308.708 110.131C308.708 108.203 309.946 105.915 311.418 104.99C312.89 104.065 314.127 104.796 314.127 106.725Z"

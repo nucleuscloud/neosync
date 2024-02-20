@@ -32,7 +32,7 @@ export const KeepSync = (props: Props) => {
             y2="-0.5"
             transform="matrix(0.866025 0.5 0 1 518 462)"
             stroke="black"
-            stroke-dasharray="8 8"
+            strokeDasharray="8 8"
             className="edge-path"
           />
         </g>
@@ -43,7 +43,7 @@ export const KeepSync = (props: Props) => {
             y2="-0.5"
             transform="matrix(0.866025 -0.5 0 1 668 548)"
             stroke="black"
-            stroke-dasharray="8 8"
+            strokeDasharray="8 8"
             className="edge-path"
           />
         </g>
@@ -54,7 +54,7 @@ export const KeepSync = (props: Props) => {
             y2="-0.5"
             transform="matrix(0.866025 0.5 0 1 515 238)"
             stroke="black"
-            stroke-dasharray="8 8"
+            strokeDasharray="8 8"
             className="edge-path"
           />
         </g>
@@ -65,7 +65,7 @@ export const KeepSync = (props: Props) => {
             y2="-0.5"
             transform="matrix(0.866025 -0.5 0 1 438 413)"
             stroke="black"
-            stroke-dasharray="8 8"
+            strokeDasharray="8 8"
             className="edge-path"
           />
         </g>
@@ -76,7 +76,7 @@ export const KeepSync = (props: Props) => {
             y2="-0.5"
             transform="matrix(0.866025 0.5 0 1 249 299)"
             stroke="black"
-            stroke-dasharray="8 8"
+            strokeDasharray="8 8"
             className="edge-path"
           />
         </g>
@@ -87,7 +87,7 @@ export const KeepSync = (props: Props) => {
             y2="-0.5"
             transform="matrix(0.866025 -0.5 0 1 102 384)"
             stroke="black"
-            stroke-dasharray="8 8"
+            strokeDasharray="8 8"
             className="edge-path"
           />
         </g>
@@ -98,25 +98,25 @@ export const KeepSync = (props: Props) => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 459.42 342)"
           fill="white"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M377.096 409.214C377.096 422.338 386.31 434.22 401.207 442.821V465.226C386.31 456.625 377.096 444.743 377.096 431.619V409.214Z"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M401.209 442.821C433.357 461.382 485.48 461.382 517.629 442.821V465.226C485.48 483.787 433.357 483.787 401.209 465.226V442.821Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M541.736 409.214C541.736 422.338 532.522 434.22 517.625 442.821V465.226C532.522 456.625 541.736 444.743 541.736 431.619V409.214Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M490.763 391.5C493.219 390.082 494.448 389.373 495.023 388.583C495.827 387.478 495.815 386.227 494.99 385.117C494.4 384.323 493.158 383.606 490.675 382.172L490.675 382.172L474.697 372.948C469.552 369.977 466.979 368.492 463.8 368.482C460.621 368.472 458.077 369.941 452.988 372.879L443.206 378.527C435.363 383.055 431.441 385.319 432.453 387.729C433.464 390.138 438.767 391.167 449.373 393.225L469.635 397.157C473.17 397.843 474.256 400.431 471.642 401.94C470.314 402.707 468.342 402.971 466.546 402.622L426.844 394.918C422.463 394.068 420.272 393.643 418.158 393.926C416.043 394.21 414.423 395.145 411.184 397.015L407.954 398.88C402.865 401.818 400.321 403.287 400.338 405.122C400.356 406.958 402.928 408.443 408.073 411.413L423.531 420.338C426.015 421.772 427.256 422.489 427.847 423.282C428.672 424.392 428.684 425.643 427.88 426.748C427.304 427.538 426.076 428.247 423.62 429.665L423.62 429.666C421.164 431.084 419.936 431.793 419.36 432.583C418.556 433.688 418.568 434.939 419.393 436.049C419.984 436.842 421.225 437.559 423.709 438.993L439.687 448.218C444.831 451.188 447.404 452.673 450.583 452.683C453.762 452.694 456.306 451.225 461.395 448.287L461.395 448.287L471.177 442.639C479.02 438.111 482.942 435.847 481.931 433.437C480.919 431.027 475.616 429.998 465.01 427.94L444.748 424.009C441.213 423.323 440.127 420.735 442.741 419.226C444.069 418.459 446.041 418.195 447.837 418.543L487.54 426.247C491.92 427.097 494.111 427.522 496.226 427.239C498.34 426.956 499.96 426.021 503.199 424.151L503.199 424.15L506.429 422.286C511.518 419.348 514.062 417.879 514.045 416.043C514.027 414.208 511.455 412.723 506.31 409.752L490.852 400.827C488.369 399.394 487.127 398.677 486.536 397.883C485.711 396.773 485.699 395.522 486.504 394.417C487.079 393.627 488.307 392.918 490.763 391.5Z"
@@ -150,7 +150,7 @@ export const KeepSync = (props: Props) => {
             rx="24"
             transform="matrix(0.846632 0.532179 -0.846632 0.532179 77 303.775)"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <path
@@ -195,7 +195,7 @@ export const KeepSync = (props: Props) => {
           transform="matrix(0.846632 0.532179 -0.846632 0.532179 77 250.887)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M107.127 340.612C107.127 342.541 105.89 344.828 104.418 345.753C102.946 346.679 101.708 345.947 101.708 344.018C101.708 342.089 102.946 339.802 104.418 338.876C105.89 337.951 107.127 338.683 107.127 340.612Z"
@@ -234,7 +234,7 @@ export const KeepSync = (props: Props) => {
           transform="matrix(0.846632 0.532179 -0.846632 0.532179 77 198)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M107.127 287.725C107.127 289.654 105.89 291.941 104.418 292.867C102.946 293.792 101.708 293.06 101.708 291.131C101.708 289.203 102.946 286.915 104.418 285.99C105.89 285.065 107.127 285.796 107.127 287.725Z"
@@ -285,7 +285,7 @@ export const KeepSync = (props: Props) => {
             rx="24"
             transform="matrix(0.846632 0.532179 -0.846632 0.532179 836 352.775)"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <path
@@ -330,7 +330,7 @@ export const KeepSync = (props: Props) => {
           transform="matrix(0.846632 0.532179 -0.846632 0.532179 836 299.887)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M866.128 389.612C866.128 391.541 864.891 393.828 863.419 394.753C861.947 395.679 860.709 394.947 860.709 393.018C860.709 391.089 861.947 388.802 863.419 387.876C864.891 386.951 866.128 387.683 866.128 389.612Z"
@@ -369,7 +369,7 @@ export const KeepSync = (props: Props) => {
           transform="matrix(0.846632 0.532179 -0.846632 0.532179 836 247)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M866.128 336.725C866.128 338.654 864.891 340.941 863.419 341.867C861.947 342.792 860.709 342.06 860.709 340.131C860.709 338.203 861.947 335.915 863.419 334.99C864.891 334.065 866.128 334.796 866.128 336.725Z"
@@ -420,7 +420,7 @@ export const KeepSync = (props: Props) => {
             rx="24"
             transform="matrix(0.846632 0.532179 -0.846632 0.532179 466 134.775)"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <path
@@ -465,7 +465,7 @@ export const KeepSync = (props: Props) => {
           transform="matrix(0.846632 0.532179 -0.846632 0.532179 466 81.8872)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M496.127 171.612C496.127 173.541 494.89 175.828 493.418 176.753C491.946 177.679 490.708 176.947 490.708 175.018C490.708 173.089 491.946 170.802 493.418 169.876C494.89 168.951 496.127 169.683 496.127 171.612Z"
@@ -504,7 +504,7 @@ export const KeepSync = (props: Props) => {
           transform="matrix(0.846632 0.532179 -0.846632 0.532179 466 29)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M496.127 118.725C496.127 120.654 494.89 122.941 493.418 123.867C491.946 124.792 490.708 124.06 490.708 122.131C490.708 120.203 491.946 117.915 493.418 116.99C494.89 116.065 496.127 116.796 496.127 118.725Z"
