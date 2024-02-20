@@ -701,7 +701,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Transformer_Pg_Pg(t *
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
 	assert.Len(t, resp.BenthosConfigs, 2)
-	bc := resp.BenthosConfigs[0]
+	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
 	assert.Equal(t, bc.Name, "public.users")
 	assert.Len(t, bc.RedisConfig, 1)
 	assert.Equal(t, bc.RedisConfig[0].Table, "public.users")
@@ -755,7 +755,7 @@ output:
 `),
 	)
 
-	bc = resp.BenthosConfigs[1]
+	bc = getBenthosConfigByName(resp.BenthosConfigs, "public.orders")
 	assert.Equal(t, bc.Name, "public.orders")
 	assert.Empty(t, bc.RedisConfig)
 	out, err = yaml.Marshal(bc.Config)
@@ -982,7 +982,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Passthrough_Pg_Pg(t *
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
 	assert.Len(t, resp.BenthosConfigs, 2)
-	bc := resp.BenthosConfigs[0]
+	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
 	assert.Equal(t, bc.Name, "public.users")
 	assert.Empty(t, bc.RedisConfig)
 	out, err := yaml.Marshal(bc.Config)
@@ -1025,7 +1025,7 @@ output:
 `),
 	)
 
-	bc = resp.BenthosConfigs[1]
+	bc = getBenthosConfigByName(resp.BenthosConfigs, "public.orders")
 	assert.Equal(t, bc.Name, "public.orders")
 	assert.Empty(t, bc.RedisConfig)
 	out, err = yaml.Marshal(bc.Config)
@@ -1223,7 +1223,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_CircularDependency_PrimaryKey_Tr
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
 	assert.Len(t, resp.BenthosConfigs, 2)
-	bc := resp.BenthosConfigs[0]
+	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.jobs")
 	assert.Equal(t, bc.Name, "public.jobs")
 	assert.Len(t, bc.RedisConfig, 1)
 	assert.Equal(t, bc.RedisConfig[0].Table, "public.jobs")
@@ -1277,7 +1277,7 @@ output:
 `),
 	)
 
-	bc = resp.BenthosConfigs[1]
+	bc = getBenthosConfigByName(resp.BenthosConfigs, "public.jobs.update")
 	assert.Equal(t, bc.Name, "public.jobs.update")
 	assert.Empty(t, bc.RedisConfig)
 	out, err = yaml.Marshal(bc.Config)
@@ -1471,7 +1471,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_Default(t *testing.T
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
 	assert.Len(t, resp.BenthosConfigs, 1)
-	bc := resp.BenthosConfigs[0]
+	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
 	assert.Equal(t, bc.Name, "public.users")
 	assert.Empty(t, bc.DependsOn)
 	out, err := yaml.Marshal(bc.Config)
@@ -2626,7 +2626,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Mysql(t *testing.
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
 	assert.Len(t, resp.BenthosConfigs, 1)
-	bc := resp.BenthosConfigs[0]
+	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
 	assert.Equal(t, bc.Name, "public.users")
 	assert.Empty(t, bc.DependsOn)
 	out, err := yaml.Marshal(bc.Config)
@@ -2800,7 +2800,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) 
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
 	assert.Len(t, resp.BenthosConfigs, 1)
-	bc := resp.BenthosConfigs[0]
+	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
 	assert.Equal(t, bc.Name, "public.users")
 	assert.Empty(t, bc.DependsOn)
 	out, err := yaml.Marshal(bc.Config)
@@ -3550,7 +3550,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Mysql_Default(t *
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
 	assert.Len(t, resp.BenthosConfigs, 1)
-	bc := resp.BenthosConfigs[0]
+	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
 	assert.Equal(t, bc.Name, "public.users")
 	assert.Empty(t, bc.DependsOn)
 	out, err := yaml.Marshal(bc.Config)
@@ -3723,7 +3723,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Default(t *testing.T
 	assert.Nil(t, err)
 	assert.NotEmpty(t, resp.BenthosConfigs)
 	assert.Len(t, resp.BenthosConfigs, 1)
-	bc := resp.BenthosConfigs[0]
+	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
 	assert.Equal(t, bc.Name, "public.users")
 	assert.Empty(t, bc.DependsOn)
 	out, err := yaml.Marshal(bc.Config)
