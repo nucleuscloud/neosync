@@ -42,8 +42,12 @@ export default function TransformerSelect(props: Props): ReactElement {
   const { transformers, value, onSelect, placeholder, side } = props;
   const [open, setOpen] = useState(false);
 
-  const udfTransformers = transformers.filter(isUserDefinedTransformer);
-  const sysTransformers = transformers.filter(isSystemTransformer);
+  const udfTransformers = transformers
+    .filter(isUserDefinedTransformer)
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const sysTransformers = transformers
+    .filter(isSystemTransformer)
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   const udfTransformerMap = new Map(udfTransformers.map((t) => [t.id, t]));
   const sysTransformerMap = new Map(sysTransformers.map((t) => [t.source, t]));

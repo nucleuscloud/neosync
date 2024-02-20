@@ -52,7 +52,8 @@ export default function NewTransformer(): ReactElement {
   const { account } = useAccount();
 
   const { data } = useGetSystemTransformers();
-  const transformers = data?.transformers ?? [];
+  const transformers =
+    data?.transformers.sort((a, b) => a.name.localeCompare(b.name)) ?? [];
 
   const transformerQueryParam = useSearchParams().get('transformer');
   const [base, setBase] = useState<SystemTransformer>(
@@ -107,7 +108,7 @@ export default function NewTransformer(): ReactElement {
 
   return (
     <OverviewContainer
-      Header={<PageHeader header="Create a new Transformer" />}
+      Header={<PageHeader header="Create a New Transformer" />}
       containerClassName="px-12 md:px-24 lg:px-32"
     >
       <Form {...form}>
