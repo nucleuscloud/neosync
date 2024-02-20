@@ -8,14 +8,14 @@ export const SyncDash = () => {
           x2="455.175"
           y2="299.874"
           stroke="black"
-          stroke-linecap="round"
-          stroke-dasharray="5 5"
+          strokeLinecap="round"
+          strokeDasharray="5 5"
           className="edge-path"
         />
         <path
           d="M308.871 244L538.871 383.5L645.871 322.5"
           stroke="black"
-          stroke-dasharray="8 8"
+          strokeDasharray="8 8"
           className="edge-path"
         />
         <line
@@ -24,20 +24,20 @@ export const SyncDash = () => {
           x2="455.175"
           y2="299.874"
           stroke="black"
-          stroke-linecap="round"
-          stroke-dasharray="5 5"
+          strokeLinecap="round"
+          strokeDasharray="5 5"
           className="edge-path"
         />
         <path
           d="M308.871 244L538.871 383.5L645.871 322.5"
           stroke="black"
-          stroke-dasharray="8 8"
+          strokeDasharray="8 8"
           className="edge-path"
         />
         <path
           d="M114.871 269.086L157.95 294L160.006 292.755L282.871 221"
           stroke="black"
-          stroke-dasharray="8 8"
+          strokeDasharray="8 8"
           className="edge-path"
         />
         <circle
@@ -47,25 +47,25 @@ export const SyncDash = () => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 290.424 162)"
           fill="white"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M223.564 216.59C223.564 227.249 231.048 236.899 243.147 243.885V262.081C231.048 255.096 223.564 245.446 223.564 234.786V216.59Z"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M243.143 243.885C269.252 258.96 311.585 258.96 337.695 243.885V262.082C311.585 277.156 269.252 277.156 243.143 262.082V243.885Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M357.276 216.59C357.276 227.249 349.792 236.899 337.693 243.885V262.081C349.792 255.096 357.276 245.446 357.276 234.786V216.59Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M315.869 202.204C317.863 201.052 318.861 200.476 319.328 199.834C319.981 198.937 319.972 197.921 319.301 197.02C318.822 196.375 317.813 195.793 315.797 194.628L302.82 187.136C298.641 184.724 296.552 183.518 293.97 183.509C291.388 183.501 289.322 184.694 285.189 187.08L277.244 191.667C270.874 195.345 267.689 197.184 268.511 199.141C269.332 201.098 273.639 201.934 282.253 203.605L298.709 206.798C301.58 207.355 302.462 209.457 300.339 210.683C299.26 211.305 297.659 211.52 296.2 211.237L263.955 204.98C260.397 204.29 258.618 203.945 256.901 204.175C255.183 204.405 253.867 205.164 251.237 206.683L248.613 208.197C244.48 210.584 242.414 211.777 242.428 213.267C242.442 214.758 244.532 215.964 248.71 218.377L261.265 225.625C263.282 226.79 264.29 227.372 264.77 228.017C265.44 228.918 265.45 229.934 264.796 230.831C264.329 231.473 263.332 232.049 261.337 233.201C259.342 234.352 258.345 234.928 257.877 235.57C257.224 236.467 257.234 237.483 257.904 238.385C258.384 239.03 259.392 239.612 261.409 240.776L274.386 248.268C278.564 250.681 280.653 251.887 283.235 251.895C285.817 251.903 287.884 250.71 292.016 248.324L292.016 248.324L299.961 243.737C306.331 240.06 309.516 238.221 308.695 236.264C307.874 234.307 303.567 233.471 294.952 231.799L278.497 228.606C275.625 228.049 274.744 225.948 276.867 224.722C277.945 224.099 279.547 223.885 281.005 224.168L313.25 230.424C316.808 231.115 318.587 231.46 320.305 231.23C322.023 231 323.338 230.241 325.969 228.722L325.969 228.722L328.592 227.207C332.725 224.821 334.791 223.628 334.777 222.137C334.763 220.647 332.674 219.44 328.495 217.028L315.941 209.779C313.924 208.615 312.915 208.033 312.436 207.388C311.765 206.486 311.756 205.47 312.409 204.573C312.876 203.931 313.874 203.356 315.869 202.204Z"
@@ -118,7 +118,7 @@ export const SyncDash = () => {
         <path
           d="M337.871 197L497.943 115.491L498.849 115L531.871 132.068"
           stroke="black"
-          stroke-dasharray="5 5"
+          strokeDasharray="5 5"
           className="edge-path"
         />
         <circle
@@ -128,25 +128,25 @@ export const SyncDash = () => {
           transform="matrix(0.866025 0.5 -0.866025 0.5 290.424 162)"
           fill="white"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M223.564 216.59C223.564 227.249 231.048 236.899 243.147 243.885V262.081C231.048 255.096 223.564 245.446 223.564 234.786V216.59Z"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M243.143 243.885C269.252 258.96 311.585 258.96 337.695 243.885V262.082C311.585 277.156 269.252 277.156 243.143 262.082V243.885Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M357.276 216.59C357.276 227.249 349.792 236.899 337.693 243.885V262.081C349.792 255.096 357.276 245.446 357.276 234.786V216.59Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M315.869 202.204C317.863 201.052 318.861 200.476 319.328 199.834C319.981 198.937 319.972 197.921 319.301 197.02C318.822 196.375 317.813 195.793 315.797 194.628L302.82 187.136C298.641 184.724 296.552 183.518 293.97 183.509C291.388 183.501 289.322 184.694 285.189 187.08L277.244 191.667C270.874 195.345 267.689 197.184 268.511 199.141C269.332 201.098 273.639 201.934 282.253 203.605L298.709 206.798C301.58 207.355 302.462 209.457 300.339 210.683C299.26 211.305 297.659 211.52 296.2 211.237L263.955 204.98C260.397 204.29 258.618 203.945 256.901 204.175C255.183 204.405 253.867 205.164 251.237 206.683L248.613 208.197C244.48 210.584 242.414 211.777 242.428 213.267C242.442 214.758 244.532 215.964 248.71 218.377L261.265 225.625C263.282 226.79 264.29 227.372 264.77 228.017C265.44 228.918 265.45 229.934 264.796 230.831C264.329 231.473 263.332 232.049 261.337 233.201C259.342 234.352 258.345 234.928 257.877 235.57C257.224 236.467 257.234 237.483 257.904 238.385C258.384 239.03 259.392 239.612 261.409 240.776L274.386 248.268C278.564 250.681 280.653 251.887 283.235 251.895C285.817 251.903 287.884 250.71 292.016 248.324L292.016 248.324L299.961 243.737C306.331 240.06 309.516 238.221 308.695 236.264C307.874 234.307 303.567 233.471 294.952 231.799L278.497 228.606C275.625 228.049 274.744 225.948 276.867 224.722C277.945 224.099 279.547 223.885 281.005 224.168L313.25 230.424C316.808 231.115 318.587 231.46 320.305 231.23C322.023 231 323.338 230.241 325.969 228.722L325.969 228.722L328.592 227.207C332.725 224.821 334.791 223.628 334.777 222.137C334.763 220.647 332.674 219.44 328.495 217.028L315.941 209.779C313.924 208.615 312.915 208.033 312.436 207.388C311.765 206.486 311.756 205.47 312.409 204.573C312.876 203.931 313.874 203.356 315.869 202.204Z"
@@ -180,7 +180,7 @@ export const SyncDash = () => {
             rx="24"
             transform="matrix(0.846632 0.532179 -0.846632 0.532179 77 168.775)"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <path
@@ -225,7 +225,7 @@ export const SyncDash = () => {
           transform="matrix(0.846632 0.532179 -0.846632 0.532179 77 115.887)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M107.127 205.612C107.127 207.541 105.89 209.828 104.418 210.753C102.946 211.679 101.708 210.947 101.708 209.018C101.708 207.089 102.946 204.802 104.418 203.876C105.89 202.951 107.127 203.683 107.127 205.612Z"
@@ -264,7 +264,7 @@ export const SyncDash = () => {
           transform="matrix(0.846632 0.532179 -0.846632 0.532179 77 63)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M107.127 152.725C107.127 154.654 105.89 156.941 104.418 157.867C102.946 158.792 101.708 158.06 101.708 156.131C101.708 154.203 102.946 151.915 104.418 150.99C105.89 150.065 107.127 150.796 107.127 152.725Z"
@@ -315,7 +315,7 @@ export const SyncDash = () => {
             rx="24"
             transform="matrix(0.846632 0.532179 -0.846632 0.532179 606 123.775)"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <path
@@ -360,7 +360,7 @@ export const SyncDash = () => {
           transform="matrix(0.846632 0.532179 -0.846632 0.532179 606 70.8872)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M636.127 160.612C636.127 162.541 634.89 164.828 633.418 165.753C631.946 166.679 630.708 165.947 630.708 164.018C630.708 162.089 631.946 159.802 633.418 158.876C634.89 157.951 636.127 158.683 636.127 160.612Z"
@@ -399,7 +399,7 @@ export const SyncDash = () => {
           transform="matrix(0.846632 0.532179 -0.846632 0.532179 606 18)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M636.127 107.725C636.127 109.654 634.89 111.941 633.418 112.867C631.946 113.792 630.708 113.06 630.708 111.131C630.708 109.203 631.946 106.915 633.418 105.99C634.89 105.065 636.127 105.796 636.127 107.725Z"
@@ -450,7 +450,7 @@ export const SyncDash = () => {
             rx="24"
             transform="matrix(0.846632 0.532179 -0.846632 0.532179 498 206.775)"
             stroke="black"
-            stroke-linejoin="bevel"
+            strokeLinejoin="bevel"
           />
         </g>
         <path
@@ -495,7 +495,7 @@ export const SyncDash = () => {
           transform="matrix(0.846632 0.532179 -0.846632 0.532179 498 153.887)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M528.127 243.612C528.127 245.541 526.89 247.828 525.418 248.753C523.946 249.679 522.708 248.947 522.708 247.018C522.708 245.089 523.946 242.802 525.418 241.876C526.89 240.951 528.127 241.683 528.127 243.612Z"
@@ -534,7 +534,7 @@ export const SyncDash = () => {
           transform="matrix(0.846632 0.532179 -0.846632 0.532179 498 101)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M528.127 190.725C528.127 192.654 526.89 194.941 525.418 195.867C523.946 196.792 522.708 196.06 522.708 194.131C522.708 192.203 523.946 189.915 525.418 188.99C526.89 188.065 528.127 188.796 528.127 190.725Z"
@@ -568,7 +568,7 @@ export const SyncDash = () => {
           transform="matrix(0.866025 -0.5 0 1 640.277 227.482)"
           fill="#B7D0F6"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="13.3653"
@@ -576,7 +576,7 @@ export const SyncDash = () => {
           transform="matrix(0.866025 0.5 0 1 628.871 231.073)"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <rect
           width="85.538"
@@ -584,25 +584,25 @@ export const SyncDash = () => {
           transform="matrix(0.866025 -0.5 0.866025 0.5 638.129 215.035)"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M640.446 323.293C640.446 326.029 641.35 328.244 643.158 329.288L631.583 322.605C629.775 321.561 628.871 319.347 628.871 316.61L640.446 323.293Z"
           fill="#B7B7B7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M640.446 237.756C640.446 231.851 644.592 224.67 649.706 221.718L638.131 215.035C633.017 217.988 628.871 225.168 628.871 231.074L640.446 237.756Z"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <path
           d="M730.329 178.299C728.521 177.255 726.152 177.58 723.782 178.948L712.207 172.265C714.577 170.897 716.947 170.573 718.755 171.617L730.329 178.299Z"
           fill="#E7E7E7"
           stroke="black"
-          stroke-linejoin="bevel"
+          strokeLinejoin="bevel"
         />
         <line
           y1="-1.5"
@@ -610,8 +610,8 @@ export const SyncDash = () => {
           y2="-1.5"
           transform="matrix(0.866025 -0.5 0 1 646 242.473)"
           stroke="#2246C8"
-          stroke-width="3"
-          stroke-dasharray="30 2"
+          strokeWidth="3"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <line
@@ -620,8 +620,8 @@ export const SyncDash = () => {
           y2="-1.5"
           transform="matrix(0.866025 -0.5 0 1 646 252.304)"
           stroke="#2246C8"
-          stroke-width="3"
-          stroke-dasharray="30 2"
+          strokeWidth="3"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <line
@@ -630,8 +630,8 @@ export const SyncDash = () => {
           y2="-1.5"
           transform="matrix(0.866025 -0.5 0 1 646 261.241)"
           stroke="#2246C8"
-          stroke-width="3"
-          stroke-dasharray="30 2"
+          strokeWidth="3"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <line
@@ -640,8 +640,8 @@ export const SyncDash = () => {
           y2="-1.5"
           transform="matrix(0.866025 -0.5 0 1 646 279.116)"
           stroke="#2246C8"
-          stroke-width="3"
-          stroke-dasharray="30 2"
+          strokeWidth="3"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <line
@@ -650,8 +650,8 @@ export const SyncDash = () => {
           y2="-1.5"
           transform="matrix(0.866025 -0.5 0 1 646 288.053)"
           stroke="#2246C8"
-          stroke-width="3"
-          stroke-dasharray="30 2"
+          strokeWidth="3"
+          strokeDasharray="30 2"
         />
         <line
           y1="-1.5"
@@ -659,8 +659,8 @@ export const SyncDash = () => {
           y2="-1.5"
           transform="matrix(0.866025 -0.5 0 1 646 314.865)"
           stroke="#2246C8"
-          stroke-width="3"
-          stroke-dasharray="30 2"
+          strokeWidth="3"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <line
@@ -669,8 +669,8 @@ export const SyncDash = () => {
           y2="-1.5"
           transform="matrix(0.866025 -0.5 0 1 646 305.927)"
           stroke="#2246C8"
-          stroke-width="3"
-          stroke-dasharray="30 2"
+          strokeWidth="3"
+          strokeDasharray="30 2"
           className="edge-path"
         />
         <defs>
@@ -681,9 +681,9 @@ export const SyncDash = () => {
             width="92.2637"
             height="72.8652"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -716,9 +716,9 @@ export const SyncDash = () => {
             width="139.391"
             height="90.5908"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -751,9 +751,9 @@ export const SyncDash = () => {
             width="56.0664"
             height="69.2866"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -786,9 +786,9 @@ export const SyncDash = () => {
             width="92.2637"
             height="72.8652"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -821,9 +821,9 @@ export const SyncDash = () => {
             width="139.391"
             height="90.5908"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -856,9 +856,9 @@ export const SyncDash = () => {
             width="56.0664"
             height="69.2866"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -891,9 +891,9 @@ export const SyncDash = () => {
             width="92.2637"
             height="72.8652"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -926,9 +926,9 @@ export const SyncDash = () => {
             width="139.391"
             height="90.5908"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"
@@ -961,9 +961,9 @@ export const SyncDash = () => {
             width="56.0664"
             height="69.2866"
             filterUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB"
+            colorInterpolationFilters="sRGB"
           >
-            <feFlood flood-opacity="0" result="BackgroundImageFix" />
+            <feFlood floodOpacity="0" result="BackgroundImageFix" />
             <feColorMatrix
               in="SourceAlpha"
               type="matrix"

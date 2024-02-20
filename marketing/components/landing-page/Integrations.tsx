@@ -1,5 +1,6 @@
 import { NeonTech } from '@/styles/icons/Neon';
 import { ExternalLinkIcon, GitHubLogoIcon } from '@radix-ui/react-icons';
+import Image from 'next/image';
 import Link from 'next/link';
 import { ReactElement } from 'react';
 import { DiMysql } from 'react-icons/di';
@@ -51,8 +52,8 @@ export default function Intergrations(): ReactElement {
       href: 'https://docs.neosync.dev/connections/postgres',
     },
     {
-      name: 'Docker',
-      logo: <FaDocker className="text-gray-300 bg-transparent w-12 h-12" />,
+      name: 'AWS RDS',
+      logo: <Image src="/images/rds.svg" width="48" height="48" alt="rds" />,
       href: 'https://docs.neosync.dev/deploy/docker-compose',
     },
   ];
