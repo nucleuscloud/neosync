@@ -1,9 +1,10 @@
+import { NeonTech } from '@/styles/icons/Neon';
 import { ExternalLinkIcon, GitHubLogoIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { ReactElement } from 'react';
 import { DiMysql } from 'react-icons/di';
 import { FaAws, FaDocker } from 'react-icons/fa';
-import { SiKubernetes, SiPostgresql } from 'react-icons/si';
+import { SiKubernetes, SiPostgresql, SiSupabase } from 'react-icons/si';
 
 export default function Intergrations(): ReactElement {
   const integrations = [
@@ -33,6 +34,21 @@ export default function Intergrations(): ReactElement {
       name: 'Kubernetes',
       logo: <SiKubernetes className="text-gray-300 bg-transparent w-12 h-12" />,
       href: 'https://docs.neosync.dev/deploy/kubernetes',
+    },
+    {
+      name: 'Docker',
+      logo: <FaDocker className="text-gray-300 bg-transparent w-12 h-12" />,
+      href: 'https://docs.neosync.dev/deploy/docker-compose',
+    },
+    {
+      name: 'Supabase',
+      logo: <SiSupabase className="text-gray-300 bg-transparent w-12 h-12" />,
+      href: 'https://docs.neosync.dev/connections/postgres',
+    },
+    {
+      name: 'Neon',
+      logo: <NeonTech />,
+      href: 'https://docs.neosync.dev/connections/postgres',
     },
     {
       name: 'Docker',
