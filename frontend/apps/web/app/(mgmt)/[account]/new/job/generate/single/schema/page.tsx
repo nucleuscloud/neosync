@@ -25,6 +25,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
+import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectionForeignConstraints';
+import { useGetConnectionPrimaryConstraints } from '@/libs/hooks/useGetConnectionPrimaryConstraints';
 import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { convertMinutesToNanoseconds, getErrorMessage } from '@/util/util';
@@ -180,6 +182,16 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   );
   const schemaTableMap = getSchemaTableMap(connSchemaData?.schemas ?? []);
 
+  const { data: primaryConstraints } = useGetConnectionPrimaryConstraints(
+    account?.id ?? '',
+    connectFormValues.connectionId
+  );
+
+  const { data: foreignConstraints } = useGetConnectionForeignConstraints(
+    account?.id ?? '',
+    connectFormValues.connectionId
+  );
+
   const selectedSchemaTables = schemaTableMap.get(formValues.schema) ?? [];
 
   return (
@@ -321,7 +333,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           />
 
           {isClient && formValues.schema && formValues.table && (
-            <SchemaTable data={schemaTableData} excludeInputReqTransformers />
+            <SchemaTable
+              data={schemaTableData}
+              excludeInputReqTransformers
+              primaryConstraints={primaryConstraints?.tableConstraints}
+              foreignConstraints={foreignConstraints?.tableConstraints}
+            />
           )}
           {form.formState.errors.root && (
             <Alert variant="destructive">
