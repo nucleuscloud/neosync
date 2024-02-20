@@ -3,7 +3,7 @@ import {
   SINGLE_TABLE_SCHEMA_FORM_SCHEMA,
   SingleTableSchemaFormValues,
 } from '@/app/(mgmt)/[account]/new/job/schema';
-import { SchemaTable } from '@/components/jobs/SchemaTable/schema-table';
+import { SchemaTable } from '@/components/jobs/SchemaTable/SchemaTable';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Alert, AlertTitle } from '@/components/ui/alert';

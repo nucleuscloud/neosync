@@ -41,15 +41,10 @@ export default function SchemaPageTable<TData, TValue>({
   data,
   transformers,
 }: DataTableProps<TData, TValue>): ReactElement {
-  // const [columnVisibility, setColumnVisibility] =
-  //   React.useState<VisibilityState>({ schema: false }); // hides the schema column
-
   const table = useReactTable({
     data,
     columns,
-    state: {
-      // columnVisibility,
-    },
+    state: {},
 
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -57,8 +52,6 @@ export default function SchemaPageTable<TData, TValue>({
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
-    // onColumnVisibilityChange: setColumnVisibility,
-    // debugTable: true, // useful for debugging and printing to the console, turn off in prod
   });
 
   const { rows } = table.getRowModel();

@@ -2,7 +2,7 @@
 
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
-import { SchemaTable } from '@/components/jobs/SchemaTable/schema-table';
+import { SchemaTable } from '@/components/jobs/SchemaTable/SchemaTable';
 import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
 import { Alert, AlertTitle } from '@/components/ui/alert';
