@@ -1,0 +1,144 @@
+---
+title: A Comprehensive Guide to PGAnonymizer
+description: Learn what Postgres Anonymizer is and how you can use it to anonymize data in Postgres.
+date: 2024-02-20
+published: true
+image: /images/blogs/pganon.svg
+authors:
+  - evis
+---
+
+# Introduction
+
+Postgres is one of the most popular databases in the world and it comes with a pretty extensive library of extensions and open source tools that the Postgres team and outside developers have created to make working with Postgres easier and safer. One of the more popular plugins is [Postgres Anonymizer](https://postgresql-anonymizer.readthedocs.io/en/stable/) or usually called PGAnonymizer. PGAnonymizer is used to anonymize your Postgres database. This is useful if you're working with sensitive data and want a way to protect the security and privacy of that data as developers are working with it.
+
+In this blog, we're going to dive deeper into PGAnonymizer, what it is, how it works and how you can install it and use it in your Postgres database.
+
+# What is PGAnonymizer?
+
+PGAnonymizer is a open source Python-based extension built to anonymize data within Postgres. It allows you to obfuscate sensitive information such as names, addresses, emails, and other personally identifiable details (PII). You can then use this data for testing and development purposes without compromising the security of real-world information.
+
+It's configured declaratively (more on this below) using the Postgres Data Definition Language (DDL). This makes it easy to configure and follows git-ops best practices. Once the masking rules are defined, you can access the anonymized data in three ways:
+
+1. **Anonymized Dumps** - Dump the data into a SQL file that you can then transfer or upload via `PGRESTORE`.
+2. **Static Masking** - remove the sensitive data according to the rules
+3. **Dynamic Masking** - Hide PII only for the masked users (this is akin to row level security but for data anonymization)
+
+Lastly, PGAnonymizer does come with some detection functions that will try to guess which columns need to be anonymized. This is a form of trying to understand which columns seem to hold sensitive data based on the name of the column.
+
+# Use cases
+
+There are a number of use cases for data anonymization and creating [test data](/what-is-test-data). Here are some of the main ones:
+
+- **Development & Testing**: Develop and test applications with realistic-looking data without real user information. Share anonymized datasets with team members or external testers without privacy concerns.
+- **Compliance**: Adhere to data privacy regulations like GDPR by anonymizing sensitive data before sharing it with third parties.
+- **Data Security**: Mitigate risks associated with data breaches by replacing actual PII with anonymized values, minimizing potential damage in case of unauthorized access.
+- **Research**: Researchers can leverage anonymized datasets for analysis and training purposes without infringing upon individual privacy. Share research findings ethically without revealing underlying personal information.
+- **Data Minimization**: By anonymizing irrelevant data points, you can minimize the amount of sensitive information stored in your databases, reducing the attack surface and enhancing overall security.
+
+# Anonymization Functions
+
+PGAnonymizer has a series of anonymization functions to transform sensitive data into anonymized data. You can implement one or multiple of these functions depending on how you want to anonymize your data. We can categorize the functions into a few buckets:
+
+- **Randomization**: Replaces the original data with random values of the same type. For ex. `john` -> `kwpz`
+- **Masking**: Obscures parts of the data, such as replacing characters in an email address or a phone number. For ex. `john@gmail.com` -> `wefw@gmail.com`
+- **Substitution**: Replaces sensitive data with realistic but fictional data, like using fake names or addresses. For ex. `john` -> `bill`
+- **Generalization**: Reduces the detail level of data, for example, by replacing exact birthdates with just the year. For ex. `01/23/1990` -> `01/01/1990`
+- **Aggregation**: Group and summarize data sets while anonymizing individual entries (e.g., replacing individual incomes with average income ranges). For ex. `$150,000` -> `$100,000 - $500,000`
+
+The best way to understand how these functions work is by looking at a few examples. First let's install PGAnonymizer and then see how we can use it.
+
+# Installation
+
+Depending on your set up, you can install PGAnonymizer in a few different ways. In this example, we'll walk through how to do it locally but if you're using something like docker, you can follow [this guide](https://postgresql-anonymizer.readthedocs.io/en/stable/INSTALL/#install-with-docker).
+
+Let's get started. First, we'll need Python 3.5 or later. If you don't already have it, you can download it like so:
+
+```Bash
+pip install pganonymizer
+```
+
+Now that we've installed our dependencies, we can create our yaml config file. This config file will define the tables and columns that we want to anonymize and the anonymization methods. Here is what an example config file looks like:
+
+```yaml
+database:
+  host: localhost
+  port: 5432
+  user: username
+  password: password
+  database_name: postgres
+
+tables:
+  - name: users
+    anonymize:
+      - column: name
+        method: replace
+        value: AnonUser
+
+      - column: email
+        method: replace
+        regex: ^(.*)@(.*)$
+        replace: '$1@example.com'
+
+  - name: orders
+    anonymize:
+      - column: user_id
+        method: anonymize
+        function: generate_user_id
+
+encryption:
+  enable: false
+```
+
+Once you've created the config file, you can run it with this command:
+
+```bash
+pganonymizer config.yaml
+```
+
+This will create a new database (your_database_anonymized) with the anonymized data.
+
+That's it! Easy enough to get started. Let's dig into some of the anonymization functions that PGAnonymizer has.
+
+## Partial Scrambling
+
+Partial scrambling is a masking function that leaves out some part of the data. For instance : a credit card number can be replaced by '40XX XXXX XXXX XX96'. There are two function available for partial scrambling:
+
+- anon.partial('abcdefgh',1,'xxxx',3) will return 'axxxxfgh';
+- anon.partial_email('daamien@gmail.com') will become 'da**@gm\*\***.com'
+
+By passing in the email function, PGAnonymizer will recognize that it's an email address and partially scramble the username and domain which are the identifying elements of the email address.
+
+## Static Masking Rules
+
+Static masking rules are ways of declaring rules that will mask an entire database. For each column in a table, you declare a rule that defines how you want to transform that data.
+
+Say that we have a `full_name` column that we want to anonymize. Here is what a rule could look like:
+
+```sql
+SECURITY LABEL FOR anon ON COLUMN customer.full_name
+IS 'MASKED WITH FUNCTION anon.fake_first_name() || '' '' || anon.fake_last_name()';
+```
+
+Another example could be with an `employer` column. Here is that rule:
+
+```sql
+SECURITY LABEL FOR anon ON COLUMN customer.employer
+IS 'MASKED WITH FUNCTION anon.fake_company()';
+```
+
+Once you're ready to anonymize your table, you can run `SELECT anon.anonymize_database();` or if you want to just anonymize a specific table, you can run `SELECT anon.anonymize_table('customer');`
+
+This is just the start of what you can do with PGAnonymizer. There are more functions and ways to anonymize, encrypt, hash and obfuscate data. For more information, check out the [documentation](https://postgresql-anonymizer.readthedocs.io/en/stable/).
+
+# Limitations
+
+PGAnonymizer is pretty flexible but there are some limitations that you should be aware of. Here are the biggest ones:
+
+1. **No orchestration** - While PGAnonymizer gives you a way to PGDUMP the sql file, you are still responsible for managing the lifecycle of the data and uploading it to another database. PGAnonymizer simply works on a database by database level and offloads the orchestration the data to the user.
+2. **Metadata Leakage** - Depending on how you anonymize the data, anonymized data might still contain metadata(table names, column types, etc.) that could reveal sensitive information.
+3. **No Referential Integrity** - Arguably the biggest limitation is that PGAnonymizer does not handle referential integrity. So if you decide to anonymize a primary key that has foreign key, then it will likely break that relation and cause problems in your database.
+
+# Conclusion
+
+PGAnonymizer is a powerful Postgres extension that allows you to anonymize sensitive data making it usable for development and testing. It has a lot of flexibility but also has some limitations to consider. At the end of the day, the tool that fits your use case is the right tool for you and you should consider all available options to protect customer data and privacy.
