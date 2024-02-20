@@ -108,7 +108,7 @@ export default function NewTransformer(): ReactElement {
 
   return (
     <OverviewContainer
-      Header={<PageHeader header="Create a new Transformer" />}
+      Header={<PageHeader header="Create a New Transformer" />}
       containerClassName="px-12 md:px-24 lg:px-32"
     >
       <Form {...form}>
