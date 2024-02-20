@@ -21,8 +21,7 @@ export default function ComplySecurityPrivacy(): ReactElement {
       title: 'Enable developers to self-service',
       description:
         'Developers can self-serve de-identified or synthetic data whenever they need to without waiting on other teams. ',
-      image:
-        'https://assets.nucleuscloud.com/neosync/marketingsite/localdev.svg',
+      image: '/images/unblocklocal.svg',
     },
     {
       title: `Comply with HIPAA, GDPR and more`,
