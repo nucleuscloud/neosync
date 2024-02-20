@@ -25,6 +25,8 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
+import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectionForeignConstraints';
+import { useGetConnectionPrimaryConstraints } from '@/libs/hooks/useGetConnectionPrimaryConstraints';
 import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { useGetJob } from '@/libs/hooks/useGetJob';
@@ -180,6 +182,16 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
 
   const source = connections.find((item) => item.id === sourceConnectionId);
 
+  const { data: primaryConstraints } = useGetConnectionPrimaryConstraints(
+    account?.id ?? '',
+    sourceConnectionId
+  );
+
+  const { data: foreignConstraints } = useGetConnectionForeignConstraints(
+    account?.id ?? '',
+    sourceConnectionId
+  );
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -238,7 +250,11 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
             maxColNum={2}
           />
 
-          <SchemaTable data={form.watch().mappings} />
+          <SchemaTable
+            data={form.watch().mappings}
+            primaryConstraints={primaryConstraints?.tableConstraints}
+            foreignConstraints={foreignConstraints?.tableConstraints}
+          />
           <div className="flex flex-row items-center justify-end w-full mt-4">
             <Button type="submit">Save</Button>
           </div>

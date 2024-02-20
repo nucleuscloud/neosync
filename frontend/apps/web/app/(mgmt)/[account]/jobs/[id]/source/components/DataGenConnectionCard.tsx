@@ -27,6 +27,8 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
+import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectionForeignConstraints';
+import { useGetConnectionPrimaryConstraints } from '@/libs/hooks/useGetConnectionPrimaryConstraints';
 import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 import { getErrorMessage } from '@/util/util';
@@ -74,6 +76,16 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     isLoading: isGetConnectionsSchemaLoading,
     error,
   } = useGetConnectionSchema(account?.id ?? '', fkSourceConnectionId);
+
+  const { data: primaryConstraints } = useGetConnectionPrimaryConstraints(
+    account?.id ?? '',
+    fkSourceConnectionId
+  );
+
+  const { data: foreignConstraints } = useGetConnectionForeignConstraints(
+    account?.id ?? '',
+    fkSourceConnectionId
+  );
 
   useEffect(() => {
     if (error) {
@@ -272,7 +284,12 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
         />
 
         {formValues.schema && formValues.table && (
-          <SchemaTable data={schemaTableData} excludeInputReqTransformers />
+          <SchemaTable
+            data={schemaTableData}
+            excludeInputReqTransformers
+            primaryConstraints={primaryConstraints?.tableConstraints}
+            foreignConstraints={foreignConstraints?.tableConstraints}
+          />
         )}
         {form.formState.errors.mappings && (
           <Alert variant="destructive">
