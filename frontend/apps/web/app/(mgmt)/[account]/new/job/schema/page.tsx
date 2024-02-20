@@ -98,8 +98,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     router.push(`/${account?.name}/new/job/subset?sessionId=${sessionPrefix}`);
   }
 
-  console.log('form', form.formState.errors);
-
   return (
     <div className="flex flex-col gap-5">
       <OverviewContainer
