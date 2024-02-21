@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 
 	"connectrpc.com/grpchealth"
@@ -89,8 +90,7 @@ func serve() error {
 	httpclient := shared.GetNeosyncHttpClient()
 	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(httpclient, neosyncurl)
 
-	tunnelmgr := sync_activity.NewConnectionTunnelManager()
-	syncActivity := sync_activity.New(connclient, tunnelmgr)
+	syncActivity := sync_activity.New(connclient, &sync.Map{})
 
 	w.RegisterWorkflow(datasync_workflow.Workflow)
 	w.RegisterActivity(syncActivity.Sync)

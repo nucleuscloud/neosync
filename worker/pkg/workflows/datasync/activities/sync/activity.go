@@ -40,14 +40,23 @@ type SyncResponse struct{}
 
 func New(
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
-	tunnelmanager *ConnectionTunnelManager,
+	tunnelmanagermap *sync.Map,
 ) *Activity {
-	return &Activity{connclient: connclient, tunnelmanager: tunnelmanager}
+	return &Activity{connclient: connclient, tunnelmanagermap: tunnelmanagermap}
 }
 
 type Activity struct {
-	connclient    mgmtv1alpha1connect.ConnectionServiceClient
-	tunnelmanager *ConnectionTunnelManager
+	connclient       mgmtv1alpha1connect.ConnectionServiceClient
+	tunnelmanagermap *sync.Map
+}
+
+func (a *Activity) getTunnelManagerByRunId(runId string) (*ConnectionTunnelManager, error) {
+	val, _ := a.tunnelmanagermap.LoadOrStore(runId, NewConnectionTunnelManager())
+	manager, ok := val.(*ConnectionTunnelManager)
+	if !ok {
+		return nil, fmt.Errorf("unable to retrieve connection tunnel maanger from tunnel manager map. Expected *ConnectionTunnelManager, received: %T", manager)
+	}
+	return manager, nil
 }
 
 // Temporal activity that runs benthos and syncs a source connection to one or more destination connections
@@ -79,6 +88,11 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		}
 	}()
 
+	tunnelmanager, err := a.getTunnelManagerByRunId(workflowMetadata.RunId)
+	if err != nil {
+		return nil, err
+	}
+
 	connections := make([]*mgmtv1alpha1.Connection, len(req.BenthosDsns))
 
 	errgrp, errctx := errgroup.WithContext(ctx)
@@ -101,7 +115,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	envKeyDsnSyncMap := sync.Map{}
 	defer func() {
 		for _, conn := range connections {
-			a.tunnelmanager.Release(conn.Id)
+			tunnelmanager.Release(conn.Id)
 		}
 	}()
 	errgrp, errctx = errgroup.WithContext(ctx)
@@ -111,7 +125,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		errgrp.Go(func() error {
 			connection := connections[idx]
 
-			localConnStr, err := a.tunnelmanager.GetConnectionString(connection, slogger)
+			localConnStr, err := tunnelmanager.GetConnectionString(connection, slogger)
 			if err != nil {
 				return err
 			}
@@ -134,7 +148,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	// This must come before SetYaml as otherwise it will not be invoked
 	streambldr.SetEnvVarLookupFunc(getEnvVarLookupFn(envKeyDnsMap))
 
-	err := streambldr.SetYAML(req.BenthosConfig)
+	err = streambldr.SetYAML(req.BenthosConfig)
 	if err != nil {
 		return nil, fmt.Errorf("unable to convert benthos config to yaml for stream builder: %w", err)
 	}

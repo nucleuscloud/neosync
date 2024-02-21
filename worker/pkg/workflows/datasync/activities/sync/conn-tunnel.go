@@ -23,6 +23,9 @@ type ConnectionTunnelManager struct {
 	counterLockMap sync.Map
 }
 
+// Purpose of this function is to return a connection string that can be used by
+// a database client to connect to a tunneled instance of a database using a localhost port.
+// Primarily used by Benthos since we don't have the ability to directly use a pg client
 func (c *ConnectionTunnelManager) GetConnectionString(
 	connection *mgmtv1alpha1.Connection,
 	logger *slog.Logger,
