@@ -455,34 +455,74 @@ func Test_GetRunConfigs_MultipleExclude(t *testing.T) {
 	}
 }
 
-func Test_GetTablesOrderedByDependency(t *testing.T) {
-	tests := []struct {
-		name         string
-		tables       map[string]struct{}
-		dependencies map[string][]string
-		expect       []string
-	}{
-		{
-			name: "No dependencies",
-			tables: map[string]struct{}{
-				"public.a": {},
-				"public.b": {},
-				"public.c": {},
-			},
-			dependencies: map[string][]string{
-				"public.a": {},
-			},
-			expect: []string{"public.a", "public.b", "public.c"},
-		},
+func Test_GetTablesOrderedByDependency_CircularDependency(t *testing.T) {
+	dependencies := map[string][]string{
+		"a": {"b"},
+		"b": {"c"},
+		"c": {"a"},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			actual, err := GetTablesOrderedByDependency(tt.tables, tt.dependencies)
+	actual := GetTablesOrderedByDependency(dependencies)
+	assert.Nil(t, actual)
+}
 
-			assert.NoError(t, err)
-			assert.Len(t, tt.expect, len(actual))
-			assert.ElementsMatch(t, tt.expect, actual)
-		})
+func Test_GetTablesOrderedByDependency_Dependencies(t *testing.T) {
+	dependencies := map[string][]string{
+		"countries":   {"regions"},
+		"departments": {"locations"},
+		"dependents":  {"employees"},
+		"employees":   {"departments", "jobs", "employees"},
+		"locations":   {"countries"},
+		"regions":     {},
+		"jobs":        {},
 	}
+	expected := [][]string{{"dependents", "employees", "departments", "locations", "countries", "regions", "jobs"}}
+
+	actual := GetTablesOrderedByDependency(dependencies)
+	assert.Len(t, actual, 1)
+	for idx, table := range actual {
+		assert.Equal(t, expected[idx], table)
+	}
+}
+
+func Test_GetTablesOrderedByDependency_Mixed(t *testing.T) {
+	dependencies := map[string][]string{
+		"countries": {},
+		"locations": {"countries"},
+		"regions":   {},
+		"jobs":      {},
+	}
+
+	expected := [][]string{{"jobs"}, {"locations", "countries"}, {"regions"}}
+	actual := GetTablesOrderedByDependency(dependencies)
+	assert.Len(t, actual, len(expected))
+	for _, group := range expected {
+		assert.Contains(t, actual, group)
+	}
+}
+
+func Test_GetTablesOrderedByDependency_BrokenDependencies_NoLoop(t *testing.T) {
+	dependencies := map[string][]string{
+		"countries": {},
+		"locations": {"countries"},
+		"regions":   {"a"},
+		"jobs":      {"b"},
+	}
+
+	actual := GetTablesOrderedByDependency(dependencies)
+	assert.Len(t, actual, 3)
+}
+
+func Test_GetTablesOrderedByDependency_NestedDependencies(t *testing.T) {
+	dependencies := map[string][]string{
+		"a": {"b"},
+		"b": {"c"},
+		"c": {"d"},
+		"d": {},
+	}
+
+	expected := [][]string{{"a", "b", "c", "d"}}
+	actual := GetTablesOrderedByDependency(dependencies)
+	assert.Len(t, actual, 1)
+	assert.Equal(t, expected[0], actual[0])
 }
