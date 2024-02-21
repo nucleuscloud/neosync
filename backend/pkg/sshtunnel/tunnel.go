@@ -23,11 +23,6 @@ type Sshtunnel struct {
 	maxConnectionAttempts uint
 	close                 chan any
 	isOpen                bool
-
-	// These are localhost localConnections we open that will be used to forward to the remote
-	localConnections  []net.Conn
-	remoteConnections []net.Conn
-	sshConnections    []*ssh.Client
 }
 
 func New(
@@ -103,42 +98,8 @@ func (t *Sshtunnel) Serve(listener net.Listener, ready chan<- any) {
 				}
 			}()
 		case conn := <-c:
-			// t.localConnections = append(t.localConnections, conn)
 			t.logger.Debug(fmt.Sprintf("accepted connection local: %s, remote: %s", conn.LocalAddr().String(), conn.RemoteAddr().String()))
 			go t.forward(conn)
-		}
-	}
-	total := len(t.localConnections)
-	t.logger.Debug(fmt.Sprintf("attempting to close %d local connection(s)", total))
-	for i, conn := range t.localConnections {
-		t.logger.Debug(fmt.Sprintf("closing the local connection (%d of %d)", i+1, total))
-		err := conn.Close()
-		if err != nil {
-			if errors.Is(err, net.ErrClosed) {
-				continue
-			}
-			t.logger.Error(fmt.Sprintf("failed to close local connection: %s", err.Error()))
-		}
-	}
-	total = len(t.remoteConnections)
-	t.logger.Debug(fmt.Sprintf("attempting to close %d remote connection(s)", total))
-	for i, conn := range t.remoteConnections {
-		t.logger.Debug(fmt.Sprintf("closing the remote connection (%d of %d)", i+1, total))
-		err := conn.Close()
-		if err != nil {
-			if errors.Is(err, net.ErrClosed) {
-				continue
-			}
-			t.logger.Error(fmt.Sprintf("failed to close remote connection: %s", err.Error()))
-		}
-	}
-	total = len(t.sshConnections)
-	t.logger.Debug(fmt.Sprintf("attempting to close %d SSH connection(s)", total))
-	for i, conn := range t.sshConnections {
-		t.logger.Debug(fmt.Sprintf("closing the SSH connection (%d of %d)", i+1, total))
-		err := conn.Close()
-		if err != nil {
-			t.logger.Error(fmt.Sprintf("failed to close SSH connection: %s", err.Error()))
 		}
 	}
 
@@ -174,7 +135,6 @@ func (t *Sshtunnel) forward(localConnection net.Conn) {
 	}
 
 	t.logger.Debug(fmt.Sprintf("connected to %s (1 of 2)", t.Server.String()))
-	// t.sshConnections = append(t.sshConnections, sshClient)
 
 	remoteConnection, err := sshClient.Dial("tcp", t.Remote.String())
 	if err != nil {
@@ -187,26 +147,28 @@ func (t *Sshtunnel) forward(localConnection net.Conn) {
 		}
 		return
 	}
-	// t.remoteConnections = append(t.remoteConnections, remoteConnection)
 	t.logger.Debug(fmt.Sprintf("connected to %s (2 of 2)", t.Remote.String()))
 
 	done := make(chan error)
 
-	go func() {
-		<-done
+	cleanup := func() {
+		// not really necessary since the connections are done
+		// but to be safe, let's clean up anyways
 		localConnection.Close()
 		remoteConnection.Close()
 		sshClient.Close()
+	}
+	go func() {
+		<-done
+		close(done) // we only really care about one of the connections closing before we issue a cleanup.
+		cleanup()
 		t.logger.Debug("connection done, closed local, remote, and ssh connection")
 	}()
-	// add go func here that listens for when either of the connections are completed so that we can call Close() on them (even though they are closed?)
-	// from there we dont really need to manage them in the map anymore I don't think.
-	// but once the remote connection has been closed we can then close the SSH connection (unelss in the future we want to retain that and use it for multiple remotes)
-	go copyConnection(localConnection, remoteConnection, done, t.logger.With("direction", "local->remote"))
-	go copyConnection(remoteConnection, localConnection, done, t.logger.With("direction", "remote->local"))
+	go copyConnection(localConnection, remoteConnection, done, t.logger.With("direction", "remote->local"))
+	go copyConnection(remoteConnection, localConnection, done, t.logger.With("direction", "local->remote"))
 }
 
-// send notification to channel when completed so that we can remove the connections from the map
+// Writer is what receives the input (dst), reader is what the input is read from (src)
 func copyConnection(writer, reader net.Conn, done chan<- error, logger *slog.Logger) {
 	_, err := io.Copy(writer, reader)
 	if err != nil {
@@ -219,11 +181,11 @@ func copyConnection(writer, reader net.Conn, done chan<- error, logger *slog.Log
 
 func newConnectionWaiter(listener net.Listener, c chan<- net.Conn, ready chan<- any, hasSignaledReady bool, logger *slog.Logger) {
 	go func() {
-		// if !hasSignaledReady {
-		sessionId := uuid.NewString()
-		logger.Debug("notifying ready channel", "sessionId", sessionId)
-		ready <- sessionId
-		// }
+		if !hasSignaledReady {
+			sessionId := uuid.NewString()
+			logger.Debug("notifying ready channel", "sessionId", sessionId)
+			ready <- struct{}{}
+		}
 	}()
 	conn, err := listener.Accept()
 	if err != nil {
