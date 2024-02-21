@@ -287,8 +287,8 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
           <SchemaTable
             data={schemaTableData}
             excludeInputReqTransformers
-            primaryConstraints={primaryConstraints?.tableConstraints ?? {}}
-            foreignConstraints={foreignConstraints?.tableConstraints ?? {}}
+            primaryConstraints={primaryConstraints?.tableConstraints}
+            foreignConstraints={foreignConstraints?.tableConstraints}
           />
         )}
         {form.formState.errors.mappings && (
