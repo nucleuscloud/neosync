@@ -15,8 +15,8 @@ import SchemaPageTable, { Row } from './SchemaPageTable';
 interface Props {
   data: JobMappingFormValues[];
   excludeInputReqTransformers?: boolean; // will result in only generators (functions with no data input)
-  primaryConstraints?: { [key: string]: PrimaryConstraint };
-  foreignConstraints?: { [key: string]: ForeignConstraintTables };
+  primaryConstraints?: Record<string, PrimaryConstraint>;
+  foreignConstraints?: Record<string, ForeignConstraintTables>;
 }
 
 export function SchemaTable(props: Props): ReactElement {

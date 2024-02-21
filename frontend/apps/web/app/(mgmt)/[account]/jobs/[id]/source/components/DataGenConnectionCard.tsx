@@ -79,12 +79,12 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
 
   const { data: primaryConstraints } = useGetConnectionPrimaryConstraints(
     account?.id ?? '',
-    fkSourceConnectionId
+    fkSourceConnectionId ?? ''
   );
 
   const { data: foreignConstraints } = useGetConnectionForeignConstraints(
     account?.id ?? '',
-    fkSourceConnectionId
+    fkSourceConnectionId ?? ''
   );
 
   useEffect(() => {
@@ -287,8 +287,8 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
           <SchemaTable
             data={schemaTableData}
             excludeInputReqTransformers
-            primaryConstraints={primaryConstraints?.tableConstraints}
-            foreignConstraints={foreignConstraints?.tableConstraints}
+            primaryConstraints={primaryConstraints?.tableConstraints ?? {}}
+            foreignConstraints={foreignConstraints?.tableConstraints ?? {}}
           />
         )}
         {form.formState.errors.mappings && (
