@@ -216,3 +216,60 @@ func cycleKey(cycle []string) string {
 
 	return key
 }
+
+func getMultiTableCircularDependencies(dependencyMap map[string][]string) [][]string {
+	cycles := findCircularDependencies(dependencyMap)
+	multiTableCycles := [][]string{}
+	for _, c := range cycles {
+		if len(c) > 1 {
+			multiTableCycles = append(multiTableCycles, c)
+		}
+	}
+	return multiTableCycles
+}
+
+func GetTablesOrderedByDependency(tables map[string]struct{}, dependencyMap map[string][]string) ([]string, error) {
+	cycles := getMultiTableCircularDependencies(dependencyMap)
+	if len(cycles) > 0 {
+		return nil, fmt.Errorf("unable to handle circular dependencies: %+v", cycles)
+	}
+
+	tableMap := map[string]struct{}{}
+	for t := range tables {
+		tableMap[t] = struct{}{}
+	}
+	orderedTables := []string{}
+	seenTables := map[string]struct{}{}
+	for table := range tableMap {
+		dep, ok := dependencyMap[table]
+		if !ok || len(dep) == 0 {
+			orderedTables = append(orderedTables, table)
+			seenTables[table] = struct{}{}
+			delete(tableMap, table)
+		}
+	}
+
+	for len(tableMap) > 0 {
+		for table := range tableMap {
+			deps := dependencyMap[table]
+			if isReady(seenTables, deps, table) {
+				orderedTables = append(orderedTables, table)
+				seenTables[table] = struct{}{}
+				delete(tableMap, table)
+			}
+		}
+	}
+
+	return orderedTables, nil
+}
+
+func isReady(seen map[string]struct{}, deps []string, table string) bool {
+	for _, d := range deps {
+		_, ok := seen[d]
+		// allow self dependencies
+		if !ok && d != table {
+			return false
+		}
+	}
+	return true
+}

@@ -16,6 +16,7 @@ import (
 	dbschemas_mysql "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/mysql"
 	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/postgres"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
@@ -67,7 +68,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 	}
 
 	var sourceConnectionId string
-	var dependencyMap map[string][]string
+	var tableDependencies map[string]*dbschemas_utils.TableConstraints
 	uniqueTables := shared.GetUniqueTablesFromMappings(job.Mappings)
 	uniqueSchemas := shared.GetUniqueSchemasFromMappings(job.Mappings)
 
@@ -136,8 +137,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		if err != nil {
 			return nil, fmt.Errorf("unable to retrieve postgres foreign key constraints: %w", err)
 		}
-		td := dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
-		dependencyMap = getDependencyMap(td, uniqueTables)
+		tableDependencies = dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
 
 	case *mgmtv1alpha1.JobSourceOptions_Mysql:
 		sourceConnection, err := b.getConnectionById(ctx, jobSourceConfig.Mysql.ConnectionId)
@@ -164,8 +164,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		if err != nil {
 			return nil, fmt.Errorf("unable to retrieve mysql foreign key constraints")
 		}
-		td := dbschemas_mysql.GetMysqlTableDependencies(allConstraints)
-		dependencyMap = getDependencyMap(td, uniqueTables)
+		tableDependencies = dbschemas_mysql.GetMysqlTableDependencies(allConstraints)
 
 	default:
 		return nil, fmt.Errorf("unsupported job source: %T", jobSourceConfig)
@@ -201,29 +200,6 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 
 			if job.Source.Options.GetPostgres() != nil || job.Source.Options.GetGenerate() != nil {
 				sourcePool := b.pgpool[sourceConnectionId]
-				tableInitMap := map[string]string{}
-				for table := range uniqueTables {
-					split := strings.Split(table, ".")
-					// todo: make this more efficient to reduce amount of times we have to connect to the source database
-					initStmt, err := b.getInitStatementFromPostgres(
-						ctx,
-						sourcePool,
-						split[0],
-						split[1],
-						&initStatementOpts{
-							TruncateBeforeInsert: truncateBeforeInsert,
-							TruncateCascade:      truncateCascade,
-							InitSchema:           initSchema,
-						},
-					)
-					if err != nil {
-						return nil, fmt.Errorf("unable to build init statement for postgres: %w", err)
-					}
-					tableInitMap[table] = initStmt
-				}
-
-				sqlStatement := dbschemas_postgres.GetOrderedPostgresInitStatements(tableInitMap, dependencyMap)
-
 				pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(connection.PgConfig, shared.Ptr(uint32(5)), slogger)
 				if err != nil {
 					return nil, fmt.Errorf("unable to create new postgres pool from connection config: %w", err)
@@ -232,11 +208,69 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				if err != nil {
 					return nil, err
 				}
-				slogger.Info(fmt.Sprintf("executing %d sql statements that will initialize tables", len(sqlStatement)))
-				_, err = pool.Exec(ctx, strings.Join(sqlStatement, "\n"))
-				if err != nil {
-					pgconn.Close()
-					return nil, fmt.Errorf("unable to open postgres connection: %w", err)
+
+				// create statements
+				if initSchema {
+					tableForeignDependencyMap := getForeignToPrimaryTableMap(tableDependencies, uniqueTables)
+					orderedTables, err := tabledependency.GetTablesOrderedByDependency(uniqueTables, tableForeignDependencyMap)
+					if err != nil {
+						return nil, err
+					}
+					tableCreateStmts := []string{}
+					for _, table := range orderedTables {
+						split := strings.Split(table, ".")
+						// todo: make this more efficient to reduce amount of times we have to connect to the source database
+						initStmt, err := b.getCreateStatementFromPostgres(
+							ctx,
+							sourcePool,
+							split[0],
+							split[1],
+						)
+						if err != nil {
+							return nil, fmt.Errorf("unable to build init statement for postgres: %w", err)
+						}
+						tableCreateStmts = append(tableCreateStmts, initStmt)
+					}
+					slogger.Info(fmt.Sprintf("executing %d sql statements that will initialize tables", len(tableCreateStmts)))
+					_, err = pool.Exec(ctx, strings.Join(tableCreateStmts, "\n"))
+					if err != nil {
+						pgconn.Close()
+						return nil, fmt.Errorf("unable to open postgres connection: %w", err)
+					}
+				}
+
+				// truncate statements
+				if truncateCascade {
+					tableTruncateStmts := []string{}
+					for table := range uniqueTables {
+						split := strings.Split(table, ".")
+						tableTruncateStmts = append(tableTruncateStmts, b.getTruncateCascadeStatementFromPostgres(split[0], split[1]))
+					}
+					slogger.Info(fmt.Sprintf("executing %d sql statements that will truncate cascade tables", len(tableTruncateStmts)))
+					_, err = pool.Exec(ctx, strings.Join(tableTruncateStmts, "\n"))
+					if err != nil {
+						pgconn.Close()
+						return nil, fmt.Errorf("unable to open postgres connection: %w", err)
+					}
+				} else if truncateBeforeInsert {
+					tablePrimaryDependencyMap := getPrimaryToForeignTableMap(tableDependencies, uniqueTables)
+					orderedTables, err := tabledependency.GetTablesOrderedByDependency(uniqueTables, tablePrimaryDependencyMap)
+					if err != nil {
+						return nil, err
+					}
+
+					orderedTableTruncate := []string{}
+					for _, table := range orderedTables {
+						split := strings.Split(table, ".")
+						orderedTableTruncate = append(orderedTableTruncate, fmt.Sprintf(`%q.%q`, split[0], split[1]))
+					}
+					slogger.Info(fmt.Sprintf("executing %d sql statements that will truncate tables", len(orderedTableTruncate)))
+					truncateStmt := b.getTruncateStatementFromPostgres(orderedTableTruncate)
+					_, err = pool.Exec(ctx, truncateStmt)
+					if err != nil {
+						pgconn.Close()
+						return nil, fmt.Errorf("unable to open postgres connection: %w", err)
+					}
 				}
 				pgconn.Close()
 			} else {
@@ -263,27 +297,6 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 
 			if job.Source.Options.GetMysql() != nil || job.Source.Options.GetGenerate() != nil {
 				sourcePool := b.mysqlpool[sourceConnectionId]
-				// todo: make this more efficient to reduce amount of times we have to connect to the source database
-				tableInitMap := map[string][]string{}
-				for table := range uniqueTables {
-					split := strings.Split(table, ".")
-					initStmt, err := b.getInitStatementFromMysql(
-						ctx,
-						sourcePool,
-						split[0],
-						split[1],
-						&initStatementOpts{
-							TruncateBeforeInsert: truncateBeforeInsert,
-							InitSchema:           initSchema,
-						},
-					)
-					if err != nil {
-						return nil, fmt.Errorf("unable to build init statement for postgres: %w", err)
-					}
-					tableInitMap[table] = initStmt
-				}
-
-				sqlStatements := dbschemas_mysql.GetOrderedMysqlInitStatements(tableInitMap, dependencyMap)
 				conn, err := b.sqlconnector.NewDbFromConnectionConfig(destinationConnection.ConnectionConfig, shared.Ptr(uint32(5)), slogger)
 				if err != nil {
 					return nil, fmt.Errorf("unable to create new mysql pool from connection config: %w", err)
@@ -293,15 +306,62 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					return nil, fmt.Errorf("unable to open mysql connection: %w", err)
 				}
 
-				slogger.Info(fmt.Sprintf("executing %d sql statements that will initialize tables", len(sqlStatements)))
-
-				for _, statement := range sqlStatements {
-					_, err = pool.ExecContext(ctx, statement)
+				// create statements
+				if initSchema {
+					tableForeignDependencyMap := getForeignToPrimaryTableMap(tableDependencies, uniqueTables)
+					orderedTables, err := tabledependency.GetTablesOrderedByDependency(uniqueTables, tableForeignDependencyMap)
 					if err != nil {
-						if err := conn.Close(); err != nil {
-							slogger.Error(err.Error())
-						}
 						return nil, err
+					}
+					// todo: make this more efficient to reduce amount of times we have to connect to the source database
+					tableCreateStmts := []string{}
+					for _, table := range orderedTables {
+						split := strings.Split(table, ".")
+						initStmt, err := b.getCreateStatementFromMysql(
+							ctx,
+							sourcePool,
+							split[0],
+							split[1],
+						)
+						if err != nil {
+							return nil, fmt.Errorf("unable to build init statement for mysql: %w", err)
+						}
+						tableCreateStmts = append(tableCreateStmts, initStmt)
+					}
+
+					slogger.Info(fmt.Sprintf("executing %d sql statements that will initialize tables", len(tableCreateStmts)))
+					for _, statement := range tableCreateStmts {
+						_, err = pool.ExecContext(ctx, statement)
+						if err != nil {
+							if err := conn.Close(); err != nil {
+								slogger.Error(err.Error())
+							}
+							return nil, err
+						}
+					}
+				}
+
+				// truncate statements
+				if truncateBeforeInsert {
+					tablePrimaryDependencyMap := getPrimaryToForeignTableMap(tableDependencies, uniqueTables)
+					orderedTables, err := tabledependency.GetTablesOrderedByDependency(uniqueTables, tablePrimaryDependencyMap)
+					if err != nil {
+						return nil, err
+					}
+					orderedTableTruncate := []string{}
+					for _, table := range orderedTables {
+						split := strings.Split(table, ".")
+						orderedTableTruncate = append(orderedTableTruncate, b.getTruncateStatementFromMysql(split[0], split[1]))
+					}
+					slogger.Info(fmt.Sprintf("executing %d sql statements that will truncate tables", len(orderedTableTruncate)))
+					for _, statement := range orderedTableTruncate {
+						_, err = pool.ExecContext(ctx, statement)
+						if err != nil {
+							if err := conn.Close(); err != nil {
+								slogger.Error(err.Error())
+							}
+							return nil, err
+						}
 					}
 				}
 				if err := conn.Close(); err != nil {
@@ -347,62 +407,75 @@ func (b *initStatementBuilder) getConnectionById(
 	return getConnResp.Msg.Connection, nil
 }
 
-type initStatementOpts struct {
-	TruncateBeforeInsert bool
-	TruncateCascade      bool // only applied if truncatebeforeinsert is true
-	InitSchema           bool
-}
-
-func (b *initStatementBuilder) getInitStatementFromPostgres(
+func (b *initStatementBuilder) getCreateStatementFromPostgres(
 	ctx context.Context,
 	conn pg_queries.DBTX,
 	schema string,
 	table string,
-	opts *initStatementOpts,
 ) (string, error) {
-	statements := []string{}
-	if opts != nil && opts.InitSchema {
-		stmt, err := dbschemas_postgres.GetTableCreateStatement(ctx, conn, b.pgquerier, schema, table)
-		if err != nil {
-			return "", err
-		}
-		statements = append(statements, stmt)
+	stmt, err := dbschemas_postgres.GetTableCreateStatement(ctx, conn, b.pgquerier, schema, table)
+	if err != nil {
+		return "", err
 	}
-	if opts != nil && opts.TruncateBeforeInsert {
-		if opts.TruncateCascade {
-			statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s CASCADE;", schema, table))
-		} else {
-			statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s;", schema, table))
-		}
-	}
-	return strings.Join(statements, "\n"), nil
+	return stmt, nil
 }
 
-func (b *initStatementBuilder) getInitStatementFromMysql(
+func (b *initStatementBuilder) getCreateStatementFromMysql(
 	ctx context.Context,
 	conn mysql_queries.DBTX,
 	schema string,
 	table string,
-	opts *initStatementOpts,
-) ([]string, error) {
-	statements := []string{}
-	if opts != nil && opts.InitSchema {
-		stmt, err := dbschemas_mysql.GetTableCreateStatement(ctx, conn, &dbschemas_mysql.GetTableCreateStatementRequest{
-			Schema: schema,
-			Table:  table,
-		})
-		if err != nil {
-			return []string{}, err
-		}
-		statements = append(statements, stmt)
+) (string, error) {
+	stmt, err := dbschemas_mysql.GetTableCreateStatement(ctx, conn, &dbschemas_mysql.GetTableCreateStatementRequest{
+		Schema: schema,
+		Table:  table,
+	})
+	if err != nil {
+		return "", err
 	}
-	if opts != nil && opts.TruncateBeforeInsert {
-		statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s;", schema, table))
-	}
-	return statements, nil
+	return stmt, nil
 }
 
-func getDependencyMap(td map[string]*dbschemas_utils.TableConstraints, uniqueTables map[string]struct{}) map[string][]string {
+func (b *initStatementBuilder) getTruncateStatementFromPostgres(
+	tables []string,
+) string {
+	return fmt.Sprintf("TRUNCATE TABLE %s;", strings.Join(tables, ", "))
+}
+func (b *initStatementBuilder) getTruncateCascadeStatementFromPostgres(
+	schema string,
+	table string,
+) string {
+	return fmt.Sprintf("TRUNCATE TABLE %q.%q CASCADE;", schema, table)
+}
+
+func (b *initStatementBuilder) getTruncateStatementFromMysql(
+	schema string,
+	table string,
+) string {
+	return fmt.Sprintf("TRUNCATE TABLE `%s`.`%s`;", schema, table)
+}
+
+// dependencyMap: {
+// 	"public.countries": [
+// 	 "public.regions"
+// 	],
+// 	"public.departments": [
+// 	 "public.locations"
+// 	],
+// 	"public.dependents": [
+// 	 "public.employees"
+// 	],
+// 	"public.employees": [
+// 	 "public.departments",
+// 	 "public.jobs",
+// 	 "public.employees"
+// 	],
+// 	"public.locations": [
+// 	 "public.countries"
+// 	]
+//  }
+
+func getForeignToPrimaryTableMap(td map[string]*dbschemas_utils.TableConstraints, uniqueTables map[string]struct{}) map[string][]string {
 	dpMap := map[string][]string{}
 	for table, constraints := range td {
 		_, ok := uniqueTables[table]
@@ -415,6 +488,45 @@ func getDependencyMap(td map[string]*dbschemas_utils.TableConstraints, uniqueTab
 				dpMap[table] = append(dpMap[table], dep.ForeignKey.Table)
 			} else {
 				dpMap[table] = []string{dep.ForeignKey.Table}
+			}
+		}
+	}
+	return dpMap
+}
+
+// dependencyMap: {
+// 	"public.regions": [
+// 	 "public.countries"
+// 	],
+// 	"public.departments": [
+// 	 "public.employees"
+// 	],
+// 	"public.dependents": [
+// 	],
+// 	"public.employees": [
+// 	 "public.dependents",
+// 	],
+// 	"public.jobs": [
+// 	 "public.employees",
+// 	],
+// 	"public.locations": [
+// 	 "public.departments"
+// 	]
+//  }
+
+func getPrimaryToForeignTableMap(td map[string]*dbschemas_utils.TableConstraints, uniqueTables map[string]struct{}) map[string][]string {
+	dpMap := map[string][]string{}
+	for table, constraints := range td {
+		_, ok := uniqueTables[table]
+		if !ok {
+			continue
+		}
+		for _, dep := range constraints.Constraints {
+			_, ok := dpMap[dep.ForeignKey.Table]
+			if ok {
+				dpMap[dep.ForeignKey.Table] = append(dpMap[dep.ForeignKey.Table], table)
+			} else {
+				dpMap[dep.ForeignKey.Table] = []string{table}
 			}
 		}
 	}
