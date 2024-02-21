@@ -17,6 +17,7 @@ interface Props {
   excludeInputReqTransformers?: boolean; // will result in only generators (functions with no data input)
   primaryConstraints?: { [key: string]: PrimaryConstraint };
   foreignConstraints?: { [key: string]: ForeignConstraintTables };
+  jobType: string;
 }
 
 export function SchemaTable(props: Props): ReactElement {
@@ -25,6 +26,7 @@ export function SchemaTable(props: Props): ReactElement {
     excludeInputReqTransformers,
     primaryConstraints,
     foreignConstraints,
+    jobType,
   } = props;
 
   const { account } = useAccount();
@@ -81,6 +83,7 @@ export function SchemaTable(props: Props): ReactElement {
         columns={columns}
         data={tableData}
         transformers={mergedTransformers}
+        jobType={jobType}
       />
     </div>
   );
