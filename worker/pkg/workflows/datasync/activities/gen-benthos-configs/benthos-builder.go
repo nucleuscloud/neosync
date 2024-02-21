@@ -353,6 +353,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			for col := range constraints {
 				transformer := colTransformerMap[tableKey][col]
 				if shouldProcessColumn(transformer) {
+					fmt.Println("REDIS")
 					if b.redisConfig == nil {
 						return nil, fmt.Errorf("missing redis config. this operation requires redis.")
 					}
@@ -1473,6 +1474,7 @@ func buildBranchCacheConfigs(
 				continue
 			}
 
+			fmt.Println("REDIS PROCESSOR")
 			hashedKey := neosync_benthos.HashBenthosCacheKey(jobId, runId, fk.Table, fk.Column)
 			requestMap := fmt.Sprintf(`root = if this.%s == null { deleted() } else { this }`, col.Column)
 			argsMapping := fmt.Sprintf(`root = [%q, json(%q)]`, hashedKey, col.Column)
