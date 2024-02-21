@@ -1,0 +1,30 @@
+---
+title: How to Anonymize Sensitive Data in Neon DB
+description: A walkthrough tutorial on how to anonymize sensitive data in Neon DB
+date: 2024-02-21
+published: true
+image: https://assets.nucleuscloud.com/neosync/blog/what-is-test-data.png
+authors:
+  - evis
+---
+
+# Introduction
+
+[Neon DB](https://neon.tech/) is a fast-growing database that offer serverless Postgres. It's open source and gaining a lot of traction with individual developers working on side projects as well as businesses running mission critical applications.
+
+In this guide, we're going to walk through how you can anonymize sensitive data in Neon using [Neosync](https://neosync.dev). Neosync is an open source synthetic data orchestration company that can create anonymized or synthetic data and sync it across all of your neon environments for better security, privacy and development.
+
+Let's jump in.
+
+# Pre-requisites
+
+We're going to need a Neon account and a Neosync account. If you don't already have those, we can get those here:
+
+- [Sign up for Neon](https://console.neon/tech/login)
+- [Sign up for Neosync](https://neosync.dev)
+
+# Getting Started
+
+Now that we have our accounts, we can get this ball rolling. First, let's log into Neon. If you already have a Neon account then you can either create a new project or a new database. If you don't have a Neon account then give your project a name, your database a neon and select a region like below:
+
+![neon-create-project](/images/blogs/neon/neon-create.png)
