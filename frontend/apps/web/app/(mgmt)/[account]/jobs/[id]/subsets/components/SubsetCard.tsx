@@ -52,6 +52,9 @@ export default function SubsetCard(props: Props): ReactElement {
     sourceConnectionId
   );
 
+  const dbType =
+    data?.job?.source?.options?.config.case == 'mysql' ? 'mysql' : 'postgres';
+
   const formValues = getFormValues(data?.job?.source?.options);
   const form = useForm({
     resolver: yupResolver<SubsetFormValues>(SUBSET_FORM_SCHEMA),
@@ -134,6 +137,7 @@ export default function SubsetCard(props: Props): ReactElement {
       });
     }
   }
+
   return (
     <div>
       <Form {...form}>
@@ -193,6 +197,7 @@ export default function SubsetCard(props: Props): ReactElement {
                 }
                 setItemToEdit(undefined);
               }}
+              dbType={dbType}
             />
           </div>
           <div className="my-6">

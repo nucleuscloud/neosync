@@ -22,9 +22,10 @@ interface Props {
   onSave(): void;
   onCancel(): void;
   connectionId: string;
+  dbType: string;
 }
 export default function EditItem(props: Props): ReactElement {
-  const { item, onItem, onSave, onCancel, connectionId } = props;
+  const { item, onItem, onSave, onCancel, connectionId, dbType } = props;
   const [validateResp, setValidateResp] = useState<
     CheckSqlQueryResponse | undefined
   >();
@@ -38,11 +39,14 @@ export default function EditItem(props: Props): ReactElement {
   }
 
   async function onValidate(): Promise<void> {
+    const pgSting = `select * from "${item?.schema}"."${item?.table}" WHERE ${item?.where};`;
+    const mysqlString = `select * from \`${item?.schema}\`.\`${item?.table}\` WHERE ${item?.where};`;
+
     try {
       const resp = await validateSql(
         account?.id ?? '',
         connectionId,
-        `select * from "${item?.schema}"."${item?.table}" WHERE ${item?.where};`
+        dbType == 'mysql' ? mysqlString : pgSting
       );
       setValidateResp(resp);
     } catch (err) {

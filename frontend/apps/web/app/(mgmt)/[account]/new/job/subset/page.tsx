@@ -111,6 +111,15 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const [itemToEdit, setItemToEdit] = useState<TableRow | undefined>();
 
+  const connectionType = connections.find(
+    (item) => item.id == connectFormValues.sourceId
+  );
+
+  const dbType =
+    connectionType?.connectionConfig?.config.case == 'mysqlConfig'
+      ? 'mysql'
+      : 'postgres';
+
   async function onSubmit(values: SubsetFormValues): Promise<void> {
     if (!account) {
       return;
@@ -267,6 +276,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                   }
                   setItemToEdit(undefined);
                 }}
+                dbType={dbType}
               />
             </div>
             <div className="my-6">

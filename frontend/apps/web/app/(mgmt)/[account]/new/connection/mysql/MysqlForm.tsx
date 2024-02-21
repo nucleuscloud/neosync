@@ -186,7 +186,14 @@ export default function MysqlForm() {
               </FormLabel>
               <FormDescription>The database port</FormDescription>
               <FormControl>
-                <Input placeholder="5432" {...field} />
+                <Input
+                  type="number"
+                  placeholder="3306"
+                  {...field}
+                  onChange={(e) => {
+                    field.onChange(e.target.valueAsNumber);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -624,6 +631,7 @@ export async function checkMysqlConnection(
       });
     }
   }
+
   const res = await fetch(`/api/accounts/${accountId}/connections/check`, {
     method: 'POST',
     headers: {
