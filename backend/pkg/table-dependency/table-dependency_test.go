@@ -454,3 +454,35 @@ func Test_GetRunConfigs_MultipleExclude(t *testing.T) {
 		}
 	}
 }
+
+func Test_GetTablesOrderedByDependency(t *testing.T) {
+	tests := []struct {
+		name         string
+		tables       map[string]struct{}
+		dependencies map[string][]string
+		expect       []string
+	}{
+		{
+			name: "No dependencies",
+			tables: map[string]struct{}{
+				"public.a": {},
+				"public.b": {},
+				"public.c": {},
+			},
+			dependencies: map[string][]string{
+				"public.a": {},
+			},
+			expect: []string{"public.a", "public.b", "public.c"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actual, err := GetTablesOrderedByDependency(tt.tables, tt.dependencies)
+
+			assert.NoError(t, err)
+			assert.Len(t, tt.expect, len(actual))
+			assert.ElementsMatch(t, tt.expect, actual)
+		})
+	}
+}
