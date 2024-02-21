@@ -52,12 +52,9 @@ function HeaderBlog(props: HeaderBlogProps): ReactElement {
   return (
     <div
       key={post._id}
-      className="group relative flex flex-col-reverse lg:flex-row gap-6 border border-gray-400 bg-white p-4 lg:p-10 rounded-xl shadow hover:shadow-lg"
+      className="group relative flex flex-col-reverse  gap-6 border border-gray-400 bg-white p-4 lg:p-10 rounded-xl shadow hover:shadow-lg"
     >
-      <div className="flex flex-col gap-4">
-        <div>
-          <Badge variant="default">Latest blog</Badge>
-        </div>
+      <div className="flex flex-col gap-4 ">
         <div className="text-3xl">{post.title}</div>
         <div>{post.description}</div>
         <div className="flex flex-col lg:flex-row gap-4 lg:items-center pt-6 ">
@@ -72,6 +69,11 @@ function HeaderBlog(props: HeaderBlogProps): ReactElement {
         <Link href={post.slug} className="absolute inset-0"></Link>
       </div>
       <div>
+        <div>
+          <Badge variant="default" className="mb-6">
+            Latest blog
+          </Badge>
+        </div>
         <Image
           src={post.image}
           alt={post.title}
