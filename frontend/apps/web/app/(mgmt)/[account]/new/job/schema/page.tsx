@@ -120,6 +120,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             data={form.watch().mappings}
             primaryConstraints={primaryConstraints?.tableConstraints}
             foreignConstraints={foreignConstraints?.tableConstraints}
+            jobType="sync"
           />
           <div className="flex flex-row gap-1 justify-between">
             <Button key="back" type="button" onClick={() => router.back()}>

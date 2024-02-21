@@ -178,7 +178,7 @@ export function SchemaTableToolbar<TData>({
 
   return (
     <div className="flex flex-col items-start w-full gap-2">
-      {jobType == 'sync' && (
+      {jobType == 'sync' && ( // hide filters if the job is not a sync job
         <div className="flex flex-col items-center gap-2">
           <div className="w-[275px] lg:w-[650px] z-40 flex flex-col gap-2">
             <FormLabel>Filter Schema(s)</FormLabel>
