@@ -47,7 +47,12 @@ export default function SchemaPageTable<TData, TValue>({
     data,
     columns,
     state: {},
-
+    initialState: {
+      sorting: [
+        { id: 'schema', desc: true },
+        { id: 'table', desc: true },
+      ],
+    },
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
