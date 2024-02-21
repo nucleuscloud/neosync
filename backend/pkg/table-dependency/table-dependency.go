@@ -249,7 +249,13 @@ func GetTablesOrderedByDependency(tables map[string]struct{}, dependencyMap map[
 		}
 	}
 
+	prevTableLen := 0
 	for len(tableMap) > 0 {
+		// prevents looping forever
+		if prevTableLen == len(tableMap) {
+			return nil, fmt.Errorf("unable to build table order")
+		}
+		prevTableLen = len(tableMap)
 		for table := range tableMap {
 			deps := dependencyMap[table]
 			if isReady(seenTables, deps, table) {
