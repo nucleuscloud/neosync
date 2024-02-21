@@ -33,7 +33,7 @@ Now we can click on **Database** on the left hand side in order to select the da
 
 Next, we'll need to define our database schema. For this demo, we'll create two tables but you can create as many tables as you need to.
 
-Let's navigate to **SQL editor** and create our tables. Here is the SQL script I ran to create our tables in the public schema. If you have the uuid() extension installed you can also set the `id` column to auto-generate those for you or you can use Neosync to generate them. I'll use Neoysnc to generate them.
+Let's navigate to **SQL editor** and create our tables. Here is the SQL script I ran to create our table in the public schema. If you have the uuid() extension installed you can also set the `id` column to auto-generate those for you or you can use Neosync to generate them. Let's create our table.
 
 ```SQL
 
@@ -44,22 +44,11 @@ CREATE TABLE public.users (
     email VARCHAR(255) NOT NULL,
     age INTEGER NOT NULL
 );
-
-CREATE TABLE public.orders (
-    id UUID PRIMARY KEY,
-    street_address VARCHAR(255) NOT NULL,
-    city VARCHAR(255) NOT NULL,
-    state VARCHAR(255) NOT NULL,
-    zipcode VARCHAR(255) NOT NULL,
-    loyalty_plan BOOLEAN NOT NULL,
-    price DECIMAL(10, 2)
-);
-
 ```
 
-We can do a quick sanity check by going to **Tables** and seeing that our tables were successfully created.
+We can do a quick sanity check by going to **Tables** and seeing that our table was successfully created.
 
-![neon-created-tables](/images/blogs/neon/created-tables.png)
+![neon-created-tables](/images/blogs/neon/neon-table-users.png)
 
 Nice! Okay, last step for Neon. Let's get our connection string so we can connect to Neon from Neosync. We can find our connection string by going to **Dashboard** and then under the **Connection String** header, you can find your connection string. Hold onto this for a minute while we get Neosync set up.
 
@@ -111,7 +100,7 @@ Click **Next** to move onto the **Connect** page. Here we want to select the con
 
 There are some other options here that can be useful but we'll skip these for now and click **Next**.
 
-Now for the fun part. First select your schema. Mine is the public schema but you may have another one. Next select the table where you want to generaete synthetic data. We created two tables before in Neon, so we should have two. I selected the `users` table first.
+Now for the fun part. First select your schema. Mine is the public schema but you may have another one. Next select the table where you want to generaete synthetic data. So I'm going to select the `users` table.
 
 Next, decide how many rows you want to create. For this run, I'll do 1000 rows.
 
@@ -123,25 +112,13 @@ Lastly, we need to determine what kind of synthetic data we want to create and m
 
 For the age column, I used the `Generate Random Int64` Transformer to randomly generate ages between 18 and 40. Here is how I configured that:
 
-![neosync-test](/images/blogs/neon/aget.png)
-
-Now we can just repeat for the orders table. One thing to note here is that for the `Price` column, we defined it as a `numeric(10,2)`. This means that it can store up to 10 digits total with 2 after the decimal point. In Neosync, we handle this with the `Generate Float64` Transformer. Here is how I configured it:
-
-![neosync-test](/images/blogs/neon/float64.png)
-
 Now that we've configured everything, we can click on **Next** and create the job! We'll get routed to the Job page and see something like this:
 
 ![neosync-test](/images/blogs/neon/success-job.png)
 
-You can see that our job ran successfully and in just 12 seconds we populated 1000 rows across 2 tables in Neon!
+You can see that our job ran successfully and in just 12 seconds!
 
 Now we can head back over to Neon and check on our data. First let's check the count and make sure we generated 1000 rows.
-
-```SQL
-SELECT COUNT(*) FROM orders;
-```
-
-![neosync-test](/images/blogs/neon/count.png)
 
 ```SQL
 SELECT COUNT(*) FROM users;
@@ -150,12 +127,6 @@ SELECT COUNT(*) FROM users;
 ![neosync-test](/images/blogs/neon/users-count.png)
 
 Next, let's check the data:
-
-```SQL
-SELECT * FROM orders;
-```
-
-![neosync-test](/images/blogs/neon/neon-data.png)
 
 ```SQL
 SELECT * FROM users;
@@ -167,4 +138,4 @@ Looking pretty good! We have seeded our Neon database with 1000 rows of complete
 
 # Conclusion
 
-In this guide, we walked through how to seed your Neon database with 1000 rows of synthic data using Neosync. This is particularly helpful if you're working on a new application and don't have data yet or want to augment your existin database with more data for performance testing.
+In this guide, we walked through how to seed your Neon database with 1000 rows of synthic data using Neosync. This is just a small test and you can expand this to generate tens of thousands or more rows of data across any relational database. Neosync handles the referential integrity. This is particularly helpful if you're working on a new application and don't have data yet or want to augment your existing database with more data for performance testing.
