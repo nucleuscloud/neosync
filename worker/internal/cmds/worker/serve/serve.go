@@ -6,14 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"log/slog"
 	"net/http"
-	"os"
 	"time"
 
 	"connectrpc.com/grpchealth"
 	"connectrpc.com/grpcreflect"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	logger_utils "github.com/nucleuscloud/neosync/worker/internal/logger"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -55,9 +54,7 @@ func serve() error {
 	if taskQueue == "" {
 		return errors.New("must provide TEMPORAL_TASK_QUEUE environment variable")
 	}
-	jsonloghandler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{})
-	logger := slog.New(jsonloghandler)
-	loglogger := slog.NewLogLogger(jsonloghandler, slog.LevelInfo)
+	logger, loglogger := logger_utils.NewLoggers()
 
 	certificates, err := getTemporalAuthCertificate()
 	if err != nil {

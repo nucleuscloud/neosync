@@ -111,7 +111,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		bc := bc
 		future := invokeSync(bc, childctx, started, completed, workflowMetadata, logger)
 		workselector.AddFuture(future, func(f workflow.Future) {
-			logger = log.With(logger, withBenthosConfigResponseLoggerTags(bc)...)
+			logger := log.With(logger, withBenthosConfigResponseLoggerTags(bc)...)
 			logger.Info("config sync completed")
 			var result sync_activity.SyncResponse
 			err := f.Get(childctx, &result)
@@ -135,7 +135,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	}
 
 	for i := 0; i < len(bcResp.BenthosConfigs); i++ {
-		logger = log.With(logger, withBenthosConfigResponseLoggerTags(bcResp.BenthosConfigs[i])...)
+		logger := log.With(logger, withBenthosConfigResponseLoggerTags(bcResp.BenthosConfigs[i])...)
 		logger.Debug("*** blocking select ***", "i", i)
 		workselector.Select(ctx)
 		if activityErr != nil {

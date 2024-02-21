@@ -2,8 +2,6 @@ package genbenthosconfigs_activity
 
 import (
 	"context"
-	"log/slog"
-	"os"
 	"time"
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
@@ -12,6 +10,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
+	logger_utils "github.com/nucleuscloud/neosync/worker/internal/logger"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/log"
@@ -109,6 +108,6 @@ func GenerateBenthosConfigs(
 		wfmetadata.RunId,
 		redisConfig,
 	)
-	slogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{})).With(loggerKeyVals...)
+	slogger := logger_utils.NewJsonSLogger().With(loggerKeyVals...)
 	return bbuilder.GenerateBenthosConfigs(ctx, req, slogger)
 }

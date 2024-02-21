@@ -3,8 +3,6 @@ package sync_activity
 import (
 	"context"
 	"fmt"
-	"log/slog"
-	"os"
 	"sync"
 	"time"
 
@@ -17,6 +15,7 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/redis"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
+	logger_utils "github.com/nucleuscloud/neosync/worker/internal/logger"
 
 	"connectrpc.com/connect"
 	"github.com/benthosdev/benthos/v4/public/service"
@@ -59,7 +58,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		"RunID", workflowMetadata.RunId,
 	}
 	logger := log.With(activity.GetLogger(ctx), loggerKeyVals...)
-	slogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{})).With(loggerKeyVals...)
+	slogger := logger_utils.NewJsonSLogger().With(loggerKeyVals...)
 	var benthosStream *service.Stream
 	go func() {
 		for {

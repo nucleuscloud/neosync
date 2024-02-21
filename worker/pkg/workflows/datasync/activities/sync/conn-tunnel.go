@@ -16,8 +16,11 @@ func NewConnectionTunnelManager() *ConnectionTunnelManager {
 }
 
 type ConnectionTunnelManager struct {
-	connMap     sync.Map
-	connCounter sync.Map
+	connMap       sync.Map
+	connLockMxMap sync.Map
+
+	connCounter    sync.Map
+	counterLockMap sync.Map
 }
 
 func (c *ConnectionTunnelManager) GetConnectionString(
@@ -26,7 +29,19 @@ func (c *ConnectionTunnelManager) GetConnectionString(
 ) (string, error) {
 	loadedDetails, ok := c.load(connection.Id)
 	if ok {
+		c.incrementCount(connection.Id)
 		return loadedDetails.GeneralDbConnectConfig.String(), nil
+	}
+
+	mu, _ := c.connLockMxMap.LoadOrStore(connection.Id, &sync.Mutex{})
+	mutex := mu.(*sync.Mutex)
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	loadDetails, ok := c.load(connection.Id)
+	if ok {
+		c.incrementCount(connection.Id)
+		return loadDetails.GeneralDbConnectConfig.String(), nil
 	}
 
 	details, err := sqlconnect.GetConnectionDetails(connection.ConnectionConfig, shared.Ptr(uint32(5)), logger)
@@ -44,12 +59,13 @@ func (c *ConnectionTunnelManager) GetConnectionString(
 	details.GeneralDbConnectConfig.Host = details.Tunnel.Local.Host
 	details.GeneralDbConnectConfig.Port = int32(details.Tunnel.Local.Port)
 	c.connMap.Store(connection.Id, details)
+	c.incrementCount(connection.Id)
 	logger.Debug(
 		"ssh tunnel is ready, updated configuration host and port",
 		"host", details.Tunnel.Local.Host,
 		"port", details.Tunnel.Local.Port,
 	)
-	go c.reaper(connection.Id)
+	go c.reaper(connection.Id, 1*time.Minute)
 	return details.GeneralDbConnectConfig.String(), nil
 }
 
@@ -67,6 +83,11 @@ func (c *ConnectionTunnelManager) Release(connectionId string) {
 }
 
 func (c *ConnectionTunnelManager) incrementCount(connectionId string) {
+	mu, _ := c.counterLockMap.LoadOrStore(connectionId, &sync.Mutex{})
+	mutex := mu.(*sync.Mutex)
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	count, ok := c.getCurrentCount(connectionId)
 	if !ok {
 		count = 1
@@ -76,6 +97,11 @@ func (c *ConnectionTunnelManager) incrementCount(connectionId string) {
 	c.connCounter.Store(connectionId, count)
 }
 func (c *ConnectionTunnelManager) decrementCount(connectionId string) {
+	mu, _ := c.counterLockMap.LoadOrStore(connectionId, &sync.Mutex{})
+	mutex := mu.(*sync.Mutex)
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	count, ok := c.getCurrentCount(connectionId)
 	if !ok {
 		count = 0
@@ -94,16 +120,14 @@ func (c *ConnectionTunnelManager) getCurrentCount(connectionId string) (int, boo
 	return count, ok
 }
 
-func (c *ConnectionTunnelManager) reaper(connectionId string) {
+func (c *ConnectionTunnelManager) reaper(connectionId string, initialDelay time.Duration) {
+	time.Sleep(initialDelay)
 	for {
-		select {
-		case <-time.After(1 * time.Minute):
-			count, ok := c.getCurrentCount(connectionId)
-			if !ok || count <= 0 {
-				c.close(connectionId)
-				return
-			}
-			// connection is still open and active, wait more time
+		time.Sleep(1 * time.Minute)
+		count, ok := c.getCurrentCount(connectionId)
+		if !ok || count <= 0 {
+			c.close(connectionId)
+			return
 		}
 	}
 }
