@@ -35,7 +35,7 @@ Next, we'll need to define our database schema. For this demo, we'll create two 
 
 Let's navigate to **SQL editor** and create our tables. Here is the SQL script I ran to create our table in the public schema. If you have the uuid() extension installed you can also set the `id` column to auto-generate those for you or you can use Neosync to generate them. Let's create our table.
 
-```SQL
+```sql
 
 CREATE TABLE public.users (
     id UUID PRIMARY KEY,
@@ -106,7 +106,7 @@ Next, decide how many rows you want to create. For this run, I'll do 1000 rows.
 
 ![neosync-test](/images/blogs/neon/data-gen-setup.png)
 
-Lastly, we need to determine what kind of synthetic data we want to create and map that to our schema. Neosync calls **Transformers** which are ways of creating synthetic data. Click on the **Transformer** and then select the right Transformer that maps to the right column. Here is what I have set up for the users table.
+Lastly, we need to determine what kind of synthetic data we want to create and map that to our schema. Neosync has **Transformers** which are ways of creating synthetic data. Click on the **Transformer** and then select the right Transformer that maps to the right column. Here is what I have set up for the users table.
 
 ![neosync-test](/images/blogs/neon/data-gen-schema.png)
 
@@ -120,7 +120,7 @@ You can see that our job ran successfully and in just 12 seconds!
 
 Now we can head back over to Neon and check on our data. First let's check the count and make sure we generated 1000 rows.
 
-```SQL
+```sql
 SELECT COUNT(*) FROM users;
 ```
 
@@ -128,7 +128,7 @@ SELECT COUNT(*) FROM users;
 
 Next, let's check the data:
 
-```SQL
+```sql
 SELECT * FROM users;
 ```
 

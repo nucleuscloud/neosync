@@ -1,9 +1,9 @@
 ---
-title: How to Anonymize Sensitive Data in Neon DB
+title: How to Anonymize Sensitive Data in Neon
 description: A walkthrough tutorial on how to anonymize sensitive data in Neon DB
-date: 2024-02-20
-published: false
-image: https://assets.nucleuscloud.com/neosync/blog/what-is-test-data.png
+date: 2024-02-21
+published: true
+image: /images/blogs/neon/neon-sync.svg
 authors:
   - evis
 ---
@@ -12,7 +12,7 @@ authors:
 
 [Neon DB](https://neon.tech/) is a fast-growing database that offer serverless Postgres. It's open source and gaining a lot of traction with individual developers working on side projects as well as businesses running mission critical applications.
 
-In this guide, we're going to walk through how you can seed your Neon database with synthetic data for testing and rapid development using [Neosync](https://neosync.dev). Neosync is an open source synthetic data orchestration company that can create anonymized or synthetic data and sync it across all of your neon environments for better security, privacy and development.
+In this guide, we're going to walk through how you can anonymize sensitive data in your Neon database with synthetic data for testing and rapid development using [Neosync](https://neosync.dev). Neosync is an open source synthetic data orchestration company that can create anonymized or synthetic data and sync it across all of your neon environments for better security, privacy and development.
 
 Let's jump in.
 
@@ -29,14 +29,23 @@ Now that we have our accounts, we can get this ball rolling. First, let's log in
 
 ![neon-create-project](/images/blogs/neon/neon-create.png)
 
-Now we can click on **Database** on the left hand side in order to select the database that we created. If you already have a database set up then you can select the database that you want to act as your source database.
+We'll need two separate databases to show data syncing from a source to a destination. We've already created one so let's create the other.
 
-Next, we'll need to define our database schema. For this demo, we'll create two tables but you can create as many tables as you need to.
+Click on **Database** on the left hand side and click **New Database** and let's name it **destination**.
 
-Let's navigate to **SQL editor** and create our tables. Here is the SQL script I ran to create our tables in the public schema. If you have the uuid() extension installed you can also set the `id` column to auto-generate those for you or you can use Neosync to generate them. I'll use Neoysnc to generate them.
+![neon-create-project](/images/blogs/neon/twodb.png)
 
-```SQL
+So now we have two databases: **neosync-test** will be our source and **destination** will be our destination database. I already have data in my **neosync-test** database but if you don't you follow our [Seeding your Neon DB with Synthetic Data](/neosync-neon-data-gen-job.mdx) blog to seed your database with data.
 
+Next, we'll need to define our destination database schema.
+
+Let's navigate to **SQL editor** and make sure to select the right database from the database selector in the top right hand menu under your avatar.
+
+![neon-create-project](/images/blogs/neon/dbselect.png)
+
+Now let's create our schema. Here is the SQL script I ran to create our tables in the public schema. If you have the uuid() extension installed you can also set the `id` column to auto-generate those for you or you can use Neosync to generate them. I'll use Neoysnc to generate them.
+
+```sql
 CREATE TABLE public.users (
     id UUID PRIMARY KEY,
     first_name VARCHAR(255) NOT NULL,
@@ -54,18 +63,21 @@ CREATE TABLE public.orders (
     loyalty_plan BOOLEAN NOT NULL,
     price DECIMAL(10, 2)
 );
-
 ```
 
-We can do a quick sanity check by going to **Tables** and seeing that our tables were successfully created.
+We can do a quick sanity check by going to **Tables** and seeing that our tables were successfully created in both databases.
 
 ![neon-created-tables](/images/blogs/neon/created-tables.png)
 
-Nice! Okay, last step for Neon. Let's get our connection string so we can connect to Neon from Neosync. We can find our connection string by going to **Dashboard** and then under the **Connection String** header, you can find your connection string. Hold onto this for a minute while we get Neosync set up.
+![neon-created-tables](/images/blogs/neon/desttables.png)
+
+Nice!
+
+Okay, last step for Neon. Let's get our connection strings so that we can connect to our Neon databases from Neosync. We can find our connection string by going to **Dashboard** and then under the **Connection String** header, you can find your connection string. Use the **Database** drop down to change databases so that you can get both connection strings. Hold onto this for a minute while we get Neosync set up.
 
 # Setting up Neosync
 
-Now that we're in Neosync, we'll want to first create a connection to our Neon database and then create a job to generate data. Let's get started.
+Now that we're in Neosync, we'll want to first create connections to our Neon database and then create a job to sync data. Let's get started.
 
 ## Creating a Connection
 
@@ -88,7 +100,9 @@ Once you've completed filling out the form, you can click on **Test Connection**
 
 ![neosync-test](/images/blogs/neon/neon-test.png)
 
-Let's click **Save** and move onto the last part.
+Let's click **Save** and repeat this for our database so that we have two connections: one for **neosync-test** and one for **destination**.
+
+![neosync-test](/images/blogs/neon/neonconnections.png)
 
 ## Creating a Job
 
@@ -99,72 +113,70 @@ In order to generate data, we need to create a **Job** in Neosync. Let's click o
 - Data Synchronization - Synchronize and anonymize data between a source and destination.
 - Data Generation - Generate synthetic data from scratch for a chosen destination.
 
-Since we're seeding a table from scratch, we can select the **Data Generation** job and click **Next**.
+Since we're anonymizing existing data, we can select the **Data Synchronization** job and click **Next**.
 
 Let's give our job a name and then set **Initiate Job Run** to **Yes**. We can leave the schedule and advanced options alone for now.
 
-![neosync-test](/images/blogs/neon/define.png)
+![neosync-test](/images/blogs/neon/syncjob.png)
 
-Click **Next** to move onto the **Connect** page. Here we want to select the connection we previously connected from the dropdown.
+Click **Next** to move onto the **Connect** page. Here we want to select our source and destination connections that we configured earlier.
 
-![neosync-test](/images/blogs/neon/neon-connect.png)
+![neosync-test](/images/blogs/neon/syncconnect.png)
 
-There are some other options here that can be useful but we'll skip these for now and click **Next**.
+There are some other options here that can be useful. We'll also select the **TRUNCATE CASCADE** option which will truncate our table and cascade to all constraints so that we get a fresh set of data every time. Click **Next**.
 
-Now for the fun part. First select your schema. Mine is the public schema but you may have another one. Next select the table where you want to generaete synthetic data. We created two tables before in Neon, so we should have two. I selected the `users` table first.
+Now for the fun part. We need to determine what kind of anonymization we want to do and/or what type of synthetic data we want to create and map that to our schema. Neosync has **Transformers** which are ways of creating synthetic data. Click on the **Transformer** and then select the right Transformer that maps to the right column.
 
-Next, decide how many rows you want to create. For this run, I'll do 1000 rows.
+Here is what I have set up for the `users` table.
 
-![neosync-test](/images/blogs/neon/data-gen-setup.png)
+![neosync-test](/images/blogs/neon/users-new-schema.png)
 
-Lastly, we need to determine what kind of synthetic data we want to create and map that to our schema. Neosync calls **Transformers** which are ways of creating synthetic data. Click on the **Transformer** and then select the right Transformer that maps to the right column. Here is what I have set up for the users table.
+I've set the `id` column to passthrough which will allow us to validate our output data. The `first_name` column to generate a brand new first name, the `last_name` column to generate a new last name, the `email` column to transform the existing email address by generating a new username and preserving the domain, and lastly the `age` column to transform it by anonymizing the current value.
 
-![neosync-test](/images/blogs/neon/data-gen-schema.png)
+And for the `orders` table.
 
-For the age column, I used the `Generate Random Int64` Transformer to randomly generate ages between 18 and 40. Here is how I configured that:
+![neosync-test](/images/blogs/neon/orders-news-schema.png)
 
-![neosync-test](/images/blogs/neon/aget.png)
+I've set the `id` column to passthrough which will allow us to validate our output data. The `street_address` column to generate a brand new street address, the `city` column to generate a new city, the `state` column to passthrough the current value, the `zipcode` column to generate a new zipcode, the `loyalty_plan` to passthrough the current value and lastly the `price` column to anonymize the price of the order.
 
-Now we can just repeat for the orders table. One thing to note here is that for the `Price` column, we defined it as a `numeric(10,2)`. This means that it can store up to 10 digits total with 2 after the decimal point. In Neosync, we handle this with the `Generate Float64` Transformer. Here is how I configured it:
+Now that we've configured everything, we can click on **Next** to go to the Subset page. We don't have to subset our data but if we did we can enter in a SQL filter to subset our data. Neosync will take care of the rest.
 
-![neosync-test](/images/blogs/neon/float64.png)
+Now let's click **Save** to create our job and kick off our first run! We'll get routed to the Job page and see something like this:
 
-Now that we've configured everything, we can click on **Next** and create the job! We'll get routed to the Job page and see something like this:
+![neosync-test](/images/blogs/neon/sync-job-success.png)
 
-![neosync-test](/images/blogs/neon/success-job.png)
+You can see that our job ran successfully and in just 14 seconds we were able to copy, anonymize and generate data from one Neon database to another.
 
-You can see that our job ran successfully and in just 12 seconds we populated 1000 rows across 2 tables in Neon!
+Now we can head back over to Neon and check on our data. First let's check the `users` table. We'll want to first ensure that we generated 1000 rows since that's how many were in our source (neosync-test) database and then check that the data was anonymized and generated correctly according to our transformers.
 
-Now we can head back over to Neon and check on our data. First let's check the count and make sure we generated 1000 rows.
+![neosync-test](/images/blogs/neon/dest-users-count.png)
 
-```SQL
-SELECT COUNT(*) FROM orders;
-```
+Great, count looks good. Next, let's check the data. Let's take an ID from our source and check it against the destination. Note: Remember that relational databases don't guarantee order when selecting data unless you pass an `ORDER BY` clause so using a `SELECT * FROM users` query will be misleading. This is our source:
 
-![neosync-test](/images/blogs/neon/count.png)
+![neosync-test](/images/blogs/neon/source-user-id.png)
 
-```SQL
-SELECT COUNT(*) FROM users;
-```
+This is our destination:
 
-![neosync-test](/images/blogs/neon/users-count.png)
+![neosync-test](/images/blogs/neon/dest-id-check.png)
 
-Next, let's check the data:
+We can see that we generated new UUIDs, first and last names, we anonymized the email address username but preserved the domain anonymized our age. Nice!
 
-```SQL
-SELECT * FROM orders;
-```
+And just to make sure, let's check out the orders table.
 
-![neosync-test](/images/blogs/neon/neon-data.png)
+![neosync-test](/images/blogs/neon/dest-orders-count.png)
 
-```SQL
-SELECT * FROM users;
-```
+Great, count looks good. Next, let's check the data. This is our source:
 
-![neosync-test](/images/blogs/neon/data-users.png)
+This is our source:
 
-Looking pretty good! We have seeded our Neon database with 1000 rows of completely synthetic data and it only took 12 seconds.
+![neosync-test](/images/blogs/neon/orders-id-check.png)
+
+This is our destination:
+
+![neosync-test](/images/blogs/neon/dest-ordersid.png)
+
+We can see that we generated new UUIDs, street addresses, cities, zipcodes and prices. We had set the state and loyalty_plan columns to pass through and those came through. Looking good!
 
 # Conclusion
 
-In this guide, we walked through how to seed your Neon database with 1000 rows of synthic data using Neosync. This is particularly helpful if you're working on a new application and don't have data yet or want to augment your existin database with more data for performance testing.
+In this guide, we walked through how to anonymize sensitive data and generate synthetic data ifrom one Neon database to another. The cool thing about this is that it doesn't have to be from one Neon database to another. Neosync supports any Postgres database. So it can be from Neon to RDS, RDS to Neon, RDS to Cloud SQL, etc. This is just a small test and you can expand this to anonymize millions or more rows of data across any relational database. Neosync handles the all of the referential integrity. If you're working with sensitive data and want a better way to protect that data, then consider Neosync to take on the heavy lifting.
