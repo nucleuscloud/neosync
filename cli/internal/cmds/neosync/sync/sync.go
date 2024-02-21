@@ -448,8 +448,17 @@ func sync(
 
 	fmt.Println(printlog.Render("Running table init statements...")) //nolint:forbidigo
 	dependencyMap := buildDependencyMap(syncConfigs)
+	uniqueTables := map[string]struct{}{}
 	if cmd.Destination.Driver == postgresDriver {
-		orderedInitStatements := dbschemas_postgres.GetOrderedPostgresInitStatements(schemaConfig.InitTableStatementsMap, dependencyMap)
+		orderedTables, err := tabledependency.GetTablesOrderedByDependency(uniqueTables, dependencyMap)
+		if err != nil {
+			return err
+		}
+		orderedInitStatements := []string{}
+		for _, t := range orderedTables {
+			stmt := schemaConfig.InitTableStatementsMap[t]
+			orderedInitStatements = append(orderedInitStatements, stmt)
+		}
 		pool, err := pgxpool.New(ctx, cmd.Destination.ConnectionUrl)
 		if err != nil {
 			return err
@@ -461,7 +470,15 @@ func sync(
 		pool.Close()
 	} else if cmd.Destination.Driver == mysqlDriver {
 		initStatementsMap := getMysqlInitStatementsMap(schemaConfig.InitTableStatementsMap)
-		orderedInitStatements := dbschemas_mysql.GetOrderedMysqlInitStatements(initStatementsMap, dependencyMap)
+		orderedTables, err := tabledependency.GetTablesOrderedByDependency(uniqueTables, dependencyMap)
+		if err != nil {
+			return err
+		}
+		orderedInitStatements := []string{}
+		for _, t := range orderedTables {
+			stmts := initStatementsMap[t]
+			orderedInitStatements = append(orderedInitStatements, stmts...)
+		}
 		pool, err := sql.Open("mysql", cmd.Destination.ConnectionUrl)
 		if err != nil {
 			return err
@@ -791,10 +808,8 @@ func groupConfigsByDependency(configs []*benthosConfigResponse) [][]*benthosConf
 	}
 	groupedConfigs = append(groupedConfigs, rootConfigs)
 
-	maxCount := len(configs)
-	for len(configMap) > 0 && maxCount > 0 {
+	for len(configMap) > 0 {
 		dependentConfigs := []*benthosConfigResponse{}
-		maxCount--
 		for _, c := range configMap {
 			if isConfigReady(c, queuedMap) {
 				dependentConfigs = append(dependentConfigs, c)
