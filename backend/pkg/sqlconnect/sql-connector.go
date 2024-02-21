@@ -40,7 +40,7 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(connectionConfig *mgmtv1al
 	if err != nil {
 		return nil, err
 	}
-	return newSqlDb(details), nil
+	return newSqlDb(details, logger), nil
 }
 
 func (rc *SqlOpenConnector) NewPgPoolFromConnectionConfig(pgconfig *mgmtv1alpha1.PostgresConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (PgPoolContainer, error) {
@@ -55,7 +55,7 @@ func (rc *SqlOpenConnector) NewPgPoolFromConnectionConfig(pgconfig *mgmtv1alpha1
 	if err != nil {
 		return nil, err
 	}
-	return newPgPool(details), nil
+	return newPgPool(details, logger), nil
 }
 
 type ConnectionDetails struct {
@@ -102,7 +102,6 @@ func GetConnectionDetails(c *mgmtv1alpha1.ConnectionConfig, connectionTimeout *u
 				sshtunnel.NewEndpoint(localhost, randomPort),
 				1,
 				publickey,
-				logger,
 			)
 			connDetails, err := getGeneralDbConnectConfigFromPg(config, connectionTimeout)
 			if err != nil {
@@ -147,7 +146,6 @@ func GetConnectionDetails(c *mgmtv1alpha1.ConnectionConfig, connectionTimeout *u
 				sshtunnel.NewEndpoint(localhost, randomPort),
 				1,
 				publickey,
-				logger,
 			)
 			connDetails, err := getGeneralDbConnectionConfigFromMysql(config, connectionTimeout)
 			if err != nil {

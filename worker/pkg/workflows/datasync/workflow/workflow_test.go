@@ -377,20 +377,21 @@ func Test_Workflow_Follows_Multiple_Dependent_Redis_Cleanup(t *testing.T) {
 	env.OnActivity(runsqlinittablestmts_activity.RunSqlInitTableStatements, mock.Anything, mock.Anything).
 		Return(&runsqlinittablestmts_activity.RunSqlInitTableStatementsResponse{}, nil)
 	counter := atomic.NewInt32(0)
+	syncActivities := &sync_activity.Activity{}
 	env.
-		OnActivity(sync_activity.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "users"}, mock.Anything).
+		OnActivity(syncActivities.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "users"}, mock.Anything).
 		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata, workflowMetadata *shared.WorkflowMetadata) (*sync_activity.SyncResponse, error) {
 			counter.Add(1)
 			return &sync_activity.SyncResponse{}, nil
 		})
 	env.
-		OnActivity(sync_activity.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "accounts"}, mock.Anything).
+		OnActivity(syncActivities.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "accounts"}, mock.Anything).
 		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata, workflowMetadata *shared.WorkflowMetadata) (*sync_activity.SyncResponse, error) {
 			counter.Add(1)
 			return &sync_activity.SyncResponse{}, nil
 		})
 	env.
-		OnActivity(sync_activity.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "foo"}, mock.Anything).
+		OnActivity(syncActivities.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "foo"}, mock.Anything).
 		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata, workflowMetadata *shared.WorkflowMetadata) (*sync_activity.SyncResponse, error) {
 			assert.Equal(t, counter.Load(), int32(2))
 			counter.Add(1)
@@ -587,14 +588,14 @@ func Test_Workflow_Cleans_Up_Redis_OnError(t *testing.T) {
 				StartToCloseTimeout: time.Minute,
 			},
 		}, nil)
-
+	syncActivities := &sync_activity.Activity{}
 	env.
-		OnActivity(sync_activity.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "users"}, mock.Anything).
+		OnActivity(syncActivities.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "users"}, mock.Anything).
 		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata, workflowMetadata *shared.WorkflowMetadata) (*sync_activity.SyncResponse, error) {
 			return &sync_activity.SyncResponse{}, nil
 		})
 	env.
-		OnActivity(sync_activity.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "accounts"}, mock.Anything).
+		OnActivity(syncActivities.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "accounts"}, mock.Anything).
 		Return(nil, errors.New("TestFailure"))
 
 	env.OnActivity(syncrediscleanup_activity.DeleteRedisHash, mock.Anything, mock.Anything).

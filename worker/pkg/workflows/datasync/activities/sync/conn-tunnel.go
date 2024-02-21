@@ -54,7 +54,7 @@ func (c *ConnectionTunnelManager) GetConnectionString(
 	if details.Tunnel == nil {
 		return details.GeneralDbConnectConfig.String(), nil
 	}
-	ready, err := details.Tunnel.Start()
+	ready, err := details.Tunnel.Start(logger)
 	if err != nil {
 		return "", fmt.Errorf("unable to start ssh tunnel: %w", err)
 	}

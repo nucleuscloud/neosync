@@ -13,8 +13,6 @@ import (
 )
 
 type Sshtunnel struct {
-	logger *slog.Logger
-
 	Local  *Endpoint
 	Server *Endpoint
 	Remote *Endpoint
@@ -35,15 +33,13 @@ func New(
 	local *Endpoint,
 	maxConnectionAttempts uint,
 	serverPublicKey ssh.PublicKey,
-	logger *slog.Logger,
 ) *Sshtunnel {
 	authmethods := []ssh.AuthMethod{}
 	if auth != nil {
 		authmethods = append(authmethods, auth)
 	}
 	return &Sshtunnel{
-		logger: logger,
-		close:  make(chan any, 1),
+		close: make(chan any, 1),
 
 		Local:  local,
 		Server: tunnel,
@@ -68,17 +64,17 @@ func getHostKeyCallback(key ssh.PublicKey) ssh.HostKeyCallback {
 	return ssh.FixedHostKey(key)
 }
 
-func (t *Sshtunnel) Start() (chan any, error) {
+func (t *Sshtunnel) Start(logger *slog.Logger) (chan any, error) {
 	listener, err := net.Listen("tcp", t.Local.String())
 	if err != nil {
 		return nil, fmt.Errorf("unable to listen to local endpoint: %w", err)
 	}
 	ready := make(chan any)
-	go t.Serve(listener, ready)
+	go t.serve(listener, ready, logger)
 	return ready, nil
 }
 
-func (t *Sshtunnel) Serve(listener net.Listener, ready chan<- any) {
+func (t *Sshtunnel) serve(listener net.Listener, ready chan<- any, logger *slog.Logger) {
 	t.Local.Port = listener.Addr().(*net.TCPAddr).Port
 	t.isOpen = true
 	hasSignaledReady := false
@@ -91,14 +87,14 @@ func (t *Sshtunnel) Serve(listener net.Listener, ready chan<- any) {
 		c := make(chan net.Conn)
 
 		sessionId := uuid.NewString()
-		go newConnectionWaiter(listener, c, ready, hasSignaledReady, t.logger) // begins accepting connections and sends the connection onto the channel
+		go newConnectionWaiter(listener, c, ready, hasSignaledReady, logger) // begins accepting connections and sends the connection onto the channel
 		hasSignaledReady = true
-		t.logger.Debug(fmt.Sprintf("listening for new local connections on %s", t.Local.String()))
+		logger.Debug(fmt.Sprintf("listening for new local connections on %s", t.Local.String()))
 		shutdown := make(chan any, 1)
 		t.shutdowns.Store(sessionId, shutdown)
 		select {
 		case <-t.close:
-			t.logger.Debug("received close signal from client...")
+			logger.Debug("received close signal from client...")
 			t.isOpen = false
 			go func() {
 				t.shutdowns.Range(func(key, value any) bool {
@@ -106,27 +102,26 @@ func (t *Sshtunnel) Serve(listener net.Listener, ready chan<- any) {
 					if ok {
 						sd <- struct{}{}
 					} else {
-						t.logger.Warn(fmt.Sprintf("was unable to cast shutdown value to chan any. was %T", sd))
+						logger.Warn(fmt.Sprintf("was unable to cast shutdown value to chan any. was %T", sd))
 					}
 					return true
 				})
 				if err := listener.Close(); err != nil {
-					t.logger.Error(err.Error())
+					logger.Error(err.Error())
 				}
 			}()
 		case conn := <-c:
-			t.logger.Debug(fmt.Sprintf("accepted connection local: %s, remote: %s", conn.LocalAddr().String(), conn.RemoteAddr().String()))
-			go t.forward(conn, sessionId, shutdown)
+			logger.Debug(fmt.Sprintf("accepted connection local: %s, remote: %s", conn.LocalAddr().String(), conn.RemoteAddr().String()))
+			go t.forward(conn, sessionId, shutdown, logger.With("tunnelSessionId", sessionId))
 		}
 	}
 
-	t.logger.Debug("tunnel closed")
+	logger.Debug("tunnel closed")
 }
 
 // Takes the local connection, dials into the SSH server, connects to the remote host with that connection,
 // and then forwards the traffic from the local connection to the remote connection
-func (t *Sshtunnel) forward(localConnection net.Conn, sessionId string, shutdown <-chan any) {
-	logger := t.logger.With("tunnelSessionId", sessionId)
+func (t *Sshtunnel) forward(localConnection net.Conn, sessionId string, shutdown <-chan any, logger *slog.Logger) {
 	sshClient, err := getSshClient(t.Server.String(), t.Config, t.maxConnectionAttempts, logger)
 	if err != nil {
 		if err := localConnection.Close(); err != nil {
