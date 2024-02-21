@@ -254,6 +254,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
             data={form.watch().mappings}
             primaryConstraints={primaryConstraints?.tableConstraints}
             foreignConstraints={foreignConstraints?.tableConstraints}
+            jobType="sync"
           />
           <div className="flex flex-row items-center justify-end w-full mt-4">
             <Button type="submit">Save</Button>

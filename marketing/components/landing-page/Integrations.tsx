@@ -49,7 +49,7 @@ export default function Intergrations(): ReactElement {
     {
       name: 'Neon',
       logo: <NeonTech />,
-      href: 'https://docs.neosync.dev/connections/postgres',
+      href: 'https://www.neosync.dev/blog/neosync-neon-data-gen-job',
     },
     {
       name: 'AWS RDS',

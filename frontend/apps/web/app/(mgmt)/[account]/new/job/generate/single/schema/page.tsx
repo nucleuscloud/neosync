@@ -338,6 +338,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               excludeInputReqTransformers
               primaryConstraints={primaryConstraints?.tableConstraints}
               foreignConstraints={foreignConstraints?.tableConstraints}
+              jobType={'generate'}
             />
           )}
           {form.formState.errors.root && (
