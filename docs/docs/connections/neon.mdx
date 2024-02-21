@@ -1,0 +1,40 @@
+---
+title: Neon
+id: neon
+hide_title: false
+slug: /connections/neon
+---
+
+Neosync is an open-source, developer-first product that allows you to create anonymized, secure test data that you can sync across all of your environments for high quality local, stage and CI testing.
+
+![s3](https://assets.nucleuscloud.com/neosync/docs/s3.png)
+
+## AWS S3 Data Connection Configuration Guide
+
+This document outlines the steps to configure an AWS S3 data connection, which is currently only usable as a destination.
+
+**Connection Name**: Enter a unique name for this connection that you'll easily recognize. This is just a label and does not affect the connection itself.
+
+**Bucket**: Input the name of your S3 bucket.
+
+**Path Prefix**: Specify the path prefix of the bucket if necessary.
+
+**AWS Region**: Enter the AWS region where your S3 bucket is hosted.
+
+**Custom Endpoint**: If you use a custom endpoint for the AWS API, provide it here.
+
+**AWS Profile Name**: Enter the AWS profile name. 'default' is used if no other profile is specified.
+
+**Access Key ID**: Your AWS access key ID for programmatic access to your bucket.
+
+**AWS Secret Access Key**: The secret access key that corresponds to the above access key ID.
+
+**AWS Session Token**: If you are using temporary credentials, provide the session token here.
+
+**From EC2 Role**: Toggle this on if you are using an IAM role with an EC2 instance to access S3.
+
+**AWS Role ARN**: Specify the role ARN if you're assuming an IAM role.
+
+**AWS Role External ID**: If the IAM role you're assuming requires an external ID, enter it here.
+
+Complete the form with your AWS S3 bucket details. Ensure that all credentials are entered correctly to establish a secure connection. Use the 'Submit' button to save your configuration. Remember that this connection is currently only available for use as a destination in jobs.
