@@ -5,7 +5,7 @@ import { useNucleusAuthenticatedFetch } from './useNucleusAuthenticatedFetch';
 
 export function useGetConnectionPrimaryConstraints(
   accountId: string,
-  connectionId?: string
+  connectionId: string
 ): HookReply<GetConnectionPrimaryConstraintsResponse> {
   return useNucleusAuthenticatedFetch<
     GetConnectionPrimaryConstraintsResponse,

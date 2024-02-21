@@ -129,6 +129,16 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     values: getJobSource(data?.job, schema?.schemas),
   });
 
+  const { data: primaryConstraints } = useGetConnectionPrimaryConstraints(
+    account?.id ?? '',
+    sourceConnectionId ?? ''
+  );
+
+  const { data: foreignConstraints } = useGetConnectionForeignConstraints(
+    account?.id ?? '',
+    sourceConnectionId ?? ''
+  );
+
   async function onSourceChange(value: string): Promise<void> {
     try {
       const newValues = await getUpdatedValues(
@@ -181,16 +191,6 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   }
 
   const source = connections.find((item) => item.id === sourceConnectionId);
-
-  const { data: primaryConstraints } = useGetConnectionPrimaryConstraints(
-    account?.id ?? '',
-    sourceConnectionId
-  );
-
-  const { data: foreignConstraints } = useGetConnectionForeignConstraints(
-    account?.id ?? '',
-    sourceConnectionId
-  );
 
   return (
     <Form {...form}>

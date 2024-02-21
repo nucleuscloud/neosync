@@ -5,7 +5,7 @@ import { useNucleusAuthenticatedFetch } from './useNucleusAuthenticatedFetch';
 
 export function useGetConnectionForeignConstraints(
   accountId: string,
-  connectionId?: string
+  connectionId: string
 ): HookReply<GetConnectionForeignConstraintsResponse> {
   return useNucleusAuthenticatedFetch<
     GetConnectionForeignConstraintsResponse,
