@@ -26,7 +26,7 @@ type SqlDb struct {
 }
 
 func newSqlDb(details *ConnectionDetails, logger *slog.Logger) *SqlDb {
-	return &SqlDb{details: details}
+	return &SqlDb{details: details, logger: logger}
 }
 
 func (s *SqlDb) Open() (SqlDBTX, error) {
