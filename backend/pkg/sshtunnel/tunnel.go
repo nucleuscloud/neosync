@@ -39,7 +39,7 @@ func New(
 		authmethods = append(authmethods, auth)
 	}
 	return &Sshtunnel{
-		close: make(chan any, 1),
+		close: make(chan any),
 
 		Local:  local,
 		Server: tunnel,
