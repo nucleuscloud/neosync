@@ -906,7 +906,9 @@ func (s *Service) UpdateJobSourceConnection(
 		}
 	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
 		if _, ok := req.Msg.Source.Options.Config.(*mgmtv1alpha1.JobSourceOptions_AwsS3); !ok {
-			return nil, fmt.Errorf("job source option config type and connection type mismatch")
+			if _, ok = req.Msg.Source.Options.Config.(*mgmtv1alpha1.JobSourceOptions_Generate); !ok {
+				return nil, fmt.Errorf("job source option config type and connection type mismatch")
+			}
 		}
 	default:
 		return nil, nucleuserrors.NewNotImplemented("this connection config is not currently supported")
