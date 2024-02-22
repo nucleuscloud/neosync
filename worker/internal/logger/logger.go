@@ -24,7 +24,7 @@ func NewJsonLogLogger() *log.Logger {
 
 func NewJsonLogHandler() *slog.JSONHandler {
 	return slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelDebug,
+		Level: getLogLevel(),
 	})
 }
 
