@@ -195,7 +195,7 @@ func runRedisCleanUpActivity(
 				continue
 			}
 			ctx := workflow.WithActivityOptions(wfctx, *actOptResp.SyncActivityOptions)
-			logger.Info("executing redis clean up activity")
+			logger.Debug("executing redis clean up activity")
 			var resp *syncrediscleanup_activity.DeleteRedisHashResponse
 			err := workflow.ExecuteActivity(ctx, syncrediscleanup_activity.DeleteRedisHash, &syncrediscleanup_activity.DeleteRedisHashRequest{
 				JobId:      jobId,
@@ -255,7 +255,7 @@ func invokeSync(
 	metadata := getSyncMetadata(config)
 	future, settable := workflow.NewFuture(ctx)
 	logger = log.With(logger, "name", config.Name, "metadata", metadata)
-	logger.Info("triggering config sync")
+	logger.Debug("triggering config sync")
 	started[config.Name] = struct{}{}
 	workflow.GoNamed(ctx, config.Name, func(ctx workflow.Context) {
 		configbits, err := yaml.Marshal(config.Config)

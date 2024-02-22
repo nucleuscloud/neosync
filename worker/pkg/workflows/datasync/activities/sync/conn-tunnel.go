@@ -59,14 +59,15 @@ func (c *ConnectionTunnelManager) GetConnectionString(
 		return "", fmt.Errorf("unable to start ssh tunnel: %w", err)
 	}
 	<-ready
-	details.GeneralDbConnectConfig.Host = details.Tunnel.Local.Host
-	details.GeneralDbConnectConfig.Port = int32(details.Tunnel.Local.Port)
+	localhost, localport := details.Tunnel.GetLocalHostPort()
+	details.GeneralDbConnectConfig.Host = localhost
+	details.GeneralDbConnectConfig.Port = int32(localport)
 	c.connMap.Store(connection.Id, details)
 	c.incrementCount(connection.Id)
 	logger.Debug(
 		"ssh tunnel is ready, updated configuration host and port",
-		"host", details.Tunnel.Local.Host,
-		"port", details.Tunnel.Local.Port,
+		"host", localhost,
+		"port", localport,
 	)
 	go c.reaper(connection.Id, 1*time.Minute)
 	return details.GeneralDbConnectConfig.String(), nil

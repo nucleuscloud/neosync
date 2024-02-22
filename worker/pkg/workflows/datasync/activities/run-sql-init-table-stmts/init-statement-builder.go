@@ -250,7 +250,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					_, err = pool.Exec(ctx, strings.Join(tableTruncateStmts, "\n"))
 					if err != nil {
 						pgconn.Close()
-						return nil, fmt.Errorf("unable to open postgres connection: %w", err)
+						return nil, fmt.Errorf("unable to exec truncate cascade statements: %w", err)
 					}
 				} else if truncateBeforeInsert {
 					tablePrimaryDependencyMap := getPrimaryToForeignTableMap(tableDependencies, uniqueTables)
@@ -269,7 +269,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					_, err = pool.Exec(ctx, truncateStmt)
 					if err != nil {
 						pgconn.Close()
-						return nil, fmt.Errorf("unable to open postgres connection: %w", err)
+						return nil, fmt.Errorf("unable to exec ordered truncate statements: %w", err)
 					}
 				}
 				pgconn.Close()
