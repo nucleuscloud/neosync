@@ -20,11 +20,16 @@ func Test_GenerateRandomEmailShort(t *testing.T) {
 }
 
 func Test_GenerateRandomEmail(t *testing.T) {
-	res, err := GenerateRandomEmail(int64(40))
+	for i := 0; i < 100; i++ {
 
-	assert.NoError(t, err)
-	assert.Equal(t, true, transformer_utils.IsValidEmail(res), fmt.Sprintf(`The expected email should be have a valid email format. Received:%s`, res))
-	assert.LessOrEqual(t, int64(len(res)), int64(40), fmt.Sprintf("The city should be less than or equal to the max length. This is the error city:%s", res))
+		res, err := GenerateRandomEmail(int64(40))
+
+		fmt.Println("res", res)
+
+		assert.NoError(t, err)
+		assert.Equal(t, true, transformer_utils.IsValidEmail(res), fmt.Sprintf(`The expected email should be have a valid email format. Received:%s`, res))
+		assert.LessOrEqual(t, int64(len(res)), int64(40), fmt.Sprintf("The city should be less than or equal to the max length. This is the error city:%s", res))
+	}
 }
 
 func Test_RandomEmailTransformer(t *testing.T) {
