@@ -10,6 +10,7 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -239,4 +240,51 @@ func Test_InitStatementBuilder_Pg_Generate_NoInitStatement(t *testing.T) {
 		slog.Default(),
 	)
 	assert.Nil(t, err)
+}
+
+func Test_getForeignToPrimaryTableMap(t *testing.T) {
+	tables := map[string]struct{}{
+		"public.regions":     {},
+		"public.jobs":        {},
+		"public.countries":   {},
+		"public.locations":   {},
+		"public.dependents":  {},
+		"public.departments": {},
+		"public.employees":   {},
+	}
+	dependencies := map[string]*dbschemas_utils.TableConstraints{
+		"public.countries": {Constraints: []*dbschemas_utils.ForeignConstraint{
+			{Column: "region_id", IsNullable: false, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.regions", Column: "region_id"}},
+		}},
+		"public.departments": {Constraints: []*dbschemas_utils.ForeignConstraint{
+			{Column: "location_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.locations", Column: "location_id"}},
+		}},
+		"public.dependents": {Constraints: []*dbschemas_utils.ForeignConstraint{
+			{Column: "dependent_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.employees", Column: "employees_id"}},
+		}},
+		"public.locations": {Constraints: []*dbschemas_utils.ForeignConstraint{
+			{Column: "country_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.countries", Column: "country_id"}},
+		}},
+		"public.employees": {Constraints: []*dbschemas_utils.ForeignConstraint{
+			{Column: "department_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.departments", Column: "department_id"}},
+			{Column: "job_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.jobs", Column: "job_id"}},
+			{Column: "manager_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.employees", Column: "employee_id"}},
+		}},
+	}
+
+	expected := map[string][]string{
+		"public.regions":     {},
+		"public.jobs":        {},
+		"public.countries":   {"public.regions"},
+		"public.departments": {"public.locations"},
+		"public.dependents":  {"public.employees"},
+		"public.employees":   {"public.departments", "public.jobs", "public.employees"},
+		"public.locations":   {"public.countries"},
+	}
+	actual := getForeignToPrimaryTableMap(dependencies, tables)
+	assert.Len(t, actual, len(expected))
+	for table, deps := range actual {
+		assert.Len(t, deps, len(expected[table]))
+		assert.ElementsMatch(t, expected[table], deps)
+	}
 }

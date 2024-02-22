@@ -212,13 +212,10 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				// create statements
 				if initSchema {
 					tableForeignDependencyMap := getForeignToPrimaryTableMap(tableDependencies, uniqueTables)
-					orderedTables, err := tabledependency.GetTablesOrderedByDependency(uniqueTables, tableForeignDependencyMap)
-					if err != nil {
-						return nil, err
-					}
+					orderedTables := tabledependency.GetTablesOrderedByDependency(tableForeignDependencyMap)
 					tableCreateStmts := []string{}
 					for _, table := range orderedTables {
-						split := strings.Split(table, ".")
+						split := strings.Split(table[0], ".") // fix
 						// todo: make this more efficient to reduce amount of times we have to connect to the source database
 						initStmt, err := b.getCreateStatementFromPostgres(
 							ctx,
@@ -254,14 +251,10 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					}
 				} else if truncateBeforeInsert {
 					tablePrimaryDependencyMap := getPrimaryToForeignTableMap(tableDependencies, uniqueTables)
-					orderedTables, err := tabledependency.GetTablesOrderedByDependency(uniqueTables, tablePrimaryDependencyMap)
-					if err != nil {
-						return nil, err
-					}
-
+					orderedTables := tabledependency.GetTablesOrderedByDependency(tablePrimaryDependencyMap)
 					orderedTableTruncate := []string{}
 					for _, table := range orderedTables {
-						split := strings.Split(table, ".")
+						split := strings.Split(table[0], ".") // fix
 						orderedTableTruncate = append(orderedTableTruncate, fmt.Sprintf(`%q.%q`, split[0], split[1]))
 					}
 					slogger.Info(fmt.Sprintf("executing %d sql statements that will truncate tables", len(orderedTableTruncate)))
@@ -309,14 +302,11 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				// create statements
 				if initSchema {
 					tableForeignDependencyMap := getForeignToPrimaryTableMap(tableDependencies, uniqueTables)
-					orderedTables, err := tabledependency.GetTablesOrderedByDependency(uniqueTables, tableForeignDependencyMap)
-					if err != nil {
-						return nil, err
-					}
+					orderedTables := tabledependency.GetTablesOrderedByDependency(tableForeignDependencyMap)
 					// todo: make this more efficient to reduce amount of times we have to connect to the source database
 					tableCreateStmts := []string{}
 					for _, table := range orderedTables {
-						split := strings.Split(table, ".")
+						split := strings.Split(table[0], ".") // fix
 						initStmt, err := b.getCreateStatementFromMysql(
 							ctx,
 							sourcePool,
@@ -344,13 +334,10 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				// truncate statements
 				if truncateBeforeInsert {
 					tablePrimaryDependencyMap := getPrimaryToForeignTableMap(tableDependencies, uniqueTables)
-					orderedTables, err := tabledependency.GetTablesOrderedByDependency(uniqueTables, tablePrimaryDependencyMap)
-					if err != nil {
-						return nil, err
-					}
+					orderedTables := tabledependency.GetTablesOrderedByDependency(tablePrimaryDependencyMap)
 					orderedTableTruncate := []string{}
 					for _, table := range orderedTables {
-						split := strings.Split(table, ".")
+						split := strings.Split(table[0], ".") // fix
 						orderedTableTruncate = append(orderedTableTruncate, b.getTruncateStatementFromMysql(split[0], split[1]))
 					}
 					slogger.Info(fmt.Sprintf("executing %d sql statements that will truncate tables", len(orderedTableTruncate)))
@@ -477,18 +464,17 @@ func (b *initStatementBuilder) getTruncateStatementFromMysql(
 
 func getForeignToPrimaryTableMap(td map[string]*dbschemas_utils.TableConstraints, uniqueTables map[string]struct{}) map[string][]string {
 	dpMap := map[string][]string{}
-	for table, constraints := range td {
-		_, ok := uniqueTables[table]
+	for table := range uniqueTables {
+		_, dpOk := dpMap[table]
+		if !dpOk {
+			dpMap[table] = []string{}
+		}
+		constraints, ok := td[table]
 		if !ok {
 			continue
 		}
 		for _, dep := range constraints.Constraints {
-			_, ok := dpMap[table]
-			if ok {
-				dpMap[table] = append(dpMap[table], dep.ForeignKey.Table)
-			} else {
-				dpMap[table] = []string{dep.ForeignKey.Table}
-			}
+			dpMap[table] = append(dpMap[table], dep.ForeignKey.Table)
 		}
 	}
 	return dpMap
