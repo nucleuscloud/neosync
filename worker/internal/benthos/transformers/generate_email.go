@@ -3,6 +3,7 @@ package transformers
 import (
 	"fmt"
 	"math/rand"
+	"strings"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	_ "github.com/benthosdev/benthos/v4/public/components/io"
@@ -14,9 +15,9 @@ var emailDomains = []string{
 	"yahoo.com",
 	"hotmail.com",
 	"aol.com",
-	"hotmail.com",
 	"hotmail.fr",
 	"msn.com",
+	"outlook.com",
 	"yahoo.fr",
 	"wanadoo.fr",
 	"orange.fr",
@@ -70,7 +71,7 @@ func GenerateRandomEmail(maxLength int64) (string, error) {
 
 	domain := "@" + emailDomains[randValue]
 
-	email := fmt.Sprintf(`%s.%s%s`, fn, ln, domain)
+	email := fmt.Sprintf(`%s.%s%s`, strings.ToLower(fn), strings.ToLower(ln), domain)
 
 	if len(email) > int(maxLength) {
 		var filteredDomains []string
