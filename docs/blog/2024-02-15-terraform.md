@@ -14,3 +14,5 @@ authors:
 3. Updated Transform Email transformer to take in an exclusion list of domains
 4. Added more granular options for Job tries and timeouts in Job definition
 5. Updated logging to have a cleaner format and include more logs
+6. Fixed a bug that was causing the Connect page to refresh and lose state
+7. UI/UX refinements
