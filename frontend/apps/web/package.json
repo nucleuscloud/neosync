@@ -58,7 +58,7 @@
     "react-hook-form": "^7.50.1",
     "react-hook-form-persist": "^3.0.0",
     "react-icons": "^5.0.1",
-    "swr": "^2.2.4",
+    "swr": "^2.2.5",
     "tailwind-merge": "^2.2.1",
     "tailwindcss-animate": "^1.0.7",
     "use-resize-observer": "^9.1.0",
