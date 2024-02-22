@@ -107,6 +107,7 @@ services:
       - TEMPORAL_TASK_QUEUE=sync-job
       - NEOSYNC_URL=http://api:8080
       - REDIS_URL=redis://default:foofar@redis:6379
+      - LOG_LEVEL=INFO
     networks:
       - neosync-network
       - temporal-network

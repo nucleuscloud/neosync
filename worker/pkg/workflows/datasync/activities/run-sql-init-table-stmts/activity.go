@@ -2,14 +2,13 @@ package runsqlinittablestmts_activity
 
 import (
 	"context"
-	"log/slog"
-	"os"
 	"time"
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	logger_utils "github.com/nucleuscloud/neosync/worker/internal/logger"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/log"
@@ -72,8 +71,7 @@ func RunSqlInitTableStatements(
 		connclient,
 		&sqlconnect.SqlOpenConnector{},
 	)
-	slogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{}))
-	slogger = slogger.With(
+	slogger := logger_utils.NewJsonSLogger().With(
 		"jobId", req.JobId,
 		"WorkflowID", req.WorkflowId,
 	)

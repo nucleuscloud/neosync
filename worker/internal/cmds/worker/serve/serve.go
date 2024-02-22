@@ -6,15 +6,17 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"log/slog"
 	"net/http"
-	"os"
+	"sync"
 	"time"
 
 	"connectrpc.com/grpchealth"
 	"connectrpc.com/grpcreflect"
+	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	logger_utils "github.com/nucleuscloud/neosync/worker/internal/logger"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
+	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
 	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
 	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
@@ -53,9 +55,7 @@ func serve() error {
 	if taskQueue == "" {
 		return errors.New("must provide TEMPORAL_TASK_QUEUE environment variable")
 	}
-	jsonloghandler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{})
-	logger := slog.New(jsonloghandler)
-	loglogger := slog.NewLogLogger(jsonloghandler, slog.LevelInfo)
+	logger, loglogger := logger_utils.NewLoggers()
 
 	certificates, err := getTemporalAuthCertificate()
 	if err != nil {
@@ -86,8 +86,14 @@ func serve() error {
 	w := worker.New(temporalClient, taskQueue, worker.Options{})
 	_ = w
 
+	neosyncurl := shared.GetNeosyncUrl()
+	httpclient := shared.GetNeosyncHttpClient()
+	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(httpclient, neosyncurl)
+
+	syncActivity := sync_activity.New(connclient, &sync.Map{})
+
 	w.RegisterWorkflow(datasync_workflow.Workflow)
-	w.RegisterActivity(sync_activity.Sync)
+	w.RegisterActivity(syncActivity.Sync)
 	w.RegisterActivity(syncactivityopts_activity.RetrieveActivityOptions)
 	w.RegisterActivity(runsqlinittablestmts_activity.RunSqlInitTableStatements)
 	w.RegisterActivity(syncrediscleanup_activity.DeleteRedisHash)
