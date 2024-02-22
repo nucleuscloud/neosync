@@ -137,6 +137,11 @@ const sidebars: SidebarsConfig = {
       ],
     },
     {
+      type: 'doc',
+      id: 'overview/cloud-security-overview',
+      label: 'Cloud Security Overview',
+    },
+    {
       type: 'html',
       value: '<div>Deploy Neosync</div>',
       className: 'sidebarcategory',
