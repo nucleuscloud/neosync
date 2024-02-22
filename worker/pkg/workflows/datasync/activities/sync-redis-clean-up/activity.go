@@ -154,7 +154,7 @@ func getTlsConfig(c *shared.RedisTlsConfig) (*tls.Config, error) {
 		tlsConf.RootCAs.AppendCertsFromPEM(caCert)
 	}
 
-	if c.RootCertAuthority != nil && *c.RootCertAuthority == "" {
+	if c.RootCertAuthority != nil && *c.RootCertAuthority != "" {
 		initConf()
 		tlsConf.RootCAs = x509.NewCertPool()
 		tlsConf.RootCAs.AppendCertsFromPEM([]byte(*c.RootCertAuthority))

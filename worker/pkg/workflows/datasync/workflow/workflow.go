@@ -46,9 +46,19 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		RunId:      wfinfo.WorkflowExecution.RunID,
 	}
 
+	var resp2 *syncrediscleanup_activity.DeleteRedisHashResponse
+	err := workflow.ExecuteActivity(ctx, syncrediscleanup_activity.DeleteRedisHash, &syncrediscleanup_activity.DeleteRedisHashRequest{
+		JobId:      "jobId",
+		WorkflowId: "workflowId",
+		HashKey:    "cfg.Key",
+	}).Get(ctx, &resp2)
+	if err != nil {
+		return nil, err
+	}
+
 	var bcResp *genbenthosconfigs_activity.GenerateBenthosConfigsResponse
 	logger.Info("scheduling GenerateBenthosConfigs for execution.")
-	err := workflow.ExecuteActivity(ctx, genbenthosconfigs_activity.GenerateBenthosConfigs, &genbenthosconfigs_activity.GenerateBenthosConfigsRequest{
+	err = workflow.ExecuteActivity(ctx, genbenthosconfigs_activity.GenerateBenthosConfigs, &genbenthosconfigs_activity.GenerateBenthosConfigsRequest{
 		JobId: req.JobId,
 	}, workflowMetadata).Get(ctx, &bcResp)
 	if err != nil {
