@@ -73,7 +73,7 @@ stringData:
     REDIS_MASTER: {{ .Values.redis.master }}
     {{- end }}
     
-    {{- if and .Values.redis .Values.redis.tls .Values.redis.tls.enabled }}
+    {{- if and .Values.redis .Values.redis.tls .Values.redis.tls.enabled | default "false" | quote }}
     REDIS_TLS_ENABLED: {{ .Values.redis.tls.enabled }}
     {{- end }}
 
