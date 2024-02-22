@@ -153,6 +153,23 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
       size: 200,
     },
     {
+      accessorKey: 'isNullable',
+      header: ({ column }) => (
+        <SchemaColumnHeader column={column} title="Nullable" />
+      ),
+      cell: ({ row }) => {
+        console.log('res', row.original.foreignConstraints?.isNullable);
+        return (
+          <span className="max-w-[300px] truncate font-medium">
+            <Badge variant="outline">
+              {row.original.foreignConstraints?.isNullable}
+            </Badge>
+          </span>
+        );
+      },
+      size: 150,
+    },
+    {
       accessorKey: 'dataType',
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Data Type" />
@@ -168,6 +185,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
       },
       size: 200,
     },
+
     {
       accessorKey: 'transformer',
       id: 'transformer',

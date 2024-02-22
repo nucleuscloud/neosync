@@ -74,6 +74,7 @@ export const JOB_MAPPING_SCHEMA = Yup.object({
     column: Yup.string(),
     table: Yup.string(),
     value: Yup.string(),
+    isNullable: Yup.string(),
   }).optional(),
 }).required();
 export type JobMappingFormValues = Yup.InferType<typeof JOB_MAPPING_SCHEMA>;
