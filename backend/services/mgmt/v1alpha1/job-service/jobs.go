@@ -878,24 +878,31 @@ func (s *Service) UpdateJobSourceConnection(
 		}
 	}
 
+	// verifies that the account has access to that connection id
 	if connectionIdToVerify != nil {
 		if err := s.verifyConnectionInAccount(ctx, *connectionIdToVerify, nucleusdb.UUIDString(job.AccountID)); err != nil {
 			return nil, err
 		}
 	}
 
+	// retrieves the connection details
 	conn, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
 		Id: *connectionIdToVerify,
 	}))
 
+	// Type checking that the connection config that we want to use for the job is the same as the incoming job source config type
 	switch conn.Msg.Connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 		if _, ok := req.Msg.Source.Options.Config.(*mgmtv1alpha1.JobSourceOptions_Mysql); !ok {
-			return nil, fmt.Errorf("job source option config type and connection type mismatch")
+			if _, ok = req.Msg.Source.Options.Config.(*mgmtv1alpha1.JobSourceOptions_Generate); !ok {
+				return nil, fmt.Errorf("job source option config type and connection type mismatch")
+			}
 		}
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		if _, ok := req.Msg.Source.Options.Config.(*mgmtv1alpha1.JobSourceOptions_Postgres); !ok {
-			return nil, fmt.Errorf("job source option config type and connection type mismatch")
+			if _, ok = req.Msg.Source.Options.Config.(*mgmtv1alpha1.JobSourceOptions_Generate); !ok {
+				return nil, fmt.Errorf("job source option config type and connection type mismatch")
+			}
 		}
 	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
 		if _, ok := req.Msg.Source.Options.Config.(*mgmtv1alpha1.JobSourceOptions_AwsS3); !ok {
