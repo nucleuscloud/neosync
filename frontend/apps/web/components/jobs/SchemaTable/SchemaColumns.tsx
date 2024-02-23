@@ -113,8 +113,8 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Constraints" />
       ),
-      // filterFn: filterConstraints,
-      sortingFn: createSortConstraints(columnMetadata),
+      filterFn: filterConstraints(columnMetadata),
+      sortingFn: sortConstraints(columnMetadata),
       meta: columnMetadata,
       cell: ({ row }) => {
         const rowKey = `${row.getValue('schema')}.${row.getValue('table')}`;
@@ -342,12 +342,12 @@ function handleDataTypeBadge(dataType: string): string {
   }
 }
 
-// SortinFn can only take in 3 params: rowA, rowB and id, so creating a closure to get access to the metadata
-function createSortConstraints(meta: ColumnMetadata): SortingFn<RowData> {
-  return (rowA, rowB) => {
-    const buildRowKey = (row: Row<RowData>): string =>
-      `${row.getValue('schema')}.${row.getValue('table')}`;
+const buildRowKey = (row: Row<RowData>): string =>
+  `${row.getValue('schema')}.${row.getValue('table')}`;
 
+// SortinFn can only take in 3 params: rowA, rowB and id, so creating a closure to get access to the metadata
+function sortConstraints(meta: ColumnMetadata): SortingFn<RowData> {
+  return (rowA, rowB) => {
     // Check for primary key constraint presence
     const hasPrimaryKeyA =
       meta.pk[buildRowKey(rowA)]?.columns.includes(rowA.getValue('column')) ??
@@ -356,22 +356,29 @@ function createSortConstraints(meta: ColumnMetadata): SortingFn<RowData> {
       meta.pk[buildRowKey(rowB)]?.columns.includes(rowB.getValue('column')) ??
       false;
 
+    // check for foreign key constraint presence
+    const hasForeignKeyA =
+      meta.fk[buildRowKey(rowA)]?.constraints.filter(
+        (item: ForeignConstraint) => item.column == rowA.getValue('column')
+      ).length > 0;
+    const hasForeignKeyB =
+      meta.fk[buildRowKey(rowB)]?.constraints.filter(
+        (item: ForeignConstraint) => item.column == rowB.getValue('column')
+      ).length > 0;
+
+    // can't have primary key and foreign key so figure out which one exists on any given row
     const valueA = hasPrimaryKeyA
       ? 'Primary Key'
-      : meta.fk[buildRowKey(rowA)]?.constraints.filter(
-            (item: ForeignConstraint) => item.column == rowA.getValue('column')
-          ).length > 0
+      : hasForeignKeyA
         ? 'Foreign Key'
         : '';
     const valueB = hasPrimaryKeyB
       ? 'Primary Key'
-      : meta.fk[buildRowKey(rowB)]?.constraints.filter(
-            (item: ForeignConstraint) => item.column == rowB.getValue('column')
-          ).length > 0
+      : hasForeignKeyB
         ? 'Foreign Key'
         : '';
 
-    // Prioritize "Primary Key", then "Foreign Key", then empty strings
+    // prioritize "Primary Key", then "Foreign Key", then empty strings in sorting
     if (valueA === 'Primary Key' || valueB === 'Primary Key') {
       return valueA === 'Primary Key' ? -1 : 1;
     } else if (valueA === 'Foreign Key' || valueB === 'Foreign Key') {
@@ -386,32 +393,26 @@ function createSortConstraints(meta: ColumnMetadata): SortingFn<RowData> {
   };
 }
 
-// // custom filter for the constrainst column
-// const filterConstraints: FilterFn<RowData> = (
-//   row: Row<RowData>,
-//   columnId: string, // even though we don't use this, we need this here or the filter value returns the id
-//   filterValue: string,
-//   meta: ColumnMetadata
-// ): boolean => {
-//   const filterValueStr = filterValue.toLowerCase();
+// custom filter for the constraints column
+function filterConstraints(meta: ColumnMetadata): FilterFn<RowData> {
+  return (row, columnId, filterValue) => {
+    const filterValueStr = filterValue.toString().toLowerCase();
 
-//   const matchesPrimary =
-//     meta.pk[buildRowKey(row)]?.columns.includes(filterValueStr) ?? false;
+    const isPrimaryKey =
+      meta.pk[buildRowKey(row)]?.columns.includes(row.getValue('column')) ??
+      false;
+    const isForeignKey =
+      Object.keys(meta.fk).includes(buildRowKey(row)) &&
+      meta.fk[buildRowKey(row)].constraints.some(
+        (fk) => fk.column === row.getValue('column')
+      );
 
-//   // const matchesPrimary =
-//   // meta.pk[buildRowKey(row)]?.columns.includes(filterValueStr) ?? false; maybe too lowercase if not matching
+    const columnConstraintType = isPrimaryKey
+      ? 'Primary Key'
+      : isForeignKey
+        ? 'Foreign Key'
+        : '';
 
-//   // const matchesForeign =
-//   //   row.original.foreignConstraints?.value
-//   //     ?.toLowerCase()
-//   //     .includes(filterValueStr) ?? false;
-
-//   const foreignKeyConstraint =
-//     meta.fk[buildRowKey(row)]?.constraints[0].foreignKey.includes(
-//       filterValueStr
-//     );
-
-//   const matchesForeign = meta.fk[buildRowKey(row)].toJsonString;
-
-//   return matchesPrimary || matchesForeign;
-// };
+    return columnConstraintType.toLowerCase().includes(filterValueStr);
+  };
+}
