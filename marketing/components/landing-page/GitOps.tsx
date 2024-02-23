@@ -38,7 +38,7 @@ export default function GitOpsSection(): ReactElement {
   return (
     <div className="px-6">
       <div className="text-gray-900 font-semibold text-2xl lg:text-4xl font-satoshi text-center">
-        Synthetic Data meets GitOps
+        Manage Neosync Using GitOps
       </div>
       <div className="text-md text-gray-700 font-satoshi font-semibold pt-10 lg:px-60 text-center">
         Neosync is built with DevOps and infrastructure teams in mind. Use
@@ -57,8 +57,8 @@ export default function GitOpsSection(): ReactElement {
             />
 
             <div className="pt-8">
-              <GitHubLogoIcon className="text-gray-800 w-4 h-4" />
               <div className="flex flex-row gap-4 items-center">
+                <GitHubLogoIcon className="text-gray-800 w-4 h-4" />
                 <div className="font-sans font-bold text-gray-800 mb-2 mt-2">
                   Neosync in CI
                 </div>
@@ -75,15 +75,15 @@ export default function GitOpsSection(): ReactElement {
           <div className="border border-gray-400 rounded-xl shadow-xl p-4">
             <div>
               <Image
-                src="/images/neosync-tf.svg"
+                src="/images/terraform-new.svg"
                 alt="pre"
                 width="566"
                 height="697"
               />
             </div>
             <div className="pt-8">
-              <SiTerraform className="text-gray-800 w-4 h-4" />
               <div className="flex flex-row gap-4 items-center">
+                <SiTerraform className="text-gray-800 w-4 h-4" />
                 <div className="font-sans font-bold text-gray-800 mb-2 mt-2">
                   Neosync Terraform Provider
                 </div>

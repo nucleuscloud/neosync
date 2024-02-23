@@ -10,11 +10,11 @@ import Hero from './hero';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://assets.nucleuscloud.com/'),
-  title: 'Neosync | Keep Environments In Sync',
+  title: 'Keep Environments In Sync | Neosync',
   openGraph: {
-    title: 'Neosync | Keep Environments In Sync',
+    title: ' Keep Environments In Sync | Neosync',
     description:
-      'Keep environments in sync by anonymizing sensitive data and generating synthetic data and syncing it across environemnts. ',
+      'Keep environments in sync by anonymizing sensitive data and generating synthetic data and syncing it across environments. ',
     url: 'https://neosync.dev/solutions/keep-environments-in-sync',
     siteName: 'Neosync',
     images: [

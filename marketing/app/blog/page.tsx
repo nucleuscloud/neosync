@@ -13,7 +13,7 @@ import { Metadata } from 'next';
 import { ReactElement } from 'react';
 
 export const metadata: Metadata = {
-  title: 'Neosync Blog',
+  title: 'Neosync | Blog',
 };
 
 export default async function BlogPage(): Promise<ReactElement> {

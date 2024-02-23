@@ -18,7 +18,7 @@ export default function Values(): ReactElement {
     },
     {
       title: 'Ship Faster',
-      description: `Speed is everything. We prioritize ruthlessly and ship code every single day. We're always asking ourselves 'what is the most important thing we can be working on right now'.`,
+      description: `Speed is everything. We prioritize ruthlessly and ship code every single day. We're always asking ourselves, "what is the most important thing we can be working on right now".`,
       icon: <RocketIcon className="w-8 h-8" />,
     },
     {
@@ -38,7 +38,7 @@ export default function Values(): ReactElement {
         {values.map((item) => (
           <div
             key={item.title}
-            className="border border-gray-400 bg-white rounded-xl p-8 shadow-xl flex flex-col justify-between gap-6 text-center w-full lg:w-[480px] max-w-xs mx-auto lg:h-auto"
+            className="border border-gray-400 bg-white rounded-xl p-8 shadow-xl flex flex-col justify-between gap-6 text-center w-full lg:w-[480px] max-w-xs mx-auto lg:h-[350px]"
           >
             <div>
               <div className="text-gray-900 justify-center flex">

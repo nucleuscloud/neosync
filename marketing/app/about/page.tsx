@@ -6,7 +6,24 @@ import OpenSource from './OpenSource';
 import Values from './Values';
 
 export const metadata: Metadata = {
-  title: 'About | Neosync',
+  metadataBase: new URL('https://assets.nucleuscloud.com/'),
+  title: 'Neosync | About',
+  openGraph: {
+    title: 'Neosync | About',
+    description: `Learn more about Neosync&apos;s mission and values `,
+    url: 'https://neosync.dev/solutions/keep-environments-in-sync',
+    siteName: 'Neosync',
+    images: [
+      {
+        url: '/neosync/marketingsite/mainOGHero.svg',
+        width: 1200,
+        height: 630,
+        alt: 'mainOG',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
 };
 
 export default function About() {

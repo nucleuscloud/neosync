@@ -11,8 +11,8 @@ export default function JobSchedules(): ReactElement {
         Configure jobs to run on a schedule or run them ad-hoc. Have full
         visibility into metrics and logs for each job.
       </div>
-      <div className=" pt-10 lg:py-10">
-        <div className="border border-gray-400 rounded-xl overflow-hidden shadow-xl">
+      <div className=" pt-10 lg:py-10 justify-center flex">
+        <div className="border border-gray-400 rounded-xl overflow-hidden shadow-xl max-w-[1300px]">
           <Image
             src="https://assets.nucleuscloud.com/neosync/marketingsite/jobschedule.png"
             width="1300"

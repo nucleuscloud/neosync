@@ -9,6 +9,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ReactElement } from 'react';
 import { AiOutlineCopyright } from 'react-icons/ai';
+import { GoDotFill } from 'react-icons/go';
 import { Button } from './ui/button';
 
 export default function Footer(): ReactElement {
@@ -109,6 +110,11 @@ function Socials(): ReactElement {
       name: 'Discord',
       logo: <DiscordLogoIcon className="w-6 h-6" />,
       href: 'https://discord.com/invite/MFAMgnp4HF',
+    },
+    {
+      name: 'Status Page',
+      logo: <GoDotFill className=" text-green-400 w-6 h-6" />,
+      href: 'https://neosyncstatus.com',
     },
   ];
   return (
