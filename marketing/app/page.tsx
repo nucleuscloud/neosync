@@ -11,6 +11,7 @@ import { ReactElement } from 'react';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://assets.nucleuscloud.com/'),
+  title: 'Neosync | Synthetic Data Orchestration',
   openGraph: {
     title: 'Neosync',
     description: 'Open Source Synthetic Data Orchestration',

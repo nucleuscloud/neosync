@@ -6,14 +6,14 @@ import { ReactElement } from 'react';
 
 export default function Hero(): ReactElement {
   return (
-    <div className="flex flex-col gap-6 justify-center z-50 py-20">
+    <div className="flex flex-col gap-6 justify-center z-40 py-20">
       <div className="flex justify-center">
         <Image src="/images/nlogo2.svg" alt="logo" width={400} height={400} />
       </div>
       <div className="text-center text-gray-900 font-semibold text-3xl lg:text-6xl font-satoshi pt-10 bg-white/50">
         The Future is Synthetic Data Engineering
       </div>
-      <div className="text-center text-gray-800 font-semibold text-lg font-satoshi mx-10 lg:mx-80 bg-white/50">
+      <div className="text-center text-gray-800 font-semibold text-lg font-satoshi mx-10 lg:mx-80 bg-white/50 max-w-4xl">
         Synthetic Data Engineering represents the next step in customer data
         security and privacy. Imagine having endless data, at your fingertips,
         without the security, privacy and compliance risk. When we can create

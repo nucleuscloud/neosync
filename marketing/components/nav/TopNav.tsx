@@ -135,7 +135,7 @@ export default function TopNav(): ReactElement {
           </span>
         </Link>
       </div>
-      <div className="hidden items-center md:flex lg:flex lg:flex-row gap-4">
+      <div className="hidden items-center md:flex lg:flex lg:flex-row gap-4 z-50">
         <NavigationMenu>
           <NavigationMenuList>
             {links.map((link) =>
