@@ -120,16 +120,16 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         const rowKey = `${row.getValue('schema')}.${row.getValue('table')}`;
 
         const hasForeignKeyConstraint =
-          columnMetadata.fk &&
-          columnMetadata.fk[rowKey]?.constraints.filter(
+          columnMetadata?.fk &&
+          columnMetadata?.fk[rowKey]?.constraints.filter(
             (item: ForeignConstraint) => item.column == row.getValue('column')
           ).length > 0;
 
         const foreignKeyConstraint = {
           table:
-            columnMetadata.fk[rowKey]?.constraints[0].foreignKey?.table ?? '', // the foreignKey constraints object comes back from the API with two identical objects in an array, so just getting the first one. Need to investigate why it returns two.
+            columnMetadata?.fk[rowKey]?.constraints[0].foreignKey?.table ?? '', // the foreignKey constraints object comes back from the API with two identical objects in an array, so just getting the first one. Need to investigate why it returns two.
           column:
-            columnMetadata.fk[rowKey]?.constraints[0].foreignKey?.column ?? '',
+            columnMetadata?.fk[rowKey]?.constraints[0].foreignKey?.column ?? '',
           value: 'Foreign Key',
         };
 
@@ -137,7 +137,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
           <span className="max-w-[500px] truncate font-medium">
             <div className="flex flex-col lg:flex-row items-start gap-1">
               <div>
-                {columnMetadata.pk[rowKey]?.columns.includes(
+                {columnMetadata?.pk[rowKey]?.columns.includes(
                   row.getValue('column')
                 ) && (
                   <Badge
@@ -157,7 +157,6 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                           variant="outline"
                           className="text-xs bg-orange-100 text-gray-800 dark:dark:text-gray-900 dark:bg-orange-300"
                         >
-                          {/* need this here so we can sort by it */}
                           {foreignKeyConstraint.value}
                         </Badge>
                       </TooltipTrigger>
@@ -180,9 +179,27 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         <SchemaColumnHeader column={column} title="Nullable" />
       ),
       cell: ({ row }) => {
+        let isNullable = '';
+        columnMetadata?.isNullable.map((item) => {
+          if (
+            item.schema == row.getValue('schema') &&
+            item.table == row.getValue('table') &&
+            item.column == row.getValue('column')
+          ) {
+            isNullable = item.isNullable;
+          }
+        });
+
+        const toTitleCase = (s: string) => {
+          if (!s) return '';
+          const firstLetter = s[0].toUpperCase();
+          const restOfString = s.slice(1).toLowerCase();
+          return firstLetter + restOfString;
+        };
+
         return (
           <span className="max-w-[300px] truncate font-medium">
-            <Badge variant="outline">{row.getValue('isNullable')}</Badge>
+            <Badge variant="outline">{toTitleCase(isNullable)}</Badge>
           </span>
         );
       },
@@ -350,19 +367,19 @@ function sortConstraints(meta: ColumnMetadata): SortingFn<RowData> {
   return (rowA, rowB) => {
     // Check for primary key constraint presence
     const hasPrimaryKeyA =
-      meta.pk[buildRowKey(rowA)]?.columns.includes(rowA.getValue('column')) ??
+      meta?.pk[buildRowKey(rowA)]?.columns.includes(rowA.getValue('column')) ??
       false;
     const hasPrimaryKeyB =
-      meta.pk[buildRowKey(rowB)]?.columns.includes(rowB.getValue('column')) ??
+      meta?.pk[buildRowKey(rowB)]?.columns.includes(rowB.getValue('column')) ??
       false;
 
     // check for foreign key constraint presence
     const hasForeignKeyA =
-      meta.fk[buildRowKey(rowA)]?.constraints.filter(
+      meta?.fk[buildRowKey(rowA)]?.constraints.filter(
         (item: ForeignConstraint) => item.column == rowA.getValue('column')
       ).length > 0;
     const hasForeignKeyB =
-      meta.fk[buildRowKey(rowB)]?.constraints.filter(
+      meta?.fk[buildRowKey(rowB)]?.constraints.filter(
         (item: ForeignConstraint) => item.column == rowB.getValue('column')
       ).length > 0;
 
@@ -399,11 +416,11 @@ function filterConstraints(meta: ColumnMetadata): FilterFn<RowData> {
     const filterValueStr = filterValue.toString().toLowerCase();
 
     const isPrimaryKey =
-      meta.pk[buildRowKey(row)]?.columns.includes(row.getValue('column')) ??
+      meta?.pk[buildRowKey(row)]?.columns.includes(row.getValue('column')) ??
       false;
     const isForeignKey =
-      Object.keys(meta.fk).includes(buildRowKey(row)) &&
-      meta.fk[buildRowKey(row)].constraints.some(
+      Object.keys(meta?.fk).includes(buildRowKey(row)) &&
+      meta?.fk[buildRowKey(row)].constraints.some(
         (fk) => fk.column === row.getValue('column')
       );
 
