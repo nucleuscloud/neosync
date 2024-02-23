@@ -1,6 +1,7 @@
 'use client';
 
 import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
+import { ColumnMetadata } from '@/app/(mgmt)/[account]/new/job/schema/page';
 import EditTransformerOptions from '@/app/(mgmt)/[account]/transformers/EditTransformerOptions';
 import { Badge } from '@/components/ui/badge';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
@@ -19,6 +20,7 @@ import {
   JobMappingTransformerForm,
   SchemaFormValues,
 } from '@/yup-validations/jobs';
+import { ForeignConstraint } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ColumnDef, FilterFn, Row, SortingFn } from '@tanstack/react-table';
 import { HTMLProps, useEffect, useRef } from 'react';
@@ -28,10 +30,11 @@ import TransformerSelect from './TransformerSelect';
 
 interface Props {
   transformers: Transformer[];
+  columnMetadata: ColumnMetadata;
 }
 
 export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
-  const { transformers } = props;
+  const { transformers, columnMetadata } = props;
 
   return [
     {
@@ -110,24 +113,43 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Constraints" />
       ),
-      filterFn: filterConstraints,
-      sortingFn: sortConstraints,
+      // filterFn: filterConstraints,
+      sortingFn: createSortConstraints(columnMetadata),
+      meta: columnMetadata,
       cell: ({ row }) => {
+        const rowKey = `${row.getValue('schema')}.${row.getValue('table')}`;
+
+        const hasForeignKeyConstraint =
+          columnMetadata.fk &&
+          columnMetadata.fk[rowKey]?.constraints.filter(
+            (item: ForeignConstraint) => item.column == row.getValue('column')
+          ).length > 0;
+
+        const foreignKeyConstraint = {
+          table:
+            columnMetadata.fk[rowKey]?.constraints[0].foreignKey?.table ?? '', // the foreignKey constraints object comes back from the API with two identical objects in an array, so just getting the first one. Need to investigate why it returns two.
+          column:
+            columnMetadata.fk[rowKey]?.constraints[0].foreignKey?.column ?? '',
+          value: 'Foreign Key',
+        };
+
         return (
           <span className="max-w-[500px] truncate font-medium">
             <div className="flex flex-col lg:flex-row items-start gap-1">
               <div>
-                {row.original.primaryConstraints && (
+                {columnMetadata.pk[rowKey]?.columns.includes(
+                  row.getValue('column')
+                ) && (
                   <Badge
                     variant="outline"
                     className="text-xs bg-blue-100 text-gray-800 cursor-default dark:bg-blue-200 dark:text-gray-900"
                   >
-                    {row.original.primaryConstraints}
+                    Primary Key
                   </Badge>
                 )}
               </div>
               <div>
-                {row.original.foreignConstraints?.column && (
+                {hasForeignKeyConstraint && (
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger>
@@ -136,11 +158,11 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                           className="text-xs bg-orange-100 text-gray-800 dark:dark:text-gray-900 dark:bg-orange-300"
                         >
                           {/* need this here so we can sort by it */}
-                          {row.original.foreignConstraints?.value}
+                          {foreignKeyConstraint.value}
                         </Badge>
                       </TooltipTrigger>
                       <TooltipContent>
-                        {`Primary Key: ${row.original.foreignConstraints?.table}.${row.original.foreignConstraints?.column}`}
+                        {`Primary Key: ${foreignKeyConstraint.table}.${foreignKeyConstraint.column}`}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -158,12 +180,9 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         <SchemaColumnHeader column={column} title="Nullable" />
       ),
       cell: ({ row }) => {
-        console.log('res', row.original.foreignConstraints?.isNullable);
         return (
           <span className="max-w-[300px] truncate font-medium">
-            <Badge variant="outline">
-              {row.original.foreignConstraints?.isNullable}
-            </Badge>
+            <Badge variant="outline">{row.getValue('isNullable')}</Badge>
           </span>
         );
       },
@@ -322,48 +341,77 @@ function handleDataTypeBadge(dataType: string): string {
       return dataType;
   }
 }
-const sortConstraints: SortingFn<any> = (
-  rowA: Row<RowData>,
-  rowB: Row<RowData>
-): number => {
-  const valueA: string =
-    rowA.original.primaryConstraints ??
-    rowA.original.foreignConstraints?.value ??
-    '';
-  const valueB: string =
-    rowB.original.primaryConstraints ??
-    rowB.original.foreignConstraints?.value ??
-    '';
 
-  // prioritize "Primary Key", then "Foreign Key", then empty strings
-  if (valueA === 'Primary Key' || valueB === 'Primary Key') {
-    return valueA === 'Primary Key' ? -1 : 1;
-  } else if (valueA === 'Foreign Key' || valueB === 'Foreign Key') {
-    return valueA === 'Foreign Key' ? -1 : 1;
-  } else if (valueA === '' && valueB !== '') {
-    return 1;
-  } else if (valueA !== '' && valueB === '') {
-    return -1;
-  }
+// SortinFn can only take in 3 params: rowA, rowB and id, so creating a closure to get access to the metadata
+function createSortConstraints(meta: ColumnMetadata): SortingFn<RowData> {
+  return (rowA, rowB) => {
+    const buildRowKey = (row: Row<RowData>): string =>
+      `${row.getValue('schema')}.${row.getValue('table')}`;
 
-  return valueA.localeCompare(valueB);
-};
+    // Check for primary key constraint presence
+    const hasPrimaryKeyA =
+      meta.pk[buildRowKey(rowA)]?.columns.includes(rowA.getValue('column')) ??
+      false;
+    const hasPrimaryKeyB =
+      meta.pk[buildRowKey(rowB)]?.columns.includes(rowB.getValue('column')) ??
+      false;
 
-// custom filter for the constrainst column
-const filterConstraints: FilterFn<RowData> = (
-  row: Row<RowData>,
-  columnId: string, // even though we don't use this, we need this here or the filter value returns the id
-  filterValue: string
-): boolean => {
-  const filterValueStr = filterValue.toLowerCase();
+    const valueA = hasPrimaryKeyA
+      ? 'Primary Key'
+      : meta.fk[buildRowKey(rowA)]?.constraints.filter(
+            (item: ForeignConstraint) => item.column == rowA.getValue('column')
+          ).length > 0
+        ? 'Foreign Key'
+        : '';
+    const valueB = hasPrimaryKeyB
+      ? 'Primary Key'
+      : meta.fk[buildRowKey(rowB)]?.constraints.filter(
+            (item: ForeignConstraint) => item.column == rowB.getValue('column')
+          ).length > 0
+        ? 'Foreign Key'
+        : '';
 
-  const matchesPrimary =
-    row.original.primaryConstraints?.toLowerCase().includes(filterValueStr) ??
-    false;
-  const matchesForeign =
-    row.original.foreignConstraints?.value
-      ?.toLowerCase()
-      .includes(filterValueStr) ?? false;
+    // Prioritize "Primary Key", then "Foreign Key", then empty strings
+    if (valueA === 'Primary Key' || valueB === 'Primary Key') {
+      return valueA === 'Primary Key' ? -1 : 1;
+    } else if (valueA === 'Foreign Key' || valueB === 'Foreign Key') {
+      return valueA === 'Foreign Key' ? -1 : 1;
+    } else if (valueA === '' && valueB !== '') {
+      return 1;
+    } else if (valueA !== '' && valueB === '') {
+      return -1;
+    }
 
-  return matchesPrimary || matchesForeign;
-};
+    return valueA.localeCompare(valueB);
+  };
+}
+
+// // custom filter for the constrainst column
+// const filterConstraints: FilterFn<RowData> = (
+//   row: Row<RowData>,
+//   columnId: string, // even though we don't use this, we need this here or the filter value returns the id
+//   filterValue: string,
+//   meta: ColumnMetadata
+// ): boolean => {
+//   const filterValueStr = filterValue.toLowerCase();
+
+//   const matchesPrimary =
+//     meta.pk[buildRowKey(row)]?.columns.includes(filterValueStr) ?? false;
+
+//   // const matchesPrimary =
+//   // meta.pk[buildRowKey(row)]?.columns.includes(filterValueStr) ?? false; maybe too lowercase if not matching
+
+//   // const matchesForeign =
+//   //   row.original.foreignConstraints?.value
+//   //     ?.toLowerCase()
+//   //     .includes(filterValueStr) ?? false;
+
+//   const foreignKeyConstraint =
+//     meta.fk[buildRowKey(row)]?.constraints[0].foreignKey.includes(
+//       filterValueStr
+//     );
+
+//   const matchesForeign = meta.fk[buildRowKey(row)].toJsonString;
+
+//   return matchesPrimary || matchesForeign;
+// };

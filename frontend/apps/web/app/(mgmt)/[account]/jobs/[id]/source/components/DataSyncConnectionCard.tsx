@@ -101,6 +101,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     account?.id ?? '',
     sourceConnectionId
   );
+
   const { isLoading: isConnectionsLoading, data: connectionsData } =
     useGetConnections(account?.id ?? '');
 

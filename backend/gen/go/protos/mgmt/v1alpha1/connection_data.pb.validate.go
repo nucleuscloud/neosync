@@ -1438,6 +1438,8 @@ func (m *DatabaseColumn) validate(all bool) error {
 
 	// no validation rules for DataType
 
+	// no validation rules for IsNullable
+
 	if len(errors) > 0 {
 		return DatabaseColumnMultiError(errors)
 	}

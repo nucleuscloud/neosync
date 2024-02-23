@@ -280,6 +280,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   dataType: s.dataType,
                                   transformer:
                                     newDefaultJobMappingTransformerForm(),
+                                  isNullable: s.isNullable,
                                 };
                               })
                           );
