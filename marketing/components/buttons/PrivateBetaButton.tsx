@@ -16,7 +16,7 @@ export default function PrivateBetaButton(): ReactElement {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="default" className="px-6">
+        <Button variant="default" className="px-6 w-[188px]">
           Neosync Cloud <ArrowRightIcon className="ml-2 h-4 w-4" />
         </Button>
       </DialogTrigger>
