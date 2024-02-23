@@ -5,13 +5,13 @@ go 1.21.3
 replace github.com/nucleuscloud/neosync/backend => ../backend
 
 require (
-	connectrpc.com/connect v1.14.0
+	connectrpc.com/connect v1.15.0
 	connectrpc.com/grpchealth v1.3.0
 	connectrpc.com/grpcreflect v1.2.0
 	github.com/benthosdev/benthos/v4 v4.24.0
 	github.com/google/uuid v1.6.0
 	github.com/nucleuscloud/neosync/backend v0.0.0-20231203015621-7d46ef5b9957
-	github.com/redis/go-redis/v9 v9.4.0
+	github.com/redis/go-redis/v9 v9.5.1
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.2
 	github.com/stretchr/testify v1.8.4
