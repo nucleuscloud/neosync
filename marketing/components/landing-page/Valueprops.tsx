@@ -1,44 +1,41 @@
 'use client';
-import { ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { posthog } from 'posthog-js';
 import { ReactElement } from 'react';
+import { Badge } from '../ui/badge';
 
 export default function ValueProps(): ReactElement {
   const features = [
     {
       title: 'Unblock local development ',
       description:
-        'Give developers the ability to self-serve de-identified and synthetic data locally whenever they need it without having to worry about sensitive data privacy or security. ',
+        'Self-serve de-identified and synthetic data locally without worrying about sensitive data privacy or security. ',
       image: '/images/unblocklocal.svg',
       link: '/solutions/unblock-local-development',
     },
     {
       title: 'Fix broken staging environments',
       description:
-        'Catch production bugs and ship faster when you hydrate your staging and QA environments with production-like data that is safe and fast to generate. ',
+        'Catch bugs before production when you hydrate your staging and QA environments with production-like data. ',
       image: '/images/brokenenv.svg',
       link: '/solutions/fix-staging-environments',
     },
     {
       title: 'Keep environments in sync',
       description:
-        'Speed up your dev and test cycles. Make sure your environments stay in sync with the latest de-identified and synthetic data that you can refresh whenever you need to.',
+        'Speed up your dev and test cycles by keeping your environments in sync with the latest de-identified data set.',
       image: '/images/envsync3.svg',
       link: '/solutions/keep-environments-in-sync',
     },
     {
       title: `Frictionless privacy and compliance`,
-      description: `Easily comply with laws like HIPAA, GDPR, and DPDP with de-identified and synthetic data that structurally and statistically looks just like your production data.`,
+      description: `Comply with HIPAA, GDPR, and DPDP with de-identified and synthetic data.`,
       image:
         'https://assets.nucleuscloud.com/neosync/marketingsite/compliance.svg',
       link: '/solutions/security-privacy',
     },
   ];
-
-  const router = useRouter();
 
   return (
     <div>
@@ -47,44 +44,37 @@ export default function ValueProps(): ReactElement {
           Protect Your Sensitive Data, Build Faster with Neosync
         </div>
       </div>
-      <div className="text-lg text-gray-400 font-satoshi font-light  pt-10 lg:pt-20 flex flex-col lg:flex-row gap-6 justify-center items-center">
+      <div className="text-lg text-gray-400 font-satoshi font-light  pt-10 lg:pt-20 flex flex-col md:flex-row lg:flex-row gap-6 justify-center items-center">
         {features.map((item) => (
-          <div
+          <Link
+            href={item.link}
             key={item.title}
-            className="border border-gray-400 bg-white rounded-xl p-8 shadow-xl flex flex-col justify-between gap-6 text-center w-full lg:w-[480px] max-w-xs mx-auto lg:h-[560px] hover:shadow-gray-400"
+            target="_blank"
+            onClick={() => {
+              posthog.capture('user click', {
+                page: item.title,
+              });
+            }}
           >
-            <div>
-              <div className="text-gray-900 ">
+            <div className="border border-gray-400 bg-white rounded-xl p-2 lg:p-4 xl:p-8 shadow-xl flex flex-col justify-between gap-6 text-center w-full  max-w-[300px] lg:max-w-[400px] mx-auto md:h-[560px] lg:h-[560px] hover:shadow-gray-400">
+              <div>
                 <Image
                   src={item.image}
                   alt="NeosyncLogo"
                   width="250"
                   height="172"
                 />
-              </div>
-              <div className="text-gray-900 text-2xl pt-10">{item.title}</div>
-              <div className=" text-gray-500 text-[16px] pt-6 text-left">
-                {item.description}
-              </div>
-            </div>
-            <div>
-              <Link
-                href={item.link}
-                target="_blank"
-                className="flex flex-row justify-end text-sm items-center gap-2"
-                onClick={() => {
-                  posthog.capture('user click', {
-                    page: item.title,
-                  });
-                }}
-              >
-                <div className="text-gray-900">Learn more</div>
-                <div>
-                  <ArrowRight className="text-gray-900 w-4 h-4" />
+
+                <div className="text-gray-900 text-2xl pt-10">{item.title}</div>
+                <div className=" text-gray-500 text-[16px] pt-6 text-center">
+                  {item.description}
                 </div>
-              </Link>
+              </div>
+              <div className="flex justify-center">
+                <Badge variant="outline">Learn more</Badge>
+              </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>
