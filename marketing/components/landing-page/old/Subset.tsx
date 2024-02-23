@@ -1,5 +1,4 @@
 'use client';
-import { SubsetAnimation } from '@/public/subsetanimation';
 import Image from 'next/image';
 import { ReactElement } from 'react';
 
@@ -18,7 +17,7 @@ export default function Subset(): ReactElement {
             integrity of your data automatically.
           </div>
           <div className="hidden lg:justify-center lg:flex">
-            <SubsetAnimation />
+            {/* <SubsetAnimation /> */}
           </div>
           <div className="block md:hidden lg:hidden ">
             <Image
