@@ -96,6 +96,7 @@ func DeleteRedisHash(
 		Password:  pass,
 		TLSConfig: tlsConf,
 	}
+
 	switch redisConfig.Kind {
 	case "simple":
 		client = redis.NewClient(opts.Simple())
@@ -168,6 +169,10 @@ func getTlsConfig(c *shared.RedisTlsConfig) (*tls.Config, error) {
 	if c.SkipCertVerify {
 		initConf()
 		tlsConf.InsecureSkipVerify = true
+	}
+
+	if c.Enabled && tlsConf == nil {
+		initConf()
 	}
 
 	return tlsConf, nil
