@@ -3,6 +3,7 @@ import {
   SINGLE_TABLE_SCHEMA_FORM_SCHEMA,
   SingleTableSchemaFormValues,
 } from '@/app/(mgmt)/[account]/new/job/schema';
+import { ColumnMetadata } from '@/app/(mgmt)/[account]/new/job/schema/page';
 import { SchemaTable } from '@/components/jobs/SchemaTable/SchemaTable';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
@@ -86,6 +87,12 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     account?.id ?? '',
     fkSourceConnectionId ?? ''
   );
+
+  const columnMetadata: ColumnMetadata = {
+    pk: primaryConstraints?.tableConstraints ?? {},
+    fk: foreignConstraints?.tableConstraints ?? {},
+    isNullable: schema?.schemas ?? [],
+  };
 
   useEffect(() => {
     if (error) {
@@ -287,9 +294,8 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
           <SchemaTable
             data={schemaTableData}
             excludeInputReqTransformers
-            primaryConstraints={primaryConstraints?.tableConstraints}
-            foreignConstraints={foreignConstraints?.tableConstraints}
             jobType="generate"
+            columnMetadata={columnMetadata}
           />
         )}
         {form.formState.errors.mappings && (

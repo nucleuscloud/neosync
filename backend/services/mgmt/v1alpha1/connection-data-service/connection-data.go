@@ -370,10 +370,11 @@ func (s *Service) GetConnectionSchema(
 		schemas := []*mgmtv1alpha1.DatabaseColumn{}
 		for _, col := range dbschema {
 			schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
-				Schema:   col.TableSchema,
-				Table:    col.TableName,
-				Column:   col.ColumnName,
-				DataType: col.DataType,
+				Schema:     col.TableSchema,
+				Table:      col.TableName,
+				Column:     col.ColumnName,
+				DataType:   col.DataType,
+				IsNullable: col.IsNullable,
 			})
 		}
 
@@ -407,10 +408,11 @@ func (s *Service) GetConnectionSchema(
 		schemas := []*mgmtv1alpha1.DatabaseColumn{}
 		for _, col := range dbschema {
 			schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
-				Schema:   col.TableSchema,
-				Table:    col.TableName,
-				Column:   col.ColumnName,
-				DataType: col.DataType,
+				Schema:     col.TableSchema,
+				Table:      col.TableName,
+				Column:     col.ColumnName,
+				DataType:   col.DataType,
+				IsNullable: col.IsNullable,
 			})
 		}
 

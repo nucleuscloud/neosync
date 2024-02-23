@@ -1,4 +1,5 @@
 'use client';
+import { ColumnMetadata } from '@/app/(mgmt)/[account]/new/job/schema/page';
 import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
 import {
   SchemaTable,
@@ -101,6 +102,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     account?.id ?? '',
     sourceConnectionId
   );
+
   const { isLoading: isConnectionsLoading, data: connectionsData } =
     useGetConnections(account?.id ?? '');
 
@@ -138,6 +140,12 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     account?.id ?? '',
     sourceConnectionId ?? ''
   );
+
+  const columnMetadata: ColumnMetadata = {
+    pk: primaryConstraints?.tableConstraints ?? {},
+    fk: foreignConstraints?.tableConstraints ?? {},
+    isNullable: schema?.schemas ?? [],
+  };
 
   async function onSourceChange(value: string): Promise<void> {
     try {
@@ -252,9 +260,8 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
 
           <SchemaTable
             data={form.watch().mappings}
-            primaryConstraints={primaryConstraints?.tableConstraints}
-            foreignConstraints={foreignConstraints?.tableConstraints}
             jobType="sync"
+            columnMetadata={columnMetadata}
           />
           <div className="flex flex-row items-center justify-end w-full mt-4">
             <Button type="submit">Save</Button>
