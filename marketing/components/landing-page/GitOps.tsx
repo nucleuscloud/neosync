@@ -75,7 +75,7 @@ export default function GitOpsSection(): ReactElement {
           <div className="border border-gray-400 rounded-xl shadow-xl p-4">
             <div>
               <Image
-                src="/images/neosync-tf.svg"
+                src="/images/terraform-new.svg"
                 alt="pre"
                 width="566"
                 height="697"
