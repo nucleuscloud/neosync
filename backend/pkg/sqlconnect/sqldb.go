@@ -2,6 +2,7 @@ package sqlconnect
 
 import (
 	"database/sql"
+	slog "log/slog"
 
 	"github.com/nucleuscloud/neosync/backend/pkg/sshtunnel"
 )
@@ -20,21 +21,24 @@ type SqlDb struct {
 	tunnel *sshtunnel.Sshtunnel
 
 	dsn string
+
+	logger *slog.Logger
 }
 
-func newSqlDb(details *ConnectionDetails) *SqlDb {
-	return &SqlDb{details: details}
+func newSqlDb(details *ConnectionDetails, logger *slog.Logger) *SqlDb {
+	return &SqlDb{details: details, logger: logger}
 }
 
 func (s *SqlDb) Open() (SqlDBTX, error) {
 	if s.details.Tunnel != nil {
-		ready, err := s.details.Tunnel.Start()
+		ready, err := s.details.Tunnel.Start(s.logger)
 		if err != nil {
 			return nil, err
 		}
 		<-ready
 
-		newPort := int32(s.details.Tunnel.Local.Port)
+		_, localport := s.details.Tunnel.GetLocalHostPort()
+		newPort := int32(localport)
 		s.details.GeneralDbConnectConfig.Port = newPort
 		dsn := s.details.GeneralDbConnectConfig.String()
 		db, err := sql.Open(s.details.GeneralDbConnectConfig.Driver, dsn)

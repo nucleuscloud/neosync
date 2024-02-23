@@ -1026,7 +1026,146 @@ func Test_UpdateJobSourceConnection_Success(t *testing.T) {
 	assert.NotNil(t, resp)
 }
 
-func Test_UpdateJobSourceConnection_MismatchError(t *testing.T) {
+func Test_UpdateJobSourceConnection_GenerateSuccess(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+	mockTx := new(nucleusdb.MockTx)
+
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
+	userUuid, _ := nucleusdb.ToUuid(mockUserId)
+	fkString := uuid.NewString()
+	k, _ := nucleusdb.ToUuid(fkString)
+
+	mockUserAccountCalls(m.UserAccountServiceMock, true)
+	mockDbTransaction(m.DbtxMock, mockTx)
+	mockGetJob(m.UserAccountServiceMock, m.QuerierMock, job, []db_queries.NeosyncApiJobDestinationConnectionAssociation{})
+	m.QuerierMock.On("UpdateJobSource", mock.Anything, mockTx, db_queries.UpdateJobSourceParams{
+		ID: job.ID,
+		ConnectionOptions: &pg_models.JobSourceOptions{
+			GenerateOptions: &pg_models.GenerateSourceOptions{
+				FkSourceConnectionId: &fkString,
+				Schemas: []*pg_models.GenerateSourceSchemaOption{
+					{Schema: "schema-1", Tables: []*pg_models.GenerateSourceTableOption{
+						{Table: "table-1", RowCount: 1},
+					}},
+				},
+			},
+		},
+		UpdatedByID: userUuid,
+	}).Return(job, nil)
+	m.QuerierMock.On("UpdateJobMappings", mock.Anything, mockTx, db_queries.UpdateJobMappingsParams{
+		ID: job.ID,
+		Mappings: []*pg_models.JobMapping{
+			{Schema: "schema-1", Table: "table-1", Column: "col", JobMappingTransformer: &pg_models.JobMappingTransformerModel{
+				Source: "passthrough",
+				Config: &pg_models.TransformerConfigs{},
+			}},
+		},
+		UpdatedByID: userUuid,
+	}).Return(job, nil)
+	m.QuerierMock.On("IsConnectionInAccount", mock.Anything, mock.Anything, db_queries.IsConnectionInAccountParams{
+		AccountId:    accountUuid,
+		ConnectionId: k,
+	}).Return(int64(1), nil)
+	m.ConnectionServiceClientMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+		Connection: &mgmtv1alpha1.Connection{
+			Id: mockConnectionId,
+			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{},
+				},
+			},
+		},
+	}), nil)
+	resp, err := m.Service.UpdateJobSourceConnection(context.Background(), &connect.Request[mgmtv1alpha1.UpdateJobSourceConnectionRequest]{
+		Msg: &mgmtv1alpha1.UpdateJobSourceConnectionRequest{
+			Id: nucleusdb.UUIDString(job.ID),
+			Source: &mgmtv1alpha1.JobSource{
+				Options: &mgmtv1alpha1.JobSourceOptions{
+					Config: &mgmtv1alpha1.JobSourceOptions_Generate{
+						Generate: &mgmtv1alpha1.GenerateSourceOptions{
+							FkSourceConnectionId: &fkString,
+							Schemas: []*mgmtv1alpha1.GenerateSourceSchemaOption{
+								{Schema: "schema-1", Tables: []*mgmtv1alpha1.GenerateSourceTableOption{
+									{Table: "table-1", RowCount: 1},
+								}},
+							},
+						},
+					},
+				},
+			},
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{Schema: "schema-1", Table: "table-1", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
+					Source: "passthrough",
+					Config: &mgmtv1alpha1.TransformerConfig{},
+				}},
+			},
+		},
+	})
+
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+}
+
+func Test_UpdateJobSourceConnection_PgMismatchError(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	conn := getConnectionMock(mockAccountId, "test-1")
+	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
+	whereClause := "where1"
+
+	mockUserAccountCalls(m.UserAccountServiceMock, true)
+	mockIsUserInAccount(m.UserAccountServiceMock, true)
+	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, job.ID).Return(job, nil)
+	m.QuerierMock.On("IsConnectionInAccount", mock.Anything, mock.Anything, db_queries.IsConnectionInAccountParams{
+		AccountId:    accountUuid,
+		ConnectionId: conn.ID,
+	}).Return(int64(1), nil)
+	m.ConnectionServiceClientMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+		Connection: &mgmtv1alpha1.Connection{
+			Id: mockConnectionId,
+			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{},
+				},
+			},
+		},
+	}), nil)
+
+	_, err := m.Service.UpdateJobSourceConnection(context.Background(), &connect.Request[mgmtv1alpha1.UpdateJobSourceConnectionRequest]{
+		Msg: &mgmtv1alpha1.UpdateJobSourceConnectionRequest{
+			Id: nucleusdb.UUIDString(job.ID),
+			Source: &mgmtv1alpha1.JobSource{
+				Options: &mgmtv1alpha1.JobSourceOptions{
+					Config: &mgmtv1alpha1.JobSourceOptions_Mysql{
+						Mysql: &mgmtv1alpha1.MysqlSourceConnectionOptions{
+							ConnectionId:            nucleusdb.UUIDString(conn.ID),
+							HaltOnNewColumnAddition: true,
+							Schemas: []*mgmtv1alpha1.MysqlSourceSchemaOption{
+								{Schema: "schema-1", Tables: []*mgmtv1alpha1.MysqlSourceTableOption{
+									{Table: "table-1", WhereClause: &whereClause},
+								}},
+							},
+						},
+					},
+				},
+			},
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{Schema: "schema-1", Table: "table-1", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
+					Source: "passthrough",
+					Config: &mgmtv1alpha1.TransformerConfig{},
+				}},
+			},
+		},
+	})
+
+	assert.Error(t, err)
+	m.QuerierMock.AssertNotCalled(t, "UpdateJobSource", mock.Anything, mock.Anything, mock.Anything)
+	m.QuerierMock.AssertNotCalled(t, "UpdateJobMappings", mock.Anything, mock.Anything, mock.Anything)
+}
+
+func Test_UpdateJobSourceConnection_MysqlMismatchError(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 
 	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
@@ -1063,6 +1202,64 @@ func Test_UpdateJobSourceConnection_MismatchError(t *testing.T) {
 							HaltOnNewColumnAddition: true,
 							Schemas: []*mgmtv1alpha1.PostgresSourceSchemaOption{
 								{Schema: "schema-1", Tables: []*mgmtv1alpha1.PostgresSourceTableOption{
+									{Table: "table-1", WhereClause: &whereClause},
+								}},
+							},
+						},
+					},
+				},
+			},
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{Schema: "schema-1", Table: "table-1", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
+					Source: "passthrough",
+					Config: &mgmtv1alpha1.TransformerConfig{},
+				}},
+			},
+		},
+	})
+
+	assert.Error(t, err)
+	m.QuerierMock.AssertNotCalled(t, "UpdateJobSource", mock.Anything, mock.Anything, mock.Anything)
+	m.QuerierMock.AssertNotCalled(t, "UpdateJobMappings", mock.Anything, mock.Anything, mock.Anything)
+}
+
+func Test_UpdateJobSourceConnection_AwsS3MismatchError(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: true})
+
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	conn := getConnectionMock(mockAccountId, "test-1")
+	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
+	whereClause := "where1"
+
+	mockUserAccountCalls(m.UserAccountServiceMock, true)
+	mockIsUserInAccount(m.UserAccountServiceMock, true)
+	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, job.ID).Return(job, nil)
+	m.QuerierMock.On("IsConnectionInAccount", mock.Anything, mock.Anything, db_queries.IsConnectionInAccountParams{
+		AccountId:    accountUuid,
+		ConnectionId: conn.ID,
+	}).Return(int64(1), nil)
+	m.ConnectionServiceClientMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+		Connection: &mgmtv1alpha1.Connection{
+			Id: mockConnectionId,
+			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+				Config: &mgmtv1alpha1.ConnectionConfig_AwsS3Config{
+					AwsS3Config: &mgmtv1alpha1.AwsS3ConnectionConfig{},
+				},
+			},
+		},
+	}), nil)
+
+	_, err := m.Service.UpdateJobSourceConnection(context.Background(), &connect.Request[mgmtv1alpha1.UpdateJobSourceConnectionRequest]{
+		Msg: &mgmtv1alpha1.UpdateJobSourceConnectionRequest{
+			Id: nucleusdb.UUIDString(job.ID),
+			Source: &mgmtv1alpha1.JobSource{
+				Options: &mgmtv1alpha1.JobSourceOptions{
+					Config: &mgmtv1alpha1.JobSourceOptions_Mysql{
+						Mysql: &mgmtv1alpha1.MysqlSourceConnectionOptions{
+							ConnectionId:            nucleusdb.UUIDString(conn.ID),
+							HaltOnNewColumnAddition: true,
+							Schemas: []*mgmtv1alpha1.MysqlSourceSchemaOption{
+								{Schema: "schema-1", Tables: []*mgmtv1alpha1.MysqlSourceTableOption{
 									{Table: "table-1", WhereClause: &whereClause},
 								}},
 							},

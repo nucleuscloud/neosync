@@ -34,18 +34,25 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   transformers: Transformer[];
+  jobType: string;
 }
 
 export default function SchemaPageTable<TData, TValue>({
   columns,
   data,
   transformers,
+  jobType,
 }: DataTableProps<TData, TValue>): ReactElement {
   const table = useReactTable({
     data,
     columns,
     state: {},
-
+    initialState: {
+      sorting: [
+        { id: 'schema', desc: true },
+        { id: 'table', desc: true },
+      ],
+    },
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -77,6 +84,7 @@ export default function SchemaPageTable<TData, TValue>({
           table={table}
           data={data}
           transformers={transformers}
+          jobType={jobType}
         />
       </div>
       <div

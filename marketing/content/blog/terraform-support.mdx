@@ -1,0 +1,73 @@
+---
+title: Neoysnc + Terraform
+description: Introducing the Neosync Terraform provider.
+date: 2024-02-22
+published: true
+image: /images/blogs/terraform.svg
+authors:
+  - evis
+---
+
+# Introduction
+
+Terraform is one of the leading Infrastructure-as-Code (IaC) tools that is used by thousands of companies to declaratively manage their infrastructure. So it's no surprise that many in the [Neosync](https://github.com/nucleuscloud/neosync) open source community were asking us to support it. So, we're excited to launch our official Terraform Provider! If you want to get started right away with it, you find it [here](https://registry.terraform.io/providers/nucleuscloud/neosync/latest) on the Terraform provider directory along with some helpful addditional [docs here](https://docs.neosync.dev/guides/terraform).
+
+# Using Terraform to Manage Neosync
+
+Before we added Terraform support, developers could interface with Neosync through the web application and using our Golang and Typescript SDKs. Now that we have a Terraform provider, developers and devOps teams have an additional way of managing their Neosync infrastructure.
+
+Using our Terraform provider, teams can now easily create new Connections, Transformers and Jobs and save those configurations in their Terraform files source code repo. This is important for a few reasons:
+
+1. This makes it easy for teams to tear down and re-create the infrastructure in a new environment or for testing without having to re-do everything from scratch
+2. For teams that follow GitOps methodologies, this approach aligns with the rest of their Infrastructure
+3. Gives teams greater flexibility in creating new resource in Neosync that other teams may need
+
+# Diving into the Provider
+
+The best way to understand how to use Terraform to manage your Neosync infrastructure is to look at some examples.
+
+Here is an example of an easy way to get started. Let's see what this is doing.
+
+```hcl
+# Configure the Neosync provider using the required_providers stanza.
+# You may optionally use a version directive to prevent breaking
+# changes occurring unannounced.
+terraform {
+  required_providers {
+    neosync = {
+      source  = "nucleuscloud/neosync"
+      version = "~> 0.1"
+    }
+  }
+}
+
+provider "neosync" {
+  # Or omit this for the endpoint to be read
+  # from the NEOSYNC_ENDPOINT environment variable
+  endpoint = var.neosync_endpoint
+
+  # Or omit this for the api_token to be read
+  # from the NEOSYNC_API_TOKEN environment variable
+  # or if running Neosync in unauthenticated mode, omit entirely.
+  # If running in unauth mode, the account id must be provided in some fashion
+  api_token = var.neosync_api_token
+
+  # Optional account id
+  # This can be inferred from the API Key, or if the account_id is provided on the resource
+  account_id = var.neosync_account_id
+}
+```
+
+At the top of the file, we declare that we want to use neosync in our `required_providers` object and can optionally set a version to prevent breaking changes.
+
+Next, we start to configure the Neosync provider by passing in an `endpoint`, `api_token` and optionally an `account_id`.
+
+Now that we've configured the basics of the provider, there are two main sections that we can jump into: **Resources** allow us to create new resources in Neosync such as Connections, Transformers and Jobs, while **Data Sources** allow us to Retrieve existing connections, Transformers and Jobs.
+
+If you're setting up the provider for the first time, then you'll want to jump into the **Resources** section and create your resources to align with the state of your current Neosync instance. Then you can let Terraform manage the state of your instance and ensure that it's always operating correctly with the right configuration.
+
+For more examples and documentation check out the [provider documentation](https://registry.terraform.io/providers/nucleuscloud/neosync/latest/docs/resources/connection).
+
+# Conclusion
+
+Supporting Terraform is something that we talked about doing for months and when our open source community started asking for it, it was the perfect time to priorize it. We're excited to have support for it and see how developers and devOps teams use it to more easily manage their infrastructure.

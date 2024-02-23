@@ -34,7 +34,7 @@ export default function ConnectionCard(props: Props) {
           }?${searchParams.toString()}`
         )
       }
-      className="cursor-pointer"
+      className="cursor-pointer hover:border hover:border-gray-500 dark:border-gray-700 dark:hover:border-gray-600"
     >
       <CardHeader>
         <CardTitle>

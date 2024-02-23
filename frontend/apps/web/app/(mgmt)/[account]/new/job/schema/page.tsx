@@ -18,8 +18,10 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   DatabaseColumn,
+  ForeignConstraintTables,
   JobMappingTransformer,
   Passthrough,
+  PrimaryConstraint,
   TransformerConfig,
 } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
@@ -31,6 +33,12 @@ import JobsProgressSteps, { DATA_SYNC_STEPS } from '../JobsProgressSteps';
 import { ConnectFormValues } from '../schema';
 
 const isBrowser = () => typeof window !== 'undefined';
+
+export interface ColumnMetadata {
+  pk: { [key: string]: PrimaryConstraint };
+  fk: { [key: string]: ForeignConstraintTables };
+  isNullable: DatabaseColumn[];
+}
 
 export default function Page({ searchParams }: PageProps): ReactElement {
   const { account } = useAccount();
@@ -98,6 +106,13 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     router.push(`/${account?.name}/new/job/subset?sessionId=${sessionPrefix}`);
   }
 
+  // construct column metadata object to pass to the schema table columns
+  const columnMetadata: ColumnMetadata = {
+    pk: primaryConstraints?.tableConstraints ?? {},
+    fk: foreignConstraints?.tableConstraints ?? {},
+    isNullable: connectionSchemaData?.schemas ?? [],
+  };
+
   return (
     <div className="flex flex-col gap-5">
       <OverviewContainer
@@ -118,8 +133,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <SchemaTable
             data={form.watch().mappings}
-            primaryConstraints={primaryConstraints?.tableConstraints}
-            foreignConstraints={foreignConstraints?.tableConstraints}
+            columnMetadata={columnMetadata}
+            jobType="sync"
           />
           <div className="flex flex-row gap-1 justify-between">
             <Button key="back" type="button" onClick={() => router.back()}>
@@ -152,7 +167,10 @@ function getFormValues(
   return {
     mappings: dbCols.map((r) => {
       return {
-        ...r,
+        schema: r.schema,
+        table: r.table,
+        column: r.column,
+        dataType: r.dataType,
         transformer: convertJobMappingTransformerToForm(
           new JobMappingTransformer({
             source: 'passthrough',

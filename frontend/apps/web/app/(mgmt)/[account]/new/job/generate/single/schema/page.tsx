@@ -68,6 +68,7 @@ import {
   SingleTableConnectFormValues,
   SingleTableSchemaFormValues,
 } from '../../../schema';
+import { ColumnMetadata } from '../../../schema/page';
 const isBrowser = () => typeof window !== 'undefined';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
@@ -192,6 +193,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     connectFormValues.connectionId
   );
 
+  const columnMetadata: ColumnMetadata = {
+    pk: primaryConstraints?.tableConstraints ?? {},
+    fk: foreignConstraints?.tableConstraints ?? {},
+    isNullable: connSchemaData?.schemas ?? [],
+  };
+
   const selectedSchemaTables = schemaTableMap.get(formValues.schema) ?? [];
 
   return (
@@ -280,6 +287,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   dataType: s.dataType,
                                   transformer:
                                     newDefaultJobMappingTransformerForm(),
+                                  isNullable: s.isNullable,
                                 };
                               })
                           );
@@ -336,8 +344,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             <SchemaTable
               data={schemaTableData}
               excludeInputReqTransformers
-              primaryConstraints={primaryConstraints?.tableConstraints}
-              foreignConstraints={foreignConstraints?.tableConstraints}
+              columnMetadata={columnMetadata}
+              jobType={'generate'}
             />
           )}
           {form.formState.errors.root && (

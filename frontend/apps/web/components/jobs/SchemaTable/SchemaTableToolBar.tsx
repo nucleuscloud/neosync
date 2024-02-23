@@ -22,12 +22,14 @@ interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   data: TData[];
   transformers: Transformer[];
+  jobType: string;
 }
 
 export function SchemaTableToolbar<TData>({
   table,
   data,
   transformers,
+  jobType,
 }: DataTableToolbarProps<TData>) {
   const [selectedSchemaOptions, setSelectedSchemaOptions] = useState<Option[]>(
     []
@@ -176,44 +178,46 @@ export function SchemaTableToolbar<TData>({
 
   return (
     <div className="flex flex-col items-start w-full gap-2">
-      <div className="flex flex-col items-center gap-2">
-        <div className="w-[275px] lg:w-[650px] z-40 flex flex-col gap-2">
-          <FormLabel>Filter Schema(s)</FormLabel>
-          <MultiSelect
-            defaultOptions={defaultSchemaValues}
-            options={schemaOptions}
-            placeholder="Filter by schema(s)..."
-            emptyIndicator={
-              <p className="text-center text-sm leading-10 text-gray-600 dark:text-gray-400">
-                No schemas available to filter
-              </p>
-            }
-            value={selectedSchemaOptions}
-            hidePlaceholderWhenSelected={true}
-            onChange={(selectedOptions) =>
-              handleMultiSelectSchemaChange(selectedOptions)
-            }
-          />
+      {jobType == 'sync' && ( // hide filters if the job is not a sync job
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-[275px] lg:w-[650px] z-40 flex flex-col gap-2">
+            <FormLabel>Filter Schema(s)</FormLabel>
+            <MultiSelect
+              defaultOptions={defaultSchemaValues}
+              options={schemaOptions}
+              placeholder="Filter by schema(s)..."
+              emptyIndicator={
+                <p className="text-center text-sm leading-10 text-gray-600 dark:text-gray-400">
+                  No schemas available to filter
+                </p>
+              }
+              value={selectedSchemaOptions}
+              hidePlaceholderWhenSelected={true}
+              onChange={(selectedOptions) =>
+                handleMultiSelectSchemaChange(selectedOptions)
+              }
+            />
+          </div>
+          <div className="w-[275px] lg:w-[650px] z-30 flex flex-col gap-2">
+            <FormLabel>Filter Table(s)</FormLabel>
+            <MultiSelect
+              defaultOptions={defaultTableValues}
+              options={tableOptions}
+              placeholder="Filter by table(s)..."
+              emptyIndicator={
+                <p className="text-center text-sm leading-10 text-gray-600 dark:text-gray-400">
+                  No tables available to filter
+                </p>
+              }
+              value={selectedTableOptions}
+              hidePlaceholderWhenSelected={true}
+              onChange={(selectedOptions) =>
+                handleMultiSelectTableChange(selectedOptions)
+              }
+            />
+          </div>
         </div>
-        <div className="w-[275px] lg:w-[650px] z-30 flex flex-col gap-2">
-          <FormLabel>Filter Table(s)</FormLabel>
-          <MultiSelect
-            defaultOptions={defaultTableValues}
-            options={tableOptions}
-            placeholder="Filter by table(s)..."
-            emptyIndicator={
-              <p className="text-center text-sm leading-10 text-gray-600 dark:text-gray-400">
-                No tables available to filter
-              </p>
-            }
-            value={selectedTableOptions}
-            hidePlaceholderWhenSelected={true}
-            onChange={(selectedOptions) =>
-              handleMultiSelectTableChange(selectedOptions)
-            }
-          />
-        </div>
-      </div>
+      )}
       <div className="flex flex-row justify-between pb-2 items-center w-full">
         <div className="w-[250px]">
           <TransformerSelect

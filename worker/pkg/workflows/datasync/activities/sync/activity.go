@@ -3,8 +3,6 @@ package sync_activity
 import (
 	"context"
 	"fmt"
-	"log/slog"
-	"os"
 	"sync"
 	"time"
 
@@ -17,13 +15,12 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/redis"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
+	logger_utils "github.com/nucleuscloud/neosync/worker/internal/logger"
 
 	"connectrpc.com/connect"
 	"github.com/benthosdev/benthos/v4/public/service"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
-	"github.com/nucleuscloud/neosync/backend/pkg/sshtunnel"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/log"
@@ -41,15 +38,36 @@ type SyncRequest struct {
 }
 type SyncResponse struct{}
 
+func New(
+	connclient mgmtv1alpha1connect.ConnectionServiceClient,
+	tunnelmanagermap *sync.Map,
+) *Activity {
+	return &Activity{connclient: connclient, tunnelmanagermap: tunnelmanagermap}
+}
+
+type Activity struct {
+	connclient       mgmtv1alpha1connect.ConnectionServiceClient
+	tunnelmanagermap *sync.Map
+}
+
+func (a *Activity) getTunnelManagerByRunId(runId string) (*ConnectionTunnelManager, error) {
+	val, _ := a.tunnelmanagermap.LoadOrStore(runId, NewConnectionTunnelManager())
+	manager, ok := val.(*ConnectionTunnelManager)
+	if !ok {
+		return nil, fmt.Errorf("unable to retrieve connection tunnel maanger from tunnel manager map. Expected *ConnectionTunnelManager, received: %T", manager)
+	}
+	return manager, nil
+}
+
 // Temporal activity that runs benthos and syncs a source connection to one or more destination connections
-func Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata, workflowMetadata *shared.WorkflowMetadata) (*SyncResponse, error) {
+func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata, workflowMetadata *shared.WorkflowMetadata) (*SyncResponse, error) {
 	loggerKeyVals := []any{
 		"metadata", metadata,
 		"WorkflowID", workflowMetadata.WorkflowId,
 		"RunID", workflowMetadata.RunId,
 	}
 	logger := log.With(activity.GetLogger(ctx), loggerKeyVals...)
-	slogger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{})).With(loggerKeyVals...)
+	slogger := logger_utils.NewJsonSLogger().With(loggerKeyVals...)
 	var benthosStream *service.Stream
 	go func() {
 		for {
@@ -70,13 +88,10 @@ func Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata, workflo
 		}
 	}()
 
-	neosyncUrl := shared.GetNeosyncUrl()
-	httpClient := shared.GetNeosyncHttpClient()
-
-	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(
-		httpClient,
-		neosyncUrl,
-	)
+	tunnelmanager, err := a.getTunnelManagerByRunId(workflowMetadata.RunId)
+	if err != nil {
+		return nil, err
+	}
 
 	connections := make([]*mgmtv1alpha1.Connection, len(req.BenthosDsns))
 
@@ -85,7 +100,7 @@ func Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata, workflo
 		idx := idx
 		bdns := bdns
 		errgrp.Go(func() error {
-			resp, err := connclient.GetConnection(errctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{Id: bdns.ConnectionId}))
+			resp, err := a.connclient.GetConnection(errctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{Id: bdns.ConnectionId}))
 			if err != nil {
 				return fmt.Errorf("failed to retrieve connection: %w", err)
 			}
@@ -98,17 +113,10 @@ func Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata, workflo
 	}
 
 	envKeyDsnSyncMap := sync.Map{}
-	tunnelMap := sync.Map{}
 	defer func() {
-		tunnelMap.Range(func(key, value any) bool {
-			tunnel, ok := value.(*sshtunnel.Sshtunnel)
-			if !ok {
-				logger.Warn("unable to convert value to Sshtunnel for key", "key", key)
-				return true
-			}
-			tunnel.Close()
-			return true
-		})
+		for _, conn := range connections {
+			tunnelmanager.Release(conn.Id)
+		}
 	}()
 	errgrp, errctx = errgroup.WithContext(ctx)
 	for idx, bdns := range req.BenthosDsns {
@@ -116,26 +124,12 @@ func Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata, workflo
 		bdns := bdns
 		errgrp.Go(func() error {
 			connection := connections[idx]
-			details, err := sqlconnect.GetConnectionDetails(connection.ConnectionConfig, shared.Ptr(uint32(5)), slogger)
+
+			localConnStr, err := tunnelmanager.GetConnectionString(connection, slogger)
 			if err != nil {
-				return fmt.Errorf("unable to get connection details for the given connection id: %s: %w", connection.Id, err)
+				return err
 			}
-			if details.Tunnel != nil {
-				ready, err := details.Tunnel.Start()
-				if err != nil {
-					return fmt.Errorf("unable to start ssh tunnel: %w", err)
-				}
-				tunnelMap.Store(bdns.EnvVarKey, details.Tunnel)
-				<-ready
-				details.GeneralDbConnectConfig.Host = details.Tunnel.Local.Host
-				details.GeneralDbConnectConfig.Port = int32(details.Tunnel.Local.Port)
-				logger.Debug(
-					"ssh tunnel is ready, updated configuration host and port",
-					"host", details.Tunnel.Local.Host,
-					"port", details.Tunnel.Local.Port,
-				)
-			}
-			envKeyDsnSyncMap.Store(bdns.EnvVarKey, details.GeneralDbConnectConfig.String())
+			envKeyDsnSyncMap.Store(bdns.EnvVarKey, localConnStr)
 			return nil
 		})
 	}
@@ -154,7 +148,7 @@ func Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata, workflo
 	// This must come before SetYaml as otherwise it will not be invoked
 	streambldr.SetEnvVarLookupFunc(getEnvVarLookupFn(envKeyDnsMap))
 
-	err := streambldr.SetYAML(req.BenthosConfig)
+	err = streambldr.SetYAML(req.BenthosConfig)
 	if err != nil {
 		return nil, fmt.Errorf("unable to convert benthos config to yaml for stream builder: %w", err)
 	}

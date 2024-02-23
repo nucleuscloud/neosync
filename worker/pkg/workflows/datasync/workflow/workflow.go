@@ -111,7 +111,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		bc := bc
 		future := invokeSync(bc, childctx, started, completed, workflowMetadata, logger)
 		workselector.AddFuture(future, func(f workflow.Future) {
-			logger = log.With(logger, withBenthosConfigResponseLoggerTags(bc)...)
+			logger := log.With(logger, withBenthosConfigResponseLoggerTags(bc)...)
 			logger.Info("config sync completed")
 			var result sync_activity.SyncResponse
 			err := f.Get(childctx, &result)
@@ -135,7 +135,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	}
 
 	for i := 0; i < len(bcResp.BenthosConfigs); i++ {
-		logger = log.With(logger, withBenthosConfigResponseLoggerTags(bcResp.BenthosConfigs[i])...)
+		logger := log.With(logger, withBenthosConfigResponseLoggerTags(bcResp.BenthosConfigs[i])...)
 		logger.Debug("*** blocking select ***", "i", i)
 		workselector.Select(ctx)
 		if activityErr != nil {
@@ -195,7 +195,7 @@ func runRedisCleanUpActivity(
 				continue
 			}
 			ctx := workflow.WithActivityOptions(wfctx, *actOptResp.SyncActivityOptions)
-			logger.Info("executing redis clean up activity")
+			logger.Debug("executing redis clean up activity")
 			var resp *syncrediscleanup_activity.DeleteRedisHashResponse
 			err := workflow.ExecuteActivity(ctx, syncrediscleanup_activity.DeleteRedisHash, &syncrediscleanup_activity.DeleteRedisHashRequest{
 				JobId:      jobId,
@@ -255,7 +255,7 @@ func invokeSync(
 	metadata := getSyncMetadata(config)
 	future, settable := workflow.NewFuture(ctx)
 	logger = log.With(logger, "name", config.Name, "metadata", metadata)
-	logger.Info("triggering config sync")
+	logger.Debug("triggering config sync")
 	started[config.Name] = struct{}{}
 	workflow.GoNamed(ctx, config.Name, func(ctx workflow.Context) {
 		configbits, err := yaml.Marshal(config.Config)
@@ -268,9 +268,10 @@ func invokeSync(
 		logger.Info("scheduling Sync for execution.")
 
 		var result sync_activity.SyncResponse
+		activity := sync_activity.Activity{}
 		err = workflow.ExecuteActivity(
 			ctx,
-			sync_activity.Sync,
+			activity.Sync,
 			&sync_activity.SyncRequest{BenthosConfig: string(configbits), BenthosDsns: config.BenthosDsns}, metadata, workflowMetadata).Get(ctx, &result)
 		tn := fmt.Sprintf("%s.%s", config.TableSchema, config.TableName)
 		_, ok := completed[tn]

@@ -64,6 +64,8 @@ message DatabaseColumn {
   string column = 3;
   // The datatype of the column
   string data_type = 4;
+  // The isNullable Flag of the column
+  string is_nullable = 5;
 }
 
 message GetConnectionSchemaRequest {

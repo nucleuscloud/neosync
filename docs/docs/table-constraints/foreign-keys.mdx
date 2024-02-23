@@ -5,6 +5,9 @@ hide_title: false
 slug: /table-constraints/foreign-keys
 ---
 
-Neosync utilizes foreign keys in SQL databases to ensure data integrity and maintain relationships between tables during data synchronization. However, it's important to note that transforming columns
-that are foreign keys is currently not supported in Neosync. This limitation means that while Neosync can handle data synchronization involving foreign keys, it cannot alter or transform the data in
-these foreign key columns during the synchronization process.
+Neosync utilizes foreign keys in SQL databases to ensure data integrity and maintain relationships between tables during data synchronization.
+Additionally, Neosync supports primary key transformations, which is a powerful feature for maintaining data consistency when primary keys
+need to be altered. When you use a primary key transformation, Neosync will also update any foreign keys connected to the primary key
+to reflect the change. However, it's important to note that for this automatic updating to work, the foreign key must be set to passthrough.
+This setting allows Neosync to correctly identify and update the foreign keys, ensuring that the integrity and relationships within your database
+are preserved even after primary key changes.

@@ -10,9 +10,9 @@ import Hero from './hero';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://assets.nucleuscloud.com/'),
-  title: 'Neosync | Unblock Local Development',
+  title: 'Unblock Local Development | Neosync',
   openGraph: {
-    title: 'Neosync | Unblock Local Development',
+    title: 'Unblock Local Development | Neosync',
     description:
       'Unblock local development by using Neosync to anonymize sensitive data and generate synthetic data so that developers can self-serve data locally.  ',
     url: 'https://neosync.dev/solutions/unblock-local-development',
