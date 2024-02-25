@@ -38,7 +38,7 @@ export default function Values(): ReactElement {
         {values.map((item) => (
           <div
             key={item.title}
-            className="border border-gray-400 bg-white rounded-xl p-8 shadow-xl flex flex-col justify-between gap-6 text-center w-full lg:w-[480px] max-w-xs mx-auto lg:h-[350px]"
+            className="border border-gray-400 bg-white rounded-xl p-2 lg:p-4 xl:p-8 shadow-xl flex flex-col justify-between gap-6 text-center w-full  max-w-[300px] lg:max-w-[400px] mx-auto md:h-[400px] lg:h-[560px] xl:h-[450px] hover:shadow-gray-400"
           >
             <div>
               <div className="text-gray-900 justify-center flex">
