@@ -176,10 +176,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   }
 
-  const [connectionId, setConnectionId] = useState(
-    connectFormValues.connectionId
-  );
-
   const formValues = form.watch();
   const schemaTableData = formValues.mappings ?? [];
 
