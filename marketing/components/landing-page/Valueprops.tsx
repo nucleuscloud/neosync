@@ -22,7 +22,7 @@ export default function ValueProps(): ReactElement {
       link: '/solutions/fix-staging-environments',
     },
     {
-      title: 'Keep environments in sync',
+      title: 'Keep your environments in sync',
       description:
         'Speed up your dev and test cycles by keeping your environments in sync with the latest de-identified data set.',
       image: '/images/envsync3.svg',
@@ -31,8 +31,7 @@ export default function ValueProps(): ReactElement {
     {
       title: `Frictionless privacy and compliance`,
       description: `Comply with HIPAA, GDPR, and DPDP with de-identified and synthetic data.`,
-      image:
-        'https://assets.nucleuscloud.com/neosync/marketingsite/compliance.svg',
+      image: '/images/comp.svg',
       link: '/solutions/security-privacy',
     },
   ];
@@ -58,13 +57,14 @@ export default function ValueProps(): ReactElement {
           >
             <div className="border border-gray-400 bg-white rounded-xl p-2 lg:p-4 xl:p-8 shadow-xl flex flex-col justify-between gap-6 text-center w-full  max-w-[300px] lg:max-w-[400px] mx-auto md:h-[560px] lg:h-[560px] hover:shadow-gray-400">
               <div>
-                <Image
-                  src={item.image}
-                  alt="NeosyncLogo"
-                  width="250"
-                  height="172"
-                />
-
+                <div className="flex justify-center">
+                  <Image
+                    src={item.image}
+                    alt="NeosyncLogo"
+                    width="250"
+                    height="172"
+                  />
+                </div>
                 <div className="text-gray-900 text-2xl pt-10">{item.title}</div>
                 <div className=" text-gray-500 text-[16px] pt-6 text-center">
                   {item.description}
