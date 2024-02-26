@@ -496,7 +496,7 @@ jobs:
   cli:
     name: CLI
     runs-on: ubuntu-latest
-    #  for now, only build the ts-sdk when we cut a new tag
+    #  for now, only build when we cut a new tag
     if: startsWith(github.ref, 'refs/tags/')
     defaults:
       run:
@@ -553,7 +553,7 @@ jobs:
   ts-sdk:
     name: TypeScript SDK Release
     runs-on: ubuntu-latest
-    #  for now, only build the ts-sdk when we cut a new tag
+    #  for now, only build when we cut a new tag
     if: startsWith(github.ref, 'refs/tags/')
     permissions:
       contents: read
