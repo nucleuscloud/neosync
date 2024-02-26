@@ -95,7 +95,10 @@ func serve(ctx context.Context) error {
 	checker := grpchealth.NewStaticChecker(services...)
 	mux.Handle(grpchealth.NewHandler(checker))
 
-	reflector := grpcreflect.NewStaticReflector(services...)
+	reflectorServices := append([]string{
+		grpchealth.HealthV1ServiceName,
+	}, services...)
+	reflector := grpcreflect.NewStaticReflector(reflectorServices...)
 	mux.Handle(grpcreflect.NewHandlerV1(reflector))
 	mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
 
