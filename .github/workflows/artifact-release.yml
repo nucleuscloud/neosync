@@ -549,6 +549,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.PUBLISH_PAT }} # needs to be a non-action token because this also pushes to the homebrew repo
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
           AUR_KEY: ${{ secrets.AUR_PRIVATE_KEY }}
+          DISABLE_CHANGELOG: false
 
   ts-sdk:
     name: TypeScript SDK Release

@@ -38,6 +38,7 @@ signs:
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
 changelog:
+  disable: "{{ .Env.DISABLE_CHANGELOG }}"
   sort: desc
   filters:
     exclude:
