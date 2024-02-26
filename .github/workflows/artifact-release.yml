@@ -5,14 +5,14 @@ on:
     tags:
       - "v*.*.*"
     branches:
-      - main
-    paths:
-      - backend/**
-      - cli/**
-      - worker/**
-      - frontend/**
-      - charts/**
-      - docker/**
+      - nick/*
+    # paths:
+    #   - backend/**
+    #   - cli/**
+    #   - worker/**
+    #   - frontend/**
+    #   - charts/**
+    #   - docker/**
 
 jobs:
   docker-backend:
