@@ -109,7 +109,7 @@ func toWorfklowStatus(input enums.WorkflowExecutionStatus) mgmtv1alpha1.JobRunSt
 	case enums.WORKFLOW_EXECUTION_STATUS_FAILED:
 		return mgmtv1alpha1.JobRunStatus_JOB_RUN_STATUS_FAILED
 	case enums.WORKFLOW_EXECUTION_STATUS_TIMED_OUT:
-		return mgmtv1alpha1.JobRunStatus_JOB_RUN_STATUS_FAILED
+		return mgmtv1alpha1.JobRunStatus_JOB_RUN_STATUS_TIMED_OUT
 	case enums.WORKFLOW_EXECUTION_STATUS_CANCELED:
 		return mgmtv1alpha1.JobRunStatus_JOB_RUN_STATUS_CANCELED
 	case enums.WORKFLOW_EXECUTION_STATUS_TERMINATED:
