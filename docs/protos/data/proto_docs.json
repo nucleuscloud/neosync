@@ -5677,52 +5677,52 @@
           "name": "JobRunStatus",
           "longName": "JobRunStatus",
           "fullName": "mgmt.v1alpha1.JobRunStatus",
-          "description": "",
+          "description": "An enumeration of job run statuses.",
           "values": [
             {
               "name": "JOB_RUN_STATUS_UNSPECIFIED",
               "number": "0",
-              "description": ""
+              "description": "if the job run status is unknown"
             },
             {
               "name": "JOB_RUN_STATUS_PENDING",
               "number": "1",
-              "description": ""
+              "description": "the run is pending and has not started yet"
             },
             {
               "name": "JOB_RUN_STATUS_RUNNING",
               "number": "2",
-              "description": ""
+              "description": "the run is currently in progress"
             },
             {
               "name": "JOB_RUN_STATUS_COMPLETE",
               "number": "3",
-              "description": ""
+              "description": "the run has successfully completed"
             },
             {
               "name": "JOB_RUN_STATUS_ERROR",
               "number": "4",
-              "description": ""
+              "description": "the run ended with an error"
             },
             {
               "name": "JOB_RUN_STATUS_CANCELED",
               "number": "5",
-              "description": ""
+              "description": "the run was cancelled"
             },
             {
               "name": "JOB_RUN_STATUS_TERMINATED",
               "number": "6",
-              "description": ""
+              "description": "the run was terminated"
             },
             {
               "name": "JOB_RUN_STATUS_FAILED",
               "number": "7",
-              "description": ""
+              "description": "the run ended in failure"
             },
             {
               "name": "JOB_RUN_STATUS_TIMED_OUT",
               "number": "8",
-              "description": ""
+              "description": "the run was ended pre-maturely due to timeout"
             }
           ]
         },
@@ -7519,7 +7519,7 @@
             },
             {
               "name": "job_id",
-              "description": "",
+              "description": "The unique identifier of the job id this run is associated with",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -7531,7 +7531,7 @@
             },
             {
               "name": "name",
-              "description": "",
+              "description": "The name of the job run.",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -7543,7 +7543,7 @@
             },
             {
               "name": "status",
-              "description": "",
+              "description": "the status of the job run",
               "label": "",
               "type": "JobRunStatus",
               "longType": "JobRunStatus",
@@ -7555,7 +7555,7 @@
             },
             {
               "name": "started_at",
-              "description": "",
+              "description": "A timestamp of when the run started",
               "label": "",
               "type": "Timestamp",
               "longType": "google.protobuf.Timestamp",
@@ -7567,7 +7567,7 @@
             },
             {
               "name": "completed_at",
-              "description": "",
+              "description": "Available if the run completed or has not yet been archived by the system",
               "label": "optional",
               "type": "Timestamp",
               "longType": "google.protobuf.Timestamp",

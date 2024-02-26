@@ -129,18 +129,28 @@ func (ActivityStatus) EnumDescriptor() ([]byte, []int) {
 	return file_mgmt_v1alpha1_job_proto_rawDescGZIP(), []int{1}
 }
 
+// An enumeration of job run statuses.
 type JobRunStatus int32
 
 const (
+	// if the job run status is unknown
 	JobRunStatus_JOB_RUN_STATUS_UNSPECIFIED JobRunStatus = 0
-	JobRunStatus_JOB_RUN_STATUS_PENDING     JobRunStatus = 1
-	JobRunStatus_JOB_RUN_STATUS_RUNNING     JobRunStatus = 2
-	JobRunStatus_JOB_RUN_STATUS_COMPLETE    JobRunStatus = 3
-	JobRunStatus_JOB_RUN_STATUS_ERROR       JobRunStatus = 4
-	JobRunStatus_JOB_RUN_STATUS_CANCELED    JobRunStatus = 5
-	JobRunStatus_JOB_RUN_STATUS_TERMINATED  JobRunStatus = 6
-	JobRunStatus_JOB_RUN_STATUS_FAILED      JobRunStatus = 7
-	JobRunStatus_JOB_RUN_STATUS_TIMED_OUT   JobRunStatus = 8
+	// the run is pending and has not started yet
+	JobRunStatus_JOB_RUN_STATUS_PENDING JobRunStatus = 1
+	// the run is currently in progress
+	JobRunStatus_JOB_RUN_STATUS_RUNNING JobRunStatus = 2
+	// the run has successfully completed
+	JobRunStatus_JOB_RUN_STATUS_COMPLETE JobRunStatus = 3
+	// the run ended with an error
+	JobRunStatus_JOB_RUN_STATUS_ERROR JobRunStatus = 4
+	// the run was cancelled
+	JobRunStatus_JOB_RUN_STATUS_CANCELED JobRunStatus = 5
+	// the run was terminated
+	JobRunStatus_JOB_RUN_STATUS_TERMINATED JobRunStatus = 6
+	// the run ended in failure
+	JobRunStatus_JOB_RUN_STATUS_FAILED JobRunStatus = 7
+	// the run was ended pre-maturely due to timeout
+	JobRunStatus_JOB_RUN_STATUS_TIMED_OUT JobRunStatus = 8
 )
 
 // Enum value maps for JobRunStatus.
@@ -4376,11 +4386,16 @@ type JobRun struct {
 	unknownFields protoimpl.UnknownFields
 
 	// The id of the job run. This will currently be equivalent to the temporal workflow id
-	Id          string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	JobId       string                 `protobuf:"bytes,2,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
-	Name        string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	Status      JobRunStatus           `protobuf:"varint,4,opt,name=status,proto3,enum=mgmt.v1alpha1.JobRunStatus" json:"status,omitempty"`
-	StartedAt   *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// The unique identifier of the job id this run is associated with
+	JobId string `protobuf:"bytes,2,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
+	// The name of the job run.
+	Name string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	// the status of the job run
+	Status JobRunStatus `protobuf:"varint,4,opt,name=status,proto3,enum=mgmt.v1alpha1.JobRunStatus" json:"status,omitempty"`
+	// A timestamp of when the run started
+	StartedAt *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
+	// Available if the run completed or has not yet been archived by the system
 	CompletedAt *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=completed_at,json=completedAt,proto3,oneof" json:"completed_at,omitempty"`
 	// Pending activities are only returned when retrieving a specific job run and will not be returned when requesting job runs in list format
 	PendingActivities []*PendingActivity `protobuf:"bytes,8,rep,name=pending_activities,json=pendingActivities,proto3" json:"pending_activities,omitempty"`
