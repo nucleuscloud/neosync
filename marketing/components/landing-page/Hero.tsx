@@ -28,7 +28,7 @@ export default function Hero(): ReactElement {
         </div>
       </Badge>
       <div className="text-gray-900 font-semibold text-6xl leading-tight text-center z-20 px-2 ">
-        Open Source Synthetic Data Orchestration
+        Synthetic Test Data For Developers
       </div>
       <div className="text-gray-800 text-lg font-semibold text-center lg:w-[70%] xl:w-full px-6">
         A developer-first way to create anonymized or synthetic data and sync it
