@@ -4,6 +4,15 @@ on:
   push:
     tags:
       - "v*.*.*"
+    branches:
+      - main
+    paths:
+      - backend/**
+      - cli/**
+      - worker/**
+      - frontend/**
+      - charts/**
+      - docker/**
 
 jobs:
   docker-backend:

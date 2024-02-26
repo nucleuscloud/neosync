@@ -10,6 +10,10 @@ builds:
       - windows
       - darwin
 
+    goarch:
+      - amd64
+      - arm64
+
     ldflags:
       - -s -w -X 'github.com/nucleuscloud/neosync/neosync/cli/internal/version.buildDate={{.Date}}' -X 'github.com/nucleuscloud/neosync/neosync/cli/internal/version.gitCommit={{.Commit}}' -X 'github.com/nucleuscloud/neosync/neosync/cli/internal/version.gitVersion={{.Version}}'
 
