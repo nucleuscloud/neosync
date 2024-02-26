@@ -1,0 +1,26 @@
+name: Nick Test
+
+on:
+  push:
+    branches:
+      - nick/*
+    # paths:
+    #   - backend/**
+    #   - cli/**
+    #   - worker/**
+    #   - frontend/**
+    #   - charts/**
+    #   - docker/**
+jobs:
+  version-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Calc next version
+        id: next-version
+        uses: paulhatch/semantic-version@v5.3.0
+        with:
+          version_format: "${major}.${minor}.${patch}-pre.${increment}"

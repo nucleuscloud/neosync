@@ -4,8 +4,8 @@ on:
   push:
     tags:
       - "v*.*.*"
-    branches:
-      - nick/*
+    # branches:
+    #   - nick/*
     # paths:
     #   - backend/**
     #   - cli/**
@@ -24,6 +24,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Calculate Next Version
+        id: next-version
+        uses: paulhatch/semantic-version@v5.3.0
+        with:
+          # tag_prefix: ""
+          bump_each_commit: true
+          version_format: "${major}.${minor}.${patch}-pre.${increment}"
+
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
