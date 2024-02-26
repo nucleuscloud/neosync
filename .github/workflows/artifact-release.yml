@@ -4,18 +4,19 @@ on:
   push:
     tags:
       - "v*.*.*"
-    # branches:
-    #   - nick/*
-    # paths:
-    #   - backend/**
-    #   - cli/**
-    #   - worker/**
-    #   - frontend/**
-    #   - charts/**
-    #   - docker/**
+    branches:
+      - main
+    paths: # path filters are not evaluated for pushes of tags
+      - backend/**
+      - cli/**
+      - worker/**
+      - frontend/**
+      - charts/**
+      - docker/**
 
 jobs:
   docker-backend:
+    name: Backend Docker Image
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -24,12 +25,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Calculate Next Version
-        id: next-version
+        with:
+          fetch-depth: 0
+      - name: Calculate Next Pre-release version
+        id: next_pre_version
         uses: paulhatch/semantic-version@v5.3.0
         with:
-          # tag_prefix: ""
-          bump_each_commit: true
           version_format: "${major}.${minor}.${patch}-pre.${increment}"
 
       - name: Docker meta
@@ -41,14 +42,13 @@ jobs:
             ghcr.io/nucleuscloud/neosync/api
           # generate Docker tags based on the following events/attributes
           tags: |
-            type=schedule
             type=ref,event=branch
-            type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
             type=semver,pattern={{raw}}
             type=sha
+            type=raw,value=${{ steps.next_pre_version.outputs.version }},enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
 
       - name: Login to GHCR
         uses: docker/login-action@v3
@@ -75,6 +75,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   docker-frontend:
+    name: Frontend Docker Image
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -83,6 +84,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Calculate Next Pre-release version
+        id: next_pre_version
+        uses: paulhatch/semantic-version@v5.3.0
+        with:
+          version_format: "${major}.${minor}.${patch}-pre.${increment}"
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
@@ -92,14 +100,13 @@ jobs:
             ghcr.io/nucleuscloud/neosync/app
           # generate Docker tags based on the following events/attributes
           tags: |
-            type=schedule
             type=ref,event=branch
-            type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
             type=semver,pattern={{raw}}
             type=sha
+            type=raw,value=${{ steps.next_pre_version.outputs.version }},enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
 
       - name: Login to GHCR
         uses: docker/login-action@v3
@@ -122,6 +129,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   docker-worker:
+    name: Worker Docker Image
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -130,6 +138,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Calculate Next Pre-release version
+        id: next_pre_version
+        uses: paulhatch/semantic-version@v5.3.0
+        with:
+          version_format: "${major}.${minor}.${patch}-pre.${increment}"
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
@@ -139,14 +154,13 @@ jobs:
             ghcr.io/nucleuscloud/neosync/worker
           # generate Docker tags based on the following events/attributes
           tags: |
-            type=schedule
             type=ref,event=branch
-            type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
             type=semver,pattern={{raw}}
             type=sha
+            type=raw,value=${{ steps.next_pre_version.outputs.version }},enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
 
       - name: Login to GHCR
         uses: docker/login-action@v3
@@ -169,20 +183,34 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   helm-backend:
+    name: Backend Helm Chart
     runs-on: ubuntu-latest
     needs:
       - docker-backend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Calculate Next Pre-release version
+        id: next_pre_version
+        uses: paulhatch/semantic-version@v5.3.0
+        with:
+          version_format: "${major}.${minor}.${patch}-pre.${increment}"
 
       - name: Setup Trimmed Helm Version
         run: |
-          V_PREFIX="v"
-          VERSION="${{ github.ref_name }}"
-          TRIMMED_VERSION="${VERSION/#$V_PREFIX}"
-          echo "$TRIMMED_VERSION"
-          echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            V_PREFIX="v"
+            VERSION="${{ github.ref_name }}"
+            TRIMMED_VERSION="${VERSION/#$V_PREFIX}"
+            echo "$TRIMMED_VERSION"
+            echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
+          else
+            VERSION="${{ steps.next_pre_version.outputs.version }}"
+            echo "VERSION"
+            echo "CHART_VERSION=$VERSION" >> $GITHUB_ENV
+          fi
 
       - name: Setup Chart.yaml
         uses: mikefarah/yq@v4.42.1
@@ -232,20 +260,34 @@ jobs:
           done
 
   helm-frontend:
+    name: Frontend Helm Chart
     runs-on: ubuntu-latest
     needs:
       - docker-frontend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Calculate Next Pre-release version
+        id: next_pre_version
+        uses: paulhatch/semantic-version@v5.3.0
+        with:
+          version_format: "${major}.${minor}.${patch}-pre.${increment}"
 
       - name: Setup Trimmed Helm Version
         run: |
-          V_PREFIX="v"
-          VERSION="${{ github.ref_name }}"
-          TRIMMED_VERSION="${VERSION/#$V_PREFIX}"
-          echo "$TRIMMED_VERSION"
-          echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            V_PREFIX="v"
+            VERSION="${{ github.ref_name }}"
+            TRIMMED_VERSION="${VERSION/#$V_PREFIX}"
+            echo "$TRIMMED_VERSION"
+            echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
+          else
+            VERSION="${{ steps.next_pre_version.outputs.version }}"
+            echo "VERSION"
+            echo "CHART_VERSION=$VERSION" >> $GITHUB_ENV
+          fi
 
       - name: Setup Chart.yaml
         uses: mikefarah/yq@v4.42.1
@@ -295,20 +337,34 @@ jobs:
           done
 
   helm-worker:
+    name: Worker Helm Chart
     runs-on: ubuntu-latest
     needs:
       - docker-worker
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Calculate Next Pre-release version
+        id: next_pre_version
+        uses: paulhatch/semantic-version@v5.3.0
+        with:
+          version_format: "${major}.${minor}.${patch}-pre.${increment}"
 
       - name: Setup Trimmed Helm Version
         run: |
-          V_PREFIX="v"
-          VERSION="${{ github.ref_name }}"
-          TRIMMED_VERSION="${VERSION/#$V_PREFIX}"
-          echo "$TRIMMED_VERSION"
-          echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            V_PREFIX="v"
+            VERSION="${{ github.ref_name }}"
+            TRIMMED_VERSION="${VERSION/#$V_PREFIX}"
+            echo "$TRIMMED_VERSION"
+            echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
+          else
+            VERSION="${{ steps.next_pre_version.outputs.version }}"
+            echo "VERSION"
+            echo "CHART_VERSION=$VERSION" >> $GITHUB_ENV
+          fi
 
       - name: Setup Chart.yaml
         uses: mikefarah/yq@v4.42.1
@@ -358,6 +414,7 @@ jobs:
           done
 
   helm-top:
+    name: Umbrella Helm Chart
     runs-on: ubuntu-latest
     needs:
       - helm-backend
@@ -366,14 +423,27 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Calculate Next Pre-release version
+        id: next_pre_version
+        uses: paulhatch/semantic-version@v5.3.0
+        with:
+          version_format: "${major}.${minor}.${patch}-pre.${increment}"
 
       - name: Setup Trimmed Helm Version
         run: |
-          V_PREFIX="v"
-          VERSION="${{ github.ref_name }}"
-          TRIMMED_VERSION="${VERSION/#$V_PREFIX}"
-          echo "$TRIMMED_VERSION"
-          echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            V_PREFIX="v"
+            VERSION="${{ github.ref_name }}"
+            TRIMMED_VERSION="${VERSION/#$V_PREFIX}"
+            echo "$TRIMMED_VERSION"
+            echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
+          else
+            VERSION="${{ steps.next_pre_version.outputs.version }}"
+            echo "VERSION"
+            echo "CHART_VERSION=$VERSION" >> $GITHUB_ENV
+          fi
 
       - name: Setup Chart.yaml
         uses: mikefarah/yq@v4.42.1
@@ -423,113 +493,118 @@ jobs:
               helm push "$d" "$OCI_URL"
           done
 
-  # cli:
-  #   runs-on: ubuntu-latest
-  #   defaults:
-  #     run:
-  #       working-directory: cli
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
+  cli:
+    name: CLI
+    runs-on: ubuntu-latest
+    #  for now, only build the ts-sdk when we cut a new tag
+    if: startsWith(github.ref, 'refs/tags/')
+    defaults:
+      run:
+        working-directory: cli
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-  #     - name: Set up Go
-  #       uses: actions/setup-go@v5
-  #       with:
-  #         go-version-file: cli/go.mod
-  #         cache-dependency-path: cli/go.sum
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: cli/go.mod
+          cache-dependency-path: cli/go.sum
 
-  #     - name: Set up QEMU
-  #       uses: docker/setup-qemu-action@v3
-  #       with:
-  #         platforms: linux/arm64
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: linux/arm64
 
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-  #     - name: Login to GHCR
-  #       uses: docker/login-action@v3
-  #       with:
-  #         registry: ghcr.io
-  #         username: ${{ github.repository_owner }}
-  #         password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-  #     - name: Fetch all tags
-  #       run: git fetch --force --tags
+      - name: Fetch all tags
+        run: git fetch --force --tags
 
-  #     - name: Import GPG key
-  #       uses: crazy-max/ghaction-import-gpg@01dd5d3ca463c7f10f7f4f7b4f177225ac661ee4 # v6.1.0
-  #       id: import_gpg
-  #       with:
-  #         gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-  #         passphrase: ${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@01dd5d3ca463c7f10f7f4f7b4f177225ac661ee4 # v6.1.0
+        id: import_gpg
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}
 
-  #     - name: Run GoReleaser
-  #       uses: goreleaser/goreleaser-action@v5
-  #       with:
-  #         distribution: goreleaser
-  #         version: latest
-  #         args: release --clean
-  #         workdir: cli
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.PUBLISH_PAT }} # needs to be a non-action token because this also pushes to the homebrew repo
-  #         GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
-  #         AUR_KEY: ${{ secrets.AUR_PRIVATE_KEY }}
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v5
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --clean
+          workdir: cli
+        env:
+          GITHUB_TOKEN: ${{ secrets.PUBLISH_PAT }} # needs to be a non-action token because this also pushes to the homebrew repo
+          GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
+          AUR_KEY: ${{ secrets.AUR_PRIVATE_KEY }}
 
-  # ts-sdk:
-  #   name: TypeScript SDK Release
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     contents: read
-  #     id-token: write
-  #   defaults:
-  #     run:
-  #       working-directory: frontend
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
+  ts-sdk:
+    name: TypeScript SDK Release
+    runs-on: ubuntu-latest
+    #  for now, only build the ts-sdk when we cut a new tag
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  #     - name: Install jq
-  #       run: sudo apt-get install jq
+      - name: Install jq
+        run: sudo apt-get install jq
 
-  #     - name: Set up Node
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         registry-url: "https://registry.npmjs.org"
-  #         scope: "@neosync"
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          registry-url: "https://registry.npmjs.org"
+          scope: "@neosync"
 
-  #     - name: Cache node modules
-  #       id: cache-npm
-  #       uses: actions/cache@v4
-  #       with:
-  #         # npm cache files are stored in `~/.npm` on Linux/macOS
-  #         path: |
-  #           ~/.npm
-  #           ${{ github.workspace }}/.next/cache
-  #         key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
-  #         restore-keys: |
-  #           ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
+      - name: Cache node modules
+        id: cache-npm
+        uses: actions/cache@v4
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: |
+            ~/.npm
+            ${{ github.workspace }}/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
 
-  #     - run: npm install
-  #     - name: Build
-  #       run: npm run build
+      - run: npm install
+      - name: Build
+        run: npm run build
 
-  #     - name: Setup Trimmed package.json version
-  #       run: |
-  #         V_PREFIX="v"
-  #         VERSION="${{ github.ref_name }}"
-  #         TRIMMED_VERSION="${VERSION/#$V_PREFIX}"
-  #         echo "$TRIMMED_VERSION"
-  #         echo "NEW_PACKAGE_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
+      - name: Setup Trimmed package.json version
+        run: |
+          V_PREFIX="v"
+          VERSION="${{ github.ref_name }}"
+          TRIMMED_VERSION="${VERSION/#$V_PREFIX}"
+          echo "$TRIMMED_VERSION"
+          echo "NEW_PACKAGE_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
 
-  #     - name: Update package.json version
-  #       working-directory: frontend/packages/sdk
-  #       run: |
-  #         jq '.version = "${{ env.NEW_PACKAGE_VERSION }}"' package.json > temp.json && mv temp.json package.json
+      - name: Update package.json version
+        working-directory: frontend/packages/sdk
+        run: |
+          jq '.version = "${{ env.NEW_PACKAGE_VERSION }}"' package.json > temp.json && mv temp.json package.json
 
-  #     - name: Publish SDK
-  #       working-directory: frontend/packages/sdk
-  #       run: npm publish --provenance
-  #       env:
-  #         NODE_AUTH_TOKEN: ${{ secrets.NPM_DEPLOY_KEY }}
+      - name: Publish SDK
+        working-directory: frontend/packages/sdk
+        run: npm publish --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_DEPLOY_KEY }}
