@@ -925,9 +925,9 @@ func createSqlUpdateBenthosConfig(
 
 				// circular dependent foreign key
 				hashedKey := neosync_benthos.HashBenthosCacheKey(jobId, runId, fk.Table, pkCol)
-				requestMap := fmt.Sprintf(`root = if this.%s == null { deleted() } else { this }`, fk.Column)
+				requestMap := fmt.Sprintf(`root = if this.%q == null { deleted() } else { this }`, fk.Column)
 				argsMapping := fmt.Sprintf(`root = [%q, json(%q)]`, hashedKey, fk.Column)
-				resultMap := fmt.Sprintf("root.%s = this", fk.Column)
+				resultMap := fmt.Sprintf("root.%q = this", fk.Column)
 				fkBranch, err := buildRedisGetBranchConfig(resultMap, argsMapping, &requestMap, redisConfig)
 				if err != nil {
 					return nil, err
@@ -935,9 +935,9 @@ func createSqlUpdateBenthosConfig(
 				processorConfigs = append(processorConfigs, neosync_benthos.ProcessorConfig{Branch: fkBranch})
 
 				// primary key
-				pkRequestMap := fmt.Sprintf(`root = if this.%s == null { deleted() } else { this }`, pkCol)
+				pkRequestMap := fmt.Sprintf(`root = if this.%q == null { deleted() } else { this }`, pkCol)
 				pkArgsMapping := fmt.Sprintf(`root = [%q, json(%q)]`, hashedKey, pkCol)
-				pkResultMap := fmt.Sprintf("root.%s = this", pkCol)
+				pkResultMap := fmt.Sprintf("root.%q = this", pkCol)
 				pkBranch, err := buildRedisGetBranchConfig(pkResultMap, pkArgsMapping, &pkRequestMap, redisConfig)
 				if err != nil {
 					return nil, err
@@ -1440,7 +1440,7 @@ func buildMutationConfigs(
 				if err != nil {
 					return "", fmt.Errorf("%s is not a supported transformer: %w", col.Transformer, err)
 				}
-				mutations = append(mutations, fmt.Sprintf("root.%s = %s", col.Column, mutation))
+				mutations = append(mutations, fmt.Sprintf("root.%q = %s", col.Column, mutation))
 			}
 		}
 	}
@@ -1452,7 +1452,7 @@ func buildPrimaryKeyMappingConfigs(cols []*mgmtv1alpha1.JobMapping, primaryKeys 
 	mappings := []string{}
 	for _, col := range cols {
 		if shouldProcessColumn(col.Transformer) && slices.Contains(primaryKeys, col.Column) {
-			mappings = append(mappings, fmt.Sprintf("meta neosync_%s = this.%s", col.Column, col.Column))
+			mappings = append(mappings, fmt.Sprintf("meta neosync_%s = this.%q", col.Column, col.Column))
 		}
 	}
 	return strings.Join(mappings, "\n")
@@ -1474,9 +1474,9 @@ func buildBranchCacheConfigs(
 			}
 
 			hashedKey := neosync_benthos.HashBenthosCacheKey(jobId, runId, fk.Table, fk.Column)
-			requestMap := fmt.Sprintf(`root = if this.%s == null { deleted() } else { this }`, col.Column)
+			requestMap := fmt.Sprintf(`root = if this.%q == null { deleted() } else { this }`, col.Column)
 			argsMapping := fmt.Sprintf(`root = [%q, json(%q)]`, hashedKey, col.Column)
-			resultMap := fmt.Sprintf("root.%s = this", col.Column)
+			resultMap := fmt.Sprintf("root.%q = this", col.Column)
 			br, err := buildRedisGetBranchConfig(resultMap, argsMapping, &requestMap, redisConfig)
 			if err != nil {
 				return nil, err
@@ -1575,7 +1575,7 @@ func buildPlainInsertArgs(cols []string) string {
 	}
 	pieces := make([]string, len(cols))
 	for idx := range cols {
-		pieces[idx] = fmt.Sprintf("this.%s", cols[idx])
+		pieces[idx] = fmt.Sprintf("this.%q", cols[idx])
 	}
 	return fmt.Sprintf("root = [%s]", strings.Join(pieces, ", "))
 }
@@ -1608,7 +1608,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		}
 
 		excludedDomainstStr := string(sliceBytes)
-		return fmt.Sprintf("transform_email(email:this.%s,preserve_domain:%t,preserve_length:%t,excluded_domains:%v,max_length:%d)", col.Column, pd, pl, excludedDomainstStr, maxLen), nil
+		return fmt.Sprintf("transform_email(email:this.%q,preserve_domain:%t,preserve_length:%t,excluded_domains:%v,max_length:%d)", col.Column, pd, pl, excludedDomainstStr, maxLen), nil
 	case "generate_bool":
 		return "generate_bool()", nil
 	case "generate_card_number":
@@ -1673,33 +1673,33 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		return "generate_zipcode()", nil
 	case "transform_e164_phone_number":
 		pl := col.Transformer.Config.GetTransformE164PhoneNumberConfig().PreserveLength
-		return fmt.Sprintf("transform_e164_phone_number(value:this.%s,preserve_length:%t,max_length:%d)", col.Column, pl, maxLen), nil
+		return fmt.Sprintf("transform_e164_phone_number(value:this.%q,preserve_length:%t,max_length:%d)", col.Column, pl, maxLen), nil
 	case "transform_first_name":
 		pl := col.Transformer.Config.GetTransformFirstNameConfig().PreserveLength
-		return fmt.Sprintf("transform_first_name(value:this.%s,preserve_length:%t,max_length:%d)", col.Column, pl, maxLen), nil
+		return fmt.Sprintf("transform_first_name(value:this.%q,preserve_length:%t,max_length:%d)", col.Column, pl, maxLen), nil
 	case "transform_float64":
 		rMin := col.Transformer.Config.GetTransformFloat64Config().RandomizationRangeMin
 		rMax := col.Transformer.Config.GetTransformFloat64Config().RandomizationRangeMax
-		return fmt.Sprintf(`transform_float64(value:this.%s,randomization_range_min:%f,randomization_range_max:%f)`, col.Column, rMin, rMax), nil
+		return fmt.Sprintf(`transform_float64(value:this.%q,randomization_range_min:%f,randomization_range_max:%f)`, col.Column, rMin, rMax), nil
 	case "transform_full_name":
 		pl := col.Transformer.Config.GetTransformFullNameConfig().PreserveLength
-		return fmt.Sprintf("transform_full_name(value:this.%s,preserve_length:%t,max_length:%d)", col.Column, pl, maxLen), nil
+		return fmt.Sprintf("transform_full_name(value:this.%q,preserve_length:%t,max_length:%d)", col.Column, pl, maxLen), nil
 	case "transform_int64_phone_number":
 		pl := col.Transformer.Config.GetTransformInt64PhoneNumberConfig().PreserveLength
-		return fmt.Sprintf("transform_int64_phone_number(value:this.%s,preserve_length:%t)", col.Column, pl), nil
+		return fmt.Sprintf("transform_int64_phone_number(value:this.%q,preserve_length:%t)", col.Column, pl), nil
 	case "transform_int64":
 		rMin := col.Transformer.Config.GetTransformInt64Config().RandomizationRangeMin
 		rMax := col.Transformer.Config.GetTransformInt64Config().RandomizationRangeMax
-		return fmt.Sprintf(`transform_int64(value:this.%s,randomization_range_min:%d,randomization_range_max:%d)`, col.Column, rMin, rMax), nil
+		return fmt.Sprintf(`transform_int64(value:this.%q,randomization_range_min:%d,randomization_range_max:%d)`, col.Column, rMin, rMax), nil
 	case "transform_last_name":
 		pl := col.Transformer.Config.GetTransformLastNameConfig().PreserveLength
-		return fmt.Sprintf("transform_last_name(value:this.%s,preserve_length:%t,max_length:%d)", col.Column, pl, maxLen), nil
+		return fmt.Sprintf("transform_last_name(value:this.%q,preserve_length:%t,max_length:%d)", col.Column, pl, maxLen), nil
 	case "transform_phone_number":
 		pl := col.Transformer.Config.GetTransformPhoneNumberConfig().PreserveLength
-		return fmt.Sprintf("transform_phone_number(value:this.%s,preserve_length:%t,max_length:%d)", col.Column, pl, maxLen), nil
+		return fmt.Sprintf("transform_phone_number(value:this.%q,preserve_length:%t,max_length:%d)", col.Column, pl, maxLen), nil
 	case "transform_string":
 		pl := col.Transformer.Config.GetTransformStringConfig().PreserveLength
-		return fmt.Sprintf(`transform_string(value:this.%s,preserve_length:%t,max_length:%d)`, col.Column, pl, maxLen), nil
+		return fmt.Sprintf(`transform_string(value:this.%q,preserve_length:%t,max_length:%d)`, col.Column, pl, maxLen), nil
 	case shared.NullString:
 		return shared.NullString, nil
 	case generateDefault:
@@ -1709,9 +1709,9 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 
 		if regex != nil {
 			regexValue := *regex
-			return fmt.Sprintf(`transform_character_scramble(value:this.%s,user_provided_regex:%q)`, col.Column, regexValue), nil
+			return fmt.Sprintf(`transform_character_scramble(value:this.%q,user_provided_regex:%q)`, col.Column, regexValue), nil
 		} else {
-			return fmt.Sprintf(`transform_character_scramble(value:this.%s)`, col.Column), nil
+			return fmt.Sprintf(`transform_character_scramble(value:this.%q)`, col.Column), nil
 		}
 
 	default:

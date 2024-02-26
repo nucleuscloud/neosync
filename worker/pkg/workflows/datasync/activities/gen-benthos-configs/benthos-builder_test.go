@@ -160,8 +160,8 @@ input:
     label: ""
     generate:
         mapping: |-
-            root.id = generate_uuid(include_hyphens:true)
-            root.name = generate_ssn()
+            root."id" = generate_uuid(include_hyphens:true)
+            root."name" = generate_ssn()
         interval: ""
         count: 10
 buffer: null
@@ -177,7 +177,7 @@ output:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
-                args_mapping: root = [this.id, this.name]
+                args_mapping: root = [this."id", this."name"]
                 init_statement: ""
                 batching:
                     count: 100
@@ -312,7 +312,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Generate_Pg_Default(t *testing.T
 input:
     label: ""
     generate:
-        mapping: root.name = generate_ssn()
+        mapping: root."name" = generate_ssn()
         interval: ""
         count: 10
 buffer: null
@@ -328,7 +328,7 @@ output:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users ("id", "name") VALUES (DEFAULT, $1);
-                args_mapping: root = [this.name]
+                args_mapping: root = [this."name"]
                 init_statement: ""
                 batching:
                     count: 100
@@ -504,7 +504,7 @@ output:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
-                args_mapping: root = [this.id, this.name]
+                args_mapping: root = [this."id", this."name"]
                 init_statement: ""
                 batching:
                     count: 100
@@ -725,8 +725,8 @@ buffer: null
 pipeline:
     threads: -1
     processors:
-        - mapping: meta neosync_id = this.id
-        - mutation: root.id = generate_uuid(include_hyphens:true)
+        - mapping: meta neosync_id = this."id"
+        - mutation: root."id" = generate_uuid(include_hyphens:true)
 output:
     label: ""
     broker:
@@ -743,7 +743,7 @@ output:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
-                args_mapping: root = [this.id, this.name]
+                args_mapping: root = [this."id", this."name"]
                 init_statement: ""
                 batching:
                     count: 100
@@ -784,8 +784,8 @@ pipeline:
                     command: hget
                     args_mapping: root = ["03d74b3f8146d46519bb4cb56b2f7b327e603540eb4d96a0feb9acba88a4d79d", json("buyer_id")]
                     kind: simple
-            request_map: root = if this.buyer_id == null { deleted() } else { this }
-            result_map: root.buyer_id = this
+            request_map: root = if this."buyer_id" == null { deleted() } else { this }
+            result_map: root."buyer_id" = this
 output:
     label: ""
     broker:
@@ -795,7 +795,7 @@ output:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.orders ("id", "buyer_id") VALUES ($1, $2);
-                args_mapping: root = [this.id, this.buyer_id]
+                args_mapping: root = [this."id", this."buyer_id"]
                 init_statement: ""
                 batching:
                     count: 100
@@ -1013,7 +1013,7 @@ output:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
-                args_mapping: root = [this.id, this.name]
+                args_mapping: root = [this."id", this."name"]
                 init_statement: ""
                 batching:
                     count: 100
@@ -1056,7 +1056,7 @@ output:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.orders ("id", "buyer_id") VALUES ($1, $2);
-                args_mapping: root = [this.id, this.buyer_id]
+                args_mapping: root = [this."id", this."buyer_id"]
                 init_statement: ""
                 batching:
                     count: 100
@@ -1247,8 +1247,8 @@ buffer: null
 pipeline:
     threads: -1
     processors:
-        - mapping: meta neosync_id = this.id
-        - mutation: root.id = generate_uuid(include_hyphens:true)
+        - mapping: meta neosync_id = this."id"
+        - mutation: root."id" = generate_uuid(include_hyphens:true)
 output:
     label: ""
     broker:
@@ -1265,7 +1265,7 @@ output:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.jobs ("id") VALUES ($1);
-                args_mapping: root = [this.id]
+                args_mapping: root = [this."id"]
                 init_statement: ""
                 batching:
                     count: 100
@@ -1306,8 +1306,8 @@ pipeline:
                     command: hget
                     args_mapping: root = ["60c88959dfc6d1e114ca65511290b36786e08961ee1acc3c2b605e1468b561cb", json("parent_id")]
                     kind: simple
-            request_map: root = if this.parent_id == null { deleted() } else { this }
-            result_map: root.parent_id = this
+            request_map: root = if this."parent_id" == null { deleted() } else { this }
+            result_map: root."parent_id" = this
         - branch:
             processors:
                 - redis:
@@ -1315,8 +1315,8 @@ pipeline:
                     command: hget
                     args_mapping: root = ["60c88959dfc6d1e114ca65511290b36786e08961ee1acc3c2b605e1468b561cb", json("id")]
                     kind: simple
-            request_map: root = if this.id == null { deleted() } else { this }
-            result_map: root.id = this
+            request_map: root = if this."id" == null { deleted() } else { this }
+            result_map: root."id" = this
 output:
     label: ""
     broker:
@@ -1326,7 +1326,7 @@ output:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: UPDATE public.jobs SET "parent_id" = $1 WHERE "id" = $2;
-                args_mapping: root = [this.parent_id, this.id]
+                args_mapping: root = [this."parent_id", this."id"]
                 init_statement: ""
                 batching:
                     count: 100
@@ -1502,7 +1502,7 @@ output:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users ("id", "name") VALUES (DEFAULT, $1);
-                args_mapping: root = [this.name]
+                args_mapping: root = [this."name"]
                 init_statement: ""
                 batching:
                     count: 100
@@ -1721,7 +1721,7 @@ output:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
-                args_mapping: root = [this.id, this.name]
+                args_mapping: root = [this."id", this."name"]
                 init_statement: ""
                 batching:
                     count: 100
@@ -1763,7 +1763,7 @@ output:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.user_account_associations ("id", "user_id") VALUES ($1, $2);
-                args_mapping: root = [this.id, this.user_id]
+                args_mapping: root = [this."id", this."user_id"]
                 init_statement: ""
                 batching:
                     count: 100
@@ -2011,7 +2011,7 @@ output:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
-                args_mapping: root = [this.id, this.name]
+                args_mapping: root = [this."id", this."name"]
                 init_statement: ""
                 batching:
                     count: 100
@@ -2055,7 +2055,7 @@ output:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: UPDATE public.users SET "user_assoc_id" = $1 WHERE "id" = $2;
-                args_mapping: root = [this.user_assoc_id, this.id]
+                args_mapping: root = [this."user_assoc_id", this."id"]
                 init_statement: ""
                 batching:
                     count: 100
@@ -2097,7 +2097,7 @@ output:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.user_account_associations ("id", "user_id") VALUES ($1, $2);
-                args_mapping: root = [this.id, this.user_id]
+                args_mapping: root = [this."id", this."user_id"]
                 init_statement: ""
                 batching:
                     count: 100
@@ -2376,7 +2376,7 @@ output:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
-                args_mapping: root = [this.id, this.name]
+                args_mapping: root = [this."id", this."name"]
                 init_statement: ""
                 batching:
                     count: 100
@@ -2439,7 +2439,7 @@ output:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: UPDATE public.users SET "user_assoc_id" = $1 WHERE "id" = $2;
-                args_mapping: root = [this.user_assoc_id, this.id]
+                args_mapping: root = [this."user_assoc_id", this."id"]
                 init_statement: ""
                 batching:
                     count: 100
@@ -2482,7 +2482,7 @@ output:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.user_account_associations ("id", "user_id") VALUES ($1, $2);
-                args_mapping: root = [this.id, this.user_id]
+                args_mapping: root = [this."id", this."user_id"]
                 init_statement: ""
                 batching:
                     count: 100
@@ -2639,8 +2639,8 @@ input:
     label: ""
     generate:
         mapping: |-
-            root.id = generate_uuid(include_hyphens:true)
-            root.name = generate_ssn()
+            root."id" = generate_uuid(include_hyphens:true)
+            root."name" = generate_ssn()
         interval: ""
         count: 10
 buffer: null
@@ -2656,7 +2656,7 @@ output:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 `+"query: INSERT INTO public.users (`id`, `name`) VALUES (?, ?);"+`
-                args_mapping: root = [this.id, this.name]
+                args_mapping: root = [this."id", this."name"]
                 init_statement: ""
                 batching:
                     count: 100
@@ -2831,7 +2831,7 @@ output:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 `+"query: INSERT INTO public.users (`id`, `name`) VALUES (?, ?);"+`
-                args_mapping: root = [this.id, this.name]
+                args_mapping: root = [this."id", this."name"]
                 init_statement: ""
                 batching:
                     count: 100
@@ -3048,7 +3048,7 @@ output:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 `+"query: INSERT INTO public.users (`id`, `name`) VALUES (?, ?);"+`
-                args_mapping: root = [this.id, this.name]
+                args_mapping: root = [this."id", this."name"]
                 init_statement: ""
                 batching:
                     count: 100
@@ -3090,7 +3090,7 @@ output:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 `+"query: INSERT INTO public.user_account_associations (`id`, `user_id`) VALUES (?, ?);"+`
-                args_mapping: root = [this.id, this.user_id]
+                args_mapping: root = [this."id", this."user_id"]
                 init_statement: ""
                 batching:
                     count: 100
@@ -3339,7 +3339,7 @@ output:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 `+"query: INSERT INTO public.users (`id`, `name`) VALUES (?, ?);"+`
-                args_mapping: root = [this.id, this.name]
+                args_mapping: root = [this."id", this."name"]
                 init_statement: ""
                 batching:
                     count: 100
@@ -3383,7 +3383,7 @@ output:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 `+"query: UPDATE public.users SET `user_assoc_id` = ? WHERE `id` = ?;"+`
-                args_mapping: root = [this.user_assoc_id, this.id]
+                args_mapping: root = [this."user_assoc_id", this."id"]
                 init_statement: ""
                 batching:
                     count: 100
@@ -3425,7 +3425,7 @@ output:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 `+"query: INSERT INTO public.user_account_associations (`id`, `user_id`) VALUES (?, ?);"+`
-                args_mapping: root = [this.id, this.user_id]
+                args_mapping: root = [this."id", this."user_id"]
                 init_statement: ""
                 batching:
                     count: 100
@@ -3562,7 +3562,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Mysql_Default(t *
 input:
     label: ""
     generate:
-        mapping: root.name = generate_ssn()
+        mapping: root."name" = generate_ssn()
         interval: ""
         count: 10
 buffer: null
@@ -3578,7 +3578,7 @@ output:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 `+"query: INSERT INTO public.users (`id`, `name`) VALUES (DEFAULT, ?);"+`
-                args_mapping: root = [this.name]
+                args_mapping: root = [this."name"]
                 init_statement: ""
                 batching:
                     count: 100
@@ -3754,7 +3754,7 @@ output:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 `+"query: INSERT INTO public.users (`id`, `name`) VALUES (DEFAULT, ?);"+`
-                args_mapping: root = [this.name]
+                args_mapping: root = [this."name"]
                 init_statement: ""
                 batching:
                     count: 100
@@ -4146,7 +4146,7 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
 	assert.Equal(
 		t,
 		strings.TrimSpace(`
-- mutation: root.email = generate_email(max_length:40)
+- mutation: root."email" = generate_email(max_length:40)
 - javascript:
     code: |4-
         (() => {
@@ -4314,7 +4314,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	assert.Equal(t, *output[0].Mutation, "root.id = null\nroot.name = null")
+	assert.Equal(t, *output[0].Mutation, "root.\"id\" = null\nroot.\"name\" = null")
 
 	jsT := mgmtv1alpha1.SystemTransformer{
 		Name:        "stage",
@@ -4351,7 +4351,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 		{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, groupedSchemas, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	assert.Nil(t, err)
-	assert.Equal(t, *output[0].Mutation, `root.email = transform_email(email:this.email,preserve_domain:true,preserve_length:false,excluded_domains:[],max_length:40)`)
+	assert.Equal(t, *output[0].Mutation, `root."email" = transform_email(email:this."email",preserve_domain:true,preserve_length:false,excluded_domains:[],max_length:40)`)
 
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: "i_do_not_exist", Config: &mgmtv1alpha1.TransformerConfig{
@@ -4677,7 +4677,7 @@ func MockJobMappingTransformer(source, transformerId string) db_queries.NeosyncA
 func Test_buildPlainInsertArgs(t *testing.T) {
 	assert.Empty(t, buildPlainInsertArgs(nil))
 	assert.Empty(t, buildPlainInsertArgs([]string{}))
-	assert.Equal(t, buildPlainInsertArgs([]string{"foo", "bar", "baz"}), "root = [this.foo, this.bar, this.baz]")
+	assert.Equal(t, buildPlainInsertArgs([]string{"foo", "bar", "baz"}), `root = [this."foo", this."bar", this."baz"]`)
 }
 
 func Test_escapeColsByDriver(t *testing.T) {
@@ -5258,8 +5258,8 @@ func Test_buildBranchCacheConfigs_success(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Len(t, resp, 1)
-	assert.Equal(t, *resp[0].RequestMap, "root = if this.user_id == null { deleted() } else { this }")
-	assert.Equal(t, *resp[0].ResultMap, "root.user_id = this")
+	assert.Equal(t, *resp[0].RequestMap, `root = if this."user_id" == null { deleted() } else { this }`)
+	assert.Equal(t, *resp[0].ResultMap, `root."user_id" = this`)
 }
 
 func Test_buildBranchCacheConfigs_self_referencing(t *testing.T) {
