@@ -406,25 +406,41 @@ message PendingActivity {
 message JobRun {
   // The id of the job run. This will currently be equivalent to the temporal workflow id
   string id = 1;
+  // The unique identifier of the job id this run is associated with
   string job_id = 2;
+  // The name of the job run.
   string name = 3;
+  // the status of the job run
   JobRunStatus status = 4;
 
+  // A timestamp of when the run started
   google.protobuf.Timestamp started_at = 6;
+  // Available if the run completed or has not yet been archived by the system
   optional google.protobuf.Timestamp completed_at = 7;
   // Pending activities are only returned when retrieving a specific job run and will not be returned when requesting job runs in list format
   repeated PendingActivity pending_activities = 8;
 }
 
+// An enumeration of job run statuses.
 enum JobRunStatus {
+  // if the job run status is unknown
   JOB_RUN_STATUS_UNSPECIFIED = 0;
+  // the run is pending and has not started yet
   JOB_RUN_STATUS_PENDING = 1;
+  // the run is currently in progress
   JOB_RUN_STATUS_RUNNING = 2;
+  // the run has successfully completed
   JOB_RUN_STATUS_COMPLETE = 3;
+  // the run ended with an error
   JOB_RUN_STATUS_ERROR = 4;
+  // the run was cancelled
   JOB_RUN_STATUS_CANCELED = 5;
+  // the run was terminated
   JOB_RUN_STATUS_TERMINATED = 6;
+  // the run ended in failure
   JOB_RUN_STATUS_FAILED = 7;
+  // the run was ended pre-maturely due to timeout
+  JOB_RUN_STATUS_TIMED_OUT = 8;
 }
 
 message JobRunEventTaskError {

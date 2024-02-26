@@ -39,6 +39,10 @@ export default function JobRunStatus(props: Props): ReactElement {
       return <Badge className={cn('bg-gray-600', className)}>Terminated</Badge>;
     case JobRunStatusEnum.CANCELED:
       return <Badge className={cn('bg-gray-600', className)}>Canceled</Badge>;
+    case JobRunStatusEnum.TIMED_OUT:
+      return (
+        <Badge className={cn('bg-yellow-600', className)}>Timed Out</Badge>
+      );
     default:
       return (
         <TooltipProvider>
