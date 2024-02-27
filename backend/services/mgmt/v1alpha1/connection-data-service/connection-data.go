@@ -14,6 +14,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/gofrs/uuid"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
@@ -46,6 +47,10 @@ func (ds *DateScanner) Scan(input any) error {
 	default:
 		return fmt.Errorf("unable to scan type %T into DateScanner", input)
 	}
+}
+
+type UUIDScanner struct {
+	val *uuid.UUID
 }
 
 func (s *Service) GetConnectionDataStream(
@@ -190,6 +195,14 @@ func (s *Service) GetConnectionDataStream(
 					// Convert time.Time value to []byte
 					if ds, ok := valuesWrapped[i].(*DateScanner); ok && ds.val != nil {
 						row[col] = []byte(ds.val.Format(time.RFC3339))
+					} else {
+						row[col] = nil
+					}
+				} else if r.FieldDescriptions()[i].DataTypeOID == 2950 { // OID for UUID
+					// Convert the byte slice to a uuid.UUID type
+					uuidValue, err := uuid.FromBytes(v)
+					if err == nil {
+						row[col] = []byte(uuidValue.String())
 					} else {
 						row[col] = nil
 					}

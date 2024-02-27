@@ -153,3 +153,12 @@ func Test_BatchMysqlStmts(t *testing.T) {
 		})
 	}
 }
+
+func Test_EscapeMysqlColumns(t *testing.T) {
+	assert.Empty(t, EscapeMysqlColumns(nil))
+	assert.Equal(
+		t,
+		EscapeMysqlColumns([]string{"foo", "bar", "baz"}),
+		[]string{"`foo`", "`bar`", "`baz`"},
+	)
+}

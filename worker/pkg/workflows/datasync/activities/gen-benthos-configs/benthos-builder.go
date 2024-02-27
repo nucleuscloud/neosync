@@ -791,14 +791,14 @@ func buildPostgresUpdateQuery(table string, columns []string, colSourceMap map[s
 		if colSource == generateDefault {
 			values[i] = dbDefault
 		} else {
-			values[i] = fmt.Sprintf("%s = $%d", escapePgColumn(col), paramCount)
+			values[i] = fmt.Sprintf("%s = $%d", dbschemas_postgres.EscapePgColumn(col), paramCount)
 			paramCount++
 		}
 	}
 	if len(primaryKeys) > 0 {
 		clauses := []string{}
 		for _, col := range primaryKeys {
-			clauses = append(clauses, fmt.Sprintf("%s = $%d", escapePgColumn(col), paramCount))
+			clauses = append(clauses, fmt.Sprintf("%s = $%d", dbschemas_postgres.EscapePgColumn(col), paramCount))
 			paramCount++
 		}
 		where = fmt.Sprintf("WHERE %s", strings.Join(clauses, " AND "))
@@ -818,7 +818,7 @@ func buildPostgresInsertQuery(table string, columns []string, colSourceMap map[s
 			paramCount++
 		}
 	}
-	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, strings.Join(escapePgColumns(columns), ", "), strings.Join(values, ", "))
+	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, strings.Join(dbschemas_postgres.EscapePgColumns(columns), ", "), strings.Join(values, ", "))
 }
 
 func buildMysqlInsertQuery(table string, columns []string, colSourceMap map[string]string) string {
@@ -831,7 +831,7 @@ func buildMysqlInsertQuery(table string, columns []string, colSourceMap map[stri
 			values[i] = "?"
 		}
 	}
-	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, strings.Join(escapeMysqlColumns(columns), ", "), strings.Join(values, ", "))
+	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, strings.Join(dbschemas_mysql.EscapeMysqlColumns(columns), ", "), strings.Join(values, ", "))
 }
 
 func buildMysqlUpdateQuery(table string, columns []string, colSourceMap map[string]string, primaryKeys []string) string {
@@ -842,13 +842,13 @@ func buildMysqlUpdateQuery(table string, columns []string, colSourceMap map[stri
 		if colSource == generateDefault {
 			values[i] = dbDefault
 		} else {
-			values[i] = fmt.Sprintf("%s = ?", escapeMysqlColumn(col))
+			values[i] = fmt.Sprintf("%s = ?", dbschemas_mysql.EscapeMysqlColumn(col))
 		}
 	}
 	if len(primaryKeys) > 0 {
 		clauses := []string{}
 		for _, col := range primaryKeys {
-			clauses = append(clauses, fmt.Sprintf("%s = ?", escapeMysqlColumn(col)))
+			clauses = append(clauses, fmt.Sprintf("%s = ?", dbschemas_mysql.EscapeMysqlColumn(col)))
 		}
 		where = fmt.Sprintf("WHERE %s", strings.Join(clauses, " AND "))
 	}
@@ -1207,36 +1207,12 @@ func shouldHaltOnSchemaAddition(
 func escapeColsByDriver(cols []string, driver string) []string {
 	switch driver {
 	case "postgres":
-		return escapePgColumns(cols)
+		return dbschemas_postgres.EscapePgColumns(cols)
 	case "mysql":
-		return escapeMysqlColumns(cols)
+		return dbschemas_mysql.EscapeMysqlColumns(cols)
 	default:
 		return cols
 	}
-}
-
-func escapePgColumns(cols []string) []string {
-	outcols := make([]string, len(cols))
-	for idx := range cols {
-		outcols[idx] = escapePgColumn(cols[idx])
-	}
-	return outcols
-}
-
-func escapePgColumn(col string) string {
-	return fmt.Sprintf("%q", col)
-}
-
-func escapeMysqlColumns(cols []string) []string {
-	outcols := make([]string, len(cols))
-	for idx := range cols {
-		outcols[idx] = escapeMysqlColumn(cols[idx])
-	}
-	return outcols
-}
-
-func escapeMysqlColumn(col string) string {
-	return fmt.Sprintf("`%s`", col)
 }
 
 func buildPlainColumns(mappings []*mgmtv1alpha1.JobMapping) []string {

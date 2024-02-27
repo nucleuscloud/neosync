@@ -253,3 +253,15 @@ func BatchExecStmts(
 	}
 	return nil
 }
+
+func EscapeMysqlColumns(cols []string) []string {
+	outcols := make([]string, len(cols))
+	for idx := range cols {
+		outcols[idx] = EscapeMysqlColumn(cols[idx])
+	}
+	return outcols
+}
+
+func EscapeMysqlColumn(col string) string {
+	return fmt.Sprintf("`%s`", col)
+}

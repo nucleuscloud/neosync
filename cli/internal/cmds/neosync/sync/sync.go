@@ -9,10 +9,8 @@ import (
 	"log"
 	"log/slog"
 	"net/http"
-	"net/url"
 	"os"
 	"slices"
-	"strconv"
 	"strings"
 	"time"
 
@@ -579,9 +577,11 @@ func runDestinationInitStatements(ctx context.Context, cmd *cmdConfig, syncConfi
 
 		if cmd.Destination.TruncateCascade {
 			truncateCascadeStmts := []string{}
-			// filter by sync configs
-			for _, stmt := range schemaConfig.InitTableStatementsMap {
-				truncateCascadeStmts = append(truncateCascadeStmts, stmt)
+			for _, syncCfg := range syncConfigs {
+				stmt, ok := schemaConfig.TruncateTableStatementsMap[dbschemas_utils.BuildTable(syncCfg.Schema, syncCfg.Table)]
+				if ok {
+					truncateCascadeStmts = append(truncateCascadeStmts, stmt)
+				}
 			}
 			err = dbschemas_postgres.BatchExecStmts(ctx, pool, batchSize, truncateCascadeStmts)
 			if err != nil {
@@ -609,13 +609,10 @@ func runDestinationInitStatements(ctx context.Context, cmd *cmdConfig, syncConfi
 		orderedTableTruncateStatements := []string{}
 		for _, t := range orderedTables {
 			orderedInitStatements = append(orderedInitStatements, schemaConfig.InitTableStatementsMap[t])
-			orderedTableTruncateStatements = append(orderedTableTruncateStatements, schemaConfig.InitTableStatementsMap[t])
+			orderedTableTruncateStatements = append(orderedTableTruncateStatements, schemaConfig.TruncateTableStatementsMap[t])
 		}
 		// allows multiple statements in one execution
-		multiStatementConnectionUrl, err := getMysqlMultiStatementConnectionUrl(cmd.Destination.ConnectionUrl)
-		if err != nil {
-			return err
-		}
+		multiStatementConnectionUrl := getMysqlMultiStatementConnectionUrl(cmd.Destination.ConnectionUrl)
 		pool, err := sql.Open(string(mysqlDriver), multiStatementConnectionUrl)
 		if err != nil {
 			return err
@@ -712,13 +709,13 @@ func buildDependencyMap(syncConfigs []*syncConfig) map[string][]string {
 	dependencyMap := map[string][]string{}
 	for _, cfg := range syncConfigs {
 		key := dbschemas_utils.BuildTable(cfg.Schema, cfg.Table)
+		_, dpOk := dependencyMap[key]
+		if !dpOk {
+			dependencyMap[key] = []string{}
+		}
+
 		for _, dep := range cfg.DependsOn {
-			_, ok := dependencyMap[key]
-			if ok {
-				dependencyMap[key] = append(dependencyMap[key], dep.Table)
-			} else {
-				dependencyMap[key] = []string{dep.Table}
-			}
+			dependencyMap[key] = append(dependencyMap[key], dep.Table)
 		}
 	}
 	return dependencyMap
@@ -861,12 +858,17 @@ func groupConfigsByDependency(configs []*benthosConfigResponse) [][]*benthosConf
 	}
 	groupedConfigs = append(groupedConfigs, rootConfigs)
 
+	prevTableLen := 0
 	for len(configMap) > 0 {
+		// prevents looping forever
+		if prevTableLen == len(configMap) {
+			fmt.Println(bold.Render("Unable to order configs by dependency. No path found.")) //nolint:forbidigo
+			return nil
+		}
 		dependentConfigs := []*benthosConfigResponse{}
 		for _, c := range configMap {
 			if isConfigReady(c, queuedMap) {
 				dependentConfigs = append(dependentConfigs, c)
-
 				delete(configMap, c.Name)
 			}
 		}
@@ -1324,7 +1326,7 @@ func buildPlainInsertArgs(cols []string) string {
 	}
 	pieces := make([]string, len(cols))
 	for idx := range cols {
-		pieces[idx] = fmt.Sprintf("this.%s", cols[idx])
+		pieces[idx] = fmt.Sprintf("this.%q", cols[idx])
 	}
 	return fmt.Sprintf("root = [%s]", strings.Join(pieces, ", "))
 }
@@ -1359,13 +1361,13 @@ func buildPostgresUpdateQuery(table string, columns, primaryKeys []string) strin
 	var where string
 	paramCount := 1
 	for i, col := range columns {
-		values[i] = fmt.Sprintf("%s = $%d", col, paramCount)
+		values[i] = fmt.Sprintf("%s = $%d", dbschemas_postgres.EscapePgColumn(col), paramCount)
 		paramCount++
 	}
 	if len(primaryKeys) > 0 {
 		clauses := []string{}
 		for _, col := range primaryKeys {
-			clauses = append(clauses, fmt.Sprintf("%s = $%d", col, paramCount))
+			clauses = append(clauses, fmt.Sprintf("%s = $%d", dbschemas_postgres.EscapePgColumn(col), paramCount))
 			paramCount++
 		}
 		where = fmt.Sprintf("WHERE %s", strings.Join(clauses, " AND "))
@@ -1380,7 +1382,7 @@ func buildPostgresInsertQuery(table string, columns []string) string {
 		values[i] = fmt.Sprintf("$%d", paramCount)
 		paramCount++
 	}
-	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, strings.Join(columns, ", "), strings.Join(values, ", "))
+	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, strings.Join(dbschemas_postgres.EscapePgColumns(columns), ", "), strings.Join(values, ", "))
 }
 
 func buildMysqlInsertQuery(table string, columns []string) string {
@@ -1388,19 +1390,19 @@ func buildMysqlInsertQuery(table string, columns []string) string {
 	for i := range columns {
 		values[i] = "?"
 	}
-	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, strings.Join(columns, ", "), strings.Join(values, ", "))
+	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, strings.Join(dbschemas_mysql.EscapeMysqlColumns(columns), ", "), strings.Join(values, ", "))
 }
 
 func buildMysqlUpdateQuery(table string, columns, primaryKeys []string) string {
 	values := make([]string, len(columns))
 	var where string
 	for i, col := range columns {
-		values[i] = fmt.Sprintf("%s = ?", col)
+		values[i] = fmt.Sprintf("%s = ?", dbschemas_mysql.EscapeMysqlColumn(col))
 	}
 	if len(primaryKeys) > 0 {
 		clauses := []string{}
 		for _, col := range primaryKeys {
-			clauses = append(clauses, fmt.Sprintf("%s = ?", col))
+			clauses = append(clauses, fmt.Sprintf("%s = ?", dbschemas_mysql.EscapeMysqlColumn(col)))
 		}
 		where = fmt.Sprintf("WHERE %s", strings.Join(clauses, " AND "))
 	}
@@ -1422,55 +1424,9 @@ func buildMysqlUpdateQuery(table string, columns, primaryKeys []string) string {
 // 	return initStatementsMap
 // }
 
-func getMysqlMultiStatementConnectionUrl(connectionUrl string) (string, error) {
-	u, err := url.Parse(connectionUrl)
-	if err != nil {
-		return "", err
+func getMysqlMultiStatementConnectionUrl(connectionUrl string) string {
+	if strings.Contains(connectionUrl, "?") {
+		return fmt.Sprintf("%s&multiStatements=true", connectionUrl)
 	}
-
-	// Extract user info
-	user := u.User.Username()
-	pass, ok := u.User.Password()
-	if !ok {
-		return "", errors.New("unable to get password for mysql string")
-	}
-
-	// Extract host and port
-	host, portStr := u.Hostname(), u.Port()
-
-	// Convert port to integer
-	var port int64
-	if portStr != "" {
-		port, err = strconv.ParseInt(portStr, 10, 32)
-		if err != nil {
-			return "", fmt.Errorf("invalid port: %v", err)
-		}
-	}
-
-	protocol := "tcp"
-	if u.Scheme != "" {
-		protocol = u.Scheme
-	}
-	address := fmt.Sprintf("(%s:%d)", host, port)
-
-	// User info
-	userInfo := url.UserPassword(user, pass).String()
-
-	// Base DSN
-	dsn := fmt.Sprintf("%s@%s%s/%s", userInfo, protocol, address, strings.TrimPrefix(u.Path, "/"))
-
-	// Append query parameters if any
-	queries := u.Query()
-	if len(queries) > 0 {
-		queries.Add("multiStatements", "true")
-		query := u.Query().Encode()
-		dsn += "?" + query
-	} else {
-		queryValues := url.Values{}
-		queryValues.Add("multiStatements", "true")
-		query := queryValues.Encode()
-		dsn += "?" + query
-	}
-
-	return dsn, nil
+	return fmt.Sprintf("%s?multiStatements=true", connectionUrl)
 }

@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/jackc/pgconn"
+	"github.com/jackc/pgx/v5/pgconn"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	dbschemas "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	"github.com/stretchr/testify/assert"
@@ -229,4 +229,13 @@ func Test_BatchExecStmts(t *testing.T) {
 			assert.NoError(t, err)
 		})
 	}
+}
+
+func Test_EscapePgColumns(t *testing.T) {
+	assert.Empty(t, EscapePgColumns(nil))
+	assert.Equal(
+		t,
+		EscapePgColumns([]string{"foo", "bar", "baz"}),
+		[]string{`"foo"`, `"bar"`, `"baz"`},
+	)
 }

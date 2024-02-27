@@ -304,3 +304,15 @@ func BatchExecStmts(
 	}
 	return nil
 }
+
+func EscapePgColumns(cols []string) []string {
+	outcols := make([]string, len(cols))
+	for idx := range cols {
+		outcols[idx] = EscapePgColumn(cols[idx])
+	}
+	return outcols
+}
+
+func EscapePgColumn(col string) string {
+	return fmt.Sprintf("%q", col)
+}
