@@ -14,17 +14,17 @@ type: application
 #
 # This is changed automatically to the tag by the github workflow.
 # Versions are expected to follow Semantic Versioning (https://semver.org/)
-version: 'v0'
+version: "v0"
 
-appVersion: 'v0'
+appVersion: "v0"
 
 dependencies:
   - name: api
     repository: file://../../backend/charts/api
-    version: 'v0'
+    version: "v0"
   - name: app
-    repository: file://../../frontend/charts/app
-    version: 'v0'
+    repository: file://../../frontend/apps/web/charts/app
+    version: "v0"
   - name: worker
     repository: file://../../worker/charts/worker
-    version: 'v0'
+    version: "v0"
