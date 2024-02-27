@@ -462,8 +462,8 @@ func Test_GetTablesOrderedByDependency_CircularDependency(t *testing.T) {
 		"c": {"a"},
 	}
 
-	actual := GetTablesOrderedByDependency(dependencies)
-	assert.Nil(t, actual)
+	_, err := GetTablesOrderedByDependency(dependencies)
+	assert.Error(t, err)
 }
 
 func Test_GetTablesOrderedByDependency_Dependencies(t *testing.T) {
@@ -476,10 +476,10 @@ func Test_GetTablesOrderedByDependency_Dependencies(t *testing.T) {
 		"regions":     {},
 		"jobs":        {},
 	}
-	expected := [][]string{{"dependents", "employees", "departments", "locations", "countries", "regions", "jobs"}}
+	expected := []string{"regions", "jobs", "countries", "locations", "departments", "employees", "dependents"}
 
-	actual := GetTablesOrderedByDependency(dependencies)
-	assert.Len(t, actual, 1)
+	actual, err := GetTablesOrderedByDependency(dependencies)
+	assert.NoError(t, err)
 	for idx, table := range actual {
 		assert.Equal(t, expected[idx], table)
 	}
@@ -493,12 +493,14 @@ func Test_GetTablesOrderedByDependency_Mixed(t *testing.T) {
 		"jobs":      {},
 	}
 
-	expected := [][]string{{"jobs"}, {"locations", "countries"}, {"regions"}}
-	actual := GetTablesOrderedByDependency(dependencies)
+	expected := []string{"countries", "regions", "jobs", "locations"}
+	actual, err := GetTablesOrderedByDependency(dependencies)
+	assert.NoError(t, err)
 	assert.Len(t, actual, len(expected))
-	for _, group := range expected {
-		assert.Contains(t, actual, group)
+	for _, table := range actual {
+		assert.Contains(t, expected, table)
 	}
+	assert.Equal(t, "locations", actual[len(actual)-1])
 }
 
 func Test_GetTablesOrderedByDependency_BrokenDependencies_NoLoop(t *testing.T) {
@@ -509,8 +511,8 @@ func Test_GetTablesOrderedByDependency_BrokenDependencies_NoLoop(t *testing.T) {
 		"jobs":      {"b"},
 	}
 
-	actual := GetTablesOrderedByDependency(dependencies)
-	assert.Len(t, actual, 3)
+	_, err := GetTablesOrderedByDependency(dependencies)
+	assert.Error(t, err)
 }
 
 func Test_GetTablesOrderedByDependency_NestedDependencies(t *testing.T) {
@@ -521,8 +523,8 @@ func Test_GetTablesOrderedByDependency_NestedDependencies(t *testing.T) {
 		"d": {},
 	}
 
-	expected := [][]string{{"a", "b", "c", "d"}}
-	actual := GetTablesOrderedByDependency(dependencies)
-	assert.Len(t, actual, 1)
+	expected := []string{"d", "c", "b", "a"}
+	actual, err := GetTablesOrderedByDependency(dependencies)
+	assert.NoError(t, err)
 	assert.Equal(t, expected[0], actual[0])
 }

@@ -448,9 +448,9 @@ func sync(
 
 	fmt.Println(printlog.Render("Running table init statements...")) //nolint:forbidigo
 	dependencyMap := buildDependencyMap(syncConfigs)
-	uniqueTables := map[string]struct{}{}
+	// uniqueTables := map[string]struct{}{}
 	if cmd.Destination.Driver == postgresDriver {
-		orderedTables, err := tabledependency.GetTablesOrderedByDependency(uniqueTables, dependencyMap)
+		orderedTables, err := tabledependency.GetTablesOrderedByDependency(dependencyMap)
 		if err != nil {
 			return err
 		}
@@ -470,7 +470,7 @@ func sync(
 		pool.Close()
 	} else if cmd.Destination.Driver == mysqlDriver {
 		initStatementsMap := getMysqlInitStatementsMap(schemaConfig.InitTableStatementsMap)
-		orderedTables, err := tabledependency.GetTablesOrderedByDependency(uniqueTables, dependencyMap)
+		orderedTables, err := tabledependency.GetTablesOrderedByDependency(dependencyMap)
 		if err != nil {
 			return err
 		}

@@ -216,50 +216,65 @@ func cycleKey(cycle []string) string {
 	return key
 }
 
-// finds roots and creats children map
-func findRootsAndChildren(graph map[string][]string) (map[string]struct{}, map[string][]string) {
-	roots := map[string]struct{}{}
-	children := map[string][]string{}
-	for parent, childs := range graph {
-		if _, exists := children[parent]; !exists {
-			children[parent] = []string{}
-		}
-		for _, child := range childs {
-			children[child] = append(children[child], parent)
-			roots[child] = struct{}{}
-		}
-		roots[parent] = struct{}{}
-	}
-	return roots, children
-}
-
-// performs a depth-first search on the dependencies
-func dfs(node string, visited map[string]bool, graph, children map[string][]string, path *[]string) {
-	visited[node] = true
-	*path = append(*path, node)
-	for _, v := range graph[node] {
-		if !visited[v] {
-			dfs(v, visited, graph, children, path)
+func getMultiTableCircularDependencies(dependencyMap map[string][]string) [][]string {
+	cycles := findCircularDependencies(dependencyMap)
+	multiTableCycles := [][]string{}
+	for _, c := range cycles {
+		if len(c) > 1 {
+			multiTableCycles = append(multiTableCycles, c)
 		}
 	}
+	return multiTableCycles
 }
 
-// finds all connected tables in dependency map
-func findTrees(graph map[string][]string) [][]string {
-	roots, children := findRootsAndChildren(graph)
-	visited := map[string]bool{}
-	var results [][]string
-	for node := range roots {
-		if !visited[node] && len(children[node]) == 0 {
-			var path []string
-			dfs(node, visited, graph, children, &path)
-			results = append(results, path)
+func GetTablesOrderedByDependency(dependencyMap map[string][]string) ([]string, error) {
+	cycles := getMultiTableCircularDependencies(dependencyMap)
+	if len(cycles) > 0 {
+		return nil, fmt.Errorf("unable to handle circular dependencies: %+v", cycles)
+	}
+
+	tableMap := map[string]struct{}{}
+	for t := range dependencyMap {
+		tableMap[t] = struct{}{}
+	}
+	orderedTables := []string{}
+	seenTables := map[string]struct{}{}
+	for table := range tableMap {
+		dep, ok := dependencyMap[table]
+		if !ok || len(dep) == 0 {
+			orderedTables = append(orderedTables, table)
+			seenTables[table] = struct{}{}
+			delete(tableMap, table)
 		}
 	}
-	return results
+
+	prevTableLen := 0
+	for len(tableMap) > 0 {
+		// prevents looping forever
+		if prevTableLen == len(tableMap) {
+			return nil, fmt.Errorf("unable to build table order")
+		}
+		prevTableLen = len(tableMap)
+		for table := range tableMap {
+			deps := dependencyMap[table]
+			if isReady(seenTables, deps, table) {
+				orderedTables = append(orderedTables, table)
+				seenTables[table] = struct{}{}
+				delete(tableMap, table)
+			}
+		}
+	}
+
+	return orderedTables, nil
 }
 
-// takes foreign key dependency map and returns groups of tables trees
-func GetTablesOrderedByDependency(dependencies map[string][]string) [][]string {
-	return findTrees(dependencies)
+func isReady(seen map[string]struct{}, deps []string, table string) bool {
+	for _, d := range deps {
+		_, ok := seen[d]
+		// allow self dependencies
+		if !ok && d != table {
+			return false
+		}
+	}
+	return true
 }
