@@ -190,6 +190,11 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
           }
         });
 
+        // fallback if it's empty for some reason then we should just default to a safe answer
+        if (isNullable == '') {
+          isNullable = 'No';
+        }
+
         const toTitleCase = (s: string) => {
           if (!s) return '';
           const firstLetter = s[0].toUpperCase();

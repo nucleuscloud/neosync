@@ -46,6 +46,13 @@ export default function RootLayout({
       id=${process.env.GTAG}`}
           ></Script>
           <Script
+            id="koala-snippet"
+            dangerouslySetInnerHTML={{
+              __html: ` 
+          !function(t){if(window.ko)return;window.ko=[],["identify","track","removeListeners","open","on","off","qualify","ready"].forEach(function(t){ko[t]=function(){var n=[].slice.call(arguments);return n.unshift(t),ko.push(n),ko}});var n=document.createElement("script");n.async=!0,n.setAttribute("src","https://cdn.getkoala.com/v1/pk_4fa92236b6fe5d23fb878c88c14d209fd48e/sdk.js"),(document.body || document.head).appendChild(n)}();`,
+            }}
+          ></Script>
+          <Script
             id="google-analytics"
             dangerouslySetInnerHTML={{
               __html: `

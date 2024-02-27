@@ -120,6 +120,11 @@ export enum JobRunStatus {
    * @generated from enum value: JOB_RUN_STATUS_FAILED = 7;
    */
   FAILED = 7,
+
+  /**
+   * @generated from enum value: JOB_RUN_STATUS_TIMED_OUT = 8;
+   */
+  TIMED_OUT = 8,
 }
 // Retrieve enum metadata with: proto3.getEnumType(JobRunStatus)
 proto3.util.setEnumType(JobRunStatus, "mgmt.v1alpha1.JobRunStatus", [
@@ -131,6 +136,7 @@ proto3.util.setEnumType(JobRunStatus, "mgmt.v1alpha1.JobRunStatus", [
   { no: 5, name: "JOB_RUN_STATUS_CANCELED" },
   { no: 6, name: "JOB_RUN_STATUS_TERMINATED" },
   { no: 7, name: "JOB_RUN_STATUS_FAILED" },
+  { no: 8, name: "JOB_RUN_STATUS_TIMED_OUT" },
 ]);
 
 /**

@@ -4,9 +4,19 @@ on:
   push:
     tags:
       - "v*.*.*"
+    branches:
+      - main
+    paths: # path filters are not evaluated for pushes of tags
+      - backend/**
+      - cli/**
+      - worker/**
+      - frontend/**
+      - charts/**
+      - docker/**
 
 jobs:
   docker-backend:
+    name: Backend Docker Image
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -15,6 +25,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Calculate Next Pre-release version
+        id: next_pre_version
+        uses: paulhatch/semantic-version@v5.3.0
+        with:
+          version_format: "${major}.${minor}.${patch}-pre.${increment}"
+
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
@@ -24,14 +42,13 @@ jobs:
             ghcr.io/nucleuscloud/neosync/api
           # generate Docker tags based on the following events/attributes
           tags: |
-            type=schedule
             type=ref,event=branch
-            type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
             type=semver,pattern={{raw}}
             type=sha
+            type=raw,value=${{ steps.next_pre_version.outputs.version }},enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
 
       - name: Login to GHCR
         uses: docker/login-action@v3
@@ -58,6 +75,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   docker-frontend:
+    name: Frontend Docker Image
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -66,6 +84,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Calculate Next Pre-release version
+        id: next_pre_version
+        uses: paulhatch/semantic-version@v5.3.0
+        with:
+          version_format: "${major}.${minor}.${patch}-pre.${increment}"
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
@@ -75,14 +100,13 @@ jobs:
             ghcr.io/nucleuscloud/neosync/app
           # generate Docker tags based on the following events/attributes
           tags: |
-            type=schedule
             type=ref,event=branch
-            type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
             type=semver,pattern={{raw}}
             type=sha
+            type=raw,value=${{ steps.next_pre_version.outputs.version }},enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
 
       - name: Login to GHCR
         uses: docker/login-action@v3
@@ -105,6 +129,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   docker-worker:
+    name: Worker Docker Image
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -113,6 +138,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Calculate Next Pre-release version
+        id: next_pre_version
+        uses: paulhatch/semantic-version@v5.3.0
+        with:
+          version_format: "${major}.${minor}.${patch}-pre.${increment}"
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
@@ -122,14 +154,13 @@ jobs:
             ghcr.io/nucleuscloud/neosync/worker
           # generate Docker tags based on the following events/attributes
           tags: |
-            type=schedule
             type=ref,event=branch
-            type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
             type=semver,pattern={{raw}}
             type=sha
+            type=raw,value=${{ steps.next_pre_version.outputs.version }},enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
 
       - name: Login to GHCR
         uses: docker/login-action@v3
@@ -152,23 +183,37 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   helm-backend:
+    name: Backend Helm Chart
     runs-on: ubuntu-latest
     needs:
       - docker-backend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Calculate Next Pre-release version
+        id: next_pre_version
+        uses: paulhatch/semantic-version@v5.3.0
+        with:
+          version_format: "${major}.${minor}.${patch}-pre.${increment}"
 
       - name: Setup Trimmed Helm Version
         run: |
-          V_PREFIX="v"
-          VERSION="${{ github.ref_name }}"
-          TRIMMED_VERSION="${VERSION/#$V_PREFIX}"
-          echo "$TRIMMED_VERSION"
-          echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            V_PREFIX="v"
+            VERSION="${{ github.ref_name }}"
+            TRIMMED_VERSION="${VERSION/#$V_PREFIX}"
+            echo "$TRIMMED_VERSION"
+            echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
+          else
+            VERSION="${{ steps.next_pre_version.outputs.version }}"
+            echo "$VERSION"
+            echo "CHART_VERSION=$VERSION" >> $GITHUB_ENV
+          fi
 
       - name: Setup Chart.yaml
-        uses: mikefarah/yq@v4.40.7
+        uses: mikefarah/yq@v4.42.1
         with:
           cmd: |
             # Recursively finds all Chart.yaml files and sets their version and appVersion to the github ref
@@ -215,23 +260,37 @@ jobs:
           done
 
   helm-frontend:
+    name: Frontend Helm Chart
     runs-on: ubuntu-latest
     needs:
       - docker-frontend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Calculate Next Pre-release version
+        id: next_pre_version
+        uses: paulhatch/semantic-version@v5.3.0
+        with:
+          version_format: "${major}.${minor}.${patch}-pre.${increment}"
 
       - name: Setup Trimmed Helm Version
         run: |
-          V_PREFIX="v"
-          VERSION="${{ github.ref_name }}"
-          TRIMMED_VERSION="${VERSION/#$V_PREFIX}"
-          echo "$TRIMMED_VERSION"
-          echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            V_PREFIX="v"
+            VERSION="${{ github.ref_name }}"
+            TRIMMED_VERSION="${VERSION/#$V_PREFIX}"
+            echo "$TRIMMED_VERSION"
+            echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
+          else
+            VERSION="${{ steps.next_pre_version.outputs.version }}"
+            echo "$VERSION"
+            echo "CHART_VERSION=$VERSION" >> $GITHUB_ENV
+          fi
 
       - name: Setup Chart.yaml
-        uses: mikefarah/yq@v4.40.7
+        uses: mikefarah/yq@v4.42.1
         with:
           cmd: |
             # Recursively finds all Chart.yaml files and sets their version and appVersion to the github ref
@@ -278,23 +337,37 @@ jobs:
           done
 
   helm-worker:
+    name: Worker Helm Chart
     runs-on: ubuntu-latest
     needs:
       - docker-worker
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Calculate Next Pre-release version
+        id: next_pre_version
+        uses: paulhatch/semantic-version@v5.3.0
+        with:
+          version_format: "${major}.${minor}.${patch}-pre.${increment}"
 
       - name: Setup Trimmed Helm Version
         run: |
-          V_PREFIX="v"
-          VERSION="${{ github.ref_name }}"
-          TRIMMED_VERSION="${VERSION/#$V_PREFIX}"
-          echo "$TRIMMED_VERSION"
-          echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            V_PREFIX="v"
+            VERSION="${{ github.ref_name }}"
+            TRIMMED_VERSION="${VERSION/#$V_PREFIX}"
+            echo "$TRIMMED_VERSION"
+            echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
+          else
+            VERSION="${{ steps.next_pre_version.outputs.version }}"
+            echo "$VERSION"
+            echo "CHART_VERSION=$VERSION" >> $GITHUB_ENV
+          fi
 
       - name: Setup Chart.yaml
-        uses: mikefarah/yq@v4.40.7
+        uses: mikefarah/yq@v4.42.1
         with:
           cmd: |
             # Recursively finds all Chart.yaml files and sets their version and appVersion to the github ref
@@ -341,6 +414,7 @@ jobs:
           done
 
   helm-top:
+    name: Umbrella Helm Chart
     runs-on: ubuntu-latest
     needs:
       - helm-backend
@@ -349,17 +423,30 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Calculate Next Pre-release version
+        id: next_pre_version
+        uses: paulhatch/semantic-version@v5.3.0
+        with:
+          version_format: "${major}.${minor}.${patch}-pre.${increment}"
 
       - name: Setup Trimmed Helm Version
         run: |
-          V_PREFIX="v"
-          VERSION="${{ github.ref_name }}"
-          TRIMMED_VERSION="${VERSION/#$V_PREFIX}"
-          echo "$TRIMMED_VERSION"
-          echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            V_PREFIX="v"
+            VERSION="${{ github.ref_name }}"
+            TRIMMED_VERSION="${VERSION/#$V_PREFIX}"
+            echo "$TRIMMED_VERSION"
+            echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
+          else
+            VERSION="${{ steps.next_pre_version.outputs.version }}"
+            echo "$VERSION"
+            echo "CHART_VERSION=$VERSION" >> $GITHUB_ENV
+          fi
 
       - name: Setup Chart.yaml
-        uses: mikefarah/yq@v4.40.7
+        uses: mikefarah/yq@v4.42.1
         with:
           cmd: |
             # Recursively finds all Chart.yaml files and sets their version and appVersion to the github ref
@@ -407,7 +494,10 @@ jobs:
           done
 
   cli:
+    name: CLI
     runs-on: ubuntu-latest
+    #  for now, only build when we cut a new tag
+    if: startsWith(github.ref, 'refs/tags/')
     defaults:
       run:
         working-directory: cli
@@ -459,10 +549,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.PUBLISH_PAT }} # needs to be a non-action token because this also pushes to the homebrew repo
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
           AUR_KEY: ${{ secrets.AUR_PRIVATE_KEY }}
+          DISABLE_CHANGELOG: false
 
   ts-sdk:
     name: TypeScript SDK Release
     runs-on: ubuntu-latest
+    #  for now, only build when we cut a new tag
+    if: startsWith(github.ref, 'refs/tags/')
     permissions:
       contents: read
       id-token: write

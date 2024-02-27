@@ -8,7 +8,7 @@ export default function OpenSource(): ReactElement {
       <div className="text-gray-200 font-semibold text-2xl lg:text-4xl font-satoshi text-center">
         Open Source Commitment
       </div>
-      <div className="text-center text-gray-200 font-normal text-md font-satoshi mx-6 lg:mx-40">
+      <div className="text-center text-gray-200 font-normal text-md font-satoshi mx-6 md:mx-10 lg:mx-20 xl:mx-40">
         We started Neosync as an open source company because we believe that
         companies should own their data. Especially their most sensitive data.
         Data privacy and security is a basic right that every company should

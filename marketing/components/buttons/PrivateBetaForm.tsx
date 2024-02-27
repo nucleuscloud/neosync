@@ -68,6 +68,7 @@ export default function PrivateBetaForm(): ReactElement {
       <div className="flex flex-col gap-3 pt-8 w-full">
         <Input
           type="email"
+          id="email"
           placeholder="Work email"
           className="bg-gray-100 text-gray-900"
           onChange={(e) => setEmail(e.target.value)}

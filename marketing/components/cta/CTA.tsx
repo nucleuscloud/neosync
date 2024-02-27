@@ -19,10 +19,10 @@ export default function CTA(): ReactElement {
     <div className=" bg-gradient-to-r from-slate-50 to-zinc-300 border border-gray-400 shadow-xl rounded-xl flex flex-col align-center space-y-6 py-10 justify-center">
       <div className="flex flex-row gap-4 items-center px-2 lg:px-10">
         <div className="flex flex-col gap-8 lg:pl-10">
-          <div className="text-gray-900 text-2xl lg:text-4xl font-satoshi font-bold">
+          <div className="text-gray-900 text-2xl lg:text-4xl font-satoshi font-bold md:text-center lg:text-left">
             Start today with Neosync
           </div>
-          <div className="text-md text-gray-800 font-satoshi font-semibold lg:w-[70%]">
+          <div className="text-md text-gray-800 font-satoshi font-semibold md:px-10 lg:px-0 lg:w-[80%] md:text-center lg:text-left">
             Get started with Neosync Cloud or easily deploy open source Neosync
             using a Helm chart or Docker Componse file.
           </div>
@@ -30,8 +30,8 @@ export default function CTA(): ReactElement {
             <div>
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button variant="default">
-                    Neosync Cloud <ArrowRightIcon className="ml-2 h-5 w-8" />
+                  <Button variant="default" className="w-[188px]">
+                    Neosync Cloud <ArrowRightIcon className="ml-2 h-5 w-8 " />
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-lg bg-white p-6 shadow-xl">
@@ -59,7 +59,7 @@ export default function CTA(): ReactElement {
                 </DialogContent>
               </Dialog>
             </div>
-            <Button className="px-6" variant="secondary">
+            <Button className="px-6 w-[188px]" variant="secondary">
               <Link href="https://github.com/nucleuscloud/neosync">
                 <div className="flex flex-row gap-2">
                   <GitHubLogoIcon className="mr-2 h-5 w-5" /> Open Source

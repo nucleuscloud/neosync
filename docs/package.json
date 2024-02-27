@@ -40,9 +40,9 @@
     "@docusaurus/module-type-aliases": "^3.1.0",
     "@docusaurus/types": "^3.1.0",
     "@tsconfig/docusaurus": "^2.0.2",
-    "cspell": "^8.4.0",
-    "knip": "^5.0.1",
-    "postcss-import": "^15.1.0",
+    "cspell": "^8.4.1",
+    "knip": "^5.0.2",
+    "postcss-import": "^16.0.1",
     "postcss-nesting": "^12.0.3",
     "prettier": "^3.2.5",
     "typescript": "^5.3.3"

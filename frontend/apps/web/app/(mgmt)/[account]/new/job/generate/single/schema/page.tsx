@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectionForeignConstraints';
 import { useGetConnectionPrimaryConstraints } from '@/libs/hooks/useGetConnectionPrimaryConstraints';
@@ -92,7 +93,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     defineFormKey,
     { jobName: '' }
   );
-
   const connectFormKey = `${sessionPrefix}-new-job-single-table-connect`;
   const [connectFormValues] = useSessionStorage<SingleTableConnectFormValues>(
     connectFormKey,
@@ -101,6 +101,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       destinationOptions: {},
     }
   );
+
   const { data: connSchemaData } = useGetConnectionSchema(
     account?.id ?? '',
     connectFormValues.connectionId
@@ -178,9 +179,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const formValues = form.watch();
   const schemaTableData = formValues.mappings ?? [];
 
-  const uniqueSchemas = Array.from(
-    new Set(connSchemaData?.schemas.map((s) => s.schema))
-  );
+  const schemaSet = new Set(connSchemaData?.schemas.map((s) => s.schema));
+
+  const uniqueSchemas = Array.from(schemaSet);
   const schemaTableMap = getSchemaTableMap(connSchemaData?.schemas ?? []);
 
   const { data: primaryConstraints } = useGetConnectionPrimaryConstraints(
@@ -200,6 +201,24 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   };
 
   const selectedSchemaTables = schemaTableMap.get(formValues.schema) ?? [];
+  /* this fixes a bug that was happening due to the schema and table values not resetting if you went back and changed
+the connection which caused the schema page to not load correctly when you went back to the schema page. This checks if the selected connection contains the schema and 
+  */
+  useEffect(() => {
+    const validSchemaAndTable =
+      form.getValues('schema') != '' && form.getValues('table') != '';
+    const tableInSchema = schemaTableMap
+      .get(form.getValues('schema'))
+      ?.find((item) => item == form.getValues('table'));
+    if (validSchemaAndTable && !tableInSchema) {
+      form.reset({
+        ...form.getValues(),
+        schema: '',
+        table: '',
+        mappings: [],
+      });
+    }
+  }, [connSchemaData?.schemas, form]);
 
   return (
     <div className="flex flex-col gap-5">
@@ -240,15 +259,19 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                         <SelectValue placeholder="Select a schema..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {uniqueSchemas.map((schema) => (
-                          <SelectItem
-                            className="cursor-pointer"
-                            key={schema}
-                            value={schema}
-                          >
-                            {schema}
-                          </SelectItem>
-                        ))}
+                        {!uniqueSchemas ? (
+                          <Skeleton />
+                        ) : (
+                          uniqueSchemas.map((schema) => (
+                            <SelectItem
+                              className="cursor-pointer"
+                              key={schema}
+                              value={schema}
+                            >
+                              {schema}
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                   )}

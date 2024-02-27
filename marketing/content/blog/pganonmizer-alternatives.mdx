@@ -1,0 +1,119 @@
+---
+title: Reviewing Alternatives to PGAnonymizer
+description: We review some alternative solutions for PG Anonymizer.
+date: 2024-02-26
+published: true
+image: /images/blogs/pgalt.svg
+authors:
+  - evis
+---
+
+# Introduction
+
+In our earlier [blog post](/blog/what-is-pg-anonymizer), we talked about Postgres Anonymizer or PGAnonymizer and how engineering teams can use it to anonymize sensitive data in their Postgres databases. While PG Anonymizer works well for many use cases, there are some use cases that it doesn't work so well. And in those cases, you may need an alternative. In this blog post, we're going to review some alternatives to PG Anonymizer and their strengths and weaknesses.
+
+Let's jump in.
+
+# Faker
+
+One of the most commonly used open source libraries is [Faker](https://faker.readthedocs.io/en/master/). Faker started out as a Python library but has now been ported over to Golang, Javascript, C++ and other runtimes. Although not all distributions are equal in their flexibility and extensibility. We find that the Python runtime is still the most built-out.
+
+For simple projects, faker is very easy to get up and running. In Python, you can have faker working in just 3 lines of code.
+
+```python
+from faker import Faker
+
+fake = Faker()
+
+fake.name()
+# John Doe
+```
+
+Though is a very bare bones implementation. In reality, you'll have to write a bit of customization to get to this to generate many rows of data and to fit the schema and database that you're working with.
+
+**Pros:**
+
+- Open-source library that can generate a lot of different types of fake data for various data types and locales
+- Highly customizable, allowing developers to define how data should be anonymized based on the application's needs
+- Can be integrated into custom scripts or applications, offering flexibility in how anonymization is applied
+- Available in several runtimes and is not dependent on any single database
+
+**Cons:**
+
+- Requires custom development work to integrate with a database, which increases the set up time
+- The effectiveness of anonymization depends on the developer's implementation
+- Not optimized for performance or generating large data sets of data
+
+# YData
+
+[YData](https://ydata.ai/) is a startup that works with machine learning engineers and AI companies to help them generate synthetic data mainly for machine learning use-cases. They have a clean python SDK that is easy to use and can quickly generate synthetic data and run data quality checks. Additionally, they have a data cataloging tool that helps teams understand their data.
+
+**Pros:**
+
+- Strong synthetic data generation capabilities
+- Platform that delivers data modeling, model monitoring, model training and scoring
+- Support for orchestrating jobs to train and score models
+- Great support for most ML workflows
+
+**Cons:**
+
+- Commercial tool that requires a purchase
+- Lack of anonymization and data masking features
+- Mainly support structured data and don't have extensive support for unstructured data
+
+# Tonic.ai
+
+[Tonic AI](https://tonic.ai) is a company that mainly focuses on creating and orchestrating test data for developers. They've been in the market since 2019 and are established in the space. They have a strong data anonymization feature set and support most databases. Let's take a look at their pros and cons.
+
+**Pros:**
+
+- Provides data anonymization through a comprehensive platform with a focus on data privacy and compliance.
+- Supports synthetic data generation, enabling testing and development with data that mimics real-world distributions without exposing sensitive information.
+- Offers advanced features like differential privacy and automatic schema detection.
+- Supports relational integrity for relational data
+
+**Cons:**
+
+- Commercial solution, which may not be feasible for all projects. Quite expensive.
+- The complexity of features may require a learning curve for effective utilization.
+- Don't have built out support for machine learning workflows
+- Not open source
+
+# Gretel AI
+
+[Gretel AI](https://gretel.ai/) is another synthetic data company that is more similar to YData than Tonic. Gretel supports workflows for machine learning engineers and developers and can generate synthetic data for tabular and relational databases.
+
+**Pros:**
+
+- Built out machine learning workflows and access to ML models on their Gretel cloud offering
+- Support for relational and tabular data and referential integrity
+- Strong community of developers and machine learning engineers using their SDKs
+- Flexible data anonymization techniques such as masking, randomization and more
+
+**Cons:**
+
+- Commercial solution, which may not be feasible for all projects. Quite expensive.
+- Can't create your own custom anonymization using code
+- Not open source
+
+# Neosync
+
+[Neosync](https://neosync.dev) is an open source synthetic test data platform that anonymizes and generates synthetic data and orchestrates it across environments.
+
+**Pros:**
+
+- Fully open source and MIT licensed
+- Support for relational and tabular data sets and relational integrity
+- Very flexible data anonymization and synthetic data techniques, can create your own custom transformers
+- Gitops enabled management through Terraform providder
+- Full orchestration feature set to manage async jobs across postgres, mysql and AWS S3
+
+**Cons:**
+
+- Nascent machine learning workflows
+- Early stage product
+- Limited RBAC
+
+# Wrapping up
+
+In this blog we covered a few alternatives to PG Anonymizer and their pros and cons. Depending on your use case, PG Anonymizer may work just fine, but if you need advanced data anonymization features, orchestration across databases and more control over our synthetic data than one of these alternative tools may do the job.
