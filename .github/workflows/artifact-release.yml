@@ -208,7 +208,7 @@ jobs:
             echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
           else
             VERSION="${{ steps.next_pre_version.outputs.version }}"
-            echo "VERSION"
+            echo "$VERSION"
             echo "CHART_VERSION=$VERSION" >> $GITHUB_ENV
           fi
 
@@ -285,7 +285,7 @@ jobs:
             echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
           else
             VERSION="${{ steps.next_pre_version.outputs.version }}"
-            echo "VERSION"
+            echo "$VERSION"
             echo "CHART_VERSION=$VERSION" >> $GITHUB_ENV
           fi
 
@@ -362,7 +362,7 @@ jobs:
             echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
           else
             VERSION="${{ steps.next_pre_version.outputs.version }}"
-            echo "VERSION"
+            echo "$VERSION"
             echo "CHART_VERSION=$VERSION" >> $GITHUB_ENV
           fi
 
@@ -441,7 +441,7 @@ jobs:
             echo "CHART_VERSION=$TRIMMED_VERSION" >> $GITHUB_ENV
           else
             VERSION="${{ steps.next_pre_version.outputs.version }}"
-            echo "VERSION"
+            echo "$VERSION"
             echo "CHART_VERSION=$VERSION" >> $GITHUB_ENV
           fi
 
