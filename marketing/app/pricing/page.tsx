@@ -1,150 +1,96 @@
-// "use client";
-// import WaitlistForm from "@/components/buttons/WaitlistForm";
-// import CTA from "@/components/cta/CTA";
-// import { useRouter } from "next/navigation";
-// import React, { ReactElement } from "react";
-// import { IoCheckmarkSharp } from "react-icons/io5";
+'use client';
 
-import { ReactElement } from 'react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { CheckCircle2Icon } from 'lucide-react';
 
-export default function Pricing(): ReactElement {
-  return <h1>Pricing</h1>;
+const plans = [
+  {
+    name: 'Individual',
+    description: 'Best for small teams.',
+    features: [
+      '1 Job',
+      'Pre-built Transformers',
+      'Unlimited Integrations',
+      '3 users',
+      'Real time Run Logs',
+      'Community Slack Support',
+    ],
+    lockedFeatures: ['Audit logging', 'Custom Transformers', 'Private Support'],
+    price: 'Free',
+  },
+  {
+    name: 'Team',
+    description: 'Best for growing teams.',
+    features: [
+      'All Basic features',
+      '3 Jobs',
+      'Custom Transformers',
+      '10 users',
+      'Audit Logging',
+      'Private Slack Support',
+    ],
+    lockedFeatures: ['Unlimited Jobs, Dedicated infrastructure '],
+    price: '$400/month',
+  },
+  {
+    name: 'Enterprise',
+    description: 'Best for sophisticated teams.',
+    features: [
+      'All Professional features',
+      'Unlimited Jobs',
+      'Unlimited Users',
+      'SSO',
+      'Custom audit requirements',
+      'Data residency',
+      'Dedicated infrastructure',
+    ],
+    lockedFeatures: [],
+    price: 'Custom',
+  },
+];
+
+export default function Pricing() {
+  return (
+    <div className="flex flex-col gap-6 justify-center z-40 py-20">
+      <div className="text-center text-gray-900 font-semibold text-3xl lg:text-5xl font-satoshi pt-10 bg-white/50">
+        Actually Straightforward Pricing
+      </div>
+      <div className="text-center text-gray-800 font-semibold text-lg font-satoshi mx-10 md:mx-40 lg:mx-60 xl:mx-80 bg-white/50 max-w-4xl pt-6">
+        Simple, transparent pricing that you grows with you. Start for free
+        today.
+      </div>
+      <div className="flex flex-row items-center justify-center gap-6 pt-10">
+        {plans.map((item) => (
+          <div
+            key={item.name}
+            className={cn(
+              {
+                'border-4 ': item.name === 'Team',
+                'border-2': item.name !== 'Team',
+              },
+              'border-gray-800 rounded-xl p-8 transition duration-150 ease-in-out hover:-translate-y-2'
+            )}
+          >
+            <div className="flex flex-col gap-2">
+              <div className="flex justify-center">{item.price}</div>
+              <div className="flex justify-center">{item.name}</div>
+              <div>{item.description}</div>
+              <div>
+                {item.features.map((feats) => (
+                  <div key={feats} className="flex flex-row items center gap-2">
+                    <CheckCircle2Icon className="w-4 h-4 bg-green-300" />
+                    <div>{feats}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-center">
+                <Button variant="default">Get Started</Button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
-
-// const pricingPlans = [
-//   {
-//     name: "Starter",
-//     description: "Best for small teams.",
-//     features: [
-//       "1 Job",
-//       "Pre-built Transformers",
-//       "Unlimited Integrations",
-//       "3 users",
-//       "Real time Run Logs",
-//       "Community Slack Support",
-//     ],
-//     lockedFeatures: ["Audit logging", "Custom Transformers", "Private Support"],
-//     pricing: "Free",
-//   },
-//   {
-//     name: "Professional",
-//     description: "Best for growing teams.",
-//     features: [
-//       "All Basic features",
-//       "3 Jobs",
-//       "Custom Transformers",
-//       "10 users",
-//       "Audit Logging",
-//       "Private Slack Support",
-//     ],
-//     lockedFeatures: ["Unlimited Jobs, Dedicated infrastructure "],
-//     pricing: "$0.024/record",
-//   },
-//   {
-//     name: "Enterprise",
-//     description: "Best for sophisticated teams.",
-//     features: [
-//       "All Professional features",
-//       "Unlimited Jobs",
-//       "Unlimited Users",
-//       "SSO",
-//       "Custom audit requirements",
-//       "Data residency",
-//       "Dedicated infrastructure",
-//     ],
-//     lockedFeatures: [],
-//     pricing: "Custom",
-//   },
-// ];
-
-// export default function Pricing() {
-//   return (
-//     <Box className="mainContainer">
-//       <Stack direction="column" align="center" pt="40">
-//         <MainGradient top="30%" left="40%" blur="200" height="30%" />
-//         <MainGradient top="12%" left="-20%" blur="200" height="30%" />
-//         <MainGradient top="50%" left="90%" blur="100" height="30%" />
-//         <Box>
-//           <Text fontFamily="Satoshi-Regular" textStyle="h1">
-//             Simple, Transparent Pricing
-//           </Text>
-//         </Box>
-//         <Box pt="10">
-//           <Text textStyle="h3" fontFamily="Satoshi-Regular">
-//             Easy and free to get started and scales with you as you grow.
-//           </Text>
-//         </Box>
-//         <Box pt="20" zIndex="3">
-//           <PricingPlanSection />
-//         </Box>
-//       </Stack>
-//       <Box zIndex="3" w="100%">
-//         <CTA />
-//       </Box>
-//     </Box>
-//   );
-// }
-
-// function PricingPlanSection(): ReactElement {
-//   return (
-//     <Box>
-//       <Stack
-//         direction={{ base: "column", lg: "row" }}
-//         justifyContent="center"
-//         spacing="48px"
-//       >
-//         {pricingPlans.map((plan) => (
-//           <Box
-//             bgGradient="linear-gradient(111.31deg, #26262C -4.83%, #1D1A27 108.56%)"
-//             borderRadius="8px"
-//             borderWidth="1px"
-//             borderColor="gray.600"
-//             w="350px"
-//             key={plan.name}
-//           >
-//             <Stack direction="column" align="left" px="24px" pt="10">
-//               <Text textStyle="h2">{plan.name}</Text>
-//               <Text textStyle="h3">{plan.description}</Text>
-//               <Text textStyle="h1">{plan.pricing}</Text>
-//               <Divider />
-//               <Box pb="40px" pt="24px">
-//                 <FeatureCheckmarkColumn data={plan.features} />
-//               </Box>
-//             </Stack>
-//           </Box>
-//         ))}
-//       </Stack>
-//     </Box>
-//   );
-// }
-
-// interface FeatureProps {
-//   data: string[];
-// }
-
-// function FeatureCheckmarkColumn(props: FeatureProps): ReactElement {
-//   const { data } = props;
-//   return (
-//     <Stack direction="column">
-//       <Box>
-//         {data.map((item) => (
-//           <Box key={item}>
-//             <Stack
-//               alignItems="center"
-//               direction="row"
-//               spacing={2}
-//               py="12px"
-//               borderBottomColor="rgba(41, 41, 41, 1)"
-//               borderBottomWidth="1px"
-//             >
-//               <Icon as={IoCheckmarkSharp} color="rgba(227, 232, 239, 1)" />
-//               <Text textStyle="h4" color="#E3E8EF" fontFamily="Satoshi-Regular">
-//                 {item}
-//               </Text>
-//             </Stack>
-//           </Box>
-//         ))}
-//       </Box>
-//     </Stack>
-//   );
-// }
