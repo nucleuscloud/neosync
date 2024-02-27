@@ -12,12 +12,13 @@ export default function TransformerSection(): ReactElement {
         Neosync handles referential integrity automatically.
       </div>
       <div className=" pt-10 lg:py-10">
-        <div className="border border-gray-400 rounded-xl overflow-hidden shadow-xl">
+        <div className=" justify-center flex">
           <Image
             src="https://assets.nucleuscloud.com/neosync/marketingsite/schemapage.png"
             width="1300"
             height="700"
             alt="job"
+            className="border border-gray-400 rounded-xl overflow-hidden shadow-xl"
           />
         </div>
       </div>
