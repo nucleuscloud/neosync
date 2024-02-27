@@ -8,7 +8,16 @@ const config: Config = {
   title: 'Neosync',
   tagline: 'Open source Test Data Management',
   favicon: 'img/logo_light_mode.png',
+  headTags: [
+    {
+      tagName: 'script',
+      attributes: {
+        id: 'koala-snippet',
 
+        innerHTML: `!function(t){if(window.ko)return;window.ko=[],["identify","track","removeListeners","open","on","off","qualify","ready"].forEach(function(t){ko[t]=function(){var n=[].slice.call(arguments);return n.unshift(t),ko.push(n),ko}});var n=document.createElement("script");n.async=!0,n.setAttribute("src","https://cdn.getkoala.com/v1/pk_4fa92236b6fe5d23fb878c88c14d209fd48e/sdk.js"),(document.body || document.head).appendChild(n)}();`,
+      },
+    },
+  ],
   // Set the production url of your s here
   url: 'https://docs.neosync.dev',
   // Set the /<baseUrl>/ pathname under which your site is served
