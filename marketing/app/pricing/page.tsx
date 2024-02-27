@@ -1,5 +1,6 @@
 'use client';
 
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { CheckCircle2Icon } from 'lucide-react';
@@ -66,26 +67,34 @@ export default function Pricing() {
             key={item.name}
             className={cn(
               {
-                'border-4 ': item.name === 'Team',
-                'border-2': item.name !== 'Team',
+                'border-4 border-black ': item.name === 'Team',
+                'border-2 border-gray-800': item.name !== 'Team',
               },
-              'border-gray-800 rounded-xl p-8 transition duration-150 ease-in-out hover:-translate-y-2'
+              ' rounded-xl p-8 transition duration-150 ease-in-out hover:-translate-y-2 sm:h-[300px] md:h-[400px] xl:h-[500px] sm:w-[250px] md:w-[250px] xl:w-[300px]'
             )}
           >
-            <div className="flex flex-col gap-2">
-              <div className="flex justify-center">{item.price}</div>
-              <div className="flex justify-center">{item.name}</div>
-              <div>{item.description}</div>
+            <div className="flex flex-col gap-6">
+              <div className="flex justify-center text-3xl">{item.price}</div>
+              <div className="flex justify-center">
+                <Badge variant="outline">{item.name}</Badge>
+              </div>
+              <div className="flex justify-center">{item.description}</div>
               <div>
                 {item.features.map((feats) => (
                   <div key={feats} className="flex flex-row items center gap-2">
-                    <CheckCircle2Icon className="w-4 h-4 bg-green-300" />
+                    <CheckCircle2Icon className="w-4 h-4 text-green-800 bg-green-200 rounded-full" />
                     <div>{feats}</div>
                   </div>
                 ))}
               </div>
-              <div className="flex justify-center">
-                <Button variant="default">Get Started</Button>
+              <div className="flex justify-center pt-6">
+                <Button variant="default">
+                  {item.name == 'Individual'
+                    ? 'Start for free'
+                    : item.name == 'Team'
+                      ? 'Get started today'
+                      : 'Contact us'}
+                </Button>
               </div>
             </div>
           </div>
