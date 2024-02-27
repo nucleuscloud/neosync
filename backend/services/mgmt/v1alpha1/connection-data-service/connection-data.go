@@ -773,7 +773,8 @@ func (s *Service) GetConnectionInitStatements(
 
 	connectionTimeout := uint32(5)
 
-	statementsMap := map[string]string{}
+	createStmtsMap := map[string]string{}
+	truncateStmtsMap := map[string]string{}
 	switch config := connection.Msg.Connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.Msg.Connection.ConnectionConfig, &connectionTimeout, logger)
@@ -789,9 +790,8 @@ func (s *Service) GetConnectionInitStatements(
 		cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 		defer cancel()
 
-		for k, v := range schemaTableMap {
-			statements := []string{}
-			if req.Msg.Options.InitSchema {
+		if req.Msg.Options.InitSchema {
+			for k, v := range schemaTableMap {
 				stmt, err := dbschemas_mysql.GetTableCreateStatement(cctx, db, &dbschemas_mysql.GetTableCreateStatementRequest{
 					Schema: v.Schema,
 					Table:  v.Table,
@@ -799,12 +799,14 @@ func (s *Service) GetConnectionInitStatements(
 				if err != nil {
 					return nil, err
 				}
-				statements = append(statements, stmt)
+				createStmtsMap[k] = stmt
 			}
-			if req.Msg.Options.TruncateBeforeInsert {
-				statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s;", v.Schema, v.Table))
+		}
+
+		if req.Msg.Options.TruncateBeforeInsert {
+			for k, v := range schemaTableMap {
+				truncateStmtsMap[k] = dbschemas_mysql.BuildTruncateStatement(v.Schema, v.Table)
 			}
-			statementsMap[k] = strings.Join(statements, "\n")
 		}
 
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
@@ -820,6 +822,24 @@ func (s *Service) GetConnectionInitStatements(
 
 		cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 		defer cancel()
+
+		if req.Msg.Options.InitSchema {
+			for k, v := range schemaTableMap {
+				stmt, err := dbschemas_postgres.GetTableCreateStatement(cctx, db, s.pgquerier, v.Schema, v.Table)
+				if err != nil {
+					return nil, err
+				}
+				createStmtsMap[k] = stmt
+			}
+		}
+
+		if req.Msg.Options.TruncateCascade {
+			for k, v := range schemaTableMap {
+				truncateStmtsMap[k] = dbschemas_postgres.BuildTruncateCascadeStatement(v.Schema, v.Table)
+			}
+		} else if req.Msg.Options.TruncateBeforeInsert {
+			return nil, nucleuserrors.NewNotImplemented("postgres truncate unsupported. table foreig keys required to build truncate statement.")
+		}
 
 		for k, v := range schemaTableMap {
 			statements := []string{}
@@ -837,14 +857,15 @@ func (s *Service) GetConnectionInitStatements(
 					statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s;", v.Schema, v.Table))
 				}
 			}
-			statementsMap[k] = strings.Join(statements, "\n")
+			createStmtsMap[k] = strings.Join(statements, "\n")
 		}
 	default:
 		return nil, errors.New("unsupported connection config")
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetConnectionInitStatementsResponse{
-		TableInitStatements: statementsMap,
+		TableInitStatements:     createStmtsMap,
+		TableTruncateStatements: truncateStmtsMap,
 	}), nil
 }
 

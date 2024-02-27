@@ -2,7 +2,6 @@ package runsqlinittablestmts_activity
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"slices"
 	"testing"
@@ -1143,96 +1142,5 @@ func Test_getForeignToPrimaryTableMap(t *testing.T) {
 	for table, deps := range actual {
 		assert.Len(t, deps, len(expected[table]))
 		assert.ElementsMatch(t, expected[table], deps)
-	}
-}
-
-func TestBatchMysqlStmts(t *testing.T) {
-	initialStatement := "SET FOREIGN_KEY_CHECKS = 0;"
-	tests := []struct {
-		name             string
-		batchSize        int
-		statements       []string
-		initialStatement *string
-		expectedCalls    []string
-	}{
-		{
-			name:             "multiple batches without initialStatement",
-			batchSize:        2,
-			statements:       []string{"CREATE TABLE users;", "CREATE TABLE accounts;", "CREATE TABLE departments;"},
-			initialStatement: nil,
-			expectedCalls:    []string{"CREATE TABLE users; CREATE TABLE accounts;", "CREATE TABLE departments;"},
-		},
-		{
-			name:             "multiple batches with initialStatement",
-			batchSize:        2,
-			statements:       []string{"TRUNCATE TABLE users;", "TRUNCATE TABLE accounts;", "TRUNCATE TABLE departments;"},
-			initialStatement: &initialStatement,
-			expectedCalls:    []string{fmt.Sprintf("%s %s", initialStatement, "TRUNCATE TABLE users; TRUNCATE TABLE accounts;"), fmt.Sprintf("%s %s", initialStatement, "TRUNCATE TABLE departments;")},
-		},
-		{
-			name:             "single statement",
-			batchSize:        2,
-			statements:       []string{"TRUNCATE TABLE users;"},
-			initialStatement: nil,
-			expectedCalls:    []string{"TRUNCATE TABLE users;"},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			sqlDbMock, sqlMock, err := sqlmock.New(sqlmock.MonitorPingsOption(false))
-			if err != nil {
-				t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-			}
-			ctx := context.Background()
-
-			for _, call := range tt.expectedCalls {
-				sqlMock.ExpectExec(call).WillReturnResult(sqlmock.NewResult(1, 2))
-			}
-
-			err = batchMysqlStmts(ctx, sqlDbMock, tt.batchSize, tt.statements, tt.initialStatement)
-			assert.NoError(t, err)
-
-			if err := sqlMock.ExpectationsWereMet(); err != nil {
-				t.Errorf("there were unfulfilled expectations: %s", err)
-			}
-		})
-	}
-}
-
-func TestBatchPostgresStmts(t *testing.T) {
-	tests := []struct {
-		name          string
-		batchSize     int
-		statements    []string
-		expectedCalls []string
-	}{
-		{
-			name:          "multiple batches",
-			batchSize:     2,
-			statements:    []string{"CREATE TABLE users;", "CREATE TABLE accounts;", "CREATE TABLE departments;"},
-			expectedCalls: []string{"CREATE TABLE users;\nCREATE TABLE accounts;", "CREATE TABLE departments;"},
-		},
-		{
-			name:          "single statement",
-			batchSize:     2,
-			statements:    []string{"TRUNCATE TABLE users;"},
-			expectedCalls: []string{"TRUNCATE TABLE users;"},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			dbtx := pg_queries.NewMockDBTX(t)
-			ctx := context.Background()
-
-			for _, call := range tt.expectedCalls {
-				var cmdtag pgconn.CommandTag
-				dbtx.On("Exec", mock.Anything, call).Return(cmdtag, nil)
-			}
-
-			err := batchPostgresStmts(ctx, dbtx, tt.batchSize, tt.statements)
-			assert.NoError(t, err)
-		})
 	}
 }

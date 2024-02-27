@@ -2954,6 +2954,18 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "table_truncate_statements",
+              "description": "the key here is \u003cschema\u003e.\u003ctable\u003e and value is the table truncate statement.",
+              "label": "repeated",
+              "type": "TableTruncateStatementsEntry",
+              "longType": "GetConnectionInitStatementsResponse.TableTruncateStatementsEntry",
+              "fullType": "mgmt.v1alpha1.GetConnectionInitStatementsResponse.TableTruncateStatementsEntry",
+              "ismap": true,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
@@ -2961,6 +2973,42 @@
           "name": "TableInitStatementsEntry",
           "longName": "GetConnectionInitStatementsResponse.TableInitStatementsEntry",
           "fullName": "mgmt.v1alpha1.GetConnectionInitStatementsResponse.TableInitStatementsEntry",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "key",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "value",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "TableTruncateStatementsEntry",
+          "longName": "GetConnectionInitStatementsResponse.TableTruncateStatementsEntry",
+          "fullName": "mgmt.v1alpha1.GetConnectionInitStatementsResponse.TableTruncateStatementsEntry",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,

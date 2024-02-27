@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	batchSizeConst = 10
+	batchSizeConst = 20
 )
 
 type initStatementBuilder struct {
@@ -231,12 +231,13 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 							split[1],
 						)
 						if err != nil {
+							pgconn.Close()
 							return nil, fmt.Errorf("unable to build init statement for postgres: %w", err)
 						}
 						tableCreateStmts = append(tableCreateStmts, initStmt)
 					}
 					slogger.Info(fmt.Sprintf("executing %d sql statements that will initialize tables", len(tableCreateStmts)))
-					err = batchPostgresStmts(ctx, pool, batchSizeConst, tableCreateStmts)
+					err = dbschemas_postgres.BatchExecStmts(ctx, pool, batchSizeConst, tableCreateStmts)
 					if err != nil {
 						pgconn.Close()
 						return nil, fmt.Errorf("unable to exec postgres table create statements: %w", err)
@@ -248,10 +249,10 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					tableTruncateStmts := []string{}
 					for table := range uniqueTables {
 						split := strings.Split(table, ".")
-						tableTruncateStmts = append(tableTruncateStmts, b.getTruncateCascadeStatementFromPostgres(split[0], split[1]))
+						tableTruncateStmts = append(tableTruncateStmts, dbschemas_postgres.BuildTruncateCascadeStatement(split[0], split[1]))
 					}
 					slogger.Info(fmt.Sprintf("executing %d sql statements that will truncate cascade tables", len(tableTruncateStmts)))
-					err = batchPostgresStmts(ctx, pool, batchSizeConst, tableTruncateStmts)
+					err = dbschemas_postgres.BatchExecStmts(ctx, pool, batchSizeConst, tableTruncateStmts)
 					if err != nil {
 						pgconn.Close()
 						return nil, fmt.Errorf("unable to exec truncate cascade statements: %w", err)
@@ -269,7 +270,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 						orderedTableTruncate = append(orderedTableTruncate, fmt.Sprintf(`%q.%q`, split[0], split[1]))
 					}
 					slogger.Info(fmt.Sprintf("executing %d sql statements that will truncate tables", len(orderedTableTruncate)))
-					truncateStmt := b.getTruncateStatementFromPostgres(orderedTableTruncate)
+					truncateStmt := dbschemas_postgres.BuildTruncateStatement(orderedTableTruncate)
 					_, err = pool.Exec(ctx, truncateStmt)
 					if err != nil {
 						pgconn.Close()
@@ -328,13 +329,16 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 							split[1],
 						)
 						if err != nil {
+							if err := destconn.Close(); err != nil {
+								slogger.Error(err.Error())
+							}
 							return nil, fmt.Errorf("unable to build init statement for mysql: %w", err)
 						}
 						tableCreateStmts = append(tableCreateStmts, initStmt)
 					}
 
 					slogger.Info(fmt.Sprintf("executing %d sql statements that will initialize tables", len(tableCreateStmts)))
-					err = batchMysqlStmts(ctx, pool, batchSizeConst, tableCreateStmts, nil)
+					err = dbschemas_mysql.BatchExecStmts(ctx, pool, batchSizeConst, tableCreateStmts, nil)
 					if err != nil {
 						if err := destconn.Close(); err != nil {
 							slogger.Error(err.Error())
@@ -348,11 +352,11 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					tableTruncate := []string{}
 					for table := range uniqueTables {
 						split := strings.Split(table, ".")
-						tableTruncate = append(tableTruncate, b.getTruncateStatementFromMysql(split[0], split[1]))
+						tableTruncate = append(tableTruncate, dbschemas_mysql.BuildTruncateStatement(split[0], split[1]))
 					}
 					slogger.Info(fmt.Sprintf("executing %d sql statements that will truncate tables", len(tableTruncate)))
-					disableFkChecks := "SET FOREIGN_KEY_CHECKS = 0;"
-					err := batchMysqlStmts(ctx, pool, batchSizeConst, tableTruncate, &disableFkChecks)
+					disableFkChecks := dbschemas_mysql.DisableForeignKeyChecks
+					err := dbschemas_mysql.BatchExecStmts(ctx, pool, batchSizeConst, tableTruncate, &disableFkChecks)
 					if err != nil {
 						if err := destconn.Close(); err != nil {
 							slogger.Error(err.Error())
@@ -432,25 +436,6 @@ func (b *initStatementBuilder) getCreateStatementFromMysql(
 	return stmt, nil
 }
 
-func (b *initStatementBuilder) getTruncateStatementFromPostgres(
-	tables []string,
-) string {
-	return fmt.Sprintf("TRUNCATE TABLE %s;", strings.Join(tables, ", "))
-}
-func (b *initStatementBuilder) getTruncateCascadeStatementFromPostgres(
-	schema string,
-	table string,
-) string {
-	return fmt.Sprintf("TRUNCATE TABLE %q.%q CASCADE;", schema, table)
-}
-
-func (b *initStatementBuilder) getTruncateStatementFromMysql(
-	schema string,
-	table string,
-) string {
-	return fmt.Sprintf("TRUNCATE TABLE `%s`.`%s`;", schema, table)
-}
-
 func getForeignToPrimaryTableMap(td map[string]*dbschemas_utils.TableConstraints, uniqueTables map[string]struct{}) map[string][]string {
 	dpMap := map[string][]string{}
 	for table := range uniqueTables {
@@ -467,50 +452,4 @@ func getForeignToPrimaryTableMap(td map[string]*dbschemas_utils.TableConstraints
 		}
 	}
 	return dpMap
-}
-
-func batchPostgresStmts(
-	ctx context.Context,
-	pool pg_queries.DBTX,
-	batchSize int,
-	statements []string,
-) error {
-	for i := 0; i < len(statements); i += batchSize {
-		end := i + batchSize
-		if end > len(statements) {
-			end = len(statements)
-		}
-
-		batchCmd := strings.Join(statements[i:end], "\n")
-		_, err := pool.Exec(ctx, batchCmd)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func batchMysqlStmts(
-	ctx context.Context,
-	pool mysql_queries.DBTX,
-	batchSize int,
-	statements []string,
-	initalStatement *string, // this is run as the first statement in each batch
-) error {
-	for i := 0; i < len(statements); i += batchSize {
-		end := i + batchSize
-		if end > len(statements) {
-			end = len(statements)
-		}
-
-		batchCmd := strings.Join(statements[i:end], " ")
-		if initalStatement != nil && *initalStatement != "" {
-			batchCmd = fmt.Sprintf("%s %s", *initalStatement, batchCmd)
-		}
-		_, err := pool.ExecContext(ctx, batchCmd)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }

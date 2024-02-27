@@ -1,15 +1,18 @@
 package dbschemas_mysql
 
 import (
+	"context"
+	"fmt"
 	"testing"
 
+	"github.com/DATA-DOG/go-sqlmock"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	dbschemas "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetMysqlTableDependencies(t *testing.T) {
+func Test_GetMysqlTableDependencies(t *testing.T) {
 	constraints := []*mysql_queries.GetForeignKeyConstraintsRow{
 		{ConstraintName: "fk_account_user_associations_account_id", SchemaName: "neosync_api", TableName: "account_user_associations", ColumnName: "account_id", ForeignSchemaName: "neosync_api", ForeignTableName: "accounts", ForeignColumnName: "id", IsNullable: "NO"},
 		{ConstraintName: "fk_account_user_associations_user_id", SchemaName: "neosync_api", TableName: "account_user_associations", ColumnName: "user_id", ForeignSchemaName: "neosync_api", ForeignTableName: "users", ForeignColumnName: "id", IsNullable: "NO"},
@@ -52,7 +55,7 @@ func TestGetMysqlTableDependencies(t *testing.T) {
 	})
 }
 
-func TestGetMysqlTableDependenciesExtraEdgeCases(t *testing.T) {
+func Test_GetMysqlTableDependenciesExtraEdgeCases(t *testing.T) {
 	constraints := []*mysql_queries.GetForeignKeyConstraintsRow{
 		{ConstraintName: "t1_b_c_fkey", SchemaName: "neosync_api", TableName: "t1", ColumnName: "b", ForeignSchemaName: "neosync_api", ForeignTableName: "account_user_associations", ForeignColumnName: "account_id", IsNullable: "NO"},
 		{ConstraintName: "t1_b_c_fkey", SchemaName: "neosync_api", TableName: "t1", ColumnName: "c", ForeignSchemaName: "neosync_api", ForeignTableName: "account_user_associations", ForeignColumnName: "user_id", IsNullable: "NO"},
@@ -95,4 +98,58 @@ func TestGetUniqueSchemaColMappings(t *testing.T) {
 	assert.Contains(t, mappings["public.users"], "created_by", "")
 	assert.Contains(t, mappings["public.users"], "updated_by", "")
 	assert.Contains(t, mappings["neosync_api.accounts"], "id", "")
+}
+
+func Test_BatchMysqlStmts(t *testing.T) {
+	initialStatement := "SET FOREIGN_KEY_CHECKS = 0;"
+	tests := []struct {
+		name             string
+		batchSize        int
+		statements       []string
+		initialStatement *string
+		expectedCalls    []string
+	}{
+		{
+			name:             "multiple batches without initialStatement",
+			batchSize:        2,
+			statements:       []string{"CREATE TABLE users;", "CREATE TABLE accounts;", "CREATE TABLE departments;"},
+			initialStatement: nil,
+			expectedCalls:    []string{"CREATE TABLE users; CREATE TABLE accounts;", "CREATE TABLE departments;"},
+		},
+		{
+			name:             "multiple batches with initialStatement",
+			batchSize:        2,
+			statements:       []string{"TRUNCATE TABLE users;", "TRUNCATE TABLE accounts;", "TRUNCATE TABLE departments;"},
+			initialStatement: &initialStatement,
+			expectedCalls:    []string{fmt.Sprintf("%s %s", initialStatement, "TRUNCATE TABLE users; TRUNCATE TABLE accounts;"), fmt.Sprintf("%s %s", initialStatement, "TRUNCATE TABLE departments;")},
+		},
+		{
+			name:             "single statement",
+			batchSize:        2,
+			statements:       []string{"TRUNCATE TABLE users;"},
+			initialStatement: nil,
+			expectedCalls:    []string{"TRUNCATE TABLE users;"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sqlDbMock, sqlMock, err := sqlmock.New(sqlmock.MonitorPingsOption(false))
+			if err != nil {
+				t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+			}
+			ctx := context.Background()
+
+			for _, call := range tt.expectedCalls {
+				sqlMock.ExpectExec(call).WillReturnResult(sqlmock.NewResult(1, 2))
+			}
+
+			err = BatchExecStmts(ctx, sqlDbMock, tt.batchSize, tt.statements, tt.initialStatement)
+			assert.NoError(t, err)
+
+			if err := sqlMock.ExpectationsWereMet(); err != nil {
+				t.Errorf("there were unfulfilled expectations: %s", err)
+			}
+		})
+	}
 }

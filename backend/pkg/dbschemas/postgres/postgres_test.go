@@ -1,14 +1,17 @@
 package dbschemas_postgres
 
 import (
+	"context"
 	"testing"
 
+	"github.com/jackc/pgconn"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	dbschemas "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
-func TestGetPostgresTableDependencies(t *testing.T) {
+func Test_GetPostgresTableDependencies(t *testing.T) {
 	constraints := []*pg_queries.GetForeignKeyConstraintsRow{
 		{ConstraintName: "fk_account_user_associations_account_id", SchemaName: "neosync_api", TableName: "account_user_associations", ColumnName: "account_id", ForeignSchemaName: "neosync_api", ForeignTableName: "accounts", ForeignColumnName: "id", IsNullable: "NO"},
 		{ConstraintName: "fk_account_user_associations_user_id", SchemaName: "neosync_api", TableName: "account_user_associations", ColumnName: "user_id", ForeignSchemaName: "neosync_api", ForeignTableName: "users", ForeignColumnName: "id", IsNullable: "NO"},
@@ -51,7 +54,7 @@ func TestGetPostgresTableDependencies(t *testing.T) {
 	})
 }
 
-func TestGetPostgresTableDependenciesExtraEdgeCases(t *testing.T) {
+func Test_GetPostgresTableDependenciesExtraEdgeCases(t *testing.T) {
 	constraints := []*pg_queries.GetForeignKeyConstraintsRow{
 		{ConstraintName: "t1_b_c_fkey", SchemaName: "neosync_api", TableName: "t1", ColumnName: "b", ForeignSchemaName: "neosync_api", ForeignTableName: "account_user_associations", ForeignColumnName: "account_id", IsNullable: "NO"},
 		{ConstraintName: "t1_b_c_fkey", SchemaName: "neosync_api", TableName: "t1", ColumnName: "c", ForeignSchemaName: "neosync_api", ForeignTableName: "account_user_associations", ForeignColumnName: "user_id", IsNullable: "NO"},
@@ -78,7 +81,7 @@ func TestGetPostgresTableDependenciesExtraEdgeCases(t *testing.T) {
 	}, "Testing composite foreign keys, table self-referencing, and table cycles")
 }
 
-func TestGenerateCreateTableStatement(t *testing.T) {
+func Test_GenerateCreateTableStatement(t *testing.T) {
 	type testcase struct {
 		schema      string
 		table       string
@@ -173,7 +176,7 @@ func TestGenerateCreateTableStatement(t *testing.T) {
 	}
 }
 
-func TestGetUniqueSchemaColMappings(t *testing.T) {
+func Test_GetUniqueSchemaColMappings(t *testing.T) {
 	mappings := GetUniqueSchemaColMappings(
 		[]*pg_queries.GetDatabaseSchemaRow{
 			{TableSchema: "public", TableName: "users", ColumnName: "id"},
@@ -189,4 +192,41 @@ func TestGetUniqueSchemaColMappings(t *testing.T) {
 	assert.Contains(t, mappings["public.users"], "created_by", "")
 	assert.Contains(t, mappings["public.users"], "updated_by", "")
 	assert.Contains(t, mappings["neosync_api.accounts"], "id", "")
+}
+
+func Test_BatchExecStmts(t *testing.T) {
+	tests := []struct {
+		name          string
+		batchSize     int
+		statements    []string
+		expectedCalls []string
+	}{
+		{
+			name:          "multiple batches",
+			batchSize:     2,
+			statements:    []string{"CREATE TABLE users;", "CREATE TABLE accounts;", "CREATE TABLE departments;"},
+			expectedCalls: []string{"CREATE TABLE users;\nCREATE TABLE accounts;", "CREATE TABLE departments;"},
+		},
+		{
+			name:          "single statement",
+			batchSize:     2,
+			statements:    []string{"TRUNCATE TABLE users;"},
+			expectedCalls: []string{"TRUNCATE TABLE users;"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dbtx := pg_queries.NewMockDBTX(t)
+			ctx := context.Background()
+
+			for _, call := range tt.expectedCalls {
+				var cmdtag pgconn.CommandTag
+				dbtx.On("Exec", mock.Anything, call).Return(cmdtag, nil)
+			}
+
+			err := BatchExecStmts(ctx, dbtx, tt.batchSize, tt.statements)
+			assert.NoError(t, err)
+		})
+	}
 }

@@ -271,3 +271,36 @@ func GetPostgresTablePrimaryKeys(
 	}
 	return pkMap
 }
+
+func BuildTruncateStatement(
+	tables []string,
+) string {
+	return fmt.Sprintf("TRUNCATE TABLE %s;", strings.Join(tables, ", "))
+}
+func BuildTruncateCascadeStatement(
+	schema string,
+	table string,
+) string {
+	return fmt.Sprintf("TRUNCATE TABLE %q.%q CASCADE;", schema, table)
+}
+
+func BatchExecStmts(
+	ctx context.Context,
+	pool pg_queries.DBTX,
+	batchSize int,
+	statements []string,
+) error {
+	for i := 0; i < len(statements); i += batchSize {
+		end := i + batchSize
+		if end > len(statements) {
+			end = len(statements)
+		}
+
+		batchCmd := strings.Join(statements[i:end], "\n")
+		_, err := pool.Exec(ctx, batchCmd)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
