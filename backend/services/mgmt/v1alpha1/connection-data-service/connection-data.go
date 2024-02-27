@@ -49,10 +49,6 @@ func (ds *DateScanner) Scan(input any) error {
 	}
 }
 
-type UUIDScanner struct {
-	val *uuid.UUID
-}
-
 func (s *Service) GetConnectionDataStream(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetConnectionDataStreamRequest],
@@ -196,7 +192,7 @@ func (s *Service) GetConnectionDataStream(
 					if ds, ok := valuesWrapped[i].(*DateScanner); ok && ds.val != nil {
 						row[col] = []byte(ds.val.Format(time.RFC3339))
 					} else {
-						row[col] = nil
+						row[col] = v
 					}
 				} else if r.FieldDescriptions()[i].DataTypeOID == 2950 { // OID for UUID
 					// Convert the byte slice to a uuid.UUID type
@@ -204,7 +200,7 @@ func (s *Service) GetConnectionDataStream(
 					if err == nil {
 						row[col] = []byte(uuidValue.String())
 					} else {
-						row[col] = nil
+						row[col] = v
 					}
 				} else {
 					row[col] = v
