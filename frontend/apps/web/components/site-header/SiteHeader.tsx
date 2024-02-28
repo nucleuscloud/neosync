@@ -1,7 +1,7 @@
 import { getSystemAppConfig } from '@/app/api/config/config';
 import { siteConfig } from '@/app/config/site';
 import { cn } from '@/libs/utils';
-import { GitHubLogoIcon, TwitterLogoIcon } from '@radix-ui/react-icons';
+import { DiscordLogoIcon, GitHubLogoIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { ReactElement } from 'react';
 import { buttonVariants } from '../ui/button';
@@ -33,13 +33,13 @@ export default function SiteHeader(): ReactElement {
             </div>
           </Link>
           <Link
-            href={siteConfig.links.twitter}
+            href={siteConfig.links.discord}
             target="_blank"
             rel="noreferrer"
           >
             <div className={iconButtonClassNames}>
-              <TwitterLogoIcon />
-              <span className="sr-only">Twitter</span>
+              <DiscordLogoIcon />
+              <span className="sr-only">Discord</span>
             </div>
           </Link>
           <ModeToggle />
