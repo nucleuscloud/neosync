@@ -62,3 +62,7 @@ Everything is stored within Postgres, except Temporal specific data, which is st
 
 [Temporal](https://temporal.io/) is the primary workflow engine that Neosync uses to invoke all of the Neosync Jobs.
 There are many benefits to Temporal, and we use it to give us reliability, reproducibility, and metadata around Neosync Jobs.
+
+## Redis
+
+Redis serves as an optional external dependency. It's specifically required if primary key transformations are to be utilized. This functionality allows for more advanced data synchronization capabilities by transforming primary keys during the synchronization process, and Redis facilitates this operation by providing the necessary data structure and caching capabilities​ in order to maintain data integrity.

@@ -95,6 +95,10 @@ There is also a community maintained [Temporal Operator](https://github.com/alex
 
 Here is a link to Temporal's thought on [Helm Chart Deployment](https://docs.temporal.io/self-hosted-guide/setup#helm-charts)
 
+### Redis
+
+Redis serves as an optional external dependency. It's specifically required if primary key transformations are to be utilized. This functionality allows for more advanced data synchronization capabilities by transforming primary keys during the synchronization process, and Redis facilitates this operation by providing the necessary data structure and caching capabilities​ in order to maintain data integrity.
+
 ## Tilt for Development Deployments
 
 For development, we use Tilt to set up and deploy Neosync to Kubernetes.
