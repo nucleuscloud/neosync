@@ -75,7 +75,7 @@ func generateCreateTableStatement(
 		constraints[idx] = fmt.Sprintf("CONSTRAINT %s %s", constraint.ConstraintName, constraint.ConstraintDefinition)
 	}
 	tableDefs := append(columns, constraints...) //nolint:gocritic
-	return fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s.%s (%s);`, schema, table, strings.Join(tableDefs, ", "))
+	return fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %q.%q (%s);`, schema, table, strings.Join(tableDefs, ", "))
 }
 
 func buildTableCol(record *pg_queries.GetDatabaseTableSchemaRow) string {

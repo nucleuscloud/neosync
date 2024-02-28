@@ -137,7 +137,7 @@ func Test_groupConfigsByDependency_Error(t *testing.T) {
 func Test_buildPlainInsertArgs(t *testing.T) {
 	assert.Empty(t, buildPlainInsertArgs(nil))
 	assert.Empty(t, buildPlainInsertArgs([]string{}))
-	assert.Equal(t, buildPlainInsertArgs([]string{"foo", "bar", "baz"}), "root = [this.foo, this.bar, this.baz]")
+	assert.Equal(t, buildPlainInsertArgs([]string{"foo", "bar", "baz"}), `root = [this."foo", this."bar", this."baz"]`)
 }
 
 func Test_clampInt(t *testing.T) {
@@ -165,8 +165,8 @@ func Test_buildPostgresInsertQuery(t *testing.T) {
 		columns  []string
 		expected string
 	}{
-		{"Single Column", "users", []string{"name"}, "INSERT INTO users (name) VALUES ($1);"},
-		{"Multiple Columns", "users", []string{"name", "email"}, "INSERT INTO users (name, email) VALUES ($1, $2);"},
+		{"Single Column", "users", []string{"name"}, `INSERT INTO users ("name") VALUES ($1);`},
+		{"Multiple Columns", "users", []string{"name", "email"}, `INSERT INTO users ("name", "email") VALUES ($1, $2);`},
 	}
 
 	for _, tt := range tests {
@@ -185,8 +185,8 @@ func Test_buildPostgresUpdateQuery(t *testing.T) {
 		primaryKeys []string
 		expected    string
 	}{
-		{"Single Column", "users", []string{"name"}, []string{"id"}, "UPDATE users SET name = $1 WHERE id = $2;"},
-		{"Multiple Primary Keys", "users", []string{"name", "email"}, []string{"id", "other"}, "UPDATE users SET name = $1, email = $2 WHERE id = $3 AND other = $4;"},
+		{"Single Column", "users", []string{"name"}, []string{"id"}, `UPDATE users SET "name" = $1 WHERE "id" = $2;`},
+		{"Multiple Primary Keys", "users", []string{"name", "email"}, []string{"id", "other"}, `UPDATE users SET "name" = $1, "email" = $2 WHERE "id" = $3 AND "other" = $4;`},
 	}
 
 	for _, tt := range tests {
@@ -204,8 +204,8 @@ func Test_buildMysqlInsertQuery(t *testing.T) {
 		columns  []string
 		expected string
 	}{
-		{"Single Column", "users", []string{"name"}, "INSERT INTO users (name) VALUES (?);"},
-		{"Multiple Columns", "users", []string{"name", "email"}, "INSERT INTO users (name, email) VALUES (?, ?);"},
+		{"Single Column", "users", []string{"name"}, "INSERT INTO users (`name`) VALUES (?);"},
+		{"Multiple Columns", "users", []string{"name", "email"}, "INSERT INTO users (`name`, `email`) VALUES (?, ?);"},
 	}
 
 	for _, tt := range tests {
@@ -224,8 +224,8 @@ func Test_buildMysqlUpdateQuery(t *testing.T) {
 		primaryKeys []string
 		expected    string
 	}{
-		{"Single Column", "users", []string{"name"}, []string{"id"}, "UPDATE users SET name = ? WHERE id = ?;"},
-		{"Multiple Primary Keys", "users", []string{"name", "email"}, []string{"id", "other"}, "UPDATE users SET name = ?, email = ? WHERE id = ? AND other = ?;"},
+		{"Single Column", "users", []string{"name"}, []string{"id"}, "UPDATE users SET `name` = ? WHERE `id` = ?;"},
+		{"Multiple Primary Keys", "users", []string{"name", "email"}, []string{"id", "other"}, "UPDATE users SET `name` = ?, `email` = ? WHERE `id` = ? AND `other` = ?;"},
 	}
 
 	for _, tt := range tests {
@@ -266,8 +266,8 @@ func Test_buildSyncConfigs_postgres(t *testing.T) {
 			},
 			expect: []*syncConfig{
 				{
-					Query:         "INSERT INTO public.users (id, name, email) VALUES ($1, $2, $3);",
-					ArgsMapping:   "root = [this.id, this.name, this.email]",
+					Query:         `INSERT INTO public.users ("id", "name", "email") VALUES ($1, $2, $3);`,
+					ArgsMapping:   `root = [this."id", this."name", this."email"]`,
 					InitStatement: "",
 					Schema:        "public",
 					Table:         "users",
@@ -297,8 +297,8 @@ func Test_buildSyncConfigs_postgres(t *testing.T) {
 			},
 			expect: []*syncConfig{
 				{
-					Query:         "INSERT INTO public.users (id, name, email) VALUES ($1, $2, $3);",
-					ArgsMapping:   "root = [this.id, this.name, this.email]",
+					Query:         `INSERT INTO public.users ("id", "name", "email") VALUES ($1, $2, $3);`,
+					ArgsMapping:   `root = [this."id", this."name", this."email"]`,
 					InitStatement: "",
 					Schema:        "public",
 					Table:         "users",
@@ -307,8 +307,8 @@ func Test_buildSyncConfigs_postgres(t *testing.T) {
 					Name:          "public.users",
 				},
 				{
-					Query:         "INSERT INTO public.accounts (id, user_id) VALUES ($1, $2);",
-					ArgsMapping:   "root = [this.id, this.user_id]",
+					Query:         `INSERT INTO public.accounts ("id", "user_id") VALUES ($1, $2);`,
+					ArgsMapping:   `root = [this."id", this."user_id"]`,
 					InitStatement: "",
 					Schema:        "public",
 					Table:         "accounts",
@@ -346,8 +346,8 @@ func Test_buildSyncConfigs_postgres(t *testing.T) {
 			},
 			expect: []*syncConfig{
 				{
-					Query:         "INSERT INTO public.users (id, name) VALUES ($1, $2);",
-					ArgsMapping:   "root = [this.id, this.name]",
+					Query:         `INSERT INTO public.users ("id", "name") VALUES ($1, $2);`,
+					ArgsMapping:   `root = [this."id", this."name"]`,
 					InitStatement: "",
 					Schema:        "public",
 					Table:         "users",
@@ -356,8 +356,8 @@ func Test_buildSyncConfigs_postgres(t *testing.T) {
 					Name:          "public.users",
 				},
 				{
-					Query:         "INSERT INTO public.accounts (id, user_id) VALUES ($1, $2);",
-					ArgsMapping:   "root = [this.id, this.user_id]",
+					Query:         `INSERT INTO public.accounts ("id", "user_id") VALUES ($1, $2);`,
+					ArgsMapping:   `root = [this."id", this."user_id"]`,
 					InitStatement: "",
 					Schema:        "public",
 					Table:         "accounts",
@@ -368,8 +368,8 @@ func Test_buildSyncConfigs_postgres(t *testing.T) {
 					Name: "public.accounts",
 				},
 				{
-					Query:         "UPDATE public.users SET account_id = $1 WHERE id = $2;",
-					ArgsMapping:   "root = [this.account_id, this.id]",
+					Query:         `UPDATE public.users SET "account_id" = $1 WHERE "id" = $2;`,
+					ArgsMapping:   `root = [this."account_id", this."id"]`,
 					InitStatement: "",
 					Schema:        "public",
 					Table:         "users",
@@ -401,8 +401,8 @@ func Test_buildSyncConfigs_postgres(t *testing.T) {
 			},
 			expect: []*syncConfig{
 				{
-					Query:         "INSERT INTO public.users (id, name) VALUES ($1, $2);",
-					ArgsMapping:   "root = [this.id, this.name]",
+					Query:         `INSERT INTO public.users ("id", "name") VALUES ($1, $2);`,
+					ArgsMapping:   `root = [this."id", this."name"]`,
 					InitStatement: "",
 					Schema:        "public",
 					Table:         "users",
@@ -411,8 +411,8 @@ func Test_buildSyncConfigs_postgres(t *testing.T) {
 					Name:          "public.users",
 				},
 				{
-					Query:         "UPDATE public.users SET user_id = $1 WHERE id = $2;",
-					ArgsMapping:   "root = [this.user_id, this.id]",
+					Query:         `UPDATE public.users SET "user_id" = $1 WHERE "id" = $2;`,
+					ArgsMapping:   `root = [this."user_id", this."id"]`,
 					InitStatement: "",
 					Schema:        "public",
 					Table:         "users",

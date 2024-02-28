@@ -850,24 +850,6 @@ func (s *Service) GetConnectionInitStatements(
 			return nil, nucleuserrors.NewNotImplemented("postgres truncate unsupported. table foreig keys required to build truncate statement.")
 		}
 
-		for k, v := range schemaTableMap {
-			statements := []string{}
-			if req.Msg.Options.InitSchema {
-				stmt, err := dbschemas_postgres.GetTableCreateStatement(cctx, db, s.pgquerier, v.Schema, v.Table)
-				if err != nil {
-					return nil, err
-				}
-				statements = append(statements, stmt)
-			}
-			if req.Msg.Options.TruncateBeforeInsert {
-				if req.Msg.Options.TruncateCascade {
-					statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s CASCADE;", v.Schema, v.Table))
-				} else {
-					statements = append(statements, fmt.Sprintf("TRUNCATE TABLE %s.%s;", v.Schema, v.Table))
-				}
-			}
-			createStmtsMap[k] = strings.Join(statements, "\n")
-		}
 	default:
 		return nil, errors.New("unsupported connection config")
 	}
