@@ -769,6 +769,130 @@ func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+func Test_InitStatementBuilder_Mysql_Generate(t *testing.T) {
+	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
+	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
+	sqlDbContainerMock := sqlconnect.NewMockSqlDbContainer(t)
+
+	sqlDbMock, _, err := sqlmock.New(sqlmock.MonitorPingsOption(false))
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	pgcache := map[string]pg_queries.DBTX{}
+	pgquerier := pg_queries.NewMockQuerier(t)
+	mysqlcache := map[string]mysql_queries.DBTX{
+		"fake-prod-url": sqlDbMock,
+		"postgresql://postgres:foofar@localhost:5435/nucleus": mysql_queries.NewMockDBTX(t),
+	}
+	mysqlquerier := mysql_queries.NewMockQuerier(t)
+	connectionId := "456"
+
+	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
+		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
+			Job: &mgmtv1alpha1.Job{
+				Source: &mgmtv1alpha1.JobSource{
+					Options: &mgmtv1alpha1.JobSourceOptions{
+						Config: &mgmtv1alpha1.JobSourceOptions_Generate{
+							Generate: &mgmtv1alpha1.GenerateSourceOptions{
+								Schemas: []*mgmtv1alpha1.GenerateSourceSchemaOption{
+									{
+										Schema: "public",
+										Tables: []*mgmtv1alpha1.GenerateSourceTableOption{
+											{
+												Table:    "users",
+												RowCount: 10,
+											},
+										},
+									},
+								},
+								FkSourceConnectionId: &connectionId,
+							},
+						},
+					},
+				},
+				Mappings: []*mgmtv1alpha1.JobMapping{
+					{
+						Schema: "public",
+						Table:  "users",
+						Column: "id",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Source: "generate_uuid",
+							Config: &mgmtv1alpha1.TransformerConfig{
+								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
+									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
+										IncludeHyphens: true,
+									},
+								},
+							},
+						},
+					},
+					{
+						Schema: "public",
+						Table:  "users",
+						Column: "name",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Source: "generate_full_name",
+							Config: &mgmtv1alpha1.TransformerConfig{
+								Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
+									GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
+								},
+							},
+						},
+					},
+				},
+				Destinations: []*mgmtv1alpha1.JobDestination{
+					{
+						ConnectionId: "456",
+						Options: &mgmtv1alpha1.JobDestinationOptions{
+							Config: &mgmtv1alpha1.JobDestinationOptions_MysqlOptions{
+								MysqlOptions: &mgmtv1alpha1.MysqlDestinationConnectionOptions{
+									TruncateTable: &mgmtv1alpha1.MysqlTruncateTableConfig{
+										TruncateBeforeInsert: false,
+									},
+									InitTableSchema: false,
+								},
+							},
+						},
+					},
+				},
+			},
+		}), nil)
+
+	mockConnectionClient.On(
+		"GetConnection",
+		mock.Anything,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+			Id: "456",
+		}),
+	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+		Connection: &mgmtv1alpha1.Connection{
+			Id:   "456",
+			Name: "stage",
+			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
+							Url: "fake-prod-url",
+						},
+					},
+				},
+			},
+		},
+	}), nil)
+	sqlDbContainerMock.On("Open", mock.Anything).Return(sqlDbMock, nil)
+	sqlDbContainerMock.On("Close").Return(nil)
+	mockSqlConnector.On("NewDbFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(sqlDbContainerMock, nil)
+
+	bbuilder := newInitStatementBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockSqlConnector)
+	_, err = bbuilder.RunSqlInitTableStatements(
+		context.Background(),
+		&RunSqlInitTableStatementsRequest{JobId: "123", WorkflowId: "123"},
+		slog.Default(),
+	)
+	assert.Nil(t, err)
+}
+
 func Test_InitStatementBuilder_Mysql_Truncate(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
