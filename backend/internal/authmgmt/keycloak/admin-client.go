@@ -16,6 +16,10 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt"
 )
 
+var (
+	DefaultTokenExpirationBuffer = 10 * time.Second
+)
+
 var _ authmgmt.Interface = &AdminClient{}
 
 type AdminClient struct {
@@ -164,22 +168,22 @@ func New(
 func (c *AdminClient) GetUserBySub(ctx context.Context, sub string) (*authmgmt.User, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/users/%s", c.domain, sub), http.NoBody)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to initiate request to user endpoint: %w", err)
 	}
 	token, err := c.tokenprovider.GetToken(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to get access token: %w", err)
 	}
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to retrieve response when requested access to user data: %w", err)
 	}
 	defer res.Body.Close()
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to read response body for user endpoint: %w", err)
 	}
 
 	if res.StatusCode > 399 {
@@ -190,7 +194,7 @@ func (c *AdminClient) GetUserBySub(ctx context.Context, sub string) (*authmgmt.U
 	var kcuser *user
 	err = json.Unmarshal(body, &kcuser)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to unmarshal keycloak user data: %w", err)
 	}
 	return &authmgmt.User{
 		Name:    kcuser.Name(),

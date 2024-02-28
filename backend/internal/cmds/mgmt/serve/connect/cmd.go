@@ -625,7 +625,7 @@ func getAuthAdminClient(ctx context.Context, authclient auth_client.Interface, l
 		if err != nil {
 			return nil, err
 		}
-		tokenProvider := keycloak.NewCCTokenProvider(tokenurl, authApiClientId, authApiClientSecret, 10*time.Second, logger)
+		tokenProvider := keycloak.NewCCTokenProvider(tokenurl, authApiClientId, authApiClientSecret, keycloak.DefaultTokenExpirationBuffer, logger)
 		return keycloak.New(authApiBaseUrl, tokenProvider, logger)
 	}
 	logger.Warn(fmt.Sprintf("unable to initialize auth admin client due to unsupported provider: %q", provider))
