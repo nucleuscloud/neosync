@@ -7,5 +7,6 @@ export const siteConfig = {
   links: {
     discord: 'https://discord.com/invite/MFAMgnp4HF',
     github: 'https://github.com/nucleuscloud',
+    docs: 'https://docs.neosync.dev',
   },
 };

@@ -4,6 +4,7 @@ import { cn } from '@/libs/utils';
 import { DiscordLogoIcon, GitHubLogoIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { ReactElement } from 'react';
+import { PiBookOpenText } from 'react-icons/pi';
 import { buttonVariants } from '../ui/button';
 import AccountSwitcher from './AccountSwitcher';
 import { MainNav } from './MainNav';
@@ -26,6 +27,12 @@ export default function SiteHeader(): ReactElement {
         <MobileNav />
         <div className="flex flex-1 justify-end items-center space-x-2">
           {systemAppConfig.isAuthEnabled && <AccountSwitcher />}
+          <Link href={siteConfig.links.docs} target="_blank" rel="noreferrer">
+            <div className={iconButtonClassNames}>
+              <PiBookOpenText className="h-4 w-4" />
+              <span className="sr-only">Docs</span>
+            </div>
+          </Link>
           <Link href={siteConfig.links.github} target="_blank" rel="noreferrer">
             <div className={iconButtonClassNames}>
               <GitHubLogoIcon />
