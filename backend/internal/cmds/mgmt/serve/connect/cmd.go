@@ -24,7 +24,6 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/auth/authmw"
 	auth_client "github.com/nucleuscloud/neosync/backend/internal/auth/client"
 	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
-	"github.com/nucleuscloud/neosync/backend/internal/authmgmt/auth0"
 	awsmanager "github.com/nucleuscloud/neosync/backend/internal/aws"
 	up_cmd "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/migrate/up"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
@@ -221,18 +220,6 @@ func serve(ctx context.Context) error {
 		issuerStr = issuerUrl.String()
 	}
 
-	var auth0Mgmt *auth0.Auth0MgmtClient
-	if isAuthEnabled {
-		authApiBaseUrl := getAuthApiBaseUrl()
-		authApiClientId := getAuthApiClientId()
-		authApiClientSecret := getAuthApiClientSecret()
-		authmanagement, err := auth0.New(authApiBaseUrl, authApiClientId, authApiClientSecret)
-		if err != nil {
-			return err
-		}
-		auth0Mgmt = authmanagement
-	}
-
 	authService := v1alpha1_authservice.New(&v1alpha1_authservice.Config{
 		IsAuthEnabled: isAuthEnabled,
 		CliClientId:   viper.GetString("AUTH_CLI_CLIENT_ID"),
@@ -262,7 +249,7 @@ func serve(ctx context.Context) error {
 	useraccountService := v1alpha1_useraccountservice.New(&v1alpha1_useraccountservice.Config{
 		IsAuthEnabled:  isAuthEnabled,
 		IsNeosyncCloud: getIsNeosyncCloud(),
-	}, db, auth0Mgmt, tfwfmgr)
+	}, db, tfwfmgr, authclient)
 	api.Handle(
 		mgmtv1alpha1connect.NewUserAccountServiceHandler(
 			useraccountService,

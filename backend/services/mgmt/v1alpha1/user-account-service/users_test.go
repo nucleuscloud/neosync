@@ -4,20 +4,18 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"testing"
 	"time"
 
 	"connectrpc.com/connect"
-	"github.com/auth0/go-auth0/management"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/internal/apikey"
 	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
+	auth_client "github.com/nucleuscloud/neosync/backend/internal/auth/client"
 	authjwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
-	"github.com/nucleuscloud/neosync/backend/internal/authmgmt/auth0"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
 	"github.com/stretchr/testify/assert"
@@ -375,12 +373,6 @@ func Test_GetTeamAccountMembers(t *testing.T) {
 		[]db_queries.NeosyncApiUserIdentityProviderAssociation{{UserID: userUuid, ProviderSub: authProviderId}},
 		nil,
 	)
-	m.Auth0MgmtMock.On("GetUserById", ctx, authProviderId).
-		Return(
-			&management.User{
-				ID: &authProviderId,
-			}, nil,
-		)
 	resp, err := m.Service.GetTeamAccountMembers(ctx, &connect.Request[mgmtv1alpha1.GetTeamAccountMembersRequest]{Msg: &mgmtv1alpha1.GetTeamAccountMembersRequest{AccountId: mockAccountId}})
 
 	assert.NoError(t, err)
@@ -401,10 +393,6 @@ func Test_GetTeamAccountMembers_NoAuthUser(t *testing.T) {
 		[]db_queries.NeosyncApiUserIdentityProviderAssociation{{UserID: userUuid, ProviderSub: authProviderId}},
 		nil,
 	)
-	m.Auth0MgmtMock.On("GetUserById", ctx, authProviderId).
-		Return(
-			nil, fmt.Errorf("bad news"),
-		)
 	resp, err := m.Service.GetTeamAccountMembers(ctx, &connect.Request[mgmtv1alpha1.GetTeamAccountMembersRequest]{Msg: &mgmtv1alpha1.GetTeamAccountMembersRequest{AccountId: mockAccountId}})
 
 	assert.NoError(t, err)
@@ -585,15 +573,7 @@ func Test_AcceptTeamAccountInvite(t *testing.T) {
 
 	mockVerifyTeamAccount(ctx, m.QuerierMock, accountUuid, true)
 	m.QuerierMock.On("GetUserAssociationByProviderSub", ctx, mock.Anything, mockAuthProvider).Return(userAssociation, nil)
-	m.QuerierMock.On("GetUserIdentityByUserId", ctx, mock.Anything, userUuid).Return(userAssociation, nil)
 	m.DbtxMock.On("Begin", ctx).Return(mockTx, nil)
-	m.Auth0MgmtMock.On("GetUserById", ctx, userAssociation.ProviderSub).
-		Return(
-			&management.User{
-				ID:    &userAssociation.ProviderSub,
-				Email: &email,
-			}, nil,
-		)
 	m.QuerierMock.On("GetAccountInviteByToken", ctx, mockTx, token).Return(db_queries.NeosyncApiAccountInvite{
 		AccountID:    accountUuid,
 		SenderUserID: userUuid,
@@ -602,6 +582,7 @@ func Test_AcceptTeamAccountInvite(t *testing.T) {
 		ID:           inviteUuid,
 		Accepted:     pgtype.Bool{Bool: false},
 	}, nil)
+	m.AuthClientMock.On("GetUserInfo", ctx, mock.Anything).Return(&auth_client.UserInfo{Email: email}, nil)
 	m.QuerierMock.On("UpdateAccountInviteToAccepted", ctx, mockTx, inviteUuid).Return(db_queries.NeosyncApiAccountInvite{}, nil)
 	m.QuerierMock.On("GetAccountUserAssociation", ctx, mockTx, db_queries.GetAccountUserAssociationParams{
 		AccountId: accountUuid,
@@ -650,7 +631,6 @@ func Test_AcceptTeamAccountInvite_JwtEmail(t *testing.T) {
 
 	mockVerifyTeamAccount(ctx, m.QuerierMock, accountUuid, true)
 	m.QuerierMock.On("GetUserAssociationByProviderSub", ctx, mock.Anything, mockAuthProvider).Return(userAssociation, nil)
-	m.QuerierMock.On("GetUserIdentityByUserId", ctx, mock.Anything, userUuid).Return(userAssociation, nil)
 	m.DbtxMock.On("Begin", ctx).Return(mockTx, nil)
 	m.QuerierMock.On("GetAccountInviteByToken", ctx, mockTx, token).Return(db_queries.NeosyncApiAccountInvite{
 		AccountID:    accountUuid,
@@ -687,28 +667,35 @@ func Test_AcceptTeamAccountInvite_JwtEmail(t *testing.T) {
 	assert.Equal(t, mockAccountId, resp.Msg.Account.Id)
 }
 
+func Test_GetSystemInformation(t *testing.T) {
+	m := createServiceMock(t, &Config{})
+	resp, err := m.Service.GetSystemInformation(context.Background(), connect.NewRequest(&mgmtv1alpha1.GetSystemInformationRequest{}))
+	assert.NoError(t, err)
+	assert.NotNil(t, resp)
+}
+
 type serviceMocks struct {
 	Service                   *Service
 	DbtxMock                  *nucleusdb.MockDBTX
 	QuerierMock               *db_queries.MockQuerier
-	Auth0MgmtMock             *auth0.MockAuth0MgmtClientInterface
+	AuthClientMock            *auth_client.MockInterface
 	TemporalClientManagerMock *clientmanager.MockTemporalClientManagerClient
 }
 
 func createServiceMock(t *testing.T, config *Config) *serviceMocks {
 	mockDbtx := nucleusdb.NewMockDBTX(t)
 	mockQuerier := db_queries.NewMockQuerier(t)
-	mockAuth0MgmtClient := auth0.NewMockAuth0MgmtClientInterface(t)
+	mockAuthClient := auth_client.NewMockInterface(t)
 	temporalClientManager := clientmanager.NewMockTemporalClientManagerClient(t)
 
-	service := New(config, nucleusdb.New(mockDbtx, mockQuerier), mockAuth0MgmtClient, temporalClientManager)
+	service := New(config, nucleusdb.New(mockDbtx, mockQuerier), temporalClientManager, mockAuthClient)
 
 	return &serviceMocks{
 		Service:                   service,
 		DbtxMock:                  mockDbtx,
 		QuerierMock:               mockQuerier,
-		Auth0MgmtMock:             mockAuth0MgmtClient,
 		TemporalClientManagerMock: temporalClientManager,
+		AuthClientMock:            mockAuthClient,
 	}
 }
 
@@ -719,7 +706,7 @@ func getUserMock(userId string) db_queries.NeosyncApiUser {
 
 //nolint:all
 func getJwtAuthenticatedCtxMock(authProviderId string) context.Context {
-	data := &authjwt.TokenContextData{AuthUserId: authProviderId}
+	data := &authjwt.TokenContextData{AuthUserId: authProviderId, RawToken: "fake-access-token"}
 	return context.WithValue(context.Background(), authjwt.TokenContextKey{}, data)
 }
 
