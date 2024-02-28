@@ -8,8 +8,10 @@ require (
 	connectrpc.com/connect v1.15.0
 	connectrpc.com/grpchealth v1.3.0
 	connectrpc.com/grpcreflect v1.2.0
+	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/benthosdev/benthos/v4 v4.24.0
 	github.com/google/uuid v1.6.0
+	github.com/jackc/pgx/v5 v5.5.3
 	github.com/nucleuscloud/neosync/backend v0.0.0-20231203015621-7d46ef5b9957
 	github.com/redis/go-redis/v9 v9.5.1
 	github.com/spf13/cobra v1.8.0
@@ -132,7 +134,6 @@ require (
 	github.com/itchyny/timefmt-go v0.1.5 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
-	github.com/jackc/pgx/v5 v5.5.3 // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
