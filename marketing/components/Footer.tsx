@@ -119,7 +119,7 @@ function Socials(): ReactElement {
   ];
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-row gap-2 items-center">
+      <div className="flex flex-col lg:flex-row gap-2 items-center">
         {links.map((item) => (
           <Button key={item.name} variant="footerlink">
             <Link href={item.href}>{item.logo}</Link>

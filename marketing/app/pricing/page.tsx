@@ -20,12 +20,12 @@ export default function Pricing() {
   return (
     <div className="flex flex-col gap-6 justify-center z-40 py-20 px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto">
       <div className="text-center text-gray-900 font-semibold text-3xl lg:text-5xl font-satoshi pt-10 bg-white/50">
-        Actually Straightforward Pricing
+        Simple, Transparent Pricing
       </div>
-      <div className="text-center text-gray-800 font-semibold text-lg font-satoshi mx-10 md:mx-40 lg:mx-60 xl:mx-80 bg-white/50 pt-6">
-        Simple, transparent pricing that is generous and easy to understand.
+      <div className="text-center text-gray-800 font-semibold text-lg font-satoshi  bg-white/50 pt-6">
+        Pricing shouldn&apos;t be complicated, so we made it easy.
       </div>
-      <div className="flex flex-row items-center justify-center gap-6 pt-10 ">
+      <div className="flex flex-col lg:flex-row items-center justify-center gap-6 pt-10 ">
         <FreePlan />
         <TeamPlan />
         <CustomPlan />
@@ -50,7 +50,7 @@ function FreePlan(): ReactElement {
     'Community Discord',
   ];
   return (
-    <div className="border-2 border-gray-400 rounded-xl py-8 px-12 mt-28 w-[350px]">
+    <div className="border-2 border-gray-400 rounded-xl py-8 px-12 lg:mt-28 lg:w-[350px]">
       <div className="flex flex-col gap-6">
         <div className="flex justify-center">
           <Badge variant="outline">Individual</Badge>
@@ -90,7 +90,7 @@ function TeamPlan(): ReactElement {
   ];
 
   return (
-    <div className="w-[350px]">
+    <div className="lg:w-[350px]">
       <div className="flex justify-center bg-gradient-to-t from-[#191919] to-[#484848] text-white p-4 shadow-lg rounded-t-xl">
         Most Popular
       </div>
@@ -135,7 +135,7 @@ function CustomPlan(): ReactElement {
   ];
 
   return (
-    <div className="border-2 border-gray-400 rounded-xl p-8 mt-28 w-[350px]">
+    <div className="border-2 border-gray-400 rounded-xl p-8 lg:mt-28 lg:w-[350px]">
       <div className="flex flex-col gap-6">
         <div className="flex justify-center">
           <Badge variant="outline">Enterprise</Badge>
@@ -190,91 +190,89 @@ function PricingCalc(): ReactElement {
     }
   };
   return (
-    <div className=" bg-[#1E1E1E] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto pt-20 rounded-3xl mt-20 lg:mt-40 py-10 justify-center flex flex-col">
-      <div className="mx-40">
-        <div className="text-centerfont-semibold text-2xl lg:text-5xl font-satoshi text-white text-center">
+    <div className=" bg-[#1E1E1E]  pt-20 rounded-3xl mt-20 lg:mt-40 py-10 justify-center flex flex-col lg:mx-40">
+      <div className="mx-10 lg:mx-40">
+        <div className="text-center font-semibold text-2xl lg:text-5xl font-satoshi text-white ">
           Estimate your monthly price
         </div>
-        <div className="text-center text-white font-semibold text-md font-satoshi  pt-6">
+        <div className="text-center text-white font-semibold text-md font-satoshi pt-6">
           Complete the form below to get an estimate of your monthly cost.
         </div>
-        <div>
-          <div className="flex flex-col lg:flex-row items-center  p-4 gap-8 rounded-xl mt-10">
-            <div className="gap-6 flex flex-col">
-              <div className="flex flex-col gap-2">
-                <div className="text-white text-sm">
-                  Number of records to Sync or Generate
-                </div>
-                <div className="flex flex-col items-center rounded-lg gap-4 ">
-                  <Input
-                    id="record_count"
-                    type="string"
-                    value={
-                      inputRecord > 0 ? formatNumberWithCommas(inputRecord) : ''
-                    }
-                    className="bg-transparent border border-gray-700 text-white w-[300px]"
-                    onChange={handleInputChange}
-                  />
-                </div>
+
+        <div className="flex flex-col xl:flex-row items-center justify-center p-4 gap-8 rounded-xl mt-10">
+          <div className="gap-6 flex flex-col">
+            <div className="flex flex-col gap-2">
+              <div className="text-white text-sm">
+                Number of records to Sync or Generate
               </div>
-              <div className="flex flex-col gap-2">
-                <div className="text-white text-sm">Sync frequency</div>
-                <div className="flex flex-col items-start rounded-lg gap-4">
-                  <ToggleGroup
-                    type="single"
-                    id="sync_count"
-                    className="text-white outline"
-                    onValueChange={(e) => setSyncFreq(parseFloat(e))}
-                    defaultValue="4"
-                  >
-                    <ToggleGroupItem
-                      value="30"
-                      className={cn(
-                        syncFreq == 30
-                          ? 'bg-gray-700 text-white'
-                          : 'border border-gray-700 hover:bg-gray-800'
-                      )}
-                    >
-                      Daily
-                    </ToggleGroupItem>
-                    <ToggleGroupItem
-                      value="4"
-                      className={cn(
-                        syncFreq == 4
-                          ? 'bg-gray-700 text-white'
-                          : 'border border-gray-700 hover:bg-gray-800'
-                      )}
-                    >
-                      Weekly
-                    </ToggleGroupItem>
-                    <ToggleGroupItem
-                      value="1"
-                      className={cn(
-                        syncFreq == 1
-                          ? 'bg-gray-700 text-white'
-                          : 'border border-gray-700 hover:bg-gray-800'
-                      )}
-                    >
-                      Monthly
-                    </ToggleGroupItem>
-                  </ToggleGroup>
-                </div>
+              <div className="flex flex-col items-center rounded-lg gap-4 ">
+                <Input
+                  id="record_count"
+                  type="string"
+                  value={
+                    inputRecord > 0 ? formatNumberWithCommas(inputRecord) : ''
+                  }
+                  className="bg-transparent border border-gray-700 text-white sm:w-[150px] lg:w-[300px]"
+                  onChange={handleInputChange}
+                />
               </div>
             </div>
-            <Separator
-              orientation="vertical"
-              className="bg-gray-600 w-[1px] h-28"
-            />
-            <div className="border border-gray-600 p-10 rounded-xl">
-              <div>
-                {' '}
-                <div className="flex justify-center flex-row gap-2">
-                  <div className="text-3xl text-white ">
-                    {formatMoney(finalEstimate)}
-                  </div>
-                  <div className="text-sm text-white self-end pb-1">/mo</div>
-                </div>
+            <div className="flex flex-col gap-2">
+              <div className="text-white text-sm">Sync frequency</div>
+              <div className="flex flex-col items-start rounded-lg gap-4">
+                <ToggleGroup
+                  type="single"
+                  id="sync_count"
+                  className="text-white outline"
+                  onValueChange={(e) => setSyncFreq(parseFloat(e))}
+                  defaultValue="4"
+                >
+                  <ToggleGroupItem
+                    value="30"
+                    className={cn(
+                      syncFreq == 30
+                        ? 'bg-gray-700 text-white'
+                        : 'border border-gray-700 hover:bg-gray-800'
+                    )}
+                  >
+                    Daily
+                  </ToggleGroupItem>
+                  <ToggleGroupItem
+                    value="4"
+                    className={cn(
+                      syncFreq == 4
+                        ? 'bg-gray-700 text-white'
+                        : 'border border-gray-700 hover:bg-gray-800'
+                    )}
+                  >
+                    Weekly
+                  </ToggleGroupItem>
+                  <ToggleGroupItem
+                    value="1"
+                    className={cn(
+                      syncFreq == 1
+                        ? 'bg-gray-700 text-white'
+                        : 'border border-gray-700 hover:bg-gray-800'
+                    )}
+                  >
+                    Monthly
+                  </ToggleGroupItem>
+                </ToggleGroup>
               </div>
+            </div>
+          </div>
+          <div className="block xl:hidden">
+            <Separator className="bg-gray-600 h-[1px] w-60" />
+          </div>
+          <div className="hidden xl:block">
+            <Separator className="bg-gray-600 w-[1px] h-32" />
+          </div>
+          <div className="border border-gray-600 p-6 lg:p-14 rounded-xl">
+            <div className="flex justify-center flex-row gap-2">
+              <div className="text-3xl text-white ">
+                {formatMoney(finalEstimate)}
+              </div>
+              <div className="text-sm text-white self-end pb-1">/mo</div>
             </div>
           </div>
         </div>
@@ -285,13 +283,32 @@ function PricingCalc(): ReactElement {
 
 function FAQs(): ReactElement {
   return (
-    <div className="mx-40 mt-20">
+    <div className="xl:mx-40 mt-20">
       <div className="text-center text-gray-900 font-semibold text-2xl lg:text-5xl font-satoshi pt-10 bg-white/50">
         Frequently Asked Questions
       </div>
-      <div className="text-center text-gray-800 font-semibold text-lg font-satoshi  md:mx-10 lg:mx-20 xl:mx-40 bg-white/50 pt-6">
-        Answers to our most common pricing questions. If you still have
-        questions, chat with us on Discord or schedule time to talk to us here.
+      <div className="text-center text-gray-800 font-semibold text-lg font-satoshi bg-white/50 pt-6">
+        <span>
+          Answers to our most common pricing questions. If you still have
+          questions, chat with us on{' '}
+        </span>
+        <a
+          href="https://discord.com/invite/MFAMgnp4HF"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-gray-900 underline"
+        >
+          Discord
+        </a>
+        <span> or schedule time to talk to us </span>
+        <a
+          href="https://calendly.com/evis1/30min"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-gray-900 underline "
+        >
+          here.
+        </a>
       </div>
       <Accordion type="single" collapsible className="w-full pt-10">
         <AccordionItem value="item-1">
@@ -314,17 +331,9 @@ function FAQs(): ReactElement {
           <AccordionTrigger>When do the record limits reset?</AccordionTrigger>
           <AccordionContent>
             They reset exactly one month after you signed up.{' '}
-            <AccordionItem value="item-3">
-              <AccordionTrigger>
-                When will the EU region be available?
-              </AccordionTrigger>
-              <AccordionContent>
-                We&apos;re working on it and expect to have it in early H2!
-              </AccordionContent>
-            </AccordionItem>
           </AccordionContent>
         </AccordionItem>
-        <AccordionItem value="item-3">
+        <AccordionItem value="item-4">
           <AccordionTrigger>
             When will the EU region be available?
           </AccordionTrigger>
