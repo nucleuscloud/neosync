@@ -1,5 +1,6 @@
 'use client';
 
+import ShimmeringButton from '@/components/buttons/ShimmeringButton';
 import CTA from '@/components/cta/CTA';
 import {
   Accordion,
@@ -22,7 +23,7 @@ export default function Pricing() {
       <div className="text-center text-gray-900 font-semibold text-3xl lg:text-5xl font-satoshi pt-10 bg-white/50">
         Simple, Transparent Pricing
       </div>
-      <div className="text-center text-gray-800 font-semibold text-lg font-satoshi  bg-white/50 pt-6">
+      <div className="text-center text-gray-800 font-semibold text-lg font-satoshi bg-white/50 pt-6">
         Pricing shouldn&apos;t be complicated, so we made it easy.
       </div>
       <div className="flex flex-col lg:flex-row items-center justify-center gap-6 pt-10 ">
@@ -113,10 +114,12 @@ function TeamPlan(): ReactElement {
             </div>
           ))}
         </div>
-        <div className="flex justify-center pt-10">
-          <Button variant="default" className="w-full">
-            Start today
-          </Button>
+        <div className="flex justify-center pt-10 w-full">
+          <ShimmeringButton>
+            {/* <Button variant="default" className="w-full"> */}
+            <div className="text-white w-full">Start today </div>
+            {/* </Button> */}
+          </ShimmeringButton>
         </div>
       </div>
     </div>
@@ -171,11 +174,15 @@ function PricingCalc(): ReactElement {
   const [finalEstimate, setFinalEstimate] = useState<number>(400);
 
   useEffect(() => {
-    const additionalRecords: number = inputRecord - bucketTop;
-    const additionalPrice: number =
-      additionalRecords > 0 ? (additionalRecords / 1000000) * ratePerM : 0;
-    const totalPrice: number = basePrice + additionalPrice;
-    setFinalEstimate(parseFloat(totalPrice.toFixed(0)));
+    if (inputRecord < 100001) {
+      setFinalEstimate(0);
+    } else {
+      const additionalRecords: number = inputRecord - bucketTop;
+      const additionalPrice: number =
+        additionalRecords > 0 ? (additionalRecords / 1000000) * ratePerM : 0;
+      const totalPrice: number = basePrice + additionalPrice;
+      setFinalEstimate(parseFloat(totalPrice.toFixed(0)));
+    }
   }, [inputRecord, syncFreq]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
