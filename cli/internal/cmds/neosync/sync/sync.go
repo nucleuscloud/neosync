@@ -1409,21 +1409,6 @@ func buildMysqlUpdateQuery(table string, columns, primaryKeys []string) string {
 	return fmt.Sprintf("UPDATE %s SET %s %s;", table, strings.Join(values, ", "), where)
 }
 
-// returns map of table to list of sql statements
-// func getMysqlInitStatementsMap(initTableStatementsMap map[string]string) map[string][]string {
-// 	initStatementsMap := map[string][]string{}
-// 	for key, statements := range initTableStatementsMap {
-// 		nonEmptyStatements := []string{}
-// 		for _, st := range strings.SplitAfter(statements, ";") {
-// 			if st != "" {
-// 				nonEmptyStatements = append(nonEmptyStatements, st)
-// 			}
-// 		}
-// 		initStatementsMap[key] = nonEmptyStatements
-// 	}
-// 	return initStatementsMap
-// }
-
 func getMysqlMultiStatementConnectionUrl(connectionUrl string) string {
 	if strings.Contains(connectionUrl, "?") {
 		return fmt.Sprintf("%s&multiStatements=true", connectionUrl)
