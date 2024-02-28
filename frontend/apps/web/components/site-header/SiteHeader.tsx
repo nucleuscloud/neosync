@@ -1,5 +1,11 @@
 import { getSystemAppConfig } from '@/app/api/config/config';
 import { siteConfig } from '@/app/config/site';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/libs/utils';
 import { DiscordLogoIcon, GitHubLogoIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
@@ -28,26 +34,44 @@ export default function SiteHeader(): ReactElement {
         <div className="flex flex-1 justify-end items-center space-x-2">
           {systemAppConfig.isAuthEnabled && <AccountSwitcher />}
           <Link href={siteConfig.links.docs} target="_blank" rel="noreferrer">
-            <div className={iconButtonClassNames}>
-              <PiBookOpenText className="h-4 w-4" />
-              <span className="sr-only">Docs</span>
-            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className={iconButtonClassNames}>
+                    <PiBookOpenText className="h-4 w-4" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">Documentation</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </Link>
           <Link href={siteConfig.links.github} target="_blank" rel="noreferrer">
-            <div className={iconButtonClassNames}>
-              <GitHubLogoIcon />
-              <span className="sr-only">GitHub</span>
-            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className={iconButtonClassNames}>
+                    <GitHubLogoIcon />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">Github</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </Link>
           <Link
             href={siteConfig.links.discord}
             target="_blank"
             rel="noreferrer"
           >
-            <div className={iconButtonClassNames}>
-              <DiscordLogoIcon />
-              <span className="sr-only">Discord</span>
-            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className={iconButtonClassNames}>
+                    <DiscordLogoIcon />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">Discord</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </Link>
           <ModeToggle />
           <UserNav />
