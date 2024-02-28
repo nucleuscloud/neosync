@@ -46,6 +46,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '../ui/dialog';
+import { MainLogo } from './MainLogo';
 
 interface NavLinks {
   title: string;
@@ -132,16 +133,7 @@ export default function TopNav(): ReactElement {
     <div className="flex items-center justify-between px-5 sm:px-10 md:px-20 lg:px-60  mx-auto py-2 z-50 w-full bg-[#FFFFFF] border border-b-gray-100 sticky top-0 backdrop-blur-lg">
       <div>
         <Link href="/" className="flex items-center">
-          <Image
-            src="https://assets.nucleuscloud.com/neosync/newbrand/logo_text_light_mode.svg"
-            alt="NeosyncLogo"
-            className="w-5 object-scale-down"
-            width="64"
-            height="20"
-          />
-          <span className="text-gray-900 text-md lg:text-lg font-normal ml-1 font-satoshi">
-            Neosync
-          </span>
+          <MainLogo />
         </Link>
       </div>
       <div className="hidden items-center md:flex lg:flex lg:flex-row gap-4 z-50">
