@@ -379,51 +379,196 @@ func Test_GetConnectionForeignConstraints_Postgres(t *testing.T) {
 	}, resp.Msg.TableConstraints)
 }
 
-// TODO fix
-// func Test_GetConnectionInitStatements_Mysql(t *testing.T) {
-// 	m := createServiceMock(t)
-// 	defer m.SqlDbMock.Close()
+// GetConnectionPrimaryConstraints
+func Test_GetConnectionPrimaryConstraints_Mysql(t *testing.T) {
+	m := createServiceMock(t)
+	defer m.SqlDbMock.Close()
 
-// 	connection := getConnectionMock(mockAccountId, mockConnectionName, mockConnectionId, MysqlMock)
-// 	mockIsUserInAccount(m.UserAccountServiceMock, true)
-// 	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-// 		Connection: connection,
-// 	}), nil)
-// m.SqlDbContainerMock.On("Open").Return(m.SqlDbMock, nil)
-// m.SqlDbContainerMock.On("Close").Return(nil)
-// m.SqlConnectorMock.On("NewDbFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.SqlDbContainerMock, nil)
-// 	m.MysqlQueierMock.On("GetDatabaseSchema", mock.Anything, mock.Anything).
-// 		Return([]*mysql_queries.GetDatabaseSchemaRow{
-// 			{
-// 				TableSchema: "public",
-// 				TableName:   "users",
-// 				ColumnName:  "id",
-// 			},
-// 			{
-// 				TableSchema: "public",
-// 				TableName:   "users",
-// 				ColumnName:  "name",
-// 			},
-// 		}, nil)
-// 	rows := sqlmock.NewRows([]string{"Table", "Create Table"}).
-// 		AddRow("users", "Create table users;")
-// 	m.SqlMock.ExpectQuery("SHOW CREATE TABLE public.users;").WillReturnRows(rows)
+	connection := getConnectionMock(mockAccountId, mockConnectionName, mockConnectionId, MysqlMock)
+	mockIsUserInAccount(m.UserAccountServiceMock, true)
+	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+		Connection: connection,
+	}), nil)
+	m.SqlDbContainerMock.On("Open").Return(m.SqlDbMock, nil)
+	m.SqlDbContainerMock.On("Close").Return(nil)
+	m.SqlConnectorMock.On("NewDbFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.SqlDbContainerMock, nil)
 
-// 	resp, err := m.Service.GetConnectionInitStatements(context.Background(), &connect.Request[mgmtv1alpha1.GetConnectionInitStatementsRequest]{
-// 		Msg: &mgmtv1alpha1.GetConnectionInitStatementsRequest{
-// 			ConnectionId: mockConnectionId,
-// 			Options: &mgmtv1alpha1.InitStatementOptions{
-// 				InitSchema:           true,
-// 				TruncateBeforeInsert: true,
-// 			},
-// 		},
-// 	})
+	m.MysqlQueierMock.On("GetDatabaseSchema", mock.Anything, mock.Anything).
+		Return([]*mysql_queries.GetDatabaseSchemaRow{
+			{
+				TableSchema: "public",
+				TableName:   "users",
+				ColumnName:  "id",
+			},
+			{
+				TableSchema: "public",
+				TableName:   "users",
+				ColumnName:  "name",
+			},
+		}, nil)
+	m.MysqlQueierMock.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*mysql_queries.GetPrimaryKeyConstraintsRow{
+			{
+				ConstraintName: "pk_users_id",
+				SchemaName:     "public",
+				TableName:      "users",
+				ColumnName:     "id",
+			},
+		}, nil)
 
-// 	assert.Nil(t, err)
-// 	assert.Len(t, resp.Msg.TableInitStatements, 2)
-// }
+	resp, err := m.Service.GetConnectionPrimaryConstraints(context.Background(), &connect.Request[mgmtv1alpha1.GetConnectionPrimaryConstraintsRequest]{
+		Msg: &mgmtv1alpha1.GetConnectionPrimaryConstraintsRequest{
+			ConnectionId: mockConnectionId,
+		},
+	})
 
-func Test_GetConnectionInitStatements_Postgres(t *testing.T) {
+	assert.Nil(t, err)
+	assert.Len(t, resp.Msg.TableConstraints, 1)
+	assert.EqualValues(t, map[string]*mgmtv1alpha1.PrimaryConstraint{
+		"public.users": {Columns: []string{"id"}},
+	}, resp.Msg.TableConstraints)
+}
+
+func Test_GetConnectionPrimaryConstraints_Postgres(t *testing.T) {
+	m := createServiceMock(t)
+	defer m.SqlDbMock.Close()
+
+	pool, _ := pgxpool.New(context.Background(), "")
+	m.PgPoolContainerMock.On("Open", mock.Anything).Return(pool, nil)
+	m.PgPoolContainerMock.On("Close")
+	m.SqlConnectorMock.On("NewPgPoolFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.PgPoolContainerMock, nil)
+	connection := getConnectionMock(mockAccountId, mockConnectionName, mockConnectionId, PostgresMock)
+	mockIsUserInAccount(m.UserAccountServiceMock, true)
+	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+		Connection: connection,
+	}), nil)
+
+	m.PgQueierMock.On("GetDatabaseSchema", mock.Anything, mock.Anything).
+		Return([]*pg_queries.GetDatabaseSchemaRow{
+			{
+				TableSchema: "public",
+				TableName:   "users",
+				ColumnName:  "id",
+			},
+			{
+				TableSchema: "public",
+				TableName:   "users",
+				ColumnName:  "name",
+			},
+		}, nil)
+	m.PgQueierMock.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*pg_queries.GetPrimaryKeyConstraintsRow{
+			{
+				ConstraintName: "pk_users_id",
+				SchemaName:     "public",
+				TableName:      "users",
+				ColumnName:     "id",
+			},
+		}, nil)
+
+	resp, err := m.Service.GetConnectionPrimaryConstraints(context.Background(), &connect.Request[mgmtv1alpha1.GetConnectionPrimaryConstraintsRequest]{
+		Msg: &mgmtv1alpha1.GetConnectionPrimaryConstraintsRequest{
+			ConnectionId: mockConnectionId,
+		},
+	})
+
+	assert.Nil(t, err)
+	assert.Len(t, resp.Msg.TableConstraints, 1)
+	assert.EqualValues(t, map[string]*mgmtv1alpha1.PrimaryConstraint{
+		"public.users": {Columns: []string{"id"}},
+	}, resp.Msg.TableConstraints)
+}
+
+func Test_GetConnectionInitStatements_Mysql_Create(t *testing.T) {
+	m := createServiceMock(t)
+	defer m.SqlDbMock.Close()
+
+	connection := getConnectionMock(mockAccountId, mockConnectionName, mockConnectionId, MysqlMock)
+	mockIsUserInAccount(m.UserAccountServiceMock, true)
+	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+		Connection: connection,
+	}), nil)
+	m.SqlDbContainerMock.On("Open").Return(m.SqlDbMock, nil)
+	m.SqlDbContainerMock.On("Close").Return(nil)
+	m.SqlConnectorMock.On("NewDbFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.SqlDbContainerMock, nil)
+	m.MysqlQueierMock.On("GetDatabaseSchema", mock.Anything, mock.Anything).
+		Return([]*mysql_queries.GetDatabaseSchemaRow{
+			{
+				TableSchema: "public",
+				TableName:   "users",
+				ColumnName:  "id",
+			},
+			{
+				TableSchema: "public",
+				TableName:   "users",
+				ColumnName:  "name",
+			},
+		}, nil)
+	rows := sqlmock.NewRows([]string{"Table", "Create Table"}).
+		AddRow("users", "CREATE TABLE public.users")
+	m.SqlMock.ExpectQuery("SHOW CREATE TABLE public.users;").WillReturnRows(rows)
+
+	resp, err := m.Service.GetConnectionInitStatements(context.Background(), &connect.Request[mgmtv1alpha1.GetConnectionInitStatementsRequest]{
+		Msg: &mgmtv1alpha1.GetConnectionInitStatementsRequest{
+			ConnectionId: mockConnectionId,
+			Options: &mgmtv1alpha1.InitStatementOptions{
+				InitSchema:           true,
+				TruncateBeforeInsert: false,
+			},
+		},
+	})
+
+	expectedInit := "CREATE TABLE IF NOT EXISTS  public.users;"
+	assert.Nil(t, err)
+	assert.Len(t, resp.Msg.TableInitStatements, 1)
+	assert.Len(t, resp.Msg.TableTruncateStatements, 0)
+	assert.Equal(t, expectedInit, resp.Msg.TableInitStatements["public.users"])
+}
+
+func Test_GetConnectionInitStatements_Mysql_Truncate(t *testing.T) {
+	m := createServiceMock(t)
+	defer m.SqlDbMock.Close()
+
+	connection := getConnectionMock(mockAccountId, mockConnectionName, mockConnectionId, MysqlMock)
+	mockIsUserInAccount(m.UserAccountServiceMock, true)
+	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+		Connection: connection,
+	}), nil)
+	m.SqlDbContainerMock.On("Open").Return(m.SqlDbMock, nil)
+	m.SqlDbContainerMock.On("Close").Return(nil)
+	m.SqlConnectorMock.On("NewDbFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.SqlDbContainerMock, nil)
+	m.MysqlQueierMock.On("GetDatabaseSchema", mock.Anything, mock.Anything).
+		Return([]*mysql_queries.GetDatabaseSchemaRow{
+			{
+				TableSchema: "public",
+				TableName:   "users",
+				ColumnName:  "id",
+			},
+			{
+				TableSchema: "public",
+				TableName:   "users",
+				ColumnName:  "name",
+			},
+		}, nil)
+
+	resp, err := m.Service.GetConnectionInitStatements(context.Background(), &connect.Request[mgmtv1alpha1.GetConnectionInitStatementsRequest]{
+		Msg: &mgmtv1alpha1.GetConnectionInitStatementsRequest{
+			ConnectionId: mockConnectionId,
+			Options: &mgmtv1alpha1.InitStatementOptions{
+				InitSchema:           false,
+				TruncateBeforeInsert: true,
+			},
+		},
+	})
+
+	expectedTruncate := "TRUNCATE TABLE `public`.`users`;"
+	assert.Nil(t, err)
+	assert.Len(t, resp.Msg.TableInitStatements, 0)
+	assert.Len(t, resp.Msg.TableTruncateStatements, 1)
+	assert.Equal(t, expectedTruncate, resp.Msg.TableTruncateStatements["public.users"])
+}
+
+func Test_GetConnectionInitStatements_Postgres_Create(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
@@ -484,18 +629,61 @@ func Test_GetConnectionInitStatements_Postgres(t *testing.T) {
 			ConnectionId: mockConnectionId,
 			Options: &mgmtv1alpha1.InitStatementOptions{
 				InitSchema:           true,
+				TruncateBeforeInsert: false,
+				TruncateCascade:      false,
+			},
+		},
+	})
+
+	expectedInit := "CREATE TABLE IF NOT EXISTS \"public\".\"users\" (\"id\" uuid NOT NULL DEFAULT gen_random_uuid(), \"name\" varchar(40) NULL, CONSTRAINT users_pkey PRIMARY KEY (id));"
+	assert.Nil(t, err)
+	assert.Len(t, resp.Msg.TableInitStatements, 1)
+	assert.Len(t, resp.Msg.TableTruncateStatements, 0)
+	assert.Equal(t, expectedInit, resp.Msg.TableInitStatements["public.users"])
+}
+
+func Test_GetConnectionInitStatements_Postgres_Truncate(t *testing.T) {
+	m := createServiceMock(t)
+	defer m.SqlDbMock.Close()
+
+	pool, _ := pgxpool.New(context.Background(), "")
+	m.PgPoolContainerMock.On("Open", mock.Anything).Return(pool, nil)
+	m.PgPoolContainerMock.On("Close")
+	m.SqlConnectorMock.On("NewPgPoolFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.PgPoolContainerMock, nil)
+	connection := getConnectionMock(mockAccountId, mockConnectionName, mockConnectionId, PostgresMock)
+	mockIsUserInAccount(m.UserAccountServiceMock, true)
+	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+		Connection: connection,
+	}), nil)
+	m.PgQueierMock.On("GetDatabaseSchema", mock.Anything, mock.Anything).
+		Return([]*pg_queries.GetDatabaseSchemaRow{
+			{
+				TableSchema: "public",
+				TableName:   "users",
+				ColumnName:  "id",
+			},
+			{
+				TableSchema: "public",
+				TableName:   "users",
+				ColumnName:  "name",
+			},
+		}, nil)
+
+	resp, err := m.Service.GetConnectionInitStatements(context.Background(), &connect.Request[mgmtv1alpha1.GetConnectionInitStatementsRequest]{
+		Msg: &mgmtv1alpha1.GetConnectionInitStatementsRequest{
+			ConnectionId: mockConnectionId,
+			Options: &mgmtv1alpha1.InitStatementOptions{
+				InitSchema:           false,
 				TruncateBeforeInsert: true,
 				TruncateCascade:      true,
 			},
 		},
 	})
 
-	expectedInit := "CREATE TABLE IF NOT EXISTS \"public\".\"users\" (\"id\" uuid NOT NULL DEFAULT gen_random_uuid(), \"name\" varchar(40) NULL, CONSTRAINT users_pkey PRIMARY KEY (id));"
 	expectedTruncate := "TRUNCATE TABLE \"public\".\"users\" CASCADE;"
 	assert.Nil(t, err)
-	assert.Len(t, resp.Msg.TableInitStatements, 1)
+	assert.Len(t, resp.Msg.TableInitStatements, 0)
 	assert.Len(t, resp.Msg.TableTruncateStatements, 1)
-	assert.Equal(t, expectedInit, resp.Msg.TableInitStatements["public.users"])
 	assert.Equal(t, expectedTruncate, resp.Msg.TableTruncateStatements["public.users"])
 }
 
@@ -629,4 +817,110 @@ func gzipData(data []byte) ([]byte, error) {
 		return nil, err
 	}
 	return b.Bytes(), nil
+}
+
+func Test_isValidTable(t *testing.T) {
+	tests := []struct {
+		name     string
+		table    string
+		columns  []*mgmtv1alpha1.DatabaseColumn
+		expected bool
+	}{
+		{
+			name:  "table exists",
+			table: "users",
+			columns: []*mgmtv1alpha1.DatabaseColumn{
+				{Table: "users"},
+				{Table: "orders"},
+			},
+			expected: true,
+		},
+		{
+			name:  "table does not exist",
+			table: "payments",
+			columns: []*mgmtv1alpha1.DatabaseColumn{
+				{Table: "users"},
+				{Table: "orders"},
+			},
+			expected: false,
+		},
+		{
+			name:     "empty table name",
+			table:    "",
+			columns:  []*mgmtv1alpha1.DatabaseColumn{{Table: "users"}, {Table: "orders"}},
+			expected: false,
+		},
+		{
+			name:     "empty columns slice",
+			table:    "users",
+			columns:  []*mgmtv1alpha1.DatabaseColumn{},
+			expected: false,
+		},
+		{
+			name:     "nil columns slice",
+			table:    "users",
+			columns:  nil,
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actual := isValidTable(tt.table, tt.columns)
+			assert.Equal(t, tt.expected, actual)
+		})
+	}
+}
+
+func Test_isValidSchema(t *testing.T) {
+	tests := []struct {
+		name     string
+		schema   string
+		columns  []*mgmtv1alpha1.DatabaseColumn
+		expected bool
+	}{
+		{
+			name:   "Schema exists",
+			schema: "users",
+			columns: []*mgmtv1alpha1.DatabaseColumn{
+				{Schema: "users"},
+				{Schema: "orders"},
+			},
+			expected: true,
+		},
+		{
+			name:   "table does not exist",
+			schema: "payments",
+			columns: []*mgmtv1alpha1.DatabaseColumn{
+				{Schema: "users"},
+				{Schema: "orders"},
+			},
+			expected: false,
+		},
+		{
+			name:     "empty table name",
+			schema:   "",
+			columns:  []*mgmtv1alpha1.DatabaseColumn{{Schema: "users"}, {Schema: "orders"}},
+			expected: false,
+		},
+		{
+			name:     "empty columns slice",
+			schema:   "users",
+			columns:  []*mgmtv1alpha1.DatabaseColumn{},
+			expected: false,
+		},
+		{
+			name:     "nil columns slice",
+			schema:   "users",
+			columns:  nil,
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actual := isValidSchema(tt.schema, tt.columns)
+			assert.Equal(t, tt.expected, actual)
+		})
+	}
 }
