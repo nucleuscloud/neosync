@@ -75,7 +75,7 @@ func generateCreateTableStatement(
 		constraints[idx] = fmt.Sprintf("CONSTRAINT %s %s", constraint.ConstraintName, constraint.ConstraintDefinition)
 	}
 	tableDefs := append(columns, constraints...) //nolint:gocritic
-	return fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s.%s (%s);`, schema, table, strings.Join(tableDefs, ", "))
+	return fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %q.%q (%s);`, schema, table, strings.Join(tableDefs, ", "))
 }
 
 func buildTableCol(record *pg_queries.GetDatabaseTableSchemaRow) string {
@@ -270,4 +270,49 @@ func GetPostgresTablePrimaryKeys(
 		}
 	}
 	return pkMap
+}
+
+func BuildTruncateStatement(
+	tables []string,
+) string {
+	return fmt.Sprintf("TRUNCATE TABLE %s;", strings.Join(tables, ", "))
+}
+func BuildTruncateCascadeStatement(
+	schema string,
+	table string,
+) string {
+	return fmt.Sprintf("TRUNCATE TABLE %q.%q CASCADE;", schema, table)
+}
+
+func BatchExecStmts(
+	ctx context.Context,
+	pool pg_queries.DBTX,
+	batchSize int,
+	statements []string,
+) error {
+	for i := 0; i < len(statements); i += batchSize {
+		end := i + batchSize
+		if end > len(statements) {
+			end = len(statements)
+		}
+
+		batchCmd := strings.Join(statements[i:end], "\n")
+		_, err := pool.Exec(ctx, batchCmd)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func EscapePgColumns(cols []string) []string {
+	outcols := make([]string, len(cols))
+	for idx := range cols {
+		outcols[idx] = EscapePgColumn(cols[idx])
+	}
+	return outcols
+}
+
+func EscapePgColumn(col string) string {
+	return fmt.Sprintf("%q", col)
 }

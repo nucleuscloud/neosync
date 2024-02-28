@@ -903,6 +903,13 @@ export class GetConnectionInitStatementsResponse extends Message<GetConnectionIn
    */
   tableInitStatements: { [key: string]: string } = {};
 
+  /**
+   * the key here is <schema>.<table> and value is the table truncate statement.
+   *
+   * @generated from field: map<string, string> table_truncate_statements = 2;
+   */
+  tableTruncateStatements: { [key: string]: string } = {};
+
   constructor(data?: PartialMessage<GetConnectionInitStatementsResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -912,6 +919,7 @@ export class GetConnectionInitStatementsResponse extends Message<GetConnectionIn
   static readonly typeName = "mgmt.v1alpha1.GetConnectionInitStatementsResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "table_init_statements", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+    { no: 2, name: "table_truncate_statements", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetConnectionInitStatementsResponse {

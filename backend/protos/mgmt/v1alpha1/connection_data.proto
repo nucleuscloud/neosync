@@ -116,6 +116,8 @@ message GetConnectionInitStatementsRequest {
 message GetConnectionInitStatementsResponse {
   // the key here is <schema>.<table> and value is the table init statement.
   map<string, string> table_init_statements = 1;
+  // the key here is <schema>.<table> and value is the table truncate statement.
+  map<string, string> table_truncate_statements = 2;
 }
 
 message PrimaryConstraint {

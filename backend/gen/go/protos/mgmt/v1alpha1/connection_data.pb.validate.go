@@ -2691,6 +2691,8 @@ func (m *GetConnectionInitStatementsResponse) validate(all bool) error {
 
 	// no validation rules for TableInitStatements
 
+	// no validation rules for TableTruncateStatements
+
 	if len(errors) > 0 {
 		return GetConnectionInitStatementsResponseMultiError(errors)
 	}

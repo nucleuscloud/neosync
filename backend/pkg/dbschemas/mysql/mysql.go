@@ -11,6 +11,10 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+const (
+	DisableForeignKeyChecks = "SET FOREIGN_KEY_CHECKS = 0;"
+)
+
 type GetTableCreateStatementRequest struct {
 	Schema string
 	Table  string
@@ -216,4 +220,48 @@ func GetAllMysqlPkConstraints(
 		output = append(output, schemas...)
 	}
 	return output, nil
+}
+
+func BuildTruncateStatement(
+	schema string,
+	table string,
+) string {
+	return fmt.Sprintf("TRUNCATE TABLE `%s`.`%s`;", schema, table)
+}
+
+func BatchExecStmts(
+	ctx context.Context,
+	pool mysql_queries.DBTX,
+	batchSize int,
+	statements []string,
+	initalStatement *string, // this is run as the first statement in each batch
+) error {
+	for i := 0; i < len(statements); i += batchSize {
+		end := i + batchSize
+		if end > len(statements) {
+			end = len(statements)
+		}
+
+		batchCmd := strings.Join(statements[i:end], " ")
+		if initalStatement != nil && *initalStatement != "" {
+			batchCmd = fmt.Sprintf("%s %s", *initalStatement, batchCmd)
+		}
+		_, err := pool.ExecContext(ctx, batchCmd)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func EscapeMysqlColumns(cols []string) []string {
+	outcols := make([]string, len(cols))
+	for idx := range cols {
+		outcols[idx] = EscapeMysqlColumn(cols[idx])
+	}
+	return outcols
+}
+
+func EscapeMysqlColumn(col string) string {
+	return fmt.Sprintf("`%s`", col)
 }

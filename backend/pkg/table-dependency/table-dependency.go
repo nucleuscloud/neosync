@@ -146,14 +146,13 @@ func findCircularDependencies(dependencies map[string][]string) [][]string {
 
 	for node := range dependencies {
 		visited, recStack := make(map[string]bool), make(map[string]bool)
-		dfs(node, node, dependencies, visited, recStack, []string{}, &result)
+		dfsCycles(node, node, dependencies, visited, recStack, []string{}, &result)
 	}
-
 	return uniqueCycles(result)
 }
 
 // finds all possible path variations
-func dfs(start, current string, dependencies map[string][]string, visited, recStack map[string]bool, path []string, result *[][]string) {
+func dfsCycles(start, current string, dependencies map[string][]string, visited, recStack map[string]bool, path []string, result *[][]string) {
 	if recStack[current] {
 		if current == start {
 			// make copy to prevent reference issues
@@ -169,7 +168,7 @@ func dfs(start, current string, dependencies map[string][]string, visited, recSt
 
 	for _, neighbor := range dependencies[current] {
 		if !visited[neighbor] {
-			dfs(start, neighbor, dependencies, visited, recStack, path, result)
+			dfsCycles(start, neighbor, dependencies, visited, recStack, path, result)
 		}
 	}
 
@@ -228,14 +227,14 @@ func getMultiTableCircularDependencies(dependencyMap map[string][]string) [][]st
 	return multiTableCycles
 }
 
-func GetTablesOrderedByDependency(tables map[string]struct{}, dependencyMap map[string][]string) ([]string, error) {
+func GetTablesOrderedByDependency(dependencyMap map[string][]string) ([]string, error) {
 	cycles := getMultiTableCircularDependencies(dependencyMap)
 	if len(cycles) > 0 {
 		return nil, fmt.Errorf("unable to handle circular dependencies: %+v", cycles)
 	}
 
 	tableMap := map[string]struct{}{}
-	for t := range tables {
+	for t := range dependencyMap {
 		tableMap[t] = struct{}{}
 	}
 	orderedTables := []string{}

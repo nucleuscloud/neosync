@@ -454,3 +454,77 @@ func Test_GetRunConfigs_MultipleExclude(t *testing.T) {
 		}
 	}
 }
+
+func Test_GetTablesOrderedByDependency_CircularDependency(t *testing.T) {
+	dependencies := map[string][]string{
+		"a": {"b"},
+		"b": {"c"},
+		"c": {"a"},
+	}
+
+	_, err := GetTablesOrderedByDependency(dependencies)
+	assert.Error(t, err)
+}
+
+func Test_GetTablesOrderedByDependency_Dependencies(t *testing.T) {
+	dependencies := map[string][]string{
+		"countries":   {"regions"},
+		"departments": {"locations"},
+		"dependents":  {"employees"},
+		"employees":   {"departments", "jobs", "employees"},
+		"locations":   {"countries"},
+		"regions":     {},
+		"jobs":        {},
+	}
+	expected := []string{"regions", "jobs", "countries", "locations", "departments", "employees", "dependents"}
+
+	actual, err := GetTablesOrderedByDependency(dependencies)
+	assert.NoError(t, err)
+	for idx, table := range actual {
+		assert.Equal(t, expected[idx], table)
+	}
+}
+
+func Test_GetTablesOrderedByDependency_Mixed(t *testing.T) {
+	dependencies := map[string][]string{
+		"countries": {},
+		"locations": {"countries"},
+		"regions":   {},
+		"jobs":      {},
+	}
+
+	expected := []string{"countries", "regions", "jobs", "locations"}
+	actual, err := GetTablesOrderedByDependency(dependencies)
+	assert.NoError(t, err)
+	assert.Len(t, actual, len(expected))
+	for _, table := range actual {
+		assert.Contains(t, expected, table)
+	}
+	assert.Equal(t, "locations", actual[len(actual)-1])
+}
+
+func Test_GetTablesOrderedByDependency_BrokenDependencies_NoLoop(t *testing.T) {
+	dependencies := map[string][]string{
+		"countries": {},
+		"locations": {"countries"},
+		"regions":   {"a"},
+		"jobs":      {"b"},
+	}
+
+	_, err := GetTablesOrderedByDependency(dependencies)
+	assert.Error(t, err)
+}
+
+func Test_GetTablesOrderedByDependency_NestedDependencies(t *testing.T) {
+	dependencies := map[string][]string{
+		"a": {"b"},
+		"b": {"c"},
+		"c": {"d"},
+		"d": {},
+	}
+
+	expected := []string{"d", "c", "b", "a"}
+	actual, err := GetTablesOrderedByDependency(dependencies)
+	assert.NoError(t, err)
+	assert.Equal(t, expected[0], actual[0])
+}

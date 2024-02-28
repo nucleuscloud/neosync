@@ -78,50 +78,70 @@ proto3.util.setEnumType(ActivityStatus, "mgmt.v1alpha1.ActivityStatus", [
 ]);
 
 /**
+ * An enumeration of job run statuses.
+ *
  * @generated from enum mgmt.v1alpha1.JobRunStatus
  */
 export enum JobRunStatus {
   /**
+   * if the job run status is unknown
+   *
    * @generated from enum value: JOB_RUN_STATUS_UNSPECIFIED = 0;
    */
   UNSPECIFIED = 0,
 
   /**
+   * the run is pending and has not started yet
+   *
    * @generated from enum value: JOB_RUN_STATUS_PENDING = 1;
    */
   PENDING = 1,
 
   /**
+   * the run is currently in progress
+   *
    * @generated from enum value: JOB_RUN_STATUS_RUNNING = 2;
    */
   RUNNING = 2,
 
   /**
+   * the run has successfully completed
+   *
    * @generated from enum value: JOB_RUN_STATUS_COMPLETE = 3;
    */
   COMPLETE = 3,
 
   /**
+   * the run ended with an error
+   *
    * @generated from enum value: JOB_RUN_STATUS_ERROR = 4;
    */
   ERROR = 4,
 
   /**
+   * the run was cancelled
+   *
    * @generated from enum value: JOB_RUN_STATUS_CANCELED = 5;
    */
   CANCELED = 5,
 
   /**
+   * the run was terminated
+   *
    * @generated from enum value: JOB_RUN_STATUS_TERMINATED = 6;
    */
   TERMINATED = 6,
 
   /**
+   * the run ended in failure
+   *
    * @generated from enum value: JOB_RUN_STATUS_FAILED = 7;
    */
   FAILED = 7,
 
   /**
+   * the run was ended pre-maturely due to timeout
+   *
    * @generated from enum value: JOB_RUN_STATUS_TIMED_OUT = 8;
    */
   TIMED_OUT = 8,
@@ -3374,26 +3394,36 @@ export class JobRun extends Message<JobRun> {
   id = "";
 
   /**
+   * The unique identifier of the job id this run is associated with
+   *
    * @generated from field: string job_id = 2;
    */
   jobId = "";
 
   /**
+   * The name of the job run.
+   *
    * @generated from field: string name = 3;
    */
   name = "";
 
   /**
+   * the status of the job run
+   *
    * @generated from field: mgmt.v1alpha1.JobRunStatus status = 4;
    */
   status = JobRunStatus.UNSPECIFIED;
 
   /**
+   * A timestamp of when the run started
+   *
    * @generated from field: google.protobuf.Timestamp started_at = 6;
    */
   startedAt?: Timestamp;
 
   /**
+   * Available if the run completed or has not yet been archived by the system
+   *
    * @generated from field: optional google.protobuf.Timestamp completed_at = 7;
    */
   completedAt?: Timestamp;

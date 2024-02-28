@@ -58,6 +58,8 @@ const (
 	awsS3Connection    ConnectionType = "awsS3"
 	postgresConnection ConnectionType = "postgres"
 	mysqlConnection    ConnectionType = "mysql"
+
+	batchSize = 20
 )
 
 var (
@@ -447,49 +449,9 @@ func sync(
 	}
 
 	fmt.Println(printlog.Render("Running table init statements...")) //nolint:forbidigo
-	dependencyMap := buildDependencyMap(syncConfigs)
-	uniqueTables := map[string]struct{}{}
-	if cmd.Destination.Driver == postgresDriver {
-		orderedTables, err := tabledependency.GetTablesOrderedByDependency(uniqueTables, dependencyMap)
-		if err != nil {
-			return err
-		}
-		orderedInitStatements := []string{}
-		for _, t := range orderedTables {
-			stmt := schemaConfig.InitTableStatementsMap[t]
-			orderedInitStatements = append(orderedInitStatements, stmt)
-		}
-		pool, err := pgxpool.New(ctx, cmd.Destination.ConnectionUrl)
-		if err != nil {
-			return err
-		}
-		_, err = pool.Exec(ctx, strings.Join(orderedInitStatements, "\n"))
-		if err != nil {
-			return err
-		}
-		pool.Close()
-	} else if cmd.Destination.Driver == mysqlDriver {
-		initStatementsMap := getMysqlInitStatementsMap(schemaConfig.InitTableStatementsMap)
-		orderedTables, err := tabledependency.GetTablesOrderedByDependency(uniqueTables, dependencyMap)
-		if err != nil {
-			return err
-		}
-		orderedInitStatements := []string{}
-		for _, t := range orderedTables {
-			stmts := initStatementsMap[t]
-			orderedInitStatements = append(orderedInitStatements, stmts...)
-		}
-		pool, err := sql.Open("mysql", cmd.Destination.ConnectionUrl)
-		if err != nil {
-			return err
-		}
-		for _, statement := range orderedInitStatements {
-			_, err = pool.ExecContext(ctx, statement)
-			if err != nil {
-				return err
-			}
-		}
-		pool.Close()
+	err = runDestinationInitStatements(ctx, cmd, syncConfigs, schemaConfig)
+	if err != nil {
+		return err
 	}
 
 	fmt.Println(printlog.Render("Generating configs... \n")) //nolint:forbidigo
@@ -589,6 +551,88 @@ func syncData(ctx context.Context, cfg *benthosConfigResponse) error {
 	return nil
 }
 
+func runDestinationInitStatements(ctx context.Context, cmd *cmdConfig, syncConfigs []*syncConfig, schemaConfig *schemaConfig) error {
+	dependencyMap := buildDependencyMap(syncConfigs)
+	if cmd.Destination.Driver == postgresDriver {
+		pool, err := pgxpool.New(ctx, cmd.Destination.ConnectionUrl)
+		if err != nil {
+			return err
+		}
+		defer pool.Close()
+		if cmd.Destination.InitSchema {
+			orderedTables, err := tabledependency.GetTablesOrderedByDependency(dependencyMap)
+			if err != nil {
+				return err
+			}
+			orderedInitStatements := []string{}
+			for _, t := range orderedTables {
+				orderedInitStatements = append(orderedInitStatements, schemaConfig.InitTableStatementsMap[t])
+			}
+			err = dbschemas_postgres.BatchExecStmts(ctx, pool, batchSize, orderedInitStatements)
+			if err != nil {
+				fmt.Println("Error creating tables:", err) //nolint:forbidigo
+				return err
+			}
+		}
+
+		if cmd.Destination.TruncateCascade {
+			truncateCascadeStmts := []string{}
+			for _, syncCfg := range syncConfigs {
+				stmt, ok := schemaConfig.TruncateTableStatementsMap[dbschemas_utils.BuildTable(syncCfg.Schema, syncCfg.Table)]
+				if ok {
+					truncateCascadeStmts = append(truncateCascadeStmts, stmt)
+				}
+			}
+			err = dbschemas_postgres.BatchExecStmts(ctx, pool, batchSize, truncateCascadeStmts)
+			if err != nil {
+				fmt.Println("Error truncate cascade tables:", err) //nolint:forbidigo
+				return err
+			}
+		} else if cmd.Destination.TruncateBeforeInsert {
+			orderedTables, err := tabledependency.GetTablesOrderedByDependency(dependencyMap)
+			if err != nil {
+				return err
+			}
+			orderedTruncateStatement := dbschemas_postgres.BuildTruncateStatement(orderedTables)
+			err = dbschemas_postgres.BatchExecStmts(ctx, pool, batchSize, []string{orderedTruncateStatement})
+			if err != nil {
+				fmt.Println("Error truncating tables:", err) //nolint:forbidigo
+				return err
+			}
+		}
+	} else if cmd.Destination.Driver == mysqlDriver {
+		orderedTables, err := tabledependency.GetTablesOrderedByDependency(dependencyMap)
+		if err != nil {
+			return err
+		}
+		orderedInitStatements := []string{}
+		orderedTableTruncateStatements := []string{}
+		for _, t := range orderedTables {
+			orderedInitStatements = append(orderedInitStatements, schemaConfig.InitTableStatementsMap[t])
+			orderedTableTruncateStatements = append(orderedTableTruncateStatements, schemaConfig.TruncateTableStatementsMap[t])
+		}
+		// allows multiple statements in one execution
+		multiStatementConnectionUrl := getMysqlMultiStatementConnectionUrl(cmd.Destination.ConnectionUrl)
+		pool, err := sql.Open(string(mysqlDriver), multiStatementConnectionUrl)
+		if err != nil {
+			return err
+		}
+		defer pool.Close()
+		err = dbschemas_mysql.BatchExecStmts(ctx, pool, batchSize, orderedInitStatements, nil)
+		if err != nil {
+			fmt.Println("Error creating tables:", err) //nolint:forbidigo
+			return err
+		}
+		disableFkChecks := dbschemas_mysql.DisableForeignKeyChecks
+		err = dbschemas_mysql.BatchExecStmts(ctx, pool, batchSize, orderedTableTruncateStatements, &disableFkChecks)
+		if err != nil {
+			fmt.Println("Error truncating tables:", err) //nolint:forbidigo
+			return err
+		}
+	}
+	return nil
+}
+
 func buildSyncConfigs(
 	schemaConfig *schemaConfig,
 	buildInsertQueryFunc func(table string, cols []string) string,
@@ -665,27 +709,33 @@ func buildDependencyMap(syncConfigs []*syncConfig) map[string][]string {
 	dependencyMap := map[string][]string{}
 	for _, cfg := range syncConfigs {
 		key := dbschemas_utils.BuildTable(cfg.Schema, cfg.Table)
+		_, dpOk := dependencyMap[key]
+		if !dpOk {
+			dependencyMap[key] = []string{}
+		}
+
 		for _, dep := range cfg.DependsOn {
-			_, ok := dependencyMap[key]
-			if ok {
-				dependencyMap[key] = append(dependencyMap[key], dep.Table)
-			} else {
-				dependencyMap[key] = []string{dep.Table}
-			}
+			dependencyMap[key] = append(dependencyMap[key], dep.Table)
 		}
 	}
 	return dependencyMap
 }
 
-func getTableInitStatementMap(ctx context.Context, connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient, connectionId string, opts *destinationConfig) (map[string]string, error) {
+func getTableInitStatementMap(ctx context.Context, connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient, connectionId string, opts *destinationConfig) (*mgmtv1alpha1.GetConnectionInitStatementsResponse, error) {
 	if opts.InitSchema || opts.TruncateBeforeInsert || opts.TruncateCascade {
 		fmt.Println(printlog.Render("Creating init statements...")) //nolint:forbidigo
+		truncateBeforeInsert := opts.TruncateBeforeInsert
+		if opts.Driver == postgresDriver && truncateBeforeInsert {
+			// postgres truncate must be ordered properly
+			// handled in runDestinationInitStatements function
+			truncateBeforeInsert = false
+		}
 		initStatementResp, err := connectiondataclient.GetConnectionInitStatements(ctx,
 			connect.NewRequest(&mgmtv1alpha1.GetConnectionInitStatementsRequest{
 				ConnectionId: connectionId,
 				Options: &mgmtv1alpha1.InitStatementOptions{
 					InitSchema:           opts.InitSchema,
-					TruncateBeforeInsert: opts.TruncateBeforeInsert,
+					TruncateBeforeInsert: truncateBeforeInsert,
 					TruncateCascade:      opts.TruncateCascade,
 				},
 			},
@@ -693,9 +743,9 @@ func getTableInitStatementMap(ctx context.Context, connectiondataclient mgmtv1al
 		if err != nil {
 			return nil, err
 		}
-		return initStatementResp.Msg.TableInitStatements, nil
+		return initStatementResp.Msg, nil
 	}
-	return map[string]string{}, nil
+	return nil, nil
 }
 
 type SqlTable struct {
@@ -808,12 +858,17 @@ func groupConfigsByDependency(configs []*benthosConfigResponse) [][]*benthosConf
 	}
 	groupedConfigs = append(groupedConfigs, rootConfigs)
 
+	prevTableLen := 0
 	for len(configMap) > 0 {
+		// prevents looping forever
+		if prevTableLen == len(configMap) {
+			fmt.Println(bold.Render("Unable to order configs by dependency. No path found.")) //nolint:forbidigo
+			return nil
+		}
 		dependentConfigs := []*benthosConfigResponse{}
 		for _, c := range configMap {
 			if isConfigReady(c, queuedMap) {
 				dependentConfigs = append(dependentConfigs, c)
-
 				delete(configMap, c.Name)
 			}
 		}
@@ -972,10 +1027,11 @@ func syncConfigs(ctx context.Context, configs []*benthosConfigResponse) tea.Cmd 
 }
 
 type schemaConfig struct {
-	Schemas                []*mgmtv1alpha1.DatabaseColumn
-	TableConstraints       map[string]*dbschemas_utils.TableConstraints
-	TablePrimaryKeys       map[string]*mgmtv1alpha1.PrimaryConstraint
-	InitTableStatementsMap map[string]string
+	Schemas                    []*mgmtv1alpha1.DatabaseColumn
+	TableConstraints           map[string]*dbschemas_utils.TableConstraints
+	TablePrimaryKeys           map[string]*mgmtv1alpha1.PrimaryConstraint
+	InitTableStatementsMap     map[string]string
+	TruncateTableStatementsMap map[string]string
 }
 
 func getConnectionSchemaConfig(
@@ -989,6 +1045,7 @@ func getConnectionSchemaConfig(
 	var tableConstraints map[string]*mgmtv1alpha1.ForeignConstraintTables
 	var tablePrimaryKeys map[string]*mgmtv1alpha1.PrimaryConstraint
 	var initTableStatementsMap map[string]string
+	var truncateTableStatementsMap map[string]string
 	errgrp, errctx := errgroup.WithContext(ctx)
 	errgrp.Go(func() error {
 		schemaResp, err := connectiondataclient.GetConnectionSchema(errctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionSchemaRequest{
@@ -1021,11 +1078,12 @@ func getConnectionSchemaConfig(
 	})
 
 	errgrp.Go(func() error {
-		initTableStatements, err := getTableInitStatementMap(errctx, connectiondataclient, cmd.Source.ConnectionId, cmd.Destination)
+		initStatementsResp, err := getTableInitStatementMap(errctx, connectiondataclient, cmd.Source.ConnectionId, cmd.Destination)
 		if err != nil {
 			return err
 		}
-		initTableStatementsMap = initTableStatements
+		initTableStatementsMap = initStatementsResp.GetTableInitStatements()
+		truncateTableStatementsMap = initStatementsResp.GetTableTruncateStatements()
 		return nil
 	})
 	if err := errgrp.Wait(); err != nil {
@@ -1053,10 +1111,11 @@ func getConnectionSchemaConfig(
 		}
 	}
 	return &schemaConfig{
-		Schemas:                schemas,
-		TableConstraints:       tc,
-		TablePrimaryKeys:       tablePrimaryKeys,
-		InitTableStatementsMap: initTableStatementsMap,
+		Schemas:                    schemas,
+		TableConstraints:           tc,
+		TablePrimaryKeys:           tablePrimaryKeys,
+		InitTableStatementsMap:     initTableStatementsMap,
+		TruncateTableStatementsMap: truncateTableStatementsMap,
 	}, nil
 }
 
@@ -1267,7 +1326,7 @@ func buildPlainInsertArgs(cols []string) string {
 	}
 	pieces := make([]string, len(cols))
 	for idx := range cols {
-		pieces[idx] = fmt.Sprintf("this.%s", cols[idx])
+		pieces[idx] = fmt.Sprintf("this.%q", cols[idx])
 	}
 	return fmt.Sprintf("root = [%s]", strings.Join(pieces, ", "))
 }
@@ -1302,13 +1361,13 @@ func buildPostgresUpdateQuery(table string, columns, primaryKeys []string) strin
 	var where string
 	paramCount := 1
 	for i, col := range columns {
-		values[i] = fmt.Sprintf("%s = $%d", col, paramCount)
+		values[i] = fmt.Sprintf("%s = $%d", dbschemas_postgres.EscapePgColumn(col), paramCount)
 		paramCount++
 	}
 	if len(primaryKeys) > 0 {
 		clauses := []string{}
 		for _, col := range primaryKeys {
-			clauses = append(clauses, fmt.Sprintf("%s = $%d", col, paramCount))
+			clauses = append(clauses, fmt.Sprintf("%s = $%d", dbschemas_postgres.EscapePgColumn(col), paramCount))
 			paramCount++
 		}
 		where = fmt.Sprintf("WHERE %s", strings.Join(clauses, " AND "))
@@ -1323,7 +1382,7 @@ func buildPostgresInsertQuery(table string, columns []string) string {
 		values[i] = fmt.Sprintf("$%d", paramCount)
 		paramCount++
 	}
-	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, strings.Join(columns, ", "), strings.Join(values, ", "))
+	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, strings.Join(dbschemas_postgres.EscapePgColumns(columns), ", "), strings.Join(values, ", "))
 }
 
 func buildMysqlInsertQuery(table string, columns []string) string {
@@ -1331,36 +1390,28 @@ func buildMysqlInsertQuery(table string, columns []string) string {
 	for i := range columns {
 		values[i] = "?"
 	}
-	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, strings.Join(columns, ", "), strings.Join(values, ", "))
+	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, strings.Join(dbschemas_mysql.EscapeMysqlColumns(columns), ", "), strings.Join(values, ", "))
 }
 
 func buildMysqlUpdateQuery(table string, columns, primaryKeys []string) string {
 	values := make([]string, len(columns))
 	var where string
 	for i, col := range columns {
-		values[i] = fmt.Sprintf("%s = ?", col)
+		values[i] = fmt.Sprintf("%s = ?", dbschemas_mysql.EscapeMysqlColumn(col))
 	}
 	if len(primaryKeys) > 0 {
 		clauses := []string{}
 		for _, col := range primaryKeys {
-			clauses = append(clauses, fmt.Sprintf("%s = ?", col))
+			clauses = append(clauses, fmt.Sprintf("%s = ?", dbschemas_mysql.EscapeMysqlColumn(col)))
 		}
 		where = fmt.Sprintf("WHERE %s", strings.Join(clauses, " AND "))
 	}
 	return fmt.Sprintf("UPDATE %s SET %s %s;", table, strings.Join(values, ", "), where)
 }
 
-// returns map of table to list of sql statements
-func getMysqlInitStatementsMap(initTableStatementsMap map[string]string) map[string][]string {
-	initStatementsMap := map[string][]string{}
-	for key, statements := range initTableStatementsMap {
-		nonEmptyStatements := []string{}
-		for _, st := range strings.SplitAfter(statements, ";") {
-			if st != "" {
-				nonEmptyStatements = append(nonEmptyStatements, st)
-			}
-		}
-		initStatementsMap[key] = nonEmptyStatements
+func getMysqlMultiStatementConnectionUrl(connectionUrl string) string {
+	if strings.Contains(connectionUrl, "?") {
+		return fmt.Sprintf("%s&multiStatements=true", connectionUrl)
 	}
-	return initStatementsMap
+	return fmt.Sprintf("%s?multiStatements=true", connectionUrl)
 }

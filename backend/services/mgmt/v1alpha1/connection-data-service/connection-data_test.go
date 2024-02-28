@@ -485,14 +485,18 @@ func Test_GetConnectionInitStatements_Postgres(t *testing.T) {
 			Options: &mgmtv1alpha1.InitStatementOptions{
 				InitSchema:           true,
 				TruncateBeforeInsert: true,
+				TruncateCascade:      true,
 			},
 		},
 	})
 
-	actual := "CREATE TABLE IF NOT EXISTS public.users (\"id\" uuid NOT NULL DEFAULT gen_random_uuid(), \"name\" varchar(40) NULL, CONSTRAINT users_pkey PRIMARY KEY (id));\nTRUNCATE TABLE public.users;"
+	expectedInit := "CREATE TABLE IF NOT EXISTS \"public\".\"users\" (\"id\" uuid NOT NULL DEFAULT gen_random_uuid(), \"name\" varchar(40) NULL, CONSTRAINT users_pkey PRIMARY KEY (id));"
+	expectedTruncate := "TRUNCATE TABLE \"public\".\"users\" CASCADE;"
 	assert.Nil(t, err)
 	assert.Len(t, resp.Msg.TableInitStatements, 1)
-	assert.Equal(t, actual, resp.Msg.TableInitStatements["public.users"])
+	assert.Len(t, resp.Msg.TableTruncateStatements, 1)
+	assert.Equal(t, expectedInit, resp.Msg.TableInitStatements["public.users"])
+	assert.Equal(t, expectedTruncate, resp.Msg.TableTruncateStatements["public.users"])
 }
 
 type serviceMocks struct {
