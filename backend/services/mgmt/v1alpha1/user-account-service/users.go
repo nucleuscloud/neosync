@@ -2,7 +2,6 @@ package v1alpha1_useraccountservice
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -263,21 +262,29 @@ func (s *Service) GetTeamAccountMembers(
 		i := i
 		user := userIdentities[i]
 		group.Go(func() error {
-			// todo: need to enhance this
+			if user.ProviderSub == "" {
+				logger.Warn(fmt.Sprintf("unable to find provider sub associated with user id: %q", nucleusdb.UUIDString(user.UserID)))
+				return nil
+			}
 			if user.ProviderSub != "" {
 				dtoUsers[i] = &mgmtv1alpha1.AccountUser{
 					Id: nucleusdb.UUIDString(user.UserID),
 				}
-			} else {
-				return errors.New("unsupported or no provider id for user identity")
+				authuser, err := s.authadminclient.GetUserBySub(ctx, user.ProviderSub)
+				if err != nil {
+					logger.Warn(fmt.Sprintf("unable to retrieve user by sub: %s", err.Error()))
+				} else {
+					dtoUsers[i].Email = authuser.Email
+					dtoUsers[i].Name = authuser.Name
+					dtoUsers[i].Image = authuser.Picture
+				}
 			}
 			return nil
 		})
 	}
-
 	err = group.Wait()
 	if err != nil {
-		logger.Error(fmt.Errorf("unable to hydrate auth user: %w", err).Error())
+		return nil, err
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetTeamAccountMembersResponse{

@@ -14,6 +14,9 @@ packages:
   github.com/nucleuscloud/neosync/backend/internal/auth/client:
     interfaces:
       Interface:
+  github.com/nucleuscloud/neosync/backend/internal/authmgmt:
+    interfaces:
+      Interface:
   github.com/nucleuscloud/neosync/backend/internal/auth/authmw:
     interfaces:
       AuthClient:
@@ -50,9 +53,6 @@ packages:
     interfaces:
       Querier:
       DBTX:
-  github.com/nucleuscloud/neosync/backend/internal/authmgmt/auth0:
-    interfaces:
-      Auth0MgmtClientInterface:
   github.com/nucleuscloud/neosync/backend/pkg/sqlconnect:
     interfaces:
       SqlConnector:

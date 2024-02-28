@@ -15,6 +15,8 @@ type Interface interface {
 	GetTokenResponse(ctx context.Context, clientId string, code string, redirecturi string) (*AuthTokenResponse, error)
 	GetRefreshedAccessToken(ctx context.Context, clientId string, refreshToken string) (*AuthTokenResponse, error)
 	GetUserInfo(ctx context.Context, accessToken string) (*UserInfo, error)
+	GetTokenEndpoint(ctx context.Context) (string, error)
+	GetAuthorizationEndpoint(ctx context.Context) (string, error)
 }
 
 type Client struct {
@@ -87,7 +89,7 @@ func (c *Client) GetTokenResponse(
 			redirecturi,
 		),
 	)
-	tokenurl, err := c.getTokenEndpoint(ctx)
+	tokenurl, err := c.GetTokenEndpoint(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +150,7 @@ func (c *Client) GetRefreshedAccessToken(
 			"grant_type=refresh_token&client_id=%s&client_secret=%s&refresh_token=%s", clientId, clientSecret, refreshToken,
 		),
 	)
-	tokenurl, err := c.getTokenEndpoint(ctx)
+	tokenurl, err := c.GetTokenEndpoint(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -230,7 +232,7 @@ func (c *Client) GetUserInfo(
 	return userinfo, nil
 }
 
-func (c *Client) getTokenEndpoint(ctx context.Context) (string, error) {
+func (c *Client) GetTokenEndpoint(ctx context.Context) (string, error) {
 	config, err := c.getOpenIdConfiguration(ctx)
 	if err != nil {
 		return "", err

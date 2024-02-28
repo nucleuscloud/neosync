@@ -24,6 +24,9 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/auth/authmw"
 	auth_client "github.com/nucleuscloud/neosync/backend/internal/auth/client"
 	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
+	"github.com/nucleuscloud/neosync/backend/internal/authmgmt"
+	"github.com/nucleuscloud/neosync/backend/internal/authmgmt/auth0"
+	"github.com/nucleuscloud/neosync/backend/internal/authmgmt/keycloak"
 	awsmanager "github.com/nucleuscloud/neosync/backend/internal/aws"
 	up_cmd "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/migrate/up"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
@@ -246,10 +249,14 @@ func serve(ctx context.Context) error {
 		},
 	}, db.Q, db.Db)
 
+	authadminclient, err := getAuthAdminClient(ctx, authclient, logger)
+	if err != nil {
+		return err
+	}
 	useraccountService := v1alpha1_useraccountservice.New(&v1alpha1_useraccountservice.Config{
 		IsAuthEnabled:  isAuthEnabled,
 		IsNeosyncCloud: getIsNeosyncCloud(),
-	}, db, tfwfmgr, authclient)
+	}, db, tfwfmgr, authclient, authadminclient)
 	api.Handle(
 		mgmtv1alpha1connect.NewUserAccountServiceHandler(
 			useraccountService,
@@ -579,6 +586,10 @@ func getAuthApiClientSecret() string {
 	return viper.GetString("AUTH_API_CLIENT_SECRET")
 }
 
+func getAuthApiProvider() string {
+	return viper.GetString("AUTH_API_PROVIDER")
+}
+
 func getIsNeosyncCloud() bool {
 	return viper.GetBool("NEOSYNC_CLOUD")
 }
@@ -600,4 +611,23 @@ func getKubernetesNamespace() string {
 
 func getKubernetesWorkerAppName() string {
 	return viper.GetString("KUBERNETES_WORKER_APP_NAME")
+}
+
+func getAuthAdminClient(ctx context.Context, authclient auth_client.Interface, logger *slog.Logger) (authmgmt.Interface, error) {
+	authApiBaseUrl := getAuthApiBaseUrl()
+	authApiClientId := getAuthApiClientId()
+	authApiClientSecret := getAuthApiClientSecret()
+	provider := getAuthApiProvider()
+	if provider == "" || provider == "auth0" {
+		return auth0.New(authApiBaseUrl, authApiClientId, authApiClientSecret)
+	} else if provider == "keycloak" {
+		tokenurl, err := authclient.GetTokenEndpoint(ctx)
+		if err != nil {
+			return nil, err
+		}
+		tokenProvider := keycloak.NewCCTokenProvider(tokenurl, authApiClientId, authApiClientSecret, 10*time.Second, logger)
+		return keycloak.New(authApiBaseUrl, tokenProvider, logger)
+	}
+	logger.Warn(fmt.Sprintf("unable to initialize auth admin client due to unsupported provider: %q", provider))
+	return &authmgmt.UnimplementedClient{}, nil
 }

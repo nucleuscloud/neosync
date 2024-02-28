@@ -21,6 +21,62 @@ func (_m *MockInterface) EXPECT() *MockInterface_Expecter {
 	return &MockInterface_Expecter{mock: &_m.Mock}
 }
 
+// GetAuthorizationEndpoint provides a mock function with given fields: ctx
+func (_m *MockInterface) GetAuthorizationEndpoint(ctx context.Context) (string, error) {
+	ret := _m.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAuthorizationEndpoint")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) (string, error)); ok {
+		return rf(ctx)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context) string); ok {
+		r0 = rf(ctx)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockInterface_GetAuthorizationEndpoint_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAuthorizationEndpoint'
+type MockInterface_GetAuthorizationEndpoint_Call struct {
+	*mock.Call
+}
+
+// GetAuthorizationEndpoint is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *MockInterface_Expecter) GetAuthorizationEndpoint(ctx interface{}) *MockInterface_GetAuthorizationEndpoint_Call {
+	return &MockInterface_GetAuthorizationEndpoint_Call{Call: _e.mock.On("GetAuthorizationEndpoint", ctx)}
+}
+
+func (_c *MockInterface_GetAuthorizationEndpoint_Call) Run(run func(ctx context.Context)) *MockInterface_GetAuthorizationEndpoint_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *MockInterface_GetAuthorizationEndpoint_Call) Return(_a0 string, _a1 error) *MockInterface_GetAuthorizationEndpoint_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockInterface_GetAuthorizationEndpoint_Call) RunAndReturn(run func(context.Context) (string, error)) *MockInterface_GetAuthorizationEndpoint_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetRefreshedAccessToken provides a mock function with given fields: ctx, clientId, refreshToken
 func (_m *MockInterface) GetRefreshedAccessToken(ctx context.Context, clientId string, refreshToken string) (*AuthTokenResponse, error) {
 	ret := _m.Called(ctx, clientId, refreshToken)
@@ -77,6 +133,62 @@ func (_c *MockInterface_GetRefreshedAccessToken_Call) Return(_a0 *AuthTokenRespo
 }
 
 func (_c *MockInterface_GetRefreshedAccessToken_Call) RunAndReturn(run func(context.Context, string, string) (*AuthTokenResponse, error)) *MockInterface_GetRefreshedAccessToken_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetTokenEndpoint provides a mock function with given fields: ctx
+func (_m *MockInterface) GetTokenEndpoint(ctx context.Context) (string, error) {
+	ret := _m.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTokenEndpoint")
+	}
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) (string, error)); ok {
+		return rf(ctx)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context) string); ok {
+		r0 = rf(ctx)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockInterface_GetTokenEndpoint_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTokenEndpoint'
+type MockInterface_GetTokenEndpoint_Call struct {
+	*mock.Call
+}
+
+// GetTokenEndpoint is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *MockInterface_Expecter) GetTokenEndpoint(ctx interface{}) *MockInterface_GetTokenEndpoint_Call {
+	return &MockInterface_GetTokenEndpoint_Call{Call: _e.mock.On("GetTokenEndpoint", ctx)}
+}
+
+func (_c *MockInterface_GetTokenEndpoint_Call) Run(run func(ctx context.Context)) *MockInterface_GetTokenEndpoint_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *MockInterface_GetTokenEndpoint_Call) Return(_a0 string, _a1 error) *MockInterface_GetTokenEndpoint_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockInterface_GetTokenEndpoint_Call) RunAndReturn(run func(context.Context) (string, error)) *MockInterface_GetTokenEndpoint_Call {
 	_c.Call.Return(run)
 	return _c
 }
