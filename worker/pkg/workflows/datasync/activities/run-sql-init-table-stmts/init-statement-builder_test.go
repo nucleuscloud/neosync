@@ -755,7 +755,7 @@ func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 	}, nil)
 
 	var cmdtag pgconn.CommandTag
-	dbtx.On("Exec", mock.Anything, "CREATE TABLE IF NOT EXISTS public.accounts (\"id\" uuid NOT NULL DEFAULT gen_random_uuid(), CONSTRAINT accounts_pkey PRIMARY KEY (id));\nCREATE TABLE IF NOT EXISTS public.users (\"id\" uuid NOT NULL DEFAULT gen_random_uuid(), \"account_id\" uuid NULL, CONSTRAINT users_pkey PRIMARY KEY (id), CONSTRAINT accounts_pkey PRIMARY KEY (id));").Return(cmdtag, nil)
+	dbtx.On("Exec", mock.Anything, "CREATE TABLE IF NOT EXISTS \"public\".\"accounts\" (\"id\" uuid NOT NULL DEFAULT gen_random_uuid(), CONSTRAINT accounts_pkey PRIMARY KEY (id));\nCREATE TABLE IF NOT EXISTS \"public\".\"users\" (\"id\" uuid NOT NULL DEFAULT gen_random_uuid(), \"account_id\" uuid NULL, CONSTRAINT users_pkey PRIMARY KEY (id), CONSTRAINT accounts_pkey PRIMARY KEY (id));").Return(cmdtag, nil)
 	pgPoolContainerMock.On("Open", mock.Anything).Return(dbtx, nil)
 	pgPoolContainerMock.On("Close")
 	mockSqlConnector.On("NewPgPoolFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(pgPoolContainerMock, nil)
