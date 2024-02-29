@@ -476,12 +476,12 @@ func Test_GetTablesOrderedByDependency_Dependencies(t *testing.T) {
 		"regions":     {},
 		"jobs":        {},
 	}
-	expected := []string{"regions", "jobs", "countries", "locations", "departments", "employees", "dependents"}
+	expected := [][]string{{"regions", "jobs"}, {"regions", "jobs"}, {"countries"}, {"locations"}, {"departments"}, {"employees"}, {"dependents"}}
 
 	actual, err := GetTablesOrderedByDependency(dependencies)
 	assert.NoError(t, err)
 	for idx, table := range actual {
-		assert.Equal(t, expected[idx], table)
+		assert.Contains(t, expected[idx], table)
 	}
 }
 
