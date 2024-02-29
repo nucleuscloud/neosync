@@ -85,6 +85,7 @@ auth:
     clientId:
     clientSecret:
     baseUrl:
+    provider:
 
 temporal:
   url: temporal.temporal:7233

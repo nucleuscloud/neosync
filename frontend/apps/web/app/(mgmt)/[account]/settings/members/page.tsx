@@ -31,7 +31,7 @@ export default function MemberManagementSettings(_: Props): ReactElement {
 
   return (
     <div className="flex flex-col gap-3">
-      <h1 className="text-xl font-bold tracking-tight">Member Managment</h1>
+      <h1 className="text-xl font-bold tracking-tight">Member Management</h1>
       <Tabs defaultValue="members">
         <TabsList>
           <TabsTrigger value="members">Members</TabsTrigger>

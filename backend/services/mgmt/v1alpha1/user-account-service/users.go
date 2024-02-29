@@ -2,7 +2,6 @@ package v1alpha1_useraccountservice
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -263,31 +262,29 @@ func (s *Service) GetTeamAccountMembers(
 		i := i
 		user := userIdentities[i]
 		group.Go(func() error {
+			if user.ProviderSub == "" {
+				logger.Warn(fmt.Sprintf("unable to find provider sub associated with user id: %q", nucleusdb.UUIDString(user.UserID)))
+				return nil
+			}
 			if user.ProviderSub != "" {
-				authUser, err := s.auth0MgmtClient.GetUserById(ctx, user.ProviderSub)
-				if err != nil {
-					// if unable to get auth user still return user id
-					dtoUsers[i] = &mgmtv1alpha1.AccountUser{
-						Id: nucleusdb.UUIDString(user.UserID),
-					}
-					return err
-				}
 				dtoUsers[i] = &mgmtv1alpha1.AccountUser{
-					Id:    nucleusdb.UUIDString(user.UserID),
-					Name:  authUser.GetName(),
-					Email: authUser.GetEmail(),
-					Image: authUser.GetPicture(),
+					Id: nucleusdb.UUIDString(user.UserID),
 				}
-			} else {
-				return errors.New("unsupported or no provider id for user identity")
+				authuser, err := s.authadminclient.GetUserBySub(ctx, user.ProviderSub)
+				if err != nil {
+					logger.Warn(fmt.Sprintf("unable to retrieve user by sub: %s", err.Error()))
+				} else {
+					dtoUsers[i].Email = authuser.Email
+					dtoUsers[i].Name = authuser.Name
+					dtoUsers[i].Image = authuser.Picture
+				}
 			}
 			return nil
 		})
 	}
-
 	err = group.Wait()
 	if err != nil {
-		logger.Error(fmt.Errorf("unable to hydrate auth user: %w", err).Error())
+		return nil, err
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetTeamAccountMembersResponse{
@@ -437,11 +434,6 @@ func (s *Service) AcceptTeamAccountInvite(
 		return nil, err
 	}
 
-	userIdentity, err := s.db.Q.GetUserIdentityByUserId(ctx, s.db.Db, userUuid)
-	if err != nil {
-		return nil, err
-	}
-
 	tokenctxResp, err := tokenctx.GetTokenCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -454,14 +446,15 @@ func (s *Service) AcceptTeamAccountInvite(
 	if tokenctxResp.JwtContextData.Claims != nil && tokenctxResp.JwtContextData.Claims.Email != nil {
 		email = tokenctxResp.JwtContextData.Claims.Email
 	} else {
-		// check auth user email to invite email
-		// todo: remove the need for this by adding the email to the auth0 jwt, if it's not already there.
-		authUser, err := s.auth0MgmtClient.GetUserById(ctx, userIdentity.ProviderSub)
+		userinfo, err := s.authclient.GetUserInfo(ctx, tokenctxResp.JwtContextData.RawToken)
 		if err != nil {
 			return nil, err
 		}
-		authUserEmail := authUser.GetEmail()
-		email = &authUserEmail
+		// should we check if email is verified here? maybe in the future
+		if userinfo.Email == "" {
+			return nil, nucleuserrors.NewInternalError("retrieved user info but email was not present")
+		}
+		email = &userinfo.Email
 	}
 	if email == nil {
 		return nil, nucleuserrors.NewUnauthenticated("unable to find email to valid to add user to account")

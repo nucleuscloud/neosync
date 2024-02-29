@@ -11,6 +11,14 @@ import (
 	"time"
 )
 
+type Interface interface {
+	GetTokenResponse(ctx context.Context, clientId string, code string, redirecturi string) (*AuthTokenResponse, error)
+	GetRefreshedAccessToken(ctx context.Context, clientId string, refreshToken string) (*AuthTokenResponse, error)
+	GetUserInfo(ctx context.Context, accessToken string) (*UserInfo, error)
+	GetTokenEndpoint(ctx context.Context) (string, error)
+	GetAuthorizationEndpoint(ctx context.Context) (string, error)
+}
+
 type Client struct {
 	authBaseUrl       string
 	clientIdSecretMap map[string]string
@@ -45,6 +53,16 @@ type AuthTokenErrorData struct {
 	ErrorDescription string `json:"error_description"`
 }
 
+type UserInfo struct {
+	Sub           string `json:"sub"`
+	Nickname      string `json:"nickname"`
+	Name          string `json:"name"`
+	Picture       string `json:"picture"`
+	UpdatedAt     string `json:"updated_at"`
+	Email         string `json:"email"`
+	EmailVerified bool   `json:"email_verified"`
+}
+
 func getHttpClient() *http.Client {
 	client := &http.Client{Timeout: 10 * time.Second}
 	return client
@@ -71,7 +89,7 @@ func (c *Client) GetTokenResponse(
 			redirecturi,
 		),
 	)
-	tokenurl, err := c.getTokenEndpoint(ctx)
+	tokenurl, err := c.GetTokenEndpoint(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +150,7 @@ func (c *Client) GetRefreshedAccessToken(
 			"grant_type=refresh_token&client_id=%s&client_secret=%s&refresh_token=%s", clientId, clientSecret, refreshToken,
 		),
 	)
-	tokenurl, err := c.getTokenEndpoint(ctx)
+	tokenurl, err := c.GetTokenEndpoint(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -181,7 +199,40 @@ func (c *Client) GetRefreshedAccessToken(
 	}, nil
 }
 
-func (c *Client) getTokenEndpoint(ctx context.Context) (string, error) {
+func (c *Client) GetUserInfo(
+	ctx context.Context,
+	accessToken string,
+) (*UserInfo, error) {
+	userinfourl, err := c.getUserInfoEndpoint(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "GET", userinfourl, http.NoBody)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+
+	res, err := getHttpClient().Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("unable to request user info: %w", err)
+	}
+	defer res.Body.Close()
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read body from user info request: %w", err)
+	}
+
+	var userinfo *UserInfo
+	err = json.Unmarshal(body, &userinfo)
+	if err != nil {
+		return nil, fmt.Errorf("unable to unmarshal user info into struct: %w", err)
+	}
+	return userinfo, nil
+}
+
+func (c *Client) GetTokenEndpoint(ctx context.Context) (string, error) {
 	config, err := c.getOpenIdConfiguration(ctx)
 	if err != nil {
 		return "", err
@@ -201,6 +252,17 @@ func (c *Client) GetAuthorizationEndpoint(ctx context.Context) (string, error) {
 		return "", errors.New("unable to find authorization endpoint")
 	}
 	return config.AuthorizationEndpoint, nil
+}
+
+func (c *Client) getUserInfoEndpoint(ctx context.Context) (string, error) {
+	config, err := c.getOpenIdConfiguration(ctx)
+	if err != nil {
+		return "", err
+	}
+	if config.UserinfoEndpoint == "" {
+		return "", errors.New("unable to find userinfo endpoint")
+	}
+	return config.UserinfoEndpoint, nil
 }
 
 type openIdConfiguration struct {
