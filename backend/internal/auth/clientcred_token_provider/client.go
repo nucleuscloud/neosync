@@ -123,11 +123,11 @@ func (c *ClientCredentialsTokenProvider) GetToken(ctx context.Context) (string, 
 		return "", fmt.Errorf("%s: %s", tokenResp.Error.Error, tokenResp.Error.ErrorDescription)
 	}
 	c.accessToken = &tokenResp.Result.AccessToken
-	newExpiresAt := time.Now().Add(time.Duration(tokenResp.Result.ExpiresIn))
+	newExpiresAt := time.Now().Add(time.Duration(tokenResp.Result.ExpiresIn) * time.Second)
 	c.expiresAt = &newExpiresAt
 	return *c.accessToken, nil
 }
 
 func isTokenValid(token *string, expiresAt *time.Time, expBuffer time.Duration) bool {
-	return token != nil && expiresAt != nil && time.Now().Add(-expBuffer).Before(*expiresAt)
+	return token != nil && expiresAt != nil && time.Now().Add(expBuffer).Before(*expiresAt)
 }
