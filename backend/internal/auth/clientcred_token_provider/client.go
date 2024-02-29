@@ -76,7 +76,7 @@ func (c *tokenProviderClient) GetToken(ctx context.Context) (*auth_client.AuthTo
 	}, nil
 }
 
-// Caches the access token on the sturct. Retrieves a new one once it has expired, within the token exp buffer limit
+// Caches the access token on the struct. Retrieves a new one once it has expired, within the token exp buffer limit
 type ClientCredentialsTokenProvider struct {
 	tokenprovider  tokenProvider
 	tokenExpBuffer time.Duration
