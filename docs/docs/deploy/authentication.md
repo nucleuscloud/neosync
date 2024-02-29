@@ -31,29 +31,6 @@ The descriptions of each environment variable detail exactly what the `AUTH_*` i
 
 If there is any trouble configuring authentication with Neosync, reach out to us for help on Discord.
 
-### Auth Server Admin Access
-
-The backend requires minimal admin access to the auth server in order to show information about members within an account.
-If that is not needed or desired, the `AUTH_API_*` environment variables can be ommitted, however the member page will not show any user data for team members.
-
-Neosync currently supports keycloak and auth0 for this feature.
-
-This is determined by the `AUTH_API_PROVIDER` environment variable that recognizes `auth0` and `keycloak` as their values. If ommitted, `auth0` is the default for backwards compatibilty.
-
-The following environment variables are as follows:
-
-- `AUTH_API_BASEURL` - This is the base url for the Admin API. Auth0 calls this the Management API, while Keycloak the Admin API.
-  - For auth0, this is almost always your raw tenant url as custom domains do not work with Auth0 management API access. Example: `https://nucleus-cloud-staging.us.auth0.com`
-  - For keycloak, this url will look something like this: `https://auth.svcs.stage.neosync.dev/admin/realms/neosync-stage`. The pattern is: `<baseurl>/admin/realms/<realm>`
-- `AUTH_API_CLIENT_ID` - The service account's client id
-- `AUTH_API_CLIENT_SECRET` - The client id secret
-
-Scopes:
-
-Today, this client only requires minimal access to the API to read users.
-For Auth0, the service account should have the `read:users` scope under the `Auth0 Management API` audience.
-For Keycloak, the `view-users` scope should be added to the service account roles, which can be found under the `realm-management` client scopes.
-
 ## How to Authenticate against Neosync API
 
 The API expects the standard `Authorization` header to come in via the HTTP request. The format should be `Bearer <token>`. This is true for both API Keys as well as user JWTs.
@@ -107,6 +84,29 @@ Temporal has a guide for creating mTLS certs [here](https://docs.temporal.io/clo
 
 Once these have been created, they must be provided as environment variables to both the API and Worker processes.
 Reference the [environment variables](/deploy/environment-variables.md) page for the `TEMPORAL_*` environment variables.
+
+## Auth Server Admin Access
+
+The backend requires minimal admin access to the auth server in order to show information about members within an account.
+If that is not needed or desired, the `AUTH_API_*` environment variables can be ommitted, however the member page will not show any user data for team members.
+
+Neosync currently supports keycloak and auth0 for this feature.
+
+This is determined by the `AUTH_API_PROVIDER` environment variable that recognizes `auth0` and `keycloak` as their values. If ommitted, `auth0` is the default for backwards compatibilty.
+
+The following environment variables are as follows:
+
+- `AUTH_API_BASEURL` - This is the base url for the Admin API. Auth0 calls this the Management API, while Keycloak the Admin API.
+  - For auth0, this is almost always your raw tenant url as custom domains do not work with Auth0 management API access. Example: `https://nucleus-cloud-staging.us.auth0.com`
+  - For keycloak, this url will look something like this: `https://auth.svcs.stage.neosync.dev/admin/realms/neosync-stage`. The pattern is: `<baseurl>/admin/realms/<realm>`
+- `AUTH_API_CLIENT_ID` - The service account's client id
+- `AUTH_API_CLIENT_SECRET` - The client id secret
+
+Scopes:
+
+Today, this client only requires minimal access to the API to read users.
+For Auth0, the service account should have the `read:users` scope under the `Auth0 Management API` audience.
+For Keycloak, the `view-users` scope should be added to the service account roles, which can be found under the `realm-management` client scopes.
 
 ## Starting Neosync in Auth Mode
 
