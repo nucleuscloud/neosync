@@ -54,6 +54,7 @@ func (s *Service) GetUser(
 	}
 
 	if tokenctxResp.ApiKeyContextData != nil {
+		// todo: check api key type here
 		return connect.NewResponse(&mgmtv1alpha1.GetUserResponse{
 			UserId: nucleusdb.UUIDString(tokenctxResp.ApiKeyContextData.ApiKey.UserID),
 		}), nil
