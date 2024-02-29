@@ -1029,13 +1029,13 @@ func buildBenthosSqlSourceConfigResponses(
 			continue
 		}
 
+		table := neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table)
 		var where string
-		tableOpt := sourceTableOpts[neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table)]
+		tableOpt := sourceTableOpts[table]
 		if tableOpt != nil && tableOpt.WhereClause != nil {
 			where = *tableOpt.WhereClause
 		}
 
-		table := neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table)
 		bc := &neosync_benthos.BenthosConfig{
 			StreamConfig: neosync_benthos.StreamConfig{
 				Input: &neosync_benthos.InputConfig{
