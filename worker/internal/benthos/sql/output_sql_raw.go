@@ -18,7 +18,7 @@ func RegisterPooledSqlRawOutput(env *service.Environment, db *sql.DB) error {
 		Field(service.NewBoolField("unsafe_dynamic_query").Default(false)).
 		Field(service.NewBloblangField("args_mapping").Optional()).
 		Field(service.NewIntField("max_in_flight").Default(64)).
-		Field(service.NewBatchPolicyField("batching").Optional()).
+		Field(service.NewBatchPolicyField("batching")).
 		Field(service.NewStringField("init_statement").Optional())
 
 	return env.RegisterBatchOutput(
