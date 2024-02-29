@@ -26,7 +26,7 @@ func Test_buildSelectQuery(t *testing.T) {
 			expected: `SELECT "id", "name" FROM "public"."accounts";`,
 		},
 		{
-			name:     "postgres select",
+			name:     "postgres select with where",
 			driver:   "postgres",
 			schema:   "public",
 			table:    "accounts",
@@ -34,11 +34,30 @@ func Test_buildSelectQuery(t *testing.T) {
 			where:    `"id" = 'some-id'`,
 			expected: `SELECT "id", "name" FROM "public"."accounts" WHERE "id" = 'some-id';`,
 		},
+		{
+			name:     "mysql select",
+			driver:   "mysql",
+			schema:   "public",
+			table:    "accounts",
+			columns:  []string{"id", "name"},
+			where:    "",
+			expected: "SELECT `id`, `name` FROM `public`.`accounts`;",
+		},
+		{
+			name:     "mysql select with where",
+			driver:   "mysql",
+			schema:   "public",
+			table:    "accounts",
+			columns:  []string{"id", "name"},
+			where:    "`id` = 'some-id'",
+			expected: "SELECT `id`, `name` FROM `public`.`accounts` WHERE `id` = 'some-id';",
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			sql, err := buildSelectQuery(tt.driver, tt.schema, tt.table, tt.columns, &tt.where)
+			where := tt.where
+			sql, err := buildSelectQuery(tt.driver, tt.schema, tt.table, tt.columns, &where)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, sql)
 		})
