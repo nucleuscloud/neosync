@@ -87,12 +87,9 @@ func (s *Service) GetConnectionDataStream(
 			return err
 		}
 
-		cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-		defer cancel()
-
 		// used to get column names
 		query := fmt.Sprintf("SELECT * FROM %s.%s LIMIT 1;", req.Msg.Schema, req.Msg.Table)
-		r, err := db.QueryContext(cctx, query)
+		r, err := db.QueryContext(ctx, query)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return err
 		}
@@ -103,7 +100,7 @@ func (s *Service) GetConnectionDataStream(
 		}
 
 		selectQuery := fmt.Sprintf("SELECT %s FROM %s.%s;", strings.Join(columnNames, ", "), req.Msg.Schema, req.Msg.Table)
-		rows, err := db.QueryContext(cctx, selectQuery)
+		rows, err := db.QueryContext(ctx, selectQuery)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return err
 		}
@@ -144,12 +141,9 @@ func (s *Service) GetConnectionDataStream(
 		}
 		defer conn.Close()
 
-		cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-		defer cancel()
-
 		// used to get column names
 		query := fmt.Sprintf("SELECT * FROM %s.%s LIMIT 1;", req.Msg.Schema, req.Msg.Table)
-		r, err := db.Query(cctx, query)
+		r, err := db.Query(ctx, query)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return err
 		}
@@ -161,7 +155,7 @@ func (s *Service) GetConnectionDataStream(
 		}
 
 		selectQuery := fmt.Sprintf("SELECT %s FROM %s.%s;", strings.Join(columnNames, ", "), req.Msg.Schema, req.Msg.Table)
-		rows, err := db.Query(cctx, selectQuery)
+		rows, err := db.Query(ctx, selectQuery)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return err
 		}
@@ -364,10 +358,7 @@ func (s *Service) GetConnectionSchema(
 			return nil, err
 		}
 
-		cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-		defer cancel()
-
-		dbschema, err := s.mysqlquerier.GetDatabaseSchema(cctx, db)
+		dbschema, err := s.mysqlquerier.GetDatabaseSchema(ctx, db)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return nil, err
 		} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -402,10 +393,7 @@ func (s *Service) GetConnectionSchema(
 		}
 		defer conn.Close()
 
-		cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-		defer cancel()
-
-		dbschema, err := s.pgquerier.GetDatabaseSchema(cctx, db)
+		dbschema, err := s.pgquerier.GetDatabaseSchema(ctx, db)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return nil, err
 		} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -593,10 +581,7 @@ func (s *Service) GetConnectionForeignConstraints(
 			return nil, err
 		}
 
-		cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-		defer cancel()
-
-		allConstraints, err := dbschemas_mysql.GetAllMysqlFkConstraints(s.mysqlquerier, cctx, db, schemas)
+		allConstraints, err := dbschemas_mysql.GetAllMysqlFkConstraints(s.mysqlquerier, ctx, db, schemas)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return nil, err
 		} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -617,10 +602,7 @@ func (s *Service) GetConnectionForeignConstraints(
 		}
 		defer conn.Close()
 
-		cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-		defer cancel()
-
-		allConstraints, err := dbschemas_postgres.GetAllPostgresFkConstraints(s.pgquerier, cctx, db, schemas)
+		allConstraints, err := dbschemas_postgres.GetAllPostgresFkConstraints(s.pgquerier, ctx, db, schemas)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return nil, err
 		} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -700,10 +682,7 @@ func (s *Service) GetConnectionPrimaryConstraints(
 			return nil, err
 		}
 
-		cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
-		defer cancel()
-
-		allConstraints, err := dbschemas_mysql.GetAllMysqlPkConstraints(s.mysqlquerier, cctx, db, schemas)
+		allConstraints, err := dbschemas_mysql.GetAllMysqlPkConstraints(s.mysqlquerier, ctx, db, schemas)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return nil, err
 		} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -724,10 +703,7 @@ func (s *Service) GetConnectionPrimaryConstraints(
 		}
 		defer conn.Close()
 
-		cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-		defer cancel()
-
-		allConstraints, err := dbschemas_postgres.GetAllPostgresPkConstraints(s.pgquerier, cctx, db, schemas)
+		allConstraints, err := dbschemas_postgres.GetAllPostgresPkConstraints(s.pgquerier, ctx, db, schemas)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return nil, err
 		} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -796,12 +772,9 @@ func (s *Service) GetConnectionInitStatements(
 			return nil, err
 		}
 
-		cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-		defer cancel()
-
-		if req.Msg.Options.InitSchema {
+		if req.Msg.GetOptions().GetInitSchema() {
 			for k, v := range schemaTableMap {
-				stmt, err := dbschemas_mysql.GetTableCreateStatement(cctx, db, &dbschemas_mysql.GetTableCreateStatementRequest{
+				stmt, err := dbschemas_mysql.GetTableCreateStatement(ctx, db, &dbschemas_mysql.GetTableCreateStatementRequest{
 					Schema: v.Schema,
 					Table:  v.Table,
 				})
@@ -812,7 +785,7 @@ func (s *Service) GetConnectionInitStatements(
 			}
 		}
 
-		if req.Msg.Options.TruncateBeforeInsert {
+		if req.Msg.GetOptions().GetTruncateBeforeInsert() {
 			for k, v := range schemaTableMap {
 				truncateStmtsMap[k] = dbschemas_mysql.BuildTruncateStatement(v.Schema, v.Table)
 			}
@@ -829,12 +802,9 @@ func (s *Service) GetConnectionInitStatements(
 		}
 		defer conn.Close()
 
-		cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-		defer cancel()
-
-		if req.Msg.Options.InitSchema {
+		if req.Msg.GetOptions().GetInitSchema() {
 			for k, v := range schemaTableMap {
-				stmt, err := dbschemas_postgres.GetTableCreateStatement(cctx, db, s.pgquerier, v.Schema, v.Table)
+				stmt, err := dbschemas_postgres.GetTableCreateStatement(ctx, db, s.pgquerier, v.Schema, v.Table)
 				if err != nil {
 					return nil, err
 				}
@@ -842,11 +812,11 @@ func (s *Service) GetConnectionInitStatements(
 			}
 		}
 
-		if req.Msg.Options.TruncateCascade {
+		if req.Msg.GetOptions().GetTruncateCascade() {
 			for k, v := range schemaTableMap {
 				truncateStmtsMap[k] = dbschemas_postgres.BuildTruncateCascadeStatement(v.Schema, v.Table)
 			}
-		} else if req.Msg.Options.TruncateBeforeInsert {
+		} else if req.Msg.GetOptions().GetTruncateBeforeInsert() {
 			return nil, nucleuserrors.NewNotImplemented("postgres truncate unsupported. table foreig keys required to build truncate statement.")
 		}
 

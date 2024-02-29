@@ -102,6 +102,10 @@ stringData:
     AUTH_API_BASEURL: {{ .Values.auth.api.baseUrl }}
     {{- end }}
 
+    {{- if and .Values.auth .Values.auth.api .Values.auth.api.provider }}
+    AUTH_API_PROVIDER: {{ .Values.auth.api.provider }}
+    {{- end }}
+
     NEOSYNC_CLOUD: {{ .Values.neosyncCloud.enabled | default "false" | quote }}
     {{- if .Values.neosyncCloud.enabled }}
     NEOSYNC_CLOUD_ALLOWED_WORKER_API_KEYS: {{ join "," .Values.neosyncCloud.workerApiKeys }}

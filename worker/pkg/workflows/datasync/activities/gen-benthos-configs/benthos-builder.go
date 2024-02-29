@@ -172,6 +172,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		if err != nil {
 			return nil, fmt.Errorf("unable to retrieve postgres foreign key constraints: %w", err)
 		}
+		slogger.Info(fmt.Sprintf("found %d foreign key constraints for database", len(allConstraints)))
 		td := dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
 		primaryKeys, err := b.getAllPostgresPkConstraints(ctx, pool, uniqueSchemas)
 		if err != nil {
@@ -275,6 +276,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		if err != nil {
 			return nil, fmt.Errorf("unable to retrieve mysql foreign key constraints: %w", err)
 		}
+		slogger.Info(fmt.Sprintf("found %d foreign key constraints for database", len(allConstraints)))
 		td := dbschemas_mysql.GetMysqlTableDependencies(allConstraints)
 		primaryKeys, err := b.getAllMysqlPkConstraints(ctx, pool, uniqueSchemas)
 		if err != nil {

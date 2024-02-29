@@ -158,7 +158,7 @@ JOIN information_schema.key_column_usage fk ON
     fk.constraint_catalog = rc.constraint_catalog AND
     fk.constraint_schema = rc.constraint_schema AND
     fk.constraint_name = rc.constraint_name
-JOIN information_schema.constraint_column_usage pk ON
+JOIN information_schema.key_column_usage pk ON
     pk.constraint_catalog = rc.unique_constraint_catalog AND
     pk.constraint_schema = rc.unique_constraint_schema AND
     pk.constraint_name = rc.unique_constraint_name
