@@ -86,8 +86,8 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		return nil, err
 	}
 
-	started := map[string]struct{}{}
-	completed := map[string][]string{}
+	started := map[string]struct{}{}   // sync map ???
+	completed := map[string][]string{} // sync map ???
 
 	allDependsOn := map[string][]*tabledependency.DependsOn{} // configName -> dependson
 	redisConfigs := map[string]*genbenthosconfigs_activity.BenthosRedisConfig{}
@@ -273,12 +273,15 @@ func invokeSync(
 			ctx,
 			activity.Sync,
 			&sync_activity.SyncRequest{BenthosConfig: string(configbits), BenthosDsns: config.BenthosDsns}, metadata, workflowMetadata).Get(ctx, &result)
-		tn := fmt.Sprintf("%s.%s", config.TableSchema, config.TableName)
-		_, ok := completed[tn]
-		if ok {
-			completed[tn] = append(completed[tn], config.Columns...)
-		} else {
-			completed[tn] = config.Columns
+		// write a test for this
+		if err == nil {
+			tn := fmt.Sprintf("%s.%s", config.TableSchema, config.TableName)
+			_, ok := completed[tn]
+			if ok {
+				completed[tn] = append(completed[tn], config.Columns...)
+			} else {
+				completed[tn] = config.Columns
+			}
 		}
 		settable.Set(result, err)
 	})
