@@ -23,6 +23,7 @@ import (
 	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
 	"github.com/nucleuscloud/neosync/backend/internal/auth/authmw"
 	auth_client "github.com/nucleuscloud/neosync/backend/internal/auth/client"
+	clientcredtokenprovider "github.com/nucleuscloud/neosync/backend/internal/auth/clientcred_token_provider"
 	auth_jwt "github.com/nucleuscloud/neosync/backend/internal/auth/jwt"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt"
 	"github.com/nucleuscloud/neosync/backend/internal/authmgmt/auth0"
@@ -625,7 +626,7 @@ func getAuthAdminClient(ctx context.Context, authclient auth_client.Interface, l
 		if err != nil {
 			return nil, err
 		}
-		tokenProvider := keycloak.NewCCTokenProvider(tokenurl, authApiClientId, authApiClientSecret, keycloak.DefaultTokenExpirationBuffer, logger)
+		tokenProvider := clientcredtokenprovider.New(tokenurl, authApiClientId, authApiClientSecret, keycloak.DefaultTokenExpirationBuffer, logger)
 		return keycloak.New(authApiBaseUrl, tokenProvider, logger)
 	}
 	logger.Warn(fmt.Sprintf("unable to initialize auth admin client due to unsupported provider: %q", provider))

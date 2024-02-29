@@ -17,6 +17,9 @@ packages:
   github.com/nucleuscloud/neosync/backend/internal/authmgmt:
     interfaces:
       Interface:
+  github.com/nucleuscloud/neosync/backend/internal/auth/clientcred_token_provider:
+    interfaces:
+      tokenProvider:
   github.com/nucleuscloud/neosync/backend/internal/auth/authmw:
     interfaces:
       AuthClient:
