@@ -13,7 +13,14 @@ import (
 
 // Registers an output on a benthos environment called pooled_sql_raw
 func RegisterPooledSqlRawOutput(env *service.Environment, db *sql.DB) error {
-	spec := service.NewConfigSpec()
+	spec := service.NewConfigSpec().
+		Field(service.NewStringField("query")).
+		Field(service.NewBoolField("unsafe_dynamic_query").Default(false)).
+		Field(service.NewBloblangField("args_mapping").Optional()).
+		Field(service.NewIntField("max_in_flight").Default(64)).
+		Field(service.NewBatchPolicyField("batching").Optional()).
+		Field(service.NewStringField("init_statement").Optional())
+
 	return env.RegisterBatchOutput(
 		"pooled_sql_raw", spec,
 		func(conf *service.ParsedConfig, mgr *service.Resources) (out service.BatchOutput, batchPolicy service.BatchPolicy, maxInFlight int, err error) {
