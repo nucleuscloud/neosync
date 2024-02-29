@@ -11,18 +11,20 @@ import (
 	"github.com/nucleuscloud/neosync/worker/internal/benthos/shutdown"
 )
 
-// Registers an output on a benthos environment called pooled_sql_raw
-func RegisterPooledSqlRawOutput(env *service.Environment, db *sql.DB) error {
-	spec := service.NewConfigSpec().
+func sqlRawOutputSpec() *service.ConfigSpec {
+	return service.NewConfigSpec().
 		Field(service.NewStringField("query")).
 		Field(service.NewBoolField("unsafe_dynamic_query").Default(false)).
 		Field(service.NewBloblangField("args_mapping").Optional()).
 		Field(service.NewIntField("max_in_flight").Default(64)).
 		Field(service.NewBatchPolicyField("batching")).
 		Field(service.NewStringField("init_statement").Optional())
+}
 
+// Registers an output on a benthos environment called pooled_sql_raw
+func RegisterPooledSqlRawOutput(env *service.Environment, db *sql.DB) error {
 	return env.RegisterBatchOutput(
-		"pooled_sql_raw", spec,
+		"pooled_sql_raw", sqlRawOutputSpec(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (out service.BatchOutput, batchPolicy service.BatchPolicy, maxInFlight int, err error) {
 			if batchPolicy, err = conf.FieldBatchPolicy("batching"); err != nil {
 				return

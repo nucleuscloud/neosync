@@ -12,13 +12,16 @@ import (
 	"github.com/nucleuscloud/neosync/worker/internal/benthos/shutdown"
 )
 
-// Registers an input on a benthos environment called pooled_sql_raw
-func RegisterPooledSqlRawInput(env *service.Environment, db *sql.DB) error {
-	spec := service.NewConfigSpec().
+func sqlRawInputSpec() *service.ConfigSpec {
+	return service.NewConfigSpec().
 		Field(service.NewStringField("query")).
 		Field(service.NewBloblangField("args_mapping").Optional())
+}
+
+// Registers an input on a benthos environment called pooled_sql_raw
+func RegisterPooledSqlRawInput(env *service.Environment, db *sql.DB) error {
 	return env.RegisterInput(
-		"pooled_sql_raw", spec,
+		"pooled_sql_raw", sqlRawInputSpec(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.Input, error) {
 			input, err := newInput(conf, mgr)
 			if err != nil {
