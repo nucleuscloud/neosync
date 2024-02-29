@@ -772,7 +772,7 @@ func (s *Service) GetConnectionInitStatements(
 			return nil, err
 		}
 
-		if req.Msg.Options.InitSchema {
+		if req.Msg.GetOptions().GetInitSchema() {
 			for k, v := range schemaTableMap {
 				stmt, err := dbschemas_mysql.GetTableCreateStatement(ctx, db, &dbschemas_mysql.GetTableCreateStatementRequest{
 					Schema: v.Schema,
@@ -785,7 +785,7 @@ func (s *Service) GetConnectionInitStatements(
 			}
 		}
 
-		if req.Msg.Options.TruncateBeforeInsert {
+		if req.Msg.GetOptions().GetTruncateBeforeInsert() {
 			for k, v := range schemaTableMap {
 				truncateStmtsMap[k] = dbschemas_mysql.BuildTruncateStatement(v.Schema, v.Table)
 			}
@@ -802,7 +802,7 @@ func (s *Service) GetConnectionInitStatements(
 		}
 		defer conn.Close()
 
-		if req.Msg.Options.InitSchema {
+		if req.Msg.GetOptions().GetInitSchema() {
 			for k, v := range schemaTableMap {
 				stmt, err := dbschemas_postgres.GetTableCreateStatement(ctx, db, s.pgquerier, v.Schema, v.Table)
 				if err != nil {
@@ -812,11 +812,11 @@ func (s *Service) GetConnectionInitStatements(
 			}
 		}
 
-		if req.Msg.Options.TruncateCascade {
+		if req.Msg.GetOptions().GetTruncateCascade() {
 			for k, v := range schemaTableMap {
 				truncateStmtsMap[k] = dbschemas_postgres.BuildTruncateCascadeStatement(v.Schema, v.Table)
 			}
-		} else if req.Msg.Options.TruncateBeforeInsert {
+		} else if req.Msg.GetOptions().GetTruncateBeforeInsert() {
 			return nil, nucleuserrors.NewNotImplemented("postgres truncate unsupported. table foreig keys required to build truncate statement.")
 		}
 
