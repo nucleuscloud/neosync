@@ -7,7 +7,6 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/sdk/testsuite"
@@ -33,7 +32,7 @@ output:
   stdout:
     codec: lines
 `),
-	}, &SyncMetadata{Schema: "public", Table: "test"}, &shared.WorkflowMetadata{WorkflowId: "workflow-id", RunId: "run-id"})
+	}, &SyncMetadata{Schema: "public", Table: "test"})
 	require.NoError(t, err)
 	res := &SyncResponse{}
 	err = val.Get(res)
@@ -64,7 +63,7 @@ output:
   stdout:
     codec: lines
 `),
-	}, &SyncMetadata{Schema: "public", Table: "test"}, &shared.WorkflowMetadata{WorkflowId: "workflow-id", RunId: "RunId"})
+	}, &SyncMetadata{Schema: "public", Table: "test"})
 	require.NoError(t, err)
 	res := &SyncResponse{}
 	err = val.Get(res)
@@ -110,7 +109,7 @@ output:
     path:  %s
     codec: lines
 `, tmpFile.Name())),
-	}, &SyncMetadata{Schema: "public", Table: "test"}, &shared.WorkflowMetadata{WorkflowId: "workflow-id", RunId: "run-id"})
+	}, &SyncMetadata{Schema: "public", Table: "test"})
 	assert.NoError(t, err)
 	res := &SyncResponse{}
 	err = val.Get(res)
@@ -167,7 +166,7 @@ output:
     path:  %s
     codec: lines
 	`, tmpFile.Name())),
-	}, &SyncMetadata{Schema: "public", Table: "test"}, &shared.WorkflowMetadata{WorkflowId: "workflow-id", RunId: "run-id"})
+	}, &SyncMetadata{Schema: "public", Table: "test"})
 	assert.NoError(t, err)
 	res := &SyncResponse{}
 	err = val.Get(res)
