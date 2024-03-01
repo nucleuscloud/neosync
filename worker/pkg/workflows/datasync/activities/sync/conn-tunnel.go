@@ -1,7 +1,6 @@
 package sync_activity
 
 import (
-	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -37,15 +36,6 @@ type ConnectionTunnelManager struct {
 	connMu  sync.RWMutex
 
 	shutdown chan any
-}
-
-func (c *ConnectionTunnelManager) LogStats(logger *slog.Logger, level slog.Level) {
-	logger.Log(
-		context.Background(),
-		level,
-		"connection manager stats",
-		"liveConnections", len(c.connMap),
-	)
 }
 
 // Purpose of this function is to return a connection string that can be used by

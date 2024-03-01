@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log/slog"
 	"sync"
 	"time"
 
@@ -68,22 +67,14 @@ func (a *Activity) getTunnelManagerByRunId(wfId, runId string) (*ConnectionTunne
 	if loaded {
 		go manager.Reaper()
 		go func() {
-			// periodically waits for the workflow to complete so that it can shut down the tunnel manager for that run
+			// periodically waits for the workflow run to complete so that it can shut down the tunnel manager for that run
 			for {
 				time.Sleep(1 * time.Minute)
 				exec, err := a.temporalclient.DescribeWorkflowExecution(context.Background(), wfId, runId)
-				if err != nil && (errors.Is(err, &serviceerror.Internal{}) || errors.Is(err, &serviceerror.Unavailable{})) {
-					continue
-				} else if (err != nil && errors.Is(err, &serviceerror.NotFound{})) {
+				if (err != nil && errors.Is(err, &serviceerror.NotFound{})) || (err == nil && exec.GetWorkflowExecutionInfo().GetCloseTime() != nil) {
 					a.tunnelmanagermap.Delete(runId)
 					go manager.Shutdown()
 					return
-				} else if err == nil && exec.GetWorkflowExecutionInfo().GetCloseTime() != nil {
-					a.tunnelmanagermap.Delete(runId)
-					go manager.Shutdown()
-					return
-				} else {
-					continue
 				}
 			}
 		}()
@@ -158,7 +149,6 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 
 	defer func() {
 		tunnelmanager.ReleaseSession(session)
-		tunnelmanager.LogStats(slogger, slog.LevelDebug)
 	}()
 
 	dsnToConnectionIdMap := map[string]string{}
