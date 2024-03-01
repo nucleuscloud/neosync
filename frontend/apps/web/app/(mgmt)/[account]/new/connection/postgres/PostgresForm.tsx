@@ -4,6 +4,7 @@ import FormError from '@/components/FormError';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import { useAccount } from '@/components/providers/account-provider';
+import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import {
   Accordion,
   AccordionContent,
@@ -43,6 +44,7 @@ import {
   ConnectionConfig,
   CreateConnectionRequest,
   CreateConnectionResponse,
+  GetConnectionResponse,
   IsConnectionNameAvailableResponse,
   PostgresConnection,
   PostgresConnectionConfig,
@@ -56,11 +58,15 @@ import {
   ExclamationTriangleIcon,
 } from '@radix-ui/react-icons';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ReactElement, useState } from 'react';
+import { ReactElement, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 export default function PostgresForm() {
+  const searchParams = useSearchParams();
   const { account } = useAccount();
+  const sourceConnId = searchParams.get('sourceId');
+  const [isLoading, setIsLoading] = useState<boolean>();
+
   const form = useForm<PostgresFormValues>({
     resolver: yupResolver(POSTGRES_FORM_SCHEMA),
     mode: 'onChange',
@@ -83,10 +89,10 @@ export default function PostgresForm() {
         privateKey: '',
       },
     },
+
     context: { accountId: account?.id ?? '' },
   });
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [checkResp, setCheckResp] = useState<
     CheckConnectionConfigResponse | undefined
   >();
@@ -128,6 +134,66 @@ export default function PostgresForm() {
         variant: 'destructive',
       });
     }
+  }
+
+  /* we call the underlying useGetConnection API directly since we can't call
+the hook in the useEffect conditionally. 
+*/
+  useEffect(() => {
+    const fetchData = async () => {
+      if (sourceConnId && account) {
+        setIsLoading(true);
+        try {
+          const response = await fetch(
+            `/api/accounts/${account?.id ?? ''}/connections/${sourceConnId}`,
+            {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            }
+          );
+          const data: GetConnectionResponse = await response.json();
+
+          const connData =
+            data instanceof GetConnectionResponse
+              ? data
+              : GetConnectionResponse.fromJson(data);
+
+          if (connData) {
+            const config = connData.connection?.connectionConfig?.config
+              .value as PostgresConnectionConfig;
+
+            const pgConfig = config.connectionConfig
+              .value as PostgresConnection;
+
+            setIsLoading(false);
+            // reset the form with the new values
+            form.reset({
+              ...form.getValues(),
+              connectionName: pgConfig.name + '_copy',
+              db: {
+                ...form.getValues().db,
+                host: pgConfig.host,
+                name: pgConfig.name,
+                user: pgConfig.user,
+                pass: pgConfig.pass,
+                port: pgConfig.port,
+                sslMode: pgConfig.sslMode,
+              },
+            });
+          }
+        } catch (error) {
+          console.error('Failed to fetch connection data:', error);
+        }
+      }
+    };
+
+    fetchData();
+  }, [sourceConnId, account, form]);
+
+  if (isLoading) {
+    return <SkeletonTable />;
   }
 
   return (

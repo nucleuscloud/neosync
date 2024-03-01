@@ -71,6 +71,17 @@ export function DataTableRowActions<TData>({
           View
         </DropdownMenuItem>
         <DropdownMenuSeparator />
+        {/* <DropdownMenuItem
+          className="cursor-pointer"
+          onClick={() =>
+            // need the connection type which i can get from the connection
+            // need the connection details
+            router.push(`${account?.name}/new/transformer?transformer=${source}`)
+          }
+        >
+          Clone
+        </DropdownMenuItem> */}
+        <DropdownMenuSeparator />
         <DeleteConfirmationDialog
           trigger={
             <DropdownMenuItem
