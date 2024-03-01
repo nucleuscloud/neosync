@@ -17,6 +17,7 @@ require (
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.2
 	github.com/stretchr/testify v1.8.4
+	go.temporal.io/api v1.26.0
 	go.temporal.io/sdk v1.25.1
 	go.uber.org/atomic v1.11.0
 	golang.org/x/net v0.21.0
@@ -225,7 +226,6 @@ require (
 	go.opentelemetry.io/otel v1.21.0 // indirect
 	go.opentelemetry.io/otel/metric v1.21.0 // indirect
 	go.opentelemetry.io/otel/trace v1.21.0 // indirect
-	go.temporal.io/api v1.26.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.19.0 // indirect
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
