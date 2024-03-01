@@ -424,7 +424,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					filteredCols := filterColsBySource(cols, colSourceMap) // filters out default columns
 
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-						SqlRaw: &neosync_benthos.SqlRaw{
+						PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
 							Driver: "postgres",
 							Dsn:    dsn,
 
@@ -452,7 +452,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					out := buildMysqlOutputQueryAndArgs(resp, tm, tableKey, colSourceMap)
 					resp.Columns = out.Columns
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-						SqlRaw: &neosync_benthos.SqlRaw{
+						PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
 							Driver: "mysql",
 							Dsn:    dsn,
 
@@ -483,7 +483,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					filteredCols := filterColsBySource(cols, colSourceMap)
 
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-						SqlRaw: &neosync_benthos.SqlRaw{
+						PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
 							Driver: "mysql",
 							Dsn:    dsn,
 
@@ -965,7 +965,7 @@ func createSqlUpdateBenthosConfig(
 		newResp.Columns = output.Columns
 		newResp.BenthosDsns = insertConfig.BenthosDsns
 		newResp.Config.Output.Broker.Outputs = append(newResp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-			SqlRaw: &neosync_benthos.SqlRaw{
+			PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
 				Driver: driver,
 				Dsn:    dsn,
 

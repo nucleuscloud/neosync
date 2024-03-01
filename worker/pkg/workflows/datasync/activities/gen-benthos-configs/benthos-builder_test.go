@@ -173,7 +173,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
@@ -324,7 +324,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users ("id", "name") VALUES (DEFAULT, $1);
@@ -500,7 +500,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
@@ -739,7 +739,7 @@ output:
                 walk_json_object: false
                 fields_mapping: 'root = {meta("neosync_id"): json("id")}'
                 kind: simple
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
@@ -791,7 +791,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.orders ("id", "buyer_id") VALUES ($1, $2);
@@ -1009,7 +1009,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
@@ -1052,7 +1052,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.orders ("id", "buyer_id") VALUES ($1, $2);
@@ -1261,7 +1261,7 @@ output:
                 walk_json_object: false
                 fields_mapping: 'root = {meta("neosync_id"): json("id")}'
                 kind: simple
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.jobs ("id") VALUES ($1);
@@ -1322,7 +1322,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: UPDATE public.jobs SET "parent_id" = $1 WHERE "id" = $2;
@@ -1498,7 +1498,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users ("id", "name") VALUES (DEFAULT, $1);
@@ -1717,7 +1717,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
@@ -1759,7 +1759,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.user_account_associations ("id", "user_id") VALUES ($1, $2);
@@ -2007,7 +2007,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
@@ -2051,7 +2051,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: UPDATE public.users SET "user_assoc_id" = $1 WHERE "id" = $2;
@@ -2093,7 +2093,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.user_account_associations ("id", "user_id") VALUES ($1, $2);
@@ -2372,7 +2372,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
@@ -2435,7 +2435,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: UPDATE public.users SET "user_assoc_id" = $1 WHERE "id" = $2;
@@ -2478,7 +2478,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.user_account_associations ("id", "user_id") VALUES ($1, $2);
@@ -2652,7 +2652,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 `+"query: INSERT INTO public.users (`id`, `name`) VALUES (?, ?);"+`
@@ -2827,7 +2827,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 `+"query: INSERT INTO public.users (`id`, `name`) VALUES (?, ?);"+`
@@ -3044,7 +3044,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 `+"query: INSERT INTO public.users (`id`, `name`) VALUES (?, ?);"+`
@@ -3086,7 +3086,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 `+"query: INSERT INTO public.user_account_associations (`id`, `user_id`) VALUES (?, ?);"+`
@@ -3335,7 +3335,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 `+"query: INSERT INTO public.users (`id`, `name`) VALUES (?, ?);"+`
@@ -3379,7 +3379,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 `+"query: UPDATE public.users SET `user_assoc_id` = ? WHERE `id` = ?;"+`
@@ -3421,7 +3421,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 `+"query: INSERT INTO public.user_account_associations (`id`, `user_id`) VALUES (?, ?);"+`
@@ -3574,7 +3574,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 `+"query: INSERT INTO public.users (`id`, `name`) VALUES (DEFAULT, ?);"+`
@@ -3750,7 +3750,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 `+"query: INSERT INTO public.users (`id`, `name`) VALUES (DEFAULT, ?);"+`
