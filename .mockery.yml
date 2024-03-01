@@ -64,3 +64,7 @@ packages:
   github.com/nucleuscloud/neosync/backend/internal/aws:
     interfaces:
       NeosyncAwsManagerClient:
+  github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync:
+    interfaces:
+      sqlProvider:
+      sqlDbtx:
