@@ -17,7 +17,7 @@ func Test_Sync_Run_Success(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 
-	activity := New(nil, &sync.Map{})
+	activity := New(nil, &sync.Map{}, nil)
 
 	env.RegisterActivity(activity.Sync)
 
@@ -44,7 +44,7 @@ func Test_Sync_Fake_Mutation_Success(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 
-	activity := New(nil, &sync.Map{})
+	activity := New(nil, &sync.Map{}, nil)
 	env.RegisterActivity(activity.Sync)
 
 	val, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
@@ -75,7 +75,7 @@ func Test_Sync_Run_Success_Javascript(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 
-	activity := New(nil, &sync.Map{})
+	activity := New(nil, &sync.Map{}, nil)
 	env.RegisterActivity(activity.Sync)
 
 	tmpFile, err := os.CreateTemp("", "test")
@@ -130,7 +130,7 @@ output:
 func Test_Sync_Run_Success_MutataionAndJavascript(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
-	activity := New(nil, &sync.Map{})
+	activity := New(nil, &sync.Map{}, nil)
 	env.RegisterActivity(activity.Sync)
 
 	tmpFile, err := os.CreateTemp("", "test")

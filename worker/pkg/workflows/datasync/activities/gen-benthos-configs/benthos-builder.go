@@ -392,7 +392,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					out := buildPostgresOutputQueryAndArgs(resp, tm, tableKey, colSourceMap)
 					resp.Columns = out.Columns
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-						SqlRaw: &neosync_benthos.SqlRaw{
+						PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
 							Driver: "postgres",
 							Dsn:    dsn,
 

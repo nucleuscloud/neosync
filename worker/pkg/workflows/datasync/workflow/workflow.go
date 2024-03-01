@@ -109,7 +109,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	}
 	for _, bc := range splitConfigs.Root {
 		bc := bc
-		future := invokeSync(bc, childctx, started, completed, workflowMetadata, logger)
+		future := invokeSync(bc, childctx, started, completed, logger)
 		workselector.AddFuture(future, func(f workflow.Future) {
 			logger := log.With(logger, withBenthosConfigResponseLoggerTags(bc)...)
 			logger.Info("config sync completed")
@@ -153,7 +153,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 				continue
 			}
 
-			future := invokeSync(bc, childctx, started, completed, workflowMetadata, logger)
+			future := invokeSync(bc, childctx, started, completed, logger)
 			workselector.AddFuture(future, func(f workflow.Future) {
 				logger.Info("config sync completed", "name", bc.Name)
 				var result sync_activity.SyncResponse
@@ -249,7 +249,6 @@ func invokeSync(
 	ctx workflow.Context,
 	started map[string]struct{},
 	completed map[string][]string,
-	workflowMetadata *shared.WorkflowMetadata,
 	logger log.Logger,
 ) workflow.Future {
 	metadata := getSyncMetadata(config)
@@ -272,7 +271,7 @@ func invokeSync(
 		err = workflow.ExecuteActivity(
 			ctx,
 			activity.Sync,
-			&sync_activity.SyncRequest{BenthosConfig: string(configbits), BenthosDsns: config.BenthosDsns}, metadata, workflowMetadata).Get(ctx, &result)
+			&sync_activity.SyncRequest{BenthosConfig: string(configbits), BenthosDsns: config.BenthosDsns}, metadata).Get(ctx, &result)
 		// write a test for this
 		if err == nil {
 			tn := fmt.Sprintf("%s.%s", config.TableSchema, config.TableName)

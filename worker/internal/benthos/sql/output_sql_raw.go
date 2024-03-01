@@ -13,6 +13,8 @@ import (
 
 func sqlRawOutputSpec() *service.ConfigSpec {
 	return service.NewConfigSpec().
+		Field(service.NewStringField("driver")).
+		Field(service.NewStringField("dsn")).
 		Field(service.NewStringField("query")).
 		Field(service.NewBoolField("unsafe_dynamic_query").Default(false)).
 		Field(service.NewBloblangField("args_mapping").Optional()).
@@ -21,19 +23,29 @@ func sqlRawOutputSpec() *service.ConfigSpec {
 		Field(service.NewStringField("init_statement").Optional())
 }
 
+type DbPoolProvider interface {
+	GetDb(driver, dsn string) (*sql.DB, error)
+}
+
 // Registers an output on a benthos environment called pooled_sql_raw
-func RegisterPooledSqlRawOutput(env *service.Environment, db *sql.DB) error {
+func RegisterPooledSqlRawOutput(env *service.Environment, dbprovider DbPoolProvider) error {
 	return env.RegisterBatchOutput(
 		"pooled_sql_raw", sqlRawOutputSpec(),
-		func(conf *service.ParsedConfig, mgr *service.Resources) (out service.BatchOutput, batchPolicy service.BatchPolicy, maxInFlight int, err error) {
-			if batchPolicy, err = conf.FieldBatchPolicy("batching"); err != nil {
-				return
+		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchOutput, service.BatchPolicy, int, error) {
+			batchPolicy, err := conf.FieldBatchPolicy("batching")
+			if err != nil {
+				return nil, batchPolicy, -1, err
 			}
-			if maxInFlight, err = conf.FieldInt("max_in_flight"); err != nil {
-				return
+
+			maxInFlight, err := conf.FieldInt("max_in_flight")
+			if err != nil {
+				return nil, service.BatchPolicy{}, -1, err
 			}
-			out, err = newOutput(conf, mgr)
-			return
+			out, err := newOutput(conf, mgr, dbprovider)
+			if err != nil {
+				return nil, service.BatchPolicy{}, -1, err
+			}
+			return out, batchPolicy, maxInFlight, nil
 		},
 	)
 }
@@ -41,9 +53,12 @@ func RegisterPooledSqlRawOutput(env *service.Environment, db *sql.DB) error {
 var _ service.BatchOutput = &pooledOutput{}
 
 type pooledOutput struct {
-	db     *sql.DB
-	dbMut  sync.RWMutex
-	logger *service.Logger
+	driver  string
+	dsn     string
+	provder DbPoolProvider
+	dbMut   sync.RWMutex
+	db      *sql.DB
+	logger  *service.Logger
 
 	queryStatic string
 	queryDyn    *service.InterpolatedString
@@ -52,7 +67,16 @@ type pooledOutput struct {
 	shutSig     *shutdown.Signaller
 }
 
-func newOutput(conf *service.ParsedConfig, mgr *service.Resources) (*pooledOutput, error) {
+func newOutput(conf *service.ParsedConfig, mgr *service.Resources, provider DbPoolProvider) (*pooledOutput, error) {
+	driver, err := conf.FieldString("driver")
+	if err != nil {
+		return nil, err
+	}
+	dsn, err := conf.FieldString("dsn")
+	if err != nil {
+		return nil, err
+	}
+
 	queryStatic, err := conf.FieldString("query")
 	if err != nil {
 		return nil, err
@@ -75,27 +99,39 @@ func newOutput(conf *service.ParsedConfig, mgr *service.Resources) (*pooledOutpu
 	}
 
 	output := &pooledOutput{
+		driver:      driver,
+		dsn:         dsn,
 		logger:      mgr.Logger(),
 		shutSig:     shutdown.NewSignaller(),
 		queryStatic: queryStatic,
 		queryDyn:    queryDyn,
 		argsMapping: argsMapping,
+		provder:     provider,
 	}
 	return output, nil
-}
-
-func (s *pooledOutput) WithDb(db *sql.DB) {
-	s.db = db
 }
 
 func (s *pooledOutput) Connect(ctx context.Context) error {
 	s.dbMut.Lock()
 	defer s.dbMut.Unlock()
 
-	// nothing to do here since the database is already connected
+	if s.db != nil {
+		return nil
+	}
+
+	db, err := s.provder.GetDb(s.driver, s.dsn)
+	if err != nil {
+		return err
+	}
+	s.db = db
 
 	go func() {
 		<-s.shutSig.CloseNowChan()
+
+		s.dbMut.Lock()
+		// not closing the connection here as that is managed by an outside force
+		s.db = nil
+		s.dbMut.Unlock()
 
 		s.shutSig.ShutdownComplete()
 	}()
