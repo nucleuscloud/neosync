@@ -2,7 +2,6 @@ package sync_activity
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"sync"
@@ -23,6 +22,7 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/benthosdev/benthos/v4/public/service"
+	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -59,7 +59,7 @@ type Activity struct {
 }
 
 func (a *Activity) getTunnelManagerByRunId(wfId, runId string) (*ConnectionTunnelManager, error) {
-	val, loaded := a.tunnelmanagermap.LoadOrStore(runId, NewConnectionTunnelManager())
+	val, loaded := a.tunnelmanagermap.LoadOrStore(runId, NewConnectionTunnelManager(&defaultSqlProvider{}))
 	manager, ok := val.(*ConnectionTunnelManager)
 	if !ok {
 		return nil, fmt.Errorf("unable to retrieve connection tunnel manager from tunnel manager map. Expected *ConnectionTunnelManager, received: %T", manager)
@@ -173,7 +173,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		return nil, fmt.Errorf("was unable to build connection details for some or all connections: %w", err)
 	}
 
-	poolprovider := newPoolProvider(func(dsn string) (*sql.DB, error) {
+	poolprovider := newPoolProvider(func(dsn string) (mysql_queries.DBTX, error) {
 		connid, ok := dsnToConnectionIdMap[dsn]
 		if !ok {
 			return nil, errors.New("unable to find connection id by dsn when getting db pool")

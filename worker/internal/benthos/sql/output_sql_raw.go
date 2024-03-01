@@ -2,12 +2,12 @@ package sql
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"sync"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/benthosdev/benthos/v4/public/service"
+	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	"github.com/nucleuscloud/neosync/worker/internal/benthos/shutdown"
 )
 
@@ -24,7 +24,7 @@ func sqlRawOutputSpec() *service.ConfigSpec {
 }
 
 type DbPoolProvider interface {
-	GetDb(driver, dsn string) (*sql.DB, error)
+	GetDb(driver, dsn string) (mysql_queries.DBTX, error)
 }
 
 // Registers an output on a benthos environment called pooled_sql_raw
@@ -57,7 +57,7 @@ type pooledOutput struct {
 	dsn     string
 	provder DbPoolProvider
 	dbMut   sync.RWMutex
-	db      *sql.DB
+	db      mysql_queries.DBTX
 	logger  *service.Logger
 
 	queryStatic string
