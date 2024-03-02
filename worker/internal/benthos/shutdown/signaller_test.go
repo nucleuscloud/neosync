@@ -103,7 +103,7 @@ func TestSignallerNow(t *testing.T) {
 func TestSignallerAtLeisureCtx(t *testing.T) {
 	s := NewSignaller()
 
-	// Cancelled from original context
+	// Canceled from original context
 	inCtx, inDone := context.WithCancel(context.Background())
 	ctx, done := s.CloseAtLeisureCtx(inCtx)
 	assertOpen(t, ctx.Done())
@@ -111,7 +111,7 @@ func TestSignallerAtLeisureCtx(t *testing.T) {
 	assertClosed(t, ctx.Done())
 	done()
 
-	// Cancelled from returned cancel func
+	// Canceled from returned cancel func
 	inCtx, inDone = context.WithCancel(context.Background())
 	ctx, done = s.CloseAtLeisureCtx(inCtx)
 	assertOpen(t, ctx.Done())
@@ -119,7 +119,7 @@ func TestSignallerAtLeisureCtx(t *testing.T) {
 	assertClosed(t, ctx.Done())
 	inDone()
 
-	// Cancelled from at leisure signal
+	// Canceled from at leisure signal
 	inCtx, inDone = context.WithCancel(context.Background())
 	ctx, done = s.CloseAtLeisureCtx(inCtx)
 	assertOpen(t, ctx.Done())
@@ -128,7 +128,7 @@ func TestSignallerAtLeisureCtx(t *testing.T) {
 	done()
 	inDone()
 
-	// Cancelled from at immediate signal
+	// Canceled from at immediate signal
 	inCtx, inDone = context.WithCancel(context.Background())
 	s = NewSignaller()
 	ctx, done = s.CloseAtLeisureCtx(inCtx)
@@ -142,7 +142,7 @@ func TestSignallerAtLeisureCtx(t *testing.T) {
 func TestSignallerNowCtx(t *testing.T) {
 	s := NewSignaller()
 
-	// Cancelled from original context
+	// Canceled from original context
 	inCtx, inDone := context.WithCancel(context.Background())
 	ctx, done := s.CloseNowCtx(inCtx)
 	assertOpen(t, ctx.Done())
@@ -150,7 +150,7 @@ func TestSignallerNowCtx(t *testing.T) {
 	assertClosed(t, ctx.Done())
 	done()
 
-	// Cancelled from returned cancel func
+	// Canceled from returned cancel func
 	inCtx, inDone = context.WithCancel(context.Background())
 	ctx, done = s.CloseNowCtx(inCtx)
 	assertOpen(t, ctx.Done())
@@ -158,7 +158,7 @@ func TestSignallerNowCtx(t *testing.T) {
 	assertClosed(t, ctx.Done())
 	inDone()
 
-	// Not cancelled from at leisure signal
+	// Not canceled from at leisure signal
 	inCtx, inDone = context.WithCancel(context.Background())
 	ctx, done = s.CloseNowCtx(inCtx)
 	assertOpen(t, ctx.Done())
@@ -168,7 +168,7 @@ func TestSignallerNowCtx(t *testing.T) {
 	assertClosed(t, ctx.Done())
 	inDone()
 
-	// Cancelled from at immediate signal
+	// Canceled from at immediate signal
 	inCtx, inDone = context.WithCancel(context.Background())
 	ctx, done = s.CloseNowCtx(inCtx)
 	assertOpen(t, ctx.Done())
@@ -181,7 +181,7 @@ func TestSignallerNowCtx(t *testing.T) {
 func TestSignallerHasClosedCtx(t *testing.T) {
 	s := NewSignaller()
 
-	// Cancelled from original context
+	// Canceled from original context
 	inCtx, inDone := context.WithCancel(context.Background())
 	ctx, done := s.HasClosedCtx(inCtx)
 	assertOpen(t, ctx.Done())
@@ -189,7 +189,7 @@ func TestSignallerHasClosedCtx(t *testing.T) {
 	assertClosed(t, ctx.Done())
 	done()
 
-	// Cancelled from returned cancel func
+	// Canceled from returned cancel func
 	inCtx, inDone = context.WithCancel(context.Background())
 	ctx, done = s.HasClosedCtx(inCtx)
 	assertOpen(t, ctx.Done())
@@ -197,7 +197,7 @@ func TestSignallerHasClosedCtx(t *testing.T) {
 	assertClosed(t, ctx.Done())
 	inDone()
 
-	// Cancelled from at leisure signal
+	// Canceled from at leisure signal
 	inCtx, inDone = context.WithCancel(context.Background())
 	ctx, done = s.HasClosedCtx(inCtx)
 	assertOpen(t, ctx.Done())
