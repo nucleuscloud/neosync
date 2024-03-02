@@ -5286,3 +5286,11 @@ func Test_buildBranchCacheConfigs_self_referencing(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, resp, 0)
 }
+
+func Test_computeMinInt(t *testing.T) {
+	assert.Equal(t, 1, computeMinInt(1, 2))
+	assert.Equal(t, 1, computeMinInt(2, 1))
+	assert.Equal(t, 1, computeMinInt(1, 1))
+	assert.Equal(t, -1, computeMinInt(-1, 1))
+	assert.Equal(t, -1, computeMinInt(1, -1))
+}
