@@ -23,7 +23,6 @@ func SliceString(s string, l int) string {
 	if l > len(runes) {
 		l = len(runes)
 	}
-
 	return string(runes[:l])
 }
 
@@ -34,16 +33,13 @@ func GenerateRandomStringWithDefinedLength(length int64) (string, error) {
 	}
 
 	result := make([]byte, length)
-
 	for i := int64(0); i < length; i++ {
 		// Generate a random index in the range [0, len(alphabet))
 		//nolint:all
 		index := rand.Intn(len(alphanumeric))
-
 		// Get the character at the generated index and append it to the result
 		result[i] = alphanumeric[index]
 	}
-
 	return strings.ToLower(string(result)), nil
 }
 
@@ -77,11 +73,9 @@ func GenerateRandomStringWithInclusiveBounds(min, max int64) (string, error) {
 func ParseEmail(email string) ([]string, error) {
 	inputEmail, err := mail.ParseAddress(email)
 	if err != nil {
-		return nil, fmt.Errorf("invalid email format: %s", email)
+		return nil, fmt.Errorf("invalid email format: %s: %w", email, err)
 	}
-
 	parsedEmail := strings.Split(inputEmail.Address, "@")
-
 	return parsedEmail, nil
 }
 
