@@ -29,13 +29,18 @@ func init() {
 			return nil, err
 		}
 
+		minLength, err := args.GetInt64("min_length")
+		if err != nil {
+			return nil, err
+		}
+
 		maxLength, err := args.GetInt64("max_length")
 		if err != nil {
 			return nil, err
 		}
 
 		return func() (any, error) {
-			res, err := TransformString(value, preserveLength, maxLength)
+			res, err := TransformString(value, preserveLength, minLength, maxLength)
 			return res, err
 		}, nil
 	})
@@ -46,30 +51,24 @@ func init() {
 }
 
 // Transforms an existing string value into another string. Does not account for numbers and other characters. If you want to preserve spaces, capitalization and other characters, use the Transform_Characters transformer.
-func TransformString(value string, preserveLength bool, maxLength int64) (*string, error) {
-	var returnValue string
-
+func TransformString(value string, preserveLength bool, minLength, maxLength int64) (*string, error) {
+	// todo: this is potentially a bug and we should pass in whether or not the column is nullable
+	// in databases, there is a difference between a null and empty string!
 	if value == "" {
 		return nil, nil
 	}
 
 	if preserveLength {
-		l := int64(len(value))
-		val, err := transformer_utils.GenerateRandomStringWithDefinedLength(l)
-
+		valueLength := int64(len(value))
+		val, err := transformer_utils.GenerateRandomStringWithDefinedLength(valueLength)
 		if err != nil {
-			return nil, fmt.Errorf("unable to generate a random string with preserved length: %d: %w", l, err)
+			return nil, fmt.Errorf("unable to generate a random string with preserved length: %d: %w", valueLength, err)
 		}
-
-		returnValue = val
-	} else {
-		// todo: this is a bug and we need to read in the min length based on the constraints
-		min := int64(3)
-		val, err := transformer_utils.GenerateRandomStringWithInclusiveBounds(min, maxLength)
-		if err != nil {
-			return nil, fmt.Errorf("unable to transform a random string with length: [%d:%d]: %w", min, maxLength, err)
-		}
-		returnValue = val
+		return &val, nil
 	}
-	return &returnValue, nil
+	val, err := transformer_utils.GenerateRandomStringWithInclusiveBounds(minLength, maxLength)
+	if err != nil {
+		return nil, fmt.Errorf("unable to transform a random string with length: [%d:%d]: %w", minLength, maxLength, err)
+	}
+	return &val, nil
 }

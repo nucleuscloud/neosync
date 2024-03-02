@@ -1638,6 +1638,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		min := col.Transformer.Config.GetGenerateStringConfig().Min
 		max := col.Transformer.Config.GetGenerateStringConfig().Max
 		max = computeMinInt(max, maxLen)
+		// todo: we need to pull in the min from the database schema
 		return fmt.Sprintf(`generate_string(min:%d,max:%d)`, min, max), nil
 	case "generate_unixtimestamp":
 		return "generate_unixtimestamp()", nil
@@ -1678,7 +1679,8 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		return fmt.Sprintf("transform_phone_number(value:this.%q,preserve_length:%t,max_length:%d)", col.Column, pl, maxLen), nil
 	case "transform_string":
 		pl := col.Transformer.Config.GetTransformStringConfig().PreserveLength
-		return fmt.Sprintf(`transform_string(value:this.%q,preserve_length:%t,max_length:%d)`, col.Column, pl, maxLen), nil
+		minLength := int64(3) // todo: we need to pull in this value from the database schema
+		return fmt.Sprintf(`transform_string(value:this.%q,preserve_length:%t,min_length:%d,max_length:%d)`, col.Column, pl, minLength, maxLen), nil
 	case shared.NullString:
 		return shared.NullString, nil
 	case generateDefault:
