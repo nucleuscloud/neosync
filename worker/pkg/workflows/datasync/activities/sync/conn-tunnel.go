@@ -55,7 +55,7 @@ type ConnectionTunnelManager struct {
 	connDetailsMap map[string]*sqlconnect.ConnectionDetails
 	connDetailsMu  sync.RWMutex
 
-	// session
+	// session to set of connection ids that it is using
 	sessionMap map[string]map[string]struct{}
 	sessionMu  sync.RWMutex
 
