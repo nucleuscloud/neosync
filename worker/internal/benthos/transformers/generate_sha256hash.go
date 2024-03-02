@@ -17,9 +17,8 @@ func init() {
 	err := bloblang.RegisterFunctionV2("generate_sha256hash", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		return func() (any, error) {
 			val, err := GenerateRandomSHA256Hash()
-
 			if err != nil {
-				return false, fmt.Errorf("unable to generate sha256 hash")
+				return false, fmt.Errorf("unable to run generate_sha256hash: %w", err)
 			}
 			return val, nil
 		}, nil

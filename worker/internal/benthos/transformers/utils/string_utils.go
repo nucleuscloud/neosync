@@ -50,7 +50,7 @@ func GenerateRandomStringWithDefinedLength(length int64) (string, error) {
 // Generate a random alphanumeric string within the interval [min, max]
 func GenerateRandomStringWithInclusiveBounds(min, max int64) (string, error) {
 	if min < 0 || max < 0 || min > max {
-		return "", fmt.Errorf("the min and max can't be less than 0 and the min can't be greater than the max")
+		return "", fmt.Errorf("the min and max can't be less than 0 and the min can't be greater than the max: [%d:%d]", min, max)
 	}
 
 	var length int64

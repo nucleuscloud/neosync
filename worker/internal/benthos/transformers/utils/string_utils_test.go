@@ -49,6 +49,7 @@ func Test_GenerateRandomStringBounds(t *testing.T) {
 	}
 	testcases := []testcase{
 		{min: int64(2), max: int64(5)},
+		{min: int64(2), max: int64(7)},
 		{min: int64(23), max: int64(24)},
 		{min: int64(4), max: int64(24)},
 		{min: int64(2), max: int64(2)},
