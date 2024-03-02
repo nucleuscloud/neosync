@@ -9,7 +9,7 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/benthosdev/benthos/v4/public/bloblang"
-	sb "github.com/benthosdev/benthos/v4/public/service"
+	"github.com/benthosdev/benthos/v4/public/service"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
@@ -32,6 +32,7 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/redis"
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/redis"
+	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/internal/benthos/sql"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
 
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
@@ -190,7 +191,10 @@ output:
 	)
 
 	// create a new streambuilder instance so we can access the SetYaml method
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
@@ -340,7 +344,10 @@ output:
 	)
 
 	// create a new streambuilder instance so we can access the SetYaml method
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
@@ -515,7 +522,10 @@ output:
 `),
 	)
 
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
@@ -807,7 +817,10 @@ output:
 `),
 	)
 
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
@@ -1068,7 +1081,10 @@ output:
 `),
 	)
 
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
@@ -1338,7 +1354,10 @@ output:
 `),
 	)
 
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
@@ -1514,7 +1533,10 @@ output:
 	)
 
 	// create a new streambuilder instance so we can access the SetYaml method
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
@@ -1774,7 +1796,10 @@ output:
 `),
 	)
 
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
@@ -2108,7 +2133,10 @@ output:
 `),
 	)
 
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
@@ -2511,7 +2539,10 @@ output:
 `),
 	)
 
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
@@ -2667,7 +2698,10 @@ output:
 `),
 	)
 
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
@@ -2842,7 +2876,10 @@ output:
 `),
 	)
 
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
@@ -3101,7 +3138,10 @@ output:
 `),
 	)
 
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
@@ -3436,7 +3476,10 @@ output:
 `),
 	)
 
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
@@ -3590,7 +3633,10 @@ output:
 	)
 
 	// create a new streambuilder instance so we can access the SetYaml method
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
@@ -3765,7 +3811,10 @@ output:
 `),
 	)
 	// create a new streambuilder instance so we can access the SetYaml method
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))

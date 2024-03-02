@@ -1,4 +1,4 @@
-package sql
+package neosync_benthos_sql
 
 import (
 	"context"
@@ -10,6 +10,8 @@ import (
 
 func Test_SqlRawOutputEmptyShutdown(t *testing.T) {
 	conf := `
+driver: postgres
+dsn: foo
 query: "select * from public.users"
 args_mapping: 'root = [this.id]'
 `

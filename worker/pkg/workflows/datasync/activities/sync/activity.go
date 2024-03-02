@@ -16,7 +16,7 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
 	"github.com/google/uuid"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/redis"
-	custom_sql "github.com/nucleuscloud/neosync/worker/internal/benthos/sql"
+	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/internal/benthos/sql"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
 	logger_utils "github.com/nucleuscloud/neosync/worker/internal/logger"
 
@@ -184,7 +184,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		}
 		return tunnelmanager.GetConnection(session, connection, slogger)
 	})
-	err = custom_sql.RegisterPooledSqlRawOutput(benthosenv, poolprovider)
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, poolprovider)
 	if err != nil {
 		return nil, err
 	}
