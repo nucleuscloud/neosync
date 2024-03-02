@@ -1637,6 +1637,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 	case "generate_string":
 		min := col.Transformer.Config.GetGenerateStringConfig().Min
 		max := col.Transformer.Config.GetGenerateStringConfig().Max
+		min = computeMinInt(min, maxLen) // ensure the min is not larger than the max allowed length
 		max = computeMinInt(max, maxLen)
 		// todo: we need to pull in the min from the database schema
 		return fmt.Sprintf(`generate_string(min:%d,max:%d)`, min, max), nil
@@ -1702,6 +1703,13 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 
 func computeMinInt[T int | int64 | int32](a, b T) T {
 	if a < b {
+		return a
+	}
+	return b
+}
+
+func computeMaxInt[T int | int64 | int32](a, b T) T {
+	if a > b {
 		return a
 	}
 	return b

@@ -5294,3 +5294,11 @@ func Test_computeMinInt(t *testing.T) {
 	assert.Equal(t, -1, computeMinInt(-1, 1))
 	assert.Equal(t, -1, computeMinInt(1, -1))
 }
+
+func Test_computeMaxInt(t *testing.T) {
+	assert.Equal(t, 2, computeMaxInt(1, 2))
+	assert.Equal(t, 2, computeMaxInt(2, 1))
+	assert.Equal(t, 1, computeMaxInt(1, 1))
+	assert.Equal(t, 1, computeMaxInt(-1, 1))
+	assert.Equal(t, 1, computeMaxInt(1, -1))
+}
