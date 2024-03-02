@@ -14,6 +14,8 @@ import (
 
 func sqlRawInputSpec() *service.ConfigSpec {
 	return service.NewConfigSpec().
+		Field(service.NewStringField("driver")).
+		Field(service.NewStringField("dsn")).
 		Field(service.NewStringField("query")).
 		Field(service.NewBloblangField("args_mapping").Optional())
 }
