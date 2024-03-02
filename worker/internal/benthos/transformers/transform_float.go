@@ -61,7 +61,7 @@ func TransformFloat(value, rMin, rMax float64) (*float64, error) {
 
 	val, err := transformer_utils.GenerateRandomFloat64WithInclusiveBounds(minRange, maxRange)
 	if err != nil {
-		return nil, fmt.Errorf("unable to generate a random string with length")
+		return nil, fmt.Errorf("unable to generate a random float64 with inclusive bounds with length [%f:%f]: %w", minRange, maxRange, err)
 	}
 
 	return &val, nil

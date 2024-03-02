@@ -63,7 +63,6 @@ func GenerateRandomInt64InValueRange(min, max int64) (int64, error) {
 	}
 
 	rangeVal := max - min + 1
-
 	//nolint:gosec
 	return min + rand.Int63n(rangeVal), nil
 }

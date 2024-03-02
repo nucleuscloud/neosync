@@ -1564,9 +1564,9 @@ root.{destination_col} = transformerfunction(args)
 */
 
 func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_utils.ColumnInfo) (string, error) {
-	var maxLen int32 = 10000
+	var maxLen int64 = 10000
 	if colInfo != nil && colInfo.CharacterMaximumLength != nil {
-		maxLen = *colInfo.CharacterMaximumLength
+		maxLen = int64(*colInfo.CharacterMaximumLength)
 	}
 
 	switch col.Transformer.Source {
@@ -1637,7 +1637,8 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 	case "generate_string":
 		min := col.Transformer.Config.GetGenerateStringConfig().Min
 		max := col.Transformer.Config.GetGenerateStringConfig().Max
-		return fmt.Sprintf(`generate_string(min:%d,max:%d,max_length:%d)`, min, max, maxLen), nil
+		max = computeMinInt(max, maxLen)
+		return fmt.Sprintf(`generate_string(min:%d,max:%d)`, min, max), nil
 	case "generate_unixtimestamp":
 		return "generate_unixtimestamp()", nil
 	case "generate_username":
@@ -1695,4 +1696,11 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 	default:
 		return "", fmt.Errorf("unsupported transformer")
 	}
+}
+
+func computeMinInt[T int | int64 | int32](a, b T) T {
+	if a < b {
+		return a
+	}
+	return b
 }

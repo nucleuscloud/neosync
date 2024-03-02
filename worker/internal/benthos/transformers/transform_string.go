@@ -58,20 +58,18 @@ func TransformString(value string, preserveLength bool, maxLength int64) (*strin
 		val, err := transformer_utils.GenerateRandomStringWithDefinedLength(l)
 
 		if err != nil {
-			return nil, fmt.Errorf("unable to generate a random string with length")
+			return nil, fmt.Errorf("unable to generate a random string with preserved length: %d: %w", l, err)
 		}
 
 		returnValue = val
 	} else {
+		// todo: this is a bug and we need to read in the min length based on the constraints
 		min := int64(3)
 		val, err := transformer_utils.GenerateRandomStringWithInclusiveBounds(min, maxLength)
-
 		if err != nil {
-			return nil, fmt.Errorf("unable to generate a random string with length")
+			return nil, fmt.Errorf("unable to transform a random string with length: [%d:%d]: %w", min, maxLength, err)
 		}
-
 		returnValue = val
 	}
-
 	return &returnValue, nil
 }

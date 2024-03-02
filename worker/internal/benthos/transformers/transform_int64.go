@@ -63,8 +63,7 @@ func TransformInt(value, rMin, rMax int64) (*int64, error) {
 
 	val, err := transformer_utils.GenerateRandomInt64InValueRange(minRange, maxRange)
 	if err != nil {
-		return nil, fmt.Errorf("unable to generate a random string with length")
+		return nil, fmt.Errorf("unable to generate a random int64 with length [%d:%d]:%w", minRange, maxRange, err)
 	}
-
 	return &val, nil
 }
