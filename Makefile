@@ -51,6 +51,7 @@ rebuild: clean build
 
 compose-up:
 	docker compose -f $(TEMPORAL_COMPOSE_FILE) up -d
+	docker compsoe -f $(PROD_COMPOSE_FILE) pull
 	docker compose -f $(PROD_COMPOSE_FILE) up -d
 .PHONY: compose-up
 
@@ -61,6 +62,7 @@ compose-down:
 
 compose-auth-up:
 	docker compose -f $(TEMPORAL_COMPOSE_FILE) up -d
+	docker compose -f $(PROD_AUTH_COMPOSE_FILE) pull
 	docker compose -f $(PROD_AUTH_COMPOSE_FILE) up -d
 .PHONY: compose-auth-up
 
