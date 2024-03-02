@@ -340,7 +340,7 @@ arrIncludesSome.autoRemove = (val: any) => testFalsey(val) || !val?.length
 
 *******
 
-This filter function does an exact match to avoid unnecessary values. 
+This filter function does an exact match to avoid unnecessary values.
 */
 // eslint-disable-next-line
 const exactMatchFilterFn: FilterFn<any> = (

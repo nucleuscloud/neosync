@@ -71,6 +71,10 @@ const generateStringConfig = Yup.object().shape({
     }),
   max: Yup.number()
     .min(1, 'The value must be greater than or equal to 1.')
+    .max(
+      Number.MAX_SAFE_INTEGER,
+      `The value must be less than or equal to ${Number.MAX_SAFE_INTEGER}`
+    )
     .required('This field is required.')
     .test(
       'is-greater-than-min',
