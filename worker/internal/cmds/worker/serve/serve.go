@@ -90,7 +90,7 @@ func serve() error {
 	httpclient := shared.GetNeosyncHttpClient()
 	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(httpclient, neosyncurl)
 
-	syncActivity := sync_activity.New(connclient, &sync.Map{})
+	syncActivity := sync_activity.New(connclient, &sync.Map{}, temporalClient)
 
 	w.RegisterWorkflow(datasync_workflow.Workflow)
 	w.RegisterActivity(syncActivity.Sync)
@@ -114,7 +114,6 @@ func serve() error {
 	}()
 
 	<-worker.InterruptCh()
-
 	w.Stop()
 
 	ctx, cancelHandler := context.WithDeadline(context.Background(), time.Now().Add(2*time.Second))

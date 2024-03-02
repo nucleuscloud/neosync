@@ -9,7 +9,7 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/benthosdev/benthos/v4/public/bloblang"
-	sb "github.com/benthosdev/benthos/v4/public/service"
+	"github.com/benthosdev/benthos/v4/public/service"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
@@ -32,6 +32,7 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/redis"
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/redis"
+	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/internal/benthos/sql"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
 
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
@@ -173,7 +174,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
@@ -190,7 +191,10 @@ output:
 	)
 
 	// create a new streambuilder instance so we can access the SetYaml method
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
@@ -324,7 +328,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users ("id", "name") VALUES (DEFAULT, $1);
@@ -340,7 +344,10 @@ output:
 	)
 
 	// create a new streambuilder instance so we can access the SetYaml method
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
@@ -500,7 +507,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
@@ -515,7 +522,10 @@ output:
 `),
 	)
 
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
@@ -739,7 +749,7 @@ output:
                 walk_json_object: false
                 fields_mapping: 'root = {meta("neosync_id"): json("id")}'
                 kind: simple
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
@@ -791,7 +801,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.orders ("id", "buyer_id") VALUES ($1, $2);
@@ -807,7 +817,10 @@ output:
 `),
 	)
 
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
@@ -1009,7 +1022,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
@@ -1052,7 +1065,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.orders ("id", "buyer_id") VALUES ($1, $2);
@@ -1068,7 +1081,10 @@ output:
 `),
 	)
 
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
@@ -1261,7 +1277,7 @@ output:
                 walk_json_object: false
                 fields_mapping: 'root = {meta("neosync_id"): json("id")}'
                 kind: simple
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.jobs ("id") VALUES ($1);
@@ -1322,7 +1338,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: UPDATE public.jobs SET "parent_id" = $1 WHERE "id" = $2;
@@ -1338,7 +1354,10 @@ output:
 `),
 	)
 
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
@@ -1498,7 +1517,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users ("id", "name") VALUES (DEFAULT, $1);
@@ -1514,7 +1533,10 @@ output:
 	)
 
 	// create a new streambuilder instance so we can access the SetYaml method
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
@@ -1717,7 +1739,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
@@ -1759,7 +1781,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.user_account_associations ("id", "user_id") VALUES ($1, $2);
@@ -1774,7 +1796,10 @@ output:
 `),
 	)
 
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
@@ -2007,7 +2032,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
@@ -2051,7 +2076,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: UPDATE public.users SET "user_assoc_id" = $1 WHERE "id" = $2;
@@ -2093,7 +2118,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.user_account_associations ("id", "user_id") VALUES ($1, $2);
@@ -2108,7 +2133,10 @@ output:
 `),
 	)
 
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
@@ -2372,7 +2400,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
@@ -2435,7 +2463,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: UPDATE public.users SET "user_assoc_id" = $1 WHERE "id" = $2;
@@ -2478,7 +2506,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 query: INSERT INTO public.user_account_associations ("id", "user_id") VALUES ($1, $2);
@@ -2511,7 +2539,10 @@ output:
 `),
 	)
 
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
@@ -2652,7 +2683,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 `+"query: INSERT INTO public.users (`id`, `name`) VALUES (?, ?);"+`
@@ -2667,7 +2698,10 @@ output:
 `),
 	)
 
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
@@ -2827,7 +2861,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 `+"query: INSERT INTO public.users (`id`, `name`) VALUES (?, ?);"+`
@@ -2842,7 +2876,10 @@ output:
 `),
 	)
 
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
@@ -3044,7 +3081,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 `+"query: INSERT INTO public.users (`id`, `name`) VALUES (?, ?);"+`
@@ -3086,7 +3123,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 `+"query: INSERT INTO public.user_account_associations (`id`, `user_id`) VALUES (?, ?);"+`
@@ -3101,7 +3138,10 @@ output:
 `),
 	)
 
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
@@ -3335,7 +3375,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 `+"query: INSERT INTO public.users (`id`, `name`) VALUES (?, ?);"+`
@@ -3379,7 +3419,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 `+"query: UPDATE public.users SET `user_assoc_id` = ? WHERE `id` = ?;"+`
@@ -3421,7 +3461,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 `+"query: INSERT INTO public.user_account_associations (`id`, `user_id`) VALUES (?, ?);"+`
@@ -3436,7 +3476,10 @@ output:
 `),
 	)
 
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
@@ -3574,7 +3617,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 `+"query: INSERT INTO public.users (`id`, `name`) VALUES (DEFAULT, ?);"+`
@@ -3590,7 +3633,10 @@ output:
 	)
 
 	// create a new streambuilder instance so we can access the SetYaml method
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
@@ -3750,7 +3796,7 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - sql_raw:
+            - pooled_sql_raw:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
                 `+"query: INSERT INTO public.users (`id`, `name`) VALUES (DEFAULT, ?);"+`
@@ -3765,7 +3811,10 @@ output:
 `),
 	)
 	// create a new streambuilder instance so we can access the SetYaml method
-	newSB := sb.NewStreamBuilder()
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))

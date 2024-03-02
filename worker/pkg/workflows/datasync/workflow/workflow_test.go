@@ -10,7 +10,6 @@ import (
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
-	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
 	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
 	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
@@ -85,7 +84,7 @@ func Test_Workflow_Succeeds_SingleSync(t *testing.T) {
 	env.OnActivity(runsqlinittablestmts_activity.RunSqlInitTableStatements, mock.Anything, mock.Anything).
 		Return(&runsqlinittablestmts_activity.RunSqlInitTableStatementsResponse{}, nil)
 	syncActivity := sync_activity.Activity{}
-	env.OnActivity(syncActivity.Sync, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&sync_activity.SyncResponse{}, nil)
+	env.OnActivity(syncActivity.Sync, mock.Anything, mock.Anything, mock.Anything).Return(&sync_activity.SyncResponse{}, nil)
 
 	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
 
@@ -156,15 +155,15 @@ func Test_Workflow_Follows_Synchronous_DependentFlow(t *testing.T) {
 	count := 0
 	syncActivity := sync_activity.Activity{}
 	env.
-		OnActivity(syncActivity.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "users"}, mock.Anything).
-		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata, workflowMetadata *shared.WorkflowMetadata) (*sync_activity.SyncResponse, error) {
+		OnActivity(syncActivity.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "users"}).
+		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata) (*sync_activity.SyncResponse, error) {
 			assert.Equal(t, count, 0)
 			count += 1
 			return &sync_activity.SyncResponse{}, nil
 		})
 	env.
-		OnActivity(syncActivity.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "foo"}, mock.Anything).
-		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata, workflowMetadata *shared.WorkflowMetadata) (*sync_activity.SyncResponse, error) {
+		OnActivity(syncActivity.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "foo"}).
+		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata) (*sync_activity.SyncResponse, error) {
 			assert.Equal(t, count, 1)
 			count += 1
 			return &sync_activity.SyncResponse{}, nil
@@ -258,20 +257,20 @@ func Test_Workflow_Follows_Multiple_Dependents(t *testing.T) {
 	counter := atomic.NewInt32(0)
 	syncActivity := sync_activity.Activity{}
 	env.
-		OnActivity(syncActivity.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "users"}, mock.Anything).
-		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata, workflowMetadata *shared.WorkflowMetadata) (*sync_activity.SyncResponse, error) {
+		OnActivity(syncActivity.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "users"}).
+		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata) (*sync_activity.SyncResponse, error) {
 			counter.Add(1)
 			return &sync_activity.SyncResponse{}, nil
 		})
 	env.
-		OnActivity(syncActivity.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "accounts"}, mock.Anything).
-		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata, workflowMetadata *shared.WorkflowMetadata) (*sync_activity.SyncResponse, error) {
+		OnActivity(syncActivity.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "accounts"}).
+		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata) (*sync_activity.SyncResponse, error) {
 			counter.Add(1)
 			return &sync_activity.SyncResponse{}, nil
 		})
 	env.
-		OnActivity(syncActivity.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "foo"}, mock.Anything).
-		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata, workflowMetadata *shared.WorkflowMetadata) (*sync_activity.SyncResponse, error) {
+		OnActivity(syncActivity.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "foo"}).
+		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata) (*sync_activity.SyncResponse, error) {
 			assert.Equal(t, counter.Load(), int32(2))
 			counter.Add(1)
 			return &sync_activity.SyncResponse{}, nil
@@ -379,20 +378,20 @@ func Test_Workflow_Follows_Multiple_Dependent_Redis_Cleanup(t *testing.T) {
 	counter := atomic.NewInt32(0)
 	syncActivities := &sync_activity.Activity{}
 	env.
-		OnActivity(syncActivities.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "users"}, mock.Anything).
-		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata, workflowMetadata *shared.WorkflowMetadata) (*sync_activity.SyncResponse, error) {
+		OnActivity(syncActivities.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "users"}).
+		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata) (*sync_activity.SyncResponse, error) {
 			counter.Add(1)
 			return &sync_activity.SyncResponse{}, nil
 		})
 	env.
-		OnActivity(syncActivities.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "accounts"}, mock.Anything).
-		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata, workflowMetadata *shared.WorkflowMetadata) (*sync_activity.SyncResponse, error) {
+		OnActivity(syncActivities.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "accounts"}).
+		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata) (*sync_activity.SyncResponse, error) {
 			counter.Add(1)
 			return &sync_activity.SyncResponse{}, nil
 		})
 	env.
-		OnActivity(syncActivities.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "foo"}, mock.Anything).
-		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata, workflowMetadata *shared.WorkflowMetadata) (*sync_activity.SyncResponse, error) {
+		OnActivity(syncActivities.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "foo"}).
+		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata) (*sync_activity.SyncResponse, error) {
 			assert.Equal(t, counter.Load(), int32(2))
 			counter.Add(1)
 			return &sync_activity.SyncResponse{}, nil
@@ -491,12 +490,12 @@ func Test_Workflow_Halts_Activities_OnError(t *testing.T) {
 
 	syncActivity := sync_activity.Activity{}
 	env.
-		OnActivity(syncActivity.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "users"}, mock.Anything).
-		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata, workflowMetadata *shared.WorkflowMetadata) (*sync_activity.SyncResponse, error) {
+		OnActivity(syncActivity.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "users"}).
+		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata) (*sync_activity.SyncResponse, error) {
 			return &sync_activity.SyncResponse{}, nil
 		})
 	env.
-		OnActivity(syncActivity.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "accounts"}, mock.Anything).
+		OnActivity(syncActivity.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "accounts"}).
 		Return(nil, errors.New("TestFailure"))
 
 	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
@@ -590,8 +589,8 @@ func Test_Workflow_Cleans_Up_Redis_OnError(t *testing.T) {
 		}, nil)
 	syncActivities := &sync_activity.Activity{}
 	env.
-		OnActivity(syncActivities.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "users"}, mock.Anything).
-		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata, workflowMetadata *shared.WorkflowMetadata) (*sync_activity.SyncResponse, error) {
+		OnActivity(syncActivities.Sync, mock.Anything, mock.Anything, &sync_activity.SyncMetadata{Schema: "public", Table: "users"}).
+		Return(func(ctx context.Context, req *sync_activity.SyncRequest, metadata *sync_activity.SyncMetadata) (*sync_activity.SyncResponse, error) {
 			return &sync_activity.SyncResponse{}, nil
 		})
 	env.

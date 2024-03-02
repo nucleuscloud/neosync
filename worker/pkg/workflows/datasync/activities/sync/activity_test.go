@@ -7,7 +7,6 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/sdk/testsuite"
@@ -17,7 +16,7 @@ func Test_Sync_Run_Success(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 
-	activity := New(nil, &sync.Map{})
+	activity := New(nil, &sync.Map{}, nil)
 
 	env.RegisterActivity(activity.Sync)
 
@@ -33,7 +32,7 @@ output:
   stdout:
     codec: lines
 `),
-	}, &SyncMetadata{Schema: "public", Table: "test"}, &shared.WorkflowMetadata{WorkflowId: "workflow-id", RunId: "run-id"})
+	}, &SyncMetadata{Schema: "public", Table: "test"})
 	require.NoError(t, err)
 	res := &SyncResponse{}
 	err = val.Get(res)
@@ -44,7 +43,7 @@ func Test_Sync_Fake_Mutation_Success(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 
-	activity := New(nil, &sync.Map{})
+	activity := New(nil, &sync.Map{}, nil)
 	env.RegisterActivity(activity.Sync)
 
 	val, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
@@ -64,7 +63,7 @@ output:
   stdout:
     codec: lines
 `),
-	}, &SyncMetadata{Schema: "public", Table: "test"}, &shared.WorkflowMetadata{WorkflowId: "workflow-id", RunId: "RunId"})
+	}, &SyncMetadata{Schema: "public", Table: "test"})
 	require.NoError(t, err)
 	res := &SyncResponse{}
 	err = val.Get(res)
@@ -75,7 +74,7 @@ func Test_Sync_Run_Success_Javascript(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 
-	activity := New(nil, &sync.Map{})
+	activity := New(nil, &sync.Map{}, nil)
 	env.RegisterActivity(activity.Sync)
 
 	tmpFile, err := os.CreateTemp("", "test")
@@ -110,7 +109,7 @@ output:
     path:  %s
     codec: lines
 `, tmpFile.Name())),
-	}, &SyncMetadata{Schema: "public", Table: "test"}, &shared.WorkflowMetadata{WorkflowId: "workflow-id", RunId: "run-id"})
+	}, &SyncMetadata{Schema: "public", Table: "test"})
 	assert.NoError(t, err)
 	res := &SyncResponse{}
 	err = val.Get(res)
@@ -130,7 +129,7 @@ output:
 func Test_Sync_Run_Success_MutataionAndJavascript(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
-	activity := New(nil, &sync.Map{})
+	activity := New(nil, &sync.Map{}, nil)
 	env.RegisterActivity(activity.Sync)
 
 	tmpFile, err := os.CreateTemp("", "test")
@@ -167,7 +166,7 @@ output:
     path:  %s
     codec: lines
 	`, tmpFile.Name())),
-	}, &SyncMetadata{Schema: "public", Table: "test"}, &shared.WorkflowMetadata{WorkflowId: "workflow-id", RunId: "run-id"})
+	}, &SyncMetadata{Schema: "public", Table: "test"})
 	assert.NoError(t, err)
 	res := &SyncResponse{}
 	err = val.Get(res)
