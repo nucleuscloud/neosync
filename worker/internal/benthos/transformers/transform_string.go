@@ -11,7 +11,9 @@ import (
 func init() {
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewAnyParam("value").Optional()).
-		Param(bloblang.NewBoolParam("preserve_length")).Param(bloblang.NewInt64Param("max_length"))
+		Param(bloblang.NewBoolParam("preserve_length")).
+		Param(bloblang.NewInt64Param("min_length")).
+		Param(bloblang.NewInt64Param("max_length"))
 
 	err := bloblang.RegisterFunctionV2("transform_string", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		valuePtr, err := args.GetOptionalString("value")

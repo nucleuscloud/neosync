@@ -59,7 +59,7 @@ func Test_TransformStringTransformer(t *testing.T) {
 
 func Test_TransformStringTransformerWithEmptyValue(t *testing.T) {
 	nilString := ""
-	mapping := fmt.Sprintf(`root = transform_string(value:%q,preserve_length:true,min_length:%dmax_length:%d)`, nilString, 3, maxCharacterLimit)
+	mapping := fmt.Sprintf(`root = transform_string(value:%q,preserve_length:true,min_length:%d,max_length:%d)`, nilString, 3, maxCharacterLimit)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the email transformer")
 
