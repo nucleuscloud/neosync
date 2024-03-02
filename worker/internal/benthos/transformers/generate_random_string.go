@@ -1,6 +1,8 @@
 package transformers
 
 import (
+	"fmt"
+
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
@@ -22,7 +24,11 @@ func init() {
 		}
 
 		return func() (any, error) {
-			return transformer_utils.GenerateRandomStringWithInclusiveBounds(min, max)
+			out, err := transformer_utils.GenerateRandomStringWithInclusiveBounds(min, max)
+			if err != nil {
+				return nil, fmt.Errorf("unable to run generate_string: %w", err)
+			}
+			return out, nil
 		}, nil
 	})
 

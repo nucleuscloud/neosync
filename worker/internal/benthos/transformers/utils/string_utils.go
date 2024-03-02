@@ -23,7 +23,6 @@ func SliceString(s string, l int) string {
 	if l > len(runes) {
 		l = len(runes)
 	}
-
 	return string(runes[:l])
 }
 
@@ -34,23 +33,20 @@ func GenerateRandomStringWithDefinedLength(length int64) (string, error) {
 	}
 
 	result := make([]byte, length)
-
 	for i := int64(0); i < length; i++ {
 		// Generate a random index in the range [0, len(alphabet))
 		//nolint:all
 		index := rand.Intn(len(alphanumeric))
-
 		// Get the character at the generated index and append it to the result
 		result[i] = alphanumeric[index]
 	}
-
 	return strings.ToLower(string(result)), nil
 }
 
 // Generate a random alphanumeric string within the interval [min, max]
 func GenerateRandomStringWithInclusiveBounds(min, max int64) (string, error) {
 	if min < 0 || max < 0 || min > max {
-		return "", fmt.Errorf("the min and max can't be less than 0 and the min can't be greater than the max")
+		return "", fmt.Errorf("invalid bounds when attempting to generate random string: [%d:%d]", min, max)
 	}
 
 	var length int64
@@ -77,11 +73,9 @@ func GenerateRandomStringWithInclusiveBounds(min, max int64) (string, error) {
 func ParseEmail(email string) ([]string, error) {
 	inputEmail, err := mail.ParseAddress(email)
 	if err != nil {
-		return nil, fmt.Errorf("invalid email format: %s", email)
+		return nil, fmt.Errorf("invalid email format: %s: %w", email, err)
 	}
-
 	parsedEmail := strings.Split(inputEmail.Address, "@")
-
 	return parsedEmail, nil
 }
 

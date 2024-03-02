@@ -43,7 +43,10 @@ func init() {
 
 		return func() (any, error) {
 			res, err := TransformString(value, preserveLength, minLength, maxLength)
-			return res, err
+			if err != nil {
+				return nil, fmt.Errorf("unable to run transform_string: %w", err)
+			}
+			return res, nil
 		}, nil
 	})
 
