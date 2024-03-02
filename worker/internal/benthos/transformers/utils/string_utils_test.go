@@ -1,6 +1,7 @@
 package transformer_utils
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -41,23 +42,30 @@ func Test_SliceStringValidSlice(t *testing.T) {
 	assert.Equal(t, expected, res, "Expected result to be a substring of the input string with the specified length")
 }
 
-func Test_GenerateRandomStringEqualMinMax(t *testing.T) {
-	min := int64(4)
-	max := int64(4)
-	res, err := GenerateRandomStringWithInclusiveBounds(min, max)
-
-	assert.NoError(t, err)
-	assert.Equal(t, int64(len(res)), min, "The output string should be as long as the min or max since they're equal")
-}
-
-func Test_GenerateRandomStringRange(t *testing.T) {
-	min := int64(2)
-	max := int64(4)
-
-	res, err := GenerateRandomStringWithInclusiveBounds(min, max)
-	assert.NoError(t, err)
-	assert.GreaterOrEqual(t, int64(len(res)), min, "the string should be greater than or equal to the min value")
-	assert.LessOrEqual(t, int64(len(res)), max, "the string should be less than or equal to the max value")
+func Test_GenerateRandomStringBounds(t *testing.T) {
+	type testcase struct {
+		min int64
+		max int64
+	}
+	testcases := []testcase{
+		{min: int64(2), max: int64(5)},
+		{min: int64(23), max: int64(24)},
+		{min: int64(4), max: int64(24)},
+		{min: int64(2), max: int64(2)},
+		{min: int64(2), max: int64(4)},
+		{min: int64(1), max: int64(1)},
+		{min: int64(0), max: int64(0)},
+	}
+	for _, tc := range testcases {
+		name := fmt.Sprintf("%s_%d_%d", t.Name(), tc.min, tc.max)
+		t.Run(name, func(t *testing.T) {
+			output, err := GenerateRandomStringWithInclusiveBounds(tc.min, tc.max)
+			assert.NoError(t, err)
+			length := int64(len(output))
+			assert.GreaterOrEqual(t, length, tc.min, "%d>=%d was not true. output should be greater than or equal to the min. output: %s", length, tc.min, output)
+			assert.LessOrEqual(t, length, tc.max, "%d<=%d was not true. output should be less than or equal to the max. output: %s", length, tc.max, output)
+		})
+	}
 }
 
 func Test_GenerateRandomStringError(t *testing.T) {

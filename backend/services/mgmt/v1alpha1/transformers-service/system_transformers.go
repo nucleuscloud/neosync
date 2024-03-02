@@ -299,7 +299,7 @@ var (
 		},
 		{
 			Name:        "Generate Random String",
-			Description: "Creates a randomly ordered alphanumeric string with a default length of 10 unless the String Length parameter are defined.",
+			Description: "Creates a randomly ordered alphanumeric string between the specified range",
 			DataType:    "string",
 			Source:      string(GenerateString),
 			Config: &mgmtv1alpha1.TransformerConfig{

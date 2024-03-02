@@ -8,45 +8,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_GenerateRandomStringInRange(t *testing.T) {
-	min := int64(2)
-	max := int64(5)
-
-	res, err := GenerateRandomString(min, max, maxCharacterLimit)
-
-	assert.NoError(t, err)
-	assert.GreaterOrEqual(t, int64(len(res)), min, "The output string should be greater than or equal to the min")
-	assert.LessOrEqual(t, int64(len(res)), max, "The output string should be less than or equal to the max")
-}
-
-func Test_GenerateRandomStringInRangeLongMaxAndMin(t *testing.T) {
-	min := int64(23)
-	max := int64(24)
-
-	res, err := GenerateRandomString(min, max, maxCharacterLimit)
-
-	assert.NoError(t, err)
-	assert.LessOrEqual(t, int64(len(res)), min, "The output string should be greater than or equal to the min")
-	assert.LessOrEqual(t, int64(len(res)), max, "The output string should be less than or equal to the max")
-	assert.Equal(t, int64(len(res)), maxCharacterLimit, "The output string should be less than or equal to the max")
-}
-
-func Test_GenerateRandomStringInRangeLongMaxOnly(t *testing.T) {
-	min := int64(4)
-	max := int64(24)
-
-	res, err := GenerateRandomString(min, max, maxCharacterLimit)
-
-	assert.NoError(t, err)
-	assert.GreaterOrEqual(t, int64(len(res)), min, "The output string should be greater than or equal to the min")
-	assert.LessOrEqual(t, int64(len(res)), maxCharacterLimit, "The output string should be less than or equal to the max")
-}
-
 func Test_GenerateRandomStringTransformerWithValue(t *testing.T) {
 	min := int64(2)
 	max := int64(5)
 
-	mapping := fmt.Sprintf(`root = generate_string(min:%d,max:%d,max_length:%d)`, min, max, maxCharacterLimit)
+	mapping := fmt.Sprintf(`root = generate_string(min:%d,max:%d)`, min, max)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the generate random string transformer")
 

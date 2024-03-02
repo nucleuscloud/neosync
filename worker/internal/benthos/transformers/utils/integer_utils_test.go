@@ -1,6 +1,7 @@
 package transformer_utils
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -40,41 +41,40 @@ func Test_GenerateRandomInt64InLengthRangeError(t *testing.T) {
 	assert.Error(t, err, "The int length is greater than 19 and too long")
 }
 
-func Test_GenerateRandomInt64WithInclusiveBoundsMinEqualMax(t *testing.T) {
-	v1 := int64(5)
-	v2 := int64(5)
-	val, err := GenerateRandomInt64InValueRange(v1, v2)
-	assert.NoError(t, err, "Did not expect an error when min == max")
-	assert.Equal(t, v1, val, "actual value to be equal to min/max")
+func Test_GenerateRandomInt64InValueRange(t *testing.T) {
+	type testcase struct {
+		min int64
+		max int64
+	}
+	testcases := []testcase{
+		{min: int64(2), max: int64(5)},
+		{min: int64(23), max: int64(24)},
+		{min: int64(4), max: int64(24)},
+		{min: int64(2), max: int64(2)},
+		{min: int64(2), max: int64(4)},
+		{min: int64(1), max: int64(1)},
+		{min: int64(0), max: int64(0)},
+		{min: int64(-9), max: int64(-2)},
+		{min: int64(-2), max: int64(9)},
+	}
+	for _, tc := range testcases {
+		name := fmt.Sprintf("%s_%d_%d", t.Name(), tc.min, tc.max)
+		t.Run(name, func(t *testing.T) {
+			output, err := GenerateRandomInt64InValueRange(tc.min, tc.max)
+			assert.NoError(t, err)
+			assert.GreaterOrEqual(t, output, tc.min, "%d>=%d was not true. output should be greater than or equal to the min. output: %s", output, tc.min, output)
+			assert.LessOrEqual(t, output, tc.max, "%d<=%d was not true. output should be less than or equal to the max. output: %s", output, tc.max, output)
+		})
+	}
 }
 
-func Test_GenerateRandomInt64WithInclusiveBoundsPositive(t *testing.T) {
-	v1 := int64(2)
-	v2 := int64(9)
-
-	val, err := GenerateRandomInt64InValueRange(v1, v2)
-	assert.NoError(t, err, "Did not expect an error for valid range")
-	assert.True(t, val >= v1 && val <= v2, "actual value to be within the range")
-}
-
-func Test_GenerateRandomInt64WithInclusiveBoundsNegative(t *testing.T) {
-	v1 := int64(-2)
-	v2 := int64(-9)
-
-	val, err := GenerateRandomInt64InValueRange(v1, v2)
-
-	assert.NoError(t, err, "Did not expect an error for valid range")
-	assert.True(t, val <= v1 && val >= v2, "actual value to be within the range")
-}
-
-func Test_GenerateRandomInt64WithInclusiveBoundsNegativeToPositive(t *testing.T) {
-	v1 := int64(-2)
-	v2 := int64(9)
-
-	val, err := GenerateRandomInt64InValueRange(v1, v2)
-
-	assert.NoError(t, err, "Did not expect an error for valid range")
-	assert.True(t, val >= v1 && val <= v2, "actual value to be within the range")
+func Test_GenerateRandomInt64InValueRange_Swapped_MinMax(t *testing.T) {
+	min := int64(2)
+	max := int64(1)
+	output, err := GenerateRandomInt64InValueRange(min, max)
+	assert.NoError(t, err)
+	assert.GreaterOrEqual(t, output, max)
+	assert.LessOrEqual(t, output, min)
 }
 
 func Test_FirstDigitIsNineTrue(t *testing.T) {

@@ -11,14 +11,14 @@ import (
 var testStringValue = "hello"
 
 func Test_TransformStringPreserveLengthTrue(t *testing.T) {
-	res, err := TransformString(testStringValue, true, maxCharacterLimit)
+	res, err := TransformString(testStringValue, true, 3, maxCharacterLimit)
 
 	assert.NoError(t, err)
 	assert.Equal(t, len(testStringValue), len(*res), "The output string should be as long as the input string")
 }
 
 func Test_TransformStringPreserveLengthFalse(t *testing.T) {
-	res, err := TransformString(testStringValue, false, maxCharacterLimit)
+	res, err := TransformString(testStringValue, false, 3, maxCharacterLimit)
 
 	assert.NoError(t, err)
 	assert.GreaterOrEqual(t, len(*res), 3, "The expected value should be greater than or equal to 3")
@@ -26,7 +26,7 @@ func Test_TransformStringPreserveLengthFalse(t *testing.T) {
 }
 
 func Test_TransformStringMaxLength(t *testing.T) {
-	res, err := TransformString(testStringValue, false, maxCharacterLimit)
+	res, err := TransformString(testStringValue, false, 3, maxCharacterLimit)
 
 	assert.NoError(t, err)
 	assert.GreaterOrEqual(t, len(*res), 3, "The expected value should be greater than or equal to 3")
@@ -34,7 +34,7 @@ func Test_TransformStringMaxLength(t *testing.T) {
 }
 
 func Test_TransformStringTransformer(t *testing.T) {
-	mapping := fmt.Sprintf(`root = transform_string(value:%q,preserve_length:true,max_length:%d)`, testStringValue, maxCharacterLimit)
+	mapping := fmt.Sprintf(`root = transform_string(value:%q,preserve_length:true,min_length:%d,max_length:%d)`, testStringValue, 3, maxCharacterLimit)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the random string transformer")
 
@@ -59,7 +59,7 @@ func Test_TransformStringTransformer(t *testing.T) {
 
 func Test_TransformStringTransformerWithEmptyValue(t *testing.T) {
 	nilString := ""
-	mapping := fmt.Sprintf(`root = transform_string(value:%q,preserve_length:true,max_length:%d)`, nilString, maxCharacterLimit)
+	mapping := fmt.Sprintf(`root = transform_string(value:%q,preserve_length:true,min_length:%d,max_length:%d)`, nilString, 3, maxCharacterLimit)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the email transformer")
 

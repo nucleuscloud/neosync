@@ -54,29 +54,23 @@ func GenerateRandomStringWithInclusiveBounds(min, max int64) (string, error) {
 	}
 
 	var length int64
-
 	if min == max {
 		length = min
 	} else {
 		randlength, err := GenerateRandomInt64InValueRange(min, max)
 		if err != nil {
-			return "", fmt.Errorf("unable to generate a random length for the string")
+			return "", fmt.Errorf("unable to generate a random length for the string within range [%d:%d]: %w", min, max, err)
 		}
-
 		length = randlength
 	}
 
 	result := make([]byte, length)
-
 	for i := int64(0); i < length; i++ {
 		// Generate a random index in the range [0, len(alphabet))
-		//nolint:all
-		index := rand.Intn(len(alphanumeric))
-
+		index := rand.Intn(len(alphanumeric)) //nolint:gosec
 		// Get the character at the generated index and append it to the result
 		result[i] = alphanumeric[index]
 	}
-
 	return strings.ToLower(string(result)), nil
 }
 

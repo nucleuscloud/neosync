@@ -1564,9 +1564,9 @@ root.{destination_col} = transformerfunction(args)
 */
 
 func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_utils.ColumnInfo) (string, error) {
-	var maxLen int32 = 10000
+	var maxLen int64 = 10000
 	if colInfo != nil && colInfo.CharacterMaximumLength != nil {
-		maxLen = *colInfo.CharacterMaximumLength
+		maxLen = int64(*colInfo.CharacterMaximumLength)
 	}
 
 	switch col.Transformer.Source {
@@ -1637,7 +1637,10 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 	case "generate_string":
 		min := col.Transformer.Config.GetGenerateStringConfig().Min
 		max := col.Transformer.Config.GetGenerateStringConfig().Max
-		return fmt.Sprintf(`generate_string(min:%d,max:%d,max_length:%d)`, min, max, maxLen), nil
+		min = computeMinInt(min, maxLen) // ensure the min is not larger than the max allowed length
+		max = computeMinInt(max, maxLen)
+		// todo: we need to pull in the min from the database schema
+		return fmt.Sprintf(`generate_string(min:%d,max:%d)`, min, max), nil
 	case "generate_unixtimestamp":
 		return "generate_unixtimestamp()", nil
 	case "generate_username":
@@ -1677,7 +1680,8 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		return fmt.Sprintf("transform_phone_number(value:this.%q,preserve_length:%t,max_length:%d)", col.Column, pl, maxLen), nil
 	case "transform_string":
 		pl := col.Transformer.Config.GetTransformStringConfig().PreserveLength
-		return fmt.Sprintf(`transform_string(value:this.%q,preserve_length:%t,max_length:%d)`, col.Column, pl, maxLen), nil
+		minLength := int64(3) // todo: we need to pull in this value from the database schema
+		return fmt.Sprintf(`transform_string(value:this.%q,preserve_length:%t,min_length:%d,max_length:%d)`, col.Column, pl, minLength, maxLen), nil
 	case shared.NullString:
 		return shared.NullString, nil
 	case generateDefault:
@@ -1695,4 +1699,18 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 	default:
 		return "", fmt.Errorf("unsupported transformer")
 	}
+}
+
+func computeMinInt[T int | int64 | int32](a, b T) T {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func computeMaxInt[T int | int64 | int32](a, b T) T {
+	if a > b {
+		return a
+	}
+	return b
 }
