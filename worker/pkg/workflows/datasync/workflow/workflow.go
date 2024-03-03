@@ -34,6 +34,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		RetryPolicy: &temporal.RetryPolicy{
 			MaximumAttempts: 1,
 		},
+		HeartbeatTimeout: 1 * time.Minute,
 	})
 	logger := workflow.GetLogger(ctx)
 	_ = logger
@@ -66,6 +67,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		RetryPolicy: &temporal.RetryPolicy{
 			MaximumAttempts: 2,
 		},
+		HeartbeatTimeout: 1 * time.Minute,
 	})
 	logger.Info("scheduling RetrieveActivityOptions for execution.")
 	err = workflow.ExecuteActivity(ctx, syncactivityopts_activity.RetrieveActivityOptions, &syncactivityopts_activity.RetrieveActivityOptionsRequest{
