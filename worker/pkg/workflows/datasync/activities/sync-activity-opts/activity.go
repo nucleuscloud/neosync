@@ -59,7 +59,9 @@ const (
 )
 
 func getSyncActivityOptionsFromJob(job *mgmtv1alpha1.Job) *workflow.ActivityOptions {
-	syncActivityOptions := &workflow.ActivityOptions{}
+	syncActivityOptions := &workflow.ActivityOptions{
+		HeartbeatTimeout: 1 * time.Minute,
+	}
 	if job.SyncOptions != nil {
 		if job.SyncOptions.StartToCloseTimeout != nil {
 			syncActivityOptions.StartToCloseTimeout = time.Duration(*job.SyncOptions.StartToCloseTimeout)
