@@ -69,7 +69,7 @@ export interface Headshots {
 function TeamHeadshots(props: Headshots): ReactElement {
   const { image, name, title, prev, linkedin } = props;
   return (
-    <div className="rounded-xl border w-[200px] lg:w-[320px] border-gray-700 bg-gradient-to-tr from-[#0F0F0F] to-[#191919] ">
+    <div className="rounded-xl border w-[200px] lg:w-[320px] border-gray-700 bg-gradient-to-tr from-[#0F0F0F] to-[#191919]">
       <div className="flex flex-col space-y-1 items-center text-center mx-[16px] py-[32px]">
         <Image
           src={image}
