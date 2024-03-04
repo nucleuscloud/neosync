@@ -5220,7 +5220,7 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 	}
 
 	for _, transformer := range transformers {
-		t.Run(fmt.Sprintf("%s_lint", transformer.Source), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%s_%s_lint", t.Name(), transformer.Source), func(t *testing.T) {
 			val, err := computeMutationFunction(
 				&mgmtv1alpha1.JobMapping{
 					Column: "email",
@@ -5233,6 +5233,87 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 			assert.NoError(t, err)
 			_, err = bloblang.Parse(val)
 			assert.NoError(t, err, fmt.Sprintf("transformer lint failed, check that the transformer string is being constructed correctly. Failing source: %s", transformer.Source))
+		})
+	}
+}
+
+func Test_computeMutationFunction_handles_Db_Maxlen(t *testing.T) {
+	type testcase struct {
+		jm       *mgmtv1alpha1.JobMapping
+		ci       *dbschemas_utils.ColumnInfo
+		expected string
+	}
+	jm := &mgmtv1alpha1.JobMapping{
+		Transformer: &mgmtv1alpha1.JobMappingTransformer{
+			Source: "generate_string",
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
+					GenerateStringConfig: &mgmtv1alpha1.GenerateString{
+						Min: 2,
+						Max: 7,
+					},
+				},
+			},
+		},
+	}
+	testcases := []testcase{
+		{
+			jm:       jm,
+			ci:       &dbschemas_utils.ColumnInfo{},
+			expected: "generate_string(min:2,max:7)",
+		},
+		{
+			jm: jm,
+			ci: &dbschemas_utils.ColumnInfo{
+				CharacterMaximumLength: nil,
+			},
+			expected: "generate_string(min:2,max:7)",
+		},
+		{
+			jm: jm,
+			ci: &dbschemas_utils.ColumnInfo{
+				CharacterMaximumLength: shared.Ptr(int32(-1)),
+			},
+			expected: "generate_string(min:2,max:7)",
+		},
+		{
+			jm: jm,
+			ci: &dbschemas_utils.ColumnInfo{
+				CharacterMaximumLength: shared.Ptr(int32(0)),
+			},
+			expected: "generate_string(min:2,max:7)",
+		},
+		{
+			jm: jm,
+			ci: &dbschemas_utils.ColumnInfo{
+				CharacterMaximumLength: shared.Ptr(int32(10)),
+			},
+			expected: "generate_string(min:2,max:7)",
+		},
+		{
+			jm: jm,
+			ci: &dbschemas_utils.ColumnInfo{
+				CharacterMaximumLength: shared.Ptr(int32(3)),
+			},
+			expected: "generate_string(min:2,max:3)",
+		},
+		{
+			jm: jm,
+			ci: &dbschemas_utils.ColumnInfo{
+				CharacterMaximumLength: shared.Ptr(int32(1)),
+			},
+			expected: "generate_string(min:1,max:1)",
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(t.Name(), func(t *testing.T) {
+			out, err := computeMutationFunction(tc.jm, tc.ci)
+			assert.NoError(t, err)
+			assert.NotNil(t, out)
+			assert.Equal(t, tc.expected, out, "computed bloblang string was not expected")
+			_, err = bloblang.Parse(out)
+			assert.NoError(t, err)
 		})
 	}
 }
