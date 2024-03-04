@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
-	_ "github.com/benthosdev/benthos/v4/public/components/io"
 )
 
 var alphabet = "abcdefghijklmnopqrstuvwxyz"
