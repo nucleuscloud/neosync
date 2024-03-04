@@ -55,10 +55,15 @@ export default function ConnectionPage({ params }: PageProps) {
       }),
     extraPageHeading: (
       <div className="flex flex-row items-center gap-4">
-        <CloneConnectionButton
-          connectionType={data?.connection?.connectionConfig?.config.case ?? ''}
-          id={data?.connection?.id ?? ''}
-        />
+        {data?.connection?.connectionConfig?.config.case &&
+          data?.connection?.id && (
+            <CloneConnectionButton
+              connectionType={
+                data?.connection?.connectionConfig?.config.case ?? ''
+              }
+              id={data?.connection?.id ?? ''}
+            />
+          )}
         <RemoveConnectionButton connectionId={id} />
       </div>
     ),
