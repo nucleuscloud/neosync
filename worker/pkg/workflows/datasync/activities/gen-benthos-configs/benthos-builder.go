@@ -977,8 +977,7 @@ func createSqlUpdateBenthosConfig(
 			newResp.Config.Input.SqlSelect.Where = insertConfig.Config.Input.SqlSelect.Where // keep the where clause the same as insert
 			newResp.Columns = output.Columns
 		} else if newResp.Config.Input.PooledSqlRaw != nil {
-			// buildSelectQuery(driver, tableKey, "", output.Columns)
-			newResp.Config.Input.PooledSqlRaw.Query = insertConfig.Config.Input.PooledSqlRaw.Query // todo: should be updated to include the column subset
+			newResp.Config.Input.PooledSqlRaw.Query = insertConfig.Config.Input.PooledSqlRaw.Query // todo: should this be updated to include the column subset?
 		}
 		newResp.BenthosDsns = insertConfig.BenthosDsns
 		newResp.Config.Output.Broker.Outputs = append(newResp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
@@ -1074,11 +1073,6 @@ func buildBenthosSqlSourceConfigResponses(
 							Driver: driver,
 							Dsn:    "${SOURCE_CONNECTION_DSN}",
 							Query:  query,
-							// ArgsMapping: ``, // todo: would be great to parse out the user provided where into arguments
-
-							// Table:   table,
-							// Where:   where,
-							// Columns: escapeColsByDriver(buildPlainColumns(tableMapping.Mappings), driver),
 						},
 					},
 				},
