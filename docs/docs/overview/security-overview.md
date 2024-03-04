@@ -35,5 +35,5 @@ Any access on this instance is logged.
 We do not recommend connecting a production data directly to Neosync.
 
 This is recommended purely for security purposes, but also due to an increased load that Neosync may put on your database when invoking a sync.
-For that reason, we suggest restoring a shapshot of production periodically to another database that is then used by Neosync.
+For that reason, we suggest restoring a snapshot of production periodically to another database that is then used by Neosync.
 We don't currently support providing snapshots directly, and if this is important to you, please reach out to us.

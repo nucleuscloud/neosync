@@ -25,12 +25,12 @@ Detailed below are the main dependencies are descriptions of how they are utiliz
 
 If you're choosing to develop in a Tilt environment, this section is more important as it contains all of the K8s focused tooling.
 
-Tilt is a great tool that is used to automate the setup of a Kubernetes cluster. There are multiple `Tiltfile`'s througout the code, along with a top-level one that is used to inject all of the K8s manifests to setup Neosync inside of a K8s cluster.
+Tilt is a great tool that is used to automate the setup of a Kubernetes cluster. There are multiple `Tiltfile`'s throughout the code, along with a top-level one that is used to inject all of the K8s manifests to setup Neosync inside of a K8s cluster.
 
 This enables fast development, locally, while closely mimicking a real production environment.
 
 - [kind](https://github.com/kubernetes-sigs/kind)
-  - Kubernetes in Docker. We use this to spin up a barebones kubernetes cluster that deploys all of the `neosync` resources.
+  - Kubernetes in Docker. We use this to spin up a slim kubernetes cluster that deploys all of the `neosync` resources.
 - [tilt](https://github.com/tilt-dev/tilt)
   - Allows us to define our development environment as code.
 - [ctlptl](https://github.com/tilt-dev/ctlptl)
@@ -38,7 +38,7 @@ This enables fast development, locally, while closely mimicking a real productio
 - [kubectl](https://github.com/kubernetes/kubectl)
   - Allows for observability and management into the spun-up kind cluster.
 - [kustomize](https://github.com/kubernetes-sigs/kustomize)
-  - yaml templating tool for ad-hoc patches to kubernetes configurations
+  - yaml template tool for ad-hoc patches to kubernetes configurations
 - [helm](https://github.com/helm/helm)
   - Kubernetes package manager. All of our app deployables come with a helm-chart for easy installation into kubernetes
 - [helmfile](https://github.com/helmfile/helmfile)

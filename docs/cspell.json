@@ -56,7 +56,12 @@
     "evis",
     "drenova",
     "mgmt",
-    "johntest"
+    "johntest",
+    "devcontainer",
+    "sqlc",
+    "ctlptl",
+    "golangci",
+    "dbuild"
   ],
   "flagWords": ["hte"],
   "files": ["blog/**/*.md*", "docs/**/*.md*"],
