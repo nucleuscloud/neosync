@@ -25,12 +25,12 @@ Detailed below are the main dependencies are descriptions of how they are utiliz
 
 If you're choosing to develop in a Tilt environment, this section is more important as it contains all of the K8s focused tooling.
 
-Tilt is a great tool that is used to automate the setup of a Kubernetes cluster. There are multiple `Tiltfile`'s througout the code, along with a top-level one that is used to inject all of the K8s manifests to setup Neosync inside of a K8s cluster.
+Tilt is a great tool that is used to automate the setup of a Kubernetes cluster. There are multiple `Tiltfile`'s throughout the code, along with a top-level one that is used to inject all of the K8s manifests to setup Neosync inside of a K8s cluster.
 
 This enables fast development, locally, while closely mimicking a real production environment.
 
 - [kind](https://github.com/kubernetes-sigs/kind)
-  - Kubernetes in Docker. We use this to spin up a barebones kubernetes cluster that deploys all of the `neosync` resources.
+  - Kubernetes in Docker. We use this to spin up a slim kubernetes cluster that deploys all of the `neosync` resources.
 - [tilt](https://github.com/tilt-dev/tilt)
   - Allows us to define our development environment as code.
 - [ctlptl](https://github.com/tilt-dev/ctlptl)
@@ -38,7 +38,7 @@ This enables fast development, locally, while closely mimicking a real productio
 - [kubectl](https://github.com/kubernetes/kubectl)
   - Allows for observability and management into the spun-up kind cluster.
 - [kustomize](https://github.com/kubernetes-sigs/kustomize)
-  - yaml templating tool for ad-hoc patches to kubernetes configurations
+  - yaml template tool for ad-hoc patches to kubernetes configurations
 - [helm](https://github.com/helm/helm)
   - Kubernetes package manager. All of our app deployables come with a helm-chart for easy installation into kubernetes
 - [helmfile](https://github.com/helmfile/helmfile)
@@ -76,7 +76,7 @@ brew install kind tilt-dev/tap/tilt tilt-dev/tap/ctlptl kubernetes-cli kustomize
 
 ## Setup with Compose
 
-When running with either `Tilt` or `docker compose`, volumes are mapped from these filesystems to the host machine for both neosync and Temporal's databases.
+When running with either `Tilt` or `docker compose`, volumes are mapped from these file systems to the host machine for both Neosync and Temporal's databases.
 A volume is mounted locally in a `.data` folder.
 
 To enable hot reloading, must run `docker compose watch` instead of `up`. **Currently there is a limitation with devcontainers where this command must be run via `sudo`.**
@@ -160,6 +160,6 @@ make cluster-create
 
 After the cluster has been successfully created, `tilt up` can be run to start up `neosync`.
 Refer to the top-level [Tiltfile](https://github.com/nucleuscloud/neosync/tree/main//Tiltfile) for a clear picture of everything that runs.
-Each dependency in the `neosync` repo is split into sub-Tiltfiles so that they can be run in isolation, or in combination with other sub-resources more easily.
+Each dependency in the `neosync` repo is split into sub Tilt files so that they can be run in isolation, or in combination with other sub-resources more easily.
 
 Once everything is up and running, the app can be accessed locally at [http://localhost:3000](http://localhost:3000). -->

@@ -4,6 +4,7 @@ import FormError from '@/components/FormError';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import { useAccount } from '@/components/providers/account-provider';
+import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import {
   Accordion,
   AccordionContent,
@@ -56,11 +57,16 @@ import {
   ExclamationTriangleIcon,
 } from '@radix-ui/react-icons';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ReactElement, useState } from 'react';
+import { ReactElement, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { GetConnectionCloneValues } from '../postgres/PostgresForm';
 
 export default function MysqlForm() {
   const { account } = useAccount();
+  const searchParams = useSearchParams();
+  const sourceConnId = searchParams.get('sourceId');
+  const [isLoading, setIsLoading] = useState<boolean>();
+
   const form = useForm<MysqlFormValues>({
     resolver: yupResolver(MYSQL_FORM_SCHEMA),
     defaultValues: {
@@ -85,7 +91,6 @@ export default function MysqlForm() {
     context: { accountId: account?.id ?? '' },
   });
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [checkResp, setCheckResp] = useState<
     CheckConnectionConfigResponse | undefined
   >();
@@ -127,6 +132,73 @@ export default function MysqlForm() {
       });
     }
   }
+  /* we call the underlying useGetConnection API directly since we can't call
+the hook in the useEffect conditionally. This is used to retrieve the values for the clone connection so that we can update the form. 
+*/
+  useEffect(() => {
+    const fetchData = async () => {
+      if (sourceConnId && account?.id) {
+        setIsLoading(true);
+        try {
+          const connData = await GetConnectionCloneValues(
+            account.id,
+            sourceConnId
+          );
+
+          if (
+            connData &&
+            connData.connection?.connectionConfig?.config.case === 'mysqlConfig'
+          ) {
+            const config = connData.connection?.connectionConfig?.config.value;
+
+            let mysqlConfig: MysqlConnection = new MysqlConnection({});
+
+            if (config.connectionConfig.case == 'connection') {
+              mysqlConfig = config.connectionConfig.value;
+            }
+            /* reset the form with the new values and include the fallback values because of our validation schema requires a string and not undefined which is okay because it will tell the user that something is wrong instead of the user not realizing that it's undefined
+             */
+            form.reset({
+              ...form.getValues(),
+              connectionName: connData.connection?.name + '-copy',
+              db: {
+                host: mysqlConfig.host ?? '',
+                name: mysqlConfig.name ?? '',
+                user: mysqlConfig.user ?? '',
+                pass: mysqlConfig.pass ?? '',
+                port: mysqlConfig.port ?? 3306,
+                protocol: mysqlConfig.protocol ?? 'tcp',
+              },
+              tunnel: {
+                host: config.tunnel?.host ?? '',
+                port: config.tunnel?.port ?? 22,
+                knownHostPublicKey: config.tunnel?.knownHostPublicKey ?? '',
+                user: config.tunnel?.user ?? '',
+                passphrase: '',
+                privateKey: '',
+              },
+            });
+          }
+        } catch (error) {
+          console.error('Failed to fetch connection data:', error);
+          setIsLoading(false);
+          toast({
+            title: 'Unable to clone connection!',
+            variant: 'destructive',
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchData();
+  }, [account?.id]);
+
+  if (isLoading || !account?.id) {
+    return <SkeletonTable />;
+  }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -295,7 +367,7 @@ export default function MysqlForm() {
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="bastion">
             <AccordionTrigger> Bastion Host Configuration</AccordionTrigger>
-            <AccordionContent className="flex flex-col gap-4">
+            <AccordionContent className="flex flex-col gap-4 p-2">
               <div className="text-sm">
                 This section is optional and only necessary if your database is
                 not publicly accessible to the internet.

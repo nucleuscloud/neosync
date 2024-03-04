@@ -371,7 +371,7 @@ function ConnectionSelectContent(
           <SelectLabel>Postgres</SelectLabel>
           {postgres.map((connection) => (
             <SelectItem
-              className="cursor-pointer"
+              className="cursor-pointer ml-2"
               key={connection.id}
               value={connection.id}
             >
@@ -386,7 +386,7 @@ function ConnectionSelectContent(
           <SelectLabel>Mysql</SelectLabel>
           {mysql.map((connection) => (
             <SelectItem
-              className="cursor-pointer"
+              className="cursor-pointer ml-2"
               key={connection.id}
               value={connection.id}
             >
@@ -400,7 +400,7 @@ function ConnectionSelectContent(
           <SelectLabel>AWS S3</SelectLabel>
           {s3.map((connection) => (
             <SelectItem
-              className="cursor-pointer"
+              className="cursor-pointer ml-2"
               key={connection.id}
               value={connection.id}
             >

@@ -8,8 +8,8 @@ export default async function Postgres() {
     <OverviewContainer
       Header={
         <PageHeader
-          header="Mysql"
-          description="Configure a Mysql database as a connection"
+          header="MySQL"
+          description="Configure a MySQL database as a connection"
           leftIcon={<DiMysql className="w-[40px] h-[40px]" />}
         />
       }

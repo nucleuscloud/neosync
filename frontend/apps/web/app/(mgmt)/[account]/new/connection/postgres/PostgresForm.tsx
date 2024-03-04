@@ -4,6 +4,7 @@ import FormError from '@/components/FormError';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import { useAccount } from '@/components/providers/account-provider';
+import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import {
   Accordion,
   AccordionContent,
@@ -43,6 +44,7 @@ import {
   ConnectionConfig,
   CreateConnectionRequest,
   CreateConnectionResponse,
+  GetConnectionResponse,
   IsConnectionNameAvailableResponse,
   PostgresConnection,
   PostgresConnectionConfig,
@@ -56,11 +58,15 @@ import {
   ExclamationTriangleIcon,
 } from '@radix-ui/react-icons';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ReactElement, useState } from 'react';
+import { ReactElement, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 export default function PostgresForm() {
+  const searchParams = useSearchParams();
   const { account } = useAccount();
+  const sourceConnId = searchParams.get('sourceId');
+  const [isLoading, setIsLoading] = useState<boolean>();
+
   const form = useForm<PostgresFormValues>({
     resolver: yupResolver(POSTGRES_FORM_SCHEMA),
     mode: 'onChange',
@@ -83,10 +89,10 @@ export default function PostgresForm() {
         privateKey: '',
       },
     },
+
     context: { accountId: account?.id ?? '' },
   });
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [checkResp, setCheckResp] = useState<
     CheckConnectionConfigResponse | undefined
   >();
@@ -128,6 +134,74 @@ export default function PostgresForm() {
         variant: 'destructive',
       });
     }
+  }
+
+  /* we call the underlying useGetConnection API directly since we can't call
+the hook in the useEffect conditionally. This is used to retrieve the values for the clone connection so that we can update the form. 
+*/
+  useEffect(() => {
+    const fetchData = async () => {
+      if (sourceConnId && account?.id) {
+        setIsLoading(true);
+        try {
+          const connData = await GetConnectionCloneValues(
+            account.id,
+            sourceConnId
+          );
+
+          if (
+            connData &&
+            connData.connection?.connectionConfig?.config.case === 'pgConfig'
+          ) {
+            const config = connData.connection?.connectionConfig?.config.value;
+
+            let pgConfig: PostgresConnection = new PostgresConnection({});
+
+            if (config.connectionConfig.case == 'connection') {
+              pgConfig = config.connectionConfig.value;
+            }
+
+            /* reset the form with the new values and include the fallback values because of our validation schema requires a string and not undefined which is okay because it will tell the user that something is wrong instead of the user not realizing that it's undefined
+             */
+            form.reset({
+              ...form.getValues(),
+              connectionName: connData.connection?.name + '-copy',
+              db: {
+                host: pgConfig.host ?? '',
+                name: pgConfig.name ?? '',
+                user: pgConfig.user ?? '',
+                pass: pgConfig.pass ?? '',
+                port: pgConfig.port ?? 5432,
+                sslMode: pgConfig.sslMode ?? 'disable',
+              },
+              tunnel: {
+                host: config.tunnel?.host ?? '',
+                port: config.tunnel?.port ?? 22,
+                knownHostPublicKey: config.tunnel?.knownHostPublicKey ?? '',
+                user: config.tunnel?.user ?? '',
+                passphrase: '',
+                privateKey: '',
+              },
+            });
+          }
+        } catch (error) {
+          console.error('Failed to fetch connection data:', error);
+          setIsLoading(false);
+          toast({
+            title: 'Unable to clone connection!',
+            variant: 'destructive',
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchData();
+  }, [account?.id]);
+
+  if (isLoading || !account?.id) {
+    return <SkeletonTable />;
   }
 
   return (
@@ -299,7 +373,7 @@ export default function PostgresForm() {
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="bastion">
             <AccordionTrigger> Bastion Host Configuration</AccordionTrigger>
-            <AccordionContent className="flex flex-col gap-4">
+            <AccordionContent className="flex flex-col gap-4 p-2">
               <div className="text-sm">
                 This section is optional and only necessary if your database is
                 not publicly accessible to the internet.
@@ -641,4 +715,26 @@ export async function isConnectionNameAvailable(
     throw new Error(body.message);
   }
   return IsConnectionNameAvailableResponse.fromJson(await res.json());
+}
+
+export async function GetConnectionCloneValues(
+  accountId: string,
+  sourceConnId: string
+): Promise<GetConnectionResponse> {
+  const res = await fetch(
+    `/api/accounts/${accountId}/connections/${sourceConnId}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+
+  return GetConnectionResponse.fromJson(await res.json());
 }

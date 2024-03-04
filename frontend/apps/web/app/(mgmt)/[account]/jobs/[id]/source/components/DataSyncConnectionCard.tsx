@@ -236,7 +236,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                         )
                         .map((connection) => (
                           <SelectItem
-                            className="cursor-pointer"
+                            className="cursor-pointer ml-2"
                             key={connection.id}
                             value={connection.id}
                           >

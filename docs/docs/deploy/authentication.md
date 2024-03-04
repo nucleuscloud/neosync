@@ -88,11 +88,11 @@ Reference the [environment variables](/deploy/environment-variables.md) page for
 ## Auth Server Admin Access
 
 The backend requires minimal admin access to the auth server in order to show information about members within an account.
-If that is not needed or desired, the `AUTH_API_*` environment variables can be ommitted, however the member page will not show any user data for team members.
+If that is not needed or desired, the `AUTH_API_*` environment variables can be omitted, however the member page will not show any user data for team members.
 
 Neosync currently supports keycloak and auth0 for this feature.
 
-This is determined by the `AUTH_API_PROVIDER` environment variable that recognizes `auth0` and `keycloak` as their values. If ommitted, `auth0` is the default for backwards compatibilty.
+This is determined by the `AUTH_API_PROVIDER` environment variable that recognizes `auth0` and `keycloak` as their values. If omitted, `auth0` is the default for backwards compatibility.
 
 The following environment variables are as follows:
 
