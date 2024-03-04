@@ -1565,7 +1565,7 @@ root.{destination_col} = transformerfunction(args)
 
 func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_utils.ColumnInfo) (string, error) {
 	var maxLen int64 = 10000
-	if colInfo != nil && colInfo.CharacterMaximumLength != nil {
+	if colInfo != nil && colInfo.CharacterMaximumLength != nil && *colInfo.CharacterMaximumLength > 0 {
 		maxLen = int64(*colInfo.CharacterMaximumLength)
 	}
 
