@@ -94,7 +94,7 @@ Some resources to help you along the way:
 We love contributions big and small. Here are just a few ways that you can contribute to Neosync.
 
 - Join our [Discord](https://discord.com/invite/MFAMgnp4HF) channel and ask us any questions there
-- Open a PR (see our instructions on [developing with Neosync locally](https://docs.neosync.dev/guide/neosync-local-dev))
+- Open a PR (see our instructions on [developing with Neosync locally](https://docs.neosync.dev/guides/neosync-local-dev))
 - Submit a [feature request](https://github.com/nucleuscloud/neosync/issues/new?assignees=&labels=enhancement%2C+feature&template=feature_request.md) or [bug report](https://github.com/nucleuscloud/neosync/issues/new?assignees=&labels=bug&template=bug_report.md)
 
 ## Mission
