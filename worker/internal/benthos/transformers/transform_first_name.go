@@ -1,7 +1,6 @@
 package transformers
 
 import (
-	_ "embed"
 	"fmt"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"

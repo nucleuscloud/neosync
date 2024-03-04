@@ -1,7 +1,6 @@
 package transformers
 
 import (
-	_ "embed"
 	"math/rand"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"

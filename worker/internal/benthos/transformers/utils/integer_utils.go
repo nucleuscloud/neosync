@@ -22,7 +22,7 @@ func GenerateRandomInt64FixedLength(l int64) (int64, error) {
 	max := int64(math.Pow10(int(l))) - 1
 
 	// Generate a random number in the range
-	//nolint:all
+	//nolint:gosec
 	return min + rand.Int63n(max-min+1), nil
 }
 
@@ -90,23 +90,11 @@ func GetInt64Length(i int64) int64 {
 }
 
 func IsLastInt64DigitZero(n int64) bool {
-	// Convert the int64 to a string
-	str := strconv.FormatInt(n, 10)
-
-	// Check if the string is empty or if the last character is '0'
-	if str != "" && str[len(str)-1] == '0' {
-		return true
-	}
-
-	return false
+	return n%10 == 0
 }
 
 func IsNegativeInt64(val int64) bool {
-	if (val * -1) < 0 {
-		return false
-	} else {
-		return true
-	}
+	return val < 0
 }
 
 func AbsInt64(n int64) int64 {
