@@ -18,7 +18,7 @@ type HTTPConfig struct {
 
 type StreamConfig struct {
 	Input          *InputConfig           `json:"input" yaml:"input"`
-	Buffer         *BufferConfig          `json:"buffer" yaml:"buffer"`
+	Buffer         *BufferConfig          `json:"buffer,omitempty" yaml:"buffer,omitempty"`
 	Pipeline       *PipelineConfig        `json:"pipeline" yaml:"pipeline"`
 	Output         *OutputConfig          `json:"output" yaml:"output"`
 	CacheResources []*CacheResourceConfig `json:"cache_resources,omitempty" yaml:"cache_resources,omitempty"`

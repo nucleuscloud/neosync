@@ -165,7 +165,6 @@ input:
             root."name" = generate_ssn()
         interval: ""
         count: 10
-buffer: null
 pipeline:
     threads: -1
     processors: []
@@ -319,7 +318,6 @@ input:
         mapping: root."name" = generate_ssn()
         interval: ""
         count: 10
-buffer: null
 pipeline:
     threads: -1
     processors: []
@@ -498,7 +496,6 @@ input:
         columns:
             - '"id"'
             - '"name"'
-buffer: null
 pipeline:
     threads: -1
     processors: []
@@ -731,7 +728,6 @@ input:
         columns:
             - '"id"'
             - '"name"'
-buffer: null
 pipeline:
     threads: -1
     processors:
@@ -783,7 +779,6 @@ input:
         columns:
             - '"id"'
             - '"buyer_id"'
-buffer: null
 pipeline:
     threads: -1
     processors:
@@ -1013,7 +1008,6 @@ input:
         columns:
             - '"id"'
             - '"name"'
-buffer: null
 pipeline:
     threads: -1
     processors: []
@@ -1056,7 +1050,6 @@ input:
         columns:
             - '"id"'
             - '"buyer_id"'
-buffer: null
 pipeline:
     threads: -1
     processors: []
@@ -1259,7 +1252,6 @@ input:
         columns:
             - '"id"'
             - '"parent_id"'
-buffer: null
 pipeline:
     threads: -1
     processors:
@@ -1311,7 +1303,6 @@ input:
         columns:
             - '"id"'
             - '"parent_id"'
-buffer: null
 pipeline:
     threads: -1
     processors:
@@ -1508,7 +1499,6 @@ input:
         columns:
             - '"id"'
             - '"name"'
-buffer: null
 pipeline:
     threads: -1
     processors: []
@@ -1730,7 +1720,6 @@ input:
         columns:
             - '"id"'
             - '"name"'
-buffer: null
 pipeline:
     threads: -1
     processors: []
@@ -1772,7 +1761,6 @@ input:
         columns:
             - '"id"'
             - '"user_id"'
-buffer: null
 pipeline:
     threads: -1
     processors: []
@@ -2023,7 +2011,6 @@ input:
             - '"id"'
             - '"name"'
             - '"user_assoc_id"'
-buffer: null
 pipeline:
     threads: -1
     processors: []
@@ -2067,7 +2054,6 @@ input:
             - '"id"'
             - '"name"'
             - '"user_assoc_id"'
-buffer: null
 pipeline:
     threads: -1
     processors: []
@@ -2109,7 +2095,6 @@ input:
         columns:
             - '"id"'
             - '"user_id"'
-buffer: null
 pipeline:
     threads: -1
     processors: []
@@ -2391,7 +2376,6 @@ input:
             - '"id"'
             - '"name"'
             - '"user_assoc_id"'
-buffer: null
 pipeline:
     threads: -1
     processors: []
@@ -2454,7 +2438,6 @@ input:
             - '"id"'
             - '"name"'
             - '"user_assoc_id"'
-buffer: null
 pipeline:
     threads: -1
     processors: []
@@ -2497,7 +2480,6 @@ input:
         columns:
             - '"id"'
             - '"user_id"'
-buffer: null
 pipeline:
     threads: -1
     processors: []
@@ -2674,7 +2656,6 @@ input:
             root."name" = generate_ssn()
         interval: ""
         count: 10
-buffer: null
 pipeline:
     threads: -1
     processors: []
@@ -2852,7 +2833,6 @@ input:
         columns:
             `+"- '`id`'"+`
             `+"- '`name`'"+`
-buffer: null
 pipeline:
     threads: -1
     processors: []
@@ -3072,7 +3052,6 @@ input:
         columns:
             `+"- '`id`'"+`
             `+"- '`name`'"+`
-buffer: null
 pipeline:
     threads: -1
     processors: []
@@ -3114,7 +3093,6 @@ input:
         columns:
             `+"- '`id`'"+`
             `+"- '`user_id`'"+`
-buffer: null
 pipeline:
     threads: -1
     processors: []
@@ -3366,7 +3344,6 @@ input:
             `+"- '`id`'"+`
             `+"- '`name`'"+`
             `+"- '`user_assoc_id`'"+`
-buffer: null
 pipeline:
     threads: -1
     processors: []
@@ -3410,7 +3387,6 @@ input:
             `+"- '`id`'"+`
             `+"- '`name`'"+`
             `+"- '`user_assoc_id`'"+`
-buffer: null
 pipeline:
     threads: -1
     processors: []
@@ -3452,7 +3428,6 @@ input:
         columns:
             `+"- '`id`'"+`
             `+"- '`user_id`'"+`
-buffer: null
 pipeline:
     threads: -1
     processors: []
@@ -3608,7 +3583,6 @@ input:
         mapping: root."name" = generate_ssn()
         interval: ""
         count: 10
-buffer: null
 pipeline:
     threads: -1
     processors: []
@@ -3787,7 +3761,6 @@ input:
         columns:
             `+"- '`id`'"+`
             `+"- '`name`'"+`
-buffer: null
 pipeline:
     threads: -1
     processors: []
