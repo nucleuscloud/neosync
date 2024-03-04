@@ -30,7 +30,7 @@ require (
 	github.com/spf13/viper v1.18.2
 	github.com/stretchr/testify v1.9.0
 	github.com/zeebo/assert v1.3.1
-	go.temporal.io/api v1.29.0
+	go.temporal.io/api v1.26.0
 	go.temporal.io/sdk v1.25.1
 	golang.org/x/crypto v0.20.0
 	golang.org/x/net v0.21.0
@@ -190,6 +190,7 @@ require (
 	github.com/gosimple/slug v1.13.1 // indirect
 	github.com/gosimple/unidecode v1.0.1 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 // indirect
+	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.19.1 // indirect
 	github.com/gsterjov/go-libsecret v0.0.0-20161001094733-a6f4afe4910c // indirect
 	github.com/hailocab/go-hostpool v0.0.0-20160125115350-e80d13ce29ed // indirect
