@@ -105,7 +105,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   return (
     <div
       id="newjobdefine"
-      className="px-12 md:px-24 lg:px-96 flex flex-col gap-5"
+      className="px-12 md:px-24 lg:px-48 xl:px-64 flex flex-col gap-5"
     >
       <OverviewContainer
         Header={

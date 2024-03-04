@@ -65,7 +65,7 @@ export default function TransformerSelect(props: Props): ReactElement {
               : 'justify-between w-[175px]'
           )}
         >
-          <div className="whitespace-nowrap truncate w-[200px]">
+          <div className="whitespace-nowrap truncate lg:w-[200px]">
             {getPopoverTriggerButtonText(
               value,
               udfTransformerMap,

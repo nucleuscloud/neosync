@@ -61,6 +61,8 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
       ),
       enableSorting: false,
       size: 30,
+      maxSize: 30,
+      minSize: 30,
     },
     {
       accessorKey: 'schema',
@@ -75,7 +77,6 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
           </span>
         );
       },
-      size: 200,
     },
     {
       accessorKey: 'table',
@@ -90,7 +91,6 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
           </span>
         );
       },
-      size: 200,
     },
     {
       accessorKey: 'column',
@@ -104,8 +104,6 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
           </span>
         );
       },
-      size: 200,
-      maxSize: 200,
     },
     {
       id: 'constraints',
@@ -171,7 +169,6 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
           </span>
         );
       },
-      size: 200,
     },
     {
       accessorKey: 'isNullable',
@@ -203,12 +200,11 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         };
 
         return (
-          <span className="max-w-[300px] truncate font-medium">
+          <span className="max-w-[500px] truncate font-medium">
             <Badge variant="outline">{toTitleCase(isNullable)}</Badge>
           </span>
         );
       },
-      size: 150,
     },
     {
       accessorKey: 'dataType',
@@ -224,7 +220,6 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
           </span>
         );
       },
-      size: 200,
     },
 
     {
@@ -295,7 +290,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
           </div>
         );
       },
-      size: 300,
+      size: 250,
     },
   ];
 }
