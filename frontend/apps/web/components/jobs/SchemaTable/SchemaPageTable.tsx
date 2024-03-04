@@ -88,21 +88,22 @@ export default function SchemaPageTable<TData, TValue>({
         />
       </div>
       <div
-        className="rounded-md border max-h-[500px] relative overflow-auto"
+        className="rounded-md border max-h-[500px] relative  overflow-x-auto"
         ref={tableContainerRef}
       >
         <StickyHeaderTable>
-          <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 flex pl-6 pt-2">
+          <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 flex pl-6 pt-2 w-full">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
-                className="lg:flex flex-row items-center justify-between w-full"
+                className="flex-none custom:flex flex-row items-center justify-between w-full"
+                id="table-header-row"
               >
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead
                       key={header.id}
-                      style={{ width: `${header.getSize()}px` }}
+                      style={{ minWidth: `${header.column.getSize()}px` }}
                       colSpan={header.colSpan}
                     >
                       {header.isPlaceholder
@@ -121,7 +122,7 @@ export default function SchemaPageTable<TData, TValue>({
             style={{
               height: `${rowVirtualizer.getTotalSize()}px`, //tells scrollbar how big the table is
             }}
-            className="relative, grid"
+            className="relative grid"
           >
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {
               const row = rows[virtualRow.index];
@@ -139,9 +140,9 @@ export default function SchemaPageTable<TData, TValue>({
                     return (
                       <td
                         key={cell.id}
-                        className="flex flex-row py-2 justify-between w-full"
+                        className="py-2"
                         style={{
-                          width: cell.column.getSize(),
+                          minWidth: cell.column.getSize(),
                         }}
                       >
                         <div className="truncate">
