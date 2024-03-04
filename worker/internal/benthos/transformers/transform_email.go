@@ -65,7 +65,10 @@ func init() {
 
 		return func() (any, error) {
 			res, err := TransformEmail(email, preserveLength, preserveDomain, maxLength, excludeStringSlice)
-			return res, err
+			if err != nil {
+				return nil, fmt.Errorf("unable to run transform_email: %w", err)
+			}
+			return res, nil
 		}, nil
 	})
 

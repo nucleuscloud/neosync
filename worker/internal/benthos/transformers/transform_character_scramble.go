@@ -1,6 +1,7 @@
 package transformers
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 	"unicode"
@@ -9,7 +10,7 @@ import (
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
-var (
+const (
 	letterList      = "abcdefghijklmnopqrstuvwxyz"
 	numberList      = "0123456789"
 	specialCharList = "!@#$%^&*()-+=_ []{}|\\;\"<>,./?"
@@ -42,7 +43,10 @@ func init() {
 
 		return func() (any, error) {
 			res, err := TransformCharacterScramble(value, regex)
-			return res, err
+			if err != nil {
+				return nil, fmt.Errorf("unable to run transform_character_scramble: %w", err)
+			}
+			return res, nil
 		}, nil
 	})
 

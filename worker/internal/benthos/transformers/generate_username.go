@@ -1,13 +1,14 @@
 package transformers
 
 import (
+	"fmt"
 	"math/rand"
 	"strings"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 )
 
-var alphabet = "abcdefghijklmnopqrstuvwxyz"
+const alphabet = "abcdefghijklmnopqrstuvwxyz"
 
 func init() {
 	spec := bloblang.NewPluginSpec().Param(bloblang.NewInt64Param("max_length"))
@@ -20,8 +21,10 @@ func init() {
 			}
 
 			res, err := GenerateUsername(maxLength)
-
-			return res, err
+			if err != nil {
+				return nil, fmt.Errorf("unable to run generate_username: %w", err)
+			}
+			return res, nil
 		}, nil
 	})
 
@@ -32,7 +35,7 @@ func init() {
 
 // Generates a username with a lowercase first initial and titlecase lastname
 func GenerateUsername(maxLength int64) (string, error) {
-	//nolint
+	//nolint:gosec
 	// randomly select a letter in the alphabet to use as a first initial
 	fn := string(alphabet[rand.Intn(len(alphabet))])
 

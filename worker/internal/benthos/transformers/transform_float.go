@@ -34,7 +34,10 @@ func init() {
 		}
 		return func() (any, error) {
 			res, err := TransformFloat(value, rMin, rMax)
-			return res, err
+			if err != nil {
+				return nil, fmt.Errorf("unable to run transform_float64: %w", err)
+			}
+			return res, nil
 		}, nil
 	})
 

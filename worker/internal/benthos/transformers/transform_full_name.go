@@ -1,6 +1,7 @@
 package transformers
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
@@ -36,7 +37,10 @@ func init() {
 
 		return func() (any, error) {
 			res, err := TransformFullName(value, preserveLength, maxLength)
-			return res, err
+			if err != nil {
+				return nil, fmt.Errorf("unable to run transform_full_name: %w", err)
+			}
+			return res, nil
 		}, nil
 	})
 

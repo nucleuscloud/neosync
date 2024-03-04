@@ -1,6 +1,8 @@
 package transformers
 
 import (
+	"fmt"
+
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 )
 
@@ -33,7 +35,10 @@ func init() {
 
 		return func() (any, error) {
 			res, err := TransformPhoneNumber(value, preserveLength, maxLength)
-			return res, err
+			if err != nil {
+				return nil, fmt.Errorf("unable to run transform_phone_number: %w", err)
+			}
+			return res, nil
 		}, nil
 	})
 
