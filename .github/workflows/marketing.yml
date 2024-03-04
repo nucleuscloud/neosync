@@ -70,7 +70,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - uses: streetsidesoftware/cspell-action@v5
+      - uses: streetsidesoftware/cspell-action@v6
         with:
           root: marketing
           config: marketing/cspell.json
