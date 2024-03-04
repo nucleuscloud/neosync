@@ -35,7 +35,7 @@ The API Key may be input as a variable to the provider, or provided in the envir
 
 ### Account Id
 
-Generally, this option is ommitted as it is inferred through the API Key.
+Generally, this option is omitted as it is inferred through the API Key.
 If self-hosting Neosync and running without authentication, or simply wanting to be redundant, provide the account id to the provider or via the `NEOSYNC_ACCOUNT_ID` environment variable to explicitly tell the provider which account id to use.
 
 ## Terraform Registry Docs

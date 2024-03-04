@@ -76,7 +76,7 @@ brew install kind tilt-dev/tap/tilt tilt-dev/tap/ctlptl kubernetes-cli kustomize
 
 ## Setup with Compose
 
-When running with either `Tilt` or `docker compose`, volumes are mapped from these filesystems to the host machine for both neosync and Temporal's databases.
+When running with either `Tilt` or `docker compose`, volumes are mapped from these file systems to the host machine for both Neosync and Temporal's databases.
 A volume is mounted locally in a `.data` folder.
 
 To enable hot reloading, must run `docker compose watch` instead of `up`. **Currently there is a limitation with devcontainers where this command must be run via `sudo`.**
@@ -160,6 +160,6 @@ make cluster-create
 
 After the cluster has been successfully created, `tilt up` can be run to start up `neosync`.
 Refer to the top-level [Tiltfile](https://github.com/nucleuscloud/neosync/tree/main//Tiltfile) for a clear picture of everything that runs.
-Each dependency in the `neosync` repo is split into sub-Tiltfiles so that they can be run in isolation, or in combination with other sub-resources more easily.
+Each dependency in the `neosync` repo is split into sub Tilt files so that they can be run in isolation, or in combination with other sub-resources more easily.
 
 Once everything is up and running, the app can be accessed locally at [http://localhost:3000](http://localhost:3000). -->
