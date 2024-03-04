@@ -19,7 +19,8 @@ const CONNECTIONS: ConnectionMeta[] = [
   {
     urlSlug: 'aws-s3',
     name: 'AWS S3',
-    description: 'Amazon S3',
+    description:
+      'Amazon Simple Storage Service (Amazon S3) is an object storage service used to store and retrieve any data.',
   },
 ];
 

@@ -9,7 +9,7 @@ export default async function Postgres() {
       Header={
         <PageHeader
           header="AWS S3"
-          description="Configure an AWS S3 data connection"
+          description="Configure an AWS S3 bucket as a connection"
           leftIcon={<FaAws className="w-[40px] h-[40px]" />}
         />
       }

@@ -4,6 +4,7 @@ import FormError from '@/components/FormError';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import { useAccount } from '@/components/providers/account-provider';
+import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import SwitchCard from '@/components/switches/SwitchCard';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { toast } from '@/components/ui/use-toast';
 import { AWSFormValues, AWS_FORM_SCHEMA } from '@/yup-validations/connections';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
@@ -27,11 +29,16 @@ import {
   CreateConnectionResponse,
 } from '@neosync/sdk';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { IoAlertCircleOutline } from 'react-icons/io5';
+import { GetConnectionCloneValues } from '../postgres/PostgresForm';
 
 export default function AwsS3Form() {
+  const searchParams = useSearchParams();
   const { account } = useAccount();
+  const sourceConnId = searchParams.get('sourceId');
+  const [isLoading, setIsLoading] = useState<boolean>();
   const form = useForm<AWSFormValues>({
     resolver: yupResolver(AWS_FORM_SCHEMA),
     defaultValues: {
@@ -43,7 +50,6 @@ export default function AwsS3Form() {
     context: { accountId: account?.id ?? '' },
   });
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   async function onSubmit(values: AWSFormValues) {
     if (!account) {
@@ -69,6 +75,67 @@ export default function AwsS3Form() {
       console.error(err);
     }
   }
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (sourceConnId && account?.id) {
+        setIsLoading(true);
+        try {
+          const connData = await GetConnectionCloneValues(
+            account.id,
+            sourceConnId
+          );
+
+          if (connData) {
+            const s3Config = connData.connection?.connectionConfig?.config
+              .value as AwsS3ConnectionConfig;
+
+            /* reset the form with the new values and include the fallback values because of our validation schema requires a string and not undefined which is okay because it will tell the user that something is wrong instead of the user not realizing that it's undefined
+             */
+            form.reset({
+              ...form.getValues(),
+              connectionName: connData.connection?.name + '-copy',
+              s3: {
+                bucket: s3Config.bucket ?? '',
+                pathPrefix: s3Config.pathPrefix ?? '',
+                region: s3Config.region ?? '',
+                endpoint: s3Config.endpoint ?? '',
+                credentials: {
+                  profile: s3Config.credentials?.profile ?? '',
+                  accessKeyId: s3Config.credentials?.accessKeyId ?? '',
+                  secretAccessKey: s3Config.credentials?.secretAccessKey ?? '',
+                  sessionToken: s3Config.credentials?.sessionToken ?? '',
+                  fromEc2Role: s3Config.credentials?.fromEc2Role ?? false,
+                  roleArn: s3Config.credentials?.roleArn ?? '',
+                  roleExternalId: s3Config.credentials?.roleExternalId ?? '',
+                },
+              },
+            });
+          }
+        } catch (error) {
+          console.error('Failed to fetch connection data:', error);
+          setIsLoading(false);
+          toast({
+            title: 'Unable to clone connection!',
+            variant: 'destructive',
+          });
+        } finally {
+          setIsLoading(false);
+          toast({
+            title: 'Successfully cloned connection!',
+            variant: 'success',
+          });
+        }
+      }
+    };
+
+    fetchData();
+  }, [account?.id]);
+
+  if (isLoading || !account?.id) {
+    return <SkeletonTable />;
+  }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
