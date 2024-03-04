@@ -1,5 +1,5 @@
 ---
-title: 2/15 -Terraform
+title: 2/15 - Terraform
 hide_table_of_contents: false
 slug: /terraform
 authors:
