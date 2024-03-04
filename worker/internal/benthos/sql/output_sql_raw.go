@@ -53,12 +53,12 @@ func RegisterPooledSqlRawOutput(env *service.Environment, dbprovider DbPoolProvi
 var _ service.BatchOutput = &pooledOutput{}
 
 type pooledOutput struct {
-	driver  string
-	dsn     string
-	provder DbPoolProvider
-	dbMut   sync.RWMutex
-	db      mysql_queries.DBTX
-	logger  *service.Logger
+	driver   string
+	dsn      string
+	provider DbPoolProvider
+	dbMut    sync.RWMutex
+	db       mysql_queries.DBTX
+	logger   *service.Logger
 
 	queryStatic string
 	queryDyn    *service.InterpolatedString
@@ -106,7 +106,7 @@ func newOutput(conf *service.ParsedConfig, mgr *service.Resources, provider DbPo
 		queryStatic: queryStatic,
 		queryDyn:    queryDyn,
 		argsMapping: argsMapping,
-		provder:     provider,
+		provider:    provider,
 	}
 	return output, nil
 }
@@ -119,7 +119,7 @@ func (s *pooledOutput) Connect(ctx context.Context) error {
 		return nil
 	}
 
-	db, err := s.provder.GetDb(s.driver, s.dsn)
+	db, err := s.provider.GetDb(s.driver, s.dsn)
 	if err != nil {
 		return err
 	}

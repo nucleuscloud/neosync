@@ -3,12 +3,12 @@ package neosync_benthos_sql
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"sync"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/benthosdev/benthos/v4/public/service"
+	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	"github.com/nucleuscloud/neosync/worker/internal/benthos/shutdown"
 )
 
@@ -21,67 +21,83 @@ func sqlRawInputSpec() *service.ConfigSpec {
 }
 
 // Registers an input on a benthos environment called pooled_sql_raw
-func RegisterPooledSqlRawInput(env *service.Environment, db *sql.DB) error {
+func RegisterPooledSqlRawInput(env *service.Environment, dbprovider DbPoolProvider) error {
 	return env.RegisterInput(
 		"pooled_sql_raw", sqlRawInputSpec(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.Input, error) {
-			input, err := newInput(conf, mgr)
+			input, err := newInput(conf, mgr, dbprovider)
 			if err != nil {
 				return nil, err
 			}
-			input.WithSqlDb(db)
 			return input, nil
 		},
 	)
 }
 
 type pooledInput struct {
-	sqlpool *sql.DB
-	logger  *service.Logger
+	driver   string
+	dsn      string
+	provider DbPoolProvider
+	logger   *service.Logger
 
 	argsMapping *bloblang.Executor
-
 	queryStatic string
 
+	db    mysql_queries.DBTX
 	dbMut sync.Mutex
 	rows  *sql.Rows
 
 	shutSig *shutdown.Signaller
 }
 
-func newInput(conf *service.ParsedConfig, mgr *service.Resources) (*pooledInput, error) {
-	input := &pooledInput{logger: mgr.Logger(), shutSig: shutdown.NewSignaller()}
-	var err error
-	if input.queryStatic, err = conf.FieldString("query"); err != nil {
+func newInput(conf *service.ParsedConfig, mgr *service.Resources, dbprovider DbPoolProvider) (*pooledInput, error) {
+	driver, err := conf.FieldString("driver")
+	if err != nil {
 		return nil, err
 	}
-
-	if conf.Contains("args_mapping") {
-		if input.argsMapping, err = conf.FieldBloblang("args_mapping"); err != nil {
-			return nil, err
-		}
-	}
-
+	dsn, err := conf.FieldString("dsn")
 	if err != nil {
 		return nil, err
 	}
 
-	return input, nil
-}
+	queryStatic, err := conf.FieldString("query")
+	if err != nil {
+		return nil, err
+	}
 
-func (s *pooledInput) WithSqlDb(db *sql.DB) {
-	s.sqlpool = db
+	var argsMapping *bloblang.Executor
+	if conf.Contains("args_mapping") {
+		argsMapping, err = conf.FieldBloblang("args_mapping")
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &pooledInput{
+		logger:      mgr.Logger(),
+		shutSig:     shutdown.NewSignaller(),
+		driver:      driver,
+		dsn:         dsn,
+		queryStatic: queryStatic,
+		argsMapping: argsMapping,
+		provider:    dbprovider,
+	}, nil
 }
 
 var _ service.Input = &pooledInput{}
 
 func (s *pooledInput) Connect(ctx context.Context) error {
-	s.logger.Info("connecting to pooled input")
+	s.logger.Debug("connecting to pooled input")
 	s.dbMut.Lock()
 	defer s.dbMut.Unlock()
 
-	if s.sqlpool == nil {
-		return errors.New("must provide either sql or pgx pool to continue")
+	if s.db != nil {
+		return nil
+	}
+
+	db, err := s.provider.GetDb(s.driver, s.dsn)
+	if err != nil {
+		return nil
 	}
 
 	var args []any
@@ -96,7 +112,7 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 		}
 	}
 
-	rows, err := s.sqlpool.Query(s.queryStatic, args...)
+	rows, err := db.QueryContext(ctx, s.queryStatic, args...)
 	if err != nil {
 		return err
 	}
@@ -109,14 +125,12 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 			_ = s.rows.Close()
 			s.rows = nil
 		}
-		if s.sqlpool != nil {
-			s.sqlpool = nil
-		}
+		// not closing the connection here as that is managed by an outside force
+		s.db = nil
 		s.dbMut.Unlock()
 
 		s.shutSig.ShutdownComplete()
 	}()
-
 	return nil
 }
 
@@ -124,7 +138,7 @@ func (s *pooledInput) Read(ctx context.Context) (*service.Message, service.AckFu
 	s.dbMut.Lock()
 	defer s.dbMut.Unlock()
 
-	if s.sqlpool == nil && s.rows == nil {
+	if s.db == nil && s.rows == nil {
 		return nil, nil, service.ErrNotConnected
 	}
 	if s.rows == nil {
@@ -161,7 +175,7 @@ func emptyAck(ctx context.Context, err error) error {
 func (s *pooledInput) Close(ctx context.Context) error {
 	s.shutSig.CloseNow()
 	s.dbMut.Lock()
-	isNil := s.sqlpool == nil
+	isNil := s.db == nil
 	s.dbMut.Unlock()
 	if isNil {
 		return nil

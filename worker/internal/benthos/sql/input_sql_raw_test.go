@@ -10,6 +10,8 @@ import (
 
 func Test_SqlRawInputEmptyShutdown(t *testing.T) {
 	conf := `
+driver: postgres
+dsn: foo
 query: "select * from public.users"
 args_mapping: 'root = [this.id]'
 `
@@ -19,7 +21,7 @@ args_mapping: 'root = [this.id]'
 	selectConfig, err := spec.ParseYAML(conf, env)
 	require.NoError(t, err)
 
-	selectInput, err := newInput(selectConfig, service.MockResources())
+	selectInput, err := newInput(selectConfig, service.MockResources(), nil)
 	require.NoError(t, err)
 	require.NoError(t, selectInput.Close(context.Background()))
 }
