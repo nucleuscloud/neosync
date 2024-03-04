@@ -26,7 +26,7 @@ func buildSelectQuery(
 	if whereClause != nil && *whereClause != "" {
 		query = query.Where(goqu.L(*whereClause))
 	}
-	sql, _, err := query.Prepared(true).ToSQL()
+	sql, _, err := query.ToSQL()
 	if err != nil {
 		return "", err
 	}
