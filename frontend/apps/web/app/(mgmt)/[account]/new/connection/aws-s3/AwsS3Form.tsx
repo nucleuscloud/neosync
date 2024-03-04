@@ -121,10 +121,6 @@ export default function AwsS3Form() {
           });
         } finally {
           setIsLoading(false);
-          toast({
-            title: 'Successfully cloned connection!',
-            variant: 'success',
-          });
         }
       }
     };

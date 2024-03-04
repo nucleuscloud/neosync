@@ -160,9 +160,8 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
              */
             form.reset({
               ...form.getValues(),
-              connectionName: pgConfig.name + '-copy',
+              connectionName: connData.connection?.name + '-copy',
               db: {
-                ...form.getValues().db,
                 host: pgConfig.host ?? '',
                 name: pgConfig.name ?? '',
                 user: pgConfig.user ?? '',
@@ -189,10 +188,6 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
           });
         } finally {
           setIsLoading(false);
-          toast({
-            title: 'Successfully cloned connection!',
-            variant: 'success',
-          });
         }
       }
     };

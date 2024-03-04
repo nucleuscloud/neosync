@@ -156,7 +156,7 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
              */
             form.reset({
               ...form.getValues(),
-              connectionName: mysqlConfig.name + '-copy',
+              connectionName: connData.connection?.name + '-copy',
               db: {
                 host: mysqlConfig.host ?? '',
                 name: mysqlConfig.name ?? '',
@@ -184,10 +184,6 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
           });
         } finally {
           setIsLoading(false);
-          toast({
-            title: 'Successfully cloned connection!',
-            variant: 'success',
-          });
         }
       }
     };
