@@ -75,7 +75,9 @@ export default function AwsS3Form() {
       console.error(err);
     }
   }
-
+  /* we call the underlying useGetConnection API directly since we can't call
+the hook in the useEffect conditionally. This is used to retrieve the values for the clone connection so that we can update the form. 
+*/
   useEffect(() => {
     const fetchData = async () => {
       if (sourceConnId && account?.id) {
