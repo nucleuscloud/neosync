@@ -264,7 +264,7 @@ export default function PostgresForm(props: Props) {
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="bastion">
             <AccordionTrigger> Bastion Host Configuration</AccordionTrigger>
-            <AccordionContent className="flex flex-col gap-4">
+            <AccordionContent className="flex flex-col gap-4 p-2">
               <div className="text-sm">
                 This section is optional and only necessary if your database is
                 not publicly accessible to the internet.

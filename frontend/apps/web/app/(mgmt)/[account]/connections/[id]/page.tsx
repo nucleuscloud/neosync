@@ -93,12 +93,16 @@ function CloneConnectionButton(props: CloneConnectionProps): ReactElement {
   switch (connectionType) {
     case 'pgConfig':
       connType = 'postgres';
+      break;
     case 'mysqlConfig':
       connType = 'mysql';
+      break;
     case 'awsS3Config':
       connType = 'aws-s3';
+      break;
     default:
       connType = 'postgres';
+      break;
   }
 
   return (

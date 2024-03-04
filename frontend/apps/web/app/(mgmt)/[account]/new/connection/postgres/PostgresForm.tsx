@@ -144,7 +144,7 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
       if (sourceConnId && account?.id) {
         setIsLoading(true);
         try {
-          const connData = await getConnectionCloneValues(
+          const connData = await GetConnectionCloneValues(
             account.id,
             sourceConnId
           );
@@ -156,25 +156,43 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
             const pgConfig = config.connectionConfig
               .value as PostgresConnection;
 
-            // reset the form with the new values
+            /* reset the form with the new values and include the fallback values because of our validation schema requires a string and not undefined which is okay because it will tell the user that something is wrong instead of the user not realizing that it's undefined
+             */
             form.reset({
               ...form.getValues(),
               connectionName: pgConfig.name + '-copy',
               db: {
                 ...form.getValues().db,
-                host: pgConfig.host,
-                name: pgConfig.name,
-                user: pgConfig.user,
-                pass: pgConfig.pass,
-                port: pgConfig.port,
-                sslMode: pgConfig.sslMode,
+                host: pgConfig.host ?? '',
+                name: pgConfig.name ?? '',
+                user: pgConfig.user ?? '',
+                pass: pgConfig.pass ?? '',
+                port: pgConfig.port ?? 5432,
+                sslMode: pgConfig.sslMode ?? 'disable',
+              },
+              tunnel: {
+                host: config.tunnel?.host ?? '',
+                port: config.tunnel?.port ?? 22,
+                knownHostPublicKey: config.tunnel?.knownHostPublicKey ?? '',
+                user: config.tunnel?.user ?? '',
+                passphrase: '',
+                privateKey: '',
               },
             });
           }
         } catch (error) {
           console.error('Failed to fetch connection data:', error);
+          setIsLoading(false);
+          toast({
+            title: 'Unable to clone connection!',
+            variant: 'destructive',
+          });
         } finally {
           setIsLoading(false);
+          toast({
+            title: 'Successfully cloned connection!',
+            variant: 'success',
+          });
         }
       }
     };
@@ -355,7 +373,7 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="bastion">
             <AccordionTrigger> Bastion Host Configuration</AccordionTrigger>
-            <AccordionContent className="flex flex-col gap-4">
+            <AccordionContent className="flex flex-col gap-4 p-2">
               <div className="text-sm">
                 This section is optional and only necessary if your database is
                 not publicly accessible to the internet.
@@ -699,7 +717,7 @@ export async function isConnectionNameAvailable(
   return IsConnectionNameAvailableResponse.fromJson(await res.json());
 }
 
-export async function getConnectionCloneValues(
+export async function GetConnectionCloneValues(
   accountId: string,
   sourceConnId: string
 ): Promise<GetConnectionResponse> {
