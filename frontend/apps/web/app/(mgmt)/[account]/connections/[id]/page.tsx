@@ -56,8 +56,8 @@ export default function ConnectionPage({ params }: PageProps) {
     extraPageHeading: (
       <div className="flex flex-row items-center gap-4">
         <CloneConnectionButton
-          connectionType={data?.connection?.connectionConfig?.config.case}
-          id={data?.connection?.id}
+          connectionType={data?.connection?.connectionConfig?.config.case ?? ''}
+          id={data?.connection?.id ?? ''}
         />
         <RemoveConnectionButton connectionId={id} />
       </div>
@@ -80,8 +80,8 @@ export default function ConnectionPage({ params }: PageProps) {
 }
 
 interface CloneConnectionProps {
-  connectionType?: string;
-  id?: string;
+  connectionType: string;
+  id: string;
 }
 
 function CloneConnectionButton(props: CloneConnectionProps): ReactElement {

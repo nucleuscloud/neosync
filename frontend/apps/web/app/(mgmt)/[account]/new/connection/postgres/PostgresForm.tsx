@@ -137,28 +137,17 @@ export default function PostgresForm() {
   }
 
   /* we call the underlying useGetConnection API directly since we can't call
-the hook in the useEffect conditionally. 
+the hook in the useEffect conditionally. This is used to retrieve the values for the clone connection so that we can update the form. 
 */
   useEffect(() => {
     const fetchData = async () => {
-      if (sourceConnId && account) {
+      if (sourceConnId && account?.id) {
         setIsLoading(true);
         try {
-          const response = await fetch(
-            `/api/accounts/${account?.id ?? ''}/connections/${sourceConnId}`,
-            {
-              method: 'GET',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-            }
+          const connData = await getConnectionCloneValues(
+            account.id,
+            sourceConnId
           );
-          const data: GetConnectionResponse = await response.json();
-
-          const connData =
-            data instanceof GetConnectionResponse
-              ? data
-              : GetConnectionResponse.fromJson(data);
 
           if (connData) {
             const config = connData.connection?.connectionConfig?.config
@@ -167,11 +156,10 @@ the hook in the useEffect conditionally.
             const pgConfig = config.connectionConfig
               .value as PostgresConnection;
 
-            setIsLoading(false);
             // reset the form with the new values
             form.reset({
               ...form.getValues(),
-              connectionName: pgConfig.name + '_copy',
+              connectionName: pgConfig.name + '-copy',
               db: {
                 ...form.getValues().db,
                 host: pgConfig.host,
@@ -185,14 +173,16 @@ the hook in the useEffect conditionally.
           }
         } catch (error) {
           console.error('Failed to fetch connection data:', error);
+        } finally {
+          setIsLoading(false);
         }
       }
     };
 
     fetchData();
-  }, [sourceConnId, account, form]);
+  }, [account?.id]);
 
-  if (isLoading) {
+  if (isLoading || !account?.id) {
     return <SkeletonTable />;
   }
 
@@ -707,4 +697,26 @@ export async function isConnectionNameAvailable(
     throw new Error(body.message);
   }
   return IsConnectionNameAvailableResponse.fromJson(await res.json());
+}
+
+export async function getConnectionCloneValues(
+  accountId: string,
+  sourceConnId: string
+): Promise<GetConnectionResponse> {
+  const res = await fetch(
+    `/api/accounts/${accountId}/connections/${sourceConnId}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+
+  return GetConnectionResponse.fromJson(await res.json());
 }
