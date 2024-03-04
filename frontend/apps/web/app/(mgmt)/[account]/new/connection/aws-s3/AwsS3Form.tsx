@@ -88,9 +88,12 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
             sourceConnId
           );
 
-          if (connData) {
-            const s3Config = connData.connection?.connectionConfig?.config
-              .value as AwsS3ConnectionConfig;
+          if (
+            connData &&
+            connData.connection?.connectionConfig?.config.case === 'awsS3Config'
+          ) {
+            const s3Config =
+              connData.connection?.connectionConfig?.config.value;
 
             /* reset the form with the new values and include the fallback values because of our validation schema requires a string and not undefined which is okay because it will tell the user that something is wrong instead of the user not realizing that it's undefined
              */

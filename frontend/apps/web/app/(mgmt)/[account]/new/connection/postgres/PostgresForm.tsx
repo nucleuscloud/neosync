@@ -149,12 +149,17 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
             sourceConnId
           );
 
-          if (connData) {
-            const config = connData.connection?.connectionConfig?.config
-              .value as PostgresConnectionConfig;
+          if (
+            connData &&
+            connData.connection?.connectionConfig?.config.case === 'pgConfig'
+          ) {
+            const config = connData.connection?.connectionConfig?.config.value;
 
-            const pgConfig = config.connectionConfig
-              .value as PostgresConnection;
+            let pgConfig: PostgresConnection = new PostgresConnection({});
+
+            if (config.connectionConfig.case == 'connection') {
+              pgConfig = config.connectionConfig.value;
+            }
 
             /* reset the form with the new values and include the fallback values because of our validation schema requires a string and not undefined which is okay because it will tell the user that something is wrong instead of the user not realizing that it's undefined
              */

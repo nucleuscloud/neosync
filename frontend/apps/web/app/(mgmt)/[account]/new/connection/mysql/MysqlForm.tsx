@@ -145,13 +145,17 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
             sourceConnId
           );
 
-          if (connData) {
-            const config = connData.connection?.connectionConfig?.config
-              .value as MysqlConnectionConfig;
+          if (
+            connData &&
+            connData.connection?.connectionConfig?.config.case === 'mysqlConfig'
+          ) {
+            const config = connData.connection?.connectionConfig?.config.value;
 
-            const mysqlConfig = config.connectionConfig
-              .value as MysqlConnection;
+            let mysqlConfig: MysqlConnection = new MysqlConnection({});
 
+            if (config.connectionConfig.case == 'connection') {
+              mysqlConfig = config.connectionConfig.value;
+            }
             /* reset the form with the new values and include the fallback values because of our validation schema requires a string and not undefined which is okay because it will tell the user that something is wrong instead of the user not realizing that it's undefined
              */
             form.reset({

@@ -67,9 +67,7 @@ export function getColumns(
         return (
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
-              {getCategory(row.original.connectionConfig) == 'Mysql'
-                ? 'MySQL'
-                : getCategory(row.original.connectionConfig)}
+              {getCategory(row.original.connectionConfig)}
             </span>
           </div>
         );
@@ -137,7 +135,7 @@ function getCategory(cc?: PlainMessage<ConnectionConfig>): string {
     case 'pgConfig':
       return 'Postgres';
     case 'mysqlConfig':
-      return 'Mysql';
+      return 'MySQL';
     case 'awsS3Config':
       return 'AWS S3';
     default:
