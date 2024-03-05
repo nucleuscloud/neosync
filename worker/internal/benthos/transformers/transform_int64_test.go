@@ -14,7 +14,7 @@ func Test_TransformIntErrorNotInRange(t *testing.T) {
 	rMin := int64(22)
 	rMax := int64(25)
 
-	res := transformer_utils.IsInt64InRandomizationRange(val, rMin, rMax)
+	res := transformer_utils.IsIntInRandomizationRange(val, rMin, rMax)
 	assert.Equal(t, false, res, "The value should not be in the range")
 }
 

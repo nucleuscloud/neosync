@@ -108,8 +108,7 @@ func ReduceFloat64Precision(precision int, value float64) (float64, error) {
 
 	f, err := strconv.ParseFloat(res, 64)
 	if err != nil {
-		return 0, fmt.Errorf("unable to convert string to float64 value")
+		return 0, fmt.Errorf("unable to convert string to float64 value: %w", err)
 	}
-
 	return f, nil
 }

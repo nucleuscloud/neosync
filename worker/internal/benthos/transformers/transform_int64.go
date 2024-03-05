@@ -55,7 +55,7 @@ func TransformInt(value, rMin, rMax int64) (*int64, error) {
 	// require that the value is in the randomization range so that we can transform it
 	// otherwise, should use the generate_int transformer
 
-	if !transformer_utils.IsInt64InRandomizationRange(value, rMin, rMax) {
+	if !transformer_utils.IsIntInRandomizationRange(value, rMin, rMax) {
 		zeroVal := int64(0)
 		return &zeroVal, fmt.Errorf("the value is not the provided range")
 	}

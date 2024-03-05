@@ -49,7 +49,7 @@ func Test_GenerateRandomIntPositiveRandomSign(t *testing.T) {
 	res, err := GenerateRandomInt64(true, min, max)
 	assert.NoError(t, err)
 
-	if !transformer_utils.IsNegativeInt64(res) {
+	if !transformer_utils.IsNegativeInt(res) {
 		// res is positive
 		assert.GreaterOrEqual(t, res, min, "The result should be greater or equal to the minimum")
 		assert.LessOrEqual(t, res, max, "The result should be less or equal to the maximum")
@@ -67,7 +67,7 @@ func Test_GenerateRandomIntNegativeRandomSign(t *testing.T) {
 	res, err := GenerateRandomInt64(true, min, max)
 	assert.NoError(t, err)
 
-	if !transformer_utils.IsNegativeInt64(res) {
+	if !transformer_utils.IsNegativeInt(res) {
 		// res is positive
 		assert.GreaterOrEqual(t, res, -min, "The result should be greater or equal to the minimum")
 		assert.LessOrEqual(t, res, -max, "The result should be less or equal to the maximum")
@@ -85,7 +85,7 @@ func Test_GenerateRandomIntNegativeToPositiveRandomSign(t *testing.T) {
 	res, err := GenerateRandomInt64(true, min, max)
 	assert.NoError(t, err)
 
-	if !transformer_utils.IsNegativeInt64(res) {
+	if !transformer_utils.IsNegativeInt(res) {
 		// res is positive
 		assert.GreaterOrEqual(t, res, -min, "The result should be greater or equal to the minimum")
 		assert.LessOrEqual(t, res, max, "The result should be less or equal to the maximum")

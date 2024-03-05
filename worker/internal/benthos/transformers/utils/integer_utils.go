@@ -83,29 +83,27 @@ func FirstDigitIsNine(n int64) bool {
 func GetInt64Length(i int64) int64 {
 	// Convert the int64 to a string
 	str := strconv.FormatInt(i, 10)
-
 	length := int64(len(str))
-
 	return length
 }
 
-func IsLastInt64DigitZero(n int64) bool {
+func IsLastIntDigitZero[T int | int64 | int32 | uint | uint32 | uint64](n T) bool {
 	return n%10 == 0
 }
 
-func IsNegativeInt64(val int64) bool {
+func IsNegativeInt[T int | int64 | int32 | uint | uint32 | uint64](val T) bool {
 	return val < 0
 }
 
-func AbsInt64(n int64) int64 {
+func AbsInt[T int | int64 | int32 | uint | uint32 | uint64](n T) T {
 	if n < 0 {
 		return -n
 	}
 	return n
 }
 
-// Returns the int64 range between the min and max
-func GetInt64Range(min, max int64) (int64, error) {
+// Returns the int of type T range between the min and max
+func GetIntRange[T int | int64 | int32 | uint | uint32 | uint64](min, max T) (T, error) {
 	if min > max {
 		return 0, fmt.Errorf("min cannot be greater than max")
 	}
@@ -117,7 +115,7 @@ func GetInt64Range(min, max int64) (int64, error) {
 	return max - min, nil
 }
 
-func IsInt64InRandomizationRange(value, rMin, rMax int64) bool {
+func IsIntInRandomizationRange[T int | int64 | int32 | uint | uint32 | uint64](value, rMin, rMax T) bool {
 	if rMin > rMax {
 		rMin, rMax = rMax, rMin
 	}

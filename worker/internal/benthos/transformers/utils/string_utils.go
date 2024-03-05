@@ -79,36 +79,47 @@ func ParseEmail(email string) ([]string, error) {
 	return parsedEmail, nil
 }
 
+const (
+	emailRegexPattern = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z0-9]{2,}$`
+)
+
+var (
+	emailRegex = regexp.MustCompile(emailRegexPattern)
+)
+
 func IsValidEmail(email string) bool {
 	// Regular expression pattern for a simple email validation
-	emailPattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z0-9]{2,}$`
-	regex := regexp.MustCompile(emailPattern)
-	return regex.MatchString(email)
+	return emailRegex.MatchString(email)
 }
+
+const (
+	domainPattern = `^@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+)
+
+var (
+	domainRegex = regexp.MustCompile(domainPattern)
+)
 
 func IsValidDomain(domain string) bool {
-	pattern := `^@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
-
-	rfcRegex, err := regexp.Compile(pattern)
-	if err != nil {
-		return false
-	}
-
-	return rfcRegex.MatchString(domain)
+	return domainRegex.MatchString(domain)
 }
 
-func IsValidUsername(username string) bool {
+const (
 	// Regex to match RFC 5322 username
 	// Chars allowed: a-z A-Z 0-9 . - _
 	// First char must be alphanumeric
 	// Last char must be alphanumeric or numeric
-	// 63 max chars
-	rfcRegex := `^[A-Za-z0-9](?:[A-Za-z0-9!#$%&'*+-/=?^_` +
+	// 63 max char
+	usernamePattern = `^[A-Za-z0-9](?:[A-Za-z0-9!#$%&'*+-/=?^_` +
 		`{|}~.]{0,62}[A-Za-z0-9])?$`
+)
 
-	matched, _ := regexp.MatchString(rfcRegex, username)
+var (
+	usernameRegex = regexp.MustCompile(usernamePattern)
+)
 
-	return matched
+func IsValidUsername(username string) bool {
+	return usernameRegex.MatchString(username)
 }
 
 // use MaxASCII to ensure that the unicode value is only within the ASCII block which only contains latin numbers, letters and characters.
