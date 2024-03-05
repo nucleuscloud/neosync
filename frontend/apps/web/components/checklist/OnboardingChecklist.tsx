@@ -1,7 +1,10 @@
+'use client';
 import Checklist, { useChecklist } from '@dopt/react-checklist';
 
 export default function OnboardingChecklist() {
   const checklist = useChecklist('newuserchecklist.three-bobcats-dress');
+
+  console.log('checlist', checklist.items);
 
   return (
     <Checklist.Root>
