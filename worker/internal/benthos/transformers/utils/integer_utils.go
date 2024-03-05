@@ -36,17 +36,17 @@ func GenerateRandomInt64InLengthRange(min, max int64) (int64, error) {
 
 	// Ensure the length doesn't exceed the limit for int64
 	if min > 19 || max > 19 {
-		return 0, fmt.Errorf("length is too large")
+		return 0, fmt.Errorf("length of integer must not exceed 19")
 	}
 
 	val, err := GenerateRandomInt64InValueRange(min, max)
 	if err != nil {
-		return 0, fmt.Errorf("unable to generate a value in the range provided")
+		return 0, fmt.Errorf("unable to generate a value in the range provided [%d:%d]: %w", min, max, err)
 	}
 
 	res, err := GenerateRandomInt64FixedLength(val)
 	if err != nil {
-		return 0, fmt.Errorf("unable to generate a value in the range provided")
+		return 0, fmt.Errorf("unable to generate fixed int64 in the range provided [%d:%d: %w]", min, max, err)
 	}
 
 	return res, nil
@@ -127,4 +127,18 @@ func IsInt64InRandomizationRange(value, rMin, rMax int64) bool {
 	}
 
 	return value >= rMin && value <= rMax
+}
+
+func MinInt[T int | int64 | int32 | uint | uint32 | uint64](a, b T) T {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func MaxInt[T int | int64 | int32 | uint | uint32 | uint64](a, b T) T {
+	if a > b {
+		return a
+	}
+	return b
 }

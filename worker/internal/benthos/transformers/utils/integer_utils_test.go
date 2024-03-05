@@ -184,3 +184,19 @@ func Test_IsValueInRandomizationRangeFalse(t *testing.T) {
 	res := IsInt64InRandomizationRange(val, rMin, rMax)
 	assert.Equal(t, false, res, "The value should not be in the range")
 }
+
+func Test_computeMinInt(t *testing.T) {
+	assert.Equal(t, 1, MinInt(1, 2))
+	assert.Equal(t, 1, MinInt(2, 1))
+	assert.Equal(t, 1, MinInt(1, 1))
+	assert.Equal(t, -1, MinInt(-1, 1))
+	assert.Equal(t, -1, MinInt(1, -1))
+}
+
+func Test_computeMaxInt(t *testing.T) {
+	assert.Equal(t, 2, MaxInt(1, 2))
+	assert.Equal(t, 2, MaxInt(2, 1))
+	assert.Equal(t, 1, MaxInt(1, 1))
+	assert.Equal(t, 1, MaxInt(-1, 1))
+	assert.Equal(t, 1, MaxInt(1, -1))
+}

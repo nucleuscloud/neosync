@@ -29,7 +29,7 @@ func init() {
 		return func() (any, error) {
 			res, err := GenerateRandomStreetAddress(maxLength)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("unable to run generate_street_address: %w", err)
 			}
 			return res, nil
 		}, nil
