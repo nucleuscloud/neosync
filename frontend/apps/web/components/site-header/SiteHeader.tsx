@@ -1,18 +1,20 @@
 import { getSystemAppConfig } from '@/app/api/config/config';
-import { siteConfig } from '@/app/config/site';
+import { Button } from '@/components/ui/button';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 import { cn } from '@/libs/utils';
-import { DiscordLogoIcon, GitHubLogoIcon } from '@radix-ui/react-icons';
-import Link from 'next/link';
+import { QuestionMarkCircledIcon } from '@radix-ui/react-icons';
 import { ReactElement } from 'react';
-import { PiBookOpenText } from 'react-icons/pi';
+import SupportDrawer from '../SupportDrawer';
 import { buttonVariants } from '../ui/button';
-import AccountSwitcher from './AccountSwitcher';
 import { MainNav } from './MainNav';
 import { MobileNav } from './MobileNav';
 import { ModeToggle } from './ModeToggle';
@@ -32,6 +34,33 @@ export default function SiteHeader(): ReactElement {
         <MainNav />
         <MobileNav />
         <div className="flex flex-1 justify-end items-center space-x-2">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost">
+                <QuestionMarkCircledIcon />
+              </Button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>Support</SheetTitle>
+                <SheetDescription>
+                  Make changes to your profile here. Click save when you're
+                  done.
+                </SheetDescription>
+              </SheetHeader>
+              <SupportDrawer />
+              <SheetFooter>
+                <SheetClose asChild>
+                  <Button type="submit">Save changes</Button>
+                </SheetClose>
+              </SheetFooter>
+            </SheetContent>
+          </Sheet>
+          <ModeToggle />
+          <UserNav />
+        </div>
+
+        {/* <div className="flex flex-1 justify-end items-center space-x-2">
           {systemAppConfig.isAuthEnabled && <AccountSwitcher />}
           <Link href={siteConfig.links.docs} target="_blank" rel="noreferrer">
             <TooltipProvider>
@@ -75,7 +104,7 @@ export default function SiteHeader(): ReactElement {
           </Link>
           <ModeToggle />
           <UserNav />
-        </div>
+        </div> */}
       </div>
     </header>
   );
