@@ -1,4 +1,5 @@
 import SiteFooter from '@/components/SiteFooter';
+import OnboardingChecklist from '@/components/checklist/OnboardingChecklist';
 import AccountProvider from '@/components/providers/account-provider';
 import { PostHogIdentifier } from '@/components/providers/posthog-provider';
 import { SessionProvider } from '@/components/providers/session-provider';
@@ -31,6 +32,7 @@ export default async function BaseLayout(props: Props): Promise<ReactElement> {
             <div className="flex-1 container" id="top-level-layout">
               {children}
             </div>
+            <OnboardingChecklist />
             <SiteFooter />
             <Toaster />
           </div>

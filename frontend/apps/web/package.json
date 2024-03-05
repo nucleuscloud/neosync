@@ -20,7 +20,6 @@
     "@dopt/react": "^4.1.2",
     "@dopt/react-checklist": "^9.0.4",
     "@dopt/react-rich-text": "^6.0.1",
-    "@dopt/react-theme": "^1.2.3",
     "@hookform/resolvers": "^3.3.4",
     "@monaco-editor/react": "^4.6.0",
     "@neosync/sdk": "file:../../packages/sdk",
