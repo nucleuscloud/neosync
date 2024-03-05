@@ -10,11 +10,10 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { cn } from '@/libs/utils';
 import { QuestionMarkCircledIcon } from '@radix-ui/react-icons';
 import { ReactElement } from 'react';
 import SupportDrawer from '../SupportDrawer';
-import { buttonVariants } from '../ui/button';
+import AccountSwitcher from './AccountSwitcher';
 import { MainNav } from './MainNav';
 import { MobileNav } from './MobileNav';
 import { ModeToggle } from './ModeToggle';
@@ -22,12 +21,6 @@ import { UserNav } from './UserNav';
 
 export default function SiteHeader(): ReactElement {
   const systemAppConfig = getSystemAppConfig();
-  const iconButtonClassNames = cn(
-    buttonVariants({
-      variant: 'ghost',
-    }),
-    'p-0 px-2'
-  );
   return (
     <header className="supports-backdrop-blur:bg-background/60 sticky top-0 z-50 w-full border-b dark:border-b-gray-700 bg-background dark:hover:text-white backdrop-blur">
       <div className="container flex h-14 items-center">
@@ -40,11 +33,11 @@ export default function SiteHeader(): ReactElement {
                 <QuestionMarkCircledIcon className="w-4 h-4" />
               </Button>
             </SheetTrigger>
-            <SheetContent className="w-[400px] sm:w-[540px] dark:border dark:border-l-gray-700">
+            <SheetContent className="w-[400px] sm:w-[540px]">
               <SheetHeader>
                 <SheetTitle>Support</SheetTitle>
                 <SheetDescription>
-                  Need help? We got you covered.
+                  Need help? We got you coveredd.
                 </SheetDescription>
               </SheetHeader>
               <SupportDrawer />
@@ -55,6 +48,7 @@ export default function SiteHeader(): ReactElement {
               </SheetFooter>
             </SheetContent>
           </Sheet>
+          {systemAppConfig.isAuthEnabled && <AccountSwitcher />}
           <ModeToggle />
           <UserNav />
         </div>
