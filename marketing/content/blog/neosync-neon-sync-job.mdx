@@ -14,6 +14,8 @@ authors:
 
 In this guide, we're going to walk through how you can anonymize sensitive data in your Neon database with synthetic data for testing and rapid development using [Neosync](https://neosync.dev). Neosync is an open source synthetic data orchestration company that can create anonymized or synthetic data and sync it across all of your neon environments for better security, privacy and development.
 
+If you haven't already done so, follow the [Seeding your Supabase DB with Synthetic Data](/neosync-neon-data-gen-job.mdx) blog to get set up.
+
 Let's jump in.
 
 # Prerequisites
@@ -43,7 +45,7 @@ Let's navigate to **SQL editor** and make sure to select the right database from
 
 ![neon-create-project](/images/blogs/neon/dbselect.png)
 
-Now let's create our schema. Here is the SQL script I ran to create our tables in the public schema. If you have the uuid() extension installed you can also set the `id` column to auto-generate those for you or you can use Neosync to generate them. I'll use Neoysnc to generate them.
+Now let's create our schema. Here is the SQL script I ran to create our tables in the public schema. If you have the uuid() extension installed you can also set the `id` column to auto-generate those for you or you can use Neosync to generate them. I'll use Neosync to generate them.
 
 ```sql
 CREATE TABLE public.users (
@@ -108,7 +110,7 @@ Let's click **Submit** and repeat this for our database so that we have two conn
 
 In order to generate data, we need to create a **Job** in Neosync. Let's click on **Job** and then click on **New Job**. We're now presented with two options:
 
-![neosync-test](/images/blogs/neon/data-gen.png)
+![neosync-test](/images/blogs/supabase/sb-sync.png)
 
 - Data Synchronization - Synchronize and anonymize data between a source and destination.
 - Data Generation - Generate synthetic data from scratch for a chosen destination.
@@ -151,7 +153,7 @@ Now we can head back over to Neon and check on our data. First let's check the `
 
 ![neosync-test](/images/blogs/neon/dest-users-count.png)
 
-Great, count looks good. Next, let's check the data. Let's take an ID from our source and check it against the destination. Note: Remember that relational databases don't guarantee order when selecting data unless you pass an `ORDER BY` clause so using a `SELECT * FROM users` query will be misleading. This is our source:
+Great, count looks good. Next, let's check the data. Let's take an ID from our source and check it against the destination. Note: remember that relational databases don't guarantee order when selecting data unless you pass an `ORDER BY` clause so using a `SELECT * FROM users` query will be misleading. This is our source:
 
 ![neosync-test](/images/blogs/neon/source-user-id.png)
 
@@ -159,7 +161,7 @@ This is our destination:
 
 ![neosync-test](/images/blogs/neon/dest-id-check.png)
 
-We can see that we generated new UUIDs, first and last names, we anonymized the email address username but preserved the domain anonymized our age. Nice!
+We can see that we generated new UUIDs, first and last names, we anonymized the email address username but preserved the domain anonymized and our age. Nice!
 
 And just to make sure, let's check out the orders table.
 

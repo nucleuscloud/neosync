@@ -86,7 +86,10 @@
     "zelei",
     "evisdrenova",
     "alishakawaguchi",
-    "kawaguchi"
+    "kawaguchi",
+    "Supabase",
+    "supabase",
+    "VARCHAR"
   ],
   "flagWords": ["hte"],
   "files": ["content/**/*.md*"],

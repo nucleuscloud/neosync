@@ -12,7 +12,7 @@ authors:
 
 [Supabase](https://supabase.com/) is an open source Firebase alternative that helps you get started quickly with a backend. Supabase gets you started with a Postgres database, authentication, APIs and more. Thousands of developers use Supabase for all sizes of projects.
 
-In this guide, we're going to walk through how you can seed your Supabase database with synthetic data for testing and rapid development using [Neosync](https://neosync.dev). Neosync is an open source synthetic data orchestration company that can create anonymized or synthetic data and sync it across all of your neon environments for better security, privacy and development.
+In this guide, we're going to walk through how you can seed your Supabase database with synthetic data for testing and rapid development using [Neosync](https://neosync.dev). Neosync is an open source synthetic data orchestration company that can create anonymized or synthetic data and sync it across all of your Supabase environments for better security, privacy and development.
 
 Let's jump in.
 
@@ -50,7 +50,7 @@ We can do a quick sanity check by going to **Database** on the left hand nav men
 
 ![sb-created-tables](/images/blogs/supabase/sb-create-table.png)
 
-Nice! Okay, last step for Supabase. Let's get our connection string so we can connect to Supabase from Neosync. We can find our connection string by going to **Project Settings** then **Databse**. Under the **Connection parameters** heading, you can find your connection parameters to connect to your database.
+Nice! Okay, last step for Supabase. Let's get our connection string so we can connect to Supabase from Neosync. We can find our connection string by going to **Project Settings** then **Database**. Under the **Connection parameters** heading, you can find your connection parameters to connect to your database.
 
 ![sb-created-tables](/images/blogs/supabase/sb-con.png)
 
@@ -71,7 +71,7 @@ You should see the above form. Since our Supabase database is public we can igno
 | Host      | `aws-0-us-west-1.pooler.supabase.com` | The hostname or IP address of the database server.            |
 | Name      | `postgres`                            | The specific database name to connect to.                     |
 | Port      | `5432`                                | The postgres port that we will bind to                        |
-| Username  | `postgres`                            | The username for authenticating the connection.               |
+| Username  | `postgres.ggosamebyhnzgdjmqfja`       | The username for authenticating the connection.               |
 | Password  | `************`                        | The password for authentication (hidden for security).        |
 | SSL Mode  | `sslmode=require`                     | Specifies that SSL encryption is required for the connection. |
 
@@ -104,7 +104,7 @@ Click **Next** to move onto the **Connect** page. Here we want to select the con
 
 There are some other options here that can be useful but we'll skip these for now and click **Next**.
 
-Now for the fun part. First select your schema. Mine is the public schema but you may have another one. Next select the table where you want to generaete synthetic data. So I'm going to select the `users` table.
+Now for the fun part. First select your schema. Mine is the public schema but you may have another one. Next select the table where you want to generate synthetic data. So I'm going to select the `users` table.
 
 Next, decide how many rows you want to create. For this run, I'll do 1000 rows.
 
@@ -142,4 +142,4 @@ Looking pretty good! We have seeded our Supabase database with 1000 rows of comp
 
 # Conclusion
 
-In this guide, we walked through how to seed your Supabase database with 1000 rows of synthic data using Neosync. This is just a small test and you can expand this to generate tens of thousands or more rows of data across any relational database. Neosync handles the referential integrity. This is particularly helpful if you're working on a new application and don't have data yet or want to augment your existing database with more data for performance testing.
+In this guide, we walked through how to seed your Supabase database with 1000 rows of synthetic data using Neosync. This is just a small test and you can expand this to generate tens of thousands or more rows of data across any relational database. Neosync handles the referential integrity. This is particularly helpful if you're working on a new application and don't have data yet or want to augment your existing database with more data for performance testing.
