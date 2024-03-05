@@ -200,3 +200,15 @@ func Test_MaxInt(t *testing.T) {
 	assert.Equal(t, 1, MaxInt(-1, 1))
 	assert.Equal(t, 1, MaxInt(1, -1))
 }
+
+func Test_Floor(t *testing.T) {
+	assert.Equal(t, 3, Floor(2, 3))
+	assert.Equal(t, 3, Floor(3, 3))
+	assert.Equal(t, 4, Floor(4, 3))
+}
+
+func Test_Ceil(t *testing.T) {
+	assert.Equal(t, 3, Ceil(3, 4))
+	assert.Equal(t, 4, Ceil(4, 4))
+	assert.Equal(t, 4, Ceil(5, 4))
+}
