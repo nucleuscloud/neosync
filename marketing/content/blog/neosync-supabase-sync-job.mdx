@@ -43,7 +43,7 @@ So now we have two databases: **neosync-source** will be our source and **neosyn
 
 Next, we'll need to define our destination database schema.
 
-At this point, youur **neosync-source** project and database should have a schema so let's go ahead create our **neosync-dest** schema.
+At this point, your **neosync-source** project and database should have a schema so let's go ahead create our **neosync-dest** schema.
 
 Let's navigate to **SQL editor** and create our table. Here is the SQL script I ran to create our table in the public schema. If you have the uuid() extension installed you can also set the `id` column to auto-generate those for you or you can use Neosync to generate them. Let's create our table.
 
@@ -63,7 +63,7 @@ We can do a quick sanity check by going to **Database** on the left hand nav men
 
 Nice!
 
-Nice! Okay, last step for Supabase. Let's get our connection string so we can connect to Supabase from Neosync. We can find our connection string by going to **Project Settings** then **Database**. Under the **Connection parameters** heading, you can find your connection parameters to connect to your database. Since we have already creaed our source database connection, we just need the **neosync-dest** Connection parameters.
+Nice! Okay, last step for Supabase. Let's get our connection string so we can connect to Supabase from Neosync. We can find our connection string by going to **Project Settings** then **Database**. Under the **Connection parameters** heading, you can find your connection parameters to connect to your database. Since we have already created our source database connection, we just need the **neosync-dest** Connection parameters.
 
 ![sb-created-tables](/images/blogs/supabase/sb-dest-con.png)
 
