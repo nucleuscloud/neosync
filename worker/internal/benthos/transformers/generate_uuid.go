@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
-	_ "github.com/benthosdev/benthos/v4/public/components/io"
 )
 
 func init() {
@@ -22,9 +21,8 @@ func init() {
 
 		return func() (any, error) {
 			val, err := GenerateUuid(include_hyphen)
-
 			if err != nil {
-				return false, fmt.Errorf("unable to generate random utc timestamp")
+				return false, fmt.Errorf("unable to run generate_uuid: %w", err)
 			}
 			return val, nil
 		}, nil

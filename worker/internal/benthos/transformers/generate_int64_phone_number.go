@@ -2,7 +2,6 @@ package transformers
 
 import (
 	"github.com/benthosdev/benthos/v4/public/bloblang"
-	_ "github.com/benthosdev/benthos/v4/public/components/io"
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )

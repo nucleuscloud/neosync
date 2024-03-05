@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-var alphanumeric = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
+const alphanumeric = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
 
 /* SLICE MANIPULATION UTILS */
 
@@ -17,7 +17,7 @@ func GetRandomValueFromSlice[T any](arr []T) (T, error) {
 		return zeroValue, errors.New("slice is empty")
 	}
 
-	//nolint:all
+	//nolint:gosec
 	randomIndex := rand.Intn(len(arr))
 
 	return arr[randomIndex], nil

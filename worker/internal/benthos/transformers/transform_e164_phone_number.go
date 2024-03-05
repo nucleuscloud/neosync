@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
-	_ "github.com/benthosdev/benthos/v4/public/components/io"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
@@ -38,7 +37,10 @@ func init() {
 
 		return func() (any, error) {
 			res, err := TransformE164PhoneNumber(value, preserveLength, maxLength)
-			return res, err
+			if err != nil {
+				return nil, fmt.Errorf("unable to run transform_e164_phone_number: %w", err)
+			}
+			return res, nil
 		}, nil
 	})
 

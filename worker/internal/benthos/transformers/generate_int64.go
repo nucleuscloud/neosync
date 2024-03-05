@@ -4,7 +4,6 @@ import (
 	"math/rand"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
-	_ "github.com/benthosdev/benthos/v4/public/components/io"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
@@ -64,7 +63,7 @@ func GenerateRandomInt64(randomizeSign bool, min, max int64) (int64, error) {
 	var returnValue int64
 
 	if randomizeSign {
-		res, err := transformer_utils.GenerateRandomInt64InValueRange(transformer_utils.AbsInt64(min), transformer_utils.AbsInt64(max))
+		res, err := transformer_utils.GenerateRandomInt64InValueRange(transformer_utils.AbsInt(min), transformer_utils.AbsInt(max))
 		if err != nil {
 			return 0, err
 		}

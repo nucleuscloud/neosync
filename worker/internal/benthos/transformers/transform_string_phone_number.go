@@ -1,8 +1,9 @@
 package transformers
 
 import (
+	"fmt"
+
 	"github.com/benthosdev/benthos/v4/public/bloblang"
-	_ "github.com/benthosdev/benthos/v4/public/components/io"
 )
 
 func init() {
@@ -34,7 +35,10 @@ func init() {
 
 		return func() (any, error) {
 			res, err := TransformPhoneNumber(value, preserveLength, maxLength)
-			return res, err
+			if err != nil {
+				return nil, fmt.Errorf("unable to run transform_phone_number: %w", err)
+			}
+			return res, nil
 		}, nil
 	})
 
@@ -50,18 +54,16 @@ func TransformPhoneNumber(value string, preserveLength bool, maxLength int64) (*
 	}
 
 	if preserveLength {
-		val, err := GenerateStringPhoneNumber(int64(len(value)), int64(len(value)), maxLength)
+		val, err := GenerateStringPhoneNumber(int64(len(value)), int64(len(value)))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to transformer phone number with length preserved: %w", err)
 		}
-
 		return &val, nil
 	} else {
-		val, err := GenerateStringPhoneNumber(int64(9), int64(15), maxLength)
+		val, err := GenerateStringPhoneNumber(int64(9), maxLength)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to transform phone number with max length %d: %w", maxLength, err)
 		}
-
 		return &val, nil
 	}
 }

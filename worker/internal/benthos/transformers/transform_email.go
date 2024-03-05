@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
-	_ "github.com/benthosdev/benthos/v4/public/components/io"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
@@ -66,7 +65,10 @@ func init() {
 
 		return func() (any, error) {
 			res, err := TransformEmail(email, preserveLength, preserveDomain, maxLength, excludeStringSlice)
-			return res, err
+			if err != nil {
+				return nil, fmt.Errorf("unable to run transform_email: %w", err)
+			}
+			return res, nil
 		}, nil
 	})
 

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
-	_ "github.com/benthosdev/benthos/v4/public/components/io"
 )
 
 func init() {
@@ -16,9 +15,8 @@ func init() {
 	err := bloblang.RegisterFunctionV2("generate_utctimestamp", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		return func() (any, error) {
 			val, err := GenerateRandomUTCTimestamp()
-
 			if err != nil {
-				return false, fmt.Errorf("unable to generate random utc timestamp")
+				return false, fmt.Errorf("unable to run generate_utctimestamp: %w", err)
 			}
 			return val, nil
 		}, nil
@@ -41,6 +39,5 @@ func GenerateRandomUTCTimestamp() (time.Time, error) {
 
 	// subtract the random number of seconds from the current time
 	randomTime := currentTime.Add(-time.Duration(randomSeconds.Int64()) * time.Second)
-
 	return randomTime, nil
 }

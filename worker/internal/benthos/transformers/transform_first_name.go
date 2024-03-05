@@ -1,10 +1,9 @@
 package transformers
 
 import (
-	_ "embed"
+	"fmt"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
-	_ "github.com/benthosdev/benthos/v4/public/components/io"
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
@@ -41,7 +40,10 @@ func init() {
 
 		return func() (any, error) {
 			res, err := TransformFirstName(value, preserveLength, maxLength)
-			return res, err
+			if err != nil {
+				return nil, fmt.Errorf("unable to run transform_first_name: %w", err)
+			}
+			return res, nil
 		}, nil
 	})
 

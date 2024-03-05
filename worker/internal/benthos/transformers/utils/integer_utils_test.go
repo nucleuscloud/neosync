@@ -99,25 +99,31 @@ func Test_GetInt64Legth(t *testing.T) {
 	assert.Equal(t, int64(expected), val, "The calculated length should match the expected length.")
 }
 
-func Test_IsLastInt64DigitZeroTrue(t *testing.T) {
-	value := int64(954670)
-
-	res := IsLastInt64DigitZero(value)
-	assert.Equal(t, res, true, "The last digit is zero.")
-}
-
-func Test_IsLastDigitZeroFalse(t *testing.T) {
-	value := int64(23546789)
-
-	res := IsLastInt64DigitZero(value)
-	assert.Equal(t, res, false, "The last digit is not zero.")
+func Test_IsLastIntDigitZero(t *testing.T) {
+	type testcase struct {
+		input    int
+		expected bool
+	}
+	testcases := []testcase{
+		{input: 954670, expected: true},
+		{input: 23546789, expected: false},
+		{input: 0, expected: true},
+		{input: 1, expected: false},
+		{input: -1, expected: false},
+		{input: -10, expected: true},
+	}
+	for _, tc := range testcases {
+		t.Run(fmt.Sprintf("%d", tc.input), func(t *testing.T) {
+			assert.Equal(t, tc.expected, IsLastIntDigitZero(tc.input))
+		})
+	}
 }
 
 func Test_GetInt64Range(t *testing.T) {
 	min := int64(2)
 	max := int64(4)
 
-	val, err := GetInt64Range(min, max)
+	val, err := GetIntRange(min, max)
 	assert.NoError(t, err)
 
 	assert.Equal(t, max-min, val)
@@ -127,7 +133,7 @@ func Test_GetInt64RangeError(t *testing.T) {
 	min := int64(6)
 	max := int64(2)
 
-	_, err := GetInt64Range(min, max)
+	_, err := GetIntRange(min, max)
 	assert.Error(t, err)
 }
 
@@ -135,7 +141,7 @@ func Test_GetInt64RangeMinEqualMax(t *testing.T) {
 	min := int64(2)
 	max := int64(2)
 
-	val, err := GetInt64Range(min, max)
+	val, err := GetIntRange(min, max)
 	assert.NoError(t, err)
 
 	assert.Equal(t, min, val)
@@ -144,25 +150,25 @@ func Test_GetInt64RangeMinEqualMax(t *testing.T) {
 func Test_AbsInt64Positive(t *testing.T) {
 	val := int64(7)
 
-	res := AbsInt64(val)
+	res := AbsInt(val)
 	assert.Equal(t, int64(7), res)
 }
 
 func Test_AbsInt64Negative(t *testing.T) {
 	val := int64(-7)
 
-	res := AbsInt64(val)
+	res := AbsInt(val)
 	assert.Equal(t, int64(7), res)
 }
 
 func Test_IsNegativeIntTrue(t *testing.T) {
-	val := IsNegativeInt64(-1)
+	val := IsNegativeInt(-1)
 
 	assert.True(t, val, "The value should be negative")
 }
 
 func Test_IsNegativeIntFalse(t *testing.T) {
-	val := IsNegativeInt64(1)
+	val := IsNegativeInt(1)
 
 	assert.False(t, val, "The value should be positive")
 }
@@ -172,7 +178,7 @@ func Test_IsValueInRandomizationRangeTrue(t *testing.T) {
 	rMin := int64(22)
 	rMax := int64(29)
 
-	res := IsInt64InRandomizationRange(val, rMin, rMax)
+	res := IsIntInRandomizationRange(val, rMin, rMax)
 	assert.Equal(t, true, res, "The value should be in the range")
 }
 
@@ -181,6 +187,34 @@ func Test_IsValueInRandomizationRangeFalse(t *testing.T) {
 	rMin := int64(22)
 	rMax := int64(25)
 
-	res := IsInt64InRandomizationRange(val, rMin, rMax)
+	res := IsIntInRandomizationRange(val, rMin, rMax)
 	assert.Equal(t, false, res, "The value should not be in the range")
+}
+
+func Test_MinInt(t *testing.T) {
+	assert.Equal(t, 1, MinInt(1, 2))
+	assert.Equal(t, 1, MinInt(2, 1))
+	assert.Equal(t, 1, MinInt(1, 1))
+	assert.Equal(t, -1, MinInt(-1, 1))
+	assert.Equal(t, -1, MinInt(1, -1))
+}
+
+func Test_MaxInt(t *testing.T) {
+	assert.Equal(t, 2, MaxInt(1, 2))
+	assert.Equal(t, 2, MaxInt(2, 1))
+	assert.Equal(t, 1, MaxInt(1, 1))
+	assert.Equal(t, 1, MaxInt(-1, 1))
+	assert.Equal(t, 1, MaxInt(1, -1))
+}
+
+func Test_Floor(t *testing.T) {
+	assert.Equal(t, 3, Floor(2, 3))
+	assert.Equal(t, 3, Floor(3, 3))
+	assert.Equal(t, 4, Floor(4, 3))
+}
+
+func Test_Ceil(t *testing.T) {
+	assert.Equal(t, 3, Ceil(3, 4))
+	assert.Equal(t, 4, Ceil(4, 4))
+	assert.Equal(t, 4, Ceil(5, 4))
 }

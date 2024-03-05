@@ -4,7 +4,6 @@ import (
 	"math/rand"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
-	_ "github.com/benthosdev/benthos/v4/public/components/io"
 )
 
 func init() {

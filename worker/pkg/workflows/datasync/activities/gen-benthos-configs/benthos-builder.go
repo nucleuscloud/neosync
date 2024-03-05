@@ -20,6 +20,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
+	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
@@ -1633,12 +1634,14 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 	case "generate_string_phone_number":
 		min := col.Transformer.Config.GetGenerateStringPhoneNumberConfig().Min
 		max := col.Transformer.Config.GetGenerateStringPhoneNumberConfig().Max
-		return fmt.Sprintf("generate_string_phone_number(min:%d,max:%d,max_length:%d)", min, max, maxLen), nil
+		min = transformer_utils.MinInt(min, maxLen)
+		max = transformer_utils.Ceil(max, maxLen)
+		return fmt.Sprintf("generate_string_phone_number(min:%d,max:%d)", min, max), nil
 	case "generate_string":
 		min := col.Transformer.Config.GetGenerateStringConfig().Min
 		max := col.Transformer.Config.GetGenerateStringConfig().Max
-		min = computeMinInt(min, maxLen) // ensure the min is not larger than the max allowed length
-		max = computeMinInt(max, maxLen)
+		min = transformer_utils.MinInt(min, maxLen) // ensure the min is not larger than the max allowed length
+		max = transformer_utils.Ceil(max, maxLen)
 		// todo: we need to pull in the min from the database schema
 		return fmt.Sprintf(`generate_string(min:%d,max:%d)`, min, max), nil
 	case "generate_unixtimestamp":
@@ -1699,18 +1702,4 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 	default:
 		return "", fmt.Errorf("unsupported transformer")
 	}
-}
-
-func computeMinInt[T int | int64 | int32](a, b T) T {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-func computeMaxInt[T int | int64 | int32](a, b T) T {
-	if a > b {
-		return a
-	}
-	return b
 }

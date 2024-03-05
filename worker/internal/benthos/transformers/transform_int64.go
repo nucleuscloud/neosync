@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
-	_ "github.com/benthosdev/benthos/v4/public/components/io"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
@@ -36,7 +35,10 @@ func init() {
 		}
 		return func() (any, error) {
 			res, err := TransformInt(value, rMin, rMax)
-			return res, err
+			if err != nil {
+				return nil, fmt.Errorf("unable to run transform_int64: %w", err)
+			}
+			return res, nil
 		}, nil
 	})
 
@@ -53,7 +55,7 @@ func TransformInt(value, rMin, rMax int64) (*int64, error) {
 	// require that the value is in the randomization range so that we can transform it
 	// otherwise, should use the generate_int transformer
 
-	if !transformer_utils.IsInt64InRandomizationRange(value, rMin, rMax) {
+	if !transformer_utils.IsIntInRandomizationRange(value, rMin, rMax) {
 		zeroVal := int64(0)
 		return &zeroVal, fmt.Errorf("the value is not the provided range")
 	}

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
-	_ "github.com/benthosdev/benthos/v4/public/components/io"
 )
 
 func init() {
@@ -18,7 +17,7 @@ func init() {
 			val, err := GenerateRandomUnixTimestamp()
 
 			if err != nil {
-				return false, fmt.Errorf("unable to generate random utc timestamp")
+				return false, fmt.Errorf("unable to run generate_unixtimestamp: %w", err)
 			}
 			return val, nil
 		}, nil
