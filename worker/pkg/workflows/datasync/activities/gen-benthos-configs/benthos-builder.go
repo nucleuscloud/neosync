@@ -973,11 +973,11 @@ func createSqlUpdateBenthosConfig(
 			out := buildMysqlOutputQueryAndArgs(newResp, tm, tableKey, colSourceMap)
 			output = out
 		}
+		newResp.Columns = output.Columns
 		if newResp.Config.Input.SqlSelect != nil {
 			newResp.Config.Input.SqlSelect.Where = insertConfig.Config.Input.SqlSelect.Where // keep the where clause the same as insert
-			newResp.Columns = output.Columns
 		} else if newResp.Config.Input.PooledSqlRaw != nil {
-			newResp.Config.Input.PooledSqlRaw.Query = insertConfig.Config.Input.PooledSqlRaw.Query // todo: should this be updated to include the column subset?
+			newResp.Config.Input.PooledSqlRaw.Query = insertConfig.Config.Input.PooledSqlRaw.Query // keep this the same for the insert
 		}
 		newResp.BenthosDsns = insertConfig.BenthosDsns
 		newResp.Config.Output.Broker.Outputs = append(newResp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
