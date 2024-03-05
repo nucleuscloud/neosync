@@ -99,18 +99,24 @@ func Test_GetInt64Legth(t *testing.T) {
 	assert.Equal(t, int64(expected), val, "The calculated length should match the expected length.")
 }
 
-func Test_IsLastInt64DigitZeroTrue(t *testing.T) {
-	value := int64(954670)
-
-	res := IsLastIntDigitZero(value)
-	assert.Equal(t, res, true, "The last digit is zero.")
-}
-
-func Test_IsLastDigitZeroFalse(t *testing.T) {
-	value := int64(23546789)
-
-	res := IsLastIntDigitZero(value)
-	assert.Equal(t, res, false, "The last digit is not zero.")
+func Test_IsLastIntDigitZero(t *testing.T) {
+	type testcase struct {
+		input    int
+		expected bool
+	}
+	testcases := []testcase{
+		{input: 954670, expected: true},
+		{input: 23546789, expected: false},
+		{input: 0, expected: true},
+		{input: 1, expected: false},
+		{input: -1, expected: false},
+		{input: -10, expected: true},
+	}
+	for _, tc := range testcases {
+		t.Run(fmt.Sprintf("%d", tc.input), func(t *testing.T) {
+			assert.Equal(t, tc.expected, IsLastIntDigitZero(tc.input))
+		})
+	}
 }
 
 func Test_GetInt64Range(t *testing.T) {
