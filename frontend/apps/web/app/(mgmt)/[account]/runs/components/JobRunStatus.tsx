@@ -24,7 +24,7 @@ export default function JobRunStatus(props: Props): ReactElement {
         </Badge>
       );
     case JobRunStatusEnum.COMPLETE:
-      return <Badge className={cn('bg-green-600', className)}>Complete</Badge>;
+      return <Badge variant="success">Complete</Badge>;
     case JobRunStatusEnum.FAILED:
       return (
         <Badge variant="destructive" className={cn(className)}>
@@ -32,16 +32,34 @@ export default function JobRunStatus(props: Props): ReactElement {
         </Badge>
       );
     case JobRunStatusEnum.RUNNING:
-      return <Badge className={cn('bg-blue-600', className)}>Running</Badge>;
+      return (
+        <Badge className={cn('bg-blue-600 hover:bg-blue-500', className)}>
+          Running
+        </Badge>
+      );
     case JobRunStatusEnum.PENDING:
-      return <Badge className={cn('bg-purple-600', className)}>Pending</Badge>;
+      return (
+        <Badge className={cn('bg-purple-600  hover:bg-purple-500', className)}>
+          Pending
+        </Badge>
+      );
     case JobRunStatusEnum.TERMINATED:
-      return <Badge className={cn('bg-gray-600', className)}>Terminated</Badge>;
+      return (
+        <Badge className={cn('bg-gray-600  hover:bg-gray-500', className)}>
+          Terminated
+        </Badge>
+      );
     case JobRunStatusEnum.CANCELED:
-      return <Badge className={cn('bg-gray-600', className)}>Canceled</Badge>;
+      return (
+        <Badge className={cn('bg-gray-600  hover:bg-gray-500', className)}>
+          Canceled
+        </Badge>
+      );
     case JobRunStatusEnum.TIMED_OUT:
       return (
-        <Badge className={cn('bg-yellow-600', className)}>Timed Out</Badge>
+        <Badge className={cn('bg-yellow-600  hover:bg-yellow-500', className)}>
+          Timed Out
+        </Badge>
       );
     default:
       return (
