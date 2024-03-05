@@ -17,6 +17,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import { Connection } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
+import { getConnectionType } from '../../[id]/page';
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
@@ -71,16 +72,16 @@ export function DataTableRowActions<TData>({
           View
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        {/* <DropdownMenuItem
+        <DropdownMenuItem
           className="cursor-pointer"
           onClick={() =>
-            // need the connection type which i can get from the connection
-            // need the connection details
-            router.push(`${account?.name}/new/transformer?transformer=${source}`)
+            router.push(
+              `/${account?.name}/new/connection/${getConnectionType(connection.connectionConfig?.config.case ?? '')}?sourceId=${connection.id}`
+            )
           }
         >
           Clone
-        </DropdownMenuItem> */}
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DeleteConfirmationDialog
           trigger={

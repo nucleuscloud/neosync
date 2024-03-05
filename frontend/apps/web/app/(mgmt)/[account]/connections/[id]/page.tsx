@@ -93,26 +93,9 @@ function CloneConnectionButton(props: CloneConnectionProps): ReactElement {
   const { connectionType, id } = props;
   const { account } = useAccount();
 
-  let connType = '';
-
-  switch (connectionType) {
-    case 'pgConfig':
-      connType = 'postgres';
-      break;
-    case 'mysqlConfig':
-      connType = 'mysql';
-      break;
-    case 'awsS3Config':
-      connType = 'aws-s3';
-      break;
-    default:
-      connType = 'postgres';
-      break;
-  }
-
   return (
     <NextLink
-      href={`/${account?.name}/new/connection/${connType}?sourceId=${id}`}
+      href={`/${account?.name}/new/connection/${getConnectionType(connectionType)}?sourceId=${id}`}
     >
       <Button>
         <ButtonText
@@ -122,4 +105,17 @@ function CloneConnectionButton(props: CloneConnectionProps): ReactElement {
       </Button>
     </NextLink>
   );
+}
+
+export function getConnectionType(connType: string): string {
+  switch (connType) {
+    case 'pgConfig':
+      return 'postgres';
+    case 'mysqlConfig':
+      return 'mysql';
+    case 'awsS3Config':
+      return 'aws-s3';
+    default:
+      return 'postgres';
+  }
 }
