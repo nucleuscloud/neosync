@@ -37,21 +37,20 @@ export default function SiteHeader(): ReactElement {
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost">
-                <QuestionMarkCircledIcon />
+                <QuestionMarkCircledIcon className="w-4 h-4" />
               </Button>
             </SheetTrigger>
-            <SheetContent>
+            <SheetContent className="w-[400px] sm:w-[540px] dark:border dark:border-l-gray-700">
               <SheetHeader>
                 <SheetTitle>Support</SheetTitle>
                 <SheetDescription>
-                  Make changes to your profile here. Click save when you're
-                  done.
+                  Need help? We got you covered.
                 </SheetDescription>
               </SheetHeader>
               <SupportDrawer />
-              <SheetFooter>
+              <SheetFooter className="pt-20">
                 <SheetClose asChild>
-                  <Button type="submit">Save changes</Button>
+                  <Button>Close</Button>
                 </SheetClose>
               </SheetFooter>
             </SheetContent>
@@ -59,52 +58,6 @@ export default function SiteHeader(): ReactElement {
           <ModeToggle />
           <UserNav />
         </div>
-
-        {/* <div className="flex flex-1 justify-end items-center space-x-2">
-          {systemAppConfig.isAuthEnabled && <AccountSwitcher />}
-          <Link href={siteConfig.links.docs} target="_blank" rel="noreferrer">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className={iconButtonClassNames}>
-                    <PiBookOpenText className="h-4 w-4" />
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">Documentation</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </Link>
-          <Link href={siteConfig.links.github} target="_blank" rel="noreferrer">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className={iconButtonClassNames}>
-                    <GitHubLogoIcon />
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">Github</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </Link>
-          <Link
-            href={siteConfig.links.discord}
-            target="_blank"
-            rel="noreferrer"
-          >
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className={iconButtonClassNames}>
-                    <DiscordLogoIcon />
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">Discord</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </Link>
-          <ModeToggle />
-          <UserNav />
-        </div> */}
       </div>
     </header>
   );
