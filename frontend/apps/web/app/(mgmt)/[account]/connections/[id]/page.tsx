@@ -13,6 +13,7 @@ import Error from 'next/error';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
 import { GrClone } from 'react-icons/gr';
+import { getConnectionType } from '../components/ConnectionsTable/data-table-row-actions';
 import RemoveConnectionButton from './components/RemoveConnectionButton';
 import { getConnectionComponentDetails } from './components/connection-component';
 
@@ -93,26 +94,9 @@ function CloneConnectionButton(props: CloneConnectionProps): ReactElement {
   const { connectionType, id } = props;
   const { account } = useAccount();
 
-  let connType = '';
-
-  switch (connectionType) {
-    case 'pgConfig':
-      connType = 'postgres';
-      break;
-    case 'mysqlConfig':
-      connType = 'mysql';
-      break;
-    case 'awsS3Config':
-      connType = 'aws-s3';
-      break;
-    default:
-      connType = 'postgres';
-      break;
-  }
-
   return (
     <NextLink
-      href={`/${account?.name}/new/connection/${connType}?sourceId=${id}`}
+      href={`/${account?.name}/new/connection/${getConnectionType(connectionType)}?sourceId=${id}`}
     >
       <Button>
         <ButtonText

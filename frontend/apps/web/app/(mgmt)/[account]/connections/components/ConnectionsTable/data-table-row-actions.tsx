@@ -71,16 +71,16 @@ export function DataTableRowActions<TData>({
           View
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        {/* <DropdownMenuItem
+        <DropdownMenuItem
           className="cursor-pointer"
           onClick={() =>
-            // need the connection type which i can get from the connection
-            // need the connection details
-            router.push(`${account?.name}/new/transformer?transformer=${source}`)
+            router.push(
+              `/${account?.name}/new/connection/${getConnectionType(connection.connectionConfig?.config.case ?? '')}?sourceId=${connection.id}`
+            )
           }
         >
           Clone
-        </DropdownMenuItem> */}
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DeleteConfirmationDialog
           trigger={
@@ -115,4 +115,17 @@ async function removeConnection(
     throw new Error(body.message);
   }
   await res.json();
+}
+
+export function getConnectionType(connType: string): string {
+  switch (connType) {
+    case 'pgConfig':
+      return 'postgres';
+    case 'mysqlConfig':
+      return 'mysql';
+    case 'awsS3Config':
+      return 'aws-s3';
+    default:
+      return 'postgres';
+  }
 }
