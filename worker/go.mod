@@ -10,6 +10,7 @@ require (
 	connectrpc.com/grpcreflect v1.2.0
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/benthosdev/benthos/v4 v4.25.1
+	github.com/doug-martin/goqu/v9 v9.19.0
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.5.4
 	github.com/nucleuscloud/neosync/backend v0.0.0-20231203015621-7d46ef5b9957

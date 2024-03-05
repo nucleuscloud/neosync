@@ -193,6 +193,8 @@ output:
 	benthosenv := service.NewEnvironment()
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
 	assert.NoError(t, err)
+	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
+	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
@@ -345,6 +347,8 @@ output:
 	benthosenv := service.NewEnvironment()
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
 	assert.NoError(t, err)
+	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
+	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
@@ -489,13 +493,10 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg(t *testing.T) {
 		strings.TrimSpace(`
 input:
     label: ""
-    sql_select:
+    pooled_sql_raw:
         driver: postgres
         dsn: ${SOURCE_CONNECTION_DSN}
-        table: public.users
-        columns:
-            - '"id"'
-            - '"name"'
+        query: SELECT "id", "name" FROM "public"."users";
 pipeline:
     threads: -1
     processors: []
@@ -521,6 +522,8 @@ output:
 
 	benthosenv := service.NewEnvironment()
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
 	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
@@ -721,13 +724,10 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Transformer_Pg_Pg(t *
 		strings.TrimSpace(`
 input:
     label: ""
-    sql_select:
+    pooled_sql_raw:
         driver: postgres
         dsn: ${SOURCE_CONNECTION_DSN}
-        table: public.users
-        columns:
-            - '"id"'
-            - '"name"'
+        query: SELECT "id", "name" FROM "public"."users";
 pipeline:
     threads: -1
     processors:
@@ -772,13 +772,10 @@ output:
 		strings.TrimSpace(`
 input:
     label: ""
-    sql_select:
+    pooled_sql_raw:
         driver: postgres
         dsn: ${SOURCE_CONNECTION_DSN}
-        table: public.orders
-        columns:
-            - '"id"'
-            - '"buyer_id"'
+        query: SELECT "id", "buyer_id" FROM "public"."orders";
 pipeline:
     threads: -1
     processors:
@@ -814,6 +811,8 @@ output:
 
 	benthosenv := service.NewEnvironment()
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
 	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
@@ -1001,13 +1000,10 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Passthrough_Pg_Pg(t *
 		strings.TrimSpace(`
 input:
     label: ""
-    sql_select:
+    pooled_sql_raw:
         driver: postgres
         dsn: ${SOURCE_CONNECTION_DSN}
-        table: public.users
-        columns:
-            - '"id"'
-            - '"name"'
+        query: SELECT "id", "name" FROM "public"."users";
 pipeline:
     threads: -1
     processors: []
@@ -1043,13 +1039,10 @@ output:
 		strings.TrimSpace(`
 input:
     label: ""
-    sql_select:
+    pooled_sql_raw:
         driver: postgres
         dsn: ${SOURCE_CONNECTION_DSN}
-        table: public.orders
-        columns:
-            - '"id"'
-            - '"buyer_id"'
+        query: SELECT "id", "buyer_id" FROM "public"."orders";
 pipeline:
     threads: -1
     processors: []
@@ -1076,6 +1069,8 @@ output:
 
 	benthosenv := service.NewEnvironment()
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
 	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
@@ -1245,13 +1240,10 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_CircularDependency_PrimaryKey_Tr
 		strings.TrimSpace(`
 input:
     label: ""
-    sql_select:
+    pooled_sql_raw:
         driver: postgres
         dsn: ${SOURCE_CONNECTION_DSN}
-        table: public.jobs
-        columns:
-            - '"id"'
-            - '"parent_id"'
+        query: SELECT "id", "parent_id" FROM "public"."jobs";
 pipeline:
     threads: -1
     processors:
@@ -1296,13 +1288,10 @@ output:
 		strings.TrimSpace(`
 input:
     label: ""
-    sql_select:
+    pooled_sql_raw:
         driver: postgres
         dsn: ${SOURCE_CONNECTION_DSN}
-        table: public.jobs
-        columns:
-            - '"id"'
-            - '"parent_id"'
+        query: SELECT "id", "parent_id" FROM "public"."jobs";
 pipeline:
     threads: -1
     processors:
@@ -1347,6 +1336,8 @@ output:
 
 	benthosenv := service.NewEnvironment()
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
 	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
@@ -1492,13 +1483,10 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_Default(t *testing.T
 		strings.TrimSpace(`
 input:
     label: ""
-    sql_select:
+    pooled_sql_raw:
         driver: postgres
         dsn: ${SOURCE_CONNECTION_DSN}
-        table: public.users
-        columns:
-            - '"id"'
-            - '"name"'
+        query: SELECT "id", "name" FROM "public"."users";
 pipeline:
     threads: -1
     processors: []
@@ -1525,6 +1513,8 @@ output:
 	// create a new streambuilder instance so we can access the SetYaml method
 	benthosenv := service.NewEnvironment()
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
 	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
@@ -1713,13 +1703,10 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 		strings.TrimSpace(`
 input:
     label: ""
-    sql_select:
+    pooled_sql_raw:
         driver: postgres
         dsn: ${SOURCE_CONNECTION_DSN}
-        table: public.users
-        columns:
-            - '"id"'
-            - '"name"'
+        query: SELECT "id", "name" FROM "public"."users";
 pipeline:
     threads: -1
     processors: []
@@ -1754,13 +1741,10 @@ output:
 		strings.TrimSpace(`
 input:
     label: ""
-    sql_select:
+    pooled_sql_raw:
         driver: postgres
         dsn: ${SOURCE_CONNECTION_DSN}
-        table: public.user_account_associations
-        columns:
-            - '"id"'
-            - '"user_id"'
+        query: SELECT "id", "user_id" FROM "public"."user_account_associations";
 pipeline:
     threads: -1
     processors: []
@@ -1786,6 +1770,8 @@ output:
 
 	benthosenv := service.NewEnvironment()
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
 	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
@@ -2003,14 +1989,10 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 		strings.TrimSpace(`
 input:
     label: ""
-    sql_select:
+    pooled_sql_raw:
         driver: postgres
         dsn: ${SOURCE_CONNECTION_DSN}
-        table: public.users
-        columns:
-            - '"id"'
-            - '"name"'
-            - '"user_assoc_id"'
+        query: SELECT "id", "name", "user_assoc_id" FROM "public"."users";
 pipeline:
     threads: -1
     processors: []
@@ -2046,14 +2028,10 @@ output:
 		strings.TrimSpace(`
 input:
     label: ""
-    sql_select:
+    pooled_sql_raw:
         driver: postgres
         dsn: ${SOURCE_CONNECTION_DSN}
-        table: public.users
-        columns:
-            - '"id"'
-            - '"name"'
-            - '"user_assoc_id"'
+        query: SELECT "id", "name", "user_assoc_id" FROM "public"."users";
 pipeline:
     threads: -1
     processors: []
@@ -2088,13 +2066,10 @@ output:
 		strings.TrimSpace(`
 input:
     label: ""
-    sql_select:
+    pooled_sql_raw:
         driver: postgres
         dsn: ${SOURCE_CONNECTION_DSN}
-        table: public.user_account_associations
-        columns:
-            - '"id"'
-            - '"user_id"'
+        query: SELECT "id", "user_id" FROM "public"."user_account_associations";
 pipeline:
     threads: -1
     processors: []
@@ -2120,6 +2095,8 @@ output:
 
 	benthosenv := service.NewEnvironment()
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
 	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
@@ -2368,14 +2345,10 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 		strings.TrimSpace(`
 input:
     label: ""
-    sql_select:
+    pooled_sql_raw:
         driver: postgres
         dsn: ${SOURCE_CONNECTION_DSN}
-        table: public.users
-        columns:
-            - '"id"'
-            - '"name"'
-            - '"user_assoc_id"'
+        query: SELECT "id", "name", "user_assoc_id" FROM "public"."users";
 pipeline:
     threads: -1
     processors: []
@@ -2430,14 +2403,10 @@ output:
 		strings.TrimSpace(`
 input:
     label: ""
-    sql_select:
+    pooled_sql_raw:
         driver: postgres
         dsn: ${SOURCE_CONNECTION_DSN}
-        table: public.users
-        columns:
-            - '"id"'
-            - '"name"'
-            - '"user_assoc_id"'
+        query: SELECT "id", "name", "user_assoc_id" FROM "public"."users";
 pipeline:
     threads: -1
     processors: []
@@ -2473,13 +2442,10 @@ output:
 		strings.TrimSpace(`
 input:
     label: ""
-    sql_select:
+    pooled_sql_raw:
         driver: postgres
         dsn: ${SOURCE_CONNECTION_DSN}
-        table: public.user_account_associations
-        columns:
-            - '"id"'
-            - '"user_id"'
+        query: SELECT "id", "user_id" FROM "public"."user_account_associations";
 pipeline:
     threads: -1
     processors: []
@@ -2523,6 +2489,8 @@ output:
 
 	benthosenv := service.NewEnvironment()
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
 	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
@@ -2682,6 +2650,8 @@ output:
 	benthosenv := service.NewEnvironment()
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
 	assert.NoError(t, err)
+	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
+	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
@@ -2826,13 +2796,10 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) 
 		strings.TrimSpace(`
 input:
     label: ""
-    sql_select:
+    pooled_sql_raw:
         driver: mysql
         dsn: ${SOURCE_CONNECTION_DSN}
-        table: public.users
-        columns:
-            `+"- '`id`'"+`
-            `+"- '`name`'"+`
+        `+"query: SELECT `id`, `name` FROM `public`.`users`;"+`
 pipeline:
     threads: -1
     processors: []
@@ -2858,6 +2825,8 @@ output:
 
 	benthosenv := service.NewEnvironment()
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
 	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
@@ -3045,13 +3014,10 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Constrain
 		strings.TrimSpace(`
 input:
     label: ""
-    sql_select:
+    pooled_sql_raw:
         driver: mysql
         dsn: ${SOURCE_CONNECTION_DSN}
-        table: public.users
-        columns:
-            `+"- '`id`'"+`
-            `+"- '`name`'"+`
+        `+"query: SELECT `id`, `name` FROM `public`.`users`;"+`
 pipeline:
     threads: -1
     processors: []
@@ -3086,13 +3052,10 @@ output:
 		strings.TrimSpace(`
 input:
     label: ""
-    sql_select:
+    pooled_sql_raw:
         driver: mysql
         dsn: ${SOURCE_CONNECTION_DSN}
-        table: public.user_account_associations
-        columns:
-            `+"- '`id`'"+`
-            `+"- '`user_id`'"+`
+        `+"query: SELECT `id`, `user_id` FROM `public`.`user_account_associations`;"+`
 pipeline:
     threads: -1
     processors: []
@@ -3118,6 +3081,8 @@ output:
 
 	benthosenv := service.NewEnvironment()
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
 	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
@@ -3336,14 +3301,10 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_
 		strings.TrimSpace(`
 input:
     label: ""
-    sql_select:
+    pooled_sql_raw:
         driver: mysql
         dsn: ${SOURCE_CONNECTION_DSN}
-        table: public.users
-        columns:
-            `+"- '`id`'"+`
-            `+"- '`name`'"+`
-            `+"- '`user_assoc_id`'"+`
+        `+"query: SELECT `id`, `name`, `user_assoc_id` FROM `public`.`users`;"+`
 pipeline:
     threads: -1
     processors: []
@@ -3379,14 +3340,10 @@ output:
 		strings.TrimSpace(`
 input:
     label: ""
-    sql_select:
+    pooled_sql_raw:
         driver: mysql
         dsn: ${SOURCE_CONNECTION_DSN}
-        table: public.users
-        columns:
-            `+"- '`id`'"+`
-            `+"- '`name`'"+`
-            `+"- '`user_assoc_id`'"+`
+        `+"query: SELECT `id`, `name`, `user_assoc_id` FROM `public`.`users`;"+`
 pipeline:
     threads: -1
     processors: []
@@ -3421,13 +3378,10 @@ output:
 		strings.TrimSpace(`
 input:
     label: ""
-    sql_select:
+    pooled_sql_raw:
         driver: mysql
         dsn: ${SOURCE_CONNECTION_DSN}
-        table: public.user_account_associations
-        columns:
-            `+"- '`id`'"+`
-            `+"- '`user_id`'"+`
+        `+"query: SELECT `id`, `user_id` FROM `public`.`user_account_associations`;"+`
 pipeline:
     threads: -1
     processors: []
@@ -3453,6 +3407,8 @@ output:
 
 	benthosenv := service.NewEnvironment()
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
 	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
@@ -3610,6 +3566,8 @@ output:
 	benthosenv := service.NewEnvironment()
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
 	assert.NoError(t, err)
+	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
+	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
@@ -3754,13 +3712,10 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Default(t *testing.T
 		strings.TrimSpace(`
 input:
     label: ""
-    sql_select:
+    pooled_sql_raw:
         driver: mysql
         dsn: ${SOURCE_CONNECTION_DSN}
-        table: public.users
-        columns:
-            `+"- '`id`'"+`
-            `+"- '`name`'"+`
+        `+"query: SELECT `id`, `name` FROM `public`.`users`;"+`
 pipeline:
     threads: -1
     processors: []
@@ -3786,6 +3741,8 @@ output:
 	// create a new streambuilder instance so we can access the SetYaml method
 	benthosenv := service.NewEnvironment()
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
 	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
@@ -4182,7 +4139,7 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
         output["first_name"] = fn_first_name(input["first_name"], input);
         benthos.v0_msg_set_structured(output);
         })();
-	    `), strings.TrimSpace(string(out)))
+      `), strings.TrimSpace(string(out)))
 }
 
 func TestAreMappingsSubsetOfSchemas(t *testing.T) {

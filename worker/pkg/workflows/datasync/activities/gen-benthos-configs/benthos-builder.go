@@ -384,7 +384,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 				resp.BenthosDsns = append(resp.BenthosDsns, &shared.BenthosDsn{EnvVarKey: dstEnvVarKey, ConnectionId: destinationConnection.Id})
 
-				if resp.Config.Input.SqlSelect != nil {
+				if resp.Config.Input.SqlSelect != nil || resp.Config.Input.PooledSqlRaw != nil {
 					colSourceMap := map[string]string{}
 					for _, col := range tm.Mappings {
 						colSourceMap[col.Column] = col.GetTransformer().Source
@@ -444,7 +444,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 				resp.BenthosDsns = append(resp.BenthosDsns, &shared.BenthosDsn{EnvVarKey: dstEnvVarKey, ConnectionId: destination.ConnectionId})
 
-				if resp.Config.Input.SqlSelect != nil {
+				if resp.Config.Input.SqlSelect != nil || resp.Config.Input.PooledSqlRaw != nil {
 					colSourceMap := map[string]string{}
 					for _, col := range tm.Mappings {
 						colSourceMap[col.Column] = col.GetTransformer().Source
@@ -880,6 +880,15 @@ func filterNullTables(mappings []*tableMapping) []string {
 	return tables
 }
 
+func getDriverFromBenthosInput(input *neosync_benthos.Inputs) (string, error) {
+	if input.SqlSelect != nil {
+		return input.SqlSelect.Driver, nil
+	} else if input.PooledSqlRaw != nil {
+		return input.PooledSqlRaw.Driver, nil
+	}
+	return "", errors.New("invalid benthos input when trying to find database driver")
+}
+
 // creates copy of benthos insert config
 // changes query and argsmapping to sql update statement
 func createSqlUpdateBenthosConfig(
@@ -894,7 +903,10 @@ func createSqlUpdateBenthosConfig(
 	jobId, runId string,
 	redisConfig *shared.RedisConfig,
 ) (*BenthosConfigResponse, error) {
-	driver := insertConfig.Config.Input.SqlSelect.Driver
+	driver, err := getDriverFromBenthosInput(&insertConfig.Config.Input.Inputs)
+	if err != nil {
+		return nil, err
+	}
 	sourceResponses, err := buildBenthosSqlSourceConfigResponses(
 		ctx,
 		transformerclient,
@@ -950,7 +962,6 @@ func createSqlUpdateBenthosConfig(
 			newResp.Config.StreamConfig.Pipeline.Processors = processorConfigs
 		}
 
-		newResp.Config.Input.SqlSelect.Where = insertConfig.Config.Input.SqlSelect.Where // keep the where clause the same as insert
 		newResp.updateConfig = insertConfig.updateConfig
 		newResp.DependsOn = insertConfig.updateConfig.DependsOn
 		newResp.Name = fmt.Sprintf("%s.update", insertConfig.Name)
@@ -964,6 +975,11 @@ func createSqlUpdateBenthosConfig(
 			output = out
 		}
 		newResp.Columns = output.Columns
+		if newResp.Config.Input.SqlSelect != nil {
+			newResp.Config.Input.SqlSelect.Where = insertConfig.Config.Input.SqlSelect.Where // keep the where clause the same as insert
+		} else if newResp.Config.Input.PooledSqlRaw != nil {
+			newResp.Config.Input.PooledSqlRaw.Query = insertConfig.Config.Input.PooledSqlRaw.Query // keep this the same for the insert
+		}
 		newResp.BenthosDsns = insertConfig.BenthosDsns
 		newResp.Config.Output.Broker.Outputs = append(newResp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 			PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
@@ -1032,24 +1048,32 @@ func buildBenthosSqlSourceConfigResponses(
 			continue
 		}
 
-		var where string
+		var where *string
 		tableOpt := sourceTableOpts[neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table)]
 		if tableOpt != nil && tableOpt.WhereClause != nil {
-			where = *tableOpt.WhereClause
+			where = tableOpt.WhereClause
 		}
 
 		table := neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table)
+
+		query, err := buildSelectQuery(
+			driver,
+			tableMapping.Schema,
+			tableMapping.Table,
+			buildPlainColumns(tableMapping.Mappings),
+			where,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("unable to build select query: %w", err)
+		}
 		bc := &neosync_benthos.BenthosConfig{
 			StreamConfig: neosync_benthos.StreamConfig{
 				Input: &neosync_benthos.InputConfig{
 					Inputs: neosync_benthos.Inputs{
-						SqlSelect: &neosync_benthos.SqlSelect{
+						PooledSqlRaw: &neosync_benthos.InputPooledSqlRaw{
 							Driver: driver,
 							Dsn:    "${SOURCE_CONNECTION_DSN}",
-
-							Table:   table,
-							Where:   where,
-							Columns: escapeColsByDriver(buildPlainColumns(tableMapping.Mappings), driver),
+							Query:  query,
 						},
 					},
 				},

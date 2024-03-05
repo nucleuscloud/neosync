@@ -40,8 +40,9 @@ type InputConfig struct {
 }
 
 type Inputs struct {
-	SqlSelect *SqlSelect `json:"sql_select,omitempty" yaml:"sql_select,omitempty"`
-	Generate  *Generate  `json:"generate,omitempty" yaml:"generate,omitempty"`
+	SqlSelect    *SqlSelect         `json:"sql_select,omitempty" yaml:"sql_select,omitempty"`
+	PooledSqlRaw *InputPooledSqlRaw `json:"pooled_sql_raw,omitempty" yaml:"pooled_sql_raw,omitempty"`
+	Generate     *Generate          `json:"generate,omitempty" yaml:"generate,omitempty"`
 }
 
 type Generate struct {
@@ -49,6 +50,13 @@ type Generate struct {
 	Interval  string `json:"interval" yaml:"interval"`
 	Count     int    `json:"count" yaml:"count"`
 	BatchSize *int   `json:"batch_size,omitempty" yaml:"batch_size,omitempty"`
+}
+
+type InputPooledSqlRaw struct {
+	Driver      string `json:"driver" yaml:"driver"`
+	Dsn         string `json:"dsn" yaml:"dsn"`
+	Query       string `json:"query" yaml:"query"`
+	ArgsMapping string `json:"args_mapping,omitempty" yaml:"args_mapping,omitempty"`
 }
 
 type SqlSelect struct {

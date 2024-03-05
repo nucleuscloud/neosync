@@ -186,7 +186,11 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	})
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, poolprovider)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to register pooled_sql_raw output to benthos instance: %w", err)
+	}
+	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, poolprovider)
+	if err != nil {
+		return nil, fmt.Errorf("unable to register pooled_sql_raw input to benthos instance: %w", err)
 	}
 
 	envKeyDnsMap := syncMapToStringMap(&envKeyDsnSyncMap)
