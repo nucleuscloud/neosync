@@ -1,5 +1,4 @@
 'use client';
-import JobRunStatus from '@/app/(mgmt)/[account]/runs/components/JobRunStatus';
 import { useAccount } from '@/components/providers/account-provider';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -19,6 +18,7 @@ import { formatDateTime } from '@/util/util';
 import { ArrowRightIcon, ReloadIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { ReactElement } from 'react';
+import JobRunStatus from '../../../runs/components/JobRunStatus';
 
 interface Props {
   jobId: string;
