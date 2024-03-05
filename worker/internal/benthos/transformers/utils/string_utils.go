@@ -110,8 +110,7 @@ const (
 	// First char must be alphanumeric
 	// Last char must be alphanumeric or numeric
 	// 63 max char
-	usernamePattern = `^[A-Za-z0-9](?:[A-Za-z0-9!#$%&'*+-/=?^_` +
-		`{|}~.]{0,62}[A-Za-z0-9])?$`
+	usernamePattern = `^[A-Za-z0-9](?:[A-Za-z0-9!#$%&'*+\/=?^_{|}~.-]{0,62}[A-Za-z0-9])?$`
 )
 
 var (
