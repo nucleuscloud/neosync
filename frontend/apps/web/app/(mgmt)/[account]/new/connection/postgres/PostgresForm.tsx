@@ -163,6 +163,21 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
 
             /* reset the form with the new values and include the fallback values because of our validation schema requires a string and not undefined which is okay because it will tell the user that something is wrong instead of the user not realizing that it's undefined
              */
+            let passPhrase = '';
+            let privateKey = '';
+
+            const authConfig = config.tunnel?.authentication?.authConfig;
+
+            switch (authConfig?.case) {
+              case 'passphrase':
+                passPhrase = authConfig.value.value;
+                break;
+              case 'privateKey':
+                passPhrase = authConfig.value.passphrase ?? '';
+                privateKey = authConfig.value.value;
+                break;
+            }
+
             form.reset({
               ...form.getValues(),
               connectionName: connData.connection?.name + '-copy',
@@ -179,8 +194,8 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
                 port: config.tunnel?.port ?? 22,
                 knownHostPublicKey: config.tunnel?.knownHostPublicKey ?? '',
                 user: config.tunnel?.user ?? '',
-                passphrase: '',
-                privateKey: '',
+                passphrase: passPhrase,
+                privateKey: privateKey,
               },
             });
           }
