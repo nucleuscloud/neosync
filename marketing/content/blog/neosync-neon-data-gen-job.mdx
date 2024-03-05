@@ -31,9 +31,9 @@ Now that we have our accounts, we can get this ball rolling. First, let's log in
 
 Now we can click on **Database** on the left hand side in order to select the database that we created. If you already have a database set up then you can select the database that you want to act as your source database.
 
-Next, we'll need to define our database schema. For this demo, we'll create two tables but you can create as many tables as you need to.
+Next, we'll need to define our database schema. For this demo, we'll create one table but you can create as many tables as you need to.
 
-Let's navigate to **SQL editor** and create our tables. Here is the SQL script I ran to create our table in the public schema. If you have the uuid() extension installed you can also set the `id` column to auto-generate those for you or you can use Neosync to generate them. Let's create our table.
+Let's navigate to **SQL editor** and create our table. Here is the SQL script I ran to create our table in the public schema. If you have the uuid() extension installed you can also set the `id` column to auto-generate those for you or you can use Neosync to generate them. Let's create our table.
 
 ```sql
 
@@ -64,20 +64,20 @@ Navigate over to Neosync and [login](https://app.neosync.dev). Once you're logge
 
 You should see the above form. Since our Neon database is public we can ignore the bottom part about configuring a Bastion Host. Let's go ahead and start to fill out our Neon connection string in this form. Here's a handy guide of how to break up the connection string and map it to the fields in the form.
 
-| Component         | Value                                             | Description                                                   |
-| ----------------- | ------------------------------------------------- | ------------------------------------------------------------- |
-| Protocol          | `postgresql://`                                   | Indicates a connection to a PostgreSQL database.              |
-| Database Username | `evis`                                            | The username for authenticating the connection.               |
-| Database Password | `************`                                    | The password for authentication (hidden for security).        |
-| Host              | `ep-late-cherry-a5k4dfkr.us-east-2.aws.neon.tech` | The hostname or IP address of the database server.            |
-| Database Name     | `neosync-test`                                    | The specific database name to connect to.                     |
-| SSL Mode          | `sslmode=require`                                 | Specifies that SSL encryption is required for the connection. |
+| Component | Value                                             | Description                                                   |
+| --------- | ------------------------------------------------- | ------------------------------------------------------------- |
+| Protocol  | `postgresql://`                                   | Indicates a connection to a PostgreSQL database.              |
+| Username  | `evis`                                            | The username for authenticating the connection.               |
+| Password  | `************`                                    | The password for authentication (hidden for security).        |
+| Host      | `ep-late-cherry-a5k4dfkr.us-east-2.aws.neon.tech` | The hostname or IP address of the database server.            |
+| Name      | `neosync-test`                                    | The specific database name to connect to.                     |
+| SSL Mode  | `sslmode=require`                                 | Specifies that SSL encryption is required for the connection. |
 
 Once you've completed filling out the form, you can click on **Test Connection** to test that you're connected. You should see this if it passes:
 
 ![neosync-test](/images/blogs/neon/neon-test.png)
 
-Let's click **Save** and move onto the last part.
+Let's click **Submit** and move onto the last part.
 
 ## Creating a Job
 
@@ -100,7 +100,7 @@ Click **Next** to move onto the **Connect** page. Here we want to select the con
 
 There are some other options here that can be useful but we'll skip these for now and click **Next**.
 
-Now for the fun part. First select your schema. Mine is the public schema but you may have another one. Next select the table where you want to generaete synthetic data. So I'm going to select the `users` table.
+Now for the fun part. First select your schema. Mine is the public schema but you may have another one. Next select the table where you want to generate synthetic data. So I'm going to select the `users` table.
 
 Next, decide how many rows you want to create. For this run, I'll do 1000 rows.
 
@@ -110,7 +110,7 @@ Lastly, we need to determine what kind of synthetic data we want to create and m
 
 ![neosync-test](/images/blogs/neon/data-gen-schema.png)
 
-For the age column, I used the `Generate Random Int64` Transformer to randomly generate ages between 18 and 40. Here is how I configured that:
+For the age column, I used the `Generate Random Int64` Transformer to randomly generate ages between 18 and 40. You can configure that by clicking on the edit icon next to the transformer and setting your min and max.
 
 Now that we've configured everything, we can click on **Next** and create the job! We'll get routed to the Job page and see something like this:
 
@@ -138,4 +138,4 @@ Looking pretty good! We have seeded our Neon database with 1000 rows of complete
 
 # Conclusion
 
-In this guide, we walked through how to seed your Neon database with 1000 rows of synthic data using Neosync. This is just a small test and you can expand this to generate tens of thousands or more rows of data across any relational database. Neosync handles the referential integrity. This is particularly helpful if you're working on a new application and don't have data yet or want to augment your existing database with more data for performance testing.
+In this guide, we walked through how to seed your Neon database with 1000 rows of synthetic data using Neosync. This is just a small test and you can expand this to generate tens of thousands or more rows of data across any relational database. Neosync handles the referential integrity. This is particularly helpful if you're working on a new application and don't have data yet or want to augment your existing database with more data for performance testing.
