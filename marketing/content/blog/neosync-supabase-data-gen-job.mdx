@@ -1,0 +1,145 @@
+---
+title: How to seed your Supabase DB with Synthetic Data
+description: A walkthrough tutorial on how to seed a Supabase DB with Synthetic Data
+date: 2024-03-05
+published: true
+image: /images/blogs/supabase/supabaseheader.svg
+authors:
+  - evis
+---
+
+# Introduction
+
+[Supabase](https://supabase.com/) is an open source Firebase alternative that helps you get started quickly with a backend. Supabase gets you started with a Postgres database, authentication, APIs and more. Thousands of developers use Supabase for all sizes of projects.
+
+In this guide, we're going to walk through how you can seed your Supabase database with synthetic data for testing and rapid development using [Neosync](https://neosync.dev). Neosync is an open source synthetic data orchestration company that can create anonymized or synthetic data and sync it across all of your neon environments for better security, privacy and development.
+
+Let's jump in.
+
+# Prerequisites
+
+We're going to need a Supabase account and a Neosync account. If you don't already have those, we can get those here:
+
+- [Sign up for Supabase](https://supabase.com/)
+- [Sign up for Neosync](https://neosync.dev)
+
+# Setting up Supabase
+
+Now that we have our accounts, we can get this ball rolling. First, let's log into Supabase. If you already have a Supabase account then you can either create a new project or use an existing project. If you don't have a Supabase account then give your database a name, type in a password and select a region like below:
+
+![sb-create-project](/images/blogs/supabase/sb-create.png)
+
+Now we can click on **Create new project** in order to create our project.
+
+Next, we'll need to define our database schema. For this demo, we'll create one tables but you can create as many tables as you need to.
+
+Let's navigate to **SQL editor** and create our table. Here is the SQL script I ran to create our table in the public schema. If you have the uuid() extension installed you can also set the `id` column to auto-generate those for you or you can use Neosync to generate them. Let's create our table.
+
+```sql
+
+CREATE TABLE public.users (
+    id UUID PRIMARY KEY,
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    age INTEGER NOT NULL
+);
+```
+
+We can do a quick sanity check by going to **Database** on the left hand nav menu and seeing that our table was successfully created.
+
+![sb-created-tables](/images/blogs/supabase/sb-create-table.png)
+
+Nice! Okay, last step for Supabase. Let's get our connection string so we can connect to Supabase from Neosync. We can find our connection string by going to **Project Settings** then **Databse**. Under the **Connection parameters** heading, you can find your connection parameters to connect to your database.
+
+![sb-created-tables](/images/blogs/supabase/sb-con.png)
+
+# Setting up Neosync
+
+Now that we're in Neosync, we'll want to first create a connection to our Supabase database and then create a job to generate data. Let's get started.
+
+## Creating a Connection
+
+Navigate over to Neosync and [login](https://app.neosync.dev). Once you're logged in, go to to **Connections** -> **New Connection** then click on **Postgres**.
+
+![neosync-connect-form](/images/blogs/neon/connectform.png)
+
+You should see the above form. Since our Supabase database is public we can ignore the bottom part about configuring a Bastion Host. Let's go ahead and start to fill out our Supabase connection string in this form. Here's a handy guide of how to break up the connection string and map it to the fields in the form.
+
+| Component | Value                                 | Description                                                   |
+| --------- | ------------------------------------- | ------------------------------------------------------------- |
+| Host      | `aws-0-us-west-1.pooler.supabase.com` | The hostname or IP address of the database server.            |
+| Name      | `postgres`                            | The specific database name to connect to.                     |
+| Port      | `5432`                                | The postgres port that we will bind to                        |
+| Username  | `postgres`                            | The username for authenticating the connection.               |
+| Password  | `************`                        | The password for authentication (hidden for security).        |
+| SSL Mode  | `sslmode=require`                     | Specifies that SSL encryption is required for the connection. |
+
+Once you've completed filling out the form, you can click on **Test Connection** to test that you're connected. You should see this if it passes:
+
+![neosync-test](/images/blogs/neon/neon-test.png)
+
+As a sidenote, if you wanted to configure SSL mode, you can do that in the Supabase console by scrolling down to the **SSL Configuration** section and enabling the **Enforce SSL on incoming connections** switch. Then in Neosync, just set the **SSL Mode** to `require` in the connection form.
+
+Let's click **Submit** and move onto the last part.
+
+## Creating a Job
+
+In order to generate data, we need to create a **Job** in Neosync. Let's click on **Job** and then click on **New Job**. We're now presented with two options:
+
+![neosync-test](/images/blogs/neon/data-gen.png)
+
+- Data Synchronization - Synchronize and anonymize data between a source and destination.
+- Data Generation - Generate synthetic data from scratch for a chosen destination.
+
+Since we're seeding a table from scratch, we can select the **Data Generation** job and click **Next**.
+
+Let's give our job a name and then set **Initiate Job Run** to **Yes**. We can leave the schedule and advanced options alone for now.
+
+![neosync-test](/images/blogs/supabase/sb-define.png)
+
+Click **Next** to move onto the **Connect** page. Here we want to select the connection we previously connected from the dropdown.
+
+![neosync-test](/images/blogs/supabase/sb-connect.png)
+
+There are some other options here that can be useful but we'll skip these for now and click **Next**.
+
+Now for the fun part. First select your schema. Mine is the public schema but you may have another one. Next select the table where you want to generaete synthetic data. So I'm going to select the `users` table.
+
+Next, decide how many rows you want to create. For this run, I'll do 1000 rows.
+
+![neosync-test](/images/blogs/neon/data-gen-setup.png)
+
+Lastly, we need to determine what kind of synthetic data we want to create and map that to our schema. Neosync has **Transformers** which are ways of creating synthetic data. Click on the **Transformer** and then select the right Transformer that maps to the right column. Here is what I have set up for the users table.
+
+![neosync-test](/images/blogs/neon/data-gen-schema.png)
+
+For the age column, I used the `Generate Random Int64` Transformer to randomly generate ages between 18 and 40. You can configure that by clicking on the edit icon next to the transformer and setting your min and max.
+
+Now that we've configured everything, we can click on **Next** and create the job! We'll get routed to the Job page and see something like this:
+
+![neosync-test](/images/blogs/supabase/sb-data-gen-job.png)
+
+You can see that our job ran successfully and generated 1000 rows of synthetic data in just 3 seconds!
+
+Now we can head back over to Supabase and check on our data. First let's check the count and make sure we generated 1000 rows.
+
+```sql
+SELECT COUNT(*) FROM users;
+```
+
+![neosync-test](/images/blogs/supabase/sb-row-count.png)
+
+Next, let's check the data:
+
+```sql
+SELECT * FROM users;
+```
+
+![neosync-test](/images/blogs/supabase/sb-data-rows.png)
+
+Looking pretty good! We have seeded our Supabase database with 1000 rows of completely synthetic data and it only took 3 seconds.
+
+# Conclusion
+
+In this guide, we walked through how to seed your Supabase database with 1000 rows of synthic data using Neosync. This is just a small test and you can expand this to generate tens of thousands or more rows of data across any relational database. Neosync handles the referential integrity. This is particularly helpful if you're working on a new application and don't have data yet or want to augment your existing database with more data for performance testing.

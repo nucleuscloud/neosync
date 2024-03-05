@@ -87,20 +87,20 @@ Navigate over to Neosync and [login](https://app.neosync.dev). Once you're logge
 
 You should see the above form. Since our Neon database is public we can ignore the bottom part about configuring a Bastion Host. Let's go ahead and start to fill out our Neon connection string in this form. Here's a handy guide of how to break up the connection string and map it to the fields in the form.
 
-| Component         | Value                                             | Description                                                   |
-| ----------------- | ------------------------------------------------- | ------------------------------------------------------------- |
-| Protocol          | `postgresql://`                                   | Indicates a connection to a PostgreSQL database.              |
-| Database Username | `evis`                                            | The username for authenticating the connection.               |
-| Database Password | `************`                                    | The password for authentication (hidden for security).        |
-| Host              | `ep-late-cherry-a5k4dfkr.us-east-2.aws.neon.tech` | The hostname or IP address of the database server.            |
-| Database Name     | `neosync-test`                                    | The specific database name to connect to.                     |
-| SSL Mode          | `sslmode=require`                                 | Specifies that SSL encryption is required for the connection. |
+| Component | Value                                             | Description                                                   |
+| --------- | ------------------------------------------------- | ------------------------------------------------------------- |
+| Protocol  | `postgresql://`                                   | Indicates a connection to a PostgreSQL database.              |
+| Username  | `evis`                                            | The username for authenticating the connection.               |
+| Password  | `************`                                    | The password for authentication (hidden for security).        |
+| Host      | `ep-late-cherry-a5k4dfkr.us-east-2.aws.neon.tech` | The hostname or IP address of the database server.            |
+| Name      | `neosync-test`                                    | The specific database name to connect to.                     |
+| SSL Mode  | `sslmode=require`                                 | Specifies that SSL encryption is required for the connection. |
 
 Once you've completed filling out the form, you can click on **Test Connection** to test that you're connected. You should see this if it passes:
 
 ![neosync-test](/images/blogs/neon/neon-test.png)
 
-Let's click **Save** and repeat this for our database so that we have two connections: one for **neosync-test** and one for **destination**.
+Let's click **Submit** and repeat this for our database so that we have two connections: one for **neosync-test** and one for **destination**.
 
 ![neosync-test](/images/blogs/neon/neonconnections.png)
 
