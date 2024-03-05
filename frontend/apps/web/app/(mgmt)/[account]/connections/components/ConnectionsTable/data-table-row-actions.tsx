@@ -17,7 +17,6 @@ import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
 import { Connection } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
-import { getConnectionType } from '../../[id]/page';
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
@@ -116,4 +115,17 @@ async function removeConnection(
     throw new Error(body.message);
   }
   await res.json();
+}
+
+export function getConnectionType(connType: string): string {
+  switch (connType) {
+    case 'pgConfig':
+      return 'postgres';
+    case 'mysqlConfig':
+      return 'mysql';
+    case 'awsS3Config':
+      return 'aws-s3';
+    default:
+      return 'postgres';
+  }
 }
