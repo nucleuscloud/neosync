@@ -60,7 +60,6 @@ func TransformInt64PhoneNumber(number int64, preserveLength bool) (*int64, error
 		if err != nil {
 			return nil, err
 		}
-
 		return &res, nil
 	}
 }
