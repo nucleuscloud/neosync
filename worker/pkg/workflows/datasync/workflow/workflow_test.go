@@ -3,6 +3,7 @@ package datasync_workflow
 import (
 	"context"
 	"errors"
+	"sync"
 	"testing"
 	"time"
 
@@ -613,61 +614,83 @@ func Test_Workflow_Cleans_Up_Redis_OnError(t *testing.T) {
 	env.AssertExpectations(t)
 }
 func Test_isConfigReady(t *testing.T) {
-	assert.False(t, isConfigReady(nil, nil), "config is nil")
+	isReady, err := isConfigReady(nil, nil)
+	assert.NoError(t, err)
+	assert.False(t, isReady, "config is nil")
+
+	isReady, err = isConfigReady(&genbenthosconfigs_activity.BenthosConfigResponse{
+		Name:      "foo",
+		DependsOn: []*tabledependency.DependsOn{},
+	},
+		nil)
+	assert.NoError(t, err)
 	assert.True(
 		t,
-		isConfigReady(
-			&genbenthosconfigs_activity.BenthosConfigResponse{
-				Name:      "foo",
-				DependsOn: []*tabledependency.DependsOn{},
-			},
-			nil,
-		),
+		isReady,
 		"has no dependencies",
 	)
 
+	completed := sync.Map{}
+	completed.Store("bar", []string{"id"})
+	isReady, err = isConfigReady(&genbenthosconfigs_activity.BenthosConfigResponse{
+		Name:      "foo",
+		DependsOn: []*tabledependency.DependsOn{{Table: "bar", Columns: []string{"id"}}, {Table: "baz", Columns: []string{"id"}}},
+	},
+		&completed)
+	assert.NoError(t, err)
 	assert.False(
 		t,
-		isConfigReady(
-			&genbenthosconfigs_activity.BenthosConfigResponse{
-				Name:      "foo",
-				DependsOn: []*tabledependency.DependsOn{{Table: "bar", Columns: []string{"id"}}, {Table: "baz", Columns: []string{"id"}}},
-			},
-			map[string][]string{
-				"bar": {"id"},
-			},
-		),
+		isReady,
 		"not all dependencies are finished",
 	)
 
+	completed = sync.Map{}
+	completed.Store("bar", []string{"id"})
+	completed.Store("baz", []string{"id"})
+	isReady, err = isConfigReady(&genbenthosconfigs_activity.BenthosConfigResponse{
+		Name:      "foo",
+		DependsOn: []*tabledependency.DependsOn{{Table: "bar", Columns: []string{"id"}}, {Table: "baz", Columns: []string{"id"}}},
+	}, &completed)
+	assert.NoError(t, err)
 	assert.True(
 		t,
-		isConfigReady(
-			&genbenthosconfigs_activity.BenthosConfigResponse{
-				Name:      "foo",
-				DependsOn: []*tabledependency.DependsOn{{Table: "bar", Columns: []string{"id"}}, {Table: "baz", Columns: []string{"id"}}},
-			},
-			map[string][]string{
-				"bar": {"id"},
-				"baz": {"id"},
-			},
-		),
+		isReady,
 		"all dependencies are finished",
 	)
 
+	completed = sync.Map{}
+	completed.Store("bar", []string{"id"})
+	isReady, err = isConfigReady(&genbenthosconfigs_activity.BenthosConfigResponse{
+		Name:      "foo",
+		DependsOn: []*tabledependency.DependsOn{{Table: "bar", Columns: []string{"id", "f_id"}}},
+	},
+		&completed)
+	assert.NoError(t, err)
 	assert.False(
 		t,
-		isConfigReady(
-			&genbenthosconfigs_activity.BenthosConfigResponse{
-				Name:      "foo",
-				DependsOn: []*tabledependency.DependsOn{{Table: "bar", Columns: []string{"id", "f_id"}}},
-			},
-			map[string][]string{
-				"bar": {"id"},
-			},
-		),
+		isReady,
 		"not all dependencies columns are finished",
 	)
+}
+
+func Test_updateCompletedMap(t *testing.T) {
+	completedMap := sync.Map{}
+	table := "public.users"
+	cols := []string{"id"}
+	err := updateCompletedMap(table, &completedMap, cols)
+	assert.NoError(t, err)
+	val, loaded := completedMap.Load(table)
+	assert.True(t, loaded)
+	assert.Equal(t, cols, val)
+
+	completedMap = sync.Map{}
+	table = "public.users"
+	completedMap.Store(table, []string{"name"})
+	err = updateCompletedMap(table, &completedMap, []string{"id"})
+	assert.NoError(t, err)
+	val, loaded = completedMap.Load(table)
+	assert.True(t, loaded)
+	assert.Equal(t, []string{"name", "id"}, val)
 }
 
 func Test_isReadyForCleanUp(t *testing.T) {
