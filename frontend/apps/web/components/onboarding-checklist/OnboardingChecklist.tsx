@@ -13,6 +13,7 @@ import {
 } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useAccount } from '../providers/account-provider';
 import { Button } from '../ui/button';
 import { Separator } from '../ui/separator';
 
@@ -20,26 +21,27 @@ const steps = [
   {
     id: '1',
     title: 'Create a source connection',
-    href: '/connections',
+    href: '/connection',
   },
   {
     id: '2',
     title: 'Create a destination connection',
-    href: '/connections',
+    href: '/connection',
   },
   {
     id: '3',
     title: 'Create a job',
-    href: '/jobs',
+    href: '/job',
   },
   {
     id: '4',
     title: 'Invite teammates',
-    href: '/settings/',
+    href: '/settings',
   },
 ];
 
 export default function OnboardingChecklist() {
+  const { account } = useAccount();
   const [progress, setProgress] = useState(13);
   const [complete, isComplete] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -61,13 +63,13 @@ export default function OnboardingChecklist() {
                 </div>
                 <div className="font-semibold">Welcome to Neosync!</div>
               </div>
-              <div className="text-sm">
+              <div className="text-sm pl-6">
                 Get started by completing these steps
               </div>
             </div>
             <div className="flex flex-row gap-2 items-center">
               <Progress value={progress} />
-              <div>{progress}</div>
+              <div className="text-sm">{progress}%</div>
             </div>
             <Separator />
             <div className="flex flex-col gap-4">
@@ -88,7 +90,9 @@ export default function OnboardingChecklist() {
                   </div>
                   <Button
                     variant="ghost"
-                    onClick={() => router.push(step.href)}
+                    onClick={() =>
+                      router.push(`/${account?.name}/new/${step.href}/`)
+                    }
                   >
                     <ArrowRightIcon className="w-4 h-4" />
                   </Button>
