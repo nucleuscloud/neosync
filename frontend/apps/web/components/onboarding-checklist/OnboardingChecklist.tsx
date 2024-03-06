@@ -72,7 +72,7 @@ export default function OnboardingChecklist() {
               <div className="text-sm">{progress}%</div>
             </div>
             <Separator />
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
               {steps.map((step, index) => (
                 <div className="flex flex-row items-center justify-between">
                   <div
@@ -86,7 +86,7 @@ export default function OnboardingChecklist() {
                         <CircleIcon />
                       )}
                     </div>
-                    <div className="text-md">{step.title}</div>
+                    <div className="text-sm">{step.title}</div>
                   </div>
                   <Button
                     variant="ghost"

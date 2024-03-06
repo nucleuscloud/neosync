@@ -808,3 +808,26 @@ func (r *RetryPolicy) ToDto() *mgmtv1alpha1.RetryPolicy {
 func (r *RetryPolicy) FromDto(dto *mgmtv1alpha1.RetryPolicy) {
 	r.MaximumAttempts = dto.MaximumAttempts
 }
+
+type OnboardingConfig struct {
+	HasCreatedSourceConnection      bool `json:"has_created_source_connection"`
+	HasCreatedDestinationConnection bool `json:"has_created_destination_connection"`
+	HasCreatedJob                   bool `json:"has_created_job"`
+	HasInvitedMembers               bool `json:"has_invited_members"`
+}
+
+func (t *OnboardingConfig) ToDto() *mgmtv1alpha1.AccountOnboardingConfig {
+	return &mgmtv1alpha1.AccountOnboardingConfig{
+		HasCreatedSourceConnection:      t.HasCreatedSourceConnection,
+		HasCreatedDestinationConnection: t.HasCreatedDestinationConnection,
+		HasCreatedJob:                   t.HasCreatedJob,
+		HasInvitedMembers:               t.HasInvitedMembers,
+	}
+}
+
+func (t *OnboardingConfig) FromDto(dto *mgmtv1alpha1.AccountOnboardingConfig) {
+	t.HasCreatedSourceConnection = dto.HasCreatedSourceConnection
+	t.HasCreatedDestinationConnection = dto.HasCreatedDestinationConnection
+	t.HasCreatedJob = dto.HasCreatedJob
+	t.HasInvitedMembers = dto.HasInvitedMembers
+}

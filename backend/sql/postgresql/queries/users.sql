@@ -189,3 +189,16 @@ WHERE token = $1;
 -- name: RemoveAccountInvite :exec
 DELETE FROM neosync_api.account_invites
 WHERE id = $1;
+
+-- name: GetAccountOnboardingConfig :one
+SELECT onboarding_config
+FROM neosync_api.accounts
+WHERE id = $1;
+
+
+-- name: UpdateAccountOnboardingConfig :one
+UPDATE neosync_api.accounts
+SET onboarding_config = $1
+WHERE id = sqlc.arg('accountId')
+RETURNING *;
+

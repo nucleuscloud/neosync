@@ -201,6 +201,65 @@ func (_c *MockUserAccountServiceClient_CreateTeamAccount_Call) RunAndReturn(run 
 	return _c
 }
 
+// GetAccountOnboardingConfig provides a mock function with given fields: _a0, _a1
+func (_m *MockUserAccountServiceClient) GetAccountOnboardingConfig(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetAccountOnboardingConfigRequest]) (*connect.Response[mgmtv1alpha1.GetAccountOnboardingConfigResponse], error) {
+	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAccountOnboardingConfig")
+	}
+
+	var r0 *connect.Response[mgmtv1alpha1.GetAccountOnboardingConfigResponse]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetAccountOnboardingConfigRequest]) (*connect.Response[mgmtv1alpha1.GetAccountOnboardingConfigResponse], error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.GetAccountOnboardingConfigRequest]) *connect.Response[mgmtv1alpha1.GetAccountOnboardingConfigResponse]); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.GetAccountOnboardingConfigResponse])
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.GetAccountOnboardingConfigRequest]) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockUserAccountServiceClient_GetAccountOnboardingConfig_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAccountOnboardingConfig'
+type MockUserAccountServiceClient_GetAccountOnboardingConfig_Call struct {
+	*mock.Call
+}
+
+// GetAccountOnboardingConfig is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *connect.Request[mgmtv1alpha1.GetAccountOnboardingConfigRequest]
+func (_e *MockUserAccountServiceClient_Expecter) GetAccountOnboardingConfig(_a0 interface{}, _a1 interface{}) *MockUserAccountServiceClient_GetAccountOnboardingConfig_Call {
+	return &MockUserAccountServiceClient_GetAccountOnboardingConfig_Call{Call: _e.mock.On("GetAccountOnboardingConfig", _a0, _a1)}
+}
+
+func (_c *MockUserAccountServiceClient_GetAccountOnboardingConfig_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetAccountOnboardingConfigRequest])) *MockUserAccountServiceClient_GetAccountOnboardingConfig_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.GetAccountOnboardingConfigRequest]))
+	})
+	return _c
+}
+
+func (_c *MockUserAccountServiceClient_GetAccountOnboardingConfig_Call) Return(_a0 *connect.Response[mgmtv1alpha1.GetAccountOnboardingConfigResponse], _a1 error) *MockUserAccountServiceClient_GetAccountOnboardingConfig_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockUserAccountServiceClient_GetAccountOnboardingConfig_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.GetAccountOnboardingConfigRequest]) (*connect.Response[mgmtv1alpha1.GetAccountOnboardingConfigResponse], error)) *MockUserAccountServiceClient_GetAccountOnboardingConfig_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetAccountTemporalConfig provides a mock function with given fields: _a0, _a1
 func (_m *MockUserAccountServiceClient) GetAccountTemporalConfig(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.GetAccountTemporalConfigRequest]) (*connect.Response[mgmtv1alpha1.GetAccountTemporalConfigResponse], error) {
 	ret := _m.Called(_a0, _a1)
@@ -787,6 +846,65 @@ func (_c *MockUserAccountServiceClient_RemoveTeamAccountMember_Call) Return(_a0 
 }
 
 func (_c *MockUserAccountServiceClient_RemoveTeamAccountMember_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.RemoveTeamAccountMemberRequest]) (*connect.Response[mgmtv1alpha1.RemoveTeamAccountMemberResponse], error)) *MockUserAccountServiceClient_RemoveTeamAccountMember_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SetAccountOnboardingConfig provides a mock function with given fields: _a0, _a1
+func (_m *MockUserAccountServiceClient) SetAccountOnboardingConfig(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.SetAccountOnboardingConfigRequest]) (*connect.Response[mgmtv1alpha1.SetAccountOnboardingConfigResponse], error) {
+	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetAccountOnboardingConfig")
+	}
+
+	var r0 *connect.Response[mgmtv1alpha1.SetAccountOnboardingConfigResponse]
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.SetAccountOnboardingConfigRequest]) (*connect.Response[mgmtv1alpha1.SetAccountOnboardingConfigResponse], error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *connect.Request[mgmtv1alpha1.SetAccountOnboardingConfigRequest]) *connect.Response[mgmtv1alpha1.SetAccountOnboardingConfigResponse]); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*connect.Response[mgmtv1alpha1.SetAccountOnboardingConfigResponse])
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *connect.Request[mgmtv1alpha1.SetAccountOnboardingConfigRequest]) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockUserAccountServiceClient_SetAccountOnboardingConfig_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetAccountOnboardingConfig'
+type MockUserAccountServiceClient_SetAccountOnboardingConfig_Call struct {
+	*mock.Call
+}
+
+// SetAccountOnboardingConfig is a helper method to define mock.On call
+//   - _a0 context.Context
+//   - _a1 *connect.Request[mgmtv1alpha1.SetAccountOnboardingConfigRequest]
+func (_e *MockUserAccountServiceClient_Expecter) SetAccountOnboardingConfig(_a0 interface{}, _a1 interface{}) *MockUserAccountServiceClient_SetAccountOnboardingConfig_Call {
+	return &MockUserAccountServiceClient_SetAccountOnboardingConfig_Call{Call: _e.mock.On("SetAccountOnboardingConfig", _a0, _a1)}
+}
+
+func (_c *MockUserAccountServiceClient_SetAccountOnboardingConfig_Call) Run(run func(_a0 context.Context, _a1 *connect.Request[mgmtv1alpha1.SetAccountOnboardingConfigRequest])) *MockUserAccountServiceClient_SetAccountOnboardingConfig_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*connect.Request[mgmtv1alpha1.SetAccountOnboardingConfigRequest]))
+	})
+	return _c
+}
+
+func (_c *MockUserAccountServiceClient_SetAccountOnboardingConfig_Call) Return(_a0 *connect.Response[mgmtv1alpha1.SetAccountOnboardingConfigResponse], _a1 error) *MockUserAccountServiceClient_SetAccountOnboardingConfig_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockUserAccountServiceClient_SetAccountOnboardingConfig_Call) RunAndReturn(run func(context.Context, *connect.Request[mgmtv1alpha1.SetAccountOnboardingConfigRequest]) (*connect.Response[mgmtv1alpha1.SetAccountOnboardingConfigResponse], error)) *MockUserAccountServiceClient_SetAccountOnboardingConfig_Call {
 	_c.Call.Return(run)
 	return _c
 }
