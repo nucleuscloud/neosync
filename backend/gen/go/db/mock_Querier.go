@@ -1281,23 +1281,23 @@ func (_c *MockQuerier_GetAccountInviteByToken_Call) RunAndReturn(run func(contex
 }
 
 // GetAccountOnboardingConfig provides a mock function with given fields: ctx, db, id
-func (_m *MockQuerier) GetAccountOnboardingConfig(ctx context.Context, db DBTX, id pgtype.UUID) ([]byte, error) {
+func (_m *MockQuerier) GetAccountOnboardingConfig(ctx context.Context, db DBTX, id pgtype.UUID) (*pg_models.AccountOnboardingConfig, error) {
 	ret := _m.Called(ctx, db, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAccountOnboardingConfig")
 	}
 
-	var r0 []byte
+	var r0 *pg_models.AccountOnboardingConfig
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) ([]byte, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) (*pg_models.AccountOnboardingConfig, error)); ok {
 		return rf(ctx, db, id)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) []byte); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) *pg_models.AccountOnboardingConfig); ok {
 		r0 = rf(ctx, db, id)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]byte)
+			r0 = ret.Get(0).(*pg_models.AccountOnboardingConfig)
 		}
 	}
 
@@ -1330,12 +1330,12 @@ func (_c *MockQuerier_GetAccountOnboardingConfig_Call) Run(run func(ctx context.
 	return _c
 }
 
-func (_c *MockQuerier_GetAccountOnboardingConfig_Call) Return(_a0 []byte, _a1 error) *MockQuerier_GetAccountOnboardingConfig_Call {
+func (_c *MockQuerier_GetAccountOnboardingConfig_Call) Return(_a0 *pg_models.AccountOnboardingConfig, _a1 error) *MockQuerier_GetAccountOnboardingConfig_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockQuerier_GetAccountOnboardingConfig_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) ([]byte, error)) *MockQuerier_GetAccountOnboardingConfig_Call {
+func (_c *MockQuerier_GetAccountOnboardingConfig_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) (*pg_models.AccountOnboardingConfig, error)) *MockQuerier_GetAccountOnboardingConfig_Call {
 	_c.Call.Return(run)
 	return _c
 }
