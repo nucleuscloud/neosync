@@ -132,6 +132,7 @@ func serve(ctx context.Context) error {
 		transformerclient,
 		sqlconnector,
 		redisconfig,
+		getIsOtelEnabled(),
 	)
 	syncActivity := sync_activity.New(connclient, &sync.Map{}, temporalClient, activityMeter)
 

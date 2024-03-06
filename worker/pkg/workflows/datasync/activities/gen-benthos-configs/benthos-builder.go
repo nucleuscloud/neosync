@@ -49,6 +49,8 @@ type benthosBuilder struct {
 	runId string
 
 	redisConfig *shared.RedisConfig
+
+	metricsEnabled bool
 }
 
 func newBenthosBuilder(
@@ -67,6 +69,8 @@ func newBenthosBuilder(
 	jobId, runId string,
 
 	redisConfig *shared.RedisConfig,
+
+	metricsEnabled bool,
 ) *benthosBuilder {
 	return &benthosBuilder{
 		pgpool:            pgpool,
@@ -80,6 +84,7 @@ func newBenthosBuilder(
 		jobId:             jobId,
 		runId:             runId,
 		redisConfig:       redisConfig,
+		metricsEnabled:    metricsEnabled,
 	}
 }
 
@@ -544,10 +549,36 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	}
 
 	responses = append(responses, updateResponses...)
+
+	if b.metricsEnabled {
+		labels := metricLabels{
+			"neosyncAccountId":   job.AccountId,
+			"neosyncJobId":       job.Id,
+			"temporalWorkflowId": "${TEMPORAL_WORKFLOW_ID}",
+			"temporalRunId":      "${TEMPORAL_RUN_ID}",
+		}
+		for _, resp := range responses {
+			resp.Config.Metrics = &neosync_benthos.Metrics{
+				OtelCollector: &neosync_benthos.MetricsOtelCollector{},
+				Mapping:       getBenthosMetricsMapping(labels),
+			}
+		}
+	}
+
 	slogger.Info(fmt.Sprintf("successfully built %d benthos configs", len(responses)))
 	return &GenerateBenthosConfigsResponse{
 		BenthosConfigs: responses,
 	}, nil
+}
+
+type metricLabels = map[string]string
+
+func getBenthosMetricsMapping(labels metricLabels) string {
+	lines := []string{}
+	for key, value := range labels {
+		lines = append(lines, fmt.Sprintf("meta %s = %s", key, value))
+	}
+	return strings.Join(lines, "\n")
 }
 
 func getForeignKeyToSourceMap(tableDependencies map[string]*dbschemas_utils.TableConstraints) map[string]map[string]*dbschemas_utils.ForeignKey {

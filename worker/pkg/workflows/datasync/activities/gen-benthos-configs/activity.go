@@ -57,6 +57,8 @@ type Activity struct {
 
 	pgquerier    pg_queries.Querier
 	mysqlquerier mysql_queries.Querier
+
+	metricsEnabled bool
 }
 
 func New(
@@ -65,6 +67,7 @@ func New(
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	sqlconnector sqlconnect.SqlConnector,
 	redisConfig *shared.RedisConfig,
+	metricsEnabled bool,
 ) *Activity {
 	return &Activity{
 		jobclient:         jobclient,
@@ -74,6 +77,7 @@ func New(
 		redisConfig:       redisConfig,
 		pgquerier:         pg_queries.New(),
 		mysqlquerier:      mysql_queries.New(),
+		metricsEnabled:    metricsEnabled,
 	}
 }
 
@@ -120,6 +124,7 @@ func (a *Activity) GenerateBenthosConfigs(
 		req.JobId,
 		info.WorkflowExecution.RunID,
 		a.redisConfig,
+		a.metricsEnabled,
 	)
 	slogger := logger_utils.NewJsonSLogger().With(loggerKeyVals...)
 	return bbuilder.GenerateBenthosConfigs(ctx, req, slogger)

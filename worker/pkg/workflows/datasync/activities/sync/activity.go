@@ -218,7 +218,9 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		return nil, fmt.Errorf("unable to register pooled_sql_raw input to benthos instance: %w", err)
 	}
 
-	envKeyDnsMap := syncMapToStringMap(&envKeyDsnSyncMap)
+	envKeyMap := syncMapToStringMap(&envKeyDsnSyncMap)
+	envKeyMap["TEMPORAL_WORKFLOW_ID"] = info.WorkflowExecution.ID
+	envKeyMap["TEMPORAL_RUN_ID"] = info.WorkflowExecution.RunID
 
 	streambldr := benthosenv.NewStreamBuilder()
 	// would ideally use the activity logger here but can't convert it into a slog.
@@ -227,7 +229,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	))
 
 	// This must come before SetYaml as otherwise it will not be invoked
-	streambldr.SetEnvVarLookupFunc(getEnvVarLookupFn(envKeyDnsMap))
+	streambldr.SetEnvVarLookupFunc(getEnvVarLookupFn(envKeyMap))
 
 	err = streambldr.SetYAML(req.BenthosConfig)
 	if err != nil {
