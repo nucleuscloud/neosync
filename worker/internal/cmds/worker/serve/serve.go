@@ -13,6 +13,7 @@ import (
 	"connectrpc.com/grpchealth"
 	"connectrpc.com/grpcreflect"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	logger_utils "github.com/nucleuscloud/neosync/worker/internal/logger"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
@@ -120,7 +121,18 @@ func serve(ctx context.Context) error {
 	neosyncurl := shared.GetNeosyncUrl()
 	httpclient := shared.GetNeosyncHttpClient()
 	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(httpclient, neosyncurl)
+	jobclient := mgmtv1alpha1connect.NewJobServiceClient(httpclient, neosyncurl)
+	transformerclient := mgmtv1alpha1connect.NewTransformersServiceClient(httpclient, neosyncurl)
+	sqlconnector := &sqlconnect.SqlOpenConnector{}
+	redisconfig := shared.GetRedisConfig()
 
+	genbenthosActivity := genbenthosconfigs_activity.New(
+		jobclient,
+		connclient,
+		transformerclient,
+		sqlconnector,
+		redisconfig,
+	)
 	syncActivity := sync_activity.New(connclient, &sync.Map{}, temporalClient, activityMeter)
 
 	w.RegisterWorkflow(datasync_workflow.Workflow)
@@ -128,7 +140,7 @@ func serve(ctx context.Context) error {
 	w.RegisterActivity(syncactivityopts_activity.RetrieveActivityOptions)
 	w.RegisterActivity(runsqlinittablestmts_activity.RunSqlInitTableStatements)
 	w.RegisterActivity(syncrediscleanup_activity.DeleteRedisHash)
-	w.RegisterActivity(genbenthosconfigs_activity.GenerateBenthosConfigs)
+	w.RegisterActivity(genbenthosActivity.GenerateBenthosConfigs)
 
 	if err := w.Start(); err != nil {
 		return err

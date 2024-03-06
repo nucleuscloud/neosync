@@ -49,9 +49,10 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 
 	var bcResp *genbenthosconfigs_activity.GenerateBenthosConfigsResponse
 	logger.Info("scheduling GenerateBenthosConfigs for execution.")
-	err := workflow.ExecuteActivity(ctx, genbenthosconfigs_activity.GenerateBenthosConfigs, &genbenthosconfigs_activity.GenerateBenthosConfigsRequest{
+	var genbenthosactivity *genbenthosconfigs_activity.Activity
+	err := workflow.ExecuteActivity(ctx, genbenthosactivity.GenerateBenthosConfigs, &genbenthosconfigs_activity.GenerateBenthosConfigsRequest{
 		JobId: req.JobId,
-	}, workflowMetadata).Get(ctx, &bcResp)
+	}).Get(ctx, &bcResp)
 	if err != nil {
 		return nil, err
 	}
