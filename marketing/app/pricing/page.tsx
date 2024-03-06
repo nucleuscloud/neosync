@@ -81,7 +81,7 @@ function FreePlan(): ReactElement {
 
 function TeamPlan(): ReactElement {
   const features = [
-    '5M records/mo ($100/1M after)',
+    '5M records/mo ($60/1M after)',
     'Unlimited Jobs',
     '5 users ($10/user after)',
     'US Region (EU coming soon!)',
@@ -101,7 +101,7 @@ function TeamPlan(): ReactElement {
             <Badge variant="outline">Team</Badge>
           </div>
           <div className="flex justify-center flex-row gap-2">
-            <div className="text-3xl ">$400</div>
+            <div className="text-3xl ">$299</div>
             <div className="text-sm self-end pb-1">/mo</div>
           </div>
         </div>
@@ -324,7 +324,9 @@ function FAQs(): ReactElement {
             A record is a row of a table that is successfully inserted into the
             final destination. For ex, if you had 10 rows and then subsetted the
             dataset such that only 5 were sent to the destination, you would
-            only be charged for 5 rows.
+            only be charged for 5 rows. Additionally, if you have two tables
+            each with 10 rows and inserted both into one destination, then we
+            would count that as 20 rows.
           </AccordionContent>
         </AccordionItem>
         <AccordionItem value="item-2">
