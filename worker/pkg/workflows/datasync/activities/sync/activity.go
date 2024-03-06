@@ -100,6 +100,16 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 			select {
 			case <-time.After(1 * time.Second):
 				activity.RecordHeartbeat(ctx)
+			case <-activity.GetWorkerStopChannel(ctx):
+				if benthosStream != nil {
+					// this must be here because stream.Run(ctx) doesn't seem to fully obey a canceled context when
+					// a sink is in an error state. We want to explicitly call stop here because the workflow has been canceled.
+					err := benthosStream.Stop(ctx)
+					if err != nil {
+						logger.Error(err.Error())
+					}
+				}
+				return
 			case <-ctx.Done():
 				if benthosStream != nil {
 					// this must be here because stream.Run(ctx) doesn't seem to fully obey a canceled context when
@@ -151,7 +161,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		tunnelmanager.ReleaseSession(session)
 	}()
 
-	dsnToConnectionIdMap := map[string]string{}
+	dsnToConnectionIdMap := sync.Map{}
 	errgrp, errctx = errgroup.WithContext(ctx)
 	for idx, bdns := range req.BenthosDsns {
 		idx := idx
@@ -165,7 +175,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 				return err
 			}
 			envKeyDsnSyncMap.Store(bdns.EnvVarKey, localConnStr)
-			dsnToConnectionIdMap[localConnStr] = connection.Id
+			dsnToConnectionIdMap.Store(localConnStr, connection.Id)
 			return nil
 		})
 	}
@@ -174,11 +184,15 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	}
 
 	poolprovider := newPoolProvider(func(dsn string) (mysql_queries.DBTX, error) {
-		connid, ok := dsnToConnectionIdMap[dsn]
+		connid, ok := dsnToConnectionIdMap.Load(dsn)
 		if !ok {
 			return nil, errors.New("unable to find connection id by dsn when getting db pool")
 		}
-		connection, ok := connectionMap[connid]
+		connectionId, ok := connid.(string)
+		if !ok {
+			return nil, fmt.Errorf("unable to convert connection id to string. Type was %T", connectionId)
+		}
+		connection, ok := connectionMap[connectionId]
 		if !ok {
 			return nil, errors.New("unable to find connection by connection id when getting db pool")
 		}

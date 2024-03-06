@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
@@ -88,8 +89,8 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		return nil, err
 	}
 
-	started := map[string]struct{}{}   // sync map ???
-	completed := map[string][]string{} // sync map ???
+	started := sync.Map{}
+	completed := sync.Map{}
 
 	allDependsOn := map[string][]*tabledependency.DependsOn{} // configName -> dependson
 	redisConfigs := map[string]*genbenthosconfigs_activity.BenthosRedisConfig{}
@@ -111,7 +112,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	}
 	for _, bc := range splitConfigs.Root {
 		bc := bc
-		future := invokeSync(bc, childctx, started, completed, logger)
+		future := invokeSync(bc, childctx, &started, &completed, logger)
 		workselector.AddFuture(future, func(f workflow.Future) {
 			logger := log.With(logger, withBenthosConfigResponseLoggerTags(bc)...)
 			logger.Info("config sync completed")
@@ -148,14 +149,20 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		// todo: deadlock detection
 		for _, bc := range splitConfigs.Dependents {
 			bc := bc
-			if _, ok := started[bc.Name]; ok {
+			_, configStarted := started.Load(bc.Name)
+			if configStarted {
 				continue
 			}
-			if !isConfigReady(bc, completed) {
+			isReady, err := isConfigReady(bc, &completed)
+			if err != nil {
+				return nil, err
+			}
+
+			if !isReady {
 				continue
 			}
 
-			future := invokeSync(bc, childctx, started, completed, logger)
+			future := invokeSync(bc, childctx, &started, &completed, logger)
 			workselector.AddFuture(future, func(f workflow.Future) {
 				logger.Info("config sync completed", "name", bc.Name)
 				var result sync_activity.SyncResponse
@@ -249,15 +256,14 @@ func getSyncMetadata(config *genbenthosconfigs_activity.BenthosConfigResponse) *
 func invokeSync(
 	config *genbenthosconfigs_activity.BenthosConfigResponse,
 	ctx workflow.Context,
-	started map[string]struct{},
-	completed map[string][]string,
+	started, completed *sync.Map,
 	logger log.Logger,
 ) workflow.Future {
 	metadata := getSyncMetadata(config)
 	future, settable := workflow.NewFuture(ctx)
 	logger = log.With(logger, "name", config.Name, "metadata", metadata)
 	logger.Debug("triggering config sync")
-	started[config.Name] = struct{}{}
+	started.Store(config.Name, struct{}{})
 	workflow.GoNamed(ctx, config.Name, func(ctx workflow.Context) {
 		configbits, err := yaml.Marshal(config.Config)
 		if err != nil {
@@ -274,14 +280,11 @@ func invokeSync(
 			ctx,
 			activity.Sync,
 			&sync_activity.SyncRequest{BenthosConfig: string(configbits), BenthosDsns: config.BenthosDsns}, metadata).Get(ctx, &result)
-		// write a test for this
 		if err == nil {
 			tn := fmt.Sprintf("%s.%s", config.TableSchema, config.TableName)
-			_, ok := completed[tn]
-			if ok {
-				completed[tn] = append(completed[tn], config.Columns...)
-			} else {
-				completed[tn] = config.Columns
+			err = updateCompletedMap(tn, completed, config.Columns)
+			if err != nil {
+				settable.Set(result, err)
 			}
 		}
 		settable.Set(result, err)
@@ -289,27 +292,47 @@ func invokeSync(
 	return future
 }
 
-func isConfigReady(config *genbenthosconfigs_activity.BenthosConfigResponse, completed map[string][]string) bool {
+func updateCompletedMap(tableName string, completed *sync.Map, columns []string) error {
+	val, loaded := completed.Load(tableName)
+	if loaded {
+		currCols, ok := val.([]string)
+		if !ok {
+			return fmt.Errorf("unable to retrieve completed colums from completed map. Expected []string, received: %T", val)
+		}
+		currCols = append(currCols, columns...)
+		completed.Store(tableName, currCols)
+	} else {
+		completed.Store(tableName, columns)
+	}
+	return nil
+}
+
+func isConfigReady(config *genbenthosconfigs_activity.BenthosConfigResponse, completed *sync.Map) (bool, error) {
 	if config == nil {
-		return false
+		return false, nil
 	}
 
 	if len(config.DependsOn) == 0 {
-		return true
+		return true, nil
 	}
 	// check that all columns in dependency has been completed
 	for _, dep := range config.DependsOn {
-		if cols, ok := completed[dep.Table]; ok {
+		val, loaded := completed.Load(dep.Table)
+		if loaded {
+			completedCols, ok := val.([]string)
+			if !ok {
+				return false, fmt.Errorf("unable to retrieve completed colums from completed map. Expected []string, received: %T", val)
+			}
 			for _, dc := range dep.Columns {
-				if !slices.Contains(cols, dc) {
-					return false
+				if !slices.Contains(completedCols, dc) {
+					return false, nil
 				}
 			}
 		} else {
-			return false
+			return false, nil
 		}
 	}
-	return true
+	return true, nil
 }
 
 type SplitConfigs struct {
