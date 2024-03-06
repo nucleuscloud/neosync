@@ -15,6 +15,7 @@ interface Props {
 export default async function BaseLayout(props: Props): Promise<ReactElement> {
   const { children } = props;
   const session = await auth();
+
   return (
     <SessionProvider session={session}>
       <AccountProvider>
