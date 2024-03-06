@@ -6,48 +6,54 @@ import {
 } from '@/components/ui/popover';
 import { Progress } from '@/components/ui/progress';
 import {
+  ArrowRightIcon,
   CheckCircledIcon,
   CircleIcon,
   RocketIcon,
 } from '@radix-ui/react-icons';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Button } from '../ui/button';
+import { Separator } from '../ui/separator';
 
 const steps = [
   {
     id: '1',
     title: 'Create a source connection',
-    description: 'Create your source connection',
+    href: '/connections',
   },
   {
     id: '2',
     title: 'Create a destination connection',
-    description: 'Create your destination connection',
+    href: '/connections',
   },
   {
     id: '3',
     title: 'Create a job',
-    description: 'Create your first job',
+    href: '/jobs',
   },
   {
     id: '4',
     title: 'Invite teammates',
-    description: 'Invite your teammates to collaborate',
+    href: '/settings/',
   },
 ];
 
 export default function OnboardingChecklist() {
   const [progress, setProgress] = useState(13);
   const [complete, isComplete] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const router = useRouter();
 
   return (
-    <div className="fixed right-[120px] bottom-[20px] z-50 ">
-      <Popover>
+    <div className="fixed right-[160px] bottom-[20px] z-50 ">
+      <Popover onOpenChange={() => setIsOpen(isOpen ? false : true)}>
         <PopoverTrigger className="border border-gray-400 rounded-lg p-2">
-          Open Guide
+          {isOpen ? 'Close Guide' : 'Open Guide'}
         </PopoverTrigger>
-        <PopoverContent>
-          <div className="flex flex-col gap-6">
+        <PopoverContent className="w-[400px]">
+          <div className="flex flex-col gap-4 p-2">
             <div className="flex flex-col gap-2">
               <div className="flex flex-row gap-2 items-center">
                 <div>
@@ -63,9 +69,10 @@ export default function OnboardingChecklist() {
               <Progress value={progress} />
               <div>{progress}</div>
             </div>
-            <div className="flex flex-col gap-2">
+            <Separator />
+            <div className="flex flex-col gap-4">
               {steps.map((step, index) => (
-                <div className="flex flex-col justify-left ">
+                <div className="flex flex-row items-center justify-between">
                   <div
                     key={step.id}
                     className="flex flex-row items-center gap-2"
@@ -79,11 +86,20 @@ export default function OnboardingChecklist() {
                     </div>
                     <div className="text-md">{step.title}</div>
                   </div>
-                  <div className="text-xs pl-6">{step.description}</div>
+                  <Button
+                    variant="ghost"
+                    onClick={() => router.push(step.href)}
+                  >
+                    <ArrowRightIcon className="w-4 h-4" />
+                  </Button>
                 </div>
               ))}
             </div>
-            <Button variant="outline">Do not show again</Button>
+            <Separator />
+            <div className=" flex flex-row items-center justify-between pt-6">
+              <Button variant="outline">Don't show again</Button>
+              <Button variant="default">Complete</Button>
+            </div>
           </div>
         </PopoverContent>
       </Popover>
