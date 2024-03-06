@@ -285,7 +285,6 @@ func invokeSync(
 			err = updateCompletedMap(tn, completed, config.Columns)
 			if err != nil {
 				settable.Set(result, err)
-
 			}
 		}
 		settable.Set(result, err)
