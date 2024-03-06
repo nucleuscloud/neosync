@@ -25,6 +25,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
+	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/propagation"
 	metricsdk "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -53,6 +54,7 @@ func NewCmd() *cobra.Command {
 func serve(ctx context.Context) error {
 	logger, loglogger := logger_utils.NewLoggers()
 
+	var activityMeter metric.Meter
 	if getIsOtelEnabled() {
 		metricProvider, ok, err := getConfiguredMeterProvider(ctx)
 		if err != nil {
@@ -61,6 +63,7 @@ func serve(ctx context.Context) error {
 		otelConfig := &otelSetupConfig{}
 		if ok {
 			otelConfig.MeterProvider = metricProvider
+			activityMeter = metricProvider.Meter("sync_activity")
 		}
 		otelShutdown := setupOtelSdk(otelConfig)
 		defer func() {
@@ -118,7 +121,7 @@ func serve(ctx context.Context) error {
 	httpclient := shared.GetNeosyncHttpClient()
 	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(httpclient, neosyncurl)
 
-	syncActivity := sync_activity.New(connclient, &sync.Map{}, temporalClient)
+	syncActivity := sync_activity.New(connclient, &sync.Map{}, temporalClient, activityMeter)
 
 	w.RegisterWorkflow(datasync_workflow.Workflow)
 	w.RegisterActivity(syncActivity.Sync)

@@ -15,10 +15,12 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/redis"
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
 	"github.com/google/uuid"
+	benthos_metrics "github.com/nucleuscloud/neosync/worker/internal/benthos/metrics"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/redis"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/internal/benthos/sql"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
 	logger_utils "github.com/nucleuscloud/neosync/worker/internal/logger"
+	"go.opentelemetry.io/otel/metric"
 
 	"connectrpc.com/connect"
 	"github.com/benthosdev/benthos/v4/public/service"
@@ -48,14 +50,16 @@ func New(
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
 	tunnelmanagermap *sync.Map,
 	temporalclient client.Client,
+	meter metric.Meter,
 ) *Activity {
-	return &Activity{connclient: connclient, tunnelmanagermap: tunnelmanagermap, temporalclient: temporalclient}
+	return &Activity{connclient: connclient, tunnelmanagermap: tunnelmanagermap, temporalclient: temporalclient, meter: meter}
 }
 
 type Activity struct {
 	connclient       mgmtv1alpha1connect.ConnectionServiceClient
 	tunnelmanagermap *sync.Map
 	temporalclient   client.Client
+	meter            metric.Meter // optional
 }
 
 func (a *Activity) getTunnelManagerByRunId(wfId, runId string) (*ConnectionTunnelManager, error) {
@@ -154,6 +158,13 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	}
 
 	benthosenv := service.NewEnvironment()
+
+	if a.meter != nil {
+		err = benthos_metrics.RegisterOtelMetricsExporter(benthosenv, a.meter)
+		if err != nil {
+			return nil, fmt.Errorf("unable to register otel_collector for benthos metering: %w", err)
+		}
+	}
 
 	envKeyDsnSyncMap := sync.Map{}
 

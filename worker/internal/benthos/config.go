@@ -5,16 +5,16 @@ type BenthosConfig struct {
 	StreamConfig `json:",inline" yaml:",inline"`
 }
 
-type HTTPConfig struct {
-	Address string `json:"address" yaml:"address"`
-	Enabled bool   `json:"enabled" yaml:"enabled"`
-	// RootPath       string                     `json:"root_path" yaml:"root_path"`
-	// DebugEndpoints bool                       `json:"debug_endpoints" yaml:"debug_endpoints"`
-	// CertFile       string                     `json:"cert_file" yaml:"cert_file"`
-	// KeyFile        string                     `json:"key_file" yaml:"key_file"`
-	// CORS           httpserver.CORSConfig      `json:"cors" yaml:"cors"`
-	// BasicAuth      httpserver.BasicAuthConfig `json:"basic_auth" yaml:"basic_auth"`
-}
+// type HTTPConfig struct {
+// 	Address string `json:"address" yaml:"address"`
+// 	Enabled bool   `json:"enabled" yaml:"enabled"`
+// 	// RootPath       string                     `json:"root_path" yaml:"root_path"`
+// 	// DebugEndpoints bool                       `json:"debug_endpoints" yaml:"debug_endpoints"`
+// 	// CertFile       string                     `json:"cert_file" yaml:"cert_file"`
+// 	// KeyFile        string                     `json:"key_file" yaml:"key_file"`
+// 	// CORS           httpserver.CORSConfig      `json:"cors" yaml:"cors"`
+// 	// BasicAuth      httpserver.BasicAuthConfig `json:"basic_auth" yaml:"basic_auth"`
+// }
 
 type StreamConfig struct {
 	Input          *InputConfig           `json:"input" yaml:"input"`
@@ -22,6 +22,20 @@ type StreamConfig struct {
 	Pipeline       *PipelineConfig        `json:"pipeline" yaml:"pipeline"`
 	Output         *OutputConfig          `json:"output" yaml:"output"`
 	CacheResources []*CacheResourceConfig `json:"cache_resources,omitempty" yaml:"cache_resources,omitempty"`
+	Metrics        *Metrics               `json:"metrics,omitempty" yaml:"metrics,omitempty"`
+}
+
+type Metrics struct {
+	OtelCollector *MetricsOtelCollector `json:"otel_collector,omitempty" yaml:"otel_collector,omitempty"`
+	Mapping       string                `json:"mapping,omitempty" yaml:"mapping,omitempty"`
+}
+
+type MetricsOtelCollector struct {
+}
+type MetricsStatsD struct {
+	Address     string `json:"address" yaml:"address"`
+	FlushPeriod string `json:"flush_period,omitempty" yaml:"flush_period,omitempty"`
+	TagFormat   string `json:"tag_format,omitempty" yaml:"tag_format,omitempty"`
 }
 
 type CacheResourceConfig struct {
