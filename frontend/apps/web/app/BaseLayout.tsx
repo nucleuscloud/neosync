@@ -1,4 +1,5 @@
 import SiteFooter from '@/components/SiteFooter';
+import OnboardingChecklist from '@/components/onboarding-checklist/OnboardingChecklist';
 import AccountProvider from '@/components/providers/account-provider';
 import { PostHogIdentifier } from '@/components/providers/posthog-provider';
 import { SessionProvider } from '@/components/providers/session-provider';
@@ -27,6 +28,7 @@ export default async function BaseLayout(props: Props): Promise<ReactElement> {
           </div>
           <SiteFooter />
           <Toaster />
+          <OnboardingChecklist />
         </div>
       </AccountProvider>
     </SessionProvider>
