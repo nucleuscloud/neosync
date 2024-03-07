@@ -31,6 +31,7 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/pure/extended"
 	_ "github.com/benthosdev/benthos/v4/public/components/redis"
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
+	benthos_metrics "github.com/nucleuscloud/neosync/worker/internal/benthos/metrics"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/redis"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/internal/benthos/sql"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
@@ -194,6 +195,176 @@ output:
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
+	assert.NoError(t, err)
+	newSB := benthosenv.NewStreamBuilder()
+
+	// SetYAML parses a full Benthos config and uses it to configure the builder.
+	err = newSB.SetYAML(string(out))
+	assert.NoError(t, err)
+}
+
+func Test_BenthosBuilder_GenerateBenthosConfigs_Metrics(t *testing.T) {
+	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
+	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
+	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+
+	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
+
+	pgcache := map[string]pg_queries.DBTX{
+		"123": pg_queries.NewMockDBTX(t),
+		"456": pg_queries.NewMockDBTX(t),
+	}
+	pgquerier := pg_queries.NewMockQuerier(t)
+	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlquerier := mysql_queries.NewMockQuerier(t)
+
+	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
+		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
+			Job: &mgmtv1alpha1.Job{
+				AccountId: "test-account-id",
+				Id:        "test-job-id",
+				Source: &mgmtv1alpha1.JobSource{
+					Options: &mgmtv1alpha1.JobSourceOptions{
+						Config: &mgmtv1alpha1.JobSourceOptions_Generate{
+							Generate: &mgmtv1alpha1.GenerateSourceOptions{
+								Schemas: []*mgmtv1alpha1.GenerateSourceSchemaOption{
+									{
+										Schema: "public",
+										Tables: []*mgmtv1alpha1.GenerateSourceTableOption{
+											{
+												Table:    "users",
+												RowCount: 10,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				Mappings: []*mgmtv1alpha1.JobMapping{
+					{
+						Schema: "public",
+						Table:  "users",
+						Column: "id",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Source: "generate_uuid",
+							Config: &mgmtv1alpha1.TransformerConfig{
+								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
+									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
+										IncludeHyphens: true,
+									},
+								},
+							},
+						},
+					},
+					{
+						Schema: "public",
+						Table:  "users",
+						Column: "name",
+						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+							Source: "generate_ssn",
+							Config: &mgmtv1alpha1.TransformerConfig{
+								Config: &mgmtv1alpha1.TransformerConfig_GenerateSsnConfig{
+									GenerateSsnConfig: &mgmtv1alpha1.GenerateSSN{},
+								},
+							},
+						},
+					},
+				},
+				Destinations: []*mgmtv1alpha1.JobDestination{
+					{
+						ConnectionId: "456",
+					},
+				},
+			},
+		}), nil)
+
+	mockConnectionClient.On(
+		"GetConnection",
+		mock.Anything,
+		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+			Id: "456",
+		}),
+	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+		Connection: &mgmtv1alpha1.Connection{
+			Id:   "456",
+			Name: "stage",
+			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
+							Url: "fake-stage-url",
+						},
+					},
+				},
+			},
+		},
+	}), nil)
+
+	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil, true)
+	resp, err := bbuilder.GenerateBenthosConfigs(
+		context.Background(),
+		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
+		slog.Default(),
+	)
+	assert.Nil(t, err)
+	assert.NotEmpty(t, resp.BenthosConfigs)
+	assert.Len(t, resp.BenthosConfigs, 1)
+	bc := resp.BenthosConfigs[0]
+	assert.Equal(t, bc.Name, "public.users")
+	assert.Empty(t, bc.DependsOn)
+	out, err := yaml.Marshal(bc.Config)
+	assert.NoError(t, err)
+	assert.Equal(
+		t,
+		strings.TrimSpace(`
+input:
+    label: ""
+    generate:
+        mapping: |-
+            root."id" = generate_uuid(include_hyphens:true)
+            root."name" = generate_ssn()
+        interval: ""
+        count: 10
+pipeline:
+    threads: -1
+    processors: []
+output:
+    label: ""
+    broker:
+        pattern: fan_out
+        outputs:
+            - pooled_sql_raw:
+                driver: postgres
+                dsn: ${DESTINATION_0_CONNECTION_DSN}
+                query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
+                args_mapping: root = [this."id", this."name"]
+                init_statement: ""
+                batching:
+                    count: 100
+                    byte_size: 0
+                    period: 5s
+                    check: ""
+                    processors: []
+metrics:
+    otel_collector: {}
+    mapping: |-
+        meta neosyncAccountId = "test-account-id"
+        meta neosyncJobId = "test-job-id"
+        meta temporalWorkflowId = "${TEMPORAL_WORKFLOW_ID}"
+        meta temporalRunId = "${TEMPORAL_RUN_ID}"
+`),
+		strings.TrimSpace(string(out)),
+	)
+
+	// create a new streambuilder instance so we can access the SetYaml method
+	benthosenv := service.NewEnvironment()
+	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = benthos_metrics.RegisterOtelMetricsExporter(benthosenv, nil)
 	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
