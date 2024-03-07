@@ -121,7 +121,6 @@ export default function OnboardingChecklist() {
       });
       setIsOpen(false);
     } catch (e) {
-      console.log('unable to complete form');
       toast({
         title: 'Unable to complete onboarding',
         variant: 'destructive',
