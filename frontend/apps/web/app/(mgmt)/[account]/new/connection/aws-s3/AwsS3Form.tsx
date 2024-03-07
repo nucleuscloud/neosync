@@ -3,6 +3,7 @@ import ButtonText from '@/components/ButtonText';
 import FormError from '@/components/FormError';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
+import { setOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import SwitchCard from '@/components/switches/SwitchCard';
@@ -19,6 +20,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/use-toast';
+import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
 import { AWSFormValues, AWS_FORM_SCHEMA } from '@/yup-validations/connections';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
@@ -39,6 +41,9 @@ export default function AwsS3Form() {
   const { account } = useAccount();
   const sourceConnId = searchParams.get('sourceId');
   const [isLoading, setIsLoading] = useState<boolean>();
+  const { data: onboardingData, mutate } = useGetAccountOnboardingConfig(
+    account?.id ?? ''
+  );
   const form = useForm<AWSFormValues>({
     resolver: yupResolver(AWS_FORM_SCHEMA),
     defaultValues: {
@@ -61,6 +66,43 @@ export default function AwsS3Form() {
         values.connectionName,
         account.id
       );
+
+      // updates the onboarding data
+      if (onboardingData?.config?.hasCreatedSourceConnection) {
+        try {
+          await setOnboardingConfig(account.id, {
+            hasCreatedSourceConnection:
+              onboardingData.config.hasCreatedSourceConnection,
+            hasCreatedDestinationConnection: true,
+            hasCreatedJob: onboardingData.config.hasCreatedJob,
+            hasInvitedMembers: onboardingData.config.hasInvitedMembers,
+          });
+          mutate();
+        } catch (e) {
+          toast({
+            title: 'Unable to update onboarding status!',
+            variant: 'destructive',
+          });
+        }
+      } else {
+        try {
+          await setOnboardingConfig(account.id, {
+            hasCreatedSourceConnection: true,
+            hasCreatedDestinationConnection:
+              onboardingData?.config?.hasCreatedSourceConnection ?? true,
+            hasCreatedJob: onboardingData?.config?.hasCreatedJob ?? true,
+            hasInvitedMembers:
+              onboardingData?.config?.hasInvitedMembers ?? true,
+          });
+          mutate();
+        } catch (e) {
+          toast({
+            title: 'Unable to update onboarding status!',
+            variant: 'destructive',
+          });
+        }
+      }
+
       const returnTo = searchParams.get('returnTo');
       if (returnTo) {
         router.push(returnTo);

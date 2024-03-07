@@ -11,7 +11,12 @@ import {
   SetAccountOnboardingConfigRequest,
   SetAccountOnboardingConfigResponse,
 } from '@neosync/sdk';
-import { ArrowRightIcon, CircleIcon, RocketIcon } from '@radix-ui/react-icons';
+import {
+  ArrowRightIcon,
+  ChevronDownIcon,
+  CircleIcon,
+  RocketIcon,
+} from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { FaCheckCircle } from 'react-icons/fa';
@@ -19,12 +24,13 @@ import { useAccount } from '../providers/account-provider';
 import { Button } from '../ui/button';
 import { Separator } from '../ui/separator';
 import { Skeleton } from '../ui/skeleton';
+import { toast } from '../ui/use-toast';
 
 interface OnboardingValues {
   hasCreatedSourceConnection: boolean;
   hasCreatedDestinationConnection: boolean;
   hasCreatedJob: boolean;
-  hasInvitedMembers: boolean;
+  hasInvitedMembers?: boolean;
 }
 
 interface Step {
@@ -50,24 +56,30 @@ const stepsMap = {
 
 export default function OnboardingChecklist() {
   const { account } = useAccount();
-  const { data, isLoading } = useGetAccountOnboardingConfig(account?.id ?? '');
+  const { data, isLoading, isValidating } = useGetAccountOnboardingConfig(
+    account?.id ?? ''
+  );
   const [progress, setProgress] = useState<number>(0);
   const [isOpen, setIsOpen] = useState(false);
-  const [error, setError] = useState(false);
   const [values, setValues] = useState<Step[]>([]);
   const [showGuide, setShowGuide] = useState<boolean>(false);
 
   useEffect(() => {
     if (data?.config) {
-      // check if any of the steps are false, if so, then surface the guide
-      Object.entries(data.config).map(([key, value]) => {
-        if (value == false) {
-          setShowGuide(true);
-        }
-      });
+      // if account is a personal account remove the invite a team member step
+      const updatedConfig =
+        account?.type == 1
+          ? (({ hasInvitedMembers, ...rest }) => rest)(data.config)
+          : data.config;
 
-      // consstruct the stepsArray so that we can map over it.
-      const stepsArray = Object.entries(data.config).map(([key, value]) => {
+      // check if any of the steps are false, if so, then surface the guide
+      if (account?.type == 1 && !didUserCompleteOnboarding(updatedConfig)) {
+        setShowGuide(true);
+        setIsOpen(true);
+      }
+
+      // construct the stepsArray so that we can map over it.
+      const stepsArray = Object.entries(updatedConfig).map(([key, value]) => {
         return {
           id: key,
           title: stepsMap[key as keyof typeof stepsMap].title,
@@ -76,12 +88,15 @@ export default function OnboardingChecklist() {
         };
       });
       setValues(stepsArray);
+
       // calculate the progress percentage
-      const progressPercentage = calculateProgress(data.config);
+      const progressPercentage =
+        account?.type == 1
+          ? calculateProgress(updatedConfig)
+          : calculateProgress(data.config);
       setProgress(progressPercentage);
     }
-    // we're always doing a wholesale replace when we update the db so including just one field in the dependency array should be fine
-  }, [data?.config?.hasCreatedDestinationConnection]);
+  }, [isValidating]);
 
   const router = useRouter();
 
@@ -96,6 +111,7 @@ export default function OnboardingChecklist() {
         step.id === step.id ? { ...step, complete: true } : step
       )
     );
+    setShowGuide(false);
     try {
       await setOnboardingConfig(account?.id ?? '', {
         hasCreatedDestinationConnection: true,
@@ -106,22 +122,36 @@ export default function OnboardingChecklist() {
       setIsOpen(false);
     } catch (e) {
       console.log('unable to complete form');
-      setError(true);
+      toast({
+        title: 'Unable to complete onboarding',
+        variant: 'destructive',
+      });
     }
   }
 
   return (
     <>
       {showGuide && (
-        <div className="fixed right-[160px] bottom-[20px] z-50">
+        <div className="fixed right-[20px] bottom-[20px] z-50">
           <Popover
-            onOpenChange={() => setIsOpen(isOpen ? false : true)}
+            onOpenChange={(open) => {
+              if (open) {
+                setIsOpen(true);
+              }
+            }}
             open={isOpen}
           >
-            <PopoverTrigger className="border border-gray-300 rounded-lg p-2">
-              {isOpen ? 'Close Guide' : 'Open Guide'}
+            <PopoverTrigger className="border border-gray-300 shadow-lg rounded-lg p-2 text-sm hover:bg-gray-100">
+              <div className="flex flex-row items-center gap-2">
+                <div>Onboarding Guide</div>
+                <div
+                  className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                >
+                  <ChevronDownIcon className="w-4 h-4" />
+                </div>
+              </div>
             </PopoverTrigger>
-            <PopoverContent className="w-[400px]">
+            <PopoverContent className="w-[400px]" sideOffset={10} align="end">
               <div className="flex flex-col gap-4 p-2">
                 <div className="flex flex-col gap-2">
                   <div className="flex flex-row gap-2 items-center">
@@ -168,8 +198,11 @@ export default function OnboardingChecklist() {
                     </div>
                   ))}
                 </div>
-                <Separator />
-                <div className=" flex flex-row items-center justify-end pt-6">
+
+                <div className=" flex flex-row items-center justify-between pt-6">
+                  <Button variant="outline" onClick={() => setIsOpen(false)}>
+                    Close
+                  </Button>
                   <Button variant="default" onClick={completeForm}>
                     Complete
                   </Button>
@@ -186,16 +219,14 @@ export default function OnboardingChecklist() {
 function calculateProgress(data: OnboardingValues): number {
   const totalSteps = Object.keys(data).length;
   const completedSteps = Object.values(data).filter(Boolean).length;
-  return (completedSteps / totalSteps) * 100;
+  return Math.round((completedSteps / totalSteps) * 100);
 }
 
-function didUserCompleteOnboarding(data: OnboardingValues): number {
-  const totalSteps = Object.keys(data).length;
-  const completedSteps = Object.values(data).filter(Boolean).length;
-  return (completedSteps / totalSteps) * 100;
+function didUserCompleteOnboarding(data: OnboardingValues): boolean {
+  return Object.values(data).every(Boolean);
 }
 
-async function setOnboardingConfig(
+export async function setOnboardingConfig(
   accountId: string,
   values: OnboardingValues
 ): Promise<SetAccountOnboardingConfigResponse> {
