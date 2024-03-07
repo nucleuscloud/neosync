@@ -4,6 +4,7 @@ services:
     image: otel/opentelemetry-collector-contrib:0.96.0
     networks:
       - neosync-network
+      - metrics
     volumes:
       - $PWD/hack/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
     ports:
@@ -15,6 +16,29 @@ services:
       - 4318:4318 # OTLP http receiver
       - 55679:55679 # zpages extension
 
+  prometheus:
+    container_name: neosync-prom
+    image: prom/prometheus
+    networks:
+      - metrics
+    volumes:
+      - $PWD/hack/prometheus.yaml:/etc/prometheus/prometheus.yml
+    ports:
+      - 9090:9090
+
+  grafana:
+    container_name: neosync-grafana
+    image: grafana/grafana-enterprise
+    networks:
+      - metrics
+    ports:
+      - 3003:3000
+    volumes:
+      - $PWD/.data/grafana:/var/lib/grafana
+
 networks:
   neosync-network:
     external: true
+  metrics:
+    driver: bridge
+    name: metrics
