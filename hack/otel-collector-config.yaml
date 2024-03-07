@@ -5,12 +5,14 @@ receivers:
         endpoint: 0.0.0.0:4317
       http:
         endpoint: 0.0.0.0:4318
-# processors:
-#   batch:
+processors:
+  batch:
 
 exporters:
   debug:
     verbosity: detailed
+  prometheus:
+    endpoint: "0.0.0.0:8889"
 # extensions:
 #   health_check:
 #   pprof:
@@ -25,8 +27,8 @@ service:
     #   exporters: [otlp]
     metrics:
       receivers: [otlp]
-      # processors: [batch]
-      exporters: [debug]
+      processors: [batch]
+      exporters: [debug, prometheus]
     # logs:
     #   receivers: [otlp]
     #   processors: [batch]
