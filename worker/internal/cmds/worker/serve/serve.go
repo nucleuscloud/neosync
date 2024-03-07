@@ -299,6 +299,10 @@ func getConfiguredMeterProvider(ctx context.Context) (*metricsdk.MeterProvider, 
 }
 
 func getIsOtelEnabled() bool {
+	isDisabledStr := viper.GetString("OTEL_SDK_DISABLED")
+	if isDisabledStr == "" {
+		return false
+	}
 	return !viper.GetBool("OTEL_SDK_DISABLED")
 }
 
