@@ -115,7 +115,9 @@ export default function OnboardingChecklist() {
         step.id === step.id ? { ...step, complete: true } : step
       )
     );
-    setShowGuide(false);
+    setTimeout(() => {
+      setShowGuide(false);
+    }, 1000);
     try {
       await setOnboardingConfig(account?.id ?? '', {
         hasCreatedDestinationConnection: true,
