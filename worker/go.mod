@@ -11,6 +11,7 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/benthosdev/benthos/v4 v4.25.1
 	github.com/doug-martin/goqu/v9 v9.19.0
+	github.com/go-logr/logr v1.4.1
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.5.4
 	github.com/nucleuscloud/neosync/backend v0.0.0-20231203015621-7d46ef5b9957
@@ -122,7 +123,6 @@ require (
 	github.com/go-faker/faker/v4 v4.3.0 // indirect
 	github.com/go-faster/city v1.0.1 // indirect
 	github.com/go-faster/errors v0.6.1 // indirect
-	github.com/go-logr/logr v1.4.1 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect
 	github.com/go-sql-driver/mysql v1.7.1 // indirect
