@@ -28,11 +28,11 @@ otel:
 resources:
   # These are low-usage defaults. Change these depending on your needs.
   requests:
-    cpu: '100m'
-    memory: '128Mi'
+    cpu: "100m"
+    memory: "128Mi"
   limits:
-    cpu: '300m'
-    memory: '384Mi'
+    cpu: "300m"
+    memory: "384Mi"
 
 autoscaling:
   enabled: true
@@ -86,3 +86,6 @@ nodeSelector: {}
 
 volumes: []
 volumeMounts: []
+
+# Provide extra environment variables that will be applied to the deployment.
+extraEnvVars: []

@@ -46,15 +46,50 @@ type BenthosConfigResponse struct {
 	updateConfig   *tabledependency.RunConfig
 }
 
-func GenerateBenthosConfigs(
+type Activity struct {
+	jobclient         mgmtv1alpha1connect.JobServiceClient
+	connclient        mgmtv1alpha1connect.ConnectionServiceClient
+	transformerclient mgmtv1alpha1connect.TransformersServiceClient
+
+	sqlconnector sqlconnect.SqlConnector
+
+	redisConfig *shared.RedisConfig
+
+	pgquerier    pg_queries.Querier
+	mysqlquerier mysql_queries.Querier
+
+	metricsEnabled bool
+}
+
+func New(
+	jobclient mgmtv1alpha1connect.JobServiceClient,
+	connclient mgmtv1alpha1connect.ConnectionServiceClient,
+	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
+	sqlconnector sqlconnect.SqlConnector,
+	redisConfig *shared.RedisConfig,
+	metricsEnabled bool,
+) *Activity {
+	return &Activity{
+		jobclient:         jobclient,
+		connclient:        connclient,
+		transformerclient: transformerclient,
+		sqlconnector:      sqlconnector,
+		redisConfig:       redisConfig,
+		pgquerier:         pg_queries.New(),
+		mysqlquerier:      mysql_queries.New(),
+		metricsEnabled:    metricsEnabled,
+	}
+}
+
+func (a *Activity) GenerateBenthosConfigs(
 	ctx context.Context,
 	req *GenerateBenthosConfigsRequest,
-	wfmetadata *shared.WorkflowMetadata,
 ) (*GenerateBenthosConfigsResponse, error) {
+	info := activity.GetInfo(ctx)
 	loggerKeyVals := []any{
 		"jobId", req.JobId,
-		"WorkflowID", wfmetadata.WorkflowId,
-		"RunID", wfmetadata.RunId,
+		"WorkflowID", info.WorkflowExecution.ID,
+		"RunID", info.WorkflowExecution.RunID,
 	}
 	logger := log.With(
 		activity.GetLogger(ctx),
@@ -66,47 +101,30 @@ func GenerateBenthosConfigs(
 			select {
 			case <-time.After(1 * time.Second):
 				activity.RecordHeartbeat(ctx)
+			case <-activity.GetWorkerStopChannel(ctx):
+				return
 			case <-ctx.Done():
 				return
 			}
 		}
 	}()
 
-	redisConfig := shared.GetRedisConfig()
-	neosyncUrl := shared.GetNeosyncUrl()
-	httpClient := shared.GetNeosyncHttpClient()
-
 	pgpoolmap := map[string]pg_queries.DBTX{}
-	pgquerier := pg_queries.New()
 	mysqlpoolmap := map[string]mysql_queries.DBTX{}
-	mysqlquerier := mysql_queries.New()
 
-	jobclient := mgmtv1alpha1connect.NewJobServiceClient(
-		httpClient,
-		neosyncUrl,
-	)
-
-	transformerclient := mgmtv1alpha1connect.NewTransformersServiceClient(
-		httpClient,
-		neosyncUrl,
-	)
-
-	connclient := mgmtv1alpha1connect.NewConnectionServiceClient(
-		httpClient,
-		neosyncUrl,
-	)
 	bbuilder := newBenthosBuilder(
 		pgpoolmap,
-		pgquerier,
+		a.pgquerier,
 		mysqlpoolmap,
-		mysqlquerier,
-		jobclient,
-		connclient,
-		transformerclient,
-		&sqlconnect.SqlOpenConnector{},
+		a.mysqlquerier,
+		a.jobclient,
+		a.connclient,
+		a.transformerclient,
+		a.sqlconnector,
 		req.JobId,
-		wfmetadata.RunId,
-		redisConfig,
+		info.WorkflowExecution.RunID,
+		a.redisConfig,
+		a.metricsEnabled,
 	)
 	slogger := logger_utils.NewJsonSLogger().With(loggerKeyVals...)
 	return bbuilder.GenerateBenthosConfigs(ctx, req, slogger)
