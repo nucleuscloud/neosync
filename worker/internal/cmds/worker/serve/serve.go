@@ -12,6 +12,7 @@ import (
 
 	"connectrpc.com/grpchealth"
 	"connectrpc.com/grpcreflect"
+	"github.com/go-logr/logr"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	logger_utils "github.com/nucleuscloud/neosync/worker/internal/logger"
@@ -57,6 +58,7 @@ func serve(ctx context.Context) error {
 
 	var activityMeter metric.Meter
 	if getIsOtelEnabled() {
+		otel.SetLogger(logr.FromSlogHandler(logger.Handler()))
 		metricProvider, ok, err := getConfiguredMeterProvider(ctx)
 		if err != nil {
 			return err

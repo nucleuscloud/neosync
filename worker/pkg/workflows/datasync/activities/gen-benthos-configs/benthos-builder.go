@@ -576,7 +576,7 @@ type metricLabels = map[string]string
 func getBenthosMetricsMapping(labels metricLabels) string {
 	lines := []string{}
 	for key, value := range labels {
-		lines = append(lines, fmt.Sprintf("meta %s = %s", key, value))
+		lines = append(lines, fmt.Sprintf("meta %s = %q", key, value))
 	}
 	return strings.Join(lines, "\n")
 }
