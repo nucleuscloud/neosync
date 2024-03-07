@@ -68,7 +68,10 @@ export default function AwsS3Form() {
       );
 
       // updates the onboarding data
-      if (onboardingData?.config?.hasCreatedSourceConnection) {
+      if (
+        onboardingData?.config?.hasCreatedSourceConnection &&
+        !onboardingData?.config.hasCreatedDestinationConnection
+      ) {
         try {
           await setOnboardingConfig(account.id, {
             hasCreatedSourceConnection:

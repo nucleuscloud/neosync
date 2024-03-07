@@ -84,7 +84,9 @@ func (s *Service) SetAccountOnboardingConfig(
 	}
 
 	tc := &pg_models.AccountOnboardingConfig{}
-	tc.FromDto(req.Msg.Config)
+	if req.Msg.Config != nil {
+		tc.FromDto(req.Msg.Config)
+	}
 
 	account, err := s.db.Q.UpdateAccountOnboardingConfig(ctx, s.db.Db, db_queries.UpdateAccountOnboardingConfigParams{
 		OnboardingConfig: tc,

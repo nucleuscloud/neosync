@@ -826,8 +826,8 @@ func (t *AccountOnboardingConfig) ToDto() *mgmtv1alpha1.AccountOnboardingConfig 
 }
 
 func (t *AccountOnboardingConfig) FromDto(dto *mgmtv1alpha1.AccountOnboardingConfig) {
-	t.HasCreatedSourceConnection = dto.HasCreatedSourceConnection
-	t.HasCreatedDestinationConnection = dto.HasCreatedDestinationConnection
-	t.HasCreatedJob = dto.HasCreatedJob
-	t.HasInvitedMembers = dto.HasInvitedMembers
+	t.HasCreatedSourceConnection = dto.GetHasCreatedSourceConnection()
+	t.HasCreatedDestinationConnection = dto.GetHasCreatedDestinationConnection()
+	t.HasCreatedJob = dto.GetHasCreatedJob()
+	t.HasInvitedMembers = dto.GetHasInvitedMembers()
 }

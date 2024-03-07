@@ -10,6 +10,7 @@ import {
   AccountOnboardingConfig,
   SetAccountOnboardingConfigRequest,
   SetAccountOnboardingConfigResponse,
+  UserAccountType,
 } from '@neosync/sdk';
 import {
   ArrowRightIcon,
@@ -68,12 +69,15 @@ export default function OnboardingChecklist() {
     if (data?.config) {
       // if account is a personal account remove the invite a team member step
       const updatedConfig =
-        account?.type == 1
+        account?.type == UserAccountType.PERSONAL
           ? (({ hasInvitedMembers, ...rest }) => rest)(data.config)
           : data.config;
 
       // check if any of the steps are false, if so, then surface the guide
-      if (account?.type == 1 && !didUserCompleteOnboarding(updatedConfig)) {
+      if (
+        account?.type == UserAccountType.PERSONAL &&
+        !didUserCompleteOnboarding(updatedConfig)
+      ) {
         setShowGuide(true);
         setIsOpen(true);
       }
@@ -91,7 +95,7 @@ export default function OnboardingChecklist() {
 
       // calculate the progress percentage
       const progressPercentage =
-        account?.type == 1
+        account?.type == UserAccountType.PERSONAL
           ? calculateProgress(updatedConfig)
           : calculateProgress(data.config);
       setProgress(progressPercentage);
@@ -140,7 +144,7 @@ export default function OnboardingChecklist() {
             }}
             open={isOpen}
           >
-            <PopoverTrigger className="border border-gray-300 shadow-lg rounded-lg p-2 text-sm hover:bg-gray-100">
+            <PopoverTrigger className="border border-gray-300 dark:border-gray-700 shadow-lg rounded-lg p-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">
               <div className="flex flex-row items-center gap-2">
                 <div>Onboarding Guide</div>
                 <div
