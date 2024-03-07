@@ -4155,3 +4155,624 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GetSystemInformationResponseValidationError{}
+
+// Validate checks the field values on GetAccountOnboardingConfigRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *GetAccountOnboardingConfigRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetAccountOnboardingConfigRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// GetAccountOnboardingConfigRequestMultiError, or nil if none found.
+func (m *GetAccountOnboardingConfigRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetAccountOnboardingConfigRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for AccountId
+
+	if len(errors) > 0 {
+		return GetAccountOnboardingConfigRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetAccountOnboardingConfigRequestMultiError is an error wrapping multiple
+// validation errors returned by
+// GetAccountOnboardingConfigRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetAccountOnboardingConfigRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetAccountOnboardingConfigRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetAccountOnboardingConfigRequestMultiError) AllErrors() []error { return m }
+
+// GetAccountOnboardingConfigRequestValidationError is the validation error
+// returned by GetAccountOnboardingConfigRequest.Validate if the designated
+// constraints aren't met.
+type GetAccountOnboardingConfigRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetAccountOnboardingConfigRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetAccountOnboardingConfigRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetAccountOnboardingConfigRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetAccountOnboardingConfigRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetAccountOnboardingConfigRequestValidationError) ErrorName() string {
+	return "GetAccountOnboardingConfigRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetAccountOnboardingConfigRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetAccountOnboardingConfigRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetAccountOnboardingConfigRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetAccountOnboardingConfigRequestValidationError{}
+
+// Validate checks the field values on GetAccountOnboardingConfigResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *GetAccountOnboardingConfigResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetAccountOnboardingConfigResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// GetAccountOnboardingConfigResponseMultiError, or nil if none found.
+func (m *GetAccountOnboardingConfigResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetAccountOnboardingConfigResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetConfig()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetAccountOnboardingConfigResponseValidationError{
+					field:  "Config",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetAccountOnboardingConfigResponseValidationError{
+					field:  "Config",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetAccountOnboardingConfigResponseValidationError{
+				field:  "Config",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetAccountOnboardingConfigResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetAccountOnboardingConfigResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// GetAccountOnboardingConfigResponse.ValidateAll() if the designated
+// constraints aren't met.
+type GetAccountOnboardingConfigResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetAccountOnboardingConfigResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetAccountOnboardingConfigResponseMultiError) AllErrors() []error { return m }
+
+// GetAccountOnboardingConfigResponseValidationError is the validation error
+// returned by GetAccountOnboardingConfigResponse.Validate if the designated
+// constraints aren't met.
+type GetAccountOnboardingConfigResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetAccountOnboardingConfigResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetAccountOnboardingConfigResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetAccountOnboardingConfigResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetAccountOnboardingConfigResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetAccountOnboardingConfigResponseValidationError) ErrorName() string {
+	return "GetAccountOnboardingConfigResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetAccountOnboardingConfigResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetAccountOnboardingConfigResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetAccountOnboardingConfigResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetAccountOnboardingConfigResponseValidationError{}
+
+// Validate checks the field values on SetAccountOnboardingConfigRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *SetAccountOnboardingConfigRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SetAccountOnboardingConfigRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// SetAccountOnboardingConfigRequestMultiError, or nil if none found.
+func (m *SetAccountOnboardingConfigRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SetAccountOnboardingConfigRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for AccountId
+
+	if all {
+		switch v := interface{}(m.GetConfig()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SetAccountOnboardingConfigRequestValidationError{
+					field:  "Config",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SetAccountOnboardingConfigRequestValidationError{
+					field:  "Config",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SetAccountOnboardingConfigRequestValidationError{
+				field:  "Config",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SetAccountOnboardingConfigRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// SetAccountOnboardingConfigRequestMultiError is an error wrapping multiple
+// validation errors returned by
+// SetAccountOnboardingConfigRequest.ValidateAll() if the designated
+// constraints aren't met.
+type SetAccountOnboardingConfigRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SetAccountOnboardingConfigRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SetAccountOnboardingConfigRequestMultiError) AllErrors() []error { return m }
+
+// SetAccountOnboardingConfigRequestValidationError is the validation error
+// returned by SetAccountOnboardingConfigRequest.Validate if the designated
+// constraints aren't met.
+type SetAccountOnboardingConfigRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SetAccountOnboardingConfigRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SetAccountOnboardingConfigRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SetAccountOnboardingConfigRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SetAccountOnboardingConfigRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SetAccountOnboardingConfigRequestValidationError) ErrorName() string {
+	return "SetAccountOnboardingConfigRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SetAccountOnboardingConfigRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSetAccountOnboardingConfigRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SetAccountOnboardingConfigRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SetAccountOnboardingConfigRequestValidationError{}
+
+// Validate checks the field values on SetAccountOnboardingConfigResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *SetAccountOnboardingConfigResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SetAccountOnboardingConfigResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// SetAccountOnboardingConfigResponseMultiError, or nil if none found.
+func (m *SetAccountOnboardingConfigResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SetAccountOnboardingConfigResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetConfig()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SetAccountOnboardingConfigResponseValidationError{
+					field:  "Config",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SetAccountOnboardingConfigResponseValidationError{
+					field:  "Config",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SetAccountOnboardingConfigResponseValidationError{
+				field:  "Config",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SetAccountOnboardingConfigResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// SetAccountOnboardingConfigResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// SetAccountOnboardingConfigResponse.ValidateAll() if the designated
+// constraints aren't met.
+type SetAccountOnboardingConfigResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SetAccountOnboardingConfigResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SetAccountOnboardingConfigResponseMultiError) AllErrors() []error { return m }
+
+// SetAccountOnboardingConfigResponseValidationError is the validation error
+// returned by SetAccountOnboardingConfigResponse.Validate if the designated
+// constraints aren't met.
+type SetAccountOnboardingConfigResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SetAccountOnboardingConfigResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SetAccountOnboardingConfigResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SetAccountOnboardingConfigResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SetAccountOnboardingConfigResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SetAccountOnboardingConfigResponseValidationError) ErrorName() string {
+	return "SetAccountOnboardingConfigResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SetAccountOnboardingConfigResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSetAccountOnboardingConfigResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SetAccountOnboardingConfigResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SetAccountOnboardingConfigResponseValidationError{}
+
+// Validate checks the field values on AccountOnboardingConfig with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AccountOnboardingConfig) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AccountOnboardingConfig with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AccountOnboardingConfigMultiError, or nil if none found.
+func (m *AccountOnboardingConfig) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AccountOnboardingConfig) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for HasCreatedSourceConnection
+
+	// no validation rules for HasCreatedDestinationConnection
+
+	// no validation rules for HasCreatedJob
+
+	// no validation rules for HasInvitedMembers
+
+	if len(errors) > 0 {
+		return AccountOnboardingConfigMultiError(errors)
+	}
+
+	return nil
+}
+
+// AccountOnboardingConfigMultiError is an error wrapping multiple validation
+// errors returned by AccountOnboardingConfig.ValidateAll() if the designated
+// constraints aren't met.
+type AccountOnboardingConfigMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AccountOnboardingConfigMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AccountOnboardingConfigMultiError) AllErrors() []error { return m }
+
+// AccountOnboardingConfigValidationError is the validation error returned by
+// AccountOnboardingConfig.Validate if the designated constraints aren't met.
+type AccountOnboardingConfigValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AccountOnboardingConfigValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AccountOnboardingConfigValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AccountOnboardingConfigValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AccountOnboardingConfigValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AccountOnboardingConfigValidationError) ErrorName() string {
+	return "AccountOnboardingConfigValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AccountOnboardingConfigValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAccountOnboardingConfig.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AccountOnboardingConfigValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AccountOnboardingConfigValidationError{}

@@ -152,7 +152,7 @@ INSERT INTO neosync_api.accounts (
 ) VALUES (
   0, $1
 )
-RETURNING id, created_at, updated_at, account_type, account_slug, temporal_config
+RETURNING id, created_at, updated_at, account_type, account_slug, temporal_config, onboarding_config
 `
 
 func (q *Queries) CreatePersonalAccount(ctx context.Context, db DBTX, accountSlug string) (NeosyncApiAccount, error) {
@@ -165,6 +165,7 @@ func (q *Queries) CreatePersonalAccount(ctx context.Context, db DBTX, accountSlu
 		&i.AccountType,
 		&i.AccountSlug,
 		&i.TemporalConfig,
+		&i.OnboardingConfig,
 	)
 	return i, err
 }
@@ -175,7 +176,7 @@ INSERT INTO neosync_api.accounts (
 ) VALUES (
   1, $1
 )
-RETURNING id, created_at, updated_at, account_type, account_slug, temporal_config
+RETURNING id, created_at, updated_at, account_type, account_slug, temporal_config, onboarding_config
 `
 
 func (q *Queries) CreateTeamAccount(ctx context.Context, db DBTX, accountSlug string) (NeosyncApiAccount, error) {
@@ -188,12 +189,13 @@ func (q *Queries) CreateTeamAccount(ctx context.Context, db DBTX, accountSlug st
 		&i.AccountType,
 		&i.AccountSlug,
 		&i.TemporalConfig,
+		&i.OnboardingConfig,
 	)
 	return i, err
 }
 
 const getAccount = `-- name: GetAccount :one
-SELECT id, created_at, updated_at, account_type, account_slug, temporal_config from neosync_api.accounts
+SELECT id, created_at, updated_at, account_type, account_slug, temporal_config, onboarding_config from neosync_api.accounts
 WHERE id = $1
 `
 
@@ -207,6 +209,7 @@ func (q *Queries) GetAccount(ctx context.Context, db DBTX, id pgtype.UUID) (Neos
 		&i.AccountType,
 		&i.AccountSlug,
 		&i.TemporalConfig,
+		&i.OnboardingConfig,
 	)
 	return i, err
 }
@@ -255,6 +258,19 @@ func (q *Queries) GetAccountInviteByToken(ctx context.Context, db DBTX, token st
 	return i, err
 }
 
+const getAccountOnboardingConfig = `-- name: GetAccountOnboardingConfig :one
+SELECT onboarding_config
+FROM neosync_api.accounts
+WHERE id = $1
+`
+
+func (q *Queries) GetAccountOnboardingConfig(ctx context.Context, db DBTX, id pgtype.UUID) (*pg_models.AccountOnboardingConfig, error) {
+	row := db.QueryRow(ctx, getAccountOnboardingConfig, id)
+	var onboarding_config *pg_models.AccountOnboardingConfig
+	err := row.Scan(&onboarding_config)
+	return onboarding_config, err
+}
+
 const getAccountUserAssociation = `-- name: GetAccountUserAssociation :one
 SELECT aua.id, aua.account_id, aua.user_id, aua.created_at, aua.updated_at from neosync_api.account_user_associations aua
 INNER JOIN neosync_api.accounts a ON a.id = aua.account_id
@@ -281,7 +297,7 @@ func (q *Queries) GetAccountUserAssociation(ctx context.Context, db DBTX, arg Ge
 }
 
 const getAccountsByUser = `-- name: GetAccountsByUser :many
-SELECT a.id, a.created_at, a.updated_at, a.account_type, a.account_slug, a.temporal_config
+SELECT a.id, a.created_at, a.updated_at, a.account_type, a.account_slug, a.temporal_config, a.onboarding_config
 FROM neosync_api.accounts a
 INNER JOIN neosync_api.account_api_keys aak ON aak.account_id = a.id
 INNER JOIN neosync_api.users u ON u.id = aak.user_id
@@ -289,7 +305,7 @@ WHERE u.id = $1
 
 UNION
 
-SELECT a.id, a.created_at, a.updated_at, a.account_type, a.account_slug, a.temporal_config
+SELECT a.id, a.created_at, a.updated_at, a.account_type, a.account_slug, a.temporal_config, a.onboarding_config
 FROM neosync_api.accounts a
 INNER JOIN neosync_api.account_user_associations aua ON aua.account_id = a.id
 INNER JOIN neosync_api.users u ON u.id = aua.user_id
@@ -312,6 +328,7 @@ func (q *Queries) GetAccountsByUser(ctx context.Context, db DBTX, id pgtype.UUID
 			&i.AccountType,
 			&i.AccountSlug,
 			&i.TemporalConfig,
+			&i.OnboardingConfig,
 		); err != nil {
 			return nil, err
 		}
@@ -376,7 +393,7 @@ func (q *Queries) GetAnonymousUser(ctx context.Context, db DBTX) (NeosyncApiUser
 }
 
 const getPersonalAccountByUserId = `-- name: GetPersonalAccountByUserId :one
-SELECT a.id, a.created_at, a.updated_at, a.account_type, a.account_slug, a.temporal_config from neosync_api.accounts a
+SELECT a.id, a.created_at, a.updated_at, a.account_type, a.account_slug, a.temporal_config, a.onboarding_config from neosync_api.accounts a
 INNER JOIN neosync_api.account_user_associations aua ON aua.account_id = a.id
 INNER JOIN neosync_api.users u ON u.id = aua.user_id
 WHERE u.id = $1 AND a.account_type = 0
@@ -392,12 +409,13 @@ func (q *Queries) GetPersonalAccountByUserId(ctx context.Context, db DBTX, useri
 		&i.AccountType,
 		&i.AccountSlug,
 		&i.TemporalConfig,
+		&i.OnboardingConfig,
 	)
 	return i, err
 }
 
 const getTeamAccountsByUserId = `-- name: GetTeamAccountsByUserId :many
-SELECT a.id, a.created_at, a.updated_at, a.account_type, a.account_slug, a.temporal_config from neosync_api.accounts a
+SELECT a.id, a.created_at, a.updated_at, a.account_type, a.account_slug, a.temporal_config, a.onboarding_config from neosync_api.accounts a
 INNER JOIN neosync_api.account_user_associations aua ON aua.account_id = a.id
 INNER JOIN neosync_api.users u ON u.id = aua.user_id
 WHERE u.id = $1 AND a.account_type = 1
@@ -419,6 +437,7 @@ func (q *Queries) GetTeamAccountsByUserId(ctx context.Context, db DBTX, userid p
 			&i.AccountType,
 			&i.AccountSlug,
 			&i.TemporalConfig,
+			&i.OnboardingConfig,
 		); err != nil {
 			return nil, err
 		}
@@ -690,6 +709,33 @@ func (q *Queries) UpdateAccountInviteToAccepted(ctx context.Context, db DBTX, id
 	return i, err
 }
 
+const updateAccountOnboardingConfig = `-- name: UpdateAccountOnboardingConfig :one
+UPDATE neosync_api.accounts
+SET onboarding_config = $1
+WHERE id = $2
+RETURNING id, created_at, updated_at, account_type, account_slug, temporal_config, onboarding_config
+`
+
+type UpdateAccountOnboardingConfigParams struct {
+	OnboardingConfig *pg_models.AccountOnboardingConfig
+	AccountId        pgtype.UUID
+}
+
+func (q *Queries) UpdateAccountOnboardingConfig(ctx context.Context, db DBTX, arg UpdateAccountOnboardingConfigParams) (NeosyncApiAccount, error) {
+	row := db.QueryRow(ctx, updateAccountOnboardingConfig, arg.OnboardingConfig, arg.AccountId)
+	var i NeosyncApiAccount
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.AccountType,
+		&i.AccountSlug,
+		&i.TemporalConfig,
+		&i.OnboardingConfig,
+	)
+	return i, err
+}
+
 const updateActiveAccountInvitesToExpired = `-- name: UpdateActiveAccountInvitesToExpired :one
 UPDATE neosync_api.account_invites
 SET expires_at = CURRENT_TIMESTAMP
@@ -723,7 +769,7 @@ const updateTemporalConfigByAccount = `-- name: UpdateTemporalConfigByAccount :o
 UPDATE neosync_api.accounts
 SET temporal_config = $1
 WHERE id = $2
-RETURNING id, created_at, updated_at, account_type, account_slug, temporal_config
+RETURNING id, created_at, updated_at, account_type, account_slug, temporal_config, onboarding_config
 `
 
 type UpdateTemporalConfigByAccountParams struct {
@@ -741,6 +787,7 @@ func (q *Queries) UpdateTemporalConfigByAccount(ctx context.Context, db DBTX, ar
 		&i.AccountType,
 		&i.AccountSlug,
 		&i.TemporalConfig,
+		&i.OnboardingConfig,
 	)
 	return i, err
 }

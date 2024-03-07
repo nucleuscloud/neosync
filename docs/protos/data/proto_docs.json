@@ -9594,6 +9594,66 @@
           ]
         },
         {
+          "name": "AccountOnboardingConfig",
+          "longName": "AccountOnboardingConfig",
+          "fullName": "mgmt.v1alpha1.AccountOnboardingConfig",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "has_created_source_connection",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "has_created_destination_connection",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "has_created_job",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "has_invited_members",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "AccountTemporalConfig",
           "longName": "AccountTemporalConfig",
           "fullName": "mgmt.v1alpha1.AccountTemporalConfig",
@@ -9764,6 +9824,54 @@
               "type": "string",
               "longType": "string",
               "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetAccountOnboardingConfigRequest",
+          "longName": "GetAccountOnboardingConfigRequest",
+          "fullName": "mgmt.v1alpha1.GetAccountOnboardingConfigRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetAccountOnboardingConfigResponse",
+          "longName": "GetAccountOnboardingConfigResponse",
+          "fullName": "mgmt.v1alpha1.GetAccountOnboardingConfigResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "config",
+              "description": "",
+              "label": "",
+              "type": "AccountOnboardingConfig",
+              "longType": "AccountOnboardingConfig",
+              "fullType": "mgmt.v1alpha1.AccountOnboardingConfig",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -10259,6 +10367,66 @@
           "fields": []
         },
         {
+          "name": "SetAccountOnboardingConfigRequest",
+          "longName": "SetAccountOnboardingConfigRequest",
+          "fullName": "mgmt.v1alpha1.SetAccountOnboardingConfigRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "config",
+              "description": "",
+              "label": "",
+              "type": "AccountOnboardingConfig",
+              "longType": "AccountOnboardingConfig",
+              "fullType": "mgmt.v1alpha1.AccountOnboardingConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SetAccountOnboardingConfigResponse",
+          "longName": "SetAccountOnboardingConfigResponse",
+          "fullName": "mgmt.v1alpha1.SetAccountOnboardingConfigResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "config",
+              "description": "",
+              "label": "",
+              "type": "AccountOnboardingConfig",
+              "longType": "AccountOnboardingConfig",
+              "fullType": "mgmt.v1alpha1.AccountOnboardingConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "SetAccountTemporalConfigRequest",
           "longName": "SetAccountTemporalConfigRequest",
           "fullName": "mgmt.v1alpha1.SetAccountTemporalConfigRequest",
@@ -10634,6 +10802,30 @@
               "responseType": "GetSystemInformationResponse",
               "responseLongType": "GetSystemInformationResponse",
               "responseFullType": "mgmt.v1alpha1.GetSystemInformationResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "GetAccountOnboardingConfig",
+              "description": "",
+              "requestType": "GetAccountOnboardingConfigRequest",
+              "requestLongType": "GetAccountOnboardingConfigRequest",
+              "requestFullType": "mgmt.v1alpha1.GetAccountOnboardingConfigRequest",
+              "requestStreaming": false,
+              "responseType": "GetAccountOnboardingConfigResponse",
+              "responseLongType": "GetAccountOnboardingConfigResponse",
+              "responseFullType": "mgmt.v1alpha1.GetAccountOnboardingConfigResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "SetAccountOnboardingConfig",
+              "description": "",
+              "requestType": "SetAccountOnboardingConfigRequest",
+              "requestLongType": "SetAccountOnboardingConfigRequest",
+              "requestFullType": "mgmt.v1alpha1.SetAccountOnboardingConfigRequest",
+              "requestStreaming": false,
+              "responseType": "SetAccountOnboardingConfigResponse",
+              "responseLongType": "SetAccountOnboardingConfigResponse",
+              "responseFullType": "mgmt.v1alpha1.SetAccountOnboardingConfigResponse",
               "responseStreaming": false
             }
           ]

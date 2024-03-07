@@ -1442,3 +1442,212 @@ export class GetSystemInformationResponse extends Message<GetSystemInformationRe
   }
 }
 
+/**
+ * @generated from message mgmt.v1alpha1.GetAccountOnboardingConfigRequest
+ */
+export class GetAccountOnboardingConfigRequest extends Message<GetAccountOnboardingConfigRequest> {
+  /**
+   * @generated from field: string account_id = 1;
+   */
+  accountId = "";
+
+  constructor(data?: PartialMessage<GetAccountOnboardingConfigRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetAccountOnboardingConfigRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetAccountOnboardingConfigRequest {
+    return new GetAccountOnboardingConfigRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetAccountOnboardingConfigRequest {
+    return new GetAccountOnboardingConfigRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetAccountOnboardingConfigRequest {
+    return new GetAccountOnboardingConfigRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetAccountOnboardingConfigRequest | PlainMessage<GetAccountOnboardingConfigRequest> | undefined, b: GetAccountOnboardingConfigRequest | PlainMessage<GetAccountOnboardingConfigRequest> | undefined): boolean {
+    return proto3.util.equals(GetAccountOnboardingConfigRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetAccountOnboardingConfigResponse
+ */
+export class GetAccountOnboardingConfigResponse extends Message<GetAccountOnboardingConfigResponse> {
+  /**
+   * @generated from field: mgmt.v1alpha1.AccountOnboardingConfig config = 1;
+   */
+  config?: AccountOnboardingConfig;
+
+  constructor(data?: PartialMessage<GetAccountOnboardingConfigResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetAccountOnboardingConfigResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "config", kind: "message", T: AccountOnboardingConfig },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetAccountOnboardingConfigResponse {
+    return new GetAccountOnboardingConfigResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetAccountOnboardingConfigResponse {
+    return new GetAccountOnboardingConfigResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetAccountOnboardingConfigResponse {
+    return new GetAccountOnboardingConfigResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetAccountOnboardingConfigResponse | PlainMessage<GetAccountOnboardingConfigResponse> | undefined, b: GetAccountOnboardingConfigResponse | PlainMessage<GetAccountOnboardingConfigResponse> | undefined): boolean {
+    return proto3.util.equals(GetAccountOnboardingConfigResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.SetAccountOnboardingConfigRequest
+ */
+export class SetAccountOnboardingConfigRequest extends Message<SetAccountOnboardingConfigRequest> {
+  /**
+   * @generated from field: string account_id = 1;
+   */
+  accountId = "";
+
+  /**
+   * @generated from field: mgmt.v1alpha1.AccountOnboardingConfig config = 2;
+   */
+  config?: AccountOnboardingConfig;
+
+  constructor(data?: PartialMessage<SetAccountOnboardingConfigRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SetAccountOnboardingConfigRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "config", kind: "message", T: AccountOnboardingConfig },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetAccountOnboardingConfigRequest {
+    return new SetAccountOnboardingConfigRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetAccountOnboardingConfigRequest {
+    return new SetAccountOnboardingConfigRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetAccountOnboardingConfigRequest {
+    return new SetAccountOnboardingConfigRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetAccountOnboardingConfigRequest | PlainMessage<SetAccountOnboardingConfigRequest> | undefined, b: SetAccountOnboardingConfigRequest | PlainMessage<SetAccountOnboardingConfigRequest> | undefined): boolean {
+    return proto3.util.equals(SetAccountOnboardingConfigRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.SetAccountOnboardingConfigResponse
+ */
+export class SetAccountOnboardingConfigResponse extends Message<SetAccountOnboardingConfigResponse> {
+  /**
+   * @generated from field: mgmt.v1alpha1.AccountOnboardingConfig config = 1;
+   */
+  config?: AccountOnboardingConfig;
+
+  constructor(data?: PartialMessage<SetAccountOnboardingConfigResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SetAccountOnboardingConfigResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "config", kind: "message", T: AccountOnboardingConfig },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetAccountOnboardingConfigResponse {
+    return new SetAccountOnboardingConfigResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SetAccountOnboardingConfigResponse {
+    return new SetAccountOnboardingConfigResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SetAccountOnboardingConfigResponse {
+    return new SetAccountOnboardingConfigResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SetAccountOnboardingConfigResponse | PlainMessage<SetAccountOnboardingConfigResponse> | undefined, b: SetAccountOnboardingConfigResponse | PlainMessage<SetAccountOnboardingConfigResponse> | undefined): boolean {
+    return proto3.util.equals(SetAccountOnboardingConfigResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.AccountOnboardingConfig
+ */
+export class AccountOnboardingConfig extends Message<AccountOnboardingConfig> {
+  /**
+   * @generated from field: bool has_created_source_connection = 1;
+   */
+  hasCreatedSourceConnection = false;
+
+  /**
+   * @generated from field: bool has_created_destination_connection = 2;
+   */
+  hasCreatedDestinationConnection = false;
+
+  /**
+   * @generated from field: bool has_created_job = 3;
+   */
+  hasCreatedJob = false;
+
+  /**
+   * @generated from field: bool has_invited_members = 4;
+   */
+  hasInvitedMembers = false;
+
+  constructor(data?: PartialMessage<AccountOnboardingConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.AccountOnboardingConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "has_created_source_connection", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "has_created_destination_connection", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 3, name: "has_created_job", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 4, name: "has_invited_members", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AccountOnboardingConfig {
+    return new AccountOnboardingConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AccountOnboardingConfig {
+    return new AccountOnboardingConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AccountOnboardingConfig {
+    return new AccountOnboardingConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AccountOnboardingConfig | PlainMessage<AccountOnboardingConfig> | undefined, b: AccountOnboardingConfig | PlainMessage<AccountOnboardingConfig> | undefined): boolean {
+    return proto3.util.equals(AccountOnboardingConfig, a, b);
+  }
+}
+

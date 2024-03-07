@@ -10,12 +10,13 @@ import (
 )
 
 type NeosyncApiAccount struct {
-	ID             pgtype.UUID
-	CreatedAt      pgtype.Timestamp
-	UpdatedAt      pgtype.Timestamp
-	AccountType    int16
-	AccountSlug    string
-	TemporalConfig *pg_models.TemporalConfig
+	ID               pgtype.UUID
+	CreatedAt        pgtype.Timestamp
+	UpdatedAt        pgtype.Timestamp
+	AccountType      int16
+	AccountSlug      string
+	TemporalConfig   *pg_models.TemporalConfig
+	OnboardingConfig *pg_models.AccountOnboardingConfig
 }
 
 type NeosyncApiAccountApiKey struct {
