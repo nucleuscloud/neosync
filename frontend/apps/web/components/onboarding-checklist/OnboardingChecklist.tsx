@@ -50,7 +50,7 @@ const stepsMap = {
     title: 'Create a destination connection',
     href: '/connection',
   },
-  hasCreatedJob: { title: 'Create a job', href: '/job' },
+  hasCreatedJob: { title: 'Create a Job', href: '/job' },
   hasInvitedMembers: { title: 'Invite members', href: '/settings' },
 };
 
