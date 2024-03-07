@@ -378,10 +378,19 @@ the connection which caused the schema page to not load correctly when you went 
                 </FormDescription>
                 <FormControl>
                   <Input
-                    type="number"
-                    {...field}
+                    type="text"
+                    value={field.value
+                      .toString()
+                      .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                     onChange={(e) => {
-                      field.onChange(e.target.valueAsNumber);
+                      const numberValue = parseFloat(
+                        e.target.value.replace(/,/g, '')
+                      );
+                      if (!isNaN(numberValue)) {
+                        field.onChange(numberValue);
+                      } else {
+                        field.onChange(0);
+                      }
                     }}
                   />
                 </FormControl>
