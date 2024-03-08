@@ -9391,6 +9391,267 @@
       ]
     },
     {
+      "name": "mgmt/v1alpha1/metrics.proto",
+      "description": "",
+      "package": "mgmt.v1alpha1",
+      "hasEnums": true,
+      "hasExtensions": false,
+      "hasMessages": true,
+      "hasServices": true,
+      "enums": [
+        {
+          "name": "RecordsReceivedTimeRange",
+          "longName": "RecordsReceivedTimeRange",
+          "fullName": "mgmt.v1alpha1.RecordsReceivedTimeRange",
+          "description": "An enumeration of the supported indexed time ranges for the records received metric",
+          "values": [
+            {
+              "name": "RECORDS_RECEIVED_TIME_RANGE_UNSPECIFIED",
+              "number": "0",
+              "description": ""
+            },
+            {
+              "name": "RECORDS_RECEIVED_TIME_RANGE_7_DAY",
+              "number": "1",
+              "description": ""
+            },
+            {
+              "name": "RECORDS_RECEIVED_TIME_RANGE_14_DAY",
+              "number": "2",
+              "description": ""
+            },
+            {
+              "name": "RECORDS_RECEIVED_TIME_RANGE_30_DAY",
+              "number": "3",
+              "description": ""
+            },
+            {
+              "name": "RECORDS_RECEIVED_TIME_RANGE_60_DAY",
+              "number": "4",
+              "description": ""
+            }
+          ]
+        }
+      ],
+      "extensions": [],
+      "messages": [
+        {
+          "name": "GetRecordsReceivedCountRequest",
+          "longName": "GetRecordsReceivedCountRequest",
+          "fullName": "mgmt.v1alpha1.GetRecordsReceivedCountRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "The account identifier that will be used to filter by",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "identifier",
+              "defaultValue": ""
+            },
+            {
+              "name": "job_id",
+              "description": "The job identifier that will be used to filter by",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "identifier",
+              "defaultValue": ""
+            },
+            {
+              "name": "run_id",
+              "description": "The run identifier that will be used to filter by",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "identifier",
+              "defaultValue": ""
+            },
+            {
+              "name": "indexed_time_range",
+              "description": "Provide a time range to retrieve a range of metrics by",
+              "label": "",
+              "type": "RecordsReceivedTimeRange",
+              "longType": "RecordsReceivedTimeRange",
+              "fullType": "mgmt.v1alpha1.RecordsReceivedTimeRange",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetRecordsReceivedCountResponse",
+          "longName": "GetRecordsReceivedCountResponse",
+          "fullName": "mgmt.v1alpha1.GetRecordsReceivedCountResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "results",
+              "description": "",
+              "label": "repeated",
+              "type": "MetricResult",
+              "longType": "MetricResult",
+              "fullType": "mgmt.v1alpha1.MetricResult",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "MetricResult",
+          "longName": "MetricResult",
+          "fullName": "mgmt.v1alpha1.MetricResult",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "metric",
+              "description": "figure out what this is",
+              "label": "repeated",
+              "type": "MetricEntry",
+              "longType": "MetricResult.MetricEntry",
+              "fullType": "mgmt.v1alpha1.MetricResult.MetricEntry",
+              "ismap": true,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "values",
+              "description": "A repeated list of metric values for the given range",
+              "label": "repeated",
+              "type": "MetricValue",
+              "longType": "MetricValue",
+              "fullType": "mgmt.v1alpha1.MetricValue",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "MetricEntry",
+          "longName": "MetricResult.MetricEntry",
+          "fullName": "mgmt.v1alpha1.MetricResult.MetricEntry",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "key",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "value",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "MetricValue",
+          "longName": "MetricValue",
+          "fullName": "mgmt.v1alpha1.MetricValue",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "value",
+              "description": "The actual value of the metric",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "timestamp",
+              "description": "The timestamp of when this value was recorded",
+              "label": "",
+              "type": "Timestamp",
+              "longType": "google.protobuf.Timestamp",
+              "fullType": "google.protobuf.Timestamp",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        }
+      ],
+      "services": [
+        {
+          "name": "MetricsService",
+          "longName": "MetricsService",
+          "fullName": "mgmt.v1alpha1.MetricsService",
+          "description": "",
+          "methods": [
+            {
+              "name": "GetRecordsReceivedCount",
+              "description": "Retrieve a timed range of records received based on a given identifier and indexed range of time",
+              "requestType": "GetRecordsReceivedCountRequest",
+              "requestLongType": "GetRecordsReceivedCountRequest",
+              "requestFullType": "mgmt.v1alpha1.GetRecordsReceivedCountRequest",
+              "requestStreaming": false,
+              "responseType": "GetRecordsReceivedCountResponse",
+              "responseLongType": "GetRecordsReceivedCountResponse",
+              "responseFullType": "mgmt.v1alpha1.GetRecordsReceivedCountResponse",
+              "responseStreaming": false
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "mgmt/v1alpha1/user_account.proto",
       "description": "",
       "package": "mgmt.v1alpha1",
