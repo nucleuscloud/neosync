@@ -13,26 +13,36 @@ import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
  */
 export enum RecordsReceivedTimeRange {
   /**
+   * When unspecified, defaults change based on the given identifier
+   *
    * @generated from enum value: RECORDS_RECEIVED_TIME_RANGE_UNSPECIFIED = 0;
    */
   RECORDS_RECEIVED_TIME_RANGE_UNSPECIFIED = 0,
 
   /**
+   * 7 day window of metrics
+   *
    * @generated from enum value: RECORDS_RECEIVED_TIME_RANGE_7_DAY = 1;
    */
   RECORDS_RECEIVED_TIME_RANGE_7_DAY = 1,
 
   /**
+   * 14 day window of metrics
+   *
    * @generated from enum value: RECORDS_RECEIVED_TIME_RANGE_14_DAY = 2;
    */
   RECORDS_RECEIVED_TIME_RANGE_14_DAY = 2,
 
   /**
+   * 30 day window of metrics
+   *
    * @generated from enum value: RECORDS_RECEIVED_TIME_RANGE_30_DAY = 3;
    */
   RECORDS_RECEIVED_TIME_RANGE_30_DAY = 3,
 
   /**
+   * 60 day window of metrics
+   *
    * @generated from enum value: RECORDS_RECEIVED_TIME_RANGE_60_DAY = 4;
    */
   RECORDS_RECEIVED_TIME_RANGE_60_DAY = 4,

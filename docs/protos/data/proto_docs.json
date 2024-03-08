@@ -9408,27 +9408,27 @@
             {
               "name": "RECORDS_RECEIVED_TIME_RANGE_UNSPECIFIED",
               "number": "0",
-              "description": ""
+              "description": "When unspecified, defaults change based on the given identifier"
             },
             {
               "name": "RECORDS_RECEIVED_TIME_RANGE_7_DAY",
               "number": "1",
-              "description": ""
+              "description": "7 day window of metrics"
             },
             {
               "name": "RECORDS_RECEIVED_TIME_RANGE_14_DAY",
               "number": "2",
-              "description": ""
+              "description": "14 day window of metrics"
             },
             {
               "name": "RECORDS_RECEIVED_TIME_RANGE_30_DAY",
               "number": "3",
-              "description": ""
+              "description": "30 day window of metrics"
             },
             {
               "name": "RECORDS_RECEIVED_TIME_RANGE_60_DAY",
               "number": "4",
-              "description": ""
+              "description": "60 day window of metrics"
             }
           ]
         }

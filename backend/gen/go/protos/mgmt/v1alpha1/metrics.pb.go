@@ -26,11 +26,16 @@ const (
 type RecordsReceivedTimeRange int32
 
 const (
+	// When unspecified, defaults change based on the given identifier
 	RecordsReceivedTimeRange_RECORDS_RECEIVED_TIME_RANGE_UNSPECIFIED RecordsReceivedTimeRange = 0
-	RecordsReceivedTimeRange_RECORDS_RECEIVED_TIME_RANGE_7_DAY       RecordsReceivedTimeRange = 1
-	RecordsReceivedTimeRange_RECORDS_RECEIVED_TIME_RANGE_14_DAY      RecordsReceivedTimeRange = 2
-	RecordsReceivedTimeRange_RECORDS_RECEIVED_TIME_RANGE_30_DAY      RecordsReceivedTimeRange = 3
-	RecordsReceivedTimeRange_RECORDS_RECEIVED_TIME_RANGE_60_DAY      RecordsReceivedTimeRange = 4
+	// 7 day window of metrics
+	RecordsReceivedTimeRange_RECORDS_RECEIVED_TIME_RANGE_7_DAY RecordsReceivedTimeRange = 1
+	// 14 day window of metrics
+	RecordsReceivedTimeRange_RECORDS_RECEIVED_TIME_RANGE_14_DAY RecordsReceivedTimeRange = 2
+	// 30 day window of metrics
+	RecordsReceivedTimeRange_RECORDS_RECEIVED_TIME_RANGE_30_DAY RecordsReceivedTimeRange = 3
+	// 60 day window of metrics
+	RecordsReceivedTimeRange_RECORDS_RECEIVED_TIME_RANGE_60_DAY RecordsReceivedTimeRange = 4
 )
 
 // Enum value maps for RecordsReceivedTimeRange.
