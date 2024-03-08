@@ -68,7 +68,7 @@ export default function JobRunStatus(props: Props): ReactElement {
       return (
         <Badge className={cn('bg-gray-600  hover:bg-gray-500', className)}>
           <div className="flex flex-row items-center gap-1">
-            <Cross2Icon className="w-3 h-3" /> <div>Failed</div>
+            <Cross2Icon className="w-3 h-3" /> <div>Terminated</div>
           </div>
         </Badge>
       );
@@ -76,7 +76,7 @@ export default function JobRunStatus(props: Props): ReactElement {
       return (
         <Badge className={cn('bg-gray-600  hover:bg-gray-500', className)}>
           <div className="flex flex-row items-center gap-1">
-            <Cross2Icon className="w-3 h-3" /> <div>Failed</div>
+            <Cross2Icon className="w-3 h-3" /> <div>Canceled</div>
           </div>
         </Badge>
       );
@@ -84,7 +84,7 @@ export default function JobRunStatus(props: Props): ReactElement {
       return (
         <Badge className={cn('bg-yellow-600  hover:bg-yellow-500', className)}>
           <div className="flex flex-row items-center gap-1">
-            <ClockIcon className="w-3 h-3" /> <div>Failed</div>
+            <ClockIcon className="w-3 h-3" /> <div>Timed Out</div>
           </div>
         </Badge>
       );
