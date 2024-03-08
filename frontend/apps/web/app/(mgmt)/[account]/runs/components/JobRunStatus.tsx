@@ -26,23 +26,23 @@ export default function JobRunStatus(props: Props): ReactElement {
   switch (status) {
     case JobRunStatusEnum.ERROR:
       return (
-        <Badge variant="destructive" className={cn(className)}>
-          <div className="flex flex-row items-center gap-1">
+        <Badge variant="destructive" className={cn(className, 'w-[95px]')}>
+          <div className="flex flex-row items-center gap-1 w-[95px]">
             <ExclamationTriangleIcon className="w-3 h-3" /> <div>Error</div>
           </div>
         </Badge>
       );
     case JobRunStatusEnum.COMPLETE:
       return (
-        <Badge variant="success">
-          <div className="flex flex-row items-center gap-1">
+        <Badge variant="success" className="w-[95px]">
+          <div className="flex flex-row items-center gap-1 ">
             <CheckIcon className="w-3 h-3" /> <div>Complete</div>
           </div>
         </Badge>
       );
     case JobRunStatusEnum.FAILED:
       return (
-        <Badge variant="destructive" className={cn(className)}>
+        <Badge variant="destructive" className={cn(className, 'w-[95px]')}>
           <div className="flex flex-row items-center gap-1">
             <Cross2Icon className="w-3 h-3" /> <div>Failed</div>
           </div>
@@ -50,7 +50,9 @@ export default function JobRunStatus(props: Props): ReactElement {
       );
     case JobRunStatusEnum.RUNNING:
       return (
-        <Badge className={cn('bg-blue-600 hover:bg-blue-500', className)}>
+        <Badge
+          className={cn('bg-blue-600 hover:bg-blue-500 w-[95px]', className)}
+        >
           <div className="flex flex-row items-center gap-1">
             <Spinner className="w-3 h-3" /> <div>Running</div>
           </div>
@@ -58,7 +60,12 @@ export default function JobRunStatus(props: Props): ReactElement {
       );
     case JobRunStatusEnum.PENDING:
       return (
-        <Badge className={cn('bg-purple-600  hover:bg-purple-500', className)}>
+        <Badge
+          className={cn(
+            'bg-purple-600  hover:bg-purple-500 w-[95px]',
+            className
+          )}
+        >
           <div className="flex flex-row items-center gap-1">
             <Spinner className="w-3 h-3" /> <div>Pending</div>
           </div>
@@ -66,25 +73,34 @@ export default function JobRunStatus(props: Props): ReactElement {
       );
     case JobRunStatusEnum.TERMINATED:
       return (
-        <Badge className={cn('bg-gray-600  hover:bg-gray-500', className)}>
+        <Badge
+          className={cn('bg-gray-600  hover:bg-gray-500 w-[105px]', className)}
+        >
           <div className="flex flex-row items-center gap-1">
-            <Cross2Icon className="w-3 h-3" /> <div>Failed</div>
+            <Cross2Icon className="w-3 h-3" /> <div>Terminated</div>
           </div>
         </Badge>
       );
     case JobRunStatusEnum.CANCELED:
       return (
-        <Badge className={cn('bg-gray-600  hover:bg-gray-500', className)}>
+        <Badge
+          className={cn('bg-gray-600  hover:bg-gray-500 w-[95px]', className)}
+        >
           <div className="flex flex-row items-center gap-1">
-            <Cross2Icon className="w-3 h-3" /> <div>Failed</div>
+            <Cross2Icon className="w-3 h-3" /> <div>Canceled</div>
           </div>
         </Badge>
       );
     case JobRunStatusEnum.TIMED_OUT:
       return (
-        <Badge className={cn('bg-yellow-600  hover:bg-yellow-500', className)}>
+        <Badge
+          className={cn(
+            'bg-yellow-600  hover:bg-yellow-500 w-[120px]',
+            className
+          )}
+        >
           <div className="flex flex-row items-center gap-1">
-            <ClockIcon className="w-3 h-3" /> <div>Failed</div>
+            <ClockIcon className="w-3 h-3" /> <div>Timed Out</div>
           </div>
         </Badge>
       );
