@@ -44,6 +44,8 @@ type BenthosConfigResponse struct {
 	primaryKeys    []string
 	excludeColumns []string
 	updateConfig   *tabledependency.RunConfig
+
+	metriclabels []metricLabel
 }
 
 type Activity struct {

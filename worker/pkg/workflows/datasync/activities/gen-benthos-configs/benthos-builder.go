@@ -560,7 +560,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		for _, resp := range responses {
 			resp.Config.Metrics = &neosync_benthos.Metrics{
 				OtelCollector: &neosync_benthos.MetricsOtelCollector{},
-				Mapping:       getBenthosMetricsMapping(labels),
+				Mapping:       getBenthosMetricsMapping(append(labels, resp.metriclabels...)),
 			}
 		}
 	}
@@ -761,6 +761,12 @@ func buildBenthosGenerateSourceConfigResponses(
 
 			TableSchema: tableMapping.Schema,
 			TableName:   tableMapping.Table,
+
+			metriclabels: []metricLabel{
+				{Key: "tableSchema", Value: tableMapping.Schema},
+				{Key: "tableName", Value: tableMapping.Table},
+				{Key: "jobType", Value: "generate"},
+			},
 		})
 	}
 
@@ -1001,6 +1007,7 @@ func createSqlUpdateBenthosConfig(
 		newResp.DependsOn = insertConfig.updateConfig.DependsOn
 		newResp.Name = fmt.Sprintf("%s.update", insertConfig.Name)
 		newResp.primaryKeys = insertConfig.primaryKeys
+		newResp.metriclabels = append(newResp.metriclabels, metricLabel{Key: "isUpdateConfig", Value: "true"})
 		var output *sqlOutput
 		if driver == "postgres" {
 			out := buildPostgresOutputQueryAndArgs(newResp, tm, tableKey, colSourceMap)
@@ -1150,6 +1157,12 @@ func buildBenthosSqlSourceConfigResponses(
 
 			TableSchema: tableMapping.Schema,
 			TableName:   tableMapping.Table,
+
+			metriclabels: []metricLabel{
+				{Key: "tableSchema", Value: tableMapping.Schema},
+				{Key: "tableName", Value: tableMapping.Table},
+				{Key: "jobType", Value: "sync"},
+			},
 		})
 	}
 
