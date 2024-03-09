@@ -1,11 +1,11 @@
 import { HeroHeader } from '@/public/images/MainHero';
+import { GitHubLogoIcon } from '@radix-ui/react-icons';
 import { ArrowRightIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ReactElement } from 'react';
-import { PiBookOpenText } from 'react-icons/pi';
 import { SiYcombinator } from 'react-icons/si';
-import PrivateBetaButton from '../buttons/PrivateBetaButton';
+import GetaDemoButton from '../buttons/GetADemo';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 
@@ -35,11 +35,11 @@ export default function Hero(): ReactElement {
         across all environments for stage, local and CI testing
       </div>
       <div className="flex flex-col lg:flex-row lg:space-y-0 space-y-2 lg:space-x-4 z-30 items-center">
-        <PrivateBetaButton />
+        <GetaDemoButton />
         <Button variant="secondary" className="px-4 border border-gray-300">
-          <Link href="https://docs.neosync.dev">
+          <Link href="https://github.com/nucleuscloud/neosync">
             <div className="flex flex-row items-center gap-2">
-              <PiBookOpenText className="mr-2 h-5 w-5" /> Documentation
+              <GitHubLogoIcon className="mr-2 h-4 w-4" /> Open Source
               <ArrowRightIcon className="h-4 w-4" />
             </div>
           </Link>

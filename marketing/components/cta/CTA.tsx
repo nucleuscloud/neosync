@@ -11,7 +11,7 @@ import { ArrowRightIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ReactElement } from 'react';
-import PrivateBetaForm from '../buttons/PrivateBetaForm';
+import SignupForm from '../buttons/SignupForm';
 import { Button } from '../ui/button';
 
 export default function CTA(): ReactElement {
@@ -54,7 +54,7 @@ export default function CTA(): ReactElement {
                     </DialogDescription>
                   </DialogHeader>
                   <div className="flex items-center space-x-2">
-                    <PrivateBetaForm />
+                    <SignupForm />
                   </div>
                 </DialogContent>
               </Dialog>

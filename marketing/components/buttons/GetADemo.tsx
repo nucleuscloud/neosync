@@ -10,9 +10,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '../ui/dialog';
-import PrivateBetaForm from './PrivateBetaForm';
+import SignupForm from './SignupForm';
 
-export default function PrivateBetaButton(): ReactElement {
+export default function GetaDemoButton(): ReactElement {
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -31,15 +31,15 @@ export default function PrivateBetaButton(): ReactElement {
             />
           </div>
           <DialogTitle className="text-gray-900 text-2xl text-center pt-10">
-            Join the Neosync Cloud Private Beta
+            Get access to Neosync Cloud
           </DialogTitle>
           <DialogDescription className="pt-6 text-gray-900 text-md text-center">
-            Want to use Neosync but don&apos;t want to host it yourself? Sign up
-            for the Neosync Cloud Private Beta and get an environment.
+            Want to use Neosync but don&apos;t want to host it yourself?
+            Let&apos;s chat.
           </DialogDescription>
         </DialogHeader>
         <div className="flex items-center space-x-2">
-          <PrivateBetaForm />
+          <SignupForm />
         </div>
       </DialogContent>
     </Dialog>
