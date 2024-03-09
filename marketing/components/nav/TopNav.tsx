@@ -35,7 +35,7 @@ import { FaDiscord } from 'react-icons/fa';
 import { GiHamburgerMenu } from 'react-icons/gi';
 import { GoShieldCheck } from 'react-icons/go';
 import { IoTerminalOutline } from 'react-icons/io5';
-import PrivateBetaButton from '../buttons/PrivateBetaButton';
+import PrivateBetaButton from '../buttons/GetADemo';
 import { Button } from '../ui/button';
 
 interface NavLinks {
