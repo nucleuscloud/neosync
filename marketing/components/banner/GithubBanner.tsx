@@ -1,5 +1,5 @@
 'use client';
-import { GitHubLogoIcon, StarFilledIcon } from '@radix-ui/react-icons';
+import { GitHubLogoIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { ReactElement } from 'react';
 
@@ -9,10 +9,9 @@ export default function GithubBanner(): ReactElement {
       <Link
         href="https://github.com/nucleuscloud/neosync"
         target="_blank"
-        className="flex flex-row items-center top-0 gap-5 font-satoshi text-gray-100"
+        className="flex flex-row items-center top-0 gap-5 font-satoshi text-gray-100 text-sm"
       >
-        <StarFilledIcon className="text-yellow-500 inline h-[20px] w-[20px]" />
-        <div className="text-sm pl-4">Neosync on GitHub</div>
+        Star Neosync on GitHub
         <GitHubLogoIcon />
       </Link>
     </div>
