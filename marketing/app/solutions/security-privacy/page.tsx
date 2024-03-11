@@ -1,7 +1,7 @@
 import CTA from '@/components/cta/CTA';
 import { DotBackground } from '@/components/landing-page/DotBackground';
 import Intergrations from '@/components/landing-page/Integrations';
-import Platform from '@/components/landing-page/Platform';
+import Platform from '@/components/landing-page/old/Platform';
 import { Metadata } from 'next';
 import { ReactElement } from 'react';
 import ComplySecurityPrivacy from './ComplySecurityPrivacy';
