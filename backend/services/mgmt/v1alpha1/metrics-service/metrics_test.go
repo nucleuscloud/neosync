@@ -305,14 +305,21 @@ func mockIsUserInAccount(userAccountServiceMock *mgmtv1alpha1connect.MockUserAcc
 	}), nil)
 }
 
-func Test_toPrometheusLabels(t *testing.T) {
-	output := toPrometheusLabels(map[string]string{
-		"foo": "bar",
-		"bar": "baz",
-	})
-	assert.Contains(t, output, `foo="bar"`)
-	assert.Contains(t, output, `bar="baz"`)
-	assert.Contains(t, output, ",")
+func Test_metricLabel_String(t *testing.T) {
+	label := metricLabel{Key: "foo", Value: "bar"}
+	assert.Equal(t, `foo="bar"`, label.String())
+}
+
+func Test_metricLabels_String(t *testing.T) {
+	labels := metricLabels{
+		{Key: "foo", Value: "bar"},
+		{Key: "foo2", Value: "bar2"},
+	}
+	assert.Equal(
+		t,
+		`foo="bar",foo2="bar2"`,
+		labels.String(),
+	)
 }
 
 func Test_getUsageFromMatrix(t *testing.T) {

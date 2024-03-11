@@ -16,6 +16,12 @@ import (
 	"github.com/prometheus/common/model"
 )
 
+const (
+	accountIdLabel = "neosyncAccountId"
+	jobIdLabel     = "neosyncJobId"
+	runIdLabel     = "neosyncRunId"
+)
+
 func (s *Service) GetRangedMetrics(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetRangedMetricsRequest],
@@ -51,39 +57,43 @@ func (s *Service) GetMetricCount(
 		return nil, nucleuserrors.NewBadRequest("duration between start and end must not exceed 60 days")
 	}
 
-	queryLabels := map[string]string{}
+	queryLabels := metricLabels{}
 
 	switch identifier := req.Msg.Identifier.(type) {
 	case *mgmtv1alpha1.GetMetricCountRequest_AccountId:
 		if _, err := s.verifyUserInAccount(ctx, identifier.AccountId); err != nil {
 			return nil, err
 		}
-		queryLabels["neosyncAccountId"] = identifier.AccountId
-		// get metrics by account id
+		queryLabels = append(queryLabels, metricLabel{Key: accountIdLabel, Value: identifier.AccountId})
 	case *mgmtv1alpha1.GetMetricCountRequest_JobId:
 		jobResp, err := s.jobservice.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{Id: identifier.JobId}))
 		if err != nil {
 			return nil, err
 		}
-		queryLabels["neosyncAccountId"] = jobResp.Msg.GetJob().GetAccountId()
-		queryLabels["neosyncJobId"] = jobResp.Msg.GetJob().GetId()
-		// get metrics by job id
+		queryLabels = append(
+			queryLabels,
+			metricLabel{Key: accountIdLabel, Value: jobResp.Msg.GetJob().GetAccountId()},
+			metricLabel{Key: jobIdLabel, Value: jobResp.Msg.GetJob().GetId()},
+		)
 	case *mgmtv1alpha1.GetMetricCountRequest_RunId:
 		jrResp, err := s.jobservice.GetJobRun(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRunRequest{JobRunId: identifier.RunId}))
 		if err != nil {
 			return nil, err
 		}
 		// dont really need to add account id here since it's implied by the job id
-		queryLabels["neosyncJobId"] = jrResp.Msg.GetJobRun().GetJobId()
-		queryLabels["neosyncRunId"] = jrResp.Msg.GetJobRun().GetId()
-
-		// get metrics by run id
+		queryLabels = append(
+			queryLabels,
+			metricLabel{Key: jobIdLabel, Value: jrResp.Msg.GetJobRun().GetJobId()},
+			metricLabel{Key: runIdLabel, Value: jrResp.Msg.GetJobRun().GetId()},
+		)
 	default:
 		return nil, nucleuserrors.NewBadRequest("must provide a valid identifier to proceed")
 	}
 
-	query := fmt.Sprintf("%s{%s}", req.Msg.GetMetric(), toPrometheusLabels(queryLabels))
-
+	query, err := getPromQueryFromMetric(req.Msg.GetMetric(), queryLabels)
+	if err != nil {
+		return nil, fmt.Errorf("unable to compute valid prometheus query: %w", err)
+	}
 	queryResponse, warnings, err := s.prometheusclient.QueryRange(ctx, query, promv1.Range{
 		Start: start.AsTime(),
 		End:   end.AsTime(),
@@ -111,6 +121,26 @@ func (s *Service) GetMetricCount(
 
 	default:
 		return nil, fmt.Errorf("this method does not support query responses of type: %s", queryResponse.Type())
+	}
+}
+
+func getPromQueryFromMetric(
+	metric mgmtv1alpha1.RangedMetricName,
+	labels metricLabels,
+) (string, error) {
+	metricName, err := getMetricNameFromEnum(metric)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s{%s}", metricName, labels.String()), nil
+}
+
+func getMetricNameFromEnum(metric mgmtv1alpha1.RangedMetricName) (string, error) {
+	switch metric {
+	case mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED:
+		return "input_received", nil
+	default:
+		return "", fmt.Errorf("invalid metric name")
 	}
 }
 
@@ -161,12 +191,21 @@ func sumUsage(usage map[string]uint64) uint64 {
 	return total
 }
 
-func toPrometheusLabels(input map[string]string) string {
-	pieces := []string{}
+type metricLabel struct {
+	Key   string
+	Value string
+}
 
-	for key, value := range input {
-		pieces = append(pieces, fmt.Sprintf("%s=%q", key, value))
+func (m *metricLabel) String() string {
+	return fmt.Sprintf("%s=%q", m.Key, m.Value)
+}
+
+type metricLabels []metricLabel
+
+func (m metricLabels) String() string {
+	var parts []string
+	for _, label := range m {
+		parts = append(parts, label.String())
 	}
-
-	return strings.Join(pieces, ",")
+	return strings.Join(parts, ",")
 }
