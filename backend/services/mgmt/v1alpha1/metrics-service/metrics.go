@@ -84,7 +84,11 @@ func (s *Service) GetMetricCount(
 
 	query := fmt.Sprintf("%s{%s}", req.Msg.GetMetric(), toPrometheusLabels(queryLabels))
 
-	queryResponse, warnings, err := s.prometheusclient.QueryRange(ctx, query, promv1.Range{})
+	queryResponse, warnings, err := s.prometheusclient.QueryRange(ctx, query, promv1.Range{
+		Start: start.AsTime(),
+		End:   end.AsTime(),
+		Step:  getStepByRange(start.AsTime(), end.AsTime()),
+	})
 	if err != nil {
 		return nil, fmt.Errorf("unable to query prometheus for metrics: %w", err)
 	}
@@ -107,6 +111,22 @@ func (s *Service) GetMetricCount(
 
 	default:
 		return nil, fmt.Errorf("this method does not support query responses of type: %s", queryResponse.Type())
+	}
+}
+
+func getStepByRange(start, end time.Time) time.Duration {
+	diff := end.Sub(start)
+
+	diffDays := int(diff.Hours() / 24)
+	diffHours := int(diff.Hours())
+
+	switch {
+	case diffHours < 24:
+		return 1 * time.Minute
+	case diffDays >= 0 && diffDays <= 15:
+		return 1 * time.Hour
+	default:
+		return 1 * 24 * time.Hour
 	}
 }
 
