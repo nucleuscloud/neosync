@@ -9,6 +9,7 @@ type Service struct {
 	cfg *Config
 
 	useraccountservice mgmtv1alpha1connect.UserAccountServiceClient
+	jobservice         mgmtv1alpha1connect.JobServiceHandler
 	prometheusclient   promv1.API
 }
 
@@ -19,11 +20,13 @@ type Config struct {
 func New(
 	cfg *Config,
 	useraccountservice mgmtv1alpha1connect.UserAccountServiceClient,
+	jobservice mgmtv1alpha1connect.JobServiceHandler,
 	promclient promv1.API,
 ) *Service {
 	return &Service{
 		cfg:                cfg,
 		useraccountservice: useraccountservice,
+		jobservice:         jobservice,
 		prometheusclient:   promclient,
 	}
 }

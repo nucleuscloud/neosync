@@ -3,24 +3,38 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { GetRecordsReceivedCountRequest, GetRecordsReceivedCountResponse } from "./metrics_pb.js";
+import { GetMetricCountRequest, GetMetricCountResponse, GetRangedMetricsRequest, GetRangedMetricsResponse } from "./metrics_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
+ * Retrieve a timed range of records received based on a given identifier and indexed range of time
+ * rpc GetRecordsReceivedCount(GetRecordsReceivedCountRequest) returns (GetRecordsReceivedCountResponse) {}
+ *
  * @generated from service mgmt.v1alpha1.MetricsService
  */
 export const MetricsService = {
   typeName: "mgmt.v1alpha1.MetricsService",
   methods: {
     /**
-     * Retrieve a timed range of records received based on a given identifier and indexed range of time
+     * Retrieve a timed range of records
      *
-     * @generated from rpc mgmt.v1alpha1.MetricsService.GetRecordsReceivedCount
+     * @generated from rpc mgmt.v1alpha1.MetricsService.GetRangedMetrics
      */
-    getRecordsReceivedCount: {
-      name: "GetRecordsReceivedCount",
-      I: GetRecordsReceivedCountRequest,
-      O: GetRecordsReceivedCountResponse,
+    getRangedMetrics: {
+      name: "GetRangedMetrics",
+      I: GetRangedMetricsRequest,
+      O: GetRangedMetricsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * For the given metric and time range, returns the total count found
+     *
+     * @generated from rpc mgmt.v1alpha1.MetricsService.GetMetricCount
+     */
+    getMetricCount: {
+      name: "GetMetricCount",
+      I: GetMetricCountRequest,
+      O: GetMetricCountResponse,
       kind: MethodKind.Unary,
     },
   }

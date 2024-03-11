@@ -4,165 +4,31 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
+import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 
 /**
- * An enumeration of the supported indexed time ranges for the records received metric
- *
- * @generated from enum mgmt.v1alpha1.RecordsReceivedTimeRange
+ * @generated from enum mgmt.v1alpha1.RangedMetricName
  */
-export enum RecordsReceivedTimeRange {
+export enum RangedMetricName {
   /**
-   * When unspecified, defaults change based on the given identifier
+   * If unspecified, an error will be thrown
    *
-   * @generated from enum value: RECORDS_RECEIVED_TIME_RANGE_UNSPECIFIED = 0;
+   * @generated from enum value: RANGED_METRIC_NAME_UNSPECIFIED = 0;
    */
-  RECORDS_RECEIVED_TIME_RANGE_UNSPECIFIED = 0,
+  UNSPECIFIED = 0,
 
   /**
-   * 7 day window of metrics
+   * The input_received metric
    *
-   * @generated from enum value: RECORDS_RECEIVED_TIME_RANGE_7_DAY = 1;
+   * @generated from enum value: RANGED_METRIC_NAME_INPUT_RECEIVED = 1;
    */
-  RECORDS_RECEIVED_TIME_RANGE_7_DAY = 1,
-
-  /**
-   * 14 day window of metrics
-   *
-   * @generated from enum value: RECORDS_RECEIVED_TIME_RANGE_14_DAY = 2;
-   */
-  RECORDS_RECEIVED_TIME_RANGE_14_DAY = 2,
-
-  /**
-   * 30 day window of metrics
-   *
-   * @generated from enum value: RECORDS_RECEIVED_TIME_RANGE_30_DAY = 3;
-   */
-  RECORDS_RECEIVED_TIME_RANGE_30_DAY = 3,
-
-  /**
-   * 60 day window of metrics
-   *
-   * @generated from enum value: RECORDS_RECEIVED_TIME_RANGE_60_DAY = 4;
-   */
-  RECORDS_RECEIVED_TIME_RANGE_60_DAY = 4,
+  INPUT_RECEIVED = 1,
 }
-// Retrieve enum metadata with: proto3.getEnumType(RecordsReceivedTimeRange)
-proto3.util.setEnumType(RecordsReceivedTimeRange, "mgmt.v1alpha1.RecordsReceivedTimeRange", [
-  { no: 0, name: "RECORDS_RECEIVED_TIME_RANGE_UNSPECIFIED" },
-  { no: 1, name: "RECORDS_RECEIVED_TIME_RANGE_7_DAY" },
-  { no: 2, name: "RECORDS_RECEIVED_TIME_RANGE_14_DAY" },
-  { no: 3, name: "RECORDS_RECEIVED_TIME_RANGE_30_DAY" },
-  { no: 4, name: "RECORDS_RECEIVED_TIME_RANGE_60_DAY" },
+// Retrieve enum metadata with: proto3.getEnumType(RangedMetricName)
+proto3.util.setEnumType(RangedMetricName, "mgmt.v1alpha1.RangedMetricName", [
+  { no: 0, name: "RANGED_METRIC_NAME_UNSPECIFIED" },
+  { no: 1, name: "RANGED_METRIC_NAME_INPUT_RECEIVED" },
 ]);
-
-/**
- * @generated from message mgmt.v1alpha1.GetRecordsReceivedCountRequest
- */
-export class GetRecordsReceivedCountRequest extends Message<GetRecordsReceivedCountRequest> {
-  /**
-   * @generated from oneof mgmt.v1alpha1.GetRecordsReceivedCountRequest.identifier
-   */
-  identifier: {
-    /**
-     * The account identifier that will be used to filter by
-     *
-     * @generated from field: string account_id = 1;
-     */
-    value: string;
-    case: "accountId";
-  } | {
-    /**
-     * The job identifier that will be used to filter by
-     *
-     * @generated from field: string job_id = 2;
-     */
-    value: string;
-    case: "jobId";
-  } | {
-    /**
-     * The run identifier that will be used to filter by
-     *
-     * @generated from field: string run_id = 3;
-     */
-    value: string;
-    case: "runId";
-  } | { case: undefined; value?: undefined } = { case: undefined };
-
-  /**
-   * Provide a time range to retrieve a range of metrics by
-   *
-   * @generated from field: mgmt.v1alpha1.RecordsReceivedTimeRange indexed_time_range = 4;
-   */
-  indexedTimeRange = RecordsReceivedTimeRange.RECORDS_RECEIVED_TIME_RANGE_UNSPECIFIED;
-
-  constructor(data?: PartialMessage<GetRecordsReceivedCountRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.GetRecordsReceivedCountRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "identifier" },
-    { no: 2, name: "job_id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "identifier" },
-    { no: 3, name: "run_id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "identifier" },
-    { no: 4, name: "indexed_time_range", kind: "enum", T: proto3.getEnumType(RecordsReceivedTimeRange) },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetRecordsReceivedCountRequest {
-    return new GetRecordsReceivedCountRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetRecordsReceivedCountRequest {
-    return new GetRecordsReceivedCountRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetRecordsReceivedCountRequest {
-    return new GetRecordsReceivedCountRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: GetRecordsReceivedCountRequest | PlainMessage<GetRecordsReceivedCountRequest> | undefined, b: GetRecordsReceivedCountRequest | PlainMessage<GetRecordsReceivedCountRequest> | undefined): boolean {
-    return proto3.util.equals(GetRecordsReceivedCountRequest, a, b);
-  }
-}
-
-/**
- * @generated from message mgmt.v1alpha1.GetRecordsReceivedCountResponse
- */
-export class GetRecordsReceivedCountResponse extends Message<GetRecordsReceivedCountResponse> {
-  /**
-   * @generated from field: repeated mgmt.v1alpha1.MetricResult results = 1;
-   */
-  results: MetricResult[] = [];
-
-  constructor(data?: PartialMessage<GetRecordsReceivedCountResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.GetRecordsReceivedCountResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "results", kind: "message", T: MetricResult, repeated: true },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetRecordsReceivedCountResponse {
-    return new GetRecordsReceivedCountResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetRecordsReceivedCountResponse {
-    return new GetRecordsReceivedCountResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetRecordsReceivedCountResponse {
-    return new GetRecordsReceivedCountResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: GetRecordsReceivedCountResponse | PlainMessage<GetRecordsReceivedCountResponse> | undefined, b: GetRecordsReceivedCountResponse | PlainMessage<GetRecordsReceivedCountResponse> | undefined): boolean {
-    return proto3.util.equals(GetRecordsReceivedCountResponse, a, b);
-  }
-}
 
 /**
  * @generated from message mgmt.v1alpha1.MetricResult
@@ -255,6 +121,256 @@ export class MetricValue extends Message<MetricValue> {
 
   static equals(a: MetricValue | PlainMessage<MetricValue> | undefined, b: MetricValue | PlainMessage<MetricValue> | undefined): boolean {
     return proto3.util.equals(MetricValue, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetRangedMetricsRequest
+ */
+export class GetRangedMetricsRequest extends Message<GetRangedMetricsRequest> {
+  /**
+   * The start time
+   *
+   * @generated from field: google.protobuf.Timestamp start = 1;
+   */
+  start?: Timestamp;
+
+  /**
+   * The end time
+   *
+   * @generated from field: google.protobuf.Timestamp end = 2;
+   */
+  end?: Timestamp;
+
+  /**
+   * The metric to return
+   *
+   * @generated from field: mgmt.v1alpha1.RangedMetricName metric = 3;
+   */
+  metric = RangedMetricName.UNSPECIFIED;
+
+  /**
+   * @generated from oneof mgmt.v1alpha1.GetRangedMetricsRequest.identifier
+   */
+  identifier: {
+    /**
+     * The account identifier that will be used to filter by
+     *
+     * @generated from field: string account_id = 4;
+     */
+    value: string;
+    case: "accountId";
+  } | {
+    /**
+     * The job identifier that will be used to filter by
+     *
+     * @generated from field: string job_id = 5;
+     */
+    value: string;
+    case: "jobId";
+  } | {
+    /**
+     * The run identifier that will be used to filter by
+     *
+     * @generated from field: string run_id = 6;
+     */
+    value: string;
+    case: "runId";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<GetRangedMetricsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetRangedMetricsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "start", kind: "message", T: Timestamp },
+    { no: 2, name: "end", kind: "message", T: Timestamp },
+    { no: 3, name: "metric", kind: "enum", T: proto3.getEnumType(RangedMetricName) },
+    { no: 4, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "identifier" },
+    { no: 5, name: "job_id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "identifier" },
+    { no: 6, name: "run_id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "identifier" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetRangedMetricsRequest {
+    return new GetRangedMetricsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetRangedMetricsRequest {
+    return new GetRangedMetricsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetRangedMetricsRequest {
+    return new GetRangedMetricsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetRangedMetricsRequest | PlainMessage<GetRangedMetricsRequest> | undefined, b: GetRangedMetricsRequest | PlainMessage<GetRangedMetricsRequest> | undefined): boolean {
+    return proto3.util.equals(GetRangedMetricsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetRangedMetricsResponse
+ */
+export class GetRangedMetricsResponse extends Message<GetRangedMetricsResponse> {
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.MetricResult results = 1;
+   */
+  results: MetricResult[] = [];
+
+  constructor(data?: PartialMessage<GetRangedMetricsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetRangedMetricsResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "results", kind: "message", T: MetricResult, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetRangedMetricsResponse {
+    return new GetRangedMetricsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetRangedMetricsResponse {
+    return new GetRangedMetricsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetRangedMetricsResponse {
+    return new GetRangedMetricsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetRangedMetricsResponse | PlainMessage<GetRangedMetricsResponse> | undefined, b: GetRangedMetricsResponse | PlainMessage<GetRangedMetricsResponse> | undefined): boolean {
+    return proto3.util.equals(GetRangedMetricsResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetMetricCountRequest
+ */
+export class GetMetricCountRequest extends Message<GetMetricCountRequest> {
+  /**
+   * The start time
+   *
+   * @generated from field: google.protobuf.Timestamp start = 1;
+   */
+  start?: Timestamp;
+
+  /**
+   * The end time
+   *
+   * @generated from field: google.protobuf.Timestamp end = 2;
+   */
+  end?: Timestamp;
+
+  /**
+   * The metric to return
+   *
+   * @generated from field: mgmt.v1alpha1.RangedMetricName metric = 3;
+   */
+  metric = RangedMetricName.UNSPECIFIED;
+
+  /**
+   * @generated from oneof mgmt.v1alpha1.GetMetricCountRequest.identifier
+   */
+  identifier: {
+    /**
+     * The account identifier that will be used to filter by
+     *
+     * @generated from field: string account_id = 4;
+     */
+    value: string;
+    case: "accountId";
+  } | {
+    /**
+     * The job identifier that will be used to filter by
+     *
+     * @generated from field: string job_id = 5;
+     */
+    value: string;
+    case: "jobId";
+  } | {
+    /**
+     * The run identifier that will be used to filter by
+     *
+     * @generated from field: string run_id = 6;
+     */
+    value: string;
+    case: "runId";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<GetMetricCountRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetMetricCountRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "start", kind: "message", T: Timestamp },
+    { no: 2, name: "end", kind: "message", T: Timestamp },
+    { no: 3, name: "metric", kind: "enum", T: proto3.getEnumType(RangedMetricName) },
+    { no: 4, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "identifier" },
+    { no: 5, name: "job_id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "identifier" },
+    { no: 6, name: "run_id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "identifier" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetMetricCountRequest {
+    return new GetMetricCountRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetMetricCountRequest {
+    return new GetMetricCountRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetMetricCountRequest {
+    return new GetMetricCountRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetMetricCountRequest | PlainMessage<GetMetricCountRequest> | undefined, b: GetMetricCountRequest | PlainMessage<GetMetricCountRequest> | undefined): boolean {
+    return proto3.util.equals(GetMetricCountRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetMetricCountResponse
+ */
+export class GetMetricCountResponse extends Message<GetMetricCountResponse> {
+  /**
+   * The summed up count of the metric based on the input query and timerange specified
+   *
+   * @generated from field: uint64 count = 1;
+   */
+  count = protoInt64.zero;
+
+  constructor(data?: PartialMessage<GetMetricCountResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetMetricCountResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "count", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetMetricCountResponse {
+    return new GetMetricCountResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetMetricCountResponse {
+    return new GetMetricCountResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetMetricCountResponse {
+    return new GetMetricCountResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetMetricCountResponse | PlainMessage<GetMetricCountResponse> | undefined, b: GetMetricCountResponse | PlainMessage<GetMetricCountResponse> | undefined): boolean {
+    return proto3.util.equals(GetMetricCountResponse, a, b);
   }
 }
 

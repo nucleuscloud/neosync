@@ -5,36 +5,36 @@ package mgmt.v1alpha1;
 import "buf/validate/validate.proto";
 import "google/protobuf/timestamp.proto";
 
-message GetRecordsReceivedCountRequest {
-  oneof identifier {
-    // The account identifier that will be used to filter by
-    string account_id = 1 [(buf.validate.field).string.uuid = true];
-    // The job identifier that will be used to filter by
-    string job_id = 2 [(buf.validate.field).string.uuid = true];
-    // The run identifier that will be used to filter by
-    string run_id = 3 [(buf.validate.field).string.uuid = true];
-  }
-  // Provide a time range to retrieve a range of metrics by
-  RecordsReceivedTimeRange indexed_time_range = 4;
-}
+// message GetRecordsReceivedCountRequest {
+//   oneof identifier {
+//     // The account identifier that will be used to filter by
+//     string account_id = 1 [(buf.validate.field).string.uuid = true];
+//     // The job identifier that will be used to filter by
+//     string job_id = 2 [(buf.validate.field).string.uuid = true];
+//     // The run identifier that will be used to filter by
+//     string run_id = 3 [(buf.validate.field).string.uuid = true];
+//   }
+//   // Provide a time range to retrieve a range of metrics by
+//   RecordsReceivedTimeRange indexed_time_range = 4;
+// }
 
-message GetRecordsReceivedCountResponse {
-  repeated MetricResult results = 1;
-}
+// message GetRecordsReceivedCountResponse {
+//   repeated MetricResult results = 1;
+// }
 
-// An enumeration of the supported indexed time ranges for the records received metric
-enum RecordsReceivedTimeRange {
-  // When unspecified, defaults change based on the given identifier
-  RECORDS_RECEIVED_TIME_RANGE_UNSPECIFIED = 0;
-  // 7 day window of metrics
-  RECORDS_RECEIVED_TIME_RANGE_7_DAY = 1;
-  // 14 day window of metrics
-  RECORDS_RECEIVED_TIME_RANGE_14_DAY = 2;
-  // 30 day window of metrics
-  RECORDS_RECEIVED_TIME_RANGE_30_DAY = 3;
-  // 60 day window of metrics
-  RECORDS_RECEIVED_TIME_RANGE_60_DAY = 4;
-}
+// // An enumeration of the supported indexed time ranges for the records received metric
+// enum RecordsReceivedTimeRange {
+//   // When unspecified, defaults change based on the given identifier
+//   RECORDS_RECEIVED_TIME_RANGE_UNSPECIFIED = 0;
+//   // 7 day window of metrics
+//   RECORDS_RECEIVED_TIME_RANGE_7_DAY = 1;
+//   // 14 day window of metrics
+//   RECORDS_RECEIVED_TIME_RANGE_14_DAY = 2;
+//   // 30 day window of metrics
+//   RECORDS_RECEIVED_TIME_RANGE_30_DAY = 3;
+//   // 60 day window of metrics
+//   RECORDS_RECEIVED_TIME_RANGE_60_DAY = 4;
+// }
 
 message MetricResult {
   // figure out what this is
@@ -50,7 +50,64 @@ message MetricValue {
   google.protobuf.Timestamp timestamp = 2;
 }
 
+message GetRangedMetricsRequest {
+  // The start time
+  google.protobuf.Timestamp start = 1;
+  // The end time
+  google.protobuf.Timestamp end = 2;
+  // The metric to return
+  RangedMetricName metric = 3;
+
+  oneof identifier {
+    // The account identifier that will be used to filter by
+    string account_id = 4 [(buf.validate.field).string.uuid = true];
+    // The job identifier that will be used to filter by
+    string job_id = 5 [(buf.validate.field).string.uuid = true];
+    // The run identifier that will be used to filter by
+    string run_id = 6 [(buf.validate.field).string.uuid = true];
+  }
+}
+
+enum RangedMetricName {
+  // If unspecified, an error will be thrown
+  RANGED_METRIC_NAME_UNSPECIFIED = 0;
+  // The input_received metric
+  RANGED_METRIC_NAME_INPUT_RECEIVED = 1;
+}
+
+message GetRangedMetricsResponse {
+  repeated MetricResult results = 1;
+}
+
+message GetMetricCountRequest {
+  // The start time
+  google.protobuf.Timestamp start = 1;
+  // The end time
+  google.protobuf.Timestamp end = 2;
+  // The metric to return
+  RangedMetricName metric = 3;
+
+  oneof identifier {
+    // The account identifier that will be used to filter by
+    string account_id = 4 [(buf.validate.field).string.uuid = true];
+    // The job identifier that will be used to filter by
+    string job_id = 5 [(buf.validate.field).string.uuid = true];
+    // The run identifier that will be used to filter by
+    string run_id = 6 [(buf.validate.field).string.uuid = true];
+  }
+}
+message GetMetricCountResponse {
+  // The summed up count of the metric based on the input query and timerange specified
+  uint64 count = 1;
+}
+
 service MetricsService {
   // Retrieve a timed range of records received based on a given identifier and indexed range of time
-  rpc GetRecordsReceivedCount(GetRecordsReceivedCountRequest) returns (GetRecordsReceivedCountResponse) {}
+  // rpc GetRecordsReceivedCount(GetRecordsReceivedCountRequest) returns (GetRecordsReceivedCountResponse) {}
+
+  // Retrieve a timed range of records
+  rpc GetRangedMetrics(GetRangedMetricsRequest) returns (GetRangedMetricsResponse) {}
+
+  // For the given metric and time range, returns the total count found
+  rpc GetMetricCount(GetMetricCountRequest) returns (GetMetricCountResponse) {}
 }
