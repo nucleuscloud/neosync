@@ -32,7 +32,9 @@ export const metadata: Metadata = {
 export default function Page(): ReactElement {
   return (
     <div>
-      <Hero />
+      <div className="pb-8 lg:pb-20 pt-20">
+        <Hero />
+      </div>
       <div
         className="bg-gradient-to-tr from-[#f8f8f8] to-[#eaeaea] mt-20 lg:mt-20 pt-20 p-10 rounded-xl border border-gray-300"
         id="value-props-section"

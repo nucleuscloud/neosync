@@ -7,72 +7,6 @@ import { GoWorkflow } from 'react-icons/go';
 import { PiArrowsSplitLight, PiFlaskLight } from 'react-icons/pi';
 
 export default function Platform(): ReactElement {
-  const items = [
-    {
-      title: 'Reliable Orchestration',
-      description:
-        'Neosync supports async scheduling, retries, alerting and syncing across multiple destinations.',
-      header: (
-        <Image
-          src={'/images/conn.svg'}
-          alt="st"
-          width="690"
-          height="290"
-          className="rounded-xl border border-gray-700 shadow-xl max-h-[290px] "
-        />
-      ),
-      className: 'md:col-span-2',
-      icon: <PiArrowsSplitLight className="h-4 w-4 text-gray-100" />,
-    },
-    {
-      title: 'Synthetic Data',
-      description: 'Choose from 40+ Synthetic Data Transformers',
-      header: (
-        <Image
-          src={'/images/bento-tf.svg'}
-          alt="st"
-          width="310"
-          height="277"
-          className="rounded-xl border border-gray-700 shadow-xl max-h-[290px]"
-        />
-      ),
-      className: 'md:col-span-1',
-      icon: <PiFlaskLight className="h-4 w-4 text-gray-100" />,
-    },
-
-    {
-      title: 'Subsetting',
-      description: 'Flexibly subset your database.',
-      header: (
-        <Image
-          src={'/images/bento-subset.svg'}
-          alt="st"
-          width="310"
-          height="277"
-          className="rounded-xl border border-gray-700 shadow-xl max-h-[290px]"
-        />
-      ),
-      className: 'md:col-span-1',
-      icon: <BsFunnel className="h-4 w-4 text-gray-100" />,
-    },
-    {
-      title: 'Data Anonymization',
-      description:
-        'Use a Transformer to anonymize your data or create you own transformation in code. ',
-      header: (
-        <Image
-          src={'/images/datanon.svg'}
-          alt="st"
-          width="690"
-          height="290"
-          className="rounded-xl border border-gray-700 shadow-xl max-h-[290px]"
-        />
-      ),
-      className: 'md:col-span-2',
-      icon: <LinkBreak1Icon className="h-4 w-4 text-gray-100" />,
-    },
-  ];
-
   return (
     <div>
       <div className="text-gray-900 font-semibold text-2xl lg:text-4xl font-satoshi text-center bg-white/60">
@@ -90,7 +24,7 @@ export default function Platform(): ReactElement {
 
 function GenerateAndAnonymize(): ReactElement {
   return (
-    <div className="flex flex-row items-center bg-white w-full">
+    <div className="flex flex-col lg:flex-row items-center bg-white w-full">
       <div className="flex flex-col gap-6 p-10 w-full">
         <div className="flex flex-col gap-2">
           <div className="flex flex-row items-center gap-2">
@@ -165,7 +99,7 @@ function ReferentialIntegrity(): ReactElement {
 
 function OrchestrationAndSubset(): ReactElement {
   return (
-    <div className="flex flex-row gap-4 w-full border-t border-gray-400">
+    <div className="flex flex-col lg:flex-row gap-4 w-full border-t border-gray-400">
       <div className="flex flex-col gap-4 p-10 w-full">
         <div className="flex flex-row items-center gap-2">
           <div>
