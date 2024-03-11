@@ -51,9 +51,8 @@ export default function GitOpsSection(): ReactElement {
             <Image
               src="/images/neosync-ci.svg"
               alt="pre"
-              width="514"
-              height="617"
-              className="w-full"
+              width="566"
+              height="697"
             />
 
             <div className="pt-8">
@@ -65,8 +64,7 @@ export default function GitOpsSection(): ReactElement {
                 <ExternalLinkIcon className="text-gray-800 w-4 h-4" />
               </div>
               <div className="font-sans font-normal text-gray-800 text-sm">
-                Use Neosync in your CI pipeline to hydrate CI databases with
-                synthetic and anonymized data
+                Use Neosync in your CI pipeline to hydrate CI databases
               </div>
             </div>
           </div>
