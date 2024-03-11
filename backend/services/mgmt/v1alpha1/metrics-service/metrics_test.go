@@ -346,3 +346,26 @@ func Test_getUsageFromMatrix(t *testing.T) {
 	assert.Equal(t, uint64(2), usage[`{foo="bar"}`])
 	assert.Equal(t, uint64(3), usage[`{foo="bar2"}`])
 }
+
+func Test_getPromQueryFromMetric(t *testing.T) {
+	output, err := getPromQueryFromMetric(
+		mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
+		metricLabels{{Key: "foo", Value: "bar"}, {Key: "foo2", Value: "bar2"}},
+	)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, output)
+	assert.Equal(
+		t,
+		`input_received_total{foo="bar",foo2="bar2"}`,
+		output,
+	)
+}
+
+func Test_getPromQueryFromMetric_Invalid_Metric(t *testing.T) {
+	output, err := getPromQueryFromMetric(
+		mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_UNSPECIFIED,
+		metricLabels{{Key: "foo", Value: "bar"}, {Key: "foo2", Value: "bar2"}},
+	)
+	assert.Error(t, err)
+	assert.Empty(t, output)
+}

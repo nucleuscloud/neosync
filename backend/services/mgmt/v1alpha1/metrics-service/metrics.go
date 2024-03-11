@@ -135,10 +135,14 @@ func getPromQueryFromMetric(
 	return fmt.Sprintf("%s{%s}", metricName, labels.String()), nil
 }
 
+const (
+	inputReceivedTotalMetric = "input_received_total"
+)
+
 func getMetricNameFromEnum(metric mgmtv1alpha1.RangedMetricName) (string, error) {
 	switch metric {
 	case mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED:
-		return "input_received", nil
+		return inputReceivedTotalMetric, nil
 	default:
 		return "", fmt.Errorf("invalid metric name")
 	}
