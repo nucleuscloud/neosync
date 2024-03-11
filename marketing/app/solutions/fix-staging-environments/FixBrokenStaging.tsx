@@ -41,21 +41,18 @@ export default function FixBrokenStaging(): ReactElement {
         {features.map((item) => (
           <div
             key={item.title}
-            className="border border-gray-400 bg-white rounded-xl p-8 shadow-xl flex flex-col gap-6 text-center w-full lg:w-[480px] max-w-xs mx-auto lg:h-[520px]"
+            className="border border-gray-300 bg-white rounded-xl p-2 lg:p-4 xl:p-8 shadow-xl flex flex-col justify-between gap-6 text-center w-full  max-w-[300px] lg:max-w-[400px] mx-auto h-[360px] hover:border-gray-400"
           >
             <div className="text-gray-900 ">
               <Image
                 src={item.image}
                 alt="NeosyncLogo"
-                width="250"
-                height="172"
-                className="lg:max-w-[250px] lg:max-h-[172px] sm:max-w-[200px]"
+                width="178"
+                height="131"
+                className="w-[178px] h-[131px]"
               />
             </div>
             <div className="text-gray-900 text-2xl">{item.title}</div>
-            <div className=" text-gray-500 text-[16px] ">
-              {item.description}
-            </div>
           </div>
         ))}
       </div>

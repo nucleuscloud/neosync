@@ -32,7 +32,10 @@ export default function Page(): ReactElement {
   return (
     <div>
       <Hero />
-      <div className="pt-20 lg:pt-40">
+      <div
+        className="bg-gradient-to-tr from-[#f8f8f8] to-[#eaeaea] mt-20 lg:mt-20 pt-20 p-10 rounded-xl border border-gray-300"
+        id="value-props-section"
+      >
         <FixBrokenStaging />
       </div>
       <div className="pt-20 lg:pt-40 flex justify-center" id="platform-section">

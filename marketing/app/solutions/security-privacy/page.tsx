@@ -33,16 +33,19 @@ export default function Page(): ReactElement {
   return (
     <div>
       <Hero />
-      <div className=" pt-20 lg:pt-40">
+      <div
+        className="bg-gradient-to-tr from-[#f8f8f8] to-[#eaeaea] mt-20 lg:mt-20 pt-20 p-10 rounded-xl border border-gray-300"
+        id="value-props-section"
+      >
         <ComplySecurityPrivacy />
       </div>
       <div className=" pt-20 lg:pt-40">
         <TransformerSection />
       </div>
-      <div className="pt-20 lg:pt-40 flex justify-center" id="platform-section">
+      <div className="pt-20 flex justify-center" id="platform-section">
         <Platform />
       </div>
-      <div className="pt-20 lg:pt-20">
+      <div className="pt-20 ">
         <Intergrations />
       </div>
       <div className="py-10 lg:py-20">
