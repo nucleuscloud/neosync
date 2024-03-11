@@ -9750,7 +9750,7 @@
           "name": "MetricsService",
           "longName": "MetricsService",
           "fullName": "mgmt.v1alpha1.MetricsService",
-          "description": "Retrieve a timed range of records received based on a given identifier and indexed range of time\nrpc GetRecordsReceivedCount(GetRecordsReceivedCountRequest) returns (GetRecordsReceivedCountResponse) {}",
+          "description": "",
           "methods": [
             {
               "name": "GetRangedMetrics",

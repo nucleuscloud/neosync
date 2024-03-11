@@ -676,7 +676,7 @@ func getAuthAdminClient(ctx context.Context, authclient auth_client.Interface, l
 // whether or not to serve metrics via the metrics proto
 // this is not the same as serving up prometheus compliant metrics endpoints
 func shouldServiceMetrics() bool {
-	return viper.GetBool("IS_METRICS_SERVICE_ENABLED")
+	return viper.GetBool("METRICS_SERVICE_ENABLED")
 }
 
 func getPromApiUrl() string {

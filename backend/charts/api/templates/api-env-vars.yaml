@@ -119,7 +119,7 @@ stringData:
     {{- end }}
 
     {{- if and .Values.protometrics .Values.protometrics.enabled }}
-    IS_METRICS_SERVICE_ENABLED: {{ .Values.protometrics.enabled | default "false" | quote }}
+    METRICS_SERVICE_ENABLED: {{ .Values.protometrics.enabled | default "false" | quote }}
     {{- end }}
     {{- if and .Values.protometrics .Values.protometrics.url }}
     METRICS_URL: {{ .Values.protometrics.url | quote }}

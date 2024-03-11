@@ -7,9 +7,6 @@ import { GetMetricCountRequest, GetMetricCountResponse, GetRangedMetricsRequest,
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
- * Retrieve a timed range of records received based on a given identifier and indexed range of time
- * rpc GetRecordsReceivedCount(GetRecordsReceivedCountRequest) returns (GetRecordsReceivedCountResponse) {}
- *
  * @generated from service mgmt.v1alpha1.MetricsService
  */
 export const MetricsService = {
