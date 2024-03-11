@@ -334,7 +334,7 @@ func Test_getUsageFromMatrix(t *testing.T) {
 func Test_getPromQueryFromMetric(t *testing.T) {
 	output, err := getPromQueryFromMetric(
 		mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
-		metrics.MetricLabels{{Key: "foo", Value: "bar"}, {Key: "foo2", Value: "bar2"}},
+		metrics.MetricLabels{metrics.NewEqLabel("foo", "bar"), metrics.NewEqLabel("foo2", "bar2")},
 	)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, output)
@@ -348,7 +348,7 @@ func Test_getPromQueryFromMetric(t *testing.T) {
 func Test_getPromQueryFromMetric_Invalid_Metric(t *testing.T) {
 	output, err := getPromQueryFromMetric(
 		mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_UNSPECIFIED,
-		metrics.MetricLabels{{Key: "foo", Value: "bar"}, {Key: "foo2", Value: "bar2"}},
+		metrics.MetricLabels{metrics.NewEqLabel("foo", "bar"), metrics.NewEqLabel("foo2", "bar2")},
 	)
 	assert.Error(t, err)
 	assert.Empty(t, output)
