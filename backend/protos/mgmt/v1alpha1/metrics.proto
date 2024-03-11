@@ -71,9 +71,6 @@ message GetMetricCountResponse {
 }
 
 service MetricsService {
-  // Retrieve a timed range of records received based on a given identifier and indexed range of time
-  // rpc GetRecordsReceivedCount(GetRecordsReceivedCountRequest) returns (GetRecordsReceivedCountResponse) {}
-
   // Retrieve a timed range of records
   rpc GetRangedMetrics(GetRangedMetricsRequest) returns (GetRangedMetricsResponse) {}
 
