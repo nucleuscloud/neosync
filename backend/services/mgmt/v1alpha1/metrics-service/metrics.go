@@ -30,6 +30,8 @@ func (s *Service) GetRangedMetrics(
 }
 
 var (
+	// NucleusCloud currently limits prom metric storage to 60 days
+	// todo: expose as env var if we want to change this per environment
 	timeLimit = 60 * 24 * time.Hour
 )
 
