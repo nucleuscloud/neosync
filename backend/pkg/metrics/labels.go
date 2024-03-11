@@ -20,6 +20,8 @@ const (
 func NewEqLabel(key, value string) MetricLabel {
 	return MetricLabel{Key: key, Value: value, Sign: "="}
 }
+
+// note: this has only been tested with prometheus and using it with benthos is not currently supported
 func NewNotEqLabel(key, value string) MetricLabel {
 	return MetricLabel{Key: key, Value: value, Sign: "!="}
 }
