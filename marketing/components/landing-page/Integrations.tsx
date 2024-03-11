@@ -1,49 +1,50 @@
 import { NeonTech } from '@/styles/icons/Neon';
+import { Supabase } from '@/styles/icons/Supabase';
 import { ExternalLinkIcon, GitHubLogoIcon } from '@radix-ui/react-icons';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ReactElement } from 'react';
 import { DiMysql } from 'react-icons/di';
 import { FaAws, FaDocker } from 'react-icons/fa';
-import { SiKubernetes, SiPostgresql, SiSupabase } from 'react-icons/si';
+import { SiKubernetes, SiPostgresql } from 'react-icons/si';
 
 export default function Intergrations(): ReactElement {
   const integrations = [
     {
       name: 'Postgres',
-      logo: <SiPostgresql className="text-gray-300 bg-transparent w-12 h-12" />,
+      logo: <SiPostgresql className="text-blue-600 bg-transparent w-12 h-12" />,
       href: 'https://docs.neosync.dev/connections/postgres',
     },
     {
       name: 'Mysql',
-      logo: <DiMysql className="text-gray-300 bg-transparent w-12 h-12" />,
+      logo: <DiMysql className="text-blue-700 bg-transparent w-12 h-12" />,
       href: 'https://docs.neosync.dev/connections/mysql',
     },
     {
       name: 'AWS S3',
-      logo: <FaAws className="text-gray-300 bg-transparent w-12 h-12" />,
+      logo: <FaAws className="text-orange-400 bg-transparent w-12 h-12" />,
       href: 'https://docs.neosync.dev/connections/s3',
     },
     {
       name: 'Github Actions',
       logo: (
-        <GitHubLogoIcon className="text-gray-300 bg-transparent w-12 h-12" />
+        <GitHubLogoIcon className="text-gray-900 bg-transparent w-12 h-12" />
       ),
       href: 'https://docs.neosync.dev/guides/using-neosync-in-ci',
     },
     {
       name: 'Kubernetes',
-      logo: <SiKubernetes className="text-gray-300 bg-transparent w-12 h-12" />,
+      logo: <SiKubernetes className="text-blue-500 bg-transparent w-12 h-12" />,
       href: 'https://docs.neosync.dev/deploy/kubernetes',
     },
     {
       name: 'Docker',
-      logo: <FaDocker className="text-gray-300 bg-transparent w-12 h-12" />,
+      logo: <FaDocker className="text-blue-400  bg-transparent w-12 h-12" />,
       href: 'https://docs.neosync.dev/deploy/docker-compose',
     },
     {
       name: 'Supabase',
-      logo: <SiSupabase className="text-gray-300 bg-transparent w-12 h-12" />,
+      logo: <Supabase />,
       href: 'https://docs.neosync.dev/connections/postgres',
     },
     {
@@ -67,28 +68,21 @@ export default function Intergrations(): ReactElement {
   ];
   return (
     <div>
-      <div className="text-gray-200 font-semibold text-2xl lg:text-4xl font-satoshi text-center">
-        Integrate Your Stack
+      <div className="text-gray-900 font-semibold text-2xl lg:text-4xl font-satoshi text-center z-30">
+        Seamlessly Integrate With Your Stack
       </div>
-      <div className="text-md text-gray-400 font-satoshi font-semibold pt-10 lg:px-60 text-center">
-        Seamlessly integrate Neosync into your stack with out-of-the box
-        integrations
-      </div>
-
       <div className="lg:p-6  mt-10 md:mx-2 lg:mx-20 xl:mx-40">
         <div className="flex justify-center">
           <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {integrations.map((item) => (
               <Link key={item.name} href={item.href}>
-                <div className="p-6 lg:px-16 lg:py-10 border border-gray-600 bg-gradient-to-tr from-[#1E1E1E] to-[#2c2b2b] rounded-xl shadow-xl transition duration-150 ease-in-out hover:-translate-y-1 relative">
+                <div className="p-6 lg:px-16 lg:py-10 border border-gray-300 bg-gradient-to-tr from-[#ffffff] to-[#f2f1f1] rounded-xl shadow-xl transition duration-150 ease-in-out hover:-translate-y-1 relative">
                   <div className="absolute top-0 right-0 p-2">
                     <ExternalLinkIcon className="w-4 h-4 text-gray-500" />
                   </div>
                   <div className="flex flex-col gap-4 justify-center items-center ">
                     <div>{item.logo}</div>
-                    <div className="text-gray-300 text-sm w-[100px]">
-                      {item.name}
-                    </div>
+                    <div className="text-gray-900 text-sm">{item.name}</div>
                   </div>
                 </div>
               </Link>
