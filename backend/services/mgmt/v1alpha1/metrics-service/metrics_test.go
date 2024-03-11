@@ -14,6 +14,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	mockPromV1 "github.com/nucleuscloud/neosync/backend/internal/mocks/github.com/prometheus/client_golang/api/prometheus/v1"
+	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 )
 
@@ -305,23 +306,6 @@ func mockIsUserInAccount(userAccountServiceMock *mgmtv1alpha1connect.MockUserAcc
 	}), nil)
 }
 
-func Test_metricLabel_String(t *testing.T) {
-	label := metricLabel{Key: "foo", Value: "bar"}
-	assert.Equal(t, `foo="bar"`, label.String())
-}
-
-func Test_metricLabels_String(t *testing.T) {
-	labels := metricLabels{
-		{Key: "foo", Value: "bar"},
-		{Key: "foo2", Value: "bar2"},
-	}
-	assert.Equal(
-		t,
-		`foo="bar",foo2="bar2"`,
-		labels.String(),
-	)
-}
-
 func Test_getUsageFromMatrix(t *testing.T) {
 	usage, err := getUsageFromMatrix(model.Matrix{
 		{
@@ -350,7 +334,7 @@ func Test_getUsageFromMatrix(t *testing.T) {
 func Test_getPromQueryFromMetric(t *testing.T) {
 	output, err := getPromQueryFromMetric(
 		mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
-		metricLabels{{Key: "foo", Value: "bar"}, {Key: "foo2", Value: "bar2"}},
+		metrics.MetricLabels{{Key: "foo", Value: "bar"}, {Key: "foo2", Value: "bar2"}},
 	)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, output)
@@ -364,7 +348,7 @@ func Test_getPromQueryFromMetric(t *testing.T) {
 func Test_getPromQueryFromMetric_Invalid_Metric(t *testing.T) {
 	output, err := getPromQueryFromMetric(
 		mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_UNSPECIFIED,
-		metricLabels{{Key: "foo", Value: "bar"}, {Key: "foo2", Value: "bar2"}},
+		metrics.MetricLabels{{Key: "foo", Value: "bar"}, {Key: "foo2", Value: "bar2"}},
 	)
 	assert.Error(t, err)
 	assert.Empty(t, output)

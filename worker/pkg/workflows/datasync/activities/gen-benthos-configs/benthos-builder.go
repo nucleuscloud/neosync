@@ -17,6 +17,7 @@ import (
 	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	dbschemas_mysql "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/mysql"
 	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/postgres"
+	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
@@ -551,16 +552,17 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	responses = append(responses, updateResponses...)
 
 	if b.metricsEnabled {
-		labels := []metricLabel{
-			{Key: "neosyncAccountId", Value: job.AccountId},
-			{Key: "neosyncJobId", Value: job.Id},
-			{Key: "temporalWorkflowId", Value: "${TEMPORAL_WORKFLOW_ID}"},
-			{Key: "temporalRunId", Value: "${TEMPORAL_RUN_ID}"},
+		labels := metrics.MetricLabels{
+			metrics.NewEqLabel(metrics.AccountIdLabel, job.AccountId),
+			metrics.NewEqLabel(metrics.JobIdLabel, job.Id),
+			metrics.NewEqLabel(metrics.TemporalWorkflowId, "${TEMPORAL_WORKFLOW_ID}"),
+			metrics.NewEqLabel(metrics.TemporalRunId, "${TEMPORAL_RUN_ID}"),
 		}
 		for _, resp := range responses {
+			joinedLabels := append(labels, resp.metriclabels...)
 			resp.Config.Metrics = &neosync_benthos.Metrics{
 				OtelCollector: &neosync_benthos.MetricsOtelCollector{},
-				Mapping:       getBenthosMetricsMapping(append(labels, resp.metriclabels...)),
+				Mapping:       joinedLabels.ToBenthosMeta(),
 			}
 		}
 	}
@@ -569,20 +571,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	return &GenerateBenthosConfigsResponse{
 		BenthosConfigs: responses,
 	}, nil
-}
-
-// Using a slice of structs instead of a map for ordered consistency
-type metricLabel struct {
-	Key   string
-	Value string
-}
-
-func getBenthosMetricsMapping(labels []metricLabel) string {
-	lines := []string{}
-	for _, label := range labels {
-		lines = append(lines, fmt.Sprintf("meta %s = %q", label.Key, label.Value))
-	}
-	return strings.Join(lines, "\n")
 }
 
 func getForeignKeyToSourceMap(tableDependencies map[string]*dbschemas_utils.TableConstraints) map[string]map[string]*dbschemas_utils.ForeignKey {
@@ -762,10 +750,10 @@ func buildBenthosGenerateSourceConfigResponses(
 			TableSchema: tableMapping.Schema,
 			TableName:   tableMapping.Table,
 
-			metriclabels: []metricLabel{
-				{Key: "tableSchema", Value: tableMapping.Schema},
-				{Key: "tableName", Value: tableMapping.Table},
-				{Key: "jobType", Value: "generate"},
+			metriclabels: metrics.MetricLabels{
+				metrics.NewEqLabel(metrics.TableSchemaLabel, tableMapping.Schema),
+				metrics.NewEqLabel(metrics.TableNameLabel, tableMapping.Table),
+				metrics.NewEqLabel(metrics.JobTypeLabel, "generate"),
 			},
 		})
 	}
@@ -1007,7 +995,7 @@ func createSqlUpdateBenthosConfig(
 		newResp.DependsOn = insertConfig.updateConfig.DependsOn
 		newResp.Name = fmt.Sprintf("%s.update", insertConfig.Name)
 		newResp.primaryKeys = insertConfig.primaryKeys
-		newResp.metriclabels = append(newResp.metriclabels, metricLabel{Key: "isUpdateConfig", Value: "true"})
+		newResp.metriclabels = append(newResp.metriclabels, metrics.NewEqLabel(metrics.IsUpdateConfigLabel, "true"))
 		var output *sqlOutput
 		if driver == "postgres" {
 			out := buildPostgresOutputQueryAndArgs(newResp, tm, tableKey, colSourceMap)
@@ -1158,10 +1146,10 @@ func buildBenthosSqlSourceConfigResponses(
 			TableSchema: tableMapping.Schema,
 			TableName:   tableMapping.Table,
 
-			metriclabels: []metricLabel{
-				{Key: "tableSchema", Value: tableMapping.Schema},
-				{Key: "tableName", Value: tableMapping.Table},
-				{Key: "jobType", Value: "sync"},
+			metriclabels: metrics.MetricLabels{
+				metrics.NewEqLabel(metrics.TableSchemaLabel, tableMapping.Schema),
+				metrics.NewEqLabel(metrics.TableNameLabel, tableMapping.Table),
+				metrics.NewEqLabel(metrics.JobTypeLabel, "sync"),
 			},
 		})
 	}

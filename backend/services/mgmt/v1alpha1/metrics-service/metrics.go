@@ -4,22 +4,16 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
+	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 
 	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
-)
-
-const (
-	accountIdLabel = "neosyncAccountId"
-	jobIdLabel     = "neosyncJobId"
-	runIdLabel     = "neosyncRunId"
 )
 
 func (s *Service) GetRangedMetrics(
@@ -30,7 +24,7 @@ func (s *Service) GetRangedMetrics(
 }
 
 var (
-	// NucleusCloud currently limits prom metric storage to 60 days
+	// NeosyncCloud currently limits prom metric storage to 60 days
 	// todo: expose as env var if we want to change this per environment
 	timeLimit = 60 * 24 * time.Hour
 )
@@ -59,14 +53,16 @@ func (s *Service) GetMetricCount(
 		return nil, nucleuserrors.NewBadRequest("duration between start and end must not exceed 60 days")
 	}
 
-	queryLabels := metricLabels{}
+	queryLabels := metrics.MetricLabels{
+		metrics.NewNotEqLabel(metrics.IsUpdateConfigLabel, "true"), // we want to always exclude update configs
+	}
 
 	switch identifier := req.Msg.Identifier.(type) {
 	case *mgmtv1alpha1.GetMetricCountRequest_AccountId:
 		if _, err := s.verifyUserInAccount(ctx, identifier.AccountId); err != nil {
 			return nil, err
 		}
-		queryLabels = append(queryLabels, metricLabel{Key: accountIdLabel, Value: identifier.AccountId})
+		queryLabels = append(queryLabels, metrics.NewEqLabel(metrics.AccountIdLabel, identifier.AccountId))
 	case *mgmtv1alpha1.GetMetricCountRequest_JobId:
 		jobResp, err := s.jobservice.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{Id: identifier.JobId}))
 		if err != nil {
@@ -74,8 +70,8 @@ func (s *Service) GetMetricCount(
 		}
 		queryLabels = append(
 			queryLabels,
-			metricLabel{Key: accountIdLabel, Value: jobResp.Msg.GetJob().GetAccountId()},
-			metricLabel{Key: jobIdLabel, Value: jobResp.Msg.GetJob().GetId()},
+			metrics.NewEqLabel(metrics.AccountIdLabel, jobResp.Msg.GetJob().GetAccountId()),
+			metrics.NewEqLabel(metrics.JobIdLabel, jobResp.Msg.GetJob().GetId()),
 		)
 	case *mgmtv1alpha1.GetMetricCountRequest_RunId:
 		jrResp, err := s.jobservice.GetJobRun(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRunRequest{JobRunId: identifier.RunId}))
@@ -85,8 +81,8 @@ func (s *Service) GetMetricCount(
 		// dont really need to add account id here since it's implied by the job id
 		queryLabels = append(
 			queryLabels,
-			metricLabel{Key: jobIdLabel, Value: jrResp.Msg.GetJobRun().GetJobId()},
-			metricLabel{Key: runIdLabel, Value: jrResp.Msg.GetJobRun().GetId()},
+			metrics.NewEqLabel(metrics.JobIdLabel, jrResp.Msg.GetJobRun().GetJobId()),
+			metrics.NewEqLabel(metrics.TemporalWorkflowId, jrResp.Msg.GetJobRun().GetId()),
 		)
 	default:
 		return nil, nucleuserrors.NewBadRequest("must provide a valid identifier to proceed")
@@ -128,13 +124,13 @@ func (s *Service) GetMetricCount(
 
 func getPromQueryFromMetric(
 	metric mgmtv1alpha1.RangedMetricName,
-	labels metricLabels,
+	labels metrics.MetricLabels,
 ) (string, error) {
 	metricName, err := getMetricNameFromEnum(metric)
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s{%s}", metricName, labels.String()), nil
+	return fmt.Sprintf("%s{%s}", metricName, labels.ToPromQueryString()), nil
 }
 
 const (
@@ -195,23 +191,4 @@ func sumUsage(usage map[string]uint64) uint64 {
 		total += val
 	}
 	return total
-}
-
-type metricLabel struct {
-	Key   string
-	Value string
-}
-
-func (m *metricLabel) String() string {
-	return fmt.Sprintf("%s=%q", m.Key, m.Value)
-}
-
-type metricLabels []metricLabel
-
-func (m metricLabels) String() string {
-	var parts []string
-	for _, label := range m {
-		parts = append(parts, label.String())
-	}
-	return strings.Join(parts, ",")
 }
