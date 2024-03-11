@@ -48,7 +48,7 @@ you're ready, deploy Neosync using a Helm Chart or Docker
   return (
     <div className="px-6">
       <div className="text-gray-900 font-semibold text-2xl lg:text-4xl font-satoshi text-center">
-        Get Up and Running in Minutes
+        Get Up and Running in Minutes With Open Source Neosync
       </div>
       <div className="text-md text-gray-700 font-satoshi font-semibold pt-10 lg:px-60 text-center">
         Whether you want to run Neosync locally, on VMs or in Kubernetes,
