@@ -5,37 +5,6 @@ package mgmt.v1alpha1;
 import "buf/validate/validate.proto";
 import "google/protobuf/timestamp.proto";
 
-// message GetRecordsReceivedCountRequest {
-//   oneof identifier {
-//     // The account identifier that will be used to filter by
-//     string account_id = 1 [(buf.validate.field).string.uuid = true];
-//     // The job identifier that will be used to filter by
-//     string job_id = 2 [(buf.validate.field).string.uuid = true];
-//     // The run identifier that will be used to filter by
-//     string run_id = 3 [(buf.validate.field).string.uuid = true];
-//   }
-//   // Provide a time range to retrieve a range of metrics by
-//   RecordsReceivedTimeRange indexed_time_range = 4;
-// }
-
-// message GetRecordsReceivedCountResponse {
-//   repeated MetricResult results = 1;
-// }
-
-// // An enumeration of the supported indexed time ranges for the records received metric
-// enum RecordsReceivedTimeRange {
-//   // When unspecified, defaults change based on the given identifier
-//   RECORDS_RECEIVED_TIME_RANGE_UNSPECIFIED = 0;
-//   // 7 day window of metrics
-//   RECORDS_RECEIVED_TIME_RANGE_7_DAY = 1;
-//   // 14 day window of metrics
-//   RECORDS_RECEIVED_TIME_RANGE_14_DAY = 2;
-//   // 30 day window of metrics
-//   RECORDS_RECEIVED_TIME_RANGE_30_DAY = 3;
-//   // 60 day window of metrics
-//   RECORDS_RECEIVED_TIME_RANGE_60_DAY = 4;
-// }
-
 message MetricResult {
   // figure out what this is
   map<string, string> metric = 1;
