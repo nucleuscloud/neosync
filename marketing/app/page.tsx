@@ -2,7 +2,7 @@ import CTA from '@/components/cta/CTA';
 import GitOpsSection from '@/components/landing-page/GitOps';
 import Hero from '@/components/landing-page/Hero';
 import Intergrations from '@/components/landing-page/Integrations';
-import Platform from '@/components/landing-page/Platform';
+import Platform2 from '@/components/landing-page/Platform2';
 import UseNeosync from '@/components/landing-page/UseNeosync';
 import ValueProps from '@/components/landing-page/Valueprops';
 import { Metadata } from 'next';
@@ -33,15 +33,18 @@ export default function Home(): ReactElement {
   return (
     <div>
       <Hero />
-      {/* <div className=" bg-[#F5F5F5] px-4"> */}
-      <div className="bg-gray-100 pt-20 p-10 rounded-xl border border-gray-200">
+      <div
+        className="bg-gradient-to-tr from-[#f8f8f8] to-[#eaeaea] mt-20 lg:mt-20 pt-20 p-10 rounded-xl border border-gray-300"
+        id="value-props-section"
+      >
         <ValueProps />
       </div>
-      {/* <div className=" bg-[#1E1E1E] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto pt-20 rounded-3xl mt-20 lg:mt-40 py-10 justify-center flex flex-col">
-          <div className="pt-4 lg:pt-20"> */}
-      <Platform />
-      {/* </div>
-          <div className="pt-20 lg:pt-20"> */}
+      {/* <div className=" bg-[#1E1E1E] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto pt-20 rounded-3xl mt-20 lg:mt-40 py-10 justify-center flex flex-col">*/}
+      <div className="pt-20 lg:pt-40 flex justify-center" id="platform-section">
+        {/* <Platform /> */}
+        <Platform2 />
+      </div>
+      {/*    <div className="pt-20 lg:pt-20"> */}
       <Intergrations />
       {/* </div>
         </div>
