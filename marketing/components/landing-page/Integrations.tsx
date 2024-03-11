@@ -71,7 +71,7 @@ export default function Intergrations(): ReactElement {
       <div className="text-gray-900 font-semibold text-2xl lg:text-4xl font-satoshi text-center z-30">
         Seamlessly Integrate With Your Stack
       </div>
-      <div className="lg:p-6  mt-10 md:mx-2 lg:mx-20 xl:mx-40">
+      <div className="lg:p-6 mt-10">
         <div className="flex justify-center">
           <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {integrations.map((item) => (

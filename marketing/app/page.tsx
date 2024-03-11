@@ -42,20 +42,18 @@ export default function Home(): ReactElement {
       <div className="pt-20 lg:pt-40 flex justify-center" id="platform-section">
         <Platform />
       </div>
-      <div>
+      <div className="pt-20">
         <Intergrations />
       </div>
-      {/* 
-        <div className="bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto pt-20 lg:pt-40"> */}
-      <UseNeosync />
-      {/* </div>
-        <div className="bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto py-10 lg:py-20"> */}
-      <GitOpsSection />
-      {/* </div>
-        <div className="bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto py-10 lg:py-20"> */}
-      <CTA />
-      {/* </div>
-      </div> */}
+      <div className=" pt-20 lg:pt-40">
+        <UseNeosync />
+      </div>
+      <div className="py-10 lg:py-20">
+        <GitOpsSection />
+      </div>
+      <div className=" py-10 lg:py-20">
+        <CTA />
+      </div>
     </div>
   );
 }
