@@ -52,51 +52,36 @@ The best way to understand how these functions work is by looking at a few examp
 
 Depending on your set up, you can install PGAnonymizer in a few different ways. In this example, we'll walk through how to do it locally but if you're using something like docker, you can follow [this guide](https://postgresql-anonymizer.readthedocs.io/en/stable/INSTALL/#install-with-docker).
 
-Let's get started. First, we'll need Python 3.5 or later. If you don't already have it, you can download it like so:
-
-```Bash
-pip install pganonymizer
-```
-
-Now that we've installed our dependencies, we can create our yaml config file. This config file will define the tables and columns that we want to anonymize and the anonymization methods. Here is what an example config file looks like:
-
-```yaml
-database:
-  host: localhost
-  port: 5432
-  user: username
-  password: password
-  database_name: postgres
-
-tables:
-  - name: users
-    anonymize:
-      - column: name
-        method: replace
-        value: AnonUser
-
-      - column: email
-        method: replace
-        regex: ^(.*)@(.*)$
-        replace: '$1@example.com'
-
-  - name: orders
-    anonymize:
-      - column: user_id
-        method: anonymize
-        function: generate_user_id
-
-encryption:
-  enable: false
-```
-
-Once you've created the config file, you can run it with this command:
+Let's get started. First, we'll clone the repo down so that we can install install.
 
 ```bash
-pganonymizer config.yaml
+git clone https://gitlab.com/dalibo/postgresql_anonymizer.git
 ```
 
-This will create a new database (your_database_anonymized) with the anonymized data.
+Next build it like any other Postgres extension.
+
+```bash
+make extension
+sudo make install
+```
+
+Now we can load the extension using another bash script:
+
+```bash
+ALTER DATABASE foo SET session_preload_libraries = 'anon';
+```
+
+Close your existing session and then open a new one and then run:
+
+```bash
+CREATE EXTENSION anon CASCADE;
+```
+
+Lastly, initialize it using:
+
+```bash
+SELECT anon.init();
+```
 
 That's it! Easy enough to get started. Let's dig into some of the anonymization functions that PGAnonymizer has.
 
