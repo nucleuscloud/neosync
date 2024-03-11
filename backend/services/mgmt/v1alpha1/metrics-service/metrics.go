@@ -99,32 +99,46 @@ func (s *Service) GetMetricCount(
 			return nil, fmt.Errorf("unable to convert query response to model.Matrix, received type: %T", queryResponse)
 		}
 
-		usage := map[string]int64{}
-		for _, stream := range matrix {
-			usage[stream.Metric.String()] = 0
-
-			var latest int64
-			for _, value := range stream.Values {
-				converted, err := strconv.ParseInt(value.Value.String(), 10, 64)
-				if err != nil {
-					return nil, fmt.Errorf("unable to convert metric value to int64: %w", err)
-				}
-				if converted > latest {
-					latest = converted
-				}
-			}
-			usage[stream.Metric.String()] = latest
+		usage, err := getUsageFromMatrix(matrix)
+		if err != nil {
+			return nil, err
 		}
-
-		var total uint64
-		for _, val := range usage {
-			total += uint64(val)
-		}
-		return connect.NewResponse(&mgmtv1alpha1.GetMetricCountResponse{Count: total}), nil
+		return connect.NewResponse(&mgmtv1alpha1.GetMetricCountResponse{Count: sumUsage(usage)}), nil
 
 	default:
 		return nil, fmt.Errorf("this method does not support query responses of type: %s", queryResponse.Type())
 	}
+}
+
+func getUsageFromMatrix(matrix model.Matrix) (map[string]uint64, error) {
+	usage := map[string]uint64{}
+	for _, stream := range matrix {
+		usage[stream.Metric.String()] = 0
+
+		var latest int64
+		for _, value := range stream.Values {
+			converted, err := strconv.ParseInt(value.Value.String(), 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("unable to convert metric value to int64: %w", err)
+			}
+			if converted > latest {
+				latest = converted
+			}
+		}
+		if latest < 0 {
+			return nil, fmt.Errorf("received a metric count that was less than 0")
+		}
+		usage[stream.Metric.String()] = uint64(latest)
+	}
+	return usage, nil
+}
+
+func sumUsage(usage map[string]uint64) uint64 {
+	var total uint64
+	for _, val := range usage {
+		total += val
+	}
+	return total
 }
 
 func toPrometheusLabels(input map[string]string) string {
