@@ -78,7 +78,7 @@ export default function Platform(): ReactElement {
       <div className="text-gray-900 font-semibold text-2xl lg:text-4xl font-satoshi text-center bg-white/60">
         Built for Teams Who Care About Data Security
       </div>
-      <div className="flex flex-col items-center justify-center border border-bg-gray-300 rounded-xl mt-20 z-30 bg-white max-w-[1105px] overflow-hidden">
+      <div className="flex flex-col items-center justify-center border border-gray-400 rounded-xl mt-20 z-30 bg-white max-w-[1105px] overflow-hidden">
         <GenerateAndAnonymize />
         <ReferentialIntegrity />
         <OrchestrationAndSubset />
@@ -113,7 +113,7 @@ function GenerateAndAnonymize(): ReactElement {
           className="border border-gray-300 shadow-lg rounded-xl"
         />
       </div>
-      <div className="flex flex-col gap-4 p-10 border-gray-300 border-l-2 w-full">
+      <div className="flex flex-col gap-4 p-10 border-gray-400 border-l w-full">
         <div className="flex flex-row items-center gap-2">
           <div>
             <LinkBreak1Icon className="h-4 w-4" />
@@ -139,7 +139,7 @@ function GenerateAndAnonymize(): ReactElement {
 
 function ReferentialIntegrity(): ReactElement {
   return (
-    <div className="flex flex-col gap-4 p-10 w-full border-t-2 border-gray-300 bg-gradient-to-tr from-[#f8f8f8] to-[#eaeaea]">
+    <div className="flex flex-col gap-4 p-10 w-full border-t border-gray-400 bg-gradient-to-tr from-[#f8f8f8] to-[#eaeaea]">
       <div className="flex flex-row items-center gap-2">
         <div>
           <GoWorkflow className="h-4 w-4" />
@@ -165,7 +165,7 @@ function ReferentialIntegrity(): ReactElement {
 
 function OrchestrationAndSubset(): ReactElement {
   return (
-    <div className="flex flex-row gap-4 w-full border-t-2 border-gray-300">
+    <div className="flex flex-row gap-4 w-full border-t border-gray-400">
       <div className="flex flex-col gap-4 p-10 w-full">
         <div className="flex flex-row items-center gap-2">
           <div>
@@ -186,7 +186,7 @@ function OrchestrationAndSubset(): ReactElement {
           className="border border-gray-300 shadow-lg rounded-xl"
         />
       </div>
-      <div className="flex flex-col gap-4 p-10 border-gray-300 border-l-2 w-full">
+      <div className="flex flex-col gap-4 p-10 border-gray-400 border-l w-full">
         <div className="flex flex-row items-center gap-2">
           <div>
             <BsFunnel className="h-4 w-4 " />
