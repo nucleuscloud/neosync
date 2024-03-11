@@ -129,7 +129,7 @@ const links: NavLinks[] = [
 
 export default function TopNav(): ReactElement {
   return (
-    <div className="flex items-center justify-between px-5 sm:px-10 md:px-20 lg:px-60  mx-auto py-2 z-50 w-full bg-[#FFFFFF] border border-b-gray-100 sticky top-0 backdrop-blur-lg">
+    <div className="flex items-center justify-between px-5 sm:px-10 md:px-20 lg:px-60  mx-auto py-2 z-50 w-full bg-[#FFFFFF] border-b border-b-gray-300 sticky top-0 backdrop-blur-lg">
       <div>
         <Link href="/" className="flex items-center">
           <Image

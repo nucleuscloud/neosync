@@ -34,7 +34,7 @@ export default function Home(): ReactElement {
     <div>
       <Hero />
       <div
-        className="bg-gradient-to-tr from-[#f8f8f8] to-[#eaeaea] mt-20 lg:mt-20 pt-20 p-10 rounded-xl border border-gray-300"
+        className="bg-gradient-to-tr from-[#f8f8f8] to-[#eaeaea] mt-20 pt-20 p-10 rounded-xl border border-gray-300"
         id="value-props-section"
       >
         <ValueProps />
@@ -51,7 +51,7 @@ export default function Home(): ReactElement {
       <div className="py-10 lg:py-20">
         <GitOpsSection />
       </div>
-      <div className=" py-10 lg:py-20">
+      <div className="px-5 lg-px-2 py-10 lg:py-20">
         <CTA />
       </div>
     </div>
