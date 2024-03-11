@@ -107,6 +107,12 @@ const links: NavLinks[] = [
     children: [],
   },
   {
+    title: 'Pricing',
+    href: '/pricing',
+    description: '',
+    children: [],
+  },
+  {
     title: 'Blog',
     href: `${env.NEXT_PUBLIC_APP_URL}/blog`,
     description: '',

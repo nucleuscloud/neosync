@@ -19,7 +19,7 @@ import { ReactElement, useEffect, useState } from 'react';
 
 export default function Pricing() {
   return (
-    <div className="flex flex-col gap-6 justify-center z-40 py-20 px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto">
+    <div className="flex flex-col gap-6 justify-center z-40 py-20  mx-auto">
       <div className="text-center text-gray-900 font-semibold text-3xl lg:text-5xl font-satoshi pt-10 bg-white/50">
         Simple, Transparent Pricing
       </div>
@@ -343,6 +343,16 @@ function FAQs(): ReactElement {
           </AccordionContent>
         </AccordionItem>
         <AccordionItem value="item-4">
+          <AccordionTrigger>What is a hybrid deployment?</AccordionTrigger>
+          <AccordionContent>
+            A hybrid deployment is when we you deploy the data plane in your
+            infrastructure and we manage the control plane. This is great for
+            customers who don&apos;t want their data to leave their
+            infrastructure but also want the ease of use of a hosted platform
+            and don&apos;t want to host the open source product.
+          </AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="item-5">
           <AccordionTrigger>
             When will the EU region be available?
           </AccordionTrigger>
