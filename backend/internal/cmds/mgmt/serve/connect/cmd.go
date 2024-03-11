@@ -42,6 +42,7 @@ import (
 	v1alpha1_connectiondataservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-data-service"
 	v1alpha1_connectionservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/connection-service"
 	v1alpha1_jobservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/job-service"
+	v1alpha1_metricsservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/metrics-service"
 	v1alpha1_transformerservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/transformers-service"
 	v1alpha1_useraccountservice "github.com/nucleuscloud/neosync/backend/services/mgmt/v1alpha1/user-account-service"
 
@@ -49,6 +50,10 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
+
+	promapi "github.com/prometheus/client_golang/api"
+	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
+	promconfig "github.com/prometheus/common/config"
 )
 
 func NewCmd() *cobra.Command {
@@ -93,6 +98,10 @@ func serve(ctx context.Context) error {
 		mgmtv1alpha1connect.TransformersServiceName,
 		mgmtv1alpha1connect.ApiKeyServiceName,
 		mgmtv1alpha1connect.ConnectionDataServiceName,
+	}
+
+	if shouldServiceMetrics() {
+		services = append(services, mgmtv1alpha1connect.MetricsServiceName)
 	}
 
 	checker := grpchealth.NewStaticChecker(services...)
@@ -340,6 +349,34 @@ func serve(ctx context.Context) error {
 			connect.WithInterceptors(stdAuthInterceptors...),
 		),
 	)
+
+	if shouldServiceMetrics() {
+		roundTripper := promapi.DefaultRoundTripper
+		promApiKey := getPromApiKey()
+		if promApiKey != nil {
+			roundTripper = promconfig.NewAuthorizationCredentialsRoundTripper("Bearer", promconfig.Secret(*promApiKey), promapi.DefaultRoundTripper)
+		}
+		promclient, err := promapi.NewClient(promapi.Config{
+			Address:      getPromApiUrl(),
+			RoundTripper: roundTripper,
+		})
+		if err != nil {
+			return err
+		}
+		metricsService := v1alpha1_metricsservice.New(
+			&v1alpha1_metricsservice.Config{},
+			useraccountService,
+			jobService,
+			promv1.NewAPI(promclient),
+		)
+		api.Handle(
+			mgmtv1alpha1connect.NewMetricsServiceHandler(
+				metricsService,
+				connect.WithInterceptors(stdInterceptors...),
+				connect.WithInterceptors(stdAuthInterceptors...),
+			),
+		)
+	}
 
 	mux.Handle("/", api)
 
@@ -634,4 +671,25 @@ func getAuthAdminClient(ctx context.Context, authclient auth_client.Interface, l
 	}
 	logger.Warn(fmt.Sprintf("unable to initialize auth admin client due to unsupported provider: %q", provider))
 	return &authmgmt.UnimplementedClient{}, nil
+}
+
+// whether or not to serve metrics via the metrics proto
+// this is not the same as serving up prometheus compliant metrics endpoints
+func shouldServiceMetrics() bool {
+	return viper.GetBool("IS_SERVE_METRICS_ENABLED")
+}
+
+func getPromApiUrl() string {
+	baseurl := viper.GetString("METRICS_URL")
+	if baseurl == "" {
+		return "http://localhost:9090"
+	}
+	return baseurl
+}
+func getPromApiKey() *string {
+	key := viper.GetString("METRICS_API_KEY")
+	if key == "" {
+		return nil
+	}
+	return &key
 }
