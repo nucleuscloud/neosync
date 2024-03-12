@@ -8,8 +8,8 @@ import {
 import { ApiKeyService } from './mgmt/v1alpha1/api_key_connect.js';
 import { ConnectionService } from './mgmt/v1alpha1/connection_connect.js';
 import { ConnectionDataService } from './mgmt/v1alpha1/connection_data_connect.js';
-
 import { JobService } from './mgmt/v1alpha1/job_connect.js';
+import { MetricsService } from './mgmt/v1alpha1/metrics_connect.js';
 import { TransformersService } from './mgmt/v1alpha1/transformer_connect.js';
 import { UserAccountService } from './mgmt/v1alpha1/user_account_connect.js';
 
@@ -23,6 +23,7 @@ export interface NeosyncV1alpha1Client {
   transformers: PromiseClient<typeof TransformersService>;
   apikeys: PromiseClient<typeof ApiKeyService>;
   connectiondata: PromiseClient<typeof ConnectionDataService>;
+  metrics: PromiseClient<typeof MetricsService>;
 }
 
 /**
@@ -87,6 +88,7 @@ export function getNeosyncV1alpha1Client(
     transformers: createPromiseClient(TransformersService, transport),
     apikeys: createPromiseClient(ApiKeyService, transport),
     connectiondata: createPromiseClient(ConnectionDataService, transport),
+    metrics: createPromiseClient(MetricsService, transport),
   };
 }
 
