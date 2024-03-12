@@ -354,6 +354,9 @@ metrics:
         meta neosyncJobId = "test-job-id"
         meta temporalWorkflowId = "${TEMPORAL_WORKFLOW_ID}"
         meta temporalRunId = "${TEMPORAL_RUN_ID}"
+        meta tableSchema = "public"
+        meta tableName = "users"
+        meta jobType = "generate"
 `),
 		strings.TrimSpace(string(out)),
 	)

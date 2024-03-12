@@ -559,7 +559,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			metrics.NewEqLabel(metrics.TemporalRunId, "${TEMPORAL_RUN_ID}"),
 		}
 		for _, resp := range responses {
-			joinedLabels := append(labels, resp.metriclabels...)
+			joinedLabels := append(labels, resp.metriclabels...) //nolint:gocritic
 			resp.Config.Metrics = &neosync_benthos.Metrics{
 				OtelCollector: &neosync_benthos.MetricsOtelCollector{},
 				Mapping:       joinedLabels.ToBenthosMeta(),

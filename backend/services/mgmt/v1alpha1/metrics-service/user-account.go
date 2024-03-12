@@ -44,16 +44,16 @@ func isWorkerApiKey(ctx context.Context) bool {
 	return data.ApiKeyType == apikey.WorkerApiKey
 }
 
-func (s *Service) getUserUuid(
-	ctx context.Context,
-) (*pgtype.UUID, error) {
-	user, err := s.useraccountservice.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
-	if err != nil {
-		return nil, err
-	}
-	userUuid, err := nucleusdb.ToUuid(user.Msg.UserId)
-	if err != nil {
-		return nil, err
-	}
-	return &userUuid, nil
-}
+// func (s *Service) getUserUuid(
+// 	ctx context.Context,
+// ) (*pgtype.UUID, error) {
+// 	user, err := s.useraccountservice.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	userUuid, err := nucleusdb.ToUuid(user.Msg.UserId)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return &userUuid, nil
+// }

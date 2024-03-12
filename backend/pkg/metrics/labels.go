@@ -9,7 +9,7 @@ const (
 	AccountIdLabel     = "neosyncAccountId"
 	JobIdLabel         = "neosyncJobId"
 	TemporalWorkflowId = "temporalWorkflowId"
-	TemporalRunId      = "temporalRunid"
+	TemporalRunId      = "temporalRunId"
 
 	TableSchemaLabel    = "tableSchema"
 	TableNameLabel      = "tableName"
