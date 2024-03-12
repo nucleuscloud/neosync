@@ -89,3 +89,7 @@ stringData:
     NEOSYNC_CLOUD: {{ .Values.neosyncCloud.enabled | default "false" | quote }}
 
     ENABLE_RUN_LOGS: {{ .Values.enableRunLogs | default "false" | quote }}
+
+    {{ if and .Values.protometrics .Values.protometrics.enabled }}
+    METRICS_SERVICE_ENABLED: {{ .Values.protometrics.enabled }}
+    {{- end }}
