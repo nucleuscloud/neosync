@@ -122,8 +122,8 @@ func (d *NucleusDb) CreateTeamAccount(
 		} else if err != nil && IsNoRows(err) {
 			accounts = []db_queries.NeosyncApiAccount{}
 		}
-		for _, account := range accounts {
-			if strings.EqualFold(account.AccountSlug, teamName) {
+		for idx := range accounts {
+			if strings.EqualFold(accounts[idx].AccountSlug, teamName) {
 				return nucleuserrors.NewAlreadyExists(fmt.Sprintf("team account with the name %s already exists", teamName))
 			}
 		}

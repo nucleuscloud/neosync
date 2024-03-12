@@ -20,6 +20,7 @@ services:
     container_name: neosync-prom
     image: prom/prometheus
     networks:
+      - neosync-network
       - metrics
     volumes:
       - $PWD/hack/prometheus.yaml:/etc/prometheus/prometheus.yml

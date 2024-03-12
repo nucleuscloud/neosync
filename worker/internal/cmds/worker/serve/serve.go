@@ -30,6 +30,7 @@ import (
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/propagation"
 	metricsdk "go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
@@ -256,7 +257,7 @@ func setupOtelSdk(config *otelSetupConfig) func(context.Context) error {
 	// Set up meter provider
 	if config.MeterProvider != nil {
 		shutdownFuncs = append(shutdownFuncs, config.MeterProvider.Shutdown)
-		otel.SetMeterProvider(config.MeterProvider)
+		otel.SetMeterProvider(config.MeterProvider) // maybe dont set this as the global since it might be specific to a discrete part of the application
 	}
 	return shutdown
 }
@@ -268,6 +269,12 @@ func newPropagator() propagation.TextMapPropagator {
 	)
 }
 
+func temporalitySelector(ik metricsdk.InstrumentKind) metricdata.Temporality {
+	// Delta Temporality causes metrics to be reset after some time.
+	// We are using this today for benthos metrics so that they don't persist indefinitely in the time series database
+	return metricdata.DeltaTemporality
+}
+
 func getConfiguredMeterProvider(ctx context.Context) (*metricsdk.MeterProvider, bool, error) {
 	if !getIsOtelEnabled() {
 		return nil, false, nil
@@ -276,7 +283,7 @@ func getConfiguredMeterProvider(ctx context.Context) (*metricsdk.MeterProvider, 
 	var exporter metricsdk.Exporter
 	exporterType := getMetricsExporter()
 	if exporterType == "otlp" {
-		grpcExporter, err := otlpmetricgrpc.New(ctx)
+		grpcExporter, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithTemporalitySelector(temporalitySelector))
 		if err != nil {
 			return nil, false, err
 		}

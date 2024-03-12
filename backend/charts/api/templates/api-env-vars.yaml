@@ -117,3 +117,13 @@ stringData:
     {{- if and .Values.kubernetes .Values.kubernetes.workerAppName }}
     KUBERNETES_WORKER_APP_NAME: {{ .Values.kubernetes.workerAppName }}
     {{- end }}
+
+    {{- if and .Values.protometrics .Values.protometrics.enabled }}
+    METRICS_SERVICE_ENABLED: {{ .Values.protometrics.enabled | default "false" | quote }}
+    {{- end }}
+    {{- if and .Values.protometrics .Values.protometrics.url }}
+    METRICS_URL: {{ .Values.protometrics.url | quote }}
+    {{- end }}
+    {{- if and .Values.protometrics .Values.protometrics.apiKey }}
+    METRICS_API_KEY: {{ .Values.protometrics.apiKey | quote }}
+    {{- end }}
