@@ -3,7 +3,7 @@ title: A technical deep dive into how PGDUMP works
 description: Learn how PGDUMP works under the covers
 date: 2024-03-11
 published: true
-image: /images/blogs/pgdump.svg
+image: /images/blogs/pgdumptech.svg
 authors:
   - evis
 ---
@@ -12,13 +12,13 @@ authors:
 
 PGDUMP (or pg_dump) is a [Postgres utility](https://www.postgresql.org/docs/current/app-pgdump.html) [(source)](https://github.com/postgres/postgres/blob/master/src/bin/pg_dump/pg_dump.c) that comes bundled with every PostgreSQL installation. It is a command-line tool that connects to a PostgreSQL server and constructs queries to extract database metadata and/or table data, including all of the constraints. This exported file can then be used to recreate the database on the same or another PostgreSQL server. This is really useful for backups and data migrations.
 
-Let's take a step-by-step look at exactly how PGDUMP works under the hood
+Let's take a step-by-step look at exactly how PGDUMP works under the hood and then at the end go through an example.
 
 # Step 1 - Connect and Query
 
 When you run the pg_dump command, the first thing it does is establish a connection to the PostgreSQL server using the provided connection string. It uses the same libpq library as the psql command-line client. This is nice because it ensures compatability across versions.
 
-Once connected, pg_dump queries the PostgreSQL system catalogs to retrieve metadata about the target database. but
+To ensure a consistent snapshot of the database, pg_dump leverages [PostgreSQL's MVCC (Multi-Version Concurrency Control)](https://www.postgresql.org/docs/7.1/mvcc.html). This means it can safely back up the database without locking out concurrent users. This is usually fine for most operations but large transactions might be impacted.
 
 Once connected, pg_dump queries the PostgreSQL system catalogs to retrieve metadata about the target database. This includes information on schemas, tables, data types, indexes, constraints, views, functions, and more. It fetches all the database object definitions and their properties.
 
@@ -40,14 +40,14 @@ It's important to note that pg_dump doesn't query the tables directly. Instead, 
 
 # Step 2: Dump the Data
 
-Now that we have the metadata, pg_dump then starts the process of extracting the raw data for each table in the database. There are configurations for pg_dump where you only get the schema. If so, then this step is effectivelyt skipped. If we want the data as well, then here's a breakdown of what happens:
+Now that we have the metadata, pg_dump then starts the process of extracting the raw data for each table in the database. There are configurations for pg_dump where you only get the schema. If so, then this step is effectively skipped. If we want the data as well, then here's a breakdown of what happens:
 
 1. It constructs a query like `SELECT \* FROM schema.table` for each table.
 2. This query is executed, and pg_dump fetches the result rows in batches to minimize memory overhead.
-3. For each row fetched, pg_dump formats an INSERT statement with the row data like `INSERT INTO schema.table VALUES (...);. Note: pg_dump does this to make it easy to pg_restore.
+3. For each row fetched, pg_dump formats an INSERT statement with the row data using the `COPY` command. For example, `COPY schema.table (col1, col2) FROM stdin; string1	string2 \.`
 4. These INSERT statements are buffered in memory in the order the rows were retrieved.
 
-Tables with foreign keys or inheritance hierarchies are dumped in an order that preserves referential integrity. Data is dumped sorted by OID, object identifierm, to maintain consistency across runs.
+Tables with foreign keys or inheritance hierarchies are dumped in an order that preserves referential integrity. Data is dumped sorted by OID (object identifier) to maintain consistency across runs. Lastly, pg_dump has special handling for large objects. It typically uses the lo_export function to manage these objects.
 
 At this point, pg_dump has, in memory, the contents of the pg_dump output file. Just in time for step 3!
 
@@ -69,27 +69,27 @@ The output is written as plain text with SQL statements intermixed with PGDUMP d
 
 By default, pg_dump outputs the complete SQL script to standard output (stdout). You can optionally specify an output file to write to instead.
 
-If instructed, pg_dump can also compress the output SQL file using the specified compression format (gzip, bzip2, etc). The compressed file can then be transferred and decompressed on the destination system.
+Additionally, pg_dump can also compress the output SQL file using the specified compression format (gzip, bzip2, etc). The compressed file can then be transferred and decompressed on the destination system.
 
-# Example Walkthrough
+# Let's look at an example
 
-Let's go through an example of using pg_dump to back up the "dvdrental" sample database:
+Let's go through an example of using pg_dump to back up the "neosync_test" sample database:
 
 ```bash
-$ pg_dump -U postgres dvdrental > dvdrental.sql
+$ pg_dump -U postgres neosync_test > neosync_test
 ```
 
-This command connects to the PostgreSQL server as the "postgres" user and dumps the complete "dvdrental" database as plain text SQL into the file "dvdrental.sql". Alternatively, we could dump it to a plan text file by changing the extension.
+This command connects to the PostgreSQL server as the "postgres" user and dumps the complete "neosync_test" database as plain text SQL into the file "neosync_test".
 
-Here's a high-level look at what the contents of that file will contain:
+Here's a high-level look at what the dump will look like:
 
 ```sql
 --
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.1
--- Dumped by pg_dump version 14.1
+-- Dumped from database version 16.0 (Debian 16.0-1.pgdg120+1)
+-- Dumped by pg_dump version 16.2 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -103,11 +103,17 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
+-- Name: neosync_test; Type: SCHEMA; Schema: -; Owner: postgres
+--
+
+CREATE SCHEMA neosync_test;
+ALTER SCHEMA neosync_test OWNER TO postgres;
+
+--
 -- Name: uuid-ossp; Type: EXTENSION; Schema: -; Owner: -
 --
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
-
 
 --
 -- Name: EXTENSION "uuid-ossp"; Type: COMMENT; Schema: -; Owner:
@@ -115,68 +121,59 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
 
 COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UUIDs)';
 
-
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
 
 --
--- Name: actor; Type: TABLE; Schema: public; Owner: postgres
+-- Name: users; Type: TABLE; Schema: neosync_test; Owner: postgres
 --
 
-CREATE TABLE public.actor (
-    actor_id integer NOT NULL,
-    first_name character varying(45) NOT NULL,
-    last_name character varying(45) NOT NULL,
-    last_update timestamp without time zone DEFAULT now() NOT NULL
+CREATE TABLE neosync_test.users (
+    email character varying(60) NOT NULL,
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    first_name character varying(20) DEFAULT 'evis'::character varying NOT NULL,
+    last_name character varying(255) DEFAULT 'drenova'::character varying NOT NULL,
+    weight integer DEFAULT 30 NOT NULL,
+    middle_name character varying DEFAULT 'bj'::character varying NOT NULL
 );
 
--- ... table schema definitions continue ...
+ALTER TABLE neosync_test.users OWNER TO postgres;
 
 --
--- Data for Name: actor; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: users; Type: TABLE DATA; Schema: neosync_test; Owner: postgres
 --
 
-COPY public.actor (actor_id, first_name, last_name, last_update) FROM stdin;
-1	PENELOPE	GUINESS	2006-02-15 04:34:33
-2	NICK	DEGENERES	2006-02-15 04:34:33
-3	ED	CHASE	2006-02-15 04:34:33
-...
-
--- ... data for other tables ...
+COPY neosync_test.users (email, id, first_name, last_name, weight, middle_name) FROM stdin;
+evis@gmail.com a293f9fe-96dc-4e3d-84bd-1b966356e54b evis hello 30 bj
+johndoe@gmail.com 152983c0-824f-4fc7-896e-5d56c8560e6c 1234567890 hello 30 bj
+evistest@hotmrgergail.com 54f01b8b-c423-4c3b-b1eb-d2cd15271d13 evis joijfio32j3JIO 30 bj
+evispgdump@hotmrgergail.com 54f01b8b-c423-4c3b-b1eb-d2cd15271d19 evis joijfio32j3JIO 30 bj
+\.
 
 --
--- Name: film_actor film_actor_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: users users_email_key; Type: CONSTRAINT; Schema: neosync_test; Owner: postgres
 --
-ALTER TABLE ONLY public.film_actor
-    ADD CONSTRAINT film_actor_pkey PRIMARY KEY (actor_id, film_id);
 
--- ... other constraints, indexes, views, functions, etc ...
+ALTER TABLE ONLY neosync_test.users
+    ADD CONSTRAINT users_email_key UNIQUE (email);
+
+--
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: neosync_test; Owner: postgres
+--
+
+ALTER TABLE ONLY neosync_test.users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+--
+-- PostgreSQL database dump complete
+--
 ```
 
 The dump contains the DDL to create all schemas, tables, data types, and other objects first. Then it has the raw INSERT statements populated with data for each table. Finally, it includes the definitions for constraints, indexes, views, functions, and other database objects.
 
-When this dump file is run through psql on another PostgreSQL server, it will accurately reconstruct the complete "dvdrental" database from scratch.
-
-PGDUMP is a powerful and highly configurable utility. While conceptually simple, it employs sophisticated logic and ordering under the hood to accurately capture and reproduce intricate database schemas and raw data. This technical deep dive should give you a solid understanding of the detailed process it uses.
+When this dump file is run through psql on another PostgreSQL server, it will accurately reconstruct the complete "neosync_test" database from scratch.
 
 # Wrapping up
 
-# How it works
-
-How PG_DUMP Works
-
-Locking and Consistency: To ensure a consistent snapshot of the database, pg_dump leverages PostgreSQL's MVCC (Multi-Version Concurrency Control) capabilities. This means it can safely back up the database without locking out concurrent users. However, certain operations, like those on large objects, may require brief locks.
-
-Metadata Extraction: pg_dump retrieves metadata about the database structure, including tables, views, indexes, sequences, and other schema objects. This step is crucial for reconstructing the database schema during restoration.
-
-Data Dumping: After extracting the schema, pg_dump proceeds to dump the data. It serializes table data into INSERT statements or COPY commands (depending on the chosen format and user options) to ensure that the data can be accurately restored.
-
-Handling Large Objects: For databases containing large objects (blobs), pg_dump has special handling to ensure these are included in the backup. It typically uses the lo_export function to manage these objects.
-
-Generating Output: The extracted schema and data are then written to the output file. The format of this output can vary:
-
-Plain SQL: A text file containing SQL commands.
-Custom Format: A compressed binary format, offering flexibility and smaller file sizes.
-Directory Format: Similar to custom format but writes the output into multiple files within a directory. This is useful for parallel dumps and restores.
-Tar Format: Creates a tar archive suitable for databases without large objects.
+Pg_dump is used by thousands of companies every day to back up their databases. Conceptually, it's pretty simple but the implementation is quite complex. The source code is about 18k lines long! It's fun to take a deep dive under the covers and see exactly what's going on. I hope this technical deep dive should give you a solid understanding of the detailed process pg_dump goes through.
