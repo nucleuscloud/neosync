@@ -221,8 +221,7 @@ func Test_buildSelectQueryMap(t *testing.T) {
 	}
 }
 
-func Test_buildSelectQueryMap_PrimaryKeySubset(t *testing.T) {
-	whereId := "id = 1"
+func Test_buildSelectQueryMap_NoSubsets(t *testing.T) {
 	mappings := map[string]*tableMapping{
 		"public.a": {
 			Schema: "public",
@@ -250,6 +249,22 @@ func Test_buildSelectQueryMap_PrimaryKeySubset(t *testing.T) {
 						Source: "generate_default",
 					},
 				},
+				{
+					Schema: "public",
+					Table:  "b",
+					Column: "name",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+				{
+					Schema: "public",
+					Table:  "b",
+					Column: "a_id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
 			},
 		},
 		"public.c": {
@@ -260,6 +275,309 @@ func Test_buildSelectQueryMap_PrimaryKeySubset(t *testing.T) {
 					Schema: "public",
 					Table:  "c",
 					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+				{
+					Schema: "public",
+					Table:  "c",
+					Column: "b_id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+			},
+		},
+	}
+	sourceTableOpts := map[string]*sqlSourceTableOptions{}
+	tableDependencies := map[string]*dbschemas.TableConstraints{
+		"public.b": {
+			Constraints: []*dbschemas.ForeignConstraint{
+				{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
+			},
+		},
+		"public.c": {
+			Constraints: []*dbschemas.ForeignConstraint{
+				{Column: "b_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
+			},
+		},
+	}
+	expected :=
+		map[string]string{
+			"public.a": `SELECT "id" FROM "public"."a";`,
+			"public.b": `SELECT "id", "name", "a_id" FROM "public"."b";`,
+			"public.c": `SELECT "id", "b_id" FROM "public"."c";`,
+		}
+	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, true)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, sql)
+}
+
+func Test_buildSelectQueryMap_NoForeignKeys(t *testing.T) {
+	whereId := "id = 1"
+	whereName := "name = 'neo'"
+	mappings := map[string]*tableMapping{
+		"public.a": {
+			Schema: "public",
+			Table:  "a",
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "public",
+					Table:  "a",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+			},
+		},
+		"public.b": {
+			Schema: "public",
+			Table:  "b",
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "public",
+					Table:  "b",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+				{
+					Schema: "public",
+					Table:  "b",
+					Column: "name",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+				{
+					Schema: "public",
+					Table:  "b",
+					Column: "a_id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+			},
+		},
+		"public.c": {
+			Schema: "public",
+			Table:  "c",
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "public",
+					Table:  "c",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+				{
+					Schema: "public",
+					Table:  "c",
+					Column: "b_id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+			},
+		},
+	}
+	sourceTableOpts := map[string]*sqlSourceTableOptions{"public.a": {
+		WhereClause: &whereId,
+	},
+		"public.b": {
+			WhereClause: &whereName,
+		}}
+	tableDependencies := map[string]*dbschemas.TableConstraints{}
+	expected :=
+		map[string]string{
+			"public.a": `SELECT "id" FROM "public"."a" WHERE id = 1;`,
+			"public.b": `SELECT "id", "name", "a_id" FROM "public"."b" WHERE name = 'neo';`,
+			"public.c": `SELECT "id", "b_id" FROM "public"."c";`,
+		}
+	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, true)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, sql)
+}
+
+func Test_buildSelectQueryMap_CircularDependency(t *testing.T) {
+	whereName := "name = 'neo'"
+	mappings := map[string]*tableMapping{
+		"public.a": {
+			Schema: "public",
+			Table:  "a",
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "public",
+					Table:  "a",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+				{
+					Schema: "public",
+					Table:  "a",
+					Column: "c_id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+			},
+		},
+		"public.b": {
+			Schema: "public",
+			Table:  "b",
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "public",
+					Table:  "b",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+				{
+					Schema: "public",
+					Table:  "b",
+					Column: "name",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+				{
+					Schema: "public",
+					Table:  "b",
+					Column: "a_id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+			},
+		},
+		"public.c": {
+			Schema: "public",
+			Table:  "c",
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "public",
+					Table:  "c",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+				{
+					Schema: "public",
+					Table:  "c",
+					Column: "b_id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+			},
+		},
+	}
+	sourceTableOpts := map[string]*sqlSourceTableOptions{
+		"public.a": {
+			WhereClause: &whereName,
+		},
+	}
+	tableDependencies := map[string]*dbschemas.TableConstraints{
+		"public.b": {
+			Constraints: []*dbschemas.ForeignConstraint{
+				{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
+			},
+		},
+		"public.c": {
+			Constraints: []*dbschemas.ForeignConstraint{
+				{Column: "b_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
+			},
+		},
+		"public.a": {
+			Constraints: []*dbschemas.ForeignConstraint{
+				{Column: "c_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
+			},
+		},
+	}
+	expected :=
+		map[string]string{
+			"public.a": `SELECT "id" FROM "public"."a" WHERE id = 1;`,
+			"public.b": `SELECT "id", "name", "a_id" FROM "public"."b" INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") WHERE (public.a.id = 1 AND public.b.name = 'neo');`,
+			"public.c": `SELECT "id", "b_id" FROM "public"."c" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") WHERE (public.a.id = 1 AND public.b.name = 'neo');`,
+		}
+	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, true)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, sql)
+}
+
+func Test_buildSelectQueryMap_MultiplSubsets(t *testing.T) {
+	whereId := "id = 1"
+	whereName := "name = 'neo'"
+	mappings := map[string]*tableMapping{
+		"public.a": {
+			Schema: "public",
+			Table:  "a",
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "public",
+					Table:  "a",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+			},
+		},
+		"public.b": {
+			Schema: "public",
+			Table:  "b",
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "public",
+					Table:  "b",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+				{
+					Schema: "public",
+					Table:  "b",
+					Column: "name",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+				{
+					Schema: "public",
+					Table:  "b",
+					Column: "a_id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+			},
+		},
+		"public.c": {
+			Schema: "public",
+			Table:  "c",
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "public",
+					Table:  "c",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+				{
+					Schema: "public",
+					Table:  "c",
+					Column: "b_id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
 						Source: "generate_default",
 					},
@@ -292,6 +610,14 @@ func Test_buildSelectQueryMap_PrimaryKeySubset(t *testing.T) {
 						Source: "generate_default",
 					},
 				},
+				{
+					Schema: "public",
+					Table:  "e",
+					Column: "d_id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
 			},
 		},
 		"public.f": {
@@ -306,12 +632,23 @@ func Test_buildSelectQueryMap_PrimaryKeySubset(t *testing.T) {
 						Source: "generate_default",
 					},
 				},
+				{
+					Schema: "public",
+					Table:  "f",
+					Column: "e_id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
 			},
 		},
 	}
 	sourceTableOpts := map[string]*sqlSourceTableOptions{
 		"public.a": {
 			WhereClause: &whereId,
+		},
+		"public.b": {
+			WhereClause: &whereName,
 		},
 		"public.e": {
 			WhereClause: &whereId,
@@ -341,13 +678,81 @@ func Test_buildSelectQueryMap_PrimaryKeySubset(t *testing.T) {
 	}
 	expected :=
 		map[string]string{
-			"public.a": "",
-			"public.b": "",
-			"public.c": "",
+			"public.a": `SELECT "id" FROM "public"."a" WHERE id = 1;`,
+			"public.b": `SELECT "id", "name", "a_id" FROM "public"."b" INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") WHERE (public.a.id = 1 AND public.b.name = 'neo');`,
+			"public.c": `SELECT "id", "b_id" FROM "public"."c" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") WHERE (public.a.id = 1 AND public.b.name = 'neo');`,
+			"public.d": `SELECT "id" FROM "public"."d";`,
+			"public.e": `SELECT "id", "d_id" FROM "public"."e" WHERE id = 1;`,
+			"public.f": `SELECT "id", "e_id" FROM "public"."f" INNER JOIN "public"."e" ON ("public"."e"."id" = "public"."f"."e_id") WHERE public.e.id = 1;`,
 		}
 	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, true)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, sql)
+}
+
+func Test_buildSelectJoinQuery(t *testing.T) {
+	tests := []struct {
+		name         string
+		driver       string
+		schema       string
+		table        string
+		columns      []string
+		joins        []*SqlJoin
+		whereClauses []string
+		expected     string
+	}{
+		{
+			name:    "simple",
+			driver:  "postgres",
+			schema:  "public",
+			table:   "a",
+			columns: []string{"id", "name", "email"},
+			joins: []*SqlJoin{
+				{
+					JoinType:   innerJoin,
+					JoinTable:  "public.b",
+					JoinColumn: "a_id",
+					BaseTable:  "public.a",
+					BaseColumn: "id",
+				},
+			},
+			whereClauses: []string{`"name" = 'alisha' AND "email" = 'fake@email.com'`},
+			expected:     `SELECT "id", "name", "email" FROM "public"."a" INNER JOIN "public"."b" ON ("public"."b"."a_id" = "public"."a"."id") WHERE "name" = 'alisha' AND "email" = 'fake@email.com';`,
+		},
+		{
+			name:    "multiple joins",
+			driver:  "postgres",
+			schema:  "public",
+			table:   "a",
+			columns: []string{"id", "name", "email"},
+			joins: []*SqlJoin{
+				{
+					JoinType:   innerJoin,
+					JoinTable:  "public.b",
+					JoinColumn: "a_id",
+					BaseTable:  "public.a",
+					BaseColumn: "id",
+				},
+				{
+					JoinType:   innerJoin,
+					JoinTable:  "public.c",
+					JoinColumn: "b_id",
+					BaseTable:  "public.b",
+					BaseColumn: "id",
+				},
+			},
+			whereClauses: []string{`"public"."a"."name" = 'alisha'`, `"public"."b"."id" = 1`},
+			expected:     `SELECT "id", "name", "email" FROM "public"."a" INNER JOIN "public"."b" ON ("public"."b"."a_id" = "public"."a"."id") INNER JOIN "public"."c" ON ("public"."c"."b_id" = "public"."b"."id") WHERE ("public"."a"."name" = 'alisha' AND "public"."b"."id" = 1);`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("%s_%s", t.Name(), tt.name), func(t *testing.T) {
+			response, err := buildSelectJoinQuery(tt.driver, tt.schema, tt.table, tt.columns, tt.joins, tt.whereClauses)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expected, response)
+		})
+	}
 }
 
 func Test_getPrimaryToForeignTableMap(t *testing.T) {
@@ -460,6 +865,46 @@ func Test_BFS(t *testing.T) {
 		t.Run(fmt.Sprintf("%s_%s", t.Name(), tt.name), func(t *testing.T) {
 			path := BFS(tt.graph, tt.start)
 			assert.Equal(t, tt.expected, path)
+		})
+	}
+}
+
+func Test_qualifyWhereColumnNames(t *testing.T) {
+	tests := []struct {
+		name     string
+		where    string
+		schema   string
+		table    string
+		expected string
+	}{
+		{
+			name:     "simple",
+			where:    "name = 'alisha'",
+			schema:   "public",
+			table:    "a",
+			expected: "public.a.name = 'alisha'",
+		},
+		{
+			name:     "multiple",
+			where:    "name = 'alisha' and id = 1",
+			schema:   "public",
+			table:    "a",
+			expected: "public.a.name = 'alisha' and public.a.id = 1",
+		},
+		{
+			name:     "where subquery",
+			where:    "film_id IN(SELECT film_id FROM film_category INNER JOIN category USING(category_id)WHERE name='Action');",
+			schema:   "public",
+			table:    "film",
+			expected: "public.film.film_id in (select film_id from film_category join category using (category_id) where name = 'Action')",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("%s_%s", t.Name(), tt.name), func(t *testing.T) {
+			response, err := qualifyWhereColumnNames(tt.where, tt.schema, tt.table)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expected, response)
 		})
 	}
 }

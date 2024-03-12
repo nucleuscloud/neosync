@@ -133,11 +133,13 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		if pgconfig == nil {
 			return nil, fmt.Errorf("source connection (%s) is not a postgres config", jobSourceConfig.Postgres.ConnectionId)
 		}
+
 		sqlOpts := jobSourceConfig.Postgres
 		var sourceTableOpts map[string]*sqlSourceTableOptions
 		if sqlOpts != nil {
 			sourceTableOpts = groupPostgresSourceOptionsByTable(sqlOpts.Schemas)
 		}
+		tableSubsetMap := buildTableSubsetMap(sourceTableOpts)
 
 		if _, ok := b.pgpool[sourceConnection.Id]; !ok {
 			pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(pgconfig, shared.Ptr(uint32(5)), slogger)
@@ -190,7 +192,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		responses = append(responses, sourceResponses...)
 
 		tables := filterNullTables(groupedMappings)
-		dependencyConfigs := tabledependency.GetRunConfigs(td, tables)
+		dependencyConfigs := tabledependency.GetRunConfigs(td, tables, tableSubsetMap)
 		dependencyMap := map[string][]*tabledependency.RunConfig{}
 		for _, cfg := range dependencyConfigs {
 			_, ok := dependencyMap[cfg.Table]
@@ -243,6 +245,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		if sqlOpts != nil {
 			sourceTableOpts = groupMysqlSourceOptionsByTable(sqlOpts.Schemas)
 		}
+		tableSubsetMap := buildTableSubsetMap(sourceTableOpts)
 
 		if _, ok := b.mysqlpool[sourceConnection.Id]; !ok {
 			conn, err := b.sqlconnector.NewDbFromConnectionConfig(sourceConnection.ConnectionConfig, shared.Ptr(uint32(5)), slogger)
@@ -294,7 +297,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		responses = append(responses, sourceResponses...)
 
 		tables := filterNullTables(groupedMappings)
-		dependencyConfigs := tabledependency.GetRunConfigs(td, tables)
+		dependencyConfigs := tabledependency.GetRunConfigs(td, tables, tableSubsetMap)
 		dependencyMap := map[string][]*tabledependency.RunConfig{}
 		for _, cfg := range dependencyConfigs {
 			_, ok := dependencyMap[cfg.Table]
@@ -565,6 +568,16 @@ func getForeignKeyToSourceMap(tableDependencies map[string]*dbschemas_utils.Tabl
 		}
 	}
 	return tc
+}
+
+func buildTableSubsetMap(tableOpts map[string]*sqlSourceTableOptions) map[string]string {
+	tableSubsetMap := map[string]string{}
+	for table, opts := range tableOpts {
+		if opts != nil && opts.WhereClause != nil && *opts.WhereClause != "" {
+			tableSubsetMap[table] = *opts.WhereClause
+		}
+	}
+	return tableSubsetMap
 }
 
 type sqlOutput struct {
