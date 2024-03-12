@@ -91,7 +91,7 @@ services:
     develop:
       watch:
         - path: backend/bin
-          action: sync+restart
+          action: rebuild
           target: /app
 
   worker:
@@ -114,7 +114,7 @@ services:
     develop:
       watch:
         - path: worker/bin
-          action: sync+restart
+          action: rebuild
           target: /app
 
   redis:
