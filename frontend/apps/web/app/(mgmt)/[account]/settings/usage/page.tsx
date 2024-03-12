@@ -5,6 +5,7 @@ import { useAccount } from '@/components/providers/account-provider';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   Card,
+  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -42,11 +43,13 @@ export default function UsagePage(): ReactElement {
       </div>
     );
   }
+  const [start, end] = periodToDateRange(period);
   return (
     <OverviewContainer
       Header={
         <PageHeader
           header="Usage"
+          description={`${getPeriodLabel(period)}: ${getDateRangeLabel(start, end)}`}
           extraHeading={
             <UsagePeriodSelector period={period} setPeriod={setPeriod} />
           }
@@ -54,7 +57,9 @@ export default function UsagePage(): ReactElement {
       }
       containerClassName="usage-page"
     >
-      <DisplayMetricCount period={period} />
+      <div className="flex">
+        <DisplayMetricCount period={period} />
+      </div>
     </OverviewContainer>
   );
 }
@@ -82,17 +87,15 @@ function DisplayMetricCount(props: DisplayMetricCountProps): ReactElement {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>
-          Total number of records ingested: {metricCountData?.count.toString()}
-        </CardTitle>
-        <CardDescription>
-          Timeframe: {getPeriodLabel(period)} ({getDateRangeLabel(start, end)})
+        <CardTitle>Total number of records ingested</CardTitle>
+        <CardDescription className="max-w-72">
+          This metric shows the total number of records ingested from data
+          sources for the given time period.
         </CardDescription>
       </CardHeader>
+      <CardContent>{metricCountData?.count.toString()}</CardContent>
     </Card>
   );
-
-  // return <div>Count: {`${metricCountData?.count ?? 0}`}</div>;
 }
 
 function getPeriodLabel(period: UsagePeriod): string {
