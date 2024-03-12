@@ -17,6 +17,7 @@ import (
 	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	dbschemas_mysql "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/mysql"
 	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/postgres"
+	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
@@ -49,6 +50,8 @@ type benthosBuilder struct {
 	runId string
 
 	redisConfig *shared.RedisConfig
+
+	metricsEnabled bool
 }
 
 func newBenthosBuilder(
@@ -67,6 +70,8 @@ func newBenthosBuilder(
 	jobId, runId string,
 
 	redisConfig *shared.RedisConfig,
+
+	metricsEnabled bool,
 ) *benthosBuilder {
 	return &benthosBuilder{
 		pgpool:            pgpool,
@@ -80,6 +85,7 @@ func newBenthosBuilder(
 		jobId:             jobId,
 		runId:             runId,
 		redisConfig:       redisConfig,
+		metricsEnabled:    metricsEnabled,
 	}
 }
 
@@ -547,6 +553,23 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	}
 
 	responses = append(responses, updateResponses...)
+
+	if b.metricsEnabled {
+		labels := metrics.MetricLabels{
+			metrics.NewEqLabel(metrics.AccountIdLabel, job.AccountId),
+			metrics.NewEqLabel(metrics.JobIdLabel, job.Id),
+			metrics.NewEqLabel(metrics.TemporalWorkflowId, "${TEMPORAL_WORKFLOW_ID}"),
+			metrics.NewEqLabel(metrics.TemporalRunId, "${TEMPORAL_RUN_ID}"),
+		}
+		for _, resp := range responses {
+			joinedLabels := append(labels, resp.metriclabels...) //nolint:gocritic
+			resp.Config.Metrics = &neosync_benthos.Metrics{
+				OtelCollector: &neosync_benthos.MetricsOtelCollector{},
+				Mapping:       joinedLabels.ToBenthosMeta(),
+			}
+		}
+	}
+
 	slogger.Info(fmt.Sprintf("successfully built %d benthos configs", len(responses)))
 	return &GenerateBenthosConfigsResponse{
 		BenthosConfigs: responses,
@@ -739,6 +762,12 @@ func buildBenthosGenerateSourceConfigResponses(
 
 			TableSchema: tableMapping.Schema,
 			TableName:   tableMapping.Table,
+
+			metriclabels: metrics.MetricLabels{
+				metrics.NewEqLabel(metrics.TableSchemaLabel, tableMapping.Schema),
+				metrics.NewEqLabel(metrics.TableNameLabel, tableMapping.Table),
+				metrics.NewEqLabel(metrics.JobTypeLabel, "generate"),
+			},
 		})
 	}
 
@@ -979,6 +1008,7 @@ func createSqlUpdateBenthosConfig(
 		newResp.DependsOn = insertConfig.updateConfig.DependsOn
 		newResp.Name = fmt.Sprintf("%s.update", insertConfig.Name)
 		newResp.primaryKeys = insertConfig.primaryKeys
+		newResp.metriclabels = append(newResp.metriclabels, metrics.NewEqLabel(metrics.IsUpdateConfigLabel, "true"))
 		var output *sqlOutput
 		if driver == "postgres" {
 			out := buildPostgresOutputQueryAndArgs(newResp, tm, tableKey, colSourceMap)
@@ -1128,6 +1158,12 @@ func buildBenthosSqlSourceConfigResponses(
 
 			TableSchema: tableMapping.Schema,
 			TableName:   tableMapping.Table,
+
+			metriclabels: metrics.MetricLabels{
+				metrics.NewEqLabel(metrics.TableSchemaLabel, tableMapping.Schema),
+				metrics.NewEqLabel(metrics.TableNameLabel, tableMapping.Table),
+				metrics.NewEqLabel(metrics.JobTypeLabel, "sync"),
+			},
 		})
 	}
 

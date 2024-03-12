@@ -26,7 +26,8 @@ func Test_Workflow_BenthosConfigsFails(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
 
-	env.OnActivity(genbenthosconfigs_activity.GenerateBenthosConfigs, mock.Anything, mock.Anything, mock.Anything).Return(nil, errors.New("TestFailure"))
+	var genact *genbenthosconfigs_activity.Activity
+	env.OnActivity(genact.GenerateBenthosConfigs, mock.Anything, mock.Anything).Return(nil, errors.New("TestFailure"))
 
 	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
 
@@ -46,7 +47,8 @@ func Test_Workflow_Succeeds_Zero_BenthosConfigs(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
 
-	env.OnActivity(genbenthosconfigs_activity.GenerateBenthosConfigs, mock.Anything, mock.Anything, mock.Anything).
+	var genact *genbenthosconfigs_activity.Activity
+	env.OnActivity(genact.GenerateBenthosConfigs, mock.Anything, mock.Anything).
 		Return(&genbenthosconfigs_activity.GenerateBenthosConfigsResponse{BenthosConfigs: []*genbenthosconfigs_activity.BenthosConfigResponse{}}, nil)
 
 	env.ExecuteWorkflow(Workflow, &WorkflowRequest{})
@@ -68,7 +70,8 @@ func Test_Workflow_Succeeds_SingleSync(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
 
-	env.OnActivity(genbenthosconfigs_activity.GenerateBenthosConfigs, mock.Anything, mock.Anything, mock.Anything).
+	var genact *genbenthosconfigs_activity.Activity
+	env.OnActivity(genact.GenerateBenthosConfigs, mock.Anything, mock.Anything).
 		Return(&genbenthosconfigs_activity.GenerateBenthosConfigsResponse{BenthosConfigs: []*genbenthosconfigs_activity.BenthosConfigResponse{
 			{
 				Name:      "public.users",
@@ -106,7 +109,8 @@ func Test_Workflow_Follows_Synchronous_DependentFlow(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
 
-	env.OnActivity(genbenthosconfigs_activity.GenerateBenthosConfigs, mock.Anything, mock.Anything, mock.Anything).
+	var genact *genbenthosconfigs_activity.Activity
+	env.OnActivity(genact.GenerateBenthosConfigs, mock.Anything, mock.Anything).
 		Return(&genbenthosconfigs_activity.GenerateBenthosConfigsResponse{BenthosConfigs: []*genbenthosconfigs_activity.BenthosConfigResponse{
 			{
 				Name:      "public.users",
@@ -190,7 +194,8 @@ func Test_Workflow_Follows_Multiple_Dependents(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
 
-	env.OnActivity(genbenthosconfigs_activity.GenerateBenthosConfigs, mock.Anything, mock.Anything, mock.Anything).
+	var genact *genbenthosconfigs_activity.Activity
+	env.OnActivity(genact.GenerateBenthosConfigs, mock.Anything, mock.Anything).
 		Return(&genbenthosconfigs_activity.GenerateBenthosConfigsResponse{BenthosConfigs: []*genbenthosconfigs_activity.BenthosConfigResponse{
 			{
 				Name:        "public.users",
@@ -297,7 +302,8 @@ func Test_Workflow_Follows_Multiple_Dependent_Redis_Cleanup(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
 
-	env.OnActivity(genbenthosconfigs_activity.GenerateBenthosConfigs, mock.Anything, mock.Anything, mock.Anything).
+	var genact *genbenthosconfigs_activity.Activity
+	env.OnActivity(genact.GenerateBenthosConfigs, mock.Anything, mock.Anything).
 		Return(&genbenthosconfigs_activity.GenerateBenthosConfigsResponse{BenthosConfigs: []*genbenthosconfigs_activity.BenthosConfigResponse{
 			{
 				Name:        "public.users",
@@ -423,7 +429,8 @@ func Test_Workflow_Halts_Activities_OnError(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
 
-	env.OnActivity(genbenthosconfigs_activity.GenerateBenthosConfigs, mock.Anything, mock.Anything, mock.Anything).
+	var genact *genbenthosconfigs_activity.Activity
+	env.OnActivity(genact.GenerateBenthosConfigs, mock.Anything, mock.Anything).
 		Return(&genbenthosconfigs_activity.GenerateBenthosConfigsResponse{BenthosConfigs: []*genbenthosconfigs_activity.BenthosConfigResponse{
 			{
 				Name:        "public.users",
@@ -516,7 +523,8 @@ func Test_Workflow_Cleans_Up_Redis_OnError(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestWorkflowEnvironment()
 
-	env.OnActivity(genbenthosconfigs_activity.GenerateBenthosConfigs, mock.Anything, mock.Anything, mock.Anything).
+	var genact *genbenthosconfigs_activity.Activity
+	env.OnActivity(genact.GenerateBenthosConfigs, mock.Anything, mock.Anything).
 		Return(&genbenthosconfigs_activity.GenerateBenthosConfigsResponse{BenthosConfigs: []*genbenthosconfigs_activity.BenthosConfigResponse{
 			{
 				Name:        "public.users",

@@ -10,7 +10,7 @@ import { Alert, AlertTitle } from '../ui/alert';
 
 type FormStatus = 'success' | 'error' | 'invalid email' | 'null';
 
-export default function PrivateBetaForm(): ReactElement {
+export default function SignupForm(): ReactElement {
   const [email, setEmail] = useState<string>('');
   const [company, setCompany] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);

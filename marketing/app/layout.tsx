@@ -1,6 +1,7 @@
 import Footer from '@/components/Footer';
 import GithubBanner from '@/components/banner/GithubBanner';
 import GithubButton from '@/components/banner/GithubButton';
+import { DotBackground } from '@/components/landing-page/DotBackground';
 import TopNav from '@/components/nav/TopNav';
 import { Metadata } from 'next';
 import Script from 'next/script';
@@ -63,8 +64,8 @@ export default function RootLayout({
           gtag('config', '${process.env.GTAG}');
         `,
             }}
-          ></Script>
-          <div className="flex flex-col w-full relative">
+          />
+          <div>
             <div className="flex md:hidden lg:hidden">
               <GithubBanner />
             </div>
@@ -72,7 +73,11 @@ export default function RootLayout({
               <GithubButton />
             </div>
             <TopNav />
-            <div>{children}</div>
+            <DotBackground>
+              <div className="px-5 sm:px-10 md:px-20 lg:px-60 mx-auto z-20 max-w-[1800px] justify-center">
+                {children}
+              </div>
+            </DotBackground>
             <Footer />
           </div>
         </body>

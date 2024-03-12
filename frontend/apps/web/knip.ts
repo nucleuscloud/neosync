@@ -20,7 +20,7 @@ const config = {
     // '@radix-ui/react-toast',
     // '@radix-ui/react-tabs',
     // '@radix-ui/react-tooltip',
-    '@radix-ui/react-radio-group',
+    // '@radix-ui/react-radio-group',
     // 'class-variance-authority',
     //'autoprefixer',
     'postcss',

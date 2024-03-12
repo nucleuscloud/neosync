@@ -3,6 +3,7 @@
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { SchemaTable } from '@/components/jobs/SchemaTable/SchemaTable';
+import { setOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
 import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
 import { Alert, AlertTitle } from '@/components/ui/alert';
@@ -26,6 +27,7 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
+import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
 import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectionForeignConstraints';
 import { useGetConnectionPrimaryConstraints } from '@/libs/hooks/useGetConnectionPrimaryConstraints';
 import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
@@ -76,6 +78,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const { account } = useAccount();
   const router = useRouter();
   const { toast } = useToast();
+  const { data: onboardingData, mutate } = useGetAccountOnboardingConfig(
+    account?.id ?? ''
+  );
 
   useEffect(() => {
     if (!searchParams?.sessionId) {
@@ -161,6 +166,28 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       window.sessionStorage.removeItem(defineFormKey);
       window.sessionStorage.removeItem(connectFormKey);
       window.sessionStorage.removeItem(formKey);
+
+      // updates the onboarding data
+      if (!onboardingData?.config?.hasCreatedJob) {
+        try {
+          await setOnboardingConfig(account.id, {
+            hasCreatedSourceConnection:
+              onboardingData?.config?.hasCreatedSourceConnection ?? true,
+            hasCreatedDestinationConnection:
+              onboardingData?.config?.hasCreatedDestinationConnection ?? true,
+            hasCreatedJob: true,
+            hasInvitedMembers:
+              onboardingData?.config?.hasInvitedMembers ?? true,
+          });
+          mutate();
+        } catch (e) {
+          toast({
+            title: 'Unable to update onboarding status!',
+            variant: 'destructive',
+          });
+        }
+      }
+
       if (job.job?.id) {
         router.push(`/${account?.name}/jobs/${job.job.id}`);
       } else {
@@ -351,10 +378,19 @@ the connection which caused the schema page to not load correctly when you went 
                 </FormDescription>
                 <FormControl>
                   <Input
-                    type="number"
-                    {...field}
+                    type="text"
+                    value={field.value
+                      .toString()
+                      .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                     onChange={(e) => {
-                      field.onChange(e.target.valueAsNumber);
+                      const numberValue = parseFloat(
+                        e.target.value.replace(/,/g, '')
+                      );
+                      if (!isNaN(numberValue)) {
+                        field.onChange(numberValue);
+                      } else {
+                        field.onChange(0);
+                      }
                     }}
                   />
                 </FormControl>

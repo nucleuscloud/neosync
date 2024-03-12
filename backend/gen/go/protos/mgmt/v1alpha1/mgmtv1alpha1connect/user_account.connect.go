@@ -81,6 +81,12 @@ const (
 	// UserAccountServiceGetSystemInformationProcedure is the fully-qualified name of the
 	// UserAccountService's GetSystemInformation RPC.
 	UserAccountServiceGetSystemInformationProcedure = "/mgmt.v1alpha1.UserAccountService/GetSystemInformation"
+	// UserAccountServiceGetAccountOnboardingConfigProcedure is the fully-qualified name of the
+	// UserAccountService's GetAccountOnboardingConfig RPC.
+	UserAccountServiceGetAccountOnboardingConfigProcedure = "/mgmt.v1alpha1.UserAccountService/GetAccountOnboardingConfig"
+	// UserAccountServiceSetAccountOnboardingConfigProcedure is the fully-qualified name of the
+	// UserAccountService's SetAccountOnboardingConfig RPC.
+	UserAccountServiceSetAccountOnboardingConfigProcedure = "/mgmt.v1alpha1.UserAccountService/SetAccountOnboardingConfig"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
@@ -102,6 +108,8 @@ var (
 	userAccountServiceRemoveTeamAccountInviteMethodDescriptor      = userAccountServiceServiceDescriptor.Methods().ByName("RemoveTeamAccountInvite")
 	userAccountServiceAcceptTeamAccountInviteMethodDescriptor      = userAccountServiceServiceDescriptor.Methods().ByName("AcceptTeamAccountInvite")
 	userAccountServiceGetSystemInformationMethodDescriptor         = userAccountServiceServiceDescriptor.Methods().ByName("GetSystemInformation")
+	userAccountServiceGetAccountOnboardingConfigMethodDescriptor   = userAccountServiceServiceDescriptor.Methods().ByName("GetAccountOnboardingConfig")
+	userAccountServiceSetAccountOnboardingConfigMethodDescriptor   = userAccountServiceServiceDescriptor.Methods().ByName("SetAccountOnboardingConfig")
 )
 
 // UserAccountServiceClient is a client for the mgmt.v1alpha1.UserAccountService service.
@@ -122,6 +130,8 @@ type UserAccountServiceClient interface {
 	RemoveTeamAccountInvite(context.Context, *connect.Request[v1alpha1.RemoveTeamAccountInviteRequest]) (*connect.Response[v1alpha1.RemoveTeamAccountInviteResponse], error)
 	AcceptTeamAccountInvite(context.Context, *connect.Request[v1alpha1.AcceptTeamAccountInviteRequest]) (*connect.Response[v1alpha1.AcceptTeamAccountInviteResponse], error)
 	GetSystemInformation(context.Context, *connect.Request[v1alpha1.GetSystemInformationRequest]) (*connect.Response[v1alpha1.GetSystemInformationResponse], error)
+	GetAccountOnboardingConfig(context.Context, *connect.Request[v1alpha1.GetAccountOnboardingConfigRequest]) (*connect.Response[v1alpha1.GetAccountOnboardingConfigResponse], error)
+	SetAccountOnboardingConfig(context.Context, *connect.Request[v1alpha1.SetAccountOnboardingConfigRequest]) (*connect.Response[v1alpha1.SetAccountOnboardingConfigResponse], error)
 }
 
 // NewUserAccountServiceClient constructs a client for the mgmt.v1alpha1.UserAccountService service.
@@ -230,6 +240,18 @@ func NewUserAccountServiceClient(httpClient connect.HTTPClient, baseURL string, 
 			connect.WithSchema(userAccountServiceGetSystemInformationMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		getAccountOnboardingConfig: connect.NewClient[v1alpha1.GetAccountOnboardingConfigRequest, v1alpha1.GetAccountOnboardingConfigResponse](
+			httpClient,
+			baseURL+UserAccountServiceGetAccountOnboardingConfigProcedure,
+			connect.WithSchema(userAccountServiceGetAccountOnboardingConfigMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+		setAccountOnboardingConfig: connect.NewClient[v1alpha1.SetAccountOnboardingConfigRequest, v1alpha1.SetAccountOnboardingConfigResponse](
+			httpClient,
+			baseURL+UserAccountServiceSetAccountOnboardingConfigProcedure,
+			connect.WithSchema(userAccountServiceSetAccountOnboardingConfigMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -251,6 +273,8 @@ type userAccountServiceClient struct {
 	removeTeamAccountInvite      *connect.Client[v1alpha1.RemoveTeamAccountInviteRequest, v1alpha1.RemoveTeamAccountInviteResponse]
 	acceptTeamAccountInvite      *connect.Client[v1alpha1.AcceptTeamAccountInviteRequest, v1alpha1.AcceptTeamAccountInviteResponse]
 	getSystemInformation         *connect.Client[v1alpha1.GetSystemInformationRequest, v1alpha1.GetSystemInformationResponse]
+	getAccountOnboardingConfig   *connect.Client[v1alpha1.GetAccountOnboardingConfigRequest, v1alpha1.GetAccountOnboardingConfigResponse]
+	setAccountOnboardingConfig   *connect.Client[v1alpha1.SetAccountOnboardingConfigRequest, v1alpha1.SetAccountOnboardingConfigResponse]
 }
 
 // GetUser calls mgmt.v1alpha1.UserAccountService.GetUser.
@@ -333,6 +357,16 @@ func (c *userAccountServiceClient) GetSystemInformation(ctx context.Context, req
 	return c.getSystemInformation.CallUnary(ctx, req)
 }
 
+// GetAccountOnboardingConfig calls mgmt.v1alpha1.UserAccountService.GetAccountOnboardingConfig.
+func (c *userAccountServiceClient) GetAccountOnboardingConfig(ctx context.Context, req *connect.Request[v1alpha1.GetAccountOnboardingConfigRequest]) (*connect.Response[v1alpha1.GetAccountOnboardingConfigResponse], error) {
+	return c.getAccountOnboardingConfig.CallUnary(ctx, req)
+}
+
+// SetAccountOnboardingConfig calls mgmt.v1alpha1.UserAccountService.SetAccountOnboardingConfig.
+func (c *userAccountServiceClient) SetAccountOnboardingConfig(ctx context.Context, req *connect.Request[v1alpha1.SetAccountOnboardingConfigRequest]) (*connect.Response[v1alpha1.SetAccountOnboardingConfigResponse], error) {
+	return c.setAccountOnboardingConfig.CallUnary(ctx, req)
+}
+
 // UserAccountServiceHandler is an implementation of the mgmt.v1alpha1.UserAccountService service.
 type UserAccountServiceHandler interface {
 	GetUser(context.Context, *connect.Request[v1alpha1.GetUserRequest]) (*connect.Response[v1alpha1.GetUserResponse], error)
@@ -351,6 +385,8 @@ type UserAccountServiceHandler interface {
 	RemoveTeamAccountInvite(context.Context, *connect.Request[v1alpha1.RemoveTeamAccountInviteRequest]) (*connect.Response[v1alpha1.RemoveTeamAccountInviteResponse], error)
 	AcceptTeamAccountInvite(context.Context, *connect.Request[v1alpha1.AcceptTeamAccountInviteRequest]) (*connect.Response[v1alpha1.AcceptTeamAccountInviteResponse], error)
 	GetSystemInformation(context.Context, *connect.Request[v1alpha1.GetSystemInformationRequest]) (*connect.Response[v1alpha1.GetSystemInformationResponse], error)
+	GetAccountOnboardingConfig(context.Context, *connect.Request[v1alpha1.GetAccountOnboardingConfigRequest]) (*connect.Response[v1alpha1.GetAccountOnboardingConfigResponse], error)
+	SetAccountOnboardingConfig(context.Context, *connect.Request[v1alpha1.SetAccountOnboardingConfigRequest]) (*connect.Response[v1alpha1.SetAccountOnboardingConfigResponse], error)
 }
 
 // NewUserAccountServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -455,6 +491,18 @@ func NewUserAccountServiceHandler(svc UserAccountServiceHandler, opts ...connect
 		connect.WithSchema(userAccountServiceGetSystemInformationMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	userAccountServiceGetAccountOnboardingConfigHandler := connect.NewUnaryHandler(
+		UserAccountServiceGetAccountOnboardingConfigProcedure,
+		svc.GetAccountOnboardingConfig,
+		connect.WithSchema(userAccountServiceGetAccountOnboardingConfigMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	userAccountServiceSetAccountOnboardingConfigHandler := connect.NewUnaryHandler(
+		UserAccountServiceSetAccountOnboardingConfigProcedure,
+		svc.SetAccountOnboardingConfig,
+		connect.WithSchema(userAccountServiceSetAccountOnboardingConfigMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/mgmt.v1alpha1.UserAccountService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case UserAccountServiceGetUserProcedure:
@@ -489,6 +537,10 @@ func NewUserAccountServiceHandler(svc UserAccountServiceHandler, opts ...connect
 			userAccountServiceAcceptTeamAccountInviteHandler.ServeHTTP(w, r)
 		case UserAccountServiceGetSystemInformationProcedure:
 			userAccountServiceGetSystemInformationHandler.ServeHTTP(w, r)
+		case UserAccountServiceGetAccountOnboardingConfigProcedure:
+			userAccountServiceGetAccountOnboardingConfigHandler.ServeHTTP(w, r)
+		case UserAccountServiceSetAccountOnboardingConfigProcedure:
+			userAccountServiceSetAccountOnboardingConfigHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -560,4 +612,12 @@ func (UnimplementedUserAccountServiceHandler) AcceptTeamAccountInvite(context.Co
 
 func (UnimplementedUserAccountServiceHandler) GetSystemInformation(context.Context, *connect.Request[v1alpha1.GetSystemInformationRequest]) (*connect.Response[v1alpha1.GetSystemInformationResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.UserAccountService.GetSystemInformation is not implemented"))
+}
+
+func (UnimplementedUserAccountServiceHandler) GetAccountOnboardingConfig(context.Context, *connect.Request[v1alpha1.GetAccountOnboardingConfigRequest]) (*connect.Response[v1alpha1.GetAccountOnboardingConfigResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.UserAccountService.GetAccountOnboardingConfig is not implemented"))
+}
+
+func (UnimplementedUserAccountServiceHandler) SetAccountOnboardingConfig(context.Context, *connect.Request[v1alpha1.SetAccountOnboardingConfigRequest]) (*connect.Response[v1alpha1.SetAccountOnboardingConfigResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.UserAccountService.SetAccountOnboardingConfig is not implemented"))
 }

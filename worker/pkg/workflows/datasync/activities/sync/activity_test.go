@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	metricsdk "go.opentelemetry.io/otel/sdk/metric"
 	"go.temporal.io/sdk/testsuite"
 )
 
@@ -16,7 +17,7 @@ func Test_Sync_Run_Success(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 
-	activity := New(nil, &sync.Map{}, nil)
+	activity := New(nil, &sync.Map{}, nil, nil)
 
 	env.RegisterActivity(activity.Sync)
 
@@ -39,11 +40,42 @@ output:
 	require.NoError(t, err)
 }
 
+func Test_Sync_Run_Metrics_Success(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
+
+	meterProvider := metricsdk.NewMeterProvider()
+	meter := meterProvider.Meter("test")
+	activity := New(nil, &sync.Map{}, nil, meter)
+
+	env.RegisterActivity(activity.Sync)
+
+	val, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
+		BenthosConfig: strings.TrimSpace(`
+input:
+  generate:
+    count: 1
+    interval: ""
+    mapping: 'root = { "id": uuid_v4() }'
+output:
+  label: ""
+  stdout:
+    codec: lines
+metrics:
+  otel_collector: {}
+`),
+	}, &SyncMetadata{Schema: "public", Table: "test"})
+	require.NoError(t, err)
+	res := &SyncResponse{}
+	err = val.Get(res)
+	require.NoError(t, err)
+}
+
 func Test_Sync_Fake_Mutation_Success(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 
-	activity := New(nil, &sync.Map{}, nil)
+	activity := New(nil, &sync.Map{}, nil, nil)
 	env.RegisterActivity(activity.Sync)
 
 	val, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
@@ -74,7 +106,7 @@ func Test_Sync_Run_Success_Javascript(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 
-	activity := New(nil, &sync.Map{}, nil)
+	activity := New(nil, &sync.Map{}, nil, nil)
 	env.RegisterActivity(activity.Sync)
 
 	tmpFile, err := os.CreateTemp("", "test")
@@ -129,7 +161,7 @@ output:
 func Test_Sync_Run_Success_MutataionAndJavascript(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
-	activity := New(nil, &sync.Map{}, nil)
+	activity := New(nil, &sync.Map{}, nil, nil)
 	env.RegisterActivity(activity.Sync)
 
 	tmpFile, err := os.CreateTemp("", "test")

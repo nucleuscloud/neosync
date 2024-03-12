@@ -73,3 +73,8 @@ neosyncCloud:
   enabled: false
 
 enableRunLogs: false
+
+# whether or not to enable the metrics service and display usage metrics in the app
+# if this is enabled, the backend must also have the metrics service enabled and configured
+protometrics:
+  enabled: false

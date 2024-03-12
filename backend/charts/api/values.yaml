@@ -114,3 +114,12 @@ kubernetes:
 
 ingress:
   enabled: false
+
+# configure whether or not the api should expose the service metrics proto
+protometrics:
+  # will enable the metrics service proto
+  enabled: false
+  # the url, will default to http://localhost:9090 if not provided
+  url:
+  # optionally provide an API key if the prometheus service requires authentication
+  apiKey:

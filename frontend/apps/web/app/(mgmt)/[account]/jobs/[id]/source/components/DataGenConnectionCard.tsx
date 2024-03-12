@@ -278,10 +278,19 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
               <FormDescription>The number of rows to generate.</FormDescription>
               <FormControl>
                 <Input
-                  type="number"
-                  {...field}
+                  type="text"
+                  value={field.value
+                    .toString()
+                    .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                   onChange={(e) => {
-                    field.onChange(e.target.valueAsNumber);
+                    const numberValue = parseFloat(
+                      e.target.value.replace(/,/g, '')
+                    );
+                    if (!isNaN(numberValue)) {
+                      field.onChange(numberValue);
+                    } else {
+                      field.onChange(0);
+                    }
                   }}
                 />
               </FormControl>

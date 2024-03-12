@@ -32,17 +32,17 @@ export default function About() {
       <DotBackground>
         <Hero />
       </DotBackground>
-      <div className=" bg-[#F5F5F5] px-4">
-        <div className="bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto pt-20">
+      <div className=" px-4">
+        <div className=" pt-20">
           <Values />
         </div>
         {/* <div className=" bg-[#1E1E1E] px-5 sm:px-10 md:px-20 lg:px-20 sm:mx-10 md:mx-20 lg:mx-40 max-w-[1800px] mx-auto rounded-3xl mt-20 lg:mt-40 py-10">
           <TeamSection />
         </div> */}
-        <div className=" bg-[#1E1E1E] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto pt-20 rounded-3xl mt-20 lg:mt-40 py-10 justify-center flex">
+        <div className=" bg-[#1E1E1E] px-5 pt-20 rounded-3xl mt-20 lg:mt-40 py-10 justify-center flex">
           <OpenSource />
         </div>
-        <div className="bg-[#F5F5F5] px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto pt-20 lg:pt-40">
+        <div className=" pt-20 lg:pt-40">
           <InvestorSection />
         </div>
       </div>

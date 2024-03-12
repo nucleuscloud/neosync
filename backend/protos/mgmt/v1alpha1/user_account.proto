@@ -144,6 +144,28 @@ message GetSystemInformationResponse {
   google.protobuf.Timestamp build_date = 5;
 }
 
+message GetAccountOnboardingConfigRequest {
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+}
+message GetAccountOnboardingConfigResponse {
+  AccountOnboardingConfig config = 1;
+}
+
+message SetAccountOnboardingConfigRequest {
+  string account_id = 1 [(buf.validate.field).string.uuid = true];
+  AccountOnboardingConfig config = 2;
+}
+message SetAccountOnboardingConfigResponse {
+  AccountOnboardingConfig config = 1;
+}
+
+message AccountOnboardingConfig {
+  bool has_created_source_connection = 1;
+  bool has_created_destination_connection = 2;
+  bool has_created_job = 3;
+  bool has_invited_members = 4;
+}
+
 service UserAccountService {
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
   rpc SetUser(SetUserRequest) returns (SetUserResponse) {}
@@ -168,4 +190,7 @@ service UserAccountService {
   rpc AcceptTeamAccountInvite(AcceptTeamAccountInviteRequest) returns (AcceptTeamAccountInviteResponse) {}
 
   rpc GetSystemInformation(GetSystemInformationRequest) returns (GetSystemInformationResponse) {}
+
+  rpc GetAccountOnboardingConfig(GetAccountOnboardingConfigRequest) returns (GetAccountOnboardingConfigResponse) {}
+  rpc SetAccountOnboardingConfig(SetAccountOnboardingConfigRequest) returns (SetAccountOnboardingConfigResponse) {}
 }

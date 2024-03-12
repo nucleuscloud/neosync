@@ -9,12 +9,14 @@ import {
   buildRowKey,
   buildTableRowData,
 } from '@/components/jobs/subsets/utils';
+import { setOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
 import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/components/ui/use-toast';
+import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { convertMinutesToNanoseconds, getErrorMessage } from '@/util/util';
 import {
@@ -54,6 +56,10 @@ import {
 export default function Page({ searchParams }: PageProps): ReactElement {
   const { account } = useAccount();
   const router = useRouter();
+  const { data: onboardingData, mutate } = useGetAccountOnboardingConfig(
+    account?.id ?? ''
+  );
+
   useEffect(() => {
     if (!searchParams?.sessionId) {
       router.push(`/${account?.name}/new/job`);
@@ -144,6 +150,28 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       window.sessionStorage.removeItem(connectFormKey);
       window.sessionStorage.removeItem(schemaFormKey);
       window.sessionStorage.removeItem(formKey);
+
+      // updates the onboarding data
+      if (!onboardingData?.config?.hasCreatedJob) {
+        try {
+          await setOnboardingConfig(account.id, {
+            hasCreatedSourceConnection:
+              onboardingData?.config?.hasCreatedSourceConnection ?? true,
+            hasCreatedDestinationConnection:
+              onboardingData?.config?.hasCreatedDestinationConnection ?? true,
+            hasCreatedJob: true,
+            hasInvitedMembers:
+              onboardingData?.config?.hasInvitedMembers ?? true,
+          });
+          mutate();
+        } catch (e) {
+          toast({
+            title: 'Unable to update onboarding status!',
+            variant: 'destructive',
+          });
+        }
+      }
+
       if (job.job?.id) {
         router.push(`/${account?.name}/jobs/${job.job.id}`);
       } else {

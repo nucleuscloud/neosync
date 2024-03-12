@@ -1280,6 +1280,66 @@ func (_c *MockQuerier_GetAccountInviteByToken_Call) RunAndReturn(run func(contex
 	return _c
 }
 
+// GetAccountOnboardingConfig provides a mock function with given fields: ctx, db, id
+func (_m *MockQuerier) GetAccountOnboardingConfig(ctx context.Context, db DBTX, id pgtype.UUID) (*pg_models.AccountOnboardingConfig, error) {
+	ret := _m.Called(ctx, db, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAccountOnboardingConfig")
+	}
+
+	var r0 *pg_models.AccountOnboardingConfig
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) (*pg_models.AccountOnboardingConfig, error)); ok {
+		return rf(ctx, db, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, pgtype.UUID) *pg_models.AccountOnboardingConfig); ok {
+		r0 = rf(ctx, db, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*pg_models.AccountOnboardingConfig)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, pgtype.UUID) error); ok {
+		r1 = rf(ctx, db, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetAccountOnboardingConfig_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAccountOnboardingConfig'
+type MockQuerier_GetAccountOnboardingConfig_Call struct {
+	*mock.Call
+}
+
+// GetAccountOnboardingConfig is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - id pgtype.UUID
+func (_e *MockQuerier_Expecter) GetAccountOnboardingConfig(ctx interface{}, db interface{}, id interface{}) *MockQuerier_GetAccountOnboardingConfig_Call {
+	return &MockQuerier_GetAccountOnboardingConfig_Call{Call: _e.mock.On("GetAccountOnboardingConfig", ctx, db, id)}
+}
+
+func (_c *MockQuerier_GetAccountOnboardingConfig_Call) Run(run func(ctx context.Context, db DBTX, id pgtype.UUID)) *MockQuerier_GetAccountOnboardingConfig_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(pgtype.UUID))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetAccountOnboardingConfig_Call) Return(_a0 *pg_models.AccountOnboardingConfig, _a1 error) *MockQuerier_GetAccountOnboardingConfig_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetAccountOnboardingConfig_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) (*pg_models.AccountOnboardingConfig, error)) *MockQuerier_GetAccountOnboardingConfig_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetAccountUserAssociation provides a mock function with given fields: ctx, db, arg
 func (_m *MockQuerier) GetAccountUserAssociation(ctx context.Context, db DBTX, arg GetAccountUserAssociationParams) (NeosyncApiAccountUserAssociation, error) {
 	ret := _m.Called(ctx, db, arg)
@@ -3830,6 +3890,64 @@ func (_c *MockQuerier_UpdateAccountInviteToAccepted_Call) Return(_a0 NeosyncApiA
 }
 
 func (_c *MockQuerier_UpdateAccountInviteToAccepted_Call) RunAndReturn(run func(context.Context, DBTX, pgtype.UUID) (NeosyncApiAccountInvite, error)) *MockQuerier_UpdateAccountInviteToAccepted_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateAccountOnboardingConfig provides a mock function with given fields: ctx, db, arg
+func (_m *MockQuerier) UpdateAccountOnboardingConfig(ctx context.Context, db DBTX, arg UpdateAccountOnboardingConfigParams) (NeosyncApiAccount, error) {
+	ret := _m.Called(ctx, db, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateAccountOnboardingConfig")
+	}
+
+	var r0 NeosyncApiAccount
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, UpdateAccountOnboardingConfigParams) (NeosyncApiAccount, error)); ok {
+		return rf(ctx, db, arg)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, UpdateAccountOnboardingConfigParams) NeosyncApiAccount); ok {
+		r0 = rf(ctx, db, arg)
+	} else {
+		r0 = ret.Get(0).(NeosyncApiAccount)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, UpdateAccountOnboardingConfigParams) error); ok {
+		r1 = rf(ctx, db, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_UpdateAccountOnboardingConfig_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateAccountOnboardingConfig'
+type MockQuerier_UpdateAccountOnboardingConfig_Call struct {
+	*mock.Call
+}
+
+// UpdateAccountOnboardingConfig is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - arg UpdateAccountOnboardingConfigParams
+func (_e *MockQuerier_Expecter) UpdateAccountOnboardingConfig(ctx interface{}, db interface{}, arg interface{}) *MockQuerier_UpdateAccountOnboardingConfig_Call {
+	return &MockQuerier_UpdateAccountOnboardingConfig_Call{Call: _e.mock.On("UpdateAccountOnboardingConfig", ctx, db, arg)}
+}
+
+func (_c *MockQuerier_UpdateAccountOnboardingConfig_Call) Run(run func(ctx context.Context, db DBTX, arg UpdateAccountOnboardingConfigParams)) *MockQuerier_UpdateAccountOnboardingConfig_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(UpdateAccountOnboardingConfigParams))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_UpdateAccountOnboardingConfig_Call) Return(_a0 NeosyncApiAccount, _a1 error) *MockQuerier_UpdateAccountOnboardingConfig_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_UpdateAccountOnboardingConfig_Call) RunAndReturn(run func(context.Context, DBTX, UpdateAccountOnboardingConfigParams) (NeosyncApiAccount, error)) *MockQuerier_UpdateAccountOnboardingConfig_Call {
 	_c.Call.Return(run)
 	return _c
 }

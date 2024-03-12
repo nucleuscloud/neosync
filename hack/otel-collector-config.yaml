@@ -1,0 +1,35 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+processors:
+  batch:
+
+exporters:
+  debug:
+    verbosity: detailed
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+# extensions:
+#   health_check:
+#   pprof:
+#   zpages:
+
+service:
+  # extensions: [health_check, pprof, zpages]
+  pipelines:
+    # traces:
+    #   receivers: [otlp]
+    #   processors: [batch]
+    #   exporters: [otlp]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug, prometheus]
+    # logs:
+    #   receivers: [otlp]
+    #   processors: [batch]
+    #   exporters: [otlp]
