@@ -68,9 +68,11 @@ function useGetNavSettings(): Item[] {
   items =
     !isSystemConfigLoading &&
     systemAppConfigData?.isAuthEnabled &&
+    // filter members page if account is not a team
     account?.type === UserAccountType.TEAM
       ? items
       : items.filter((item) => item.ref !== 'members');
+  // filter temporal page if app is in neosync cloud mode
   items =
     !isSystemConfigLoading && systemAppConfigData?.isNeosyncCloud
       ? items.filter((item) => item.ref !== 'temporal')
