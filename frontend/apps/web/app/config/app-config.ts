@@ -5,6 +5,7 @@ export interface SystemAppConfig {
   isNeosyncCloud: boolean;
   enableRunLogs: boolean;
   signInProviderId?: string;
+  isMetricsServiceEnabled: boolean;
 }
 
 interface PosthogConfig {

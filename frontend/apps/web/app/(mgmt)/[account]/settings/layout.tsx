@@ -68,12 +68,19 @@ function useGetNavSettings(): Item[] {
   items =
     !isSystemConfigLoading &&
     systemAppConfigData?.isAuthEnabled &&
+    // filter members page if account is not a team
     account?.type === UserAccountType.TEAM
       ? items
       : items.filter((item) => item.ref !== 'members');
+  // filter temporal page if app is in neosync cloud mode
   items =
     !isSystemConfigLoading && systemAppConfigData?.isNeosyncCloud
       ? items.filter((item) => item.ref !== 'temporal')
+      : items;
+  // filter usage page if metrics service is not enabled
+  items =
+    !isSystemConfigLoading && !systemAppConfigData?.isMetricsServiceEnabled
+      ? items.filter((item) => item.ref !== 'usage')
       : items;
   return items;
 }
@@ -94,6 +101,11 @@ function getAllNavSettings(accountName: string): Item[] {
       href: `/${accountName}/settings/members`,
       ref: 'members',
       title: 'Members',
+    },
+    {
+      href: `/${accountName}/settings/usage`,
+      ref: 'usage',
+      title: 'Usage',
     },
   ];
 }
