@@ -79,7 +79,7 @@ function useGetNavSettings(): Item[] {
       : items;
   // filter usage page if metrics service is not enabled
   items =
-    !isSystemConfigLoading && systemAppConfigData?.isMetricsServiceEnabled
+    !isSystemConfigLoading && !systemAppConfigData?.isMetricsServiceEnabled
       ? items.filter((item) => item.ref !== 'usage')
       : items;
   return items;
