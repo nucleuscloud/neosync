@@ -19,8 +19,8 @@ func Test_metricLabel_ToPromQueryString(t *testing.T) {
 
 func Test_metricLabels_ToPromQueryString(t *testing.T) {
 	labels := MetricLabels{
-		{Key: "foo", Value: "bar"},
-		{Key: "foo2", Value: "bar2"},
+		NewEqLabel("foo", "bar"),
+		NewEqLabel("foo2", "bar2"),
 	}
 	assert.Equal(
 		t,
@@ -36,8 +36,8 @@ func Test_metricLabel_ToBenthosMeta(t *testing.T) {
 
 func Test_metricLabels_ToBenthosMeta(t *testing.T) {
 	labels := MetricLabels{
-		{Key: "foo", Value: "bar"},
-		{Key: "foo2", Value: "bar2"},
+		NewEqLabel("foo", "bar"),
+		NewEqLabel("foo2", "bar2"),
 	}
 	assert.Equal(
 		t,
