@@ -95,6 +95,11 @@ function getAllNavSettings(accountName: string): Item[] {
       ref: 'members',
       title: 'Members',
     },
+    {
+      href: `/${accountName}/settings/usage`,
+      ref: 'usage',
+      title: 'Usage',
+    },
   ];
 }
 
