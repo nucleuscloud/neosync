@@ -40,7 +40,7 @@ It's important to note that pg_dump doesn't query the tables directly. Instead, 
 
 # Step 2: Dump the Data
 
-Now that we have the metadata, pg_dump then starts the process of extracting the raw data for each table in the database. There are configurations for pg_dump where you only get the schema. If so, then this step is effectivelyt skipped. If we want the data as well, then here's a breakdown of what happens:
+Now that we have the metadata, pg_dump then starts the process of extracting the raw data for each table in the database. There are configurations for pg_dump where you only get the schema. If so, then this step is effectively skipped. If we want the data as well, then here's a breakdown of what happens:
 
 1. It constructs a query like `SELECT \* FROM schema.table` for each table.
 2. This query is executed, and pg_dump fetches the result rows in batches to minimize memory overhead.
@@ -73,7 +73,7 @@ Additionally, pg_dump can also compress the output SQL file using the specified 
 
 # Let's look at an example
 
-Let's go through an example of using pg_dump to back up the "dvdrental" sample database:
+Let's go through an example of using pg_dump to back up the "neosync_test" sample database:
 
 ```bash
 $ pg_dump -U postgres neosync_test > neosync_test
