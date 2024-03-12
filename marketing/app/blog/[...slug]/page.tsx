@@ -123,7 +123,7 @@ export default async function PostPage({
           <ChevronLeftIcon className="mr-2 h-4 w-4" />
           See all posts
         </Link>
-        <h1 className="mt-2 inline-block font-heading text-4xl leading-tight lg:text-4xl">
+        <h1 className="mt-2 inline-block font-heading text-4xl leading-tight lg:text-4xl bg-white/60">
           {post.title}
         </h1>
         {post.image && (
@@ -149,7 +149,7 @@ export default async function PostPage({
             </time>
           </div>
         ) : null}
-        <div className="max-w-[706px]">
+        <div className="max-w-[706px] bg-white/60">
           <Mdx code={post.body.code} />
         </div>
         <hr className="mt-12" />

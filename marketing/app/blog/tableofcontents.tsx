@@ -30,7 +30,7 @@ export function BlogTableOfContents({ toc }: TocProps) {
   }
 
   return mounted ? (
-    <div>
+    <div className="bg-white/60">
       <Tree tree={toc} activeItem={activeHeading} />
     </div>
   ) : (
