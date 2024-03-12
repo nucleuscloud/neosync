@@ -84,6 +84,15 @@ function DisplayMetricCount(props: DisplayMetricCountProps): ReactElement {
   if (isLoading) {
     return <Skeleton className="w-full h-12" />;
   }
+  const browserLanugages = [...navigator.languages];
+  const numformatter = new Intl.NumberFormat(browserLanugages, {
+    style: 'decimal',
+    minimumFractionDigits: 0,
+  });
+  const count =
+    metricCountData?.count !== undefined
+      ? numformatter.format(metricCountData.count)
+      : '0';
   return (
     <Card>
       <CardHeader>
@@ -93,7 +102,7 @@ function DisplayMetricCount(props: DisplayMetricCountProps): ReactElement {
           sources for the given time period.
         </CardDescription>
       </CardHeader>
-      <CardContent>{metricCountData?.count.toString()}</CardContent>
+      <CardContent>{count}</CardContent>
     </Card>
   );
 }
