@@ -229,17 +229,17 @@ func buildSelectQueryMap(
 		}
 	}
 
-	// need to check for circular dependencies
 	// need to check all tables processed
 	// self referencing circular dependencies need union all
 	// multi table circular dependencies need to be subset and run in same order
 	// for each circular dependency choose entry point and add to root
 	for _, rootTable := range roots {
-		deps, hasDeps := pksMap[rootTable]
-		if !hasDeps || len(deps) == 0 {
-			continue
-		}
+		// deps, hasDeps := pksMap[rootTable]
+		// if !hasDeps || len(deps) == 0 {
+		// 	continue
+		// }
 		path := BFS(pksMap, rootTable)
+
 		whereClauses := []string{}
 		joins := make([]*SqlJoin, len(path))
 		for idx, table := range path {
@@ -249,21 +249,12 @@ func buildSelectQueryMap(
 			if tableOpt != nil && tableOpt.WhereClause != nil {
 				where = tableOpt.WhereClause
 			}
+			fks := tableDependencies[table]
+			runConfigs := dependencyMap[table]
+			selfRefCircularDep := getSelfReferencingColumns(table, fks)
 
 			// root table or no subset use standard select
 			if table == rootTable || len(whereClauses) == 0 {
-				query, err := buildSelectQuery(
-					driver,
-					tableMapping.Schema,
-					tableMapping.Table,
-					buildPlainColumns(tableMapping.Mappings),
-					where,
-				)
-				if err != nil {
-					return nil, fmt.Errorf("unable to build select query: %w", err)
-				}
-				queryMap[table] = query
-
 				if where != nil && *where != "" {
 					updatedWhere, err := qualifyWhereColumnNames(*where, tableMapping.Schema, tableMapping.Table)
 					if err != nil {
@@ -271,18 +262,42 @@ func buildSelectQueryMap(
 					}
 					whereClauses = append(whereClauses, updatedWhere)
 				}
+				if len(runConfigs) == 2 && selfRefCircularDep != nil {
+					// self referencing circular dependency
+					query, err := buildSelectRecursiveQuery(
+						driver,
+						tableMapping.Schema,
+						tableMapping.Table,
+						buildPlainColumns(tableMapping.Mappings),
+						selfRefCircularDep.ForeignKeyColumns,
+						selfRefCircularDep.PrimaryKeyColumn,
+						joins,
+						whereClauses,
+					)
+					if err != nil {
+						return nil, fmt.Errorf("unable to build select query: %w", err)
+					}
+					queryMap[table] = query
+				} else {
+					query, err := buildSelectQuery(
+						driver,
+						tableMapping.Schema,
+						tableMapping.Table,
+						buildPlainColumns(tableMapping.Mappings),
+						where,
+					)
+					if err != nil {
+						return nil, fmt.Errorf("unable to build select query: %w", err)
+					}
+					queryMap[table] = query
+				}
 
 				continue
 			}
 			// check if table already in query map
 			_, seen := queryMap[table]
 			if seen {
-				// continue
 				break
-			}
-			fks, ok := tableDependencies[table]
-			if !ok {
-				return nil, fmt.Errorf("no foreign keys found for table %s", table)
 			}
 			parentTable := path[idx-1]
 			for _, fk := range fks.Constraints {
@@ -305,9 +320,7 @@ func buildSelectQueryMap(
 				whereClauses = append(whereClauses, updatedWhere)
 			}
 
-			runConfigs, ok := dependencyMap[table]
-			selfRefCircularDep := getSelfReferencingColumns(table, fks.Constraints)
-			if ok && len(runConfigs) == 2 && selfRefCircularDep != nil {
+			if len(runConfigs) == 2 && selfRefCircularDep != nil {
 				// self referencing circular dependency
 				query, err := buildSelectRecursiveQuery(
 					driver,
@@ -396,41 +409,41 @@ func qualifyWhereColumnNames(where, schema, table string) (string, error) {
 }
 
 // todo move to shared
-func getForeignToPrimaryTableMap(td map[string]*dbschemas.TableConstraints, uniqueTables map[string]struct{}) map[string][]string {
-	dpMap := map[string][]string{}
-	for table := range uniqueTables {
-		_, dpOk := dpMap[table]
-		if !dpOk {
-			dpMap[table] = []string{}
-		}
-		constraints, ok := td[table]
-		if !ok {
-			continue
-		}
-		for _, dep := range constraints.Constraints {
-			dpMap[table] = append(dpMap[table], dep.ForeignKey.Table)
-		}
-	}
-	return dpMap
-}
+// func getForeignToPrimaryTableMap(td map[string]*dbschemas.TableConstraints, uniqueTables map[string]struct{}) map[string][]string {
+// 	dpMap := map[string][]string{}
+// 	for table := range uniqueTables {
+// 		_, dpOk := dpMap[table]
+// 		if !dpOk {
+// 			dpMap[table] = []string{}
+// 		}
+// 		constraints, ok := td[table]
+// 		if !ok {
+// 			continue
+// 		}
+// 		for _, dep := range constraints.Constraints {
+// 			dpMap[table] = append(dpMap[table], dep.ForeignKey.Table)
+// 		}
+// 	}
+// 	return dpMap
+// }
 
-func getPrimaryToForeignTableMap(td map[string]*dbschemas.TableConstraints, uniqueTables map[string]struct{}) map[string][]string {
-	dpMap := map[string][]string{}
-	for table := range uniqueTables {
-		_, dpOk := dpMap[table]
-		if !dpOk {
-			dpMap[table] = []string{}
-		}
-		constraints, ok := td[table]
-		if !ok {
-			continue
-		}
-		for _, dep := range constraints.Constraints {
-			dpMap[dep.ForeignKey.Table] = append(dpMap[dep.ForeignKey.Table], table)
-		}
-	}
-	return dpMap
-}
+// func getPrimaryToForeignTableMap(td map[string]*dbschemas.TableConstraints, uniqueTables map[string]struct{}) map[string][]string {
+// 	dpMap := map[string][]string{}
+// 	for table := range uniqueTables {
+// 		_, dpOk := dpMap[table]
+// 		if !dpOk {
+// 			dpMap[table] = []string{}
+// 		}
+// 		constraints, ok := td[table]
+// 		if !ok {
+// 			continue
+// 		}
+// 		for _, dep := range constraints.Constraints {
+// 			dpMap[dep.ForeignKey.Table] = append(dpMap[dep.ForeignKey.Table], table)
+// 		}
+// 	}
+// 	return dpMap
+// }
 
 func getPrimaryToForeignTableMapFromRunConfigs(runConfigs []*tabledependency.RunConfig) map[string][]string {
 	dpMap := map[string][]string{}
@@ -442,7 +455,7 @@ func getPrimaryToForeignTableMapFromRunConfigs(runConfigs []*tabledependency.Run
 		for _, dep := range cfg.DependsOn {
 			_, dpOk := dpMap[dep.Table]
 			if !dpOk {
-				dpMap[cfg.Table] = []string{cfg.Table}
+				dpMap[dep.Table] = []string{cfg.Table}
 			} else {
 				dpMap[dep.Table] = append(dpMap[dep.Table], cfg.Table)
 			}
@@ -456,10 +469,13 @@ type selfReferencingCircularDependency struct {
 	ForeignKeyColumns []string
 }
 
-func getSelfReferencingColumns(table string, tc []*dbschemas.ForeignConstraint) *selfReferencingCircularDependency {
+func getSelfReferencingColumns(table string, tc *dbschemas.TableConstraints) *selfReferencingCircularDependency {
+	if tc == nil {
+		return nil
+	}
 	fkCols := []string{}
 	var primaryKeyCol string
-	for _, fc := range tc {
+	for _, fc := range tc.Constraints {
 		if fc.ForeignKey.Table == table {
 			fkCols = append(fkCols, fc.Column)
 			primaryKeyCol = fc.ForeignKey.Column
