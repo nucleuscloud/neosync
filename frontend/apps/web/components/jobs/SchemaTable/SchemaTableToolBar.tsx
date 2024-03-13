@@ -226,6 +226,17 @@ export function SchemaTableToolbar<TData>({
             side={'bottom'}
             onSelect={(value) => {
               table.getSelectedRowModel().rows.forEach((r) => {
+                // check if it's a foreign key with a primary key that has been transformed and if so then do not update it
+
+                console.log('r', r);
+
+                // if(a){
+                //   //don't set
+                // }else{
+                form.setValue(`mappings.${r.index}.transformer`, value, {
+                  shouldDirty: true,
+                });
+                // }
                 form.setValue(`mappings.${r.index}.transformer`, value, {
                   shouldDirty: true,
                 });
