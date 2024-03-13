@@ -21,11 +21,7 @@ run:
 	./bin/sync serve
 .PHONY: run
 
-gen: ## Generate code
-	./hack/gen.sh
-.PHONY: gen
-
-clean: 
+clean:
 	rm -rf bin
 .PHONY: clean
 
