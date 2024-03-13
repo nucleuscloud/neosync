@@ -2,7 +2,6 @@ package v1alpha1_metricsservice
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
@@ -179,7 +178,7 @@ func (s *Service) GetMetricCount(
 	if err != nil {
 		return nil, fmt.Errorf("unable to compute valid prometheus query: %w", err)
 	}
-	logger.Info("Prom Query:", "query", query)
+
 	queryResponse, warnings, err := s.prometheusclient.QueryRange(ctx, query, promv1.Range{
 		Start: start.AsTime(),
 		End:   end.AsTime(),
@@ -203,8 +202,6 @@ func (s *Service) GetMetricCount(
 		if err != nil {
 			return nil, err
 		}
-		bits, _ := json.Marshal(usage)
-		logger.Info(string(bits))
 		return connect.NewResponse(&mgmtv1alpha1.GetMetricCountResponse{Count: sumUsage(usage)}), nil
 
 	default:
@@ -326,34 +323,6 @@ func dateToTime(d *mgmtv1alpha1.Date) time.Time {
 func toEndOfDay(t time.Time) time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), 23, 59, 59, 0, time.UTC)
 }
-
-func isSameDay(d1, d2 *mgmtv1alpha1.Date) bool {
-	return d1.GetYear() == d2.GetYear() && d1.GetMonth() == d2.GetMonth() && d1.GetDay() == d2.GetDay()
-}
-
-// func fromDateDay(key string) (*date.Date, error) {
-// 	pieces := strings.Split(key, "_")
-// 	if len(pieces) != 3 {
-// 		return nil, fmt.Errorf("invalid date key, did not find appropriate number of parts")
-// 	}
-// 	day, err := strconv.ParseInt(pieces[0], 10, 32)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("invalid day key: %w", err)
-// 	}
-// 	month, err := strconv.ParseInt(pieces[1], 10, 32)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("invalid month key: %w", err)
-// 	}
-// 	year, err := strconv.ParseInt(pieces[2], 10, 32)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("invalid year key: %w", err)
-// 	}
-// 	return &date.Date{
-// 		Year:  int32(year),
-// 		Month: int32(month),
-// 		Day:   int32(day),
-// 	}, nil
-// }
 
 func getUsageFromMatrix(matrix model.Matrix) (map[string]uint64, error) {
 	usage := map[string]uint64{}
