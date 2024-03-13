@@ -16,16 +16,41 @@ services:
       - 4318:4318 # OTLP http receiver
       - 55679:55679 # zpages extension
 
-  prometheus:
-    container_name: neosync-prom
-    image: prom/prometheus
+  # prometheus:
+  #   container_name: neosync-prom
+  #   image: prom/prometheus
+  #   networks:
+  #     - neosync-network
+  #     - metrics
+  #   volumes:
+  #     - $PWD/hack/prometheus.yaml:/etc/prometheus/prometheus.yml
+  #   ports:
+  #     - 9090:9090
+
+  victoriametrics:
+    container_name: victoriametrics
+    image: victoriametrics/victoria-metrics:v1.99.0
+    ports:
+      - 8428:8428
+      - 8089:8089
+      - 8089:8089/udp
+      - 2003:2003
+      - 2003:2003/udp
+      - 4242:4242
+    volumes:
+      - $PWD/hack/prometheus.yaml:/etc/victoriametrics/prometheus.yaml
+      - vmdata:/storage
+    command:
+      - "--storageDataPath=/storage"
+      - "--graphiteListenAddr=:2003"
+      - "--opentsdbListenAddr=:4242"
+      - "--httpListenAddr=:8428"
+      - "--influxListenAddr=:8089"
+      - "--promscrape.config=/etc/victoriametrics/prometheus.yaml"
+      # - "--vmalert.proxyURL=http://vmalert:8880"
     networks:
       - neosync-network
       - metrics
-    volumes:
-      - $PWD/hack/prometheus.yaml:/etc/prometheus/prometheus.yml
-    ports:
-      - 9090:9090
 
   grafana:
     container_name: neosync-grafana
@@ -43,3 +68,5 @@ networks:
   metrics:
     driver: bridge
     name: metrics
+volumes:
+  vmdata:

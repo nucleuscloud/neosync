@@ -18,11 +18,21 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useGetDailyMetricCount } from '@/libs/hooks/useGetDailyMetricCount';
 import { useGetMetricCount } from '@/libs/hooks/useGetMetricCount';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
-import { RangedMetricName } from '@neosync/sdk';
+import { DayResult, Date as NeosyncDate, RangedMetricName } from '@neosync/sdk';
 import { endOfMonth, format, startOfMonth, subMonths } from 'date-fns';
 import { ReactElement, useState } from 'react';
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 
 export default function UsagePage(): ReactElement {
   const [period, setPeriod] = useState<UsagePeriod>('current');
@@ -60,8 +70,94 @@ export default function UsagePage(): ReactElement {
       <div className="flex">
         <DisplayMetricCount period={period} />
       </div>
+      <div>
+        <DailyMetricCount period={period} />
+      </div>
     </OverviewContainer>
   );
+}
+
+interface DailyMetricCountProps {
+  period: UsagePeriod;
+}
+
+function DailyMetricCount(props: DailyMetricCountProps): ReactElement {
+  const { period } = props;
+  const { account } = useAccount();
+  const [start, end] = periodToDateRange(period);
+  const { data: metricCountData, isLoading } = useGetDailyMetricCount(
+    account?.id ?? '',
+    dateToNeoDate(start),
+    dateToNeoDate(end),
+    RangedMetricName.INPUT_RECEIVED,
+    'accountId',
+    account?.id ?? ''
+  );
+
+  if (isLoading) {
+    return <Skeleton className="w-full h-12" />;
+  }
+  const browserLanugages = [...navigator.languages];
+  const numformatter = new Intl.NumberFormat(browserLanugages, {
+    style: 'decimal',
+    minimumFractionDigits: 0,
+  });
+  const results = metricCountData?.results ?? [];
+
+  if (results.length === 0) {
+    return <div />;
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Total number of records ingested by day</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <>
+          <style jsx global>{`
+            .recharts-legend-item {
+              cursor: pointer;
+            }
+          `}</style>
+          <ResponsiveContainer width="100%" height={400}>
+            <AreaChart data={toDayResultPlotPoints(results)}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                dataKey={(obj: DayResult) => {
+                  const date = obj.date ?? new NeosyncDate();
+                  return format(
+                    new Date(date.year, date.month - 1, date.day),
+                    'MMM d yy'
+                  );
+                }}
+              />
+              <YAxis tickFormatter={(value) => numformatter.format(value)} />
+              {/* <Legend /> */}
+              <Area dataKey="count" name="ingested" />
+              <Tooltip
+                formatter={(value, name) =>
+                  numformatter.format(value as number)
+                }
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </>
+      </CardContent>
+    </Card>
+  );
+}
+
+interface DayResultPlotPoint {
+  count: number;
+  date: NeosyncDate;
+}
+
+function toDayResultPlotPoints(results: DayResult[]): DayResultPlotPoint[] {
+  return results.map((result) => ({
+    count: Number(result.count),
+    date: result.date ?? new NeosyncDate(),
+  }));
 }
 
 interface DisplayMetricCountProps {
@@ -84,6 +180,15 @@ function DisplayMetricCount(props: DisplayMetricCountProps): ReactElement {
   if (isLoading) {
     return <Skeleton className="w-full h-12" />;
   }
+  const browserLanugages = [...navigator.languages];
+  const numformatter = new Intl.NumberFormat(browserLanugages, {
+    style: 'decimal',
+    minimumFractionDigits: 0,
+  });
+  const count =
+    metricCountData?.count !== undefined
+      ? numformatter.format(metricCountData.count)
+      : '0';
   return (
     <Card>
       <CardHeader>
@@ -93,7 +198,7 @@ function DisplayMetricCount(props: DisplayMetricCountProps): ReactElement {
           sources for the given time period.
         </CardDescription>
       </CardHeader>
-      <CardContent>{metricCountData?.count.toString()}</CardContent>
+      <CardContent>{count}</CardContent>
     </Card>
   );
 }
@@ -128,6 +233,14 @@ function periodToDateRange(period: UsagePeriod): [Date, Date] {
       return [start, end];
     }
   }
+}
+
+function dateToNeoDate(date: Date): NeosyncDate {
+  return new NeosyncDate({
+    day: date.getDate(),
+    month: date.getMonth() + 1,
+    year: date.getFullYear(),
+  });
 }
 
 type UsagePeriod = 'current' | 'last-month';

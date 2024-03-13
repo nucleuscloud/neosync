@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { GetMetricCountRequest, GetMetricCountResponse, GetRangedMetricsRequest, GetRangedMetricsResponse } from "./metrics_pb.js";
+import { GetDailyMetricCountRequest, GetDailyMetricCountResponse, GetMetricCountRequest, GetMetricCountResponse } from "./metrics_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -15,12 +15,12 @@ export const MetricsService = {
     /**
      * Retrieve a timed range of records
      *
-     * @generated from rpc mgmt.v1alpha1.MetricsService.GetRangedMetrics
+     * @generated from rpc mgmt.v1alpha1.MetricsService.GetDailyMetricCount
      */
-    getRangedMetrics: {
-      name: "GetRangedMetrics",
-      I: GetRangedMetricsRequest,
-      O: GetRangedMetricsResponse,
+    getDailyMetricCount: {
+      name: "GetDailyMetricCount",
+      I: GetDailyMetricCountRequest,
+      O: GetDailyMetricCountResponse,
       kind: MethodKind.Unary,
     },
     /**

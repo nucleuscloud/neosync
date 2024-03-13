@@ -12,6 +12,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 )
 
+//nolint:unparam
 func (s *Service) verifyUserInAccount(
 	ctx context.Context,
 	accountId string,
