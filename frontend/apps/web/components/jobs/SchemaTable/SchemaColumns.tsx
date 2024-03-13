@@ -322,6 +322,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                             );
                           })}
                           index={info.row.original.formIdx}
+                          disabled={disableTransformer}
                         />
                       </div>
                     </FormControl>

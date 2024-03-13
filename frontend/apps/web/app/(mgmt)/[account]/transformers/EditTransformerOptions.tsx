@@ -44,10 +44,11 @@ interface Props {
   transformer: Transformer | undefined;
   // mapping index
   index: number;
+  disabled: boolean;
 }
 
 export default function EditTransformerOptions(props: Props): ReactElement {
-  const { transformer, index } = props;
+  const { transformer, index, disabled } = props;
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const sheetRef = useRef<HTMLDivElement | null>(null);
@@ -97,7 +98,9 @@ export default function EditTransformerOptions(props: Props): ReactElement {
           // we need to load the custom transformer values and push them into the component, but the components expect the "form", which is the Job Mapping.
           // this would require a refactor of the lower components to not rely on the react-hook-form and instead values as props to the component itself.
           // until that is true, this needs to be disabled.
-          disabled={!transformer || isUserDefinedTransformer(transformer)}
+          disabled={
+            !transformer || isUserDefinedTransformer(transformer) || disabled
+          }
           onClick={() => setIsSheetOpen(true)}
           className="ml-auto hidden h-[36px] lg:flex"
         >
