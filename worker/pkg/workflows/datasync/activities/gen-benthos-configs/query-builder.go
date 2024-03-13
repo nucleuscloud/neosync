@@ -6,6 +6,7 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	dbschemas "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
+	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/xwb1989/sqlparser"
 
@@ -67,7 +68,7 @@ func buildSelectJoinQuery(
 
 	selectColumns := make([]any, len(columns))
 	for i, col := range columns {
-		selectColumns[i] = col
+		selectColumns[i] = fmt.Sprintf("%s.%s.%s", schema, table, col)
 	}
 	query := builder.From(sqltable).Select(selectColumns...)
 	// joins
@@ -97,35 +98,25 @@ func buildSelectJoinQuery(
 	return fmt.Sprintf("%s;", sql), nil
 }
 
-func buildSelectUnionQuery(
+func buildSelectRecursiveQuery(
 	driver, schema, table string,
 	columns []string,
-	selfReferenceCol string,
+	foreignKeys []string,
 	primaryKeyCol string,
 	joins []*SqlJoin,
 	whereClauses []string,
 ) (string, error) {
-	table1Alias := "t1"
-	table2Alias := "t2"
+	recursiveCteAlias := "related"
 	builder := goqu.Dialect(driver)
 	sqltable := goqu.S(schema).Table(table)
 
 	selectColumns := make([]any, len(columns))
 	for i, col := range columns {
-		selectColumns[i] = col
+		selectColumns[i] = fmt.Sprintf("%s.%s.%s", schema, table, col)
 	}
-	firstSelect := builder.From(sqltable).Select(selectColumns...)
+	selectQuery := builder.From(sqltable).Select(selectColumns...)
 
-	// aliased columns
-	unionColumns := make([]any, len(columns))
-	for i, col := range columns {
-		unionColumns[i] = fmt.Sprintf("%s.%s", table2Alias, col)
-	}
-	secondSelect := builder.From(sqltable).As(table1Alias).Select(unionColumns...).InnerJoin(
-		sqltable.As(table2Alias),
-		goqu.On(goqu.Ex{fmt.Sprintf("%s.%s", table1Alias, selfReferenceCol): goqu.I(fmt.Sprintf("%s.%s", table2Alias, primaryKeyCol))}),
-	)
-
+	initialSelect := selectQuery
 	// joins
 	for _, j := range joins {
 		if j == nil {
@@ -136,11 +127,7 @@ func buildSelectUnionQuery(
 			joinTable := fmt.Sprintf("%s.%s", j.JoinTable, j.JoinColumn)
 			baseTable := fmt.Sprintf("%s.%s", j.BaseTable, j.BaseColumn)
 
-			firstSelect = firstSelect.InnerJoin(
-				table,
-				goqu.On(goqu.Ex{joinTable: goqu.I(baseTable)}),
-			)
-			secondSelect = secondSelect.InnerJoin(
+			initialSelect = initialSelect.InnerJoin(
 				table,
 				goqu.On(goqu.Ex{joinTable: goqu.I(baseTable)}),
 			)
@@ -152,16 +139,29 @@ func buildSelectUnionQuery(
 	for _, w := range whereClauses {
 		goquWhere = append(goquWhere, goqu.L(w))
 	}
-	firstSelect = firstSelect.Where(goqu.And(goquWhere...))
-	secondSelect.Where(goqu.And(goquWhere...))
+	initialSelect = initialSelect.Where(goqu.And(goquWhere...))
+
+	// inner join on foreign keys
+	goquOnEx := []exp.Expression{}
+	for _, fk := range foreignKeys {
+		goquOnEx = append(goquOnEx, goqu.Ex{fmt.Sprintf("%s.%s.%s", schema, table, primaryKeyCol): goqu.I(fmt.Sprintf("%s.%s", recursiveCteAlias, fk))})
+	}
+	recursiveSelect := selectQuery
+	recursiveSelect = recursiveSelect.InnerJoin(goqu.I(recursiveCteAlias), goqu.On(goqu.Or(goquOnEx...)))
 
 	// union
-	unionQuery := firstSelect.Union(secondSelect)
-	sql, _, err := unionQuery.ToSQL()
+	unionQuery := initialSelect.Union(recursiveSelect)
+
+	selectCols := make([]any, len(columns))
+	for i, col := range columns {
+		selectCols[i] = col
+	}
+	recursiveQuery := builder.From(goqu.T(recursiveCteAlias)).WithRecursive(recursiveCteAlias, unionQuery).SelectDistinct(selectCols...)
+	sql, _, err := recursiveQuery.ToSQL()
 	if err != nil {
 		return "", err
 	}
-	return sql, nil
+	return fmt.Sprintf("%s;", sql), nil
 }
 
 // returns map of schema.table -> select query
@@ -170,6 +170,7 @@ func buildSelectQueryMap(
 	groupedMappings map[string]*tableMapping,
 	sourceTableOpts map[string]*sqlSourceTableOptions,
 	tableDependencies map[string]*dbschemas.TableConstraints,
+	dependencyConfigs []*tabledependency.RunConfig,
 	subsetByForeignKeyConstraints bool,
 ) (map[string]string, error) {
 	queryMap := map[string]string{}
@@ -200,20 +201,34 @@ func buildSelectQueryMap(
 		}
 		return queryMap, nil
 	}
-	uniqueTables := map[string]struct{}{}
-	for table := range groupedMappings {
-		uniqueTables[table] = struct{}{}
-	}
-	fksMap := getForeignToPrimaryTableMap(tableDependencies, uniqueTables)
-	pksMap := getPrimaryToForeignTableMap(tableDependencies, uniqueTables)
+	// uniqueTables := map[string]struct{}{}
+	// for table := range groupedMappings {
+	// 	uniqueTables[table] = struct{}{}
+	// }
+	// fksMap := getForeignToPrimaryTableMap(tableDependencies, uniqueTables)
+	// pksMap := getPrimaryToForeignTableMap(tableDependencies, uniqueTables)
+	pksMap := getPrimaryToForeignTableMapFromRunConfigs(dependencyConfigs)
 	roots := []string{}
 
 	// handle roots first
-	for table, deps := range fksMap {
-		if len(deps) == 0 {
-			roots = append(roots, table)
+	// for table, deps := range fksMap {
+	// 	if len(deps) == 0 {
+	// 		roots = append(roots, table)
+	// 	}
+	// }
+	dependencyMap := map[string][]*tabledependency.RunConfig{}
+	for _, cfg := range dependencyConfigs {
+		if len(cfg.DependsOn) == 0 {
+			roots = append(roots, cfg.Table)
+		}
+		_, ok := dependencyMap[cfg.Table]
+		if ok {
+			dependencyMap[cfg.Table] = append(dependencyMap[cfg.Table], cfg)
+		} else {
+			dependencyMap[cfg.Table] = []*tabledependency.RunConfig{cfg}
 		}
 	}
+
 	// need to check for circular dependencies
 	// need to check all tables processed
 	// self referencing circular dependencies need union all
@@ -225,7 +240,6 @@ func buildSelectQueryMap(
 			continue
 		}
 		path := BFS(pksMap, rootTable)
-		fmt.Printf("%+v\n", path)
 		whereClauses := []string{}
 		joins := make([]*SqlJoin, len(path))
 		for idx, table := range path {
@@ -280,10 +294,8 @@ func buildSelectQueryMap(
 						JoinTable:  fk.ForeignKey.Table,
 						JoinColumn: fk.ForeignKey.Column,
 					}
-
 				}
 			}
-			// subsetting exists so need to join all child tables
 
 			if where != nil && *where != "" {
 				updatedWhere, err := qualifyWhereColumnNames(*where, tableMapping.Schema, tableMapping.Table)
@@ -292,31 +304,43 @@ func buildSelectQueryMap(
 				}
 				whereClauses = append(whereClauses, updatedWhere)
 			}
-			query, err := buildSelectJoinQuery(
-				driver,
-				tableMapping.Schema,
-				tableMapping.Table,
-				buildPlainColumns(tableMapping.Mappings),
-				joins,
-				whereClauses,
-			)
-			if err != nil {
-				return nil, fmt.Errorf("unable to build select query: %w", err)
+
+			runConfigs, ok := dependencyMap[table]
+			selfRefCircularDep := getSelfReferencingColumns(table, fks.Constraints)
+			if ok && len(runConfigs) == 2 && selfRefCircularDep != nil {
+				// self referencing circular dependency
+				query, err := buildSelectRecursiveQuery(
+					driver,
+					tableMapping.Schema,
+					tableMapping.Table,
+					buildPlainColumns(tableMapping.Mappings),
+					selfRefCircularDep.ForeignKeyColumns,
+					selfRefCircularDep.PrimaryKeyColumn,
+					joins,
+					whereClauses,
+				)
+				if err != nil {
+					return nil, fmt.Errorf("unable to build select query: %w", err)
+				}
+				queryMap[table] = query
+			} else {
+				query, err := buildSelectJoinQuery(
+					driver,
+					tableMapping.Schema,
+					tableMapping.Table,
+					buildPlainColumns(tableMapping.Mappings),
+					joins,
+					whereClauses,
+				)
+				if err != nil {
+					return nil, fmt.Errorf("unable to build select query: %w", err)
+				}
+				queryMap[table] = query
 			}
-			queryMap[table] = query
 		}
 	}
 	return queryMap, nil
 }
-
-/*
-NOTES
-1. use find replace in where to add table.column syntax
-
-how to find shortest path?
-1. find root tables. tables with no foreign keys. what if no root table?
-2. for each root table write query
-*/
 
 func BFS(graph map[string][]string, start string) []string {
 	var queue []string
@@ -365,6 +389,7 @@ func qualifyWhereColumnNames(where, schema, table string) (string, error) {
 			return true, nil
 		}, stmt)
 	}
+
 	updatedSql := sqlparser.String(stmt)
 	updatedSql = strings.Replace(updatedSql, sqlSelect, "", 1)
 	return updatedSql, nil
@@ -405,4 +430,46 @@ func getPrimaryToForeignTableMap(td map[string]*dbschemas.TableConstraints, uniq
 		}
 	}
 	return dpMap
+}
+
+func getPrimaryToForeignTableMapFromRunConfigs(runConfigs []*tabledependency.RunConfig) map[string][]string {
+	dpMap := map[string][]string{}
+	for _, cfg := range runConfigs {
+		_, dpOk := dpMap[cfg.Table]
+		if !dpOk {
+			dpMap[cfg.Table] = []string{}
+		}
+		for _, dep := range cfg.DependsOn {
+			_, dpOk := dpMap[dep.Table]
+			if !dpOk {
+				dpMap[cfg.Table] = []string{cfg.Table}
+			} else {
+				dpMap[dep.Table] = append(dpMap[dep.Table], cfg.Table)
+			}
+		}
+	}
+	return dpMap
+}
+
+type selfReferencingCircularDependency struct {
+	PrimaryKeyColumn  string
+	ForeignKeyColumns []string
+}
+
+func getSelfReferencingColumns(table string, tc []*dbschemas.ForeignConstraint) *selfReferencingCircularDependency {
+	fkCols := []string{}
+	var primaryKeyCol string
+	for _, fc := range tc {
+		if fc.ForeignKey.Table == table {
+			fkCols = append(fkCols, fc.Column)
+			primaryKeyCol = fc.ForeignKey.Column
+		}
+	}
+	if len(fkCols) > 0 {
+		return &selfReferencingCircularDependency{
+			PrimaryKeyColumn:  primaryKeyCol,
+			ForeignKeyColumns: fkCols,
+		}
+	}
+	return nil
 }

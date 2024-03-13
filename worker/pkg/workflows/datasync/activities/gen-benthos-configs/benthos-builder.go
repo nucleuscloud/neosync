@@ -232,7 +232,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			} else if len(configs) == 1 {
 				resp.DependsOn = configs[0].DependsOn
 			} else {
-				return nil, fmt.Errorf("unexpected number of benthos configs")
+				return nil, fmt.Errorf("unexpected number of dependency configs")
 			}
 		}
 
