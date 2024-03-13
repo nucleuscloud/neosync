@@ -36,10 +36,11 @@ interface Props {
   onSelect(value: JobMappingTransformerForm): void;
   placeholder: string;
   side: Side;
+  disabled: boolean;
 }
 
 export default function TransformerSelect(props: Props): ReactElement {
-  const { transformers, value, onSelect, placeholder, side } = props;
+  const { transformers, value, onSelect, placeholder, side, disabled } = props;
   const [open, setOpen] = useState(false);
 
   const udfTransformers = transformers
@@ -55,10 +56,14 @@ export default function TransformerSelect(props: Props): ReactElement {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
+        {/* <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild> */}
         <Button
           variant="outline"
           role="combobox"
           aria-expanded={open}
+          disabled={disabled}
           className={cn(
             placeholder.startsWith('Bulk')
               ? 'justify-between w-[275px]'
@@ -75,6 +80,13 @@ export default function TransformerSelect(props: Props): ReactElement {
           </div>
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
+        {/* </TooltipTrigger>
+            <TooltipContent>
+              Cannot assign a Transformer to Foreign Key if Primary Key has
+              Transformer
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider> */}
       </PopoverTrigger>
       <PopoverContent
         className="w-[350px] p-0"

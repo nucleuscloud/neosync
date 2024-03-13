@@ -124,10 +124,12 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
           ).length > 0;
 
         const foreignKeyConstraint = {
-          table:
-            columnMetadata?.fk[rowKey]?.constraints[0].foreignKey?.table ?? '', // the foreignKey constraints object comes back from the API with two identical objects in an array, so just getting the first one. Need to investigate why it returns two.
-          column:
-            columnMetadata?.fk[rowKey]?.constraints[0].foreignKey?.column ?? '',
+          table: columnMetadata?.fk[rowKey]?.constraints.find(
+            (item) => item.column == row.getValue('column')
+          )?.foreignKey?.table,
+          column: columnMetadata?.fk[rowKey]?.constraints.find(
+            (item) => item.column == row.getValue('column')
+          )?.foreignKey?.column,
           value: 'Foreign Key',
         };
 
@@ -228,7 +230,30 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Transformer" />
       ),
+      meta: columnMetadata,
       cell: (info) => {
+        const rowKey = `${info.row.getValue('schema')}.${info.row.getValue('table')}`;
+
+        const hasForeignKeyConstraint =
+          columnMetadata?.fk &&
+          columnMetadata?.fk[rowKey]?.constraints.filter(
+            (item: ForeignConstraint) =>
+              item.column == info.row.getValue('column')
+          ).length > 0;
+
+        let disableTransformer = false;
+
+        // check if the primary key of the foreign key has been transformed
+        if (hasForeignKeyConstraint) {
+          disableTransformer =
+            info.row.original.transformer?.source !== 'passthrough' &&
+            hasForeignKeyConstraint;
+        }
+
+        console.log('t', info.row.original);
+
+        //TODO: check why it's not resetting after setting it to Passthrough
+
         return (
           <div>
             <FormField<SchemaFormValues | SingleTableSchemaFormValues>
@@ -259,6 +284,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                             onSelect={field.onChange}
                             placeholder="Select Transformer..."
                             side={'left'}
+                            disabled={disableTransformer}
                           />
                         </div>
                         <EditTransformerOptions
@@ -353,7 +379,13 @@ function handleDataTypeBadge(dataType: string): string {
   const splitDt = dataType.split('(');
   switch (splitDt[0]) {
     case 'character varying':
-      return 'varchar(' + splitDt[1];
+      if (splitDt[1] == undefined) {
+        return 'varchar(' + splitDt[1] + ')';
+      } else {
+        return 'varchar(' + splitDt[1];
+      }
+    case 'timestamp with time zone':
+      return 'timestamp(timezone)';
     default:
       return dataType;
   }
