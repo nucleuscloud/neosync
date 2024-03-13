@@ -17,6 +17,7 @@ import {
   isUserDefinedTransformer,
 } from '@/shared/transformers';
 import {
+  JobMappingFormValues,
   JobMappingTransformerForm,
   SchemaFormValues,
 } from '@/yup-validations/jobs';
@@ -24,6 +25,7 @@ import { ForeignConstraint } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ColumnDef, FilterFn, Row, SortingFn } from '@tanstack/react-table';
 import { HTMLProps, useEffect, useRef } from 'react';
+import { useFormContext } from 'react-hook-form';
 import { SchemaColumnHeader } from './SchemaColumnHeader';
 import { Row as RowData } from './SchemaPageTable';
 import TransformerSelect from './TransformerSelect';
@@ -35,6 +37,8 @@ interface Props {
 
 export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
   const { transformers, columnMetadata } = props;
+
+  const fc = useFormContext();
 
   return [
     {
@@ -234,7 +238,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
       cell: (info) => {
         const rowKey = `${info.row.getValue('schema')}.${info.row.getValue('table')}`;
 
-        const hasForeignKeyConstraint =
+        const isForeignKeyConstraint =
           columnMetadata?.fk &&
           columnMetadata?.fk[rowKey]?.constraints.filter(
             (item: ForeignConstraint) =>
@@ -243,16 +247,28 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
 
         let disableTransformer = false;
 
-        // check if the primary key of the foreign key has been transformed
-        if (hasForeignKeyConstraint) {
+        const foreignKeyConstraint = {
+          table: columnMetadata?.fk[rowKey]?.constraints.find(
+            (item) => item.column == info.row.getValue('column')
+          )?.foreignKey?.table,
+          column: columnMetadata?.fk[rowKey]?.constraints.find(
+            (item) => item.column == info.row.getValue('column')
+          )?.foreignKey?.column,
+          value: 'Foreign Key',
+        };
+
+        // if the current row is a foreignKey constraint, then check that it's primary key transformer
+        if (isForeignKeyConstraint) {
           disableTransformer =
-            info.row.original.transformer?.source !== 'passthrough' &&
-            hasForeignKeyConstraint;
+            fc
+              .getValues()
+              .mappings.find(
+                (item: JobMappingFormValues) =>
+                  item.schema + '.' + item.table ==
+                    foreignKeyConstraint.table &&
+                  item.column == foreignKeyConstraint.column
+              ).transformer?.source !== 'passthrough';
         }
-
-        console.log('t', info.row.original);
-
-        //TODO: check why it's not resetting after setting it to Passthrough
 
         return (
           <div>
