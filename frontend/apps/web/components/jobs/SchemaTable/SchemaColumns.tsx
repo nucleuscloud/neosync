@@ -17,6 +17,7 @@ import {
   isUserDefinedTransformer,
 } from '@/shared/transformers';
 import {
+  JobMappingFormValues,
   JobMappingTransformerForm,
   SchemaFormValues,
 } from '@/yup-validations/jobs';
@@ -24,6 +25,7 @@ import { ForeignConstraint } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ColumnDef, FilterFn, Row, SortingFn } from '@tanstack/react-table';
 import { HTMLProps, useEffect, useRef } from 'react';
+import { useFormContext } from 'react-hook-form';
 import { SchemaColumnHeader } from './SchemaColumnHeader';
 import { Row as RowData } from './SchemaPageTable';
 import TransformerSelect from './TransformerSelect';
@@ -35,6 +37,8 @@ interface Props {
 
 export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
   const { transformers, columnMetadata } = props;
+
+  const fc = useFormContext();
 
   return [
     {
@@ -124,10 +128,12 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
           ).length > 0;
 
         const foreignKeyConstraint = {
-          table:
-            columnMetadata?.fk[rowKey]?.constraints[0].foreignKey?.table ?? '', // the foreignKey constraints object comes back from the API with two identical objects in an array, so just getting the first one. Need to investigate why it returns two.
-          column:
-            columnMetadata?.fk[rowKey]?.constraints[0].foreignKey?.column ?? '',
+          table: columnMetadata?.fk[rowKey]?.constraints.find(
+            (item) => item.column == row.getValue('column')
+          )?.foreignKey?.table,
+          column: columnMetadata?.fk[rowKey]?.constraints.find(
+            (item) => item.column == row.getValue('column')
+          )?.foreignKey?.column,
           value: 'Foreign Key',
         };
 
@@ -228,7 +234,42 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Transformer" />
       ),
+      meta: columnMetadata,
       cell: (info) => {
+        const rowKey = `${info.row.getValue('schema')}.${info.row.getValue('table')}`;
+
+        const isForeignKeyConstraint =
+          columnMetadata?.fk &&
+          columnMetadata?.fk[rowKey]?.constraints.filter(
+            (item: ForeignConstraint) =>
+              item.column == info.row.getValue('column')
+          ).length > 0;
+
+        let disableTransformer = false;
+
+        const foreignKeyConstraint = {
+          table: columnMetadata?.fk[rowKey]?.constraints.find(
+            (item) => item.column == info.row.getValue('column')
+          )?.foreignKey?.table,
+          column: columnMetadata?.fk[rowKey]?.constraints.find(
+            (item) => item.column == info.row.getValue('column')
+          )?.foreignKey?.column,
+          value: 'Foreign Key',
+        };
+
+        // if the current row is a foreignKey constraint, then check that it's primary key transformer
+        if (isForeignKeyConstraint) {
+          disableTransformer =
+            fc
+              .getValues()
+              .mappings.find(
+                (item: JobMappingFormValues) =>
+                  item.schema + '.' + item.table ==
+                    foreignKeyConstraint.table &&
+                  item.column == foreignKeyConstraint.column
+              ).transformer?.source !== 'passthrough';
+        }
+
         return (
           <div>
             <FormField<SchemaFormValues | SingleTableSchemaFormValues>
@@ -259,6 +300,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                             onSelect={field.onChange}
                             placeholder="Select Transformer..."
                             side={'left'}
+                            disabled={disableTransformer}
                           />
                         </div>
                         <EditTransformerOptions
@@ -280,6 +322,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                             );
                           })}
                           index={info.row.original.formIdx}
+                          disabled={disableTransformer}
                         />
                       </div>
                     </FormControl>
@@ -353,7 +396,13 @@ function handleDataTypeBadge(dataType: string): string {
   const splitDt = dataType.split('(');
   switch (splitDt[0]) {
     case 'character varying':
-      return 'varchar(' + splitDt[1];
+      if (splitDt[1] == undefined) {
+        return 'varchar(' + splitDt[1] + ')';
+      } else {
+        return 'varchar(' + splitDt[1];
+      }
+    case 'timestamp with time zone':
+      return 'timestamp(timezone)';
     default:
       return dataType;
   }

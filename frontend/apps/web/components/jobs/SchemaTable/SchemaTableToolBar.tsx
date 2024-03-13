@@ -229,6 +229,9 @@ export function SchemaTableToolbar<TData>({
                 form.setValue(`mappings.${r.index}.transformer`, value, {
                   shouldDirty: true,
                 });
+                form.setValue(`mappings.${r.index}.transformer`, value, {
+                  shouldDirty: true,
+                });
               });
               setBulkTransformer({
                 source: '',
@@ -236,6 +239,7 @@ export function SchemaTableToolbar<TData>({
               });
             }}
             placeholder="Bulk update Transformers"
+            disabled={false}
           />
         </div>
         <div className="flex flex-row items-center gap-2">
