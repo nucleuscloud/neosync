@@ -2,6 +2,7 @@ package v1alpha1_metricsservice
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
@@ -16,11 +17,97 @@ import (
 	"github.com/prometheus/common/model"
 )
 
-func (s *Service) GetRangedMetrics(
+func (s *Service) GetDailyMetricCount(
 	ctx context.Context,
-	req *connect.Request[mgmtv1alpha1.GetRangedMetricsRequest],
-) (*connect.Response[mgmtv1alpha1.GetRangedMetricsResponse], error) {
-	return nil, nucleuserrors.NewNotImplemented("this method is not currently implemented")
+	req *connect.Request[mgmtv1alpha1.GetDailyMetricCountRequest],
+) (*connect.Response[mgmtv1alpha1.GetDailyMetricCountResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+
+	if req.Msg.GetStart() == nil || req.Msg.GetEnd() == nil {
+		return nil, nucleuserrors.NewBadRequest("must provide a start and end time")
+	}
+	if req.Msg.GetMetric() == mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_UNSPECIFIED {
+		return nil, nucleuserrors.NewBadRequest("must provide a metric name")
+	}
+	start := dateToTime(req.Msg.GetStart())
+	end := toEndOfDay(dateToTime(req.Msg.GetEnd()))
+
+	if start.After(end) {
+		return nil, nucleuserrors.NewBadRequest("start must not be before end")
+	}
+
+	timeDiff := end.Sub(start)
+	if timeDiff > timeLimit {
+		return nil, nucleuserrors.NewBadRequest("duration between start and end must not exceed 60 days")
+	}
+
+	queryLabels := metrics.MetricLabels{
+		metrics.NewNotEqLabel(metrics.IsUpdateConfigLabel, "true"), // we want to always exclude update configs
+	}
+
+	switch identifier := req.Msg.Identifier.(type) {
+	case *mgmtv1alpha1.GetDailyMetricCountRequest_AccountId:
+		if _, err := s.verifyUserInAccount(ctx, identifier.AccountId); err != nil {
+			return nil, err
+		}
+		queryLabels = append(queryLabels, metrics.NewEqLabel(metrics.AccountIdLabel, identifier.AccountId))
+	case *mgmtv1alpha1.GetDailyMetricCountRequest_JobId:
+		jobResp, err := s.jobservice.GetJob(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRequest{Id: identifier.JobId}))
+		if err != nil {
+			return nil, err
+		}
+		queryLabels = append(
+			queryLabels,
+			metrics.NewEqLabel(metrics.AccountIdLabel, jobResp.Msg.GetJob().GetAccountId()),
+			metrics.NewEqLabel(metrics.JobIdLabel, jobResp.Msg.GetJob().GetId()),
+		)
+	case *mgmtv1alpha1.GetDailyMetricCountRequest_RunId:
+		jrResp, err := s.jobservice.GetJobRun(ctx, connect.NewRequest(&mgmtv1alpha1.GetJobRunRequest{JobRunId: identifier.RunId}))
+		if err != nil {
+			return nil, err
+		}
+		// dont really need to add account id here since it's implied by the job id
+		queryLabels = append(
+			queryLabels,
+			metrics.NewEqLabel(metrics.JobIdLabel, jrResp.Msg.GetJobRun().GetJobId()),
+			metrics.NewEqLabel(metrics.TemporalWorkflowId, jrResp.Msg.GetJobRun().GetId()),
+		)
+	default:
+		return nil, nucleuserrors.NewBadRequest("must provide a valid identifier to proceed")
+	}
+
+	query, err := getPromQueryFromMetric(req.Msg.GetMetric(), queryLabels)
+	if err != nil {
+		return nil, fmt.Errorf("unable to compute valid prometheus query: %w", err)
+	}
+	queryResponse, warnings, err := s.prometheusclient.QueryRange(ctx, query, promv1.Range{
+		Start: start,
+		End:   end,
+		Step:  getStepByRange(start, end),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("unable to query prometheus for metrics: %w", err)
+	}
+	for _, warning := range warnings {
+		logger.Warn(fmt.Sprintf("[PROMETHEUS]: %s", warning))
+	}
+
+	switch queryResponse.Type() {
+	case model.ValMatrix:
+		matrix, ok := queryResponse.(model.Matrix)
+		if !ok {
+			return nil, fmt.Errorf("unable to convert query response to model.Matrix, received type: %T", queryResponse)
+		}
+		usage, err := getDailyUsageFromMatrix(matrix)
+		if err != nil {
+			return nil, err
+		}
+		return connect.NewResponse(&mgmtv1alpha1.GetDailyMetricCountResponse{
+			Results: usage,
+		}), nil
+	default:
+		return nil, fmt.Errorf("this method does not support query responses of type: %s", queryResponse.Type())
+	}
 }
 
 var (
@@ -92,6 +179,7 @@ func (s *Service) GetMetricCount(
 	if err != nil {
 		return nil, fmt.Errorf("unable to compute valid prometheus query: %w", err)
 	}
+	logger.Info("Prom Query:", "query", query)
 	queryResponse, warnings, err := s.prometheusclient.QueryRange(ctx, query, promv1.Range{
 		Start: start.AsTime(),
 		End:   end.AsTime(),
@@ -115,6 +203,8 @@ func (s *Service) GetMetricCount(
 		if err != nil {
 			return nil, err
 		}
+		bits, _ := json.Marshal(usage)
+		logger.Info(string(bits))
 		return connect.NewResponse(&mgmtv1alpha1.GetMetricCountResponse{Count: sumUsage(usage)}), nil
 
 	default:
@@ -158,9 +248,112 @@ func getStepByRange(start, end time.Time) time.Duration {
 	case diffDays >= 0 && diffDays <= 15:
 		return 1 * time.Hour
 	default:
-		return 1 * 24 * time.Hour
+		return 1 * time.Hour
 	}
 }
+
+func getDailyUsageFromMatrix(matrix model.Matrix) ([]*mgmtv1alpha1.DayResult, error) {
+	output := []*mgmtv1alpha1.DayResult{}
+	for _, stream := range matrix {
+		var latest int64
+		var ts time.Time
+		for _, value := range stream.Values {
+			converted, err := strconv.ParseInt(value.Value.String(), 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("unable to convert metric value to int64: %w", err)
+			}
+			if converted > latest {
+				latest = converted
+				ts = value.Timestamp.Time()
+			}
+		}
+		if latest < 0 {
+			return nil, fmt.Errorf("received a metric count that was less than 0")
+		}
+		output = append(output, &mgmtv1alpha1.DayResult{Date: ptr(timeToDate(ts)), Count: uint64(latest)})
+	}
+	return squishDayResults(output), nil
+}
+
+// combines counts where date is the day and returns a squished list with the original order retained
+func squishDayResults(input []*mgmtv1alpha1.DayResult) []*mgmtv1alpha1.DayResult {
+	dayMap := map[string]uint64{}
+	for _, result := range input {
+		dayMap[toDateKey(result.GetDate())] += result.GetCount()
+	}
+	output := []*mgmtv1alpha1.DayResult{}
+	for _, result := range input {
+		key := toDateKey(result.GetDate())
+		if count, ok := dayMap[key]; ok {
+			output = append(output, &mgmtv1alpha1.DayResult{Date: result.GetDate(), Count: count})
+			delete(dayMap, key)
+		}
+	}
+	return output
+}
+
+func ptr[T any](val T) *T {
+	return &val
+}
+
+func timeToDate(t time.Time) mgmtv1alpha1.Date {
+	return mgmtv1alpha1.Date{
+		Year:  uint32(t.Year()),
+		Month: uint32(t.Month()),
+		Day:   uint32(t.Day()),
+	}
+}
+
+func toDateKey(day *mgmtv1alpha1.Date) string {
+	return fmt.Sprintf("%d_%d_%d", day.Day, day.Month, day.Year)
+}
+
+func dateToTime(d *mgmtv1alpha1.Date) time.Time {
+	year := int(d.Year)
+	if year == 0 {
+		year = 1 // default to year 1 if unspecified
+	}
+	month := time.Month(d.Month)
+	if month == 0 {
+		month = time.January // default to January if unspecified
+	}
+	day := int(d.Day)
+	if day == 0 {
+		day = 1 // default to first of the month if unspecified
+	}
+	return time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
+}
+func toEndOfDay(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), 23, 59, 59, 0, time.UTC)
+}
+
+func isSameDay(d1, d2 *mgmtv1alpha1.Date) bool {
+	return d1.GetYear() == d2.GetYear() && d1.GetMonth() == d2.GetMonth() && d1.GetDay() == d2.GetDay()
+}
+
+// func fromDateDay(key string) (*date.Date, error) {
+// 	pieces := strings.Split(key, "_")
+// 	if len(pieces) != 3 {
+// 		return nil, fmt.Errorf("invalid date key, did not find appropriate number of parts")
+// 	}
+// 	day, err := strconv.ParseInt(pieces[0], 10, 32)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("invalid day key: %w", err)
+// 	}
+// 	month, err := strconv.ParseInt(pieces[1], 10, 32)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("invalid month key: %w", err)
+// 	}
+// 	year, err := strconv.ParseInt(pieces[2], 10, 32)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("invalid year key: %w", err)
+// 	}
+// 	return &date.Date{
+// 		Year:  int32(year),
+// 		Month: int32(month),
+// 		Day:   int32(day),
+// 	}, nil
+// }
 
 func getUsageFromMatrix(matrix model.Matrix) (map[string]uint64, error) {
 	usage := map[string]uint64{}
