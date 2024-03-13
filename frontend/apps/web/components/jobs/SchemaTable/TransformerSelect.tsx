@@ -26,6 +26,13 @@ import {
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+
 type Side = (typeof SIDE_OPTIONS)[number];
 
 var SIDE_OPTIONS: readonly ['top', 'right', 'bottom', 'left'];
@@ -53,12 +60,46 @@ export default function TransformerSelect(props: Props): ReactElement {
   const udfTransformerMap = new Map(udfTransformers.map((t) => [t.id, t]));
   const sysTransformerMap = new Map(sysTransformers.map((t) => [t.source, t]));
 
-  return (
+  return disabled ? (
+    <div>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              disabled={disabled}
+              type="button"
+              className={cn(
+                placeholder.startsWith('Bulk')
+                  ? 'justify-between w-[275px]'
+                  : 'justify-between w-[175px]'
+              )}
+            >
+              <div className="whitespace-nowrap truncate lg:w-[200px] text-left">
+                {getPopoverTriggerButtonText(
+                  value,
+                  udfTransformerMap,
+                  sysTransformerMap,
+                  placeholder
+                )}
+              </div>
+              <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <div className="max-w-[140px] text-wrap">
+              Cannot assign a Transformer to Foreign Key if Primary Key has
+              Transformer{' '}
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  ) : (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        {/* <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild> */}
         <Button
           variant="outline"
           role="combobox"
@@ -80,13 +121,6 @@ export default function TransformerSelect(props: Props): ReactElement {
           </div>
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
-        {/* </TooltipTrigger>
-            <TooltipContent>
-              Cannot assign a Transformer to Foreign Key if Primary Key has
-              Transformer
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider> */}
       </PopoverTrigger>
       <PopoverContent
         className="w-[350px] p-0"
