@@ -104,6 +104,10 @@ function DailyMetricCount(props: DailyMetricCountProps): ReactElement {
   });
   const results = metricCountData?.results ?? [];
 
+  if (results.length === 0) {
+    return <div />;
+  }
+
   return (
     <Card>
       <CardHeader>
