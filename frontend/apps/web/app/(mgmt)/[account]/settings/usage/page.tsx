@@ -108,6 +108,25 @@ function DailyMetricCount(props: DailyMetricCountProps): ReactElement {
     return <div />;
   }
 
+  const fakeResults: DayResult[] = [
+    new DayResult({
+      count: BigInt(1000),
+      date: new NeosyncDate({ year: 2024, month: 3, day: 13 }),
+    }),
+    new DayResult({
+      count: BigInt(1_000_000),
+      date: new NeosyncDate({ year: 2024, month: 3, day: 14 }),
+    }),
+    new DayResult({
+      count: BigInt(1_000_000_000),
+      date: new NeosyncDate({ year: 2024, month: 3, day: 15 }),
+    }),
+    new DayResult({
+      count: BigInt(1_000_000_000_000),
+      date: new NeosyncDate({ year: 2024, month: 3, day: 16 }),
+    }),
+  ];
+
   return (
     <Card>
       <CardHeader>
@@ -121,7 +140,7 @@ function DailyMetricCount(props: DailyMetricCountProps): ReactElement {
             }
           `}</style>
           <ResponsiveContainer width="100%" height={400}>
-            <AreaChart data={toDayResultPlotPoints(results)}>
+            <AreaChart data={toDayResultPlotPoints(fakeResults)}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey={(obj: DayResult) => {
@@ -132,7 +151,11 @@ function DailyMetricCount(props: DailyMetricCountProps): ReactElement {
                   );
                 }}
               />
-              <YAxis tickFormatter={(value) => numformatter.format(value)} />
+              <YAxis
+                tickFormatter={(value) =>
+                  shortNumberFormatter(numformatter, value)
+                }
+              />
               {/* <Legend /> */}
               <Area dataKey="count" name="ingested" />
               <Tooltip
@@ -146,6 +169,21 @@ function DailyMetricCount(props: DailyMetricCountProps): ReactElement {
       </CardContent>
     </Card>
   );
+}
+
+function shortNumberFormatter(
+  formatter: Intl.NumberFormat,
+  value: number
+): string {
+  if (Math.abs(value) >= 1_000_000_000) {
+    return formatter.format(value / 1_000_000_000) + 'B';
+  } else if (Math.abs(value) >= 1_000_000) {
+    return formatter.format(value / 1_000_000) + 'M';
+  } else if (Math.abs(value) >= 1_000) {
+    return formatter.format(value / 1_000) + 'K';
+  } else {
+    return formatter.format(value);
+  }
 }
 
 interface DayResultPlotPoint {
