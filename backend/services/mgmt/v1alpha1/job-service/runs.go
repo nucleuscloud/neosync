@@ -22,7 +22,6 @@ import (
 	"go.temporal.io/api/workflowservice/v1"
 	temporalclient "go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/converter"
-	"google.golang.org/protobuf/types/known/timestamppb"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -167,7 +166,7 @@ func (s *Service) GetJobRunEvents(
 			jobRunEvent := &mgmtv1alpha1.JobRunEvent{
 				Id:        event.EventId,
 				Type:      attributes.ActivityType.Name,
-				StartTime: timestamppb.New(*event.EventTime),
+				StartTime: event.EventTime,
 				Tasks: []*mgmtv1alpha1.JobRunEventTask{
 					dtomaps.ToJobRunEventTaskDto(event, nil),
 				},
@@ -191,13 +190,13 @@ func (s *Service) GetJobRunEvents(
 		case enums.EVENT_TYPE_ACTIVITY_TASK_STARTED:
 			attributes := event.GetActivityTaskStartedEventAttributes()
 			activity := activityMap[attributes.ScheduledEventId]
-			activity.StartTime = timestamppb.New(*event.EventTime)
+			activity.StartTime = event.EventTime
 			activity.Tasks = append(activity.Tasks, dtomaps.ToJobRunEventTaskDto(event, nil))
 
 		case enums.EVENT_TYPE_ACTIVITY_TASK_COMPLETED:
 			attributes := event.GetActivityTaskCompletedEventAttributes()
 			activity := activityMap[attributes.ScheduledEventId]
-			activity.CloseTime = timestamppb.New(*event.EventTime)
+			activity.CloseTime = event.EventTime
 			activity.Tasks = append(activity.Tasks, dtomaps.ToJobRunEventTaskDto(event, nil))
 
 		case enums.EVENT_TYPE_ACTIVITY_TASK_CANCEL_REQUESTED:
@@ -208,7 +207,7 @@ func (s *Service) GetJobRunEvents(
 		case enums.EVENT_TYPE_ACTIVITY_TASK_CANCELED:
 			attributes := event.GetActivityTaskCanceledEventAttributes()
 			activity := activityMap[attributes.ScheduledEventId]
-			activity.CloseTime = timestamppb.New(*event.EventTime)
+			activity.CloseTime = event.EventTime
 			activity.Tasks = append(activity.Tasks, dtomaps.ToJobRunEventTaskDto(event, nil))
 
 		case enums.EVENT_TYPE_ACTIVITY_TASK_FAILED:
