@@ -144,7 +144,6 @@ function DailyMetricCount(props: DailyMetricCountProps): ReactElement {
                 }
                 tick={{ fill: tickColor }}
               />
-              {/* <Legend /> */}
               <Area dataKey="count" name="ingested" />
               <Tooltip
                 labelStyle={{

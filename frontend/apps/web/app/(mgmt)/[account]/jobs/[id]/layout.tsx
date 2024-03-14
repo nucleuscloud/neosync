@@ -14,6 +14,7 @@ import { useGetJob } from '@/libs/hooks/useGetJob';
 import { useGetJobRecentRuns } from '@/libs/hooks/useGetJobRecentRuns';
 import { useGetJobRunsByJob } from '@/libs/hooks/useGetJobRunsByJob';
 import { useGetJobStatus } from '@/libs/hooks/useGetJobStatus';
+import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { GetJobStatusResponse, Job, JobStatus } from '@neosync/sdk';
@@ -40,6 +41,9 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
     account?.id ?? '',
     id
   );
+
+  const { data: systemAppConfigData, isLoading: isSystemConfigLoading } =
+    useGetSystemAppConfig();
 
   async function onTriggerJobRun(): Promise<void> {
     try {
@@ -97,7 +101,7 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
 
   if (!data?.job) {
     return (
-      <div className="mt-10">
+      <div className="mt-8">
         <Alert variant="destructive">
           <AlertTitle>{`Error: Unable to retrieve job`}</AlertTitle>
         </Alert>
@@ -105,7 +109,11 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
     );
   }
 
-  const sidebarNavItems = getSidebarNavItems(account?.name ?? '', data?.job);
+  let sidebarNavItems = getSidebarNavItems(account?.name ?? '', data?.job);
+  sidebarNavItems =
+    isSystemConfigLoading || !systemAppConfigData?.isMetricsServiceEnabled
+      ? sidebarNavItems.filter((item) => item.href !== 'usage')
+      : sidebarNavItems;
 
   return (
     <div>
@@ -161,9 +169,9 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
           </div>
         }
       >
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-12">
           <SubNav items={sidebarNavItems} />
-          <div className="mt-10">{children}</div>
+          <div>{children}</div>
         </div>
       </OverviewContainer>
     </div>
@@ -194,6 +202,10 @@ function getSidebarNavItems(accountName: string, job?: Job): SidebarNav[] {
         title: 'Destinations',
         href: `${basePath}/destinations`,
       },
+      {
+        title: 'Usage',
+        href: `${basePath}/usage`,
+      },
     ];
   }
 
@@ -213,6 +225,10 @@ function getSidebarNavItems(accountName: string, job?: Job): SidebarNav[] {
     {
       title: 'Subsets',
       href: `${basePath}/subsets`,
+    },
+    {
+      title: 'Usage',
+      href: `${basePath}/usage`,
     },
   ];
 }
