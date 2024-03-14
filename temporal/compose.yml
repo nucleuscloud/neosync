@@ -16,7 +16,7 @@ services:
     expose:
       - 9200
     volumes:
-      - /var/lib/elasticsearch/data
+      - elasticsearch_data:/var/lib/elasticsearch/data
   postgresql:
     container_name: temporal-postgresql
     environment:
@@ -28,7 +28,7 @@ services:
     expose:
       - 5432
     volumes:
-      - $PWD/.data/temporal-postgres/pgdata:/var/lib/postgresql/data
+      - pg_data:/var/lib/postgresql/data
   temporal:
     container_name: temporal
     depends_on:
@@ -81,3 +81,6 @@ networks:
   temporal-network:
     driver: bridge
     name: temporal-network
+volumes:
+  pg_data:
+  elasticsearch_data:
