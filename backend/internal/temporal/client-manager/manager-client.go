@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
+	"fmt"
 	"log/slog"
 	"sync"
 
@@ -248,7 +249,7 @@ func (t *TemporalClientManager) GetTemporalConfigByAccount(
 	}
 	dbConfig, err := t.db.GetTemporalConfigByAccount(ctx, t.dbtx, accountUuid)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to retrieve temporal config by account from database: %w", err)
 	}
 	if dbConfig.Namespace != "" {
 		tc.Namespace = dbConfig.Namespace
@@ -269,22 +270,24 @@ func (t *TemporalClientManager) DoesAccountHaveTemporalWorkspace(
 ) (bool, error) {
 	tc, err := t.GetTemporalConfigByAccount(ctx, accountId)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("unable to get temporal config by account: %w", err)
 	}
 	if tc.Namespace == "" {
+		logger.Warn("unable to find a configured temporal namespace")
 		return false, nil
 	}
 	nsclient, err := t.GetNamespaceClientByAccount(ctx, accountId, logger)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("unable to create temporal namespace client by account: %w", err)
 	}
 	_, err = nsclient.Describe(ctx, tc.Namespace)
 	if err != nil {
 		_, ok := err.(*serviceerror.NamespaceNotFound)
 		if ok {
+			logger.Warn("temporal namespace was not found, received NamespaceNotFound error from temporal server")
 			return false, nil
 		}
-		return false, err
+		return false, fmt.Errorf("unable to describe temporal namespace: %w", err)
 	}
 	return true, nil
 }
