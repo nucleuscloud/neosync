@@ -1,5 +1,5 @@
 import { Date as NeosyncDate } from '@neosync/sdk';
-import { endOfMonth, startOfMonth, subMonths } from 'date-fns';
+import { endOfMonth, format, startOfMonth, subMonths } from 'date-fns';
 
 export function shortNumberFormatter(
   formatter: Intl.NumberFormat,
@@ -54,4 +54,8 @@ export function getPeriodLabel(period: UsagePeriod): string {
       return 'Last Month';
     }
   }
+}
+
+export function getDateRangeLabel(start: Date, end: Date): string {
+  return `${format(start, 'MM/dd/yy')} - ${format(end, 'MM/dd/yy')}`;
 }
