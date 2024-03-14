@@ -1,7 +1,6 @@
 'use client';
-import OverviewContainer from '@/components/containers/OverviewContainer';
-import PageHeader from '@/components/headers/PageHeader';
-import { useAccount } from '@/components/providers/account-provider';
+import SubPageHeader from '@/components/headers/SubPageHeader';
+import { PageProps } from '@/components/types';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import DailyMetricCount from '@/components/usage/DailyMetricCount';
@@ -9,18 +8,18 @@ import MetricCount from '@/components/usage/MetricCount';
 import UsagePeriodSelector from '@/components/usage/UsagePeriodSelector';
 import {
   UsagePeriod,
-  getDateRangeLabel,
   getPeriodLabel,
   periodToDateRange,
 } from '@/components/usage/util';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { RangedMetricName } from '@neosync/sdk';
+import { format } from 'date-fns';
 import { ReactElement, useState } from 'react';
 
-export default function UsagePage(): ReactElement {
+export default function UsagePage({ params }: PageProps): ReactElement {
+  const id = params?.id ?? '';
   const [period, setPeriod] = useState<UsagePeriod>('current');
   const { data: configData, isLoading } = useGetSystemAppConfig();
-  const { account } = useAccount();
   if (isLoading) {
     return <Skeleton className="w-full h-12" />;
   }
@@ -39,34 +38,34 @@ export default function UsagePage(): ReactElement {
   }
   const [start, end] = periodToDateRange(period);
   return (
-    <OverviewContainer
-      Header={
-        <PageHeader
-          header="Usage"
-          description={`${getPeriodLabel(period)}: ${getDateRangeLabel(start, end)}`}
-          extraHeading={
-            <UsagePeriodSelector period={period} setPeriod={setPeriod} />
-          }
-        />
-      }
-      containerClassName="usage-page"
-    >
+    <div className="job-details-usage-container">
+      <SubPageHeader
+        header="Usage"
+        description={`${getPeriodLabel(period)}: ${getDateRangeLabel(start, end)}`}
+        extraHeading={
+          <UsagePeriodSelector period={period} setPeriod={setPeriod} />
+        }
+      />
       <div className="flex">
         <MetricCount
           period={period}
           metric={RangedMetricName.INPUT_RECEIVED}
-          idtype="accountId"
-          identifier={account?.id ?? ''}
+          idtype="jobId"
+          identifier={id}
         />
       </div>
       <div>
         <DailyMetricCount
           period={period}
           metric={RangedMetricName.INPUT_RECEIVED}
-          idtype="accountId"
-          identifier={account?.id ?? ''}
+          idtype="jobId"
+          identifier={id}
         />
       </div>
-    </OverviewContainer>
+    </div>
   );
+}
+
+function getDateRangeLabel(start: Date, end: Date): string {
+  return `${format(start, 'MM/dd/yy')} - ${format(end, 'MM/dd/yy')}`;
 }
