@@ -23,6 +23,7 @@ import { useGetMetricCount } from '@/libs/hooks/useGetMetricCount';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { DayResult, Date as NeosyncDate, RangedMetricName } from '@neosync/sdk';
 import { endOfMonth, format, startOfMonth, subMonths } from 'date-fns';
+import { useTheme } from 'next-themes';
 import { ReactElement, useState } from 'react';
 import {
   Area,
@@ -93,6 +94,10 @@ function DailyMetricCount(props: DailyMetricCountProps): ReactElement {
     'accountId',
     account?.id ?? ''
   );
+  const { resolvedTheme } = useTheme();
+  const tickColor = resolvedTheme === 'dark' ? 'white' : 'black';
+  const labelBg = resolvedTheme === 'dark' ? 'white' : 'black';
+  const tooltipLabelColor = resolvedTheme === 'dark' ? 'black' : 'white';
 
   if (isLoading) {
     return <Skeleton className="w-full h-12" />;
@@ -121,23 +126,35 @@ function DailyMetricCount(props: DailyMetricCountProps): ReactElement {
             }
           `}</style>
           <ResponsiveContainer width="100%" height={400}>
-            <AreaChart data={toDayResultPlotPoints(results)}>
+            <AreaChart data={toDayResultPlotPoints(results)} margin={{}}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey={(obj: DayResult) => {
                   const date = obj.date ?? new NeosyncDate();
                   return format(
                     new Date(date.year, date.month - 1, date.day),
-                    'MMM d yy'
+                    'MMM d'
                   );
                 }}
+                tick={{ fill: tickColor }}
               />
-              <YAxis tickFormatter={(value) => numformatter.format(value)} />
+              <YAxis
+                tickFormatter={(value) =>
+                  shortNumberFormatter(numformatter, value)
+                }
+                tick={{ fill: tickColor }}
+              />
               {/* <Legend /> */}
               <Area dataKey="count" name="ingested" />
               <Tooltip
+                labelStyle={{
+                  color: tooltipLabelColor,
+                  borderBottomColor: tickColor,
+                  borderBottomWidth: '1px',
+                }}
+                contentStyle={{ background: labelBg, borderRadius: '8px' }}
                 formatter={(value, name) =>
-                  numformatter.format(value as number)
+                  shortNumberFormatter(numformatter, value as number)
                 }
               />
             </AreaChart>
@@ -146,6 +163,23 @@ function DailyMetricCount(props: DailyMetricCountProps): ReactElement {
       </CardContent>
     </Card>
   );
+}
+
+function shortNumberFormatter(
+  formatter: Intl.NumberFormat,
+  value: number
+): string {
+  if (Math.abs(value) >= 1_000_000_000_000) {
+    return formatter.format(value / 1_000_000_000_000) + 'T';
+  } else if (Math.abs(value) >= 1_000_000_000) {
+    return formatter.format(value / 1_000_000_000) + 'B';
+  } else if (Math.abs(value) >= 1_000_000) {
+    return formatter.format(value / 1_000_000) + 'M';
+  } else if (Math.abs(value) >= 1_000) {
+    return formatter.format(value / 1_000) + 'K';
+  } else {
+    return formatter.format(value);
+  }
 }
 
 interface DayResultPlotPoint {
