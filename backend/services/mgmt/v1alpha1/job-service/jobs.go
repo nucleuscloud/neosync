@@ -491,6 +491,7 @@ func (s *Service) CreateJob(
 		Workflow:  datasync_workflow.Workflow,
 		TaskQueue: tconfig.SyncJobQueueName,
 		Args:      []any{&datasync_workflow.WorkflowRequest{JobId: jobUuid}},
+		ID:        nucleusdb.UUIDString(cj.ID),
 	}
 	if cj.WorkflowOptions != nil && cj.WorkflowOptions.RunTimeout != nil {
 		action.WorkflowRunTimeout = time.Duration(*cj.WorkflowOptions.RunTimeout)
