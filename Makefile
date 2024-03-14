@@ -56,8 +56,8 @@ compose-up:
 .PHONY: compose-up
 
 compose-down:
-	docker compose -f $(TEMPORAL_COMPOSE_FILE) down
 	docker compose -f $(PROD_COMPOSE_FILE) down
+	docker compose -f $(TEMPORAL_COMPOSE_FILE) down
 .PHONY: compose-down
 
 compose-auth-up:
@@ -67,8 +67,8 @@ compose-auth-up:
 .PHONY: compose-auth-up
 
 compose-auth-down:
-	docker compose -f $(TEMPORAL_COMPOSE_FILE) down
 	docker compose -f $(PROD_AUTH_COMPOSE_FILE) down
+	docker compose -f $(TEMPORAL_COMPOSE_FILE) down
 .PHONY: compose-auth-down
 
 compose-dev-up: rebuild
@@ -77,8 +77,8 @@ compose-dev-up: rebuild
 .PHONY: compose-dev-up
 
 compose-dev-down: rebuild
-	docker compose -f $(TEMPORAL_COMPOSE_FILE) down
 	docker compose -f $(DEV_COMPOSE_FILE) down
+	docker compose -f $(TEMPORAL_COMPOSE_FILE) down
 .PHONY: compose-dev-down
 
 compose-dev-auth-up: rebuild
@@ -87,8 +87,8 @@ compose-dev-auth-up: rebuild
 .PHONY: compose-dev-auth-up
 
 compose-dev-auth-down: rebuild
-	docker compose -f $(TEMPORAL_COMPOSE_FILE) down
 	docker compose -f $(DEV_AUTH_COMPOSE_FILE) down
+	docker compose -f $(TEMPORAL_COMPOSE_FILE) down
 .PHONY: compose-dev-auth-down
 
 goworksync:
