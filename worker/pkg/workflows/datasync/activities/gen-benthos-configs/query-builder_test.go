@@ -472,12 +472,12 @@ func Test_buildSelectQueryMap_SubsetsForeignKeys(t *testing.T) {
 	expected :=
 		map[string]string{
 			"public.a": `SELECT "id" FROM "public"."a";`,
-			"public.b": `SELECT "id", "name", "a_id" FROM "public"."b" WHERE name = 'bob';`,
+			"public.b": `SELECT "id", "name", "a_id" FROM "public"."b" WHERE public.b.name = 'bob';`,
 			"public.c": `SELECT "public"."c"."id", "public"."c"."b_id" FROM "public"."c" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE (public.b.name = 'bob' AND public.c.id = 1);`,
 			"public.d": `SELECT "public"."d"."id", "public"."d"."c_id" FROM "public"."d" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."d"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE (public.b.name = 'bob' AND public.c.id = 1);`,
 		}
-	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
 
+	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, sql)
 }
@@ -723,7 +723,7 @@ func Test_buildSelectQueryMap_CircularDependency(t *testing.T) {
 	}
 	expected :=
 		map[string]string{
-			"public.b": `SELECT "id", "name", "a_id" FROM "public"."b" WHERE name = 'neo';`,
+			"public.b": `SELECT "id", "name", "a_id" FROM "public"."b" WHERE public.b.name = 'neo';`,
 			"public.c": `SELECT "public"."c"."id", "public"."c"."b_id" FROM "public"."c" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.name = 'neo';`,
 			"public.a": `SELECT "public"."a"."id", "public"."a"."c_id" FROM "public"."a" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."a"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.name = 'neo';`,
 		}
@@ -905,11 +905,11 @@ func Test_buildSelectQueryMap_MultiplSubsets(t *testing.T) {
 	}
 	expected :=
 		map[string]string{
-			"public.a": `SELECT "id" FROM "public"."a" WHERE id = 1;`,
+			"public.a": `SELECT "id" FROM "public"."a" WHERE public.a.id = 1;`,
 			"public.b": `SELECT "public"."b"."id", "public"."b"."name", "public"."b"."a_id" FROM "public"."b" INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") WHERE (public.a.id = 1 AND public.b.name = 'neo');`,
 			"public.c": `SELECT "public"."c"."id", "public"."c"."b_id" FROM "public"."c" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") WHERE (public.a.id = 1 AND public.b.name = 'neo');`,
 			"public.d": `SELECT "id" FROM "public"."d";`,
-			"public.e": `SELECT "id", "d_id" FROM "public"."e" WHERE id = 1;`,
+			"public.e": `SELECT "id", "d_id" FROM "public"."e" WHERE public.e.id = 1;`,
 			"public.f": `SELECT "public"."f"."id", "public"."f"."e_id" FROM "public"."f" INNER JOIN "public"."e" ON ("public"."e"."id" = "public"."f"."e_id") WHERE public.e.id = 1;`,
 		}
 	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
@@ -1056,14 +1056,12 @@ func Test_buildSelectQueryMap_MultipleRoots(t *testing.T) {
 	expected :=
 		map[string]string{
 			"public.a": `SELECT "id" FROM "public"."a";`,
-			"public.b": `SELECT "id", "name", "a_id" FROM "public"."b" WHERE id = 1;`,
-			"public.c": `SELECT "public"."c"."id", "public"."c"."b_id" FROM "public"."c" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.id = 1;`,
-			"public.d": `SELECT "public"."d"."id" FROM "public"."d" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."d"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.id = 1;`,
-			"public.e": `SELECT "public"."e"."id", "public"."e"."d_id" FROM "public"."e" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."d"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.id = 1;`,
+			"public.b": `SELECT "id" FROM "public"."b" WHERE public.b.id = 1;`,
+			"public.c": `SELECT "public"."c"."id", "public"."c"."a_id", "public"."c"."b_id" FROM "public"."c" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.id = 1;`,
+			"public.d": `SELECT "public"."d"."id", "public"."d"."c_id" FROM "public"."d" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."d"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.id = 1;`,
+			"public.e": `SELECT "public"."e"."id", "public"."e"."c_id" FROM "public"."e" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."e"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.id = 1;`,
 		}
 	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
-	jsonF, _ := json.MarshalIndent(sql, "", " ")
-	fmt.Printf("\n %s \n", string(jsonF))
 	assert.NoError(t, err)
 	assert.Equal(t, expected, sql)
 }
@@ -1235,7 +1233,7 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyChild(t *testing.T) {
 	expected :=
 		map[string]string{
 			"public.a": `WITH RECURSIVE related AS (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."a_a_id", "public"."a"."b_id" FROM "public"."a" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."a"."b_id") WHERE public.b.id = 1 UNION (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."a_a_id", "public"."a"."b_id" FROM "public"."a" INNER JOIN "related" ON (("public"."a"."id" = "related"."a_id") OR ("public"."a"."id" = "related"."a_a_id")))) SELECT DISTINCT "id", "a_id", "a_a_id", "b_id" FROM "related";`,
-			"public.b": `SELECT "id" FROM "public"."b" WHERE id = 1;`,
+			"public.b": `SELECT "id" FROM "public"."b" WHERE public.b.id = 1;`,
 		}
 	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
 	assert.NoError(t, err)
@@ -1294,7 +1292,7 @@ func Test_BFS(t *testing.T) {
 		name     string
 		graph    map[string][]string
 		start    string
-		expected []string
+		expected *bfsPaths
 	}{
 		{
 			name: "straight path",
@@ -1304,8 +1302,16 @@ func Test_BFS(t *testing.T) {
 				"c": {"d"},
 				"d": {},
 			},
-			start:    "a",
-			expected: []string{"a", "b", "c", "d"},
+			start: "a",
+			expected: &bfsPaths{
+				Path: []string{"a", "b", "c", "d"},
+				NodePathMap: map[string][]string{
+					"a": {"a"},
+					"b": {"a", "b"},
+					"c": {"a", "b", "c"},
+					"d": {"a", "b", "c", "d"},
+				},
+			},
 		},
 		{
 			name: "multiple paths",
@@ -1313,8 +1319,15 @@ func Test_BFS(t *testing.T) {
 				"a": {"c", "b"},
 				"b": {"c"},
 			},
-			start:    "a",
-			expected: []string{"a", "c", "b"},
+			start: "a",
+			expected: &bfsPaths{
+				Path: []string{"a", "c", "b"},
+				NodePathMap: map[string][]string{
+					"a": {"a"},
+					"b": {"a", "b"},
+					"c": {"a", "c"},
+				},
+			},
 		},
 		{
 			name: "cycle",
@@ -1323,8 +1336,15 @@ func Test_BFS(t *testing.T) {
 				"b": {"c"},
 				"a": {"b"},
 			},
-			start:    "a",
-			expected: []string{"a", "b", "c"},
+			start: "a",
+			expected: &bfsPaths{
+				Path: []string{"a", "b", "c"},
+				NodePathMap: map[string][]string{
+					"a": {"a"},
+					"b": {"a", "b"},
+					"c": {"a", "b", "c"},
+				},
+			},
 		},
 		{
 			name: "cross",
@@ -1335,16 +1355,29 @@ func Test_BFS(t *testing.T) {
 				"d": {},
 				"e": {},
 			},
-			start:    "a",
-			expected: []string{"a", "c", "d", "e"},
+			start: "a",
+			expected: &bfsPaths{
+				Path: []string{"a", "c", "d", "e"},
+				NodePathMap: map[string][]string{
+					"a": {"a"},
+					"c": {"a", "c"},
+					"d": {"a", "c", "d"},
+					"e": {"a", "c", "e"},
+				},
+			},
 		},
 		{
 			name: "self reference",
 			graph: map[string][]string{
 				"a": {"a"},
 			},
-			start:    "a",
-			expected: []string{"a"},
+			start: "a",
+			expected: &bfsPaths{
+				Path: []string{"a"},
+				NodePathMap: map[string][]string{
+					"a": {"a"},
+				},
+			},
 		},
 		{
 			name: "multi linear",
@@ -1354,14 +1387,25 @@ func Test_BFS(t *testing.T) {
 				"c": {"f"},
 				"d": {"g"},
 			},
-			start:    "a",
-			expected: []string{"a", "b", "c", "d", "e", "f", "g"},
+			start: "a",
+			expected: &bfsPaths{
+				Path: []string{"a", "b", "c", "d", "e", "f", "g"},
+				NodePathMap: map[string][]string{
+					"a": {"a"},
+					"b": {"a", "b"},
+					"c": {"a", "c"},
+					"d": {"a", "d"},
+					"e": {"a", "b", "e"},
+					"f": {"a", "c", "f"},
+					"g": {"a", "d", "g"},
+				},
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%s_%s", t.Name(), tt.name), func(t *testing.T) {
-			path := BFS(tt.graph, tt.start)
+			path := getBfsPathMap(tt.graph, tt.start)
 
 			fmt.Println("-------------------------")
 			jsonF, _ := json.MarshalIndent(path, "", " ")

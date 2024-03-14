@@ -1,8 +1,8 @@
 package genbenthosconfigs_activity
 
 import (
-	"encoding/json"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
@@ -207,11 +207,24 @@ func buildSelectQueryMap(
 	rootsWithsubsetMaps := []string{}
 	rootsNoSubsets := []string{}
 
+	tableWhereMap := map[string]string{}
+	for t, opts := range sourceTableOpts {
+		mappings, ok := groupedMappings[t]
+		where := getWhereFromTableOpts(opts)
+		if ok && where != nil && *where != "" {
+			qualifiedWhere, err := qualifyWhereColumnNames(*where, mappings.Schema, mappings.Table)
+			if err != nil {
+				return nil, err
+			}
+			tableWhereMap[t] = qualifiedWhere
+		}
+	}
+
 	dependencyMap := map[string][]*tabledependency.RunConfig{}
 	for _, cfg := range dependencyConfigs {
 		if len(cfg.DependsOn) == 0 {
-			where := getWhereFromTableOpts(cfg.Table, sourceTableOpts)
-			if where != nil && *where != "" {
+			_, ok := tableWhereMap[cfg.Table]
+			if ok {
 				rootsWithsubsetMaps = append(rootsWithsubsetMaps, cfg.Table)
 			} else {
 				rootsNoSubsets = append(rootsNoSubsets, cfg.Table)
@@ -229,48 +242,79 @@ func buildSelectQueryMap(
 	roots := []string{}
 	roots = append(roots, rootsWithsubsetMaps...)
 	roots = append(roots, rootsNoSubsets...)
-	fmt.Printf("pksMap: %+v\n", pksMap)
 
-	fmt.Printf("%+v\n", roots)
-
-	// need to check all tables processed
 	for _, rootTable := range roots {
-		path := BFS(pksMap, rootTable)
-		fmt.Printf("%+v\n", path)
+		bfsRes := getBfsPathMap(pksMap, rootTable)
+		path := bfsRes.Path
+		tablePathMap := bfsRes.NodePathMap
 
-		whereClauses := []string{}
-		joins := make([]*SqlJoin, len(path))
-		for idx, table := range path {
-			fmt.Printf("table: %s \n", table)
-			jsonF, _ := json.MarshalIndent(queryMap, "", " ")
-			fmt.Printf("\n %s \n", string(jsonF))
+		for _, table := range path {
 			// check if query already created
 			_, seen := queryMap[table]
-			fmt.Printf("seen: %t \n", seen)
-
 			if seen {
-				fmt.Println("break")
 				break
 			}
-			fmt.Println("-------------")
 			tableMapping := groupedMappings[table]
 			var where *string
-			tableOpt := sourceTableOpts[table]
-			if tableOpt != nil && tableOpt.WhereClause != nil {
-				where = tableOpt.WhereClause
+			tableWhere, whereOk := tableWhereMap[table]
+			if whereOk {
+				where = &tableWhere
 			}
 			fks := tableDependencies[table]
 			runConfigs := dependencyMap[table]
 			selfRefCircularDep := getSelfReferencingColumns(table, fks)
 
+			pathToRoot := tablePathMap[table]
+			joins := []*SqlJoin{}
+			whereClauses := []string{}
+			subsetTables := []string{}
+
+			for _, t := range pathToRoot {
+				if t == table {
+					continue
+				}
+				dependencies := tableDependencies[t]
+				wc, ok := tableWhereMap[t]
+				if ok {
+					whereClauses = append(whereClauses, wc)
+				}
+
+				if len(whereClauses) > 0 {
+					subsetTables = append(subsetTables, t)
+					if dependencies != nil {
+						for _, c := range dependencies.Constraints {
+							if t != c.ForeignKey.Table && slices.Contains(subsetTables, c.ForeignKey.Table) {
+								joins = append(joins, &SqlJoin{
+									JoinType:   innerJoin,
+									BaseTable:  t,
+									BaseColumn: c.Column,
+									JoinTable:  c.ForeignKey.Table,
+									JoinColumn: c.ForeignKey.Column,
+								})
+							}
+						}
+					}
+					if fks != nil {
+						for _, c := range fks.Constraints {
+							if t == c.ForeignKey.Table {
+								joins = append(joins, &SqlJoin{
+									JoinType:   innerJoin,
+									BaseTable:  table,
+									BaseColumn: c.Column,
+									JoinTable:  c.ForeignKey.Table,
+									JoinColumn: c.ForeignKey.Column,
+								})
+							}
+						}
+					}
+				}
+			}
+			reverseSlice(joins)
+
 			// root table or no subset use standard select
 			if table == rootTable || len(whereClauses) == 0 {
 				if where != nil && *where != "" {
-					updatedWhere, err := qualifyWhereColumnNames(*where, tableMapping.Schema, tableMapping.Table)
-					if err != nil {
-						return nil, err
-					}
-					whereClauses = append(whereClauses, updatedWhere)
+					whereClauses = append(whereClauses, *where)
 				}
 				if len(runConfigs) == 2 && selfRefCircularDep != nil {
 					// self referencing circular dependency
@@ -304,25 +348,9 @@ func buildSelectQueryMap(
 
 				continue
 			}
-			parentTable := path[idx-1]
-			for _, fk := range fks.Constraints {
-				if fk.ForeignKey.Table == parentTable {
-					joins[len(path)-idx] = &SqlJoin{
-						JoinType:   innerJoin,
-						BaseTable:  table,
-						BaseColumn: fk.Column,
-						JoinTable:  fk.ForeignKey.Table,
-						JoinColumn: fk.ForeignKey.Column,
-					}
-				}
-			}
 
 			if where != nil && *where != "" {
-				updatedWhere, err := qualifyWhereColumnNames(*where, tableMapping.Schema, tableMapping.Table)
-				if err != nil {
-					return nil, err
-				}
-				whereClauses = append(whereClauses, updatedWhere)
+				whereClauses = append(whereClauses, *where)
 			}
 
 			if len(runConfigs) == 2 && selfRefCircularDep != nil {
@@ -360,28 +388,45 @@ func buildSelectQueryMap(
 	return queryMap, nil
 }
 
-func BFS(graph map[string][]string, start string) []string {
-	var queue []string
+type bfsPaths struct {
+	Path        []string
+	NodePathMap map[string][]string
+}
+
+func getBfsPathMap(graph map[string][]string, start string) *bfsPaths {
 	path := []string{}
+	var queue []string
 	visited := make(map[string]bool)
+	// path to root for each node
+	nodePathMap := make(map[string][]string)
 
 	queue = append(queue, start)
 	visited[start] = true
+	// initialize path with itself
+	nodePathMap[start] = []string{start}
 
 	for len(queue) > 0 {
 		node := queue[0]
 		queue = queue[1:]
-
 		path = append(path, node)
 
 		for _, adjacent := range graph[node] {
 			if !visited[adjacent] {
 				queue = append(queue, adjacent)
 				visited[adjacent] = true
+				// copy path and append adjacent node
+				currentPath := make([]string, len(nodePathMap[node]))
+				copy(currentPath, nodePathMap[node])
+				currentPath = append(currentPath, adjacent)
+				nodePathMap[adjacent] = currentPath
 			}
 		}
 	}
-	return path
+
+	return &bfsPaths{
+		Path:        path,
+		NodePathMap: nodePathMap,
+	}
 }
 
 func qualifyWhereColumnNames(where, schema, table string) (string, error) {
@@ -409,7 +454,6 @@ func qualifyWhereColumnNames(where, schema, table string) (string, error) {
 	}
 
 	updatedSql := sqlparser.String(stmt)
-	fmt.Println(updatedSql)
 	updatedSql = strings.Replace(updatedSql, sqlSelect, "", 1)
 	return updatedSql, nil
 }
@@ -467,11 +511,16 @@ func buildSqlIdentifier(identifiers ...string) string {
 	return strings.Join(identifiers, ".")
 }
 
-func getWhereFromTableOpts(table string, sourceTableOpts map[string]*sqlSourceTableOptions) *string {
+func getWhereFromTableOpts(tableOpts *sqlSourceTableOptions) *string {
 	var where *string
-	tableOpt := sourceTableOpts[table]
-	if tableOpt != nil && tableOpt.WhereClause != nil {
-		where = tableOpt.WhereClause
+	if tableOpts != nil && tableOpts.WhereClause != nil {
+		where = tableOpts.WhereClause
 	}
 	return where
+}
+
+func reverseSlice[T any](slice []T) {
+	for i, j := 0, len(slice)-1; i < j; i, j = i+1, j-1 {
+		slice[i], slice[j] = slice[j], slice[i]
+	}
 }
