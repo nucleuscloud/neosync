@@ -1,9 +1,11 @@
+name: neosync
+
 services:
   app:
     container_name: neosync-app
     image: neosync-app
     build:
-      context: $PWD/frontend
+      context: ../frontend
       dockerfile: ./apps/web/dev/build/Dockerfile.dev
     ports:
       - 3000:3000
@@ -37,15 +39,15 @@ services:
       - kc-network
     develop:
       watch:
-        - path: $PWD/frontend/package.json
+        - path: ../frontend/package.json
           action: rebuild
-        - path: $PWD/frontend/package-lock.json
+        - path: ../frontend/package-lock.json
           action: rebuild
-        - path: $PWD/frontend/
+        - path: ../frontend/
           action: sync
           target: /app
           ignore:
-            - $PWD/frontend/node_modules/
+            - ../frontend/node_modules/
 
   db:
     container_name: neosync-db
@@ -66,13 +68,13 @@ services:
       - kc-network
     volumes:
       - pg_data:/var/lib/postgresql/data
-      - $PWD/hack/pg-init:/docker-entrypoint-initdb.d
+      - ../hack/pg-init:/docker-entrypoint-initdb.d
 
   api:
     container_name: neosync-api
     image: neosync-api
     build:
-      context: $PWD/backend
+      context: ../backend
       dockerfile: ./dev/build/Dockerfile.dev
     ports:
       - 8080:8080
@@ -113,7 +115,7 @@ services:
         restart: true
     develop:
       watch:
-        - path: $PWD/backend/bin
+        - path: ../backend/bin
           action: sync+restart
           target: /app
 
@@ -121,7 +123,7 @@ services:
     container_name: neosync-worker
     image: neosync-worker
     build:
-      context: $PWD/worker
+      context: ../worker
       dockerfile: ./dev/build/Dockerfile.dev
     environment:
       - NUCLEUS_ENV=dev
@@ -135,7 +137,7 @@ services:
       - temporal-network
     develop:
       watch:
-        - path: $PWD/worker/bin
+        - path: ../worker/bin
           action: sync+restart
           target: /app
 
@@ -159,7 +161,7 @@ services:
       - KC_DB_PASSWORD=foofar
       - KC_DB_SCHEMA=keycloak
     volumes:
-      - $PWD/keycloak/imports:/opt/keycloak/data/import
+      - ../keycloak/imports:/opt/keycloak/data/import
     networks:
       - kc-network
     depends_on:
