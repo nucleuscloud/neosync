@@ -75,7 +75,7 @@ function getCardDescription(
   switch (metric) {
     case RangedMetricName.INPUT_RECEIVED:
     default:
-      return `This metric shows the total number of records ingested for this ${getLabelByIdType(idtype)} for the selected usage period.`;
+      return `This metric shows the total number of records ingested for this ${getLabelByIdType(idtype)} for the selected usage period. Note there will be a delay before the count appears for the current day`;
   }
 }
 

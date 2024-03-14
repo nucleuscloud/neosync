@@ -14,7 +14,13 @@ import {
   YAxis,
 } from 'recharts';
 import { useAccount } from '../providers/account-provider';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '../ui/card';
 import { Skeleton } from '../ui/skeleton';
 import {
   UsagePeriod,
@@ -65,6 +71,9 @@ export default function DailyMetricCount(props: Props): ReactElement {
     <Card>
       <CardHeader>
         <CardTitle>Total number of records ingested by day</CardTitle>
+        <CardDescription>
+          There will be a delay before the count for the current day appears
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <>
