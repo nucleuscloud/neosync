@@ -95,6 +95,7 @@ services:
         - path: backend/bin
           action: rebuild
           target: /app
+    restart: on-failure
 
   worker:
     container_name: neosync-worker
@@ -118,6 +119,7 @@ services:
         - path: worker/bin
           action: rebuild
           target: /app
+    restart: on-failure
 
   redis:
     container_name: neosync-redis

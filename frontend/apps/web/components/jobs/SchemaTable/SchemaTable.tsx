@@ -20,10 +20,11 @@ export function SchemaTable(props: Props): ReactElement {
   const { data, excludeInputReqTransformers, columnMetadata, jobType } = props;
 
   const { account } = useAccount();
-  const { mergedTransformers, isLoading } = useGetMergedTransformers(
-    excludeInputReqTransformers ?? false,
-    account?.id ?? ''
-  );
+  const { transformers: mergedTransformers, isLoading } =
+    useGetMergedTransformers(
+      excludeInputReqTransformers ?? false,
+      account?.id ?? ''
+    );
 
   const tableData = data.map((d, idx): Row => {
     return {

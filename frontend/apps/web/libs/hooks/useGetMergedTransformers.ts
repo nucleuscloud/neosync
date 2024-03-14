@@ -8,20 +8,28 @@ import { useGetSystemTransformers } from './useGetSystemTransformers';
 import { useGetUserDefinedTransformers } from './useGetUserDefinedTransformers';
 
 interface GetMergedTransformersResponse {
-  mergedTransformers: Transformer[];
+  transformers: Transformer[];
   isLoading: boolean;
+  isValidating: boolean;
 }
 
 export function useGetMergedTransformers(
   excludeInputReqTransformers: boolean,
   accountId: string
 ): GetMergedTransformersResponse {
-  const { data: systemTransformers, isLoading: isLoadingSystemTransformers } =
-    useGetSystemTransformers();
-  const { data: customTransformers, isLoading: isLoadingCustomTransformers } =
-    useGetUserDefinedTransformers(accountId);
+  const {
+    data: systemTransformers,
+    isLoading: isLoadingSystemTransformers,
+    isValidating: isSystemValidating,
+  } = useGetSystemTransformers();
+  const {
+    data: customTransformers,
+    isLoading: isLoadingCustomTransformers,
+    isValidating: isCustomValidating,
+  } = useGetUserDefinedTransformers(accountId);
 
   const isLoading = isLoadingSystemTransformers || isLoadingCustomTransformers;
+  const isValidating = isSystemValidating || isCustomValidating;
 
   const mergedTransformers = useMemo(() => {
     if (!systemTransformers || !customTransformers) return [];
@@ -41,12 +49,11 @@ export function useGetMergedTransformers(
       filteredSystemTransformers,
       filteredCustomTransformers
     );
-  }, [systemTransformers, customTransformers, excludeInputReqTransformers]);
+  }, [isValidating, excludeInputReqTransformers]);
 
-  const res = {
-    mergedTransformers: mergedTransformers,
+  return {
+    transformers: mergedTransformers,
     isLoading: isLoading,
+    isValidating: false,
   };
-
-  return res;
 }

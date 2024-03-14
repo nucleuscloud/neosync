@@ -68,6 +68,7 @@ services:
     networks:
       - neosync-network
       - temporal-network
+    restart: on-failure
 
     depends_on:
       db:
@@ -87,6 +88,7 @@ services:
     networks:
       - neosync-network
       - temporal-network
+    restart: on-failure
 
   redis:
     container_name: neosync-redis
