@@ -3,6 +3,7 @@ package v1alpha1_metricsservice
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strconv"
 	"time"
 
@@ -269,7 +270,21 @@ func getDailyUsageFromMatrix(matrix model.Matrix) ([]*mgmtv1alpha1.DayResult, er
 		}
 		output = append(output, &mgmtv1alpha1.DayResult{Date: ptr(timeToDate(ts)), Count: uint64(latest)})
 	}
-	return squishDayResults(output), nil
+	squished := squishDayResults(output)
+	// the results must be sorted as they come out of order from prometheus
+	sort.Slice(squished, func(i, j int) bool {
+		// Compare years
+		if squished[i].Date.Year != squished[j].Date.Year {
+			return squished[i].Date.Year < squished[j].Date.Year
+		}
+		// Years are equal, compare months
+		if squished[i].Date.Month != squished[j].Date.Month {
+			return squished[i].Date.Month < squished[j].Date.Month
+		}
+		// Both years and months are equal, compare days
+		return squished[i].Date.Day < squished[j].Date.Day
+	})
+	return squished, nil
 }
 
 // combines counts where date is the day and returns a squished list with the original order retained
