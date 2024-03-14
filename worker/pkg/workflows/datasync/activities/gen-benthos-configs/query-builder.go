@@ -174,39 +174,20 @@ func buildSelectQueryMap(
 	dependencyConfigs []*tabledependency.RunConfig,
 	subsetByForeignKeyConstraints bool,
 ) (map[string]string, error) {
-	queryMap := map[string]string{}
 	if !subsetByForeignKeyConstraints || len(tableDependencies) == 0 {
-		for table, tableMapping := range groupedMappings {
-			if shared.AreAllColsNull(tableMapping.Mappings) {
-				// skipping table as no columns are mapped
-				continue
-			}
-
-			var where *string
-			tableOpt := sourceTableOpts[table]
-			if tableOpt != nil && tableOpt.WhereClause != nil {
-				where = tableOpt.WhereClause
-			}
-
-			query, err := buildSelectQuery(
-				driver,
-				tableMapping.Schema,
-				tableMapping.Table,
-				buildPlainColumns(tableMapping.Mappings),
-				where,
-			)
-			if err != nil {
-				return nil, fmt.Errorf("unable to build select query: %w", err)
-			}
-			queryMap[table] = query
+		queryMap, err := buildQueryMapNoSubsetConstraints(driver, groupedMappings, sourceTableOpts)
+		if err != nil {
+			return nil, err
 		}
 		return queryMap, nil
 	}
 
+	queryMap := map[string]string{}
 	pksMap := getPrimaryToForeignTableMapFromRunConfigs(dependencyConfigs)
 	rootsWithsubsetMaps := []string{}
 	rootsNoSubsets := []string{}
 
+	// map of table -> where clause
 	tableWhereMap := map[string]string{}
 	for t, opts := range sourceTableOpts {
 		mappings, ok := groupedMappings[t]
@@ -265,51 +246,9 @@ func buildSelectQueryMap(
 			selfRefCircularDep := getSelfReferencingColumns(table, fks)
 
 			pathToRoot := tablePathMap[table]
-			joins := []*SqlJoin{}
-			whereClauses := []string{}
-			subsetTables := []string{}
-
-			for _, t := range pathToRoot {
-				if t == table {
-					continue
-				}
-				dependencies := tableDependencies[t]
-				wc, ok := tableWhereMap[t]
-				if ok {
-					whereClauses = append(whereClauses, wc)
-				}
-
-				if len(whereClauses) > 0 {
-					subsetTables = append(subsetTables, t)
-					if dependencies != nil {
-						for _, c := range dependencies.Constraints {
-							if t != c.ForeignKey.Table && slices.Contains(subsetTables, c.ForeignKey.Table) {
-								joins = append(joins, &SqlJoin{
-									JoinType:   innerJoin,
-									BaseTable:  t,
-									BaseColumn: c.Column,
-									JoinTable:  c.ForeignKey.Table,
-									JoinColumn: c.ForeignKey.Column,
-								})
-							}
-						}
-					}
-					if fks != nil {
-						for _, c := range fks.Constraints {
-							if t == c.ForeignKey.Table {
-								joins = append(joins, &SqlJoin{
-									JoinType:   innerJoin,
-									BaseTable:  table,
-									BaseColumn: c.Column,
-									JoinTable:  c.ForeignKey.Table,
-									JoinColumn: c.ForeignKey.Column,
-								})
-							}
-						}
-					}
-				}
-			}
-			reverseSlice(joins)
+			subsetCfg := buildTableSubsetQueryConfig(table, pathToRoot, tableDependencies, tableWhereMap)
+			joins := subsetCfg.Joins
+			whereClauses := subsetCfg.WhereClauses
 
 			// root table or no subset use standard select
 			if table == rootTable || len(whereClauses) == 0 {
@@ -333,6 +272,7 @@ func buildSelectQueryMap(
 					}
 					queryMap[table] = query
 				} else {
+					// standard select
 					query, err := buildSelectQuery(
 						driver,
 						tableMapping.Schema,
@@ -370,6 +310,7 @@ func buildSelectQueryMap(
 				}
 				queryMap[table] = query
 			} else {
+				// select with joins
 				query, err := buildSelectJoinQuery(
 					driver,
 					tableMapping.Schema,
@@ -386,6 +327,104 @@ func buildSelectQueryMap(
 		}
 	}
 	return queryMap, nil
+}
+
+func buildQueryMapNoSubsetConstraints(
+	driver string,
+	groupedMappings map[string]*tableMapping,
+	sourceTableOpts map[string]*sqlSourceTableOptions,
+) (map[string]string, error) {
+	queryMap := map[string]string{}
+	for table, tableMapping := range groupedMappings {
+		if shared.AreAllColsNull(tableMapping.Mappings) {
+			// skipping table as no columns are mapped
+			continue
+		}
+
+		tableOpt := sourceTableOpts[table]
+		where := getWhereFromTableOpts(tableOpt)
+
+		query, err := buildSelectQuery(
+			driver,
+			tableMapping.Schema,
+			tableMapping.Table,
+			buildPlainColumns(tableMapping.Mappings),
+			where,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("unable to build select query: %w", err)
+		}
+		queryMap[table] = query
+	}
+	return queryMap, nil
+}
+
+type subsetQueryConfig struct {
+	Joins        []*SqlJoin
+	WhereClauses []string
+}
+
+func buildTableSubsetQueryConfig(
+	table string,
+	pathToRoot []string,
+	dependencyMap map[string]*dbschemas.TableConstraints,
+	tableWhereMap map[string]string,
+
+) *subsetQueryConfig {
+	joins := []*SqlJoin{}
+	whereClauses := []string{}
+	subsetTables := []string{} // keeps track of tables that are being subset
+	fks := dependencyMap[table]
+
+	for _, t := range pathToRoot {
+		if t == table {
+			continue
+		}
+		dependencies := dependencyMap[t]
+		wc, ok := tableWhereMap[t]
+		if ok {
+			whereClauses = append(whereClauses, wc)
+		}
+
+		if len(whereClauses) > 0 {
+			subsetTables = append(subsetTables, t)
+			// add joins for parent tables up to first subsetted table
+			if dependencies != nil {
+				for _, c := range dependencies.Constraints {
+					if t != c.ForeignKey.Table && slices.Contains(subsetTables, c.ForeignKey.Table) {
+						joins = append(joins, &SqlJoin{
+							JoinType:   innerJoin,
+							BaseTable:  t,
+							BaseColumn: c.Column,
+							JoinTable:  c.ForeignKey.Table,
+							JoinColumn: c.ForeignKey.Column,
+						})
+					}
+				}
+			}
+			// add join for current table
+			if fks != nil {
+				for _, c := range fks.Constraints {
+					if t == c.ForeignKey.Table {
+						joins = append(joins, &SqlJoin{
+							JoinType:   innerJoin,
+							BaseTable:  table,
+							BaseColumn: c.Column,
+							JoinTable:  c.ForeignKey.Table,
+							JoinColumn: c.ForeignKey.Column,
+						})
+					}
+				}
+			}
+		}
+	}
+	// reverse joins so they are constructed in correct order
+	reverseSlice(joins)
+	return &subsetQueryConfig{
+		Joins:        joins,
+		WhereClauses: whereClauses,
+	}
+
 }
 
 type bfsPaths struct {
@@ -411,15 +450,16 @@ func getBfsPathMap(graph map[string][]string, start string) *bfsPaths {
 		path = append(path, node)
 
 		for _, adjacent := range graph[node] {
-			if !visited[adjacent] {
-				queue = append(queue, adjacent)
-				visited[adjacent] = true
-				// copy path and append adjacent node
-				currentPath := make([]string, len(nodePathMap[node]))
-				copy(currentPath, nodePathMap[node])
-				currentPath = append(currentPath, adjacent)
-				nodePathMap[adjacent] = currentPath
+			if visited[adjacent] {
+				continue
 			}
+			queue = append(queue, adjacent)
+			visited[adjacent] = true
+			// copy path and append adjacent node
+			currentPath := make([]string, len(nodePathMap[node]))
+			copy(currentPath, nodePathMap[node])
+			currentPath = append(currentPath, adjacent)
+			nodePathMap[adjacent] = currentPath
 		}
 	}
 
