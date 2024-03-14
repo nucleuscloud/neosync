@@ -1,6 +1,7 @@
 package genbenthosconfigs_activity
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -54,7 +55,7 @@ func buildSelectQuery(
 		return "", err
 	}
 
-	return fmt.Sprintf("%s;", sql), nil
+	return formatSqlQuery(sql), nil
 }
 
 func buildSelectJoinQuery(
@@ -68,7 +69,7 @@ func buildSelectJoinQuery(
 
 	selectColumns := make([]any, len(columns))
 	for i, col := range columns {
-		selectColumns[i] = fmt.Sprintf("%s.%s.%s", schema, table, col)
+		selectColumns[i] = buildSqlIdentifier(schema, table, col)
 	}
 	query := builder.From(sqltable).Select(selectColumns...)
 	// joins
@@ -80,7 +81,7 @@ func buildSelectJoinQuery(
 			joinTable := goqu.I(j.JoinTable)
 			query = query.InnerJoin(
 				joinTable,
-				goqu.On(goqu.Ex{fmt.Sprintf("%s.%s", j.JoinTable, j.JoinColumn): goqu.I(fmt.Sprintf("%s.%s", j.BaseTable, j.BaseColumn))}),
+				goqu.On(goqu.Ex{buildSqlIdentifier(j.JoinTable, j.JoinColumn): goqu.I(buildSqlIdentifier(j.BaseTable, j.BaseColumn))}),
 			)
 		}
 	}
@@ -95,7 +96,7 @@ func buildSelectJoinQuery(
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s;", sql), nil
+	return formatSqlQuery(sql), nil
 }
 
 func buildSelectRecursiveQuery(
@@ -112,7 +113,7 @@ func buildSelectRecursiveQuery(
 
 	selectColumns := make([]any, len(columns))
 	for i, col := range columns {
-		selectColumns[i] = fmt.Sprintf("%s.%s.%s", schema, table, col)
+		selectColumns[i] = buildSqlIdentifier(schema, table, col)
 	}
 	selectQuery := builder.From(sqltable).Select(selectColumns...)
 
@@ -124,8 +125,8 @@ func buildSelectRecursiveQuery(
 		}
 		if j.JoinType == innerJoin {
 			table := goqu.I(j.JoinTable)
-			joinTable := fmt.Sprintf("%s.%s", j.JoinTable, j.JoinColumn)
-			baseTable := fmt.Sprintf("%s.%s", j.BaseTable, j.BaseColumn)
+			joinTable := buildSqlIdentifier(j.JoinTable, j.JoinColumn)
+			baseTable := buildSqlIdentifier(j.BaseTable, j.BaseColumn)
 
 			initialSelect = initialSelect.InnerJoin(
 				table,
@@ -144,7 +145,7 @@ func buildSelectRecursiveQuery(
 	// inner join on foreign keys
 	goquOnEx := []exp.Expression{}
 	for _, fk := range foreignKeys {
-		goquOnEx = append(goquOnEx, goqu.Ex{fmt.Sprintf("%s.%s.%s", schema, table, primaryKeyCol): goqu.I(fmt.Sprintf("%s.%s", recursiveCteAlias, fk))})
+		goquOnEx = append(goquOnEx, goqu.Ex{buildSqlIdentifier(schema, table, primaryKeyCol): goqu.I(buildSqlIdentifier(recursiveCteAlias, fk))})
 	}
 	recursiveSelect := selectQuery
 	recursiveSelect = recursiveSelect.InnerJoin(goqu.I(recursiveCteAlias), goqu.On(goqu.Or(goquOnEx...)))
@@ -161,7 +162,7 @@ func buildSelectRecursiveQuery(
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s;", sql), nil
+	return formatSqlQuery(sql), nil
 }
 
 // returns map of schema.table -> select query
@@ -201,25 +202,20 @@ func buildSelectQueryMap(
 		}
 		return queryMap, nil
 	}
-	// uniqueTables := map[string]struct{}{}
-	// for table := range groupedMappings {
-	// 	uniqueTables[table] = struct{}{}
-	// }
-	// fksMap := getForeignToPrimaryTableMap(tableDependencies, uniqueTables)
-	// pksMap := getPrimaryToForeignTableMap(tableDependencies, uniqueTables)
-	pksMap := getPrimaryToForeignTableMapFromRunConfigs(dependencyConfigs)
-	roots := []string{}
 
-	// handle roots first
-	// for table, deps := range fksMap {
-	// 	if len(deps) == 0 {
-	// 		roots = append(roots, table)
-	// 	}
-	// }
+	pksMap := getPrimaryToForeignTableMapFromRunConfigs(dependencyConfigs)
+	rootsWithsubsetMaps := []string{}
+	rootsNoSubsets := []string{}
+
 	dependencyMap := map[string][]*tabledependency.RunConfig{}
 	for _, cfg := range dependencyConfigs {
 		if len(cfg.DependsOn) == 0 {
-			roots = append(roots, cfg.Table)
+			where := getWhereFromTableOpts(cfg.Table, sourceTableOpts)
+			if where != nil && *where != "" {
+				rootsWithsubsetMaps = append(rootsWithsubsetMaps, cfg.Table)
+			} else {
+				rootsNoSubsets = append(rootsNoSubsets, cfg.Table)
+			}
 		}
 		_, ok := dependencyMap[cfg.Table]
 		if ok {
@@ -229,20 +225,34 @@ func buildSelectQueryMap(
 		}
 	}
 
+	// process roots with subsets first
+	roots := []string{}
+	roots = append(roots, rootsWithsubsetMaps...)
+	roots = append(roots, rootsNoSubsets...)
+	fmt.Printf("pksMap: %+v\n", pksMap)
+
+	fmt.Printf("%+v\n", roots)
+
 	// need to check all tables processed
-	// self referencing circular dependencies need union all
-	// multi table circular dependencies need to be subset and run in same order
-	// for each circular dependency choose entry point and add to root
 	for _, rootTable := range roots {
-		// deps, hasDeps := pksMap[rootTable]
-		// if !hasDeps || len(deps) == 0 {
-		// 	continue
-		// }
 		path := BFS(pksMap, rootTable)
+		fmt.Printf("%+v\n", path)
 
 		whereClauses := []string{}
 		joins := make([]*SqlJoin, len(path))
 		for idx, table := range path {
+			fmt.Printf("table: %s \n", table)
+			jsonF, _ := json.MarshalIndent(queryMap, "", " ")
+			fmt.Printf("\n %s \n", string(jsonF))
+			// check if query already created
+			_, seen := queryMap[table]
+			fmt.Printf("seen: %t \n", seen)
+
+			if seen {
+				fmt.Println("break")
+				break
+			}
+			fmt.Println("-------------")
 			tableMapping := groupedMappings[table]
 			var where *string
 			tableOpt := sourceTableOpts[table]
@@ -293,11 +303,6 @@ func buildSelectQueryMap(
 				}
 
 				continue
-			}
-			// check if table already in query map
-			_, seen := queryMap[table]
-			if seen {
-				break
 			}
 			parentTable := path[idx-1]
 			for _, fk := range fks.Constraints {
@@ -380,7 +385,7 @@ func BFS(graph map[string][]string, start string) []string {
 }
 
 func qualifyWhereColumnNames(where, schema, table string) (string, error) {
-	sqlSelect := fmt.Sprintf("select * from %s.%s where ", schema, table)
+	sqlSelect := fmt.Sprintf("select * from %s where ", buildSqlIdentifier(schema, table))
 	sql := fmt.Sprintf("%s%s", sqlSelect, where)
 	stmt, err := sqlparser.Parse(sql)
 	if err != nil {
@@ -404,46 +409,10 @@ func qualifyWhereColumnNames(where, schema, table string) (string, error) {
 	}
 
 	updatedSql := sqlparser.String(stmt)
+	fmt.Println(updatedSql)
 	updatedSql = strings.Replace(updatedSql, sqlSelect, "", 1)
 	return updatedSql, nil
 }
-
-// todo move to shared
-// func getForeignToPrimaryTableMap(td map[string]*dbschemas.TableConstraints, uniqueTables map[string]struct{}) map[string][]string {
-// 	dpMap := map[string][]string{}
-// 	for table := range uniqueTables {
-// 		_, dpOk := dpMap[table]
-// 		if !dpOk {
-// 			dpMap[table] = []string{}
-// 		}
-// 		constraints, ok := td[table]
-// 		if !ok {
-// 			continue
-// 		}
-// 		for _, dep := range constraints.Constraints {
-// 			dpMap[table] = append(dpMap[table], dep.ForeignKey.Table)
-// 		}
-// 	}
-// 	return dpMap
-// }
-
-// func getPrimaryToForeignTableMap(td map[string]*dbschemas.TableConstraints, uniqueTables map[string]struct{}) map[string][]string {
-// 	dpMap := map[string][]string{}
-// 	for table := range uniqueTables {
-// 		_, dpOk := dpMap[table]
-// 		if !dpOk {
-// 			dpMap[table] = []string{}
-// 		}
-// 		constraints, ok := td[table]
-// 		if !ok {
-// 			continue
-// 		}
-// 		for _, dep := range constraints.Constraints {
-// 			dpMap[dep.ForeignKey.Table] = append(dpMap[dep.ForeignKey.Table], table)
-// 		}
-// 	}
-// 	return dpMap
-// }
 
 func getPrimaryToForeignTableMapFromRunConfigs(runConfigs []*tabledependency.RunConfig) map[string][]string {
 	dpMap := map[string][]string{}
@@ -488,4 +457,21 @@ func getSelfReferencingColumns(table string, tc *dbschemas.TableConstraints) *se
 		}
 	}
 	return nil
+}
+
+func formatSqlQuery(sql string) string {
+	return fmt.Sprintf("%s;", sql)
+}
+
+func buildSqlIdentifier(identifiers ...string) string {
+	return strings.Join(identifiers, ".")
+}
+
+func getWhereFromTableOpts(table string, sourceTableOpts map[string]*sqlSourceTableOptions) *string {
+	var where *string
+	tableOpt := sourceTableOpts[table]
+	if tableOpt != nil && tableOpt.WhereClause != nil {
+		where = tableOpt.WhereClause
+	}
+	return where
 }

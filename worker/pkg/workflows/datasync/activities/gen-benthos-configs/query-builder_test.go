@@ -1,6 +1,7 @@
 package genbenthosconfigs_activity
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -916,6 +917,157 @@ func Test_buildSelectQueryMap_MultiplSubsets(t *testing.T) {
 	assert.Equal(t, expected, sql)
 }
 
+func Test_buildSelectQueryMap_MultipleRoots(t *testing.T) {
+	whereId := "id = 1"
+	mappings := map[string]*tableMapping{
+		"public.a": {
+			Schema: "public",
+			Table:  "a",
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "public",
+					Table:  "a",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+			},
+		},
+		"public.b": {
+			Schema: "public",
+			Table:  "b",
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "public",
+					Table:  "b",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+			},
+		},
+		"public.c": {
+			Schema: "public",
+			Table:  "c",
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "public",
+					Table:  "c",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+				{
+					Schema: "public",
+					Table:  "c",
+					Column: "a_id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+				{
+					Schema: "public",
+					Table:  "c",
+					Column: "b_id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+			},
+		},
+		"public.d": {
+			Schema: "public",
+			Table:  "d",
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "public",
+					Table:  "d",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+				{
+					Schema: "public",
+					Table:  "d",
+					Column: "c_id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+			},
+		},
+		"public.e": {
+			Schema: "public",
+			Table:  "e",
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "public",
+					Table:  "e",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+				{
+					Schema: "public",
+					Table:  "e",
+					Column: "c_id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: "generate_default",
+					},
+				},
+			},
+		},
+	}
+	sourceTableOpts := map[string]*sqlSourceTableOptions{
+		"public.b": {
+			WhereClause: &whereId,
+		},
+	}
+	tableDependencies := map[string]*dbschemas.TableConstraints{
+		"public.c": {
+			Constraints: []*dbschemas.ForeignConstraint{
+				{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
+				{Column: "b_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
+			},
+		},
+		"public.d": {
+			Constraints: []*dbschemas.ForeignConstraint{
+				{Column: "c_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
+			},
+		},
+		"public.e": {
+			Constraints: []*dbschemas.ForeignConstraint{
+				{Column: "c_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
+			},
+		},
+	}
+	dependencyConfigs := []*tabledependency.RunConfig{
+		{Table: "public.a", DependsOn: []*tabledependency.DependsOn{}},
+		{Table: "public.b", DependsOn: []*tabledependency.DependsOn{}},
+		{Table: "public.c", DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"id"}}}},
+		{Table: "public.d", DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+		{Table: "public.e", DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+	}
+	expected :=
+		map[string]string{
+			"public.a": `SELECT "id" FROM "public"."a";`,
+			"public.b": `SELECT "id", "name", "a_id" FROM "public"."b" WHERE id = 1;`,
+			"public.c": `SELECT "public"."c"."id", "public"."c"."b_id" FROM "public"."c" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.id = 1;`,
+			"public.d": `SELECT "public"."d"."id" FROM "public"."d" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."d"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.id = 1;`,
+			"public.e": `SELECT "public"."e"."id", "public"."e"."d_id" FROM "public"."e" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."d"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.id = 1;`,
+		}
+	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
+	jsonF, _ := json.MarshalIndent(sql, "", " ")
+	fmt.Printf("\n %s \n", string(jsonF))
+	assert.NoError(t, err)
+	assert.Equal(t, expected, sql)
+}
+
 func Test_buildSelectQueryMap_DoubleCircularDependencyRoot(t *testing.T) {
 	whereId := "id = 1"
 	mappings := map[string]*tableMapping{
@@ -1178,7 +1330,7 @@ func Test_BFS(t *testing.T) {
 			name: "cross",
 			graph: map[string][]string{
 				"a": {"c"},
-				"b": {"b"},
+				"b": {"c"},
 				"c": {"d", "e"},
 				"d": {},
 				"e": {},
@@ -1187,18 +1339,36 @@ func Test_BFS(t *testing.T) {
 			expected: []string{"a", "c", "d", "e"},
 		},
 		{
-			name: " self reference",
+			name: "self reference",
 			graph: map[string][]string{
 				"a": {"a"},
 			},
 			start:    "a",
 			expected: []string{"a"},
 		},
+		{
+			name: "multi linear",
+			graph: map[string][]string{
+				"a": {"b", "c", "d"},
+				"b": {"e"},
+				"c": {"f"},
+				"d": {"g"},
+			},
+			start:    "a",
+			expected: []string{"a", "b", "c", "d", "e", "f", "g"},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%s_%s", t.Name(), tt.name), func(t *testing.T) {
 			path := BFS(tt.graph, tt.start)
+
+			fmt.Println("-------------------------")
+			jsonF, _ := json.MarshalIndent(path, "", " ")
+			fmt.Printf("\n %s \n", string(jsonF))
+
+			jsonF, _ = json.MarshalIndent(tt.expected, "", " ")
+			fmt.Printf("\n %s \n", string(jsonF))
 			assert.Equal(t, tt.expected, path)
 		})
 	}

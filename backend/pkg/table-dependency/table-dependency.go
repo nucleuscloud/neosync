@@ -287,6 +287,33 @@ func dfsCycles(start, current string, dependencies map[string][]string, visited,
 		visited[current] = true
 	}
 }
+func depthFirstSearch(graph map[string][]string, start string) [][]string {
+	var result [][]string
+	visited := make(map[string]bool)
+	DFS(graph, start, visited, []string{}, &result)
+	return result
+}
+
+func DFS(graph map[string][]string, startNode string, visited map[string]bool, path []string, result *[][]string) {
+
+	// Mark the current node as visited.
+	visited[startNode] = true
+	path = append(path, startNode)
+	fmt.Println(startNode)
+	if len(graph[startNode]) == 0 {
+		// make copy to prevent reference issues
+		cycle := make([]string, len(path))
+		copy(cycle, path)
+		*result = append(*result, cycle)
+	}
+
+	// Recur for all the vertices adjacent to this vertex.
+	for _, adjacentNode := range graph[startNode] {
+		if !visited[adjacentNode] {
+			DFS(graph, adjacentNode, visited, path, result)
+		}
+	}
+}
 
 func uniqueCycles(cycles [][]string) [][]string {
 	seen := map[string]bool{}

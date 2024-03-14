@@ -1,6 +1,7 @@
 package tabledependency
 
 import (
+	"fmt"
 	"sort"
 	"testing"
 
@@ -803,6 +804,44 @@ func TestCycleKey(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := cycleKey(tt.cycle)
 			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func Test_FindCircularDependenciesTest(t *testing.T) {
+	tests := []struct {
+		name   string
+		graph  map[string][]string
+		expect [][]string
+	}{
+		{
+			name: "No circular dependencies",
+			graph: map[string][]string{
+				"a": {"b", "c", "d"},
+				"b": {"e"},
+				"c": {"f"},
+				"d": {"g"},
+			},
+			expect: [][]string{{"a", "b", "e"}, {"a", "c", "f"}, {"a", "d", "g"}},
+		},
+		{
+			name: "No circular dependencies",
+			graph: map[string][]string{
+				"a": {"c"},
+				"b": {"b"},
+				"c": {"d", "e"},
+				"d": {},
+				"e": {},
+			},
+			expect: [][]string{{"a", "b", "e"}, {"a", "c", "f"}, {"a", "d", "g"}},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actual := depthFirstSearch(tt.graph, "a")
+			fmt.Printf("%+v\n", actual)
+			assert.Equal(t, actual, tt.expect)
 		})
 	}
 }
