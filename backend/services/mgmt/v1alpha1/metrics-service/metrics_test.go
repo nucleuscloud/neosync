@@ -2,6 +2,7 @@ package v1alpha1_metricsservice
 
 import (
 	"context"
+	"sort"
 	"testing"
 	"time"
 
@@ -571,6 +572,26 @@ func Test_GetDailyMetricCount_MultipleDays_Ordering(t *testing.T) {
 	assert.Equal(t, uint32(10), results[0].Date.Month, "the expected month should be 10")
 	assert.Equal(t, uint64(3), results[1].Count)
 	assert.Equal(t, uint32(11), results[1].Date.Month, "the expected month should be 11")
+}
+
+func Test_getDateOrderFn(t *testing.T) {
+	input := []*mgmtv1alpha1.DayResult{
+		{Date: &mgmtv1alpha1.Date{Year: 2024, Month: 3, Day: 2}, Count: 4},
+		{Date: &mgmtv1alpha1.Date{Year: 2024, Month: 3, Day: 1}, Count: 3},
+		{Date: &mgmtv1alpha1.Date{Year: 2024, Month: 2, Day: 1}, Count: 2},
+		{Date: &mgmtv1alpha1.Date{Year: 2023, Month: 2, Day: 1}, Count: 1},
+	}
+	sort.Slice(input, getDateOrderFn(input))
+	require.Equal(
+		t,
+		[]*mgmtv1alpha1.DayResult{
+			{Date: &mgmtv1alpha1.Date{Year: 2023, Month: 2, Day: 1}, Count: 1},
+			{Date: &mgmtv1alpha1.Date{Year: 2024, Month: 2, Day: 1}, Count: 2},
+			{Date: &mgmtv1alpha1.Date{Year: 2024, Month: 3, Day: 1}, Count: 3},
+			{Date: &mgmtv1alpha1.Date{Year: 2024, Month: 3, Day: 2}, Count: 4},
+		},
+		input,
+	)
 }
 
 func Test_GetDailyMetricCount_Bad_Times(t *testing.T) {

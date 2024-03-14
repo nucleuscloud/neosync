@@ -272,19 +272,23 @@ func getDailyUsageFromMatrix(matrix model.Matrix) ([]*mgmtv1alpha1.DayResult, er
 	}
 	squished := squishDayResults(output)
 	// the results must be sorted as they come out of order from prometheus
-	sort.Slice(squished, func(i, j int) bool {
+	sort.Slice(squished, getDateOrderFn(squished))
+	return squished, nil
+}
+
+func getDateOrderFn(input []*mgmtv1alpha1.DayResult) func(i, j int) bool {
+	return func(i, j int) bool {
 		// Compare years
-		if squished[i].Date.Year != squished[j].Date.Year {
-			return squished[i].Date.Year < squished[j].Date.Year
+		if input[i].Date.Year != input[j].Date.Year {
+			return input[i].Date.Year < input[j].Date.Year
 		}
 		// Years are equal, compare months
-		if squished[i].Date.Month != squished[j].Date.Month {
-			return squished[i].Date.Month < squished[j].Date.Month
+		if input[i].Date.Month != input[j].Date.Month {
+			return input[i].Date.Month < input[j].Date.Month
 		}
 		// Both years and months are equal, compare days
-		return squished[i].Date.Day < squished[j].Date.Day
-	})
-	return squished, nil
+		return input[i].Date.Day < input[j].Date.Day
+	}
 }
 
 // combines counts where date is the day and returns a squished list with the original order retained
