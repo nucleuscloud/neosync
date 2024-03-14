@@ -18,15 +18,13 @@ import (
 )
 
 const (
-	innerJoin     JoinType      = "INNER"
-	whereOperator WhereOperator = "EQUAL"
+	innerJoin joinType = "INNER"
 )
 
-type WhereOperator string
-type JoinType string
+type joinType string
 
-type SqlJoin struct {
-	JoinType   JoinType
+type sqlJoin struct {
+	JoinType   joinType
 	JoinTable  string
 	JoinColumn string
 	BaseTable  string
@@ -61,7 +59,7 @@ func buildSelectQuery(
 func buildSelectJoinQuery(
 	driver, schema, table string,
 	columns []string,
-	joins []*SqlJoin,
+	joins []*sqlJoin,
 	whereClauses []string,
 ) (string, error) {
 	builder := goqu.Dialect(driver)
@@ -104,7 +102,7 @@ func buildSelectRecursiveQuery(
 	columns []string,
 	foreignKeys []string,
 	primaryKeyCol string,
-	joins []*SqlJoin,
+	joins []*sqlJoin,
 	whereClauses []string,
 ) (string, error) {
 	recursiveCteAlias := "related"
@@ -360,7 +358,7 @@ func buildQueryMapNoSubsetConstraints(
 }
 
 type subsetQueryConfig struct {
-	Joins        []*SqlJoin
+	Joins        []*sqlJoin
 	WhereClauses []string
 }
 
@@ -371,7 +369,7 @@ func buildTableSubsetQueryConfig(
 	tableWhereMap map[string]string,
 
 ) *subsetQueryConfig {
-	joins := []*SqlJoin{}
+	joins := []*sqlJoin{}
 	whereClauses := []string{}
 	subsetTables := []string{} // keeps track of tables that are being subset
 	fks := dependencyMap[table]
@@ -392,7 +390,7 @@ func buildTableSubsetQueryConfig(
 			if dependencies != nil {
 				for _, c := range dependencies.Constraints {
 					if t != c.ForeignKey.Table && slices.Contains(subsetTables, c.ForeignKey.Table) {
-						joins = append(joins, &SqlJoin{
+						joins = append(joins, &sqlJoin{
 							JoinType:   innerJoin,
 							BaseTable:  t,
 							BaseColumn: c.Column,
@@ -406,7 +404,7 @@ func buildTableSubsetQueryConfig(
 			if fks != nil {
 				for _, c := range fks.Constraints {
 					if t == c.ForeignKey.Table {
-						joins = append(joins, &SqlJoin{
+						joins = append(joins, &sqlJoin{
 							JoinType:   innerJoin,
 							BaseTable:  table,
 							BaseColumn: c.Column,
@@ -499,21 +497,17 @@ func qualifyWhereColumnNames(where, schema, table string) (string, error) {
 }
 
 func getPrimaryToForeignTableMapFromRunConfigs(runConfigs []*tabledependency.RunConfig) map[string][]string {
-	dpMap := map[string][]string{}
+	dpMap := make(map[string][]string)
+
 	for _, cfg := range runConfigs {
-		_, dpOk := dpMap[cfg.Table]
-		if !dpOk {
+		if _, exists := dpMap[cfg.Table]; !exists {
 			dpMap[cfg.Table] = []string{}
 		}
 		for _, dep := range cfg.DependsOn {
-			_, dpOk := dpMap[dep.Table]
-			if !dpOk {
-				dpMap[dep.Table] = []string{cfg.Table}
-			} else {
-				dpMap[dep.Table] = append(dpMap[dep.Table], cfg.Table)
-			}
+			dpMap[dep.Table] = append(dpMap[dep.Table], cfg.Table)
 		}
 	}
+
 	return dpMap
 }
 

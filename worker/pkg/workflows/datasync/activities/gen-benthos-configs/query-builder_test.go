@@ -86,7 +86,7 @@ func Test_buildSelectJoinQuery(t *testing.T) {
 		schema       string
 		table        string
 		columns      []string
-		joins        []*SqlJoin
+		joins        []*sqlJoin
 		whereClauses []string
 		expected     string
 	}{
@@ -96,7 +96,7 @@ func Test_buildSelectJoinQuery(t *testing.T) {
 			schema:  "public",
 			table:   "a",
 			columns: []string{"id", "name", "email"},
-			joins: []*SqlJoin{
+			joins: []*sqlJoin{
 				{
 					JoinType:   innerJoin,
 					JoinTable:  "public.b",
@@ -114,7 +114,7 @@ func Test_buildSelectJoinQuery(t *testing.T) {
 			schema:  "public",
 			table:   "a",
 			columns: []string{"id", "name", "email"},
-			joins: []*SqlJoin{
+			joins: []*sqlJoin{
 				{
 					JoinType:   innerJoin,
 					JoinTable:  "public.b",
@@ -151,7 +151,7 @@ func Test_buildSelectRecursiveQuery(t *testing.T) {
 		schema        string
 		table         string
 		columns       []string
-		joins         []*SqlJoin
+		joins         []*sqlJoin
 		whereClauses  []string
 		foreignKeys   []string
 		primaryKeyCol string
@@ -163,7 +163,7 @@ func Test_buildSelectRecursiveQuery(t *testing.T) {
 			schema:        "public",
 			table:         "employees",
 			columns:       []string{"employee_id", "name", "manager_id"},
-			joins:         []*SqlJoin{},
+			joins:         []*sqlJoin{},
 			whereClauses:  []string{`"public"."employees"."name" = 'alisha'`},
 			foreignKeys:   []string{"manager_id"},
 			primaryKeyCol: "employee_id",
@@ -175,7 +175,7 @@ func Test_buildSelectRecursiveQuery(t *testing.T) {
 			schema:  "public",
 			table:   "employees",
 			columns: []string{"employee_id", "name", "manager_id", "department_id", "big_boss_id"},
-			joins: []*SqlJoin{
+			joins: []*sqlJoin{
 				{
 					JoinType:   innerJoin,
 					JoinTable:  "public.departments",
