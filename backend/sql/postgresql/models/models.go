@@ -389,14 +389,16 @@ type JobSourceOptions struct {
 }
 
 type MysqlSourceOptions struct {
-	HaltOnNewColumnAddition bool                       `json:"haltOnNewColumnAddition"`
-	Schemas                 []*MysqlSourceSchemaOption `json:"schemas"`
-	ConnectionId            string                     `json:"connectionId"`
+	HaltOnNewColumnAddition       bool                       `json:"haltOnNewColumnAddition"`
+	SubsetByForeignKeyConstraints bool                       `json:"subsetByForeignKeyConstraints"`
+	Schemas                       []*MysqlSourceSchemaOption `json:"schemas"`
+	ConnectionId                  string                     `json:"connectionId"`
 }
 type PostgresSourceOptions struct {
-	HaltOnNewColumnAddition bool                          `json:"haltOnNewColumnAddition"`
-	Schemas                 []*PostgresSourceSchemaOption `json:"schemas"`
-	ConnectionId            string                        `json:"connectionId"`
+	HaltOnNewColumnAddition       bool                          `json:"haltOnNewColumnAddition"`
+	SubsetByForeignKeyConstraints bool                          `json:"subsetByForeignKeyConstraints"`
+	Schemas                       []*PostgresSourceSchemaOption `json:"schemas"`
+	ConnectionId                  string                        `json:"connectionId"`
 }
 
 type GenerateSourceOptions struct {
@@ -439,6 +441,7 @@ func (s *PostgresSourceOptions) ToDto() *mgmtv1alpha1.PostgresSourceConnectionOp
 }
 func (s *PostgresSourceOptions) FromDto(dto *mgmtv1alpha1.PostgresSourceConnectionOptions) {
 	s.HaltOnNewColumnAddition = dto.HaltOnNewColumnAddition
+	s.SubsetByForeignKeyConstraints = dto.SubsetByForeignKeyConstraints
 	s.Schemas = FromDtoPostgresSourceSchemaOptions(dto.Schemas)
 	s.ConnectionId = dto.ConnectionId
 }
@@ -466,8 +469,9 @@ func FromDtoPostgresSourceSchemaOptions(dtos []*mgmtv1alpha1.PostgresSourceSchem
 
 func (s *MysqlSourceOptions) ToDto() *mgmtv1alpha1.MysqlSourceConnectionOptions {
 	dto := &mgmtv1alpha1.MysqlSourceConnectionOptions{
-		HaltOnNewColumnAddition: s.HaltOnNewColumnAddition,
-		ConnectionId:            s.ConnectionId,
+		HaltOnNewColumnAddition:       s.HaltOnNewColumnAddition,
+		SubsetByForeignKeyConstraints: s.SubsetByForeignKeyConstraints,
+		ConnectionId:                  s.ConnectionId,
 	}
 	dto.Schemas = make([]*mgmtv1alpha1.MysqlSourceSchemaOption, len(s.Schemas))
 	for idx := range s.Schemas {
@@ -490,6 +494,7 @@ func (s *MysqlSourceOptions) ToDto() *mgmtv1alpha1.MysqlSourceConnectionOptions 
 }
 func (s *MysqlSourceOptions) FromDto(dto *mgmtv1alpha1.MysqlSourceConnectionOptions) {
 	s.HaltOnNewColumnAddition = dto.HaltOnNewColumnAddition
+	s.SubsetByForeignKeyConstraints = dto.SubsetByForeignKeyConstraints
 	s.Schemas = FromDtoMysqlSourceSchemaOptions(dto.Schemas)
 	s.ConnectionId = dto.ConnectionId
 }

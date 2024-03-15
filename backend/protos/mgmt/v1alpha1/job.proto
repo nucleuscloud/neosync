@@ -55,6 +55,7 @@ message PostgresSourceConnectionOptions {
   bool halt_on_new_column_addition = 1;
   repeated PostgresSourceSchemaOption schemas = 2;
   string connection_id = 3 [(buf.validate.field).string.uuid = true];
+  bool subset_by_foreign_key_constraints = 4;
 }
 
 message PostgresSourceSchemaOption {
@@ -70,6 +71,7 @@ message MysqlSourceConnectionOptions {
   bool halt_on_new_column_addition = 1;
   repeated MysqlSourceSchemaOption schemas = 2;
   string connection_id = 3 [(buf.validate.field).string.uuid = true];
+  bool subset_by_foreign_key_constraints = 4;
 }
 
 message MysqlSourceSchemaOption {
