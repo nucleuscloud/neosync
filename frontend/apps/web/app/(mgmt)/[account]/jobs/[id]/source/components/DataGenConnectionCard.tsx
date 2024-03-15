@@ -363,28 +363,6 @@ function getJobSource(job?: Job): SingleTableSchemaFormValues {
         : ({} as any), // todo
     };
   });
-
-  // const mappings: SingleTableSchemaFormValues['mappings'] = dbCols
-  //   .filter((c) => c.schema === schema && c.table === table)
-  //   .map((c) => {
-  //     const colMapping = getColumnMapping(
-  //       schemaMap,
-  //       c.schema,
-  //       c.table,
-  //       c.column
-  //     );
-  //     const transformer =
-  //       colMapping?.transformer ??
-  //       convertJobMappingTransformerToForm(new JobMappingTransformer({}));
-
-  //     return {
-  //       schema: schema,
-  //       table: table,
-  //       column: c.column,
-  //       dataType: c.dataType,
-  //       transformer: transformer,
-  //     };
-  //   });
   return {
     mappings: mappings,
     numRows: numRows,
