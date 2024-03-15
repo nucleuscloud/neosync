@@ -239,7 +239,8 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         return (
           <span className="max-w-[500px] truncate font-medium">
             <Badge variant="outline">
-              {handleDataTypeBadge(row.getValue('dataType'))}
+              TODO
+              {/* {handleDataTypeBadge(row.getValue('dataType'))} */}
             </Badge>
           </span>
         );

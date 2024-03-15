@@ -41,7 +41,7 @@ export function SchemaTable(props: Props): ReactElement {
     account?.id ?? ''
   );
   const [selectedItems, setSelectedItems] = useState<Set<string>>(
-    new Set(Object.keys(schema))
+    new Set(data.map((d) => `${d.schema}.${d.table}`))
   );
 
   // const [selected, setselected] = useState<string[] | string[]>([]);

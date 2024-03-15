@@ -67,7 +67,7 @@ export const JOB_MAPPING_SCHEMA = Yup.object({
   schema: Yup.string().required(),
   table: Yup.string().required(),
   column: Yup.string().required(),
-  dataType: Yup.string().required(),
+  // dataType: Yup.string().required(),
   transformer: JobMappingTransformerForm,
 }).required();
 export type JobMappingFormValues = Yup.InferType<typeof JOB_MAPPING_SCHEMA>;
