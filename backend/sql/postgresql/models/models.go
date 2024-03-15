@@ -417,8 +417,9 @@ type GenerateSourceTableOption struct {
 
 func (s *PostgresSourceOptions) ToDto() *mgmtv1alpha1.PostgresSourceConnectionOptions {
 	dto := &mgmtv1alpha1.PostgresSourceConnectionOptions{
-		HaltOnNewColumnAddition: s.HaltOnNewColumnAddition,
-		ConnectionId:            s.ConnectionId,
+		HaltOnNewColumnAddition:       s.HaltOnNewColumnAddition,
+		SubsetByForeignKeyConstraints: s.SubsetByForeignKeyConstraints,
+		ConnectionId:                  s.ConnectionId,
 	}
 	dto.Schemas = make([]*mgmtv1alpha1.PostgresSourceSchemaOption, len(s.Schemas))
 	for idx := range s.Schemas {

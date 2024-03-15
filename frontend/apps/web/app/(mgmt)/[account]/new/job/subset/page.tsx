@@ -2,6 +2,7 @@
 
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import SubsetOptionsForm from '@/components/jobs/Form/SubsetOptionsForm';
 import EditItem from '@/components/jobs/subsets/EditItem';
 import SubsetTable from '@/components/jobs/subsets/subset-table/SubsetTable';
 import { TableRow } from '@/components/jobs/subsets/subset-table/column';
@@ -74,6 +75,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const [subsetFormValues] = useSessionStorage<SubsetFormValues>(formKey, {
     subsets: [],
+    subsetOptions: {
+      subsetByForeignKeyConstraints: true,
+    },
   });
 
   // Used to complete the whole form
@@ -240,83 +244,93 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         <div />
       </OverviewContainer>
       <div className="flex flex-col gap-4">
-        <div>
-          <h2 className="text-1xl font-bold tracking-tight">
-            Set table subset rules by pressing the edit button and filling out
-            the form below
-          </h2>
-        </div>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="flex flex-col gap-2"
+            className="flex flex-col gap-8"
           >
             <div>
-              <SubsetTable
-                data={Object.values(tableRowData)}
-                onEdit={(schema, table) => {
-                  const key = buildRowKey(schema, table);
-                  if (tableRowData[key]) {
-                    // make copy so as to not edit in place
-                    setItemToEdit({
-                      ...tableRowData[key],
-                    });
-                  }
-                }}
-                hasLocalChange={hasLocalChange}
-                onReset={onLocalRowReset}
-              />
+              <SubsetOptionsForm maxColNum={2} />
             </div>
-            <div className="my-4">
-              <Separator />
-            </div>
-            <div>
-              <EditItem
-                connectionId={connectFormValues.sourceId}
-                item={itemToEdit}
-                onItem={setItemToEdit}
-                onCancel={() => setItemToEdit(undefined)}
-                onSave={() => {
-                  if (!itemToEdit) {
-                    return;
-                  }
-                  const key = buildRowKey(itemToEdit.schema, itemToEdit.table);
-                  const idx = form
-                    .getValues()
-                    .subsets.findIndex(
-                      (item) => buildRowKey(item.schema, item.table) === key
+            <div className="flex flex-col gap-2">
+              <div>
+                <h2 className="text-1xl font-bold tracking-tight">
+                  Set table subset rules by pressing the edit button and filling
+                  out the form below
+                </h2>
+              </div>
+
+              <div>
+                <SubsetTable
+                  data={Object.values(tableRowData)}
+                  onEdit={(schema, table) => {
+                    const key = buildRowKey(schema, table);
+                    if (tableRowData[key]) {
+                      // make copy so as to not edit in place
+                      setItemToEdit({
+                        ...tableRowData[key],
+                      });
+                    }
+                  }}
+                  hasLocalChange={hasLocalChange}
+                  onReset={onLocalRowReset}
+                />
+              </div>
+              <div className="my-4">
+                <Separator />
+              </div>
+              <div>
+                <EditItem
+                  connectionId={connectFormValues.sourceId}
+                  item={itemToEdit}
+                  onItem={setItemToEdit}
+                  onCancel={() => setItemToEdit(undefined)}
+                  onSave={() => {
+                    if (!itemToEdit) {
+                      return;
+                    }
+                    const key = buildRowKey(
+                      itemToEdit.schema,
+                      itemToEdit.table
                     );
-                  if (idx >= 0) {
-                    form.setValue(`subsets.${idx}`, {
-                      schema: itemToEdit.schema,
-                      table: itemToEdit.table,
-                      whereClause: itemToEdit.where,
-                    });
-                  } else {
-                    form.setValue(
-                      `subsets`,
-                      form.getValues().subsets.concat({
+                    const idx = form
+                      .getValues()
+                      .subsets.findIndex(
+                        (item) => buildRowKey(item.schema, item.table) === key
+                      );
+                    if (idx >= 0) {
+                      form.setValue(`subsets.${idx}`, {
                         schema: itemToEdit.schema,
                         table: itemToEdit.table,
                         whereClause: itemToEdit.where,
-                      })
-                    );
-                  }
-                  setItemToEdit(undefined);
-                }}
-                dbType={dbType}
-              />
-            </div>
-            <div className="my-6">
-              <Separator />
-            </div>
-            <div className="flex flex-row gap-1 justify-between">
-              <Button key="back" type="button" onClick={() => router.back()}>
-                Back
-              </Button>
-              <Button key="submit" type="submit">
-                Save
-              </Button>
+                      });
+                    } else {
+                      form.setValue(
+                        `subsets`,
+                        form.getValues().subsets.concat({
+                          schema: itemToEdit.schema,
+                          table: itemToEdit.table,
+                          whereClause: itemToEdit.where,
+                        })
+                      );
+                    }
+                    setItemToEdit(undefined);
+                  }}
+                  dbType={dbType}
+                />
+              </div>
+
+              <div className="my-6">
+                <Separator />
+              </div>
+              <div className="flex flex-row gap-1 justify-between">
+                <Button key="back" type="button" onClick={() => router.back()}>
+                  Back
+                </Button>
+                <Button key="submit" type="submit">
+                  Save
+                </Button>
+              </div>
             </div>
           </form>
         </Form>
@@ -410,6 +424,8 @@ async function createNewJob(
               connectionId: formData.connect.sourceId,
               haltOnNewColumnAddition:
                 values.connect.sourceOptions.haltOnNewColumnAddition,
+              subsetByForeignKeyConstraints:
+                values.subset?.subsetOptions.subsetByForeignKeyConstraints,
             }),
           },
         });
@@ -421,6 +437,8 @@ async function createNewJob(
               connectionId: formData.connect.sourceId,
               haltOnNewColumnAddition:
                 values.connect.sourceOptions.haltOnNewColumnAddition,
+              subsetByForeignKeyConstraints:
+                values.subset?.subsetOptions.subsetByForeignKeyConstraints,
             }),
           },
         });

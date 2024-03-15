@@ -2,6 +2,7 @@ import {
   SUBSET_FORM_SCHEMA,
   SubsetFormValues,
 } from '@/app/(mgmt)/[account]/new/job/schema';
+import SubsetOptionsForm from '@/components/jobs/Form/SubsetOptionsForm';
 import EditItem from '@/components/jobs/subsets/EditItem';
 import SubsetTable from '@/components/jobs/subsets/subset-table/SubsetTable';
 import { TableRow } from '@/components/jobs/subsets/subset-table/column';
@@ -143,76 +144,79 @@ export default function SubsetCard(props: Props): ReactElement {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="flex flex-col gap-2"
+          className="flex flex-col gap-8"
         >
-          <div>
-            <SubsetTable
-              data={Object.values(tableRowData)}
-              onEdit={(schema, table) => {
-                const key = buildRowKey(schema, table);
-                if (tableRowData[key]) {
-                  setItemToEdit({
-                    ...tableRowData[key],
-                  });
-                }
-              }}
-              hasLocalChange={hasLocalChange}
-              onReset={onLocalRowReset}
-            />
-          </div>
-          <div className="my-4">
-            <Separator />
-          </div>
-          <div>
-            <EditItem
-              connectionId={sourceConnectionId ?? ''}
-              item={itemToEdit}
-              onItem={setItemToEdit}
-              onCancel={() => setItemToEdit(undefined)}
-              onSave={() => {
-                if (!itemToEdit) {
-                  return;
-                }
-                const key = buildRowKey(itemToEdit.schema, itemToEdit.table);
-                const idx = form
-                  .getValues()
-                  .subsets.findIndex(
-                    (item) => buildRowKey(item.schema, item.table) === key
-                  );
-                if (idx >= 0) {
-                  form.setValue(`subsets.${idx}`, {
-                    schema: itemToEdit.schema,
-                    table: itemToEdit.table,
-                    whereClause: itemToEdit.where,
-                  });
-                } else {
-                  form.setValue(
-                    `subsets`,
-                    form.getValues().subsets.concat({
+          <SubsetOptionsForm maxColNum={2} />
+          <div className="flex flex-col gap-2">
+            <div>
+              <SubsetTable
+                data={Object.values(tableRowData)}
+                onEdit={(schema, table) => {
+                  const key = buildRowKey(schema, table);
+                  if (tableRowData[key]) {
+                    setItemToEdit({
+                      ...tableRowData[key],
+                    });
+                  }
+                }}
+                hasLocalChange={hasLocalChange}
+                onReset={onLocalRowReset}
+              />
+            </div>
+            <div className="my-4">
+              <Separator />
+            </div>
+            <div>
+              <EditItem
+                connectionId={sourceConnectionId ?? ''}
+                item={itemToEdit}
+                onItem={setItemToEdit}
+                onCancel={() => setItemToEdit(undefined)}
+                onSave={() => {
+                  if (!itemToEdit) {
+                    return;
+                  }
+                  const key = buildRowKey(itemToEdit.schema, itemToEdit.table);
+                  const idx = form
+                    .getValues()
+                    .subsets.findIndex(
+                      (item) => buildRowKey(item.schema, item.table) === key
+                    );
+                  if (idx >= 0) {
+                    form.setValue(`subsets.${idx}`, {
                       schema: itemToEdit.schema,
                       table: itemToEdit.table,
                       whereClause: itemToEdit.where,
-                    })
-                  );
-                }
-                setItemToEdit(undefined);
-              }}
-              dbType={dbType}
-            />
-          </div>
-          <div className="my-6">
-            <Separator />
-          </div>
-          <div className="flex flex-col gap-2">
-            <div className="flex flex-row justify-end">
-              <p className="text-sm tracking-tight">
-                Save changes to apply any updates made to the table above
-              </p>
+                    });
+                  } else {
+                    form.setValue(
+                      `subsets`,
+                      form.getValues().subsets.concat({
+                        schema: itemToEdit.schema,
+                        table: itemToEdit.table,
+                        whereClause: itemToEdit.where,
+                      })
+                    );
+                  }
+                  setItemToEdit(undefined);
+                }}
+                dbType={dbType}
+              />
             </div>
-            <div className="flex flex-row gap-1 justify-end">
-              <Button key="submit" type="submit">
-                Save
-              </Button>
+            <div className="my-6">
+              <Separator />
+            </div>
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-row justify-end">
+                <p className="text-sm tracking-tight">
+                  Save changes to apply any updates made to the table above
+                </p>
+              </div>
+              <div className="flex flex-row gap-1 justify-end">
+                <Button key="submit" type="submit">
+                  Save
+                </Button>
+              </div>
             </div>
           </div>
         </form>
@@ -227,7 +231,10 @@ function getFormValues(sourceOpts?: JobSourceOptions): SubsetFormValues {
     (sourceOpts.config.case !== 'postgres' &&
       sourceOpts.config.case !== 'mysql')
   ) {
-    return { subsets: [] };
+    return {
+      subsets: [],
+      subsetOptions: { subsetByForeignKeyConstraints: false },
+    };
   }
 
   const schemas = sourceOpts.config.value.schemas;
@@ -240,7 +247,13 @@ function getFormValues(sourceOpts?: JobSourceOptions): SubsetFormValues {
       };
     });
   });
-  return { subsets };
+  return {
+    subsets,
+    subsetOptions: {
+      subsetByForeignKeyConstraints:
+        sourceOpts.config.value.subsetByForeignKeyConstraints,
+    },
+  };
 }
 
 async function setJobSubsets(

@@ -244,6 +244,9 @@ export type SingleTableSchemaFormValues = Yup.InferType<
 
 export const SUBSET_FORM_SCHEMA = Yup.object({
   subsets: Yup.array(SINGLE_SUBSET_FORM_SCHEMA).required(),
+  subsetOptions: Yup.object({
+    subsetByForeignKeyConstraints: Yup.boolean().default(true),
+  }),
 });
 
 export type SubsetFormValues = Yup.InferType<typeof SUBSET_FORM_SCHEMA>;
