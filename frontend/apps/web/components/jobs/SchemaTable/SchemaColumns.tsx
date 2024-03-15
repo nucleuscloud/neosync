@@ -29,11 +29,29 @@ import { useFormContext } from 'react-hook-form';
 import { SchemaColumnHeader } from './SchemaColumnHeader';
 import { Row as RowData } from './SchemaPageTable';
 import TransformerSelect from './TransformerSelect';
+// import {
+//   RankingInfo,
+//   rankItem,
+//   compareItems,
+// } from '@tanstack/match-sorter-utils';
 
 interface Props {
   transformers: Transformer[];
   columnMetadata: ColumnMetadata;
 }
+
+// const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
+//   // Rank the item
+//   const itemRank = rankItem(row.getValue(columnId), value);
+
+//   // Store the itemRank info
+//   addMeta({
+//     itemRank,
+//   });
+
+//   // Return if the item should be filtered in/out
+//   return itemRank.passed;
+// };
 
 export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
   const { transformers, columnMetadata } = props;
@@ -84,14 +102,14 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
     },
     {
       accessorKey: 'table',
-      filterFn: exactMatchFilterFn,
+      // filterFn: exactMatchFilterFn,
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Table" />
       ),
       cell: ({ row }) => {
         return (
           <span className="max-w-[500px] truncate font-medium">
-            {row.getValue('table')}
+            {`${row.getValue('schema')}.${row.getValue('table')}`}
           </span>
         );
       },

@@ -10,19 +10,13 @@ import { Form } from '@/components/ui/form';
 import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectionForeignConstraints';
 import { useGetConnectionPrimaryConstraints } from '@/libs/hooks/useGetConnectionPrimaryConstraints';
 import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
-import {
-  SCHEMA_FORM_SCHEMA,
-  SchemaFormValues,
-  convertJobMappingTransformerToForm,
-} from '@/yup-validations/jobs';
+import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
+import { SCHEMA_FORM_SCHEMA, SchemaFormValues } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   DatabaseColumn,
   ForeignConstraintTables,
-  JobMappingTransformer,
-  Passthrough,
   PrimaryConstraint,
-  TransformerConfig,
 } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect } from 'react';
@@ -70,6 +64,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   );
 
   const { data: connectionSchemaData } = useGetConnectionSchema(
+    account?.id ?? '',
+    connectFormValues.sourceId
+  );
+  const { data: connectionSchemaDataMap } = useGetConnectionSchemaMap(
     account?.id ?? '',
     connectFormValues.sourceId
   );
@@ -135,6 +133,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             data={form.watch().mappings}
             columnMetadata={columnMetadata}
             jobType="sync"
+            schema={connectionSchemaDataMap?.schemaMap ?? {}}
           />
           <div className="flex flex-row gap-1 justify-between">
             <Button key="back" type="button" onClick={() => router.back()}>
@@ -165,25 +164,7 @@ function getFormValues(
   }
 
   return {
-    mappings: dbCols.map((r) => {
-      return {
-        schema: r.schema,
-        table: r.table,
-        column: r.column,
-        dataType: r.dataType,
-        transformer: convertJobMappingTransformerToForm(
-          new JobMappingTransformer({
-            source: 'passthrough',
-            config: new TransformerConfig({
-              config: {
-                case: 'passthroughConfig',
-                value: new Passthrough({}),
-              },
-            }),
-          })
-        ),
-      };
-    }),
+    mappings: [],
     connectionId,
   };
 }

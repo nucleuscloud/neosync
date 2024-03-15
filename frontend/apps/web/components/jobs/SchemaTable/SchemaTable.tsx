@@ -2,10 +2,24 @@
 import { ColumnMetadata } from '@/app/(mgmt)/[account]/new/job/schema/page';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
+import { Card, CardContent } from '@/components/ui/card';
+import { ConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetMergedTransformers } from '@/libs/hooks/useGetMergedTransformers';
-import { JobMappingFormValues } from '@/yup-validations/jobs';
-import { GetConnectionSchemaResponse } from '@neosync/sdk';
-import { ReactElement } from 'react';
+import {
+  JobMappingFormValues,
+  SchemaFormValues,
+  convertJobMappingTransformerToForm,
+} from '@/yup-validations/jobs';
+import {
+  GetConnectionSchemaResponse,
+  JobMappingTransformer,
+  Passthrough,
+  TransformerConfig,
+} from '@neosync/sdk';
+import { ReactElement, useState } from 'react';
+// import 'react-dual-listbox/lib/react-dual-listbox.css';
+import { useFieldArray, useFormContext } from 'react-hook-form';
+import DualListBox2, { Action } from './DualListBox';
 import { getSchemaColumns } from './SchemaColumns';
 import SchemaPageTable, { Row } from './SchemaPageTable';
 
@@ -13,18 +27,24 @@ interface Props {
   data: JobMappingFormValues[];
   excludeInputReqTransformers?: boolean; // will result in only generators (functions with no data input)
   columnMetadata: ColumnMetadata;
-  jobType: string;
+  jobType: string; // todo: update to be named type
+  schema: ConnectionSchemaMap;
 }
 
 export function SchemaTable(props: Props): ReactElement {
-  const { data, excludeInputReqTransformers, columnMetadata, jobType } = props;
+  const { data, excludeInputReqTransformers, columnMetadata, jobType, schema } =
+    props;
 
   const { account } = useAccount();
-  const { transformers: mergedTransformers, isLoading } =
-    useGetMergedTransformers(
-      excludeInputReqTransformers ?? false,
-      account?.id ?? ''
-    );
+  const { transformers, isLoading } = useGetMergedTransformers(
+    excludeInputReqTransformers ?? false,
+    account?.id ?? ''
+  );
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(
+    new Set(Object.keys(schema))
+  );
+
+  // const [selected, setselected] = useState<string[] | string[]>([]);
 
   const tableData = data.map((d, idx): Row => {
     return {
@@ -34,20 +54,96 @@ export function SchemaTable(props: Props): ReactElement {
   });
 
   const columns = getSchemaColumns({
-    transformers: mergedTransformers,
+    transformers,
     columnMetadata: columnMetadata,
   });
 
-  if (isLoading || !tableData || tableData.length == 0) {
+  const form = useFormContext<SchemaFormValues>();
+  const { append, remove, fields } = useFieldArray<SchemaFormValues>({
+    control: form.control,
+    name: 'mappings',
+  });
+
+  function toggleItem(items: Set<string>, action: Action): void {
+    if (items.size === 0) {
+      const idxs = fields.map((_, idx) => idx);
+      remove(idxs);
+      setSelectedItems(new Set());
+      return;
+    }
+    const [added, removed] = getDelta(items, selectedItems);
+
+    const toRemove: number[] = [];
+    const toAdd: any[] = [];
+
+    fields.forEach((field, idx) => {
+      if (removed.has(`${field.schema}.${field.table}`)) {
+        toRemove.push(idx);
+      }
+    });
+    added.forEach((item) => {
+      const dbcols = schema[item];
+      if (!dbcols) {
+        return;
+      }
+      dbcols.forEach((dbcol) => {
+        toAdd.push({
+          schema: dbcol.schema,
+          table: dbcol.table,
+          column: dbcol.column,
+          dataType: dbcol.dataType,
+          transformer: convertJobMappingTransformerToForm(
+            new JobMappingTransformer({
+              source: 'passthrough',
+              config: new TransformerConfig({
+                config: {
+                  case: 'passthroughConfig',
+                  value: new Passthrough({}),
+                },
+              }),
+            })
+          ),
+        });
+      });
+    });
+    if (toRemove.length > 0) {
+      remove(toRemove);
+    }
+    if (toAdd.length > 0) {
+      append(toAdd);
+    }
+    setSelectedItems(items);
+  }
+
+  // this should be pre-filtered to remove any schemas that are already present in the form.
+  // maybe that is done for us at the component level one above and this level only handles the deltas
+  // const [schemalist, setSchemalist] = useState(schema);
+
+  if (isLoading || !tableData) {
     return <SkeletonTable />;
   }
 
   return (
-    <div>
+    <div className="flex flex-col gap-3">
+      <div>
+        <Card className="p-2">
+          <CardContent>
+            <DualListBox2
+              options={Object.keys(schema).map((value) => ({
+                value: value,
+                label: value,
+              }))}
+              selected={selectedItems}
+              onChange={toggleItem}
+            />
+          </CardContent>
+        </Card>
+      </div>
+      <div></div>
       <SchemaPageTable
         columns={columns}
         data={tableData}
-        transformers={mergedTransformers}
+        transformers={transformers}
         jobType={jobType}
       />
     </div>
@@ -75,4 +171,25 @@ export async function getConnectionSchema(
     throw new Error(body.message);
   }
   return GetConnectionSchemaResponse.fromJson(await res.json());
+}
+
+function getDelta(
+  newSet: Set<string>,
+  oldSet: Set<string>
+): [Set<string>, Set<string>] {
+  const added = new Set<string>();
+  const removed = new Set<string>();
+
+  oldSet.forEach((val) => {
+    if (!newSet.has(val)) {
+      removed.add(val);
+    }
+  });
+  newSet.forEach((val) => {
+    if (!oldSet.has(val)) {
+      added.add(val);
+    }
+  });
+
+  return [added, removed];
 }

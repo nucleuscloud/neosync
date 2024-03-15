@@ -54,6 +54,6 @@ export function useGetMergedTransformers(
   return {
     transformers: mergedTransformers,
     isLoading: isLoading,
-    isValidating: false,
+    isValidating: isValidating,
   };
 }

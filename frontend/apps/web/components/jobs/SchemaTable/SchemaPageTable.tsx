@@ -46,7 +46,11 @@ export default function SchemaPageTable<TData, TValue>({
   const table = useReactTable({
     data,
     columns,
-    state: {},
+    state: {
+      columnVisibility: {
+        schema: false,
+      },
+    },
     initialState: {
       sorting: [
         { id: 'schema', desc: true },
@@ -82,13 +86,12 @@ export default function SchemaPageTable<TData, TValue>({
       <div className="z-50">
         <SchemaTableToolbar
           table={table}
-          data={data}
+          // data={data}
           transformers={transformers}
-          jobType={jobType}
         />
       </div>
       <div
-        className="rounded-md border max-h-[500px] relative  overflow-x-auto"
+        className="rounded-md border max-h-[500px] relative overflow-x-auto"
         ref={tableContainerRef}
       >
         <StickyHeaderTable>
