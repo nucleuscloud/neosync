@@ -31,6 +31,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectionForeignConstraints';
 import { useGetConnectionPrimaryConstraints } from '@/libs/hooks/useGetConnectionPrimaryConstraints';
 import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
+import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 import { getErrorMessage } from '@/util/util';
 import {
@@ -46,7 +47,6 @@ import {
   GenerateSourceTableOption,
   Job,
   JobMapping,
-  JobMappingTransformer,
   JobSource,
   JobSourceOptions,
   UpdateJobSourceConnectionRequest,
@@ -55,7 +55,6 @@ import {
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { SchemaMap, getColumnMapping } from './DataSyncConnectionCard';
 import { getFkIdFromGenerateSource } from './util';
 
 interface Props {
@@ -77,6 +76,8 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     isLoading: isGetConnectionsSchemaLoading,
     error,
   } = useGetConnectionSchema(account?.id ?? '', fkSourceConnectionId);
+  const { data: connectionSchemaDataMap, isLoading: isSchemaDataMapLoading } =
+    useGetConnectionSchemaMap(account?.id ?? '', fkSourceConnectionId ?? '');
 
   const { data: primaryConstraints } = useGetConnectionPrimaryConstraints(
     account?.id ?? '',
@@ -123,10 +124,10 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
       schema: '',
       table: '',
     },
-    values: getJobSource(data?.job, schema?.schemas),
+    values: getJobSource(data?.job),
   });
 
-  if (isJobLoading || isGetConnectionsSchemaLoading) {
+  if (isJobLoading || isGetConnectionsSchemaLoading || isSchemaDataMapLoading) {
     return (
       <div className="space-y-10">
         <Skeleton className="w-full h-12" />
@@ -305,6 +306,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
             excludeInputReqTransformers
             jobType="generate"
             columnMetadata={columnMetadata}
+            schema={connectionSchemaDataMap?.schemaMap ?? {}}
           />
         )}
         {form.formState.errors.mappings && (
@@ -325,16 +327,13 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
   );
 }
 
-function getJobSource(
-  job?: Job,
-  dbCols?: DatabaseColumn[]
-): SingleTableSchemaFormValues {
-  if (!job || !dbCols) {
+function getJobSource(job?: Job): SingleTableSchemaFormValues {
+  if (!job) {
     return {
       mappings: [],
       numRows: 0,
-      schema: 'foo2',
-      table: 'bar2',
+      schema: '',
+      table: '',
     };
   }
   let schema = '';
@@ -352,56 +351,40 @@ function getJobSource(
     }
   }
 
-  const schemaMap: SchemaMap = {};
-  job?.mappings.forEach((c) => {
-    if (!schemaMap[c.schema]) {
-      schemaMap[c.schema] = {
-        [c.table]: {
-          [c.column]: {
-            transformer: convertJobMappingTransformerToForm(
-              c?.transformer ?? new JobMappingTransformer({})
-            ),
-          },
-        },
-      };
-    } else if (!schemaMap[c.schema][c.table]) {
-      schemaMap[c.schema][c.table] = {
-        [c.column]: {
-          transformer: convertJobMappingTransformerToForm(
-            c?.transformer ?? new JobMappingTransformer({})
-          ),
-        },
-      };
-    } else {
-      schemaMap[c.schema][c.table][c.column] = {
-        transformer: convertJobMappingTransformerToForm(
-          c.transformer ?? new JobMappingTransformer({})
-        ),
-      };
-    }
+  const mappings: SingleTableSchemaFormValues['mappings'] = (
+    job.mappings ?? []
+  ).map((mapping) => {
+    return {
+      schema: mapping.schema,
+      table: mapping.table,
+      column: mapping.column,
+      transformer: mapping.transformer
+        ? convertJobMappingTransformerToForm(mapping.transformer)
+        : ({} as any), // todo
+    };
   });
 
-  const mappings: SingleTableSchemaFormValues['mappings'] = dbCols
-    .filter((c) => c.schema === schema && c.table === table)
-    .map((c) => {
-      const colMapping = getColumnMapping(
-        schemaMap,
-        c.schema,
-        c.table,
-        c.column
-      );
-      const transformer =
-        colMapping?.transformer ??
-        convertJobMappingTransformerToForm(new JobMappingTransformer({}));
+  // const mappings: SingleTableSchemaFormValues['mappings'] = dbCols
+  //   .filter((c) => c.schema === schema && c.table === table)
+  //   .map((c) => {
+  //     const colMapping = getColumnMapping(
+  //       schemaMap,
+  //       c.schema,
+  //       c.table,
+  //       c.column
+  //     );
+  //     const transformer =
+  //       colMapping?.transformer ??
+  //       convertJobMappingTransformerToForm(new JobMappingTransformer({}));
 
-      return {
-        schema: schema,
-        table: table,
-        column: c.column,
-        dataType: c.dataType,
-        transformer: transformer,
-      };
-    });
+  //     return {
+  //       schema: schema,
+  //       table: table,
+  //       column: c.column,
+  //       dataType: c.dataType,
+  //       transformer: transformer,
+  //     };
+  //   });
   return {
     mappings: mappings,
     numRows: numRows,
