@@ -44,8 +44,6 @@ export function SchemaTable(props: Props): ReactElement {
     new Set(data.map((d) => `${d.schema}.${d.table}`))
   );
 
-  // const [selected, setselected] = useState<string[] | string[]>([]);
-
   const tableData = data.map((d, idx): Row => {
     return {
       ...d,
@@ -114,10 +112,6 @@ export function SchemaTable(props: Props): ReactElement {
     }
     setSelectedItems(items);
   }
-
-  // this should be pre-filtered to remove any schemas that are already present in the form.
-  // maybe that is done for us at the component level one above and this level only handles the deltas
-  // const [schemalist, setSchemalist] = useState(schema);
 
   if (isLoading || !tableData) {
     return <SkeletonTable />;
