@@ -196,7 +196,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		// reverse of table dependency
 		// map of foreign key to source table + column
 		tableConstraintsSource = getForeignKeyToSourceMap(td)
-		tableQueryMap, err := buildSelectQueryMap(postgresDriver, groupedTableMapping, sourceTableOpts, td, dependencyConfigs, true)
+		tableQueryMap, err := buildSelectQueryMap(postgresDriver, groupedTableMapping, sourceTableOpts, td, dependencyConfigs, jobSourceConfig.Postgres.SubsetByForeignKeyConstraints)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build postgres select queries: %w", err)
 		}
@@ -306,7 +306,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		// reverse of table dependency
 		// map of foreign key to source table + column
 		tableConstraintsSource = getForeignKeyToSourceMap(td)
-		tableQueryMap, err := buildSelectQueryMap(mysqlDriver, groupedTableMapping, sourceTableOpts, td, dependencyConfigs, true)
+		tableQueryMap, err := buildSelectQueryMap(mysqlDriver, groupedTableMapping, sourceTableOpts, td, dependencyConfigs, jobSourceConfig.Mysql.SubsetByForeignKeyConstraints)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build mysql select queries: %w", err)
 		}
