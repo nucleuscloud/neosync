@@ -15,9 +15,6 @@ func (s *Service) GetAccountOnboardingConfig(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetAccountOnboardingConfigRequest],
 ) (*connect.Response[mgmtv1alpha1.GetAccountOnboardingConfigResponse], error) {
-	if s.cfg.IsNeosyncCloud {
-		return nil, nucleuserrors.NewNotImplemented("not enabled in Neosync Cloud")
-	}
 	user, err := s.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
 	if err != nil {
 		return nil, err
@@ -55,9 +52,6 @@ func (s *Service) SetAccountOnboardingConfig(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.SetAccountOnboardingConfigRequest],
 ) (*connect.Response[mgmtv1alpha1.SetAccountOnboardingConfigResponse], error) {
-	if s.cfg.IsNeosyncCloud {
-		return nil, nucleuserrors.NewNotImplemented("not enabled in Neosync Cloud")
-	}
 	user, err := s.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
 	if err != nil {
 		return nil, err

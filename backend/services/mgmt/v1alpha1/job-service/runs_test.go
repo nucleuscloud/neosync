@@ -21,6 +21,7 @@ import (
 	"go.temporal.io/api/workflowservice/v1"
 	temporalclient "go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/converter"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // GetJobRuns
@@ -204,8 +205,8 @@ func getWorfklowExecutionInfoMock(jobId, workflowId string) *workflowpb.Workflow
 	now := time.Now()
 	payload, _ := converter.GetDefaultDataConverter().ToPayload(jobId)
 	return &workflowpb.WorkflowExecutionInfo{
-		CloseTime: &now,
-		StartTime: &now,
+		CloseTime: timestamppb.New(now),
+		StartTime: timestamppb.New(now),
 		Type: &common.WorkflowType{
 			Name: "name",
 		},

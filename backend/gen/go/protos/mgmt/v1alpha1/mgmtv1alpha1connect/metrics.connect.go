@@ -33,9 +33,9 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// MetricsServiceGetRangedMetricsProcedure is the fully-qualified name of the MetricsService's
-	// GetRangedMetrics RPC.
-	MetricsServiceGetRangedMetricsProcedure = "/mgmt.v1alpha1.MetricsService/GetRangedMetrics"
+	// MetricsServiceGetDailyMetricCountProcedure is the fully-qualified name of the MetricsService's
+	// GetDailyMetricCount RPC.
+	MetricsServiceGetDailyMetricCountProcedure = "/mgmt.v1alpha1.MetricsService/GetDailyMetricCount"
 	// MetricsServiceGetMetricCountProcedure is the fully-qualified name of the MetricsService's
 	// GetMetricCount RPC.
 	MetricsServiceGetMetricCountProcedure = "/mgmt.v1alpha1.MetricsService/GetMetricCount"
@@ -43,15 +43,15 @@ const (
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
 var (
-	metricsServiceServiceDescriptor                = v1alpha1.File_mgmt_v1alpha1_metrics_proto.Services().ByName("MetricsService")
-	metricsServiceGetRangedMetricsMethodDescriptor = metricsServiceServiceDescriptor.Methods().ByName("GetRangedMetrics")
-	metricsServiceGetMetricCountMethodDescriptor   = metricsServiceServiceDescriptor.Methods().ByName("GetMetricCount")
+	metricsServiceServiceDescriptor                   = v1alpha1.File_mgmt_v1alpha1_metrics_proto.Services().ByName("MetricsService")
+	metricsServiceGetDailyMetricCountMethodDescriptor = metricsServiceServiceDescriptor.Methods().ByName("GetDailyMetricCount")
+	metricsServiceGetMetricCountMethodDescriptor      = metricsServiceServiceDescriptor.Methods().ByName("GetMetricCount")
 )
 
 // MetricsServiceClient is a client for the mgmt.v1alpha1.MetricsService service.
 type MetricsServiceClient interface {
 	// Retrieve a timed range of records
-	GetRangedMetrics(context.Context, *connect.Request[v1alpha1.GetRangedMetricsRequest]) (*connect.Response[v1alpha1.GetRangedMetricsResponse], error)
+	GetDailyMetricCount(context.Context, *connect.Request[v1alpha1.GetDailyMetricCountRequest]) (*connect.Response[v1alpha1.GetDailyMetricCountResponse], error)
 	// For the given metric and time range, returns the total count found
 	GetMetricCount(context.Context, *connect.Request[v1alpha1.GetMetricCountRequest]) (*connect.Response[v1alpha1.GetMetricCountResponse], error)
 }
@@ -66,10 +66,10 @@ type MetricsServiceClient interface {
 func NewMetricsServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) MetricsServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &metricsServiceClient{
-		getRangedMetrics: connect.NewClient[v1alpha1.GetRangedMetricsRequest, v1alpha1.GetRangedMetricsResponse](
+		getDailyMetricCount: connect.NewClient[v1alpha1.GetDailyMetricCountRequest, v1alpha1.GetDailyMetricCountResponse](
 			httpClient,
-			baseURL+MetricsServiceGetRangedMetricsProcedure,
-			connect.WithSchema(metricsServiceGetRangedMetricsMethodDescriptor),
+			baseURL+MetricsServiceGetDailyMetricCountProcedure,
+			connect.WithSchema(metricsServiceGetDailyMetricCountMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
 		getMetricCount: connect.NewClient[v1alpha1.GetMetricCountRequest, v1alpha1.GetMetricCountResponse](
@@ -83,13 +83,13 @@ func NewMetricsServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 
 // metricsServiceClient implements MetricsServiceClient.
 type metricsServiceClient struct {
-	getRangedMetrics *connect.Client[v1alpha1.GetRangedMetricsRequest, v1alpha1.GetRangedMetricsResponse]
-	getMetricCount   *connect.Client[v1alpha1.GetMetricCountRequest, v1alpha1.GetMetricCountResponse]
+	getDailyMetricCount *connect.Client[v1alpha1.GetDailyMetricCountRequest, v1alpha1.GetDailyMetricCountResponse]
+	getMetricCount      *connect.Client[v1alpha1.GetMetricCountRequest, v1alpha1.GetMetricCountResponse]
 }
 
-// GetRangedMetrics calls mgmt.v1alpha1.MetricsService.GetRangedMetrics.
-func (c *metricsServiceClient) GetRangedMetrics(ctx context.Context, req *connect.Request[v1alpha1.GetRangedMetricsRequest]) (*connect.Response[v1alpha1.GetRangedMetricsResponse], error) {
-	return c.getRangedMetrics.CallUnary(ctx, req)
+// GetDailyMetricCount calls mgmt.v1alpha1.MetricsService.GetDailyMetricCount.
+func (c *metricsServiceClient) GetDailyMetricCount(ctx context.Context, req *connect.Request[v1alpha1.GetDailyMetricCountRequest]) (*connect.Response[v1alpha1.GetDailyMetricCountResponse], error) {
+	return c.getDailyMetricCount.CallUnary(ctx, req)
 }
 
 // GetMetricCount calls mgmt.v1alpha1.MetricsService.GetMetricCount.
@@ -100,7 +100,7 @@ func (c *metricsServiceClient) GetMetricCount(ctx context.Context, req *connect.
 // MetricsServiceHandler is an implementation of the mgmt.v1alpha1.MetricsService service.
 type MetricsServiceHandler interface {
 	// Retrieve a timed range of records
-	GetRangedMetrics(context.Context, *connect.Request[v1alpha1.GetRangedMetricsRequest]) (*connect.Response[v1alpha1.GetRangedMetricsResponse], error)
+	GetDailyMetricCount(context.Context, *connect.Request[v1alpha1.GetDailyMetricCountRequest]) (*connect.Response[v1alpha1.GetDailyMetricCountResponse], error)
 	// For the given metric and time range, returns the total count found
 	GetMetricCount(context.Context, *connect.Request[v1alpha1.GetMetricCountRequest]) (*connect.Response[v1alpha1.GetMetricCountResponse], error)
 }
@@ -111,10 +111,10 @@ type MetricsServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewMetricsServiceHandler(svc MetricsServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
-	metricsServiceGetRangedMetricsHandler := connect.NewUnaryHandler(
-		MetricsServiceGetRangedMetricsProcedure,
-		svc.GetRangedMetrics,
-		connect.WithSchema(metricsServiceGetRangedMetricsMethodDescriptor),
+	metricsServiceGetDailyMetricCountHandler := connect.NewUnaryHandler(
+		MetricsServiceGetDailyMetricCountProcedure,
+		svc.GetDailyMetricCount,
+		connect.WithSchema(metricsServiceGetDailyMetricCountMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
 	metricsServiceGetMetricCountHandler := connect.NewUnaryHandler(
@@ -125,8 +125,8 @@ func NewMetricsServiceHandler(svc MetricsServiceHandler, opts ...connect.Handler
 	)
 	return "/mgmt.v1alpha1.MetricsService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case MetricsServiceGetRangedMetricsProcedure:
-			metricsServiceGetRangedMetricsHandler.ServeHTTP(w, r)
+		case MetricsServiceGetDailyMetricCountProcedure:
+			metricsServiceGetDailyMetricCountHandler.ServeHTTP(w, r)
 		case MetricsServiceGetMetricCountProcedure:
 			metricsServiceGetMetricCountHandler.ServeHTTP(w, r)
 		default:
@@ -138,8 +138,8 @@ func NewMetricsServiceHandler(svc MetricsServiceHandler, opts ...connect.Handler
 // UnimplementedMetricsServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedMetricsServiceHandler struct{}
 
-func (UnimplementedMetricsServiceHandler) GetRangedMetrics(context.Context, *connect.Request[v1alpha1.GetRangedMetricsRequest]) (*connect.Response[v1alpha1.GetRangedMetricsResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.MetricsService.GetRangedMetrics is not implemented"))
+func (UnimplementedMetricsServiceHandler) GetDailyMetricCount(context.Context, *connect.Request[v1alpha1.GetDailyMetricCountRequest]) (*connect.Response[v1alpha1.GetDailyMetricCountResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.MetricsService.GetDailyMetricCount is not implemented"))
 }
 
 func (UnimplementedMetricsServiceHandler) GetMetricCount(context.Context, *connect.Request[v1alpha1.GetMetricCountRequest]) (*connect.Response[v1alpha1.GetMetricCountResponse], error) {

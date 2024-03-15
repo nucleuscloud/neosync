@@ -26,6 +26,13 @@ import {
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+
 type Side = (typeof SIDE_OPTIONS)[number];
 
 var SIDE_OPTIONS: readonly ['top', 'right', 'bottom', 'left'];
@@ -36,10 +43,11 @@ interface Props {
   onSelect(value: JobMappingTransformerForm): void;
   placeholder: string;
   side: Side;
+  disabled: boolean;
 }
 
 export default function TransformerSelect(props: Props): ReactElement {
-  const { transformers, value, onSelect, placeholder, side } = props;
+  const { transformers, value, onSelect, placeholder, side, disabled } = props;
   const [open, setOpen] = useState(false);
 
   const udfTransformers = transformers
@@ -52,13 +60,21 @@ export default function TransformerSelect(props: Props): ReactElement {
   const udfTransformerMap = new Map(udfTransformers.map((t) => [t.id, t]));
   const sysTransformerMap = new Map(sysTransformers.map((t) => [t.source, t]));
 
-  return (
+  return disabled ? (
+    <MockButtonWithToolTip
+      placeholder={placeholder}
+      value={value}
+      udfTransformerMap={udfTransformerMap}
+      systemTransformerMap={sysTransformerMap}
+    />
+  ) : (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
           role="combobox"
           aria-expanded={open}
+          disabled={disabled}
           className={cn(
             placeholder.startsWith('Bulk')
               ? 'justify-between w-[275px]'
@@ -192,4 +208,50 @@ function getPopoverTriggerButtonText(
     default:
       return systemTransformerMap.get(value.source)?.name ?? placeholder;
   }
+}
+
+interface MockButtonProps {
+  value: JobMappingTransformerForm;
+  placeholder: string;
+  udfTransformerMap: Map<string, UserDefinedTransformer>;
+  systemTransformerMap: Map<string, SystemTransformer>;
+}
+
+// have to do this otherwise react throws a warning where they don't want you to have a button as a child of a button (TooltipTrigger). If you do that and then disable the button the tooltip doesn't work on hover.
+function MockButtonWithToolTip(props: MockButtonProps): ReactElement {
+  const { placeholder, value, udfTransformerMap, systemTransformerMap } = props;
+
+  return (
+    <div>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div
+              className={cn(
+                placeholder.startsWith('Bulk')
+                  ? 'justify-between w-[275px]'
+                  : 'justify-center w-[175px] cursor-pointer flex flex-row items-center  rounded-md text-sm font-gay- h-9 px-4 py-2 border border-input opacity-50'
+              )}
+            >
+              <div className="whitespace-nowrap truncate lg:w-[200px] text-left">
+                {getPopoverTriggerButtonText(
+                  value,
+                  udfTransformerMap,
+                  systemTransformerMap,
+                  placeholder
+                )}
+              </div>
+              <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <div className="max-w-[140px] text-wrap">
+              Cannot assign a Transformer to Foreign Key if Primary Key has
+              Transformer{' '}
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
 }

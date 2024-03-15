@@ -91,5 +91,5 @@ stringData:
     ENABLE_RUN_LOGS: {{ .Values.enableRunLogs | default "false" | quote }}
 
     {{ if and .Values.protometrics .Values.protometrics.enabled }}
-    METRICS_SERVICE_ENABLED: {{ .Values.protometrics.enabled }}
+    METRICS_SERVICE_ENABLED: {{ .Values.protometrics.enabled | default "false" | quote }}
     {{- end }}

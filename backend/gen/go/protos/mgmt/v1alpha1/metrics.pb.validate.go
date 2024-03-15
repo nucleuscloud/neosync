@@ -35,77 +35,46 @@ var (
 	_ = sort.Sort
 )
 
-// Validate checks the field values on MetricResult with the rules defined in
-// the proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *MetricResult) Validate() error {
+// Validate checks the field values on Date with the rules defined in the proto
+// definition for this message. If any rules are violated, the first error
+// encountered is returned, or nil if there are no violations.
+func (m *Date) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on MetricResult with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in MetricResultMultiError, or
-// nil if none found.
-func (m *MetricResult) ValidateAll() error {
+// ValidateAll checks the field values on Date with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in DateMultiError, or nil if none found.
+func (m *Date) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *MetricResult) validate(all bool) error {
+func (m *Date) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
 	var errors []error
 
-	// no validation rules for Metric
+	// no validation rules for Year
 
-	for idx, item := range m.GetValues() {
-		_, _ = idx, item
+	// no validation rules for Month
 
-		if all {
-			switch v := interface{}(item).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, MetricResultValidationError{
-						field:  fmt.Sprintf("Values[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, MetricResultValidationError{
-						field:  fmt.Sprintf("Values[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return MetricResultValidationError{
-					field:  fmt.Sprintf("Values[%v]", idx),
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-
-	}
+	// no validation rules for Day
 
 	if len(errors) > 0 {
-		return MetricResultMultiError(errors)
+		return DateMultiError(errors)
 	}
 
 	return nil
 }
 
-// MetricResultMultiError is an error wrapping multiple validation errors
-// returned by MetricResult.ValidateAll() if the designated constraints aren't met.
-type MetricResultMultiError []error
+// DateMultiError is an error wrapping multiple validation errors returned by
+// Date.ValidateAll() if the designated constraints aren't met.
+type DateMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m MetricResultMultiError) Error() string {
+func (m DateMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -114,11 +83,11 @@ func (m MetricResultMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m MetricResultMultiError) AllErrors() []error { return m }
+func (m DateMultiError) AllErrors() []error { return m }
 
-// MetricResultValidationError is the validation error returned by
-// MetricResult.Validate if the designated constraints aren't met.
-type MetricResultValidationError struct {
+// DateValidationError is the validation error returned by Date.Validate if the
+// designated constraints aren't met.
+type DateValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -126,22 +95,22 @@ type MetricResultValidationError struct {
 }
 
 // Field function returns field value.
-func (e MetricResultValidationError) Field() string { return e.field }
+func (e DateValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e MetricResultValidationError) Reason() string { return e.reason }
+func (e DateValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e MetricResultValidationError) Cause() error { return e.cause }
+func (e DateValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e MetricResultValidationError) Key() bool { return e.key }
+func (e DateValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e MetricResultValidationError) ErrorName() string { return "MetricResultValidationError" }
+func (e DateValidationError) ErrorName() string { return "DateValidationError" }
 
 // Error satisfies the builtin error interface
-func (e MetricResultValidationError) Error() string {
+func (e DateValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -153,14 +122,14 @@ func (e MetricResultValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sMetricResult.%s: %s%s",
+		"invalid %sDate.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = MetricResultValidationError{}
+var _ error = DateValidationError{}
 
 var _ interface {
 	Field() string
@@ -168,154 +137,24 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = MetricResultValidationError{}
+} = DateValidationError{}
 
-// Validate checks the field values on MetricValue with the rules defined in
-// the proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *MetricValue) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on MetricValue with the rules defined in
-// the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in MetricValueMultiError, or
-// nil if none found.
-func (m *MetricValue) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *MetricValue) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	// no validation rules for Value
-
-	if all {
-		switch v := interface{}(m.GetTimestamp()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, MetricValueValidationError{
-					field:  "Timestamp",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, MetricValueValidationError{
-					field:  "Timestamp",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetTimestamp()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return MetricValueValidationError{
-				field:  "Timestamp",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
-	if len(errors) > 0 {
-		return MetricValueMultiError(errors)
-	}
-
-	return nil
-}
-
-// MetricValueMultiError is an error wrapping multiple validation errors
-// returned by MetricValue.ValidateAll() if the designated constraints aren't met.
-type MetricValueMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m MetricValueMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m MetricValueMultiError) AllErrors() []error { return m }
-
-// MetricValueValidationError is the validation error returned by
-// MetricValue.Validate if the designated constraints aren't met.
-type MetricValueValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e MetricValueValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e MetricValueValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e MetricValueValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e MetricValueValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e MetricValueValidationError) ErrorName() string { return "MetricValueValidationError" }
-
-// Error satisfies the builtin error interface
-func (e MetricValueValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sMetricValue.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = MetricValueValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = MetricValueValidationError{}
-
-// Validate checks the field values on GetRangedMetricsRequest with the rules
-// defined in the proto definition for this message. If any rules are
+// Validate checks the field values on GetDailyMetricCountRequest with the
+// rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *GetRangedMetricsRequest) Validate() error {
+func (m *GetDailyMetricCountRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on GetRangedMetricsRequest with the
+// ValidateAll checks the field values on GetDailyMetricCountRequest with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// GetRangedMetricsRequestMultiError, or nil if none found.
-func (m *GetRangedMetricsRequest) ValidateAll() error {
+// GetDailyMetricCountRequestMultiError, or nil if none found.
+func (m *GetDailyMetricCountRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *GetRangedMetricsRequest) validate(all bool) error {
+func (m *GetDailyMetricCountRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -326,7 +165,7 @@ func (m *GetRangedMetricsRequest) validate(all bool) error {
 		switch v := interface{}(m.GetStart()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, GetRangedMetricsRequestValidationError{
+				errors = append(errors, GetDailyMetricCountRequestValidationError{
 					field:  "Start",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -334,7 +173,7 @@ func (m *GetRangedMetricsRequest) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, GetRangedMetricsRequestValidationError{
+				errors = append(errors, GetDailyMetricCountRequestValidationError{
 					field:  "Start",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -343,7 +182,7 @@ func (m *GetRangedMetricsRequest) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetStart()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return GetRangedMetricsRequestValidationError{
+			return GetDailyMetricCountRequestValidationError{
 				field:  "Start",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -355,7 +194,7 @@ func (m *GetRangedMetricsRequest) validate(all bool) error {
 		switch v := interface{}(m.GetEnd()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, GetRangedMetricsRequestValidationError{
+				errors = append(errors, GetDailyMetricCountRequestValidationError{
 					field:  "End",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -363,7 +202,7 @@ func (m *GetRangedMetricsRequest) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, GetRangedMetricsRequestValidationError{
+				errors = append(errors, GetDailyMetricCountRequestValidationError{
 					field:  "End",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -372,7 +211,7 @@ func (m *GetRangedMetricsRequest) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetEnd()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return GetRangedMetricsRequestValidationError{
+			return GetDailyMetricCountRequestValidationError{
 				field:  "End",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -383,9 +222,9 @@ func (m *GetRangedMetricsRequest) validate(all bool) error {
 	// no validation rules for Metric
 
 	switch v := m.Identifier.(type) {
-	case *GetRangedMetricsRequest_AccountId:
+	case *GetDailyMetricCountRequest_AccountId:
 		if v == nil {
-			err := GetRangedMetricsRequestValidationError{
+			err := GetDailyMetricCountRequestValidationError{
 				field:  "Identifier",
 				reason: "oneof value cannot be a typed-nil",
 			}
@@ -395,9 +234,9 @@ func (m *GetRangedMetricsRequest) validate(all bool) error {
 			errors = append(errors, err)
 		}
 		// no validation rules for AccountId
-	case *GetRangedMetricsRequest_JobId:
+	case *GetDailyMetricCountRequest_JobId:
 		if v == nil {
-			err := GetRangedMetricsRequestValidationError{
+			err := GetDailyMetricCountRequestValidationError{
 				field:  "Identifier",
 				reason: "oneof value cannot be a typed-nil",
 			}
@@ -407,9 +246,9 @@ func (m *GetRangedMetricsRequest) validate(all bool) error {
 			errors = append(errors, err)
 		}
 		// no validation rules for JobId
-	case *GetRangedMetricsRequest_RunId:
+	case *GetDailyMetricCountRequest_RunId:
 		if v == nil {
-			err := GetRangedMetricsRequestValidationError{
+			err := GetDailyMetricCountRequestValidationError{
 				field:  "Identifier",
 				reason: "oneof value cannot be a typed-nil",
 			}
@@ -424,19 +263,19 @@ func (m *GetRangedMetricsRequest) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return GetRangedMetricsRequestMultiError(errors)
+		return GetDailyMetricCountRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-// GetRangedMetricsRequestMultiError is an error wrapping multiple validation
-// errors returned by GetRangedMetricsRequest.ValidateAll() if the designated
-// constraints aren't met.
-type GetRangedMetricsRequestMultiError []error
+// GetDailyMetricCountRequestMultiError is an error wrapping multiple
+// validation errors returned by GetDailyMetricCountRequest.ValidateAll() if
+// the designated constraints aren't met.
+type GetDailyMetricCountRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m GetRangedMetricsRequestMultiError) Error() string {
+func (m GetDailyMetricCountRequestMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -445,11 +284,11 @@ func (m GetRangedMetricsRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m GetRangedMetricsRequestMultiError) AllErrors() []error { return m }
+func (m GetDailyMetricCountRequestMultiError) AllErrors() []error { return m }
 
-// GetRangedMetricsRequestValidationError is the validation error returned by
-// GetRangedMetricsRequest.Validate if the designated constraints aren't met.
-type GetRangedMetricsRequestValidationError struct {
+// GetDailyMetricCountRequestValidationError is the validation error returned
+// by GetDailyMetricCountRequest.Validate if the designated constraints aren't met.
+type GetDailyMetricCountRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -457,24 +296,24 @@ type GetRangedMetricsRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e GetRangedMetricsRequestValidationError) Field() string { return e.field }
+func (e GetDailyMetricCountRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e GetRangedMetricsRequestValidationError) Reason() string { return e.reason }
+func (e GetDailyMetricCountRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e GetRangedMetricsRequestValidationError) Cause() error { return e.cause }
+func (e GetDailyMetricCountRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e GetRangedMetricsRequestValidationError) Key() bool { return e.key }
+func (e GetDailyMetricCountRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e GetRangedMetricsRequestValidationError) ErrorName() string {
-	return "GetRangedMetricsRequestValidationError"
+func (e GetDailyMetricCountRequestValidationError) ErrorName() string {
+	return "GetDailyMetricCountRequestValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e GetRangedMetricsRequestValidationError) Error() string {
+func (e GetDailyMetricCountRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -486,14 +325,14 @@ func (e GetRangedMetricsRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sGetRangedMetricsRequest.%s: %s%s",
+		"invalid %sGetDailyMetricCountRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = GetRangedMetricsRequestValidationError{}
+var _ error = GetDailyMetricCountRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -501,24 +340,24 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = GetRangedMetricsRequestValidationError{}
+} = GetDailyMetricCountRequestValidationError{}
 
-// Validate checks the field values on GetRangedMetricsResponse with the rules
-// defined in the proto definition for this message. If any rules are
+// Validate checks the field values on GetDailyMetricCountResponse with the
+// rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *GetRangedMetricsResponse) Validate() error {
+func (m *GetDailyMetricCountResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on GetRangedMetricsResponse with the
+// ValidateAll checks the field values on GetDailyMetricCountResponse with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// GetRangedMetricsResponseMultiError, or nil if none found.
-func (m *GetRangedMetricsResponse) ValidateAll() error {
+// GetDailyMetricCountResponseMultiError, or nil if none found.
+func (m *GetDailyMetricCountResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *GetRangedMetricsResponse) validate(all bool) error {
+func (m *GetDailyMetricCountResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -532,7 +371,7 @@ func (m *GetRangedMetricsResponse) validate(all bool) error {
 			switch v := interface{}(item).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, GetRangedMetricsResponseValidationError{
+					errors = append(errors, GetDailyMetricCountResponseValidationError{
 						field:  fmt.Sprintf("Results[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -540,7 +379,7 @@ func (m *GetRangedMetricsResponse) validate(all bool) error {
 				}
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
-					errors = append(errors, GetRangedMetricsResponseValidationError{
+					errors = append(errors, GetDailyMetricCountResponseValidationError{
 						field:  fmt.Sprintf("Results[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -549,7 +388,7 @@ func (m *GetRangedMetricsResponse) validate(all bool) error {
 			}
 		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
-				return GetRangedMetricsResponseValidationError{
+				return GetDailyMetricCountResponseValidationError{
 					field:  fmt.Sprintf("Results[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -560,19 +399,19 @@ func (m *GetRangedMetricsResponse) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return GetRangedMetricsResponseMultiError(errors)
+		return GetDailyMetricCountResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// GetRangedMetricsResponseMultiError is an error wrapping multiple validation
-// errors returned by GetRangedMetricsResponse.ValidateAll() if the designated
-// constraints aren't met.
-type GetRangedMetricsResponseMultiError []error
+// GetDailyMetricCountResponseMultiError is an error wrapping multiple
+// validation errors returned by GetDailyMetricCountResponse.ValidateAll() if
+// the designated constraints aren't met.
+type GetDailyMetricCountResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m GetRangedMetricsResponseMultiError) Error() string {
+func (m GetDailyMetricCountResponseMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -581,11 +420,12 @@ func (m GetRangedMetricsResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m GetRangedMetricsResponseMultiError) AllErrors() []error { return m }
+func (m GetDailyMetricCountResponseMultiError) AllErrors() []error { return m }
 
-// GetRangedMetricsResponseValidationError is the validation error returned by
-// GetRangedMetricsResponse.Validate if the designated constraints aren't met.
-type GetRangedMetricsResponseValidationError struct {
+// GetDailyMetricCountResponseValidationError is the validation error returned
+// by GetDailyMetricCountResponse.Validate if the designated constraints
+// aren't met.
+type GetDailyMetricCountResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -593,24 +433,24 @@ type GetRangedMetricsResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e GetRangedMetricsResponseValidationError) Field() string { return e.field }
+func (e GetDailyMetricCountResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e GetRangedMetricsResponseValidationError) Reason() string { return e.reason }
+func (e GetDailyMetricCountResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e GetRangedMetricsResponseValidationError) Cause() error { return e.cause }
+func (e GetDailyMetricCountResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e GetRangedMetricsResponseValidationError) Key() bool { return e.key }
+func (e GetDailyMetricCountResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e GetRangedMetricsResponseValidationError) ErrorName() string {
-	return "GetRangedMetricsResponseValidationError"
+func (e GetDailyMetricCountResponseValidationError) ErrorName() string {
+	return "GetDailyMetricCountResponseValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e GetRangedMetricsResponseValidationError) Error() string {
+func (e GetDailyMetricCountResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -622,14 +462,14 @@ func (e GetRangedMetricsResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sGetRangedMetricsResponse.%s: %s%s",
+		"invalid %sGetDailyMetricCountResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = GetRangedMetricsResponseValidationError{}
+var _ error = GetDailyMetricCountResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -637,7 +477,137 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = GetRangedMetricsResponseValidationError{}
+} = GetDailyMetricCountResponseValidationError{}
+
+// Validate checks the field values on DayResult with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *DayResult) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DayResult with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in DayResultMultiError, or nil
+// if none found.
+func (m *DayResult) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DayResult) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetDate()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, DayResultValidationError{
+					field:  "Date",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, DayResultValidationError{
+					field:  "Date",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetDate()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return DayResultValidationError{
+				field:  "Date",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for Count
+
+	if len(errors) > 0 {
+		return DayResultMultiError(errors)
+	}
+
+	return nil
+}
+
+// DayResultMultiError is an error wrapping multiple validation errors returned
+// by DayResult.ValidateAll() if the designated constraints aren't met.
+type DayResultMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DayResultMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DayResultMultiError) AllErrors() []error { return m }
+
+// DayResultValidationError is the validation error returned by
+// DayResult.Validate if the designated constraints aren't met.
+type DayResultValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DayResultValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DayResultValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DayResultValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DayResultValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DayResultValidationError) ErrorName() string { return "DayResultValidationError" }
+
+// Error satisfies the builtin error interface
+func (e DayResultValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDayResult.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DayResultValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DayResultValidationError{}
 
 // Validate checks the field values on GetMetricCountRequest with the rules
 // defined in the proto definition for this message. If any rules are

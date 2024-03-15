@@ -1,3 +1,5 @@
+name: neosync
+
 services:
   app:
     container_name: neosync-app
@@ -29,15 +31,15 @@ services:
       - POSTGRES_PASSWORD=foofar
       - PGUSER=postgres
     healthcheck:
-      test: ['CMD', 'pg_isready']
+      test: ["CMD", "pg_isready"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - neosync-network
     volumes:
-      - $PWD/.data/neosync-postgres/data:/var/lib/postgresql/data
-      - $PWD/hack/pg-init:/docker-entrypoint-initdb.d
+      - pg_data:/var/lib/postgresql/data
+      - ../hack/pg-init:/docker-entrypoint-initdb.d
 
   api:
     container_name: neosync-api
@@ -95,11 +97,11 @@ services:
     networks:
       - neosync-network
     volumes:
-      - cache:/data
+      - redis_cache:/data
 
 volumes:
-  cache:
-    driver: local
+  redis_cache:
+  pg_data:
 
 networks:
   neosync-network:

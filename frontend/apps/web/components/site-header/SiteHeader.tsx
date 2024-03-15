@@ -37,7 +37,7 @@ export default function SiteHeader(): ReactElement {
               <SheetHeader>
                 <SheetTitle>Support</SheetTitle>
                 <SheetDescription>
-                  Need help? We got you coveredd.
+                  Need help? We got you covered.
                 </SheetDescription>
               </SheetHeader>
               <SupportDrawer />

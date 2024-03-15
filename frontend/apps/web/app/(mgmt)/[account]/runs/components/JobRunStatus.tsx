@@ -13,6 +13,7 @@ import {
   ClockIcon,
   Cross2Icon,
   ExclamationTriangleIcon,
+  QuestionMarkCircledIcon,
 } from '@radix-ui/react-icons';
 import { ReactElement } from 'react';
 
@@ -26,35 +27,39 @@ export default function JobRunStatus(props: Props): ReactElement {
   switch (status) {
     case JobRunStatusEnum.ERROR:
       return (
-        <Badge variant="destructive" className={cn(className, 'w-[95px]')}>
-          <div className="flex flex-row items-center gap-1 w-[95px]">
-            <ExclamationTriangleIcon className="w-3 h-3" /> <div>Error</div>
+        <Badge variant="destructive" className={cn(className, 'min-w-[95px]')}>
+          <div className="flex flex-row items-center gap-1">
+            <ExclamationTriangleIcon className="w-3 h-3" />
+            <p>Error</p>
           </div>
         </Badge>
       );
     case JobRunStatusEnum.COMPLETE:
       return (
-        <Badge variant="success" className="w-[95px]">
-          <div className="flex flex-row items-center gap-1 ">
-            <CheckIcon className="w-3 h-3" /> <div>Complete</div>
+        <Badge variant="success" className={cn(className, 'min-w-[95px]')}>
+          <div className="flex flex-row items-center gap-1">
+            <CheckIcon className="w-3 h-3" /> <p>Complete</p>
           </div>
         </Badge>
       );
     case JobRunStatusEnum.FAILED:
       return (
-        <Badge variant="destructive" className={cn(className, 'w-[95px]')}>
+        <Badge variant="destructive" className={cn(className, 'min-w-[95px]')}>
           <div className="flex flex-row items-center gap-1">
-            <Cross2Icon className="w-3 h-3" /> <div>Failed</div>
+            <Cross2Icon className="w-3 h-3" /> <p>Failed</p>
           </div>
         </Badge>
       );
     case JobRunStatusEnum.RUNNING:
       return (
         <Badge
-          className={cn('bg-blue-600 hover:bg-blue-500 w-[95px]', className)}
+          className={cn(
+            'bg-blue-600 hover:bg-blue-500 min-w-[95px]',
+            className
+          )}
         >
           <div className="flex flex-row items-center gap-1">
-            <Spinner className="w-3 h-3" /> <div>Running</div>
+            <Spinner className="w-3 h-3" /> <p>Running</p>
           </div>
         </Badge>
       );
@@ -62,32 +67,38 @@ export default function JobRunStatus(props: Props): ReactElement {
       return (
         <Badge
           className={cn(
-            'bg-purple-600  hover:bg-purple-500 w-[95px]',
+            'bg-purple-600  hover:bg-purple-500 min-w-[95px]',
             className
           )}
         >
           <div className="flex flex-row items-center gap-1">
-            <Spinner className="w-3 h-3" /> <div>Pending</div>
+            <Spinner className="w-3 h-3" /> <p>Pending</p>
           </div>
         </Badge>
       );
     case JobRunStatusEnum.TERMINATED:
       return (
         <Badge
-          className={cn('bg-gray-600  hover:bg-gray-500 w-[105px]', className)}
+          className={cn(
+            'bg-gray-600  hover:bg-gray-500 min-w-[105px]',
+            className
+          )}
         >
           <div className="flex flex-row items-center gap-1">
-            <Cross2Icon className="w-3 h-3" /> <div>Terminated</div>
+            <Cross2Icon className="w-3 h-3" /> <p>Terminated</p>
           </div>
         </Badge>
       );
     case JobRunStatusEnum.CANCELED:
       return (
         <Badge
-          className={cn('bg-gray-600  hover:bg-gray-500 w-[95px]', className)}
+          className={cn(
+            'bg-gray-600  hover:bg-gray-500 min-w-[95px]',
+            className
+          )}
         >
           <div className="flex flex-row items-center gap-1">
-            <Cross2Icon className="w-3 h-3" /> <div>Canceled</div>
+            <Cross2Icon className="w-3 h-3" /> <p>Canceled</p>
           </div>
         </Badge>
       );
@@ -95,12 +106,12 @@ export default function JobRunStatus(props: Props): ReactElement {
       return (
         <Badge
           className={cn(
-            'bg-yellow-600  hover:bg-yellow-500 w-[120px]',
+            'bg-yellow-600  hover:bg-yellow-500 min-w-[120px]',
             className
           )}
         >
           <div className="flex flex-row items-center gap-1">
-            <ClockIcon className="w-3 h-3" /> <div>Timed Out</div>
+            <ClockIcon className="w-3 h-3" /> <p>Timed Out</p>
           </div>
         </Badge>
       );
@@ -110,8 +121,14 @@ export default function JobRunStatus(props: Props): ReactElement {
           <Tooltip delayDuration={500}>
             <TooltipTrigger asChild>
               <div>
-                <Badge variant="outline" className={cn(className)}>
-                  Unknown
+                <Badge
+                  variant="outline"
+                  className={cn(className, 'min-w-[95px]')}
+                >
+                  <div className="flex flex-row items-center gap-1">
+                    <QuestionMarkCircledIcon className="w-3 h-3" />
+                    <p>Unknown</p>
+                  </div>
                 </Badge>
               </div>
             </TooltipTrigger>

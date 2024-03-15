@@ -4,7 +4,7 @@ import { GetMetricCountResponse, RangedMetricName } from '@neosync/sdk';
 import { HookReply } from './types';
 import { useNucleusAuthenticatedFetch } from './useNucleusAuthenticatedFetch';
 
-type MetricIdentifierType = 'accountId' | 'jobId' | 'runId';
+export type MetricIdentifierType = 'accountId' | 'jobId' | 'runId';
 
 export function useGetMetricCount(
   accountId: string,
