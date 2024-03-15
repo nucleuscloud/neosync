@@ -67,15 +67,6 @@ const FORM_SCHEMA = SOURCE_FORM_SCHEMA.concat(
   })
 ).concat(SCHEMA_FORM_SCHEMA);
 type SourceFormValues = Yup.InferType<typeof FORM_SCHEMA>;
-// export interface SchemaMap {
-//   [schema: string]: {
-//     [table: string]: {
-//       [column: string]: {
-//         transformer: JobMappingTransformerForm;
-//       };
-//     };
-//   };
-// }
 
 function getConnectionIdFromSource(
   js: JobSource | undefined
@@ -386,94 +377,16 @@ function getJobSource(job?: Job): SourceFormValues {
       connectionId: '',
     };
   }
-  // const schemaMap: SchemaMap = {};
-  // job?.mappings.forEach((c) => {
-  //   if (!schemaMap[c.schema]) {
-  //     schemaMap[c.schema] = {
-  //       [c.table]: {
-  //         [c.column]: {
-  //           transformer: convertJobMappingTransformerToForm(
-  //             c?.transformer ??
-  //               new JobMappingTransformer({
-  //                 source: 'passthrough',
-  //                 config: new TransformerConfig({
-  //                   config: {
-  //                     case: 'passthroughConfig',
-  //                     value: new Passthrough({}),
-  //                   },
-  //                 }),
-  //               })
-  //           ),
-  //         },
-  //       },
-  //     };
-  //   } else if (!schemaMap[c.schema][c.table]) {
-  //     schemaMap[c.schema][c.table] = {
-  //       [c.column]: {
-  //         transformer: convertJobMappingTransformerToForm(
-  //           c.transformer ??
-  //             new JobMappingTransformer({
-  //               source: 'passthrough',
-  //               config: new TransformerConfig({
-  //                 config: {
-  //                   case: 'passthroughConfig',
-  //                   value: new Passthrough({}),
-  //                 },
-  //               }),
-  //             })
-  //         ),
-  //       },
-  //     };
-  //   } else {
-  //     schemaMap[c.schema][c.table][c.column] = {
-  //       transformer: convertJobMappingTransformerToForm(
-  //         c.transformer ??
-  //           new JobMappingTransformer({
-  //             source: 'passthrough',
-  //             config: new TransformerConfig({
-  //               config: {
-  //                 case: 'passthroughConfig',
-  //                 value: new Passthrough({}),
-  //               },
-  //             }),
-  //           })
-  //       ),
-  //     };
-  //   }
-  // });
 
   const mappings = (job.mappings ?? []).map((mapping) => {
     return {
       ...mapping,
       transformer: mapping.transformer
         ? convertJobMappingTransformerToForm(mapping.transformer)
-        : ({} as any),
+        : ({} as any), // todo
     };
   });
 
-  // const mappings = schema.map((c) => {
-  //   const colMapping = getColumnMapping(schemaMap, c.schema, c.table, c.column);
-
-  //   return {
-  //     schema: c.schema,
-  //     table: c.table,
-  //     column: c.column,
-  //     dataType: c.dataType,
-  //     transformer:
-  //       colMapping?.transformer ??
-  //       convertJobMappingTransformerToForm(
-  //         new JobMappingTransformer({
-  //           source: 'passthrough',
-  //           config: new TransformerConfig({
-  //             config: {
-  //               case: 'passthroughConfig',
-  //               value: new Passthrough({}),
-  //             },
-  //           }),
-  //         })
-  //       ),
-  //   };
-  // });
   const destinationIds = job?.destinations.map((d) => d.connectionId);
   const values = {
     sourceOptions: {},
@@ -484,10 +397,6 @@ function getJobSource(job?: Job): SourceFormValues {
   const yupValidationValues = {
     ...values,
     sourceId: getConnectionIdFromSource(job.source) || '',
-    // mappings: values.mappings.map((mapping) => ({
-    //   ...mapping,
-    //   transformer: mapping.transformer as JobMappingTransformerForm,
-    // })),
     mappings,
     connectionId: getConnectionIdFromSource(job.source) || '',
   };
@@ -515,22 +424,6 @@ function getJobSource(job?: Job): SourceFormValues {
       return yupValidationValues;
   }
 }
-
-// export function getColumnMapping(
-//   schemaMap: SchemaMap,
-//   schema: string,
-//   table: string,
-//   column: string
-// ): { transformer: JobMappingTransformerForm } | undefined {
-//   if (!schemaMap[schema]) {
-//     return;
-//   }
-//   if (!schemaMap[schema][table]) {
-//     return;
-//   }
-
-//   return schemaMap[schema][table][column];
-// }
 
 async function getUpdatedValues(
   accountId: string,
