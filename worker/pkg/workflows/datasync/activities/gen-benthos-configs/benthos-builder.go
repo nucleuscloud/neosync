@@ -26,6 +26,8 @@ import (
 )
 
 const (
+	postgresDriver             = "postgres"
+	mysqlDriver                = "mysql"
 	generateDefault            = "generate_default"
 	dbDefault                  = "DEFAULT"
 	jobmappingSubsetErrMsg     = "job mappings are not equal to or a subset of the database schema found in the source connection"
@@ -194,12 +196,11 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		// reverse of table dependency
 		// map of foreign key to source table + column
 		tableConstraintsSource = getForeignKeyToSourceMap(td)
-		driver := "postgres"
-		tableQueryMap, err := buildSelectQueryMap(driver, groupedTableMapping, sourceTableOpts, td, dependencyConfigs, true)
+		tableQueryMap, err := buildSelectQueryMap(postgresDriver, groupedTableMapping, sourceTableOpts, td, dependencyConfigs, true)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build postgres select queries: %w", err)
 		}
-		sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedMappings, jobSourceConfig.Postgres.ConnectionId, driver, tableQueryMap, groupedSchemas, td, colTransformerMap, primaryKeys, b.jobId, b.runId, b.redisConfig)
+		sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedMappings, jobSourceConfig.Postgres.ConnectionId, postgresDriver, tableQueryMap, groupedSchemas, td, colTransformerMap, primaryKeys, b.jobId, b.runId, b.redisConfig)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build postgres benthos sql source config responses: %w", err)
 		}
@@ -305,12 +306,11 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		// reverse of table dependency
 		// map of foreign key to source table + column
 		tableConstraintsSource = getForeignKeyToSourceMap(td)
-		driver := "mysql"
-		tableQueryMap, err := buildSelectQueryMap(driver, groupedTableMapping, sourceTableOpts, td, dependencyConfigs, true)
+		tableQueryMap, err := buildSelectQueryMap(mysqlDriver, groupedTableMapping, sourceTableOpts, td, dependencyConfigs, true)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build mysql select queries: %w", err)
 		}
-		sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedMappings, jobSourceConfig.Mysql.ConnectionId, driver, tableQueryMap, groupedSchemas, td, colTransformerMap, primaryKeys, b.jobId, b.runId, b.redisConfig)
+		sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedMappings, jobSourceConfig.Mysql.ConnectionId, mysqlDriver, tableQueryMap, groupedSchemas, td, colTransformerMap, primaryKeys, b.jobId, b.runId, b.redisConfig)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build mysql benthos sql source config responses: %w", err)
 		}
@@ -415,7 +415,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					resp.Columns = out.Columns
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
-							Driver: "postgres",
+							Driver: postgresDriver,
 							Dsn:    dsn,
 
 							Query:       out.Query,
@@ -447,7 +447,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
-							Driver: "postgres",
+							Driver: postgresDriver,
 							Dsn:    dsn,
 
 							Query:       buildPostgresInsertQuery(tableKey, cols, colSourceMap),
@@ -475,7 +475,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					resp.Columns = out.Columns
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
-							Driver: "mysql",
+							Driver: mysqlDriver,
 							Dsn:    dsn,
 
 							Query:       out.Query,
@@ -506,7 +506,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
-							Driver: "mysql",
+							Driver: mysqlDriver,
 							Dsn:    dsn,
 
 							Query:       buildMysqlInsertQuery(tableKey, cols, colSourceMap),
@@ -1025,10 +1025,10 @@ func createSqlUpdateBenthosConfig(
 		newResp.primaryKeys = insertConfig.primaryKeys
 		newResp.metriclabels = append(newResp.metriclabels, metrics.NewEqLabel(metrics.IsUpdateConfigLabel, "true"))
 		var output *sqlOutput
-		if driver == "postgres" {
+		if driver == postgresDriver {
 			out := buildPostgresOutputQueryAndArgs(newResp, tm, tableKey, colSourceMap)
 			output = out
-		} else if driver == "mysql" {
+		} else if driver == mysqlDriver {
 			out := buildMysqlOutputQueryAndArgs(newResp, tm, tableKey, colSourceMap)
 			output = out
 		}
@@ -1284,9 +1284,9 @@ func shouldHaltOnSchemaAddition(
 
 func escapeColsByDriver(cols []string, driver string) []string {
 	switch driver {
-	case "postgres":
+	case postgresDriver:
 		return dbschemas_postgres.EscapePgColumns(cols)
-	case "mysql":
+	case mysqlDriver:
 		return dbschemas_mysql.EscapeMysqlColumns(cols)
 	default:
 		return cols

@@ -1,7 +1,6 @@
 package genbenthosconfigs_activity
 
 import (
-	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -1287,7 +1286,7 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyChild(t *testing.T) {
 // 	}
 // }
 
-func Test_BFS(t *testing.T) {
+func Test_getBfsPathMap(t *testing.T) {
 	tests := []struct {
 		name     string
 		graph    map[string][]string
@@ -1406,13 +1405,6 @@ func Test_BFS(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%s_%s", t.Name(), tt.name), func(t *testing.T) {
 			path := getBfsPathMap(tt.graph, tt.start)
-
-			fmt.Println("-------------------------")
-			jsonF, _ := json.MarshalIndent(path, "", " ")
-			fmt.Printf("\n %s \n", string(jsonF))
-
-			jsonF, _ = json.MarshalIndent(tt.expected, "", " ")
-			fmt.Printf("\n %s \n", string(jsonF))
 			assert.Equal(t, tt.expected, path)
 		})
 	}

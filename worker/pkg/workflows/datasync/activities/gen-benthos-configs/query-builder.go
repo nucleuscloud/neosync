@@ -172,19 +172,6 @@ func buildSelectQueryMap(
 	dependencyConfigs []*tabledependency.RunConfig,
 	subsetByForeignKeyConstraints bool,
 ) (map[string]string, error) {
-	if !subsetByForeignKeyConstraints || len(tableDependencies) == 0 {
-		queryMap, err := buildQueryMapNoSubsetConstraints(driver, groupedMappings, sourceTableOpts)
-		if err != nil {
-			return nil, err
-		}
-		return queryMap, nil
-	}
-
-	queryMap := map[string]string{}
-	pksMap := getPrimaryToForeignTableMapFromRunConfigs(dependencyConfigs)
-	rootsWithsubsetMaps := []string{}
-	rootsNoSubsets := []string{}
-
 	// map of table -> where clause
 	tableWhereMap := map[string]string{}
 	for t, opts := range sourceTableOpts {
@@ -198,6 +185,19 @@ func buildSelectQueryMap(
 			tableWhereMap[t] = qualifiedWhere
 		}
 	}
+
+	if !subsetByForeignKeyConstraints || len(tableDependencies) == 0 || len(tableWhereMap) == 0 {
+		queryMap, err := buildQueryMapNoSubsetConstraints(driver, groupedMappings, sourceTableOpts)
+		if err != nil {
+			return nil, err
+		}
+		return queryMap, nil
+	}
+
+	queryMap := map[string]string{}
+	pksMap := getPrimaryToForeignTableMapFromRunConfigs(dependencyConfigs)
+	rootsWithsubsetMaps := []string{}
+	rootsNoSubsets := []string{}
 
 	dependencyMap := map[string][]*tabledependency.RunConfig{}
 	for _, cfg := range dependencyConfigs {
@@ -422,7 +422,6 @@ func buildTableSubsetQueryConfig(
 		Joins:        joins,
 		WhereClauses: whereClauses,
 	}
-
 }
 
 type bfsPaths struct {
