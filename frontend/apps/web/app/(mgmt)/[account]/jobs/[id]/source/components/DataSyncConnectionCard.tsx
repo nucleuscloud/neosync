@@ -51,7 +51,7 @@ import {
   UpdateJobSourceConnectionRequest,
   UpdateJobSourceConnectionResponse,
 } from '@neosync/sdk';
-import { ReactElement } from 'react';
+import { ReactElement, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { getConnection } from '../../util';
@@ -90,8 +90,11 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   } = useGetJob(account?.id ?? '', jobId);
   const sourceConnectionId = getConnectionIdFromSource(data?.job?.source);
 
-  const { data: connectionSchemaDataMap, isLoading: isSchemaDataMapLoading } =
-    useGetConnectionSchemaMap(account?.id ?? '', sourceConnectionId ?? '');
+  const {
+    data: connectionSchemaDataMap,
+    isLoading: isSchemaDataMapLoading,
+    isValidating: isSchemaMapValidating,
+  } = useGetConnectionSchemaMap(account?.id ?? '', sourceConnectionId ?? '');
 
   const { isLoading: isConnectionsLoading, data: connectionsData } =
     useGetConnections(account?.id ?? '');
@@ -111,14 +114,26 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     values: getJobSource(data?.job),
   });
 
-  const { data: primaryConstraints } = useGetConnectionPrimaryConstraints(
-    account?.id ?? '',
-    sourceConnectionId ?? ''
-  );
+  const { data: primaryConstraints, isValidating: isPkValidating } =
+    useGetConnectionPrimaryConstraints(
+      account?.id ?? '',
+      sourceConnectionId ?? ''
+    );
 
-  const { data: foreignConstraints } = useGetConnectionForeignConstraints(
-    account?.id ?? '',
-    sourceConnectionId ?? ''
+  const { data: foreignConstraints, isValidating: isFkValidating } =
+    useGetConnectionForeignConstraints(
+      account?.id ?? '',
+      sourceConnectionId ?? ''
+    );
+
+  const schemaConstraintHandler = useMemo(
+    () =>
+      getSchemaConstraintHandler(
+        connectionSchemaDataMap?.schemaMap ?? {},
+        primaryConstraints?.tableConstraints ?? {},
+        foreignConstraints?.tableConstraints ?? {}
+      ),
+    [isSchemaMapValidating, isPkValidating, isFkValidating]
   );
 
   async function onSourceChange(value: string): Promise<void> {
@@ -173,13 +188,6 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   }
 
   const source = connections.find((item) => item.id === sourceConnectionId);
-  // todo: may need to move this to the server as it is kinda heavy
-  // could also be memoized instead
-  const schemaConstraintHandler = getSchemaConstraintHandler(
-    connectionSchemaDataMap?.schemaMap ?? {},
-    primaryConstraints?.tableConstraints ?? {},
-    foreignConstraints?.tableConstraints ?? {}
-  );
 
   return (
     <Form {...form}>
