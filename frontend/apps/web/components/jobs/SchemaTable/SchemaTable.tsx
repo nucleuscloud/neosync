@@ -1,4 +1,5 @@
 'use client';
+import DualListBox, { Action } from '@/components/DualListBox/DualListBox';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Card, CardContent } from '@/components/ui/card';
@@ -17,7 +18,6 @@ import {
 } from '@neosync/sdk';
 import { ReactElement, useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
-import DualListBox, { Action } from './DualListBox';
 import { SchemaConstraintHandler, getSchemaColumns } from './SchemaColumns';
 import SchemaPageTable, { Row } from './SchemaPageTable';
 
@@ -128,10 +128,10 @@ export function SchemaTable(props: Props): ReactElement {
             <DualListBox
               options={Object.keys(schema).map((value) => ({
                 value: value,
-                label: value,
               }))}
               selected={selectedItems}
               onChange={toggleItem}
+              title="Table"
             />
           </CardContent>
         </Card>
