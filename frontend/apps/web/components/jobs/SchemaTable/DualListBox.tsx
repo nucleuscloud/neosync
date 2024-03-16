@@ -1,7 +1,6 @@
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
-  Table,
+  StickyHeaderTable,
   TableBody,
   TableCell,
   TableHead,
@@ -14,7 +13,23 @@ import {
   DoubleArrowLeftIcon,
   DoubleArrowRightIcon,
 } from '@radix-ui/react-icons';
-import { ReactElement, useState } from 'react';
+import {
+  ColumnDef,
+  OnChangeFn,
+  RowSelectionState,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
+import { useVirtualizer } from '@tanstack/react-virtual';
+import {
+  HTMLProps,
+  ReactElement,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 interface Option {
   value: string;
@@ -29,55 +44,29 @@ interface Props {
 
 export default function DualListBox(props: Props): ReactElement {
   const { options, selected, onChange } = props;
-  const [leftStaged, setLeftStaged] = useState<Set<string>>(new Set());
-  const [rightStaged, setRightStaged] = useState<Set<string>>(new Set());
-  return (
-    <div className="flex w-full gap-3">
-      <div className="flex flex-1">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Select</TableHead>
-              <TableHead>Table</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {options
-              .filter((value) => !selected.has(value.value))
-              .map((value) => {
-                return (
-                  <TableRow key={value.value}>
-                    <TableCell>
-                      <Checkbox
-                        id={value.value}
-                        checked={leftStaged.has(value.value)}
-                        onCheckedChange={(state) => {
-                          const newSet = new Set(leftStaged);
-                          if (newSet.has(value.value)) {
-                            newSet.delete(value.value);
-                          } else {
-                            newSet.add(value.value);
-                          }
-                          setLeftStaged(newSet);
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <label htmlFor={value.value}>{value.value}</label>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-          </TableBody>
-        </Table>
-      </div>
-      {/* <select
-        multiple
-        className="flex flex-1 w-full border-black-30 focus:ring-0 focus:border-none select:focus-none"
-      >
 
-      </select> */}
-      <div className="flex flex-col gap-2">
+  const [leftSelected, setLeftSelected] = useState<RowSelectionState>({});
+  const [rightSelected, setRightSelected] = useState<RowSelectionState>({});
+
+  const cols = useMemo(() => getListBoxColumns({}), []);
+  const leftData = options
+    .filter((value) => !selected.has(value.value))
+    .map((value): ListBoxRow => ({ table: value.value }));
+  const rightData = options
+    .filter((value) => selected.has(value.value))
+    .map((value): ListBoxRow => ({ table: value.value }));
+
+  return (
+    <div className="flex gap-3 flex-row">
+      <div className="flex">
+        <ListBox
+          columns={cols}
+          data={leftData}
+          onRowSelectionChange={setLeftSelected}
+          rowSelection={leftSelected}
+        />
+      </div>
+      <div className="flex flex-col justify-center gap-2">
         <div>
           <Button
             type="button"
@@ -87,7 +76,7 @@ export default function DualListBox(props: Props): ReactElement {
                 new Set(options.map((option) => option.value)),
                 'add-all'
               );
-              setLeftStaged(new Set());
+              setLeftSelected({});
             }}
           >
             <DoubleArrowRightIcon />
@@ -99,9 +88,13 @@ export default function DualListBox(props: Props): ReactElement {
             variant="ghost"
             onClick={() => {
               const newSet = new Set(selected);
-              leftStaged.forEach((value) => newSet.add(value));
+              Object.entries(leftSelected).forEach(([key, isSelected]) => {
+                if (isSelected) {
+                  newSet.add(leftData[parseInt(key, 10)].table);
+                }
+              });
               onChange(newSet, 'add');
-              setLeftStaged(new Set());
+              setLeftSelected({});
             }}
           >
             <ArrowRightIcon />
@@ -113,9 +106,13 @@ export default function DualListBox(props: Props): ReactElement {
             variant="ghost"
             onClick={() => {
               const newSet = new Set(selected);
-              rightStaged.forEach((value) => newSet.delete(value));
+              Object.entries(rightSelected).forEach(([key, isSelected]) => {
+                if (isSelected) {
+                  newSet.delete(rightData[parseInt(key, 10)].table);
+                }
+              });
               onChange(newSet, 'remove');
-              setRightStaged(new Set());
+              setRightSelected({});
             }}
           >
             <ArrowLeftIcon />
@@ -127,51 +124,211 @@ export default function DualListBox(props: Props): ReactElement {
             variant="ghost"
             onClick={() => {
               onChange(new Set(), 'remove-all');
-              setRightStaged(new Set());
+              setRightSelected({});
             }}
           >
             <DoubleArrowLeftIcon />
           </Button>
         </div>
       </div>
-      <div className="flex flex-1">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Select</TableHead>
-              <TableHead>Table</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {options
-              .filter((value) => selected.has(value.value))
-              .map((value) => {
+      <div className="flex">
+        <ListBox
+          columns={cols}
+          data={rightData}
+          onRowSelectionChange={setRightSelected}
+          rowSelection={rightSelected}
+        />
+      </div>
+    </div>
+  );
+}
+
+interface ListBoxRow {
+  table: string;
+}
+
+interface ListBoxColumnProps {}
+
+function getListBoxColumns(props: ListBoxColumnProps): ColumnDef<ListBoxRow>[] {
+  const {} = props;
+  return [
+    {
+      accessorKey: 'isSelected',
+      header: ({ table }) => (
+        <IndeterminateCheckbox
+          {...{
+            checked: table.getIsAllRowsSelected(),
+            indeterminate: table.getIsSomeRowsSelected(),
+            onChange: table.getToggleAllRowsSelectedHandler(),
+          }}
+        />
+      ),
+      cell: ({ row }) => (
+        <div>
+          <IndeterminateCheckbox
+            {...{
+              checked: row.getIsSelected(),
+              indeterminate: row.getIsSomeSelected(),
+              onChange: row.getToggleSelectedHandler(),
+              id: row.getValue('table'),
+            }}
+          />
+        </div>
+      ),
+      size: 30,
+    },
+    {
+      accessorKey: 'table',
+      header: () => <span>Table</span>,
+      cell: ({ row }) => {
+        return (
+          <label
+            htmlFor={row.getValue('table')}
+            className="max-w-[500px] truncate font-medium cursor-pointer"
+          >
+            {row.getValue('table')}
+          </label>
+        );
+      },
+    },
+  ];
+}
+
+function IndeterminateCheckbox({
+  indeterminate,
+  className = 'w-4 h-4',
+  ...rest
+}: { indeterminate?: boolean } & HTMLProps<HTMLInputElement>) {
+  const ref = useRef<HTMLInputElement>(null!);
+
+  useEffect(() => {
+    if (typeof indeterminate === 'boolean') {
+      ref.current.indeterminate = !rest.checked && indeterminate;
+    }
+  }, [ref, indeterminate, rest.checked]);
+
+  return (
+    <input
+      type="checkbox"
+      ref={ref}
+      className={className + ' cursor-pointer '}
+      {...rest}
+    />
+  );
+}
+
+interface ListBoxProps<TData, TValue> {
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
+  rowSelection: RowSelectionState;
+  onRowSelectionChange: OnChangeFn<RowSelectionState>;
+}
+
+function ListBox<TData, TValue>(
+  props: ListBoxProps<TData, TValue>
+): ReactElement {
+  const { columns, data, rowSelection, onRowSelectionChange } = props;
+  const table = useReactTable({
+    data,
+    columns,
+    state: {
+      rowSelection: rowSelection,
+    },
+    enableRowSelection: true,
+    onRowSelectionChange: onRowSelectionChange,
+    getCoreRowModel: getCoreRowModel(),
+    // getSortedRowModel: getSortedRowModel(),
+    // getFilteredRowModel: getFilteredRowModel(),
+    // getFacetedRowModel: getFacetedRowModel(),
+    // getFacetedUniqueValues: getFacetedUniqueValues(),
+    // getFacetedMinMaxValues: getFacetedMinMaxValues(),
+    // enableMultiRowSelection: true,
+  });
+  const { rows } = table.getRowModel();
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+
+  const rowVirtualizer = useVirtualizer({
+    count: rows.length,
+    estimateSize: () => 33,
+    getScrollElement: () => tableContainerRef.current,
+    measureElement:
+      typeof window !== 'undefined' &&
+      navigator.userAgent.indexOf('Firefox') === -1
+        ? (element) => element?.getBoundingClientRect().height
+        : undefined,
+    overscan: 5,
+  });
+
+  return (
+    <div className="w-full" ref={tableContainerRef}>
+      <StickyHeaderTable>
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow
+              key={headerGroup.id}
+              className="flex items-center flex-row w-full"
+            >
+              {headerGroup.headers.map((header) => {
                 return (
-                  <TableRow key={value.value}>
-                    <TableCell>
-                      <Checkbox
-                        id={value.value}
-                        checked={rightStaged.has(value.value)}
-                        onCheckedChange={(state) => {
-                          const newSet = new Set(rightStaged);
-                          if (newSet.has(value.value)) {
-                            newSet.delete(value.value);
-                          } else {
-                            newSet.add(value.value);
-                          }
-                          setRightStaged(newSet);
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <label htmlFor={value.value}>{value.value}</label>
-                    </TableCell>
-                  </TableRow>
+                  <TableHead
+                    className="flex items-center"
+                    key={header.id}
+                    style={{ minWidth: `${header.column.getSize()}px` }}
+                    colSpan={header.colSpan}
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
                 );
               })}
-          </TableBody>
-        </Table>
-      </div>
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody
+          style={{
+            height: `${rowVirtualizer.getTotalSize()}px`, // tells scrollbar how big the table is
+          }}
+          className="relative grid"
+        >
+          {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+            const row = rows[virtualRow.index];
+            return (
+              <TableRow
+                data-index={virtualRow.index} // needed for dynamic row height measurement
+                ref={(node) => rowVirtualizer.measureElement(node)} // measure dynamic row height
+                key={row.id}
+                style={{
+                  transform: `translateY(${virtualRow.start}px)`,
+                }}
+                className="items-center flex absolute w-full"
+              >
+                {row.getVisibleCells().map((cell) => {
+                  return (
+                    <TableCell
+                      className="px-0"
+                      key={cell.id}
+                      style={{
+                        minWidth: cell.column.getSize(),
+                      }}
+                    >
+                      <div className="truncate">
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </div>
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </StickyHeaderTable>
     </div>
   );
 }

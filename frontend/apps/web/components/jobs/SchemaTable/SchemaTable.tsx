@@ -1,5 +1,4 @@
 'use client';
-import { ColumnMetadata } from '@/app/(mgmt)/[account]/new/job/schema/page';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Card, CardContent } from '@/components/ui/card';
@@ -17,23 +16,27 @@ import {
   TransformerConfig,
 } from '@neosync/sdk';
 import { ReactElement, useState } from 'react';
-// import 'react-dual-listbox/lib/react-dual-listbox.css';
 import { useFieldArray, useFormContext } from 'react-hook-form';
-import DualListBox2, { Action } from './DualListBox';
-import { getSchemaColumns } from './SchemaColumns';
+import DualListBox, { Action } from './DualListBox';
+import { SchemaConstraintHandler, getSchemaColumns } from './SchemaColumns';
 import SchemaPageTable, { Row } from './SchemaPageTable';
 
 interface Props {
   data: JobMappingFormValues[];
   excludeInputReqTransformers?: boolean; // will result in only generators (functions with no data input)
-  columnMetadata: ColumnMetadata;
   jobType: string; // todo: update to be named type
   schema: ConnectionSchemaMap;
+  constraintHandler: SchemaConstraintHandler;
 }
 
 export function SchemaTable(props: Props): ReactElement {
-  const { data, excludeInputReqTransformers, columnMetadata, jobType, schema } =
-    props;
+  const {
+    data,
+    excludeInputReqTransformers,
+    constraintHandler,
+    jobType,
+    schema,
+  } = props;
 
   const { account } = useAccount();
   const { transformers, isLoading } = useGetMergedTransformers(
@@ -53,7 +56,7 @@ export function SchemaTable(props: Props): ReactElement {
 
   const columns = getSchemaColumns({
     transformers,
-    columnMetadata: columnMetadata,
+    constraintHandler,
   });
 
   const form = useFormContext<SchemaFormValues>();
@@ -119,10 +122,10 @@ export function SchemaTable(props: Props): ReactElement {
 
   return (
     <div className="flex flex-col gap-3">
-      <div>
-        <Card className="p-2">
-          <CardContent>
-            <DualListBox2
+      <div className="flex">
+        <Card className="p-0">
+          <CardContent className="p-3">
+            <DualListBox
               options={Object.keys(schema).map((value) => ({
                 value: value,
                 label: value,

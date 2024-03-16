@@ -11,21 +11,27 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { ConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import {
   Transformer,
   isSystemTransformer,
   isUserDefinedTransformer,
 } from '@/shared/transformers';
 import {
-  JobMappingFormValues,
   JobMappingTransformerForm,
   SchemaFormValues,
 } from '@/yup-validations/jobs';
-import { ForeignConstraint } from '@neosync/sdk';
+import { PlainMessage } from '@bufbuild/protobuf';
+import {
+  DatabaseColumn,
+  ForeignConstraint,
+  ForeignConstraintTables,
+  ForeignKey,
+  PrimaryConstraint,
+} from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ColumnDef, FilterFn, Row, SortingFn } from '@tanstack/react-table';
 import { HTMLProps, useEffect, useRef } from 'react';
-import { useFormContext } from 'react-hook-form';
 import { SchemaColumnHeader } from './SchemaColumnHeader';
 import { Row as RowData } from './SchemaPageTable';
 import TransformerSelect from './TransformerSelect';
@@ -35,9 +41,103 @@ import TransformerSelect from './TransformerSelect';
 //   compareItems,
 // } from '@tanstack/match-sorter-utils';
 
+export interface ColumnKey {
+  schema: string;
+  table: string;
+  column: string;
+}
+
+function fromColKey(key: ColumnKey): string {
+  return `${key.schema}.${key.table}.${key.column}`;
+}
+function fromDbCol(dbcol: PlainMessage<DatabaseColumn>): string {
+  return `${dbcol.schema}.${dbcol.table}.${dbcol.column}`;
+}
+function toColKey(schema: string, table: string, column: string): ColumnKey {
+  return {
+    schema,
+    table,
+    column,
+  };
+}
+
+export interface SchemaConstraintHandler {
+  getIsPrimaryKey(key: ColumnKey): boolean;
+  getIsForeignKey(key: ColumnKey): [boolean, string[]];
+  getIsNullable(key: ColumnKey): boolean;
+  getDataType(key: ColumnKey): string;
+}
+
+interface ColDetails {
+  isPrimaryKey: boolean;
+  fk: [boolean, string[]];
+  isNullable: boolean;
+  dataType: string;
+}
+
+export function getSchemaConstraintHandler(
+  schema: ConnectionSchemaMap,
+  primaryConstraints: Record<string, PrimaryConstraint>,
+  foreignConstraints: Record<string, ForeignConstraintTables>
+): SchemaConstraintHandler {
+  const colmap = buildColDetailsMap(
+    schema,
+    primaryConstraints,
+    foreignConstraints
+  );
+  return {
+    getDataType(key) {
+      return colmap[fromColKey(key)]?.dataType ?? '';
+    },
+    getIsForeignKey(key) {
+      return colmap[fromColKey(key)]?.fk ?? [false, []];
+    },
+    getIsNullable(key) {
+      return colmap[fromColKey(key)]?.isNullable ?? false;
+    },
+    getIsPrimaryKey(key) {
+      return colmap[fromColKey(key)]?.isPrimaryKey ?? false;
+    },
+  };
+}
+
+function buildColDetailsMap(
+  schema: ConnectionSchemaMap,
+  primaryConstraints: Record<string, PrimaryConstraint>,
+  foreignConstraints: Record<string, ForeignConstraintTables>
+): Record<string, ColDetails> {
+  const colmap: Record<string, ColDetails> = {};
+  Object.entries(schema).forEach(([key, dbcols]) => {
+    const tablePkeys = primaryConstraints[key] ?? new PrimaryConstraint();
+    const primaryCols = new Set(tablePkeys.columns);
+    const foreignFkeys =
+      foreignConstraints[key] ?? new ForeignConstraintTables();
+    const fkConstraints = foreignFkeys.constraints;
+    const fkconstraintsMap: Record<string, ForeignKey> = {};
+    fkConstraints.forEach((constraint) => {
+      fkconstraintsMap[constraint.column] =
+        constraint.foreignKey ?? new ForeignKey();
+    });
+
+    dbcols.forEach((dbcol) => {
+      const fk: ForeignKey | undefined = fkconstraintsMap[dbcol.column];
+      colmap[fromDbCol(dbcol)] = {
+        isNullable: dbcol.isNullable === 'YES',
+        dataType: dbcol.dataType,
+        fk: [
+          fk !== undefined,
+          fk !== undefined ? [`${fk.table}.${fk.column}`] : [],
+        ],
+        isPrimaryKey: primaryCols.has(dbcol.column),
+      };
+    });
+  });
+  return colmap;
+}
+
 interface Props {
   transformers: Transformer[];
-  columnMetadata: ColumnMetadata;
+  constraintHandler: SchemaConstraintHandler;
 }
 
 // const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
@@ -54,9 +154,9 @@ interface Props {
 // };
 
 export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
-  const { transformers, columnMetadata } = props;
+  const { transformers, constraintHandler } = props;
 
-  const fc = useFormContext();
+  // const fc = useFormContext();
 
   return [
     {
@@ -133,35 +233,40 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Constraints" />
       ),
-      filterFn: filterConstraints(columnMetadata),
-      sortingFn: sortConstraints(columnMetadata),
-      meta: columnMetadata,
+      // filterFn: filterConstraints(columnMetadata),
+      // sortingFn: sortConstraints(columnMetadata),
+      // meta: columnMetadata,
       cell: ({ row }) => {
-        const rowKey = `${row.getValue('schema')}.${row.getValue('table')}`;
+        // const rowKey = `${row.getValue('schema')}.${row.getValue('table')}`;
 
-        const hasForeignKeyConstraint =
-          columnMetadata?.fk &&
-          columnMetadata?.fk[rowKey]?.constraints.filter(
-            (item: ForeignConstraint) => item.column == row.getValue('column')
-          ).length > 0;
+        // const hasForeignKeyConstraint =
+        //   columnMetadata?.fk &&
+        //   columnMetadata?.fk[rowKey]?.constraints.filter(
+        //     (item: ForeignConstraint) => item.column == row.getValue('column')
+        //   ).length > 0;
 
-        const foreignKeyConstraint = {
-          table: columnMetadata?.fk[rowKey]?.constraints.find(
-            (item) => item.column == row.getValue('column')
-          )?.foreignKey?.table,
-          column: columnMetadata?.fk[rowKey]?.constraints.find(
-            (item) => item.column == row.getValue('column')
-          )?.foreignKey?.column,
-          value: 'Foreign Key',
+        // const foreignKeyConstraint = {
+        //   table: columnMetadata?.fk[rowKey]?.constraints.find(
+        //     (item) => item.column == row.getValue('column')
+        //   )?.foreignKey?.table,
+        //   column: columnMetadata?.fk[rowKey]?.constraints.find(
+        //     (item) => item.column == row.getValue('column')
+        //   )?.foreignKey?.column,
+        //   value: 'Foreign Key',
+        // };
+        const key: ColumnKey = {
+          schema: row.getValue('schema'),
+          table: row.getValue('table'),
+          column: row.getValue('column'),
         };
+        const isPrimaryKey = constraintHandler.getIsPrimaryKey(key);
+        const [isForeignKey, fkCols] = constraintHandler.getIsForeignKey(key);
 
         return (
           <span className="max-w-[500px] truncate font-medium">
             <div className="flex flex-col lg:flex-row items-start gap-1">
               <div>
-                {columnMetadata?.pk[rowKey]?.columns.includes(
-                  row.getValue('column')
-                ) && (
+                {isPrimaryKey && (
                   <Badge
                     variant="outline"
                     className="text-xs bg-blue-100 text-gray-800 cursor-default dark:bg-blue-200 dark:text-gray-900"
@@ -171,7 +276,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                 )}
               </div>
               <div>
-                {hasForeignKeyConstraint && (
+                {isForeignKey && (
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger>
@@ -179,11 +284,11 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                           variant="outline"
                           className="text-xs bg-orange-100 text-gray-800 dark:dark:text-gray-900 dark:bg-orange-300"
                         >
-                          {foreignKeyConstraint.value}
+                          Foreign Key
                         </Badge>
                       </TooltipTrigger>
                       <TooltipContent>
-                        {`Primary Key: ${foreignKeyConstraint.table}.${foreignKeyConstraint.column}`}
+                        {fkCols.map((col) => `Primary Key: ${col}`).join('\n')}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -200,32 +305,16 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         <SchemaColumnHeader column={column} title="Nullable" />
       ),
       cell: ({ row }) => {
-        let isNullable = '';
-        columnMetadata?.isNullable.map((item) => {
-          if (
-            item.schema == row.getValue('schema') &&
-            item.table == row.getValue('table') &&
-            item.column == row.getValue('column')
-          ) {
-            isNullable = item.isNullable;
-          }
-        });
-
-        // fallback if it's empty for some reason then we should just default to a safe answer
-        if (isNullable == '') {
-          isNullable = 'No';
-        }
-
-        const toTitleCase = (s: string) => {
-          if (!s) return '';
-          const firstLetter = s[0].toUpperCase();
-          const restOfString = s.slice(1).toLowerCase();
-          return firstLetter + restOfString;
+        const key: ColumnKey = {
+          schema: row.getValue('schema'),
+          table: row.getValue('table'),
+          column: row.getValue('column'),
         };
-
+        const isNullable = constraintHandler.getIsNullable(key);
+        const text = isNullable ? 'Yes' : 'No';
         return (
           <span className="max-w-[500px] truncate font-medium">
-            <Badge variant="outline">{toTitleCase(isNullable)}</Badge>
+            <Badge variant="outline">{text}</Badge>
           </span>
         );
       },
@@ -236,12 +325,15 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         <SchemaColumnHeader column={column} title="Data Type" />
       ),
       cell: ({ row }) => {
+        const key: ColumnKey = {
+          schema: row.getValue('schema'),
+          table: row.getValue('table'),
+          column: row.getValue('column'),
+        };
+        const datatype = constraintHandler.getDataType(key);
         return (
           <span className="max-w-[500px] truncate font-medium">
-            <Badge variant="outline">
-              TODO
-              {/* {handleDataTypeBadge(row.getValue('dataType'))} */}
-            </Badge>
+            <Badge variant="outline">{handleDataTypeBadge(datatype)}</Badge>
           </span>
         );
       },
@@ -253,41 +345,41 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Transformer" />
       ),
-      meta: columnMetadata,
+      // meta: columnMetadata,
       cell: (info) => {
         const rowKey = `${info.row.getValue('schema')}.${info.row.getValue('table')}`;
 
-        const isForeignKeyConstraint =
-          columnMetadata?.fk &&
-          columnMetadata?.fk[rowKey]?.constraints.filter(
-            (item: ForeignConstraint) =>
-              item.column == info.row.getValue('column')
-          ).length > 0;
+        // const isForeignKeyConstraint =
+        //   columnMetadata?.fk &&
+        //   columnMetadata?.fk[rowKey]?.constraints.filter(
+        //     (item: ForeignConstraint) =>
+        //       item.column == info.row.getValue('column')
+        //   ).length > 0;
 
-        let disableTransformer = false;
+        // let disableTransformer = false;
 
-        const foreignKeyConstraint = {
-          table: columnMetadata?.fk[rowKey]?.constraints.find(
-            (item) => item.column == info.row.getValue('column')
-          )?.foreignKey?.table,
-          column: columnMetadata?.fk[rowKey]?.constraints.find(
-            (item) => item.column == info.row.getValue('column')
-          )?.foreignKey?.column,
-          value: 'Foreign Key',
-        };
+        // const foreignKeyConstraint = {
+        //   table: columnMetadata?.fk[rowKey]?.constraints.find(
+        //     (item) => item.column == info.row.getValue('column')
+        //   )?.foreignKey?.table,
+        //   column: columnMetadata?.fk[rowKey]?.constraints.find(
+        //     (item) => item.column == info.row.getValue('column')
+        //   )?.foreignKey?.column,
+        //   value: 'Foreign Key',
+        // };
 
         // if the current row is a foreignKey constraint, then check that it's primary key transformer
-        if (isForeignKeyConstraint) {
-          disableTransformer =
-            fc
-              .getValues()
-              .mappings.find(
-                (item: JobMappingFormValues) =>
-                  item.schema + '.' + item.table ==
-                    foreignKeyConstraint.table &&
-                  item.column == foreignKeyConstraint.column
-              ).transformer?.source !== 'passthrough';
-        }
+        // if (isForeignKeyConstraint) {
+        //   disableTransformer =
+        //     fc
+        //       .getValues()
+        //       .mappings.find(
+        //         (item: JobMappingFormValues) =>
+        //           item.schema + '.' + item.table ==
+        //             foreignKeyConstraint.table &&
+        //           item.column == foreignKeyConstraint.column
+        //       ).transformer?.source !== 'passthrough';
+        // }
 
         return (
           <div>
@@ -319,7 +411,8 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                             onSelect={field.onChange}
                             placeholder="Select Transformer..."
                             side={'left'}
-                            disabled={disableTransformer}
+                            disabled={false}
+                            // disabled={disableTransformer} // todo
                           />
                         </div>
                         <EditTransformerOptions
@@ -341,7 +434,8 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                             );
                           })}
                           index={info.row.original.formIdx}
-                          disabled={disableTransformer}
+                          // disabled={disableTransformer}
+                          disabled={false} // todo
                         />
                       </div>
                     </FormControl>

@@ -1,6 +1,6 @@
 'use client';
-import { ColumnMetadata } from '@/app/(mgmt)/[account]/new/job/schema/page';
 import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
+import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/SchemaColumns';
 import {
   SchemaTable,
   getConnectionSchema,
@@ -28,7 +28,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectionForeignConstraints';
 import { useGetConnectionPrimaryConstraints } from '@/libs/hooks/useGetConnectionPrimaryConstraints';
-import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
 import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { useGetJob } from '@/libs/hooks/useGetJob';
@@ -52,7 +51,7 @@ import {
   UpdateJobSourceConnectionRequest,
   UpdateJobSourceConnectionResponse,
 } from '@neosync/sdk';
-import { ReactElement, useEffect } from 'react';
+import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { getConnection } from '../../util';
@@ -90,10 +89,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     isLoading: isJobDataLoading,
   } = useGetJob(account?.id ?? '', jobId);
   const sourceConnectionId = getConnectionIdFromSource(data?.job?.source);
-  const { data: schema, error } = useGetConnectionSchema(
-    account?.id ?? '',
-    sourceConnectionId
-  );
+
   const { data: connectionSchemaDataMap, isLoading: isSchemaDataMapLoading } =
     useGetConnectionSchemaMap(account?.id ?? '', sourceConnectionId ?? '');
 
@@ -101,16 +97,6 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     useGetConnections(account?.id ?? '');
 
   const connections = connectionsData?.connections ?? [];
-
-  useEffect(() => {
-    if (error) {
-      toast({
-        title: 'Unable to get connection schema',
-        description: getErrorMessage(error),
-        variant: 'destructive',
-      });
-    }
-  }, [error]);
 
   const form = useForm({
     resolver: yupResolver<SourceFormValues>(FORM_SCHEMA),
@@ -134,12 +120,6 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     account?.id ?? '',
     sourceConnectionId ?? ''
   );
-
-  const columnMetadata: ColumnMetadata = {
-    pk: primaryConstraints?.tableConstraints ?? {},
-    fk: foreignConstraints?.tableConstraints ?? {},
-    isNullable: schema?.schemas ?? [],
-  };
 
   async function onSourceChange(value: string): Promise<void> {
     try {
@@ -193,6 +173,13 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   }
 
   const source = connections.find((item) => item.id === sourceConnectionId);
+  // todo: may need to move this to the server as it is kinda heavy
+  // could also be memoized instead
+  const schemaConstraintHandler = getSchemaConstraintHandler(
+    connectionSchemaDataMap?.schemaMap ?? {},
+    primaryConstraints?.tableConstraints ?? {},
+    foreignConstraints?.tableConstraints ?? {}
+  );
 
   return (
     <Form {...form}>
@@ -255,7 +242,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
           <SchemaTable
             data={form.watch().mappings}
             jobType="sync"
-            columnMetadata={columnMetadata}
+            constraintHandler={schemaConstraintHandler}
             schema={connectionSchemaDataMap?.schemaMap ?? {}}
           />
           <div className="flex flex-row items-center justify-end w-full mt-4">

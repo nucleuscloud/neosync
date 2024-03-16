@@ -41,7 +41,7 @@ export default function SchemaPageTable<TData, TValue>({
   columns,
   data,
   transformers,
-  jobType,
+  // jobType,
 }: DataTableProps<TData, TValue>): ReactElement {
   const table = useReactTable({
     data,
