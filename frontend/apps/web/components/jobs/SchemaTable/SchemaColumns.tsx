@@ -215,6 +215,20 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
       },
     },
     {
+      accessorKey: 'schemaTable',
+      // filterFn: exactMatchFilterFn,
+      header: ({ column }) => (
+        <SchemaColumnHeader column={column} title="Table" />
+      ),
+      cell: ({ row }) => {
+        return (
+          <span className="max-w-[500px] truncate font-medium">
+            {row.getValue('schemaTable')}
+          </span>
+        );
+      },
+    },
+    {
       accessorKey: 'column',
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Column" />

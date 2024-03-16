@@ -28,6 +28,7 @@ import { SchemaTableToolbar } from './SchemaTableToolBar';
 
 export type Row = JobMappingFormValues & {
   formIdx: number;
+  schemaTable: string;
 };
 
 interface DataTableProps<TData, TValue> {
@@ -45,16 +46,15 @@ export default function SchemaPageTable<TData, TValue>({
   const table = useReactTable({
     data,
     columns,
-    state: {
-      columnVisibility: {
-        schema: false,
-      },
-    },
     initialState: {
       sorting: [
         { id: 'schema', desc: true },
         { id: 'table', desc: true },
       ],
+      columnVisibility: {
+        schema: false,
+        table: false,
+      },
     },
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
