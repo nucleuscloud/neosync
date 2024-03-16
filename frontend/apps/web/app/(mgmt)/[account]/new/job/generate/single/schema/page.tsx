@@ -32,12 +32,10 @@ import { useToast } from '@/components/ui/use-toast';
 import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
 import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectionForeignConstraints';
 import { useGetConnectionPrimaryConstraints } from '@/libs/hooks/useGetConnectionPrimaryConstraints';
-import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
 import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { convertMinutesToNanoseconds, getErrorMessage } from '@/util/util';
 import {
-  JobMappingFormValues,
   JobMappingTransformerForm,
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
@@ -49,7 +47,6 @@ import {
   Connection,
   CreateJobRequest,
   CreateJobResponse,
-  DatabaseColumn,
   GenerateSourceOptions,
   GenerateSourceSchemaOption,
   GenerateSourceTableOption,
@@ -121,10 +118,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   );
 
-  const { data: connectionSchemaData } = useGetConnectionSchema(
-    account?.id ?? '',
-    connectFormValues.connectionId
-  );
   const {
     data: connectionSchemaDataMap,
     isLoading: isSchemaDataMapLoading,
@@ -139,7 +132,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     resolver: yupResolver<SingleTableSchemaFormValues>(
       SINGLE_TABLE_SCHEMA_FORM_SCHEMA
     ),
-    values: getFormValues(connectionSchemaData?.schemas ?? [], schemaFormData),
+    values: schemaFormData,
   });
 
   useFormPersist(formKey, {
@@ -331,26 +324,23 @@ the connection which caused the schema page to not load correctly when you went 
                       disabled={!formValues.schema}
                       onValueChange={(value: string) => {
                         if (value) {
-                          field.onChange(value);
+                          const dbcols =
+                            (connectionSchemaDataMap?.schemaMap ?? {})[
+                              `${formValues.schema}.${value}`
+                            ] ?? field.onChange(value);
                           form.setValue(
                             'mappings',
-                            (connectionSchemaData?.schemas ?? [])
-                              .filter(
-                                (s) =>
-                                  s.schema === formValues.schema &&
-                                  s.table === value
-                              )
-                              .map((s) => {
-                                return {
-                                  schema: s.schema,
-                                  table: s.table,
-                                  column: s.column,
-                                  dataType: s.dataType,
-                                  transformer:
-                                    newDefaultJobMappingTransformerForm(),
-                                  isNullable: s.isNullable,
-                                };
-                              })
+                            dbcols.map((s) => {
+                              return {
+                                schema: s.schema,
+                                table: s.table,
+                                column: s.column,
+                                dataType: s.dataType,
+                                transformer:
+                                  newDefaultJobMappingTransformerForm(),
+                                isNullable: s.isNullable,
+                              };
+                            })
                           );
                         }
                       }}
@@ -537,60 +527,6 @@ async function createNewJob(
     throw new Error(body.message);
   }
   return CreateJobResponse.fromJson(await res.json());
-}
-
-function getSchemaTableMap(schemas: DatabaseColumn[]): Map<string, string[]> {
-  const map = new Map<string, Set<string>>();
-  schemas.forEach((schema) => {
-    const set = map.get(schema.schema);
-    if (set) {
-      set.add(schema.table);
-    } else {
-      map.set(schema.schema, new Set([schema.table]));
-    }
-  });
-
-  const outMap = new Map<string, string[]>();
-  map.forEach((tableSet, schema) => outMap.set(schema, Array.from(tableSet)));
-  return outMap;
-}
-
-function getFormValues(
-  dbCols: DatabaseColumn[],
-  existingData: SingleTableSchemaFormValues | undefined
-): SingleTableSchemaFormValues {
-  const schema = existingData?.schema ?? '';
-  const table = existingData?.table ?? '';
-  const defaultMappings = dbCols
-    .filter((dbCol) => dbCol.schema === schema && dbCol.table === table)
-    .map((dbCol) => {
-      return {
-        ...dbCol,
-        transformer: newDefaultJobMappingTransformerForm(),
-      };
-    });
-  const existingMappings = (existingData?.mappings ?? []).filter(
-    (mapping) => mapping.schema === schema && mapping.table === table
-  );
-  const mappingMap = new Map<string, JobMappingFormValues>();
-  defaultMappings.forEach((mapping) =>
-    mappingMap.set(
-      `${mapping.schema}-${mapping.table}-${mapping.column}`,
-      mapping
-    )
-  );
-  existingMappings.forEach((mapping) =>
-    mappingMap.set(
-      `${mapping.schema}-${mapping.table}-${mapping.column}`,
-      mapping
-    )
-  );
-  return {
-    numRows: existingData?.numRows ?? 10,
-    schema,
-    table,
-    mappings: Array.from(mappingMap.values()),
-  };
 }
 
 function newDefaultJobMappingTransformerForm(): JobMappingTransformerForm {
