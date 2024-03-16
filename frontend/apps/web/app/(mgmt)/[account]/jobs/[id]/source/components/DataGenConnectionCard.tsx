@@ -422,7 +422,7 @@ async function updateJobConnection(
   return UpdateJobSourceConnectionResponse.fromJson(await res.json());
 }
 
-function getUniqueSchemasAndTables(
+export function getUniqueSchemasAndTables(
   // key: schema.table
   schemaMap: Record<string, PlainMessage<DatabaseColumn>[]>
 ): [Set<string>, Map<string, string[]>] {

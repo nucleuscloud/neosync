@@ -1,7 +1,9 @@
 'use client';
 
+import { getUniqueSchemasAndTables } from '@/app/(mgmt)/[account]/jobs/[id]/source/components/DataGenConnectionCard';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/SchemaColumns';
 import { SchemaTable } from '@/components/jobs/SchemaTable/SchemaTable';
 import { setOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
 import { useAccount } from '@/components/providers/account-provider';
@@ -31,6 +33,7 @@ import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboard
 import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectionForeignConstraints';
 import { useGetConnectionPrimaryConstraints } from '@/libs/hooks/useGetConnectionPrimaryConstraints';
 import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
+import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { convertMinutesToNanoseconds, getErrorMessage } from '@/util/util';
 import {
@@ -60,7 +63,7 @@ import {
 } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
-import { ReactElement, useEffect, useState } from 'react';
+import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
@@ -71,7 +74,6 @@ import {
   SingleTableConnectFormValues,
   SingleTableSchemaFormValues,
 } from '../../../schema';
-import { ColumnMetadata } from '../../../schema/page';
 const isBrowser = () => typeof window !== 'undefined';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
@@ -107,11 +109,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   );
 
-  const { data: connSchemaData } = useGetConnectionSchema(
-    account?.id ?? '',
-    connectFormValues.connectionId
-  );
-
   const formKey = `${sessionPrefix}-new-job-single-table-schema`;
 
   const [schemaFormData] = useSessionStorage<SingleTableSchemaFormValues>(
@@ -125,6 +122,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   );
 
   const { data: connectionSchemaData } = useGetConnectionSchema(
+    account?.id ?? '',
+    connectFormValues.connectionId
+  );
+  const {
+    data: connectionSchemaDataMap,
+    isLoading: isSchemaDataMapLoading,
+    isValidating: isSchemaMapValidating,
+  } = useGetConnectionSchemaMap(
     account?.id ?? '',
     connectFormValues.connectionId
   );
@@ -206,38 +211,44 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const formValues = form.watch();
   const schemaTableData = formValues.mappings ?? [];
 
-  const schemaSet = new Set(connSchemaData?.schemas.map((s) => s.schema));
-
-  const uniqueSchemas = Array.from(schemaSet);
-  const schemaTableMap = getSchemaTableMap(connSchemaData?.schemas ?? []);
-
-  const { data: primaryConstraints } = useGetConnectionPrimaryConstraints(
-    account?.id ?? '',
-    connectFormValues.connectionId
+  const [uniqueSchemas, schemaTableMap] = useMemo(
+    () => getUniqueSchemasAndTables(connectionSchemaDataMap?.schemaMap ?? {}),
+    [isSchemaMapValidating]
   );
 
-  const { data: foreignConstraints } = useGetConnectionForeignConstraints(
-    account?.id ?? '',
-    connectFormValues.connectionId
-  );
+  const { data: primaryConstraints, isValidating: isPkValidating } =
+    useGetConnectionPrimaryConstraints(
+      account?.id ?? '',
+      connectFormValues.connectionId
+    );
 
-  const columnMetadata: ColumnMetadata = {
-    pk: primaryConstraints?.tableConstraints ?? {},
-    fk: foreignConstraints?.tableConstraints ?? {},
-    isNullable: connSchemaData?.schemas ?? [],
-  };
+  const { data: foreignConstraints, isValidating: isFkValidating } =
+    useGetConnectionForeignConstraints(
+      account?.id ?? '',
+      connectFormValues.connectionId
+    );
+
+  const schemaConstraintHandler = useMemo(
+    () =>
+      getSchemaConstraintHandler(
+        connectionSchemaDataMap?.schemaMap ?? {},
+        primaryConstraints?.tableConstraints ?? {},
+        foreignConstraints?.tableConstraints ?? {}
+      ),
+    [isSchemaMapValidating, isPkValidating, isFkValidating]
+  );
 
   const selectedSchemaTables = schemaTableMap.get(formValues.schema) ?? [];
   /* this fixes a bug that was happening due to the schema and table values not resetting if you went back and changed
-the connection which caused the schema page to not load correctly when you went back to the schema page. This checks if the selected connection contains the schema and 
+the connection which caused the schema page to not load correctly when you went back to the schema page. This checks if the selected connection contains the schema and
   */
   useEffect(() => {
-    const validSchemaAndTable =
+    const isValidSchemaAndTable =
       form.getValues('schema') != '' && form.getValues('table') != '';
     const tableInSchema = schemaTableMap
       .get(form.getValues('schema'))
       ?.find((item) => item == form.getValues('table'));
-    if (validSchemaAndTable && !tableInSchema) {
+    if (isValidSchemaAndTable && !tableInSchema) {
       form.reset({
         ...form.getValues(),
         schema: '',
@@ -245,7 +256,7 @@ the connection which caused the schema page to not load correctly when you went 
         mappings: [],
       });
     }
-  }, [connSchemaData?.schemas, form]);
+  }, [schemaTableMap, form]);
 
   return (
     <div className="flex flex-col gap-5">
@@ -286,10 +297,10 @@ the connection which caused the schema page to not load correctly when you went 
                         <SelectValue placeholder="Select a schema..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {!uniqueSchemas ? (
+                        {isSchemaDataMapLoading ? (
                           <Skeleton />
                         ) : (
-                          uniqueSchemas.map((schema) => (
+                          Array.from(uniqueSchemas).map((schema) => (
                             <SelectItem
                               className="cursor-pointer"
                               key={schema}
@@ -403,7 +414,8 @@ the connection which caused the schema page to not load correctly when you went 
             <SchemaTable
               data={schemaTableData}
               excludeInputReqTransformers
-              columnMetadata={columnMetadata}
+              constraintHandler={schemaConstraintHandler}
+              schema={connectionSchemaDataMap?.schemaMap ?? {}}
               jobType={'generate'}
             />
           )}
