@@ -214,6 +214,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         </div>
       ),
       enableSorting: false,
+      enableHiding: false,
       size: 30,
     },
     {
@@ -233,6 +234,8 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
           </span>
         );
       },
+      enableSorting: false,
+      enableHiding: false,
     },
     {
       accessorKey: 'table',
@@ -246,6 +249,8 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
           </span>
         );
       },
+      enableSorting: false,
+      enableHiding: false,
     },
     {
       accessorFn: (row) => `${row.schema}.${row.table}`,
