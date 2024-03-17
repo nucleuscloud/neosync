@@ -22,6 +22,12 @@ const CONNECTIONS: ConnectionMeta[] = [
     description:
       'Amazon Simple Storage Service (Amazon S3) is an object storage service used to store and retrieve any data.',
   },
+  {
+    urlSlug: 'neon',
+    name: 'Neon',
+    description:
+      'Neon is a serverless Postgres datgabase that separates storage and copmuyte to offer autoscaling, branching and bottomless storage.',
+  },
 ];
 
 export default function NewConnection(): ReactElement {
@@ -30,7 +36,7 @@ export default function NewConnection(): ReactElement {
       Header={
         <PageHeader
           header="Create a new Connection"
-          description="Connect a new datasource to use in jobs or other synchronizations."
+          description="Connect a new datasource to use in sync or generate jobs."
           pageHeaderContainerClassName="mx-24"
         />
       }

@@ -3,7 +3,39 @@ import { addSeconds, isAfter } from 'date-fns';
 import NextAuth, { NextAuthConfig } from 'next-auth';
 
 function getProviders(): NextAuthConfig['providers'] {
-  const providers: NextAuthConfig['providers'] = [];
+  const providers: NextAuthConfig['providers'] = [
+    // {
+    //   id: 'neon',
+    //   name: 'Neon',
+    //   type: 'oauth',
+    //   wellKnown: 'https://oauth2.neon.tech/.well-known/openid-configuration',
+    //   authorization: {
+    //     url: 'https://oauth2.neon.tech/oauth2/auth',
+    //     params: {
+    //       grant_type: ['authorization_code'],
+    //       response_type: 'code',
+    //       scope:
+    //         'offline offline_access urn:neoncloud:projects:create urn:neoncloud:projects:read',
+    //       redirect_uri: 'http://localhost:3000/api/integrations/neon/callback',
+    //     },
+    //   },
+    //   issuer: 'https://oauth2.neon.tech/',
+    //   token: 'https://oauth2.neon.tech/oauth2/token',
+    //   checks: ['pkce', 'state'],
+    //   client: {
+    //     token_endpoint_auth_method: 'client_secret_post',
+    //   },
+    //   profile(profile) {
+    //     return {
+    //       id: profile.sub,
+    //       name: profile.name,
+    //       email: profile.email,
+    //     };
+    //   },
+    //   clientId: 'neosync',
+    //   clientSecret: 'eseH+4a3Ub3aZcqVv+RY+5BbBkvZTXD6OQGc279l1BE=',
+    // },
+  ];
   const authConfig = getOAuthConfig();
   if (authConfig) {
     providers.push({

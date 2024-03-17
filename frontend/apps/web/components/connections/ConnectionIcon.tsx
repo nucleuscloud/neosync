@@ -1,3 +1,4 @@
+import { NeonLogo } from '@/app/(mgmt)/[account]/new/connection/neon/NeonLogo';
 import { ReactElement } from 'react';
 import { IconContext } from 'react-icons';
 import { DiMysql, DiPostgresql } from 'react-icons/di';
@@ -34,6 +35,13 @@ export default function ConnectionIcon(props: Props): ReactElement | null {
       return (
         <IconContext.Provider value={{ style: { width, height } }}>
           <FaAws />
+        </IconContext.Provider>
+      );
+    }
+    case 'neon': {
+      return (
+        <IconContext.Provider value={{ style: { width, height } }}>
+          <NeonLogo />
         </IconContext.Provider>
       );
     }
