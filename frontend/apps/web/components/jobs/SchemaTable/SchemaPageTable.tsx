@@ -94,7 +94,7 @@ export default function SchemaPageTable<TData, TValue>({
         ref={tableContainerRef}
       >
         <StickyHeaderTable>
-          <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 flex pl-6 pt-2 w-full">
+          <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 pl-2 flex pt-2 w-full">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
@@ -136,7 +136,7 @@ export default function SchemaPageTable<TData, TValue>({
                   style={{
                     transform: `translateY(${virtualRow.start}px)`,
                   }}
-                  className="items-center flex absolute w-full pl-6 justify-between"
+                  className="items-center flex absolute w-full justify-between pl-2"
                 >
                   {row.getVisibleCells().map((cell) => {
                     return (
@@ -147,7 +147,7 @@ export default function SchemaPageTable<TData, TValue>({
                           minWidth: cell.column.getSize(),
                         }}
                       >
-                        <div className="truncate">
+                        <div>
                           {flexRender(
                             cell.column.columnDef.cell,
                             cell.getContext()

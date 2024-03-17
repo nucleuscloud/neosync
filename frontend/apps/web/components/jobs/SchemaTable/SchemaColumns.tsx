@@ -31,7 +31,7 @@ import {
 } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ColumnDef, FilterFn, Row, SortingFn } from '@tanstack/react-table';
-import { HTMLProps, useEffect, useRef } from 'react';
+import { HTMLProps, ReactElement, useEffect, useRef } from 'react';
 import { SchemaColumnHeader } from './SchemaColumnHeader';
 import { Row as RowData } from './SchemaPageTable';
 import TransformerSelect from './TransformerSelect';
@@ -66,6 +66,7 @@ export interface SchemaConstraintHandler {
   getIsForeignKey(key: ColumnKey): [boolean, string[]];
   getIsNullable(key: ColumnKey): boolean;
   getDataType(key: ColumnKey): string;
+  getIsInSchema(key: ColumnKey): boolean;
 }
 
 interface ColDetails {
@@ -98,6 +99,9 @@ export function getSchemaConstraintHandler(
     getIsPrimaryKey(key) {
       return colmap[fromColKey(key)]?.isPrimaryKey ?? false;
     },
+    getIsInSchema(key) {
+      return !!colmap[fromColKey(key)];
+    },
   };
 }
 
@@ -129,10 +133,51 @@ function buildColDetailsMap(
           fk !== undefined ? [`${fk.table}.${fk.column}`] : [],
         ],
         isPrimaryKey: primaryCols.has(dbcol.column),
+        isInSchema: true,
       };
     });
   });
   return colmap;
+}
+
+interface RowAlertProps {
+  row: Row<RowData>;
+  handler: SchemaConstraintHandler;
+}
+
+function RowAlert(props: RowAlertProps): ReactElement {
+  const { row, handler } = props;
+  const key: ColumnKey = {
+    schema: row.getValue('schema'),
+    table: row.getValue('table'),
+    column: row.getValue('column'),
+  };
+  const isInSchema = handler.getIsInSchema(key);
+
+  const messages: string[] = [];
+
+  if (!isInSchema) {
+    messages.push('This column was not found in the backing source schema');
+  }
+
+  if (messages.length === 0) {
+    return <div />;
+  }
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="cursor-default">
+            <ExclamationTriangleIcon className="text-yellow-600 dark:text-yellow-300" />
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>{messages.join('\n')}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
 }
 
 interface Props {
@@ -140,24 +185,12 @@ interface Props {
   constraintHandler: SchemaConstraintHandler;
 }
 
-// const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
-//   // Rank the item
-//   const itemRank = rankItem(row.getValue(columnId), value);
-
-//   // Store the itemRank info
-//   addMeta({
-//     itemRank,
-//   });
-
-//   // Return if the item should be filtered in/out
-//   return itemRank.passed;
-// };
-
 export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
   const { transformers, constraintHandler } = props;
 
   // const fc = useFormContext();
 
+  // const columnHelper = createColumnHelper<RowData>();
   return [
     {
       accessorKey: 'isSelected',
@@ -183,15 +216,17 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
       ),
       enableSorting: false,
       size: 30,
-      maxSize: 30,
-      minSize: 30,
+    },
+    {
+      id: 'alert',
+      size: 1,
+      cell: ({ row }) => <RowAlert row={row} handler={constraintHandler} />,
     },
     {
       accessorKey: 'schema',
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Schema" />
       ),
-      filterFn: exactMatchFilterFn, //handles the multi-select on the schema drop down
       cell: ({ row }) => {
         return (
           <span className="max-w-[500px] truncate font-medium">
@@ -202,28 +237,28 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
     },
     {
       accessorKey: 'table',
-      // filterFn: exactMatchFilterFn,
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Table" />
       ),
       cell: ({ row }) => {
         return (
           <span className="max-w-[500px] truncate font-medium">
-            {`${row.getValue('schema')}.${row.getValue('table')}`}
+            {row.getValue('table')}
           </span>
         );
       },
     },
     {
-      accessorKey: 'schemaTable',
-      // filterFn: exactMatchFilterFn,
+      accessorFn: (row) => `${row.schema}.${row.table}`,
+      id: 'schemaTable',
+      footer: (props) => props.column.id,
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Table" />
       ),
-      cell: ({ row }) => {
+      cell: ({ getValue }) => {
         return (
           <span className="max-w-[500px] truncate font-medium">
-            {row.getValue('schemaTable')}
+            {getValue() as string}
           </span>
         );
       },
@@ -251,23 +286,6 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
       // sortingFn: sortConstraints(columnMetadata),
       // meta: columnMetadata,
       cell: ({ row }) => {
-        // const rowKey = `${row.getValue('schema')}.${row.getValue('table')}`;
-
-        // const hasForeignKeyConstraint =
-        //   columnMetadata?.fk &&
-        //   columnMetadata?.fk[rowKey]?.constraints.filter(
-        //     (item: ForeignConstraint) => item.column == row.getValue('column')
-        //   ).length > 0;
-
-        // const foreignKeyConstraint = {
-        //   table: columnMetadata?.fk[rowKey]?.constraints.find(
-        //     (item) => item.column == row.getValue('column')
-        //   )?.foreignKey?.table,
-        //   column: columnMetadata?.fk[rowKey]?.constraints.find(
-        //     (item) => item.column == row.getValue('column')
-        //   )?.foreignKey?.column,
-        //   value: 'Foreign Key',
-        // };
         const key: ColumnKey = {
           schema: row.getValue('schema'),
           table: row.getValue('table'),
@@ -275,7 +293,6 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         };
         const isPrimaryKey = constraintHandler.getIsPrimaryKey(key);
         const [isForeignKey, fkCols] = constraintHandler.getIsForeignKey(key);
-
         return (
           <span className="max-w-[500px] truncate font-medium">
             <div className="flex flex-col lg:flex-row items-start gap-1">
@@ -361,7 +378,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
       ),
       // meta: columnMetadata,
       cell: (info) => {
-        const rowKey = `${info.row.getValue('schema')}.${info.row.getValue('table')}`;
+        // const rowKey = `${info.row.getValue('schema')}.${info.row.getValue('table')}`;
 
         // const isForeignKeyConstraint =
         //   columnMetadata?.fk &&
