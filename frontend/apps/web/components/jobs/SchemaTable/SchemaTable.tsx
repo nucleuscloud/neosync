@@ -2,7 +2,13 @@
 import DualListBox, { Action } from '@/components/DualListBox/DualListBox';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
-import { Card, CardContent } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { ConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetMergedTransformers } from '@/libs/hooks/useGetMergedTransformers';
 import {
@@ -125,6 +131,13 @@ export function SchemaTable(props: Props): ReactElement {
     <div className="flex flex-col gap-3">
       <div className="flex">
         <Card className="p-0">
+          <CardHeader className="p-3 pb-0">
+            <CardTitle>Select the tables this job should map</CardTitle>
+            <CardDescription className="max-w-[350px]">
+              Once selected, choose the desired transformations for each column
+              below.
+            </CardDescription>
+          </CardHeader>
           <CardContent className="p-3">
             <DualListBox
               options={Object.keys(schema).map((value) => ({

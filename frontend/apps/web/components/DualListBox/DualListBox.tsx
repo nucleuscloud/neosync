@@ -1,9 +1,13 @@
 import { Button } from '@/components/ui/button';
 import {
+  ArrowDownIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
+  ArrowUpIcon,
+  DoubleArrowDownIcon,
   DoubleArrowLeftIcon,
   DoubleArrowRightIcon,
+  DoubleArrowUpIcon,
 } from '@radix-ui/react-icons';
 import { RowSelectionState } from '@tanstack/react-table';
 import { ReactElement, useMemo, useState } from 'react';
@@ -37,7 +41,7 @@ export default function DualListBox(props: Props): ReactElement {
     .map((value): Row => ({ value: value.value }));
 
   return (
-    <div className="flex gap-3 flex-row">
+    <div className="flex gap-3 flex-col md:flex-row">
       <div className="flex">
         <ListBox
           columns={cols}
@@ -46,7 +50,7 @@ export default function DualListBox(props: Props): ReactElement {
           rowSelection={leftSelected}
         />
       </div>
-      <div className="flex flex-col justify-center gap-2">
+      <div className="flex flex-row md:flex-col justify-center gap-2">
         <div>
           <Button
             type="button"
@@ -59,7 +63,8 @@ export default function DualListBox(props: Props): ReactElement {
               setLeftSelected({});
             }}
           >
-            <DoubleArrowRightIcon />
+            <DoubleArrowRightIcon className="hidden md:block" />
+            <DoubleArrowDownIcon className="block md:hidden" />
           </Button>
         </div>
         <div>
@@ -77,7 +82,8 @@ export default function DualListBox(props: Props): ReactElement {
               setLeftSelected({});
             }}
           >
-            <ArrowRightIcon />
+            <ArrowRightIcon className="hidden md:block" />
+            <ArrowDownIcon className="block md:hidden" />
           </Button>
         </div>
         <div>
@@ -95,7 +101,8 @@ export default function DualListBox(props: Props): ReactElement {
               setRightSelected({});
             }}
           >
-            <ArrowLeftIcon />
+            <ArrowLeftIcon className="hidden md:block" />
+            <ArrowUpIcon className="block md:hidden" />
           </Button>
         </div>
         <div>
@@ -107,7 +114,8 @@ export default function DualListBox(props: Props): ReactElement {
               setRightSelected({});
             }}
           >
-            <DoubleArrowLeftIcon />
+            <DoubleArrowLeftIcon className="hidden md:block" />
+            <DoubleArrowUpIcon className="block md:hidden" />
           </Button>
         </div>
       </div>
