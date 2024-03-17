@@ -133,7 +133,6 @@ function buildColDetailsMap(
           fk !== undefined ? [`${fk.table}.${fk.column}`] : [],
         ],
         isPrimaryKey: primaryCols.has(dbcol.column),
-        isInSchema: true,
       };
     });
   });
