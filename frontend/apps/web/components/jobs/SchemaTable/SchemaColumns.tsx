@@ -22,6 +22,7 @@ import {
   SchemaFormValues,
 } from '@/yup-validations/jobs';
 import { PlainMessage } from '@bufbuild/protobuf';
+import { ErrorMessage } from '@hookform/error-message';
 import {
   DatabaseColumn,
   ForeignConstraint,
@@ -32,6 +33,7 @@ import {
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ColumnDef, FilterFn, Row, SortingFn } from '@tanstack/react-table';
 import { HTMLProps, ReactElement, useEffect, useRef } from 'react';
+import { useFormContext } from 'react-hook-form';
 import { SchemaColumnHeader } from './SchemaColumnHeader';
 import { Row as RowData } from './SchemaPageTable';
 import TransformerSelect from './TransformerSelect';
@@ -380,7 +382,6 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Transformer" />
       ),
-      // meta: columnMetadata,
       cell: (info) => {
         // const rowKey = `${info.row.getValue('schema')}.${info.row.getValue('table')}`;
 
@@ -415,17 +416,25 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         //           item.column == foreignKeyConstraint.column
         //       ).transformer?.source !== 'passthrough';
         // }
-
+        const fctx = useFormContext<
+          SchemaFormValues | SingleTableSchemaFormValues
+        >();
         return (
           <div>
             <FormField<SchemaFormValues | SingleTableSchemaFormValues>
               name={`mappings.${info.row.original.formIdx}.transformer`}
+              control={fctx.control}
               render={({ field, fieldState, formState }) => {
                 const fv = field.value as JobMappingTransformerForm;
                 return (
                   <FormItem>
                     <FormControl>
                       <div className="flex flex-row space-x-2">
+                        <ErrorMessage
+                          name={field.name}
+                          errors={fieldState.error}
+                          render={({ message }) => <p>{message}</p>}
+                        />
                         {formState.errors.mappings && (
                           <div className="place-self-center">
                             {fieldState.error ? (
@@ -438,7 +447,6 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                             )}
                           </div>
                         )}
-
                         <div>
                           <TransformerSelect
                             transformers={transformers}
@@ -474,6 +482,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                         />
                       </div>
                     </FormControl>
+                    {/* <FormMessage /> */}
                   </FormItem>
                 );
               }}

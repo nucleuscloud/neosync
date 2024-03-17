@@ -188,7 +188,6 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   }
 
   const source = connections.find((item) => item.id === sourceConnectionId);
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -378,7 +377,7 @@ function getJobSource(job?: Job): SourceFormValues {
       ...mapping,
       transformer: mapping.transformer
         ? convertJobMappingTransformerToForm(mapping.transformer)
-        : ({} as any), // todo
+        : convertJobMappingTransformerToForm(new JobMappingTransformer()),
     };
   });
 

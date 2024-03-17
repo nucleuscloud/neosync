@@ -17,7 +17,7 @@ import * as Yup from 'yup';
 
 // Yup schema form JobMappingTransformers
 const JobMappingTransformerForm = Yup.object({
-  source: Yup.string().required(),
+  source: Yup.string().required('A valid transformer source must be specified'),
   config: TransformerConfigSchema,
 });
 
@@ -41,6 +41,12 @@ export function convertJobMappingTransformerFormToJobMappingTransformer(
     source: form.source,
     config: convertTransformerConfigSchemaToTransformerConfig(form.config),
   });
+}
+
+export function isUnspecifiedJobMappingTransformer(
+  form: JobMappingTransformerForm | undefined
+): boolean {
+  return form === undefined || form.source === '';
 }
 
 export function convertTransformerConfigToForm(
@@ -67,7 +73,6 @@ export const JOB_MAPPING_SCHEMA = Yup.object({
   schema: Yup.string().required(),
   table: Yup.string().required(),
   column: Yup.string().required(),
-  // dataType: Yup.string().required(),
   transformer: JobMappingTransformerForm,
 }).required();
 export type JobMappingFormValues = Yup.InferType<typeof JOB_MAPPING_SCHEMA>;

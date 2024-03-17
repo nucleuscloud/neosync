@@ -1,4 +1,5 @@
 'use client';
+import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
 import DualListBox, { Action } from '@/components/DualListBox/DualListBox';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
@@ -19,11 +20,9 @@ import {
 import {
   GetConnectionSchemaResponse,
   JobMappingTransformer,
-  Passthrough,
-  TransformerConfig,
 } from '@neosync/sdk';
 import { ReactElement, useState } from 'react';
-import { useFieldArray, useFormContext } from 'react-hook-form';
+import { FieldErrors, useFieldArray, useFormContext } from 'react-hook-form';
 import { SchemaConstraintHandler, getSchemaColumns } from './SchemaColumns';
 import SchemaPageTable, { Row } from './SchemaPageTable';
 
@@ -66,8 +65,10 @@ export function SchemaTable(props: Props): ReactElement {
     constraintHandler,
   });
 
-  const form = useFormContext<SchemaFormValues>();
-  const { append, remove, fields } = useFieldArray<SchemaFormValues>({
+  const form = useFormContext<SchemaFormValues | SingleTableSchemaFormValues>();
+  const { append, remove, fields } = useFieldArray<
+    SchemaFormValues | SingleTableSchemaFormValues
+  >({
     control: form.control,
     name: 'mappings',
   });
@@ -101,15 +102,7 @@ export function SchemaTable(props: Props): ReactElement {
           column: dbcol.column,
           dataType: dbcol.dataType,
           transformer: convertJobMappingTransformerToForm(
-            new JobMappingTransformer({
-              source: 'passthrough',
-              config: new TransformerConfig({
-                config: {
-                  case: 'passthroughConfig',
-                  value: new Passthrough({}),
-                },
-              }),
-            })
+            new JobMappingTransformer({})
           ),
         });
       });
@@ -127,30 +120,46 @@ export function SchemaTable(props: Props): ReactElement {
     return <SkeletonTable />;
   }
 
+  const extractedFormErrors = formErrorsToMessages(
+    extractAllErrors(form.formState.errors)
+  );
+
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex">
-        <Card className="p-0">
-          <CardHeader className="p-3 pb-0">
-            <CardTitle>Select the tables this job should map</CardTitle>
-            <CardDescription className="max-w-[350px]">
-              Once selected, choose the desired transformations for each column
-              below.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-3">
-            <DualListBox
-              options={Object.keys(schema).map((value) => ({
-                value: value,
-              }))}
-              selected={selectedItems}
-              onChange={toggleItem}
-              title="Table"
-            />
-          </CardContent>
-        </Card>
+      <div className="flex flex-col md:flex-row gap-3">
+        <div className="flex">
+          <Card className="p-0">
+            <CardHeader className="p-3 pb-0">
+              <CardTitle>Select the tables this job should map</CardTitle>
+              <CardDescription className="max-w-[350px]">
+                Once selected, choose the desired transformations for each
+                column below.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-3">
+              <DualListBox
+                options={Object.keys(schema).map((value) => ({
+                  value: value,
+                }))}
+                selected={selectedItems}
+                onChange={toggleItem}
+                title="Table"
+              />
+            </CardContent>
+          </Card>
+        </div>
+        <div className="flex">
+          <Card className="p-0">
+            <CardContent className="p-3">
+              <ul>
+                {extractedFormErrors.map((message, idx) => (
+                  <li key={idx}>{message}</li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-      <div></div>
       <SchemaPageTable
         columns={columns}
         data={tableData}
@@ -159,6 +168,52 @@ export function SchemaTable(props: Props): ReactElement {
       />
     </div>
   );
+}
+
+interface FormError {
+  message: string;
+  type?: string;
+  path: string;
+}
+
+function extractAllErrors(
+  errors: FieldErrors<SchemaFormValues | SingleTableSchemaFormValues>,
+  path = ''
+): FormError[] {
+  let messages: any[] = [];
+
+  for (const key in errors) {
+    const newPath = path ? `${path}.${key}` : key;
+    const error = (errors as any)[key as unknown as any] as any;
+    if (!error) {
+      continue;
+    }
+    if (error.message) {
+      messages.push({
+        path: newPath,
+        message: error.message,
+        type: error.type,
+      });
+    } else {
+      messages = messages.concat(extractAllErrors(error, newPath));
+    }
+  }
+  return messages;
+}
+
+function formErrorsToMessages(errors: FormError[]): string[] {
+  const messages: string[] = [];
+
+  errors.forEach((error) => {
+    const pieces: string[] = [error.path];
+    if (error.type) {
+      pieces.push(`[${error.type}]`);
+    }
+    pieces.push(error.message);
+    messages.push(pieces.join(' '));
+  });
+
+  return messages;
 }
 
 export async function getConnectionSchema(

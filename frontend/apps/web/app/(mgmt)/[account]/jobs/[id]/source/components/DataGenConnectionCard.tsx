@@ -47,6 +47,7 @@ import {
   GenerateSourceTableOption,
   Job,
   JobMapping,
+  JobMappingTransformer,
   JobSource,
   JobSourceOptions,
   UpdateJobSourceConnectionRequest,
@@ -353,7 +354,7 @@ function getJobSource(job?: Job): SingleTableSchemaFormValues {
       column: mapping.column,
       transformer: mapping.transformer
         ? convertJobMappingTransformerToForm(mapping.transformer)
-        : ({} as any), // todo
+        : convertJobMappingTransformerToForm(new JobMappingTransformer()),
     };
   });
   return {
