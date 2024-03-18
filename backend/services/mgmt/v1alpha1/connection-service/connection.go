@@ -26,6 +26,7 @@ func (s *Service) CheckConnectionConfig(
 	if err != nil {
 		return nil, err
 	}
+
 	db, err := conn.Open()
 	if err != nil {
 		return nil, err
