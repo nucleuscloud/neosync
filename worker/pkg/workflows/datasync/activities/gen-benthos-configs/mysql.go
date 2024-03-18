@@ -14,10 +14,11 @@ func qualifyMysqlWhereColumnNames(where, schema, table string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	switch stmt := stmt.(type) {
+
+	switch stmt := stmt.(type) { //nolint:gocritic
 	case *sqlparser.Select:
-		sqlparser.Walk(func(node sqlparser.SQLNode) (kontinue bool, err error) {
-			switch node := node.(type) {
+		err = sqlparser.Walk(func(node sqlparser.SQLNode) (kontinue bool, err error) {
+			switch node := node.(type) { //nolint:gocritic
 			case *sqlparser.ComparisonExpr:
 				if col, ok := node.Left.(*sqlparser.ColName); ok {
 					if col.Qualifier.IsEmpty() {
@@ -29,6 +30,9 @@ func qualifyMysqlWhereColumnNames(where, schema, table string) (string, error) {
 			}
 			return true, nil
 		}, stmt)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	updatedSql := sqlparser.String(stmt)
