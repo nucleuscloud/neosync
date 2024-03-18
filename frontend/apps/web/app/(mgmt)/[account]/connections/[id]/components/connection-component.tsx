@@ -4,6 +4,7 @@ import ConnectionIcon from '@/components/connections/ConnectionIcon';
 import PageHeader from '@/components/headers/PageHeader';
 import {
   Connection,
+  PostgresConnection,
   SSHAuthentication,
   UpdateConnectionResponse,
 } from '@neosync/sdk';
@@ -34,84 +35,107 @@ export function getConnectionComponentDetails(
   switch (connection?.connectionConfig?.config?.case) {
     case 'pgConfig':
       const value = connection.connectionConfig.config.value;
-      switch (value.connectionConfig.case) {
-        case 'connection':
-          return {
-            name: connection.name,
-            summary: (
-              <div>
-                <p>No summary found.</p>
-              </div>
-            ),
-            header: (
-              <PageHeader
-                header="PostgreSQL"
-                leftIcon={<ConnectionIcon name="postgres" />}
-                extraHeading={extraPageHeading}
-                description={connection.id}
-                copyIcon={
-                  <CopyButton
-                    onHoverText="Copy the Connection ID"
-                    textToCopy={connection.id}
-                    onCopiedText="Success!"
-                    buttonVariant="outline"
-                  />
-                }
-              />
-            ),
-            body: (
-              <PostgresForm
-                connectionId={connection.id}
-                defaultValues={{
-                  connectionName: connection.name,
-                  db: {
-                    host: value.connectionConfig.value.host,
-                    port: value.connectionConfig.value.port,
-                    name: value.connectionConfig.value.name,
-                    user: value.connectionConfig.value.user,
-                    pass: value.connectionConfig.value.pass,
-                    sslMode: value.connectionConfig.value.sslMode,
-                  },
-                  tunnel: {
-                    host: value.tunnel?.host ?? '',
-                    port: value.tunnel?.port ?? 22,
-                    knownHostPublicKey: value.tunnel?.knownHostPublicKey ?? '',
-                    user: value.tunnel?.user ?? '',
-                    passphrase:
-                      value.tunnel && value.tunnel.authentication
-                        ? getPassphraseFromSshAuthentication(
-                            value.tunnel.authentication
-                          ) ?? ''
-                        : '',
-                    privateKey:
-                      value.tunnel && value.tunnel.authentication
-                        ? getPrivateKeyFromSshAuthentication(
-                            value.tunnel.authentication
-                          ) ?? ''
-                        : '',
-                  },
-                }}
-                onSaved={(resp) => onSaved(resp)}
-                onSaveFailed={onSaveFailed}
-              />
-            ),
+      if (value.connectionConfig.case) {
+        let pgConfig: PostgresConnection | string | undefined;
+
+        if (value.connectionConfig.case == 'connection') {
+          pgConfig = value.connectionConfig.value;
+        } else if (value.connectionConfig.case == 'url') {
+          pgConfig = value.connectionConfig.value;
+        }
+
+        const defaultDb = {
+          host: '',
+          name: '',
+          user: '',
+          pass: '',
+          port: 5432,
+          sslMode: 'disable',
+        };
+
+        let dbConfig = defaultDb;
+        if (typeof pgConfig !== 'string') {
+          dbConfig = {
+            host: pgConfig?.host ?? '',
+            name: pgConfig?.name ?? '',
+            user: pgConfig?.user ?? '',
+            pass: pgConfig?.pass ?? '',
+            port: pgConfig?.port ?? 5432,
+            sslMode: pgConfig?.sslMode ?? 'disable',
           };
+        }
+
+        return {
+          name: connection.name,
+          summary: (
+            <div>
+              <p>No summary found.</p>
+            </div>
+          ),
+          header: (
+            <PageHeader
+              header="PostgreSQL"
+              leftIcon={<ConnectionIcon name="postgres" />}
+              extraHeading={extraPageHeading}
+              description={connection.id}
+              copyIcon={
+                <CopyButton
+                  onHoverText="Copy the Connection ID"
+                  textToCopy={connection.id}
+                  onCopiedText="Success!"
+                  buttonVariant="outline"
+                />
+              }
+            />
+          ),
+          body: (
+            <PostgresForm
+              connectionId={connection.id}
+              defaultValues={{
+                connectionName: connection.name,
+                db: dbConfig,
+                url: typeof pgConfig === 'string' ? pgConfig : '',
+                tunnel: {
+                  host: value.tunnel?.host ?? '',
+                  port: value.tunnel?.port ?? 22,
+                  knownHostPublicKey: value.tunnel?.knownHostPublicKey ?? '',
+                  user: value.tunnel?.user ?? '',
+                  passphrase:
+                    value.tunnel && value.tunnel.authentication
+                      ? getPassphraseFromSshAuthentication(
+                          value.tunnel.authentication
+                        ) ?? ''
+                      : '',
+                  privateKey:
+                    value.tunnel && value.tunnel.authentication
+                      ? getPrivateKeyFromSshAuthentication(
+                          value.tunnel.authentication
+                        ) ?? ''
+                      : '',
+                },
+              }}
+              onSaved={(resp) => onSaved(resp)}
+              onSaveFailed={onSaveFailed}
+            />
+          ),
+        };
+      } else {
+        return {
+          name: connection.name,
+          summary: (
+            <div>
+              <p>No summary found.</p>
+            </div>
+          ),
+          header: <PageHeader header="Unknown Connection" />,
+          body: (
+            <div>
+              No connection component found for: (
+              {connection?.name ?? 'unknown name'})
+            </div>
+          ),
+        };
       }
-      return {
-        name: connection.name,
-        summary: (
-          <div>
-            <p>No summary found.</p>
-          </div>
-        ),
-        header: <PageHeader header="Unknown Connection" />,
-        body: (
-          <div>
-            No connection component found for: (
-            {connection?.name ?? 'unknown name'})
-          </div>
-        ),
-      };
     case 'mysqlConfig':
       const mysqlValue = connection.connectionConfig.config.value;
       switch (mysqlValue.connectionConfig.case) {

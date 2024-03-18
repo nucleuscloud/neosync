@@ -122,9 +122,19 @@ export const POSTGRES_FORM_SCHEMA = Yup.object({
     pass: Yup.string().required(),
     port: Yup.number().integer().positive().required(),
     sslMode: Yup.string().optional(),
-  }).required(),
+  }).optional(),
+  url: Yup.string(),
   tunnel: SSH_TUNNEL_FORM_SCHEMA,
-});
+}).test(
+  'dbOrUrl',
+  'Either the Connection Host or the Connection URL must be provided',
+  function (value) {
+    const { db, url } = value;
+    const isDbValid = db ? true : false;
+    const isUrlValid = !!url;
+    return isDbValid || isUrlValid;
+  }
+);
 export type PostgresFormValues = Yup.InferType<typeof POSTGRES_FORM_SCHEMA>;
 
 export const AWS_FORM_SCHEMA = Yup.object({
