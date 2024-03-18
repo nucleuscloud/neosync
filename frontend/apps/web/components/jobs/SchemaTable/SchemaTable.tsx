@@ -22,7 +22,7 @@ import {
   GetConnectionSchemaResponse,
   JobMappingTransformer,
 } from '@neosync/sdk';
-import { ReactElement, useState } from 'react';
+import { ReactElement, useMemo, useState } from 'react';
 import { FieldErrors, useFieldArray, useFormContext } from 'react-hook-form';
 import { SchemaConstraintHandler, getSchemaColumns } from './SchemaColumns';
 import SchemaPageTable, { Row } from './SchemaPageTable';
@@ -45,7 +45,14 @@ export function SchemaTable(props: Props): ReactElement {
   } = props;
 
   const { account } = useAccount();
-  const { transformers, isLoading } = useGetMergedTransformers(
+  const {
+    systemTransformers,
+    userDefinedTransformers,
+    userDefinedMap,
+    systemMap,
+    isLoading,
+    isValidating,
+  } = useGetMergedTransformers(
     excludeInputReqTransformers ?? false,
     account?.id ?? ''
   );
@@ -61,10 +68,13 @@ export function SchemaTable(props: Props): ReactElement {
     };
   });
 
-  const columns = getSchemaColumns({
-    transformers,
-    constraintHandler,
-  });
+  const columns = useMemo(() => {
+    return getSchemaColumns({
+      systemTransformers,
+      userDefinedTransformers,
+      constraintHandler,
+    });
+  }, [isValidating, constraintHandler]);
 
   const form = useFormContext<SchemaFormValues | SingleTableSchemaFormValues>();
   const { append, remove, fields } = useFieldArray<
@@ -169,7 +179,10 @@ export function SchemaTable(props: Props): ReactElement {
       <SchemaPageTable
         columns={columns}
         data={tableData}
-        transformers={transformers}
+        userDefinedTransformerMap={userDefinedMap}
+        userDefinedTransformers={userDefinedTransformers}
+        systemTransformerMap={systemMap}
+        systemTransformers={systemTransformers}
         jobType={jobType}
       />
     </div>

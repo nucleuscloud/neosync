@@ -22,8 +22,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Transformer } from '@/shared/transformers';
 import { JobMappingFormValues } from '@/yup-validations/jobs';
+import { SystemTransformer, UserDefinedTransformer } from '@neosync/sdk';
 import { SchemaTableToolbar } from './SchemaTableToolBar';
 
 export type Row = JobMappingFormValues & {
@@ -34,14 +34,21 @@ export type Row = JobMappingFormValues & {
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  transformers: Transformer[];
+  userDefinedTransformers: UserDefinedTransformer[];
+  systemTransformers: SystemTransformer[];
+
+  userDefinedTransformerMap: Map<string, UserDefinedTransformer>;
+  systemTransformerMap: Map<string, SystemTransformer>;
   jobType: string;
 }
 
 export default function SchemaPageTable<TData, TValue>({
   columns,
   data,
-  transformers,
+  userDefinedTransformerMap,
+  userDefinedTransformers,
+  systemTransformerMap,
+  systemTransformers,
 }: DataTableProps<TData, TValue>): ReactElement {
   const table = useReactTable({
     data,
@@ -83,7 +90,13 @@ export default function SchemaPageTable<TData, TValue>({
   return (
     <div>
       <div className="z-50">
-        <SchemaTableToolbar table={table} transformers={transformers} />
+        <SchemaTableToolbar
+          table={table}
+          systemTransformerMap={systemTransformerMap}
+          systemTransformers={systemTransformers}
+          userDefinedTransformerMap={userDefinedTransformerMap}
+          userDefinedTransformers={userDefinedTransformers}
+        />
       </div>
       <div
         className="rounded-md border max-h-[500px] relative overflow-x-auto"

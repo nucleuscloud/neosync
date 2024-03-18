@@ -12,11 +12,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/libs/utils';
-import {
-  Transformer,
-  isSystemTransformer,
-  isUserDefinedTransformer,
-} from '@/shared/transformers';
 import { JobMappingTransformerForm } from '@/yup-validations/jobs';
 import {
   SystemTransformer,
@@ -38,7 +33,11 @@ type Side = (typeof SIDE_OPTIONS)[number];
 var SIDE_OPTIONS: readonly ['top', 'right', 'bottom', 'left'];
 
 interface Props {
-  transformers: Transformer[];
+  userDefinedTransformers: UserDefinedTransformer[];
+  systemTransformers: SystemTransformer[];
+
+  userDefinedTransformerMap: Map<string, UserDefinedTransformer>;
+  systemTransformerMap: Map<string, SystemTransformer>;
   value: JobMappingTransformerForm;
   onSelect(value: JobMappingTransformerForm): void;
   placeholder: string;
@@ -47,18 +46,18 @@ interface Props {
 }
 
 export default function TransformerSelect(props: Props): ReactElement {
-  const { transformers, value, onSelect, placeholder, side, disabled } = props;
+  const {
+    userDefinedTransformers,
+    systemTransformers,
+    userDefinedTransformerMap,
+    systemTransformerMap,
+    value,
+    onSelect,
+    placeholder,
+    side,
+    disabled,
+  } = props;
   const [open, setOpen] = useState(false);
-
-  const udfTransformers = transformers
-    .filter(isUserDefinedTransformer)
-    .sort((a, b) => a.name.localeCompare(b.name));
-  const sysTransformers = transformers
-    .filter(isSystemTransformer)
-    .sort((a, b) => a.name.localeCompare(b.name));
-
-  const udfTransformerMap = new Map(udfTransformers.map((t) => [t.id, t]));
-  const sysTransformerMap = new Map(sysTransformers.map((t) => [t.source, t]));
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -78,8 +77,8 @@ export default function TransformerSelect(props: Props): ReactElement {
           <div className="whitespace-nowrap truncate lg:w-[200px] text-left">
             {getPopoverTriggerButtonText(
               value,
-              udfTransformerMap,
-              sysTransformerMap,
+              userDefinedTransformerMap,
+              systemTransformerMap,
               placeholder
             )}
           </div>
@@ -96,7 +95,7 @@ export default function TransformerSelect(props: Props): ReactElement {
           <CommandEmpty>No transformers found.</CommandEmpty>
           <div className="max-h-[450px] overflow-y-scroll">
             <CommandGroup heading="Custom">
-              {udfTransformers.map((t) => {
+              {userDefinedTransformers.map((t) => {
                 return (
                   <CommandItem
                     key={t.id}
@@ -138,7 +137,7 @@ export default function TransformerSelect(props: Props): ReactElement {
               })}
             </CommandGroup>
             <CommandGroup heading="System">
-              {sysTransformers.map((t) => {
+              {systemTransformers.map((t) => {
                 return (
                   <CommandItem
                     key={t.source}

@@ -12,11 +12,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { ConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
-import {
-  Transformer,
-  isSystemTransformer,
-  isUserDefinedTransformer,
-} from '@/shared/transformers';
+import { Transformer } from '@/shared/transformers';
 import {
   JobMappingTransformerForm,
   SchemaFormValues,
@@ -28,6 +24,8 @@ import {
   ForeignConstraintTables,
   ForeignKey,
   PrimaryConstraint,
+  SystemTransformer,
+  UserDefinedTransformer,
 } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ColumnDef, FilterFn, Row, SortingFn } from '@tanstack/react-table';
@@ -181,18 +179,20 @@ function RowAlert(props: RowAlertProps): ReactElement {
 }
 
 interface Props {
-  transformers: Transformer[];
+  systemTransformers: SystemTransformer[];
+  userDefinedTransformers: UserDefinedTransformer[];
   constraintHandler: SchemaConstraintHandler;
 }
 
 export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
-  const { transformers, constraintHandler } = props;
+  const { systemTransformers, userDefinedTransformers, constraintHandler } =
+    props;
 
   const sysTransformerMap = new Map(
-    transformers.filter(isSystemTransformer).map((t) => [t.source, t])
+    systemTransformers.map((t) => [t.source, t])
   );
   const udTransformerMap = new Map(
-    transformers.filter(isUserDefinedTransformer).map((t) => [t.id, t])
+    userDefinedTransformers.map((t) => [t.id, t])
   );
 
   // const fc = useFormContext();
@@ -460,7 +460,10 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                         )}
                         <div>
                           <TransformerSelect
-                            transformers={transformers}
+                            userDefinedTransformers={userDefinedTransformers}
+                            userDefinedTransformerMap={udTransformerMap}
+                            systemTransformers={systemTransformers}
+                            systemTransformerMap={sysTransformerMap}
                             value={fv}
                             onSelect={field.onChange}
                             placeholder="Select Transformer..."
