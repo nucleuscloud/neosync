@@ -471,9 +471,9 @@ func Test_buildSelectQueryMap_SubsetsForeignKeys(t *testing.T) {
 	expected :=
 		map[string]string{
 			"public.a": `SELECT "id" FROM "public"."a";`,
-			"public.b": `SELECT "id", "name", "a_id" FROM "public"."b" WHERE public.b.name = 'bob';`,
-			"public.c": `SELECT "public"."c"."id", "public"."c"."b_id" FROM "public"."c" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE (public.b.name = 'bob' AND public.c.id = 1);`,
-			"public.d": `SELECT "public"."d"."id", "public"."d"."c_id" FROM "public"."d" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."d"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE (public.b.name = 'bob' AND public.c.id = 1);`,
+			"public.b": `SELECT "id", "name", "a_id" FROM "public"."b" WHERE "public.b.name" = 'bob';`,
+			"public.c": `SELECT "public"."c"."id", "public"."c"."b_id" FROM "public"."c" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE ("public.b.name" = 'bob' AND "public.c.id" = 1);`,
+			"public.d": `SELECT "public"."d"."id", "public"."d"."c_id" FROM "public"."d" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."d"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE ("public.b.name" = 'bob' AND "public.c.id" = 1);`,
 		}
 
 	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
@@ -722,9 +722,9 @@ func Test_buildSelectQueryMap_CircularDependency(t *testing.T) {
 	}
 	expected :=
 		map[string]string{
-			"public.b": `SELECT "id", "name", "a_id" FROM "public"."b" WHERE public.b.name = 'neo';`,
-			"public.c": `SELECT "public"."c"."id", "public"."c"."b_id" FROM "public"."c" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.name = 'neo';`,
-			"public.a": `SELECT "public"."a"."id", "public"."a"."c_id" FROM "public"."a" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."a"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.name = 'neo';`,
+			"public.b": `SELECT "id", "name", "a_id" FROM "public"."b" WHERE "public.b.name" = 'neo';`,
+			"public.c": `SELECT "public"."c"."id", "public"."c"."b_id" FROM "public"."c" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE "public.b.name" = 'neo';`,
+			"public.a": `SELECT "public"."a"."id", "public"."a"."c_id" FROM "public"."a" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."a"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE "public.b.name" = 'neo';`,
 		}
 	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
 
@@ -904,12 +904,12 @@ func Test_buildSelectQueryMap_MultiplSubsets(t *testing.T) {
 	}
 	expected :=
 		map[string]string{
-			"public.a": `SELECT "id" FROM "public"."a" WHERE public.a.id = 1;`,
-			"public.b": `SELECT "public"."b"."id", "public"."b"."name", "public"."b"."a_id" FROM "public"."b" INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") WHERE (public.a.id = 1 AND public.b.name = 'neo');`,
-			"public.c": `SELECT "public"."c"."id", "public"."c"."b_id" FROM "public"."c" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") WHERE (public.a.id = 1 AND public.b.name = 'neo');`,
+			"public.a": `SELECT "id" FROM "public"."a" WHERE "public.a.id" = 1;`,
+			"public.b": `SELECT "public"."b"."id", "public"."b"."name", "public"."b"."a_id" FROM "public"."b" INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") WHERE ("public.a.id" = 1 AND "public.b.name" = 'neo');`,
+			"public.c": `SELECT "public"."c"."id", "public"."c"."b_id" FROM "public"."c" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") WHERE ("public.a.id" = 1 AND "public.b.name" = 'neo');`,
 			"public.d": `SELECT "id" FROM "public"."d";`,
-			"public.e": `SELECT "id", "d_id" FROM "public"."e" WHERE public.e.id = 1;`,
-			"public.f": `SELECT "public"."f"."id", "public"."f"."e_id" FROM "public"."f" INNER JOIN "public"."e" ON ("public"."e"."id" = "public"."f"."e_id") WHERE public.e.id = 1;`,
+			"public.e": `SELECT "id", "d_id" FROM "public"."e" WHERE "public.e.id" = 1;`,
+			"public.f": `SELECT "public"."f"."id", "public"."f"."e_id" FROM "public"."f" INNER JOIN "public"."e" ON ("public"."e"."id" = "public"."f"."e_id") WHERE "public.e.id" = 1;`,
 		}
 	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
 	assert.NoError(t, err)
@@ -1055,10 +1055,10 @@ func Test_buildSelectQueryMap_MultipleRoots(t *testing.T) {
 	expected :=
 		map[string]string{
 			"public.a": `SELECT "id" FROM "public"."a";`,
-			"public.b": `SELECT "id" FROM "public"."b" WHERE public.b.id = 1;`,
-			"public.c": `SELECT "public"."c"."id", "public"."c"."a_id", "public"."c"."b_id" FROM "public"."c" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.id = 1;`,
-			"public.d": `SELECT "public"."d"."id", "public"."d"."c_id" FROM "public"."d" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."d"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.id = 1;`,
-			"public.e": `SELECT "public"."e"."id", "public"."e"."c_id" FROM "public"."e" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."e"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.id = 1;`,
+			"public.b": `SELECT "id" FROM "public"."b" WHERE "public.b.id" = 1;`,
+			"public.c": `SELECT "public"."c"."id", "public"."c"."a_id", "public"."c"."b_id" FROM "public"."c" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE "public.b.id" = 1;`,
+			"public.d": `SELECT "public"."d"."id", "public"."d"."c_id" FROM "public"."d" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."d"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE "public.b.id" = 1;`,
+			"public.e": `SELECT "public"."e"."id", "public"."e"."c_id" FROM "public"."e" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."e"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE "public.b.id" = 1;`,
 		}
 	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
 	assert.NoError(t, err)
@@ -1146,8 +1146,8 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyRoot(t *testing.T) {
 	}
 	expected :=
 		map[string]string{
-			"public.a": `WITH RECURSIVE related AS (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."a_a_id" FROM "public"."a" WHERE public.a.id = 1 UNION (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."a_a_id" FROM "public"."a" INNER JOIN "related" ON (("public"."a"."id" = "related"."a_id") OR ("public"."a"."id" = "related"."a_a_id")))) SELECT DISTINCT "id", "a_id", "a_a_id" FROM "related";`,
-			"public.b": `SELECT "public"."b"."id", "public"."b"."a_id" FROM "public"."b" INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") WHERE public.a.id = 1;`,
+			"public.a": `WITH RECURSIVE related AS (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."a_a_id" FROM "public"."a" WHERE "public.a.id" = 1 UNION (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."a_a_id" FROM "public"."a" INNER JOIN "related" ON (("public"."a"."id" = "related"."a_id") OR ("public"."a"."id" = "related"."a_a_id")))) SELECT DISTINCT "id", "a_id", "a_a_id" FROM "related";`,
+			"public.b": `SELECT "public"."b"."id", "public"."b"."a_id" FROM "public"."b" INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") WHERE "public.a.id" = 1;`,
 		}
 	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
 	assert.NoError(t, err)
@@ -1231,60 +1231,13 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyChild(t *testing.T) {
 	}
 	expected :=
 		map[string]string{
-			"public.a": `WITH RECURSIVE related AS (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."a_a_id", "public"."a"."b_id" FROM "public"."a" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."a"."b_id") WHERE public.b.id = 1 UNION (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."a_a_id", "public"."a"."b_id" FROM "public"."a" INNER JOIN "related" ON (("public"."a"."id" = "related"."a_id") OR ("public"."a"."id" = "related"."a_a_id")))) SELECT DISTINCT "id", "a_id", "a_a_id", "b_id" FROM "related";`,
-			"public.b": `SELECT "id" FROM "public"."b" WHERE public.b.id = 1;`,
+			"public.a": `WITH RECURSIVE related AS (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."a_a_id", "public"."a"."b_id" FROM "public"."a" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."a"."b_id") WHERE "public.b.id" = 1 UNION (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."a_a_id", "public"."a"."b_id" FROM "public"."a" INNER JOIN "related" ON (("public"."a"."id" = "related"."a_id") OR ("public"."a"."id" = "related"."a_a_id")))) SELECT DISTINCT "id", "a_id", "a_a_id", "b_id" FROM "related";`,
+			"public.b": `SELECT "id" FROM "public"."b" WHERE "public.b.id" = 1;`,
 		}
 	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, sql)
 }
-
-// func Test_getPrimaryToForeignTableMap(t *testing.T) {
-// 	tables := map[string]struct{}{
-// 		"public.regions":     {},
-// 		"public.jobs":        {},
-// 		"public.countries":   {},
-// 		"public.locations":   {},
-// 		"public.dependents":  {},
-// 		"public.departments": {},
-// 		"public.employees":   {},
-// 	}
-// 	dependencies := map[string]*dbschemas_utils.TableConstraints{
-// 		"public.countries": {Constraints: []*dbschemas_utils.ForeignConstraint{
-// 			{Column: "region_id", IsNullable: false, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.regions", Column: "region_id"}},
-// 		}},
-// 		"public.departments": {Constraints: []*dbschemas_utils.ForeignConstraint{
-// 			{Column: "location_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.locations", Column: "location_id"}},
-// 		}},
-// 		"public.dependents": {Constraints: []*dbschemas_utils.ForeignConstraint{
-// 			{Column: "dependent_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.employees", Column: "employees_id"}},
-// 		}},
-// 		"public.locations": {Constraints: []*dbschemas_utils.ForeignConstraint{
-// 			{Column: "country_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.countries", Column: "country_id"}},
-// 		}},
-// 		"public.employees": {Constraints: []*dbschemas_utils.ForeignConstraint{
-// 			{Column: "department_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.departments", Column: "department_id"}},
-// 			{Column: "job_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.jobs", Column: "job_id"}},
-// 			{Column: "manager_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.employees", Column: "employee_id"}},
-// 		}},
-// 	}
-
-// 	expected := map[string][]string{
-// 		"public.dependents":  {},
-// 		"public.countries":   {"public.locations"},
-// 		"public.departments": {"public.employees"},
-// 		"public.employees":   {"public.dependents", "public.employees"},
-// 		"public.jobs":        {"public.employees"},
-// 		"public.locations":   {"public.departments"},
-// 		"public.regions":     {"public.countries"},
-// 	}
-// 	actual := getPrimaryToForeignTableMap(dependencies, tables)
-// 	assert.Len(t, actual, len(expected))
-// 	for table, deps := range actual {
-// 		assert.Len(t, deps, len(expected[table]))
-// 		assert.ElementsMatch(t, expected[table], deps)
-// 	}
-// }
 
 func Test_getBfsPathMap(t *testing.T) {
 	tests := []struct {
@@ -1410,7 +1363,7 @@ func Test_getBfsPathMap(t *testing.T) {
 	}
 }
 
-func Test_qualifyWhereColumnNames(t *testing.T) {
+func Test_qualifyWhereColumnNames_mysql(t *testing.T) {
 	tests := []struct {
 		name     string
 		where    string
@@ -1439,11 +1392,58 @@ func Test_qualifyWhereColumnNames(t *testing.T) {
 			table:    "film",
 			expected: "public.film.film_id in (select film_id from film_category join category using (category_id) where name = 'Action')",
 		},
+		{
+			name:     "quoted column names",
+			where:    "`name with space` = 'hey' and PascalCase = 'other'",
+			schema:   "public",
+			table:    "a",
+			expected: "public.a.`name with space` = 'hey' and public.a.PascalCase = 'other'",
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%s_%s", t.Name(), tt.name), func(t *testing.T) {
-			response, err := qualifyWhereColumnNames(tt.where, tt.schema, tt.table)
+			response, err := qualifyWhereColumnNames(mysqlDriver, tt.where, tt.schema, tt.table)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expected, response)
+		})
+	}
+}
+
+func Test_qualifyWhereColumnNames_postgres(t *testing.T) {
+	tests := []struct {
+		name     string
+		where    string
+		schema   string
+		table    string
+		expected string
+	}{
+		{
+			name:     "simple",
+			where:    "name = 'alisha'",
+			schema:   "public",
+			table:    "a",
+			expected: `"public.a.name" = 'alisha'`,
+		},
+		{
+			name:     "multiple",
+			where:    "name = 'alisha' and id = 1  or age = 2",
+			schema:   "public",
+			table:    "a",
+			expected: `("public.a.name" = 'alisha' AND "public.a.id" = 1) OR "public.a.age" = 2`,
+		},
+		{
+			name:     "where subquery",
+			where:    "film_id IN(SELECT film_id FROM film_category INNER JOIN category USING(category_id) WHERE name='Action');",
+			schema:   "public",
+			table:    "film",
+			expected: `"public.film.film_id" IN (SELECT film_id FROM film_category JOIN category USING (category_id) WHERE name = 'Action')`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("%s_%s", t.Name(), tt.name), func(t *testing.T) {
+			response, err := qualifyWhereColumnNames(postgresDriver, tt.where, tt.schema, tt.table)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, response)
 		})

@@ -1,6 +1,7 @@
 package genbenthosconfigs_activity
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -9,7 +10,6 @@ import (
 	dbschemas "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
-	"github.com/xwb1989/sqlparser"
 
 	// import the dialect
 	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
@@ -178,7 +178,7 @@ func buildSelectQueryMap(
 		mappings, ok := groupedMappings[t]
 		where := getWhereFromTableOpts(opts)
 		if ok && where != nil && *where != "" {
-			qualifiedWhere, err := qualifyWhereColumnNames(*where, mappings.Schema, mappings.Table)
+			qualifiedWhere, err := qualifyWhereColumnNames(driver, *where, mappings.Schema, mappings.Table)
 			if err != nil {
 				return nil, err
 			}
@@ -466,33 +466,23 @@ func getBfsPathMap(graph map[string][]string, start string) *bfsPaths {
 	}
 }
 
-func qualifyWhereColumnNames(where, schema, table string) (string, error) {
-	sqlSelect := fmt.Sprintf("select * from %s where ", buildSqlIdentifier(schema, table))
-	sql := fmt.Sprintf("%s%s", sqlSelect, where)
-	stmt, err := sqlparser.Parse(sql)
-	if err != nil {
-		return "", err
+func qualifyWhereColumnNames(driver, where, schema, table string) (string, error) {
+	switch driver {
+	case mysqlDriver:
+		updatedSql, err := qualifyMysqlWhereColumnNames(where, schema, table)
+		if err != nil {
+			return "", err
+		}
+		return updatedSql, nil
+	case postgresDriver:
+		updatedSql, err := qualifyPostgresWhereColumnNames(where, schema, table)
+		if err != nil {
+			return "", err
+		}
+		return updatedSql, nil
+	default:
+		return "", errors.New("unsupported sql driver type")
 	}
-	switch stmt := stmt.(type) {
-	case *sqlparser.Select:
-		sqlparser.Walk(func(node sqlparser.SQLNode) (kontinue bool, err error) {
-			switch node := node.(type) {
-			case *sqlparser.ComparisonExpr:
-				if col, ok := node.Left.(*sqlparser.ColName); ok {
-					if col.Qualifier.IsEmpty() {
-						col.Qualifier.Qualifier = sqlparser.NewTableIdent(schema)
-						col.Qualifier.Name = sqlparser.NewTableIdent(table)
-					}
-				}
-				return false, nil
-			}
-			return true, nil
-		}, stmt)
-	}
-
-	updatedSql := sqlparser.String(stmt)
-	updatedSql = strings.Replace(updatedSql, sqlSelect, "", 1)
-	return updatedSql, nil
 }
 
 func getPrimaryToForeignTableMapFromRunConfigs(runConfigs []*tabledependency.RunConfig) map[string][]string {
