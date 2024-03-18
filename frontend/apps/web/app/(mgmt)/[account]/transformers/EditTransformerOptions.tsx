@@ -28,6 +28,7 @@ import {
   JobMappingTransformer,
   SystemTransformer,
   TransformE164PhoneNumber,
+  TransformEmail,
   TransformerConfig,
   UserDefinedTransformer,
 } from '@neosync/sdk';
@@ -386,9 +387,25 @@ function handleTransformerForm(
     case 'transform_email':
       return (
         <TransformEmailForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
-          transformer={transformer}
+          isReadonly={isReadonly}
+          existingConfig={
+            new TransformEmail({
+              ...(value.config.value as PlainMessage<TransformEmail>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'transformEmailConfig',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
         />
       );
     case 'transform_first_name':
