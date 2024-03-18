@@ -21,6 +21,7 @@ import {
   GenerateE164PhoneNumber,
   GenerateFloat64,
   GenerateGender,
+  GenerateInt64,
   JobMappingTransformer,
   SystemTransformer,
   TransformerConfig,
@@ -258,7 +259,29 @@ function handleTransformerForm(
         />
       );
     case 'generate_int64':
-      return <GenerateIntForm index={index} setIsSheetOpen={setIsSheetOpen} />;
+      return (
+        <GenerateIntForm
+          isReadonly={isReadonly}
+          existingConfig={
+            new GenerateInt64({
+              ...(value.config.value as PlainMessage<GenerateInt64>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'generateInt64Config',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
+        />
+      );
     case 'generate_string':
       return (
         <GenerateStringForm index={index} setIsSheetOpen={setIsSheetOpen} />
