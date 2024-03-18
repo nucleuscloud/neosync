@@ -83,13 +83,6 @@ export function SchemaTableToolbar<TData>({
                     shouldDirty: true,
                   }
                 );
-                form.setValue(
-                  `mappings.${r.index}.transformer`,
-                  bulkTransformer,
-                  {
-                    shouldDirty: true,
-                  }
-                );
               });
               setBulkTransformer(
                 convertJobMappingTransformerToForm(new JobMappingTransformer())
