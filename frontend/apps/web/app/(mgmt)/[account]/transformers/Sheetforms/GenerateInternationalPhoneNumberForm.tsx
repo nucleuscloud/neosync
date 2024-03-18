@@ -57,6 +57,7 @@ export default function GenerateInternationalPhoneNumberForm(
                     onChange={(event) =>
                       field.onChange(event.target.valueAsNumber)
                     }
+                    disabled={isReadonly}
                   />
                 </div>
               </FormControl>
@@ -85,6 +86,7 @@ export default function GenerateInternationalPhoneNumberForm(
                     onChange={(event) =>
                       field.onChange(event.target.valueAsNumber)
                     }
+                    disabled={isReadonly}
                   />
                 </div>
               </FormControl>

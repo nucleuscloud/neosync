@@ -23,6 +23,7 @@ import {
   GenerateGender,
   GenerateInt64,
   GenerateString,
+  GenerateStringPhoneNumber,
   JobMappingTransformer,
   SystemTransformer,
   TransformerConfig,
@@ -310,8 +311,26 @@ function handleTransformerForm(
     case 'generate_string_phone_number':
       return (
         <GenerateStringPhoneNumberForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
+          isReadonly={isReadonly}
+          existingConfig={
+            new GenerateStringPhoneNumber({
+              ...(value.config
+                .value as PlainMessage<GenerateStringPhoneNumber>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'generateStringPhoneNumberConfig',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
         />
       );
     case 'generate_uuid':

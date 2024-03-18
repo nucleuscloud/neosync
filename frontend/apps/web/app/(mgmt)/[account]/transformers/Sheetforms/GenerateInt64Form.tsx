@@ -7,6 +7,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -46,8 +47,10 @@ export default function GenerateInt64Form(props: Props): ReactElement {
                 <Switch
                   checked={field.value}
                   onCheckedChange={field.onChange}
+                  disabled={isReadonly}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -72,8 +75,10 @@ export default function GenerateInt64Form(props: Props): ReactElement {
                   onChange={(event) => {
                     field.onChange(BigInt(event.target.valueAsNumber));
                   }}
+                  disabled={isReadonly}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -98,8 +103,10 @@ export default function GenerateInt64Form(props: Props): ReactElement {
                   onChange={(event) => {
                     field.onChange(BigInt(event.target.valueAsNumber));
                   }}
+                  disabled={isReadonly}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />

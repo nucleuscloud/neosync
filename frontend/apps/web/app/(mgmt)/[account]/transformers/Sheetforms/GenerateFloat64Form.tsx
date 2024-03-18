@@ -74,6 +74,7 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
                   onChange={(event) => {
                     field.onChange(event.target.valueAsNumber);
                   }}
+                  disabled={isReadonly}
                 />
               </FormControl>
               <FormMessage />
@@ -101,6 +102,7 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
                   onChange={(event) => {
                     field.onChange(event.target.valueAsNumber);
                   }}
+                  disabled={isReadonly}
                 />
               </FormControl>
               <FormMessage />
@@ -130,6 +132,7 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
                   onChange={(event) => {
                     field.onChange(BigInt(event.target.valueAsNumber));
                   }}
+                  disabled={isReadonly}
                 />
               </FormControl>
               <FormMessage />

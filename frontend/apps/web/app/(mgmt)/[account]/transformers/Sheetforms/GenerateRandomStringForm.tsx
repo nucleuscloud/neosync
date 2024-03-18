@@ -50,6 +50,7 @@ export default function GenerateStringForm(props: Props): ReactElement {
                     onChange={(event) => {
                       field.onChange(BigInt(event.target.valueAsNumber));
                     }}
+                    disabled={isReadonly}
                   />
                 </div>
               </FormControl>
@@ -78,6 +79,7 @@ export default function GenerateStringForm(props: Props): ReactElement {
                     onChange={(event) => {
                       field.onChange(BigInt(event.target.valueAsNumber));
                     }}
+                    disabled={isReadonly}
                   />
                 </div>
               </FormControl>
