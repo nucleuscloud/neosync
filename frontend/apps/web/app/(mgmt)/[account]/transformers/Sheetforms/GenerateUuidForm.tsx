@@ -6,43 +6,31 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
 import { GenerateUuid } from '@neosync/sdk';
-import { ReactElement, useState } from 'react';
-import { useFormContext } from 'react-hook-form';
-interface Props {
-  index?: number;
-  setIsSheetOpen?: (val: boolean) => void;
-}
+import { ReactElement } from 'react';
+import { useForm } from 'react-hook-form';
+import { TransformerFormProps } from './util';
+interface Props extends TransformerFormProps<GenerateUuid> {}
 
 export default function GenerateUuidForm(props: Props): ReactElement {
-  const { index, setIsSheetOpen } = props;
+  const { existingConfig, onSubmit, isReadonly } = props;
 
-  const fc = useFormContext();
-
-  const ihValue = fc.getValues(
-    `mappings.${index}.transformer.config.value.includeHyphens`
-  );
-
-  const [ih, setIh] = useState<boolean>(ihValue);
-
-  const handleSubmit = () => {
-    fc.setValue(
-      `mappings.${index}.transformer.config.value`,
-      new GenerateUuid({ includeHyphens: ih }),
-      {
-        shouldValidate: false,
-      }
-    );
-    setIsSheetOpen!(false);
-  };
+  const form = useForm({
+    mode: 'onChange',
+    defaultValues: {
+      ...existingConfig,
+    },
+  });
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
-        name={`mappings.${index}.transformer.config.value.includeHyphens`}
-        render={() => (
+        control={form.control}
+        name={`includeHyphens`}
+        render={({ field }) => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Include hyphens</FormLabel>
@@ -54,17 +42,29 @@ export default function GenerateUuidForm(props: Props): ReactElement {
             </div>
             <FormControl>
               <Switch
-                checked={ih}
-                onCheckedChange={() => {
-                  ih ? setIh(false) : setIh(true);
-                }}
+                disabled={isReadonly}
+                checked={field.value}
+                onCheckedChange={field.onChange}
               />
             </FormControl>
+            <FormMessage />
           </FormItem>
         )}
       />
       <div className="flex justify-end">
-        <Button type="button" onClick={handleSubmit}>
+        <Button
+          type="button"
+          disabled={isReadonly}
+          onClick={(e) => {
+            form.handleSubmit((values) => {
+              onSubmit(
+                new GenerateUuid({
+                  ...values,
+                })
+              );
+            })(e);
+          }}
+        >
           Save
         </Button>
       </div>

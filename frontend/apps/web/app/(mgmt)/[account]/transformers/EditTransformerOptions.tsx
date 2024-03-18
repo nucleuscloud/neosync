@@ -24,6 +24,7 @@ import {
   GenerateInt64,
   GenerateString,
   GenerateStringPhoneNumber,
+  GenerateUuid,
   JobMappingTransformer,
   SystemTransformer,
   TransformerConfig,
@@ -334,7 +335,29 @@ function handleTransformerForm(
         />
       );
     case 'generate_uuid':
-      return <GenerateUuidForm index={index} setIsSheetOpen={setIsSheetOpen} />;
+      return (
+        <GenerateUuidForm
+          isReadonly={isReadonly}
+          existingConfig={
+            new GenerateUuid({
+              ...(value.config.value as PlainMessage<GenerateUuid>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'generateUuidConfig',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
+        />
+      );
     case 'transform_e164_phone_number':
       return (
         <TransformE164NumberForm
