@@ -111,7 +111,7 @@ func GetConnectionDetails(c *mgmtv1alpha1.ConnectionConfig, connectionTimeout *u
 			}
 			portValue := int32(randomPort)
 			connDetails.Host = localhost
-			connDetails.Port = &portValue
+			connDetails.Port = portValue
 			return &ConnectionDetails{
 				Tunnel:                 tunnel,
 				GeneralDbConnectConfig: *connDetails,
@@ -156,7 +156,7 @@ func GetConnectionDetails(c *mgmtv1alpha1.ConnectionConfig, connectionTimeout *u
 			}
 			portValue := int32(randomPort)
 			connDetails.Host = localhost
-			connDetails.Port = &portValue
+			connDetails.Port = portValue
 			return &ConnectionDetails{
 				Tunnel:                 tunnel,
 				GeneralDbConnectConfig: *connDetails,
@@ -204,7 +204,7 @@ func getEndpointFromPgConnectionConfig(config *mgmtv1alpha1.ConnectionConfig_PgC
 		if err != nil {
 			return nil, err
 		}
-		return sshtunnel.NewEndpointWithUser(details.Host, int(*details.Port), details.User), nil
+		return sshtunnel.NewEndpointWithUser(details.Host, int(details.Port), details.User), nil
 	default:
 		return nil, nucleuserrors.NewBadRequest("must provide valid postgres connection")
 	}
@@ -219,9 +219,9 @@ func getEndpointFromMysqlConnectionConfig(config *mgmtv1alpha1.ConnectionConfig_
 		if err != nil {
 			return nil, err
 		}
-		return sshtunnel.NewEndpointWithUser(details.Host, int(*details.Port), details.User), nil
+		return sshtunnel.NewEndpointWithUser(details.Host, int(details.Port), details.User), nil
 	default:
-		return nil, nucleuserrors.NewBadRequest("must provide valid postgres connection")
+		return nil, nucleuserrors.NewBadRequest("must provide valid mysql connection")
 	}
 }
 
@@ -229,7 +229,7 @@ type GeneralDbConnectConfig struct {
 	Driver string
 
 	Host     string
-	Port     *int32
+	Port     int32
 	Database string
 	User     string
 	Pass     string
@@ -288,7 +288,7 @@ func getGeneralDbConnectionConfigFromMysql(config *mgmtv1alpha1.ConnectionConfig
 		return &GeneralDbConnectConfig{
 			Driver:      mysqlDriver,
 			Host:        cc.Connection.Host,
-			Port:        &cc.Connection.Port,
+			Port:        cc.Connection.Port,
 			Database:    cc.Connection.Name,
 			User:        cc.Connection.User,
 			Pass:        cc.Connection.Pass,
@@ -315,7 +315,7 @@ func getGeneralDbConnectConfigFromPg(config *mgmtv1alpha1.ConnectionConfig_PgCon
 		return &GeneralDbConnectConfig{
 			Driver:      postgresDriver,
 			Host:        cc.Connection.Host,
-			Port:        &cc.Connection.Port,
+			Port:        cc.Connection.Port,
 			Database:    cc.Connection.Name,
 			User:        cc.Connection.User,
 			Pass:        cc.Connection.Pass,
@@ -335,21 +335,21 @@ func getGeneralDbConnectConfigFromPg(config *mgmtv1alpha1.ConnectionConfig_PgCon
 
 		host, portStr := u.Hostname(), u.Port()
 
-		var port *int32
-
+		var port int64
 		if portStr != "" {
-			parsedPort, err := strconv.ParseInt(portStr, 10, 32)
+			port, err = strconv.ParseInt(portStr, 10, 32)
 			if err != nil {
 				return nil, fmt.Errorf("invalid port: %v", err)
 			}
-			portValue := int32(parsedPort)
-			port = &portValue
+		} else {
+			// default to standard postgres port 5432 if port not provided
+			port = int64(5432)
 		}
 
 		return &GeneralDbConnectConfig{
 			Driver:      postgresDriver,
 			Host:        host,
-			Port:        port,
+			Port:        int32(port),
 			Database:    strings.TrimPrefix(u.Path, "/"),
 			User:        user,
 			Pass:        pass,

@@ -793,14 +793,12 @@ async function checkPostgresConnection(
   tunnel: PostgresFormValues['tunnel'],
   accountId: string
 ): Promise<CheckConnectionConfigResponse> {
-  console.log('url', url);
   let requestBody;
   if (url) {
     requestBody = { url, tunnel };
   } else {
     requestBody = { db, tunnel };
   }
-  console.log('request', requestBody);
   const res = await fetch(
     `/api/accounts/${accountId}/connections/postgres/check`,
     {
