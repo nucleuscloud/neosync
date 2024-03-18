@@ -295,11 +295,9 @@ func depthFirstSearch(graph map[string][]string, start string) [][]string {
 }
 
 func DFS(graph map[string][]string, startNode string, visited map[string]bool, path []string, result *[][]string) {
-
 	// Mark the current node as visited.
 	visited[startNode] = true
 	path = append(path, startNode)
-	fmt.Println(startNode)
 	if len(graph[startNode]) == 0 {
 		// make copy to prevent reference issues
 		cycle := make([]string, len(path))
