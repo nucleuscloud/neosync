@@ -188,6 +188,13 @@ interface Props {
 export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
   const { transformers, constraintHandler } = props;
 
+  const sysTransformerMap = new Map(
+    transformers.filter(isSystemTransformer).map((t) => [t.source, t])
+  );
+  const udTransformerMap = new Map(
+    transformers.filter(isUserDefinedTransformer).map((t) => [t.id, t])
+  );
+
   // const fc = useFormContext();
 
   // const columnHelper = createColumnHelper<RowData>();
@@ -425,6 +432,15 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
               control={fctx.control}
               render={({ field, fieldState, formState }) => {
                 const fv = field.value as JobMappingTransformerForm;
+                let transformer: Transformer | undefined;
+                if (
+                  fv.source === 'custom' &&
+                  fv.config.case === 'userDefinedTransformerConfig'
+                ) {
+                  transformer = udTransformerMap.get(fv.config.value.id);
+                } else {
+                  transformer = sysTransformerMap.get(fv.source);
+                }
                 return (
                   <FormItem>
                     <FormControl>
@@ -452,32 +468,17 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                             // disabled={disableTransformer} // todo
                           />
                         </div>
-                        <EditTransformerOptions
-                          transformer={transformers.find((t) => {
-                            if (!fv) {
-                              return;
-                            }
-                            if (
-                              fv.source === 'custom' &&
-                              fv.config.case ===
-                                'userDefinedTransformerConfig' &&
-                              isUserDefinedTransformer(t) &&
-                              t.id === fv.config.value.id
-                            ) {
-                              return t;
-                            }
-                            return (
-                              isSystemTransformer(t) && t.source === fv.source
-                            );
-                          })}
-                          value={fv}
-                          onSubmit={(newvalue) => {
-                            console.log('on submit', fv, newvalue);
-                            field.onChange(newvalue);
-                          }}
-                          // disabled={disableTransformer}
-                          disabled={false} // todo
-                        />
+                        {transformer && (
+                          <EditTransformerOptions
+                            transformer={transformer}
+                            value={fv}
+                            onSubmit={(newvalue) => {
+                              field.onChange(newvalue);
+                            }}
+                            // disabled={disableTransformer}
+                            disabled={false} // todo
+                          />
+                        )}
                       </div>
                     </FormControl>
                     {/* <FormMessage /> */}

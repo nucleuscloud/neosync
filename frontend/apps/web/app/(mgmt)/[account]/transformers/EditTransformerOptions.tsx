@@ -72,7 +72,7 @@ import TransformStringPhoneNumberForm from './Sheetforms/TransformPhoneNumberFor
 import TransformStringForm from './Sheetforms/TransformStringForm';
 
 interface Props {
-  transformer: Transformer | undefined;
+  transformer: Transformer;
   disabled: boolean;
   value: JobMappingTransformerForm;
   onSubmit(newValue: JobMappingTransformerForm): void;
@@ -129,9 +129,7 @@ export default function EditTransformerOptions(props: Props): ReactElement {
           // we need to load the custom transformer values and push them into the component, but the components expect the "form", which is the Job Mapping.
           // this would require a refactor of the lower components to not rely on the react-hook-form and instead values as props to the component itself.
           // until that is true, this needs to be disabled.
-          disabled={
-            !transformer || isUserDefinedTransformer(transformer) || disabled
-          }
+          disabled={isUserDefinedTransformer(transformer) || disabled}
           onClick={() => setIsSheetOpen(true)}
           className="ml-auto hidden h-[36px] lg:flex"
         >
@@ -155,22 +153,29 @@ export default function EditTransformerOptions(props: Props): ReactElement {
           <Separator />
         </SheetHeader>
         <div className="pt-8">
-          {transformer &&
-            handleTransformerForm(transformer, value, onSubmit, disabled)}
+          {transformer && (
+            <ConfigureTransformer
+              transformer={transformer}
+              value={value}
+              onSubmit={onSubmit}
+              isReadonly={disabled}
+            />
+          )}
         </div>
       </SheetContent>
     </Sheet>
   );
 }
 
-function handleTransformerForm(
-  transformer: Transformer,
-  value: JobMappingTransformerForm,
-  onSubmit: (newValue: JobMappingTransformerForm) => void,
-  isReadonly: boolean
-): ReactElement {
-  const index = -1;
-  const setIsSheetOpen = () => undefined;
+interface ConfigureTransformerProps {
+  transformer: Transformer;
+  value: JobMappingTransformerForm;
+  onSubmit(newValue: JobMappingTransformerForm): void;
+  isReadonly: boolean;
+}
+
+function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
+  const { transformer, value, onSubmit, isReadonly } = props;
   switch (transformer.source) {
     case 'generate_card_number':
       return (
