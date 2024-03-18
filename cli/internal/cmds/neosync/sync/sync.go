@@ -1278,7 +1278,7 @@ func getDependencyConfigs(
 	for t := range tables {
 		tablesSlice = append(tablesSlice, t)
 	}
-	dependencyConfigs := tabledependency.GetRunConfigs(tc, tablesSlice)
+	dependencyConfigs := tabledependency.GetRunConfigs(tc, tablesSlice, map[string]string{})
 	dependencyMap := map[string][]*tabledependency.RunConfig{}
 	for _, cfg := range dependencyConfigs {
 		_, ok := dependencyMap[cfg.Table]
