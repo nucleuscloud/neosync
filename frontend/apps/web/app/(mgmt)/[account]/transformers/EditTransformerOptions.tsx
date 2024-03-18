@@ -20,6 +20,7 @@ import {
   GenerateCardNumber,
   GenerateE164PhoneNumber,
   GenerateFloat64,
+  GenerateGender,
   JobMappingTransformer,
   SystemTransformer,
   TransformerConfig,
@@ -234,7 +235,27 @@ function handleTransformerForm(
       );
     case 'generate_gender':
       return (
-        <GenerateGenderForm index={index} setIsSheetOpen={setIsSheetOpen} />
+        <GenerateGenderForm
+          isReadonly={isReadonly}
+          existingConfig={
+            new GenerateGender({
+              ...(value.config.value as PlainMessage<GenerateGender>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'generateGenderConfig',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
+        />
       );
     case 'generate_int64':
       return <GenerateIntForm index={index} setIsSheetOpen={setIsSheetOpen} />;
