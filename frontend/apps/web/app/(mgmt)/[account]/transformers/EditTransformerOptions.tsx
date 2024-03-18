@@ -28,6 +28,7 @@ import {
   GenerateUuid,
   JobMappingTransformer,
   SystemTransformer,
+  TransformCharacterScramble,
   TransformE164PhoneNumber,
   TransformEmail,
   TransformFirstName,
@@ -35,6 +36,7 @@ import {
   TransformFullName,
   TransformInt64,
   TransformInt64PhoneNumber,
+  TransformJavascript,
   TransformLastName,
   TransformPhoneNumber,
   TransformString,
@@ -613,9 +615,25 @@ function handleTransformerForm(
     case 'transform_javascript':
       return (
         <TransformJavascriptForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
-          transformer={transformer}
+          isReadonly={isReadonly}
+          existingConfig={
+            new TransformJavascript({
+              ...(value.config.value as PlainMessage<TransformJavascript>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'transformJavascriptConfig',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
         />
       );
     case 'generate_categorical':
@@ -645,9 +663,26 @@ function handleTransformerForm(
     case 'transform_character_scramble':
       return (
         <TransformCharacterScrambleForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
-          transformer={transformer}
+          isReadonly={isReadonly}
+          existingConfig={
+            new TransformCharacterScramble({
+              ...(value.config
+                .value as PlainMessage<TransformCharacterScramble>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'transformCharacterScrambleConfig',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
         />
       );
 
