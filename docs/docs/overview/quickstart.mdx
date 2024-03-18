@@ -1,0 +1,131 @@
+---
+title: Quickstart
+id: quickstart
+hide_title: false
+slug: /quickstart
+---
+
+## Getting started
+
+In this quickstart, we're going to walk through how you can seed a PostgreSQL database with synthetic data for better data security and privacy in your staging and local environments. This guide is meant to be the shortest path to setting up Neosync and running your first job.
+
+For this quickstart, we're going to use [Neon](https://neon.tech) as our PostgreSQL provider. Neosync supports any PostgreSQL compatible database. Neosync also supports MySQL compatible databases. However, this quickstart will focus on Postgres but the two can be configured very similarly.
+
+Let's get started.
+
+## Prerequisites
+
+We're going to need a Neon account and a Neosync account. If you don't already have those, we can get those here:
+
+- [Sign up for Neon](https://console.neon/tech/login)
+- [Sign up for Neosync](https://neosync.dev)
+
+## Setting up Neon
+
+Now that we have our accounts, we can get this ball rolling. First, let's log into Neon. If you already have a Neon account then you can either create a new project or a new database. If you don't have a Neon account then give your project a name, your database a name and select a region like below:
+
+![neon-create-project](/img/neon-create.png)
+
+Now we can click on **Database** on the left hand side in order to select the database that we created. If you already have a database set up then you can select the database that you want to act as your source database.
+
+Next, we'll need to define our database schema. For this demo, we'll create one table but you can create as many tables as you need to.
+
+Let's navigate to **SQL editor** and create our table. Here is the SQL script I ran to create our table in the public schema. If you have the uuid() extension installed you can also set the `id` column to auto-generate those for you or you can use Neosync to generate them. Let's create our table.
+
+```sql
+
+CREATE TABLE public.users (
+    id UUID PRIMARY KEY,
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    age INTEGER NOT NULL
+);
+```
+
+We can do a quick sanity check by going to **Tables** and seeing that our table was successfully created.
+
+![neon-created-tables](/img/neon-table-users.png)
+
+Nice! Okay, last step for Neon. Let's get our connection string so we can connect to Neon from Neosync. We can find our connection string by going to **Dashboard** and then under the **Connection String** header, you can find your connection string. Click on the copy icon to copy it.
+
+## Setting up Neosync
+
+Now that we're in Neosync, we'll want to first create a connection to our Neon database and then create a job to generate data. Let's get started.
+
+### Creating a Connection
+
+Navigate over to Neosync and [login](https://app.neosync.dev). Once you're logged in, go to to **Connections** -> **New Connection** then click on **Neon**.
+
+![neosync-connect-form](/img/neon-integration.png)
+
+You should see the above form. Since our Neon database is public we can ignore the bottom part about configuring a Bastion Host. Let's name our connection **neon-db**. Then paste the connection string we copied earlier from the Neon dashboard into the **Connection String** field.
+
+Once you've completed filling out the form, you can click on **Test Connection** to test that you're connected. You should see this if it passes:
+
+![neosync-test](/img/neon-test.png)
+
+Let's click **Submit** and move onto the last part.
+
+### Creating a Job
+
+In order to generate data, we need to create a **Job** in Neosync. Let's click on **Job** and then click on **New Job**. We're now presented with two options:
+
+![neosync-test](/img/data-gen.png)
+
+- Data Synchronization - Synchronize and anonymize data between a source and destination.
+- Data Generation - Generate synthetic data from scratch for a chosen destination.
+
+Since we're seeding a table from scratch, we can select the **Data Generation** job and click **Next**.
+
+Let's give our job a name and then set **Initiate Job Run** to **Yes**. We can leave the schedule and advanced options alone for now.
+
+![neosync-test](/img/define.png)
+
+Click **Next** to move onto the **Connect** page. Here we want to select the connection we previously connected from the dropdown.
+
+![neosync-test](/img/neon-connect.png)
+
+There are some other options here that can be useful but we'll skip these for now and click **Next**.
+
+Now for the fun part. First select your schema. Mine is the public schema but you may have another one. Next select the table where you want to generate synthetic data. So I'm going to select the `users` table.
+
+Next, decide how many rows you want to create. For this run, I'll do 1000 rows.
+
+![neosync-test](/img/data-gen-setup.png)
+
+Lastly, we need to determine what kind of synthetic data we want to create and map that to our schema. Neosync has **Transformers** which are ways of creating synthetic data. Click on the **Transformer** and then select the right Transformer that maps to the right column. Here is what I have set up for the users table.
+
+![neosync-test](/img/data-gen-schema.png)
+
+For the age column, I used the `Generate Random Int64` Transformer to randomly generate ages between 18 and 40. You can configure that by clicking on the edit icon next to the transformer and setting your min and max.
+
+Now that we've configured everything, we can click on **Next** and create the job! We'll get routed to the Job page and see something like this:
+
+![neosync-test](/img/success-job.png)
+
+You can see that our job ran successfully and in just 12 seconds!
+
+Now we can head back over to Neon and check on our data. First let's check the count and make sure we generated 1000 rows.
+
+```sql
+SELECT COUNT(*) FROM users;
+```
+
+![neosync-test](/img/users-count.png)
+
+Next, let's check the data:
+
+```sql
+SELECT * FROM users;
+```
+
+![neosync-test](/img/data-users.png)
+
+Looking pretty good! We have seeded our Neon database with 1000 rows of completely synthetic data!
+
+## Conclusion
+
+In this quickstart, we walked through how to seeda PostgreSQL database with 1000 rows of synthetic data using Neosync. This is just a small test and you can expand this to generate tens of thousands or more rows of data across any relational database. Neosync handles the referential integrity. This is particularly helpful if you're working on a new application and don't have data yet or want to augment your existing database with more data for performance testing.
+
+If you want to anonymize existing data then it's a similiar workflow. The only difference is that you select the **Data Sync Job** and select a destination database.
