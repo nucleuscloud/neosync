@@ -100,7 +100,7 @@ export default function SchemaPageTable<TData, TValue>({
         ref={tableContainerRef}
       >
         <StickyHeaderTable>
-          <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 pl-2 flex pt-2 w-full">
+          <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 flex w-full px-2">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
@@ -113,6 +113,7 @@ export default function SchemaPageTable<TData, TValue>({
                       key={header.id}
                       style={{ minWidth: `${header.column.getSize()}px` }}
                       colSpan={header.colSpan}
+                      className="flex items-center"
                     >
                       {header.isPlaceholder
                         ? null
@@ -142,7 +143,7 @@ export default function SchemaPageTable<TData, TValue>({
                   style={{
                     transform: `translateY(${virtualRow.start}px)`,
                   }}
-                  className="items-center flex absolute w-full justify-between pl-2"
+                  className="items-center flex absolute w-full justify-between px-2"
                 >
                   {row.getVisibleCells().map((cell) => {
                     return (

@@ -6,6 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { cn } from '@/libs/utils';
 import {
   ColumnDef,
   OnChangeFn,
@@ -25,12 +26,19 @@ interface Props<TData, TValue> {
   data: TData[];
   rowSelection: RowSelectionState;
   onRowSelectionChange: OnChangeFn<RowSelectionState>;
+  tableContainerClassName?: string;
 }
 
 export default function ListBox<TData, TValue>(
   props: Props<TData, TValue>
 ): ReactElement {
-  const { columns, data, rowSelection, onRowSelectionChange } = props;
+  const {
+    columns,
+    data,
+    rowSelection,
+    onRowSelectionChange,
+    tableContainerClassName,
+  } = props;
   const table = useReactTable({
     data,
     columns,
@@ -62,7 +70,10 @@ export default function ListBox<TData, TValue>(
   return (
     <div>
       <div
-        className="max-h-[200px] overflow-auto relative"
+        className={cn(
+          'max-h-[300px] overflow-auto relative',
+          tableContainerClassName
+        )}
         ref={tableContainerRef}
       >
         <StickyHeaderTable>
@@ -70,7 +81,7 @@ export default function ListBox<TData, TValue>(
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
-                className="flex-none custom:flex items-center flex-row w-full"
+                className="flex-none custom:flex items-center flex-row w-full px-1"
                 id="table-header-row"
               >
                 {headerGroup.headers.map((header) => {
@@ -109,7 +120,7 @@ export default function ListBox<TData, TValue>(
                   style={{
                     transform: `translateY(${virtualRow.start}px)`,
                   }}
-                  className="items-center flex absolute w-full"
+                  className="items-center flex absolute w-full px-1"
                 >
                   {row.getVisibleCells().map((cell) => {
                     return (

@@ -303,7 +303,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                       <TooltipTrigger>
                         <Badge
                           variant="outline"
-                          className="text-xs bg-orange-100 text-gray-800 dark:dark:text-gray-900 dark:bg-orange-300"
+                          className="text-xs bg-orange-100 text-gray-800 cursor-default dark:dark:text-gray-900 dark:bg-orange-300"
                         >
                           Foreign Key
                         </Badge>
@@ -477,7 +477,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
 
 function IndeterminateCheckbox({
   indeterminate,
-  className = 'w-4 h-4 mt-2',
+  className = 'w-4 h-4 flex',
   ...rest
 }: { indeterminate?: boolean } & HTMLProps<HTMLInputElement>) {
   const ref = useRef<HTMLInputElement>(null!);

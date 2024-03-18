@@ -57,7 +57,7 @@ export function getListBoxColumns(props: ListBoxColumnProps): ColumnDef<Row>[] {
 
 function IndeterminateCheckbox({
   indeterminate,
-  className = 'w-4 h-4',
+  className = 'flex w-4 h-4',
   ...rest
 }: { indeterminate?: boolean } & HTMLProps<HTMLInputElement>) {
   const ref = useRef<HTMLInputElement>(null!);
