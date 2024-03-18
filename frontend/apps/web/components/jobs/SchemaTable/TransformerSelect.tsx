@@ -60,14 +60,7 @@ export default function TransformerSelect(props: Props): ReactElement {
   const udfTransformerMap = new Map(udfTransformers.map((t) => [t.id, t]));
   const sysTransformerMap = new Map(sysTransformers.map((t) => [t.source, t]));
 
-  return disabled ? (
-    <MockButtonWithToolTip
-      placeholder={placeholder}
-      value={value}
-      udfTransformerMap={udfTransformerMap}
-      systemTransformerMap={sysTransformerMap}
-    />
-  ) : (
+  return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button

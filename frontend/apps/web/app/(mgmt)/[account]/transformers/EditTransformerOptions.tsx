@@ -157,7 +157,10 @@ export default function EditTransformerOptions(props: Props): ReactElement {
             <ConfigureTransformer
               transformer={transformer}
               value={value}
-              onSubmit={onSubmit}
+              onSubmit={(newval) => {
+                onSubmit(newval);
+                setIsSheetOpen(false);
+              }}
               isReadonly={disabled}
             />
           )}

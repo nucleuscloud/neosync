@@ -83,11 +83,7 @@ export default function SchemaPageTable<TData, TValue>({
   return (
     <div>
       <div className="z-50">
-        <SchemaTableToolbar
-          table={table}
-          // data={data}
-          transformers={transformers}
-        />
+        <SchemaTableToolbar table={table} transformers={transformers} />
       </div>
       <div
         className="rounded-md border max-h-[500px] relative overflow-x-auto"
