@@ -111,7 +111,6 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	if len(splitConfigs.Root) == 0 && len(splitConfigs.Dependents) > 0 {
 		return nil, fmt.Errorf("root config not found. unable to process configs")
 	}
-	// need to check that dependencies can be run for circular dependencies
 	for _, bc := range splitConfigs.Root {
 		bc := bc
 		future := invokeSync(bc, childctx, &started, &completed, logger)
