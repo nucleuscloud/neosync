@@ -11,9 +11,18 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
+import ButtonText from '@/components/ButtonText';
+import Spinner from '@/components/Spinner';
+import { useAccount } from '@/components/providers/account-provider';
+import { Badge } from '@/components/ui/badge';
 import { TransformCharacterScramble } from '@neosync/sdk';
-import { ReactElement } from 'react';
+import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
+import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import {
+  ValidRegex,
+  ValidateUserRegex,
+} from '../../new/transformer/UserDefinedTransformerForms/UserDefinedTransformCharacterScrambleForm';
 import { TransformerFormProps } from './util';
 interface Props extends TransformerFormProps<TransformCharacterScramble> {}
 
@@ -29,53 +38,54 @@ export default function TransformCharacterScrambleForm(
     },
   });
 
-  // async function handleValidateCode(): Promise<void> {
-  //   if (!account) {
-  //     return;
-  //   }
-  //   setIsValidatingRegex(true);
+  const [isValidating, setIsValidating] = useState(false);
+  const [status, setStatus] = useState<ValidRegex>('null');
+  const account = useAccount();
 
-  //   try {
-  //     const res = await ValidateUserRegex(userRegex, account.account?.id ?? '');
-  //     setIsValidatingRegex(false);
-  //     if (res.valid === true) {
-  //       setIsRegexValid('valid');
-  //     } else {
-  //       setIsRegexValid('invalid');
-  //     }
-  //   } catch (err) {
-  //     setIsValidatingRegex(false);
-  //     setIsRegexValid('invalid');
-  //   }
-  // }
+  async function handleValidateCode(): Promise<void> {
+    if (!account) {
+      return;
+    }
+    setIsValidating(true);
+
+    try {
+      const res = await ValidateUserRegex(
+        form.getValues('userProvidedRegex') ?? '',
+        account.account?.id ?? ''
+      );
+      if (res.valid === true) {
+        setStatus('valid');
+      } else {
+        setStatus('invalid');
+      }
+    } catch (err) {
+      setStatus('invalid');
+    } finally {
+      setIsValidating(false);
+    }
+  }
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
-      {/* <div className="flex flex-row gap-2 justify-end">
-        {isRegexValid !== 'null' && (
+      <div className="flex flex-row gap-2 justify-end">
+        {status !== 'null' && (
           <Badge
-            variant={isRegexValid === 'valid' ? 'success' : 'destructive'}
+            variant={status === 'valid' ? 'success' : 'destructive'}
             className="h-9 px-4 py-2"
           >
             <ButtonText
               leftIcon={
-                isRegexValid === 'valid' ? (
+                status === 'valid' ? (
                   <CheckCircledIcon />
-                ) : isRegexValid === 'invalid' ? (
+                ) : status === 'invalid' ? (
                   <CrossCircledIcon />
                 ) : null
               }
-              text={isRegexValid === 'invalid' ? 'invalid' : 'valid'}
+              text={status}
             />
           </Badge>
         )}
-        <Button type="button" onClick={handleValidateCode}>
-          <ButtonText
-            leftIcon={isValidatingRegex ? <Spinner /> : null}
-            text={'Validate'}
-          />
-        </Button>
-      </div> */}
+      </div>
       <Form {...form}>
         <FormField
           control={form.control}
@@ -102,10 +112,16 @@ export default function TransformCharacterScrambleForm(
             </FormItem>
           )}
         />
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-4">
+          <Button type="button" onClick={() => handleValidateCode()}>
+            <ButtonText
+              leftIcon={isValidating ? <Spinner /> : null}
+              text="Validate"
+            />
+          </Button>
           <Button
             type="button"
-            disabled={isReadonly}
+            disabled={isReadonly || status !== 'valid'}
             onClick={(e) => {
               form.handleSubmit((values) => {
                 onSubmit(

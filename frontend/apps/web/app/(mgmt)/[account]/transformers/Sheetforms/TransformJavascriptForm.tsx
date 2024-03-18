@@ -144,7 +144,7 @@ export default function TransformJavascriptForm(props: Props): ReactElement {
           </Button>
           <Button
             type="button"
-            disabled={isReadonly}
+            disabled={isReadonly || codeStatus !== 'valid'}
             onClick={(e) => {
               form.handleSubmit((values) => {
                 onSubmit(
