@@ -1,7 +1,6 @@
 'use client';
 import ConnectionIcon from '@/components/connections/ConnectionIcon';
 import { useAccount } from '@/components/providers/account-provider';
-import { Avatar } from '@/components/ui/avatar';
 import {
   Card,
   CardDescription,
@@ -39,9 +38,7 @@ export default function ConnectionCard(props: Props) {
       <CardHeader>
         <CardTitle>
           <div className="flex flex-row items-center space-x-2">
-            <Avatar>
-              <ConnectionIcon name={connection.name} />
-            </Avatar>
+            <ConnectionIcon name={connection.name} />
             <p>{connection.name}</p>
           </div>
         </CardTitle>
