@@ -1,5 +1,9 @@
 'use client';
+import ButtonText from '@/components/ButtonText';
+import Spinner from '@/components/Spinner';
 import LearnMoreTag from '@/components/labels/LearnMoreTag';
+import { useAccount } from '@/components/providers/account-provider';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -10,9 +14,14 @@ import {
 } from '@/components/ui/form';
 import { Editor } from '@monaco-editor/react';
 import { TransformJavascript } from '@neosync/sdk';
+import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
 import { useTheme } from 'next-themes';
-import { ReactElement } from 'react';
+import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import {
+  IsUserJavascriptCodeValid,
+  ValidCode,
+} from '../../new/transformer/UserDefinedTransformerForms/UserDefinedTransformJavascriptForm';
 import { TransformerFormProps } from './util';
 interface Props extends TransformerFormProps<TransformJavascript> {}
 
@@ -26,50 +35,35 @@ export default function TransformJavascriptForm(props: Props): ReactElement {
     },
   });
 
-  // const codeValue = fc.getValues(
-  //   `mappings.${index}.transformer.config.value.code`
-  // );
-  // const [userCode, setUserCode] = useState<string>(codeValue);
-  // const [isValidatingCode, setIsValidatingCode] = useState<boolean>(false);
-  // const [isCodeValid, setIsCodeValid] = useState<ValidCode>('null');
+  const [isValidatingCode, setIsValidatingCode] = useState<boolean>(false);
+  const [codeStatus, setCodeStatus] = useState<ValidCode>('null');
   const { resolvedTheme } = useTheme();
 
-  // const handleSubmit = () => {
-  //   fc.setValue(
-  //     `mappings.${index}.transformer.config.value`,
-  //     new TransformJavascript({ code: userCode }),
-  //     {
-  //       shouldValidate: false,
-  //     }
-  //   );
-  //   setIsSheetOpen!(false);
-  // };
+  const account = useAccount();
 
-  // const account = useAccount();
+  async function handleValidateCode(): Promise<void> {
+    if (!account) {
+      return;
+    }
+    setIsValidatingCode(true);
 
-  // async function handleValidateCode(): Promise<void> {
-  //   if (!account) {
-  //     return;
-  //   }
-  //   setIsValidatingCode(true);
-
-  //   try {
-  //     const res = await IsUserJavascriptCodeValid(
-  //       userCode,
-  //       account.account?.id ?? ''
-  //     );
-  //     setIsValidatingCode(false);
-  //     if (res.valid === true) {
-  //       setIsCodeValid('valid');
-  //     } else {
-  //       setIsCodeValid('invalid');
-  //     }
-  //   } catch (err) {
-  //     console.error(err);
-  //     setIsValidatingCode(false);
-  //     setIsCodeValid('invalid');
-  //   }
-  // }
+    try {
+      const res = await IsUserJavascriptCodeValid(
+        form.getValues('code') ?? '',
+        account.account?.id ?? ''
+      );
+      if (res.valid === true) {
+        setCodeStatus('valid');
+      } else {
+        setCodeStatus('invalid');
+      }
+    } catch (err) {
+      console.error(err);
+      setCodeStatus('invalid');
+    } finally {
+      setIsValidatingCode(false);
+    }
+  }
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
@@ -97,31 +91,25 @@ export default function TransformJavascriptForm(props: Props): ReactElement {
                   </div>
                 </div>
                 <div className="flex flex-row gap-2">
-                  {/* {isCodeValid !== 'null' && (
+                  {codeStatus !== 'null' && (
                     <Badge
                       variant={
-                        isCodeValid === 'valid' ? 'success' : 'destructive'
+                        codeStatus === 'valid' ? 'success' : 'destructive'
                       }
                       className="h-9 px-4 py-2"
                     >
                       <ButtonText
                         leftIcon={
-                          isCodeValid === 'valid' ? (
+                          codeStatus === 'valid' ? (
                             <CheckCircledIcon />
-                          ) : isCodeValid === 'invalid' ? (
+                          ) : codeStatus === 'invalid' ? (
                             <CrossCircledIcon />
                           ) : null
                         }
-                        text={isCodeValid === 'invalid' ? 'invalid' : 'valid'}
+                        text={codeStatus}
                       />
                     </Badge>
                   )}
-                  <Button type="button" onClick={handleValidateCode}>
-                    <ButtonText
-                      leftIcon={isValidatingCode ? <Spinner /> : null}
-                      text={'Validate'}
-                    />
-                      </Button> */}
                 </div>
               </div>
               <FormControl>
@@ -143,7 +131,17 @@ export default function TransformJavascriptForm(props: Props): ReactElement {
             </FormItem>
           )}
         />
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-4">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => handleValidateCode()}
+          >
+            <ButtonText
+              leftIcon={isValidatingCode ? <Spinner /> : null}
+              text="Validate"
+            />
+          </Button>
           <Button
             type="button"
             disabled={isReadonly}
