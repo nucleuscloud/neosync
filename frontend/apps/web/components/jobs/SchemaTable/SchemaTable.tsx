@@ -25,7 +25,7 @@ import {
 import { ReactElement, useMemo, useState } from 'react';
 import { FieldErrors, useFieldArray, useFormContext } from 'react-hook-form';
 import { SchemaConstraintHandler, getSchemaColumns } from './SchemaColumns';
-import SchemaPageTable, { Row } from './SchemaPageTable';
+import SchemaPageTable from './SchemaPageTable';
 
 interface Props {
   data: JobMappingFormValues[];
@@ -60,13 +60,6 @@ export function SchemaTable(props: Props): ReactElement {
     new Set(data.map((d) => `${d.schema}.${d.table}`))
   );
 
-  const tableData = data.map((d, idx): Row => {
-    return {
-      ...d,
-      formIdx: idx, // this is very important because we need to retain this when updating the form due to the table being filterable. Otherwise the index used is incorrect.
-    };
-  });
-
   const columns = useMemo(() => {
     return getSchemaColumns({
       systemTransformers,
@@ -83,7 +76,7 @@ export function SchemaTable(props: Props): ReactElement {
     name: 'mappings',
   });
 
-  function toggleItem(items: Set<string>, action: Action): void {
+  function toggleItem(items: Set<string>, _action: Action): void {
     if (items.size === 0) {
       const idxs = fields.map((_, idx) => idx);
       remove(idxs);
@@ -126,7 +119,7 @@ export function SchemaTable(props: Props): ReactElement {
     setSelectedItems(items);
   }
 
-  if (isLoading || !tableData) {
+  if (isLoading || !data) {
     return <SkeletonTable />;
   }
 
@@ -177,7 +170,7 @@ export function SchemaTable(props: Props): ReactElement {
       </div>
       <SchemaPageTable
         columns={columns}
-        data={tableData}
+        data={data}
         userDefinedTransformerMap={userDefinedMap}
         userDefinedTransformers={userDefinedTransformers}
         systemTransformerMap={systemMap}

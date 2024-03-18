@@ -403,11 +403,10 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         const fctx = useFormContext<
           SchemaFormValues | SingleTableSchemaFormValues
         >();
-        // info.row.index // todo: see if this is the same as formidx
         return (
           <div>
             <FormField<SchemaFormValues | SingleTableSchemaFormValues>
-              name={`mappings.${info.row.original.formIdx}.transformer`}
+              name={`mappings.${info.row.index}.transformer`}
               control={fctx.control}
               render={({ field, fieldState, formState }) => {
                 const fv = field.value as JobMappingTransformerForm;

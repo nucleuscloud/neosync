@@ -26,9 +26,7 @@ import { JobMappingFormValues } from '@/yup-validations/jobs';
 import { SystemTransformer, UserDefinedTransformer } from '@neosync/sdk';
 import { SchemaTableToolbar } from './SchemaTableToolBar';
 
-export type Row = JobMappingFormValues & {
-  formIdx: number;
-};
+export type Row = JobMappingFormValues;
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
