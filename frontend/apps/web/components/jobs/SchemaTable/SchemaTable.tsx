@@ -64,7 +64,6 @@ export function SchemaTable(props: Props): ReactElement {
     return {
       ...d,
       formIdx: idx, // this is very important because we need to retain this when updating the form due to the table being filterable. Otherwise the index used is incorrect.
-      schemaTable: `${d.schema}.${d.table}`,
     };
   });
 

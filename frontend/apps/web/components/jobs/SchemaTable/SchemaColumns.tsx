@@ -159,11 +159,11 @@ function RowAlert(props: RowAlertProps): ReactElement {
   }
 
   if (messages.length === 0) {
-    return <div />;
+    return <div className="hidden" />;
   }
 
   return (
-    <TooltipProvider>
+    <TooltipProvider delayDuration={100}>
       <Tooltip>
         <TooltipTrigger asChild>
           <div className="cursor-default">
@@ -226,37 +226,12 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
       size: 30,
     },
     {
-      id: 'alert',
-      size: 1,
-      cell: ({ row }) => <RowAlert row={row} handler={constraintHandler} />,
-    },
-    {
       accessorKey: 'schema',
-      header: ({ column }) => (
-        <SchemaColumnHeader column={column} title="Schema" />
-      ),
-      cell: ({ row }) => {
-        return (
-          <span className="max-w-[500px] truncate font-medium">
-            {row.getValue('schema')}
-          </span>
-        );
-      },
       enableSorting: false,
       enableHiding: false,
     },
     {
       accessorKey: 'table',
-      header: ({ column }) => (
-        <SchemaColumnHeader column={column} title="Table" />
-      ),
-      cell: ({ row }) => {
-        return (
-          <span className="max-w-[500px] truncate font-medium">
-            {row.getValue('table')}
-          </span>
-        );
-      },
       enableSorting: false,
       enableHiding: false,
     },
@@ -267,11 +242,14 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Table" />
       ),
-      cell: ({ getValue }) => {
+      cell: ({ row, getValue }) => {
         return (
-          <span className="max-w-[500px] truncate font-medium">
-            {getValue() as string}
-          </span>
+          <div className="flex flex-row gap-2 items-center">
+            <RowAlert row={row} handler={constraintHandler} />
+            <span className="max-w-[500px] truncate font-medium">
+              {getValue() as string}
+            </span>
+          </div>
         );
       },
     },

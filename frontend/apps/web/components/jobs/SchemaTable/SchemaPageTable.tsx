@@ -28,7 +28,6 @@ import { SchemaTableToolbar } from './SchemaTableToolBar';
 
 export type Row = JobMappingFormValues & {
   formIdx: number;
-  schemaTable: string;
 };
 
 interface DataTableProps<TData, TValue> {
