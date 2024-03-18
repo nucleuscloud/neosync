@@ -10,10 +10,15 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { Transformer, isUserDefinedTransformer } from '@/shared/transformers';
+import {
+  Transformer,
+  isSystemTransformer,
+  isUserDefinedTransformer,
+} from '@/shared/transformers';
 import {
   JobMappingTransformerForm,
   convertJobMappingTransformerToForm,
+  convertTransformerConfigToForm,
 } from '@/yup-validations/jobs';
 import { PlainMessage } from '@bufbuild/protobuf';
 import {
@@ -45,6 +50,7 @@ import {
 } from '@neosync/sdk';
 import {
   Cross2Icon,
+  EyeOpenIcon,
   MixerHorizontalIcon,
   Pencil1Icon,
 } from '@radix-ui/react-icons';
@@ -117,7 +123,6 @@ export default function EditTransformerOptions(props: Props): ReactElement {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
-
   return (
     <Sheet open={isSheetOpen} onOpenChange={() => setIsSheetOpen(true)}>
       <SheetTrigger asChild>
@@ -129,11 +134,15 @@ export default function EditTransformerOptions(props: Props): ReactElement {
           // we need to load the custom transformer values and push them into the component, but the components expect the "form", which is the Job Mapping.
           // this would require a refactor of the lower components to not rely on the react-hook-form and instead values as props to the component itself.
           // until that is true, this needs to be disabled.
-          disabled={isUserDefinedTransformer(transformer) || disabled}
+          disabled={disabled}
           onClick={() => setIsSheetOpen(true)}
           className="ml-auto hidden h-[36px] lg:flex"
         >
-          <Pencil1Icon />
+          {isUserDefinedTransformer(transformer) ? (
+            <EyeOpenIcon />
+          ) : (
+            <Pencil1Icon />
+          )}
         </Button>
       </SheetTrigger>
       <SheetContent className="w-[800px]" ref={sheetRef}>
@@ -161,7 +170,7 @@ export default function EditTransformerOptions(props: Props): ReactElement {
                 onSubmit(newval);
                 setIsSheetOpen(false);
               }}
-              isReadonly={disabled}
+              isReadonly={disabled || isUserDefinedTransformer(transformer)}
             />
           )}
         </div>
@@ -179,6 +188,11 @@ interface ConfigureTransformerProps {
 
 function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
   const { transformer, value, onSubmit, isReadonly } = props;
+
+  const valueConfig = isSystemTransformer(transformer)
+    ? value.config
+    : convertTransformerConfigToForm(transformer.config);
+
   switch (transformer.source) {
     case 'generate_card_number':
       return (
@@ -186,7 +200,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           isReadonly={isReadonly}
           existingConfig={
             new GenerateCardNumber({
-              ...(value.config.value as PlainMessage<GenerateCardNumber>),
+              ...(valueConfig.value as PlainMessage<GenerateCardNumber>),
             })
           }
           onSubmit={(newconfig) => {
@@ -212,7 +226,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           isReadonly={isReadonly}
           existingConfig={
             new GenerateE164PhoneNumber({
-              ...(value.config.value as PlainMessage<GenerateE164PhoneNumber>),
+              ...(valueConfig.value as PlainMessage<GenerateE164PhoneNumber>),
             })
           }
           onSubmit={(newconfig) => {
@@ -238,7 +252,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           isReadonly={isReadonly}
           existingConfig={
             new GenerateFloat64({
-              ...(value.config.value as PlainMessage<GenerateFloat64>),
+              ...(valueConfig.value as PlainMessage<GenerateFloat64>),
             })
           }
           onSubmit={(newconfig) => {
@@ -264,7 +278,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           isReadonly={isReadonly}
           existingConfig={
             new GenerateGender({
-              ...(value.config.value as PlainMessage<GenerateGender>),
+              ...(valueConfig.value as PlainMessage<GenerateGender>),
             })
           }
           onSubmit={(newconfig) => {
@@ -288,7 +302,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           isReadonly={isReadonly}
           existingConfig={
             new GenerateInt64({
-              ...(value.config.value as PlainMessage<GenerateInt64>),
+              ...(valueConfig.value as PlainMessage<GenerateInt64>),
             })
           }
           onSubmit={(newconfig) => {
@@ -312,7 +326,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           isReadonly={isReadonly}
           existingConfig={
             new GenerateString({
-              ...(value.config.value as PlainMessage<GenerateString>),
+              ...(valueConfig.value as PlainMessage<GenerateString>),
             })
           }
           onSubmit={(newconfig) => {
@@ -336,8 +350,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           isReadonly={isReadonly}
           existingConfig={
             new GenerateStringPhoneNumber({
-              ...(value.config
-                .value as PlainMessage<GenerateStringPhoneNumber>),
+              ...(valueConfig.value as PlainMessage<GenerateStringPhoneNumber>),
             })
           }
           onSubmit={(newconfig) => {
@@ -361,7 +374,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           isReadonly={isReadonly}
           existingConfig={
             new GenerateUuid({
-              ...(value.config.value as PlainMessage<GenerateUuid>),
+              ...(valueConfig.value as PlainMessage<GenerateUuid>),
             })
           }
           onSubmit={(newconfig) => {
@@ -385,7 +398,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           isReadonly={isReadonly}
           existingConfig={
             new TransformE164PhoneNumber({
-              ...(value.config.value as PlainMessage<TransformE164PhoneNumber>),
+              ...(valueConfig.value as PlainMessage<TransformE164PhoneNumber>),
             })
           }
           onSubmit={(newconfig) => {
@@ -409,7 +422,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           isReadonly={isReadonly}
           existingConfig={
             new TransformEmail({
-              ...(value.config.value as PlainMessage<TransformEmail>),
+              ...(valueConfig.value as PlainMessage<TransformEmail>),
             })
           }
           onSubmit={(newconfig) => {
@@ -433,7 +446,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           isReadonly={isReadonly}
           existingConfig={
             new TransformFirstName({
-              ...(value.config.value as PlainMessage<TransformFirstName>),
+              ...(valueConfig.value as PlainMessage<TransformFirstName>),
             })
           }
           onSubmit={(newconfig) => {
@@ -457,7 +470,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           isReadonly={isReadonly}
           existingConfig={
             new TransformFloat64({
-              ...(value.config.value as PlainMessage<TransformFloat64>),
+              ...(valueConfig.value as PlainMessage<TransformFloat64>),
             })
           }
           onSubmit={(newconfig) => {
@@ -481,7 +494,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           isReadonly={isReadonly}
           existingConfig={
             new TransformFullName({
-              ...(value.config.value as PlainMessage<TransformFullName>),
+              ...(valueConfig.value as PlainMessage<TransformFullName>),
             })
           }
           onSubmit={(newconfig) => {
@@ -505,7 +518,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           isReadonly={isReadonly}
           existingConfig={
             new TransformInt64({
-              ...(value.config.value as PlainMessage<TransformInt64>),
+              ...(valueConfig.value as PlainMessage<TransformInt64>),
             })
           }
           onSubmit={(newconfig) => {
@@ -529,8 +542,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           isReadonly={isReadonly}
           existingConfig={
             new TransformInt64PhoneNumber({
-              ...(value.config
-                .value as PlainMessage<TransformInt64PhoneNumber>),
+              ...(valueConfig.value as PlainMessage<TransformInt64PhoneNumber>),
             })
           }
           onSubmit={(newconfig) => {
@@ -554,7 +566,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           isReadonly={isReadonly}
           existingConfig={
             new TransformLastName({
-              ...(value.config.value as PlainMessage<TransformLastName>),
+              ...(valueConfig.value as PlainMessage<TransformLastName>),
             })
           }
           onSubmit={(newconfig) => {
@@ -578,7 +590,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           isReadonly={isReadonly}
           existingConfig={
             new TransformPhoneNumber({
-              ...(value.config.value as PlainMessage<TransformPhoneNumber>),
+              ...(valueConfig.value as PlainMessage<TransformPhoneNumber>),
             })
           }
           onSubmit={(newconfig) => {
@@ -602,7 +614,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           isReadonly={isReadonly}
           existingConfig={
             new TransformString({
-              ...(value.config.value as PlainMessage<TransformString>),
+              ...(valueConfig.value as PlainMessage<TransformString>),
             })
           }
           onSubmit={(newconfig) => {
@@ -626,7 +638,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           isReadonly={isReadonly}
           existingConfig={
             new TransformJavascript({
-              ...(value.config.value as PlainMessage<TransformJavascript>),
+              ...(valueConfig.value as PlainMessage<TransformJavascript>),
             })
           }
           onSubmit={(newconfig) => {
@@ -650,7 +662,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           isReadonly={isReadonly}
           existingConfig={
             new GenerateCategorical({
-              ...(value.config.value as PlainMessage<GenerateCategorical>),
+              ...(valueConfig.value as PlainMessage<GenerateCategorical>),
             })
           }
           onSubmit={(newconfig) => {
@@ -674,8 +686,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           isReadonly={isReadonly}
           existingConfig={
             new TransformCharacterScramble({
-              ...(value.config
-                .value as PlainMessage<TransformCharacterScramble>),
+              ...(valueConfig.value as PlainMessage<TransformCharacterScramble>),
             })
           }
           onSubmit={(newconfig) => {
