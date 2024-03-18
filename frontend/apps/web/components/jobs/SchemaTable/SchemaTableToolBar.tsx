@@ -4,7 +4,6 @@ import { Table } from '@tanstack/react-table';
 
 import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
 import EditTransformerOptions from '@/app/(mgmt)/[account]/transformers/EditTransformerOptions';
-import ButtonText from '@/components/ButtonText';
 import { Button } from '@/components/ui/button';
 import {
   Transformer,
@@ -17,7 +16,7 @@ import {
   convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
 import { JobMappingTransformer } from '@neosync/sdk';
-import { Cross2Icon } from '@radix-ui/react-icons';
+import { CheckIcon, Cross2Icon } from '@radix-ui/react-icons';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { SchemaTableViewOptions } from './SchemaTableViewOptions';
@@ -71,17 +70,10 @@ export function SchemaTableToolbar<TData>({
             placeholder="Bulk update Transformers"
             disabled={!hasSelectedRows}
           />
-          {transformer && (
-            <EditTransformerOptions
-              transformer={transformer}
-              value={bulkTransformer}
-              onSubmit={setBulkTransformer}
-              disabled={false}
-            />
-          )}
           <Button
             disabled={!bulkTransformer || !hasSelectedRows}
             type="button"
+            variant="outline"
             onClick={() => {
               table.getSelectedRowModel().rows.forEach((r) => {
                 form.setValue(
@@ -104,8 +96,16 @@ export function SchemaTableToolbar<TData>({
               );
             }}
           >
-            <ButtonText text="Apply" />
+            <CheckIcon />
           </Button>
+          {transformer && (
+            <EditTransformerOptions
+              transformer={transformer}
+              value={bulkTransformer}
+              onSubmit={setBulkTransformer}
+              disabled={false}
+            />
+          )}
         </div>
         <div className="flex flex-row items-center gap-2">
           {isFiltered && (
