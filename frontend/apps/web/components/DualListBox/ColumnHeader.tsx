@@ -3,7 +3,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
@@ -12,7 +11,6 @@ import {
   ArrowDownIcon,
   ArrowUpIcon,
   CaretSortIcon,
-  EyeNoneIcon,
 } from '@radix-ui/react-icons';
 import { Column } from '@tanstack/react-table';
 interface DataTableColumnHeaderProps<TData, TValue>
@@ -63,11 +61,6 @@ export default function ColumnHeader<TData, TValue>({
           <DropdownMenuItem onClick={() => column.toggleSorting(true)}>
             <ArrowDownIcon className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
             Desc
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
-            <EyeNoneIcon className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
-            Hide
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
