@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/card';
 import { ConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetMergedTransformers } from '@/libs/hooks/useGetMergedTransformers';
+import { cn } from '@/libs/utils';
 import {
   JobMappingFormValues,
   SchemaFormValues,
@@ -149,7 +150,12 @@ export function SchemaTable(props: Props): ReactElement {
           </Card>
         </div>
         <div className="flex">
-          <Card className="p-0">
+          <Card
+            className={cn(
+              'p-0',
+              extractedFormErrors.length === 0 ? 'hidden' : ''
+            )}
+          >
             <CardContent className="p-3">
               <ul>
                 {extractedFormErrors.map((message, idx) => (
