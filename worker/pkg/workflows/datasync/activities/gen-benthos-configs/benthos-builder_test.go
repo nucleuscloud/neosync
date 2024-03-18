@@ -177,7 +177,7 @@ output:
             - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
+                query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
                 args_mapping: root = [this."id", this."name"]
                 init_statement: ""
                 batching:
@@ -338,7 +338,7 @@ output:
             - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
+                query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
                 args_mapping: root = [this."id", this."name"]
                 init_statement: ""
                 batching:
@@ -505,7 +505,7 @@ output:
             - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO public.users ("id", "name") VALUES (DEFAULT, $1);
+                query: INSERT INTO "public"."users" ("id", "name") VALUES (DEFAULT, $1);
                 args_mapping: root = [this."name"]
                 init_statement: ""
                 batching:
@@ -682,7 +682,7 @@ output:
             - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
+                query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
                 args_mapping: root = [this."id", this."name"]
                 init_statement: ""
                 batching:
@@ -922,7 +922,7 @@ output:
             - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
+                query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
                 args_mapping: root = [this."id", this."name"]
                 init_statement: ""
                 batching:
@@ -970,7 +970,7 @@ output:
             - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO public.orders ("id", "buyer_id") VALUES ($1, $2);
+                query: INSERT INTO "public"."orders" ("id", "buyer_id") VALUES ($1, $2);
                 args_mapping: root = [this."id", this."buyer_id"]
                 init_statement: ""
                 batching:
@@ -1189,7 +1189,7 @@ output:
             - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
+                query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
                 args_mapping: root = [this."id", this."name"]
                 init_statement: ""
                 batching:
@@ -1228,7 +1228,7 @@ output:
             - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO public.orders ("id", "buyer_id") VALUES ($1, $2);
+                query: INSERT INTO "public"."orders" ("id", "buyer_id") VALUES ($1, $2);
                 args_mapping: root = [this."id", this."buyer_id"]
                 init_statement: ""
                 batching:
@@ -1438,7 +1438,7 @@ output:
             - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO public.jobs ("id") VALUES ($1);
+                query: INSERT INTO "public"."jobs" ("id") VALUES ($1);
                 args_mapping: root = [this."id"]
                 init_statement: ""
                 batching:
@@ -1495,7 +1495,7 @@ output:
             - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: UPDATE public.jobs SET "parent_id" = $1 WHERE "id" = $2;
+                query: UPDATE "public"."jobs" SET "parent_id" = $1 WHERE "id" = $2;
                 args_mapping: root = [this."parent_id", this."id"]
                 init_statement: ""
                 batching:
@@ -1672,7 +1672,7 @@ output:
             - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO public.users ("id", "name") VALUES (DEFAULT, $1);
+                query: INSERT INTO "public"."users" ("id", "name") VALUES (DEFAULT, $1);
                 args_mapping: root = [this."name"]
                 init_statement: ""
                 batching:
@@ -1892,7 +1892,7 @@ output:
             - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
+                query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
                 args_mapping: root = [this."id", this."name"]
                 init_statement: ""
                 batching:
@@ -1930,7 +1930,7 @@ output:
             - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO public.user_account_associations ("id", "user_id") VALUES ($1, $2);
+                query: INSERT INTO "public"."user_account_associations" ("id", "user_id") VALUES ($1, $2);
                 args_mapping: root = [this."id", this."user_id"]
                 init_statement: ""
                 batching:
@@ -2178,7 +2178,7 @@ output:
             - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
+                query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
                 args_mapping: root = [this."id", this."name"]
                 init_statement: ""
                 batching:
@@ -2217,7 +2217,7 @@ output:
             - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: UPDATE public.users SET "user_assoc_id" = $1 WHERE "id" = $2;
+                query: UPDATE "public"."users" SET "user_assoc_id" = $1 WHERE "id" = $2;
                 args_mapping: root = [this."user_assoc_id", this."id"]
                 init_statement: ""
                 batching:
@@ -2255,7 +2255,7 @@ output:
             - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO public.user_account_associations ("id", "user_id") VALUES ($1, $2);
+                query: INSERT INTO "public"."user_account_associations" ("id", "user_id") VALUES ($1, $2);
                 args_mapping: root = [this."id", this."user_id"]
                 init_statement: ""
                 batching:
@@ -2534,7 +2534,7 @@ output:
             - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO public.users ("id", "name") VALUES ($1, $2);
+                query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
                 args_mapping: root = [this."id", this."name"]
                 init_statement: ""
                 batching:
@@ -2592,7 +2592,7 @@ output:
             - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: UPDATE public.users SET "user_assoc_id" = $1 WHERE "id" = $2;
+                query: UPDATE "public"."users" SET "user_assoc_id" = $1 WHERE "id" = $2;
                 args_mapping: root = [this."user_assoc_id", this."id"]
                 init_statement: ""
                 batching:
@@ -2631,7 +2631,7 @@ output:
             - pooled_sql_raw:
                 driver: postgres
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO public.user_account_associations ("id", "user_id") VALUES ($1, $2);
+                query: INSERT INTO "public"."user_account_associations" ("id", "user_id") VALUES ($1, $2);
                 args_mapping: root = [this."id", this."user_id"]
                 init_statement: ""
                 batching:
@@ -2809,7 +2809,7 @@ output:
             - pooled_sql_raw:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                `+"query: INSERT INTO public.users (`id`, `name`) VALUES (?, ?);"+`
+                `+"query: INSERT INTO `public`.`users` (`id`, `name`) VALUES (?, ?);"+`
                 args_mapping: root = [this."id", this."name"]
                 init_statement: ""
                 batching:
@@ -2985,7 +2985,7 @@ output:
             - pooled_sql_raw:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                `+"query: INSERT INTO public.users (`id`, `name`) VALUES (?, ?);"+`
+                `+"query: INSERT INTO `public`.`users` (`id`, `name`) VALUES (?, ?);"+`
                 args_mapping: root = [this."id", this."name"]
                 init_statement: ""
                 batching:
@@ -3203,7 +3203,7 @@ output:
             - pooled_sql_raw:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                `+"query: INSERT INTO public.users (`id`, `name`) VALUES (?, ?);"+`
+                `+"query: INSERT INTO `public`.`users` (`id`, `name`) VALUES (?, ?);"+`
                 args_mapping: root = [this."id", this."name"]
                 init_statement: ""
                 batching:
@@ -3241,7 +3241,7 @@ output:
             - pooled_sql_raw:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                `+"query: INSERT INTO public.user_account_associations (`id`, `user_id`) VALUES (?, ?);"+`
+                `+"query: INSERT INTO `public`.`user_account_associations` (`id`, `user_id`) VALUES (?, ?);"+`
                 args_mapping: root = [this."id", this."user_id"]
                 init_statement: ""
                 batching:
@@ -3490,7 +3490,7 @@ output:
             - pooled_sql_raw:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                `+"query: INSERT INTO public.users (`id`, `name`) VALUES (?, ?);"+`
+                `+"query: INSERT INTO `public`.`users` (`id`, `name`) VALUES (?, ?);"+`
                 args_mapping: root = [this."id", this."name"]
                 init_statement: ""
                 batching:
@@ -3529,7 +3529,7 @@ output:
             - pooled_sql_raw:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                `+"query: UPDATE public.users SET `user_assoc_id` = ? WHERE `id` = ?;"+`
+                `+"query: UPDATE `public`.`users` SET `user_assoc_id` = ? WHERE `id` = ?;"+`
                 args_mapping: root = [this."user_assoc_id", this."id"]
                 init_statement: ""
                 batching:
@@ -3567,7 +3567,7 @@ output:
             - pooled_sql_raw:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                `+"query: INSERT INTO public.user_account_associations (`id`, `user_id`) VALUES (?, ?);"+`
+                `+"query: INSERT INTO `public`.`user_account_associations` (`id`, `user_id`) VALUES (?, ?);"+`
                 args_mapping: root = [this."id", this."user_id"]
                 init_statement: ""
                 batching:
@@ -3724,7 +3724,7 @@ output:
             - pooled_sql_raw:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                `+"query: INSERT INTO public.users (`id`, `name`) VALUES (DEFAULT, ?);"+`
+                `+"query: INSERT INTO `public`.`users` (`id`, `name`) VALUES (DEFAULT, ?);"+`
                 args_mapping: root = [this."name"]
                 init_statement: ""
                 batching:
@@ -3901,7 +3901,7 @@ output:
             - pooled_sql_raw:
                 driver: mysql
                 dsn: ${DESTINATION_0_CONNECTION_DSN}
-                `+"query: INSERT INTO public.users (`id`, `name`) VALUES (DEFAULT, ?);"+`
+                `+"query: INSERT INTO `public`.`users` (`id`, `name`) VALUES (DEFAULT, ?);"+`
                 args_mapping: root = [this."name"]
                 init_statement: ""
                 batching:
