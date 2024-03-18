@@ -44,6 +44,7 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
               </div>
               <FormControl>
                 <Switch
+                  name={field.name}
                   disabled={isReadonly}
                   checked={field.value}
                   onCheckedChange={field.onChange}

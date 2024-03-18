@@ -31,6 +31,7 @@ import {
   TransformEmail,
   TransformFirstName,
   TransformFloat64,
+  TransformFullName,
   TransformerConfig,
   UserDefinedTransformer,
 } from '@neosync/sdk';
@@ -461,9 +462,25 @@ function handleTransformerForm(
     case 'transform_full_name':
       return (
         <TransformFullNameForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
-          transformer={transformer}
+          isReadonly={isReadonly}
+          existingConfig={
+            new TransformFullName({
+              ...(value.config.value as PlainMessage<TransformFullName>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'transformFullNameConfig',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
         />
       );
     case 'transform_int64':
