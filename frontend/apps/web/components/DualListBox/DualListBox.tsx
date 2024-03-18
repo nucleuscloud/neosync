@@ -14,7 +14,7 @@ import { ReactElement, useMemo, useState } from 'react';
 import ListBox from '../ListBox/ListBox';
 import { Row, getListBoxColumns } from './columns';
 
-interface Option {
+export interface Option {
   value: string;
   // label: string;
 }

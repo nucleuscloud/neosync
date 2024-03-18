@@ -1,6 +1,9 @@
 'use client';
 import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
-import DualListBox, { Action } from '@/components/DualListBox/DualListBox';
+import DualListBox, {
+  Action,
+  Option,
+} from '@/components/DualListBox/DualListBox';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import {
@@ -141,9 +144,7 @@ export function SchemaTable(props: Props): ReactElement {
             </CardHeader>
             <CardContent className="p-3">
               <DualListBox
-                options={Object.keys(schema).map((value) => ({
-                  value: value,
-                }))}
+                options={getDualListBoxOptions(schema, data)}
                 selected={selectedItems}
                 onChange={toggleItem}
                 title="Table"
@@ -179,6 +180,15 @@ export function SchemaTable(props: Props): ReactElement {
       />
     </div>
   );
+}
+
+function getDualListBoxOptions(
+  schema: ConnectionSchemaMap,
+  jobmappings: JobMappingFormValues[]
+): Option[] {
+  const tables = new Set(Object.keys(schema));
+  jobmappings.forEach((jm) => tables.add(`${jm.schema}.${jm.table}`));
+  return Array.from(tables).map((table): Option => ({ value: table }));
 }
 
 interface FormError {
