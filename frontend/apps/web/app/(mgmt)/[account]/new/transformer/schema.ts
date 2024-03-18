@@ -10,7 +10,7 @@ const transformEmailConfig = Yup.object().shape({
   preserveLength: Yup.boolean().required('This field is required.'),
 });
 
-const generateCardNumberConfig = Yup.object().shape({
+export const generateCardNumberConfig = Yup.object().shape({
   validLuhn: Yup.boolean().required('This field is required.'),
 });
 

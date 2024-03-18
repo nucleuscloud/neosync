@@ -19,6 +19,7 @@ import { PlainMessage } from '@bufbuild/protobuf';
 import {
   GenerateCardNumber,
   GenerateE164PhoneNumber,
+  GenerateFloat64,
   JobMappingTransformer,
   SystemTransformer,
   TransformerConfig,
@@ -207,7 +208,29 @@ function handleTransformerForm(
       );
     case 'generate_float64':
       return (
-        <GenerateFloatForm index={index} setIsSheetOpen={setIsSheetOpen} />
+        <GenerateFloatForm
+          isReadonly={isReadonly}
+          existingConfig={
+            new GenerateFloat64({
+              ...(value.config.value as PlainMessage<GenerateFloat64>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            onSubmit(
+              convertJobMappingTransformerToForm(
+                new JobMappingTransformer({
+                  source: transformer.source,
+                  config: new TransformerConfig({
+                    config: {
+                      case: 'generateFloat64Config',
+                      value: newconfig,
+                    },
+                  }),
+                })
+              )
+            );
+          }}
+        />
       );
     case 'generate_gender':
       return (
