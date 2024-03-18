@@ -36,10 +36,12 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(connectionConfig *mgmtv1al
 	if connectionConfig == nil {
 		return nil, errors.New("connectionConfig was nil, expected *mgmtv1alpha1.ConnectionConfig")
 	}
+
 	details, err := GetConnectionDetails(connectionConfig, connectionTimeout, logger)
 	if err != nil {
 		return nil, err
 	}
+
 	return newSqlDb(details, logger), nil
 }
 
@@ -107,8 +109,9 @@ func GetConnectionDetails(c *mgmtv1alpha1.ConnectionConfig, connectionTimeout *u
 			if err != nil {
 				return nil, err
 			}
+			portValue := int32(randomPort)
 			connDetails.Host = localhost
-			connDetails.Port = randomPort
+			connDetails.Port = portValue
 			return &ConnectionDetails{
 				Tunnel:                 tunnel,
 				GeneralDbConnectConfig: *connDetails,
@@ -151,8 +154,9 @@ func GetConnectionDetails(c *mgmtv1alpha1.ConnectionConfig, connectionTimeout *u
 			if err != nil {
 				return nil, err
 			}
+			portValue := int32(randomPort)
 			connDetails.Host = localhost
-			connDetails.Port = randomPort
+			connDetails.Port = portValue
 			return &ConnectionDetails{
 				Tunnel:                 tunnel,
 				GeneralDbConnectConfig: *connDetails,
@@ -217,7 +221,7 @@ func getEndpointFromMysqlConnectionConfig(config *mgmtv1alpha1.ConnectionConfig_
 		}
 		return sshtunnel.NewEndpointWithUser(details.Host, int(details.Port), details.User), nil
 	default:
-		return nil, nucleuserrors.NewBadRequest("must provide valid postgres connection")
+		return nil, nucleuserrors.NewBadRequest("must provide valid mysql connection")
 	}
 }
 
@@ -323,24 +327,25 @@ func getGeneralDbConnectConfigFromPg(config *mgmtv1alpha1.ConnectionConfig_PgCon
 			return nil, err
 		}
 
-		// Extract user info
 		user := u.User.Username()
 		pass, ok := u.User.Password()
 		if !ok {
 			return nil, errors.New("unable to get password for pg string")
 		}
 
-		// Extract host and port
 		host, portStr := u.Hostname(), u.Port()
 
-		// Convert port to integer
 		var port int64
 		if portStr != "" {
 			port, err = strconv.ParseInt(portStr, 10, 32)
 			if err != nil {
 				return nil, fmt.Errorf("invalid port: %v", err)
 			}
+		} else {
+			// default to standard postgres port 5432 if port not provided
+			port = int64(5432)
 		}
+
 		return &GeneralDbConnectConfig{
 			Driver:      postgresDriver,
 			Host:        host,

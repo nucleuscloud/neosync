@@ -18,22 +18,24 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(req: NextRequest): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
     const body = (await req.json()) ?? {};
-    const db = await POSTGRES_CONNECTION.validate(body.db ?? {});
-    const tunnel = await SSH_TUNNEL_FORM_SCHEMA.validate(body.tunnel ?? {});
 
-    const pgconfig = new PostgresConnectionConfig({
-      connectionConfig: {
+    let pgconfig = new PostgresConnectionConfig({});
+
+    if (body.url) {
+      pgconfig.connectionConfig = {
+        case: 'url',
+        value: body.url,
+      };
+    } else if (body.db) {
+      const db = await POSTGRES_CONNECTION.validate(body.db);
+      pgconfig.connectionConfig = {
         case: 'connection',
-        value: new PostgresConnection({
-          host: db.host,
-          name: db.name,
-          user: db.user,
-          pass: db.pass,
-          port: db.port,
-          sslMode: db.sslMode,
-        }),
-      },
-    });
+        value: new PostgresConnection(db),
+      };
+    }
+    const tunnel = body.tunnel
+      ? await SSH_TUNNEL_FORM_SCHEMA.validate(body.tunnel)
+      : null;
 
     if (tunnel && tunnel.host && tunnel.port && tunnel.user) {
       pgconfig.tunnel = new SSHTunnel({
