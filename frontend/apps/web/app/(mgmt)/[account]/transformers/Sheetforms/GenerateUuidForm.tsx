@@ -1,6 +1,7 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import {
+  Form,
   FormControl,
   FormDescription,
   FormField,
@@ -27,47 +28,49 @@ export default function GenerateUuidForm(props: Props): ReactElement {
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
-      <FormField
-        control={form.control}
-        name={`includeHyphens`}
-        render={({ field }) => (
-          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-            <div className="space-y-0.5">
-              <FormLabel>Include hyphens</FormLabel>
-              <FormDescription className="w-[90%]">
-                Set to true to include hyphens in the generated UUID. Note: some
-                databases such as Postgres automatically convert UUIDs with no
-                hyphens to have hyphens when they store the data.
-              </FormDescription>
-            </div>
-            <FormControl>
-              <Switch
-                disabled={isReadonly}
-                checked={field.value}
-                onCheckedChange={field.onChange}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <div className="flex justify-end">
-        <Button
-          type="button"
-          disabled={isReadonly}
-          onClick={(e) => {
-            form.handleSubmit((values) => {
-              onSubmit(
-                new GenerateUuid({
-                  ...values,
-                })
-              );
-            })(e);
-          }}
-        >
-          Save
-        </Button>
-      </div>
+      <Form {...form}>
+        <FormField
+          control={form.control}
+          name={`includeHyphens`}
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+              <div className="space-y-0.5">
+                <FormLabel>Include hyphens</FormLabel>
+                <FormDescription className="w-[90%]">
+                  Set to true to include hyphens in the generated UUID. Note:
+                  some databases such as Postgres automatically convert UUIDs
+                  with no hyphens to have hyphens when they store the data.
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  disabled={isReadonly}
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            disabled={isReadonly}
+            onClick={(e) => {
+              form.handleSubmit((values) => {
+                onSubmit(
+                  new GenerateUuid({
+                    ...values,
+                  })
+                );
+              })(e);
+            }}
+          >
+            Save
+          </Button>
+        </div>
+      </Form>
     </div>
   );
 }
