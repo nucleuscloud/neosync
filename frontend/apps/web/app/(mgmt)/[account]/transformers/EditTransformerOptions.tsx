@@ -36,6 +36,7 @@ import {
   TransformInt64PhoneNumber,
   TransformLastName,
   TransformPhoneNumber,
+  TransformString,
   TransformerConfig,
   UserDefinedTransformer,
 } from '@neosync/sdk';
@@ -587,9 +588,25 @@ function handleTransformerForm(
     case 'transform_string':
       return (
         <TransformStringForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
-          transformer={transformer}
+          isReadonly={isReadonly}
+          existingConfig={
+            new TransformString({
+              ...(value.config.value as PlainMessage<TransformString>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'transformStringConfig',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
         />
       );
     case 'transform_javascript':
