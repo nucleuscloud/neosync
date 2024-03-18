@@ -217,7 +217,7 @@ const EMPTY_TRANSFORMER_CONFIG = Yup.object({
 });
 
 // todo: this should be properly typed
-const TRANSFORMER_SCHEMA_CONFIGS: Record<
+export const TRANSFORMER_SCHEMA_CONFIGS: Record<
   NonNullable<TransformerConfigCase>,
   Yup.ObjectSchema<any> // eslint-disable-line @typescript-eslint/no-explicit-any
 > = {

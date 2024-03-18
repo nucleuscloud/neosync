@@ -16,7 +16,7 @@ import { useForm } from 'react-hook-form';
 interface Props {
   existingConfig?: GenerateCardNumber;
   onSubmit(config: GenerateCardNumber): void;
-  isReadonly: boolean;
+  isReadonly?: boolean;
 }
 
 export default function GenerateCardNumberForm(props: Props): ReactElement {
@@ -24,6 +24,7 @@ export default function GenerateCardNumberForm(props: Props): ReactElement {
 
   const form = useForm({
     mode: 'onChange',
+    // resolver: yupResolver(generateCardNumberConfig),
     defaultValues: {
       ...existingConfig,
     },

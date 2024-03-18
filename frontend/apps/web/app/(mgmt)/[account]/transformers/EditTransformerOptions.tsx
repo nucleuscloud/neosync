@@ -18,6 +18,7 @@ import {
 import { PlainMessage } from '@bufbuild/protobuf';
 import {
   GenerateCardNumber,
+  GenerateE164PhoneNumber,
   JobMappingTransformer,
   SystemTransformer,
   TransformerConfig,
@@ -181,8 +182,27 @@ function handleTransformerForm(
     case 'generate_international_phone_number':
       return (
         <GenerateInternationalPhoneNumberForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
+          isReadonly={isReadonly}
+          existingConfig={
+            new GenerateE164PhoneNumber({
+              ...(value.config.value as PlainMessage<GenerateE164PhoneNumber>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            onSubmit(
+              convertJobMappingTransformerToForm(
+                new JobMappingTransformer({
+                  source: transformer.source,
+                  config: new TransformerConfig({
+                    config: {
+                      case: 'generateE164PhoneNumberConfig',
+                      value: newconfig,
+                    },
+                  }),
+                })
+              )
+            );
+          }}
         />
       );
     case 'generate_float64':
