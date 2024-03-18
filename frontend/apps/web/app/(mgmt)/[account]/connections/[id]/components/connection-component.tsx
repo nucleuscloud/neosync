@@ -60,11 +60,19 @@ export function getConnectionComponentDetails(
             port: pgConfig.port ?? 5432,
             sslMode: pgConfig.sslMode ?? 'disable',
           };
-
+          if (pgConfig.host.includes('neon')) {
+            headerType = 'neon';
+          } else {
+            headerType = 'generic';
+          }
           break;
         case 'url':
           pgConfig = value.connectionConfig.value;
-          headerType = 'neon';
+          if (pgConfig.includes('neon')) {
+            headerType = 'neon';
+          } else {
+            headerType = 'generic';
+          }
           break;
         default:
           pgConfig = value.connectionConfig.value;
