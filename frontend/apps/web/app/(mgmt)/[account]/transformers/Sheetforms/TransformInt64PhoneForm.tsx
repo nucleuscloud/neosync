@@ -1,74 +1,75 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import {
+  Form,
   FormControl,
   FormDescription,
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import { Transformer, isUserDefinedTransformer } from '@/shared/transformers';
 import { TransformInt64PhoneNumber } from '@neosync/sdk';
-import { ReactElement, useState } from 'react';
-import { useFormContext } from 'react-hook-form';
-interface Props {
-  index?: number;
-  setIsSheetOpen?: (val: boolean) => void;
-  transformer: Transformer;
-}
+import { ReactElement } from 'react';
+import { useForm } from 'react-hook-form';
+import { TransformerFormProps } from './util';
+interface Props extends TransformerFormProps<TransformInt64PhoneNumber> {}
 
 export default function TransformInt64PhoneForm(props: Props): ReactElement {
-  const { index, setIsSheetOpen, transformer } = props;
+  const { existingConfig, onSubmit, isReadonly } = props;
 
-  const fc = useFormContext();
-
-  const plValue = fc.getValues(
-    `mappings.${index}.transformer.config.value.preserveLength`
-  );
-
-  const [pl, setPl] = useState<boolean>(plValue);
-  const handleSubmit = () => {
-    fc.setValue(
-      `mappings.${index}.transformer.config.value`,
-      new TransformInt64PhoneNumber({
-        preserveLength: pl,
-      }),
-      {
-        shouldValidate: false,
-      }
-    );
-    setIsSheetOpen!(false);
-  };
+  const form = useForm({
+    mode: 'onChange',
+    defaultValues: {
+      ...existingConfig,
+    },
+  });
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
-      <FormField
-        name={`mappings.${index}.transformer.config.value.preserveLength`}
-        render={() => (
-          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-            <div className="space-y-0.5">
-              <FormLabel>Preserve Length</FormLabel>
-              <FormDescription className="w-[90%]">
-                Set the length of the output phone number to be the same as the
-                input
-              </FormDescription>
-            </div>
-            <FormControl>
-              <Switch
-                checked={pl}
-                onCheckedChange={() => setPl(!pl)}
-                disabled={isUserDefinedTransformer(transformer)}
-              />
-            </FormControl>
-          </FormItem>
-        )}
-      />
-      <div className="flex justify-end">
-        <Button type="button" onClick={handleSubmit}>
-          Save
-        </Button>
-      </div>
+      <Form {...form}>
+        <FormField
+          name={`preserveLength`}
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+              <div className="space-y-0.5">
+                <FormLabel>Preserve Length</FormLabel>
+                <FormDescription className="w-[90%]">
+                  Set the length of the output phone number to be the same as
+                  the input
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  name={field.name}
+                  disabled={isReadonly}
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            disabled={isReadonly}
+            onClick={(e) => {
+              form.handleSubmit((values) => {
+                onSubmit(
+                  new TransformInt64PhoneNumber({
+                    ...values,
+                  })
+                );
+              })(e);
+            }}
+          >
+            Save
+          </Button>
+        </div>
+      </Form>
     </div>
   );
 }

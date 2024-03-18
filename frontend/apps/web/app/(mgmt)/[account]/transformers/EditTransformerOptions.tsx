@@ -33,6 +33,7 @@ import {
   TransformFloat64,
   TransformFullName,
   TransformInt64,
+  TransformInt64PhoneNumber,
   TransformerConfig,
   UserDefinedTransformer,
 } from '@neosync/sdk';
@@ -511,9 +512,26 @@ function handleTransformerForm(
     case 'transform_int64_phone_number':
       return (
         <TransformInt64PhoneForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
-          transformer={transformer}
+          isReadonly={isReadonly}
+          existingConfig={
+            new TransformInt64PhoneNumber({
+              ...(value.config
+                .value as PlainMessage<TransformInt64PhoneNumber>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'transformInt64PhoneNumberConfig',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
         />
       );
     case 'transform_last_name':
