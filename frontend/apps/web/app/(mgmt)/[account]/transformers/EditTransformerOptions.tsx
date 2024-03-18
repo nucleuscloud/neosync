@@ -18,6 +18,7 @@ import {
 import { PlainMessage } from '@bufbuild/protobuf';
 import {
   GenerateCardNumber,
+  GenerateCategorical,
   GenerateE164PhoneNumber,
   GenerateFloat64,
   GenerateGender,
@@ -620,8 +621,25 @@ function handleTransformerForm(
     case 'generate_categorical':
       return (
         <GenerateCategoricalForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
+          isReadonly={isReadonly}
+          existingConfig={
+            new GenerateCategorical({
+              ...(value.config.value as PlainMessage<GenerateCategorical>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'generateCategoricalConfig',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
         />
       );
     case 'transform_character_scramble':
