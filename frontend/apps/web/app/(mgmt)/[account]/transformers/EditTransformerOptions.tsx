@@ -22,6 +22,7 @@ import {
   GenerateFloat64,
   GenerateGender,
   GenerateInt64,
+  GenerateString,
   JobMappingTransformer,
   SystemTransformer,
   TransformerConfig,
@@ -284,7 +285,27 @@ function handleTransformerForm(
       );
     case 'generate_string':
       return (
-        <GenerateStringForm index={index} setIsSheetOpen={setIsSheetOpen} />
+        <GenerateStringForm
+          isReadonly={isReadonly}
+          existingConfig={
+            new GenerateString({
+              ...(value.config.value as PlainMessage<GenerateString>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'generateStringConfig',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
+        />
       );
     case 'generate_string_phone_number':
       return (
