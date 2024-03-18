@@ -314,8 +314,8 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
             </FormItem>
           )}
         />
-        <Tabs defaultValue="parameters" className="w-[400px]">
-          <TabsList className="grid w-full grid-cols-2">
+        <Tabs defaultValue="parameters">
+          <TabsList className="grid grid-cols-2 w-[400px]">
             <TabsTrigger value="parameters">Connection Parameters</TabsTrigger>
             <TabsTrigger value="url">Connection URL</TabsTrigger>
           </TabsList>
