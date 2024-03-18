@@ -134,8 +134,8 @@ export default function PostgresForm(props: Props) {
             </FormItem>
           )}
         />
-        <Tabs defaultValue={defaultTabsValue} className="w-[400px]">
-          <TabsList className="grid w-full grid-cols-2">
+        <Tabs defaultValue={defaultTabsValue}>
+          <TabsList className="grid w-[400px] grid-cols-2">
             <TabsTrigger value="parameters">Connection Parameters</TabsTrigger>
             <TabsTrigger value="url">Connection URL</TabsTrigger>
           </TabsList>
