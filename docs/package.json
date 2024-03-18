@@ -41,7 +41,7 @@
     "@docusaurus/types": "^3.1.0",
     "@tsconfig/docusaurus": "^2.0.2",
     "cspell": "^8.6.0",
-    "knip": "^5.0.3",
+    "knip": "^5.1.2",
     "postcss-import": "^16.0.1",
     "postcss-nesting": "^12.1.0",
     "prettier": "^3.2.5",
