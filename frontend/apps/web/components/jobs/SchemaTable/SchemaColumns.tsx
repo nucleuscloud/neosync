@@ -22,7 +22,6 @@ import {
   SchemaFormValues,
 } from '@/yup-validations/jobs';
 import { PlainMessage } from '@bufbuild/protobuf';
-import { ErrorMessage } from '@hookform/error-message';
 import {
   DatabaseColumn,
   ForeignConstraint,
@@ -430,11 +429,6 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                   <FormItem>
                     <FormControl>
                       <div className="flex flex-row space-x-2">
-                        <ErrorMessage
-                          name={field.name}
-                          errors={fieldState.error}
-                          render={({ message }) => <p>{message}</p>}
-                        />
                         {formState.errors.mappings && (
                           <div className="place-self-center">
                             {fieldState.error ? (
@@ -476,7 +470,11 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                               isSystemTransformer(t) && t.source === fv.source
                             );
                           })}
-                          index={info.row.original.formIdx}
+                          value={fv}
+                          onSubmit={(newvalue) => {
+                            console.log('on submit', fv, newvalue);
+                            field.onChange(newvalue);
+                          }}
                           // disabled={disableTransformer}
                           disabled={false} // todo
                         />

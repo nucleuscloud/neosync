@@ -1,75 +1,75 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import {
+  Form,
   FormControl,
   FormDescription,
+  FormField,
   FormItem,
   FormLabel,
 } from '@/components/ui/form';
 
 import { Switch } from '@/components/ui/switch';
-import { Transformer, isUserDefinedTransformer } from '@/shared/transformers';
 import { GenerateCardNumber } from '@neosync/sdk';
-import { ReactElement, useState } from 'react';
-import { Controller, useFormContext } from 'react-hook-form';
+import { ReactElement } from 'react';
+import { useForm } from 'react-hook-form';
 interface Props {
-  index?: number;
-  transformer: Transformer;
-  setIsSheetOpen?: (val: boolean) => void;
+  existingConfig?: GenerateCardNumber;
+  onSubmit(config: GenerateCardNumber): void;
+  isReadonly: boolean;
 }
 
 export default function GenerateCardNumberForm(props: Props): ReactElement {
-  const { index, setIsSheetOpen, transformer } = props;
+  const { existingConfig, onSubmit, isReadonly } = props;
 
-  const fc = useFormContext();
-
-  const vlValue = fc.getValues(
-    `mappings.${index}.transformer.config.value.validLuhn`
-  );
-  const [vl, setVl] = useState<boolean>(vlValue);
-
-  const handleSubmit = () => {
-    fc.setValue(
-      `mappings.${index}.transformer.config.value`,
-      new GenerateCardNumber({ validLuhn: vl }),
-      {
-        shouldValidate: false,
-      }
-    );
-    setIsSheetOpen!(false);
-  };
-
+  const form = useForm({
+    mode: 'onChange',
+    defaultValues: {
+      ...existingConfig,
+    },
+  });
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
-      <Controller
-        name={`mappings.${index}.transformer.config.value.validLuhn`}
-        defaultValue={vl}
-        disabled={isUserDefinedTransformer(transformer)}
-        render={() => (
-          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-            <div className="space-y-0.5">
-              <FormLabel>Valid Luhn</FormLabel>
-              <FormDescription className="w-[90%]">
-                Generate a 16 digit card number that passes a luhn check.
-              </FormDescription>
-            </div>
-            <FormControl>
-              <Switch
-                checked={vl}
-                onCheckedChange={() => {
-                  vl ? setVl(false) : setVl(true);
-                }}
-              />
-            </FormControl>
-          </FormItem>
-        )}
-      />
-
-      <div className="flex justify-end">
-        <Button type="button" onClick={handleSubmit}>
-          Save
-        </Button>
-      </div>
+      <Form {...form}>
+        <FormField
+          control={form.control}
+          name="validLuhn"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+              <div className="space-y-0.5">
+                <FormLabel>Valid Luhn</FormLabel>
+                <FormDescription className="w-[90%]">
+                  Generate a 16 digit card number that passes a luhn check.
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  disabled={isReadonly}
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            disabled={isReadonly}
+            onClick={(e) => {
+              form.handleSubmit((values) => {
+                onSubmit(
+                  new GenerateCardNumber({
+                    ...values,
+                  })
+                );
+              })(e);
+            }}
+          >
+            Save
+          </Button>
+        </div>
+      </Form>
     </div>
   );
 }

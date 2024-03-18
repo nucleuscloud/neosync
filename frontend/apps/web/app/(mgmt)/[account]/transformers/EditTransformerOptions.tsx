@@ -11,7 +11,18 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { Transformer, isUserDefinedTransformer } from '@/shared/transformers';
-import { SystemTransformer, UserDefinedTransformer } from '@neosync/sdk';
+import {
+  JobMappingTransformerForm,
+  convertJobMappingTransformerToForm,
+} from '@/yup-validations/jobs';
+import { PlainMessage } from '@bufbuild/protobuf';
+import {
+  GenerateCardNumber,
+  JobMappingTransformer,
+  SystemTransformer,
+  TransformerConfig,
+  UserDefinedTransformer,
+} from '@neosync/sdk';
 import {
   Cross2Icon,
   MixerHorizontalIcon,
@@ -42,13 +53,13 @@ import TransformStringForm from './Sheetforms/TransformStringForm';
 
 interface Props {
   transformer: Transformer | undefined;
-  // mapping index
-  index: number;
   disabled: boolean;
+  value: JobMappingTransformerForm;
+  onSubmit(newValue: JobMappingTransformerForm): void;
 }
 
 export default function EditTransformerOptions(props: Props): ReactElement {
-  const { transformer, index, disabled } = props;
+  const { transformer, disabled, value, onSubmit } = props;
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const sheetRef = useRef<HTMLDivElement | null>(null);
@@ -125,7 +136,7 @@ export default function EditTransformerOptions(props: Props): ReactElement {
         </SheetHeader>
         <div className="pt-8">
           {transformer &&
-            handleTransformerForm(transformer, index, setIsSheetOpen)}
+            handleTransformerForm(transformer, value, onSubmit, disabled)}
         </div>
       </SheetContent>
     </Sheet>
@@ -134,16 +145,37 @@ export default function EditTransformerOptions(props: Props): ReactElement {
 
 function handleTransformerForm(
   transformer: Transformer,
-  index?: number,
-  setIsSheetOpen?: (val: boolean) => void
+  value: JobMappingTransformerForm,
+  onSubmit: (newValue: JobMappingTransformerForm) => void,
+  isReadonly: boolean
 ): ReactElement {
+  const index = -1;
+  const setIsSheetOpen = () => undefined;
   switch (transformer.source) {
     case 'generate_card_number':
       return (
         <GenerateCardNumberForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
-          transformer={transformer}
+          isReadonly={isReadonly}
+          existingConfig={
+            new GenerateCardNumber({
+              ...(value.config.value as PlainMessage<GenerateCardNumber>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            onSubmit(
+              convertJobMappingTransformerToForm(
+                new JobMappingTransformer({
+                  source: transformer.source,
+                  config: new TransformerConfig({
+                    config: {
+                      case: 'generateCardNumberConfig',
+                      value: newconfig,
+                    },
+                  }),
+                })
+              )
+            );
+          }}
         />
       );
     case 'generate_international_phone_number':
