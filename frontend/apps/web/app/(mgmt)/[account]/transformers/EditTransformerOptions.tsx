@@ -34,6 +34,7 @@ import {
   TransformFullName,
   TransformInt64,
   TransformInt64PhoneNumber,
+  TransformLastName,
   TransformerConfig,
   UserDefinedTransformer,
 } from '@neosync/sdk';
@@ -537,9 +538,25 @@ function handleTransformerForm(
     case 'transform_last_name':
       return (
         <TransformLastNameForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
-          transformer={transformer}
+          isReadonly={isReadonly}
+          existingConfig={
+            new TransformLastName({
+              ...(value.config.value as PlainMessage<TransformLastName>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'transformLastNameConfig',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
         />
       );
     case 'transform_string_phone_number':
