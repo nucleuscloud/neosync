@@ -64,7 +64,7 @@ export default function GitOpsSection(): ReactElement {
                 <ExternalLinkIcon className="text-gray-800 w-4 h-4" />
               </div>
               <div className="font-sans font-normal text-gray-800 text-sm">
-                Use Neosync in your CI pipeline to hydrate CI databases
+                Use Neosync in your CI pipeline to hydrate your CI databases
               </div>
             </div>
           </div>
@@ -88,8 +88,8 @@ export default function GitOpsSection(): ReactElement {
                 <ExternalLinkIcon className="text-gray-800 w-4 h-4" />
               </div>
               <div className="font-sans font-normal text-gray-800 text-sm">
-                Use the Neosync Terraform provider to manage your Neosync
-                resources in code.
+                Use the Neosync Terraform provider to manage your Neosync in
+                code.
               </div>
             </div>
           </div>
