@@ -2,6 +2,7 @@ package transformers
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
@@ -42,16 +43,16 @@ func init() {
 			return nil, err
 		}
 
-		eLPtr, err := args.Get("excluded_domains")
+		emailDomains, err := args.Get("excluded_domains")
 		if err != nil {
 			return nil, err
 		}
 
 		var excludeStringSlice []string
-		if eLPtr != nil {
-			excl, ok := eLPtr.([]any)
+		if emailDomains != nil {
+			excl, ok := emailDomains.([]any)
 			if !ok {
-				return nil, fmt.Errorf("unable to cast arg to any slice")
+				return nil, fmt.Errorf("unable to cast arg to any slice, expected string, got:%v", reflect.TypeOf(emailDomains))
 			}
 			for _, str := range excl {
 				val, ok := str.(string)

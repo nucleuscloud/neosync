@@ -5520,3 +5520,19 @@ func Test_buildBranchCacheConfigs_self_referencing(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, resp, 0)
 }
+
+func Test_ConverStringSliceToStringEmptySlice(t *testing.T) {
+	slc := []string{}
+
+	res, err := convertStringSliceToString(slc)
+	assert.NoError(t, err)
+	assert.Equal(t, "[]", res)
+}
+
+func Test_ConverStringSliceToStringNotEmptySlice(t *testing.T) {
+	slc := []string{"gmail.com", "yahoo.com"}
+
+	res, err := convertStringSliceToString(slc)
+	assert.NoError(t, err)
+	assert.Equal(t, `["gmail.com","yahoo.com"]`, res)
+}
