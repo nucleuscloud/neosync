@@ -235,21 +235,21 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   /* this fixes a bug that was happening due to the schema and table values not resetting if you went back and changed
 the connection which caused the schema page to not load correctly when you went back to the schema page. This checks if the selected connection contains the schema and
   */
-  // useEffect(() => {
-  //   const isValidSchemaAndTable =
-  //     form.getValues('schema') != '' && form.getValues('table') != '';
-  //   const tableInSchema = schemaTableMap
-  //     .get(form.getValues('schema'))
-  //     ?.find((item) => item == form.getValues('table'));
-  //   if (isValidSchemaAndTable && !tableInSchema) {
-  //     form.reset({
-  //       ...form.getValues(),
-  //       schema: '',
-  //       table: '',
-  //       mappings: [],
-  //     });
-  //   }
-  // }, [schemaTableMap, form]);
+  useEffect(() => {
+    const isValidSchemaAndTable =
+      form.getValues('schema') != '' && form.getValues('table') != '';
+    const tableInSchema = schemaTableMap
+      .get(form.getValues('schema'))
+      ?.find((item) => item == form.getValues('table'));
+    if (isValidSchemaAndTable && !tableInSchema) {
+      form.reset({
+        ...form.getValues(),
+        schema: '',
+        table: '',
+        mappings: [],
+      });
+    }
+  }, [schemaTableMap, form]);
 
   return (
     <div className="flex flex-col gap-5">
