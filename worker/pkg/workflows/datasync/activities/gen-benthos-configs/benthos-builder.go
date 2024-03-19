@@ -1487,6 +1487,7 @@ func buildMutationConfigs(
 			}
 			if col.Transformer.Source != "transform_javascript" {
 				mutation, err := computeMutationFunction(col, colInfo)
+				fmt.Println("mutation", mutation)
 				if err != nil {
 					return "", fmt.Errorf("%s is not a supported transformer: %w", col.Transformer, err)
 				}
@@ -1652,13 +1653,20 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		pl := col.Transformer.Config.GetTransformEmailConfig().PreserveLength
 		excludedDomains := col.Transformer.Config.GetTransformEmailConfig().ExcludedDomains
 
-		sliceBytes, err := json.Marshal(excludedDomains)
-		if err != nil {
-			return "", err
+		var excludedDomainsStr string
+
+		if len(excludedDomains) == 0 {
+			excludedDomainsStr = "[]"
+		} else {
+			sliceBytes, err := json.Marshal(excludedDomains)
+			if err != nil {
+				return "", err
+			}
+
+			excludedDomainsStr = string(sliceBytes)
 		}
 
-		excludedDomainstStr := string(sliceBytes)
-		return fmt.Sprintf("transform_email(email:this.%q,preserve_domain:%t,preserve_length:%t,excluded_domains:%v,max_length:%d)", col.Column, pd, pl, excludedDomainstStr, maxLen), nil
+		return fmt.Sprintf("transform_email(email:this.%q,preserve_domain:%t,preserve_length:%t,excluded_domains:%v,max_length:%d)", col.Column, pd, pl, excludedDomainsStr, maxLen), nil
 	case "generate_bool":
 		return "generate_bool()", nil
 	case "generate_card_number":

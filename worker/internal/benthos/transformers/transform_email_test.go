@@ -204,3 +204,14 @@ func Test_TransformEmailTransformerWithEmptyValue(t *testing.T) {
 	_, err = ex.Query(nil)
 	assert.NoError(t, err)
 }
+
+func Test_TransformEmailTransformerWithEmptyValueNilDomains(t *testing.T) {
+	nilEmail := "evis@gmail.com"
+
+	mapping := fmt.Sprintf(`root = transform_email(email:%q,preserve_domain:true,preserve_length:true,excluded_domains:[],max_length:%d)`, nilEmail, maxEmailCharLimit)
+	ex, err := bloblang.Parse(mapping)
+	assert.NoError(t, err, "failed to parse the email transformer")
+
+	_, err = ex.Query(nil)
+	assert.NoError(t, err)
+}
