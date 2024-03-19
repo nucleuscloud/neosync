@@ -94,48 +94,50 @@ export default function TransformerSelect(props: Props): ReactElement {
           <CommandInput placeholder={placeholder} />
           <CommandEmpty>No transformers found.</CommandEmpty>
           <div className="max-h-[450px] overflow-y-scroll">
-            <CommandGroup heading="Custom">
-              {userDefinedTransformers.map((t) => {
-                return (
-                  <CommandItem
-                    key={t.id}
-                    onSelect={() => {
-                      onSelect({
-                        source: 'custom',
-                        config: {
-                          case: 'userDefinedTransformerConfig',
-                          value: new UserDefinedTransformerConfig({
-                            id: t.id,
-                          }),
-                        },
-                      });
-                      setOpen(false);
-                    }}
-                    value={t.name}
-                  >
-                    <div className="flex flex-row items-center justify-between w-full">
-                      <div className="flex flex-row items-center">
-                        <CheckIcon
-                          className={cn(
-                            'mr-2 h-4 w-4',
-                            value?.config?.case ===
-                              'userDefinedTransformerConfig' &&
-                              value?.source === 'custom' &&
-                              value.config.value.id === t.id
-                              ? 'opacity-100'
-                              : 'opacity-0'
-                          )}
-                        />
-                        <div className="items-center">{t?.name}</div>
+            {userDefinedTransformers.length > 0 && (
+              <CommandGroup heading="Custom">
+                {userDefinedTransformers.map((t) => {
+                  return (
+                    <CommandItem
+                      key={t.id}
+                      onSelect={() => {
+                        onSelect({
+                          source: 'custom',
+                          config: {
+                            case: 'userDefinedTransformerConfig',
+                            value: new UserDefinedTransformerConfig({
+                              id: t.id,
+                            }),
+                          },
+                        });
+                        setOpen(false);
+                      }}
+                      value={t.name}
+                    >
+                      <div className="flex flex-row items-center justify-between w-full">
+                        <div className="flex flex-row items-center">
+                          <CheckIcon
+                            className={cn(
+                              'mr-2 h-4 w-4',
+                              value?.config?.case ===
+                                'userDefinedTransformerConfig' &&
+                                value?.source === 'custom' &&
+                                value.config.value.id === t.id
+                                ? 'opacity-100'
+                                : 'opacity-0'
+                            )}
+                          />
+                          <div className="items-center">{t?.name}</div>
+                        </div>
+                        <div className="ml-2 text-gray-400 text-xs">
+                          {t.dataType}
+                        </div>
                       </div>
-                      <div className="ml-2 text-gray-400 text-xs">
-                        {t.dataType}
-                      </div>
-                    </div>
-                  </CommandItem>
-                );
-              })}
-            </CommandGroup>
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            )}
             <CommandGroup heading="System">
               {systemTransformers.map((t) => {
                 return (

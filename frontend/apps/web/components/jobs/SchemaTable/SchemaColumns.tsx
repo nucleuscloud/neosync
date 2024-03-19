@@ -52,6 +52,13 @@ function fromColKey(key: ColumnKey): string {
 function fromDbCol(dbcol: PlainMessage<DatabaseColumn>): string {
   return `${dbcol.schema}.${dbcol.table}.${dbcol.column}`;
 }
+function fromRowDataToColKey(row: Row<RowData>): ColumnKey {
+  return {
+    schema: row.getValue('schema'),
+    table: row.getValue('table'),
+    column: row.getValue('column'),
+  };
+}
 function toColKey(schema: string, table: string, column: string): ColumnKey {
   return {
     schema,
@@ -181,23 +188,20 @@ function RowAlert(props: RowAlertProps): ReactElement {
 interface Props {
   systemTransformers: SystemTransformer[];
   userDefinedTransformers: UserDefinedTransformer[];
+  systemMap: Map<string, SystemTransformer>;
+  userDefinedMap: Map<string, UserDefinedTransformer>;
   constraintHandler: SchemaConstraintHandler;
 }
 
 export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
-  const { systemTransformers, userDefinedTransformers, constraintHandler } =
-    props;
+  const {
+    systemTransformers,
+    userDefinedTransformers,
+    systemMap,
+    userDefinedMap,
+    constraintHandler,
+  } = props;
 
-  const sysTransformerMap = new Map(
-    systemTransformers.map((t) => [t.source, t])
-  );
-  const udTransformerMap = new Map(
-    userDefinedTransformers.map((t) => [t.id, t])
-  );
-
-  // const fc = useFormContext();
-
-  // const columnHelper = createColumnHelper<RowData>();
   return [
     {
       accessorKey: 'isSelected',
@@ -367,39 +371,27 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         <SchemaColumnHeader column={column} title="Transformer" />
       ),
       cell: (info) => {
-        // const rowKey = `${info.row.getValue('schema')}.${info.row.getValue('table')}`;
+        const colkey = fromRowDataToColKey(info.row);
+        const [isForeignKey] = constraintHandler.getIsForeignKey(colkey);
 
-        // const isForeignKeyConstraint =
-        //   columnMetadata?.fk &&
-        //   columnMetadata?.fk[rowKey]?.constraints.filter(
-        //     (item: ForeignConstraint) =>
-        //       item.column == info.row.getValue('column')
-        //   ).length > 0;
+        const fkSystemTransformers: SystemTransformer[] = [];
+        if (isForeignKey) {
+          const passthrough = systemMap.get('passthrough');
+          if (passthrough) {
+            fkSystemTransformers.push(passthrough);
+          }
+          if (constraintHandler.getIsNullable(colkey)) {
+            const nullableTf = systemMap.get('null');
+            if (nullableTf) {
+              fkSystemTransformers.push(nullableTf);
+            }
+          }
+        }
 
-        // let disableTransformer = false;
+        const fkSystemTransformersMap = new Map(
+          fkSystemTransformers.map((t) => [t.source, t])
+        );
 
-        // const foreignKeyConstraint = {
-        //   table: columnMetadata?.fk[rowKey]?.constraints.find(
-        //     (item) => item.column == info.row.getValue('column')
-        //   )?.foreignKey?.table,
-        //   column: columnMetadata?.fk[rowKey]?.constraints.find(
-        //     (item) => item.column == info.row.getValue('column')
-        //   )?.foreignKey?.column,
-        //   value: 'Foreign Key',
-        // };
-
-        // if the current row is a foreignKey constraint, then check that it's primary key transformer
-        // if (isForeignKeyConstraint) {
-        //   disableTransformer =
-        //     fc
-        //       .getValues()
-        //       .mappings.find(
-        //         (item: JobMappingFormValues) =>
-        //           item.schema + '.' + item.table ==
-        //             foreignKeyConstraint.table &&
-        //           item.column == foreignKeyConstraint.column
-        //       ).transformer?.source !== 'passthrough';
-        // }
         const fctx = useFormContext<
           SchemaFormValues | SingleTableSchemaFormValues
         >();
@@ -415,9 +407,9 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                   fv.source === 'custom' &&
                   fv.config.case === 'userDefinedTransformerConfig'
                 ) {
-                  transformer = udTransformerMap.get(fv.config.value.id);
+                  transformer = userDefinedMap.get(fv.config.value.id);
                 } else {
-                  transformer = sysTransformerMap.get(fv.source);
+                  transformer = systemMap.get(fv.source);
                 }
                 return (
                   <FormItem>
@@ -437,16 +429,25 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                         )}
                         <div>
                           <TransformerSelect
-                            userDefinedTransformers={userDefinedTransformers}
-                            userDefinedTransformerMap={udTransformerMap}
-                            systemTransformers={systemTransformers}
-                            systemTransformerMap={sysTransformerMap}
+                            userDefinedTransformers={
+                              isForeignKey ? [] : userDefinedTransformers
+                            }
+                            userDefinedTransformerMap={
+                              isForeignKey ? new Map() : userDefinedMap
+                            }
+                            systemTransformers={
+                              isForeignKey
+                                ? fkSystemTransformers
+                                : systemTransformers
+                            }
+                            systemTransformerMap={
+                              isForeignKey ? fkSystemTransformersMap : systemMap
+                            }
                             value={fv}
                             onSelect={field.onChange}
                             placeholder="Select Transformer..."
                             side={'left'}
                             disabled={false}
-                            // disabled={disableTransformer} // todo
                           />
                         </div>
                         {transformer && (
@@ -456,7 +457,6 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                             onSubmit={(newvalue) => {
                               field.onChange(newvalue);
                             }}
-                            // disabled={disableTransformer}
                             disabled={false} // todo
                           />
                         )}

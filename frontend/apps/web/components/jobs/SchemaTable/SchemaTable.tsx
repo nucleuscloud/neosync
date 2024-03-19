@@ -67,6 +67,8 @@ export function SchemaTable(props: Props): ReactElement {
     return getSchemaColumns({
       systemTransformers,
       userDefinedTransformers,
+      systemMap,
+      userDefinedMap,
       constraintHandler,
     });
   }, [isValidating, constraintHandler]);
