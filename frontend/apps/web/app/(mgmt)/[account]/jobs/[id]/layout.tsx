@@ -112,7 +112,7 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
   let sidebarNavItems = getSidebarNavItems(account?.name ?? '', data?.job);
   sidebarNavItems =
     isSystemConfigLoading || !systemAppConfigData?.isMetricsServiceEnabled
-      ? sidebarNavItems.filter((item) => item.href !== 'usage')
+      ? sidebarNavItems.filter((item) => !item.href.endsWith('/usage'))
       : sidebarNavItems;
 
   return (

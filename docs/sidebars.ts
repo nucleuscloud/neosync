@@ -26,6 +26,11 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'doc',
+      id: 'overview/quickstart',
+      label: 'Quickstart',
+    },
+    {
+      type: 'doc',
       id: 'overview/platform',
       label: 'Platform',
     },

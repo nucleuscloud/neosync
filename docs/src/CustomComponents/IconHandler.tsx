@@ -5,6 +5,7 @@ import {
   LayersIcon,
   LinkBreak1Icon,
   ListBulletIcon,
+  RocketIcon,
   Share1Icon,
   SymbolIcon,
   TokensIcon,
@@ -124,6 +125,8 @@ export function IconHandler(name: string): ReactElement {
       return <FaLaptop />;
     case 'Neosync Terraform Provider':
       return <SiTerraform />;
+    case 'Quickstart':
+      return <RocketIcon />;
     default:
       return <LayersIcon />;
   }

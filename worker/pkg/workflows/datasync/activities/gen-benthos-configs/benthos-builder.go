@@ -411,7 +411,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						colSourceMap[col.Column] = col.GetTransformer().Source
 					}
 
-					out := buildPostgresOutputQueryAndArgs(resp, tm, tableKey, colSourceMap)
+					out := buildPostgresOutputQueryAndArgs(resp, tm, resp.TableSchema, resp.TableName, colSourceMap)
 					resp.Columns = out.Columns
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
@@ -430,7 +430,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 					if resp.updateConfig != nil {
 						// circular dependency -> create update benthos config
-						updateResp, err := createSqlUpdateBenthosConfig(ctx, b.transformerclient, resp, dsn, tableKey, tm, colSourceMap, groupedColInfoMap, tableConstraintsSource[neosync_benthos.BuildBenthosTable(resp.TableSchema, resp.TableName)], b.jobId, b.runId, b.redisConfig)
+						updateResp, err := createSqlUpdateBenthosConfig(ctx, b.transformerclient, resp, dsn, resp.TableSchema, resp.TableName, tm, colSourceMap, groupedColInfoMap, tableConstraintsSource[neosync_benthos.BuildBenthosTable(resp.TableSchema, resp.TableName)], b.jobId, b.runId, b.redisConfig)
 						if err != nil {
 							return nil, fmt.Errorf("unable to create sql update benthos config: %w", err)
 						}
@@ -444,13 +444,12 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					}
 
 					filteredCols := filterColsBySource(cols, colSourceMap) // filters out default columns
-
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
 							Driver: postgresDriver,
 							Dsn:    dsn,
 
-							Query:       buildPostgresInsertQuery(tableKey, cols, colSourceMap),
+							Query:       buildPostgresInsertQuery(resp.TableSchema, resp.TableName, cols, colSourceMap),
 							ArgsMapping: buildPlainInsertArgs(filteredCols),
 
 							Batching: &neosync_benthos.Batching{
@@ -471,7 +470,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						colSourceMap[col.Column] = col.GetTransformer().Source
 					}
 
-					out := buildMysqlOutputQueryAndArgs(resp, tm, tableKey, colSourceMap)
+					out := buildMysqlOutputQueryAndArgs(resp, tm, resp.TableSchema, resp.TableName, colSourceMap)
 					resp.Columns = out.Columns
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
@@ -489,7 +488,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					})
 					if resp.updateConfig != nil {
 						// circular dependency -> create update benthos config
-						updateResp, err := createSqlUpdateBenthosConfig(ctx, b.transformerclient, resp, dsn, tableKey, tm, colSourceMap, groupedColInfoMap, tableConstraintsSource[neosync_benthos.BuildBenthosTable(resp.TableSchema, resp.TableName)], b.jobId, b.runId, b.redisConfig)
+						updateResp, err := createSqlUpdateBenthosConfig(ctx, b.transformerclient, resp, dsn, resp.TableSchema, resp.TableName, tm, colSourceMap, groupedColInfoMap, tableConstraintsSource[neosync_benthos.BuildBenthosTable(resp.TableSchema, resp.TableName)], b.jobId, b.runId, b.redisConfig)
 						if err != nil {
 							return nil, fmt.Errorf("unable to create sql update benthos config: %w", err)
 						}
@@ -509,7 +508,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 							Driver: mysqlDriver,
 							Dsn:    dsn,
 
-							Query:       buildMysqlInsertQuery(tableKey, cols, colSourceMap),
+							Query:       buildMysqlInsertQuery(resp.TableSchema, resp.TableName, cols, colSourceMap),
 							ArgsMapping: buildPlainInsertArgs(filteredCols),
 
 							Batching: &neosync_benthos.Batching{
@@ -621,7 +620,7 @@ type sqlOutput struct {
 	Columns     []string
 }
 
-func buildPostgresOutputQueryAndArgs(resp *BenthosConfigResponse, tm *tableMapping, tableKey string, colSourceMap map[string]string) *sqlOutput {
+func buildPostgresOutputQueryAndArgs(resp *BenthosConfigResponse, tm *tableMapping, schema, table string, colSourceMap map[string]string) *sqlOutput {
 	if len(resp.excludeColumns) > 0 {
 		filteredInsertMappings := []*mgmtv1alpha1.JobMapping{}
 		for _, m := range tm.Mappings {
@@ -632,7 +631,7 @@ func buildPostgresOutputQueryAndArgs(resp *BenthosConfigResponse, tm *tableMappi
 		escapedInsertColumns := buildPlainColumns(filteredInsertMappings)
 		filteredInsertCols := filterColsBySource(buildPlainColumns(filteredInsertMappings), colSourceMap) // filters out default columns
 		return &sqlOutput{
-			Query:       buildPostgresInsertQuery(tableKey, escapedInsertColumns, colSourceMap),
+			Query:       buildPostgresInsertQuery(schema, table, escapedInsertColumns, colSourceMap),
 			ArgsMapping: buildPlainInsertArgs(filteredInsertCols),
 			Columns:     escapedInsertColumns,
 		}
@@ -651,7 +650,7 @@ func buildPostgresOutputQueryAndArgs(resp *BenthosConfigResponse, tm *tableMappi
 		updateArgsMapping = append(updateArgsMapping, resp.primaryKeys...)
 
 		return &sqlOutput{
-			Query:       buildPostgresUpdateQuery(tableKey, updateCols, colSourceMap, resp.primaryKeys),
+			Query:       buildPostgresUpdateQuery(schema, table, updateCols, colSourceMap, resp.primaryKeys),
 			ArgsMapping: buildPlainInsertArgs(updateArgsMapping),
 			Columns:     updateCols,
 		}
@@ -659,14 +658,14 @@ func buildPostgresOutputQueryAndArgs(resp *BenthosConfigResponse, tm *tableMappi
 		cols := buildPlainColumns(tm.Mappings)
 		filteredCols := filterColsBySource(cols, colSourceMap) // filters out default columns
 		return &sqlOutput{
-			Query:       buildPostgresInsertQuery(tableKey, cols, colSourceMap),
+			Query:       buildPostgresInsertQuery(schema, table, cols, colSourceMap),
 			ArgsMapping: buildPlainInsertArgs(filteredCols),
 			Columns:     cols,
 		}
 	}
 }
 
-func buildMysqlOutputQueryAndArgs(resp *BenthosConfigResponse, tm *tableMapping, tableKey string, colSourceMap map[string]string) *sqlOutput {
+func buildMysqlOutputQueryAndArgs(resp *BenthosConfigResponse, tm *tableMapping, schema, table string, colSourceMap map[string]string) *sqlOutput {
 	if len(resp.excludeColumns) > 0 {
 		filteredInsertMappings := []*mgmtv1alpha1.JobMapping{}
 		for _, m := range tm.Mappings {
@@ -677,7 +676,7 @@ func buildMysqlOutputQueryAndArgs(resp *BenthosConfigResponse, tm *tableMapping,
 		insertCols := buildPlainColumns(filteredInsertMappings)
 		filteredInsertCols := filterColsBySource(insertCols, colSourceMap) // filters out default columns
 		return &sqlOutput{
-			Query:       buildMysqlInsertQuery(tableKey, insertCols, colSourceMap),
+			Query:       buildMysqlInsertQuery(schema, table, insertCols, colSourceMap),
 			ArgsMapping: buildPlainInsertArgs(filteredInsertCols),
 			Columns:     insertCols,
 		}
@@ -696,7 +695,7 @@ func buildMysqlOutputQueryAndArgs(resp *BenthosConfigResponse, tm *tableMapping,
 		updateArgsMapping = append(updateArgsMapping, resp.primaryKeys...)
 
 		return &sqlOutput{
-			Query:       buildMysqlUpdateQuery(tableKey, updateCols, colSourceMap, resp.primaryKeys),
+			Query:       buildMysqlUpdateQuery(schema, table, updateCols, colSourceMap, resp.primaryKeys),
 			ArgsMapping: buildPlainInsertArgs(updateArgsMapping),
 			Columns:     updateCols,
 		}
@@ -704,7 +703,7 @@ func buildMysqlOutputQueryAndArgs(resp *BenthosConfigResponse, tm *tableMapping,
 		cols := buildPlainColumns(tm.Mappings)
 		filteredCols := filterColsBySource(cols, colSourceMap) // filters out default columns
 		return &sqlOutput{
-			Query:       buildMysqlInsertQuery(tableKey, cols, colSourceMap),
+			Query:       buildMysqlInsertQuery(schema, table, cols, colSourceMap),
 			ArgsMapping: buildPlainInsertArgs(filteredCols),
 			Columns:     cols,
 		}
@@ -839,7 +838,7 @@ func (b *benthosBuilder) getAllMysqlPkConstraints(
 	return pkMap, nil
 }
 
-func buildPostgresUpdateQuery(table string, columns []string, colSourceMap map[string]string, primaryKeys []string) string {
+func buildPostgresUpdateQuery(schema, table string, columns []string, colSourceMap map[string]string, primaryKeys []string) string {
 	values := make([]string, len(columns))
 	var where string
 	paramCount := 1
@@ -860,10 +859,10 @@ func buildPostgresUpdateQuery(table string, columns []string, colSourceMap map[s
 		}
 		where = fmt.Sprintf("WHERE %s", strings.Join(clauses, " AND "))
 	}
-	return fmt.Sprintf("UPDATE %s SET %s %s;", table, strings.Join(values, ", "), where)
+	return fmt.Sprintf("UPDATE %s SET %s %s;", fmt.Sprintf("%q.%q", schema, table), strings.Join(values, ", "), where)
 }
 
-func buildPostgresInsertQuery(table string, columns []string, colSourceMap map[string]string) string {
+func buildPostgresInsertQuery(schema, table string, columns []string, colSourceMap map[string]string) string {
 	values := make([]string, len(columns))
 	paramCount := 1
 	for i, col := range columns {
@@ -875,10 +874,15 @@ func buildPostgresInsertQuery(table string, columns []string, colSourceMap map[s
 			paramCount++
 		}
 	}
-	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, strings.Join(dbschemas_postgres.EscapePgColumns(columns), ", "), strings.Join(values, ", "))
+	return fmt.Sprintf(
+		"INSERT INTO %s (%s) VALUES (%s);",
+		fmt.Sprintf("%q.%q", schema, table),
+		strings.Join(dbschemas_postgres.EscapePgColumns(columns), ", "),
+		strings.Join(values, ", "),
+	)
 }
 
-func buildMysqlInsertQuery(table string, columns []string, colSourceMap map[string]string) string {
+func buildMysqlInsertQuery(schema, table string, columns []string, colSourceMap map[string]string) string {
 	values := make([]string, len(columns))
 	for i, col := range columns {
 		colSource := colSourceMap[col]
@@ -888,10 +892,15 @@ func buildMysqlInsertQuery(table string, columns []string, colSourceMap map[stri
 			values[i] = "?"
 		}
 	}
-	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, strings.Join(dbschemas_mysql.EscapeMysqlColumns(columns), ", "), strings.Join(values, ", "))
+	return fmt.Sprintf(
+		"INSERT INTO %s (%s) VALUES (%s);",
+		fmt.Sprintf("`%s`.`%s`", schema, table),
+		strings.Join(dbschemas_mysql.EscapeMysqlColumns(columns), ", "),
+		strings.Join(values, ", "),
+	)
 }
 
-func buildMysqlUpdateQuery(table string, columns []string, colSourceMap map[string]string, primaryKeys []string) string {
+func buildMysqlUpdateQuery(schema, table string, columns []string, colSourceMap map[string]string, primaryKeys []string) string {
 	values := make([]string, len(columns))
 	var where string
 	for i, col := range columns {
@@ -909,7 +918,7 @@ func buildMysqlUpdateQuery(table string, columns []string, colSourceMap map[stri
 		}
 		where = fmt.Sprintf("WHERE %s", strings.Join(clauses, " AND "))
 	}
-	return fmt.Sprintf("UPDATE %s SET %s %s;", table, strings.Join(values, ", "), where)
+	return fmt.Sprintf("UPDATE %s SET %s %s;", fmt.Sprintf("`%s`.`%s`", schema, table), strings.Join(values, ", "), where)
 }
 
 func filterColsBySource(columns []string, colSourceMap map[string]string) []string {
@@ -949,7 +958,9 @@ func createSqlUpdateBenthosConfig(
 	ctx context.Context,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	insertConfig *BenthosConfigResponse,
-	dsn, tableKey string,
+	dsn,
+	schema string,
+	table string,
 	tm *tableMapping,
 	colSourceMap map[string]string,
 	groupedColInfo map[string]map[string]*dbschemas_utils.ColumnInfo,
@@ -1026,10 +1037,10 @@ func createSqlUpdateBenthosConfig(
 		newResp.metriclabels = append(newResp.metriclabels, metrics.NewEqLabel(metrics.IsUpdateConfigLabel, "true"))
 		var output *sqlOutput
 		if driver == postgresDriver {
-			out := buildPostgresOutputQueryAndArgs(newResp, tm, tableKey, colSourceMap)
+			out := buildPostgresOutputQueryAndArgs(newResp, tm, schema, table, colSourceMap)
 			output = out
 		} else if driver == mysqlDriver {
-			out := buildMysqlOutputQueryAndArgs(newResp, tm, tableKey, colSourceMap)
+			out := buildMysqlOutputQueryAndArgs(newResp, tm, schema, table, colSourceMap)
 			output = out
 		}
 		newResp.Columns = output.Columns
