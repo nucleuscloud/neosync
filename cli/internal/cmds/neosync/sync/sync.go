@@ -635,8 +635,8 @@ func runDestinationInitStatements(ctx context.Context, cmd *cmdConfig, syncConfi
 
 func buildSyncConfigs(
 	schemaConfig *schemaConfig,
-	buildInsertQueryFunc func(table string, cols []string) string,
-	buildUpdateQueryFunc func(table string, col []string, primaryKeys []string) string,
+	buildInsertQueryFunc func(schema, table string, cols []string) string,
+	buildUpdateQueryFunc func(schema, table string, col []string, primaryKeys []string) string,
 ) []*syncConfig {
 	syncConfigs := []*syncConfig{}
 	tableColMap := getTableColMap(schemaConfig.Schemas)
@@ -658,7 +658,7 @@ func buildSyncConfigs(
 						}
 					}
 					syncConfigs = append(syncConfigs, &syncConfig{
-						Query:         buildInsertQueryFunc(table, filteredCols),
+						Query:         buildInsertQueryFunc(split[0], split[1], filteredCols),
 						ArgsMapping:   buildPlainInsertArgs(filteredCols),
 						InitStatement: schemaConfig.InitTableStatementsMap[table],
 						Schema:        split[0],
@@ -677,7 +677,7 @@ func buildSyncConfigs(
 					argCols = append(argCols, c.Columns.Include...)
 					argCols = append(argCols, primaryKeyCols...)
 					syncConfigs = append(syncConfigs, &syncConfig{
-						Query:       buildUpdateQueryFunc(table, c.Columns.Include, primaryKeyCols),
+						Query:       buildUpdateQueryFunc(split[0], split[1], c.Columns.Include, primaryKeyCols),
 						ArgsMapping: buildPlainInsertArgs(argCols),
 
 						Schema:    split[0],
@@ -690,7 +690,7 @@ func buildSyncConfigs(
 			}
 		} else {
 			syncConfigs = append(syncConfigs, &syncConfig{
-				Query:         buildInsertQueryFunc(table, cols),
+				Query:         buildInsertQueryFunc(split[0], split[1], cols),
 				ArgsMapping:   buildPlainInsertArgs(cols),
 				InitStatement: schemaConfig.InitTableStatementsMap[table],
 				Schema:        split[0],
@@ -1356,7 +1356,7 @@ func getConnectionType(connection *mgmtv1alpha1.Connection) (ConnectionType, err
 	return "", errors.New("unsupported connection type")
 }
 
-func buildPostgresUpdateQuery(table string, columns, primaryKeys []string) string {
+func buildPostgresUpdateQuery(schema, table string, columns, primaryKeys []string) string {
 	values := make([]string, len(columns))
 	var where string
 	paramCount := 1
@@ -1372,28 +1372,28 @@ func buildPostgresUpdateQuery(table string, columns, primaryKeys []string) strin
 		}
 		where = fmt.Sprintf("WHERE %s", strings.Join(clauses, " AND "))
 	}
-	return fmt.Sprintf("UPDATE %s SET %s %s;", table, strings.Join(values, ", "), where)
+	return fmt.Sprintf("UPDATE %s SET %s %s;", fmt.Sprintf("%q.%q", schema, table), strings.Join(values, ", "), where)
 }
 
-func buildPostgresInsertQuery(table string, columns []string) string {
+func buildPostgresInsertQuery(schema, table string, columns []string) string {
 	values := make([]string, len(columns))
 	paramCount := 1
 	for i := range columns {
 		values[i] = fmt.Sprintf("$%d", paramCount)
 		paramCount++
 	}
-	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, strings.Join(dbschemas_postgres.EscapePgColumns(columns), ", "), strings.Join(values, ", "))
+	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", fmt.Sprintf("%q.%q", schema, table), strings.Join(dbschemas_postgres.EscapePgColumns(columns), ", "), strings.Join(values, ", "))
 }
 
-func buildMysqlInsertQuery(table string, columns []string) string {
+func buildMysqlInsertQuery(schema, table string, columns []string) string {
 	values := make([]string, len(columns))
 	for i := range columns {
 		values[i] = "?"
 	}
-	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", table, strings.Join(dbschemas_mysql.EscapeMysqlColumns(columns), ", "), strings.Join(values, ", "))
+	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", fmt.Sprintf("`%s`.`%s`", schema, table), strings.Join(dbschemas_mysql.EscapeMysqlColumns(columns), ", "), strings.Join(values, ", "))
 }
 
-func buildMysqlUpdateQuery(table string, columns, primaryKeys []string) string {
+func buildMysqlUpdateQuery(schema, table string, columns, primaryKeys []string) string {
 	values := make([]string, len(columns))
 	var where string
 	for i, col := range columns {
@@ -1406,7 +1406,7 @@ func buildMysqlUpdateQuery(table string, columns, primaryKeys []string) string {
 		}
 		where = fmt.Sprintf("WHERE %s", strings.Join(clauses, " AND "))
 	}
-	return fmt.Sprintf("UPDATE %s SET %s %s;", table, strings.Join(values, ", "), where)
+	return fmt.Sprintf("UPDATE %s SET %s %s;", fmt.Sprintf("`%s`.`%s`", schema, table), strings.Join(values, ", "), where)
 }
 
 func getMysqlMultiStatementConnectionUrl(connectionUrl string) string {

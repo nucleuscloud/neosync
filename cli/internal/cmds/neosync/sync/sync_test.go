@@ -161,17 +161,18 @@ func Test_computeMaxPgBatchCount(t *testing.T) {
 func Test_buildPostgresInsertQuery(t *testing.T) {
 	tests := []struct {
 		name     string
+		schema   string
 		table    string
 		columns  []string
 		expected string
 	}{
-		{"Single Column", "users", []string{"name"}, `INSERT INTO users ("name") VALUES ($1);`},
-		{"Multiple Columns", "users", []string{"name", "email"}, `INSERT INTO users ("name", "email") VALUES ($1, $2);`},
+		{"Single Column", "public", "users", []string{"name"}, `INSERT INTO "public"."users" ("name") VALUES ($1);`},
+		{"Multiple Columns", "public", "users", []string{"name", "email"}, `INSERT INTO "public"."users" ("name", "email") VALUES ($1, $2);`},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual := buildPostgresInsertQuery(tt.table, tt.columns)
+			actual := buildPostgresInsertQuery(tt.schema, tt.table, tt.columns)
 			assert.Equal(t, tt.expected, actual)
 		})
 	}
@@ -180,18 +181,19 @@ func Test_buildPostgresInsertQuery(t *testing.T) {
 func Test_buildPostgresUpdateQuery(t *testing.T) {
 	tests := []struct {
 		name        string
+		schema      string
 		table       string
 		columns     []string
 		primaryKeys []string
 		expected    string
 	}{
-		{"Single Column", "users", []string{"name"}, []string{"id"}, `UPDATE users SET "name" = $1 WHERE "id" = $2;`},
-		{"Multiple Primary Keys", "users", []string{"name", "email"}, []string{"id", "other"}, `UPDATE users SET "name" = $1, "email" = $2 WHERE "id" = $3 AND "other" = $4;`},
+		{"Single Column", "public", "users", []string{"name"}, []string{"id"}, `UPDATE "public"."users" SET "name" = $1 WHERE "id" = $2;`},
+		{"Multiple Primary Keys", "public", "users", []string{"name", "email"}, []string{"id", "other"}, `UPDATE "public"."users" SET "name" = $1, "email" = $2 WHERE "id" = $3 AND "other" = $4;`},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual := buildPostgresUpdateQuery(tt.table, tt.columns, tt.primaryKeys)
+			actual := buildPostgresUpdateQuery(tt.schema, tt.table, tt.columns, tt.primaryKeys)
 			assert.Equal(t, tt.expected, actual)
 		})
 	}
@@ -200,17 +202,18 @@ func Test_buildPostgresUpdateQuery(t *testing.T) {
 func Test_buildMysqlInsertQuery(t *testing.T) {
 	tests := []struct {
 		name     string
+		schema   string
 		table    string
 		columns  []string
 		expected string
 	}{
-		{"Single Column", "users", []string{"name"}, "INSERT INTO users (`name`) VALUES (?);"},
-		{"Multiple Columns", "users", []string{"name", "email"}, "INSERT INTO users (`name`, `email`) VALUES (?, ?);"},
+		{"Single Column", "public", "users", []string{"name"}, "INSERT INTO `public`.`users` (`name`) VALUES (?);"},
+		{"Multiple Columns", "public", "users", []string{"name", "email"}, "INSERT INTO `public`.`users` (`name`, `email`) VALUES (?, ?);"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual := buildMysqlInsertQuery(tt.table, tt.columns)
+			actual := buildMysqlInsertQuery(tt.schema, tt.table, tt.columns)
 			assert.Equal(t, tt.expected, actual)
 		})
 	}
@@ -219,18 +222,19 @@ func Test_buildMysqlInsertQuery(t *testing.T) {
 func Test_buildMysqlUpdateQuery(t *testing.T) {
 	tests := []struct {
 		name        string
+		schema      string
 		table       string
 		columns     []string
 		primaryKeys []string
 		expected    string
 	}{
-		{"Single Column", "users", []string{"name"}, []string{"id"}, "UPDATE users SET `name` = ? WHERE `id` = ?;"},
-		{"Multiple Primary Keys", "users", []string{"name", "email"}, []string{"id", "other"}, "UPDATE users SET `name` = ?, `email` = ? WHERE `id` = ? AND `other` = ?;"},
+		{"Single Column", "public", "users", []string{"name"}, []string{"id"}, "UPDATE `public`.`users` SET `name` = ? WHERE `id` = ?;"},
+		{"Multiple Primary Keys", "public", "users", []string{"name", "email"}, []string{"id", "other"}, "UPDATE `public`.`users` SET `name` = ?, `email` = ? WHERE `id` = ? AND `other` = ?;"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual := buildMysqlUpdateQuery(tt.table, tt.columns, tt.primaryKeys)
+			actual := buildMysqlUpdateQuery(tt.schema, tt.table, tt.columns, tt.primaryKeys)
 			assert.Equal(t, tt.expected, actual)
 		})
 	}
@@ -266,7 +270,7 @@ func Test_buildSyncConfigs_postgres(t *testing.T) {
 			},
 			expect: []*syncConfig{
 				{
-					Query:         `INSERT INTO public.users ("id", "name", "email") VALUES ($1, $2, $3);`,
+					Query:         `INSERT INTO "public"."users" ("id", "name", "email") VALUES ($1, $2, $3);`,
 					ArgsMapping:   `root = [this."id", this."name", this."email"]`,
 					InitStatement: "",
 					Schema:        "public",
@@ -297,7 +301,7 @@ func Test_buildSyncConfigs_postgres(t *testing.T) {
 			},
 			expect: []*syncConfig{
 				{
-					Query:         `INSERT INTO public.users ("id", "name", "email") VALUES ($1, $2, $3);`,
+					Query:         `INSERT INTO "public"."users" ("id", "name", "email") VALUES ($1, $2, $3);`,
 					ArgsMapping:   `root = [this."id", this."name", this."email"]`,
 					InitStatement: "",
 					Schema:        "public",
@@ -307,7 +311,7 @@ func Test_buildSyncConfigs_postgres(t *testing.T) {
 					Name:          "public.users",
 				},
 				{
-					Query:         `INSERT INTO public.accounts ("id", "user_id") VALUES ($1, $2);`,
+					Query:         `INSERT INTO "public"."accounts" ("id", "user_id") VALUES ($1, $2);`,
 					ArgsMapping:   `root = [this."id", this."user_id"]`,
 					InitStatement: "",
 					Schema:        "public",
@@ -346,7 +350,7 @@ func Test_buildSyncConfigs_postgres(t *testing.T) {
 			},
 			expect: []*syncConfig{
 				{
-					Query:         `INSERT INTO public.users ("id", "name") VALUES ($1, $2);`,
+					Query:         `INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);`,
 					ArgsMapping:   `root = [this."id", this."name"]`,
 					InitStatement: "",
 					Schema:        "public",
@@ -356,7 +360,7 @@ func Test_buildSyncConfigs_postgres(t *testing.T) {
 					Name:          "public.users",
 				},
 				{
-					Query:         `INSERT INTO public.accounts ("id", "user_id") VALUES ($1, $2);`,
+					Query:         `INSERT INTO "public"."accounts" ("id", "user_id") VALUES ($1, $2);`,
 					ArgsMapping:   `root = [this."id", this."user_id"]`,
 					InitStatement: "",
 					Schema:        "public",
@@ -368,7 +372,7 @@ func Test_buildSyncConfigs_postgres(t *testing.T) {
 					Name: "public.accounts",
 				},
 				{
-					Query:         `UPDATE public.users SET "account_id" = $1 WHERE "id" = $2;`,
+					Query:         `UPDATE "public"."users" SET "account_id" = $1 WHERE "id" = $2;`,
 					ArgsMapping:   `root = [this."account_id", this."id"]`,
 					InitStatement: "",
 					Schema:        "public",
@@ -401,7 +405,7 @@ func Test_buildSyncConfigs_postgres(t *testing.T) {
 			},
 			expect: []*syncConfig{
 				{
-					Query:         `INSERT INTO public.users ("id", "name") VALUES ($1, $2);`,
+					Query:         `INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);`,
 					ArgsMapping:   `root = [this."id", this."name"]`,
 					InitStatement: "",
 					Schema:        "public",
@@ -411,7 +415,7 @@ func Test_buildSyncConfigs_postgres(t *testing.T) {
 					Name:          "public.users",
 				},
 				{
-					Query:         `UPDATE public.users SET "user_id" = $1 WHERE "id" = $2;`,
+					Query:         `UPDATE "public"."users" SET "user_id" = $1 WHERE "id" = $2;`,
 					ArgsMapping:   `root = [this."user_id", this."id"]`,
 					InitStatement: "",
 					Schema:        "public",

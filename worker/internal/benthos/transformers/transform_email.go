@@ -2,6 +2,7 @@ package transformers
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
@@ -13,7 +14,7 @@ func init() {
 		Param(bloblang.NewAnyParam("email").Optional()).
 		Param(bloblang.NewBoolParam("preserve_length")).
 		Param(bloblang.NewBoolParam("preserve_domain")).
-		Param(bloblang.NewAnyParam("excluded_domains")).
+		Param(bloblang.NewAnyParam("excluded_domains").Optional()).
 		Param(bloblang.NewInt64Param("max_length"))
 
 	err := bloblang.RegisterFunctionV2("transform_email", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
@@ -42,25 +43,25 @@ func init() {
 			return nil, err
 		}
 
-		eL, err := args.Get("excluded_domains")
+		emailDomains, err := args.Get("excluded_domains")
 		if err != nil {
 			return nil, err
 		}
 
-		excl, ok := eL.([]any)
-		if !ok {
-			return nil, fmt.Errorf("unable to cast arg to any slice")
-		}
-
 		var excludeStringSlice []string
-
-		for _, str := range excl {
-			val, ok := str.(string)
+		if emailDomains != nil {
+			excl, ok := emailDomains.([]any)
 			if !ok {
-				return nil, fmt.Errorf("expected string, got :%T", str)
+				return nil, fmt.Errorf("unable to cast arg to any slice, expected string, got:%v", reflect.TypeOf(emailDomains))
 			}
+			for _, str := range excl {
+				val, ok := str.(string)
+				if !ok {
+					return nil, fmt.Errorf("expected string, got :%T", str)
+				}
 
-			excludeStringSlice = append(excludeStringSlice, val)
+				excludeStringSlice = append(excludeStringSlice, val)
+			}
 		}
 
 		return func() (any, error) {

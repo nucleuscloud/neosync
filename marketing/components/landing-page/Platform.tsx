@@ -83,15 +83,15 @@ function ReferentialIntegrity(): ReactElement {
         </div>
       </div>
       <div className="text-md font-normal text-left pl-6">
-        Neosync perfectly preserves your data&apos;s referential integrity and
-        can handle the most complex schemas.
+        Neosync automatically handles Primary keys, Foreign keys, Unique
+        constraints, Circular dependencies and more. Perfectly preserving your
+        data&apos;s referential integrity every time.
       </div>
       <Image
-        src={'/images/schemaRef.svg'}
+        src={'/images/refintdiagram.svg'}
         alt="st"
         width="1021"
         height="392"
-        className="border border-gray-300 shadow-xl rounded-xl"
       />
     </div>
   );
@@ -110,7 +110,8 @@ function OrchestrationAndSubset(): ReactElement {
           </div>
         </div>
         <div className="text-md font-normal text-left pl-6">
-          Async scheduling, retries, alerting and multuple destinations.
+          Sync to multiple destinations. Full control over scheduling, retries,
+          back-offs, timeouts and multiple destinations.
         </div>
         <Image
           src={'/images/orch.svg'}
@@ -130,7 +131,8 @@ function OrchestrationAndSubset(): ReactElement {
           </div>
         </div>
         <div className="text-md font-normal text-left pl-6">
-          Subset your DB and Neosync handles the referential integrity.
+          Subset your database by schema, table, column or a custom SQL query.
+          Neosync automatically handles referential integrity.
         </div>
         <Image
           src={'/images/subsetSVG.svg'}

@@ -37,82 +37,78 @@ export default function DestinationOptionsForm(
         index != null
           ? `destinations.${index}.destinationOptions.truncateCascade`
           : `destinationOptions.truncateCascade`;
-      switch (value.connectionConfig.case) {
-        case 'connection':
-          return (
-            <div className={`grid grid-cols-1 md:grid-cols-1 ${grid} gap-4`}>
-              <div>
-                <FormField
-                  name={truncateBeforeInsertName}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <SwitchCard
-                          isChecked={field.value || false}
-                          onCheckedChange={(newVal) => {
-                            field.onChange(newVal);
-                            if (!newVal) {
-                              formCtx.setValue(truncateCascadeName, false);
-                            }
-                          }}
-                          title="Truncate Before Insert"
-                          description="Truncates table before inserting data"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div>
-                <FormField
-                  name={truncateCascadeName}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <SwitchCard
-                          isChecked={field.value || false}
-                          onCheckedChange={(newVal) => {
-                            field.onChange(newVal);
-                            if (newVal) {
-                              formCtx.setValue(truncateBeforeInsertName, true);
-                            }
-                          }}
-                          title="Truncate Cascade"
-                          description="TRUNCATE CASCADE to all tables"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div>
-                <FormField
-                  name={
-                    index != null
-                      ? `destinations.${index}.destinationOptions.initTableSchema`
-                      : `destinationOptions.initTableSchema`
-                  }
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <SwitchCard
-                          isChecked={field.value || false}
-                          onCheckedChange={field.onChange}
-                          title="Init Table Schema"
-                          description="Creates the table schema and its constraints"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-          );
-      }
-      return <></>;
+      return (
+        <div className={`grid grid-cols-1 md:grid-cols-1 ${grid} gap-4`}>
+          <div>
+            <FormField
+              name={truncateBeforeInsertName}
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <SwitchCard
+                      isChecked={field.value || false}
+                      onCheckedChange={(newVal) => {
+                        field.onChange(newVal);
+                        if (!newVal) {
+                          formCtx.setValue(truncateCascadeName, false);
+                        }
+                      }}
+                      title="Truncate Before Insert"
+                      description="Truncates table before inserting data"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <div>
+            <FormField
+              name={truncateCascadeName}
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <SwitchCard
+                      isChecked={field.value || false}
+                      onCheckedChange={(newVal) => {
+                        field.onChange(newVal);
+                        if (newVal) {
+                          formCtx.setValue(truncateBeforeInsertName, true);
+                        }
+                      }}
+                      title="Truncate Cascade"
+                      description="TRUNCATE CASCADE to all tables"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <div>
+            <FormField
+              name={
+                index != null
+                  ? `destinations.${index}.destinationOptions.initTableSchema`
+                  : `destinationOptions.initTableSchema`
+              }
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <SwitchCard
+                      isChecked={field.value || false}
+                      onCheckedChange={field.onChange}
+                      title="Init Table Schema"
+                      description="Creates the table schema and its constraints"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+      );
     case 'mysqlConfig':
       const mysqlValue = connection.connectionConfig.config.value;
       const mysqltruncateBeforeInsertName =

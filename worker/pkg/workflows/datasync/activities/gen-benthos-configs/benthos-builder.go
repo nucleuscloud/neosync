@@ -29,6 +29,7 @@ const (
 	postgresDriver             = "postgres"
 	mysqlDriver                = "mysql"
 	generateDefault            = "generate_default"
+	passthrough                = "passthrough"
 	dbDefault                  = "DEFAULT"
 	jobmappingSubsetErrMsg     = "job mappings are not equal to or a subset of the database schema found in the source connection"
 	haltOnSchemaAdditionErrMsg = "job mappings does not contain a column mapping for all " +
@@ -376,7 +377,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			constraints := tableConstraintsSource[tableKey]
 			for col := range constraints {
 				transformer := colTransformerMap[tableKey][col]
-				if shouldProcessColumn(transformer) {
+				if shouldProcessFkColumn(transformer) {
 					if b.redisConfig == nil {
 						return nil, fmt.Errorf("missing redis config. this operation requires redis.")
 					}
@@ -1071,7 +1072,7 @@ func createSqlUpdateBenthosConfig(
 
 func hasTransformer(t string) bool {
 	return t != "" &&
-		t != "passthrough"
+		t != passthrough
 }
 
 type sqlSourceTableOptions struct {
@@ -1104,7 +1105,7 @@ func buildBenthosSqlSourceConfigResponses(
 		for _, tc := range constraints.Constraints {
 			// only add constraint if foreign key has transformer
 			transformer, transformerOk := colTransformerMap[tc.ForeignKey.Table][tc.ForeignKey.Column]
-			if transformerOk && shouldProcessColumn(transformer) {
+			if transformerOk && shouldProcessFkColumn(transformer) {
 				tableConstraints[table][tc.Column] = tc.ForeignKey
 			}
 		}
@@ -1581,7 +1582,15 @@ func buildRedisGetBranchConfig(
 func shouldProcessColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {
 	return t != nil &&
 		t.Source != "" &&
-		t.Source != "passthrough" &&
+		t.Source != passthrough &&
+		t.Source != "generate_default"
+}
+
+func shouldProcessFkColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {
+	return t != nil &&
+		t.Source != "" &&
+		t.Source != "null" &&
+		t.Source != passthrough &&
 		t.Source != "generate_default"
 }
 
@@ -1667,13 +1676,12 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		pl := col.Transformer.Config.GetTransformEmailConfig().PreserveLength
 		excludedDomains := col.Transformer.Config.GetTransformEmailConfig().ExcludedDomains
 
-		sliceBytes, err := json.Marshal(excludedDomains)
+		excludedDomainsStr, err := convertStringSliceToString(excludedDomains)
 		if err != nil {
 			return "", err
 		}
 
-		excludedDomainstStr := string(sliceBytes)
-		return fmt.Sprintf("transform_email(email:this.%q,preserve_domain:%t,preserve_length:%t,excluded_domains:%v,max_length:%d)", col.Column, pd, pl, excludedDomainstStr, maxLen), nil
+		return fmt.Sprintf("transform_email(email:this.%q,preserve_domain:%t,preserve_length:%t,excluded_domains:%v,max_length:%d)", col.Column, pd, pl, excludedDomainsStr, maxLen), nil
 	case "generate_bool":
 		return "generate_bool()", nil
 	case "generate_card_number":
@@ -1788,4 +1796,19 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 	default:
 		return "", fmt.Errorf("unsupported transformer")
 	}
+}
+
+func convertStringSliceToString(slc []string) (string, error) {
+	var returnStr string
+
+	if len(slc) == 0 {
+		returnStr = "[]"
+	} else {
+		sliceBytes, err := json.Marshal(slc)
+		if err != nil {
+			return "", err
+		}
+		returnStr = string(sliceBytes)
+	}
+	return returnStr, nil
 }

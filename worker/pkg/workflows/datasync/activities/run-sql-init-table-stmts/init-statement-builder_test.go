@@ -1222,7 +1222,7 @@ func Test_InitStatementBuilder_Mysql_InitSchema(t *testing.T) {
 	}
 }
 
-func Test_getForeignToPrimaryTableMap(t *testing.T) {
+func Test_getFilteredForeignToPrimaryTableMap(t *testing.T) {
 	tables := map[string]struct{}{
 		"public.regions":     {},
 		"public.jobs":        {},
@@ -1261,7 +1261,42 @@ func Test_getForeignToPrimaryTableMap(t *testing.T) {
 		"public.employees":   {"public.departments", "public.jobs", "public.employees"},
 		"public.locations":   {"public.countries"},
 	}
-	actual := getForeignToPrimaryTableMap(dependencies, tables)
+	actual := getFilteredForeignToPrimaryTableMap(dependencies, tables)
+	assert.Len(t, actual, len(expected))
+	for table, deps := range actual {
+		assert.Len(t, deps, len(expected[table]))
+		assert.ElementsMatch(t, expected[table], deps)
+	}
+}
+
+func Test_getFilteredForeignToPrimaryTableMap_filtered(t *testing.T) {
+	tables := map[string]struct{}{
+		"public.countries": {},
+	}
+	dependencies := map[string]*dbschemas_utils.TableConstraints{
+		"public.countries": {Constraints: []*dbschemas_utils.ForeignConstraint{
+			{Column: "region_id", IsNullable: false, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.regions", Column: "region_id"}},
+		}},
+		"public.departments": {Constraints: []*dbschemas_utils.ForeignConstraint{
+			{Column: "location_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.locations", Column: "location_id"}},
+		}},
+		"public.dependents": {Constraints: []*dbschemas_utils.ForeignConstraint{
+			{Column: "dependent_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.employees", Column: "employees_id"}},
+		}},
+		"public.locations": {Constraints: []*dbschemas_utils.ForeignConstraint{
+			{Column: "country_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.countries", Column: "country_id"}},
+		}},
+		"public.employees": {Constraints: []*dbschemas_utils.ForeignConstraint{
+			{Column: "department_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.departments", Column: "department_id"}},
+			{Column: "job_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.jobs", Column: "job_id"}},
+			{Column: "manager_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.employees", Column: "employee_id"}},
+		}},
+	}
+
+	expected := map[string][]string{
+		"public.countries": {},
+	}
+	actual := getFilteredForeignToPrimaryTableMap(dependencies, tables)
 	assert.Len(t, actual, len(expected))
 	for table, deps := range actual {
 		assert.Len(t, deps, len(expected[table]))
