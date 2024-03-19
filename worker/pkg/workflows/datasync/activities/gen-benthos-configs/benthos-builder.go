@@ -361,7 +361,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			constraints := tableConstraintsSource[tableKey]
 			for col := range constraints {
 				transformer := colTransformerMap[tableKey][col]
-				if shouldProcessColumn(transformer) {
+				if shouldProcessFkColumn(transformer) {
 					if b.redisConfig == nil {
 						return nil, fmt.Errorf("missing redis config. this operation requires redis.")
 					}
@@ -1076,7 +1076,7 @@ func buildBenthosSqlSourceConfigResponses(
 		for _, tc := range constraints.Constraints {
 			// only add constraint if foreign key has transformer
 			transformer, transformerOk := colTransformerMap[tc.ForeignKey.Table][tc.ForeignKey.Column]
-			if transformerOk && shouldProcessColumn(transformer) {
+			if transformerOk && shouldProcessFkColumn(transformer) {
 				tableConstraints[table][tc.Column] = tc.ForeignKey
 			}
 		}
@@ -1564,6 +1564,13 @@ func buildRedisGetBranchConfig(
 }
 
 func shouldProcessColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {
+	return t != nil &&
+		t.Source != "" &&
+		t.Source != "passthrough" &&
+		t.Source != "generate_default"
+}
+
+func shouldProcessFkColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {
 	return t != nil &&
 		t.Source != "" &&
 		t.Source != "null" &&
