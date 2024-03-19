@@ -28,11 +28,11 @@ export default function Hero(): ReactElement {
         </div>
       </Badge>
       <div className="text-gray-900 font-semibold text-6xl leading-tight text-center z-20 px-2 ">
-        Synthetic Data For Relational Databases
+        Open Source Anonymization and Synthetic Data For Developers
       </div>
-      <div className="text-gray-800 text-lg font-semibold text-center lg:w-[70%] xl:w-full px-6 bg-white/40">
-        Create anonymized or synthetic data and sync it across all environments
-        for stage, local and CI testing
+      <div className="text-gray-800 text-2xl font-normal text-center lg:w-[70%] xl:w-[70%] px-6 bg-white/40">
+        Anonymize PII, generate synthetic data and sync environments for better
+        data privacy, testing and developer experience.
       </div>
       <div className="flex flex-col lg:flex-row lg:space-y-0 space-y-2 lg:space-x-4 z-30 items-center">
         <GetaDemoButton />

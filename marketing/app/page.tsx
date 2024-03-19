@@ -47,10 +47,14 @@ export default function Home(): ReactElement {
       </div>
       <div className=" pt-20 lg:pt-40">
         <UseNeosync />
+        {/* <DeploymentOptions /> */}
       </div>
       <div className="py-10 lg:py-20">
         <GitOpsSection />
       </div>
+      {/* <div className="py-10 lg:py-20">
+        <DeploymentOptions />
+      </div> */}
       <div className="px-5 lg-px-2 py-10 lg:py-20">
         <CTA />
       </div>
