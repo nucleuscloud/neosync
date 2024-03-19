@@ -1487,7 +1487,6 @@ func buildMutationConfigs(
 			}
 			if col.Transformer.Source != "transform_javascript" {
 				mutation, err := computeMutationFunction(col, colInfo)
-				fmt.Println("mutation", mutation)
 				if err != nil {
 					return "", fmt.Errorf("%s is not a supported transformer: %w", col.Transformer, err)
 				}

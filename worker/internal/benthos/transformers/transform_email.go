@@ -47,8 +47,6 @@ func init() {
 			return nil, err
 		}
 
-		fmt.Println("excludeStringSlice", eLPtr)
-
 		var excludeStringSlice []string
 		if eLPtr != nil {
 			excl, ok := eLPtr.([]any)
@@ -65,26 +63,6 @@ func init() {
 			}
 
 		}
-
-		// fmt.Println("eL", eL)
-
-		// excl, ok := eL.([]any)
-		// if !ok {
-		// 	return nil, fmt.Errorf("unable to cast arg to any slice")
-		// }
-
-		// var excludeStringSlice []string
-
-		// for _, str := range excl {
-		// 	val, ok := str.(string)
-		// 	if !ok {
-		// 		return nil, fmt.Errorf("expected string, got :%T", str)
-		// 	}
-
-		// 	excludeStringSlice = append(excludeStringSlice, val)
-		// }
-
-		fmt.Println("excludeStringSlice", excludeStringSlice)
 
 		return func() (any, error) {
 			res, err := TransformEmail(email, preserveLength, preserveDomain, maxLength, excludeStringSlice)
