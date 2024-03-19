@@ -103,14 +103,6 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
 
   const form = useForm({
     resolver: yupResolver<SourceFormValues>(FORM_SCHEMA),
-    defaultValues: {
-      sourceId: '',
-      sourceOptions: {
-        haltOnNewColumnAddition: false,
-      },
-      destinationIds: [],
-      mappings: [],
-    },
     values: getJobSource(data?.job),
   });
 
