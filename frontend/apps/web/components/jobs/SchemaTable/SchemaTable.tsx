@@ -13,6 +13,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 import { ConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetMergedTransformers } from '@/libs/hooks/useGetMergedTransformers';
 import { cn } from '@/libs/utils';
@@ -134,7 +136,7 @@ export function SchemaTable(props: Props): ReactElement {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-col md:flex-row gap-3">
+      <div className="flex flex-col md:flex-row gap-3 items-start">
         <div className="flex">
           <Card className="p-0">
             <CardHeader className="p-3 pb-0">
@@ -161,12 +163,25 @@ export function SchemaTable(props: Props): ReactElement {
               extractedFormErrors.length === 0 ? 'hidden' : ''
             )}
           >
+            <CardHeader className="p-3 pb-0">
+              <CardTitle>Validation Errors</CardTitle>
+              <CardDescription className="max-w-[350px]">
+                Shows any validation errors found on the form
+              </CardDescription>
+            </CardHeader>
             <CardContent className="p-3">
-              <ul>
-                {extractedFormErrors.map((message, idx) => (
-                  <li key={idx}>{message}</li>
-                ))}
-              </ul>
+              <ScrollArea className="h-72 max-w-80 overflow-y-auto">
+                <div className="p-4">
+                  {extractedFormErrors.map((message) => (
+                    <>
+                      <p key={message} className="text-sm text-wrap">
+                        {message}
+                      </p>
+                      <Separator className="my-2" />
+                    </>
+                  ))}
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
         </div>

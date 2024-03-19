@@ -90,6 +90,8 @@ export function SchemaTableToolbar<TData>({
                   bulkTransformer,
                   {
                     shouldDirty: true,
+                    shouldTouch: true,
+                    shouldValidate: true,
                   }
                 );
               });
