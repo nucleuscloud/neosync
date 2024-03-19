@@ -1652,13 +1652,12 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		pl := col.Transformer.Config.GetTransformEmailConfig().PreserveLength
 		excludedDomains := col.Transformer.Config.GetTransformEmailConfig().ExcludedDomains
 
-		sliceBytes, err := json.Marshal(excludedDomains)
+		excludedDomainsStr, err := convertStringSliceToString(excludedDomains)
 		if err != nil {
 			return "", err
 		}
 
-		excludedDomainstStr := string(sliceBytes)
-		return fmt.Sprintf("transform_email(email:this.%q,preserve_domain:%t,preserve_length:%t,excluded_domains:%v,max_length:%d)", col.Column, pd, pl, excludedDomainstStr, maxLen), nil
+		return fmt.Sprintf("transform_email(email:this.%q,preserve_domain:%t,preserve_length:%t,excluded_domains:%v,max_length:%d)", col.Column, pd, pl, excludedDomainsStr, maxLen), nil
 	case "generate_bool":
 		return "generate_bool()", nil
 	case "generate_card_number":
@@ -1773,4 +1772,19 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 	default:
 		return "", fmt.Errorf("unsupported transformer")
 	}
+}
+
+func convertStringSliceToString(slc []string) (string, error) {
+	var returnStr string
+
+	if len(slc) == 0 {
+		returnStr = "[]"
+	} else {
+		sliceBytes, err := json.Marshal(slc)
+		if err != nil {
+			return "", err
+		}
+		returnStr = string(sliceBytes)
+	}
+	return returnStr, nil
 }
