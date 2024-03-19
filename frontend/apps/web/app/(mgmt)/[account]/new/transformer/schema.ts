@@ -10,7 +10,7 @@ const transformEmailConfig = Yup.object().shape({
   preserveLength: Yup.boolean().required('This field is required.'),
 });
 
-export const generateCardNumberConfig = Yup.object().shape({
+const generateCardNumberConfig = Yup.object().shape({
   validLuhn: Yup.boolean().required('This field is required.'),
 });
 
@@ -217,7 +217,7 @@ const EMPTY_TRANSFORMER_CONFIG = Yup.object({
 });
 
 // todo: this should be properly typed
-export const TRANSFORMER_SCHEMA_CONFIGS: Record<
+const TRANSFORMER_SCHEMA_CONFIGS: Record<
   NonNullable<TransformerConfigCase>,
   Yup.ObjectSchema<any> // eslint-disable-line @typescript-eslint/no-explicit-any
 > = {

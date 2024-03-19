@@ -8,7 +8,7 @@ export type ConnectionSchemaMap = Record<
   PlainMessage<DatabaseColumn>[]
 >;
 
-export interface GetConnectionSchemaMapResponse {
+interface GetConnectionSchemaMapResponse {
   schemaMap: ConnectionSchemaMap;
 }
 

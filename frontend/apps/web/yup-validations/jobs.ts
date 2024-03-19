@@ -43,12 +43,6 @@ export function convertJobMappingTransformerFormToJobMappingTransformer(
   });
 }
 
-export function isUnspecifiedJobMappingTransformer(
-  form: JobMappingTransformerForm | undefined
-): boolean {
-  return form === undefined || form.source === '';
-}
-
 export function convertTransformerConfigToForm(
   tc?: TransformerConfig
 ): TransformerConfigSchema {

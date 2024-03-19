@@ -32,13 +32,8 @@ import { useFormContext } from 'react-hook-form';
 import { SchemaColumnHeader } from './SchemaColumnHeader';
 import { Row as RowData } from './SchemaPageTable';
 import TransformerSelect from './TransformerSelect';
-// import {
-//   RankingInfo,
-//   rankItem,
-//   compareItems,
-// } from '@tanstack/match-sorter-utils';
 
-export interface ColumnKey {
+interface ColumnKey {
   schema: string;
   table: string;
   column: string;
