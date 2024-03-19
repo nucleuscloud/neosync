@@ -194,6 +194,7 @@ export function SchemaTable(props: Props): ReactElement {
         systemTransformerMap={systemMap}
         systemTransformers={systemTransformers}
         jobType={jobType}
+        constraintHandler={constraintHandler}
       />
     </div>
   );

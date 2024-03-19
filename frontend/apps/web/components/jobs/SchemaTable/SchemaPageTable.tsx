@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/table';
 import { JobMappingFormValues } from '@/yup-validations/jobs';
 import { SystemTransformer, UserDefinedTransformer } from '@neosync/sdk';
+import { SchemaConstraintHandler } from './SchemaColumns';
 import { SchemaTableToolbar } from './SchemaTableToolBar';
 
 export type Row = JobMappingFormValues;
@@ -37,6 +38,7 @@ interface DataTableProps<TData, TValue> {
   userDefinedTransformerMap: Map<string, UserDefinedTransformer>;
   systemTransformerMap: Map<string, SystemTransformer>;
   jobType: string;
+  constraintHandler: SchemaConstraintHandler;
 }
 
 export default function SchemaPageTable<TData, TValue>({
@@ -46,6 +48,7 @@ export default function SchemaPageTable<TData, TValue>({
   userDefinedTransformers,
   systemTransformerMap,
   systemTransformers,
+  constraintHandler,
 }: DataTableProps<TData, TValue>): ReactElement {
   const table = useReactTable({
     data,
@@ -93,6 +96,7 @@ export default function SchemaPageTable<TData, TValue>({
           systemTransformers={systemTransformers}
           userDefinedTransformerMap={userDefinedTransformerMap}
           userDefinedTransformers={userDefinedTransformers}
+          constraintHandler={constraintHandler}
         />
       </div>
       <div
