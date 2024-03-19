@@ -1566,6 +1566,7 @@ func buildRedisGetBranchConfig(
 func shouldProcessColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {
 	return t != nil &&
 		t.Source != "" &&
+		t.Source != "null" &&
 		t.Source != "passthrough" &&
 		t.Source != "generate_default"
 }
