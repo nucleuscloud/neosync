@@ -203,7 +203,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="settings">
               <AccordionTrigger className="-ml-2">
-                <div className="hover:bg-gray-100 p-2 rounded-lg">
+                <div className="hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded-lg">
                   Advanced Settings
                 </div>
               </AccordionTrigger>
