@@ -1,7 +1,6 @@
 'use client';
 
 import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
-import { ColumnMetadata } from '@/app/(mgmt)/[account]/new/job/schema/page';
 import EditTransformerOptions from '@/app/(mgmt)/[account]/transformers/EditTransformerOptions';
 import { Badge } from '@/components/ui/badge';
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
@@ -20,7 +19,6 @@ import {
 import { PlainMessage } from '@bufbuild/protobuf';
 import {
   DatabaseColumn,
-  ForeignConstraint,
   ForeignConstraintTables,
   ForeignKey,
   PrimaryConstraint,
@@ -28,7 +26,7 @@ import {
   UserDefinedTransformer,
 } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
-import { ColumnDef, FilterFn, Row, SortingFn } from '@tanstack/react-table';
+import { ColumnDef, Row } from '@tanstack/react-table';
 import { HTMLProps, ReactElement, useEffect, useRef } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { SchemaColumnHeader } from './SchemaColumnHeader';
@@ -276,9 +274,20 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Constraints" />
       ),
-      // filterFn: filterConstraints(columnMetadata),
-      // sortingFn: sortConstraints(columnMetadata),
-      // meta: columnMetadata,
+      accessorFn: (row) => {
+        const key = toColKey(row.schema, row.table, row.column);
+        const isPrimaryKey = constraintHandler.getIsPrimaryKey(key);
+        const [isForeignKey, fkCols] = constraintHandler.getIsForeignKey(key);
+
+        const pieces: string[] = [];
+        if (isPrimaryKey) {
+          pieces.push('Primary Key');
+        }
+        if (isForeignKey) {
+          fkCols.forEach((col) => pieces.push(`Foreign Key: ${col}`));
+        }
+        return pieces.join('\n');
+      },
       cell: ({ row }) => {
         const key: ColumnKey = {
           schema: row.getValue('schema'),
@@ -326,6 +335,10 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
     },
     {
       accessorKey: 'isNullable',
+      accessorFn: (row) => {
+        const key = toColKey(row.schema, row.table, row.column);
+        return constraintHandler.getIsNullable(key) ? 'Yes' : 'No';
+      },
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Nullable" />
       ),
@@ -346,6 +359,10 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
     },
     {
       accessorKey: 'dataType',
+      accessorFn: (row) => {
+        const key = toColKey(row.schema, row.table, row.column);
+        return handleDataTypeBadge(constraintHandler.getDataType(key));
+      },
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Data Type" />
       ),
@@ -457,12 +474,11 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                             onSubmit={(newvalue) => {
                               field.onChange(newvalue);
                             }}
-                            disabled={false} // todo
+                            disabled={false}
                           />
                         )}
                       </div>
                     </FormControl>
-                    {/* <FormMessage /> */}
                   </FormItem>
                 );
               }}
@@ -498,36 +514,6 @@ function IndeterminateCheckbox({
   );
 }
 
-/* Custom filter function that does an exact match. The out of the box filter function -arrIncludeSome- matches unnecessary elements. If you filtered a schema by a value  - customer_1, it matches customer_1, customer_10, customer_11, etc. The underlying implementation is:
-
-*******
-const arrIncludesSome: FilterFn<any> = (
-  row,
-  columnId: string,
-  filterValue: unknown[]
-) => {
-  return filterValue.some(
-    val => row.getValue<unknown[]>(columnId)?.includes(val)
-  )
-}
-
-arrIncludesSome.autoRemove = (val: any) => testFalsey(val) || !val?.length
-
-*******
-
-This filter function does an exact match to avoid unnecessary values.
-*/
-// eslint-disable-next-line
-const exactMatchFilterFn: FilterFn<any> = (
-  row,
-  columnId: string,
-  filterValue: unknown[]
-) => {
-  // ensure the filter value and row value are exactly the same
-  const rowValue = row.getValue(columnId);
-  return filterValue.includes(rowValue); // this checks for an exact match in the filterValue array
-};
-
 // cleans up the data type values since some are too long , can add on more here as we
 function handleDataTypeBadge(dataType: string): string {
   const splitDt = dataType.split('(');
@@ -539,83 +525,10 @@ function handleDataTypeBadge(dataType: string): string {
         return 'varchar(' + splitDt[1];
       }
     case 'timestamp with time zone':
-      return 'timestamp(timezone)';
+      return 'timestamp(tz)';
+    case 'timestamp without time zone':
+      return 'timestamp';
     default:
       return dataType;
   }
-}
-
-const buildRowKey = (row: Row<RowData>): string =>
-  `${row.getValue('schema')}.${row.getValue('table')}`;
-
-// SortinFn can only take in 3 params: rowA, rowB and id, so creating a closure to get access to the metadata
-function sortConstraints(meta: ColumnMetadata): SortingFn<RowData> {
-  return (rowA, rowB) => {
-    // Check for primary key constraint presence
-    const hasPrimaryKeyA =
-      meta?.pk[buildRowKey(rowA)]?.columns.includes(rowA.getValue('column')) ??
-      false;
-    const hasPrimaryKeyB =
-      meta?.pk[buildRowKey(rowB)]?.columns.includes(rowB.getValue('column')) ??
-      false;
-
-    // check for foreign key constraint presence
-    const hasForeignKeyA =
-      meta?.fk[buildRowKey(rowA)]?.constraints.filter(
-        (item: ForeignConstraint) => item.column == rowA.getValue('column')
-      ).length > 0;
-    const hasForeignKeyB =
-      meta?.fk[buildRowKey(rowB)]?.constraints.filter(
-        (item: ForeignConstraint) => item.column == rowB.getValue('column')
-      ).length > 0;
-
-    // can't have primary key and foreign key so figure out which one exists on any given row
-    const valueA = hasPrimaryKeyA
-      ? 'Primary Key'
-      : hasForeignKeyA
-        ? 'Foreign Key'
-        : '';
-    const valueB = hasPrimaryKeyB
-      ? 'Primary Key'
-      : hasForeignKeyB
-        ? 'Foreign Key'
-        : '';
-
-    // prioritize "Primary Key", then "Foreign Key", then empty strings in sorting
-    if (valueA === 'Primary Key' || valueB === 'Primary Key') {
-      return valueA === 'Primary Key' ? -1 : 1;
-    } else if (valueA === 'Foreign Key' || valueB === 'Foreign Key') {
-      return valueA === 'Foreign Key' ? -1 : 1;
-    } else if (valueA === '' && valueB !== '') {
-      return 1;
-    } else if (valueA !== '' && valueB === '') {
-      return -1;
-    }
-
-    return valueA.localeCompare(valueB);
-  };
-}
-
-// custom filter for the constraints column
-function filterConstraints(meta: ColumnMetadata): FilterFn<RowData> {
-  return (row, columnId, filterValue) => {
-    const filterValueStr = filterValue.toString().toLowerCase();
-
-    const isPrimaryKey =
-      meta?.pk[buildRowKey(row)]?.columns.includes(row.getValue('column')) ??
-      false;
-    const isForeignKey =
-      Object.keys(meta?.fk).includes(buildRowKey(row)) &&
-      meta?.fk[buildRowKey(row)].constraints.some(
-        (fk) => fk.column === row.getValue('column')
-      );
-
-    const columnConstraintType = isPrimaryKey
-      ? 'Primary Key'
-      : isForeignKey
-        ? 'Foreign Key'
-        : '';
-
-    return columnConstraintType.toLowerCase().includes(filterValueStr);
-  };
 }
