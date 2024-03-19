@@ -324,10 +324,11 @@ the connection which caused the schema page to not load correctly when you went 
                       disabled={!formValues.schema}
                       onValueChange={(value: string) => {
                         if (value) {
+                          field.onChange(value);
                           const dbcols =
                             (connectionSchemaDataMap?.schemaMap ?? {})[
                               `${formValues.schema}.${value}`
-                            ] ?? field.onChange(value);
+                            ] ?? [];
                           form.setValue(
                             'mappings',
                             dbcols.map((s) => {
