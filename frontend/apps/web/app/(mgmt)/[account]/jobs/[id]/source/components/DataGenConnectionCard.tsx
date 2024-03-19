@@ -3,7 +3,7 @@ import {
   SINGLE_TABLE_SCHEMA_FORM_SCHEMA,
   SingleTableSchemaFormValues,
 } from '@/app/(mgmt)/[account]/new/job/schema';
-import { ColumnMetadata } from '@/app/(mgmt)/[account]/new/job/schema/page';
+import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/SchemaColumns';
 import { SchemaTable } from '@/components/jobs/SchemaTable/SchemaTable';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
@@ -30,7 +30,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectionForeignConstraints';
 import { useGetConnectionPrimaryConstraints } from '@/libs/hooks/useGetConnectionPrimaryConstraints';
-import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
+import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 import { getErrorMessage } from '@/util/util';
 import {
@@ -38,6 +38,7 @@ import {
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
+import { PlainMessage } from '@bufbuild/protobuf';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   DatabaseColumn,
@@ -53,9 +54,8 @@ import {
   UpdateJobSourceConnectionResponse,
 } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
-import { ReactElement, useEffect } from 'react';
+import { ReactElement, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
-import { SchemaMap, getColumnMapping } from './DataSyncConnectionCard';
 import { getFkIdFromGenerateSource } from './util';
 
 interface Props {
@@ -72,49 +72,35 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     isLoading: isJobLoading,
   } = useGetJob(account?.id ?? '', jobId);
   const fkSourceConnectionId = getFkIdFromGenerateSource(data?.job?.source);
+
   const {
-    data: schema,
-    isLoading: isGetConnectionsSchemaLoading,
-    error,
-  } = useGetConnectionSchema(account?.id ?? '', fkSourceConnectionId);
+    data: connectionSchemaDataMap,
+    isLoading: isSchemaDataMapLoading,
+    isValidating: isSchemaMapValidating,
+  } = useGetConnectionSchemaMap(account?.id ?? '', fkSourceConnectionId ?? '');
 
-  const { data: primaryConstraints } = useGetConnectionPrimaryConstraints(
-    account?.id ?? '',
-    fkSourceConnectionId ?? ''
-  );
+  const { data: primaryConstraints, isValidating: isPkValidating } =
+    useGetConnectionPrimaryConstraints(
+      account?.id ?? '',
+      fkSourceConnectionId ?? ''
+    );
 
-  const { data: foreignConstraints } = useGetConnectionForeignConstraints(
-    account?.id ?? '',
-    fkSourceConnectionId ?? ''
-  );
-
-  const columnMetadata: ColumnMetadata = {
-    pk: primaryConstraints?.tableConstraints ?? {},
-    fk: foreignConstraints?.tableConstraints ?? {},
-    isNullable: schema?.schemas ?? [],
-  };
-
-  useEffect(() => {
-    if (error) {
-      toast({
-        title: 'Unable to get connection schema',
-        description: getErrorMessage(error),
-        variant: 'destructive',
-      });
-    }
-  }, [error]);
+  const { data: foreignConstraints, isValidating: isFkValidating } =
+    useGetConnectionForeignConstraints(
+      account?.id ?? '',
+      fkSourceConnectionId ?? ''
+    );
 
   const allJobMappings =
-    schema?.schemas.map((r) => {
-      const t: JobMappingTransformerForm = {
-        source: '',
-        config: { case: '', value: {} },
-      };
-      return {
-        ...r,
-        transformer: t,
-      };
-    }) || [];
+    Object.values(connectionSchemaDataMap?.schemaMap ?? {}).flatMap(
+      (dbcols) => {
+        const t: JobMappingTransformerForm = {
+          source: '',
+          config: { case: '', value: {} },
+        };
+        return dbcols.map((dbcol) => ({ ...dbcol, transformer: t }));
+      }
+    ) || [];
   const form = useForm<SingleTableSchemaFormValues>({
     resolver: yupResolver(SINGLE_TABLE_SCHEMA_FORM_SCHEMA),
     defaultValues: {
@@ -123,10 +109,20 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
       schema: '',
       table: '',
     },
-    values: getJobSource(data?.job, schema?.schemas),
+    values: getJobSource(data?.job),
   });
 
-  if (isJobLoading || isGetConnectionsSchemaLoading) {
+  const schemaConstraintHandler = useMemo(
+    () =>
+      getSchemaConstraintHandler(
+        connectionSchemaDataMap?.schemaMap ?? {},
+        primaryConstraints?.tableConstraints ?? {},
+        foreignConstraints?.tableConstraints ?? {}
+      ),
+    [isSchemaMapValidating, isPkValidating, isFkValidating]
+  );
+
+  if (isJobLoading || isSchemaDataMapLoading) {
     return (
       <div className="space-y-10">
         <Skeleton className="w-full h-12" />
@@ -165,10 +161,9 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     table: formValues.table,
   }));
 
-  const uniqueSchemas = Array.from(
-    new Set(schema?.schemas.map((s) => s.schema))
+  const [uniqueSchemas, schemaTableMap] = getUniqueSchemasAndTables(
+    connectionSchemaDataMap?.schemaMap ?? {}
   );
-  const schemaTableMap = getSchemaTableMap(schema?.schemas ?? []);
 
   const selectedSchemaTables = schemaTableMap.get(formValues.schema) ?? [];
 
@@ -198,7 +193,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {uniqueSchemas.map((schema) => (
+                  {Array.from(uniqueSchemas).map((schema) => (
                     <SelectItem
                       className="cursor-pointer"
                       key={schema}
@@ -304,7 +299,8 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
             data={schemaTableData}
             excludeInputReqTransformers
             jobType="generate"
-            columnMetadata={columnMetadata}
+            constraintHandler={schemaConstraintHandler}
+            schema={connectionSchemaDataMap?.schemaMap ?? {}}
           />
         )}
         {form.formState.errors.mappings && (
@@ -325,16 +321,13 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
   );
 }
 
-function getJobSource(
-  job?: Job,
-  dbCols?: DatabaseColumn[]
-): SingleTableSchemaFormValues {
-  if (!job || !dbCols) {
+function getJobSource(job?: Job): SingleTableSchemaFormValues {
+  if (!job) {
     return {
       mappings: [],
       numRows: 0,
-      schema: 'foo2',
-      table: 'bar2',
+      schema: '',
+      table: '',
     };
   }
   let schema = '';
@@ -352,56 +345,18 @@ function getJobSource(
     }
   }
 
-  const schemaMap: SchemaMap = {};
-  job?.mappings.forEach((c) => {
-    if (!schemaMap[c.schema]) {
-      schemaMap[c.schema] = {
-        [c.table]: {
-          [c.column]: {
-            transformer: convertJobMappingTransformerToForm(
-              c?.transformer ?? new JobMappingTransformer({})
-            ),
-          },
-        },
-      };
-    } else if (!schemaMap[c.schema][c.table]) {
-      schemaMap[c.schema][c.table] = {
-        [c.column]: {
-          transformer: convertJobMappingTransformerToForm(
-            c?.transformer ?? new JobMappingTransformer({})
-          ),
-        },
-      };
-    } else {
-      schemaMap[c.schema][c.table][c.column] = {
-        transformer: convertJobMappingTransformerToForm(
-          c.transformer ?? new JobMappingTransformer({})
-        ),
-      };
-    }
+  const mappings: SingleTableSchemaFormValues['mappings'] = (
+    job.mappings ?? []
+  ).map((mapping) => {
+    return {
+      schema: mapping.schema,
+      table: mapping.table,
+      column: mapping.column,
+      transformer: mapping.transformer
+        ? convertJobMappingTransformerToForm(mapping.transformer)
+        : convertJobMappingTransformerToForm(new JobMappingTransformer()),
+    };
   });
-
-  const mappings: SingleTableSchemaFormValues['mappings'] = dbCols
-    .filter((c) => c.schema === schema && c.table === table)
-    .map((c) => {
-      const colMapping = getColumnMapping(
-        schemaMap,
-        c.schema,
-        c.table,
-        c.column
-      );
-      const transformer =
-        colMapping?.transformer ??
-        convertJobMappingTransformerToForm(new JobMappingTransformer({}));
-
-      return {
-        schema: schema,
-        table: table,
-        column: c.column,
-        dataType: c.dataType,
-        transformer: transformer,
-      };
-    });
   return {
     mappings: mappings,
     numRows: numRows,
@@ -468,18 +423,24 @@ async function updateJobConnection(
   return UpdateJobSourceConnectionResponse.fromJson(await res.json());
 }
 
-function getSchemaTableMap(schemas: DatabaseColumn[]): Map<string, string[]> {
-  const map = new Map<string, Set<string>>();
-  schemas.forEach((schema) => {
-    const set = map.get(schema.schema);
-    if (set) {
-      set.add(schema.table);
-    } else {
-      map.set(schema.schema, new Set([schema.table]));
-    }
-  });
+export function getUniqueSchemasAndTables(
+  // key: schema.table
+  schemaMap: Record<string, PlainMessage<DatabaseColumn>[]>
+): [Set<string>, Map<string, string[]>] {
+  const uniqueSchemas = new Set<string>();
+  const tableToSchemaMap = new Map<string, string[]>();
 
-  const outMap = new Map<string, string[]>();
-  map.forEach((tableSet, schema) => outMap.set(schema, Array.from(tableSet)));
-  return outMap;
+  // Can be sneaky here because the record is expected to be keyed by the table.
+  // So the values become a list of columns an we can short circuit and only care about the first record to get the
+  // objectified schema and table, which is easier than splitting the key
+  Object.values(schemaMap).forEach((dbcols) => {
+    if (dbcols.length === 0) {
+      return;
+    }
+    const [dbcol] = dbcols;
+    uniqueSchemas.add(dbcol.schema);
+    const tables = tableToSchemaMap.get(dbcol.schema) ?? [];
+    tableToSchemaMap.set(dbcol.schema, [...tables, dbcol.table]);
+  });
+  return [uniqueSchemas, tableToSchemaMap];
 }

@@ -10,10 +10,47 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { Transformer, isUserDefinedTransformer } from '@/shared/transformers';
-import { SystemTransformer, UserDefinedTransformer } from '@neosync/sdk';
+import {
+  Transformer,
+  isSystemTransformer,
+  isUserDefinedTransformer,
+} from '@/shared/transformers';
+import {
+  JobMappingTransformerForm,
+  convertJobMappingTransformerToForm,
+  convertTransformerConfigToForm,
+} from '@/yup-validations/jobs';
+import { PlainMessage } from '@bufbuild/protobuf';
+import {
+  GenerateCardNumber,
+  GenerateCategorical,
+  GenerateE164PhoneNumber,
+  GenerateFloat64,
+  GenerateGender,
+  GenerateInt64,
+  GenerateString,
+  GenerateStringPhoneNumber,
+  GenerateUuid,
+  JobMappingTransformer,
+  SystemTransformer,
+  TransformCharacterScramble,
+  TransformE164PhoneNumber,
+  TransformEmail,
+  TransformFirstName,
+  TransformFloat64,
+  TransformFullName,
+  TransformInt64,
+  TransformInt64PhoneNumber,
+  TransformJavascript,
+  TransformLastName,
+  TransformPhoneNumber,
+  TransformString,
+  TransformerConfig,
+  UserDefinedTransformer,
+} from '@neosync/sdk';
 import {
   Cross2Icon,
+  EyeOpenIcon,
   MixerHorizontalIcon,
   Pencil1Icon,
 } from '@radix-ui/react-icons';
@@ -41,14 +78,14 @@ import TransformStringPhoneNumberForm from './Sheetforms/TransformPhoneNumberFor
 import TransformStringForm from './Sheetforms/TransformStringForm';
 
 interface Props {
-  transformer: Transformer | undefined;
-  // mapping index
-  index: number;
+  transformer: Transformer;
   disabled: boolean;
+  value: JobMappingTransformerForm;
+  onSubmit(newValue: JobMappingTransformerForm): void;
 }
 
 export default function EditTransformerOptions(props: Props): ReactElement {
-  const { transformer, index, disabled } = props;
+  const { transformer, disabled, value, onSubmit } = props;
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const sheetRef = useRef<HTMLDivElement | null>(null);
@@ -86,7 +123,6 @@ export default function EditTransformerOptions(props: Props): ReactElement {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
-
   return (
     <Sheet open={isSheetOpen} onOpenChange={() => setIsSheetOpen(true)}>
       <SheetTrigger asChild>
@@ -98,13 +134,15 @@ export default function EditTransformerOptions(props: Props): ReactElement {
           // we need to load the custom transformer values and push them into the component, but the components expect the "form", which is the Job Mapping.
           // this would require a refactor of the lower components to not rely on the react-hook-form and instead values as props to the component itself.
           // until that is true, this needs to be disabled.
-          disabled={
-            !transformer || isUserDefinedTransformer(transformer) || disabled
-          }
+          disabled={disabled}
           onClick={() => setIsSheetOpen(true)}
           className="ml-auto hidden h-[36px] lg:flex"
         >
-          <Pencil1Icon />
+          {isUserDefinedTransformer(transformer) ? (
+            <EyeOpenIcon />
+          ) : (
+            <Pencil1Icon />
+          )}
         </Button>
       </SheetTrigger>
       <SheetContent className="w-[800px]" ref={sheetRef}>
@@ -124,159 +162,546 @@ export default function EditTransformerOptions(props: Props): ReactElement {
           <Separator />
         </SheetHeader>
         <div className="pt-8">
-          {transformer &&
-            handleTransformerForm(transformer, index, setIsSheetOpen)}
+          {transformer && (
+            <ConfigureTransformer
+              transformer={transformer}
+              value={value}
+              onSubmit={(newval) => {
+                onSubmit(newval);
+                setIsSheetOpen(false);
+              }}
+              isReadonly={disabled || isUserDefinedTransformer(transformer)}
+            />
+          )}
         </div>
       </SheetContent>
     </Sheet>
   );
 }
 
-function handleTransformerForm(
-  transformer: Transformer,
-  index?: number,
-  setIsSheetOpen?: (val: boolean) => void
-): ReactElement {
+interface ConfigureTransformerProps {
+  transformer: Transformer;
+  value: JobMappingTransformerForm;
+  onSubmit(newValue: JobMappingTransformerForm): void;
+  isReadonly: boolean;
+}
+
+function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
+  const { transformer, value, onSubmit, isReadonly } = props;
+
+  const valueConfig = isSystemTransformer(transformer)
+    ? value.config
+    : convertTransformerConfigToForm(transformer.config);
+
   switch (transformer.source) {
     case 'generate_card_number':
       return (
         <GenerateCardNumberForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
-          transformer={transformer}
+          isReadonly={isReadonly}
+          existingConfig={
+            new GenerateCardNumber({
+              ...(valueConfig.value as PlainMessage<GenerateCardNumber>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            onSubmit(
+              convertJobMappingTransformerToForm(
+                new JobMappingTransformer({
+                  source: transformer.source,
+                  config: new TransformerConfig({
+                    config: {
+                      case: 'generateCardNumberConfig',
+                      value: newconfig,
+                    },
+                  }),
+                })
+              )
+            );
+          }}
         />
       );
     case 'generate_international_phone_number':
       return (
         <GenerateInternationalPhoneNumberForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
+          isReadonly={isReadonly}
+          existingConfig={
+            new GenerateE164PhoneNumber({
+              ...(valueConfig.value as PlainMessage<GenerateE164PhoneNumber>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            onSubmit(
+              convertJobMappingTransformerToForm(
+                new JobMappingTransformer({
+                  source: transformer.source,
+                  config: new TransformerConfig({
+                    config: {
+                      case: 'generateE164PhoneNumberConfig',
+                      value: newconfig,
+                    },
+                  }),
+                })
+              )
+            );
+          }}
         />
       );
     case 'generate_float64':
       return (
-        <GenerateFloatForm index={index} setIsSheetOpen={setIsSheetOpen} />
+        <GenerateFloatForm
+          isReadonly={isReadonly}
+          existingConfig={
+            new GenerateFloat64({
+              ...(valueConfig.value as PlainMessage<GenerateFloat64>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            onSubmit(
+              convertJobMappingTransformerToForm(
+                new JobMappingTransformer({
+                  source: transformer.source,
+                  config: new TransformerConfig({
+                    config: {
+                      case: 'generateFloat64Config',
+                      value: newconfig,
+                    },
+                  }),
+                })
+              )
+            );
+          }}
+        />
       );
     case 'generate_gender':
       return (
-        <GenerateGenderForm index={index} setIsSheetOpen={setIsSheetOpen} />
+        <GenerateGenderForm
+          isReadonly={isReadonly}
+          existingConfig={
+            new GenerateGender({
+              ...(valueConfig.value as PlainMessage<GenerateGender>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'generateGenderConfig',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
+        />
       );
     case 'generate_int64':
-      return <GenerateIntForm index={index} setIsSheetOpen={setIsSheetOpen} />;
+      return (
+        <GenerateIntForm
+          isReadonly={isReadonly}
+          existingConfig={
+            new GenerateInt64({
+              ...(valueConfig.value as PlainMessage<GenerateInt64>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'generateInt64Config',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
+        />
+      );
     case 'generate_string':
       return (
-        <GenerateStringForm index={index} setIsSheetOpen={setIsSheetOpen} />
+        <GenerateStringForm
+          isReadonly={isReadonly}
+          existingConfig={
+            new GenerateString({
+              ...(valueConfig.value as PlainMessage<GenerateString>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'generateStringConfig',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
+        />
       );
     case 'generate_string_phone_number':
       return (
         <GenerateStringPhoneNumberForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
+          isReadonly={isReadonly}
+          existingConfig={
+            new GenerateStringPhoneNumber({
+              ...(valueConfig.value as PlainMessage<GenerateStringPhoneNumber>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'generateStringPhoneNumberConfig',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
         />
       );
     case 'generate_uuid':
-      return <GenerateUuidForm index={index} setIsSheetOpen={setIsSheetOpen} />;
+      return (
+        <GenerateUuidForm
+          isReadonly={isReadonly}
+          existingConfig={
+            new GenerateUuid({
+              ...(valueConfig.value as PlainMessage<GenerateUuid>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'generateUuidConfig',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
+        />
+      );
     case 'transform_e164_phone_number':
       return (
         <TransformE164NumberForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
-          transformer={transformer}
+          isReadonly={isReadonly}
+          existingConfig={
+            new TransformE164PhoneNumber({
+              ...(valueConfig.value as PlainMessage<TransformE164PhoneNumber>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'transformE164PhoneNumberConfig',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
         />
       );
     case 'transform_email':
       return (
         <TransformEmailForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
-          transformer={transformer}
+          isReadonly={isReadonly}
+          existingConfig={
+            new TransformEmail({
+              ...(valueConfig.value as PlainMessage<TransformEmail>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'transformEmailConfig',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
         />
       );
     case 'transform_first_name':
       return (
         <TransformFirstNameForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
-          transformer={transformer}
+          isReadonly={isReadonly}
+          existingConfig={
+            new TransformFirstName({
+              ...(valueConfig.value as PlainMessage<TransformFirstName>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'transformFirstNameConfig',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
         />
       );
     case 'transform_float64':
       return (
         <TransformFloatForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
-          transformer={transformer}
+          isReadonly={isReadonly}
+          existingConfig={
+            new TransformFloat64({
+              ...(valueConfig.value as PlainMessage<TransformFloat64>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'transformFloat64Config',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
         />
       );
     case 'transform_full_name':
       return (
         <TransformFullNameForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
-          transformer={transformer}
+          isReadonly={isReadonly}
+          existingConfig={
+            new TransformFullName({
+              ...(valueConfig.value as PlainMessage<TransformFullName>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'transformFullNameConfig',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
         />
       );
     case 'transform_int64':
       return (
         <TransformInt64Form
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
-          transformer={transformer}
+          isReadonly={isReadonly}
+          existingConfig={
+            new TransformInt64({
+              ...(valueConfig.value as PlainMessage<TransformInt64>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'transformInt64Config',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
         />
       );
     case 'transform_int64_phone_number':
       return (
         <TransformInt64PhoneForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
-          transformer={transformer}
+          isReadonly={isReadonly}
+          existingConfig={
+            new TransformInt64PhoneNumber({
+              ...(valueConfig.value as PlainMessage<TransformInt64PhoneNumber>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'transformInt64PhoneNumberConfig',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
         />
       );
     case 'transform_last_name':
       return (
         <TransformLastNameForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
-          transformer={transformer}
+          isReadonly={isReadonly}
+          existingConfig={
+            new TransformLastName({
+              ...(valueConfig.value as PlainMessage<TransformLastName>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'transformLastNameConfig',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
         />
       );
     case 'transform_string_phone_number':
       return (
         <TransformStringPhoneNumberForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
-          transformer={transformer}
+          isReadonly={isReadonly}
+          existingConfig={
+            new TransformPhoneNumber({
+              ...(valueConfig.value as PlainMessage<TransformPhoneNumber>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'transformPhoneNumberConfig',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
         />
       );
     case 'transform_string':
       return (
         <TransformStringForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
-          transformer={transformer}
+          isReadonly={isReadonly}
+          existingConfig={
+            new TransformString({
+              ...(valueConfig.value as PlainMessage<TransformString>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'transformStringConfig',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
         />
       );
     case 'transform_javascript':
       return (
         <TransformJavascriptForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
-          transformer={transformer}
+          isReadonly={isReadonly}
+          existingConfig={
+            new TransformJavascript({
+              ...(valueConfig.value as PlainMessage<TransformJavascript>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'transformJavascriptConfig',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
         />
       );
     case 'generate_categorical':
       return (
         <GenerateCategoricalForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
+          isReadonly={isReadonly}
+          existingConfig={
+            new GenerateCategorical({
+              ...(valueConfig.value as PlainMessage<GenerateCategorical>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'generateCategoricalConfig',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
         />
       );
     case 'transform_character_scramble':
       return (
         <TransformCharacterScrambleForm
-          index={index}
-          setIsSheetOpen={setIsSheetOpen}
-          transformer={transformer}
+          isReadonly={isReadonly}
+          existingConfig={
+            new TransformCharacterScramble({
+              ...(valueConfig.value as PlainMessage<TransformCharacterScramble>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            convertJobMappingTransformerToForm(
+              new JobMappingTransformer({
+                source: transformer.source,
+                config: new TransformerConfig({
+                  config: {
+                    case: 'transformCharacterScrambleConfig',
+                    value: newconfig,
+                  },
+                }),
+              })
+            );
+          }}
         />
       );
 

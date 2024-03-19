@@ -2,6 +2,7 @@
 
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
+import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/SchemaColumns';
 import { SchemaTable } from '@/components/jobs/SchemaTable/SchemaTable';
 import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
@@ -9,23 +10,16 @@ import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectionForeignConstraints';
 import { useGetConnectionPrimaryConstraints } from '@/libs/hooks/useGetConnectionPrimaryConstraints';
-import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
-import {
-  SCHEMA_FORM_SCHEMA,
-  SchemaFormValues,
-  convertJobMappingTransformerToForm,
-} from '@/yup-validations/jobs';
+import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
+import { SCHEMA_FORM_SCHEMA, SchemaFormValues } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   DatabaseColumn,
   ForeignConstraintTables,
-  JobMappingTransformer,
-  Passthrough,
   PrimaryConstraint,
-  TransformerConfig,
 } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
-import { ReactElement, useEffect } from 'react';
+import { ReactElement, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
@@ -69,28 +63,24 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   );
 
-  const { data: connectionSchemaData } = useGetConnectionSchema(
-    account?.id ?? '',
-    connectFormValues.sourceId
-  );
+  const { data: connectionSchemaDataMap, isValidating: isSchemaMapValidating } =
+    useGetConnectionSchemaMap(account?.id ?? '', connectFormValues.sourceId);
 
-  const { data: primaryConstraints } = useGetConnectionPrimaryConstraints(
-    account?.id ?? '',
-    connectFormValues.sourceId
-  );
+  const { data: primaryConstraints, isValidating: isPkValidating } =
+    useGetConnectionPrimaryConstraints(
+      account?.id ?? '',
+      connectFormValues.sourceId
+    );
 
-  const { data: foreignConstraints } = useGetConnectionForeignConstraints(
-    account?.id ?? '',
-    connectFormValues.sourceId
-  );
+  const { data: foreignConstraints, isValidating: isFkValidating } =
+    useGetConnectionForeignConstraints(
+      account?.id ?? '',
+      connectFormValues.sourceId
+    );
 
   const form = useForm<SchemaFormValues>({
     resolver: yupResolver<SchemaFormValues>(SCHEMA_FORM_SCHEMA),
-    values: getFormValues(
-      connectionSchemaData?.schemas ?? [],
-      connectFormValues.sourceId,
-      schemaFormData
-    ),
+    values: getFormValues(connectFormValues.sourceId, schemaFormData),
   });
 
   useFormPersist(`${sessionPrefix}-new-job-schema`, {
@@ -106,12 +96,15 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     router.push(`/${account?.name}/new/job/subset?sessionId=${sessionPrefix}`);
   }
 
-  // construct column metadata object to pass to the schema table columns
-  const columnMetadata: ColumnMetadata = {
-    pk: primaryConstraints?.tableConstraints ?? {},
-    fk: foreignConstraints?.tableConstraints ?? {},
-    isNullable: connectionSchemaData?.schemas ?? [],
-  };
+  const schemaConstraintHandler = useMemo(
+    () =>
+      getSchemaConstraintHandler(
+        connectionSchemaDataMap?.schemaMap ?? {},
+        primaryConstraints?.tableConstraints ?? {},
+        foreignConstraints?.tableConstraints ?? {}
+      ),
+    [isSchemaMapValidating, isPkValidating, isFkValidating]
+  );
 
   return (
     <div className="flex flex-col gap-5">
@@ -133,8 +126,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <SchemaTable
             data={form.watch().mappings}
-            columnMetadata={columnMetadata}
             jobType="sync"
+            constraintHandler={schemaConstraintHandler}
+            schema={connectionSchemaDataMap?.schemaMap ?? {}}
           />
           <div className="flex flex-row gap-1 justify-between">
             <Button key="back" type="button" onClick={() => router.back()}>
@@ -151,7 +145,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 }
 
 function getFormValues(
-  dbCols: DatabaseColumn[],
   connectionId: string,
   existingData: SchemaFormValues | undefined
 ): SchemaFormValues {
@@ -165,25 +158,7 @@ function getFormValues(
   }
 
   return {
-    mappings: dbCols.map((r) => {
-      return {
-        schema: r.schema,
-        table: r.table,
-        column: r.column,
-        dataType: r.dataType,
-        transformer: convertJobMappingTransformerToForm(
-          new JobMappingTransformer({
-            source: 'passthrough',
-            config: new TransformerConfig({
-              config: {
-                case: 'passthroughConfig',
-                value: new Passthrough({}),
-              },
-            }),
-          })
-        ),
-      };
-    }),
+    mappings: [],
     connectionId,
   };
 }

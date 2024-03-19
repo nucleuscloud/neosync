@@ -1,79 +1,59 @@
-'use client';
-import React, { ReactElement } from 'react';
-
-import {
-  ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  getFacetedMinMaxValues,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
-
-import { useVirtualizer } from '@tanstack/react-virtual';
-
 import {
   StickyHeaderTable,
   TableBody,
+  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { JobMappingFormValues } from '@/yup-validations/jobs';
-import { SystemTransformer, UserDefinedTransformer } from '@neosync/sdk';
-import { SchemaConstraintHandler } from './SchemaColumns';
-import { SchemaTableToolbar } from './SchemaTableToolBar';
+import { cn } from '@/libs/utils';
+import {
+  ColumnDef,
+  OnChangeFn,
+  RowSelectionState,
+  flexRender,
+  getCoreRowModel,
+  getFacetedRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
+import { useVirtualizer } from '@tanstack/react-virtual';
+import { ReactElement, useRef } from 'react';
 
-export type Row = JobMappingFormValues;
-
-interface DataTableProps<TData, TValue> {
+interface Props<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  userDefinedTransformers: UserDefinedTransformer[];
-  systemTransformers: SystemTransformer[];
-
-  userDefinedTransformerMap: Map<string, UserDefinedTransformer>;
-  systemTransformerMap: Map<string, SystemTransformer>;
-  jobType: string;
-  constraintHandler: SchemaConstraintHandler;
+  rowSelection: RowSelectionState;
+  onRowSelectionChange: OnChangeFn<RowSelectionState>;
+  tableContainerClassName?: string;
 }
 
-export default function SchemaPageTable<TData, TValue>({
-  columns,
-  data,
-  userDefinedTransformerMap,
-  userDefinedTransformers,
-  systemTransformerMap,
-  systemTransformers,
-  constraintHandler,
-}: DataTableProps<TData, TValue>): ReactElement {
+export default function ListBox<TData, TValue>(
+  props: Props<TData, TValue>
+): ReactElement {
+  const {
+    columns,
+    data,
+    rowSelection,
+    onRowSelectionChange,
+    tableContainerClassName,
+  } = props;
   const table = useReactTable({
     data,
     columns,
-    initialState: {
-      sorting: [
-        { id: 'schema', desc: true },
-        { id: 'table', desc: true },
-      ],
-      columnVisibility: {
-        schema: false,
-        table: false,
-      },
+    state: {
+      rowSelection: rowSelection,
     },
+    enableRowSelection: true,
+    onRowSelectionChange: onRowSelectionChange,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
-    getFacetedMinMaxValues: getFacetedMinMaxValues(),
   });
-
   const { rows } = table.getRowModel();
-
-  const tableContainerRef = React.useRef<HTMLDivElement>(null);
+  const tableContainerRef = useRef<HTMLDivElement>(null);
 
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
@@ -89,35 +69,28 @@ export default function SchemaPageTable<TData, TValue>({
 
   return (
     <div>
-      <div className="z-50">
-        <SchemaTableToolbar
-          table={table}
-          systemTransformerMap={systemTransformerMap}
-          systemTransformers={systemTransformers}
-          userDefinedTransformerMap={userDefinedTransformerMap}
-          userDefinedTransformers={userDefinedTransformers}
-          constraintHandler={constraintHandler}
-        />
-      </div>
       <div
-        className="rounded-md border max-h-[500px] relative overflow-x-auto"
+        className={cn(
+          'max-h-[300px] overflow-auto relative',
+          tableContainerClassName
+        )}
         ref={tableContainerRef}
       >
         <StickyHeaderTable>
-          <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 flex w-full px-2">
+          <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 flex w-full">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
-                className="flex-none custom:flex flex-row items-center justify-between w-full"
+                className="flex-none custom:flex items-center flex-row w-full px-1"
                 id="table-header-row"
               >
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead
+                      className="flex items-center"
                       key={header.id}
                       style={{ minWidth: `${header.column.getSize()}px` }}
                       colSpan={header.colSpan}
-                      className="flex items-center"
                     >
                       {header.isPlaceholder
                         ? null
@@ -133,7 +106,7 @@ export default function SchemaPageTable<TData, TValue>({
           </TableHeader>
           <TableBody
             style={{
-              height: `${rowVirtualizer.getTotalSize()}px`, //tells scrollbar how big the table is
+              height: `${rowVirtualizer.getTotalSize()}px`, // tells scrollbar how big the table is
             }}
             className="relative grid"
           >
@@ -141,30 +114,30 @@ export default function SchemaPageTable<TData, TValue>({
               const row = rows[virtualRow.index];
               return (
                 <TableRow
-                  data-index={virtualRow.index} //needed for dynamic row height measurement
-                  ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
+                  data-index={virtualRow.index} // needed for dynamic row height measurement
+                  ref={(node) => rowVirtualizer.measureElement(node)} // measure dynamic row height
                   key={row.id}
                   style={{
                     transform: `translateY(${virtualRow.start}px)`,
                   }}
-                  className="items-center flex absolute w-full justify-between px-2"
+                  className="items-center flex absolute w-full px-1"
                 >
                   {row.getVisibleCells().map((cell) => {
                     return (
-                      <td
+                      <TableCell
+                        className="px-0"
                         key={cell.id}
-                        className="py-2"
                         style={{
                           minWidth: cell.column.getSize(),
                         }}
                       >
-                        <div>
+                        <div className="truncate">
                           {flexRender(
                             cell.column.columnDef.cell,
                             cell.getContext()
                           )}
                         </div>
-                      </td>
+                      </TableCell>
                     );
                   })}
                 </TableRow>
@@ -172,12 +145,6 @@ export default function SchemaPageTable<TData, TValue>({
             })}
           </TableBody>
         </StickyHeaderTable>
-      </div>
-      <div className="text-xs text-gray-600 dark:text-300 pt-4">
-        Total rows: ({new Intl.NumberFormat('en-US').format(data.length)}) Rows
-        visible: (
-        {new Intl.NumberFormat('en-US').format(table.getRowModel().rows.length)}
-        )
       </div>
     </div>
   );

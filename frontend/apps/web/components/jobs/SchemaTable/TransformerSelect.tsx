@@ -12,11 +12,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/libs/utils';
-import {
-  Transformer,
-  isSystemTransformer,
-  isUserDefinedTransformer,
-} from '@/shared/transformers';
 import { JobMappingTransformerForm } from '@/yup-validations/jobs';
 import {
   SystemTransformer,
@@ -38,7 +33,11 @@ type Side = (typeof SIDE_OPTIONS)[number];
 var SIDE_OPTIONS: readonly ['top', 'right', 'bottom', 'left'];
 
 interface Props {
-  transformers: Transformer[];
+  userDefinedTransformers: UserDefinedTransformer[];
+  systemTransformers: SystemTransformer[];
+
+  userDefinedTransformerMap: Map<string, UserDefinedTransformer>;
+  systemTransformerMap: Map<string, SystemTransformer>;
   value: JobMappingTransformerForm;
   onSelect(value: JobMappingTransformerForm): void;
   placeholder: string;
@@ -47,30 +46,24 @@ interface Props {
 }
 
 export default function TransformerSelect(props: Props): ReactElement {
-  const { transformers, value, onSelect, placeholder, side, disabled } = props;
+  const {
+    userDefinedTransformers,
+    systemTransformers,
+    userDefinedTransformerMap,
+    systemTransformerMap,
+    value,
+    onSelect,
+    placeholder,
+    side,
+    disabled,
+  } = props;
   const [open, setOpen] = useState(false);
 
-  const udfTransformers = transformers
-    .filter(isUserDefinedTransformer)
-    .sort((a, b) => a.name.localeCompare(b.name));
-  const sysTransformers = transformers
-    .filter(isSystemTransformer)
-    .sort((a, b) => a.name.localeCompare(b.name));
-
-  const udfTransformerMap = new Map(udfTransformers.map((t) => [t.id, t]));
-  const sysTransformerMap = new Map(sysTransformers.map((t) => [t.source, t]));
-
-  return disabled ? (
-    <MockButtonWithToolTip
-      placeholder={placeholder}
-      value={value}
-      udfTransformerMap={udfTransformerMap}
-      systemTransformerMap={sysTransformerMap}
-    />
-  ) : (
+  return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          type="button"
           variant="outline"
           role="combobox"
           aria-expanded={open}
@@ -84,8 +77,8 @@ export default function TransformerSelect(props: Props): ReactElement {
           <div className="whitespace-nowrap truncate lg:w-[200px] text-left">
             {getPopoverTriggerButtonText(
               value,
-              udfTransformerMap,
-              sysTransformerMap,
+              userDefinedTransformerMap,
+              systemTransformerMap,
               placeholder
             )}
           </div>
@@ -101,50 +94,52 @@ export default function TransformerSelect(props: Props): ReactElement {
           <CommandInput placeholder={placeholder} />
           <CommandEmpty>No transformers found.</CommandEmpty>
           <div className="max-h-[450px] overflow-y-scroll">
-            <CommandGroup heading="Custom">
-              {udfTransformers.map((t) => {
-                return (
-                  <CommandItem
-                    key={t.id}
-                    onSelect={() => {
-                      onSelect({
-                        source: 'custom',
-                        config: {
-                          case: 'userDefinedTransformerConfig',
-                          value: new UserDefinedTransformerConfig({
-                            id: t.id,
-                          }),
-                        },
-                      });
-                      setOpen(false);
-                    }}
-                    value={t.name}
-                  >
-                    <div className="flex flex-row items-center justify-between w-full">
-                      <div className="flex flex-row items-center">
-                        <CheckIcon
-                          className={cn(
-                            'mr-2 h-4 w-4',
-                            value?.config?.case ===
-                              'userDefinedTransformerConfig' &&
-                              value?.source === 'custom' &&
-                              value.config.value.id === t.id
-                              ? 'opacity-100'
-                              : 'opacity-0'
-                          )}
-                        />
-                        <div className="items-center">{t?.name}</div>
+            {userDefinedTransformers.length > 0 && (
+              <CommandGroup heading="Custom">
+                {userDefinedTransformers.map((t) => {
+                  return (
+                    <CommandItem
+                      key={t.id}
+                      onSelect={() => {
+                        onSelect({
+                          source: 'custom',
+                          config: {
+                            case: 'userDefinedTransformerConfig',
+                            value: new UserDefinedTransformerConfig({
+                              id: t.id,
+                            }),
+                          },
+                        });
+                        setOpen(false);
+                      }}
+                      value={t.name}
+                    >
+                      <div className="flex flex-row items-center justify-between w-full">
+                        <div className="flex flex-row items-center">
+                          <CheckIcon
+                            className={cn(
+                              'mr-2 h-4 w-4',
+                              value?.config?.case ===
+                                'userDefinedTransformerConfig' &&
+                                value?.source === 'custom' &&
+                                value.config.value.id === t.id
+                                ? 'opacity-100'
+                                : 'opacity-0'
+                            )}
+                          />
+                          <div className="items-center">{t?.name}</div>
+                        </div>
+                        <div className="ml-2 text-gray-400 text-xs">
+                          {t.dataType}
+                        </div>
                       </div>
-                      <div className="ml-2 text-gray-400 text-xs">
-                        {t.dataType}
-                      </div>
-                    </div>
-                  </CommandItem>
-                );
-              })}
-            </CommandGroup>
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            )}
             <CommandGroup heading="System">
-              {sysTransformers.map((t) => {
+              {systemTransformers.map((t) => {
                 return (
                   <CommandItem
                     key={t.source}
