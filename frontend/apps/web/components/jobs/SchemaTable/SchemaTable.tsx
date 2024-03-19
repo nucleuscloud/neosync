@@ -166,7 +166,7 @@ export function SchemaTable(props: Props): ReactElement {
             <CardHeader className="p-3 pb-0">
               <CardTitle>Validation Errors</CardTitle>
               <CardDescription className="max-w-[350px]">
-                Shows any validation errors found on the form
+                Validation errors must be fixed prior to submitting the form
               </CardDescription>
             </CardHeader>
             <CardContent className="p-3">
