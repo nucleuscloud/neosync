@@ -61,7 +61,6 @@ func init() {
 
 				excludeStringSlice = append(excludeStringSlice, val)
 			}
-
 		}
 
 		return func() (any, error) {
