@@ -27,6 +27,7 @@ import (
 
 const (
 	generateDefault            = "generate_default"
+	passthrough                = "passthrough"
 	dbDefault                  = "DEFAULT"
 	jobmappingSubsetErrMsg     = "job mappings are not equal to or a subset of the database schema found in the source connection"
 	haltOnSchemaAdditionErrMsg = "job mappings does not contain a column mapping for all " +
@@ -1043,7 +1044,7 @@ func createSqlUpdateBenthosConfig(
 
 func hasTransformer(t string) bool {
 	return t != "" &&
-		t != "passthrough"
+		t != passthrough
 }
 
 type sqlSourceTableOptions struct {
@@ -1566,7 +1567,7 @@ func buildRedisGetBranchConfig(
 func shouldProcessColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {
 	return t != nil &&
 		t.Source != "" &&
-		t.Source != "passthrough" &&
+		t.Source != passthrough &&
 		t.Source != "generate_default"
 }
 
@@ -1574,7 +1575,7 @@ func shouldProcessFkColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {
 	return t != nil &&
 		t.Source != "" &&
 		t.Source != "null" &&
-		t.Source != "passthrough" &&
+		t.Source != passthrough &&
 		t.Source != "generate_default"
 }
 
