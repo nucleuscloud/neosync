@@ -76,7 +76,7 @@ export function SchemaTableToolbar<TData>({
             onSelect={(value) => {
               setBulkTransformer(value);
             }}
-            placeholder="Bulk update Transformers"
+            placeholder="Bulk set transformers"
             disabled={!hasSelectedRows}
           />
           <Button

@@ -302,7 +302,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
               </div>
               <div>
                 {isForeignKey && (
-                  <TooltipProvider>
+                  <TooltipProvider delayDuration={200}>
                     <Tooltip>
                       <TooltipTrigger>
                         <Badge
