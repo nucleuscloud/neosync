@@ -282,6 +282,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
+            onSubmit(
             convertJobMappingTransformerToForm(
               new JobMappingTransformer({
                 source: transformer.source,
@@ -292,6 +293,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
                   },
                 }),
               })
+              )
             );
           }}
         />
@@ -306,6 +308,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
+            onSubmit(
             convertJobMappingTransformerToForm(
               new JobMappingTransformer({
                 source: transformer.source,
@@ -316,6 +319,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
                   },
                 }),
               })
+              )
             );
           }}
         />
@@ -330,6 +334,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
+            onSubmit(
             convertJobMappingTransformerToForm(
               new JobMappingTransformer({
                 source: transformer.source,
@@ -340,6 +345,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
                   },
                 }),
               })
+              )
             );
           }}
         />
@@ -354,6 +360,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
+            onSubmit(
             convertJobMappingTransformerToForm(
               new JobMappingTransformer({
                 source: transformer.source,
@@ -364,6 +371,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
                   },
                 }),
               })
+              )
             );
           }}
         />
@@ -378,6 +386,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
+            onSubmit(
             convertJobMappingTransformerToForm(
               new JobMappingTransformer({
                 source: transformer.source,
@@ -388,6 +397,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
                   },
                 }),
               })
+              )
             );
           }}
         />
@@ -402,6 +412,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
+            onSubmit(
             convertJobMappingTransformerToForm(
               new JobMappingTransformer({
                 source: transformer.source,
@@ -412,6 +423,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
                   },
                 }),
               })
+              )
             );
           }}
         />
@@ -426,6 +438,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
+            onSubmit(
             convertJobMappingTransformerToForm(
               new JobMappingTransformer({
                 source: transformer.source,
@@ -436,6 +449,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
                   },
                 }),
               })
+              )
             );
           }}
         />
@@ -450,6 +464,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
+            onSubmit(
             convertJobMappingTransformerToForm(
               new JobMappingTransformer({
                 source: transformer.source,
@@ -460,6 +475,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
                   },
                 }),
               })
+              )
             );
           }}
         />
@@ -474,6 +490,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
+            onSubmit(
             convertJobMappingTransformerToForm(
               new JobMappingTransformer({
                 source: transformer.source,
@@ -484,6 +501,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
                   },
                 }),
               })
+              )
             );
           }}
         />
@@ -498,6 +516,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
+            onSubmit(
             convertJobMappingTransformerToForm(
               new JobMappingTransformer({
                 source: transformer.source,
@@ -508,6 +527,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
                   },
                 }),
               })
+              )
             );
           }}
         />
@@ -522,6 +542,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
+            onSubmit(
             convertJobMappingTransformerToForm(
               new JobMappingTransformer({
                 source: transformer.source,
@@ -532,6 +553,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
                   },
                 }),
               })
+              )
             );
           }}
         />
@@ -546,6 +568,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
+            onSubmit(
             convertJobMappingTransformerToForm(
               new JobMappingTransformer({
                 source: transformer.source,
@@ -556,6 +579,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
                   },
                 }),
               })
+              )
             );
           }}
         />
@@ -570,6 +594,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
+            onSubmit(
             convertJobMappingTransformerToForm(
               new JobMappingTransformer({
                 source: transformer.source,
@@ -580,6 +605,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
                   },
                 }),
               })
+              )
             );
           }}
         />
@@ -594,6 +620,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
+            onSubmit(
             convertJobMappingTransformerToForm(
               new JobMappingTransformer({
                 source: transformer.source,
@@ -604,6 +631,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
                   },
                 }),
               })
+              )
             );
           }}
         />
@@ -618,6 +646,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
+            onSubmit(
             convertJobMappingTransformerToForm(
               new JobMappingTransformer({
                 source: transformer.source,
@@ -628,6 +657,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
                   },
                 }),
               })
+              )
             );
           }}
         />
@@ -642,6 +672,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
+            onSubmit(
             convertJobMappingTransformerToForm(
               new JobMappingTransformer({
                 source: transformer.source,
@@ -652,6 +683,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
                   },
                 }),
               })
+              )
             );
           }}
         />
@@ -666,6 +698,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
+            onSubmit(
             convertJobMappingTransformerToForm(
               new JobMappingTransformer({
                 source: transformer.source,
@@ -676,6 +709,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
                   },
                 }),
               })
+              )
             );
           }}
         />
@@ -690,6 +724,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
+            onSubmit(
             convertJobMappingTransformerToForm(
               new JobMappingTransformer({
                 source: transformer.source,
@@ -700,6 +735,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
                   },
                 }),
               })
+              )
             );
           }}
         />
