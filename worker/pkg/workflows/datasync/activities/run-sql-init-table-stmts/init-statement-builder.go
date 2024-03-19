@@ -215,7 +215,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 
 				// create statements
 				if initSchema {
-					tableForeignDependencyMap := getForeignToPrimaryTableMap(tableDependencies, uniqueTables)
+					tableForeignDependencyMap := getFilteredForeignToPrimaryTableMap(tableDependencies, uniqueTables)
 					orderedTables, err := tabledependency.GetTablesOrderedByDependency(tableForeignDependencyMap)
 					if err != nil {
 						return nil, err
@@ -258,7 +258,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 						return nil, fmt.Errorf("unable to exec truncate cascade statements: %w", err)
 					}
 				} else if truncateBeforeInsert {
-					tablePrimaryDependencyMap := getForeignToPrimaryTableMap(tableDependencies, uniqueTables)
+					tablePrimaryDependencyMap := getFilteredForeignToPrimaryTableMap(tableDependencies, uniqueTables)
 					orderedTables, err := tabledependency.GetTablesOrderedByDependency(tablePrimaryDependencyMap)
 					if err != nil {
 						return nil, err
@@ -313,7 +313,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 
 				// create statements
 				if initSchema {
-					tableForeignDependencyMap := getForeignToPrimaryTableMap(tableDependencies, uniqueTables)
+					tableForeignDependencyMap := getFilteredForeignToPrimaryTableMap(tableDependencies, uniqueTables)
 					orderedTables, err := tabledependency.GetTablesOrderedByDependency(tableForeignDependencyMap)
 					if err != nil {
 						return nil, err
@@ -436,7 +436,8 @@ func (b *initStatementBuilder) getCreateStatementFromMysql(
 	return stmt, nil
 }
 
-func getForeignToPrimaryTableMap(td map[string]*dbschemas_utils.TableConstraints, uniqueTables map[string]struct{}) map[string][]string {
+// filtered by tables found in job mappings
+func getFilteredForeignToPrimaryTableMap(td map[string]*dbschemas_utils.TableConstraints, uniqueTables map[string]struct{}) map[string][]string {
 	dpMap := map[string][]string{}
 	for table := range uniqueTables {
 		_, dpOk := dpMap[table]
@@ -448,7 +449,11 @@ func getForeignToPrimaryTableMap(td map[string]*dbschemas_utils.TableConstraints
 			continue
 		}
 		for _, dep := range constraints.Constraints {
-			dpMap[table] = append(dpMap[table], dep.ForeignKey.Table)
+			_, ok := uniqueTables[dep.ForeignKey.Table]
+			// only add to map if dependency is an included table
+			if ok {
+				dpMap[table] = append(dpMap[table], dep.ForeignKey.Table)
+			}
 		}
 	}
 	return dpMap
