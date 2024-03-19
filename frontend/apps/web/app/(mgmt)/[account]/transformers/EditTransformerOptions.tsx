@@ -282,16 +282,18 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
-            convertJobMappingTransformerToForm(
-              new JobMappingTransformer({
-                source: transformer.source,
-                config: new TransformerConfig({
-                  config: {
-                    case: 'generateGenderConfig',
-                    value: newconfig,
-                  },
-                }),
-              })
+            onSubmit(
+              convertJobMappingTransformerToForm(
+                new JobMappingTransformer({
+                  source: transformer.source,
+                  config: new TransformerConfig({
+                    config: {
+                      case: 'generateGenderConfig',
+                      value: newconfig,
+                    },
+                  }),
+                })
+              )
             );
           }}
         />
@@ -306,16 +308,18 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
-            convertJobMappingTransformerToForm(
-              new JobMappingTransformer({
-                source: transformer.source,
-                config: new TransformerConfig({
-                  config: {
-                    case: 'generateInt64Config',
-                    value: newconfig,
-                  },
-                }),
-              })
+            onSubmit(
+              convertJobMappingTransformerToForm(
+                new JobMappingTransformer({
+                  source: transformer.source,
+                  config: new TransformerConfig({
+                    config: {
+                      case: 'generateInt64Config',
+                      value: newconfig,
+                    },
+                  }),
+                })
+              )
             );
           }}
         />
@@ -330,16 +334,18 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
-            convertJobMappingTransformerToForm(
-              new JobMappingTransformer({
-                source: transformer.source,
-                config: new TransformerConfig({
-                  config: {
-                    case: 'generateStringConfig',
-                    value: newconfig,
-                  },
-                }),
-              })
+            onSubmit(
+              convertJobMappingTransformerToForm(
+                new JobMappingTransformer({
+                  source: transformer.source,
+                  config: new TransformerConfig({
+                    config: {
+                      case: 'generateStringConfig',
+                      value: newconfig,
+                    },
+                  }),
+                })
+              )
             );
           }}
         />
@@ -354,16 +360,18 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
-            convertJobMappingTransformerToForm(
-              new JobMappingTransformer({
-                source: transformer.source,
-                config: new TransformerConfig({
-                  config: {
-                    case: 'generateStringPhoneNumberConfig',
-                    value: newconfig,
-                  },
-                }),
-              })
+            onSubmit(
+              convertJobMappingTransformerToForm(
+                new JobMappingTransformer({
+                  source: transformer.source,
+                  config: new TransformerConfig({
+                    config: {
+                      case: 'generateStringPhoneNumberConfig',
+                      value: newconfig,
+                    },
+                  }),
+                })
+              )
             );
           }}
         />
@@ -378,16 +386,18 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
-            convertJobMappingTransformerToForm(
-              new JobMappingTransformer({
-                source: transformer.source,
-                config: new TransformerConfig({
-                  config: {
-                    case: 'generateUuidConfig',
-                    value: newconfig,
-                  },
-                }),
-              })
+            onSubmit(
+              convertJobMappingTransformerToForm(
+                new JobMappingTransformer({
+                  source: transformer.source,
+                  config: new TransformerConfig({
+                    config: {
+                      case: 'generateUuidConfig',
+                      value: newconfig,
+                    },
+                  }),
+                })
+              )
             );
           }}
         />
@@ -402,16 +412,18 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
-            convertJobMappingTransformerToForm(
-              new JobMappingTransformer({
-                source: transformer.source,
-                config: new TransformerConfig({
-                  config: {
-                    case: 'transformE164PhoneNumberConfig',
-                    value: newconfig,
-                  },
-                }),
-              })
+            onSubmit(
+              convertJobMappingTransformerToForm(
+                new JobMappingTransformer({
+                  source: transformer.source,
+                  config: new TransformerConfig({
+                    config: {
+                      case: 'transformE164PhoneNumberConfig',
+                      value: newconfig,
+                    },
+                  }),
+                })
+              )
             );
           }}
         />
@@ -426,16 +438,18 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
-            convertJobMappingTransformerToForm(
-              new JobMappingTransformer({
-                source: transformer.source,
-                config: new TransformerConfig({
-                  config: {
-                    case: 'transformEmailConfig',
-                    value: newconfig,
-                  },
-                }),
-              })
+            onSubmit(
+              convertJobMappingTransformerToForm(
+                new JobMappingTransformer({
+                  source: transformer.source,
+                  config: new TransformerConfig({
+                    config: {
+                      case: 'transformEmailConfig',
+                      value: newconfig,
+                    },
+                  }),
+                })
+              )
             );
           }}
         />
@@ -450,16 +464,18 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
-            convertJobMappingTransformerToForm(
-              new JobMappingTransformer({
-                source: transformer.source,
-                config: new TransformerConfig({
-                  config: {
-                    case: 'transformFirstNameConfig',
-                    value: newconfig,
-                  },
-                }),
-              })
+            onSubmit(
+              convertJobMappingTransformerToForm(
+                new JobMappingTransformer({
+                  source: transformer.source,
+                  config: new TransformerConfig({
+                    config: {
+                      case: 'transformFirstNameConfig',
+                      value: newconfig,
+                    },
+                  }),
+                })
+              )
             );
           }}
         />
@@ -474,16 +490,18 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
-            convertJobMappingTransformerToForm(
-              new JobMappingTransformer({
-                source: transformer.source,
-                config: new TransformerConfig({
-                  config: {
-                    case: 'transformFloat64Config',
-                    value: newconfig,
-                  },
-                }),
-              })
+            onSubmit(
+              convertJobMappingTransformerToForm(
+                new JobMappingTransformer({
+                  source: transformer.source,
+                  config: new TransformerConfig({
+                    config: {
+                      case: 'transformFloat64Config',
+                      value: newconfig,
+                    },
+                  }),
+                })
+              )
             );
           }}
         />
@@ -498,16 +516,18 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
-            convertJobMappingTransformerToForm(
-              new JobMappingTransformer({
-                source: transformer.source,
-                config: new TransformerConfig({
-                  config: {
-                    case: 'transformFullNameConfig',
-                    value: newconfig,
-                  },
-                }),
-              })
+            onSubmit(
+              convertJobMappingTransformerToForm(
+                new JobMappingTransformer({
+                  source: transformer.source,
+                  config: new TransformerConfig({
+                    config: {
+                      case: 'transformFullNameConfig',
+                      value: newconfig,
+                    },
+                  }),
+                })
+              )
             );
           }}
         />
@@ -522,16 +542,18 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
-            convertJobMappingTransformerToForm(
-              new JobMappingTransformer({
-                source: transformer.source,
-                config: new TransformerConfig({
-                  config: {
-                    case: 'transformInt64Config',
-                    value: newconfig,
-                  },
-                }),
-              })
+            onSubmit(
+              convertJobMappingTransformerToForm(
+                new JobMappingTransformer({
+                  source: transformer.source,
+                  config: new TransformerConfig({
+                    config: {
+                      case: 'transformInt64Config',
+                      value: newconfig,
+                    },
+                  }),
+                })
+              )
             );
           }}
         />
@@ -546,16 +568,18 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
-            convertJobMappingTransformerToForm(
-              new JobMappingTransformer({
-                source: transformer.source,
-                config: new TransformerConfig({
-                  config: {
-                    case: 'transformInt64PhoneNumberConfig',
-                    value: newconfig,
-                  },
-                }),
-              })
+            onSubmit(
+              convertJobMappingTransformerToForm(
+                new JobMappingTransformer({
+                  source: transformer.source,
+                  config: new TransformerConfig({
+                    config: {
+                      case: 'transformInt64PhoneNumberConfig',
+                      value: newconfig,
+                    },
+                  }),
+                })
+              )
             );
           }}
         />
@@ -570,16 +594,18 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
-            convertJobMappingTransformerToForm(
-              new JobMappingTransformer({
-                source: transformer.source,
-                config: new TransformerConfig({
-                  config: {
-                    case: 'transformLastNameConfig',
-                    value: newconfig,
-                  },
-                }),
-              })
+            onSubmit(
+              convertJobMappingTransformerToForm(
+                new JobMappingTransformer({
+                  source: transformer.source,
+                  config: new TransformerConfig({
+                    config: {
+                      case: 'transformLastNameConfig',
+                      value: newconfig,
+                    },
+                  }),
+                })
+              )
             );
           }}
         />
@@ -594,16 +620,18 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
-            convertJobMappingTransformerToForm(
-              new JobMappingTransformer({
-                source: transformer.source,
-                config: new TransformerConfig({
-                  config: {
-                    case: 'transformPhoneNumberConfig',
-                    value: newconfig,
-                  },
-                }),
-              })
+            onSubmit(
+              convertJobMappingTransformerToForm(
+                new JobMappingTransformer({
+                  source: transformer.source,
+                  config: new TransformerConfig({
+                    config: {
+                      case: 'transformPhoneNumberConfig',
+                      value: newconfig,
+                    },
+                  }),
+                })
+              )
             );
           }}
         />
@@ -618,16 +646,18 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
-            convertJobMappingTransformerToForm(
-              new JobMappingTransformer({
-                source: transformer.source,
-                config: new TransformerConfig({
-                  config: {
-                    case: 'transformStringConfig',
-                    value: newconfig,
-                  },
-                }),
-              })
+            onSubmit(
+              convertJobMappingTransformerToForm(
+                new JobMappingTransformer({
+                  source: transformer.source,
+                  config: new TransformerConfig({
+                    config: {
+                      case: 'transformStringConfig',
+                      value: newconfig,
+                    },
+                  }),
+                })
+              )
             );
           }}
         />
@@ -642,16 +672,18 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
-            convertJobMappingTransformerToForm(
-              new JobMappingTransformer({
-                source: transformer.source,
-                config: new TransformerConfig({
-                  config: {
-                    case: 'transformJavascriptConfig',
-                    value: newconfig,
-                  },
-                }),
-              })
+            onSubmit(
+              convertJobMappingTransformerToForm(
+                new JobMappingTransformer({
+                  source: transformer.source,
+                  config: new TransformerConfig({
+                    config: {
+                      case: 'transformJavascriptConfig',
+                      value: newconfig,
+                    },
+                  }),
+                })
+              )
             );
           }}
         />
@@ -666,16 +698,18 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
-            convertJobMappingTransformerToForm(
-              new JobMappingTransformer({
-                source: transformer.source,
-                config: new TransformerConfig({
-                  config: {
-                    case: 'generateCategoricalConfig',
-                    value: newconfig,
-                  },
-                }),
-              })
+            onSubmit(
+              convertJobMappingTransformerToForm(
+                new JobMappingTransformer({
+                  source: transformer.source,
+                  config: new TransformerConfig({
+                    config: {
+                      case: 'generateCategoricalConfig',
+                      value: newconfig,
+                    },
+                  }),
+                })
+              )
             );
           }}
         />
@@ -690,16 +724,18 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
             })
           }
           onSubmit={(newconfig) => {
-            convertJobMappingTransformerToForm(
-              new JobMappingTransformer({
-                source: transformer.source,
-                config: new TransformerConfig({
-                  config: {
-                    case: 'transformCharacterScrambleConfig',
-                    value: newconfig,
-                  },
-                }),
-              })
+            onSubmit(
+              convertJobMappingTransformerToForm(
+                new JobMappingTransformer({
+                  source: transformer.source,
+                  config: new TransformerConfig({
+                    config: {
+                      case: 'transformCharacterScrambleConfig',
+                      value: newconfig,
+                    },
+                  }),
+                })
+              )
             );
           }}
         />
