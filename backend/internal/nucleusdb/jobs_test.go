@@ -120,7 +120,8 @@ func Test_SetSqlSourceSubsets(t *testing.T) {
 		ID: jobUuid,
 		ConnectionOptions: &pg_models.JobSourceOptions{
 			PostgresOptions: &pg_models.PostgresSourceOptions{
-				ConnectionId: UUIDString(connUuid),
+				ConnectionId:                  UUIDString(connUuid),
+				SubsetByForeignKeyConstraints: true,
 				Schemas: []*pg_models.PostgresSourceSchemaOption{
 					{Schema: "schema", Tables: []*pg_models.PostgresSourceTableOption{{Table: "table-1", WhereClause: &whereClause}}},
 				},
