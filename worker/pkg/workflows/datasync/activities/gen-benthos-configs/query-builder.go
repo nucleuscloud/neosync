@@ -106,7 +106,19 @@ func buildSelectRecursiveQuery(
 	whereClauses []string,
 ) (string, error) {
 	recursiveCteAlias := "related"
-	builder := goqu.Dialect(driver)
+	var builder goqu.DialectWrapper
+	if driver == mysqlDriver {
+		opts := goqu.DefaultDialectOptions()
+		opts.QuoteRune = '`'
+		opts.SupportsWithCTERecursive = true
+		opts.SupportsWithCTE = true
+		dialectName := "custom-mysql-dialect"
+		goqu.RegisterDialect(dialectName, opts)
+		builder = goqu.Dialect(dialectName)
+	} else {
+		builder = goqu.Dialect(driver)
+	}
+
 	sqltable := goqu.S(schema).Table(table)
 
 	selectColumns := make([]any, len(columns))

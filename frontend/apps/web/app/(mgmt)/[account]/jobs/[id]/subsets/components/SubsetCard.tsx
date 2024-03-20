@@ -20,12 +20,16 @@ import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 import { getErrorMessage } from '@/util/util';
-import { toPostgresSourceSchemaOptions } from '@/yup-validations/jobs';
+import {
+  toMysqlSourceSchemaOptions,
+  toPostgresSourceSchemaOptions,
+} from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   GetJobResponse,
   JobSourceOptions,
   JobSourceSqlSubetSchemas,
+  MysqlSourceSchemaSubset,
   PostgresSourceSchemaSubset,
   SetJobSourceSqlConnectionSubsetsRequest,
   SetJobSourceSqlConnectionSubsetsResponse,
@@ -88,7 +92,8 @@ export default function SubsetCard(props: Props): ReactElement {
       const updatedJobRes = await setJobSubsets(
         account?.id ?? '',
         jobId,
-        values
+        values,
+        dbType
       );
       toast({
         title: 'Successfully updated database subsets',
@@ -259,8 +264,27 @@ function getFormValues(sourceOpts?: JobSourceOptions): SubsetFormValues {
 async function setJobSubsets(
   accountId: string,
   jobId: string,
-  values: SubsetFormValues
+  values: SubsetFormValues,
+  dbType: string
 ): Promise<SetJobSourceSqlConnectionSubsetsResponse> {
+  const schemas =
+    dbType == 'mysql'
+      ? new JobSourceSqlSubetSchemas({
+          schemas: {
+            case: 'mysqlSubset',
+            value: new MysqlSourceSchemaSubset({
+              mysqlSchemas: toMysqlSourceSchemaOptions(values.subsets),
+            }),
+          },
+        })
+      : new JobSourceSqlSubetSchemas({
+          schemas: {
+            case: 'postgresSubset',
+            value: new PostgresSourceSchemaSubset({
+              postgresSchemas: toPostgresSourceSchemaOptions(values.subsets),
+            }),
+          },
+        });
   const res = await fetch(
     `/api/accounts/${accountId}/jobs/${jobId}/source-connection/subsets`,
     {
@@ -273,14 +297,7 @@ async function setJobSubsets(
           id: jobId,
           subsetByForeignKeyConstraints:
             values.subsetOptions.subsetByForeignKeyConstraints,
-          schemas: new JobSourceSqlSubetSchemas({
-            schemas: {
-              case: 'postgresSubset',
-              value: new PostgresSourceSchemaSubset({
-                postgresSchemas: toPostgresSourceSchemaOptions(values.subsets),
-              }),
-            },
-          }),
+          schemas,
         })
       ),
     }
