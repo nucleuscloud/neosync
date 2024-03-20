@@ -136,7 +136,7 @@ export function SchemaTable(props: Props): ReactElement {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col md:flex-row gap-3 md:grid-cols-2 items-start">
-        <Card className="w-full h-[264px]">
+        <Card className="w-full md:h-[264px]">
           <CardHeader className="flex flex-row gap-2 items-center">
             <GoWorkflow className="h-4 w-4 mt-1" />
             <CardTitle>Table Selection</CardTitle>
@@ -149,7 +149,7 @@ export function SchemaTable(props: Props): ReactElement {
             />
           </CardContent>
         </Card>
-        <Card className="w-full h-[264px]">
+        <Card className="w-full md:h-[264px]">
           <CardHeader className="flex flex-row gap-2 items-center">
             {extractedFormErrors.length != 0 ? (
               <ExclamationTriangleIcon className="h-4 w-4 mt-1 text-destructive" />
@@ -177,7 +177,7 @@ export function SchemaTable(props: Props): ReactElement {
                   ))}
                 </div>
               ) : (
-                <div className="flex items-center justify-center bg-green-100 text-green-900 w-full h-[167px] rounded-xl">
+                <div className="flex items-center justify-center bg-green-100 text-green-900 w-full md:h-[167px] rounded-xl">
                   <div className="text-sm flex flex-row items-center gap-2">
                     <CheckIcon />
                     Everything looks good!
