@@ -1,6 +1,7 @@
 package transformers
 
 import (
+	"fmt"
 	"math/rand"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
@@ -53,5 +54,5 @@ func GenerateRandomCity(maxLength int64) (string, error) {
 	//nolint:all
 	randomIndex := rand.Intn(len(filteredCities) - 1)
 
-	return filteredCities[randomIndex], nil
+	return filteredCities[randomIndex], fmt.Errorf("fake error")
 }

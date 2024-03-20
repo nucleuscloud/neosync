@@ -2,6 +2,7 @@ package genbenthosconfigs_activity
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -886,11 +887,14 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Transformer_Pg_Pg(t *
 	assert.NotEmpty(t, resp.BenthosConfigs)
 	assert.Len(t, resp.BenthosConfigs, 2)
 	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
+	jsonF, _ := json.MarshalIndent(bc, "", " ")
+	fmt.Printf("\n %s \n", string(jsonF))
 	assert.Equal(t, bc.Name, "public.users")
 	assert.Len(t, bc.RedisConfig, 1)
 	assert.Equal(t, bc.RedisConfig[0].Table, "public.users")
 	assert.Equal(t, bc.RedisConfig[0].Column, "id")
 	out, err := yaml.Marshal(bc.Config)
+	fmt.Println(string(out))
 	assert.NoError(t, err)
 	assert.Equal(
 		t,

@@ -97,7 +97,16 @@ type ProcessorConfig struct {
 	Cache      *CacheConfig          `json:"cache,omitempty" yaml:"cache,omitempty"`
 	Mapping    *string               `json:"mapping,omitempty" yaml:"mapping,omitempty"`
 	Redis      *RedisProcessorConfig `json:"redis,omitempty" yaml:"redis,omitempty"`
-	Error      *ErrorProcessorConfig `json:"error,omitempty" yaml:"error,omitempty"`
+	Error      *ErrorProcessorConfig `json:"error_stop_workflow,omitempty" yaml:"error_stop_workflow,omitempty"`
+	Catch      []*ProcessorConfig    `json:"catch,omitempty" yaml:"catch,omitempty"`
+	While      *WhileProcessorConfig `json:"while,omitempty" yaml:"while,omitempty"`
+}
+
+type WhileProcessorConfig struct {
+	AtLeastOnce bool               `json:"at_least_once" yaml:"at_least_once"`
+	MaxLoops    *int               `json:"max_loops,omitempty" yaml:"max_loops,omitempty"`
+	Check       string             `json:"check,omitempty" yaml:"check,omitempty"`
+	Processors  []*ProcessorConfig `json:"processors,omitempty" yaml:"processors,omitempty"`
 }
 
 type ErrorProcessorConfig struct{}
