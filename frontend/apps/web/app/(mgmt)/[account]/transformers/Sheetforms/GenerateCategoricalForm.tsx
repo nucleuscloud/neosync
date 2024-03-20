@@ -9,9 +9,11 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { GenerateCategorical } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
+import { TRANSFORMER_SCHEMA_CONFIGS } from '../../new/transformer/schema';
 import { TransformerFormProps } from './util';
 interface Props extends TransformerFormProps<GenerateCategorical> {}
 
@@ -20,8 +22,9 @@ export default function GenerateCategoricalForm(props: Props): ReactElement {
 
   const form = useForm({
     mode: 'onChange',
+    resolver: yupResolver(TRANSFORMER_SCHEMA_CONFIGS.generateCategoricalConfig),
     defaultValues: {
-      ...existingConfig,
+      categories: existingConfig?.categories ?? '',
     },
   });
 

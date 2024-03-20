@@ -59,7 +59,6 @@ export function convertTransformerConfigToForm(
 export function convertTransformerConfigSchemaToTransformerConfig(
   tcs: TransformerConfigSchema
 ): TransformerConfig {
-  console.log(tcs.case, tcs.value, typeof tcs.value);
   return tcs instanceof TransformerConfig
     ? tcs
     : TransformerConfig.fromJson({

@@ -11,10 +11,12 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { GenerateFloat64 } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
-import { TransformerFormProps } from './util';
+import { TRANSFORMER_SCHEMA_CONFIGS } from '../../new/transformer/schema';
+import { TransformerFormProps, setBigIntOrOld } from './util';
 interface Props extends TransformerFormProps<GenerateFloat64> {}
 
 export default function GenerateFloat64Form(props: Props): ReactElement {
@@ -22,8 +24,11 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
 
   const form = useForm({
     mode: 'onChange',
+    resolver: yupResolver(TRANSFORMER_SCHEMA_CONFIGS.generateFloat64Config),
     defaultValues: {
-      ...existingConfig,
+      precision: existingConfig?.precision ?? BigInt(0),
+      min: existingConfig?.min ?? BigInt(0),
+      max: existingConfig?.max ?? BigInt(40),
     },
   });
 
@@ -71,9 +76,11 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
                   {...field}
                   className="max-w-[180px]"
                   type="number"
-                  value={String(field.value)}
+                  value={field.value ? field.value.toString() : 0}
                   onChange={(event) => {
-                    field.onChange(event.target.valueAsNumber);
+                    field.onChange(
+                      setBigIntOrOld(event.target.valueAsNumber, field.value)
+                    );
                   }}
                   disabled={isReadonly}
                 />
@@ -99,9 +106,11 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
                   {...field}
                   className="max-w-[180px]"
                   type="number"
-                  value={String(field.value)}
+                  value={field.value ? field.value.toString() : 0}
                   onChange={(event) => {
-                    field.onChange(event.target.valueAsNumber);
+                    field.onChange(
+                      setBigIntOrOld(event.target.valueAsNumber, field.value)
+                    );
                   }}
                   disabled={isReadonly}
                 />
@@ -131,7 +140,9 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
                   className="max-w-[180px]"
                   value={field.value ? field.value.toString() : 0}
                   onChange={(event) => {
-                    field.onChange(BigInt(event.target.valueAsNumber));
+                    field.onChange(
+                      setBigIntOrOld(event.target.valueAsNumber, field.value)
+                    );
                   }}
                   disabled={isReadonly}
                 />

@@ -5,51 +5,6 @@ import {
 import * as Yup from 'yup';
 import { IsUserJavascriptCodeValid } from './UserDefinedTransformerForms/UserDefinedTransformJavascriptForm';
 
-const transformEmailConfig = Yup.object().shape({
-  preserveDomain: Yup.boolean().required('This field is required.'),
-  preserveLength: Yup.boolean().required('This field is required.'),
-});
-
-const generateCardNumberConfig = Yup.object().shape({
-  validLuhn: Yup.boolean().required('This field is required.'),
-});
-
-const generateInternationalPhoneNumberConfig = Yup.object().shape({
-  min: Yup.number()
-    .min(9, 'The value must be greater than or equal to 9.')
-    .max(15, 'The value must be less than or equal 15.')
-    .required('This field is required.')
-    .test('is-less-than-max', 'Min must be less than Max', function (value) {
-      const { max } = this.parent;
-      return !max || !value || value <= max;
-    }),
-  max: Yup.number()
-    .min(9, 'The value must be greater than or equal to 9.')
-    .max(15, 'The value must be less than or equal 15.')
-    .required('This field is required.')
-    .test(
-      'is-greater-than-min',
-      'Max must be greater than Min',
-      function (value) {
-        const { min } = this.parent;
-        return !min || !value || value >= min;
-      }
-    ),
-});
-const generateFloat64Config = Yup.object().shape({
-  randomizeSign: Yup.bool(),
-  min: Yup.number().required('This field is required.'),
-  max: Yup.number().required('This field is required.'),
-  precision: Yup.number()
-    .required('This field is required.')
-    .min(1, 'The value must be greater than or equal to 1.')
-    .max(17, 'The value must be less than or equal 17.'),
-});
-
-const generateGenderConfig = Yup.object().shape({
-  abbreviate: Yup.boolean().required('This field is required.'),
-});
-
 const bigIntValidator = Yup.mixed<bigint>().test(
   'is-bigint',
   'Value must be bigint',
@@ -95,6 +50,69 @@ function getBigIntMaxValidator(
     }
   };
 }
+
+const transformEmailConfig = Yup.object().shape({
+  preserveDomain: Yup.boolean()
+    .default(false)
+    .required('This field is required.'),
+  preserveLength: Yup.boolean()
+    .default(false)
+    .required('This field is required.'),
+});
+
+const generateCardNumberConfig = Yup.object().shape({
+  validLuhn: Yup.boolean().default(false).required('This field is required.'),
+});
+
+const generateInternationalPhoneNumberConfig = Yup.object().shape({
+  min: Yup.number()
+    .min(9, 'The value must be greater than or equal to 9.')
+    .max(15, 'The value must be less than or equal 15.')
+    .required('This field is required.')
+    .test('is-less-than-max', 'Min must be less than Max', function (value) {
+      const { max } = this.parent;
+      return !max || !value || value <= max;
+    }),
+  max: Yup.number()
+    .min(9, 'The value must be greater than or equal to 9.')
+    .max(15, 'The value must be less than or equal 15.')
+    .required('This field is required.')
+    .test(
+      'is-greater-than-min',
+      'Max must be greater than Min',
+      function (value) {
+        const { min } = this.parent;
+        return !min || !value || value >= min;
+      }
+    ),
+});
+const generateFloat64Config = Yup.object().shape({
+  randomizeSign: Yup.bool().default(false),
+  min: Yup.number()
+    .required('This field is required.')
+    .min(Number.MIN_SAFE_INTEGER)
+    .max(Number.MAX_SAFE_INTEGER),
+  max: Yup.number()
+    .required('This field is required.')
+    .min(Number.MIN_SAFE_INTEGER)
+    .max(Number.MAX_SAFE_INTEGER),
+  precision: bigIntValidator
+    .required('This field is required.')
+    .test(
+      'min',
+      'Value must be greater than or equal to 1',
+      getBigIntMinValidator(1)
+    )
+    .test(
+      'max',
+      `Value must be less than than or equal to ${17}`,
+      getBigIntMaxValidator(17)
+    ),
+});
+
+const generateGenderConfig = Yup.object().shape({
+  abbreviate: Yup.boolean().default(false).required('This field is required.'),
+});
 
 const generateInt64Config = Yup.object().shape({
   randomizeSign: Yup.bool().default(false).required('This field is required.'),
@@ -145,15 +163,21 @@ const generateStringConfig = Yup.object().shape({
 });
 
 const generateUuidConfig = Yup.object().shape({
-  includeHyphens: Yup.boolean().required('This field is required.'),
+  includeHyphens: Yup.boolean()
+    .default(false)
+    .required('This field is required.'),
 });
 
 const transformE164PhoneNumber = Yup.object().shape({
-  preserveLength: Yup.boolean().required('This field is required.'),
+  preserveLength: Yup.boolean()
+    .default(false)
+    .required('This field is required.'),
 });
 
 const transformFirstNameConfig = Yup.object().shape({
-  preserveLength: Yup.boolean().required('This field is required.'),
+  preserveLength: Yup.boolean()
+    .default(false)
+    .required('This field is required.'),
 });
 
 const transformFloat64Config = Yup.object().shape({
@@ -178,11 +202,15 @@ const transformFloat64Config = Yup.object().shape({
 });
 
 const transformFullNameConfig = Yup.object().shape({
-  preserveLength: Yup.boolean().required('This field is required.'),
+  preserveLength: Yup.boolean()
+    .default(false)
+    .required('This field is required.'),
 });
 
 const transformInt64PhoneNumberConfig = Yup.object().shape({
-  preserveLength: Yup.boolean().required('This field is required.'),
+  preserveLength: Yup.boolean()
+    .default(false)
+    .required('This field is required.'),
 });
 
 const transformInt64Config = Yup.object().shape({
@@ -207,15 +235,21 @@ const transformInt64Config = Yup.object().shape({
 });
 
 const transformLastNameConfig = Yup.object().shape({
-  preserveLength: Yup.boolean().required('This field is required.'),
+  preserveLength: Yup.boolean()
+    .default(false)
+    .required('This field is required.'),
 });
 
 const transformStringPhoneNumberConfig = Yup.object().shape({
-  preserveLength: Yup.boolean().required('This field is required.'),
+  preserveLength: Yup.boolean()
+    .default(false)
+    .required('This field is required.'),
 });
 
 const transformStringConfig = Yup.object().shape({
-  preserveLength: Yup.boolean().required('This field is required.'),
+  preserveLength: Yup.boolean()
+    .default(false)
+    .required('This field is required.'),
 });
 
 const userDefinedTransformerConfig = Yup.object().shape({
