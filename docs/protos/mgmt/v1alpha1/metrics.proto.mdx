@@ -1,0 +1,70 @@
+---
+title: metrics.proto
+hide_title: true
+---
+
+import { ProtoMessage, ProtoServiceMethod, ProtoEnum } from '@theme/ProtoFile';
+
+# `metrics.proto`
+_**path** mgmt/v1alpha1/metrics.proto_
+
+_**package** mgmt.v1alpha1_
+
+
+
+---
+
+## Messages
+
+
+### `Date`
+<ProtoMessage key={0} message={{"name":"Date","longName":"Date","fullName":"mgmt.v1alpha1.Date","description":"Represents a whole or partial calendar date, such as a birthday. The time of\nday and time zone are either specified elsewhere or are insignificant. The\ndate is relative to the Gregorian Calendar. This can represent one of the\nfollowing:\n\n* A full date, with non-zero year, month, and day values\n* A month and day value, with a zero year, such as an anniversary\n* A year on its own, with zero month and day values\n* A year and month value, with a zero day, such as a credit card expiration\ndate\n\nRelated types are [google.type.TimeOfDay][google.type.TimeOfDay] and\n`google.protobuf.Timestamp`.","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"year","description":"Year of the date. Must be from 1 to 9999, or 0 to specify a date without\na year.","label":"","type":"uint32","longType":"uint32","fullType":"uint32","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"month","description":"Month of a year. Must be from 1 to 12, or 0 to specify a year without a\nmonth and day.","label":"","type":"uint32","longType":"uint32","fullType":"uint32","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"day","description":"Day of a month. Must be from 1 to 31 and valid for the year and month, or 0\nto specify a year by itself or a year and month where the day isn't\nsignificant.","label":"","type":"uint32","longType":"uint32","fullType":"uint32","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `DayResult`
+<ProtoMessage key={1} message={{"name":"DayResult","longName":"DayResult","fullName":"mgmt.v1alpha1.DayResult","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"date","description":"","label":"","type":"Date","longType":"Date","fullType":"mgmt.v1alpha1.Date","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/metrics.proto#date"},{"name":"count","description":"","label":"","type":"uint64","longType":"uint64","fullType":"uint64","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+
+### `GetDailyMetricCountRequest`
+<ProtoMessage key={2} message={{"name":"GetDailyMetricCountRequest","longName":"GetDailyMetricCountRequest","fullName":"mgmt.v1alpha1.GetDailyMetricCountRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":true,"extensions":[],"fields":[{"name":"start","description":"The start day","label":"","type":"Date","longType":"Date","fullType":"mgmt.v1alpha1.Date","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/metrics.proto#date"},{"name":"end","description":"The end day","label":"","type":"Date","longType":"Date","fullType":"mgmt.v1alpha1.Date","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/metrics.proto#date"},{"name":"metric","description":"The metric to return","label":"","type":"RangedMetricName","longType":"RangedMetricName","fullType":"mgmt.v1alpha1.RangedMetricName","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/metrics.proto#rangedmetricname"},{"name":"account_id","description":"The account identifier that will be used to filter by","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":true,"oneofdecl":"identifier","defaultValue":""},{"name":"job_id","description":"The job identifier that will be used to filter by","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":true,"oneofdecl":"identifier","defaultValue":""},{"name":"run_id","description":"The run identifier that will be used to filter by","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":true,"oneofdecl":"identifier","defaultValue":""}]}} />
+
+
+### `GetDailyMetricCountResponse`
+<ProtoMessage key={3} message={{"name":"GetDailyMetricCountResponse","longName":"GetDailyMetricCountResponse","fullName":"mgmt.v1alpha1.GetDailyMetricCountResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"results","description":"","label":"repeated","type":"DayResult","longType":"DayResult","fullType":"mgmt.v1alpha1.DayResult","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/metrics.proto#dayresult"}]}} />
+
+
+### `GetMetricCountRequest`
+<ProtoMessage key={4} message={{"name":"GetMetricCountRequest","longName":"GetMetricCountRequest","fullName":"mgmt.v1alpha1.GetMetricCountRequest","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":true,"extensions":[],"fields":[{"name":"start","description":"The start time","label":"","type":"Timestamp","longType":"google.protobuf.Timestamp","fullType":"google.protobuf.Timestamp","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"end","description":"The end time","label":"","type":"Timestamp","longType":"google.protobuf.Timestamp","fullType":"google.protobuf.Timestamp","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""},{"name":"metric","description":"The metric to return","label":"","type":"RangedMetricName","longType":"RangedMetricName","fullType":"mgmt.v1alpha1.RangedMetricName","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":"","typeLink":"/api/mgmt/v1alpha1/metrics.proto#rangedmetricname"},{"name":"account_id","description":"The account identifier that will be used to filter by","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":true,"oneofdecl":"identifier","defaultValue":""},{"name":"job_id","description":"The job identifier that will be used to filter by","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":true,"oneofdecl":"identifier","defaultValue":""},{"name":"run_id","description":"The run identifier that will be used to filter by","label":"","type":"string","longType":"string","fullType":"string","ismap":false,"isoneof":true,"oneofdecl":"identifier","defaultValue":""}]}} />
+
+
+### `GetMetricCountResponse`
+<ProtoMessage key={5} message={{"name":"GetMetricCountResponse","longName":"GetMetricCountResponse","fullName":"mgmt.v1alpha1.GetMetricCountResponse","description":"","hasExtensions":false,"hasFields":true,"hasOneofs":false,"extensions":[],"fields":[{"name":"count","description":"The summed up count of the metric based on the input query and timerange specified","label":"","type":"uint64","longType":"uint64","fullType":"uint64","ismap":false,"isoneof":false,"oneofdecl":"","defaultValue":""}]}} />
+
+---
+## Enums
+
+
+### `RangedMetricName`
+<ProtoEnum key={0} enumb={{"name":"RangedMetricName","longName":"RangedMetricName","fullName":"mgmt.v1alpha1.RangedMetricName","description":"","values":[{"name":"RANGED_METRIC_NAME_UNSPECIFIED","number":"0","description":"If unspecified, an error will be thrown"},{"name":"RANGED_METRIC_NAME_INPUT_RECEIVED","number":"1","description":"The input_received metric"}]}} />
+
+---
+## Services
+
+
+### `MetricsService`
+
+
+
+
+#### `GetDailyMetricCount`
+<ProtoServiceMethod key={'GetDailyMetricCount-0'} method={{"name":"GetDailyMetricCount","description":"Retrieve a timed range of records","requestType":"GetDailyMetricCountRequest","requestLongType":"GetDailyMetricCountRequest","requestFullType":"mgmt.v1alpha1.GetDailyMetricCountRequest","requestStreaming":false,"responseType":"GetDailyMetricCountResponse","responseLongType":"GetDailyMetricCountResponse","responseFullType":"mgmt.v1alpha1.GetDailyMetricCountResponse","responseStreaming":false,"requestTypeLink":"/api/mgmt/v1alpha1/metrics.proto#getdailymetriccountrequest","responseTypeLink":"/api/mgmt/v1alpha1/metrics.proto#getdailymetriccountresponse"}} />
+
+
+#### `GetMetricCount`
+<ProtoServiceMethod key={'GetMetricCount-1'} method={{"name":"GetMetricCount","description":"For the given metric and time range, returns the total count found","requestType":"GetMetricCountRequest","requestLongType":"GetMetricCountRequest","requestFullType":"mgmt.v1alpha1.GetMetricCountRequest","requestStreaming":false,"responseType":"GetMetricCountResponse","responseLongType":"GetMetricCountResponse","responseFullType":"mgmt.v1alpha1.GetMetricCountResponse","responseStreaming":false,"requestTypeLink":"/api/mgmt/v1alpha1/metrics.proto#getmetriccountrequest","responseTypeLink":"/api/mgmt/v1alpha1/metrics.proto#getmetriccountresponse"}} />
+
+
+---
+
+
+  

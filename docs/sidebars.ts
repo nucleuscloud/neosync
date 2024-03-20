@@ -272,6 +272,11 @@ const sidebars: SidebarsConfig = {
       id: 'table-constraints/circular-dependencies',
       label: 'Circular Dependencies',
     },
+    {
+      type: 'doc',
+      id: 'table-constraints/subsetting',
+      label: 'Subsetting',
+    },
   ],
 };
 
