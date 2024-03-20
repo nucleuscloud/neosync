@@ -1,5 +1,7 @@
+'use client';
 import { ArrowRightIcon } from 'lucide-react';
 import Image from 'next/image';
+import posthog from 'posthog-js';
 import { ReactElement } from 'react';
 import { Button } from '../ui/button';
 import {
@@ -16,7 +18,15 @@ export default function GetaDemoButton(): ReactElement {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="default" className="px-6 w-[188px]">
+        <Button
+          variant="default"
+          className="px-6 w-[188px]"
+          onClick={() =>
+            posthog.capture('user click', {
+              page: 'hero neosync cloud button',
+            })
+          }
+        >
           Neosync Cloud <ArrowRightIcon className="ml-2 h-4 w-4" />
         </Button>
       </DialogTrigger>

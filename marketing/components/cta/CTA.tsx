@@ -1,3 +1,4 @@
+'use client';
 import {
   Dialog,
   DialogContent,
@@ -10,6 +11,7 @@ import { GitHubLogoIcon } from '@radix-ui/react-icons';
 import { ArrowRightIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import posthog from 'posthog-js';
 import { ReactElement } from 'react';
 import SignupForm from '../buttons/SignupForm';
 import { Button } from '../ui/button';
@@ -30,7 +32,15 @@ export default function CTA(): ReactElement {
             <div>
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button variant="default" className="w-[188px]">
+                  <Button
+                    variant="default"
+                    className="w-[188px]"
+                    onClick={() =>
+                      posthog.capture('user click', {
+                        page: 'cta neosync cloud button',
+                      })
+                    }
+                  >
                     Neosync Cloud <ArrowRightIcon className="ml-2 h-5 w-8 " />
                   </Button>
                 </DialogTrigger>
@@ -59,7 +69,15 @@ export default function CTA(): ReactElement {
                 </DialogContent>
               </Dialog>
             </div>
-            <Button className="px-6 w-[188px]" variant="secondary">
+            <Button
+              className="px-6 w-[188px]"
+              variant="secondary"
+              onClick={() =>
+                posthog.capture('user click', {
+                  page: 'cta open source button',
+                })
+              }
+            >
               <Link href="https://github.com/nucleuscloud/neosync">
                 <div className="flex flex-row gap-2">
                   <GitHubLogoIcon className="mr-2 h-5 w-5" /> Open Source

@@ -1,8 +1,10 @@
+'use client';
 import { HeroHeader } from '@/public/images/HeroSVG';
 import { GitHubLogoIcon } from '@radix-ui/react-icons';
 import { ArrowRightIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import posthog from 'posthog-js';
 import { ReactElement } from 'react';
 import { SiYcombinator } from 'react-icons/si';
 import GetaDemoButton from '../buttons/GetADemo';
@@ -39,6 +41,11 @@ export default function Hero(): ReactElement {
         <Button
           variant="secondary"
           className="px-4 border border-gray-300 w-[188px]"
+          onClick={() =>
+            posthog.capture('user click', {
+              page: 'hero open source button',
+            })
+          }
         >
           <Link href="https://github.com/nucleuscloud/neosync">
             <div className="flex flex-row items-center gap-2">

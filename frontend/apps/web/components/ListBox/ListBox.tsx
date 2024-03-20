@@ -70,13 +70,13 @@ export default function ListBox<TData, TValue>(
   return (
     <div
       className={cn(
-        'max-h-[300px] overflow-auto relative w-full',
+        'max-h-[150px] overflow-auto relative w-full',
         tableContainerClassName
       )}
       ref={tableContainerRef}
     >
       <StickyHeaderTable>
-        <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 flex w-full rounded-md">
+        <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 flex w-full">
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow
               key={headerGroup.id}
