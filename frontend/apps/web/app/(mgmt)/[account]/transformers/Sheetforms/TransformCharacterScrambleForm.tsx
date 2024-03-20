@@ -15,6 +15,7 @@ import ButtonText from '@/components/ButtonText';
 import Spinner from '@/components/Spinner';
 import { useAccount } from '@/components/providers/account-provider';
 import { Badge } from '@/components/ui/badge';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { TransformCharacterScramble } from '@neosync/sdk';
 import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
@@ -23,6 +24,7 @@ import {
   ValidRegex,
   ValidateUserRegex,
 } from '../../new/transformer/UserDefinedTransformerForms/UserDefinedTransformCharacterScrambleForm';
+import { TRANSFORMER_SCHEMA_CONFIGS } from '../../new/transformer/schema';
 import { TransformerFormProps } from './util';
 interface Props extends TransformerFormProps<TransformCharacterScramble> {}
 
@@ -33,8 +35,11 @@ export default function TransformCharacterScrambleForm(
 
   const form = useForm({
     mode: 'onChange',
+    resolver: yupResolver(
+      TRANSFORMER_SCHEMA_CONFIGS.transformCharacterScrambleConfig
+    ),
     defaultValues: {
-      ...existingConfig,
+      userProvidedRegex: existingConfig?.userProvidedRegex ?? '',
     },
   });
 

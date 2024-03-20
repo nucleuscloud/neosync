@@ -10,9 +10,11 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { TransformE164PhoneNumber } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
+import { TRANSFORMER_SCHEMA_CONFIGS } from '../../new/transformer/schema';
 import { TransformerFormProps } from './util';
 interface Props extends TransformerFormProps<TransformE164PhoneNumber> {}
 
@@ -23,8 +25,11 @@ export default function TransformE164PhoneNumberForm(
 
   const form = useForm({
     mode: 'onChange',
+    resolver: yupResolver(
+      TRANSFORMER_SCHEMA_CONFIGS.transformE164PhoneNumberConfig
+    ),
     defaultValues: {
-      ...existingConfig,
+      preserveLength: existingConfig?.preserveLength ?? false,
     },
   });
 

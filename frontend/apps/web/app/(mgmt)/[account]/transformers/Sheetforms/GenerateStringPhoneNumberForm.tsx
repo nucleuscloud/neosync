@@ -9,10 +9,12 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { GenerateStringPhoneNumber } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
-import { TransformerFormProps } from './util';
+import { TRANSFORMER_SCHEMA_CONFIGS } from '../../new/transformer/schema';
+import { TransformerFormProps, setBigIntOrOld } from './util';
 interface Props extends TransformerFormProps<GenerateStringPhoneNumber> {}
 
 export default function GenerateStringPhoneNumberForm(
@@ -22,8 +24,12 @@ export default function GenerateStringPhoneNumberForm(
 
   const form = useForm({
     mode: 'onChange',
+    resolver: yupResolver(
+      TRANSFORMER_SCHEMA_CONFIGS.generateStringPhoneNumberConfig
+    ),
     defaultValues: {
-      ...existingConfig,
+      min: existingConfig?.min ?? BigInt(1),
+      max: existingConfig?.max ?? BigInt(15),
     },
   });
 
@@ -48,7 +54,7 @@ export default function GenerateStringPhoneNumberForm(
                   className="max-w-[180px]"
                   value={field.value ? field.value.toString() : 0}
                   onChange={(event) => {
-                    field.onChange(BigInt(event.target.valueAsNumber));
+                    setBigIntOrOld(event.target.valueAsNumber, field.value);
                   }}
                   disabled={isReadonly}
                 />
@@ -76,7 +82,7 @@ export default function GenerateStringPhoneNumberForm(
                   className="max-w-[180px]"
                   value={field.value ? field.value.toString() : 0}
                   onChange={(event) => {
-                    field.onChange(BigInt(event.target.valueAsNumber));
+                    setBigIntOrOld(event.target.valueAsNumber, field.value);
                   }}
                   disabled={isReadonly}
                 />
