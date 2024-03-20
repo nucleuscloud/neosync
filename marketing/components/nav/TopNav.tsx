@@ -194,6 +194,11 @@ export default function TopNav(): ReactElement {
               <Button
                 variant="default"
                 className="px-4 rounded-full h-8 min-w-[118px] "
+                onClick={() =>
+                  posthog.capture('user click', {
+                    page: 'nav bar sign up button',
+                  })
+                }
               >
                 Sign up <ArrowRightIcon className="ml-2 h-4 w-4" />
               </Button>
