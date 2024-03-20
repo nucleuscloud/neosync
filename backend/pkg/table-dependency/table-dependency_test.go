@@ -97,11 +97,12 @@ func Test_FindCircularDependencies(t *testing.T) {
 	}
 }
 
-func Test_GetRunConfigs(t *testing.T) {
+func Test_GetRunConfigs_NoSubset(t *testing.T) {
 	tests := []struct {
 		name         string
 		dependencies dbschemas.TableDependency
 		tables       []string
+		subsets      map[string]string
 		expect       []*RunConfig
 	}{
 		{
@@ -129,7 +130,8 @@ func Test_GetRunConfigs(t *testing.T) {
 					},
 				},
 			},
-			tables: []string{"public.jobs", "public.locations", "public.regions", "public.departments", "public.countries", "public.employees"},
+			tables:  []string{"public.jobs", "public.locations", "public.regions", "public.departments", "public.countries", "public.employees"},
+			subsets: map[string]string{},
 			expect: []*RunConfig{
 				{Table: "public.regions", DependsOn: []*DependsOn{}},
 				{Table: "public.locations", DependsOn: []*DependsOn{{Table: "public.countries", Columns: []string{"id"}}}},
@@ -148,7 +150,8 @@ func Test_GetRunConfigs(t *testing.T) {
 					},
 				},
 			},
-			tables: []string{"public.a"},
+			tables:  []string{"public.a"},
+			subsets: map[string]string{},
 			expect: []*RunConfig{
 				{Table: "public.a", Columns: &SyncColumn{Exclude: []string{"a_id"}}, DependsOn: []*DependsOn{}},
 				{Table: "public.a", Columns: &SyncColumn{Include: []string{"a_id"}}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
@@ -164,7 +167,8 @@ func Test_GetRunConfigs(t *testing.T) {
 					},
 				},
 			},
-			tables: []string{"public.a"},
+			tables:  []string{"public.a"},
+			subsets: map[string]string{},
 			expect: []*RunConfig{
 				{Table: "public.a", Columns: &SyncColumn{Exclude: []string{"a_id", "aa_id"}}, DependsOn: []*DependsOn{}},
 				{Table: "public.a", Columns: &SyncColumn{Include: []string{"a_id", "aa_id"}}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
@@ -184,7 +188,8 @@ func Test_GetRunConfigs(t *testing.T) {
 					},
 				},
 			},
-			tables: []string{"public.a", "public.b"},
+			tables:  []string{"public.a", "public.b"},
+			subsets: map[string]string{},
 			expect: []*RunConfig{
 				{Table: "public.a", Columns: &SyncColumn{Exclude: []string{"b_id"}}, DependsOn: []*DependsOn{}},
 				{Table: "public.b", DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
@@ -210,7 +215,8 @@ func Test_GetRunConfigs(t *testing.T) {
 					},
 				},
 			},
-			tables: []string{"public.a", "public.b", "public.c"},
+			tables:  []string{"public.a", "public.b", "public.c"},
+			subsets: map[string]string{},
 			expect: []*RunConfig{
 				{Table: "public.a", Columns: &SyncColumn{Exclude: []string{"b_id"}}, DependsOn: []*DependsOn{}},
 				{Table: "public.c", DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
@@ -248,7 +254,8 @@ func Test_GetRunConfigs(t *testing.T) {
 					},
 				},
 			},
-			tables: []string{"public.a", "public.b", "public.c", "public.d", "public.e"},
+			tables:  []string{"public.a", "public.b", "public.c", "public.d", "public.e"},
+			subsets: map[string]string{},
 			expect: []*RunConfig{
 				{Table: "public.a", Columns: &SyncColumn{Exclude: []string{"b_id"}}, DependsOn: []*DependsOn{}},
 				{Table: "public.c", DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
@@ -273,7 +280,8 @@ func Test_GetRunConfigs(t *testing.T) {
 					},
 				},
 			},
-			tables: []string{"public.a", "public.b", "public.c"},
+			tables:  []string{"public.a", "public.b", "public.c"},
+			subsets: map[string]string{},
 			expect: []*RunConfig{
 				{Table: "public.a", DependsOn: []*DependsOn{}},
 				{Table: "public.b", Columns: &SyncColumn{Exclude: []string{"c_id"}}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
@@ -296,7 +304,8 @@ func Test_GetRunConfigs(t *testing.T) {
 					},
 				},
 			},
-			tables: []string{"public.a", "public.b", "public.c"},
+			tables:  []string{"public.a", "public.b", "public.c"},
+			subsets: map[string]string{},
 			expect: []*RunConfig{
 				{Table: "public.a", DependsOn: []*DependsOn{}},
 				{Table: "public.c", Columns: &SyncColumn{Exclude: []string{"b_id"}}, DependsOn: []*DependsOn{}},
@@ -333,7 +342,8 @@ func Test_GetRunConfigs(t *testing.T) {
 					},
 				},
 			},
-			tables: []string{"public.a", "public.b", "public.c", "public.d", "public.e"},
+			tables:  []string{"public.a", "public.b", "public.c", "public.d", "public.e"},
+			subsets: map[string]string{},
 			expect: []*RunConfig{
 
 				{Table: "public.a", Columns: &SyncColumn{Exclude: []string{"b_id"}}, DependsOn: []*DependsOn{}},
@@ -365,7 +375,8 @@ func Test_GetRunConfigs(t *testing.T) {
 					},
 				},
 			},
-			tables: []string{"public.b", "public.c"},
+			tables:  []string{"public.b", "public.c"},
+			subsets: map[string]string{},
 			expect: []*RunConfig{
 				{Table: "public.c", DependsOn: []*DependsOn{}},
 				{Table: "public.b", DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
@@ -385,7 +396,8 @@ func Test_GetRunConfigs(t *testing.T) {
 					},
 				},
 			},
-			tables: []string{"public.a", "public.b"},
+			tables:  []string{"public.a", "public.b"},
+			subsets: map[string]string{},
 			expect: []*RunConfig{
 				{Table: "public.a", DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
 				{Table: "public.b", DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
@@ -395,10 +407,42 @@ func Test_GetRunConfigs(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual := GetRunConfigs(tt.dependencies, tt.tables)
+			actual := GetRunConfigs(tt.dependencies, tt.tables, tt.subsets)
 			assert.ElementsMatch(t, tt.expect, actual)
 		})
 	}
+}
+
+func Test_GetRunConfigs_CircularDependencyAllNullable(t *testing.T) {
+	dependencies := dbschemas.TableDependency{
+		"public.c": &dbschemas.TableConstraints{
+			Constraints: []*dbschemas.ForeignConstraint{
+				{Column: "a_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
+			},
+		},
+		"public.a": &dbschemas.TableConstraints{
+			Constraints: []*dbschemas.ForeignConstraint{
+				{Column: "b_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
+			},
+		},
+		"public.b": &dbschemas.TableConstraints{
+			Constraints: []*dbschemas.ForeignConstraint{
+				{Column: "c_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
+			},
+		},
+	}
+	tables := []string{"public.a", "public.b", "public.c"}
+	expect := []*RunConfig{
+		{Table: "public.a", Columns: &SyncColumn{Exclude: []string{"b_id"}}, DependsOn: []*DependsOn{}},
+		{Table: "public.a", Columns: &SyncColumn{Include: []string{"b_id"}}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
+		{Table: "public.c", Columns: &SyncColumn{Exclude: []string{"a_id"}}, DependsOn: []*DependsOn{}},
+		{Table: "public.c", Columns: &SyncColumn{Include: []string{"a_id"}}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+		{Table: "public.b", Columns: &SyncColumn{Exclude: []string{"c_id"}}, DependsOn: []*DependsOn{}},
+		{Table: "public.b", Columns: &SyncColumn{Include: []string{"c_id"}}, DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+	}
+
+	actual := GetRunConfigs(dependencies, tables, map[string]string{})
+	assert.ElementsMatch(t, expect, actual)
 }
 
 func Test_GetRunConfigs_MultipleExclude(t *testing.T) {
@@ -432,7 +476,7 @@ func Test_GetRunConfigs_MultipleExclude(t *testing.T) {
 	}
 	tables := []string{"public.a", "public.b", "public.c", "public.d", "public.e"}
 
-	actual := GetRunConfigs(dependencies, tables)
+	actual := GetRunConfigs(dependencies, tables, map[string]string{})
 	expect := map[string]string{
 		"public.e": "public.b",
 		"public.a": "public.b",
@@ -444,14 +488,202 @@ func Test_GetRunConfigs_MultipleExclude(t *testing.T) {
 	for _, a := range actual {
 		if a.Columns != nil && a.Columns.Exclude != nil {
 			assert.Len(t, a.DependsOn, 0)
+			assert.Equal(t, "public.b", a.Table)
 			assert.ElementsMatch(t, []string{"c_id", "d_id"}, a.Columns.Exclude)
 		} else if a.Columns != nil && a.Columns.Include != nil {
+			assert.Equal(t, "public.b", a.Table)
 			assert.ElementsMatch(t, []string{"c_id", "d_id"}, a.Columns.Include)
 			assert.ElementsMatch(t, []*DependsOn{{Table: "public.c", Columns: []string{"id"}}, {Table: "public.d", Columns: []string{"id"}}}, a.DependsOn)
 		} else {
 			assert.Len(t, a.DependsOn, 1)
 			assert.Equal(t, expect[a.Table], a.DependsOn[0].Table)
 		}
+	}
+}
+
+func Test_GetRunConfigs_Subset(t *testing.T) {
+	tests := []struct {
+		name         string
+		dependencies dbschemas.TableDependency
+		tables       []string
+		subsets      map[string]string
+		expect       []*RunConfig
+	}{
+		{
+			name: "No circular dependencies",
+			dependencies: dbschemas.TableDependency{
+				"public.countries": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "region_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.regions", Column: "id"}},
+					},
+				},
+				"public.departments": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "location_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.locations", Column: "id"}},
+					},
+				},
+				"public.employees": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "department_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.departments", Column: "id"}},
+						{Column: "job_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.jobs", Column: "id"}},
+					},
+				},
+				"public.locations": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "country_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.countries", Column: "id"}},
+					},
+				},
+			},
+			tables: []string{"public.jobs", "public.locations", "public.regions", "public.departments", "public.countries", "public.employees"},
+			subsets: map[string]string{
+				"public.jobs":      "id = 1",
+				"public.locations": "id = 1",
+			},
+			expect: []*RunConfig{
+				{Table: "public.regions", DependsOn: []*DependsOn{}},
+				{Table: "public.locations", DependsOn: []*DependsOn{{Table: "public.countries", Columns: []string{"id"}}}},
+				{Table: "public.employees", DependsOn: []*DependsOn{{Table: "public.departments", Columns: []string{"id"}}, {Table: "public.jobs", Columns: []string{"id"}}}},
+				{Table: "public.departments", DependsOn: []*DependsOn{{Table: "public.locations", Columns: []string{"id"}}}},
+				{Table: "public.countries", DependsOn: []*DependsOn{{Table: "public.regions", Columns: []string{"id"}}}},
+				{Table: "public.jobs", DependsOn: []*DependsOn{}},
+			},
+		},
+		{
+			name: "Self Circular Dependency",
+			dependencies: dbschemas.TableDependency{
+				"public.a": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "a_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
+					},
+				},
+			},
+			tables:  []string{"public.a"},
+			subsets: map[string]string{"public.a": "id = 1"},
+			expect: []*RunConfig{
+				{Table: "public.a", Columns: &SyncColumn{Exclude: []string{"a_id"}}, DependsOn: []*DependsOn{}},
+				{Table: "public.a", Columns: &SyncColumn{Include: []string{"a_id"}}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+			},
+		},
+		{
+			name: "Double Self Circular Dependency",
+			dependencies: dbschemas.TableDependency{
+				"public.a": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "a_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
+						{Column: "aa_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
+					},
+				},
+			},
+			tables:  []string{"public.a"},
+			subsets: map[string]string{"public.a": "id = 1"},
+			expect: []*RunConfig{
+				{Table: "public.a", Columns: &SyncColumn{Exclude: []string{"a_id", "aa_id"}}, DependsOn: []*DependsOn{}},
+				{Table: "public.a", Columns: &SyncColumn{Include: []string{"a_id", "aa_id"}}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+			},
+		},
+		{
+			name: "Two Table Circular Dependency",
+			dependencies: dbschemas.TableDependency{
+				"public.a": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "b_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
+					},
+				},
+				"public.b": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
+					},
+				},
+			},
+			tables:  []string{"public.a", "public.b"},
+			subsets: map[string]string{"public.a": "id = 1"},
+			expect: []*RunConfig{
+				{Table: "public.a", Columns: &SyncColumn{Exclude: []string{"b_id"}}, DependsOn: []*DependsOn{}},
+				{Table: "public.b", DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+				{Table: "public.a", Columns: &SyncColumn{Include: []string{"b_id"}}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
+			},
+		},
+		{
+			name: "Three Table Circular Dependency",
+			dependencies: dbschemas.TableDependency{
+				"public.a": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "b_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
+					},
+				},
+				"public.b": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "c_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
+					},
+				},
+				"public.c": &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{
+						{Column: "a_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
+					},
+				},
+			},
+			tables:  []string{"public.a", "public.b", "public.c"},
+			subsets: map[string]string{"public.c": "id = 1"},
+			expect: []*RunConfig{
+				{Table: "public.c", Columns: &SyncColumn{Exclude: []string{"a_id"}}, DependsOn: []*DependsOn{}},
+				{Table: "public.a", DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
+				{Table: "public.b", DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+				{Table: "public.c", Columns: &SyncColumn{Include: []string{"a_id"}}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actual := GetRunConfigs(tt.dependencies, tt.tables, tt.subsets)
+			assert.ElementsMatch(t, tt.expect, actual)
+		})
+	}
+}
+
+func Test_determineStartTable(t *testing.T) {
+	tests := []struct {
+		name               string
+		tablesWithNullable []string
+		tablesWithSubsets  []string
+		cycle              []string
+		expect             string
+	}{
+		{
+			name:               "One table with nullable columns",
+			tablesWithNullable: []string{"public.b"},
+			tablesWithSubsets:  []string{"public.a", "public.b"},
+			cycle:              []string{"public.a", "public.b"},
+			expect:             "public.b",
+		},
+		{
+			name:               "All tables have nullable columns and subsets",
+			tablesWithNullable: []string{"public.a", "public.b"},
+			tablesWithSubsets:  []string{"public.a", "public.b"},
+			cycle:              []string{"public.a", "public.b"},
+			expect:             "public.a",
+		},
+		{
+			name:               "One table with nullable columns and subset",
+			tablesWithNullable: []string{"public.a", "public.c"},
+			tablesWithSubsets:  []string{"public.c", "public.b"},
+			cycle:              []string{"public.a", "public.b", "public.c"},
+			expect:             "public.c",
+		},
+		{
+			name:               "Many tables with nullable columns no overlap with subset tables",
+			tablesWithNullable: []string{"public.a", "public.c"},
+			tablesWithSubsets:  []string{"public.b"},
+			cycle:              []string{"public.a", "public.b", "public.c"},
+			expect:             "public.a",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actual := determineStartTable(tt.tablesWithNullable, tt.tablesWithSubsets, tt.cycle)
+			assert.Equal(t, tt.expect, actual)
+		})
 	}
 }
 
@@ -527,4 +759,50 @@ func Test_GetTablesOrderedByDependency_NestedDependencies(t *testing.T) {
 	actual, err := GetTablesOrderedByDependency(dependencies)
 	assert.NoError(t, err)
 	assert.Equal(t, expected[0], actual[0])
+}
+
+func TestCycleKey(t *testing.T) {
+	tests := []struct {
+		name     string
+		cycle    []string
+		expected string
+	}{
+		{
+			name:     "Single element",
+			cycle:    []string{"a"},
+			expected: "a,",
+		},
+		{
+			name:     "Already sorted",
+			cycle:    []string{"a", "b", "c"},
+			expected: "a,b,c,",
+		},
+		{
+			name:     "Needs sorting",
+			cycle:    []string{"b", "c", "a"},
+			expected: "a,b,c,",
+		},
+		{
+			name:     "Duplicate minimums",
+			cycle:    []string{"c", "a", "b", "a"},
+			expected: "a,b,a,c,",
+		},
+		{
+			name:     "All elements are same",
+			cycle:    []string{"a", "a", "a"},
+			expected: "a,a,a,",
+		},
+		{
+			name:     "Empty slice",
+			cycle:    []string{},
+			expected: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := cycleKey(tt.cycle)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
 }

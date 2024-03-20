@@ -6,6 +6,7 @@ import {
   JobDestinationOptions,
   JobMappingTransformer,
   MysqlDestinationConnectionOptions,
+  MysqlSourceSchemaOption,
   MysqlTruncateTableConfig,
   PostgresDestinationConnectionOptions,
   PostgresSourceSchemaOption,
@@ -185,6 +186,30 @@ export function toPostgresSourceSchemaOptions(
       return map;
     },
     {} as Record<string, PostgresSourceSchemaOption>
+  );
+  return Object.values(schemaMap);
+}
+
+export function toMysqlSourceSchemaOptions(
+  subsets: SubsetFormValues['subsets']
+): MysqlSourceSchemaOption[] {
+  const schemaMap = subsets.reduce(
+    (map, subset) => {
+      if (!map[subset.schema]) {
+        map[subset.schema] = new MysqlSourceSchemaOption({
+          schema: subset.schema,
+          tables: [],
+        });
+      }
+      map[subset.schema].tables.push(
+        new PostgresSourceTableOption({
+          table: subset.table,
+          whereClause: subset.whereClause,
+        })
+      );
+      return map;
+    },
+    {} as Record<string, MysqlSourceSchemaOption>
   );
   return Object.values(schemaMap);
 }

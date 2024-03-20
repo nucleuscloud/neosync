@@ -3963,8 +3963,6 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 			},
 		}}
 
-	sourceTableOpts := map[string]*sqlSourceTableOptions{"where": {WhereClause: &dsn}}
-
 	groupedSchemas := map[string]map[string]*dbschemas_utils.ColumnInfo{
 		"public.users": {
 			"id": &dbschemas_utils.ColumnInfo{
@@ -3978,6 +3976,7 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 			},
 		},
 	}
+	queryMap := map[string]string{"public.users": ""}
 
 	res, err := buildBenthosSqlSourceConfigResponses(
 		context.Background(),
@@ -3985,7 +3984,7 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 		tableMappings,
 		dsn,
 		driver,
-		sourceTableOpts,
+		queryMap,
 		groupedSchemas,
 		map[string]*dbschemas_utils.TableConstraints{},
 		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
@@ -4024,8 +4023,6 @@ func Test_buildBenthosSqlSourceConfigResponses_skipTable(t *testing.T) {
 			},
 		}}
 
-	sourceTableOpts := map[string]*sqlSourceTableOptions{"where": {WhereClause: &dsn}}
-
 	groupedSchemas := map[string]map[string]*dbschemas_utils.ColumnInfo{
 		"public.users": {
 			"id": &dbschemas_utils.ColumnInfo{
@@ -4039,6 +4036,7 @@ func Test_buildBenthosSqlSourceConfigResponses_skipTable(t *testing.T) {
 			},
 		},
 	}
+	queryMap := map[string]string{}
 
 	res, err := buildBenthosSqlSourceConfigResponses(
 		context.Background(),
@@ -4046,7 +4044,7 @@ func Test_buildBenthosSqlSourceConfigResponses_skipTable(t *testing.T) {
 		tableMappings,
 		dsn,
 		driver,
-		sourceTableOpts,
+		queryMap,
 		groupedSchemas,
 		map[string]*dbschemas_utils.TableConstraints{},
 		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
@@ -4089,8 +4087,6 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 			},
 		}}
 
-	sourceTableOpts := map[string]*sqlSourceTableOptions{"where": {WhereClause: &dsn}}
-
 	groupedSchemas := map[string]map[string]*dbschemas_utils.ColumnInfo{
 		"public.users": {
 			"id": &dbschemas_utils.ColumnInfo{
@@ -4105,13 +4101,15 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 		},
 	}
 
+	queryMap := map[string]string{"public.users": ""}
+
 	res, err := buildBenthosSqlSourceConfigResponses(
 		context.Background(),
 		mockTransformerClient,
 		tableMappings,
 		dsn,
 		driver,
-		sourceTableOpts,
+		queryMap,
 		groupedSchemas,
 		map[string]*dbschemas_utils.TableConstraints{},
 		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
@@ -4160,8 +4158,6 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 			},
 		}}
 
-	sourceTableOpts := map[string]*sqlSourceTableOptions{"test": {WhereClause: &dsn}}
-
 	groupedSchemas := map[string]map[string]*dbschemas_utils.ColumnInfo{
 		"public.users": {
 			"id": &dbschemas_utils.ColumnInfo{
@@ -4175,6 +4171,7 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 			},
 		},
 	}
+	queryMap := map[string]string{"public.users": ""}
 
 	res, err := buildBenthosSqlSourceConfigResponses(
 		context.Background(),
@@ -4182,7 +4179,7 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 		tableMappings,
 		dsn,
 		driver,
-		sourceTableOpts,
+		queryMap,
 		groupedSchemas,
 		map[string]*dbschemas_utils.TableConstraints{},
 		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
@@ -4256,8 +4253,6 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
 			},
 		}}
 
-	sourceTableOpts := map[string]*sqlSourceTableOptions{"test": {WhereClause: &dsn}}
-
 	var email int32 = int32(40)
 
 	groupedSchemas := map[string]map[string]*dbschemas_utils.ColumnInfo{
@@ -4274,13 +4269,15 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
 		},
 	}
 
+	queryMap := map[string]string{"public.users": ""}
+
 	res, err := buildBenthosSqlSourceConfigResponses(
 		context.Background(),
 		mockTransformerClient,
 		tableMappings,
 		dsn,
 		driver,
-		sourceTableOpts,
+		queryMap,
 		groupedSchemas,
 		map[string]*dbschemas_utils.TableConstraints{},
 		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},

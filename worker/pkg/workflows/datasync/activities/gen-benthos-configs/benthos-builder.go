@@ -26,6 +26,8 @@ import (
 )
 
 const (
+	postgresDriver             = "postgres"
+	mysqlDriver                = "mysql"
 	generateDefault            = "generate_default"
 	passthrough                = "passthrough"
 	dbDefault                  = "DEFAULT"
@@ -140,11 +142,13 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		if pgconfig == nil {
 			return nil, fmt.Errorf("source connection (%s) is not a postgres config", jobSourceConfig.Postgres.ConnectionId)
 		}
+
 		sqlOpts := jobSourceConfig.Postgres
 		var sourceTableOpts map[string]*sqlSourceTableOptions
 		if sqlOpts != nil {
 			sourceTableOpts = groupPostgresSourceOptionsByTable(sqlOpts.Schemas)
 		}
+		tableSubsetMap := buildTableSubsetMap(sourceTableOpts)
 
 		if _, ok := b.pgpool[sourceConnection.Id]; !ok {
 			pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(pgconfig, shared.Ptr(uint32(5)), slogger)
@@ -187,17 +191,23 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, fmt.Errorf("unable to get all postgres primary key constraints: %w", err)
 		}
 
+		tables := filterNullTables(groupedMappings)
+		dependencyConfigs := tabledependency.GetRunConfigs(td, tables, tableSubsetMap)
+
 		// reverse of table dependency
 		// map of foreign key to source table + column
 		tableConstraintsSource = getForeignKeyToSourceMap(td)
-		sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedMappings, jobSourceConfig.Postgres.ConnectionId, "postgres", sourceTableOpts, groupedSchemas, td, colTransformerMap, primaryKeys, b.jobId, b.runId, b.redisConfig)
+		tableQueryMap, err := buildSelectQueryMap(postgresDriver, groupedTableMapping, sourceTableOpts, td, dependencyConfigs, jobSourceConfig.Postgres.SubsetByForeignKeyConstraints)
+		if err != nil {
+			return nil, fmt.Errorf("unable to build postgres select queries: %w", err)
+		}
+
+		sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedMappings, jobSourceConfig.Postgres.ConnectionId, postgresDriver, tableQueryMap, groupedSchemas, td, colTransformerMap, primaryKeys, b.jobId, b.runId, b.redisConfig)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build postgres benthos sql source config responses: %w", err)
 		}
 		responses = append(responses, sourceResponses...)
 
-		tables := filterNullTables(groupedMappings)
-		dependencyConfigs := tabledependency.GetRunConfigs(td, tables)
 		dependencyMap := map[string][]*tabledependency.RunConfig{}
 		for _, cfg := range dependencyConfigs {
 			_, ok := dependencyMap[cfg.Table]
@@ -231,7 +241,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			} else if len(configs) == 1 {
 				resp.DependsOn = configs[0].DependsOn
 			} else {
-				return nil, fmt.Errorf("unexpected number of benthos configs")
+				return nil, fmt.Errorf("unexpected number of dependency configs")
 			}
 		}
 
@@ -250,6 +260,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		if sqlOpts != nil {
 			sourceTableOpts = groupMysqlSourceOptionsByTable(sqlOpts.Schemas)
 		}
+		tableSubsetMap := buildTableSubsetMap(sourceTableOpts)
 
 		if _, ok := b.mysqlpool[sourceConnection.Id]; !ok {
 			conn, err := b.sqlconnector.NewDbFromConnectionConfig(sourceConnection.ConnectionConfig, shared.Ptr(uint32(5)), slogger)
@@ -291,17 +302,22 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, fmt.Errorf("unable to get all mysql primary key constraints: %w", err)
 		}
 
+		tables := filterNullTables(groupedMappings)
+		dependencyConfigs := tabledependency.GetRunConfigs(td, tables, tableSubsetMap)
+
 		// reverse of table dependency
 		// map of foreign key to source table + column
 		tableConstraintsSource = getForeignKeyToSourceMap(td)
-		sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedMappings, jobSourceConfig.Mysql.ConnectionId, "mysql", sourceTableOpts, groupedSchemas, td, colTransformerMap, primaryKeys, b.jobId, b.runId, b.redisConfig)
+		tableQueryMap, err := buildSelectQueryMap(mysqlDriver, groupedTableMapping, sourceTableOpts, td, dependencyConfigs, jobSourceConfig.Mysql.SubsetByForeignKeyConstraints)
+		if err != nil {
+			return nil, fmt.Errorf("unable to build mysql select queries: %w", err)
+		}
+		sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedMappings, jobSourceConfig.Mysql.ConnectionId, mysqlDriver, tableQueryMap, groupedSchemas, td, colTransformerMap, primaryKeys, b.jobId, b.runId, b.redisConfig)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build mysql benthos sql source config responses: %w", err)
 		}
 		responses = append(responses, sourceResponses...)
 
-		tables := filterNullTables(groupedMappings)
-		dependencyConfigs := tabledependency.GetRunConfigs(td, tables)
 		dependencyMap := map[string][]*tabledependency.RunConfig{}
 		for _, cfg := range dependencyConfigs {
 			_, ok := dependencyMap[cfg.Table]
@@ -401,7 +417,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					resp.Columns = out.Columns
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
-							Driver: "postgres",
+							Driver: postgresDriver,
 							Dsn:    dsn,
 
 							Query:       out.Query,
@@ -432,7 +448,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					filteredCols := filterColsBySource(cols, colSourceMap) // filters out default columns
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
-							Driver: "postgres",
+							Driver: postgresDriver,
 							Dsn:    dsn,
 
 							Query:       buildPostgresInsertQuery(resp.TableSchema, resp.TableName, cols, colSourceMap),
@@ -460,7 +476,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					resp.Columns = out.Columns
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
-							Driver: "mysql",
+							Driver: mysqlDriver,
 							Dsn:    dsn,
 
 							Query:       out.Query,
@@ -491,7 +507,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
-							Driver: "mysql",
+							Driver: mysqlDriver,
 							Dsn:    dsn,
 
 							Query:       buildMysqlInsertQuery(resp.TableSchema, resp.TableName, cols, colSourceMap),
@@ -588,6 +604,16 @@ func getForeignKeyToSourceMap(tableDependencies map[string]*dbschemas_utils.Tabl
 		}
 	}
 	return tc
+}
+
+func buildTableSubsetMap(tableOpts map[string]*sqlSourceTableOptions) map[string]string {
+	tableSubsetMap := map[string]string{}
+	for table, opts := range tableOpts {
+		if opts != nil && opts.WhereClause != nil && *opts.WhereClause != "" {
+			tableSubsetMap[table] = *opts.WhereClause
+		}
+	}
+	return tableSubsetMap
 }
 
 type sqlOutput struct {
@@ -948,13 +974,16 @@ func createSqlUpdateBenthosConfig(
 	if err != nil {
 		return nil, err
 	}
+
 	sourceResponses, err := buildBenthosSqlSourceConfigResponses(
 		ctx,
 		transformerclient,
 		[]*tableMapping{tm},
 		"", // does not matter what is here. gets overwritten with insert config
 		driver,
-		map[string]*sqlSourceTableOptions{},
+		map[string]string{
+			insertConfig.updateConfig.Table: "", // gets overwritten below
+		},
 		groupedColInfo,
 		map[string]*dbschemas_utils.TableConstraints{},
 		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
@@ -1009,10 +1038,10 @@ func createSqlUpdateBenthosConfig(
 		newResp.primaryKeys = insertConfig.primaryKeys
 		newResp.metriclabels = append(newResp.metriclabels, metrics.NewEqLabel(metrics.IsUpdateConfigLabel, "true"))
 		var output *sqlOutput
-		if driver == "postgres" {
+		if driver == postgresDriver {
 			out := buildPostgresOutputQueryAndArgs(newResp, tm, schema, table, colSourceMap)
 			output = out
-		} else if driver == "mysql" {
+		} else if driver == mysqlDriver {
 			out := buildMysqlOutputQueryAndArgs(newResp, tm, schema, table, colSourceMap)
 			output = out
 		}
@@ -1057,7 +1086,7 @@ func buildBenthosSqlSourceConfigResponses(
 	mappings []*tableMapping,
 	dsnConnectionId string,
 	driver string,
-	sourceTableOpts map[string]*sqlSourceTableOptions,
+	selectQueryMap map[string]string,
 	groupedColumnInfo map[string]map[string]*dbschemas_utils.ColumnInfo,
 	tableDependencies map[string]*dbschemas_utils.TableConstraints,
 	colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,
@@ -1090,23 +1119,10 @@ func buildBenthosSqlSourceConfigResponses(
 			continue
 		}
 
-		var where *string
-		tableOpt := sourceTableOpts[neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table)]
-		if tableOpt != nil && tableOpt.WhereClause != nil {
-			where = tableOpt.WhereClause
-		}
-
 		table := neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table)
-
-		query, err := buildSelectQuery(
-			driver,
-			tableMapping.Schema,
-			tableMapping.Table,
-			buildPlainColumns(tableMapping.Mappings),
-			where,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("unable to build select query: %w", err)
+		query, ok := selectQueryMap[table]
+		if !ok {
+			return nil, fmt.Errorf("select query not found for table: %s", table)
 		}
 		bc := &neosync_benthos.BenthosConfig{
 			StreamConfig: neosync_benthos.StreamConfig{
@@ -1281,9 +1297,9 @@ func shouldHaltOnSchemaAddition(
 
 func escapeColsByDriver(cols []string, driver string) []string {
 	switch driver {
-	case "postgres":
+	case postgresDriver:
 		return dbschemas_postgres.EscapePgColumns(cols)
-	case "mysql":
+	case mysqlDriver:
 		return dbschemas_mysql.EscapeMysqlColumns(cols)
 	default:
 		return cols

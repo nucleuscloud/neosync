@@ -120,7 +120,8 @@ func Test_SetSqlSourceSubsets(t *testing.T) {
 		ID: jobUuid,
 		ConnectionOptions: &pg_models.JobSourceOptions{
 			PostgresOptions: &pg_models.PostgresSourceOptions{
-				ConnectionId: UUIDString(connUuid),
+				ConnectionId:                  UUIDString(connUuid),
+				SubsetByForeignKeyConstraints: true,
 				Schemas: []*pg_models.PostgresSourceSchemaOption{
 					{Schema: "schema", Tables: []*pg_models.PostgresSourceTableOption{{Table: "table-1", WhereClause: &whereClause}}},
 				},
@@ -131,7 +132,7 @@ func Test_SetSqlSourceSubsets(t *testing.T) {
 	mockTx.On("Commit", ctx).Return(nil)
 	mockTx.On("Rollback", ctx).Return(nil)
 
-	err := service.SetSqlSourceSubsets(context.Background(), jobUuid, schemas, userUuid)
+	err := service.SetSqlSourceSubsets(context.Background(), jobUuid, schemas, true, userUuid)
 
 	assert.NoError(t, err)
 }

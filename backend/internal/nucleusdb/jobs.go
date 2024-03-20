@@ -51,6 +51,7 @@ func (d *NucleusDb) SetSqlSourceSubsets(
 	ctx context.Context,
 	jobId pgtype.UUID,
 	schemas *mgmtv1alpha1.JobSourceSqlSubetSchemas,
+	subsetByForeignKeyConstraints bool,
 	userUuid pgtype.UUID,
 ) error {
 	return d.WithTx(ctx, nil, func(dbtx BaseDBTX) error {
@@ -64,12 +65,14 @@ func (d *NucleusDb) SetSqlSourceSubsets(
 				dbjob.ConnectionOptions.PostgresOptions = &pg_models.PostgresSourceOptions{}
 			}
 			dbjob.ConnectionOptions.PostgresOptions.Schemas = pg_models.FromDtoPostgresSourceSchemaOptions(s.PostgresSubset.PostgresSchemas)
+			dbjob.ConnectionOptions.PostgresOptions.SubsetByForeignKeyConstraints = subsetByForeignKeyConstraints
 
 		case *mgmtv1alpha1.JobSourceSqlSubetSchemas_MysqlSubset:
 			if dbjob.ConnectionOptions.MysqlOptions == nil {
 				dbjob.ConnectionOptions.MysqlOptions = &pg_models.MysqlSourceOptions{}
 			}
 			dbjob.ConnectionOptions.MysqlOptions.Schemas = pg_models.FromDtoMysqlSourceSchemaOptions(s.MysqlSubset.MysqlSchemas)
+			dbjob.ConnectionOptions.MysqlOptions.SubsetByForeignKeyConstraints = subsetByForeignKeyConstraints
 		default:
 			return fmt.Errorf("this connection config is not currently supported")
 		}

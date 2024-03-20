@@ -1378,6 +1378,8 @@ func (m *PostgresSourceConnectionOptions) validate(all bool) error {
 
 	// no validation rules for ConnectionId
 
+	// no validation rules for SubsetByForeignKeyConstraints
+
 	if len(errors) > 0 {
 		return PostgresSourceConnectionOptionsMultiError(errors)
 	}
@@ -1764,6 +1766,8 @@ func (m *MysqlSourceConnectionOptions) validate(all bool) error {
 	}
 
 	// no validation rules for ConnectionId
+
+	// no validation rules for SubsetByForeignKeyConstraints
 
 	if len(errors) > 0 {
 		return MysqlSourceConnectionOptionsMultiError(errors)
@@ -5548,6 +5552,8 @@ func (m *SetJobSourceSqlConnectionSubsetsRequest) validate(all bool) error {
 			}
 		}
 	}
+
+	// no validation rules for SubsetByForeignKeyConstraints
 
 	if len(errors) > 0 {
 		return SetJobSourceSqlConnectionSubsetsRequestMultiError(errors)
