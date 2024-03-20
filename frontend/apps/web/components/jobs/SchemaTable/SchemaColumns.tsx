@@ -291,6 +291,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         const key = toColKey(row.schema, row.table, row.column);
         const isPrimaryKey = constraintHandler.getIsPrimaryKey(key);
         const [isForeignKey, fkCols] = constraintHandler.getIsForeignKey(key);
+        const isUniqueConstraint = constraintHandler.getIsUniqueConstraint(key);
 
         const pieces: string[] = [];
         if (isPrimaryKey) {
