@@ -24,6 +24,8 @@ import {
   SchemaFormValues,
   convertJobMappingTransformerFormToJobMappingTransformer,
   toJobDestinationOptions,
+  toMysqlSourceSchemaOptions,
+  toPostgresSourceSchemaOptions,
 } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
@@ -426,6 +428,9 @@ async function createNewJob(
                 values.connect.sourceOptions.haltOnNewColumnAddition,
               subsetByForeignKeyConstraints:
                 values.subset?.subsetOptions.subsetByForeignKeyConstraints,
+              schemas:
+                values.subset?.subsets &&
+                toPostgresSourceSchemaOptions(values.subset.subsets),
             }),
           },
         });
@@ -439,6 +444,9 @@ async function createNewJob(
                 values.connect.sourceOptions.haltOnNewColumnAddition,
               subsetByForeignKeyConstraints:
                 values.subset?.subsetOptions.subsetByForeignKeyConstraints,
+              schemas:
+                values.subset?.subsets &&
+                toMysqlSourceSchemaOptions(values.subset?.subsets),
             }),
           },
         });
