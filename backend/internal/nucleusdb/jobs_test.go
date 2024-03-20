@@ -131,7 +131,7 @@ func Test_SetSqlSourceSubsets(t *testing.T) {
 	mockTx.On("Commit", ctx).Return(nil)
 	mockTx.On("Rollback", ctx).Return(nil)
 
-	err := service.SetSqlSourceSubsets(context.Background(), jobUuid, schemas, userUuid)
+	err := service.SetSqlSourceSubsets(context.Background(), jobUuid, schemas, true, userUuid)
 
 	assert.NoError(t, err)
 }

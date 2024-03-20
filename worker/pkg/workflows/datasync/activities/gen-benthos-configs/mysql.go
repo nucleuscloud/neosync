@@ -1,15 +1,10 @@
 package genbenthosconfigs_activity
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/xwb1989/sqlparser"
 )
 
-func qualifyMysqlWhereColumnNames(where, schema, table string) (string, error) {
-	sqlSelect := fmt.Sprintf("select * from %s where ", buildSqlIdentifier(schema, table))
-	sql := fmt.Sprintf("%s%s", sqlSelect, where)
+func qualifyMysqlWhereColumnNames(sql, schema, table string) (string, error) {
 	stmt, err := sqlparser.Parse(sql)
 	if err != nil {
 		return "", err
@@ -35,7 +30,5 @@ func qualifyMysqlWhereColumnNames(where, schema, table string) (string, error) {
 		}
 	}
 
-	updatedSql := sqlparser.String(stmt)
-	updatedWhere := strings.Replace(updatedSql, sqlSelect, "", 1)
-	return updatedWhere, nil
+	return sqlparser.String(stmt), nil
 }

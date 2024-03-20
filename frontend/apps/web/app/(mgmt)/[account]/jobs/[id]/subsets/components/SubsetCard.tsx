@@ -271,6 +271,8 @@ async function setJobSubsets(
       body: JSON.stringify(
         new SetJobSourceSqlConnectionSubsetsRequest({
           id: jobId,
+          subsetByForeignKeyConstraints:
+            values.subsetOptions.subsetByForeignKeyConstraints,
           schemas: new JobSourceSqlSubetSchemas({
             schemas: {
               case: 'postgresSubset',

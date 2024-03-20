@@ -2005,6 +2005,11 @@ export class SetJobSourceSqlConnectionSubsetsRequest extends Message<SetJobSourc
    */
   schemas?: JobSourceSqlSubetSchemas;
 
+  /**
+   * @generated from field: bool subset_by_foreign_key_constraints = 3;
+   */
+  subsetByForeignKeyConstraints = false;
+
   constructor(data?: PartialMessage<SetJobSourceSqlConnectionSubsetsRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -2015,6 +2020,7 @@ export class SetJobSourceSqlConnectionSubsetsRequest extends Message<SetJobSourc
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "schemas", kind: "message", T: JobSourceSqlSubetSchemas },
+    { no: 3, name: "subset_by_foreign_key_constraints", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SetJobSourceSqlConnectionSubsetsRequest {

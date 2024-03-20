@@ -5553,6 +5553,8 @@ func (m *SetJobSourceSqlConnectionSubsetsRequest) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for SubsetByForeignKeyConstraints
+
 	if len(errors) > 0 {
 		return SetJobSourceSqlConnectionSubsetsRequestMultiError(errors)
 	}

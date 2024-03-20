@@ -1379,6 +1379,13 @@ func Test_qualifyWhereColumnNames_mysql(t *testing.T) {
 			expected: "public.a.name = 'alisha'",
 		},
 		{
+			name:     "simple",
+			where:    "public.a.name = 'alisha'",
+			schema:   "public",
+			table:    "a",
+			expected: "public.a.name = 'alisha'",
+		},
+		{
 			name:     "multiple",
 			where:    "name = 'alisha' and id = 1",
 			schema:   "public",
@@ -1395,9 +1402,9 @@ func Test_qualifyWhereColumnNames_mysql(t *testing.T) {
 		{
 			name:     "quoted column names",
 			where:    "`name with space` = 'hey' and PascalCase = 'other'",
-			schema:   "public",
-			table:    "a",
-			expected: "public.a.`name with space` = 'hey' and public.a.PascalCase = 'other'",
+			schema:   "PublicSchema",
+			table:    "order",
+			expected: "PublicSchema.`order`.`name with space` = 'hey' and PublicSchema.`order`.PascalCase = 'other'",
 		},
 	}
 
@@ -1423,21 +1430,35 @@ func Test_qualifyWhereColumnNames_postgres(t *testing.T) {
 			where:    "name = 'alisha'",
 			schema:   "public",
 			table:    "a",
-			expected: `"public.a.name" = 'alisha'`,
+			expected: `public.a.name = 'alisha'`,
+		},
+		{
+			name:     "simple",
+			where:    "public.a.name = 'alisha'",
+			schema:   "public",
+			table:    "a",
+			expected: `public.a.name = 'alisha'`,
+		},
+		{
+			name:     "simple",
+			where:    `"bad name" = 'alisha'`,
+			schema:   "PublicSchema",
+			table:    "order",
+			expected: `"PublicSchema"."order"."bad name" = 'alisha'`,
 		},
 		{
 			name:     "multiple",
 			where:    "name = 'alisha' and id = 1  or age = 2",
 			schema:   "public",
 			table:    "a",
-			expected: `("public.a.name" = 'alisha' AND "public.a.id" = 1) OR "public.a.age" = 2`,
+			expected: `(public.a.name = 'alisha' AND public.a.id = 1) OR public.a.age = 2`,
 		},
 		{
 			name:     "where subquery",
 			where:    "film_id IN(SELECT film_id FROM film_category INNER JOIN category USING(category_id) WHERE name='Action');",
 			schema:   "public",
 			table:    "film",
-			expected: `"public.film.film_id" IN (SELECT film_id FROM film_category JOIN category USING (category_id) WHERE name = 'Action')`,
+			expected: `public.film.film_id IN (SELECT film_id FROM film_category JOIN category USING (category_id) WHERE name = 'Action')`,
 		},
 	}
 

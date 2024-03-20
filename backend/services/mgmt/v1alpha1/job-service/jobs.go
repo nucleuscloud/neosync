@@ -1027,6 +1027,7 @@ func (s *Service) SetJobSourceSqlConnectionSubsets(
 		ctx,
 		jobUuid,
 		req.Msg.Schemas,
+		req.Msg.SubsetByForeignKeyConstraints,
 		*userUuid,
 	); err != nil {
 		return nil, err

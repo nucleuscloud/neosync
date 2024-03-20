@@ -467,22 +467,33 @@ func getBfsPathMap(graph map[string][]string, start string) *bfsPaths {
 }
 
 func qualifyWhereColumnNames(driver, where, schema, table string) (string, error) {
+	sqlSelect := fmt.Sprintf("select * from %s where ", buildSqlIdentifier(schema, table))
+	sql := fmt.Sprintf("%s%s", sqlSelect, where)
+	var updatedSql string
 	switch driver {
 	case mysqlDriver:
-		updatedSql, err := qualifyMysqlWhereColumnNames(where, schema, table)
+		sql, err := qualifyMysqlWhereColumnNames(sql, schema, table)
 		if err != nil {
 			return "", err
 		}
-		return updatedSql, nil
+		updatedSql = sql
 	case postgresDriver:
-		updatedSql, err := qualifyPostgresWhereColumnNames(where, schema, table)
+		sql, err := qualifyPostgresWhereColumnNames(sql, schema, table)
 		if err != nil {
 			return "", err
 		}
-		return updatedSql, nil
+		updatedSql = sql
 	default:
 		return "", errors.New("unsupported sql driver type")
 	}
+	index := strings.Index(strings.ToLower(updatedSql), "where")
+	if index == -1 {
+		// "where" not found
+		return "", fmt.Errorf("unable to qualify where column names")
+	}
+	startIndex := index + len("where")
+
+	return strings.TrimSpace(updatedSql[startIndex:]), nil
 }
 
 func getPrimaryToForeignTableMapFromRunConfigs(runConfigs []*tabledependency.RunConfig) map[string][]string {

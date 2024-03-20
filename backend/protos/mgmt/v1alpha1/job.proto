@@ -244,6 +244,7 @@ message JobSourceSqlSubetSchemas {
 message SetJobSourceSqlConnectionSubsetsRequest {
   string id = 1 [(buf.validate.field).string.uuid = true];
   JobSourceSqlSubetSchemas schemas = 2;
+  bool subset_by_foreign_key_constraints = 3;
 }
 message SetJobSourceSqlConnectionSubsetsResponse {
   Job job = 1;

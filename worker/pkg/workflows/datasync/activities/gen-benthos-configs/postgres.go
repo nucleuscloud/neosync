@@ -1,16 +1,11 @@
 package genbenthosconfigs_activity
 
 import (
-	"fmt"
-	"strings"
-
 	pg_query "github.com/pganalyze/pg_query_go/v5"
 	pgquery "github.com/wasilibs/go-pgquery"
 )
 
-func qualifyPostgresWhereColumnNames(where, schema, table string) (string, error) {
-	sqlSelect := fmt.Sprintf("SELECT * FROM %s WHERE ", buildSqlIdentifier(schema, table))
-	sql := fmt.Sprintf("%s%s", sqlSelect, where)
+func qualifyPostgresWhereColumnNames(sql, schema, table string) (string, error) {
 	tree, err := pgquery.Parse(sql)
 	if err != nil {
 		return "", err
@@ -18,6 +13,7 @@ func qualifyPostgresWhereColumnNames(where, schema, table string) (string, error
 
 	for _, stmt := range tree.GetStmts() {
 		selectStmt := stmt.GetStmt().GetSelectStmt()
+
 		if selectStmt.WhereClause != nil {
 			updatePostgresExpr(schema, table, selectStmt.WhereClause)
 		}
@@ -26,8 +22,7 @@ func qualifyPostgresWhereColumnNames(where, schema, table string) (string, error
 	if err != nil {
 		return "", err
 	}
-	updatedWhere := strings.Replace(updatedSql, sqlSelect, "", 1)
-	return updatedWhere, nil
+	return updatedSql, nil
 }
 
 func updatePostgresExpr(schema, table string, node *pg_query.Node) {
@@ -44,10 +39,25 @@ func updatePostgresExpr(schema, table string, node *pg_query.Node) {
 	case *pg_query.Node_ColumnDef:
 	case *pg_query.Node_ColumnRef:
 		col := node.GetColumnRef()
-		if len(col.Fields) > 0 {
-			for idx, f := range col.Fields {
-				colName := f.GetString_().GetSval()
-				col.Fields[idx] = pg_query.MakeStrNode(fmt.Sprintf("%s.%s.%s", schema, table, colName))
+		isQualified := false
+		var colName *string
+		// find col name and check if already has schema + table name
+		for _, f := range col.Fields {
+			val := f.GetString_().GetSval()
+			if val == schema {
+				continue
+			}
+			if val == table {
+				isQualified = true
+				break
+			}
+			colName = &val
+		}
+		if !isQualified && colName != nil && *colName != "" {
+			col.Fields = []*pg_query.Node{
+				pg_query.MakeStrNode(schema),
+				pg_query.MakeStrNode(table),
+				pg_query.MakeStrNode(*colName),
 			}
 		}
 	}
