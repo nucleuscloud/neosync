@@ -346,7 +346,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                 {isUniqueConstraint && (
                   <Badge
                     variant="outline"
-                    className="text-xs bg-purple-100 text-gray-800 cursor-default dark:bg-blue-200 dark:text-gray-900"
+                    className="text-xs bg-purple-100 text-gray-800 cursor-default dark:bg-purple-300 dark:text-gray-900"
                   >
                     Unique
                   </Badge>
