@@ -141,8 +141,6 @@ export function SchemaTable(props: Props): ReactElement {
     extractAllErrors(form.formState.errors, formValues)
   );
 
-  console.log('values', form.getValues());
-
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col md:flex-row gap-3 md:grid-cols-2 items-start">
@@ -277,9 +275,6 @@ function extractAllErrors(
 
 function formErrorsToMessages(errors: FormError[]): string[] {
   const messages: string[] = [];
-
-  console.log('errors', errors);
-
   errors.forEach((error) => {
     const pieces: string[] = [error.path];
     if (error.type) {
