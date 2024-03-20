@@ -80,7 +80,7 @@ export default function UserDefinedTransformEmailForm(
       <FormField
         name={`config.value.excludedDomains`}
         render={({ field }) => (
-          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm gap-4 ">
+          <FormItem className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Excluded Domains</FormLabel>
               <FormDescription>
