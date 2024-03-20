@@ -16,7 +16,7 @@ import { GenerateFloat64 } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import { TRANSFORMER_SCHEMA_CONFIGS } from '../../new/transformer/schema';
-import { TransformerFormProps, setBigIntOrOld } from './util';
+import { TransformerFormProps } from './util';
 interface Props extends TransformerFormProps<GenerateFloat64> {}
 
 export default function GenerateFloat64Form(props: Props): ReactElement {
@@ -136,9 +136,7 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
                   className="max-w-[180px]"
                   value={field.value ? field.value.toString() : 0}
                   onChange={(event) => {
-                    field.onChange(
-                      setBigIntOrOld(event.target.valueAsNumber, field.value)
-                    );
+                    field.onChange(event.target.valueAsNumber);
                   }}
                   disabled={isReadonly}
                 />
