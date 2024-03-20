@@ -64,7 +64,7 @@ const transformEmailConfig = Yup.object().shape({
   preserveLength: Yup.boolean()
     .default(false)
     .required('This field is required.'),
-  excludedDomains: Yup.string().optional(),
+  excludedDomains: Yup.array().of(Yup.string()).optional().default([]),
 });
 
 const generateCardNumberConfig = Yup.object().shape({

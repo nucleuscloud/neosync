@@ -15,16 +15,28 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { TransformEmail } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
-import { TRANSFORMER_SCHEMA_CONFIGS } from '../../new/transformer/schema';
+import * as Yup from 'yup';
 import { TransformerFormProps } from './util';
+
 interface Props extends TransformerFormProps<TransformEmail> {}
+
+// This is a separate config because the excludedDomains in this form is a string, but the final form needs to be string[]
+const transformEmailConfig = Yup.object().shape({
+  preserveDomain: Yup.boolean()
+    .default(false)
+    .required('This field is required.'),
+  preserveLength: Yup.boolean()
+    .default(false)
+    .required('This field is required.'),
+  excludedDomains: Yup.string().optional(),
+});
 
 export default function TransformEmailForm(props: Props): ReactElement {
   const { existingConfig, onSubmit, isReadonly } = props;
 
   const form = useForm({
     mode: 'onChange',
-    resolver: yupResolver(TRANSFORMER_SCHEMA_CONFIGS.transformEmailConfig),
+    resolver: yupResolver(transformEmailConfig),
     defaultValues: {
       preserveDomain: existingConfig?.preserveDomain ?? false,
       preserveLength: existingConfig?.preserveLength ?? false,
