@@ -30,10 +30,10 @@ import {
   CheckCircledIcon,
   CheckIcon,
   ExclamationTriangleIcon,
+  TableIcon,
 } from '@radix-ui/react-icons';
 import { ReactElement, useMemo, useState } from 'react';
 import { FieldErrors, useFieldArray, useFormContext } from 'react-hook-form';
-import { GoWorkflow } from 'react-icons/go';
 import { SchemaConstraintHandler, getSchemaColumns } from './SchemaColumns';
 import SchemaPageTable from './SchemaPageTable';
 
@@ -147,7 +147,7 @@ export function SchemaTable(props: Props): ReactElement {
         <Card className="w-full md:h-[294px]">
           <CardHeader className="flex flex-col gap-2">
             <div className="flex flex-row items-center gap-2">
-              <GoWorkflow className="h-4 w-4 mt-1" />
+              <TableIcon className="h-4 w-4 mt-1" />
               <CardTitle>Table Selection</CardTitle>
             </div>
             <CardDescription>

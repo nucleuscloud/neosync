@@ -15,6 +15,7 @@ import {
 
 import { useVirtualizer } from '@tanstack/react-virtual';
 
+import { CardDescription, CardTitle } from '@/components/ui/card';
 import {
   StickyHeaderTable,
   TableBody,
@@ -24,6 +25,7 @@ import {
 } from '@/components/ui/table';
 import { JobMappingFormValues } from '@/yup-validations/jobs';
 import { SystemTransformer, UserDefinedTransformer } from '@neosync/sdk';
+import { GoWorkflow } from 'react-icons/go';
 import { SchemaConstraintHandler } from './SchemaColumns';
 import { SchemaTableToolbar } from './SchemaTableToolBar';
 
@@ -89,7 +91,13 @@ export default function SchemaPageTable<TData, TValue>({
 
   return (
     <div>
-      <div className="text-lg font-semibold pt-4 ">Transformer Mapping</div>
+      <div className="flex flex-row items-center gap-2 pt-4">
+        <GoWorkflow className="h-4 w-4 mt-1" />
+        <CardTitle>Transformer Mapping</CardTitle>
+      </div>
+      <CardDescription className="pt-2">
+        Map Transformers to every column below.
+      </CardDescription>
       <div className="z-50 pt-4">
         <SchemaTableToolbar
           table={table}
@@ -132,46 +140,52 @@ export default function SchemaPageTable<TData, TValue>({
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody
-            style={{
-              height: `${rowVirtualizer.getTotalSize()}px`, //tells scrollbar how big the table is
-            }}
-            className="relative grid"
-          >
-            {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-              const row = rows[virtualRow.index];
-              return (
-                <TableRow
-                  data-index={virtualRow.index} //needed for dynamic row height measurement
-                  ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
-                  key={row.id}
-                  style={{
-                    transform: `translateY(${virtualRow.start}px)`,
-                  }}
-                  className="items-center flex absolute w-full justify-between px-2"
-                >
-                  {row.getVisibleCells().map((cell) => {
-                    return (
-                      <td
-                        key={cell.id}
-                        className="py-2"
-                        style={{
-                          minWidth: cell.column.getSize(),
-                        }}
-                      >
-                        <div>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </div>
-                      </td>
-                    );
-                  })}
-                </TableRow>
-              );
-            })}
-          </TableBody>
+          {rows.length == 0 ? (
+            <div className="flex justify-center items-center py-10 text-gray-500">
+              No Schema(s) or Table(s) selected.
+            </div>
+          ) : (
+            <TableBody
+              style={{
+                height: `${rowVirtualizer.getTotalSize()}px`, //tells scrollbar how big the table is
+              }}
+              className="relative grid"
+            >
+              {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                const row = rows[virtualRow.index];
+                return (
+                  <TableRow
+                    data-index={virtualRow.index} //needed for dynamic row height measurement
+                    ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
+                    key={row.id}
+                    style={{
+                      transform: `translateY(${virtualRow.start}px)`,
+                    }}
+                    className="items-center flex absolute w-full justify-between px-2"
+                  >
+                    {row.getVisibleCells().map((cell) => {
+                      return (
+                        <td
+                          key={cell.id}
+                          className="py-2"
+                          style={{
+                            minWidth: cell.column.getSize(),
+                          }}
+                        >
+                          <div>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          )}
         </StickyHeaderTable>
       </div>
       <div className="text-xs text-gray-600 dark:text-300 pt-4">
