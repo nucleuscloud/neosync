@@ -16,7 +16,6 @@ import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
-import { useGetConnectionSchema } from '@/libs/hooks/useGetConnectionSchema';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 import { getErrorMessage } from '@/util/util';
 import { toPostgresSourceSchemaOptions } from '@/yup-validations/jobs';
@@ -47,10 +46,6 @@ export default function SubsetCard(props: Props): ReactElement {
     isLoading: isJobLoading,
   } = useGetJob(account?.id ?? '', jobId);
   const sourceConnectionId = getConnectionIdFromSource(data?.job?.source);
-  const { data: schema, isLoading: isSchemaLoading } = useGetConnectionSchema(
-    account?.id ?? '',
-    sourceConnectionId
-  );
 
   const dbType =
     data?.job?.source?.options?.config.case == 'mysql' ? 'mysql' : 'postgres';
@@ -63,7 +58,7 @@ export default function SubsetCard(props: Props): ReactElement {
   });
 
   const tableRowData = buildTableRowData(
-    schema?.schemas ?? [],
+    data?.job?.mappings ?? [],
     form.watch().subsets // ensures that all form changes cause a re-render since stuff happens outside of the form that depends on the form values
   );
   const [itemToEdit, setItemToEdit] = useState<TableRow | undefined>();
@@ -72,7 +67,7 @@ export default function SubsetCard(props: Props): ReactElement {
     formValues.subsets.map((ss) => [buildRowKey(ss.schema, ss.table), ss])
   );
 
-  if (isJobLoading || isSchemaLoading) {
+  if (isJobLoading) {
     return (
       <div className="space-y-10">
         <Skeleton className="w-full h-12" />
