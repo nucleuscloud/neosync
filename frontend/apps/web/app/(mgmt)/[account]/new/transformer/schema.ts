@@ -283,13 +283,33 @@ const transformInt64PhoneNumberConfig = Yup.object().shape({
 });
 
 const transformInt64Config = Yup.object().shape({
-  randomizationRangeMin: Yup.number()
+  randomizationRangeMin: bigIntValidator
+    .test(
+      'min',
+      'Value must be greater than or equal to 1',
+      getBigIntMinValidator(1)
+    )
+    .test(
+      'max',
+      `Value must be less than than or equal to ${Number.MAX_SAFE_INTEGER}`,
+      getBigIntMaxValidator(Number.MAX_SAFE_INTEGER)
+    )
     .required('This field is required.')
     .test('is-less-than-max', 'Min must be less than Max', function (value) {
       const { randomizationRangeMax } = this.parent;
       return !randomizationRangeMax || !value || value <= randomizationRangeMax;
     }),
-  randomizationRangeMax: Yup.number()
+  randomizationRangeMax: bigIntValidator
+    .test(
+      'min',
+      'Value must be greater than or equal to 1',
+      getBigIntMinValidator(1)
+    )
+    .test(
+      'max',
+      `Value must be less than than or equal to ${Number.MAX_SAFE_INTEGER}`,
+      getBigIntMaxValidator(Number.MAX_SAFE_INTEGER)
+    )
     .required('This field is required.')
     .test(
       'is-greater-than-min',
