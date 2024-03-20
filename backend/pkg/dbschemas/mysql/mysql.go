@@ -265,3 +265,62 @@ func EscapeMysqlColumns(cols []string) []string {
 func EscapeMysqlColumn(col string) string {
 	return fmt.Sprintf("`%s`", col)
 }
+
+func GetAllMysqlUniqueConstraints(
+	mysqlquerier mysql_queries.Querier,
+	ctx context.Context,
+	conn mysql_queries.DBTX,
+	schemas []string,
+) ([]*mysql_queries.GetUniqueConstraintsRow, error) {
+	holder := make([][]*mysql_queries.GetUniqueConstraintsRow, len(schemas))
+	errgrp, errctx := errgroup.WithContext(ctx)
+	for idx := range schemas {
+		idx := idx
+		schema := schemas[idx]
+		errgrp.Go(func() error {
+			constraints, err := mysqlquerier.GetUniqueConstraints(errctx, conn, schema)
+			if err != nil {
+				return err
+			}
+			holder[idx] = constraints
+			return nil
+		})
+	}
+
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
+	}
+
+	output := []*mysql_queries.GetUniqueConstraintsRow{}
+	for _, schemas := range holder {
+		output = append(output, schemas...)
+	}
+	return output, nil
+}
+
+func GetMysqlTableUniqueConstraints(
+	uniqueConstraints []*mysql_queries.GetUniqueConstraintsRow,
+) map[string][]string {
+	uniqueConstraintMap := map[string][]*mysql_queries.GetUniqueConstraintsRow{}
+	for _, c := range uniqueConstraints {
+		_, ok := uniqueConstraintMap[c.ConstraintName]
+		if ok {
+			uniqueConstraintMap[c.ConstraintName] = append(uniqueConstraintMap[c.ConstraintName], c)
+		} else {
+			uniqueConstraintMap[c.ConstraintName] = []*mysql_queries.GetUniqueConstraintsRow{c}
+		}
+	}
+	pkMap := map[string][]string{}
+	for _, constraints := range uniqueConstraintMap {
+		for _, c := range constraints {
+			key := dbschemas.BuildTable(c.SchemaName, c.TableName)
+			_, ok := pkMap[key]
+			if ok {
+				pkMap[key] = append(pkMap[key], c.ColumnName)
+			} else {
+				pkMap[key] = []string{c.ColumnName}
+			}
+		}
+	}
+	return pkMap
+}

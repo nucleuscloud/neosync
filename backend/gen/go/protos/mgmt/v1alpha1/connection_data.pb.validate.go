@@ -3136,3 +3136,362 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GetConnectionPrimaryConstraintsResponseValidationError{}
+
+// Validate checks the field values on GetConnectionUniqueConstraintsRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *GetConnectionUniqueConstraintsRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetConnectionUniqueConstraintsRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// GetConnectionUniqueConstraintsRequestMultiError, or nil if none found.
+func (m *GetConnectionUniqueConstraintsRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetConnectionUniqueConstraintsRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for ConnectionId
+
+	if len(errors) > 0 {
+		return GetConnectionUniqueConstraintsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetConnectionUniqueConstraintsRequestMultiError is an error wrapping
+// multiple validation errors returned by
+// GetConnectionUniqueConstraintsRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetConnectionUniqueConstraintsRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetConnectionUniqueConstraintsRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetConnectionUniqueConstraintsRequestMultiError) AllErrors() []error { return m }
+
+// GetConnectionUniqueConstraintsRequestValidationError is the validation error
+// returned by GetConnectionUniqueConstraintsRequest.Validate if the
+// designated constraints aren't met.
+type GetConnectionUniqueConstraintsRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetConnectionUniqueConstraintsRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetConnectionUniqueConstraintsRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetConnectionUniqueConstraintsRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetConnectionUniqueConstraintsRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetConnectionUniqueConstraintsRequestValidationError) ErrorName() string {
+	return "GetConnectionUniqueConstraintsRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetConnectionUniqueConstraintsRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetConnectionUniqueConstraintsRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetConnectionUniqueConstraintsRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetConnectionUniqueConstraintsRequestValidationError{}
+
+// Validate checks the field values on GetConnectionUniqueConstraintsResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *GetConnectionUniqueConstraintsResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on
+// GetConnectionUniqueConstraintsResponse with the rules defined in the proto
+// definition for this message. If any rules are violated, the result is a
+// list of violation errors wrapped in
+// GetConnectionUniqueConstraintsResponseMultiError, or nil if none found.
+func (m *GetConnectionUniqueConstraintsResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetConnectionUniqueConstraintsResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	{
+		sorted_keys := make([]string, len(m.GetTableConstraints()))
+		i := 0
+		for key := range m.GetTableConstraints() {
+			sorted_keys[i] = key
+			i++
+		}
+		sort.Slice(sorted_keys, func(i, j int) bool { return sorted_keys[i] < sorted_keys[j] })
+		for _, key := range sorted_keys {
+			val := m.GetTableConstraints()[key]
+			_ = val
+
+			// no validation rules for TableConstraints[key]
+
+			if all {
+				switch v := interface{}(val).(type) {
+				case interface{ ValidateAll() error }:
+					if err := v.ValidateAll(); err != nil {
+						errors = append(errors, GetConnectionUniqueConstraintsResponseValidationError{
+							field:  fmt.Sprintf("TableConstraints[%v]", key),
+							reason: "embedded message failed validation",
+							cause:  err,
+						})
+					}
+				case interface{ Validate() error }:
+					if err := v.Validate(); err != nil {
+						errors = append(errors, GetConnectionUniqueConstraintsResponseValidationError{
+							field:  fmt.Sprintf("TableConstraints[%v]", key),
+							reason: "embedded message failed validation",
+							cause:  err,
+						})
+					}
+				}
+			} else if v, ok := interface{}(val).(interface{ Validate() error }); ok {
+				if err := v.Validate(); err != nil {
+					return GetConnectionUniqueConstraintsResponseValidationError{
+						field:  fmt.Sprintf("TableConstraints[%v]", key),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetConnectionUniqueConstraintsResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetConnectionUniqueConstraintsResponseMultiError is an error wrapping
+// multiple validation errors returned by
+// GetConnectionUniqueConstraintsResponse.ValidateAll() if the designated
+// constraints aren't met.
+type GetConnectionUniqueConstraintsResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetConnectionUniqueConstraintsResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetConnectionUniqueConstraintsResponseMultiError) AllErrors() []error { return m }
+
+// GetConnectionUniqueConstraintsResponseValidationError is the validation
+// error returned by GetConnectionUniqueConstraintsResponse.Validate if the
+// designated constraints aren't met.
+type GetConnectionUniqueConstraintsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetConnectionUniqueConstraintsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetConnectionUniqueConstraintsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetConnectionUniqueConstraintsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetConnectionUniqueConstraintsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetConnectionUniqueConstraintsResponseValidationError) ErrorName() string {
+	return "GetConnectionUniqueConstraintsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetConnectionUniqueConstraintsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetConnectionUniqueConstraintsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetConnectionUniqueConstraintsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetConnectionUniqueConstraintsResponseValidationError{}
+
+// Validate checks the field values on UniqueConstraint with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *UniqueConstraint) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UniqueConstraint with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UniqueConstraintMultiError, or nil if none found.
+func (m *UniqueConstraint) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UniqueConstraint) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return UniqueConstraintMultiError(errors)
+	}
+
+	return nil
+}
+
+// UniqueConstraintMultiError is an error wrapping multiple validation errors
+// returned by UniqueConstraint.ValidateAll() if the designated constraints
+// aren't met.
+type UniqueConstraintMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UniqueConstraintMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UniqueConstraintMultiError) AllErrors() []error { return m }
+
+// UniqueConstraintValidationError is the validation error returned by
+// UniqueConstraint.Validate if the designated constraints aren't met.
+type UniqueConstraintValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UniqueConstraintValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UniqueConstraintValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UniqueConstraintValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UniqueConstraintValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UniqueConstraintValidationError) ErrorName() string { return "UniqueConstraintValidationError" }
+
+// Error satisfies the builtin error interface
+func (e UniqueConstraintValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUniqueConstraint.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UniqueConstraintValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UniqueConstraintValidationError{}

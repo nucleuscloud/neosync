@@ -48,6 +48,9 @@ const (
 	// ConnectionDataServiceGetConnectionInitStatementsProcedure is the fully-qualified name of the
 	// ConnectionDataService's GetConnectionInitStatements RPC.
 	ConnectionDataServiceGetConnectionInitStatementsProcedure = "/mgmt.v1alpha1.ConnectionDataService/GetConnectionInitStatements"
+	// ConnectionDataServiceGetConnectionUniqueConstraintsProcedure is the fully-qualified name of the
+	// ConnectionDataService's GetConnectionUniqueConstraints RPC.
+	ConnectionDataServiceGetConnectionUniqueConstraintsProcedure = "/mgmt.v1alpha1.ConnectionDataService/GetConnectionUniqueConstraints"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
@@ -58,6 +61,7 @@ var (
 	connectionDataServiceGetConnectionForeignConstraintsMethodDescriptor = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionForeignConstraints")
 	connectionDataServiceGetConnectionPrimaryConstraintsMethodDescriptor = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionPrimaryConstraints")
 	connectionDataServiceGetConnectionInitStatementsMethodDescriptor     = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionInitStatements")
+	connectionDataServiceGetConnectionUniqueConstraintsMethodDescriptor  = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionUniqueConstraints")
 )
 
 // ConnectionDataServiceClient is a client for the mgmt.v1alpha1.ConnectionDataService service.
@@ -76,6 +80,8 @@ type ConnectionDataServiceClient interface {
 	// For a specific connection, returns the init table statements. Mostly useful for SQL-based Connections.
 	// Used primarily by the CLI sync command to create table schema init statement.
 	GetConnectionInitStatements(context.Context, *connect.Request[v1alpha1.GetConnectionInitStatementsRequest]) (*connect.Response[v1alpha1.GetConnectionInitStatementsResponse], error)
+	// For a specific connection, returns the unique constraints. Mostly useful for SQL-based connections.
+	GetConnectionUniqueConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionUniqueConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionUniqueConstraintsResponse], error)
 }
 
 // NewConnectionDataServiceClient constructs a client for the mgmt.v1alpha1.ConnectionDataService
@@ -118,6 +124,12 @@ func NewConnectionDataServiceClient(httpClient connect.HTTPClient, baseURL strin
 			connect.WithSchema(connectionDataServiceGetConnectionInitStatementsMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		getConnectionUniqueConstraints: connect.NewClient[v1alpha1.GetConnectionUniqueConstraintsRequest, v1alpha1.GetConnectionUniqueConstraintsResponse](
+			httpClient,
+			baseURL+ConnectionDataServiceGetConnectionUniqueConstraintsProcedure,
+			connect.WithSchema(connectionDataServiceGetConnectionUniqueConstraintsMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -128,6 +140,7 @@ type connectionDataServiceClient struct {
 	getConnectionForeignConstraints *connect.Client[v1alpha1.GetConnectionForeignConstraintsRequest, v1alpha1.GetConnectionForeignConstraintsResponse]
 	getConnectionPrimaryConstraints *connect.Client[v1alpha1.GetConnectionPrimaryConstraintsRequest, v1alpha1.GetConnectionPrimaryConstraintsResponse]
 	getConnectionInitStatements     *connect.Client[v1alpha1.GetConnectionInitStatementsRequest, v1alpha1.GetConnectionInitStatementsResponse]
+	getConnectionUniqueConstraints  *connect.Client[v1alpha1.GetConnectionUniqueConstraintsRequest, v1alpha1.GetConnectionUniqueConstraintsResponse]
 }
 
 // GetConnectionDataStream calls mgmt.v1alpha1.ConnectionDataService.GetConnectionDataStream.
@@ -158,6 +171,12 @@ func (c *connectionDataServiceClient) GetConnectionInitStatements(ctx context.Co
 	return c.getConnectionInitStatements.CallUnary(ctx, req)
 }
 
+// GetConnectionUniqueConstraints calls
+// mgmt.v1alpha1.ConnectionDataService.GetConnectionUniqueConstraints.
+func (c *connectionDataServiceClient) GetConnectionUniqueConstraints(ctx context.Context, req *connect.Request[v1alpha1.GetConnectionUniqueConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionUniqueConstraintsResponse], error) {
+	return c.getConnectionUniqueConstraints.CallUnary(ctx, req)
+}
+
 // ConnectionDataServiceHandler is an implementation of the mgmt.v1alpha1.ConnectionDataService
 // service.
 type ConnectionDataServiceHandler interface {
@@ -175,6 +194,8 @@ type ConnectionDataServiceHandler interface {
 	// For a specific connection, returns the init table statements. Mostly useful for SQL-based Connections.
 	// Used primarily by the CLI sync command to create table schema init statement.
 	GetConnectionInitStatements(context.Context, *connect.Request[v1alpha1.GetConnectionInitStatementsRequest]) (*connect.Response[v1alpha1.GetConnectionInitStatementsResponse], error)
+	// For a specific connection, returns the unique constraints. Mostly useful for SQL-based connections.
+	GetConnectionUniqueConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionUniqueConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionUniqueConstraintsResponse], error)
 }
 
 // NewConnectionDataServiceHandler builds an HTTP handler from the service implementation. It
@@ -213,6 +234,12 @@ func NewConnectionDataServiceHandler(svc ConnectionDataServiceHandler, opts ...c
 		connect.WithSchema(connectionDataServiceGetConnectionInitStatementsMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	connectionDataServiceGetConnectionUniqueConstraintsHandler := connect.NewUnaryHandler(
+		ConnectionDataServiceGetConnectionUniqueConstraintsProcedure,
+		svc.GetConnectionUniqueConstraints,
+		connect.WithSchema(connectionDataServiceGetConnectionUniqueConstraintsMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/mgmt.v1alpha1.ConnectionDataService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case ConnectionDataServiceGetConnectionDataStreamProcedure:
@@ -225,6 +252,8 @@ func NewConnectionDataServiceHandler(svc ConnectionDataServiceHandler, opts ...c
 			connectionDataServiceGetConnectionPrimaryConstraintsHandler.ServeHTTP(w, r)
 		case ConnectionDataServiceGetConnectionInitStatementsProcedure:
 			connectionDataServiceGetConnectionInitStatementsHandler.ServeHTTP(w, r)
+		case ConnectionDataServiceGetConnectionUniqueConstraintsProcedure:
+			connectionDataServiceGetConnectionUniqueConstraintsHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -252,4 +281,8 @@ func (UnimplementedConnectionDataServiceHandler) GetConnectionPrimaryConstraints
 
 func (UnimplementedConnectionDataServiceHandler) GetConnectionInitStatements(context.Context, *connect.Request[v1alpha1.GetConnectionInitStatementsRequest]) (*connect.Response[v1alpha1.GetConnectionInitStatementsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionDataService.GetConnectionInitStatements is not implemented"))
+}
+
+func (UnimplementedConnectionDataServiceHandler) GetConnectionUniqueConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionUniqueConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionUniqueConstraintsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionDataService.GetConnectionUniqueConstraints is not implemented"))
 }

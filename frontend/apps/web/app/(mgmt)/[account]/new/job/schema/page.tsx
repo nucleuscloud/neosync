@@ -11,6 +11,7 @@ import { Form } from '@/components/ui/form';
 import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectionForeignConstraints';
 import { useGetConnectionPrimaryConstraints } from '@/libs/hooks/useGetConnectionPrimaryConstraints';
 import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
+import { useGetConnectionUniqueConstraints } from '@/libs/hooks/useGetConnectionUniqueConstraints';
 import { SCHEMA_FORM_SCHEMA, SchemaFormValues } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
@@ -78,6 +79,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       connectFormValues.sourceId
     );
 
+  const { data: uniqueConstraints, isValidating: isUCValidating } =
+    useGetConnectionUniqueConstraints(
+      account?.id ?? '',
+      connectFormValues.sourceId
+    );
+
   const form = useForm<SchemaFormValues>({
     resolver: yupResolver<SchemaFormValues>(SCHEMA_FORM_SCHEMA),
     values: getFormValues(connectFormValues.sourceId, schemaFormData),
@@ -101,9 +108,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       getSchemaConstraintHandler(
         connectionSchemaDataMap?.schemaMap ?? {},
         primaryConstraints?.tableConstraints ?? {},
-        foreignConstraints?.tableConstraints ?? {}
+        foreignConstraints?.tableConstraints ?? {},
+        uniqueConstraints?.tableConstraints ?? {}
       ),
-    [isSchemaMapValidating, isPkValidating, isFkValidating]
+    [isSchemaMapValidating, isPkValidating, isFkValidating, isUCValidating]
   );
 
   return (

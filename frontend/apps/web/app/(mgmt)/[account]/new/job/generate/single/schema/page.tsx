@@ -33,6 +33,7 @@ import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboard
 import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectionForeignConstraints';
 import { useGetConnectionPrimaryConstraints } from '@/libs/hooks/useGetConnectionPrimaryConstraints';
 import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
+import { useGetConnectionUniqueConstraints } from '@/libs/hooks/useGetConnectionUniqueConstraints';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { convertMinutesToNanoseconds, getErrorMessage } from '@/util/util';
 import {
@@ -221,14 +222,21 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       connectFormValues.connectionId
     );
 
+  const { data: uniqueConstraints, isValidating: isUCValidating } =
+    useGetConnectionUniqueConstraints(
+      account?.id ?? '',
+      connectFormValues.connectionId
+    );
+
   const schemaConstraintHandler = useMemo(
     () =>
       getSchemaConstraintHandler(
         connectionSchemaDataMap?.schemaMap ?? {},
         primaryConstraints?.tableConstraints ?? {},
-        foreignConstraints?.tableConstraints ?? {}
+        foreignConstraints?.tableConstraints ?? {},
+        uniqueConstraints?.tableConstraints ?? {}
       ),
-    [isSchemaMapValidating, isPkValidating, isFkValidating]
+    [isSchemaMapValidating, isPkValidating, isFkValidating, isUCValidating]
   );
 
   const selectedSchemaTables = schemaTableMap.get(formValues.schema) ?? [];

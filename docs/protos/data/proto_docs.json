@@ -3077,7 +3077,7 @@
           "fields": [
             {
               "name": "table_constraints",
-              "description": "the key here is \u003cschema\u003e.\u003ctable\u003e and value is",
+              "description": "the key here is \u003cschema\u003e.\u003ctable\u003e and value is the primary constraint",
               "label": "repeated",
               "type": "TableConstraintsEntry",
               "longType": "GetConnectionPrimaryConstraintsResponse.TableConstraintsEntry",
@@ -3178,6 +3178,90 @@
               "type": "DatabaseColumn",
               "longType": "DatabaseColumn",
               "fullType": "mgmt.v1alpha1.DatabaseColumn",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetConnectionUniqueConstraintsRequest",
+          "longName": "GetConnectionUniqueConstraintsRequest",
+          "fullName": "mgmt.v1alpha1.GetConnectionUniqueConstraintsRequest",
+          "description": "Unique constraints for a specific table",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "connection_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetConnectionUniqueConstraintsResponse",
+          "longName": "GetConnectionUniqueConstraintsResponse",
+          "fullName": "mgmt.v1alpha1.GetConnectionUniqueConstraintsResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "table_constraints",
+              "description": "the key here is \u003cschema\u003e.\u003ctable\u003e and value is the unique constraint",
+              "label": "repeated",
+              "type": "TableConstraintsEntry",
+              "longType": "GetConnectionUniqueConstraintsResponse.TableConstraintsEntry",
+              "fullType": "mgmt.v1alpha1.GetConnectionUniqueConstraintsResponse.TableConstraintsEntry",
+              "ismap": true,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "TableConstraintsEntry",
+          "longName": "GetConnectionUniqueConstraintsResponse.TableConstraintsEntry",
+          "fullName": "mgmt.v1alpha1.GetConnectionUniqueConstraintsResponse.TableConstraintsEntry",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "key",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "value",
+              "description": "",
+              "label": "",
+              "type": "UniqueConstraint",
+              "longType": "UniqueConstraint",
+              "fullType": "mgmt.v1alpha1.UniqueConstraint",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -3300,6 +3384,30 @@
               "defaultValue": ""
             }
           ]
+        },
+        {
+          "name": "UniqueConstraint",
+          "longName": "UniqueConstraint",
+          "fullName": "mgmt.v1alpha1.UniqueConstraint",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "columns",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
         }
       ],
       "services": [
@@ -3367,6 +3475,18 @@
               "responseType": "GetConnectionInitStatementsResponse",
               "responseLongType": "GetConnectionInitStatementsResponse",
               "responseFullType": "mgmt.v1alpha1.GetConnectionInitStatementsResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "GetConnectionUniqueConstraints",
+              "description": "For a specific connection, returns the unique constraints. Mostly useful for SQL-based connections.",
+              "requestType": "GetConnectionUniqueConstraintsRequest",
+              "requestLongType": "GetConnectionUniqueConstraintsRequest",
+              "requestFullType": "mgmt.v1alpha1.GetConnectionUniqueConstraintsRequest",
+              "requestStreaming": false,
+              "responseType": "GetConnectionUniqueConstraintsResponse",
+              "responseLongType": "GetConnectionUniqueConstraintsResponse",
+              "responseFullType": "mgmt.v1alpha1.GetConnectionUniqueConstraintsResponse",
               "responseStreaming": false
             }
           ]

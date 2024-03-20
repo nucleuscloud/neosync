@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { GetConnectionDataStreamRequest, GetConnectionDataStreamResponse, GetConnectionForeignConstraintsRequest, GetConnectionForeignConstraintsResponse, GetConnectionInitStatementsRequest, GetConnectionInitStatementsResponse, GetConnectionPrimaryConstraintsRequest, GetConnectionPrimaryConstraintsResponse, GetConnectionSchemaRequest, GetConnectionSchemaResponse } from "./connection_data_pb.js";
+import { GetConnectionDataStreamRequest, GetConnectionDataStreamResponse, GetConnectionForeignConstraintsRequest, GetConnectionForeignConstraintsResponse, GetConnectionInitStatementsRequest, GetConnectionInitStatementsResponse, GetConnectionPrimaryConstraintsRequest, GetConnectionPrimaryConstraintsResponse, GetConnectionSchemaRequest, GetConnectionSchemaResponse, GetConnectionUniqueConstraintsRequest, GetConnectionUniqueConstraintsResponse } from "./connection_data_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -72,6 +72,17 @@ export const ConnectionDataService = {
       name: "GetConnectionInitStatements",
       I: GetConnectionInitStatementsRequest,
       O: GetConnectionInitStatementsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * For a specific connection, returns the unique constraints. Mostly useful for SQL-based connections.
+     *
+     * @generated from rpc mgmt.v1alpha1.ConnectionDataService.GetConnectionUniqueConstraints
+     */
+    getConnectionUniqueConstraints: {
+      name: "GetConnectionUniqueConstraints",
+      I: GetConnectionUniqueConstraintsRequest,
+      O: GetConnectionUniqueConstraintsResponse,
       kind: MethodKind.Unary,
     },
   }

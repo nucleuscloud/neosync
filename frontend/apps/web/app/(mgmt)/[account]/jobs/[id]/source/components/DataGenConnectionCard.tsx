@@ -31,6 +31,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectionForeignConstraints';
 import { useGetConnectionPrimaryConstraints } from '@/libs/hooks/useGetConnectionPrimaryConstraints';
 import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
+import { useGetConnectionUniqueConstraints } from '@/libs/hooks/useGetConnectionUniqueConstraints';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 import { getErrorMessage } from '@/util/util';
 import {
@@ -91,6 +92,12 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
       fkSourceConnectionId ?? ''
     );
 
+  const { data: uniqueConstraints, isValidating: isUCValidating } =
+    useGetConnectionUniqueConstraints(
+      account?.id ?? '',
+      fkSourceConnectionId ?? ''
+    );
+
   const allJobMappings =
     Object.values(connectionSchemaDataMap?.schemaMap ?? {}).flatMap(
       (dbcols) => {
@@ -116,9 +123,10 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
       getSchemaConstraintHandler(
         connectionSchemaDataMap?.schemaMap ?? {},
         primaryConstraints?.tableConstraints ?? {},
-        foreignConstraints?.tableConstraints ?? {}
+        foreignConstraints?.tableConstraints ?? {},
+        uniqueConstraints?.tableConstraints ?? {}
       ),
-    [isSchemaMapValidating, isPkValidating, isFkValidating]
+    [isSchemaMapValidating, isPkValidating, isFkValidating, isUCValidating]
   );
 
   if (isJobLoading || isSchemaDataMapLoading) {

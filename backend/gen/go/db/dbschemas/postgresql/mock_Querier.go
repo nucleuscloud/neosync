@@ -320,6 +320,66 @@ func (_c *MockQuerier_GetTableConstraints_Call) RunAndReturn(run func(context.Co
 	return _c
 }
 
+// GetUniqueConstraints provides a mock function with given fields: ctx, db, tableschema
+func (_m *MockQuerier) GetUniqueConstraints(ctx context.Context, db DBTX, tableschema string) ([]*GetUniqueConstraintsRow, error) {
+	ret := _m.Called(ctx, db, tableschema)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUniqueConstraints")
+	}
+
+	var r0 []*GetUniqueConstraintsRow
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, string) ([]*GetUniqueConstraintsRow, error)); ok {
+		return rf(ctx, db, tableschema)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, string) []*GetUniqueConstraintsRow); ok {
+		r0 = rf(ctx, db, tableschema)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*GetUniqueConstraintsRow)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, string) error); ok {
+		r1 = rf(ctx, db, tableschema)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetUniqueConstraints_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetUniqueConstraints'
+type MockQuerier_GetUniqueConstraints_Call struct {
+	*mock.Call
+}
+
+// GetUniqueConstraints is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - tableschema string
+func (_e *MockQuerier_Expecter) GetUniqueConstraints(ctx interface{}, db interface{}, tableschema interface{}) *MockQuerier_GetUniqueConstraints_Call {
+	return &MockQuerier_GetUniqueConstraints_Call{Call: _e.mock.On("GetUniqueConstraints", ctx, db, tableschema)}
+}
+
+func (_c *MockQuerier_GetUniqueConstraints_Call) Run(run func(ctx context.Context, db DBTX, tableschema string)) *MockQuerier_GetUniqueConstraints_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetUniqueConstraints_Call) Return(_a0 []*GetUniqueConstraintsRow, _a1 error) *MockQuerier_GetUniqueConstraints_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetUniqueConstraints_Call) RunAndReturn(run func(context.Context, DBTX, string) ([]*GetUniqueConstraintsRow, error)) *MockQuerier_GetUniqueConstraints_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewMockQuerier creates a new instance of MockQuerier. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockQuerier(t interface {

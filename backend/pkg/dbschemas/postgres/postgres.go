@@ -316,3 +316,62 @@ func EscapePgColumns(cols []string) []string {
 func EscapePgColumn(col string) string {
 	return fmt.Sprintf("%q", col)
 }
+
+func GetAllPostgresUniqueConstraints(
+	pgquerier pg_queries.Querier,
+	ctx context.Context,
+	conn pg_queries.DBTX,
+	uniqueSchemas []string,
+) ([]*pg_queries.GetUniqueConstraintsRow, error) {
+	holder := make([][]*pg_queries.GetUniqueConstraintsRow, len(uniqueSchemas))
+	errgrp, errctx := errgroup.WithContext(ctx)
+	for idx := range uniqueSchemas {
+		idx := idx
+		schema := uniqueSchemas[idx]
+		errgrp.Go(func() error {
+			constraints, err := pgquerier.GetUniqueConstraints(errctx, conn, schema)
+			if err != nil {
+				return err
+			}
+			holder[idx] = constraints
+			return nil
+		})
+	}
+
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
+	}
+
+	output := []*pg_queries.GetUniqueConstraintsRow{}
+	for _, schemas := range holder {
+		output = append(output, schemas...)
+	}
+	return output, nil
+}
+
+func GetPostgresTableUniqueConstraints(
+	uniqueConstraints []*pg_queries.GetUniqueConstraintsRow,
+) map[string][]string {
+	uniqueConstraintMap := map[string][]*pg_queries.GetUniqueConstraintsRow{}
+	for _, c := range uniqueConstraints {
+		_, ok := uniqueConstraintMap[c.ConstraintName]
+		if ok {
+			uniqueConstraintMap[c.ConstraintName] = append(uniqueConstraintMap[c.ConstraintName], c)
+		} else {
+			uniqueConstraintMap[c.ConstraintName] = []*pg_queries.GetUniqueConstraintsRow{c}
+		}
+	}
+	pkMap := map[string][]string{}
+	for _, constraints := range uniqueConstraintMap {
+		for _, c := range constraints {
+			key := dbschemas.BuildTable(c.SchemaName, c.TableName)
+			_, ok := pkMap[key]
+			if ok {
+				pkMap[key] = append(pkMap[key], c.ColumnName)
+			} else {
+				pkMap[key] = []string{c.ColumnName}
+			}
+		}
+	}
+	return pkMap
+}

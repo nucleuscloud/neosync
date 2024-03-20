@@ -409,7 +409,7 @@ func Test_GetConnectionPrimaryConstraints_Mysql(t *testing.T) {
 	m.MysqlQueierMock.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
 		Return([]*mysql_queries.GetPrimaryKeyConstraintsRow{
 			{
-				ConstraintName: "pk_users_id",
+				ConstraintName: "unique_users_id",
 				SchemaName:     "public",
 				TableName:      "users",
 				ColumnName:     "id",
@@ -923,4 +923,104 @@ func Test_isValidSchema(t *testing.T) {
 			assert.Equal(t, tt.expected, actual)
 		})
 	}
+}
+
+// GetConnectionPrimaryConstraints
+func Test_GetConnectionUniqueConstraints_Mysql(t *testing.T) {
+	m := createServiceMock(t)
+	defer m.SqlDbMock.Close()
+
+	connection := getConnectionMock(mockAccountId, mockConnectionName, mockConnectionId, MysqlMock)
+	mockIsUserInAccount(m.UserAccountServiceMock, true)
+	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+		Connection: connection,
+	}), nil)
+	m.SqlDbContainerMock.On("Open").Return(m.SqlDbMock, nil)
+	m.SqlDbContainerMock.On("Close").Return(nil)
+	m.SqlConnectorMock.On("NewDbFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.SqlDbContainerMock, nil)
+
+	m.MysqlQueierMock.On("GetDatabaseSchema", mock.Anything, mock.Anything).
+		Return([]*mysql_queries.GetDatabaseSchemaRow{
+			{
+				TableSchema: "public",
+				TableName:   "users",
+				ColumnName:  "id",
+			},
+			{
+				TableSchema: "public",
+				TableName:   "users",
+				ColumnName:  "name",
+			},
+		}, nil)
+	m.MysqlQueierMock.On("GetUniqueConstraints", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*mysql_queries.GetUniqueConstraintsRow{
+			{
+				ConstraintName: "id",
+				SchemaName:     "public",
+				TableName:      "users",
+				ColumnName:     "id",
+			},
+		}, nil)
+
+	resp, err := m.Service.GetConnectionUniqueConstraints(context.Background(), &connect.Request[mgmtv1alpha1.GetConnectionUniqueConstraintsRequest]{
+		Msg: &mgmtv1alpha1.GetConnectionUniqueConstraintsRequest{
+			ConnectionId: mockConnectionId,
+		},
+	})
+
+	assert.Nil(t, err)
+	assert.Len(t, resp.Msg.TableConstraints, 1)
+	assert.EqualValues(t, map[string]*mgmtv1alpha1.UniqueConstraint{
+		"public.users": {Columns: []string{"id"}},
+	}, resp.Msg.TableConstraints)
+}
+
+func Test_GetConnectionUniqueConstraints_Postgres(t *testing.T) {
+	m := createServiceMock(t)
+	defer m.SqlDbMock.Close()
+
+	pool, _ := pgxpool.New(context.Background(), "")
+	m.PgPoolContainerMock.On("Open", mock.Anything).Return(pool, nil)
+	m.PgPoolContainerMock.On("Close")
+	m.SqlConnectorMock.On("NewPgPoolFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.PgPoolContainerMock, nil)
+	connection := getConnectionMock(mockAccountId, mockConnectionName, mockConnectionId, PostgresMock)
+	mockIsUserInAccount(m.UserAccountServiceMock, true)
+	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+		Connection: connection,
+	}), nil)
+
+	m.PgQueierMock.On("GetDatabaseSchema", mock.Anything, mock.Anything).
+		Return([]*pg_queries.GetDatabaseSchemaRow{
+			{
+				TableSchema: "public",
+				TableName:   "users",
+				ColumnName:  "id",
+			},
+			{
+				TableSchema: "public",
+				TableName:   "users",
+				ColumnName:  "name",
+			},
+		}, nil)
+	m.PgQueierMock.On("GetUniqueConstraints", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*pg_queries.GetUniqueConstraintsRow{
+			{
+				ConstraintName: "id",
+				SchemaName:     "public",
+				TableName:      "users",
+				ColumnName:     "id",
+			},
+		}, nil)
+
+	resp, err := m.Service.GetConnectionUniqueConstraints(context.Background(), &connect.Request[mgmtv1alpha1.GetConnectionUniqueConstraintsRequest]{
+		Msg: &mgmtv1alpha1.GetConnectionUniqueConstraintsRequest{
+			ConnectionId: mockConnectionId,
+		},
+	})
+
+	assert.Nil(t, err)
+	assert.Len(t, resp.Msg.TableConstraints, 1)
+	assert.EqualValues(t, map[string]*mgmtv1alpha1.UniqueConstraint{
+		"public.users": {Columns: []string{"id"}},
+	}, resp.Msg.TableConstraints)
 }
