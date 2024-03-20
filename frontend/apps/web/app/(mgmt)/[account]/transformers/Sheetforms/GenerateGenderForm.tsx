@@ -9,9 +9,11 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { GenerateGender } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
+import { TRANSFORMER_SCHEMA_CONFIGS } from '../../new/transformer/schema';
 import { TransformerFormProps } from './util';
 interface Props extends TransformerFormProps<GenerateGender> {}
 
@@ -20,8 +22,9 @@ export default function GenerateGenderForm(props: Props): ReactElement {
 
   const form = useForm({
     mode: 'onChange',
+    resolver: yupResolver(TRANSFORMER_SCHEMA_CONFIGS.generateGenderConfig),
     defaultValues: {
-      ...existingConfig,
+      abbreviate: existingConfig?.abbreviate ?? false,
     },
   });
 

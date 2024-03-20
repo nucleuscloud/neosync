@@ -26,8 +26,11 @@ const bigIntValidator = Yup.mixed<bigint>().test(
 
 function getBigIntMinValidator(
   minVal: number | string | bigint
-): (value: bigint) => boolean {
+): (value: bigint | undefined) => boolean {
   return (value) => {
+    if (value === undefined || value === null) {
+      return false;
+    }
     const MIN_VALUE = BigInt(minVal);
     try {
       const bigIntValue = BigInt(value);
@@ -39,8 +42,11 @@ function getBigIntMinValidator(
 }
 function getBigIntMaxValidator(
   maxVal: number | string | bigint
-): (value: bigint) => boolean {
+): (value: bigint | undefined) => boolean {
   return (value) => {
+    if (value === undefined || value === null) {
+      return false;
+    }
     const MAX_VALUE = BigInt(maxVal);
     try {
       const bigIntValue = BigInt(value);
@@ -65,17 +71,33 @@ const generateCardNumberConfig = Yup.object().shape({
 });
 
 const generateInternationalPhoneNumberConfig = Yup.object().shape({
-  min: Yup.number()
-    .min(9, 'The value must be greater than or equal to 9.')
-    .max(15, 'The value must be less than or equal 15.')
+  min: bigIntValidator
+    .test(
+      'min',
+      'Value must be greater than or equal to 9',
+      getBigIntMinValidator(9)
+    )
+    .test(
+      'max',
+      `Value must be less than than or equal to ${15}`,
+      getBigIntMaxValidator(15)
+    )
     .required('This field is required.')
     .test('is-less-than-max', 'Min must be less than Max', function (value) {
       const { max } = this.parent;
       return !max || !value || value <= max;
     }),
-  max: Yup.number()
-    .min(9, 'The value must be greater than or equal to 9.')
-    .max(15, 'The value must be less than or equal 15.')
+  max: bigIntValidator
+    .test(
+      'min',
+      'Value must be greater than or equal to 9',
+      getBigIntMinValidator(9)
+    )
+    .test(
+      'max',
+      `Value must be less than than or equal to ${15}`,
+      getBigIntMaxValidator(15)
+    )
     .required('This field is required.')
     .test(
       'is-greater-than-min',
