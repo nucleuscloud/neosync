@@ -23,6 +23,7 @@ import {
   ForeignKey,
   PrimaryConstraint,
   SystemTransformer,
+  UniqueConstraint,
   UserDefinedTransformer,
 } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
@@ -66,6 +67,7 @@ export interface SchemaConstraintHandler {
   getIsNullable(key: ColumnKey): boolean;
   getDataType(key: ColumnKey): string;
   getIsInSchema(key: ColumnKey): boolean;
+  getIsUniqueConstraint(key: ColumnKey): boolean;
 }
 
 interface ColDetails {
@@ -73,17 +75,20 @@ interface ColDetails {
   fk: [boolean, string[]];
   isNullable: boolean;
   dataType: string;
+  isUniqueConstraint: boolean;
 }
 
 export function getSchemaConstraintHandler(
   schema: ConnectionSchemaMap,
   primaryConstraints: Record<string, PrimaryConstraint>,
-  foreignConstraints: Record<string, ForeignConstraintTables>
+  foreignConstraints: Record<string, ForeignConstraintTables>,
+  uniqueConstraints: Record<string, UniqueConstraint>
 ): SchemaConstraintHandler {
   const colmap = buildColDetailsMap(
     schema,
     primaryConstraints,
-    foreignConstraints
+    foreignConstraints,
+    uniqueConstraints
   );
   return {
     getDataType(key) {
@@ -98,6 +103,9 @@ export function getSchemaConstraintHandler(
     getIsPrimaryKey(key) {
       return colmap[fromColKey(key)]?.isPrimaryKey ?? false;
     },
+    getIsUniqueConstraint(key) {
+      return colmap[fromColKey(key)]?.isUniqueConstraint ?? false;
+    },
     getIsInSchema(key) {
       return !!colmap[fromColKey(key)];
     },
@@ -107,14 +115,19 @@ export function getSchemaConstraintHandler(
 function buildColDetailsMap(
   schema: ConnectionSchemaMap,
   primaryConstraints: Record<string, PrimaryConstraint>,
-  foreignConstraints: Record<string, ForeignConstraintTables>
+  foreignConstraints: Record<string, ForeignConstraintTables>,
+  uniqueConstraints: Record<string, UniqueConstraint>
 ): Record<string, ColDetails> {
   const colmap: Record<string, ColDetails> = {};
+  //<schema.table: dbCols>
   Object.entries(schema).forEach(([key, dbcols]) => {
     const tablePkeys = primaryConstraints[key] ?? new PrimaryConstraint();
     const primaryCols = new Set(tablePkeys.columns);
     const foreignFkeys =
       foreignConstraints[key] ?? new ForeignConstraintTables();
+    const tableUniqueConstraints =
+      uniqueConstraints[key] ?? new UniqueConstraint({});
+    const uniqueConstraintCols = new Set(tableUniqueConstraints.columns);
     const fkConstraints = foreignFkeys.constraints;
     const fkconstraintsMap: Record<string, ForeignKey> = {};
     fkConstraints.forEach((constraint) => {
@@ -132,6 +145,7 @@ function buildColDetailsMap(
           fk !== undefined ? [`${fk.table}.${fk.column}`] : [],
         ],
         isPrimaryKey: primaryCols.has(dbcol.column),
+        isUniqueConstraint: uniqueConstraintCols.has(dbcol.column),
       };
     });
   });
@@ -295,6 +309,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         };
         const isPrimaryKey = constraintHandler.getIsPrimaryKey(key);
         const [isForeignKey, fkCols] = constraintHandler.getIsForeignKey(key);
+        const isUniqueConstraint = constraintHandler.getIsUniqueConstraint(key);
         return (
           <span className="max-w-[500px] truncate font-medium">
             <div className="flex flex-col lg:flex-row items-start gap-1">
@@ -325,6 +340,16 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
+                )}
+              </div>
+              <div>
+                {isUniqueConstraint && (
+                  <Badge
+                    variant="outline"
+                    className="text-xs bg-purple-100 text-gray-800 cursor-default dark:bg-blue-200 dark:text-gray-900"
+                  >
+                    Unique
+                  </Badge>
                 )}
               </div>
             </div>
@@ -513,7 +538,7 @@ function IndeterminateCheckbox({
   );
 }
 
-// cleans up the data type values since some are too long , can add on more here as we
+// cleans up the data type values since some are too long , can add on more here
 function handleDataTypeBadge(dataType: string): string {
   const splitDt = dataType.split('(');
   switch (splitDt[0]) {
