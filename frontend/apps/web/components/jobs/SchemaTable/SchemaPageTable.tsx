@@ -89,7 +89,8 @@ export default function SchemaPageTable<TData, TValue>({
 
   return (
     <div>
-      <div className="z-50">
+      <div className="text-lg font-semibold pt-4 ">Transformer Mapping</div>
+      <div className="z-50 pt-4">
         <SchemaTableToolbar
           table={table}
           systemTransformerMap={systemTransformerMap}

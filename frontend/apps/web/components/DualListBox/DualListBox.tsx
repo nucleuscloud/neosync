@@ -23,16 +23,20 @@ interface Props {
   options: Option[];
   selected: Set<string>;
   onChange(value: Set<string>, action: Action): void;
-  title: string;
 }
 
 export default function DualListBox(props: Props): ReactElement {
-  const { options, selected, onChange, title } = props;
+  const { options, selected, onChange } = props;
 
   const [leftSelected, setLeftSelected] = useState<RowSelectionState>({});
   const [rightSelected, setRightSelected] = useState<RowSelectionState>({});
 
-  const cols = useMemo(() => getListBoxColumns({ title }), []);
+  const leftCols = useMemo(() => getListBoxColumns({ title: 'Source' }), []);
+  const rightCols = useMemo(
+    () => getListBoxColumns({ title: 'Destination' }),
+    []
+  );
+
   const leftData = options
     .filter((value) => !selected.has(value.value))
     .map((value): Row => ({ value: value.value }));
@@ -42,9 +46,9 @@ export default function DualListBox(props: Props): ReactElement {
 
   return (
     <div className="flex gap-3 flex-col md:flex-row">
-      <div className="flex">
+      <div className="flex flex-1 border border-gray-300 rounded-lg">
         <ListBox
-          columns={cols}
+          columns={leftCols}
           data={leftData}
           onRowSelectionChange={setLeftSelected}
           rowSelection={leftSelected}
@@ -119,9 +123,9 @@ export default function DualListBox(props: Props): ReactElement {
           </Button>
         </div>
       </div>
-      <div className="flex">
+      <div className="flex flex-1 border border-gray-300 rounded-lg">
         <ListBox
-          columns={cols}
+          columns={rightCols}
           data={rightData}
           onRowSelectionChange={setRightSelected}
           rowSelection={rightSelected}

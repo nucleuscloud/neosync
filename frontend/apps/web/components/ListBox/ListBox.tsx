@@ -68,84 +68,82 @@ export default function ListBox<TData, TValue>(
   });
 
   return (
-    <div>
-      <div
-        className={cn(
-          'max-h-[300px] overflow-auto relative',
-          tableContainerClassName
-        )}
-        ref={tableContainerRef}
-      >
-        <StickyHeaderTable>
-          <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 flex w-full">
-            {table.getHeaderGroups().map((headerGroup) => (
+    <div
+      className={cn(
+        'max-h-[300px] overflow-auto relative w-full',
+        tableContainerClassName
+      )}
+      ref={tableContainerRef}
+    >
+      <StickyHeaderTable>
+        <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 flex w-full rounded-md">
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow
+              key={headerGroup.id}
+              className="flex-none custom:flex items-center flex-row w-full px-1"
+              id="table-header-row"
+            >
+              {headerGroup.headers.map((header) => {
+                return (
+                  <TableHead
+                    className="flex items-center"
+                    key={header.id}
+                    style={{ minWidth: `${header.column.getSize()}px` }}
+                    colSpan={header.colSpan}
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                );
+              })}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody
+          style={{
+            height: `${rowVirtualizer.getTotalSize()}px`, // tells scrollbar how big the table is
+          }}
+          className="relative grid"
+        >
+          {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+            const row = rows[virtualRow.index];
+            return (
               <TableRow
-                key={headerGroup.id}
-                className="flex-none custom:flex items-center flex-row w-full px-1"
-                id="table-header-row"
+                data-index={virtualRow.index} // needed for dynamic row height measurement
+                ref={(node) => rowVirtualizer.measureElement(node)} // measure dynamic row height
+                key={row.id}
+                style={{
+                  transform: `translateY(${virtualRow.start}px)`,
+                }}
+                className="items-center flex absolute w-full px-1"
               >
-                {headerGroup.headers.map((header) => {
+                {row.getVisibleCells().map((cell) => {
                   return (
-                    <TableHead
-                      className="flex items-center"
-                      key={header.id}
-                      style={{ minWidth: `${header.column.getSize()}px` }}
-                      colSpan={header.colSpan}
+                    <TableCell
+                      className="px-0"
+                      key={cell.id}
+                      style={{
+                        minWidth: cell.column.getSize(),
+                      }}
                     >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
+                      <div className="truncate">
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </div>
+                    </TableCell>
                   );
                 })}
               </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody
-            style={{
-              height: `${rowVirtualizer.getTotalSize()}px`, // tells scrollbar how big the table is
-            }}
-            className="relative grid"
-          >
-            {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-              const row = rows[virtualRow.index];
-              return (
-                <TableRow
-                  data-index={virtualRow.index} // needed for dynamic row height measurement
-                  ref={(node) => rowVirtualizer.measureElement(node)} // measure dynamic row height
-                  key={row.id}
-                  style={{
-                    transform: `translateY(${virtualRow.start}px)`,
-                  }}
-                  className="items-center flex absolute w-full px-1"
-                >
-                  {row.getVisibleCells().map((cell) => {
-                    return (
-                      <TableCell
-                        className="px-0"
-                        key={cell.id}
-                        style={{
-                          minWidth: cell.column.getSize(),
-                        }}
-                      >
-                        <div className="truncate">
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </div>
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </StickyHeaderTable>
-      </div>
+            );
+          })}
+        </TableBody>
+      </StickyHeaderTable>
     </div>
   );
 }

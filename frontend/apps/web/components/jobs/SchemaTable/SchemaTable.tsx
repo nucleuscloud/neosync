@@ -6,18 +6,11 @@ import DualListBox, {
 } from '@/components/DualListBox/DualListBox';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { ConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetMergedTransformers } from '@/libs/hooks/useGetMergedTransformers';
-import { cn } from '@/libs/utils';
 import {
   JobMappingFormValues,
   SchemaFormValues,
@@ -27,8 +20,14 @@ import {
   GetConnectionSchemaResponse,
   JobMappingTransformer,
 } from '@neosync/sdk';
+import {
+  CheckCircledIcon,
+  CheckIcon,
+  ExclamationTriangleIcon,
+} from '@radix-ui/react-icons';
 import { ReactElement, useMemo, useState } from 'react';
 import { FieldErrors, useFieldArray, useFormContext } from 'react-hook-form';
+import { GoWorkflow } from 'react-icons/go';
 import { SchemaConstraintHandler, getSchemaColumns } from './SchemaColumns';
 import SchemaPageTable from './SchemaPageTable';
 
@@ -136,51 +135,58 @@ export function SchemaTable(props: Props): ReactElement {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-col md:flex-row gap-3 items-start">
-        <div className="flex">
-          <Card className="p-0">
-            <CardHeader className="p-3 pb-0">
-              <CardTitle>Select the tables this job should map</CardTitle>
-              <CardDescription className="max-w-[350px]">
-                Once selected, choose the desired transformations for each
-                column below.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-3">
-              <DualListBox
-                options={getDualListBoxOptions(schema, data)}
-                selected={selectedItems}
-                onChange={toggleItem}
-                title="Table"
-              />
-            </CardContent>
-          </Card>
-        </div>
-        <div className="flex">
-          <Card
-            className={cn(
-              'p-0',
-              extractedFormErrors.length === 0 ? 'hidden' : ''
+      <div className="flex flex-col md:flex-row gap-3 md:grid-cols-2 items-start">
+        <Card className="w-full h-[264px]">
+          <CardHeader className="flex flex-row gap-2 items-center">
+            <GoWorkflow className="h-4 w-4 mt-1" />
+            <CardTitle>Table Selection</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DualListBox
+              options={getDualListBoxOptions(schema, data)}
+              selected={selectedItems}
+              onChange={toggleItem}
+            />
+          </CardContent>
+        </Card>
+        <Card className="w-full h-[264px]">
+          <CardHeader className="flex flex-row gap-2 items-center">
+            {extractedFormErrors.length != 0 ? (
+              <ExclamationTriangleIcon className="h-4 w-4 mt-1 text-destructive" />
+            ) : (
+              <CheckCircledIcon className="w-4 h-4 mt-1" />
             )}
-          >
-            <CardHeader className="p-3 pb-0">
-              <CardTitle>Validation Errors</CardTitle>
-              <CardDescription className="max-w-[350px]">
-                Validation errors must be fixed prior to submitting the form
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-3">
-              <ScrollArea className="h-72 max-w-80 overflow-y-visible">
-                {extractedFormErrors.map((message, idx) => (
-                  <div key={message}>
-                    <p className="text-sm text-wrap">{message}</p>
-                    <Separator className="my-2" />
+            <CardTitle>Validations</CardTitle>
+            {extractedFormErrors.length != 0 && (
+              <Badge variant="destructive">
+                {extractedFormErrors.length} Errors
+              </Badge>
+            )}
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="max-h-[167px] overflow-y-auto">
+              {extractedFormErrors.length != 0 ? (
+                <div className="flex-col flex gap-2 pr-2">
+                  {extractedFormErrors.map((message) => (
+                    <div
+                      key={message}
+                      className="text-xs bg-red-100 rounded-sm p-2 text-wrap"
+                    >
+                      {message}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center justify-center bg-green-100 text-green-900 w-full h-[167px] rounded-xl">
+                  <div className="text-sm flex flex-row items-center gap-2">
+                    <CheckIcon />
+                    Everything looks good!
                   </div>
-                ))}
-              </ScrollArea>
-            </CardContent>
-          </Card>
-        </div>
+                </div>
+              )}
+            </ScrollArea>
+          </CardContent>
+        </Card>
       </div>
       <SchemaPageTable
         columns={columns}
