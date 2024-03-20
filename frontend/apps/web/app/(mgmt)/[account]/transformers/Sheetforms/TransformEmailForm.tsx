@@ -11,10 +11,13 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { TransformEmail } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
+import { TRANSFORMER_SCHEMA_CONFIGS } from '../../new/transformer/schema';
 import { TransformerFormProps } from './util';
+
 interface Props extends TransformerFormProps<TransformEmail> {}
 
 export default function TransformEmailForm(props: Props): ReactElement {
@@ -22,8 +25,11 @@ export default function TransformEmailForm(props: Props): ReactElement {
 
   const form = useForm({
     mode: 'onChange',
+    resolver: yupResolver(TRANSFORMER_SCHEMA_CONFIGS.transformEmailConfig),
     defaultValues: {
-      ...existingConfig,
+      preserveDomain: existingConfig?.preserveDomain ?? false,
+      preserveLength: existingConfig?.preserveLength ?? false,
+      excludedDomains: existingConfig?.excludedDomains ?? [],
     },
   });
 
@@ -95,6 +101,7 @@ export default function TransformEmailForm(props: Props): ReactElement {
                 <div className="min-w-[300px]">
                   <Input
                     {...field}
+                    onChange={(e) => field.onChange(e.target.value.split(','))}
                     disabled={isReadonly}
                     type="string"
                     className="min-w-[300px]"

@@ -50,15 +50,20 @@ export function convertTransformerConfigToForm(
   if (!config.case) {
     return { case: '', value: {} };
   }
-  return config;
+  return {
+    case: config.case,
+    value: config.value.toJson(),
+  };
 }
 
 export function convertTransformerConfigSchemaToTransformerConfig(
   tcs: TransformerConfigSchema
 ): TransformerConfig {
-  return TransformerConfig.fromJson({
-    [tcs.case ?? '']: tcs.value,
-  });
+  return tcs instanceof TransformerConfig
+    ? tcs
+    : TransformerConfig.fromJson({
+        [tcs.case ?? '']: tcs.value,
+      });
 }
 
 export type SchemaFormValues = Yup.InferType<typeof SCHEMA_FORM_SCHEMA>;

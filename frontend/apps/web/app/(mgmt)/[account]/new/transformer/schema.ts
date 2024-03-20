@@ -5,27 +5,103 @@ import {
 import * as Yup from 'yup';
 import { IsUserJavascriptCodeValid } from './UserDefinedTransformerForms/UserDefinedTransformJavascriptForm';
 
+const bigIntValidator = Yup.mixed<bigint>().test(
+  'is-bigint',
+  'Value must be bigint',
+  (value) => {
+    if (typeof value === 'bigint') {
+      return true;
+    } else if (typeof value === 'number') {
+      return true;
+    } else if (typeof value === 'string') {
+      try {
+        BigInt(value);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+  }
+);
+
+function getBigIntMinValidator(
+  minVal: number | string | bigint
+): (value: bigint | undefined) => boolean {
+  return (value) => {
+    if (value === undefined || value === null) {
+      return false;
+    }
+    const MIN_VALUE = BigInt(minVal);
+    try {
+      const bigIntValue = BigInt(value);
+      return bigIntValue >= MIN_VALUE;
+    } catch {
+      return false; // Not convertible to BigInt, but this should theoretically not happen due to previous test
+    }
+  };
+}
+function getBigIntMaxValidator(
+  maxVal: number | string | bigint
+): (value: bigint | undefined) => boolean {
+  return (value) => {
+    if (value === undefined || value === null) {
+      return false;
+    }
+    const MAX_VALUE = BigInt(maxVal);
+    try {
+      const bigIntValue = BigInt(value);
+      return bigIntValue <= MAX_VALUE;
+    } catch {
+      return false; // Not convertible to BigInt, but this should theoretically not happen due to previous test
+    }
+  };
+}
+
 const transformEmailConfig = Yup.object().shape({
-  preserveDomain: Yup.boolean().required('This field is required.'),
-  preserveLength: Yup.boolean().required('This field is required.'),
+  preserveDomain: Yup.boolean()
+    .default(false)
+    .required('This field is required.'),
+  preserveLength: Yup.boolean()
+    .default(false)
+    .required('This field is required.'),
+  excludedDomains: Yup.array()
+    .of(Yup.string().required())
+    .optional()
+    .default([]),
 });
 
 const generateCardNumberConfig = Yup.object().shape({
-  validLuhn: Yup.boolean().required('This field is required.'),
+  validLuhn: Yup.boolean().default(false).required('This field is required.'),
 });
 
 const generateInternationalPhoneNumberConfig = Yup.object().shape({
-  min: Yup.number()
-    .min(9, 'The value must be greater than or equal to 9.')
-    .max(15, 'The value must be less than or equal 15.')
+  min: bigIntValidator
+    .test(
+      'min',
+      'Value must be greater than or equal to 9',
+      getBigIntMinValidator(9)
+    )
+    .test(
+      'max',
+      `Value must be less than than or equal to ${15}`,
+      getBigIntMaxValidator(15)
+    )
     .required('This field is required.')
     .test('is-less-than-max', 'Min must be less than Max', function (value) {
       const { max } = this.parent;
       return !max || !value || value <= max;
     }),
-  max: Yup.number()
-    .min(9, 'The value must be greater than or equal to 9.')
-    .max(15, 'The value must be less than or equal 15.')
+  max: bigIntValidator
+    .test(
+      'min',
+      'Value must be greater than or equal to 9',
+      getBigIntMinValidator(9)
+    )
+    .test(
+      'max',
+      `Value must be less than than or equal to ${15}`,
+      getBigIntMaxValidator(15)
+    )
     .required('This field is required.')
     .test(
       'is-greater-than-min',
@@ -37,43 +113,147 @@ const generateInternationalPhoneNumberConfig = Yup.object().shape({
     ),
 });
 const generateFloat64Config = Yup.object().shape({
-  randomizeSign: Yup.bool(),
-  min: Yup.number().required('This field is required.'),
-  max: Yup.number().required('This field is required.'),
-  precision: Yup.number()
+  randomizeSign: Yup.bool().default(false),
+  min: Yup.number()
     .required('This field is required.')
-    .min(1, 'The value must be greater than or equal to 1.')
-    .max(17, 'The value must be less than or equal 17.'),
+    .min(Number.MIN_SAFE_INTEGER)
+    .max(Number.MAX_SAFE_INTEGER),
+  max: Yup.number()
+    .required('This field is required.')
+    .min(Number.MIN_SAFE_INTEGER)
+    .max(Number.MAX_SAFE_INTEGER)
+    .test(
+      'is-greater-than-min',
+      'Max must be greater than Min',
+      function (value) {
+        const { min } = this.parent;
+        return !min || !value || value >= min;
+      }
+    ),
+  precision: bigIntValidator
+    .required('This field is required.')
+    .test(
+      'min',
+      'Value must be greater than or equal to 1',
+      getBigIntMinValidator(1)
+    )
+    .test(
+      'max',
+      `Value must be less than than or equal to ${17}`,
+      getBigIntMaxValidator(17)
+    ),
 });
 
 const generateGenderConfig = Yup.object().shape({
-  abbreviate: Yup.boolean().required('This field is required.'),
+  abbreviate: Yup.boolean().default(false).required('This field is required.'),
 });
 
 const generateInt64Config = Yup.object().shape({
-  randomizeSign: Yup.bool().required('This field is required.'),
-  min: Yup.number().required('This field is required.'),
-  max: Yup.number().required('This field is required.'),
+  randomizeSign: Yup.bool().default(false).required('This field is required.'),
+  min: bigIntValidator
+    .test(
+      'min',
+      'Value must be greater than or equal to 1',
+      getBigIntMinValidator(1)
+    )
+    .test(
+      'max',
+      `Value must be less than than or equal to ${Number.MAX_SAFE_INTEGER}`,
+      getBigIntMaxValidator(Number.MAX_SAFE_INTEGER)
+    )
+    .test('is-less-than-max', 'Min must be less than Max', function (value) {
+      const { max } = this.parent;
+      return !max || !value || value <= max;
+    })
+    .required('This field is required.'),
+  max: bigIntValidator
+    .test(
+      'min',
+      'Value must be greater than or equal to 1',
+      getBigIntMinValidator(1)
+    )
+    .test(
+      'max',
+      `Value must be less than than or equal to ${Number.MAX_SAFE_INTEGER}`,
+      getBigIntMaxValidator(Number.MAX_SAFE_INTEGER)
+    )
+    .test(
+      'is-greater-than-min',
+      'Max must be greater than Min',
+      function (value) {
+        const { min } = this.parent;
+        return !min || !value || value >= min;
+      }
+    )
+    .required('This field is required.'),
 });
 
 const generateStringPhoneNumberConfig = Yup.object().shape({
-  min: Yup.number().required('This field is required.'),
-  max: Yup.number().required('This field is required.'),
+  min: bigIntValidator
+    .test(
+      'min',
+      'Value must be greater than or equal to 1',
+      getBigIntMinValidator(1)
+    )
+    .test(
+      'max',
+      `Value must be less than than or equal to ${Number.MAX_SAFE_INTEGER}`,
+      getBigIntMaxValidator(Number.MAX_SAFE_INTEGER)
+    )
+    .test('is-less-than-max', 'Min must be less than Max', function (value) {
+      const { max } = this.parent;
+      return !max || !value || value <= max;
+    })
+    .required('This field is required.'),
+  max: bigIntValidator
+    .test(
+      'min',
+      'Value must be greater than or equal to 1',
+      getBigIntMinValidator(1)
+    )
+    .test(
+      'max',
+      `Value must be less than than or equal to ${Number.MAX_SAFE_INTEGER}`,
+      getBigIntMaxValidator(Number.MAX_SAFE_INTEGER)
+    )
+    .test(
+      'is-greater-than-min',
+      'Max must be greater than Min',
+      function (value) {
+        const { min } = this.parent;
+        return !min || !value || value >= min;
+      }
+    )
+    .required('This field is required.'),
 });
 
 const generateStringConfig = Yup.object().shape({
-  min: Yup.number()
-    .min(1, 'The value must be greater than or equal to 1.')
+  min: bigIntValidator
+    .test(
+      'min',
+      'Value must be greater than or equal to 1',
+      getBigIntMinValidator(1)
+    )
+    .test(
+      'max',
+      `Value must be less than than or equal to ${Number.MAX_SAFE_INTEGER}`,
+      getBigIntMaxValidator(Number.MAX_SAFE_INTEGER)
+    )
     .required('This field is required.')
     .test('is-less-than-max', 'Min must be less than Max', function (value) {
       const { max } = this.parent;
       return !max || !value || value <= max;
     }),
-  max: Yup.number()
-    .min(1, 'The value must be greater than or equal to 1.')
-    .max(
-      Number.MAX_SAFE_INTEGER,
-      `The value must be less than or equal to ${Number.MAX_SAFE_INTEGER}`
+  max: bigIntValidator
+    .test(
+      'min',
+      'Value must be greater than or equal to 1',
+      getBigIntMinValidator(1)
+    )
+    .test(
+      'max',
+      `Value must be less than than or equal to ${Number.MAX_SAFE_INTEGER}`,
+      getBigIntMaxValidator(Number.MAX_SAFE_INTEGER)
     )
     .required('This field is required.')
     .test(
@@ -87,15 +267,21 @@ const generateStringConfig = Yup.object().shape({
 });
 
 const generateUuidConfig = Yup.object().shape({
-  includeHyphens: Yup.boolean().required('This field is required.'),
+  includeHyphens: Yup.boolean()
+    .default(false)
+    .required('This field is required.'),
 });
 
 const transformE164PhoneNumber = Yup.object().shape({
-  preserveLength: Yup.boolean().required('This field is required.'),
+  preserveLength: Yup.boolean()
+    .default(false)
+    .required('This field is required.'),
 });
 
 const transformFirstNameConfig = Yup.object().shape({
-  preserveLength: Yup.boolean().required('This field is required.'),
+  preserveLength: Yup.boolean()
+    .default(false)
+    .required('This field is required.'),
 });
 
 const transformFloat64Config = Yup.object().shape({
@@ -120,21 +306,45 @@ const transformFloat64Config = Yup.object().shape({
 });
 
 const transformFullNameConfig = Yup.object().shape({
-  preserveLength: Yup.boolean().required('This field is required.'),
+  preserveLength: Yup.boolean()
+    .default(false)
+    .required('This field is required.'),
 });
 
 const transformInt64PhoneNumberConfig = Yup.object().shape({
-  preserveLength: Yup.boolean().required('This field is required.'),
+  preserveLength: Yup.boolean()
+    .default(false)
+    .required('This field is required.'),
 });
 
 const transformInt64Config = Yup.object().shape({
-  randomizationRangeMin: Yup.number()
+  randomizationRangeMin: bigIntValidator
+    .test(
+      'min',
+      'Value must be greater than or equal to 1',
+      getBigIntMinValidator(1)
+    )
+    .test(
+      'max',
+      `Value must be less than than or equal to ${Number.MAX_SAFE_INTEGER}`,
+      getBigIntMaxValidator(Number.MAX_SAFE_INTEGER)
+    )
     .required('This field is required.')
     .test('is-less-than-max', 'Min must be less than Max', function (value) {
       const { randomizationRangeMax } = this.parent;
       return !randomizationRangeMax || !value || value <= randomizationRangeMax;
     }),
-  randomizationRangeMax: Yup.number()
+  randomizationRangeMax: bigIntValidator
+    .test(
+      'min',
+      'Value must be greater than or equal to 1',
+      getBigIntMinValidator(1)
+    )
+    .test(
+      'max',
+      `Value must be less than than or equal to ${Number.MAX_SAFE_INTEGER}`,
+      getBigIntMaxValidator(Number.MAX_SAFE_INTEGER)
+    )
     .required('This field is required.')
     .test(
       'is-greater-than-min',
@@ -149,15 +359,21 @@ const transformInt64Config = Yup.object().shape({
 });
 
 const transformLastNameConfig = Yup.object().shape({
-  preserveLength: Yup.boolean().required('This field is required.'),
+  preserveLength: Yup.boolean()
+    .default(false)
+    .required('This field is required.'),
 });
 
 const transformStringPhoneNumberConfig = Yup.object().shape({
-  preserveLength: Yup.boolean().required('This field is required.'),
+  preserveLength: Yup.boolean()
+    .default(false)
+    .required('This field is required.'),
 });
 
 const transformStringConfig = Yup.object().shape({
-  preserveLength: Yup.boolean().required('This field is required.'),
+  preserveLength: Yup.boolean()
+    .default(false)
+    .required('This field is required.'),
 });
 
 const userDefinedTransformerConfig = Yup.object().shape({
@@ -216,11 +432,9 @@ const EMPTY_TRANSFORMER_CONFIG = Yup.object({
   value: Yup.object(),
 });
 
-// todo: this should be properly typed
-const TRANSFORMER_SCHEMA_CONFIGS: Record<
-  NonNullable<TransformerConfigCase>,
-  Yup.ObjectSchema<any> // eslint-disable-line @typescript-eslint/no-explicit-any
-> = {
+// Using this "as const" allows typescript to infer the types based on the shape we've described in the Yup object
+// Ideally we can more explicitly type this in the future based on the Transformer types we get from @neosync/sdk
+export const TRANSFORMER_SCHEMA_CONFIGS = {
   generateBoolConfig: EMPTY_TRANSFORMER_CONFIG,
   generateCityConfig: EMPTY_TRANSFORMER_CONFIG,
   generateDefaultConfig: EMPTY_TRANSFORMER_CONFIG,
@@ -240,7 +454,6 @@ const TRANSFORMER_SCHEMA_CONFIGS: Record<
   generateZipcodeConfig: EMPTY_TRANSFORMER_CONFIG,
   nullconfig: EMPTY_TRANSFORMER_CONFIG,
   passthroughConfig: EMPTY_TRANSFORMER_CONFIG,
-  transformCharacterScrambleConfig: EMPTY_TRANSFORMER_CONFIG,
 
   transformEmailConfig: transformEmailConfig,
   generateCardNumberConfig: generateCardNumberConfig,
@@ -262,15 +475,22 @@ const TRANSFORMER_SCHEMA_CONFIGS: Record<
   transformStringConfig: transformStringConfig,
   userDefinedTransformerConfig: userDefinedTransformerConfig,
   transformJavascriptConfig: transformJavascriptConfig,
-  generateCategoricalConfig: transformCharacterScrambleConfig,
-};
+  generateCategoricalConfig: generateCategoricalConfig,
+  transformCharacterScrambleConfig: transformCharacterScrambleConfig,
+} as const;
+
+// This is here so that whenever we add a new transformer, it errors due to the typing of the key to the TransformerConfigCase
+const KEYED_TRANSFORMER_SCHEMA_CONFIGS: Record<
+  NonNullable<TransformerConfigCase>,
+  Yup.ObjectSchema<any>
+> = TRANSFORMER_SCHEMA_CONFIGS;
 
 export const TransformerConfigSchema = Yup.lazy((v) => {
   const ccase = v?.case as TransformerConfigCase;
   if (!ccase) {
     return EMPTY_TRANSFORMER_CONFIG;
   }
-  const cconfig = TRANSFORMER_SCHEMA_CONFIGS[ccase];
+  const cconfig = KEYED_TRANSFORMER_SCHEMA_CONFIGS[ccase];
   return Yup.object({
     case: Yup.string().required().oneOf([ccase]),
     value: cconfig,

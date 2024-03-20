@@ -170,17 +170,13 @@ export function SchemaTable(props: Props): ReactElement {
               </CardDescription>
             </CardHeader>
             <CardContent className="p-3">
-              <ScrollArea className="h-72 max-w-80 overflow-y-auto">
-                <div className="p-4">
-                  {extractedFormErrors.map((message) => (
-                    <>
-                      <p key={message} className="text-sm text-wrap">
-                        {message}
-                      </p>
-                      <Separator className="my-2" />
-                    </>
-                  ))}
-                </div>
+              <ScrollArea className="h-72 max-w-80 overflow-y-visible">
+                {extractedFormErrors.map((message, idx) => (
+                  <div key={message}>
+                    <p className="text-sm text-wrap">{message}</p>
+                    <Separator className="my-2" />
+                  </div>
+                ))}
               </ScrollArea>
             </CardContent>
           </Card>

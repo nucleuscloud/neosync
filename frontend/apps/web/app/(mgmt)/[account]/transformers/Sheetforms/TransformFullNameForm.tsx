@@ -10,9 +10,11 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { TransformFullName } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
+import { TRANSFORMER_SCHEMA_CONFIGS } from '../../new/transformer/schema';
 import { TransformerFormProps } from './util';
 interface Props extends TransformerFormProps<TransformFullName> {}
 
@@ -21,8 +23,9 @@ export default function TransformFullNameForm(props: Props): ReactElement {
 
   const form = useForm({
     mode: 'onChange',
+    resolver: yupResolver(TRANSFORMER_SCHEMA_CONFIGS.transformFullNameConfig),
     defaultValues: {
-      ...existingConfig,
+      preserveLength: existingConfig?.preserveLength ?? false,
     },
   });
 

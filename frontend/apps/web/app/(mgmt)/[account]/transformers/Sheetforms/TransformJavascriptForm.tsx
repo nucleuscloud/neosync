@@ -12,6 +12,7 @@ import {
   FormItem,
   FormLabel,
 } from '@/components/ui/form';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { Editor } from '@monaco-editor/react';
 import { TransformJavascript } from '@neosync/sdk';
 import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
@@ -22,6 +23,7 @@ import {
   IsUserJavascriptCodeValid,
   ValidCode,
 } from '../../new/transformer/UserDefinedTransformerForms/UserDefinedTransformJavascriptForm';
+import { TRANSFORMER_SCHEMA_CONFIGS } from '../../new/transformer/schema';
 import { TransformerFormProps } from './util';
 interface Props extends TransformerFormProps<TransformJavascript> {}
 
@@ -30,8 +32,9 @@ export default function TransformJavascriptForm(props: Props): ReactElement {
 
   const form = useForm({
     mode: 'onChange',
+    resolver: yupResolver(TRANSFORMER_SCHEMA_CONFIGS.transformJavascriptConfig),
     defaultValues: {
-      ...existingConfig,
+      code: existingConfig?.code ?? '',
     },
   });
 

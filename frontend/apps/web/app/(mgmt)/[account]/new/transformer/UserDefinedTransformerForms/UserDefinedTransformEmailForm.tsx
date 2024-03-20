@@ -5,6 +5,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -48,6 +49,7 @@ export default function UserDefinedTransformEmailForm(
                 disabled={isDisabled}
               />
             </FormControl>
+            <FormMessage />
           </FormItem>
         )}
       />
@@ -71,13 +73,14 @@ export default function UserDefinedTransformEmailForm(
                 disabled={isDisabled}
               />
             </FormControl>
+            <FormMessage />
           </FormItem>
         )}
       />
       <FormField
         name={`config.value.excludedDomains`}
         render={({ field }) => (
-          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm gap-4 ">
+          <FormItem className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
             <div className="space-y-0.5">
               <FormLabel>Excluded Domains</FormLabel>
               <FormDescription>
@@ -89,14 +92,15 @@ export default function UserDefinedTransformEmailForm(
             <FormControl>
               <div className="min-w-[300px]">
                 <Input
+                  {...field}
                   type="string"
                   className="min-w-[300px]"
-                  value={field.value}
-                  onChange={field.onChange}
+                  onChange={(e) => field.onChange(e.target.value.split(','))}
                   disabled={isDisabled}
                 />
               </div>
             </FormControl>
+            <FormMessage />
           </FormItem>
         )}
       />

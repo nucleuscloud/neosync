@@ -12,9 +12,14 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/libs/utils';
-import { JobMappingTransformerForm } from '@/yup-validations/jobs';
 import {
+  JobMappingTransformerForm,
+  convertJobMappingTransformerToForm,
+} from '@/yup-validations/jobs';
+import {
+  JobMappingTransformer,
   SystemTransformer,
+  TransformerConfig,
   UserDefinedTransformer,
   UserDefinedTransformerConfig,
 } from '@neosync/sdk';
@@ -101,15 +106,21 @@ export default function TransformerSelect(props: Props): ReactElement {
                     <CommandItem
                       key={t.id}
                       onSelect={() => {
-                        onSelect({
-                          source: 'custom',
-                          config: {
-                            case: 'userDefinedTransformerConfig',
-                            value: new UserDefinedTransformerConfig({
-                              id: t.id,
-                            }),
-                          },
-                        });
+                        onSelect(
+                          convertJobMappingTransformerToForm(
+                            new JobMappingTransformer({
+                              source: 'custom',
+                              config: new TransformerConfig({
+                                config: {
+                                  case: 'userDefinedTransformerConfig',
+                                  value: new UserDefinedTransformerConfig({
+                                    id: t.id,
+                                  }),
+                                },
+                              }),
+                            })
+                          )
+                        );
                         setOpen(false);
                       }}
                       value={t.name}
@@ -144,17 +155,14 @@ export default function TransformerSelect(props: Props): ReactElement {
                   <CommandItem
                     key={t.source}
                     onSelect={() => {
-                      let config = t.config?.config ?? {
-                        case: '',
-                        value: {},
-                      };
-                      if (!config.case) {
-                        config = { case: '', value: {} };
-                      }
-                      onSelect({
-                        source: t.source,
-                        config: config,
-                      });
+                      onSelect(
+                        convertJobMappingTransformerToForm(
+                          new JobMappingTransformer({
+                            source: t.source,
+                            config: t.config,
+                          })
+                        )
+                      );
                       setOpen(false);
                     }}
                     value={t.name}
