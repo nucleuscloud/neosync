@@ -15,32 +15,21 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { TransformEmail } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
-import * as Yup from 'yup';
+import { TRANSFORMER_SCHEMA_CONFIGS } from '../../new/transformer/schema';
 import { TransformerFormProps } from './util';
 
 interface Props extends TransformerFormProps<TransformEmail> {}
-
-// This is a separate config because the excludedDomains in this form is a string, but the final form needs to be string[]
-const transformEmailConfig = Yup.object().shape({
-  preserveDomain: Yup.boolean()
-    .default(false)
-    .required('This field is required.'),
-  preserveLength: Yup.boolean()
-    .default(false)
-    .required('This field is required.'),
-  excludedDomains: Yup.string().optional(),
-});
 
 export default function TransformEmailForm(props: Props): ReactElement {
   const { existingConfig, onSubmit, isReadonly } = props;
 
   const form = useForm({
     mode: 'onChange',
-    resolver: yupResolver(transformEmailConfig),
+    resolver: yupResolver(TRANSFORMER_SCHEMA_CONFIGS.transformEmailConfig),
     defaultValues: {
       preserveDomain: existingConfig?.preserveDomain ?? false,
       preserveLength: existingConfig?.preserveLength ?? false,
-      excludedDomains: (existingConfig?.excludedDomains ?? []).join(','),
+      excludedDomains: existingConfig?.excludedDomains ?? [],
     },
   });
 
@@ -112,6 +101,7 @@ export default function TransformEmailForm(props: Props): ReactElement {
                 <div className="min-w-[300px]">
                   <Input
                     {...field}
+                    onChange={(e) => field.onChange(e.target.value.split(','))}
                     disabled={isReadonly}
                     type="string"
                     className="min-w-[300px]"
@@ -130,11 +120,7 @@ export default function TransformEmailForm(props: Props): ReactElement {
               form.handleSubmit((values) => {
                 onSubmit(
                   new TransformEmail({
-                    excludedDomains: values.excludedDomains
-                      ? values.excludedDomains.split(',')
-                      : [],
-                    preserveDomain: values.preserveDomain,
-                    preserveLength: values.preserveLength,
+                    ...values,
                   })
                 );
               })(e);

@@ -5,6 +5,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -48,6 +49,7 @@ export default function UserDefinedTransformEmailForm(
                 disabled={isDisabled}
               />
             </FormControl>
+            <FormMessage />
           </FormItem>
         )}
       />
@@ -71,6 +73,7 @@ export default function UserDefinedTransformEmailForm(
                 disabled={isDisabled}
               />
             </FormControl>
+            <FormMessage />
           </FormItem>
         )}
       />
@@ -89,14 +92,15 @@ export default function UserDefinedTransformEmailForm(
             <FormControl>
               <div className="min-w-[300px]">
                 <Input
+                  {...field}
                   type="string"
                   className="min-w-[300px]"
-                  value={field.value}
-                  onChange={field.onChange}
+                  onChange={(e) => field.onChange(e.target.value.split(','))}
                   disabled={isDisabled}
                 />
               </div>
             </FormControl>
+            <FormMessage />
           </FormItem>
         )}
       />
