@@ -11,10 +11,12 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { GenerateInt64 } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
-import { TransformerFormProps } from './util';
+import { TRANSFORMER_SCHEMA_CONFIGS } from '../../new/transformer/schema';
+import { TransformerFormProps, setBigIntOrOld } from './util';
 
 interface Props extends TransformerFormProps<GenerateInt64> {}
 
@@ -23,7 +25,7 @@ export default function GenerateInt64Form(props: Props): ReactElement {
 
   const form = useForm({
     mode: 'onChange',
-    // resolver: yupResolver(TRANSFORMER_SCHEMA_CONFIGS.generateInt64Config),
+    resolver: yupResolver(TRANSFORMER_SCHEMA_CONFIGS.generateInt64Config),
     defaultValues: {
       randomizeSign: existingConfig?.randomizeSign ?? false,
       min: existingConfig?.min ?? BigInt(0),
@@ -76,7 +78,9 @@ export default function GenerateInt64Form(props: Props): ReactElement {
                   className="max-w-[180px]"
                   value={field.value ? field.value.toString() : 0}
                   onChange={(event) => {
-                    field.onChange(BigInt(event.target.valueAsNumber));
+                    field.onChange(
+                      setBigIntOrOld(event.target.valueAsNumber, field.value)
+                    );
                   }}
                   disabled={isReadonly}
                 />
@@ -104,7 +108,9 @@ export default function GenerateInt64Form(props: Props): ReactElement {
                   className="max-w-[180px]"
                   value={field.value ? field.value.toString() : 0}
                   onChange={(event) => {
-                    field.onChange(BigInt(event.target.valueAsNumber));
+                    field.onChange(
+                      setBigIntOrOld(event.target.valueAsNumber, field.value)
+                    );
                   }}
                   disabled={isReadonly}
                 />

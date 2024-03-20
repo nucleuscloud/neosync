@@ -50,40 +50,68 @@ const generateGenderConfig = Yup.object().shape({
   abbreviate: Yup.boolean().required('This field is required.'),
 });
 
+const bigIntValidator = Yup.mixed<bigint>().test(
+  'is-bigint',
+  'Value must be bigint',
+  (value) => {
+    if (typeof value === 'bigint') {
+      return true;
+    } else if (typeof value === 'number') {
+      return true;
+    } else if (typeof value === 'string') {
+      try {
+        BigInt(value);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+  }
+);
+
+function getBigIntMinValidator(
+  minVal: number | string | bigint
+): (value: bigint) => boolean {
+  return (value) => {
+    const MIN_VALUE = BigInt(minVal);
+    try {
+      const bigIntValue = BigInt(value);
+      return bigIntValue >= MIN_VALUE;
+    } catch {
+      return false; // Not convertible to BigInt, but this should theoretically not happen due to previous test
+    }
+  };
+}
+function getBigIntMaxValidator(
+  maxVal: number | string | bigint
+): (value: bigint) => boolean {
+  return (value) => {
+    const MAX_VALUE = BigInt(maxVal);
+    try {
+      const bigIntValue = BigInt(value);
+      return bigIntValue <= MAX_VALUE;
+    } catch {
+      return false; // Not convertible to BigInt, but this should theoretically not happen due to previous test
+    }
+  };
+}
+
 const generateInt64Config = Yup.object().shape({
   randomizeSign: Yup.bool().default(false).required('This field is required.'),
-  min: Yup.mixed<bigint>()
-    .test('is-bigint', 'Value must be bigint', (value) => {
-      if (typeof value === 'bigint') {
-        return true;
-      } else if (typeof value === 'number') {
-        return true;
-      } else if (typeof value === 'string') {
-        try {
-          BigInt(value);
-          return true;
-        } catch {
-          return false;
-        }
-      }
-    })
-    .required('This field is required.'),
-  max: Yup.mixed<bigint>()
-    .test('is-bigint', 'Value must be bigint', (value) => {
-      if (typeof value === 'bigint') {
-        return true;
-      } else if (typeof value === 'number') {
-        return true;
-      } else if (typeof value === 'string') {
-        try {
-          BigInt(value);
-          return true;
-        } catch {
-          return false;
-        }
-      }
-    })
-    .required('This field is required.'),
+  min: bigIntValidator
+    .required('This field is required.')
+    .test(
+      'min',
+      'Value must be greater than or equal to 0',
+      getBigIntMinValidator(Number.MIN_SAFE_INTEGER)
+    ),
+  max: bigIntValidator
+    .required('This field is required.')
+    .test(
+      'max',
+      'Value must be less than than or equal to 0',
+      getBigIntMaxValidator(Number.MAX_SAFE_INTEGER)
+    ),
 });
 
 const generateStringPhoneNumberConfig = Yup.object().shape({
