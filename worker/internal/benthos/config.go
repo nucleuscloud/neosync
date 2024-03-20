@@ -97,7 +97,10 @@ type ProcessorConfig struct {
 	Cache      *CacheConfig          `json:"cache,omitempty" yaml:"cache,omitempty"`
 	Mapping    *string               `json:"mapping,omitempty" yaml:"mapping,omitempty"`
 	Redis      *RedisProcessorConfig `json:"redis,omitempty" yaml:"redis,omitempty"`
+	Error      *ErrorProcessorConfig `json:"error,omitempty" yaml:"error,omitempty"`
 }
+
+type ErrorProcessorConfig struct{}
 
 type RedisProcessorConfig struct {
 	Url         string          `json:"url" yaml:"url"`

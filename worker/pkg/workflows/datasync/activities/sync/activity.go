@@ -15,6 +15,7 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/redis"
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
 	"github.com/google/uuid"
+	neosync_benthos_error "github.com/nucleuscloud/neosync/worker/internal/benthos/error"
 	benthos_metrics "github.com/nucleuscloud/neosync/worker/internal/benthos/metrics"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/redis"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/internal/benthos/sql"
@@ -98,12 +99,23 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	}
 	logger := log.With(activity.GetLogger(ctx), loggerKeyVals...)
 	slogger := logger_utils.NewJsonSLogger().With(loggerKeyVals...)
+	stopWorkflowChan := make(chan bool)
 	var benthosStream *service.Stream
 	go func() {
 		for {
 			select {
 			case <-time.After(1 * time.Second):
 				activity.RecordHeartbeat(ctx)
+			case <-stopWorkflowChan:
+				if benthosStream != nil {
+					// this must be here because stream.Run(ctx) doesn't seem to fully obey a canceled context when
+					// a sink is in an error state. We want to explicitly call stop here because the workflow has been canceled.
+					err := benthosStream.StopWithin(1 * time.Millisecond)
+					if err != nil {
+						logger.Error(err.Error())
+					}
+				}
+				return
 			case <-activity.GetWorkerStopChannel(ctx):
 				if benthosStream != nil {
 					// this must be here because stream.Run(ctx) doesn't seem to fully obey a canceled context when
@@ -216,6 +228,11 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, poolprovider)
 	if err != nil {
 		return nil, fmt.Errorf("unable to register pooled_sql_raw input to benthos instance: %w", err)
+	}
+
+	err = neosync_benthos_error.RegisterErrorProcessor(benthosenv, stopWorkflowChan)
+	if err != nil {
+		return nil, fmt.Errorf("unable to register error processor to benthos instance: %w", err)
 	}
 
 	envKeyMap := syncMapToStringMap(&envKeyDsnSyncMap)
