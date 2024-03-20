@@ -166,13 +166,19 @@ export function SchemaTable(props: Props): ReactElement {
           </CardContent>
         </Card>
         <Card className="w-full md:h-[294px]">
-          <CardHeader className="flex flex-row gap-2 items-center">
-            {extractedFormErrors.length != 0 ? (
-              <ExclamationTriangleIcon className="h-4 w-4 mt-1 text-destructive" />
-            ) : (
-              <CheckCircledIcon className="w-4 h-4 mt-1" />
-            )}
-            <CardTitle>Validations</CardTitle>
+          <CardHeader className="flex flex-col gap-2">
+            <div className="flex flex-row items-center gap-2">
+              {extractedFormErrors.length != 0 ? (
+                <ExclamationTriangleIcon className="h-4 w-4 mt-1 text-destructive" />
+              ) : (
+                <CheckCircledIcon className="w-4 h-4 mt-1" />
+              )}
+              <CardTitle>Validations</CardTitle>
+            </div>
+            <CardDescription>
+              A list of schema validation errors to resolve before moving
+              forward.
+            </CardDescription>
             {extractedFormErrors.length != 0 && (
               <Badge variant="destructive">
                 {extractedFormErrors.length} Errors
