@@ -23,8 +23,11 @@ export default function GenerateInt64Form(props: Props): ReactElement {
 
   const form = useForm({
     mode: 'onChange',
+    // resolver: yupResolver(TRANSFORMER_SCHEMA_CONFIGS.generateInt64Config),
     defaultValues: {
-      ...existingConfig,
+      randomizeSign: existingConfig?.randomizeSign ?? false,
+      min: existingConfig?.min ?? BigInt(0),
+      max: existingConfig?.max ?? BigInt(40),
     },
   });
 

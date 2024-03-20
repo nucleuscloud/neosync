@@ -51,9 +51,39 @@ const generateGenderConfig = Yup.object().shape({
 });
 
 const generateInt64Config = Yup.object().shape({
-  randomizeSign: Yup.bool().required('This field is required.'),
-  min: Yup.number().required('This field is required.'),
-  max: Yup.number().required('This field is required.'),
+  randomizeSign: Yup.bool().default(false).required('This field is required.'),
+  min: Yup.mixed<bigint>()
+    .test('is-bigint', 'Value must be bigint', (value) => {
+      if (typeof value === 'bigint') {
+        return true;
+      } else if (typeof value === 'number') {
+        return true;
+      } else if (typeof value === 'string') {
+        try {
+          BigInt(value);
+          return true;
+        } catch {
+          return false;
+        }
+      }
+    })
+    .required('This field is required.'),
+  max: Yup.mixed<bigint>()
+    .test('is-bigint', 'Value must be bigint', (value) => {
+      if (typeof value === 'bigint') {
+        return true;
+      } else if (typeof value === 'number') {
+        return true;
+      } else if (typeof value === 'string') {
+        try {
+          BigInt(value);
+          return true;
+        } catch {
+          return false;
+        }
+      }
+    })
+    .required('This field is required.'),
 });
 
 const generateStringPhoneNumberConfig = Yup.object().shape({
@@ -216,11 +246,9 @@ const EMPTY_TRANSFORMER_CONFIG = Yup.object({
   value: Yup.object(),
 });
 
-// todo: this should be properly typed
-const TRANSFORMER_SCHEMA_CONFIGS: Record<
-  NonNullable<TransformerConfigCase>,
-  Yup.ObjectSchema<any> // eslint-disable-line @typescript-eslint/no-explicit-any
-> = {
+// Using this "as const" allows typescript to infer the types based on the shape we've described in the Yup object
+// Ideally we can more explicitly type this in the future based on the Transformer types we get from @neosync/sdk
+export const TRANSFORMER_SCHEMA_CONFIGS = {
   generateBoolConfig: EMPTY_TRANSFORMER_CONFIG,
   generateCityConfig: EMPTY_TRANSFORMER_CONFIG,
   generateDefaultConfig: EMPTY_TRANSFORMER_CONFIG,
@@ -240,7 +268,6 @@ const TRANSFORMER_SCHEMA_CONFIGS: Record<
   generateZipcodeConfig: EMPTY_TRANSFORMER_CONFIG,
   nullconfig: EMPTY_TRANSFORMER_CONFIG,
   passthroughConfig: EMPTY_TRANSFORMER_CONFIG,
-  transformCharacterScrambleConfig: EMPTY_TRANSFORMER_CONFIG,
 
   transformEmailConfig: transformEmailConfig,
   generateCardNumberConfig: generateCardNumberConfig,
@@ -262,15 +289,22 @@ const TRANSFORMER_SCHEMA_CONFIGS: Record<
   transformStringConfig: transformStringConfig,
   userDefinedTransformerConfig: userDefinedTransformerConfig,
   transformJavascriptConfig: transformJavascriptConfig,
-  generateCategoricalConfig: transformCharacterScrambleConfig,
-};
+  generateCategoricalConfig: generateCategoricalConfig,
+  transformCharacterScrambleConfig: transformCharacterScrambleConfig,
+} as const;
+
+// This is here so that whenever we add a new transformer, it errors due to the typing of the key to the TransformerConfigCase
+const KEYED_TRANSFORMER_SCHEMA_CONFIGS: Record<
+  NonNullable<TransformerConfigCase>,
+  Yup.ObjectSchema<any>
+> = TRANSFORMER_SCHEMA_CONFIGS;
 
 export const TransformerConfigSchema = Yup.lazy((v) => {
   const ccase = v?.case as TransformerConfigCase;
   if (!ccase) {
     return EMPTY_TRANSFORMER_CONFIG;
   }
-  const cconfig = TRANSFORMER_SCHEMA_CONFIGS[ccase];
+  const cconfig = KEYED_TRANSFORMER_SCHEMA_CONFIGS[ccase];
   return Yup.object({
     case: Yup.string().required().oneOf([ccase]),
     value: cconfig,

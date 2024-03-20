@@ -94,10 +94,9 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
   const allJobMappings =
     Object.values(connectionSchemaDataMap?.schemaMap ?? {}).flatMap(
       (dbcols) => {
-        const t: JobMappingTransformerForm = {
-          source: '',
-          config: { case: '', value: {} },
-        };
+        const t: JobMappingTransformerForm = convertJobMappingTransformerToForm(
+          new JobMappingTransformer({})
+        );
         return dbcols.map((dbcol) => ({ ...dbcol, transformer: t }));
       }
     ) || [];
