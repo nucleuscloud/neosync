@@ -33,3 +33,11 @@ create table information_schema.referential_constraints (
   update_rule text not null,
   delete_rule text not null
 );
+
+create table information_schema.table_constraints (
+  table_schema text not null,
+  constraint_name text not null,
+  constraint_type text not null,
+  table_name text not null,
+  column_name text not null
+);

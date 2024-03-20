@@ -12,6 +12,7 @@ type Querier interface {
 	GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabaseSchemaRow, error)
 	GetForeignKeyConstraints(ctx context.Context, db DBTX, tableSchema string) ([]*GetForeignKeyConstraintsRow, error)
 	GetPrimaryKeyConstraints(ctx context.Context, db DBTX, tableSchema string) ([]*GetPrimaryKeyConstraintsRow, error)
+	GetUniqueConstraints(ctx context.Context, db DBTX, tableSchema string) ([]*GetUniqueConstraintsRow, error)
 }
 
 var _ Querier = (*Queries)(nil)

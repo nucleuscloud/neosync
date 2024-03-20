@@ -1020,7 +1020,7 @@ export class GetConnectionPrimaryConstraintsRequest extends Message<GetConnectio
  */
 export class GetConnectionPrimaryConstraintsResponse extends Message<GetConnectionPrimaryConstraintsResponse> {
   /**
-   * the key here is <schema>.<table> and value is
+   * the key here is <schema>.<table> and value is the primary constraint
    *
    * @generated from field: map<string, mgmt.v1alpha1.PrimaryConstraint> table_constraints = 1;
    */
@@ -1051,6 +1051,121 @@ export class GetConnectionPrimaryConstraintsResponse extends Message<GetConnecti
 
   static equals(a: GetConnectionPrimaryConstraintsResponse | PlainMessage<GetConnectionPrimaryConstraintsResponse> | undefined, b: GetConnectionPrimaryConstraintsResponse | PlainMessage<GetConnectionPrimaryConstraintsResponse> | undefined): boolean {
     return proto3.util.equals(GetConnectionPrimaryConstraintsResponse, a, b);
+  }
+}
+
+/**
+ * Unique constraints for a specific table
+ *
+ * @generated from message mgmt.v1alpha1.GetConnectionUniqueConstraintsRequest
+ */
+export class GetConnectionUniqueConstraintsRequest extends Message<GetConnectionUniqueConstraintsRequest> {
+  /**
+   * @generated from field: string connection_id = 1;
+   */
+  connectionId = "";
+
+  constructor(data?: PartialMessage<GetConnectionUniqueConstraintsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetConnectionUniqueConstraintsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetConnectionUniqueConstraintsRequest {
+    return new GetConnectionUniqueConstraintsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetConnectionUniqueConstraintsRequest {
+    return new GetConnectionUniqueConstraintsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetConnectionUniqueConstraintsRequest {
+    return new GetConnectionUniqueConstraintsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetConnectionUniqueConstraintsRequest | PlainMessage<GetConnectionUniqueConstraintsRequest> | undefined, b: GetConnectionUniqueConstraintsRequest | PlainMessage<GetConnectionUniqueConstraintsRequest> | undefined): boolean {
+    return proto3.util.equals(GetConnectionUniqueConstraintsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetConnectionUniqueConstraintsResponse
+ */
+export class GetConnectionUniqueConstraintsResponse extends Message<GetConnectionUniqueConstraintsResponse> {
+  /**
+   * the key here is <schema>.<table> and value is the unique constraint
+   *
+   * @generated from field: map<string, mgmt.v1alpha1.UniqueConstraint> table_constraints = 1;
+   */
+  tableConstraints: { [key: string]: UniqueConstraint } = {};
+
+  constructor(data?: PartialMessage<GetConnectionUniqueConstraintsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetConnectionUniqueConstraintsResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "table_constraints", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: UniqueConstraint} },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetConnectionUniqueConstraintsResponse {
+    return new GetConnectionUniqueConstraintsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetConnectionUniqueConstraintsResponse {
+    return new GetConnectionUniqueConstraintsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetConnectionUniqueConstraintsResponse {
+    return new GetConnectionUniqueConstraintsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetConnectionUniqueConstraintsResponse | PlainMessage<GetConnectionUniqueConstraintsResponse> | undefined, b: GetConnectionUniqueConstraintsResponse | PlainMessage<GetConnectionUniqueConstraintsResponse> | undefined): boolean {
+    return proto3.util.equals(GetConnectionUniqueConstraintsResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.UniqueConstraint
+ */
+export class UniqueConstraint extends Message<UniqueConstraint> {
+  /**
+   * @generated from field: repeated string columns = 1;
+   */
+  columns: string[] = [];
+
+  constructor(data?: PartialMessage<UniqueConstraint>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.UniqueConstraint";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "columns", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UniqueConstraint {
+    return new UniqueConstraint().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UniqueConstraint {
+    return new UniqueConstraint().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UniqueConstraint {
+    return new UniqueConstraint().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UniqueConstraint | PlainMessage<UniqueConstraint> | undefined, b: UniqueConstraint | PlainMessage<UniqueConstraint> | undefined): boolean {
+    return proto3.util.equals(UniqueConstraint, a, b);
   }
 }
 

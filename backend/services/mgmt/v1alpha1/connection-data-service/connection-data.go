@@ -942,3 +942,96 @@ func isValidSchema(schema string, columns []*mgmtv1alpha1.DatabaseColumn) bool {
 	}
 	return false
 }
+
+func (s *Service) GetConnectionUniqueConstraints(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetConnectionUniqueConstraintsRequest],
+) (*connect.Response[mgmtv1alpha1.GetConnectionUniqueConstraintsResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	connection, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+		Id: req.Msg.ConnectionId,
+	}))
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.verifyUserInAccount(ctx, connection.Msg.Connection.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	schemaResp, err := s.getConnectionSchema(ctx, connection.Msg.Connection, &schemaOpts{})
+	if err != nil {
+		return nil, err
+	}
+
+	schemaMap := map[string]struct{}{}
+	for _, s := range schemaResp {
+		schemaMap[s.Schema] = struct{}{}
+	}
+	schemas := []string{}
+	for s := range schemaMap {
+		schemas = append(schemas, s)
+	}
+
+	connectionTimeout := uint32(5)
+
+	var uc map[string][]string
+	switch config := connection.Msg.Connection.ConnectionConfig.Config.(type) {
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.Msg.Connection.ConnectionConfig, &connectionTimeout, logger)
+		if err != nil {
+			return nil, err
+		}
+		defer conn.Close()
+		db, err := conn.Open()
+		if err != nil {
+			return nil, err
+		}
+
+		allConstraints, err := dbschemas_mysql.GetAllMysqlUniqueConstraints(s.mysqlquerier, ctx, db, schemas)
+		if err != nil && !nucleusdb.IsNoRows(err) {
+			return nil, err
+		} else if err != nil && nucleusdb.IsNoRows(err) {
+			return connect.NewResponse(&mgmtv1alpha1.GetConnectionUniqueConstraintsResponse{
+				TableConstraints: map[string]*mgmtv1alpha1.UniqueConstraint{},
+			}), nil
+		}
+		uc = dbschemas_mysql.GetMysqlTableUniqueConstraints(allConstraints)
+
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		conn, err := s.sqlConnector.NewPgPoolFromConnectionConfig(config.PgConfig, &connectionTimeout, logger)
+		if err != nil {
+			return nil, err
+		}
+		db, err := conn.Open(ctx)
+		if err != nil {
+			return nil, err
+		}
+		defer conn.Close()
+
+		allConstraints, err := dbschemas_postgres.GetAllPostgresUniqueConstraints(s.pgquerier, ctx, db, schemas)
+		if err != nil && !nucleusdb.IsNoRows(err) {
+			return nil, err
+		} else if err != nil && nucleusdb.IsNoRows(err) {
+			return connect.NewResponse(&mgmtv1alpha1.GetConnectionUniqueConstraintsResponse{
+				TableConstraints: map[string]*mgmtv1alpha1.UniqueConstraint{},
+			}), nil
+		}
+		uc = dbschemas_postgres.GetPostgresTableUniqueConstraints(allConstraints)
+
+	default:
+		return nil, errors.New("unsupported unique constraint connection")
+	}
+
+	tableConstraints := map[string]*mgmtv1alpha1.UniqueConstraint{}
+	for tableName, cols := range uc {
+		tableConstraints[tableName] = &mgmtv1alpha1.UniqueConstraint{
+			Columns: cols,
+		}
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.GetConnectionUniqueConstraintsResponse{
+		TableConstraints: tableConstraints,
+	}), nil
+}
