@@ -118,7 +118,15 @@ const generateFloat64Config = Yup.object().shape({
   max: Yup.number()
     .required('This field is required.')
     .min(Number.MIN_SAFE_INTEGER)
-    .max(Number.MAX_SAFE_INTEGER),
+    .max(Number.MAX_SAFE_INTEGER)
+    .test(
+      'is-greater-than-min',
+      'Max must be greater than Min',
+      function (value) {
+        const { min } = this.parent;
+        return !min || !value || value >= min;
+      }
+    ),
   precision: bigIntValidator
     .required('This field is required.')
     .test(
@@ -150,6 +158,10 @@ const generateInt64Config = Yup.object().shape({
       `Value must be less than than or equal to ${Number.MAX_SAFE_INTEGER}`,
       getBigIntMaxValidator(Number.MAX_SAFE_INTEGER)
     )
+    .test('is-less-than-max', 'Min must be less than Max', function (value) {
+      const { max } = this.parent;
+      return !max || !value || value <= max;
+    })
     .required('This field is required.'),
   max: bigIntValidator
     .test(
@@ -161,6 +173,14 @@ const generateInt64Config = Yup.object().shape({
       'max',
       `Value must be less than than or equal to ${Number.MAX_SAFE_INTEGER}`,
       getBigIntMaxValidator(Number.MAX_SAFE_INTEGER)
+    )
+    .test(
+      'is-greater-than-min',
+      'Max must be greater than Min',
+      function (value) {
+        const { min } = this.parent;
+        return !min || !value || value >= min;
+      }
     )
     .required('This field is required.'),
 });
@@ -177,6 +197,10 @@ const generateStringPhoneNumberConfig = Yup.object().shape({
       `Value must be less than than or equal to ${Number.MAX_SAFE_INTEGER}`,
       getBigIntMaxValidator(Number.MAX_SAFE_INTEGER)
     )
+    .test('is-less-than-max', 'Min must be less than Max', function (value) {
+      const { max } = this.parent;
+      return !max || !value || value <= max;
+    })
     .required('This field is required.'),
   max: bigIntValidator
     .test(
@@ -188,6 +212,14 @@ const generateStringPhoneNumberConfig = Yup.object().shape({
       'max',
       `Value must be less than than or equal to ${Number.MAX_SAFE_INTEGER}`,
       getBigIntMaxValidator(Number.MAX_SAFE_INTEGER)
+    )
+    .test(
+      'is-greater-than-min',
+      'Max must be greater than Min',
+      function (value) {
+        const { min } = this.parent;
+        return !min || !value || value >= min;
+      }
     )
     .required('This field is required.'),
 });
