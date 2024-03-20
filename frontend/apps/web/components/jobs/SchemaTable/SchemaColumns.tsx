@@ -249,6 +249,8 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
           </div>
         );
       },
+      maxSize: 500,
+      size: 300,
     },
     {
       accessorKey: 'column',
@@ -262,6 +264,8 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
           </span>
         );
       },
+      maxSize: 500,
+      size: 200,
     },
     {
       id: 'constraints',

@@ -89,7 +89,8 @@ export default function SchemaPageTable<TData, TValue>({
 
   return (
     <div>
-      <div className="z-50">
+      <div className="text-lg font-semibold pt-4 ">Transformer Mapping</div>
+      <div className="z-50 pt-4">
         <SchemaTableToolbar
           table={table}
           systemTransformerMap={systemTransformerMap}
@@ -108,7 +109,7 @@ export default function SchemaPageTable<TData, TValue>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
-                className="flex-none custom:flex flex-row items-center justify-between w-full"
+                className="flex flex-row items-center justify-between w-full"
                 id="table-header-row"
               >
                 {headerGroup.headers.map((header) => {
