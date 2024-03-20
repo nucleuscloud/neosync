@@ -27,8 +27,8 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
     resolver: yupResolver(TRANSFORMER_SCHEMA_CONFIGS.generateFloat64Config),
     defaultValues: {
       precision: existingConfig?.precision ?? BigInt(0),
-      min: existingConfig?.min ?? BigInt(0),
-      max: existingConfig?.max ?? BigInt(40),
+      min: existingConfig?.min ?? 0,
+      max: existingConfig?.max ?? 40,
     },
   });
 
@@ -78,9 +78,7 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
                   type="number"
                   value={field.value ? field.value.toString() : 0}
                   onChange={(event) => {
-                    field.onChange(
-                      setBigIntOrOld(event.target.valueAsNumber, field.value)
-                    );
+                    field.onChange(event.target.valueAsNumber);
                   }}
                   disabled={isReadonly}
                 />
@@ -108,9 +106,7 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
                   type="number"
                   value={field.value ? field.value.toString() : 0}
                   onChange={(event) => {
-                    field.onChange(
-                      setBigIntOrOld(event.target.valueAsNumber, field.value)
-                    );
+                    field.onChange(event.target.valueAsNumber);
                   }}
                   disabled={isReadonly}
                 />
