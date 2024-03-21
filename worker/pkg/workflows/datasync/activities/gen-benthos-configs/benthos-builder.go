@@ -1450,21 +1450,14 @@ func buildProcessorConfigs(
 		}
 	}
 
-	whileProcessorConfigs := []*neosync_benthos.ProcessorConfig{}
 	if len(processorConfigs) > 0 {
-		// add while and catch processor
-		maxLoops := 5
-		whileProcessorConfigs = append(whileProcessorConfigs, &neosync_benthos.ProcessorConfig{While: &neosync_benthos.WhileProcessorConfig{
-			AtLeastOnce: true,
-			MaxLoops:    &maxLoops,
-			Check:       "errored()",
-			Processors:  processorConfigs,
-		}}, &neosync_benthos.ProcessorConfig{Catch: []*neosync_benthos.ProcessorConfig{
+		// add catch and error processor
+		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Catch: []*neosync_benthos.ProcessorConfig{
 			{Error: &neosync_benthos.ErrorProcessorConfig{}},
 		}})
 	}
 
-	return whileProcessorConfigs, err
+	return processorConfigs, err
 }
 
 func extractJsFunctionsAndOutputs(ctx context.Context, transformerclient mgmtv1alpha1connect.TransformersServiceClient, cols []*mgmtv1alpha1.JobMapping) (string, error) {

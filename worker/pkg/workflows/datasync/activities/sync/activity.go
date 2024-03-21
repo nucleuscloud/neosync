@@ -100,6 +100,8 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	logger := log.With(activity.GetLogger(ctx), loggerKeyVals...)
 	slogger := logger_utils.NewJsonSLogger().With(loggerKeyVals...)
 	stopWorkflowChan := make(chan bool)
+	errorMutex := &sync.Mutex{}
+	var benthosError error
 	var benthosStream *service.Stream
 	go func() {
 		for {
@@ -108,14 +110,17 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 				activity.RecordHeartbeat(ctx)
 			case <-stopWorkflowChan:
 				if benthosStream != nil {
+					errorMutex.Lock()
+					benthosError = fmt.Errorf("received stop workflow signal")
+					errorMutex.Unlock()
 					// this must be here because stream.Run(ctx) doesn't seem to fully obey a canceled context when
 					// a sink is in an error state. We want to explicitly call stop here because the workflow has been canceled.
 					err := benthosStream.StopWithin(1 * time.Millisecond)
 					if err != nil {
 						logger.Error(err.Error())
 					}
+					return
 				}
-				return
 			case <-activity.GetWorkerStopChannel(ctx):
 				if benthosStream != nil {
 					// this must be here because stream.Run(ctx) doesn't seem to fully obey a canceled context when
@@ -257,12 +262,19 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	if err != nil {
 		return nil, fmt.Errorf("unable to build benthos config: %w", err)
 	}
+
 	benthosStream = stream
 	err = stream.Run(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to run benthos stream: %w", err)
+		return nil, err
 	}
 	benthosStream = nil
+	errorMutex.Lock()
+	if benthosError != nil {
+		return nil, benthosError
+	}
+	errorMutex.Unlock()
+
 	logger.Info("sync complete")
 	return &SyncResponse{}, nil
 }
