@@ -37,10 +37,12 @@ import { FieldErrors, useFieldArray, useFormContext } from 'react-hook-form';
 import { SchemaConstraintHandler, getSchemaColumns } from './SchemaColumns';
 import SchemaPageTable from './SchemaPageTable';
 
+type JobType = 'sync' | 'generate';
+
 interface Props {
   data: JobMappingFormValues[];
   excludeInputReqTransformers?: boolean; // will result in only generators (functions with no data input)
-  jobType: string; // todo: update to be named type
+  jobType: JobType;
   schema: ConnectionSchemaMap;
   constraintHandler: SchemaConstraintHandler;
 }
@@ -160,6 +162,7 @@ export function SchemaTable(props: Props): ReactElement {
               options={getDualListBoxOptions(schema, data)}
               selected={selectedItems}
               onChange={toggleItem}
+              mode={jobType === 'generate' ? 'single' : 'many'}
             />
           </CardContent>
         </Card>
@@ -215,7 +218,6 @@ export function SchemaTable(props: Props): ReactElement {
         userDefinedTransformers={userDefinedTransformers}
         systemTransformerMap={systemMap}
         systemTransformers={systemTransformers}
-        jobType={jobType}
         constraintHandler={constraintHandler}
       />
     </div>

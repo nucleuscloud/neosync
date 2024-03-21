@@ -39,7 +39,6 @@ interface DataTableProps<TData, TValue> {
 
   userDefinedTransformerMap: Map<string, UserDefinedTransformer>;
   systemTransformerMap: Map<string, SystemTransformer>;
-  jobType: string;
   constraintHandler: SchemaConstraintHandler;
 }
 

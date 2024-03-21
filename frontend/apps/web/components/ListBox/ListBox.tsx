@@ -20,6 +20,7 @@ import {
 } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { ReactElement, useRef } from 'react';
+import { Mode } from '../DualListBox/columns';
 
 interface Props<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -27,6 +28,7 @@ interface Props<TData, TValue> {
   rowSelection: RowSelectionState;
   onRowSelectionChange: OnChangeFn<RowSelectionState>;
   tableContainerClassName?: string;
+  mode?: Mode;
 }
 
 export default function ListBox<TData, TValue>(
@@ -38,6 +40,7 @@ export default function ListBox<TData, TValue>(
     rowSelection,
     onRowSelectionChange,
     tableContainerClassName,
+    mode = 'many',
   } = props;
   const table = useReactTable({
     data,
@@ -46,6 +49,7 @@ export default function ListBox<TData, TValue>(
       rowSelection: rowSelection,
     },
     enableRowSelection: true,
+    enableMultiRowSelection: mode === 'many',
     onRowSelectionChange: onRowSelectionChange,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),

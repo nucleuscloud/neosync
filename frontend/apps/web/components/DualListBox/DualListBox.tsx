@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { cn } from '@/libs/utils';
 import {
   ArrowDownIcon,
   ArrowLeftIcon,
@@ -12,7 +13,7 @@ import {
 import { RowSelectionState } from '@tanstack/react-table';
 import { ReactElement, useMemo, useState } from 'react';
 import ListBox from '../ListBox/ListBox';
-import { Row, getListBoxColumns } from './columns';
+import { Mode, Row, getListBoxColumns } from './columns';
 
 export interface Option {
   value: string;
@@ -23,18 +24,22 @@ interface Props {
   options: Option[];
   selected: Set<string>;
   onChange(value: Set<string>, action: Action): void;
+  mode?: Mode;
 }
 
 export default function DualListBox(props: Props): ReactElement {
-  const { options, selected, onChange } = props;
+  const { options, selected, onChange, mode = 'many' } = props;
 
   const [leftSelected, setLeftSelected] = useState<RowSelectionState>({});
   const [rightSelected, setRightSelected] = useState<RowSelectionState>({});
 
-  const leftCols = useMemo(() => getListBoxColumns({ title: 'Source' }), []);
+  const leftCols = useMemo(
+    () => getListBoxColumns({ title: 'Source', mode }),
+    [mode]
+  );
   const rightCols = useMemo(
-    () => getListBoxColumns({ title: 'Destination' }),
-    []
+    () => getListBoxColumns({ title: 'Destination', mode }),
+    [mode]
   );
 
   const leftData = options
@@ -52,10 +57,11 @@ export default function DualListBox(props: Props): ReactElement {
           data={leftData}
           onRowSelectionChange={setLeftSelected}
           rowSelection={leftSelected}
+          mode={mode}
         />
       </div>
       <div className="flex flex-row md:flex-col justify-center gap-2">
-        <div>
+        <div className={cn(mode === 'single' ? 'hidden' : null)}>
           <Button
             type="button"
             variant="ghost"
@@ -109,7 +115,7 @@ export default function DualListBox(props: Props): ReactElement {
             <ArrowUpIcon className="block md:hidden" />
           </Button>
         </div>
-        <div>
+        <div className={cn(mode === 'single' ? 'hidden' : null)}>
           <Button
             type="button"
             variant="ghost"
@@ -129,6 +135,7 @@ export default function DualListBox(props: Props): ReactElement {
           data={rightData}
           onRowSelectionChange={setRightSelected}
           rowSelection={rightSelected}
+          mode={mode}
         />
       </div>
     </div>
