@@ -3,6 +3,7 @@ import {
   TransformerConfig,
 } from '@neosync/sdk';
 import * as Yup from 'yup';
+import { tryBigInt } from '../../transformers/Sheetforms/util';
 import { IsUserJavascriptCodeValid } from './UserDefinedTransformerForms/UserDefinedTransformJavascriptForm';
 
 const bigIntValidator = Yup.mixed<bigint>().test(
@@ -89,7 +90,9 @@ const generateInternationalPhoneNumberConfig = Yup.object().shape({
     .required('This field is required.')
     .test('is-less-than-max', 'Min must be less than Max', function (value) {
       const { max } = this.parent;
-      return !max || !value || value <= max;
+      const maxBig = tryBigInt(max);
+      const valueBig = tryBigInt(value);
+      return maxBig !== null && valueBig !== null && valueBig <= maxBig;
     }),
   max: bigIntValidator
     .test(
@@ -108,7 +111,9 @@ const generateInternationalPhoneNumberConfig = Yup.object().shape({
       'Max must be greater than Min',
       function (value) {
         const { min } = this.parent;
-        return !min || !value || value >= min;
+        const valueBig = tryBigInt(value);
+        const minBig = tryBigInt(min);
+        return minBig !== null && valueBig !== null && valueBig >= minBig;
       }
     ),
 });
@@ -163,7 +168,9 @@ const generateInt64Config = Yup.object().shape({
     )
     .test('is-less-than-max', 'Min must be less than Max', function (value) {
       const { max } = this.parent;
-      return !max || !value || value <= max;
+      const maxBig = tryBigInt(max);
+      const valueBig = tryBigInt(value ?? 0);
+      return maxBig !== null && valueBig !== null && valueBig <= maxBig;
     })
     .required('This field is required.'),
   max: bigIntValidator
@@ -182,7 +189,9 @@ const generateInt64Config = Yup.object().shape({
       'Max must be greater than Min',
       function (value) {
         const { min } = this.parent;
-        return !min || !value || value >= min;
+        const valueBig = tryBigInt(value ?? 0);
+        const minBig = tryBigInt(min);
+        return minBig !== null && valueBig !== null && valueBig >= minBig;
       }
     )
     .required('This field is required.'),
@@ -202,7 +211,9 @@ const generateStringPhoneNumberConfig = Yup.object().shape({
     )
     .test('is-less-than-max', 'Min must be less than Max', function (value) {
       const { max } = this.parent;
-      return !max || !value || value <= max;
+      const maxBig = tryBigInt(max);
+      const valueBig = tryBigInt(value ?? 0);
+      return maxBig !== null && valueBig !== null && valueBig <= maxBig;
     })
     .required('This field is required.'),
   max: bigIntValidator
@@ -221,7 +232,9 @@ const generateStringPhoneNumberConfig = Yup.object().shape({
       'Max must be greater than Min',
       function (value) {
         const { min } = this.parent;
-        return !min || !value || value >= min;
+        const valueBig = tryBigInt(value ?? 0);
+        const minBig = tryBigInt(min);
+        return minBig !== null && valueBig !== null && valueBig >= minBig;
       }
     )
     .required('This field is required.'),
@@ -242,7 +255,9 @@ const generateStringConfig = Yup.object().shape({
     .required('This field is required.')
     .test('is-less-than-max', 'Min must be less than Max', function (value) {
       const { max } = this.parent;
-      return !max || !value || value <= max;
+      const maxBig = tryBigInt(max);
+      const valueBig = tryBigInt(value);
+      return maxBig !== null && valueBig !== null && valueBig <= maxBig;
     }),
   max: bigIntValidator
     .test(
@@ -261,7 +276,9 @@ const generateStringConfig = Yup.object().shape({
       'Max must be greater than Min',
       function (value) {
         const { min } = this.parent;
-        return !min || !value || value >= min;
+        const valueBig = tryBigInt(value);
+        const minBig = tryBigInt(min);
+        return minBig !== null && valueBig !== null && valueBig >= minBig;
       }
     ),
 });
@@ -332,7 +349,9 @@ const transformInt64Config = Yup.object().shape({
     .required('This field is required.')
     .test('is-less-than-max', 'Min must be less than Max', function (value) {
       const { randomizationRangeMax } = this.parent;
-      return !randomizationRangeMax || !value || value <= randomizationRangeMax;
+      const maxBig = tryBigInt(randomizationRangeMax);
+      const valueBig = tryBigInt(value);
+      return maxBig !== null && valueBig !== null && valueBig <= maxBig;
     }),
   randomizationRangeMax: bigIntValidator
     .test(
@@ -351,9 +370,9 @@ const transformInt64Config = Yup.object().shape({
       'Max must be greater than Min',
       function (value) {
         const { randomizationRangeMin } = this.parent;
-        return (
-          !randomizationRangeMin || !value || value >= randomizationRangeMin
-        );
+        const valueBig = tryBigInt(value);
+        const minBig = tryBigInt(randomizationRangeMin);
+        return minBig !== null && valueBig !== null && valueBig >= minBig;
       }
     ),
 });
