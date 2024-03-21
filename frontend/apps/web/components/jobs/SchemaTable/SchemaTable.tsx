@@ -193,14 +193,14 @@ export function SchemaTable(props: Props): ReactElement {
                   {extractedFormErrors.map((message, index) => (
                     <div
                       key={message + index}
-                      className="text-xs bg-red-100 rounded-sm p-2 text-wrap"
+                      className="text-xs bg-red-100 dark:bg-red-600 rounded-sm p-2 text-wrap"
                     >
                       {message}
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="flex items-center justify-center bg-green-100 text-green-900 w-full md:h-[167px] rounded-xl">
+                <div className="flex items-center justify-center bg-green-100 dark:bg-green-600 light:text-green-900 w-full md:h-[167px] rounded-xl">
                   <div className="text-sm flex flex-row items-center gap-2">
                     <CheckIcon />
                     Everything looks good!

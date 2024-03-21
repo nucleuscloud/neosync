@@ -82,6 +82,9 @@ export default function DualListBox(props: Props): ReactElement {
             type="button"
             variant="ghost"
             onClick={() => {
+              if (mode === 'single' && selected.size > 0) {
+                return;
+              }
               const newSet = new Set(selected);
               Object.entries(leftSelected).forEach(([key, isSelected]) => {
                 if (isSelected) {

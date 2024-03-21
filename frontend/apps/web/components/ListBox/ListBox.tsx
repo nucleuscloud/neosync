@@ -80,7 +80,7 @@ export default function ListBox<TData, TValue>(
       ref={tableContainerRef}
     >
       <StickyHeaderTable>
-        <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 flex w-full">
+        <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 flex w-full px-2">
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow
               key={headerGroup.id}
@@ -123,7 +123,7 @@ export default function ListBox<TData, TValue>(
                 style={{
                   transform: `translateY(${virtualRow.start}px)`,
                 }}
-                className="items-center flex absolute w-full px-1"
+                className="items-center flex absolute w-full px-2"
               >
                 {row.getVisibleCells().map((cell) => {
                   return (
