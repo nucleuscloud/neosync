@@ -85,6 +85,7 @@ export default function DualListBox(props: Props): ReactElement {
               if (mode === 'single' && selected.size > 0) {
                 return;
               }
+              // this is okay for single mode because there should only ever be one selected
               const newSet = new Set(selected);
               Object.entries(leftSelected).forEach(([key, isSelected]) => {
                 if (isSelected) {
