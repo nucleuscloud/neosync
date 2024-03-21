@@ -1029,6 +1029,12 @@ func createSqlUpdateBenthosConfig(
 				}
 				processorConfigs = append(processorConfigs, neosync_benthos.ProcessorConfig{Branch: pkBranch})
 			}
+			if len(processorConfigs) > 0 {
+				// add catch and error processor
+				processorConfigs = append(processorConfigs, neosync_benthos.ProcessorConfig{Catch: []*neosync_benthos.ProcessorConfig{
+					{Error: &neosync_benthos.ErrorProcessorConfig{}},
+				}})
+			}
 			newResp.Config.StreamConfig.Pipeline.Processors = processorConfigs
 		}
 
