@@ -204,10 +204,12 @@ export function SchemaTable(props: Props): ReactElement {
                   ))}
                 </div>
               ) : (
-                <div className="flex items-center justify-center bg-green-100 dark:bg-green-600 light:text-green-900 w-full md:h-[167px] rounded-xl">
+                <div className="flex items-center justify-center bg-green-100 dark:bg-green-400 text-green-900 dark:text-green-900 w-full md:h-[167px] rounded-xl">
                   <div className="text-sm flex flex-row items-center gap-2">
-                    <CheckIcon />
-                    Everything looks good!
+                    <div className="flex">
+                      <CheckIcon />
+                    </div>
+                    <p>Everything looks good!</p>
                   </div>
                 </div>
               )}
