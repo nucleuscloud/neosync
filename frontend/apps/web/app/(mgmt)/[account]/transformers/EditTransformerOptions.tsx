@@ -220,7 +220,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           }}
         />
       );
-    case 'generate_international_phone_number':
+    case 'generate_e164_phone_number':
       return (
         <GenerateInternationalPhoneNumberForm
           isReadonly={isReadonly}
