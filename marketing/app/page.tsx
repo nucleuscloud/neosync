@@ -1,4 +1,4 @@
-import CTA from '@/components/cta/CTA';
+import DeploymentOptions from '@/components/landing-page/DeploymentOptions';
 import GitOpsSection from '@/components/landing-page/GitOps';
 import Hero from '@/components/landing-page/Hero';
 import Intergrations from '@/components/landing-page/Integrations';
@@ -52,12 +52,12 @@ export default function Home(): ReactElement {
       <div className="py-10 lg:py-20">
         <GitOpsSection />
       </div>
-      {/* <div className="py-10 lg:py-20">
+      <div className="py-10 lg:py-20">
         <DeploymentOptions />
-      </div> */}
-      <div className="px-5 lg-px-2 py-10 lg:py-20">
-        <CTA />
       </div>
+      {/* <div className="px-5 lg-px-2 py-10 lg:py-20">
+        <CTA />
+      </div> */}
     </div>
   );
 }
