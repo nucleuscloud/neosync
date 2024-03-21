@@ -215,6 +215,34 @@ output:
 	assert.Equal(t, `{"name":"sivetest"}`, returnValue)
 }
 
+func Test_Sync_Run_Processor_Error(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
+
+	activity := New(nil, &sync.Map{}, nil, nil)
+
+	env.RegisterActivity(activity.Sync)
+
+	_, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
+		BenthosConfig: strings.TrimSpace(`
+input:
+  generate:
+    count: 1
+    interval: ""
+    mapping: 'root = { "name": "nick" }'
+pipeline:
+  threads: 1
+  processors:
+    - error: {} 
+output:
+  label: ""
+  stdout:
+    codec: lines
+`),
+	}, &SyncMetadata{Schema: "public", Table: "test"})
+	require.EqualError(t, err, "activity error (type: Sync, scheduledEventID: 0, startedEventID: 0, identity: ): received stop workflow signal")
+}
+
 func Test_getEnvVarLookupFn(t *testing.T) {
 	fn := getEnvVarLookupFn(nil)
 	assert.NotNil(t, fn)

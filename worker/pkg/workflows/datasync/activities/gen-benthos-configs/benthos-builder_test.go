@@ -31,6 +31,7 @@ import (
 	_ "github.com/benthosdev/benthos/v4/public/components/pure/extended"
 	_ "github.com/benthosdev/benthos/v4/public/components/redis"
 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
+	neosync_benthos_error "github.com/nucleuscloud/neosync/worker/internal/benthos/error"
 	benthos_metrics "github.com/nucleuscloud/neosync/worker/internal/benthos/metrics"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/redis"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/internal/benthos/sql"
@@ -907,6 +908,8 @@ pipeline:
     processors:
         - mapping: meta neosync_id = this."id"
         - mutation: root."id" = generate_uuid(include_hyphens:true)
+        - catch:
+            - error: {}
 output:
     label: ""
     broker:
@@ -931,7 +934,6 @@ output:
                     period: 5s
                     check: ""
                     processors: []
-
 `),
 	)
 
@@ -962,6 +964,8 @@ pipeline:
                     kind: simple
             request_map: root = if this."buyer_id" == null { deleted() } else { this }
             result_map: root."buyer_id" = this
+        - catch:
+            - error: {}
 output:
     label: ""
     broker:
@@ -979,7 +983,6 @@ output:
                     period: 5s
                     check: ""
                     processors: []
-
 `),
 	)
 
@@ -987,6 +990,8 @@ output:
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_error.RegisterErrorProcessor(benthosenv, nil)
 	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
@@ -1423,6 +1428,8 @@ pipeline:
     processors:
         - mapping: meta neosync_id = this."id"
         - mutation: root."id" = generate_uuid(include_hyphens:true)
+        - catch:
+            - error: {}
 output:
     label: ""
     broker:
@@ -1487,6 +1494,8 @@ pipeline:
                     kind: simple
             request_map: root = if this."id" == null { deleted() } else { this }
             result_map: root."id" = this
+        - catch:
+            - error: {}
 output:
     label: ""
     broker:
@@ -1512,6 +1521,8 @@ output:
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_error.RegisterErrorProcessor(benthosenv, nil)
 	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
@@ -4214,6 +4225,8 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
         output["first_name"] = fn_first_name(input["first_name"], input);
         benthos.v0_msg_set_structured(output);
         })();
+- catch:
+    - error: {}
       `), strings.TrimSpace(string(out)))
 }
 
@@ -4289,7 +4302,7 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
 
 	assert.Nil(t, err)
 
-	assert.Len(t, res[0].Config.Pipeline.Processors, 2)
+	assert.Len(t, res[0].Config.Pipeline.Processors, 3)
 
 	out, err := yaml.Marshal(res[0].Config.Pipeline.Processors)
 	assert.NoError(t, err)
@@ -4310,6 +4323,8 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
         output["first_name"] = fn_first_name(input["first_name"], input);
         benthos.v0_msg_set_structured(output);
         })();
+- catch:
+    - error: {}
       `), strings.TrimSpace(string(out)))
 }
 
