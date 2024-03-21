@@ -45,7 +45,7 @@ export default function GenerateInternationalPhoneNumberForm(
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
               <div className="space-y-0.5">
-                <FormLabel>Valid Luhn</FormLabel>
+                <FormLabel>Min</FormLabel>
                 <FormDescription className="w-[90%]">
                   Set the minimum length range of the output phone number. It
                   cannot be less than 9.
@@ -74,7 +74,7 @@ export default function GenerateInternationalPhoneNumberForm(
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
               <div className="space-y-0.5">
-                <FormLabel>Valid Luhn</FormLabel>
+                <FormLabel>Max</FormLabel>
                 <FormDescription className="w-[90%]">
                   Set the maximum length range of the output phone number. It
                   cannot be greater than 15.

@@ -15,3 +15,14 @@ export function setBigIntOrOld(
     return oldValue;
   }
 }
+
+export function tryBigInt(
+  val: bigint | boolean | number | string
+): bigint | null {
+  try {
+    const newInt = BigInt(val);
+    return newInt;
+  } catch {
+    return null;
+  }
+}
