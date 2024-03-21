@@ -41,14 +41,14 @@ function StepCircle(props: StepCircleProps): ReactElement {
           className={cn(
             isActive || isCompleted ? 'bg-black ' : 'border border-gray-400',
             isActive || isCompleted
-              ? 'dark:bg-white'
+              ? 'dark:bg-gray-700'
               : 'border dark:border-gray',
             'w-[20px] h-[20px]',
             'rounded-full',
             'justify-center flex align-middle items-center'
           )}
         >
-          {isCompleted && <CheckIcon className="text-white dark:text-black" />}
+          {isCompleted && <CheckIcon className="text-white dark:text-white" />}
         </div>
         <div className="text-xs w-[50px] justify-center flex">
           {toTitleCase(name)}

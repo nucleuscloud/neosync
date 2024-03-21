@@ -50,7 +50,7 @@ export default function DualListBox(props: Props): ReactElement {
 
   return (
     <div className="flex gap-3 flex-col md:flex-row">
-      <div className="flex flex-1 border border-gray-300 overflow-hidden rounded-lg">
+      <div className="flex flex-1 border border-gray-300 dark:border-gray-700 overflow-hidden rounded-lg">
         <ListBox
           columns={leftCols}
           data={leftData}
@@ -136,7 +136,7 @@ export default function DualListBox(props: Props): ReactElement {
           </div>
         )}
       </div>
-      <div className="flex flex-1 border border-gray-300 rounded-lg overflow-hidden">
+      <div className="flex flex-1 border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden">
         <ListBox
           columns={rightCols}
           data={rightData}

@@ -286,7 +286,7 @@ function SubNav({ className, items, buttonClassName, ...props }: SubNavProps) {
               buttonVariants({ variant: 'outline' }),
               pathname === item.href
                 ? 'bg-muted hover:bg-muted'
-                : 'hover:bg-transparent hover:underline',
+                : 'hover:bg-gray-100 dark:hover:bg-gray-800',
               'justify-start',
               buttonClassName,
               'px-6'

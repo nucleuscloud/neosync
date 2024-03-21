@@ -86,7 +86,7 @@ export default function NewJob({ params }: PageProps): ReactElement {
             {jobData.map((jd) => (
               <div key={jd.name}>
                 <Card
-                  className={`cursor-pointer p-2 w-full min-w-[400px] ${selectedJobType === jd.type ? 'border border-black shadow-sm dark:border-gray-300' : 'hover:border hover:border-gray-500 dark:border-gray-700 dark:hover:border-gray-600'}`}
+                  className={`cursor-pointer p-2 w-full min-w-[400px] ${selectedJobType === jd.type ? 'border border-black shadow-sm dark:border-gray-500' : 'hover:border hover:border-gray-500 dark:border-gray-700 dark:hover:border-gray-600'}`}
                   onClick={() => handleJobSelection(jd.type, jd.href)}
                 >
                   <CardHeader>
