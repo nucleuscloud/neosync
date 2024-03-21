@@ -53,6 +53,12 @@ message CheckConnectionConfigResponse {
   bool is_connected = 1;
   // This is the error that was received if the API was unable to connect
   optional string connection_error = 2;
+  repeated ConnectionConfigStatistics statistics = 3;
+}
+
+message ConnectionConfigStatistics {
+  string schema = 1;
+  int64 table_count = 2;
 }
 
 message Connection {

@@ -1192,6 +1192,18 @@
               "isoneof": true,
               "oneofdecl": "_connection_error",
               "defaultValue": ""
+            },
+            {
+              "name": "statistics",
+              "description": "",
+              "label": "repeated",
+              "type": "ConnectionConfigStatistics",
+              "longType": "ConnectionConfigStatistics",
+              "fullType": "mgmt.v1alpha1.ConnectionConfigStatistics",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
@@ -1431,6 +1443,42 @@
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "ConnectionConfigStatistics",
+          "longName": "ConnectionConfigStatistics",
+          "fullName": "mgmt.v1alpha1.ConnectionConfigStatistics",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schema",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "table_count",
+              "description": "",
+              "label": "",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
               "defaultValue": ""
             }
           ]

@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
+import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 
 /**
  * @generated from message mgmt.v1alpha1.GetConnectionsRequest
@@ -451,6 +451,11 @@ export class CheckConnectionConfigResponse extends Message<CheckConnectionConfig
    */
   connectionError?: string;
 
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.ConnectionConfigStatistics statistics = 3;
+   */
+  statistics: ConnectionConfigStatistics[] = [];
+
   constructor(data?: PartialMessage<CheckConnectionConfigResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -461,6 +466,7 @@ export class CheckConnectionConfigResponse extends Message<CheckConnectionConfig
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "is_connected", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 2, name: "connection_error", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 3, name: "statistics", kind: "message", T: ConnectionConfigStatistics, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CheckConnectionConfigResponse {
@@ -477,6 +483,49 @@ export class CheckConnectionConfigResponse extends Message<CheckConnectionConfig
 
   static equals(a: CheckConnectionConfigResponse | PlainMessage<CheckConnectionConfigResponse> | undefined, b: CheckConnectionConfigResponse | PlainMessage<CheckConnectionConfigResponse> | undefined): boolean {
     return proto3.util.equals(CheckConnectionConfigResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.ConnectionConfigStatistics
+ */
+export class ConnectionConfigStatistics extends Message<ConnectionConfigStatistics> {
+  /**
+   * @generated from field: string schema = 1;
+   */
+  schema = "";
+
+  /**
+   * @generated from field: int64 table_count = 2;
+   */
+  tableCount = protoInt64.zero;
+
+  constructor(data?: PartialMessage<ConnectionConfigStatistics>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.ConnectionConfigStatistics";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "table_count", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectionConfigStatistics {
+    return new ConnectionConfigStatistics().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ConnectionConfigStatistics {
+    return new ConnectionConfigStatistics().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ConnectionConfigStatistics {
+    return new ConnectionConfigStatistics().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ConnectionConfigStatistics | PlainMessage<ConnectionConfigStatistics> | undefined, b: ConnectionConfigStatistics | PlainMessage<ConnectionConfigStatistics> | undefined): boolean {
+    return proto3.util.equals(ConnectionConfigStatistics, a, b);
   }
 }
 

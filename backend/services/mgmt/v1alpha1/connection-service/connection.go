@@ -39,17 +39,99 @@ func (s *Service) CheckConnectionConfig(
 
 	cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-	err = db.PingContext(cctx)
+	// err = db.PingContext(cctx)
+	tx, err := db.BeginTx(cctx, &sql.TxOptions{ReadOnly: true})
 	if err != nil {
-		msg := err.Error()
+		return nil, err
+	}
+	defer nucleusdb.HandleSqlRollback(tx, logger)
+
+	// queries the database to see if we can see the schemas and tables
+	// note that schemas with no tables will not appear in this query
+	pgQuery := `
+	SELECT 
+		nspname AS schema_name, 
+		COUNT(*) AS number_of_tables
+	FROM 
+		pg_catalog.pg_tables
+		JOIN pg_catalog.pg_namespace ON pg_namespace.nspname = pg_tables.schemaname
+	WHERE 
+		pg_namespace.oid NOT IN 
+			(SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = 'pg_catalog' OR nspname = 'information_schema')
+	GROUP BY 
+		schema_name
+	ORDER BY 
+		number_of_tables DESC;
+	`
+	// note that schemas with no tables will not appear in this query
+	mysqlQuery := `
+SELECT 
+    TABLE_SCHEMA AS schema_name,
+    COUNT(*) AS number_of_tables
+FROM 
+    information_schema.tables 
+WHERE 
+    TABLE_SCHEMA NOT IN ('information_schema', 'mysql', 'performance_schema', 'sys')
+GROUP BY 
+    TABLE_SCHEMA
+ORDER BY 
+    number_of_tables DESC;
+`
+
+	var rows *sql.Rows
+	var hasRows bool // used to check if there are rows returned from the db
+
+	switch req.Msg.ConnectionConfig.Config.(type) {
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		rows, err = tx.QueryContext(cctx, pgQuery)
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		rows, err = tx.QueryContext(cctx, mysqlQuery)
+	}
+
+	if err != nil {
+		errorMsg := err.Error()
 		return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
 			IsConnected:     false,
-			ConnectionError: &msg,
+			ConnectionError: &errorMsg,
+			Statistics:      nil,
 		}), nil
 	}
+	defer rows.Close()
+
+	var schemaInfo []*mgmtv1alpha1.ConnectionConfigStatistics
+	for rows.Next() {
+		hasRows = true
+		var schemaName string
+		var tableCount int64
+		if err := rows.Scan(&schemaName, &tableCount); err != nil {
+			return nil, err
+		}
+		schemaInfo = append(schemaInfo, &mgmtv1alpha1.ConnectionConfigStatistics{Schema: schemaName, TableCount: tableCount})
+	}
+
+	if err := rows.Err(); err != nil {
+		errorMsg := err.Error()
+		return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
+			IsConnected:     false,
+			ConnectionError: &errorMsg,
+			Statistics:      nil,
+		}), nil
+	}
+
+	noRowsMessage := "Unable to find any schemas in the database"
+
+	if !hasRows {
+		return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
+			IsConnected:     false,
+			ConnectionError: &noRowsMessage,
+			Statistics:      nil,
+		}), nil
+	}
+
 	return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
 		IsConnected:     true,
 		ConnectionError: nil,
+		Statistics:      schemaInfo,
 	}), nil
 }
 
