@@ -89,3 +89,5 @@ volumeMounts: []
 
 # Provide extra environment variables that will be applied to the deployment.
 extraEnvVars: []
+
+updateStrategy:
