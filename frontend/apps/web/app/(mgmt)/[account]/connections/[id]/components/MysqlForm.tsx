@@ -40,6 +40,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
   ConnectionConfig,
+  ConnectionConfigStatistics,
   MysqlConnection,
   MysqlConnectionConfig,
   SSHAuthentication,
@@ -410,7 +411,11 @@ export default function MysqlForm(props: Props) {
           >
             <ButtonText
               leftIcon={
-                isTesting ? <Spinner className="text-black" /> : <div></div>
+                isTesting ? (
+                  <Spinner className="text-black dark:text-white" />
+                ) : (
+                  <div></div>
+                )
               }
               text="Test Connection"
             />
@@ -439,7 +444,7 @@ function TestConnectionResult(props: TestConnectionResultProps): ReactElement {
       return (
         <SuccessAlert
           title="Success!"
-          description="Successfully connected to the database!"
+          description={buildDescription(resp.statistics)}
         />
       );
     } else {
@@ -452,6 +457,20 @@ function TestConnectionResult(props: TestConnectionResultProps): ReactElement {
     }
   }
   return <div />;
+}
+
+function buildDescription(stats: ConnectionConfigStatistics[]): string {
+  const schemaCount =
+    stats.length === 1 ? `${stats.length} schema` : `${stats.length} schemas`;
+  let tableCount = 0;
+  for (let i = 0; i < stats.length; i++) {
+    tableCount += Number(stats[i].tableCount);
+  }
+
+  const tableCountDescription =
+    tableCount === 1 ? `${tableCount} table` : `${tableCount} tables`;
+
+  return `Successfully connected to the database! We found ${schemaCount} and ${tableCountDescription}.`;
 }
 
 interface SuccessAlertProps {

@@ -39,29 +39,22 @@ func (s *Service) CheckConnectionConfig(
 
 	cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-	// err = db.PingContext(cctx)
-	tx, err := db.BeginTx(cctx, &sql.TxOptions{ReadOnly: true})
+	err = db.PingContext(cctx)
 	if err != nil {
 		return nil, err
 	}
-	defer nucleusdb.HandleSqlRollback(tx, logger)
 
 	// queries the database to see if we can see the schemas and tables
 	// note that schemas with no tables will not appear in this query
 	pgQuery := `
-	SELECT 
-		nspname AS schema_name, 
-		COUNT(*) AS number_of_tables
-	FROM 
-		pg_catalog.pg_tables
-		JOIN pg_catalog.pg_namespace ON pg_namespace.nspname = pg_tables.schemaname
-	WHERE 
-		pg_namespace.oid NOT IN 
-			(SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = 'pg_catalog' OR nspname = 'information_schema')
-	GROUP BY 
-		schema_name
-	ORDER BY 
-		number_of_tables DESC;
+  SELECT 
+	schemaname, 
+	COUNT(*) AS number_of_tables
+  FROM 
+	pg_catalog.pg_tables
+  WHERE
+	schemaname NOT IN ('pg_catalog', 'information_schema')
+  GROUP BY schemaname;
 	`
 	// note that schemas with no tables will not appear in this query
 	mysqlQuery := `
@@ -83,9 +76,9 @@ ORDER BY
 
 	switch req.Msg.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		rows, err = tx.QueryContext(cctx, pgQuery)
+		rows, err = db.QueryContext(cctx, pgQuery)
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		rows, err = tx.QueryContext(cctx, mysqlQuery)
+		rows, err = db.QueryContext(cctx, mysqlQuery)
 	}
 
 	if err != nil {
@@ -118,7 +111,7 @@ ORDER BY
 		}), nil
 	}
 
-	noRowsMessage := "Unable to find any schemas in the database"
+	noRowsMessage := "Unable to find any schema(s) in the database"
 
 	if !hasRows {
 		return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
