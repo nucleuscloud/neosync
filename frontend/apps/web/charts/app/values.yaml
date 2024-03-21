@@ -78,3 +78,5 @@ enableRunLogs: false
 # if this is enabled, the backend must also have the metrics service enabled and configured
 protometrics:
   enabled: false
+
+updateStrategy:

@@ -48,7 +48,7 @@ spec:
       terminationGracePeriod: {{ .Values.terminationGracePeriod }}
       {{- end }}
       {{- if .Values.tolerations }}
-      tolerations: 
+      tolerations:
         {{- toYaml .Values.tolerations | nindent 8 }}
       {{- end }}
       {{- if .Values.nodeSelector }}
@@ -92,3 +92,7 @@ spec:
           #   - configMapRef:
           #       name: dev-config
           # {{- end }}
+  {{- if .Values.updateStrategy }}
+  strategy:
+    {{- toYaml .Values.updateStrategy | nindent 4 }}
+  {{- end }}

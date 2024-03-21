@@ -140,3 +140,7 @@ spec:
           #   - configMapRef:
           #       name: dev-config
           # {{- end }}
+  {{- if .Values.updateStrategy }}
+  strategy:
+    {{- toYaml .Values.updateStrategy | nindent 4 }}
+  {{- end }}

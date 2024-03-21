@@ -123,3 +123,5 @@ protometrics:
   url:
   # optionally provide an API key if the prometheus service requires authentication
   apiKey:
+
+updateStrategy:
