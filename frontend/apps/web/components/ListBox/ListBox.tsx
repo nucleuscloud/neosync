@@ -84,7 +84,7 @@ export default function ListBox<TData, TValue>(
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow
               key={headerGroup.id}
-              className="flex-none custom:flex items-center flex-row w-full px-1"
+              className="flex-none custom:flex items-center flex-row w-full"
               id="table-header-row"
             >
               {headerGroup.headers.map((header) => {

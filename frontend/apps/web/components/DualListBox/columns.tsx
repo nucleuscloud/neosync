@@ -1,4 +1,3 @@
-import { cn } from '@/libs/utils';
 import { ColumnDef } from '@tanstack/react-table';
 import { HTMLProps, useEffect, useRef } from 'react';
 import ColumnHeader from './ColumnHeader';
@@ -25,7 +24,7 @@ export function getListBoxColumns(props: ListBoxColumnProps): ColumnDef<Row>[] {
             checked: table.getIsAllRowsSelected(),
             indeterminate: table.getIsSomeRowsSelected(),
             onChange: table.getToggleAllRowsSelectedHandler(),
-            className: cn(mode === 'single' ? 'hidden' : null),
+            className: mode === 'single' ? 'flex hidden' : 'flex w-4 h-4',
           }}
         />
       ),

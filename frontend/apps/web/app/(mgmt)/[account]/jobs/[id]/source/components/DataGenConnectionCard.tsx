@@ -32,10 +32,8 @@ import {
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
-import { PlainMessage } from '@bufbuild/protobuf';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  DatabaseColumn,
   GenerateSourceOptions,
   GenerateSourceSchemaOption,
   GenerateSourceTableOption,
@@ -164,18 +162,12 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
               <FormDescription>The number of rows to generate.</FormDescription>
               <FormControl>
                 <Input
-                  type="text"
-                  value={field.value
-                    .toString()
-                    .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                  {...field}
+                  type="number"
                   onChange={(e) => {
-                    const numberValue = parseFloat(
-                      e.target.value.replace(/,/g, '')
-                    );
+                    const numberValue = e.target.valueAsNumber;
                     if (!isNaN(numberValue)) {
                       field.onChange(numberValue);
-                    } else {
-                      field.onChange(0);
                     }
                   }}
                 />
@@ -308,26 +300,4 @@ async function updateJobConnection(
     throw new Error(body.message);
   }
   return UpdateJobSourceConnectionResponse.fromJson(await res.json());
-}
-
-export function getUniqueSchemasAndTables(
-  // key: schema.table
-  schemaMap: Record<string, PlainMessage<DatabaseColumn>[]>
-): [Set<string>, Map<string, string[]>] {
-  const uniqueSchemas = new Set<string>();
-  const tableToSchemaMap = new Map<string, string[]>();
-
-  // Can be sneaky here because the record is expected to be keyed by the table.
-  // So the values become a list of columns an we can short circuit and only care about the first record to get the
-  // objectified schema and table, which is easier than splitting the key
-  Object.values(schemaMap).forEach((dbcols) => {
-    if (dbcols.length === 0) {
-      return;
-    }
-    const [dbcol] = dbcols;
-    uniqueSchemas.add(dbcol.schema);
-    const tables = tableToSchemaMap.get(dbcol.schema) ?? [];
-    tableToSchemaMap.set(dbcol.schema, [...tables, dbcol.table]);
-  });
-  return [uniqueSchemas, tableToSchemaMap];
 }
