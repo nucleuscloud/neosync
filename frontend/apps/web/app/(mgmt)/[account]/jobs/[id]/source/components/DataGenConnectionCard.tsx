@@ -19,13 +19,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectionForeignConstraints';
@@ -39,10 +32,8 @@ import {
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
-import { PlainMessage } from '@bufbuild/protobuf';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  DatabaseColumn,
   GenerateSourceOptions,
   GenerateSourceSchemaOption,
   GenerateSourceTableOption,
@@ -112,8 +103,6 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     defaultValues: {
       mappings: [],
       numRows: 0,
-      schema: '',
-      table: '',
     },
     values: getJobSource(data?.job),
   });
@@ -161,116 +150,9 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     }
   }
 
-  const formValues = form.watch();
-  const schemaTableData = formValues.mappings?.map((mapping) => ({
-    ...mapping,
-    schema: formValues.schema,
-    table: formValues.table,
-  }));
-
-  const [uniqueSchemas, schemaTableMap] = getUniqueSchemasAndTables(
-    connectionSchemaDataMap?.schemaMap ?? {}
-  );
-
-  const selectedSchemaTables = schemaTableMap.get(formValues.schema) ?? [];
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="schema"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Schema</FormLabel>
-              <FormDescription>The name of the schema.</FormDescription>
-              <Select
-                onValueChange={(value: string) => {
-                  if (!value) {
-                    return;
-                  }
-                  field.onChange(value);
-                  form.setValue('table', ''); // reset the table value because it may no longer apply
-                }}
-                value={field.value}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a schema..." />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {Array.from(uniqueSchemas).map((schema) => (
-                    <SelectItem
-                      className="cursor-pointer"
-                      key={schema}
-                      value={schema}
-                    >
-                      {schema}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="table"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Table Name</FormLabel>
-              <FormDescription>The name of the table.</FormDescription>
-              <Select
-                disabled={!formValues.schema}
-                onValueChange={(value: string) => {
-                  if (!value) {
-                    return;
-                  }
-                  field.onChange(value);
-                  form.setValue(
-                    'mappings',
-                    allJobMappings
-                      .filter(
-                        (m) =>
-                          m.schema === formValues.schema && m.table === value
-                      )
-                      .map((r) => {
-                        return {
-                          schema: formValues.schema,
-                          table: value,
-                          column: r.column,
-                          dataType: r.dataType,
-                          transformer: r.transformer,
-                        };
-                      })
-                  );
-                }}
-                value={field.value}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a table..." />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {selectedSchemaTables.map((table) => (
-                    <SelectItem
-                      className="cursor-pointer"
-                      key={table}
-                      value={table}
-                    >
-                      {table}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
         <FormField
           control={form.control}
           name="numRows"
@@ -280,18 +162,12 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
               <FormDescription>The number of rows to generate.</FormDescription>
               <FormControl>
                 <Input
-                  type="text"
-                  value={field.value
-                    .toString()
-                    .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                  {...field}
+                  type="number"
                   onChange={(e) => {
-                    const numberValue = parseFloat(
-                      e.target.value.replace(/,/g, '')
-                    );
+                    const numberValue = e.target.valueAsNumber;
                     if (!isNaN(numberValue)) {
                       field.onChange(numberValue);
-                    } else {
-                      field.onChange(0);
                     }
                   }}
                 />
@@ -301,15 +177,14 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
           )}
         />
 
-        {formValues.schema && formValues.table && (
-          <SchemaTable
-            data={schemaTableData}
-            excludeInputReqTransformers
-            jobType="generate"
-            constraintHandler={schemaConstraintHandler}
-            schema={connectionSchemaDataMap?.schemaMap ?? {}}
-          />
-        )}
+        <SchemaTable
+          data={form.watch('mappings')}
+          excludeInputReqTransformers
+          jobType="generate"
+          constraintHandler={schemaConstraintHandler}
+          schema={connectionSchemaDataMap?.schemaMap ?? {}}
+        />
+
         {form.formState.errors.mappings && (
           <Alert variant="destructive">
             <AlertTitle className="flex flex-row space-x-2 justify-center">
@@ -333,20 +208,14 @@ function getJobSource(job?: Job): SingleTableSchemaFormValues {
     return {
       mappings: [],
       numRows: 0,
-      schema: '',
-      table: '',
     };
   }
-  let schema = '';
-  let table = '';
   let numRows = 0;
   if (job.source?.options?.config.case === 'generate') {
     const srcSchemas = job.source.options.config.value.schemas;
     if (srcSchemas.length > 0) {
-      schema = srcSchemas[0].schema;
       const tables = srcSchemas[0].tables;
       if (tables.length > 0) {
-        table = tables[0].table;
         numRows = Number(tables[0].rowCount); // this will be an issue if the number is bigger than what js allows
       }
     }
@@ -367,8 +236,6 @@ function getJobSource(job?: Job): SingleTableSchemaFormValues {
   return {
     mappings: mappings,
     numRows: numRows,
-    schema: schema,
-    table: table,
   };
 }
 
@@ -377,6 +244,8 @@ async function updateJobConnection(
   job: Job,
   values: SingleTableSchemaFormValues
 ): Promise<UpdateJobSourceConnectionResponse> {
+  const schema = values.mappings.length > 0 ? values.mappings[0].schema : null;
+  const table = values.mappings.length > 0 ? values.mappings[1].table : null;
   const res = await fetch(
     `/api/accounts/${accountId}/jobs/${job.id}/source-connection`,
     {
@@ -389,8 +258,8 @@ async function updateJobConnection(
           id: job.id,
           mappings: values.mappings.map((m) => {
             return new JobMapping({
-              schema: values.schema,
-              table: values.table,
+              schema: m.schema,
+              table: m.table,
               column: m.column,
               transformer:
                 convertJobMappingTransformerFormToJobMappingTransformer(
@@ -404,17 +273,20 @@ async function updateJobConnection(
                 case: 'generate',
                 value: new GenerateSourceOptions({
                   fkSourceConnectionId: getFkIdFromGenerateSource(job.source),
-                  schemas: [
-                    new GenerateSourceSchemaOption({
-                      schema: values.schema,
-                      tables: [
-                        new GenerateSourceTableOption({
-                          table: values.table,
-                          rowCount: BigInt(values.numRows),
-                        }),
-                      ],
-                    }),
-                  ],
+                  schemas:
+                    schema && table
+                      ? [
+                          new GenerateSourceSchemaOption({
+                            schema: schema,
+                            tables: [
+                              new GenerateSourceTableOption({
+                                table: table,
+                                rowCount: BigInt(values.numRows),
+                              }),
+                            ],
+                          }),
+                        ]
+                      : [],
                 }),
               },
             }),
@@ -428,26 +300,4 @@ async function updateJobConnection(
     throw new Error(body.message);
   }
   return UpdateJobSourceConnectionResponse.fromJson(await res.json());
-}
-
-export function getUniqueSchemasAndTables(
-  // key: schema.table
-  schemaMap: Record<string, PlainMessage<DatabaseColumn>[]>
-): [Set<string>, Map<string, string[]>] {
-  const uniqueSchemas = new Set<string>();
-  const tableToSchemaMap = new Map<string, string[]>();
-
-  // Can be sneaky here because the record is expected to be keyed by the table.
-  // So the values become a list of columns an we can short circuit and only care about the first record to get the
-  // objectified schema and table, which is easier than splitting the key
-  Object.values(schemaMap).forEach((dbcols) => {
-    if (dbcols.length === 0) {
-      return;
-    }
-    const [dbcol] = dbcols;
-    uniqueSchemas.add(dbcol.schema);
-    const tables = tableToSchemaMap.get(dbcol.schema) ?? [];
-    tableToSchemaMap.set(dbcol.schema, [...tables, dbcol.table]);
-  });
-  return [uniqueSchemas, tableToSchemaMap];
 }

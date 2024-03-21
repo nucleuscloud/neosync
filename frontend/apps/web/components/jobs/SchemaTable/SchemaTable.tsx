@@ -37,10 +37,12 @@ import { FieldErrors, useFieldArray, useFormContext } from 'react-hook-form';
 import { SchemaConstraintHandler, getSchemaColumns } from './SchemaColumns';
 import SchemaPageTable from './SchemaPageTable';
 
+type JobType = 'sync' | 'generate';
+
 interface Props {
   data: JobMappingFormValues[];
   excludeInputReqTransformers?: boolean; // will result in only generators (functions with no data input)
-  jobType: string; // todo: update to be named type
+  jobType: JobType;
   schema: ConnectionSchemaMap;
   constraintHandler: SchemaConstraintHandler;
 }
@@ -147,7 +149,9 @@ export function SchemaTable(props: Props): ReactElement {
         <Card className="w-full md:h-[294px]">
           <CardHeader className="flex flex-col gap-2">
             <div className="flex flex-row items-center gap-2">
-              <TableIcon className="h-4 w-4 mt-1" />
+              <div className="flex">
+                <TableIcon className="h-4 w-4" />
+              </div>
               <CardTitle>Table Selection</CardTitle>
             </div>
             <CardDescription>
@@ -160,17 +164,20 @@ export function SchemaTable(props: Props): ReactElement {
               options={getDualListBoxOptions(schema, data)}
               selected={selectedItems}
               onChange={toggleItem}
+              mode={jobType === 'generate' ? 'single' : 'many'}
             />
           </CardContent>
         </Card>
         <Card className="w-full md:h-[294px]">
           <CardHeader className="flex flex-col gap-2">
             <div className="flex flex-row items-center gap-2">
-              {extractedFormErrors.length != 0 ? (
-                <ExclamationTriangleIcon className="h-4 w-4 mt-1 text-destructive" />
-              ) : (
-                <CheckCircledIcon className="w-4 h-4 mt-1" />
-              )}
+              <div className="flex">
+                {extractedFormErrors.length != 0 ? (
+                  <ExclamationTriangleIcon className="h-4 w-4 text-destructive" />
+                ) : (
+                  <CheckCircledIcon className="w-4 h-4 " />
+                )}
+              </div>
               <CardTitle>Validations</CardTitle>
             </div>
             <CardDescription>
@@ -190,17 +197,19 @@ export function SchemaTable(props: Props): ReactElement {
                   {extractedFormErrors.map((message, index) => (
                     <div
                       key={message + index}
-                      className="text-xs bg-red-100 rounded-sm p-2 text-wrap"
+                      className="text-xs bg-red-100 dark:bg-red-600 rounded-sm p-2 text-wrap"
                     >
                       {message}
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="flex items-center justify-center bg-green-100 text-green-900 w-full md:h-[167px] rounded-xl">
+                <div className="flex items-center justify-center bg-green-100 dark:bg-green-400 text-green-900 dark:text-green-900 w-full md:h-[167px] rounded-xl">
                   <div className="text-sm flex flex-row items-center gap-2">
-                    <CheckIcon />
-                    Everything looks good!
+                    <div className="flex">
+                      <CheckIcon />
+                    </div>
+                    <p>Everything looks good!</p>
                   </div>
                 </div>
               )}
@@ -215,7 +224,6 @@ export function SchemaTable(props: Props): ReactElement {
         userDefinedTransformers={userDefinedTransformers}
         systemTransformerMap={systemMap}
         systemTransformers={systemTransformers}
-        jobType={jobType}
         constraintHandler={constraintHandler}
       />
     </div>

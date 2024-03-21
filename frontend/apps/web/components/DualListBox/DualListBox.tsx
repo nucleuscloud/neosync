@@ -12,7 +12,7 @@ import {
 import { RowSelectionState } from '@tanstack/react-table';
 import { ReactElement, useMemo, useState } from 'react';
 import ListBox from '../ListBox/ListBox';
-import { Row, getListBoxColumns } from './columns';
+import { Mode, Row, getListBoxColumns } from './columns';
 
 export interface Option {
   value: string;
@@ -23,18 +23,22 @@ interface Props {
   options: Option[];
   selected: Set<string>;
   onChange(value: Set<string>, action: Action): void;
+  mode?: Mode;
 }
 
 export default function DualListBox(props: Props): ReactElement {
-  const { options, selected, onChange } = props;
+  const { options, selected, onChange, mode = 'many' } = props;
 
   const [leftSelected, setLeftSelected] = useState<RowSelectionState>({});
   const [rightSelected, setRightSelected] = useState<RowSelectionState>({});
 
-  const leftCols = useMemo(() => getListBoxColumns({ title: 'Source' }), []);
+  const leftCols = useMemo(
+    () => getListBoxColumns({ title: 'Source', mode }),
+    [mode]
+  );
   const rightCols = useMemo(
-    () => getListBoxColumns({ title: 'Destination' }),
-    []
+    () => getListBoxColumns({ title: 'Destination', mode }),
+    [mode]
   );
 
   const leftData = options
@@ -52,30 +56,37 @@ export default function DualListBox(props: Props): ReactElement {
           data={leftData}
           onRowSelectionChange={setLeftSelected}
           rowSelection={leftSelected}
+          mode={mode}
         />
       </div>
       <div className="flex flex-row md:flex-col justify-center gap-2">
+        {mode === 'many' && (
+          <div>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => {
+                onChange(
+                  new Set(options.map((option) => option.value)),
+                  'add-all'
+                );
+                setLeftSelected({});
+              }}
+            >
+              <DoubleArrowRightIcon className="hidden md:block" />
+              <DoubleArrowDownIcon className="block md:hidden" />
+            </Button>
+          </div>
+        )}
         <div>
           <Button
             type="button"
             variant="ghost"
             onClick={() => {
-              onChange(
-                new Set(options.map((option) => option.value)),
-                'add-all'
-              );
-              setLeftSelected({});
-            }}
-          >
-            <DoubleArrowRightIcon className="hidden md:block" />
-            <DoubleArrowDownIcon className="block md:hidden" />
-          </Button>
-        </div>
-        <div>
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => {
+              if (mode === 'single' && selected.size > 0) {
+                return;
+              }
+              // this is okay for single mode because there should only ever be one selected
               const newSet = new Set(selected);
               Object.entries(leftSelected).forEach(([key, isSelected]) => {
                 if (isSelected) {
@@ -109,19 +120,21 @@ export default function DualListBox(props: Props): ReactElement {
             <ArrowUpIcon className="block md:hidden" />
           </Button>
         </div>
-        <div>
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => {
-              onChange(new Set(), 'remove-all');
-              setRightSelected({});
-            }}
-          >
-            <DoubleArrowLeftIcon className="hidden md:block" />
-            <DoubleArrowUpIcon className="block md:hidden" />
-          </Button>
-        </div>
+        {mode === 'many' && (
+          <div>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => {
+                onChange(new Set(), 'remove-all');
+                setRightSelected({});
+              }}
+            >
+              <DoubleArrowLeftIcon className="hidden md:block" />
+              <DoubleArrowUpIcon className="block md:hidden" />
+            </Button>
+          </div>
+        )}
       </div>
       <div className="flex flex-1 border border-gray-300 rounded-lg overflow-hidden">
         <ListBox
@@ -129,6 +142,7 @@ export default function DualListBox(props: Props): ReactElement {
           data={rightData}
           onRowSelectionChange={setRightSelected}
           rowSelection={rightSelected}
+          mode={mode}
         />
       </div>
     </div>

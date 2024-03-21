@@ -233,9 +233,6 @@ export type SingleTableConnectFormValues = Yup.InferType<
 
 export const SINGLE_TABLE_SCHEMA_FORM_SCHEMA = Yup.object({
   numRows: Yup.number().required().min(1),
-  schema: Yup.string().required(),
-  table: Yup.string().required(),
-
   mappings: Yup.array().of(JOB_MAPPING_SCHEMA).required(),
 });
 export type SingleTableSchemaFormValues = Yup.InferType<

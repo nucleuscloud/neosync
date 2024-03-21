@@ -1,6 +1,5 @@
 'use client';
 
-import { getUniqueSchemasAndTables } from '@/app/(mgmt)/[account]/jobs/[id]/source/components/DataGenConnectionCard';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/SchemaColumns';
@@ -20,14 +19,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
 import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectionForeignConstraints';
@@ -37,9 +28,7 @@ import { useGetConnectionUniqueConstraints } from '@/libs/hooks/useGetConnection
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { convertMinutesToNanoseconds, getErrorMessage } from '@/util/util';
 import {
-  JobMappingTransformerForm,
   convertJobMappingTransformerFormToJobMappingTransformer,
-  convertJobMappingTransformerToForm,
   toJobDestinationOptions,
 } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -53,7 +42,6 @@ import {
   GenerateSourceTableOption,
   JobDestination,
   JobMapping,
-  JobMappingTransformer,
   JobSource,
   JobSourceOptions,
   RetryPolicy,
@@ -114,8 +102,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     {
       mappings: [],
       numRows: 10,
-      schema: '',
-      table: '',
     }
   );
 
@@ -202,14 +188,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   }
 
-  const formValues = form.watch();
-  const schemaTableData = formValues.mappings ?? [];
-
-  const [uniqueSchemas, schemaTableMap] = useMemo(
-    () => getUniqueSchemasAndTables(connectionSchemaDataMap?.schemaMap ?? {}),
-    [isSchemaMapValidating]
-  );
-
   const { data: primaryConstraints, isValidating: isPkValidating } =
     useGetConnectionPrimaryConstraints(
       account?.id ?? '',
@@ -239,26 +217,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     [isSchemaMapValidating, isPkValidating, isFkValidating, isUCValidating]
   );
 
-  const selectedSchemaTables = schemaTableMap.get(formValues.schema) ?? [];
-  /* this fixes a bug that was happening due to the schema and table values not resetting if you went back and changed
-the connection which caused the schema page to not load correctly when you went back to the schema page. This checks if the selected connection contains the schema and
-  */
-  useEffect(() => {
-    const isValidSchemaAndTable =
-      form.getValues('schema') != '' && form.getValues('table') != '';
-    const tableInSchema = schemaTableMap
-      .get(form.getValues('schema'))
-      ?.find((item) => item == form.getValues('table'));
-    if (isValidSchemaAndTable && !tableInSchema) {
-      form.reset({
-        ...form.getValues(),
-        schema: '',
-        table: '',
-        mappings: [],
-      });
-    }
-  }, [schemaTableMap, form]);
-
   return (
     <div className="flex flex-col gap-5">
       <OverviewContainer
@@ -278,107 +236,6 @@ the connection which caused the schema page to not load correctly when you went 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <FormField
             control={form.control}
-            name="schema"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Schema</FormLabel>
-                <FormDescription>The name of the schema.</FormDescription>
-                <FormControl>
-                  {isClient && (
-                    <Select
-                      onValueChange={(value: string) => {
-                        if (value) {
-                          field.onChange(value);
-                          form.setValue('table', ''); // reset the table value because it may no longer apply
-                        }
-                      }}
-                      value={field.value}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a schema..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {isSchemaDataMapLoading ? (
-                          <Skeleton />
-                        ) : (
-                          Array.from(uniqueSchemas).map((schema) => (
-                            <SelectItem
-                              className="cursor-pointer"
-                              key={schema}
-                              value={schema}
-                            >
-                              {schema}
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="table"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Table Name</FormLabel>
-                <FormDescription>The name of the table.</FormDescription>
-                <FormControl>
-                  {isClient && (
-                    <Select
-                      disabled={!formValues.schema}
-                      onValueChange={(value: string) => {
-                        if (value) {
-                          field.onChange(value);
-                          const dbcols =
-                            (connectionSchemaDataMap?.schemaMap ?? {})[
-                              `${formValues.schema}.${value}`
-                            ] ?? [];
-                          form.setValue(
-                            'mappings',
-                            dbcols.map((s) => {
-                              return {
-                                schema: s.schema,
-                                table: s.table,
-                                column: s.column,
-                                dataType: s.dataType,
-                                transformer:
-                                  newDefaultJobMappingTransformerForm(),
-                                isNullable: s.isNullable,
-                              };
-                            })
-                          );
-                        }
-                      }}
-                      value={field.value}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a table..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {selectedSchemaTables.map((table) => (
-                          <SelectItem
-                            className="cursor-pointer"
-                            key={table}
-                            value={table}
-                          >
-                            {table}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
             name="numRows"
             render={({ field }) => (
               <FormItem>
@@ -388,18 +245,12 @@ the connection which caused the schema page to not load correctly when you went 
                 </FormDescription>
                 <FormControl>
                   <Input
-                    type="text"
-                    value={field.value
-                      .toString()
-                      .replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                    {...field}
+                    type="number"
                     onChange={(e) => {
-                      const numberValue = parseFloat(
-                        e.target.value.replace(/,/g, '')
-                      );
+                      const numberValue = e.target.valueAsNumber;
                       if (!isNaN(numberValue)) {
                         field.onChange(numberValue);
-                      } else {
-                        field.onChange(0);
                       }
                     }}
                   />
@@ -409,9 +260,9 @@ the connection which caused the schema page to not load correctly when you went 
             )}
           />
 
-          {isClient && formValues.schema && formValues.table && (
+          {isClient && (
             <SchemaTable
-              data={schemaTableData}
+              data={form.watch('mappings')}
               excludeInputReqTransformers
               constraintHandler={schemaConstraintHandler}
               schema={connectionSchemaDataMap?.schemaMap ?? {}}
@@ -475,6 +326,9 @@ async function createNewJob(
       }),
     });
   }
+  const tableSchema =
+    schema.mappings.length > 0 ? schema.mappings[0].schema : null;
+  const table = schema.mappings.length > 0 ? schema.mappings[1].table : null;
   const body = new CreateJobRequest({
     accountId,
     jobName: define.jobName,
@@ -496,17 +350,20 @@ async function createNewJob(
           case: 'generate',
           value: new GenerateSourceOptions({
             fkSourceConnectionId: connect.connectionId,
-            schemas: [
-              new GenerateSourceSchemaOption({
-                schema: schema.schema,
-                tables: [
-                  new GenerateSourceTableOption({
-                    rowCount: BigInt(schema.numRows),
-                    table: schema.table,
-                  }),
-                ],
-              }),
-            ],
+            schemas:
+              tableSchema && table
+                ? [
+                    new GenerateSourceSchemaOption({
+                      schema: tableSchema,
+                      tables: [
+                        new GenerateSourceTableOption({
+                          rowCount: BigInt(schema.numRows),
+                          table: table,
+                        }),
+                      ],
+                    }),
+                  ]
+                : [],
           }),
         },
       }),
@@ -536,8 +393,4 @@ async function createNewJob(
     throw new Error(body.message);
   }
   return CreateJobResponse.fromJson(await res.json());
-}
-
-function newDefaultJobMappingTransformerForm(): JobMappingTransformerForm {
-  return convertJobMappingTransformerToForm(new JobMappingTransformer({}));
 }

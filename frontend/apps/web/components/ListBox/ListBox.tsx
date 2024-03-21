@@ -20,6 +20,7 @@ import {
 } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { ReactElement, useRef } from 'react';
+import { Mode } from '../DualListBox/columns';
 
 interface Props<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -27,6 +28,7 @@ interface Props<TData, TValue> {
   rowSelection: RowSelectionState;
   onRowSelectionChange: OnChangeFn<RowSelectionState>;
   tableContainerClassName?: string;
+  mode?: Mode;
 }
 
 export default function ListBox<TData, TValue>(
@@ -38,6 +40,7 @@ export default function ListBox<TData, TValue>(
     rowSelection,
     onRowSelectionChange,
     tableContainerClassName,
+    mode = 'many',
   } = props;
   const table = useReactTable({
     data,
@@ -46,6 +49,7 @@ export default function ListBox<TData, TValue>(
       rowSelection: rowSelection,
     },
     enableRowSelection: true,
+    enableMultiRowSelection: mode === 'many',
     onRowSelectionChange: onRowSelectionChange,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -76,11 +80,11 @@ export default function ListBox<TData, TValue>(
       ref={tableContainerRef}
     >
       <StickyHeaderTable>
-        <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 flex w-full">
+        <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 flex w-full px-2">
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow
               key={headerGroup.id}
-              className="flex-none custom:flex items-center flex-row w-full px-1"
+              className="flex-none custom:flex items-center flex-row w-full"
               id="table-header-row"
             >
               {headerGroup.headers.map((header) => {
@@ -119,7 +123,7 @@ export default function ListBox<TData, TValue>(
                 style={{
                   transform: `translateY(${virtualRow.start}px)`,
                 }}
-                className="items-center flex absolute w-full px-1"
+                className="items-center flex absolute w-full px-2"
               >
                 {row.getVisibleCells().map((cell) => {
                   return (

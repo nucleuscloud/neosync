@@ -2,16 +2,19 @@ import { ColumnDef } from '@tanstack/react-table';
 import { HTMLProps, useEffect, useRef } from 'react';
 import ColumnHeader from './ColumnHeader';
 
+export type Mode = 'single' | 'many';
+
 export interface Row {
   value: string;
 }
 
 interface ListBoxColumnProps {
   title: string;
+  mode?: Mode;
 }
 
 export function getListBoxColumns(props: ListBoxColumnProps): ColumnDef<Row>[] {
-  const { title } = props;
+  const { title, mode = 'many' } = props;
   return [
     {
       accessorKey: 'isSelected',
@@ -21,6 +24,7 @@ export function getListBoxColumns(props: ListBoxColumnProps): ColumnDef<Row>[] {
             checked: table.getIsAllRowsSelected(),
             indeterminate: table.getIsSomeRowsSelected(),
             onChange: table.getToggleAllRowsSelectedHandler(),
+            className: mode === 'single' ? 'flex hidden' : 'flex w-4 h-4',
           }}
         />
       ),
