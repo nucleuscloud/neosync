@@ -174,7 +174,7 @@ export function SchemaTable(props: Props): ReactElement {
               {extractedFormErrors.length != 0 ? (
                 <ExclamationTriangleIcon className="h-4 w-4 text-destructive" />
               ) : (
-                <CheckCircledIcon className="w-4 h-4 mt-1" />
+                <CheckCircledIcon className="w-4 h-4" />
               )}
               <CardTitle>Validations</CardTitle>
 
