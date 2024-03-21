@@ -9,7 +9,7 @@ import { GoCheckCircleFill } from 'react-icons/go';
 import { PiBookOpenText } from 'react-icons/pi';
 import { Button } from '../ui/button';
 
-export default function UseNeosync(): ReactElement {
+export default function UseOSSNeosync(): ReactElement {
   const steps = [
     {
       step: '1',
