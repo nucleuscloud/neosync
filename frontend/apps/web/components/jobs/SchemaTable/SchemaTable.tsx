@@ -171,40 +171,39 @@ export function SchemaTable(props: Props): ReactElement {
         <Card className="w-full md:h-[294px]">
           <CardHeader className="flex flex-col gap-2">
             <div className="flex flex-row items-center gap-2">
-              <div className="flex">
-                {extractedFormErrors.length != 0 ? (
-                  <ExclamationTriangleIcon className="h-4 w-4 text-destructive" />
-                ) : (
-                  <CheckCircledIcon className="w-4 h-4 " />
-                )}
-              </div>
+              {extractedFormErrors.length != 0 ? (
+                <ExclamationTriangleIcon className="h-4 w-4 text-destructive" />
+              ) : (
+                <CheckCircledIcon className="w-4 h-4 mt-1" />
+              )}
               <CardTitle>Validations</CardTitle>
+
+              {extractedFormErrors.length != 0 && (
+                <Badge variant="destructive">
+                  {extractedFormErrors.length} Errors
+                </Badge>
+              )}
             </div>
             <CardDescription>
               A list of schema validation errors to resolve before moving
               forward.
             </CardDescription>
-            {extractedFormErrors.length != 0 && (
-              <Badge variant="destructive">
-                {extractedFormErrors.length} Errors
-              </Badge>
-            )}
           </CardHeader>
           <CardContent>
-            <ScrollArea className="max-h-[197px] overflow-y-auto">
+            <ScrollArea className="max-h-[177px] overflow-auto">
               {extractedFormErrors.length != 0 ? (
                 <div className="flex-col flex gap-2 pr-2">
                   {extractedFormErrors.map((message, index) => (
                     <div
                       key={message + index}
-                      className="text-xs bg-red-100 dark:bg-red-600 rounded-sm p-2 text-wrap"
+                      className="text-xs bg-red-200 dark:bg-red-800/70 rounded-sm p-2 text-wrap"
                     >
                       {message}
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="flex items-center justify-center bg-green-100 dark:bg-green-400 text-green-900 dark:text-green-900 w-full md:h-[167px] rounded-xl">
+                <div className="flex items-center justify-center bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-200 w-full md:h-[167px] rounded-xl">
                   <div className="text-sm flex flex-row items-center gap-2">
                     <div className="flex">
                       <CheckIcon />
