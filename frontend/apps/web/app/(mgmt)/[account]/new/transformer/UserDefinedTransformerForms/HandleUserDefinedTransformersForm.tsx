@@ -31,7 +31,7 @@ export function handleUserDefinedTransformerForm(
       return <UserDefinedGenerateCardNumberForm isDisabled={disabled} />;
     case 'generate_categorical':
       return <UserDefinedGenerateCategoricalForm isDisabled={disabled} />;
-    case 'generate_international_phone_number':
+    case 'generate_e164_phone_number':
       return (
         <UserDefinedGenerateInternationalPhoneNumberForm
           isDisabled={disabled}
