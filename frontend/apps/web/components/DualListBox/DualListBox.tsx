@@ -1,5 +1,4 @@
 import { Button } from '@/components/ui/button';
-import { cn } from '@/libs/utils';
 import {
   ArrowDownIcon,
   ArrowLeftIcon,
@@ -61,22 +60,24 @@ export default function DualListBox(props: Props): ReactElement {
         />
       </div>
       <div className="flex flex-row md:flex-col justify-center gap-2">
-        <div className={cn(mode === 'single' ? 'hidden' : null)}>
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => {
-              onChange(
-                new Set(options.map((option) => option.value)),
-                'add-all'
-              );
-              setLeftSelected({});
-            }}
-          >
-            <DoubleArrowRightIcon className="hidden md:block" />
-            <DoubleArrowDownIcon className="block md:hidden" />
-          </Button>
-        </div>
+        {mode === 'many' && (
+          <div>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => {
+                onChange(
+                  new Set(options.map((option) => option.value)),
+                  'add-all'
+                );
+                setLeftSelected({});
+              }}
+            >
+              <DoubleArrowRightIcon className="hidden md:block" />
+              <DoubleArrowDownIcon className="block md:hidden" />
+            </Button>
+          </div>
+        )}
         <div>
           <Button
             type="button"
@@ -119,19 +120,21 @@ export default function DualListBox(props: Props): ReactElement {
             <ArrowUpIcon className="block md:hidden" />
           </Button>
         </div>
-        <div className={cn(mode === 'single' ? 'hidden' : null)}>
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => {
-              onChange(new Set(), 'remove-all');
-              setRightSelected({});
-            }}
-          >
-            <DoubleArrowLeftIcon className="hidden md:block" />
-            <DoubleArrowUpIcon className="block md:hidden" />
-          </Button>
-        </div>
+        {mode === 'many' && (
+          <div>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => {
+                onChange(new Set(), 'remove-all');
+                setRightSelected({});
+              }}
+            >
+              <DoubleArrowLeftIcon className="hidden md:block" />
+              <DoubleArrowUpIcon className="block md:hidden" />
+            </Button>
+          </div>
+        )}
       </div>
       <div className="flex flex-1 border border-gray-300 rounded-lg overflow-hidden">
         <ListBox
