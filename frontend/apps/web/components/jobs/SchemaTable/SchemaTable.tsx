@@ -149,7 +149,9 @@ export function SchemaTable(props: Props): ReactElement {
         <Card className="w-full md:h-[294px]">
           <CardHeader className="flex flex-col gap-2">
             <div className="flex flex-row items-center gap-2">
-              <TableIcon className="h-4 w-4 mt-1" />
+              <div className="flex">
+                <TableIcon className="h-4 w-4" />
+              </div>
               <CardTitle>Table Selection</CardTitle>
             </div>
             <CardDescription>
@@ -169,11 +171,13 @@ export function SchemaTable(props: Props): ReactElement {
         <Card className="w-full md:h-[294px]">
           <CardHeader className="flex flex-col gap-2">
             <div className="flex flex-row items-center gap-2">
-              {extractedFormErrors.length != 0 ? (
-                <ExclamationTriangleIcon className="h-4 w-4 mt-1 text-destructive" />
-              ) : (
-                <CheckCircledIcon className="w-4 h-4 mt-1" />
-              )}
+              <div className="flex">
+                {extractedFormErrors.length != 0 ? (
+                  <ExclamationTriangleIcon className="h-4 w-4 text-destructive" />
+                ) : (
+                  <CheckCircledIcon className="w-4 h-4 " />
+                )}
+              </div>
               <CardTitle>Validations</CardTitle>
             </div>
             <CardDescription>

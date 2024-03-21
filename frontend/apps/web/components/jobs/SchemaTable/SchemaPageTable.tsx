@@ -91,7 +91,9 @@ export default function SchemaPageTable<TData, TValue>({
   return (
     <div>
       <div className="flex flex-row items-center gap-2 pt-4">
-        <GoWorkflow className="h-4 w-4 mt-1" />
+        <div className="flex">
+          <GoWorkflow className="h-4 w-4" />
+        </div>
         <CardTitle>Transformer Mapping</CardTitle>
       </div>
       <CardDescription className="pt-2">
