@@ -139,7 +139,7 @@ export default function PostgresForm(props: Props) {
             <TabsTrigger value="parameters">Connection Parameters</TabsTrigger>
             <TabsTrigger value="url">Connection URL</TabsTrigger>
           </TabsList>
-          <TabsContent value="parameters">
+          <TabsContent value="parameters" className="flex flex-col gap-8">
             <FormField
               control={form.control}
               name="db.host"
