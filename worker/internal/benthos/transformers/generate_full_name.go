@@ -1,21 +1,33 @@
 package transformers
 
 import (
+	"fmt"
+	"math/rand"
+	"time"
+
 	"github.com/benthosdev/benthos/v4/public/bloblang"
+	transformers_dataset "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
 func init() {
-	spec := bloblang.NewPluginSpec().Param(bloblang.NewInt64Param("max_length"))
+	spec := bloblang.NewPluginSpec().
+		Param(bloblang.NewInt64Param("max_length").Default(10000)).
+		Param(bloblang.NewInt64Param("seed").Default(time.Now().UnixNano()))
 
 	err := bloblang.RegisterFunctionV2("generate_full_name", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		maxLength, err := args.GetInt64("max_length")
 		if err != nil {
 			return nil, err
 		}
+		seed, err := args.GetInt64("seed")
+		if err != nil {
+			return nil, err
+		}
+		randomizer := rand.New(rand.NewSource(seed)) //nolint:gosec
 
 		return func() (any, error) {
-			res, err := GenerateRandomFullName(maxLength)
+			res, err := generateRandomFullName(randomizer, maxLength)
 			return res, err
 		}, nil
 	})
@@ -26,44 +38,29 @@ func init() {
 }
 
 /* Generates a random full name */
-func GenerateRandomFullName(maxLength int64) (string, error) {
-	if maxLength < 12 && maxLength >= 5 {
-		// calc lengths of a first name and last name, also assumes a min maxLength of 4, since first and last names must be at least 2 letters in length, we will use the remainder for the space character
-		half := maxLength / 2
-		firstNameLength := half
-		lastNameLength := half
-
-		fn, err := GenerateRandomFirstNameInLengthRange(minNameLength, firstNameLength)
-		if err != nil {
-			return "", err
-		}
-		// the -1 accounts for the space
-		ln, err := GenerateRandomLastNameInLengthRange(minNameLength, lastNameLength-1)
-		if err != nil {
-			return "", err
-		}
-
-		res := fn + " " + ln
-		return res, nil
-	} else if maxLength < 5 {
-		res, err := transformer_utils.GenerateRandomStringWithDefinedLength(maxLength)
-		if err != nil {
-			return "", err
-		}
-		return res, nil
-	} else {
-		// assume that if pl is true than it already meets the maxCharacterLimit constraint
-		fn, err := GenerateRandomFirstNameInLengthRange(int64(3), int64(6))
-		if err != nil {
-			return "", err
-		}
-
-		ln, err := GenerateRandomLastNameInLengthRange(int64(3), int64(6))
-		if err != nil {
-			return "", err
-		}
-
-		res := fn + " " + ln
-		return res, nil
+func generateRandomFullName(randomizer *rand.Rand, maxLength int64) (string, error) {
+	maxLengthMinusSpace := maxLength - 1
+	if maxLengthMinusSpace <= 0 {
+		return "", fmt.Errorf("unable to generate full name including space with provided max length: %d", maxLength)
 	}
+	maxFirstNameIdx, maxLastNameIdx := transformer_utils.FindClosestPair(
+		transformers_dataset.FirstNameIndices, transformers_dataset.LastNameIndices,
+		maxLengthMinusSpace,
+	)
+	if maxFirstNameIdx == -1 || maxLastNameIdx == -1 {
+		return "", fmt.Errorf("unable to generate a full name with the provided max length: %d", maxLength)
+	}
+
+	maxFirstNameLength := transformers_dataset.FirstNameIndices[maxFirstNameIdx]
+	maxLastNameLength := transformers_dataset.LastNameIndices[maxLastNameIdx]
+	firstname, err := generateRandomFirstName(randomizer, maxFirstNameLength)
+	if err != nil {
+		return "", fmt.Errorf("unable to generate random first name with length: %d", maxFirstNameLength)
+	}
+	lastname, err := generateRandomLastName(randomizer, maxLastNameLength)
+	if err != nil {
+		return "", fmt.Errorf("unable to generate random last name with length: %d", maxLastNameLength)
+	}
+
+	return fmt.Sprintf("%s %s", firstname, lastname), nil
 }

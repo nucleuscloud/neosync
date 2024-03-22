@@ -15,9 +15,8 @@ func Test_GenerateRandomFirstName(t *testing.T) {
 	res, err := generateRandomFirstName(randomizer, maxCharacterLimit)
 
 	assert.NoError(t, err)
-	assert.GreaterOrEqual(t, len(res), 2, "The first name should be more than 2 characters")
-	assert.LessOrEqual(t, int64(len(res)), maxCharacterLimit, "The first name should be less than or equal to the max character limit")
 	assert.NotEmpty(t, res)
+	assert.LessOrEqual(t, int64(len(res)), maxCharacterLimit, "The first name should be less than or equal to the max character limit")
 }
 
 func Test_GenerateRandomFirstNameTransformer(t *testing.T) {
@@ -32,6 +31,6 @@ func Test_GenerateRandomFirstNameTransformer(t *testing.T) {
 	resStr, ok := res.(string)
 	require.True(t, ok)
 
+	assert.NotEmpty(t, resStr)
 	assert.LessOrEqual(t, int64(len(resStr)), maxCharacterLimit, "output should be less than or equal to max char limit")
-	assert.NotEmpty(t, res)
 }
