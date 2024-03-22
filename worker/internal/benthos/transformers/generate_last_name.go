@@ -24,7 +24,7 @@ func init() {
 		if err != nil {
 			return nil, err
 		}
-		randomizer := rand.New(rand.NewSource(seed))
+		randomizer := rand.New(rand.NewSource(seed)) //nolint:gosec
 
 		return func() (any, error) {
 			output, err := generateRandomLastName(randomizer, maxLength)
