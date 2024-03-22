@@ -57,6 +57,7 @@ func Test_FindClosestPair(t *testing.T) {
 		{slice1: []int64{1, 2, 3, 4}, slice2: []int64{3}, maxLength: 4, expectedLeft: 0, expectedRight: 0},
 		{slice1: []int64{1, 2, 3, 4}, slice2: []int64{1, 2, 3, 4}, maxLength: 4, expectedLeft: 1, expectedRight: 1},
 		{slice1: []int64{1, 2, 3, 4, 5}, slice2: []int64{1, 2, 3, 4, 5}, maxLength: 5, expectedLeft: 1, expectedRight: 2},
+		{slice1: []int64{5}, slice2: []int64{5}, maxLength: 4, expectedLeft: -1, expectedRight: -1},
 	}
 
 	for _, tc := range testcases {
@@ -72,7 +73,7 @@ func Test_FindClosestPair(t *testing.T) {
 			if tc.expectedRight > -1 {
 				rightSum = tc.slice2[tc.expectedRight]
 			}
-			if tc.expectedLeft > -1 && tc.expectedRight > -1 {
+			if tc.expectedLeft > -1 || tc.expectedRight > -1 {
 				require.Equal(t, tc.maxLength, leftSum+rightSum)
 			}
 		})
