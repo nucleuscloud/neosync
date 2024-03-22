@@ -55,8 +55,8 @@ func Test_FindClosestPair(t *testing.T) {
 		{slice1: []int64{}, slice2: []int64{5}, maxLength: 5, expectedLeft: -1, expectedRight: 0},
 		{slice1: []int64{1, 2, 3, 4}, slice2: []int64{4}, maxLength: 5, expectedLeft: 0, expectedRight: 0},
 		{slice1: []int64{1, 2, 3, 4}, slice2: []int64{3}, maxLength: 4, expectedLeft: 0, expectedRight: 0},
-		{slice1: []int64{1, 2, 3, 4}, slice2: []int64{1, 2, 3, 4}, maxLength: 4, expectedLeft: 0, expectedRight: 2},
-		{slice1: []int64{1, 2, 3, 4, 5}, slice2: []int64{1, 2, 3, 4, 5}, maxLength: 5, expectedLeft: 0, expectedRight: 3},
+		{slice1: []int64{1, 2, 3, 4}, slice2: []int64{1, 2, 3, 4}, maxLength: 4, expectedLeft: 1, expectedRight: 1},
+		{slice1: []int64{1, 2, 3, 4, 5}, slice2: []int64{1, 2, 3, 4, 5}, maxLength: 5, expectedLeft: 1, expectedRight: 2},
 	}
 
 	for _, tc := range testcases {

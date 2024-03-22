@@ -2,6 +2,7 @@ package transformer_utils
 
 import (
 	"errors"
+	"math"
 	"math/rand"
 	"strconv"
 )
@@ -40,44 +41,56 @@ func IntSliceToStringSlice(ints []int64) []string {
 
 func FindClosestPair(sortedSlice1, sortedSlice2 []int64, maxLength int64) (leftidx, rightidx int64) {
 	// Initialize variables to track the best pair found so far and the best individual value.
-	bestPair := [2]int64{-1, -1} // Initialize to (-1, -1) to indicate failure.
-	maxSum := int64(0)           // Track the maximum sum achieved that is less than or equal to maxLength.
+	bestPair := [2]int64{-1, -1}        // Initialize to (-1, -1) to indicate failure.
+	closestDiff := int64(math.MaxInt64) // Initialize with the largest int64 value.
+	maxSum := int64(0)                  // Track the maximum sum less than or equal to maxLength with the smallest difference.
 
-	// Iterate through the first slice.
+	// Check if any of the lists is empty and handle accordingly
+	if len(sortedSlice1) == 0 || len(sortedSlice2) == 0 {
+		var nonEmptySlice []int64
+		var isSecond bool
+		if len(sortedSlice1) == 0 {
+			nonEmptySlice = sortedSlice2
+			isSecond = true
+		} else {
+			nonEmptySlice = sortedSlice1
+		}
+		for idx, val := range nonEmptySlice {
+			if val <= maxLength && val > maxSum {
+				maxSum = val
+				if isSecond {
+					bestPair = [2]int64{-1, int64(idx)}
+				} else {
+					bestPair = [2]int64{int64(idx), -1}
+				}
+			}
+		}
+		return bestPair[0], bestPair[1]
+	}
+
+	// Iterate through all pairs to find the optimal one.
 	for i, val1 := range sortedSlice1 {
-		// For each element in the first slice, search for the complement in the second slice.
 		for j, val2 := range sortedSlice2 {
 			sum := val1 + val2
-			// Check if this sum is better (i.e., closer to maxLength without exceeding it).
-			if sum > maxSum && sum <= maxLength {
+			diff := abs(val1 - val2)
+			// Check if this pair is within the maxLength and optimizes for closeness.
+			if sum <= maxLength && (sum > maxSum || (sum == maxSum && diff < closestDiff)) {
 				maxSum = sum
+				closestDiff = diff
 				bestPair = [2]int64{int64(i), int64(j)}
 			}
-			// Since the arrays are sorted, if the sum exceeds maxLength, no need to check further in the second array.
-			if sum > maxLength {
-				break
-			}
 		}
 	}
 
-	// Fallback to single elements if no pair found.
-	if bestPair == [2]int64{-1, -1} {
-		for idx, val := range sortedSlice1 {
-			if val <= maxLength && val > maxSum {
-				maxSum = val
-				bestPair = [2]int64{int64(idx), -1}
-			}
-		}
-		for idx, val := range sortedSlice2 {
-			if val <= maxLength && val > maxSum {
-				maxSum = val
-				bestPair = [2]int64{-1, int64(idx)}
-			}
-		}
-	}
-
-	// Return the indices of the best pair found.
 	return bestPair[0], bestPair[1]
+}
+
+// Helper function to calculate the absolute difference
+func abs(a int64) int64 {
+	if a < 0 {
+		return -a
+	}
+	return a
 }
 
 // func FindClosestPair(sortedSlice1, sortedSlice2 []int64, maxLength int64) (leftidx, rightidx int64) {
