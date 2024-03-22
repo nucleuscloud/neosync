@@ -146,3 +146,21 @@ func StringInSlice(str string, list []string) bool {
 	}
 	return false
 }
+
+func TrimStringIfExceeds(s string, maxLength int64) string {
+	if int64(len(s)) > maxLength {
+		return s[:maxLength]
+	}
+	return s
+}
+
+func GetSmallerOrEqualNumbers(nums []int64, val int64) []int64 {
+	candidates := []int64{}
+
+	for _, num := range nums {
+		if num <= val {
+			candidates = append(candidates, num)
+		}
+	}
+	return candidates
+}
