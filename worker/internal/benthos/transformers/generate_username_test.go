@@ -2,6 +2,7 @@ package transformers
 
 import (
 	"fmt"
+	"math/rand"
 	"testing"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
@@ -9,7 +10,8 @@ import (
 )
 
 func Test_GenerateUsername(t *testing.T) {
-	res, err := GenerateUsername(maxLength)
+	randomizer := rand.New(rand.NewSource(1))
+	res, err := generateUsername(randomizer, maxLength)
 	assert.NoError(t, err)
 
 	assert.IsType(t, "", res, "The expected username should have a valid username")
@@ -17,7 +19,8 @@ func Test_GenerateUsername(t *testing.T) {
 }
 
 func Test_GenerateUsernameShort(t *testing.T) {
-	res, err := GenerateUsername(3)
+	randomizer := rand.New(rand.NewSource(1))
+	res, err := generateUsername(randomizer, 3)
 	assert.NoError(t, err)
 
 	assert.IsType(t, "", res, "The expected username should have a valid username")
