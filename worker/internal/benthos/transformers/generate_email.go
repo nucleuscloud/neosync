@@ -108,21 +108,21 @@ func generateFullnameEmail(randomizer *rand.Rand, maxLength int64) (string, erro
 	var randomLastName string
 	if maxFirstNameIdx == -1 && maxLastNameIdx == -1 {
 		var err error
-		randomLastName, err = generateRandomLastName(randomizer, fullNameMaxLength)
+		randomLastName, err = generateRandomLastName(randomizer, nil, fullNameMaxLength)
 		if err != nil {
 			return "", err
 		}
 	}
 	if maxFirstNameIdx != -1 {
 		maxFirstNameLength := transformers_dataset.FirstNameIndices[maxFirstNameIdx]
-		randomFirstName, err = generateRandomFirstName(randomizer, maxFirstNameLength)
+		randomFirstName, err = generateRandomFirstName(randomizer, nil, maxFirstNameLength)
 		if err != nil {
 			return "", err
 		}
 	}
 	if maxLastNameIdx != -1 {
 		maxLastNameLength := transformers_dataset.LastNameIndices[maxLastNameIdx]
-		randomLastName, err = generateRandomLastName(randomizer, maxLastNameLength)
+		randomLastName, err = generateRandomLastName(randomizer, nil, maxLastNameLength)
 		if err != nil {
 			return "", err
 		}

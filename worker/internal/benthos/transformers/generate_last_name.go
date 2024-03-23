@@ -7,7 +7,6 @@ import (
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/data-sets"
-	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
 func init() {
@@ -27,7 +26,7 @@ func init() {
 		randomizer := rand.New(rand.NewSource(seed)) //nolint:gosec
 
 		return func() (any, error) {
-			output, err := generateRandomLastName(randomizer, maxLength)
+			output, err := generateRandomLastName(randomizer, nil, maxLength)
 			if err != nil {
 				return nil, fmt.Errorf("unable to run generate_last_name")
 			}
@@ -40,10 +39,10 @@ func init() {
 	}
 }
 
-func generateRandomLastName(randomizer *rand.Rand, maxLength int64) (string, error) {
-	candidates := transformer_utils.GetSmallerOrEqualNumbers(transformers_dataset.LastNameIndices, maxLength)
+func generateRandomLastName(randomizer *rand.Rand, minLength *int64, maxLength int64) (string, error) {
+	candidates := getFilteredNumbers(transformers_dataset.LastNameIndices, minLength, &maxLength)
 	if len(candidates) == 0 {
-		return "", fmt.Errorf("unable to find last name smaller than requested max length: %d", maxLength)
+		return "", fmt.Errorf("unable to find last name with range %s", getRangeText(minLength, maxLength))
 	}
 	randIdx := randomizer.Int63n(int64(len(candidates)))
 	lastNames := transformers_dataset.LastNameMap[candidates[randIdx]]

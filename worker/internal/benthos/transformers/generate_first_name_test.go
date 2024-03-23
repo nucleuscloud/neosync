@@ -12,7 +12,7 @@ import (
 
 func Test_GenerateRandomFirstName(t *testing.T) {
 	randomizer := rand.New(rand.NewSource(1))
-	res, err := generateRandomFirstName(randomizer, maxCharacterLimit)
+	res, err := generateRandomFirstName(randomizer, nil, maxCharacterLimit)
 
 	assert.NoError(t, err)
 	assert.NotEmpty(t, res)

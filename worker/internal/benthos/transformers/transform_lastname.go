@@ -2,19 +2,18 @@ package transformers
 
 import (
 	"fmt"
+	"math/rand"
+	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
-	transformers_dataset "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/data-sets"
-	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
-
-var lastNames = transformers_dataset.LastNames
 
 func init() {
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewInt64Param("max_length")).
+		Param(bloblang.NewInt64Param("max_length").Default(10000)).
 		Param(bloblang.NewAnyParam("value").Optional()).
-		Param(bloblang.NewBoolParam("preserve_length"))
+		Param(bloblang.NewBoolParam("preserve_length").Default(false)).
+		Param(bloblang.NewInt64Param("seed").Default(time.Now().UnixNano()))
 
 	err := bloblang.RegisterFunctionV2("transform_last_name", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		valuePtr, err := args.GetOptionalString("value")
@@ -36,8 +35,14 @@ func init() {
 			return nil, err
 		}
 
+		seed, err := args.GetInt64("seed")
+		if err != nil {
+			return nil, err
+		}
+		randomizer := rand.New(rand.NewSource(seed)) //nolint:gosec
+
 		return func() (any, error) {
-			res, err := TransformLastName(value, preserveLength, maxLength)
+			res, err := transformLastName(randomizer, value, preserveLength, maxLength)
 			if err != nil {
 				return nil, fmt.Errorf("unable to run transform_last_name: %w", err)
 			}
@@ -51,80 +56,32 @@ func init() {
 }
 
 // Generates a random last name which can be of either random length between [2,12] characters or as long as the input name
-func TransformLastName(name string, preserveLength bool, maxLength int64) (*string, error) {
+func transformLastName(randomizer *rand.Rand, name string, preserveLength bool, maxLength int64) (*string, error) {
 	if name == "" {
 		return nil, nil
 	}
 
-	nameLength := int64(len(name))
+	maxValue := maxLength
 
+	// unable to generate a random name of this fixed size
+	// we may want to change this to just use the below algorithm and pad so that it is more unique
+	// as with this algorithm, it will only ever use values from the underlying map that are that specific size
 	if preserveLength {
-		// assume that if pl is true than it already meets the maxCharacterLimit constraint
-		res, err := GenerateRandomLastNameInLengthRange(nameLength, nameLength)
-		if err != nil {
-			return nil, err
-		}
-		return &res, nil
-	} else {
-		res, err := GenerateRandomLastNameInLengthRange(minNameLength, maxLength)
-		if err != nil {
-			return nil, err
-		}
-		return &res, nil
-	}
-}
-
-// Generates a random last name with length [min, max]. If the length is greater than 12, a last name of length 12 will be returned.
-func GenerateRandomLastNameInLengthRange(minLength, maxLength int64) (string, error) {
-	if minLength == maxLength {
-		if minLength > 12 {
-			names := lastNames[12]
-			res, err := transformer_utils.GetRandomValueFromSlice[string](names)
-			if err != nil {
-				return "", err
-			}
-			return res, nil
-		} else if minLength < minNameLength {
-			names := lastNames[2]
-			res, err := transformer_utils.GetRandomValueFromSlice[string](names)
-			if err != nil {
-				return "", err
-			}
-			return res, nil
-		} else {
-			names := lastNames[minLength]
-			res, err := transformer_utils.GetRandomValueFromSlice[string](names)
-			if err != nil {
-				return "", err
-			}
-			return res, nil
-		}
-	} else {
-		if maxLength < 12 && maxLength >= 2 {
-			names := lastNames[maxLength]
-			res, err := transformer_utils.GetRandomValueFromSlice[string](names)
-			if err != nil {
-				return "", err
-			}
-			return res, nil
-		} else if maxLength < 2 {
-			res, err := transformer_utils.GenerateRandomStringWithDefinedLength(1)
-			if err != nil {
-				return "", err
-			}
-			return res, nil
-		} else {
-			randInd, err := transformer_utils.GenerateRandomInt64InValueRange(2, 12)
-			if err != nil {
-				return "", err
-			}
-
-			names := lastNames[randInd]
-			res, err := transformer_utils.GetRandomValueFromSlice[string](names)
-			if err != nil {
-				return "", err
-			}
-			return res, nil
+		maxValue = int64(len(name))
+		output, err := generateRandomLastName(randomizer, &maxValue, maxValue)
+		if err == nil {
+			return &output, nil
 		}
 	}
+
+	output, err := generateRandomLastName(randomizer, nil, maxValue)
+	if err != nil {
+		return nil, err
+	}
+
+	// pad the string so that we can get the correct value
+	if preserveLength && int64(len(output)) != maxValue {
+		output = getRandomCharacterString(randomizer, int(maxValue)-len(output))
+	}
+	return &output, nil
 }

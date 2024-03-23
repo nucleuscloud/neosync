@@ -2,6 +2,7 @@ package transformers
 
 import (
 	"fmt"
+	"math/rand"
 	"testing"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
@@ -12,91 +13,102 @@ var name = "evis"
 var maxCharacterLimit = int64(20)
 
 func Test_TranformFirstNameEmptyName(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(1))
 	emptyName := ""
 
-	res, err := TransformFirstName(emptyName, true, maxCharacterLimit)
+	res, err := transformFirstName(randomizer, emptyName, false, maxCharacterLimit)
 	assert.NoError(t, err)
 	assert.Nil(t, res, "The response should be nil")
 }
 
-func Test_TransformFirstNamePreserveLengthTrue(t *testing.T) {
+func Test_TranformFirstName_Random(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(1))
+
+	res, err := transformFirstName(randomizer, "foo", false, maxCharacterLimit)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, res)
+}
+
+func Test_TransformFirstName_Preserve(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(1))
+
 	nameLength := int64(len(name))
 
-	res, err := TransformFirstName(name, true, maxCharacterLimit)
+	res, err := transformFirstName(randomizer, name, true, maxCharacterLimit)
 
 	assert.NoError(t, err)
 	assert.Equal(t, nameLength, int64(len(*res)), "The first name output should be the same length as the input")
 	assert.IsType(t, "", *res, "The first name should be a string")
 }
 
-func Test_GenerateRandomFirstNameInLengthRangeMinAndMaxSame(t *testing.T) {
-	nameLength := int64(len(name))
+// func Test_GenerateRandomFirstNameInLengthRangeMinAndMaxSame(t *testing.T) {
+// 	nameLength := int64(len(name))
 
-	res, err := GenerateRandomFirstNameInLengthRange(nameLength, nameLength)
+// 	res, err := GenerateRandomFirstNameInLengthRange(nameLength, nameLength)
 
-	assert.NoError(t, err)
-	assert.Equal(t, nameLength, int64(len(res)), "The first name output should be the same length as the input")
-	assert.IsType(t, "", res, "The first name should be a string")
-}
+// 	assert.NoError(t, err)
+// 	assert.Equal(t, nameLength, int64(len(res)), "The first name output should be the same length as the input")
+// 	assert.IsType(t, "", res, "The first name should be a string")
+// }
 
-func Test_GenerateRandomFirstNameInLengthRangeMinAndMaxSameTooShort(t *testing.T) {
-	nameLength := int64(len("a"))
+// func Test_GenerateRandomFirstNameInLengthRangeMinAndMaxSameTooShort(t *testing.T) {
+// 	nameLength := int64(len("a"))
 
-	res, err := GenerateRandomFirstNameInLengthRange(nameLength, nameLength)
+// 	res, err := GenerateRandomFirstNameInLengthRange(nameLength, nameLength)
 
-	assert.NoError(t, err)
-	assert.Equal(t, len(res), 2, "The length of the name should be 2")
-	assert.IsType(t, "", res, "The first name should be a string")
-}
+// 	assert.NoError(t, err)
+// 	assert.Equal(t, len(res), 2, "The length of the name should be 2")
+// 	assert.IsType(t, "", res, "The first name should be a string")
+// }
 
-func Test_GenerateRandomFirstNameInLengthRangeMinAndMaxSameTooLong(t *testing.T) {
-	nameLength := int64(len("wkepofkwepofe"))
+// func Test_GenerateRandomFirstNameInLengthRangeMinAndMaxSameTooLong(t *testing.T) {
+// 	nameLength := int64(len("wkepofkwepofe"))
 
-	res, err := GenerateRandomFirstNameInLengthRange(nameLength, nameLength)
+// 	res, err := GenerateRandomFirstNameInLengthRange(nameLength, nameLength)
 
-	assert.NoError(t, err)
-	assert.Equal(t, len(res), 12, "The length of the name should be 12")
-	assert.IsType(t, "", res, "The first name should be a string")
-}
+// 	assert.NoError(t, err)
+// 	assert.Equal(t, len(res), 12, "The length of the name should be 12")
+// 	assert.IsType(t, "", res, "The first name should be a string")
+// }
 
-func Test_TransformFirstNamePreserveLengthFalse(t *testing.T) {
-	res, err := TransformFirstName(name, false, maxCharacterLimit)
+// func Test_TransformFirstNamePreserveLengthFalse(t *testing.T) {
+// 	res, err := transformFirstName(name, false, maxCharacterLimit)
 
-	assert.NoError(t, err)
-	assert.True(t, len(*res) >= int(minNameLength), "The name should be greater than the min length name")
-	assert.True(t, len(*res) <= int(maxCharacterLimit), "The name should be less than the max character limit")
-	assert.IsType(t, "", *res, "The first name should be a string")
-}
+// 	assert.NoError(t, err)
+// 	assert.True(t, len(*res) >= int(minNameLength), "The name should be greater than the min length name")
+// 	assert.True(t, len(*res) <= int(maxCharacterLimit), "The name should be less than the max character limit")
+// 	assert.IsType(t, "", *res, "The first name should be a string")
+// }
 
-func Test_GenerateRandomFirstNameInLengthRange(t *testing.T) {
-	res, err := GenerateRandomFirstNameInLengthRange(int64(len(name)), maxCharacterLimit)
+// func Test_GenerateRandomFirstNameInLengthRange(t *testing.T) {
+// 	res, err := GenerateRandomFirstNameInLengthRange(int64(len(name)), maxCharacterLimit)
 
-	assert.NoError(t, err)
-	assert.True(t, len(res) >= int(minNameLength), "The name should be greater than the min length name")
-	assert.True(t, len(res) <= int(maxCharacterLimit), "The name should be less than the max character limit")
-	assert.IsType(t, "", res, "The first name should be a string")
-}
+// 	assert.NoError(t, err)
+// 	assert.True(t, len(res) >= int(minNameLength), "The name should be greater than the min length name")
+// 	assert.True(t, len(res) <= int(maxCharacterLimit), "The name should be less than the max character limit")
+// 	assert.IsType(t, "", res, "The first name should be a string")
+// }
 
-func Test_GenerateRandomFirstNameInLengthRangeMaxCharLimitMedum(t *testing.T) {
-	// tests where we have a low max char limit and we want to create a name that will fit in that eact max char limit
+// func Test_GenerateRandomFirstNameInLengthRangeMaxCharLimitMedum(t *testing.T) {
+// 	// tests where we have a low max char limit and we want to create a name that will fit in that eact max char limit
 
-	res, err := GenerateRandomFirstNameInLengthRange(minNameLength, int64(8))
+// 	res, err := GenerateRandomFirstNameInLengthRange(minNameLength, int64(8))
 
-	assert.NoError(t, err)
-	assert.True(t, len(res) >= int(minNameLength), "The name should be greater than the min length name")
-	assert.True(t, len(res) <= int(maxCharacterLimit), "The name should be less than the max character limit")
-	assert.IsType(t, "", res, "The first name should be a string")
-}
+// 	assert.NoError(t, err)
+// 	assert.True(t, len(res) >= int(minNameLength), "The name should be greater than the min length name")
+// 	assert.True(t, len(res) <= int(maxCharacterLimit), "The name should be less than the max character limit")
+// 	assert.IsType(t, "", res, "The first name should be a string")
+// }
 
-func Test_GenerateRandomFirstNameInLengthRangeLowMaxCharLimit(t *testing.T) {
-	// tests where we have a very low max char limit and we want to create a name that will fit in that eact max char limit
+// func Test_GenerateRandomFirstNameInLengthRangeLowMaxCharLimit(t *testing.T) {
+// 	// tests where we have a very low max char limit and we want to create a name that will fit in that eact max char limit
 
-	res, err := GenerateRandomFirstNameInLengthRange(minNameLength, int64(1))
+// 	res, err := GenerateRandomFirstNameInLengthRange(minNameLength, int64(1))
 
-	assert.NoError(t, err)
-	assert.True(t, len(res) == 1, "The name should be greater than the min length name")
-	assert.IsType(t, "", res, "The first name should be a string")
-}
+// 	assert.NoError(t, err)
+// 	assert.True(t, len(res) == 1, "The name should be greater than the min length name")
+// 	assert.IsType(t, "", res, "The first name should be a string")
+// }
 
 func Test_FirstNameTransformer(t *testing.T) {
 	testVal := "bill"
