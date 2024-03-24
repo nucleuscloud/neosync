@@ -238,6 +238,7 @@ func Test_GenerateStringFromCorpus(t *testing.T) {
 		sizeIndices,
 		nil,
 		2,
+		nil,
 	)
 	require.NoError(t, err)
 	require.NotEmpty(t, output)
@@ -255,6 +256,7 @@ func Test_GenerateStringFromCorpus_No_Candidates(t *testing.T) {
 		sizeIndices,
 		&minLength,
 		4,
+		nil,
 	)
 	require.Error(t, err)
 	require.Empty(t, output)
@@ -272,6 +274,7 @@ func Test_GenerateStringFromCorpus_Mismatched_MapAndIndices(t *testing.T) {
 		sizeIndices,
 		nil,
 		4,
+		nil,
 	)
 	require.Error(t, err)
 	require.Empty(t, output)

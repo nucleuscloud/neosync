@@ -164,7 +164,7 @@ func transformEmail(
 	newdomain := domain
 	if !preserveDomain {
 		// generate a new domain, but do not generate any that are in the excluded domains list
-		randomdomain, err := getRandomEmailDomainWithExclusions(randomizer, domainMaxLength, opts.ExcludedDomains)
+		randomdomain, err := getRandomEmailDomain(randomizer, domainMaxLength, opts.ExcludedDomains)
 		if err != nil {
 			return nil, err
 		}

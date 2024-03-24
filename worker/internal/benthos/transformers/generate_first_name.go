@@ -47,5 +47,6 @@ func generateRandomFirstName(randomizer *rand.Rand, minLength *int64, maxLength 
 		transformers_dataset.FirstNameIndices,
 		minLength,
 		maxLength,
+		nil,
 	)
 }

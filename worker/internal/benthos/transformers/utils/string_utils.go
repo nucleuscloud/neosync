@@ -1,6 +1,7 @@
 package transformer_utils
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"regexp"
@@ -213,17 +214,42 @@ func GenerateStringFromCorpus(
 	sizeIndices []int64,
 	minLength *int64,
 	maxLength int64,
+	exclusions []string,
 ) (string, error) {
+	excludedset := ToSet(exclusions)
 	idxCandidates := ClampInts(sizeIndices, minLength, &maxLength)
 	if len(idxCandidates) == 0 {
-		return "", fmt.Errorf("unable to find first name with range %s", getRangeText(minLength, maxLength))
+		return "", fmt.Errorf("unable to find candidates with range %s", getRangeText(minLength, maxLength))
 	}
-	mapKey := idxCandidates[randomizer.Intn(len(idxCandidates))]
-	values, ok := stringMap[mapKey]
-	if !ok {
-		return "", fmt.Errorf("when generating string from corpus, the generated index was not present in map: %d", mapKey)
+	attemptedCandidates := map[int]struct{}{}
+
+	// todo: make more efficient to reduce amount of times we have to check attempted candidates and attempted domains
+	for len(attemptedCandidates) < len(idxCandidates) {
+		randCandidateIdx := randomizer.Intn(len(idxCandidates))
+		if _, ok := attemptedCandidates[randCandidateIdx]; ok {
+			continue
+		}
+		attemptedCandidates[randCandidateIdx] = struct{}{}
+
+		attemptedValues := map[int]struct{}{}
+		domains, ok := stringMap[idxCandidates[randCandidateIdx]]
+		if !ok {
+			continue
+		}
+		for len(attemptedValues) < len(domains) {
+			randDomainIdx := randomizer.Intn(len(domains))
+			if _, ok := attemptedValues[randDomainIdx]; ok {
+				continue
+			}
+			attemptedValues[randDomainIdx] = struct{}{}
+			value := domains[randDomainIdx]
+			if _, ok := excludedset[value]; ok {
+				continue
+			}
+			return value, nil
+		}
 	}
-	return values[randomizer.Intn(len(values))], nil
+	return "", errors.New("unable to generate random value given the max length and excluded values")
 }
 
 func getRangeText(minLength *int64, maxLength int64) string {

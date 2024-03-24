@@ -71,39 +71,15 @@ func getEmailTypeOrDefault(input string) generateEmailType {
 	return uuidV4EmailType
 }
 
-func getRandomEmailDomainWithExclusions(randomizer *rand.Rand, maxLength int64, excludedDomains []string) (string, error) {
-	excludedDomainsSet := transformer_utils.ToSet(excludedDomains)
-
-	candidates := transformer_utils.GetSmallerOrEqualNumbers(transformers_dataset.EmailDomainIndices, maxLength)
-	if len(candidates) == 0 {
-		return "", fmt.Errorf("unable to find domain smaller than requested max length: %d", maxLength)
-	}
-	attemptedCandidates := map[int]struct{}{}
-
-	// todo: make more efficient to reduce amount of times we have to check attempted candidates and attempted domains
-	for len(attemptedCandidates) < len(candidates) {
-		randIdx := randomizer.Intn(len(candidates))
-		if _, ok := attemptedCandidates[randIdx]; ok {
-			continue
-		}
-		attemptedCandidates[randIdx] = struct{}{}
-
-		attemptedDomains := map[int]struct{}{}
-		domains := transformers_dataset.EmailDomainMap[candidates[randIdx]]
-		for len(attemptedDomains) < len(domains) {
-			randDomainIdx := randomizer.Intn(len(domains))
-			if _, ok := attemptedDomains[randDomainIdx]; ok {
-				continue
-			}
-			attemptedDomains[randDomainIdx] = struct{}{}
-			domain := domains[randDomainIdx]
-			if _, ok := excludedDomainsSet[domain]; ok {
-				continue
-			}
-			return domain, nil
-		}
-	}
-	return "", errors.New("unable to generate random domain given the max length and excluded domains")
+func getRandomEmailDomain(randomizer *rand.Rand, maxLength int64, excludedDomains []string) (string, error) {
+	return transformer_utils.GenerateStringFromCorpus(
+		randomizer,
+		transformers_dataset.EmailDomainMap,
+		transformers_dataset.EmailDomainIndices,
+		nil,
+		maxLength,
+		excludedDomains,
+	)
 }
 
 /* Generates an email in the format <username@domain.tld> such as jdoe@gmail.com */
@@ -131,7 +107,7 @@ func generateFullnameEmail(randomizer *rand.Rand, maxLength int64, excludedDomai
 		return "", fmt.Errorf("for the given max length, unable to generate an email of sufficient length: %d", maxLength)
 	}
 
-	domain, err := getRandomEmailDomainWithExclusions(randomizer, domainMaxLength, excludedDomains)
+	domain, err := getRandomEmailDomain(randomizer, domainMaxLength, excludedDomains)
 	if err != nil {
 		return "", err
 	}
@@ -205,7 +181,7 @@ func generateUuidEmail(randomizer *rand.Rand, maxLength int64, excludedDomains [
 	if (domainMaxLength) <= 0 {
 		return "", fmt.Errorf("for the given max length, unable to generate an email of sufficient length: %d", maxLength)
 	}
-	domain, err := getRandomEmailDomainWithExclusions(randomizer, domainMaxLength, excludedDomains)
+	domain, err := getRandomEmailDomain(randomizer, domainMaxLength, excludedDomains)
 	if err != nil {
 		return "", fmt.Errorf("unable to generate random email domain given the max length when generating a uuid email: %d", maxLength)
 	}
