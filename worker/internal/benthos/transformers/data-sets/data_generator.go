@@ -119,14 +119,6 @@ func main() {
 	}
 }
 
-// func getQuotedSlice(items []string) string {
-// 	quotedSlice := make([]string, len(items))
-// 	for i, item := range items {
-// 		quotedSlice[i] = fmt.Sprintf(`%q`, item)
-// 	}
-// 	return strings.Join(quotedSlice, ", ")
-// }
-
 func createLengthMap(lines []string) map[int][2]int {
 	lengthMap := make(map[int][2]int)
 
