@@ -42,26 +42,6 @@ func Test_TransformFullNameMaxLengthBetween12And5(t *testing.T) {
 	assert.IsType(t, "", *res, "The first name should be a string")
 }
 
-// func Test_TransformFullNameMaxLengthLessThan5(t *testing.T) {
-// 	randomizer := rand.New(rand.NewSource(1))
-
-// 	res, err := transformFullName(randomizer, fullName, false, 4)
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, len(*res), 4, "The name should be greater than the min length name")
-// 	assert.IsType(t, "", *res, "The first name should be a string")
-// }
-
-// func Test_GenerateullNamePreserveLengthFalse(t *testing.T) {
-// 	randomizer := rand.New(rand.NewSource(1))
-
-// 	res, err := transformFullName(randomizer, fullName, false, maxCharacterLimit)
-
-// 	assert.NoError(t, err)
-// 	assert.True(t, len(*res) >= 6, "The name should be greater than the min length name")
-// 	assert.True(t, len(*res) <= 13, "The name should be less than the max character limit")
-// 	assert.IsType(t, "", *res, "The full name should be a string")
-// }
-
 func Test_FullNameTransformerWithValue(t *testing.T) {
 	fn := "john smith"
 	mapping := fmt.Sprintf(`root = transform_full_name(value:%q,preserve_length:true,max_length:%d)`, fn, maxCharacterLimit)
