@@ -7,9 +7,8 @@ import (
 	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
+	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
-
-const alphabet = "abcdefghijklmnopqrstuvwxyz"
 
 func init() {
 	spec := bloblang.NewPluginSpec().
@@ -43,8 +42,7 @@ func init() {
 
 // Generates a username with a lowercase first initial and titlecase lastname
 func generateUsername(randomizer *rand.Rand, maxLength int64) (string, error) {
-	// randomly select a letter in the alphabet to use as a first initial
-	fn := string(alphabet[randomizer.Intn(len(alphabet))])
+	fn := transformer_utils.GetRandomCharacterString(randomizer, 1)
 
 	ln, err := generateRandomLastName(randomizer, nil, maxLength-1)
 	if err != nil {

@@ -204,6 +204,9 @@ func GetRandomCharacterString(randomizer *rand.Rand, size int64) string {
 	return string(stringBuilder)
 }
 
+// For the given map and list of keys along with bounds, will generate a random value from the corpus
+// stringMap is expected to be in the format of key: size, value: values of size
+// sizeIndices is expected to be a slice of the stringMap, preferably sorted
 func GenerateStringFromCorpus(
 	randomizer *rand.Rand,
 	stringMap map[int64][]string,
@@ -215,8 +218,7 @@ func GenerateStringFromCorpus(
 	if len(idxCandidates) == 0 {
 		return "", fmt.Errorf("unable to find first name with range %s", getRangeText(minLength, maxLength))
 	}
-	randIdx := randomizer.Int63n(int64(len(idxCandidates)))
-	mapKey := idxCandidates[randIdx]
+	mapKey := idxCandidates[randomizer.Intn(len(idxCandidates))]
 	values, ok := stringMap[mapKey]
 	if !ok {
 		return "", fmt.Errorf("when generating string from corpus, the generated index was not present in map: %d", mapKey)

@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"math/rand"
 	"testing"
+	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
+	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -17,6 +19,26 @@ func Test_GenerateRandomLastName(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, res)
 	assert.LessOrEqual(t, int64(len(res)), maxCharacterLimit, "The last name should be less than or equal to the max character limit")
+}
+
+func Test_GenerateRandomLastName_Random_Seed(t *testing.T) {
+	seed := time.Now().UnixNano()
+	randomizer := rand.New(rand.NewSource(seed))
+	res, err := generateRandomLastName(randomizer, nil, maxCharacterLimit)
+
+	assert.NoError(t, err, "failed with seed", "seed", seed)
+	assert.NotEmpty(t, res)
+	assert.LessOrEqual(t, int64(len(res)), maxCharacterLimit, "The last name should be less than or equal to the max character limit")
+}
+
+func Test_GenerateRandomLastName_Clamped(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(1))
+	res, err := generateRandomLastName(randomizer, shared.Ptr(int64(10)), maxCharacterLimit)
+
+	assert.NoError(t, err)
+	assert.NotEmpty(t, res)
+	assert.LessOrEqual(t, int64(len(res)), maxCharacterLimit, "The last name should be less than or equal to the max character limit")
+	assert.GreaterOrEqual(t, int64(len(res)), int64(10))
 }
 
 func Test_GenerateRandomLastNameTransformer(t *testing.T) {

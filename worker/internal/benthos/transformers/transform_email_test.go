@@ -55,9 +55,10 @@ func Test_TransformEmail_Invalid_Email_Input(t *testing.T) {
 }
 
 func Test_TransformEmail_Random_Seed(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(time.Now().UnixMicro()))
+	seed := time.Now().UnixNano()
+	randomizer := rand.New(rand.NewSource(seed))
 	res, err := transformEmail(randomizer, email, transformeEmailOptions{})
-	require.NoError(t, err)
+	require.NoError(t, err, "failed with seed", "seed", seed)
 	require.NotNil(t, res)
 	require.NotEmpty(t, res)
 
