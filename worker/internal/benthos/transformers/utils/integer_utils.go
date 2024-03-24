@@ -1,8 +1,10 @@
 package transformer_utils
 
 import (
+	crypto "crypto/rand"
 	"fmt"
 	"math"
+	"math/big"
 	"math/rand"
 	"strconv"
 )
@@ -171,4 +173,12 @@ func ClampInts[T int | int32 | int64](input []T, minValue, maxValue *T) []T {
 		filtered = append(filtered, num)
 	}
 	return filtered
+}
+
+func GenerateCryptoSeed() (int64, error) {
+	n, err := crypto.Int(crypto.Reader, big.NewInt(1<<62))
+	if err != nil {
+		return -1, err
+	}
+	return n.Int64(), nil
 }

@@ -1,10 +1,8 @@
 package transformers
 
 import (
-	crypto "crypto/rand"
 	"errors"
 	"fmt"
-	"math/big"
 	"math/rand"
 	"strings"
 
@@ -52,14 +50,14 @@ func init() {
 			seed = *seedArg
 		} else {
 			// we want a bit more randomness here with generate_email so using something that isn't time based
-			n, err := crypto.Int(crypto.Reader, big.NewInt(1<<62))
+			var err error
+			seed, err = transformer_utils.GenerateCryptoSeed()
 			if err != nil {
 				return nil, err
 			}
-			seed = n.Int64()
 		}
 		randomizer := rand.New(rand.NewSource(seed)) //nolint:gosec
-		fmt.Println("generate_email init", seed)
+
 		var excludedDomains []string
 
 		return func() (any, error) {
