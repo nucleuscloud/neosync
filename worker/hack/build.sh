@@ -1,5 +1,7 @@
 #!/bin/sh
 
+go generate ./...
+
 if [ ! -z "${TILT_HOST}" ]; then
   # when invoked by tilt set the OS so that binary will run on linux container
   CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o bin/worker cmd/worker/*.go
