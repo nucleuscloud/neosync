@@ -7,6 +7,7 @@ import (
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/data-sets"
+	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
 func init() {
@@ -40,7 +41,7 @@ func init() {
 }
 
 func generateRandomLastName(randomizer *rand.Rand, minLength *int64, maxLength int64) (string, error) {
-	candidates := getFilteredNumbers(transformers_dataset.LastNameIndices, minLength, &maxLength)
+	candidates := transformer_utils.ClampInts(transformers_dataset.LastNameIndices, minLength, &maxLength)
 	if len(candidates) == 0 {
 		return "", fmt.Errorf("unable to find last name with range %s", getRangeText(minLength, maxLength))
 	}

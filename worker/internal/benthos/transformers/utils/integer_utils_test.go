@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_GenerateRandomInt64WithFixedLength(t *testing.T) {
@@ -217,4 +219,27 @@ func Test_Ceil(t *testing.T) {
 	assert.Equal(t, 3, Ceil(3, 4))
 	assert.Equal(t, 4, Ceil(4, 4))
 	assert.Equal(t, 4, Ceil(5, 4))
+}
+
+func Test_ClampInts(t *testing.T) {
+	type testcase struct {
+		input    []int
+		min      *int
+		max      *int
+		expected []int
+	}
+
+	testcases := []testcase{
+		{},
+		{[]int{1, 2, 3}, nil, nil, []int{1, 2, 3}},
+		{[]int{1, 2, 3}, shared.Ptr(2), shared.Ptr(2), []int{2}},
+		{[]int{1, 2, 3, 4, 5}, shared.Ptr(2), shared.Ptr(4), []int{2, 3, 4}},
+	}
+
+	for _, tc := range testcases {
+		t.Run("", func(t *testing.T) {
+			actual := ClampInts(tc.input, tc.min, tc.max)
+			require.Equal(t, tc.expected, actual)
+		})
+	}
 }

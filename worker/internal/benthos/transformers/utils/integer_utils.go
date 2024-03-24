@@ -154,3 +154,21 @@ func Ceil[T int | int64 | int32 | uint | uint32 | uint64](n, ceiling T) T {
 	}
 	return ceiling
 }
+
+func ClampInts[T int | int32 | int64](input []T, minValue, maxValue *T) []T {
+	if minValue == nil && maxValue == nil {
+		return input
+	}
+	filtered := []T{}
+	for _, num := range input {
+		if minValue != nil && num < *minValue {
+			continue
+		}
+
+		if maxValue != nil && num > *maxValue {
+			continue
+		}
+		filtered = append(filtered, num)
+	}
+	return filtered
+}
