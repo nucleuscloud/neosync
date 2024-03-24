@@ -14,7 +14,7 @@ func init() {
 
 	err := bloblang.RegisterFunctionV2("generate_sha256hash", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		return func() (any, error) {
-			val, err := generateRandomSHA256Hash()
+			val, err := generateRandomSHA256Hash(uuid.NewString())
 			if err != nil {
 				return false, fmt.Errorf("unable to run generate_sha256hash: %w", err)
 			}
@@ -26,17 +26,13 @@ func init() {
 	}
 }
 
-/* Generates a random SHA256 hashed value */
-func generateRandomSHA256Hash() (string, error) {
-	input := uuid.NewString()
-
+func generateRandomSHA256Hash(input string) (string, error) {
 	bites := []byte(input)
 	hasher := sha256.New()
 	_, err := hasher.Write(bites)
 	if err != nil {
 		return "", err
 	}
-
 	hash := hasher.Sum(nil)
 	return hex.EncodeToString(hash), nil
 }
