@@ -8,7 +8,7 @@ import (
 )
 
 func Test_GenerateSHA256Hash(t *testing.T) {
-	res, err := generateRandomSHA256Hash()
+	res, err := generateRandomSHA256Hash("123")
 	require.NoError(t, err)
 	require.NotEmpty(t, res)
 }
