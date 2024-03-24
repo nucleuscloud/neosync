@@ -226,3 +226,53 @@ func Test_GetRandomCharacterString(t *testing.T) {
 	actual := GetRandomCharacterString(rand.New(rand.NewSource(1)), 100)
 	assert.Len(t, actual, 100)
 }
+
+func Test_GenerateStringFromCorpus(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(1))
+	stringMap := map[int64][]string{2: {"aa", "bb", "cc", "dd"}}
+	sizeIndices := []int64{2}
+
+	output, err := GenerateStringFromCorpus(
+		randomizer,
+		stringMap,
+		sizeIndices,
+		nil,
+		2,
+	)
+	require.NoError(t, err)
+	require.NotEmpty(t, output)
+}
+
+func Test_GenerateStringFromCorpus_No_Candidates(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(1))
+	stringMap := map[int64][]string{2: {"aa", "bb", "cc", "dd"}}
+	sizeIndices := []int64{2}
+
+	minLength := int64(3)
+	output, err := GenerateStringFromCorpus(
+		randomizer,
+		stringMap,
+		sizeIndices,
+		&minLength,
+		4,
+	)
+	require.Error(t, err)
+	require.Empty(t, output)
+}
+
+func Test_GenerateStringFromCorpus_Mismatched_MapAndIndices(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(1))
+	// the index has a key of 3, but it is not present in the map
+	stringMap := map[int64][]string{2: {"aa", "bb", "cc", "dd"}}
+	sizeIndices := []int64{3}
+
+	output, err := GenerateStringFromCorpus(
+		randomizer,
+		stringMap,
+		sizeIndices,
+		nil,
+		4,
+	)
+	require.Error(t, err)
+	require.Empty(t, output)
+}

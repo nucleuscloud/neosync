@@ -41,18 +41,11 @@ func init() {
 }
 
 func generateRandomFirstName(randomizer *rand.Rand, minLength *int64, maxLength int64) (string, error) {
-	candidates := transformer_utils.ClampInts(transformers_dataset.FirstNameIndices, minLength, &maxLength)
-	if len(candidates) == 0 {
-		return "", fmt.Errorf("unable to find first name with range %s", getRangeText(minLength, maxLength))
-	}
-	randIdx := randomizer.Int63n(int64(len(candidates)))
-	firstNames := transformers_dataset.FirstNameMap[candidates[randIdx]]
-	return firstNames[randomizer.Intn(len(firstNames))], nil
-}
-
-func getRangeText(minLength *int64, maxLength int64) string {
-	if minLength != nil {
-		return fmt.Sprintf("[%d:%d]", *minLength, maxLength)
-	}
-	return fmt.Sprintf("[-:%d]", maxLength)
+	return transformer_utils.GenerateStringFromCorpus(
+		randomizer,
+		transformers_dataset.FirstNameMap,
+		transformers_dataset.FirstNameIndices,
+		minLength,
+		maxLength,
+	)
 }

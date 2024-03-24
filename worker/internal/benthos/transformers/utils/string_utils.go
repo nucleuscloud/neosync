@@ -203,3 +203,30 @@ func GetRandomCharacterString(randomizer *rand.Rand, size int64) string {
 	}
 	return string(stringBuilder)
 }
+
+func GenerateStringFromCorpus(
+	randomizer *rand.Rand,
+	stringMap map[int64][]string,
+	sizeIndices []int64,
+	minLength *int64,
+	maxLength int64,
+) (string, error) {
+	idxCandidates := ClampInts(sizeIndices, minLength, &maxLength)
+	if len(idxCandidates) == 0 {
+		return "", fmt.Errorf("unable to find first name with range %s", getRangeText(minLength, maxLength))
+	}
+	randIdx := randomizer.Int63n(int64(len(idxCandidates)))
+	mapKey := idxCandidates[randIdx]
+	values, ok := stringMap[mapKey]
+	if !ok {
+		return "", fmt.Errorf("when generating string from corpus, the generated index was not present in map: %d", mapKey)
+	}
+	return values[randomizer.Intn(len(values))], nil
+}
+
+func getRangeText(minLength *int64, maxLength int64) string {
+	if minLength != nil {
+		return fmt.Sprintf("[%d:%d]", *minLength, maxLength)
+	}
+	return fmt.Sprintf("[-:%d]", maxLength)
+}

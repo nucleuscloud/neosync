@@ -41,11 +41,11 @@ func init() {
 }
 
 func generateRandomLastName(randomizer *rand.Rand, minLength *int64, maxLength int64) (string, error) {
-	candidates := transformer_utils.ClampInts(transformers_dataset.LastNameIndices, minLength, &maxLength)
-	if len(candidates) == 0 {
-		return "", fmt.Errorf("unable to find last name with range %s", getRangeText(minLength, maxLength))
-	}
-	randIdx := randomizer.Int63n(int64(len(candidates)))
-	lastNames := transformers_dataset.LastNameMap[candidates[randIdx]]
-	return lastNames[randomizer.Intn(len(lastNames))], nil
+	return transformer_utils.GenerateStringFromCorpus(
+		randomizer,
+		transformers_dataset.LastNameMap,
+		transformers_dataset.LastNameIndices,
+		minLength,
+		maxLength,
+	)
 }
