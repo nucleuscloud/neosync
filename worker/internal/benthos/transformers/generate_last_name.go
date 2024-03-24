@@ -43,6 +43,7 @@ func init() {
 func generateRandomLastName(randomizer *rand.Rand, minLength *int64, maxLength int64) (string, error) {
 	return transformer_utils.GenerateStringFromCorpus(
 		randomizer,
+		transformers_dataset.LastNames,
 		transformers_dataset.LastNameMap,
 		transformers_dataset.LastNameIndices,
 		minLength,

@@ -84,6 +84,7 @@ func getEmailTypeOrDefault(input string) generateEmailType {
 func getRandomEmailDomain(randomizer *rand.Rand, maxLength int64, excludedDomains []string) (string, error) {
 	return transformer_utils.GenerateStringFromCorpus(
 		randomizer,
+		transformers_dataset.EmailDomains,
 		transformers_dataset.EmailDomainMap,
 		transformers_dataset.EmailDomainIndices,
 		nil,

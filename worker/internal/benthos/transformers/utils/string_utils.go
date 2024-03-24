@@ -210,45 +210,86 @@ func GetRandomCharacterString(randomizer *rand.Rand, size int64) string {
 // sizeIndices is expected to be a slice of the stringMap, preferably sorted
 func GenerateStringFromCorpus(
 	randomizer *rand.Rand,
-	stringMap map[int64][]string,
-	sizeIndices []int64,
+	values []string,
+	lengthMap map[int64][2]int,
+	mapKeys []int64,
 	minLength *int64,
 	maxLength int64,
 	exclusions []string,
 ) (string, error) {
 	excludedset := ToSet(exclusions)
-	idxCandidates := ClampInts(sizeIndices, minLength, &maxLength)
+	idxCandidates := ClampInts(mapKeys, minLength, &maxLength)
 	if len(idxCandidates) == 0 {
 		return "", fmt.Errorf("unable to find candidates with range %s", getRangeText(minLength, maxLength))
 	}
-	attemptedCandidates := map[int]struct{}{}
+
+	range1Idx := idxCandidates[0]
+	range2Idx := idxCandidates[len(idxCandidates)-1]
+
+	range1, ok1 := lengthMap[range1Idx]
+	range2, ok2 := lengthMap[range2Idx]
+
+	leftIdx := int64(-1)
+	rightIdx := int64(-1)
+	if ok1 {
+		leftIdx = int64(range1[0])
+		rightIdx = int64(range1[1])
+	}
+	if ok2 {
+		leftIdx = int64(range2[0])
+		rightIdx = int64(range2[1])
+	}
+	if ok1 && ok2 {
+		leftIdx = int64(range1[0])
+		rightIdx = int64(range2[1])
+	}
+
+	if leftIdx == -1 || rightIdx == -1 {
+		return "", errors.New("unable to generate string from corpus due to invalid dictionary ranges")
+	}
+
+	attemptedValues := map[int64]struct{}{}
+	for len(attemptedValues) < (int(rightIdx) - int(leftIdx) + 1) {
+		randIdx := randomInt64(randomizer, leftIdx, rightIdx)
+		// may need to check to ensure randIdx is not outside of values bounds
+		value := values[randIdx]
+		if _, ok := attemptedValues[randIdx]; ok {
+			continue
+		}
+		attemptedValues[randIdx] = struct{}{}
+		if _, ok := excludedset[value]; ok {
+			continue
+		}
+		return value, nil
+	}
+	// attemptedCandidates := map[int]struct{}{}
 
 	// todo: make more efficient to reduce amount of times we have to check attempted candidates and attempted domains
-	for len(attemptedCandidates) < len(idxCandidates) {
-		randCandidateIdx := randomizer.Intn(len(idxCandidates))
-		if _, ok := attemptedCandidates[randCandidateIdx]; ok {
-			continue
-		}
-		attemptedCandidates[randCandidateIdx] = struct{}{}
+	// for len(attemptedCandidates) < len(idxCandidates) {
+	// 	randCandidateIdx := randomizer.Intn(len(idxCandidates))
+	// 	if _, ok := attemptedCandidates[randCandidateIdx]; ok {
+	// 		continue
+	// 	}
+	// 	attemptedCandidates[randCandidateIdx] = struct{}{}
 
-		attemptedValues := map[int]struct{}{}
-		domains, ok := stringMap[idxCandidates[randCandidateIdx]]
-		if !ok {
-			continue
-		}
-		for len(attemptedValues) < len(domains) {
-			randDomainIdx := randomizer.Intn(len(domains))
-			if _, ok := attemptedValues[randDomainIdx]; ok {
-				continue
-			}
-			attemptedValues[randDomainIdx] = struct{}{}
-			value := domains[randDomainIdx]
-			if _, ok := excludedset[value]; ok {
-				continue
-			}
-			return value, nil
-		}
-	}
+	// 	attemptedValues := map[int]struct{}{}
+	// 	values, ok := lengthMap[idxCandidates[randCandidateIdx]]
+	// 	if !ok {
+	// 		continue
+	// 	}
+	// 	for len(attemptedValues) < len(values) {
+	// 		randDomainIdx := randomizer.Intn(len(values))
+	// 		if _, ok := attemptedValues[randDomainIdx]; ok {
+	// 			continue
+	// 		}
+	// 		attemptedValues[randDomainIdx] = struct{}{}
+	// 		value := values[randDomainIdx]
+	// 		if _, ok := excludedset[value]; ok {
+	// 			continue
+	// 		}
+	// 		return value, nil
+	// 	}
+	// }
 	return "", errors.New("unable to generate random value given the max length and excluded values")
 }
 
@@ -257,4 +298,8 @@ func getRangeText(minLength *int64, maxLength int64) string {
 		return fmt.Sprintf("[%d:%d]", *minLength, maxLength)
 	}
 	return fmt.Sprintf("[-:%d]", maxLength)
+}
+
+func randomInt64(randomizer *rand.Rand, min, max int64) int64 {
+	return min + randomizer.Int63n(max-min+1)
 }

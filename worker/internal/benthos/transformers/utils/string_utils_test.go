@@ -229,11 +229,13 @@ func Test_GetRandomCharacterString(t *testing.T) {
 
 func Test_GenerateStringFromCorpus(t *testing.T) {
 	randomizer := rand.New(rand.NewSource(1))
-	stringMap := map[int64][]string{2: {"aa", "bb", "cc", "dd"}}
+	values := []string{"aa", "bb", "cc", "dd"}
+	stringMap := map[int64][2]int{2: {0, 3}}
 	sizeIndices := []int64{2}
 
 	output, err := GenerateStringFromCorpus(
 		randomizer,
+		values,
 		stringMap,
 		sizeIndices,
 		nil,
@@ -246,12 +248,14 @@ func Test_GenerateStringFromCorpus(t *testing.T) {
 
 func Test_GenerateStringFromCorpus_No_Candidates(t *testing.T) {
 	randomizer := rand.New(rand.NewSource(1))
-	stringMap := map[int64][]string{2: {"aa", "bb", "cc", "dd"}}
+	values := []string{"aa", "bb", "cc", "dd"}
+	stringMap := map[int64][2]int{2: {0, 3}}
 	sizeIndices := []int64{2}
 
 	minLength := int64(3)
 	output, err := GenerateStringFromCorpus(
 		randomizer,
+		values,
 		stringMap,
 		sizeIndices,
 		&minLength,
@@ -265,11 +269,13 @@ func Test_GenerateStringFromCorpus_No_Candidates(t *testing.T) {
 func Test_GenerateStringFromCorpus_Mismatched_MapAndIndices(t *testing.T) {
 	randomizer := rand.New(rand.NewSource(1))
 	// the index has a key of 3, but it is not present in the map
-	stringMap := map[int64][]string{2: {"aa", "bb", "cc", "dd"}}
+	values := []string{"aa", "bb", "cc", "dd"}
+	stringMap := map[int64][2]int{2: {0, 3}}
 	sizeIndices := []int64{3}
 
 	output, err := GenerateStringFromCorpus(
 		randomizer,
+		values,
 		stringMap,
 		sizeIndices,
 		nil,

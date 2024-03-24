@@ -47,20 +47,28 @@ func main() {
 
 	text := string(content)
 	lines := strings.Split(text, "\n")
-	sort.Strings(lines)
+	sort.Slice(lines, func(i, j int) bool {
+		if len(lines[i]) == len(lines[j]) {
+			return lines[i] < lines[j] // Alphabetical order if lengths are equal
+		}
+		return len(lines[i]) < len(lines[j]) // Otherwise, order by length
+	})
 
-	lineMap := map[int][]string{}
+	filteredLines := []string{}
+
+	// lineMap := map[int][]string{}
 	for _, line := range lines {
 		trimmedLine := strings.TrimSpace(line)
 		if len(trimmedLine) == 0 || strings.ContainsAny(trimmedLine, " -_") {
 			continue
 		}
+		filteredLines = append(filteredLines, line)
 		_, err = outputFile.WriteString(fmt.Sprintf("\t%q,\n", trimmedLine)) // Each line as a quoted string in the slice
 		if err != nil {
 			panic(err)
 		}
-		length := len(line)
-		lineMap[length] = append(lineMap[length], line)
+		// length := len(line)
+		// lineMap[length] = append(lineMap[length], line)
 	}
 
 	// Close the slice declaration
@@ -69,24 +77,26 @@ func main() {
 		panic(err)
 	}
 
-	_, err = outputFile.WriteString(fmt.Sprintf("var %sMap = map[int64][]string{\n", gotypename))
+	lengthIndicesMap := createLengthMap(filteredLines)
+	sortedLengthIdxKeys := getSortedMapKeys(lengthIndicesMap)
+	_, err = outputFile.WriteString(fmt.Sprintf("var %sMap = map[int64][2]int{\n", gotypename))
 	if err != nil {
 		panic(err)
 	}
 
-	lineIdxs := make([]int, 0, len(lineMap))
-	for idx := range lineMap {
-		lineIdxs = append(lineIdxs, idx)
-	}
-	sort.Ints(lineIdxs)
+	// lineIdxs := make([]int, 0, len(lineMap))
+	// for idx := range lineMap {
+	// 	lineIdxs = append(lineIdxs, idx)
+	// }
+	// sort.Ints(lineIdxs)
 
-	for _, idx := range lineIdxs {
-		subLines, ok := lineMap[idx]
+	for _, idx := range sortedLengthIdxKeys {
+		subLines, ok := lengthIndicesMap[idx]
 		// shouldn't hit this, but just being safe
 		if !ok {
 			continue
 		}
-		_, err = outputFile.WriteString(fmt.Sprintf("\t%d: {%s},\n", idx, getQuotedSlice(subLines)))
+		_, err = outputFile.WriteString(fmt.Sprintf("\t%d: {%d, %d},\n", idx, subLines[0], subLines[1]))
 		if err != nil {
 			panic(err)
 		}
@@ -100,7 +110,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	for _, idx := range lineIdxs {
+	for _, idx := range sortedLengthIdxKeys {
 		_, err = outputFile.WriteString(fmt.Sprintf("\t%d,\n", idx))
 	}
 	_, err = outputFile.WriteString("}\n")
@@ -109,10 +119,39 @@ func main() {
 	}
 }
 
-func getQuotedSlice(items []string) string {
-	quotedSlice := make([]string, len(items))
-	for i, item := range items {
-		quotedSlice[i] = fmt.Sprintf(`%q`, item)
+// func getQuotedSlice(items []string) string {
+// 	quotedSlice := make([]string, len(items))
+// 	for i, item := range items {
+// 		quotedSlice[i] = fmt.Sprintf(`%q`, item)
+// 	}
+// 	return strings.Join(quotedSlice, ", ")
+// }
+
+func createLengthMap(lines []string) map[int][2]int {
+	lengthMap := make(map[int][2]int)
+
+	for i, line := range lines {
+		length := len(line)
+		if _, exists := lengthMap[length]; exists {
+			// We've seen this length before, so just update the end index.
+			entry := lengthMap[length]
+			entry[1] = i // Update end index
+			lengthMap[length] = entry
+		} else {
+			// This is the first time we've seen this length,
+			// so set the start and end index to the current index.
+			lengthMap[length] = [2]int{i, i}
+		}
 	}
-	return strings.Join(quotedSlice, ", ")
+	return lengthMap
+}
+
+func getSortedMapKeys[T any](input map[int]T) []int {
+	output := make([]int, 0, len(input))
+
+	for key := range input {
+		output = append(output, key)
+	}
+	sort.Ints(output)
+	return output
 }
