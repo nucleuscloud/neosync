@@ -121,6 +121,10 @@ func generateFullnameEmail(randomizer *rand.Rand, maxLength int64, excludedDomai
 	return fmt.Sprintf("%s@%s", generatename, domain), nil
 }
 
+// Generates a full name for an email. This will generate ASCII only characters (no unicode)
+// If the max length is constrictive, it may not be able to generate a full name.
+// If it can't generate a full name, will generate a last name. If it can't, it will generate a random character string.
+// Currently it can still hit failure conditions, if this proves difficult, it can be updated to try to not fail at all costs
 func generateNameForEmail(randomizer *rand.Rand, minLength *int64, maxLength int64) (string, error) {
 	maxFirstNameIdx, maxLastNameIdx := transformer_utils.FindClosestPair(
 		transformers_dataset.FirstNameIndices, transformers_dataset.LastNameIndices,
@@ -133,7 +137,8 @@ func generateNameForEmail(randomizer *rand.Rand, minLength *int64, maxLength int
 		var err error
 		randomLastName, err = generateRandomLastName(randomizer, minLength, maxLength)
 		if err != nil {
-			return "", err
+			// we don't want to fail at any cost, so generate a random character string because we've been given a value we can't generate a last name for
+			randomLastName = transformer_utils.GetRandomCharacterString(randomizer, maxLength)
 		}
 	}
 	if maxFirstNameIdx != -1 {
