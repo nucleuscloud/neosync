@@ -285,3 +285,44 @@ func Test_GenerateStringFromCorpus_Mismatched_MapAndIndices(t *testing.T) {
 	require.Error(t, err)
 	require.Empty(t, output)
 }
+func Test_GenerateStringFromCorpus_NoDice(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(1))
+	// the index has a key of 3, but it is not present in the map
+	values := []string{"aa", "bb"}
+	stringMap := map[int64][2]int{2: {0, 1}}
+	sizeIndices := []int64{2}
+
+	output, err := GenerateStringFromCorpus(
+		randomizer,
+		values,
+		stringMap,
+		sizeIndices,
+		nil,
+		4,
+		[]string{"aa", "bb"},
+	)
+	require.Error(t, err)
+	require.Empty(t, output)
+}
+
+func Test_getRangeFromCandidates(t *testing.T) {
+	type testcase struct {
+		candidates []int64
+		lengthMap  map[int64][2]int
+		expected   [2]int64
+	}
+	testcases := []testcase{
+		{[]int64{}, map[int64][2]int{}, [2]int64{-1, -1}},
+		{[]int64{2, 3, 4, 5}, map[int64][2]int{2: {0, 3}, 5: {10, 20}}, [2]int64{0, 20}},
+		{[]int64{2}, map[int64][2]int{2: {0, 3}}, [2]int64{0, 3}},
+		{[]int64{2, 5}, map[int64][2]int{2: {0, 3}}, [2]int64{0, 3}},
+		{[]int64{2, 5}, map[int64][2]int{5: {0, 3}}, [2]int64{0, 3}},
+	}
+
+	for _, tc := range testcases {
+		t.Run("", func(t *testing.T) {
+			actual := getRangeFromCandidates(tc.candidates, tc.lengthMap)
+			require.Equal(t, tc.expected, actual)
+		})
+	}
+}
