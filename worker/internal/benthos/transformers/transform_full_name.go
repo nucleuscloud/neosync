@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
+	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
 func init() {
@@ -71,7 +72,7 @@ func transformFullName(randomizer *rand.Rand, name string, preserveLength bool, 
 		if newfirstname == "" {
 			newfirstname, _ = generateRandomFirstName(randomizer, nil, minFirst)
 			if int64(len(newfirstname)) != minFirst {
-				newfirstname += getRandomCharacterString(randomizer, int(minFirst)-len(newfirstname))
+				newfirstname += transformer_utils.GetRandomCharacterString(randomizer, minFirst-int64(len(newfirstname)))
 			}
 		}
 		minLast := int64(len(lastname))
@@ -79,7 +80,7 @@ func transformFullName(randomizer *rand.Rand, name string, preserveLength bool, 
 		if newlastname == "" {
 			newfirstname, _ = generateRandomLastName(randomizer, nil, minLast)
 			if int64(len(newlastname)) != minLast {
-				newlastname += getRandomCharacterString(randomizer, int(minFirst)-len(newlastname))
+				newlastname += transformer_utils.GetRandomCharacterString(randomizer, minFirst-int64(len(newlastname)))
 			}
 		}
 		if newfirstname != "" && newlastname != "" {
@@ -93,7 +94,7 @@ func transformFullName(randomizer *rand.Rand, name string, preserveLength bool, 
 		return nil, err
 	}
 	if preserveLength && len(output) != int(maxLength) {
-		output += getRandomCharacterString(randomizer, int(maxLength)-len(output))
+		output += transformer_utils.GetRandomCharacterString(randomizer, maxLength-int64(len(output)))
 	}
 	return &output, nil
 }

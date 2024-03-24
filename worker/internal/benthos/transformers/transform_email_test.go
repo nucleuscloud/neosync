@@ -3,234 +3,313 @@ package transformers
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"math/rand"
+	"net/mail"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 var email = "evis@gmail.com"
 var maxEmailCharLimit = int64(40)
 var excludedDomains = []string{"gmail.com", "hotmail.com"}
-var emptyExcludedDomains = []string{}
 
-func Test_TransformEmailPreserveLengthFalsePreserveDomainTrue(t *testing.T) {
+func Test_TransformEmail_Empty_Email(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(1))
+	res, err := transformEmail(randomizer, "", transformeEmailOptions{})
+	require.NoError(t, err)
+	require.Nil(t, res)
+}
+
+func Test_TransformEmail_Empty_Options(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(1))
+	res, err := transformEmail(randomizer, email, transformeEmailOptions{})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.NotEmpty(t, res)
+
+	_, err = mail.ParseAddress(*res)
+	require.NoError(t, err)
+}
+
+func Test_TransformEmail_Seed_1711240985047220000_Specific_Options(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(1711240985047220000))
+	res, err := transformEmail(randomizer, email, transformeEmailOptions{MaxLength: 40, EmailType: fullNameEmailType, ExcludedDomains: excludedDomains, PreserveLength: true, PreserveDomain: true})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.NotEmpty(t, res)
+
+	_, err = mail.ParseAddress(*res)
+	require.NoError(t, err)
+}
+
+func Test_TransformEmail_Invalid_Email_Input(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(1))
+	res, err := transformEmail(randomizer, "bademail", transformeEmailOptions{})
+	require.Error(t, err)
+	require.Nil(t, res)
+}
+
+func Test_TransformEmail_Random_Seed(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(time.Now().UnixMicro()))
+	res, err := transformEmail(randomizer, email, transformeEmailOptions{})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.NotEmpty(t, res)
+
+	_, err = mail.ParseAddress(*res)
+	require.NoError(t, err)
+}
+
+func Test_TransformEmail_Any_EmailType(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(time.Now().UnixMicro()))
+	res, err := transformEmail(randomizer, email, transformeEmailOptions{
+		EmailType: anyEmailType,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.NotEmpty(t, res)
+
+	_, err = mail.ParseAddress(*res)
+	require.NoError(t, err)
+}
+
+func Test_TransformEmail_Uuid_EmailType(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(time.Now().UnixMicro()))
+	res, err := transformEmail(randomizer, email, transformeEmailOptions{
+		EmailType: uuidV4EmailType,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.NotEmpty(t, res)
+
+	_, err = mail.ParseAddress(*res)
+	require.NoError(t, err)
+}
+
+func Test_TransformEmail_Fullname_EmailType(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(time.Now().UnixMicro()))
+	res, err := transformEmail(randomizer, email, transformeEmailOptions{
+		EmailType: fullNameEmailType,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.NotEmpty(t, res)
+
+	_, err = mail.ParseAddress(*res)
+	require.NoError(t, err)
+}
+
+func Test_TransformEmail_PreserveLength_False_PreserveDomain_False(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(1))
+	res, err := transformEmail(randomizer, email, transformeEmailOptions{
+		PreserveLength: false,
+		PreserveDomain: false,
+		MaxLength:      maxEmailCharLimit,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.True(t, transformer_utils.IsValidEmail(*res), "The expected email should be have a valid email structure")
+
+	_, err = mail.ParseAddress(*res)
+	require.NoError(t, err)
+}
+
+func Test_TransformEmail_PreserveLength_False_PreserveDomain_False_Excluded(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(1))
+	res, err := transformEmail(randomizer, email, transformeEmailOptions{
+		PreserveLength:  false,
+		PreserveDomain:  false,
+		MaxLength:       maxEmailCharLimit,
+		ExcludedDomains: excludedDomains,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.True(t, transformer_utils.IsValidEmail(*res), "The expected email should be have a valid email structure")
+
+	address, err := mail.ParseAddress(*res)
+	require.NoError(t, err)
+
+	_, domain, found := strings.Cut(address.Address, "@")
+	require.True(t, found)
+	require.Equal(t, "gmail.com", domain)
+}
+
+func Test_TransformEmail_PreserveLength_False_PreserveDomain_True(t *testing.T) {
 	randomizer := rand.New(rand.NewSource(1))
 	res, err := transformEmail(randomizer, email, transformeEmailOptions{
 		PreserveLength: false,
 		PreserveDomain: true,
 		MaxLength:      maxEmailCharLimit,
 	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.True(t, transformer_utils.IsValidEmail(*res), "The expected email should be have a valid email structure")
 
-	assert.NoError(t, err)
-	assert.Equal(t, true, transformer_utils.IsValidEmail(*res), "The expected email should be have a valid email structure")
-	assert.Equal(t, "gmail.com", strings.Split(*res, "@")[1])
-	pEmail, _ := transformer_utils.ParseEmail(email)
-	assert.Equal(t, pEmail[1], strings.Split(*res, "@")[1], "The domains should be the same because preserveDomain is true and the exclusion list is empty")
+	address, err := mail.ParseAddress(*res)
+	require.NoError(t, err)
+
+	_, domain, found := strings.Cut(address.Address, "@")
+	require.True(t, found)
+	require.Equal(t, "gmail.com", domain)
 }
 
-func Test_TransformEmailPreserveLengthFalsePreserveDomainFalse(t *testing.T) {
+func Test_TransformEmail_PreserveLength_False_PreserveDomain_True_Excluded(t *testing.T) {
 	randomizer := rand.New(rand.NewSource(1))
 	res, err := transformEmail(randomizer, email, transformeEmailOptions{
 		PreserveLength:  false,
-		PreserveDomain:  false,
+		PreserveDomain:  true,
 		MaxLength:       maxEmailCharLimit,
-		ExcludedDomains: []string{},
+		ExcludedDomains: excludedDomains,
 	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.True(t, transformer_utils.IsValidEmail(*res), "The expected email should be have a valid email structure")
 
-	assert.NoError(t, err)
-	assert.Equal(t, true, transformer_utils.IsValidEmail(*res), "The expected email should be have a valid email structure")
+	address, err := mail.ParseAddress(*res)
+	require.NoError(t, err)
+
+	_, domain, found := strings.Cut(address.Address, "@")
+	require.True(t, found)
+	require.NotEqual(t, "gmail.com", domain)
 }
 
-func Test_TransformEmailPreserveLengthTruePreserveDomainFalse(t *testing.T) {
+func Test_TransformEmail_PreserveLength_True_PreserveDomain_False(t *testing.T) {
 	randomizer := rand.New(rand.NewSource(1))
 	res, err := transformEmail(randomizer, email, transformeEmailOptions{
 		PreserveLength: true,
 		PreserveDomain: false,
 		MaxLength:      maxEmailCharLimit,
 	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.True(t, transformer_utils.IsValidEmail(*res), "The expected email should be have a valid email structure")
 
-	assert.NoError(t, err)
-	assert.Equal(t, len(email), len(*res), "The expected email should be have a valid email structure")
+	_, err = mail.ParseAddress(*res)
+	require.NoError(t, err)
+
+	require.Len(t, *res, len(email))
 }
 
-// func Test_TransformEmail(t *testing.T) {
-// 	res, err := TransformEmailPreserveDomain(email, true, maxEmailCharLimit, emptyExcludedDomains)
+func Test_TransformEmail_PreserveLength_True_PreserveDomain_False_Excluded(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(1))
+	res, err := transformEmail(randomizer, email, transformeEmailOptions{
+		PreserveLength:  true,
+		PreserveDomain:  false,
+		MaxLength:       maxEmailCharLimit,
+		ExcludedDomains: excludedDomains,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.True(t, transformer_utils.IsValidEmail(*res), "The expected email should be have a valid email structure")
 
-// 	assert.NoError(t, err)
-// 	/* There is a very small chance that the randomly generated email address actually matches
-// 	the input email address which is why can't do an assert.NoEqual() but instead just have to check
-// 	that the email has the correct structrue */
-// 	assert.Equal(t, true, transformer_utils.IsValidEmail(res), "true", "The domain should not explicitly be preserved but randomly generated.")
-// }
+	address, err := mail.ParseAddress(*res)
+	require.NoError(t, err)
 
-// func Test_TransformmailPreserveDomain(t *testing.T) {
-// 	res, err := TransformEmailPreserveDomain(email, true, maxEmailCharLimit, emptyExcludedDomains)
+	require.Len(t, *res, len(email))
 
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, true, transformer_utils.IsValidEmail(res), "true", "The domain should not explicitly be preserved but randomly generated.")
-// }
+	_, domain, found := strings.Cut(address.Address, "@")
+	require.True(t, found)
+	require.Equal(t, "gmail.com", domain)
+}
 
-// func Test_TransformEmailPreserveLength(t *testing.T) {
-// 	res, err := TransformEmailPreserveLength(email, emptyExcludedDomains)
+func Test_TransformEmail_PreserveLength_True_PreserveDomain_True(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(1))
+	res, err := transformEmail(randomizer, email, transformeEmailOptions{
+		PreserveLength: true,
+		PreserveDomain: true,
+		MaxLength:      maxEmailCharLimit,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.True(t, transformer_utils.IsValidEmail(*res), "The expected email should be have a valid email structure")
 
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, len(email), len(res), "The length of the emails should be the same")
-// }
+	address, err := mail.ParseAddress(*res)
+	require.NoError(t, err)
 
-// func Test_TransformEmailPreserveLengthTruePreserveDomainTrue(t *testing.T) {
-// 	res, err := TransformEmailPreserveDomainAndLength(email, maxEmailCharLimit, emptyExcludedDomains)
+	require.Len(t, *res, len(email))
 
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, true, transformer_utils.IsValidEmail(res), "The expected email should be have a valid email structure")
-// }
+	_, domain, found := strings.Cut(address.Address, "@")
+	require.True(t, found)
+	require.Equal(t, "gmail.com", domain)
+}
 
-// func Test_TransformEmailUsername(t *testing.T) {
-// 	res, err := generateUsername(int64(13))
-// 	assert.NoError(t, err)
+func Test_TransformEmail_PreserveLength_True_PreserveDomain_True_Excluded(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(1))
+	res, err := transformEmail(randomizer, email, transformeEmailOptions{
+		PreserveLength:  true,
+		PreserveDomain:  true,
+		MaxLength:       maxEmailCharLimit,
+		ExcludedDomains: excludedDomains,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.True(t, transformer_utils.IsValidEmail(*res), "The expected email should be have a valid email structure")
 
-// 	assert.Equal(t, true, transformer_utils.IsValidUsername(res), "The expected email should have a valid username")
-// }
+	address, err := mail.ParseAddress(*res)
+	require.NoError(t, err)
 
-// func Test_TransformEmailPreserveDomainTrueExclusionListTrue(t *testing.T) {
-// 	res, err := TransformEmailPreserveDomain(email, true, 40, excludedDomains)
+	require.Len(t, *res, len(email))
 
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, true, transformer_utils.IsValidEmail(res), "The expected email should be have a valid email structure")
-// 	pEmail, _ := transformer_utils.ParseEmail(email)
-// 	assert.NotEqual(t, pEmail[1], strings.Split(res, "@")[1], "The domains should be different")
-// }
+	_, domain, found := strings.Cut(address.Address, "@")
+	require.True(t, found)
+	require.NotEqual(t, "gmail.com", domain)
+}
 
-// func Test_TransformEmailPreserveDomainTrueExclusionListEmpty(t *testing.T) {
-// 	elEmpty := []string{}
+func Test_Bloblang_transform_email_empty_opts(t *testing.T) {
+	mapping := `root = transform_email()`
+	ex, err := bloblang.Parse(mapping)
+	require.NoError(t, err, "failed to parse the email transformer")
 
-// 	res, err := TransformEmailPreserveDomain(email, true, 40, elEmpty)
+	res, err := ex.Query(nil)
+	require.NoError(t, err)
+	require.Nil(t, res)
+}
 
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, true, transformer_utils.IsValidEmail(res), "The expected email should be have a valid email structure")
-// 	pEmail, _ := transformer_utils.ParseEmail(email)
-// 	assert.Equal(t, pEmail[1], strings.Split(res, "@")[1], "The domains should be the same")
-// }
-
-// func Test_TransformEmailPreserveDomainFalsePreserveLengthTrueExclusionListTrue(t *testing.T) {
-// 	res, err := transformEmail(email, true, false, 40, excludedDomains)
-
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, true, transformer_utils.IsValidEmail(*res), "The expected email should be have a valid email structure")
-// 	pEmail, _ := transformer_utils.ParseEmail(email)
-// 	assert.Equal(t, pEmail[1], strings.Split(*res, "@")[1], "The domains should be the same")
-// 	assert.Equal(t, len(email), len(*res), "The emails should have the same length")
-// }
-
-// func Test_TransformEmailPreserveDomainFalsePreserveLengthTrueExclusionListEmpty(t *testing.T) {
-// 	elEmpty := []string{}
-
-// 	res, err := transformEmail(email, true, false, 40, elEmpty)
-
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, true, transformer_utils.IsValidEmail(*res), "The expected email should be have a valid email structure")
-// 	pEmail, _ := transformer_utils.ParseEmail(email)
-// 	assert.NotEqual(t, pEmail[1], strings.Split(*res, "@")[1], "The domains should be different")
-// 	assert.Equal(t, len(email), len(*res), "The emails should have the same length")
-// }
-
-// func Test_TransformEmailPreserveDomainTruePreserveLengthTrueExclusionList(t *testing.T) {
-// 	res, err := transformEmail(email, true, true, 40, excludedDomains)
-
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, true, transformer_utils.IsValidEmail(*res), "The expected email should be have a valid email structure")
-// 	pEmail, _ := transformer_utils.ParseEmail(email)
-// 	assert.NotEqual(t, pEmail[1], strings.Split(*res, "@")[1], "The domains should be different")
-// 	assert.Equal(t, len(email), len(*res), "The emails should have the same length")
-// }
-
-// func Test_TransformEmailPreserveDomainTruePreserveLengthTrueExclusionListEmpty(t *testing.T) {
-// 	elEmpty := []string{}
-
-// 	res, err := transformEmail(email, true, true, 40, elEmpty)
-
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, true, transformer_utils.IsValidEmail(*res), "The expected email should be have a valid email structure")
-// 	pEmail, _ := transformer_utils.ParseEmail(email)
-// 	assert.Equal(t, pEmail[1], strings.Split(*res, "@")[1], "The domains should be different")
-// 	assert.Equal(t, len(email), len(*res), "The emails should have the same length")
-// }
-
-// func Test_TransformEmailPreserveDomainFalsePreserveLengthFalseExclusionListTrue(t *testing.T) {
-// 	res, err := transformEmail(email, false, false, 40, excludedDomains)
-
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, true, transformer_utils.IsValidEmail(*res), "The expected email should be have a valid email structure")
-// 	pEmail, _ := transformer_utils.ParseEmail(email)
-// 	assert.Equal(t, pEmail[1], strings.Split(*res, "@")[1], "The domains should be the same")
-// }
-
-// func Test_TransformEmailPreserveDomainFalsePreserveLengthFalseExclusionListEmpty(t *testing.T) {
-// 	elEmpty := []string{}
-
-// 	res, err := transformEmail(email, false, false, 40, elEmpty)
-
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, true, transformer_utils.IsValidEmail(*res), "The expected email should be have a valid email structure")
-// 	pEmail, _ := transformer_utils.ParseEmail(email)
-// 	assert.NotEqual(t, pEmail[1], strings.Split(*res, "@")[1], "The domains should be different")
-// }
-
-func Test_TransformEmailTransformerWithValue(t *testing.T) {
+func Test_Bloblang_transform_email(t *testing.T) {
 	sliceBytes, err := json.Marshal(excludedDomains)
-	if err != nil {
-		log.Fatalf("json.Marshal failed: %v", err)
-	}
+	require.NoError(t, err)
 
 	sliceString := string(sliceBytes)
 
-	mapping := fmt.Sprintf(`root = transform_email(email:%q,preserve_domain:true,preserve_length:true,excluded_domains:%v,max_length:%d)`, email, sliceString, maxEmailCharLimit)
+	mapping := fmt.Sprintf(`root = transform_email(email:%q,preserve_domain:true,preserve_length:true,excluded_domains:%v,max_length:%d,seed:1711240985047220000)`, email, sliceString, maxEmailCharLimit)
 	ex, err := bloblang.Parse(mapping)
-	assert.NoError(t, err, "failed to parse the email transformer")
+	require.NoError(t, err, "failed to parse the email transformer")
 
 	res, err := ex.Query(nil)
-	assert.NoError(t, err)
-
-	assert.NotNil(t, res, "The response shouldn't be nil.")
+	require.NoError(t, err)
+	require.NotNil(t, res, "The response shouldn't be nil.")
 
 	resStr, ok := res.(*string)
-	if !ok {
-		t.Errorf("Expected *string, got %T", res)
-		return
-	}
-
-	if resStr != nil {
-		assert.Equal(t, len(*resStr), len(email), "Transformd email must be the same length as the input email")
-		assert.NotEqual(t, strings.Split(*resStr, "@")[1], "gmail.com", "The actual value should be have gmail.com as the domain")
-	} else {
-		t.Error("Pointer is nil, expected a valid string pointer")
-	}
+	require.True(t, ok)
+	require.NotNil(t, resStr)
+	require.Equal(t, len(*resStr), len(email), "Transformd email must be the same length as the input email")
+	require.NotEqual(t, strings.Split(*resStr, "@")[1], "gmail.com", "The actual value should be have gmail.com as the domain")
 }
 
 // the case where the input value is null
 func Test_TransformEmailTransformerWithEmptyValue(t *testing.T) {
 	nilEmail := ""
-	mapping := fmt.Sprintf(`root = transform_email(email:%q,preserve_domain:true,preserve_length:true,excluded_domains:%v,max_length:%d)`, nilEmail, emptyExcludedDomains, maxEmailCharLimit)
+	mapping := fmt.Sprintf(`root = transform_email(email:%q,preserve_domain:true,preserve_length:true,excluded_domains:%v,max_length:%d)`, nilEmail, []string{}, maxEmailCharLimit)
 	ex, err := bloblang.Parse(mapping)
-	assert.NoError(t, err, "failed to parse the email transformer")
+	require.NoError(t, err, "failed to parse the email transformer")
 
 	_, err = ex.Query(nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func Test_TransformEmailTransformerWithEmptyValuePassNull(t *testing.T) {
 	nilEmail := ""
 	mapping := fmt.Sprintf(`root = transform_email(email:%q,preserve_domain:true,preserve_length:true,excluded_domains:null,max_length:%d)`, nilEmail, maxEmailCharLimit)
 	ex, err := bloblang.Parse(mapping)
-	assert.NoError(t, err, "failed to parse the email transformer")
+	require.NoError(t, err, "failed to parse the email transformer")
 
 	_, err = ex.Query(nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func Test_TransformEmailTransformerWithEmptyValueNilDomains(t *testing.T) {
@@ -238,10 +317,10 @@ func Test_TransformEmailTransformerWithEmptyValueNilDomains(t *testing.T) {
 
 	mapping := fmt.Sprintf(`root = transform_email(email:%q,preserve_domain:true,preserve_length:true,excluded_domains:[],max_length:%d)`, nilEmail, maxEmailCharLimit)
 	ex, err := bloblang.Parse(mapping)
-	assert.NoError(t, err, "failed to parse the email transformer")
+	require.NoError(t, err, "failed to parse the email transformer")
 
 	_, err = ex.Query(nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func Test_TransformEmailTransformerWithEmptyValueNilDomainsNoSliceDomains(t *testing.T) {
@@ -249,10 +328,10 @@ func Test_TransformEmailTransformerWithEmptyValueNilDomainsNoSliceDomains(t *tes
 
 	mapping := fmt.Sprintf(`root = transform_email(email:%q,preserve_domain:true,preserve_length:true,excluded_domains:joiej,max_length:%d)`, nilEmail, maxEmailCharLimit)
 	ex, err := bloblang.Parse(mapping)
-	assert.NoError(t, err, "failed to parse the email transformer")
+	require.NoError(t, err, "failed to parse the email transformer")
 
 	_, err = ex.Query(nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func Test_TransformEmailTransformerWithEmptyValueNilDomainsIntegerDomains(t *testing.T) {
@@ -260,7 +339,7 @@ func Test_TransformEmailTransformerWithEmptyValueNilDomainsIntegerDomains(t *tes
 
 	mapping := fmt.Sprintf(`root = transform_email(email:%q,preserve_domain:true,preserve_length:true,excluded_domains:132412,max_length:%d)`, nilEmail, maxEmailCharLimit)
 	_, err := bloblang.Parse(mapping)
-	assert.Error(t, err, "The excluded domains must be strings")
+	require.Error(t, err, "The excluded domains must be strings")
 }
 
 func Test_TransformEmailTransformerWithEmptyValueNilDomainsIntegerSliceDomains(t *testing.T) {
@@ -268,7 +347,7 @@ func Test_TransformEmailTransformerWithEmptyValueNilDomainsIntegerSliceDomains(t
 
 	mapping := fmt.Sprintf(`root = transform_email(email:%q,preserve_domain:true,preserve_length:true,excluded_domains:[132,412],max_length:%d)`, nilEmail, maxEmailCharLimit)
 	_, err := bloblang.Parse(mapping)
-	assert.Error(t, err, "The excluded domains must be strings")
+	require.Error(t, err, "The excluded domains must be strings")
 }
 
 func Test_fromAnyToStringSlice(t *testing.T) {

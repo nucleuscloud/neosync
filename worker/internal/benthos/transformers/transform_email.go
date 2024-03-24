@@ -1,10 +1,17 @@
 package transformers
 
 import (
+	"errors"
 	"fmt"
+	"math"
 	"math/rand"
+	"net/mail"
+	"strings"
+	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
+	"github.com/google/uuid"
+	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
 func init() {
@@ -13,7 +20,8 @@ func init() {
 		Param(bloblang.NewBoolParam("preserve_length").Default(false)).
 		Param(bloblang.NewBoolParam("preserve_domain").Default(false)).
 		Param(bloblang.NewAnyParam("excluded_domains").Default([]any{})).
-		Param(bloblang.NewInt64Param("max_length").Default(10000))
+		Param(bloblang.NewInt64Param("max_length").Default(10000)).
+		Param(bloblang.NewInt64Param("seed").Default(time.Now().UnixNano()))
 
 	err := bloblang.RegisterFunctionV2("transform_email", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		emailPtr, err := args.GetOptionalString("email")
@@ -56,7 +64,6 @@ func init() {
 			return nil, err
 		}
 		randomizer := rand.New(rand.NewSource(seed)) //nolint:gosec
-
 		return func() (any, error) {
 			output, err := transformEmail(randomizer, email, transformeEmailOptions{
 				PreserveLength:  preserveLength,
@@ -103,6 +110,7 @@ type transformeEmailOptions struct {
 	PreserveDomain  bool
 	MaxLength       int64
 	ExcludedDomains []string
+	EmailType       generateEmailType
 }
 
 // Anonymizes an existing email address. This function returns a string pointer to handle nullable email columns where an input email value may not exist.
@@ -114,213 +122,79 @@ func transformEmail(
 	if email == "" {
 		return nil, nil
 	}
+	if opts.MaxLength <= 0 {
+		opts.MaxLength = math.MaxInt64
+	}
+	emailType := opts.EmailType
+	if emailType == anyEmailType {
+		emailType = getRandomEmailType(randomizer)
+	}
 
-	return &email, nil
-	// var returnValue string
-	// var err error
+	parsedInputEmail, err := mail.ParseAddress(email)
+	if err != nil {
+		return nil, fmt.Errorf("input email was not a valid email address: %w", err)
+	}
 
-	// if email == "" {
-	// 	return nil, nil
-	// }
+	_, domain, found := strings.Cut(parsedInputEmail.Address, "@")
+	if !found {
+		return nil, errors.New("did not found @ when parsed email address")
+	}
 
-	// if !preserveLength && preserveDomain {
-	// 	returnValue, err = TransformEmailPreserveDomain(email, true, maxLength, excludeList)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// } else if preserveLength && !preserveDomain {
-	// 	returnValue, err = TransformEmailPreserveLength(email, excludeList)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// } else if preserveLength && preserveDomain {
-	// 	returnValue, err = TransformEmailPreserveDomainAndLength(email, maxLength, excludeList)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// } else {
-	// 	randLength, err := transformer_utils.GenerateRandomInt64InValueRange(10, maxLength)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
+	excludedDomainsSet := transformer_utils.ToSet(opts.ExcludedDomains)
 
-	// 	randomEmail, err := generateRandomEmail(randLength)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
+	preserveDomain := opts.PreserveDomain
+	_, isDomainExcluded := excludedDomainsSet[domain]
+	if preserveDomain && isDomainExcluded {
+		// preserve, but domain is excluded, so for this input it should be false
+		preserveDomain = false
+	} else if !preserveDomain && isDomainExcluded {
+		// not preserve, but domain is excluded, so for this input it should be true
+		preserveDomain = true
+	}
+	maxLength := opts.MaxLength
 
-	// 	parsedInputEmail, err := transformer_utils.ParseEmail(email)
-	// 	if err != nil {
-	// 		return nil, fmt.Errorf("invalid email: %s", email)
-	// 	}
+	domainMaxLength := maxLength - 3 // is there enough room for at least two characters and an @ sign
+	if opts.PreserveLength {
+		domainMaxLength = int64(len(email)) - 3
+	}
+	if (domainMaxLength) <= 0 {
+		return nil, fmt.Errorf("for the given max length, unable to generate an email of sufficient length: %d", maxLength)
+	}
 
-	// 	parsedGeneratedEmail, err := transformer_utils.ParseEmail(randomEmail)
-	// 	if err != nil {
-	// 		return nil, fmt.Errorf("invalid email: %s", email)
-	// 	}
+	newdomain := domain
+	if !preserveDomain {
+		// generate a new domain, but do not generate any that are in the excluded domains list
+		randomdomain, err := getRandomEmailDomainWithExclusions(randomizer, domainMaxLength, opts.ExcludedDomains)
+		if err != nil {
+			return nil, err
+		}
+		newdomain = randomdomain
+	}
 
-	// 	un := parsedGeneratedEmail[0]
+	maxNameLength := maxLength - int64(len(newdomain)) - 1
+	var minNameLength *int64
+	if opts.PreserveLength {
+		minLength := int64(len(email)) - int64(len(newdomain)) - 1
+		maxNameLength = minLength
+		minNameLength = &minLength
+	}
 
-	// 	// handle exclusion list
-	// 	if transformer_utils.StringInSlice(parsedInputEmail[1], excludeList) {
-	// 		domain := parsedInputEmail[1]
+	var newname string
+	if emailType == uuidV4EmailType {
+		newuuid := strings.ReplaceAll(uuid.NewString(), "-", "")
+		trimmeduuid := transformer_utils.TrimStringIfExceeds(newuuid, maxNameLength)
+		if trimmeduuid == "" {
+			return nil, fmt.Errorf("for the given max length, unable to use uuid to generate transformed email: %d", maxNameLength)
+		}
+		newname = trimmeduuid
+	} else {
+		name, err := generateNameForEmail(randomizer, minNameLength, maxNameLength)
+		if err != nil {
+			return nil, fmt.Errorf("for the given max length, unable to generate a full name to generate transformed email: %d", maxNameLength)
+		}
+		newname = name
+	}
 
-	// 		returnValue = un + "@" + domain
-	// 	} else {
-	// 		splitDomain := strings.Split(parsedInputEmail[1], ".")
-
-	// 		// generate a random domain
-	// 		dom, err := transformer_utils.GenerateRandomStringWithDefinedLength(int64(len(splitDomain[0])))
-	// 		if err != nil {
-	// 			return nil, err
-	// 		}
-
-	// 		// generate a random top level domain
-	// 		tld, err := transformer_utils.GenerateRandomStringWithDefinedLength(int64(len(splitDomain[1])))
-	// 		if err != nil {
-	// 			return nil, err
-	// 		}
-	// 		domain := dom + "." + tld
-
-	// 		returnValue = un + "@" + domain
-	// 	}
-	// }
-
-	// return &returnValue, nil
+	generatedemail := fmt.Sprintf("%s@%s", newname, newdomain)
+	return &generatedemail, nil
 }
-
-// // Generate a random email and preserve the input email's domain
-// func TransformEmailPreserveDomain(email string, pd bool, maxLength int64, excludeList []string) (string, error) {
-// 	parsedEmail, err := transformer_utils.ParseEmail(email)
-// 	if err != nil {
-// 		return "", fmt.Errorf("invalid email: %s", email)
-// 	}
-
-// 	// handle exclusion list
-// 	if transformer_utils.StringInSlice(parsedEmail[1], excludeList) {
-// 		randLength, err := transformer_utils.GenerateRandomInt64InValueRange(10, maxLength)
-// 		if err != nil {
-// 			return "", err
-// 		}
-
-// 		// create filtered list of domains to ensure that we don't randomly return a domain that shouldn't be there
-// 		var filteredDomains []string
-// 		for _, value := range emailDomains {
-// 			if parsedEmail[1] != value {
-// 				filteredDomains = append(filteredDomains, value)
-// 			}
-// 		}
-
-// 		e, err := generateRandomEmail(randLength)
-// 		if err != nil {
-// 			return "", err
-// 		}
-
-// 		parsedEmail, err := transformer_utils.ParseEmail(e)
-// 		if err != nil {
-// 			return "", fmt.Errorf("invalid email: %s", email)
-// 		}
-
-// 		domain, err := transformer_utils.GetRandomValueFromSlice[string](filteredDomains)
-// 		if err != nil {
-// 			return "", err
-// 		}
-
-// 		return parsedEmail[0] + "@" + domain, nil
-// 	} else {
-// 		// generate a random username and preserve the domain
-// 		un, err := generateUsername(int64(len(parsedEmail[0])))
-// 		if err != nil {
-// 			return "", nil
-// 		}
-// 		return strings.ToLower(un) + "@" + parsedEmail[1], err
-// 	}
-// }
-
-// // Preserve the length of email but not the domain name. If domain is in the exclusion list, then it will preserve the domain
-// func TransformEmailPreserveLength(email string, excludeList []string) (string, error) {
-// 	var res string
-
-// 	parsedEmail, err := transformer_utils.ParseEmail(email)
-// 	if err != nil {
-// 		return "", fmt.Errorf("invalid email: %s", email)
-// 	}
-
-// 	// generate a random username for the email address
-// 	un, err := transformer_utils.GenerateRandomStringWithDefinedLength(int64(len(parsedEmail[0])))
-// 	if err != nil {
-// 		return "", nil
-// 	}
-
-// 	// split the domain to account for different domain name lengths
-// 	splitDomain := strings.Split(parsedEmail[1], ".")
-
-// 	var domain string
-
-// 	// handle exclusion list
-// 	if transformer_utils.StringInSlice(parsedEmail[1], excludeList) {
-// 		domain = parsedEmail[1]
-// 	} else {
-// 		// generate a random domain
-// 		dom, err := transformer_utils.GenerateRandomStringWithDefinedLength(int64(len(splitDomain[0])))
-// 		if err != nil {
-// 			return "", nil
-// 		}
-
-// 		// generate a random top level domain
-// 		tld, err := transformer_utils.GenerateRandomStringWithDefinedLength(int64(len(splitDomain[1])))
-// 		if err != nil {
-// 			return "", nil
-// 		}
-// 		domain = dom + "." + tld
-// 	}
-
-// 	res = transformer_utils.SliceString(un, len(parsedEmail[0])) + "@" + domain
-
-// 	return res, err
-// }
-
-// // preserve domain and length of the email -> keep the domain the same but slice the username to be the same length as the input username
-// func TransformEmailPreserveDomainAndLength(e string, maxLength int64, excludeList []string) (string, error) {
-// 	parsedEmail, err := transformer_utils.ParseEmail(e)
-// 	if err != nil {
-// 		return "", fmt.Errorf("invalid email: %s", e)
-// 	}
-
-// 	unLength := len(parsedEmail[0])
-
-// 	// generate a random username for the email address
-// 	un, err := transformer_utils.GenerateRandomStringWithDefinedLength(int64(unLength))
-// 	if err != nil {
-// 		return "", nil
-// 	}
-
-// 	// handle exclusion list
-// 	if transformer_utils.StringInSlice(parsedEmail[1], excludeList) {
-// 		splitDomain := strings.Split(parsedEmail[1], ".")
-
-// 		// generate a random domain
-// 		dom, err := transformer_utils.GenerateRandomStringWithDefinedLength(int64(len(splitDomain[0])))
-// 		if err != nil {
-// 			return "", nil
-// 		}
-
-// 		// generate a random top level domain
-// 		tld, err := transformer_utils.GenerateRandomStringWithDefinedLength(int64(len(splitDomain[1])))
-// 		if err != nil {
-// 			return "", nil
-// 		}
-// 		domain := dom + "." + tld
-
-// 		res := un + "@" + domain
-
-// 		return res, nil
-// 	} else {
-// 		// generate a random username and preserve the domain
-// 		un, err := generateUsername(int64(len(parsedEmail[0])))
-// 		if err != nil {
-// 			return "", nil
-// 		}
-// 		return strings.ToLower(un) + "@" + parsedEmail[1], err
-// 	}
-// }

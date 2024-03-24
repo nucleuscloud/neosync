@@ -14,7 +14,7 @@ func Test_GenerateRandomEmailShort(t *testing.T) {
 	randomizer := rand.New(rand.NewSource(1))
 	shortMaxLength := int64(15)
 
-	res, err := generateRandomEmail(randomizer, shortMaxLength, fullNameEmailType)
+	res, err := generateRandomEmail(randomizer, shortMaxLength, fullNameEmailType, []string{})
 
 	require.NoError(t, err)
 	require.NotEmpty(t, res)
@@ -25,7 +25,7 @@ func Test_GenerateRandomEmailShort(t *testing.T) {
 func Test_GenerateRandomEmail(t *testing.T) {
 	randomizer := rand.New(rand.NewSource(1))
 
-	res, err := generateRandomEmail(randomizer, int64(40), fullNameEmailType)
+	res, err := generateRandomEmail(randomizer, int64(40), fullNameEmailType, []string{})
 
 	require.NoError(t, err)
 	require.NotEmpty(t, res)
@@ -36,7 +36,7 @@ func Test_GenerateRandomEmail(t *testing.T) {
 func Test_GenerateRandomEmail_Uuid(t *testing.T) {
 	randomizer := rand.New(rand.NewSource(1))
 
-	res, err := generateRandomEmail(randomizer, int64(40), uuidV4EmailType)
+	res, err := generateRandomEmail(randomizer, int64(40), uuidV4EmailType, []string{})
 
 	require.NoError(t, err)
 	require.NotEmpty(t, res)
@@ -46,7 +46,7 @@ func Test_GenerateRandomEmail_Uuid(t *testing.T) {
 func Test_GenerateRandomEmail_Uuid_Small(t *testing.T) {
 	randomizer := rand.New(rand.NewSource(1))
 
-	res, err := generateRandomEmail(randomizer, int64(8), uuidV4EmailType)
+	res, err := generateRandomEmail(randomizer, int64(8), uuidV4EmailType, []string{})
 
 	require.NoError(t, err)
 	require.NotEmpty(t, res)

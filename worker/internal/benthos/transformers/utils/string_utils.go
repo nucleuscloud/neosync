@@ -3,16 +3,28 @@ package transformer_utils
 import (
 	"fmt"
 	"math/rand"
-	"net/mail"
 	"regexp"
 	"strings"
 	"unicode"
 )
 
-var allowedSpecialChars = map[rune]struct{}{
+var SpecialCharsSet = map[rune]struct{}{
 	'!': {}, '@': {}, '#': {}, '$': {}, '%': {}, '^': {}, '&': {}, '*': {}, '(': {}, ')': {},
 	'-': {}, '+': {}, '=': {}, '_': {}, '[': {}, ']': {}, '{': {}, '}': {}, '|': {}, '\\': {},
 	' ': {}, ';': {}, '"': {}, '<': {}, '>': {}, ',': {}, '.': {}, '/': {}, '?': {},
+}
+var SpecialChars []rune
+
+func init() {
+	SpecialChars = SetToSlice(SpecialCharsSet)
+}
+
+func SetToSlice[T rune | string](input map[T]struct{}) []T {
+	slice := make([]T, 0, len(input))
+	for val := range input {
+		slice = append(slice, val)
+	}
+	return slice
 }
 
 // substrings a string using rune length to account for multi-byte characters
@@ -70,15 +82,6 @@ func GenerateRandomStringWithInclusiveBounds(min, max int64) (string, error) {
 	return strings.ToLower(string(result)), nil
 }
 
-func ParseEmail(email string) ([]string, error) {
-	inputEmail, err := mail.ParseAddress(email)
-	if err != nil {
-		return nil, fmt.Errorf("invalid email format: %s: %w", email, err)
-	}
-	parsedEmail := strings.Split(inputEmail.Address, "@")
-	return parsedEmail, nil
-}
-
 const (
 	emailRegexPattern = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z0-9]{2,}$`
 )
@@ -132,7 +135,7 @@ func IsValidChar(s string) bool {
 }
 
 func IsAllowedSpecialChar(r rune) bool {
-	_, ok := allowedSpecialChars[r]
+	_, ok := SpecialCharsSet[r]
 	return ok
 }
 
@@ -163,4 +166,40 @@ func GetSmallerOrEqualNumbers(nums []int64, val int64) []int64 {
 		}
 	}
 	return candidates
+}
+
+func ToSet[T string | int64](input []T) map[T]struct{} {
+	unique := map[T]struct{}{}
+
+	for _, val := range input {
+		unique[val] = struct{}{}
+	}
+
+	return unique
+}
+
+func WithoutCharacters(input string, invalidChars []rune) string {
+	invalid := make(map[rune]bool)
+	for _, ch := range invalidChars {
+		invalid[ch] = true
+	}
+
+	var builder strings.Builder
+	for _, ch := range input {
+		if !invalid[ch] {
+			builder.WriteRune(ch)
+		}
+	}
+
+	// Return the cleaned string.
+	return builder.String()
+}
+
+func GetRandomCharacterString(randomizer *rand.Rand, size int64) string {
+	var stringBuilder []rune = make([]rune, size)
+	for i := int64(0); i < size; i++ {
+		num := randomizer.Intn(26)
+		stringBuilder[i] = rune('a' + num)
+	}
+	return string(stringBuilder)
 }

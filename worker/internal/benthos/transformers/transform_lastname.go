@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
+	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
 func init() {
@@ -81,7 +82,7 @@ func transformLastName(randomizer *rand.Rand, name string, preserveLength bool, 
 
 	// pad the string so that we can get the correct value
 	if preserveLength && int64(len(output)) != maxValue {
-		output = getRandomCharacterString(randomizer, int(maxValue)-len(output))
+		output = transformer_utils.GetRandomCharacterString(randomizer, maxValue-int64(len(output)))
 	}
 	return &output, nil
 }
