@@ -1,11 +1,12 @@
 package transformers
 
 import (
+	crypto "crypto/rand"
 	"errors"
 	"fmt"
+	"math/big"
 	"math/rand"
 	"strings"
-	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/google/uuid"
@@ -29,7 +30,7 @@ func init() {
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewInt64Param("max_length").Default(100000)).
 		Param(bloblang.NewStringParam("email_type").Default("uuidv4")).
-		Param(bloblang.NewInt64Param("seed").Default(time.Now().UnixNano()))
+		Param(bloblang.NewInt64Param("seed").Optional())
 
 	err := bloblang.RegisterFunctionV2("generate_email", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		maxLength, err := args.GetInt64("max_length")
@@ -42,12 +43,23 @@ func init() {
 		}
 		emailType := getEmailTypeOrDefault(emailTypeArg)
 
-		seed, err := args.GetInt64("seed")
+		seedArg, err := args.GetOptionalInt64("seed")
 		if err != nil {
 			return nil, err
 		}
+		var seed int64
+		if seedArg != nil {
+			seed = *seedArg
+		} else {
+			// we want a bit more randomness here with generate_email so using something that isn't time based
+			n, err := crypto.Int(crypto.Reader, big.NewInt(1<<62))
+			if err != nil {
+				return nil, err
+			}
+			seed = n.Int64()
+		}
 		randomizer := rand.New(rand.NewSource(seed)) //nolint:gosec
-
+		fmt.Println("generate_email init", seed)
 		var excludedDomains []string
 
 		return func() (any, error) {
