@@ -82,7 +82,7 @@ func transformLastName(randomizer *rand.Rand, name string, preserveLength bool, 
 
 	// pad the string so that we can get the correct value
 	if preserveLength && int64(len(output)) != maxValue {
-		output = transformer_utils.GetRandomCharacterString(randomizer, maxValue-int64(len(output)))
+		output += transformer_utils.GetRandomCharacterString(randomizer, maxValue-int64(len(output)))
 	}
 	return &output, nil
 }

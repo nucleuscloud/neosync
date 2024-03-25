@@ -1,9 +1,11 @@
 package transformers
 
 import (
+	"bytes"
 	"fmt"
 	"math/rand"
 	"testing"
+	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/stretchr/testify/assert"
@@ -22,14 +24,14 @@ func Test_TranformFirstNameEmptyName(t *testing.T) {
 }
 
 func Test_TranformFirstName_Random(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	res, err := transformFirstName(randomizer, "foo", false, maxCharacterLimit)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, res)
 }
 
-func Test_TransformFirstName_Preserve(t *testing.T) {
+func Test_TransformFirstName_Preserve_True(t *testing.T) {
 	randomizer := rand.New(rand.NewSource(1))
 
 	nameLength := int64(len(name))
@@ -38,6 +40,35 @@ func Test_TransformFirstName_Preserve(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, nameLength, int64(len(*res)), "The first name output should be the same length as the input")
+	assert.IsType(t, "", *res, "The first name should be a string")
+}
+
+func Test_TransformFirstName_Preserve_True_With_Padding(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(1))
+	length := 300
+
+	var buffer bytes.Buffer
+	char := "a"
+	for i := 0; i < length; i++ {
+		buffer.WriteString(char)
+	}
+
+	name := buffer.String()
+
+	res, err := transformFirstName(randomizer, name, true, 500)
+
+	assert.NoError(t, err)
+	assert.Equal(t, int64(len(name)), int64(len(*res)), "The first name output should be the same length as the input")
+	assert.IsType(t, "", *res, "The first name should be a string")
+}
+
+func Test_TransformFirstName_Preserve_False(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(1))
+
+	res, err := transformFirstName(randomizer, name, false, maxCharacterLimit)
+
+	assert.NoError(t, err)
+	assert.LessOrEqual(t, int64(len(*res)), maxCharacterLimit, "The last name output should be the same length as the input")
 	assert.IsType(t, "", *res, "The first name should be a string")
 }
 

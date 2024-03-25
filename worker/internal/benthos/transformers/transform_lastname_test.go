@@ -1,6 +1,7 @@
 package transformers
 
 import (
+	"bytes"
 	"fmt"
 	"math/rand"
 	"testing"
@@ -18,7 +19,7 @@ func Test_TranformLastNameEmptyName(t *testing.T) {
 	assert.Nil(t, res, "The response should be nil")
 }
 
-func Test_TransformLastNamePreserveLengthTrue(t *testing.T) {
+func Test_TransformLastName_Preserve_True(t *testing.T) {
 	randomizer := rand.New(rand.NewSource(1))
 	nameLength := int64(len(name))
 
@@ -26,6 +27,35 @@ func Test_TransformLastNamePreserveLengthTrue(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, nameLength, int64(len(*res)), "The last name output should be the same length as the input")
+	assert.IsType(t, "", *res, "The last name should be a string")
+}
+
+func Test_TransformLastName_Preserve_True_With_Padding(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(1))
+	length := 300
+
+	var buffer bytes.Buffer
+	char := "a"
+	for i := 0; i < length; i++ {
+		buffer.WriteString(char)
+	}
+
+	name := buffer.String()
+
+	res, err := transformLastName(randomizer, name, true, 500)
+
+	assert.NoError(t, err)
+	assert.Equal(t, int64(len(name)), int64(len(*res)), "The last name output should be the same length as the input")
+	assert.IsType(t, "", *res, "The last name should be a string")
+}
+
+func Test_TransformLastName_Preserve_False(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(1))
+
+	res, err := transformLastName(randomizer, name, false, maxCharacterLimit)
+
+	assert.NoError(t, err)
+	assert.LessOrEqual(t, int64(len(*res)), maxCharacterLimit, "The last name output should be the same length as the input")
 	assert.IsType(t, "", *res, "The last name should be a string")
 }
 
