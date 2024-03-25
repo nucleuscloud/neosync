@@ -137,12 +137,9 @@ export function SchemaTable(props: Props): ReactElement {
     return <SkeletonTable />;
   }
 
-  const formValues = form.getValues().mappings;
-
   const extractedFormErrors = formErrorsToMessages(
-    extractAllErrors(form.formState.errors, formValues)
+    extractAllErrors(form.formState.errors, form.getValues('mappings'))
   );
-
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col md:flex-row gap-3">
@@ -200,7 +197,7 @@ export function SchemaTable(props: Props): ReactElement {
                 </div>
               </div>
             ) : (
-              <ScrollArea className="overflow-auto">
+              <ScrollArea className="max-h-[177px] overflow-auto">
                 <div className="flex flex-col gap-2">
                   {extractedFormErrors.map((message, index) => (
                     <div
