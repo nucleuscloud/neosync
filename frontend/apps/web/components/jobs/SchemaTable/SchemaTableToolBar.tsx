@@ -105,7 +105,7 @@ export function SchemaTableToolbar<TData>({
                     {
                       shouldDirty: true,
                       shouldTouch: true,
-                      shouldValidate: true,
+                      shouldValidate: false, // this is really expensive
                     }
                   );
                 }
@@ -113,6 +113,7 @@ export function SchemaTableToolbar<TData>({
               setBulkTransformer(
                 convertJobMappingTransformerToForm(new JobMappingTransformer())
               );
+              form.trigger('mappings');
               table.resetRowSelection(true);
             }}
           >
@@ -155,7 +156,8 @@ function isBulkUpdateable(
   isForeignKey: boolean,
   isNullable: boolean
 ): boolean {
-  if (!isForeignKey) {
+  console.log('transformer', transformer);
+  if (!isForeignKey || transformer.source === '') {
     return true;
   }
   const valid = new Set(['passthrough']);
