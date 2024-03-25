@@ -133,7 +133,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <SchemaTable
-            data={form.watch().mappings}
+            data={form.watch('mappings')}
             jobType="sync"
             constraintHandler={schemaConstraintHandler}
             schema={connectionSchemaDataMap?.schemaMap ?? {}}
