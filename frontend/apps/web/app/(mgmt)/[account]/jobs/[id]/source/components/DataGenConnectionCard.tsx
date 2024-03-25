@@ -28,7 +28,6 @@ import { useGetConnectionUniqueConstraints } from '@/libs/hooks/useGetConnection
 import { useGetJob } from '@/libs/hooks/useGetJob';
 import { getErrorMessage } from '@/util/util';
 import {
-  JobMappingTransformerForm,
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
@@ -89,21 +88,8 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
       fkSourceConnectionId ?? ''
     );
 
-  const allJobMappings =
-    Object.values(connectionSchemaDataMap?.schemaMap ?? {}).flatMap(
-      (dbcols) => {
-        const t: JobMappingTransformerForm = convertJobMappingTransformerToForm(
-          new JobMappingTransformer({})
-        );
-        return dbcols.map((dbcol) => ({ ...dbcol, transformer: t }));
-      }
-    ) || [];
   const form = useForm<SingleTableSchemaFormValues>({
     resolver: yupResolver(SINGLE_TABLE_SCHEMA_FORM_SCHEMA),
-    defaultValues: {
-      mappings: [],
-      numRows: 0,
-    },
     values: getJobSource(data?.job),
   });
 

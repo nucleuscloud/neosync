@@ -247,7 +247,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
           />
 
           <SchemaTable
-            data={form.watch().mappings}
+            data={form.watch('mappings')}
             jobType="sync"
             constraintHandler={schemaConstraintHandler}
             schema={connectionSchemaDataMap?.schemaMap ?? {}}
