@@ -18,7 +18,7 @@ pip3 install -r requirements.txt
 There are two python scripts to run.
 
 The first, `generate_names.py` pulls names out of the `NameDataset` and stores them in pickle files.
-This can take a while which is why it is split into its own script.
+This can take a while depending on how much data you want which is why it is split into its own script.
 
 The second script, `generate_text.py` loads these pickle files and invokes further processing on the data
 before ultimately writing each name flatly into their respective text files.

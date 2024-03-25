@@ -16,6 +16,7 @@ all_first_names = []
 all_last_names = []
 
 for country in countries:
+  print(f'processing country {country}...')
   top_first_names = nd.get_top_names(n=10000, use_first_names=True, country_alpha2=country)
   all_first_names += top_first_names[country]['M']
   all_first_names += top_first_names[country]['F']
