@@ -213,7 +213,7 @@ jobs:
           fi
 
       - name: Setup Chart.yaml
-        uses: mikefarah/yq@v4.42.1
+        uses: mikefarah/yq@v4.43.1
         with:
           cmd: |
             # Recursively finds all Chart.yaml files and sets their version and appVersion to the github ref
@@ -290,7 +290,7 @@ jobs:
           fi
 
       - name: Setup Chart.yaml
-        uses: mikefarah/yq@v4.42.1
+        uses: mikefarah/yq@v4.43.1
         with:
           cmd: |
             # Recursively finds all Chart.yaml files and sets their version and appVersion to the github ref
@@ -367,7 +367,7 @@ jobs:
           fi
 
       - name: Setup Chart.yaml
-        uses: mikefarah/yq@v4.42.1
+        uses: mikefarah/yq@v4.43.1
         with:
           cmd: |
             # Recursively finds all Chart.yaml files and sets their version and appVersion to the github ref
@@ -446,7 +446,7 @@ jobs:
           fi
 
       - name: Setup Chart.yaml
-        uses: mikefarah/yq@v4.42.1
+        uses: mikefarah/yq@v4.43.1
         with:
           cmd: |
             # Recursively finds all Chart.yaml files and sets their version and appVersion to the github ref
