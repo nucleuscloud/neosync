@@ -105,7 +105,7 @@ export function SchemaTableToolbar<TData>({
                     {
                       shouldDirty: true,
                       shouldTouch: true,
-                      shouldValidate: true,
+                      shouldValidate: false, // this is really expensive, see the trigger call below
                     }
                   );
                 }
@@ -113,6 +113,7 @@ export function SchemaTableToolbar<TData>({
               setBulkTransformer(
                 convertJobMappingTransformerToForm(new JobMappingTransformer())
               );
+              form.trigger('mappings'); // trigger validation after bulk updating the selected form options
               table.resetRowSelection(true);
             }}
           >
@@ -155,7 +156,7 @@ function isBulkUpdateable(
   isForeignKey: boolean,
   isNullable: boolean
 ): boolean {
-  if (!isForeignKey) {
+  if (!isForeignKey || transformer.source === '') {
     return true;
   }
   const valid = new Set(['passthrough']);
