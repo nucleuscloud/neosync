@@ -145,8 +145,8 @@ export function SchemaTable(props: Props): ReactElement {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-col md:flex-row gap-3 md:grid-cols-2 items-start">
-        <Card className="w-full md:h-[294px]">
+      <div className="flex flex-col md:flex-row gap-3">
+        <Card className="w-full">
           <CardHeader className="flex flex-col gap-2">
             <div className="flex flex-row items-center gap-2">
               <div className="flex">
@@ -168,7 +168,7 @@ export function SchemaTable(props: Props): ReactElement {
             />
           </CardContent>
         </Card>
-        <Card className="w-full md:h-[294px]">
+        <Card className="w-full flex flex-col">
           <CardHeader className="flex flex-col gap-2">
             <div className="flex flex-row items-center gap-2">
               {extractedFormErrors.length != 0 ? (
@@ -189,10 +189,19 @@ export function SchemaTable(props: Props): ReactElement {
               forward.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <ScrollArea className="max-h-[177px] overflow-auto">
-              {extractedFormErrors.length != 0 ? (
-                <div className="flex-col flex gap-2 pr-2">
+          <CardContent className="flex flex-col flex-1">
+            {extractedFormErrors.length === 0 ? (
+              <div className="flex flex-col flex-1 items-center justify-center bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-200 rounded-xl">
+                <div className="text-sm flex flex-row items-center gap-2 px-1">
+                  <div className="flex">
+                    <CheckIcon />
+                  </div>
+                  <p>Everything looks good!</p>
+                </div>
+              </div>
+            ) : (
+              <ScrollArea className="overflow-auto">
+                <div className="flex flex-col gap-2">
                   {extractedFormErrors.map((message, index) => (
                     <div
                       key={message + index}
@@ -202,17 +211,8 @@ export function SchemaTable(props: Props): ReactElement {
                     </div>
                   ))}
                 </div>
-              ) : (
-                <div className="flex items-center justify-center bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-200 w-full md:h-[167px] rounded-xl">
-                  <div className="text-sm flex flex-row items-center gap-2">
-                    <div className="flex">
-                      <CheckIcon />
-                    </div>
-                    <p>Everything looks good!</p>
-                  </div>
-                </div>
-              )}
-            </ScrollArea>
+              </ScrollArea>
+            )}
           </CardContent>
         </Card>
       </div>
