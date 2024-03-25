@@ -2,42 +2,74 @@ package transformers
 
 import (
 	"fmt"
+	"math/rand"
 	"testing"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_GenerateRandomEmailShort(t *testing.T) {
-	shortMaxLength := int64(14)
+	randomizer := rand.New(rand.NewSource(1))
+	shortMaxLength := int64(15)
 
-	res, err := GenerateRandomEmail(shortMaxLength)
+	res, err := generateRandomEmail(randomizer, shortMaxLength, fullNameEmailType, []string{})
 
-	assert.NoError(t, err)
-	assert.Equal(t, true, transformer_utils.IsValidEmail(res), fmt.Sprintf(`The expected email should be have a valid email format. Received:%s`, res))
-	assert.LessOrEqual(t, int64(len(res)), shortMaxLength, fmt.Sprintf("The city should be less than or equal to the max length. This is the error city:%s", res))
+	require.NoError(t, err)
+	require.NotEmpty(t, res)
+	require.Equal(t, true, transformer_utils.IsValidEmail(res), fmt.Sprintf(`The expected email should be have a valid email format. Received:%s`, res))
+	require.LessOrEqual(t, int64(len(res)), shortMaxLength, fmt.Sprintf("The email should be less than or equal to the max length. This is the error email:%s", res))
 }
 
 func Test_GenerateRandomEmail(t *testing.T) {
-	res, err := GenerateRandomEmail(int64(40))
+	randomizer := rand.New(rand.NewSource(1))
 
-	assert.NoError(t, err)
-	assert.Equal(t, true, transformer_utils.IsValidEmail(res), fmt.Sprintf(`The expected email should be have a valid email format. Received:%s`, res))
-	assert.LessOrEqual(t, int64(len(res)), int64(40), fmt.Sprintf("The city should be less than or equal to the max length. This is the error city:%s", res))
+	res, err := generateRandomEmail(randomizer, int64(40), fullNameEmailType, []string{})
+
+	require.NoError(t, err)
+	require.NotEmpty(t, res)
+	require.Equal(t, true, transformer_utils.IsValidEmail(res), fmt.Sprintf(`The expected email should be have a valid email format. Received:%s`, res))
+	require.LessOrEqual(t, int64(len(res)), int64(40), fmt.Sprintf("The email should be less than or equal to the max length. This is the error email:%s", res))
+}
+
+func Test_GenerateRandomEmail_Uuid(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(1))
+
+	res, err := generateRandomEmail(randomizer, int64(40), uuidV4EmailType, []string{})
+
+	require.NoError(t, err)
+	require.NotEmpty(t, res)
+	require.Equal(t, true, transformer_utils.IsValidEmail(res), fmt.Sprintf(`The expected email should be have a valid email format. Received:%s`, res))
+	require.LessOrEqual(t, int64(len(res)), int64(40), fmt.Sprintf("The email should be less than or equal to the max length. This is the error email:%s", res))
+}
+func Test_GenerateRandomEmail_Uuid_Small(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(1))
+
+	res, err := generateRandomEmail(randomizer, int64(8), uuidV4EmailType, []string{})
+
+	require.NoError(t, err)
+	require.NotEmpty(t, res)
+	require.Equal(t, true, transformer_utils.IsValidEmail(res), fmt.Sprintf(`The expected email should be have a valid email format. Received:%s`, res))
+	require.LessOrEqual(t, int64(len(res)), int64(40), fmt.Sprintf("The email should be less than or equal to the max length. This is the error email:%s", res))
 }
 
 func Test_RandomEmailTransformer(t *testing.T) {
 	maxLength := int64(40)
 	mapping := fmt.Sprintf(`root = generate_email(max_length:%d)`, maxLength)
 	ex, err := bloblang.Parse(mapping)
-
-	assert.NoError(t, err, "failed to parse the email transformer")
+	require.NoError(t, err)
+	require.NotEmpty(t, ex)
 
 	res, err := ex.Query(nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
+	require.NotEmpty(t, res)
 
-	assert.LessOrEqual(t, int64(len(res.(string))), maxLength, fmt.Sprintf("The email should be less than or equal to the max length. This is the error email:%s", res))
+	resStr, ok := res.(string)
+	require.True(t, ok)
+	require.NotEmpty(t, resStr)
 
-	assert.Equal(t, true, transformer_utils.IsValidEmail(res.(string)), "The expected email should have a valid email format")
+	require.LessOrEqual(t, int64(len(resStr)), maxLength, fmt.Sprintf("The email should be less than or equal to the max length. This is the error email:%s", res))
+
+	require.Equal(t, true, transformer_utils.IsValidEmail(res.(string)), "The expected email should have a valid email format")
 }

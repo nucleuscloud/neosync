@@ -2,42 +2,57 @@ package transformers
 
 import (
 	"fmt"
+	"math/rand"
 	"testing"
+	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
+	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_GenerateRandomFirstName(t *testing.T) {
-	res, err := GenerateRandomFirstName(maxCharacterLimit)
+	randomizer := rand.New(rand.NewSource(1))
+	res, err := generateRandomFirstName(randomizer, nil, maxCharacterLimit)
 
 	assert.NoError(t, err)
-	assert.GreaterOrEqual(t, len(res), 2, "The first name should be more than 2 characters")
+	assert.NotEmpty(t, res)
 	assert.LessOrEqual(t, int64(len(res)), maxCharacterLimit, "The first name should be less than or equal to the max character limit")
-	assert.IsType(t, "", res, "The first name should be a string")
 }
 
-func Test_GenerateRandomFirstNameMaxlengthLessThan12(t *testing.T) {
-	lowMaxCharLimit := int64(6)
+func Test_GenerateRandomFirstName_Random_Seed(t *testing.T) {
+	seed := time.Now().UnixNano()
+	randomizer := rand.New(rand.NewSource(seed))
+	res, err := generateRandomFirstName(randomizer, nil, maxCharacterLimit)
 
-	res, err := GenerateRandomFirstName(lowMaxCharLimit)
+	assert.NoError(t, err, "failed with seed", "seed", seed)
+	assert.NotEmpty(t, res)
+	assert.LessOrEqual(t, int64(len(res)), maxCharacterLimit, "The first name should be less than or equal to the max character limit")
+}
+
+func Test_GenerateRandomFirstName_Clamped(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(1))
+	res, err := generateRandomFirstName(randomizer, shared.Ptr(int64(10)), maxCharacterLimit)
 
 	assert.NoError(t, err)
-	assert.Greater(t, len(res), 2, "The first name should be more than 2 characters")
-	assert.Equal(t, int64(len(res)), lowMaxCharLimit, "The first name should be less than or equal to the max character limit")
-	assert.IsType(t, "", res, "The first name should be a string")
+	assert.NotEmpty(t, res)
+	assert.LessOrEqual(t, int64(len(res)), maxCharacterLimit, "The first name should be less than or equal to the max character limit")
+	assert.GreaterOrEqual(t, int64(len(res)), int64(10))
 }
 
 func Test_GenerateRandomFirstNameTransformer(t *testing.T) {
 	mapping := fmt.Sprintf(`root = generate_first_name(max_length:%d)`, maxCharacterLimit)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the first name transformer")
+	assert.NotNil(t, ex)
 
 	res, err := ex.Query(nil)
 	assert.NoError(t, err)
 
-	assert.NoError(t, err)
-	assert.GreaterOrEqual(t, len(res.(string)), 2, "The first name should be more than 0 characters")
-	assert.Less(t, len(res.(string)), 13, "The first name should be more than 0 characters")
-	assert.IsType(t, "", res, "The first name should be a string")
+	resStr, ok := res.(string)
+	require.True(t, ok)
+
+	assert.NotEmpty(t, resStr)
+	assert.LessOrEqual(t, int64(len(resStr)), maxCharacterLimit, "output should be less than or equal to max char limit")
 }

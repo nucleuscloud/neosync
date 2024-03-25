@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"math/rand"
 	"strings"
+	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
+	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
-const alphabet = "abcdefghijklmnopqrstuvwxyz"
-
 func init() {
-	spec := bloblang.NewPluginSpec().Param(bloblang.NewInt64Param("max_length"))
+	spec := bloblang.NewPluginSpec().
+		Param(bloblang.NewInt64Param("max_length").Default(10000)).
+		Param(bloblang.NewInt64Param("seed").Default(time.Now().UnixNano()))
 
 	err := bloblang.RegisterFunctionV2("generate_username", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		return func() (any, error) {
@@ -19,8 +21,13 @@ func init() {
 			if err != nil {
 				return nil, err
 			}
+			seed, err := args.GetInt64("seed")
+			if err != nil {
+				return nil, err
+			}
+			randomizer := rand.New(rand.NewSource(seed)) //nolint:gosec
 
-			res, err := GenerateUsername(maxLength)
+			res, err := generateUsername(randomizer, maxLength)
 			if err != nil {
 				return nil, fmt.Errorf("unable to run generate_username: %w", err)
 			}
@@ -34,12 +41,10 @@ func init() {
 }
 
 // Generates a username with a lowercase first initial and titlecase lastname
-func GenerateUsername(maxLength int64) (string, error) {
-	//nolint:gosec
-	// randomly select a letter in the alphabet to use as a first initial
-	fn := string(alphabet[rand.Intn(len(alphabet))])
+func generateUsername(randomizer *rand.Rand, maxLength int64) (string, error) {
+	fn := transformer_utils.GetRandomCharacterString(randomizer, 1)
 
-	ln, err := GenerateRandomLastName(maxLength - 1)
+	ln, err := generateRandomLastName(randomizer, nil, maxLength-1)
 	if err != nil {
 		return "", err
 	}

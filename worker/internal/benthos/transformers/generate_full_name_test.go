@@ -2,56 +2,56 @@ package transformers
 
 import (
 	"fmt"
+	"math/rand"
 	"testing"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func Test_GenerateRandomFullNamePreserveLengthTrue(t *testing.T) {
-	res, err := GenerateRandomFullName(maxCharacterLimit)
+func Test_GenerateRandomFullName(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(1))
+
+	res, err := generateRandomFullName(randomizer, maxCharacterLimit)
 
 	assert.NoError(t, err)
-	assert.True(t, len(res) >= 6, "The name should be greater than the min length name")
-	assert.True(t, len(res) <= 13, "The name should be less than the max character limit")
-	assert.IsType(t, "", res, "The first name should be a string")
+	assert.NotEmpty(t, res)
+	assert.LessOrEqual(t, int64(len(res)), maxCharacterLimit, "The name should be less than the max character limit")
 }
 
-func Test_GenerateRandomFullNameMaxLengthBetween12And5(t *testing.T) {
-	res, err := GenerateRandomFullName(10)
+func Test_generateRandomFullName_MinLength_Error(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(1))
 
-	assert.NoError(t, err)
-	assert.True(t, len(res) >= 6, "The name should be greater than the min length name")
-	assert.True(t, len(res) <= 10, "The name should be less than the max character limit")
-	assert.IsType(t, "", res, "The first name should be a string")
+	res, err := generateRandomFullName(randomizer, 1)
+	assert.Error(t, err)
+	assert.Empty(t, res)
 }
 
-func Test_GenerateRandomFullNameMaxLengthLessThan5(t *testing.T) {
-	res, err := GenerateRandomFullName(4)
-	assert.NoError(t, err)
-	assert.Equal(t, len(res), 4, "The name should be greater than the min length name")
-	assert.IsType(t, "", res, "The first name should be a string")
-}
+func Test_generateRandomFullName_Small(t *testing.T) {
+	randomizer := rand.New(rand.NewSource(1))
 
-func Test_GenerateFullNamePreserveLengthFalse(t *testing.T) {
-	res, err := GenerateRandomFullName(maxCharacterLimit)
+	res, err := generateRandomFullName(randomizer, 4)
+	assert.Error(t, err)
+	assert.Empty(t, res, "cannot generate a full name of length 3 (excluding space) as it must generate a first and last name")
 
+	res, err = generateRandomFullName(randomizer, 5)
 	assert.NoError(t, err)
-	assert.True(t, len(res) >= 6, "The name should be greater than the min length name")
-	assert.True(t, len(res) <= 13, "The name should be less than the max character limit")
-	assert.IsType(t, "", res, "The full name should be a string")
+	assert.NotEmpty(t, res)
 }
 
 func Test_GenerateRandomFullNameTransformer(t *testing.T) {
 	mapping := fmt.Sprintf(`root = generate_full_name(max_length:%d)`, maxCharacterLimit)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the first name transformer")
+	assert.NotNil(t, ex)
 
 	res, err := ex.Query(nil)
 	assert.NoError(t, err)
 
-	assert.NoError(t, err)
-	assert.GreaterOrEqual(t, len(res.(string)), 2, "The first name should be more than 0 characters")
-	assert.LessOrEqual(t, len(res.(string)), 13, "The first name should be less than characters")
-	assert.IsType(t, "", res, "The first name should be a string")
+	resStr, ok := res.(string)
+	require.True(t, ok)
+
+	assert.NotEmpty(t, resStr)
+	assert.LessOrEqual(t, int64(len(resStr)), maxCharacterLimit, "output should be less than or equal to max char limit")
 }

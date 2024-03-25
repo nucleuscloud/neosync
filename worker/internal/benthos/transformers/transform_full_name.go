@@ -2,7 +2,9 @@ package transformers
 
 import (
 	"fmt"
+	"math/rand"
 	"strings"
+	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
@@ -10,9 +12,10 @@ import (
 
 func init() {
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewInt64Param("max_length")).
+		Param(bloblang.NewInt64Param("max_length").Default(10000)).
 		Param(bloblang.NewAnyParam("value").Optional()).
-		Param(bloblang.NewBoolParam("preserve_length"))
+		Param(bloblang.NewBoolParam("preserve_length").Default(false)).
+		Param(bloblang.NewInt64Param("seed").Default(time.Now().UnixNano()))
 
 	err := bloblang.RegisterFunctionV2("transform_full_name", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		valuePtr, err := args.GetOptionalString("value")
@@ -35,8 +38,14 @@ func init() {
 			return nil, err
 		}
 
+		seed, err := args.GetInt64("seed")
+		if err != nil {
+			return nil, err
+		}
+		randomizer := rand.New(rand.NewSource(seed)) //nolint:gosec
+
 		return func() (any, error) {
-			res, err := TransformFullName(value, preserveLength, maxLength)
+			res, err := transformFullName(randomizer, value, preserveLength, maxLength)
 			if err != nil {
 				return nil, fmt.Errorf("unable to run transform_full_name: %w", err)
 			}
@@ -49,77 +58,57 @@ func init() {
 	}
 }
 
-func TransformFullName(name string, preserveLength bool, maxLength int64) (*string, error) {
+func transformFullName(randomizer *rand.Rand, name string, preserveLength bool, maxLength int64) (*string, error) {
 	if name == "" {
 		return nil, nil
 	}
 
-	fnLength := int64(len(strings.Split(name, " ")[0]))
-
-	lnLength := int64(len(strings.Split(name, " ")[1]))
+	maxValue := maxLength
 
 	if preserveLength {
-		// assume that if pl is true than it already meets the maxCharacterLimit constraint
-		fn, err := GenerateRandomFirstNameInLengthRange(fnLength, fnLength)
-		if err != nil {
-			return nil, err
+		firstname, lastname := splitEvenly(name)
+		minFirst := int64(len(firstname))
+		newfirstname, _ := generateRandomFirstName(randomizer, &minFirst, minFirst)
+		if newfirstname == "" {
+			newfirstname, _ = generateRandomFirstName(randomizer, nil, minFirst)
+			if int64(len(newfirstname)) != minFirst {
+				newfirstname += transformer_utils.GetRandomCharacterString(randomizer, minFirst-int64(len(newfirstname)))
+			}
 		}
-
-		ln, err := GenerateRandomLastNameInLengthRange(lnLength, lnLength)
-		if err != nil {
-			return nil, err
+		minLast := int64(len(lastname))
+		newlastname, _ := generateRandomLastName(randomizer, &minLast, minLast)
+		if newlastname == "" {
+			newfirstname, _ = generateRandomLastName(randomizer, nil, minLast)
+			if int64(len(newlastname)) != minLast {
+				newlastname += transformer_utils.GetRandomCharacterString(randomizer, minFirst-int64(len(newlastname)))
+			}
 		}
-
-		res := fn + " " + ln
-		return &res, nil
-	} else {
-		res, err := GenerateRandomFullNameInLengthRange(fnLength, lnLength, minNameLength, maxLength)
-		if err != nil {
-			return nil, err
+		if newfirstname != "" && newlastname != "" {
+			fullname := fmt.Sprintf("%s %s", newfirstname, newlastname)
+			return &fullname, nil
 		}
-		return &res, nil
 	}
+
+	output, err := generateRandomFullName(randomizer, maxValue)
+	if err != nil {
+		return nil, err
+	}
+	if preserveLength && len(output) != int(maxLength) {
+		output += transformer_utils.GetRandomCharacterString(randomizer, maxLength-int64(len(output)))
+	}
+	return &output, nil
 }
 
-// Generates a random full name name with length [min, max]. If the length is greater than 12, a full name of length 12 will be returned.
-func GenerateRandomFullNameInLengthRange(fnLength, lnLength, minLength, maxLength int64) (string, error) {
-	if maxLength < 12 && maxLength >= 5 {
-		// calc lengths of a first name and last name, also assumes a min maxLength of 4, since first and last names must be at least 2 letters in length, we will use the remainder for the space character
-		half := maxLength / 2
-		firstNameLength := half
-		lastNameLength := half
+func splitEvenly(input string) (first, last string) {
+	parts := strings.Fields(input)
 
-		fn, err := GenerateRandomFirstNameInLengthRange(minNameLength, firstNameLength)
-		if err != nil {
-			return "", err
-		}
-		// the -1 accounts for the space
-		ln, err := GenerateRandomLastNameInLengthRange(minNameLength, lastNameLength-1)
-		if err != nil {
-			return "", err
-		}
-
-		res := fn + " " + ln
-		return res, nil
-	} else if maxLength < 5 {
-		res, err := transformer_utils.GenerateRandomStringWithDefinedLength(maxLength)
-		if err != nil {
-			return "", err
-		}
-		return res, nil
-	} else {
-		// assume that if pl is true than it already meets the maxCharacterLimit constraint
-		fn, err := GenerateRandomFirstNameInLengthRange(int64(3), int64(6))
-		if err != nil {
-			return "", err
-		}
-
-		ln, err := GenerateRandomLastNameInLengthRange(int64(3), int64(6))
-		if err != nil {
-			return "", err
-		}
-
-		res := fn + " " + ln
-		return res, nil
+	// Calculate the split index. If there are an odd number of parts, the first half will have one more.
+	splitIndex := len(parts) / 2
+	if len(parts)%2 != 0 { // Adjust split index if number of words is odd.
+		splitIndex++
 	}
+
+	firstHalf := strings.Join(parts[:splitIndex], " ")
+	secondHalf := strings.Join(parts[splitIndex:], " ")
+	return firstHalf, secondHalf
 }

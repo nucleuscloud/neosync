@@ -1,13 +1,12 @@
 package transformers
 
 import (
-	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
-	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
+	"github.com/google/uuid"
 )
 
 func init() {
@@ -15,7 +14,7 @@ func init() {
 
 	err := bloblang.RegisterFunctionV2("generate_sha256hash", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		return func() (any, error) {
-			val, err := GenerateRandomSHA256Hash()
+			val, err := generateRandomSHA256Hash(uuid.NewString())
 			if err != nil {
 				return false, fmt.Errorf("unable to run generate_sha256hash: %w", err)
 			}
@@ -27,32 +26,13 @@ func init() {
 	}
 }
 
-/* Generates a random SHA256 hashed value */
-func GenerateRandomSHA256Hash() (string, error) {
-	min := int64(1)
-	max := int64(9)
-
-	str, err := transformer_utils.GenerateRandomStringWithInclusiveBounds(min, max)
-	if err != nil {
-		return "", err
-	}
-
-	// hash the value
-	bites := []byte(str)
+func generateRandomSHA256Hash(input string) (string, error) {
+	bites := []byte(input)
 	hasher := sha256.New()
-	_, err = hasher.Write(bites)
+	_, err := hasher.Write(bites)
 	if err != nil {
 		return "", err
 	}
-
-	// compute sha256 checksum and encode it into a hex string
-	hashed := hasher.Sum(nil)
-	var buf bytes.Buffer
-	e := hex.NewEncoder(&buf)
-	_, err = e.Write(hashed)
-	if err != nil {
-		return "", err
-	}
-
-	return buf.String(), nil
+	hash := hasher.Sum(nil)
+	return hex.EncodeToString(hash), nil
 }

@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_GenerateRandomInt64WithFixedLength(t *testing.T) {
@@ -77,20 +79,6 @@ func Test_GenerateRandomInt64InValueRange_Swapped_MinMax(t *testing.T) {
 	assert.LessOrEqual(t, output, min)
 }
 
-func Test_FirstDigitIsNineTrue(t *testing.T) {
-	value := int64(9546789)
-
-	res := FirstDigitIsNine(value)
-	assert.Equal(t, res, true, "The first digit is nine.")
-}
-
-func Test_FirstDigitIsNineFalse(t *testing.T) {
-	value := int64(23546789)
-
-	res := FirstDigitIsNine(value)
-	assert.Equal(t, res, false, "The first digit is not nine.")
-}
-
 func Test_GetInt64Legth(t *testing.T) {
 	expected := 3
 
@@ -117,34 +105,6 @@ func Test_IsLastIntDigitZero(t *testing.T) {
 			assert.Equal(t, tc.expected, IsLastIntDigitZero(tc.input))
 		})
 	}
-}
-
-func Test_GetInt64Range(t *testing.T) {
-	min := int64(2)
-	max := int64(4)
-
-	val, err := GetIntRange(min, max)
-	assert.NoError(t, err)
-
-	assert.Equal(t, max-min, val)
-}
-
-func Test_GetInt64RangeError(t *testing.T) {
-	min := int64(6)
-	max := int64(2)
-
-	_, err := GetIntRange(min, max)
-	assert.Error(t, err)
-}
-
-func Test_GetInt64RangeMinEqualMax(t *testing.T) {
-	min := int64(2)
-	max := int64(2)
-
-	val, err := GetIntRange(min, max)
-	assert.NoError(t, err)
-
-	assert.Equal(t, min, val)
 }
 
 func Test_AbsInt64Positive(t *testing.T) {
@@ -217,4 +177,27 @@ func Test_Ceil(t *testing.T) {
 	assert.Equal(t, 3, Ceil(3, 4))
 	assert.Equal(t, 4, Ceil(4, 4))
 	assert.Equal(t, 4, Ceil(5, 4))
+}
+
+func Test_ClampInts(t *testing.T) {
+	type testcase struct {
+		input    []int
+		min      *int
+		max      *int
+		expected []int
+	}
+
+	testcases := []testcase{
+		{},
+		{[]int{1, 2, 3}, nil, nil, []int{1, 2, 3}},
+		{[]int{1, 2, 3}, shared.Ptr(2), shared.Ptr(2), []int{2}},
+		{[]int{1, 2, 3, 4, 5}, shared.Ptr(2), shared.Ptr(4), []int{2, 3, 4}},
+	}
+
+	for _, tc := range testcases {
+		t.Run("", func(t *testing.T) {
+			actual := ClampInts(tc.input, tc.min, tc.max)
+			require.Equal(t, tc.expected, actual)
+		})
+	}
 }

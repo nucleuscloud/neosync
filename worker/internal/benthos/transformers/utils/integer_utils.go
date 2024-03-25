@@ -1,8 +1,10 @@
 package transformer_utils
 
 import (
+	crypto "crypto/rand"
 	"fmt"
 	"math"
+	"math/big"
 	"math/rand"
 	"strconv"
 )
@@ -67,18 +69,6 @@ func GenerateRandomInt64InValueRange(min, max int64) (int64, error) {
 	return min + rand.Int63n(rangeVal), nil
 }
 
-func FirstDigitIsNine(n int64) bool {
-	// Convert the int64 to a string
-	str := strconv.FormatInt(n, 10)
-
-	// Check if the string is empty or if the first character is '9'
-	if str != "" && str[0] == '9' {
-		return true
-	}
-
-	return false
-}
-
 // gets the number of digits in an int64
 func GetInt64Length(i int64) int64 {
 	// Convert the int64 to a string
@@ -100,19 +90,6 @@ func AbsInt[T int | int64 | int32 | uint | uint32 | uint64](n T) T {
 		return -n
 	}
 	return n
-}
-
-// Returns the int of type T range between the min and max
-func GetIntRange[T int | int64 | int32 | uint | uint32 | uint64](min, max T) (T, error) {
-	if min > max {
-		return 0, fmt.Errorf("min cannot be greater than max")
-	}
-
-	if min == max {
-		return min, nil
-	}
-
-	return max - min, nil
 }
 
 func IsIntInRandomizationRange[T int | int64 | int32 | uint | uint32 | uint64](value, rMin, rMax T) bool {
@@ -153,4 +130,30 @@ func Ceil[T int | int64 | int32 | uint | uint32 | uint64](n, ceiling T) T {
 		return n
 	}
 	return ceiling
+}
+
+func ClampInts[T int | int32 | int64](input []T, minValue, maxValue *T) []T {
+	if minValue == nil && maxValue == nil {
+		return input
+	}
+	filtered := []T{}
+	for _, num := range input {
+		if minValue != nil && num < *minValue {
+			continue
+		}
+
+		if maxValue != nil && num > *maxValue {
+			continue
+		}
+		filtered = append(filtered, num)
+	}
+	return filtered
+}
+
+func GenerateCryptoSeed() (int64, error) {
+	n, err := crypto.Int(crypto.Reader, big.NewInt(1<<62))
+	if err != nil {
+		return -1, err
+	}
+	return n.Int64(), nil
 }
