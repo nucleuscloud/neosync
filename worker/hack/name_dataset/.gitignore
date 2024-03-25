@@ -1,0 +1,4 @@
+./env/
+*.pkl
+*.txt
+!requirements.txt
