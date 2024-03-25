@@ -56,7 +56,6 @@ func main() {
 
 	filteredLines := []string{}
 
-	// lineMap := map[int][]string{}
 	for _, line := range lines {
 		trimmedLine := strings.TrimSpace(line)
 		if len(trimmedLine) == 0 || strings.ContainsAny(trimmedLine, " -_") {
@@ -67,8 +66,6 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		// length := len(line)
-		// lineMap[length] = append(lineMap[length], line)
 	}
 
 	// Close the slice declaration
@@ -83,12 +80,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
-	// lineIdxs := make([]int, 0, len(lineMap))
-	// for idx := range lineMap {
-	// 	lineIdxs = append(lineIdxs, idx)
-	// }
-	// sort.Ints(lineIdxs)
 
 	for _, idx := range sortedLengthIdxKeys {
 		subLines, ok := lengthIndicesMap[idx]
