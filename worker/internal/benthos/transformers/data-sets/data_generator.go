@@ -9,6 +9,16 @@ import (
 	"strings"
 )
 
+/*
+This script is used by go generate (see generators.go)
+For a given text file, it will output a generated go file that includes the following:
+ 1. a values string slice that is sorted by length, then alphabet.
+ 2. a map that is computed based on the values. Key: length, Value: two int tuple of the range in the values slice
+    where strings of that length can be found. If there are three values of length two, and two is the smallest string found,
+    the value in the map would be: 2: {0, 3}
+ 3. an int slice that is a sorted list of keys from the map. This is effectively a discrete, sorted slice of the
+    lengths that are available for generation
+*/
 func main() {
 	args := os.Args
 	if len(args) < 4 {

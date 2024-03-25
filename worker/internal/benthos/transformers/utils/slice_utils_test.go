@@ -21,24 +21,6 @@ func Test_GetRandomValueFromSliceNonEmptySlice(t *testing.T) {
 	assert.Contains(t, arr, res, "Expected the response to be included in the input array")
 }
 
-func Test_IntArryToStringArr(t *testing.T) {
-	val := []int64{1, 2, 3, 4}
-
-	res := IntSliceToStringSlice(val)
-
-	assert.IsType(t, res, []string{})
-	assert.Equal(t, len(res), len(val), "The slices should be the same length")
-}
-
-func Test_IntArryToStringArrEmptySlice(t *testing.T) {
-	val := []int64{}
-
-	res := IntSliceToStringSlice(val)
-
-	assert.IsType(t, res, []string{})
-	assert.Equal(t, len(res), len(val), "The slices should be the same length")
-}
-
 func Test_FindClosestPair(t *testing.T) {
 	type testcase struct {
 		slice1    []int64

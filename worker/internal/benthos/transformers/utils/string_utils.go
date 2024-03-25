@@ -205,9 +205,11 @@ func GetRandomCharacterString(randomizer *rand.Rand, size int64) string {
 	return string(stringBuilder)
 }
 
-// For the given map and list of keys along with bounds, will generate a random value from the corpus
-// stringMap is expected to be in the format of key: size, value: values of size
-// sizeIndices is expected to be a slice of the stringMap, preferably sorted
+// Generates a random string from the values corpus
+// The lengthMap and mapKeys must be derivative of values.
+// See the pre-generated values in the data-sets folder
+// Eventually this will be abstracted into a Corpus struct for better readability.
+// The expectation is the values, lengthMap, and mapKeys are all in their optimal, sorted form.
 func GenerateStringFromCorpus(
 	randomizer *rand.Rand,
 	values []string,

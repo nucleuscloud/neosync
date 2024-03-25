@@ -4,7 +4,6 @@ import (
 	"errors"
 	"math"
 	"math/rand"
-	"strconv"
 )
 
 const alphanumeric = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
@@ -22,21 +21,6 @@ func GetRandomValueFromSlice[T any](arr []T) (T, error) {
 	randomIndex := rand.Intn(len(arr))
 
 	return arr[randomIndex], nil
-}
-
-// converts a slice of int to a slice of strings
-func IntSliceToStringSlice(ints []int64) []string {
-	var str []string
-
-	if len(ints) == 0 {
-		return []string{}
-	}
-
-	for i := range ints {
-		str = append(str, strconv.Itoa((i)))
-	}
-
-	return str
 }
 
 // Given two sorted slices and a max value, returns the index from each slice that when summing their values,
