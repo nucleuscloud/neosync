@@ -21,7 +21,7 @@ func init() {
 		Param(bloblang.NewAnyParam("excluded_domains").Default([]any{})).
 		Param(bloblang.NewInt64Param("max_length").Default(10000)).
 		Param(bloblang.NewInt64Param("seed").Optional()).
-		Param(bloblang.NewStringParam("email_type").Default("uuidv4"))
+		Param(bloblang.NewStringParam("email_type").Default(fullNameEmailType))
 
 	err := bloblang.RegisterFunctionV2("transform_email", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		emailPtr, err := args.GetOptionalString("email")
