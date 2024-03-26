@@ -77,13 +77,13 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
             </Button>
           </div>
           <Table className="pt-5">
-            <TableHeader className="bg-gray-100 dark:bg-gray-800 ">
+            <TableHeader className="bg-gray-100 dark:bg-gray-800">
               <TableRow>
-                <TableHead className="pl-6">Run Id</TableHead>
-                <TableHead>Start At</TableHead>
-                <TableHead>Completed At</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Action</TableHead>
+                <TableHead className="px-2">Run Id</TableHead>
+                <TableHead className="px-2">Start At</TableHead>
+                <TableHead className="px-2">Completed At</TableHead>
+                <TableHead className="px-2">Status</TableHead>
+                <TableHead className="px-2">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -91,7 +91,7 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
                 const jobRun = jobRunsIdMap.get(r.jobRunId);
                 return (
                   <TableRow key={r.jobRunId}>
-                    <TableCell className="pl-6">
+                    <TableCell>
                       {jobRun ? (
                         <Link
                           className="hover:underline"
