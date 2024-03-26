@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
+import { Message, proto3, Timestamp } from "@bufbuild/protobuf";
 
 /**
  * @generated from message mgmt.v1alpha1.GetConnectionsRequest
@@ -452,9 +452,9 @@ export class CheckConnectionConfigResponse extends Message<CheckConnectionConfig
   connectionError?: string;
 
   /**
-   * @generated from field: repeated mgmt.v1alpha1.ConnectionConfigStatistics statistics = 3;
+   * @generated from field: repeated mgmt.v1alpha1.ConnectionRolePrivileges privileges = 3;
    */
-  statistics: ConnectionConfigStatistics[] = [];
+  privileges: ConnectionRolePrivileges[] = [];
 
   constructor(data?: PartialMessage<CheckConnectionConfigResponse>) {
     super();
@@ -466,7 +466,7 @@ export class CheckConnectionConfigResponse extends Message<CheckConnectionConfig
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "is_connected", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 2, name: "connection_error", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 3, name: "statistics", kind: "message", T: ConnectionConfigStatistics, repeated: true },
+    { no: 3, name: "privileges", kind: "message", T: ConnectionRolePrivileges, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CheckConnectionConfigResponse {
@@ -487,45 +487,65 @@ export class CheckConnectionConfigResponse extends Message<CheckConnectionConfig
 }
 
 /**
- * @generated from message mgmt.v1alpha1.ConnectionConfigStatistics
+ * @generated from message mgmt.v1alpha1.ConnectionRolePrivileges
  */
-export class ConnectionConfigStatistics extends Message<ConnectionConfigStatistics> {
+export class ConnectionRolePrivileges extends Message<ConnectionRolePrivileges> {
   /**
-   * @generated from field: string schema = 1;
+   * The role that was given the permissions
+   *
+   * @generated from field: string grantee = 1;
+   */
+  grantee = "";
+
+  /**
+   * The database schema. Ex: public
+   *
+   * @generated from field: string schema = 2;
    */
   schema = "";
 
   /**
-   * @generated from field: int64 table_count = 2;
+   * The name of the table in the schema
+   *
+   * @generated from field: string table = 3;
    */
-  tableCount = protoInt64.zero;
+  table = "";
 
-  constructor(data?: PartialMessage<ConnectionConfigStatistics>) {
+  /**
+   * The privileges given to that role
+   *
+   * @generated from field: repeated string privilege_type = 4;
+   */
+  privilegeType: string[] = [];
+
+  constructor(data?: PartialMessage<ConnectionRolePrivileges>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.ConnectionConfigStatistics";
+  static readonly typeName = "mgmt.v1alpha1.ConnectionRolePrivileges";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "table_count", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 1, name: "grantee", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "privilege_type", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectionConfigStatistics {
-    return new ConnectionConfigStatistics().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectionRolePrivileges {
+    return new ConnectionRolePrivileges().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ConnectionConfigStatistics {
-    return new ConnectionConfigStatistics().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ConnectionRolePrivileges {
+    return new ConnectionRolePrivileges().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ConnectionConfigStatistics {
-    return new ConnectionConfigStatistics().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ConnectionRolePrivileges {
+    return new ConnectionRolePrivileges().fromJsonString(jsonString, options);
   }
 
-  static equals(a: ConnectionConfigStatistics | PlainMessage<ConnectionConfigStatistics> | undefined, b: ConnectionConfigStatistics | PlainMessage<ConnectionConfigStatistics> | undefined): boolean {
-    return proto3.util.equals(ConnectionConfigStatistics, a, b);
+  static equals(a: ConnectionRolePrivileges | PlainMessage<ConnectionRolePrivileges> | undefined, b: ConnectionRolePrivileges | PlainMessage<ConnectionRolePrivileges> | undefined): boolean {
+    return proto3.util.equals(ConnectionRolePrivileges, a, b);
   }
 }
 

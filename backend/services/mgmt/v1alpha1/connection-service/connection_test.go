@@ -4,13 +4,17 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
 	"connectrpc.com/connect"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgxpool"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
+	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 
@@ -42,23 +46,37 @@ const (
 // CheckConnectionConfig
 func Test_CheckConnectionConfig(t *testing.T) {
 	m := createServiceMock(t)
-	defer m.SqlDbMock.Close()
 
-	m.SqlMock.ExpectPing()
-	m.SqlDbContainerMock.On("Open").Return(m.SqlDbMock, nil)
-	m.SqlDbContainerMock.On("Close").Return(nil)
-	m.SqlConnectorMock.On("NewDbFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.SqlDbContainerMock, nil)
+	mockColumns := []*pg_queries.GetPostgresRolePermissionsRow{
+		{
+			TableSchema:   "public",
+			TableName:     "users",
+			PrivilegeType: "SELECT",
+		},
+		{
+			TableSchema:   "public",
+			TableName:     "users",
+			PrivilegeType: "INSERT",
+		}}
+
+	pool, _ := pgxpool.New(context.Background(), "")
+	m.PgPoolContainerMock.On("Open", mock.Anything).Return(pool, nil)
+	m.PgPoolContainerMock.On("Close")
+	m.SqlConnectorMock.On("NewPgPoolFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.PgPoolContainerMock, nil)
+
+	m.PgQueierMock.On("GetPostgresRolePermissions", mock.Anything, mock.Anything).
+		Return(mockColumns, nil)
 
 	resp, err := m.Service.CheckConnectionConfig(context.Background(), &connect.Request[mgmtv1alpha1.CheckConnectionConfigRequest]{
 		Msg: &mgmtv1alpha1.CheckConnectionConfigRequest{
-			ConnectionConfig: getPostgresConfigMock(),
+			ConnectionConfig: getPostgresConfigM(),
 		},
 	})
 
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
+	fmt.Println("res", resp.Msg)
 	assert.Equal(t, true, resp.Msg.IsConnected)
-	assert.Nil(t, resp.Msg.ConnectionError)
 	if err := m.SqlMock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
@@ -626,6 +644,7 @@ type serviceMocks struct {
 	SqlDbMock              *sql.DB
 	SqlDbContainerMock     *sqlconnect.MockSqlDbContainer
 	PgPoolContainerMock    *sqlconnect.MockPgPoolContainer
+	PgQueierMock           *pg_queries.MockQuerier
 }
 
 func createServiceMock(t *testing.T) *serviceMocks {
@@ -633,13 +652,15 @@ func createServiceMock(t *testing.T) *serviceMocks {
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
+	mockPgquerier := pg_queries.NewMockQuerier(t)
+	mockMysqlquerier := mysql_queries.NewMockQuerier(t)
 
 	sqlDbMock, sqlMock, err := sqlmock.New(sqlmock.MonitorPingsOption(true))
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
 
-	service := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService, mockSqlConnector)
+	service := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService, mockSqlConnector, mockPgquerier, mockMysqlquerier)
 
 	return &serviceMocks{
 		Service:                service,

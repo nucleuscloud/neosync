@@ -324,3 +324,26 @@ func GetMysqlTableUniqueConstraints(
 	}
 	return pkMap
 }
+
+func GetMysqlRolePermissions(mysqlquerier mysql_queries.Querier,
+	ctx context.Context,
+	conn mysql_queries.DBTX,
+	role string,
+) ([]*mysql_queries.GetMysqlRolePermissionsRow, error) {
+
+	rows, err := mysqlquerier.GetMysqlRolePermissions(ctx, conn, role)
+	if err != nil {
+		return nil, err
+	}
+
+	output := []*mysql_queries.GetMysqlRolePermissionsRow{}
+	for _, row := range rows {
+		output = append(output, &mysql_queries.GetMysqlRolePermissionsRow{
+			TableSchema:   row.TableSchema,
+			TableName:     row.TableName,
+			PrivilegeType: row.PrivilegeType,
+			Grantee:       row.Grantee,
+		})
+	}
+	return output, nil
+}

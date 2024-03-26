@@ -4,128 +4,155 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/url"
+	"strings"
 	"time"
 
 	"connectrpc.com/connect"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
+	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
+	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/postgres"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 )
+
+/*
+TODO:
+2. do manual testing on the permissions (mysql):
+  a. create user that has no access to a schema and validate - the connection should connect but no read/write to tables
+  b. check what happens when db schema doens't exist - for ex. maybe they want to create it later
+  c. create role that has some read/write privileges to some tables but not all
+  d. create role that has access to one schema but not another
+3. update docs for all of this
+4. update back end tests
+5. persist permissions in a separate tab (stretch)
+7. handle root user - since root user has access to everything, update to return checks if user is root
+*/
 
 func (s *Service) CheckConnectionConfig(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.CheckConnectionConfigRequest],
 ) (*connect.Response[mgmtv1alpha1.CheckConnectionConfigResponse], error) {
+
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	connectionTimeout := uint32(5)
-	conn, err := s.sqlConnector.NewDbFromConnectionConfig(req.Msg.ConnectionConfig, &connectionTimeout, logger)
-	if err != nil {
-		return nil, err
-	}
-
-	db, err := conn.Open()
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		if err := conn.Close(); err != nil {
-			logger.Error(fmt.Errorf("failed to close database connection: %w", err).Error())
-		}
-	}()
-
-	cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	defer cancel()
-	err = db.PingContext(cctx)
-	if err != nil {
-		return nil, err
-	}
-
-	// queries the database to see if we can see the schemas and tables
-	// note that schemas with no tables will not appear in this query
-	pgQuery := `
-  SELECT 
-	schemaname, 
-	COUNT(*) AS number_of_tables
-  FROM 
-	pg_catalog.pg_tables
-  WHERE
-	schemaname NOT IN ('pg_catalog', 'information_schema')
-  GROUP BY schemaname;
-	`
-	// note that schemas with no tables will not appear in this query
-	mysqlQuery := `
-SELECT 
-    TABLE_SCHEMA AS schema_name,
-    COUNT(*) AS number_of_tables
-FROM 
-    information_schema.tables 
-WHERE 
-    TABLE_SCHEMA NOT IN ('information_schema', 'mysql', 'performance_schema', 'sys')
-GROUP BY 
-    TABLE_SCHEMA
-ORDER BY 
-    number_of_tables DESC;
-`
-
-	var rows *sql.Rows
-	var hasRows bool // used to check if there are rows returned from the db
 
 	switch req.Msg.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		rows, err = db.QueryContext(cctx, pgQuery)
-	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		rows, err = db.QueryContext(cctx, mysqlQuery)
-	}
 
-	if err != nil {
-		errorMsg := err.Error()
-		return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
-			IsConnected:     false,
-			ConnectionError: &errorMsg,
-			Statistics:      nil,
-		}), nil
-	}
-	defer rows.Close()
+		var pgDbPrivilegeRows []*pg_queries.GetPostgresRolePermissionsRow
+		var role string
+		var privs []*mgmtv1alpha1.ConnectionRolePrivileges
+		schemaTablePrivsMap := make(map[string][]string)
 
-	var schemaInfo []*mgmtv1alpha1.ConnectionConfigStatistics
-	for rows.Next() {
-		hasRows = true
-		var schemaName string
-		var tableCount int64
-		if err := rows.Scan(&schemaName, &tableCount); err != nil {
+		conn, err := s.sqlConnector.NewPgPoolFromConnectionConfig(req.Msg.GetConnectionConfig().GetPgConfig(), &connectionTimeout, logger)
+
+		if err != nil {
 			return nil, err
 		}
-		schemaInfo = append(schemaInfo, &mgmtv1alpha1.ConnectionConfigStatistics{Schema: schemaName, TableCount: tableCount})
-	}
 
-	if err := rows.Err(); err != nil {
-		errorMsg := err.Error()
+		db, err := conn.Open(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		defer conn.Close()
+
+		cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cancel()
+		if err != nil {
+			return nil, err
+		}
+
+		switch config := req.Msg.ConnectionConfig.GetPgConfig().ConnectionConfig.(type) {
+		case *mgmtv1alpha1.PostgresConnectionConfig_Connection:
+			role = config.Connection.User
+		case *mgmtv1alpha1.PostgresConnectionConfig_Url:
+			u, err := url.Parse(config.Url)
+			if err != nil {
+				return nil, err
+			}
+			role = u.User.Username()
+		}
+
+		pgDbPrivilegeRows, err = dbschemas_postgres.GetPostgresRolePermissions(s.pgquerier, cctx, db, role)
+		if err != nil {
+			errorMsg := err.Error()
+			return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
+				IsConnected:     false,
+				ConnectionError: &errorMsg,
+				Privileges:      nil,
+			}), nil
+		}
+
+		fmt.Println("pg", pgDbPrivilegeRows[0])
+
+		for _, v := range pgDbPrivilegeRows {
+			key := fmt.Sprintf("%s.%s", v.TableSchema, v.TableName)
+			schemaTablePrivsMap[key] = append(schemaTablePrivsMap[key], v.PrivilegeType)
+		}
+
+		for key, privSlice := range schemaTablePrivsMap {
+
+			parts := strings.SplitN(key, ".", 2)
+			schema, table := parts[0], parts[1]
+
+			privs = append(privs, &mgmtv1alpha1.ConnectionRolePrivileges{
+				Grantee:       role,
+				Schema:        schema,
+				Table:         table,
+				PrivilegeType: privSlice,
+			})
+		}
+
+		return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
+			IsConnected:     true,
+			ConnectionError: nil,
+			Privileges:      privs,
+		}), nil
+
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+
+		conn, err := s.sqlConnector.NewDbFromConnectionConfig(req.Msg.ConnectionConfig, &connectionTimeout, logger)
+		if err != nil {
+			return nil, err
+		}
+		defer conn.Close()
+
+		db, err := conn.Open()
+		if err != nil {
+			return nil, err
+		}
+
+		cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cancel()
+		if err != nil {
+			return nil, err
+		}
+
+		err = db.PingContext(cctx)
+		if err != nil {
+			msg := err.Error()
+			return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
+				IsConnected:     false,
+				ConnectionError: &msg,
+			}), nil
+		}
+		return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
+			IsConnected:     true,
+			ConnectionError: nil,
+		}), nil
+	default:
 		return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
 			IsConnected:     false,
-			ConnectionError: &errorMsg,
-			Statistics:      nil,
+			ConnectionError: nil,
 		}), nil
 	}
 
-	noRowsMessage := "Unable to find any schema(s) in the database"
-
-	if !hasRows {
-		return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
-			IsConnected:     false,
-			ConnectionError: &noRowsMessage,
-			Statistics:      nil,
-		}), nil
-	}
-
-	return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
-		IsConnected:     true,
-		ConnectionError: nil,
-		Statistics:      schemaInfo,
-	}), nil
 }
 
 func (s *Service) IsConnectionNameAvailable(

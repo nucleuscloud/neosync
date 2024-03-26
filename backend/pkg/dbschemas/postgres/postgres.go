@@ -375,3 +375,25 @@ func GetPostgresTableUniqueConstraints(
 	}
 	return pkMap
 }
+
+func GetPostgresRolePermissions(pgquerier pg_queries.Querier,
+	ctx context.Context,
+	conn pg_queries.DBTX,
+	role string,
+) ([]*pg_queries.GetPostgresRolePermissionsRow, error) {
+
+	rows, err := pgquerier.GetPostgresRolePermissions(ctx, conn, role)
+	if err != nil {
+		return nil, err
+	}
+
+	output := []*pg_queries.GetPostgresRolePermissionsRow{}
+	for _, row := range rows {
+		output = append(output, &pg_queries.GetPostgresRolePermissionsRow{
+			TableSchema:   row.TableSchema,
+			TableName:     row.TableName,
+			PrivilegeType: row.PrivilegeType,
+		})
+	}
+	return output, nil
+}

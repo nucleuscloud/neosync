@@ -1404,7 +1404,7 @@ func (m *CheckConnectionConfigResponse) validate(all bool) error {
 
 	// no validation rules for IsConnected
 
-	for idx, item := range m.GetStatistics() {
+	for idx, item := range m.GetPrivileges() {
 		_, _ = idx, item
 
 		if all {
@@ -1412,7 +1412,7 @@ func (m *CheckConnectionConfigResponse) validate(all bool) error {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, CheckConnectionConfigResponseValidationError{
-						field:  fmt.Sprintf("Statistics[%v]", idx),
+						field:  fmt.Sprintf("Privileges[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -1420,7 +1420,7 @@ func (m *CheckConnectionConfigResponse) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, CheckConnectionConfigResponseValidationError{
-						field:  fmt.Sprintf("Statistics[%v]", idx),
+						field:  fmt.Sprintf("Privileges[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -1429,7 +1429,7 @@ func (m *CheckConnectionConfigResponse) validate(all bool) error {
 		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return CheckConnectionConfigResponseValidationError{
-					field:  fmt.Sprintf("Statistics[%v]", idx),
+					field:  fmt.Sprintf("Privileges[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -1523,46 +1523,48 @@ var _ interface {
 	ErrorName() string
 } = CheckConnectionConfigResponseValidationError{}
 
-// Validate checks the field values on ConnectionConfigStatistics with the
-// rules defined in the proto definition for this message. If any rules are
+// Validate checks the field values on ConnectionRolePrivileges with the rules
+// defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *ConnectionConfigStatistics) Validate() error {
+func (m *ConnectionRolePrivileges) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on ConnectionConfigStatistics with the
+// ValidateAll checks the field values on ConnectionRolePrivileges with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// ConnectionConfigStatisticsMultiError, or nil if none found.
-func (m *ConnectionConfigStatistics) ValidateAll() error {
+// ConnectionRolePrivilegesMultiError, or nil if none found.
+func (m *ConnectionRolePrivileges) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *ConnectionConfigStatistics) validate(all bool) error {
+func (m *ConnectionRolePrivileges) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
 	var errors []error
 
+	// no validation rules for Grantee
+
 	// no validation rules for Schema
 
-	// no validation rules for TableCount
+	// no validation rules for Table
 
 	if len(errors) > 0 {
-		return ConnectionConfigStatisticsMultiError(errors)
+		return ConnectionRolePrivilegesMultiError(errors)
 	}
 
 	return nil
 }
 
-// ConnectionConfigStatisticsMultiError is an error wrapping multiple
-// validation errors returned by ConnectionConfigStatistics.ValidateAll() if
-// the designated constraints aren't met.
-type ConnectionConfigStatisticsMultiError []error
+// ConnectionRolePrivilegesMultiError is an error wrapping multiple validation
+// errors returned by ConnectionRolePrivileges.ValidateAll() if the designated
+// constraints aren't met.
+type ConnectionRolePrivilegesMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m ConnectionConfigStatisticsMultiError) Error() string {
+func (m ConnectionRolePrivilegesMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -1571,11 +1573,11 @@ func (m ConnectionConfigStatisticsMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m ConnectionConfigStatisticsMultiError) AllErrors() []error { return m }
+func (m ConnectionRolePrivilegesMultiError) AllErrors() []error { return m }
 
-// ConnectionConfigStatisticsValidationError is the validation error returned
-// by ConnectionConfigStatistics.Validate if the designated constraints aren't met.
-type ConnectionConfigStatisticsValidationError struct {
+// ConnectionRolePrivilegesValidationError is the validation error returned by
+// ConnectionRolePrivileges.Validate if the designated constraints aren't met.
+type ConnectionRolePrivilegesValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -1583,24 +1585,24 @@ type ConnectionConfigStatisticsValidationError struct {
 }
 
 // Field function returns field value.
-func (e ConnectionConfigStatisticsValidationError) Field() string { return e.field }
+func (e ConnectionRolePrivilegesValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e ConnectionConfigStatisticsValidationError) Reason() string { return e.reason }
+func (e ConnectionRolePrivilegesValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e ConnectionConfigStatisticsValidationError) Cause() error { return e.cause }
+func (e ConnectionRolePrivilegesValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e ConnectionConfigStatisticsValidationError) Key() bool { return e.key }
+func (e ConnectionRolePrivilegesValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e ConnectionConfigStatisticsValidationError) ErrorName() string {
-	return "ConnectionConfigStatisticsValidationError"
+func (e ConnectionRolePrivilegesValidationError) ErrorName() string {
+	return "ConnectionRolePrivilegesValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e ConnectionConfigStatisticsValidationError) Error() string {
+func (e ConnectionRolePrivilegesValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -1612,14 +1614,14 @@ func (e ConnectionConfigStatisticsValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sConnectionConfigStatistics.%s: %s%s",
+		"invalid %sConnectionRolePrivileges.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = ConnectionConfigStatisticsValidationError{}
+var _ error = ConnectionRolePrivilegesValidationError{}
 
 var _ interface {
 	Field() string
@@ -1627,7 +1629,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = ConnectionConfigStatisticsValidationError{}
+} = ConnectionRolePrivilegesValidationError{}
 
 // Validate checks the field values on Connection with the rules defined in the
 // proto definition for this message. If any rules are violated, the first

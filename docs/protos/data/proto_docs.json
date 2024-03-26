@@ -1194,12 +1194,12 @@
               "defaultValue": ""
             },
             {
-              "name": "statistics",
+              "name": "privileges",
               "description": "",
               "label": "repeated",
-              "type": "ConnectionConfigStatistics",
-              "longType": "ConnectionConfigStatistics",
-              "fullType": "mgmt.v1alpha1.ConnectionConfigStatistics",
+              "type": "ConnectionRolePrivileges",
+              "longType": "ConnectionRolePrivileges",
+              "fullType": "mgmt.v1alpha1.ConnectionRolePrivileges",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -1448,9 +1448,9 @@
           ]
         },
         {
-          "name": "ConnectionConfigStatistics",
-          "longName": "ConnectionConfigStatistics",
-          "fullName": "mgmt.v1alpha1.ConnectionConfigStatistics",
+          "name": "ConnectionRolePrivileges",
+          "longName": "ConnectionRolePrivileges",
+          "fullName": "mgmt.v1alpha1.ConnectionRolePrivileges",
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
@@ -1458,8 +1458,8 @@
           "extensions": [],
           "fields": [
             {
-              "name": "schema",
-              "description": "",
+              "name": "grantee",
+              "description": "The role that was given the permissions",
               "label": "",
               "type": "string",
               "longType": "string",
@@ -1470,12 +1470,36 @@
               "defaultValue": ""
             },
             {
-              "name": "table_count",
-              "description": "",
+              "name": "schema",
+              "description": "The database schema. Ex: public",
               "label": "",
-              "type": "int64",
-              "longType": "int64",
-              "fullType": "int64",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "table",
+              "description": "The name of the table in the schema",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "privilege_type",
+              "description": "The privileges given to that role",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
