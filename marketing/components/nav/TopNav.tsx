@@ -35,17 +35,7 @@ import { FaDiscord } from 'react-icons/fa';
 import { GiHamburgerMenu } from 'react-icons/gi';
 import { GoShieldCheck } from 'react-icons/go';
 import { IoTerminalOutline } from 'react-icons/io5';
-import PrivateBetaButton from '../buttons/GetADemo';
-import SignupForm from '../buttons/SignupForm';
 import { Button } from '../ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '../ui/dialog';
 
 interface NavLinks {
   title: string;
@@ -128,6 +118,7 @@ const links: NavLinks[] = [
 ];
 
 export default function TopNav(): ReactElement {
+  const router = useRouter();
   return (
     <div className="flex items-center justify-between px-5 sm:px-10 md:px-20 lg:px-60  mx-auto py-2 z-50 w-full bg-[#FFFFFF] border-b border-b-gray-300 sticky top-0 backdrop-blur-lg">
       <div>
@@ -188,45 +179,19 @@ export default function TopNav(): ReactElement {
             )}
           </NavigationMenuList>
         </NavigationMenu>
-        <div>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button
-                variant="default"
-                className="px-4 rounded-full h-8 min-w-[118px] "
-                onClick={() =>
-                  posthog.capture('user click', {
-                    page: 'nav bar sign up button',
-                  })
-                }
-              >
-                Sign up <ArrowRightIcon className="ml-2 h-4 w-4" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-lg bg-white  p-6 shadow-xl">
-              <DialogHeader>
-                <div className="flex justify-center pt-10">
-                  <Image
-                    src="https://assets.nucleuscloud.com/neosync/newbrand/logo_text_light_mode.svg"
-                    alt="NeosyncLogo"
-                    width="118"
-                    height="30"
-                  />
-                </div>
-                <DialogTitle className="text-gray-900 text-2xl text-center pt-10">
-                  Get access to Neosync Cloud
-                </DialogTitle>
-                <DialogDescription className="pt-6 text-gray-900 text-md text-center">
-                  Want to use Neosync but don&apos;t want to host it yourself?
-                  Let&apos;s chat.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="flex items-center space-x-2">
-                <SignupForm />
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+        <Link href="https://app.neosync.dev" target="_blank">
+          <Button
+            variant="default"
+            className="px-4 rounded-full h-8 min-w-[118px] "
+            onClick={() =>
+              posthog.capture('user click', {
+                page: 'top nav app sign up',
+              })
+            }
+          >
+            Sign up <ArrowRightIcon className="ml-2 h-4 w-4" />
+          </Button>
+        </Link>
       </div>
       <MobileMenu />
     </div>
@@ -285,7 +250,19 @@ function MobileMenu(): ReactElement {
               )
             )}
             <div className="flex justify-center">
-              <PrivateBetaButton />
+              <Link href="https://app.neosync.dev" target="_blank">
+                <Button
+                  className="px-6 w-[188px] ml-10"
+                  variant="secondary"
+                  onClick={() =>
+                    posthog.capture('user click', {
+                      page: 'deployment options app sign up',
+                    })
+                  }
+                >
+                  Get Started Now <ArrowRightIcon className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
             </div>
           </MenubarContent>
         </MenubarMenu>
