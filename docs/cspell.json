@@ -71,7 +71,8 @@
     "hmato",
     "didlenfioq",
     "Hjiqs",
-    "Praji"
+    "Praji",
+    "Supabase"
   ],
   "flagWords": ["hte"],
   "files": ["blog/**/*.md*", "docs/**/*.md*"],
