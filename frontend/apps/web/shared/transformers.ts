@@ -2,16 +2,6 @@ import { SystemTransformer, UserDefinedTransformer } from '@neosync/sdk';
 
 export type Transformer = SystemTransformer | UserDefinedTransformer;
 
-/**
- * combines both transformer types into a single Transformer interface
- */
-export function joinTransformers(
-  system: SystemTransformer[],
-  custom: UserDefinedTransformer[]
-): Transformer[] {
-  return [...system, ...custom];
-}
-
 export function isUserDefinedTransformer(
   transformer: Transformer
 ): transformer is UserDefinedTransformer {

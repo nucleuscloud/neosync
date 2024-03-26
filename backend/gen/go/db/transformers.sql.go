@@ -96,7 +96,7 @@ const getUserDefinedTransformersByAccount = `-- name: GetUserDefinedTransformers
 SELECT t.id, t.created_at, t.updated_at, t.name, t.description, t.type, t.source, t.account_id, t.transformer_config, t.created_by_id, t.updated_by_id from neosync_api.transformers t
 INNER JOIN neosync_api.accounts a ON a.id = t.account_id
 WHERE a.id = $1
-ORDER BY t.created_at DESC
+ORDER BY t.name ASC
 `
 
 func (q *Queries) GetUserDefinedTransformersByAccount(ctx context.Context, db DBTX, accountid pgtype.UUID) ([]NeosyncApiTransformer, error) {
@@ -151,7 +151,7 @@ func (q *Queries) IsTransformerNameAvailable(ctx context.Context, db DBTX, arg I
 
 const updateUserDefinedTransformer = `-- name: UpdateUserDefinedTransformer :one
 UPDATE neosync_api.transformers
-SET 
+SET
   name = $1,
   description = $2,
   transformer_config = $3,

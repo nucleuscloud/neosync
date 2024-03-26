@@ -2,7 +2,7 @@
 SELECT t.* from neosync_api.transformers t
 INNER JOIN neosync_api.accounts a ON a.id = t.account_id
 WHERE a.id = sqlc.arg('accountId')
-ORDER BY t.created_at DESC;
+ORDER BY t.name ASC;
 
 -- name: GetUserDefinedTransformerById :one
 SELECT * from neosync_api.transformers WHERE id = $1;
@@ -21,7 +21,7 @@ DELETE FROM neosync_api.transformers WHERE id = $1;
 
 -- name: UpdateUserDefinedTransformer :one
 UPDATE neosync_api.transformers
-SET 
+SET
   name = $1,
   description = $2,
   transformer_config = $3,
