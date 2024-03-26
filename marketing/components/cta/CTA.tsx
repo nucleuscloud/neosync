@@ -1,19 +1,10 @@
 'use client';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
 import { GitHubLogoIcon } from '@radix-ui/react-icons';
 import { ArrowRightIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import posthog from 'posthog-js';
 import { ReactElement } from 'react';
-import SignupForm from '../buttons/SignupForm';
 import { Button } from '../ui/button';
 
 export default function CTA(): ReactElement {
@@ -29,45 +20,19 @@ export default function CTA(): ReactElement {
             using a Helm chart or Docker Componse file.
           </div>
           <div className="flex flex-col lg:flex-row items-center gap-6">
-            <div>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="default"
-                    className="w-[188px]"
-                    onClick={() =>
-                      posthog.capture('user click', {
-                        page: 'cta neosync cloud button',
-                      })
-                    }
-                  >
-                    Neosync Cloud <ArrowRightIcon className="ml-2 h-5 w-8 " />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-lg bg-white p-6 shadow-xl">
-                  <DialogHeader>
-                    <div className="flex justify-center pt-10">
-                      <Image
-                        src="https://assets.nucleuscloud.com/neosync/newbrand/logo_text_light_mode.svg"
-                        alt="NeosyncLogo"
-                        width="118"
-                        height="30"
-                      />
-                    </div>
-                    <DialogTitle className="text-gray-900 text-2xl text-center pt-10">
-                      Get access to Neosync Cloud
-                    </DialogTitle>
-                    <DialogDescription className="pt-6 text-gray-900 text-md text-center">
-                      Want to use Neosync but don&apos;t want to host it
-                      yourself? Let&apos;s chat.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="flex items-center space-x-2">
-                    <SignupForm />
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
+            <Link href="https://app.neosync.dev" target="_blank">
+              <Button
+                variant="default"
+                className="px-6 w-[188px]"
+                onClick={() =>
+                  posthog.capture('user click', {
+                    page: 'cta app sign up',
+                  })
+                }
+              >
+                Neosync Cloud <ArrowRightIcon className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
             <Button
               className="px-6 w-[188px]"
               variant="secondary"
