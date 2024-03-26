@@ -48,31 +48,11 @@ func Test_CheckConnectionConfig_Postgres(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	mockConnectionId := "884765c6-1708-488d-b03a-70a02b12c81e"
-
 	pool, _ := pgxpool.New(context.Background(), "")
 	m.PgPoolContainerMock.On("Open", mock.Anything).Return(pool, nil)
 	m.PgPoolContainerMock.On("Close")
 	m.SqlConnectorMock.On("NewPgPoolFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.PgPoolContainerMock, nil)
-	connection := getConnectionMockAsConnection(mockAccountId, mockConnectionName, mockConnectionId, PostgresMock)
-	mockIsUserInAccount(m.UserAccountServiceMock, true)
-	m.ConnectionServiceMock.On("GetConnection", mock.Anything, mock.Anything).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		Connection: connection,
-	}), nil)
 
-	m.PgQueierMock.On("GetDatabaseSchema", mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetDatabaseSchemaRow{
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "name",
-			},
-		}, nil)
 	m.PgQueierMock.On("GetPostgresRolePermissions", mock.Anything, mock.Anything, mock.Anything).
 		Return([]*pg_queries.GetPostgresRolePermissionsRow{
 			{
@@ -80,21 +60,22 @@ func Test_CheckConnectionConfig_Postgres(t *testing.T) {
 				TableName:     "Users",
 				PrivilegeType: "Insert",
 			},
+			{
+				TableSchema:   "Users",
+				TableName:     "Users",
+				PrivilegeType: "Delete",
+			},
 		}, nil)
 
-	resp, err := m.Service.GetConnectionForeignConstraints(context.Background(), &connect.Request[mgmtv1alpha1.GetConnectionForeignConstraintsRequest]{
-		Msg: &mgmtv1alpha1.GetConnectionForeignConstraintsRequest{
-			ConnectionId: mockConnectionId,
+	resp, err := m.Service.CheckConnectionConfig(context.Background(), &connect.Request[mgmtv1alpha1.CheckConnectionConfigRequest]{
+		Msg: &mgmtv1alpha1.CheckConnectionConfigRequest{
+			ConnectionConfig: getPostgresConfigMock(),
 		},
 	})
 
 	assert.Nil(t, err)
-	assert.Len(t, resp.Msg.TableConstraints, 1)
-	assert.EqualValues(t, map[string]*mgmtv1alpha1.ForeignConstraintTables{
-		"public.user_account_associations": {Constraints: []*mgmtv1alpha1.ForeignConstraint{
-			{Column: "user_id", IsNullable: false, ForeignKey: &mgmtv1alpha1.ForeignKey{Table: "public.users", Column: "id"}},
-		}},
-	}, resp.Msg.TableConstraints)
+	assert.NotNil(t, resp)
+	assert.Equal(t, 2, len(resp.Msg.Privileges[0].PrivilegeType), "There should be two privilege types for this connection")
 }
 
 func Test_CheckConnectionConfig_Mysql(t *testing.T) {
@@ -673,7 +654,6 @@ type serviceMocks struct {
 	Service                *Service
 	DbtxMock               *nucleusdb.MockDBTX
 	QuerierMock            *db_queries.MockQuerier
-	ConnectionServiceMock  *mgmtv1alpha1connect.MockConnectionServiceClient
 	UserAccountServiceMock *mgmtv1alpha1connect.MockUserAccountServiceClient
 	SqlConnectorMock       *sqlconnect.MockSqlConnector
 	SqlMock                sqlmock.Sqlmock
@@ -708,6 +688,7 @@ func createServiceMock(t *testing.T) *serviceMocks {
 		SqlDbMock:              sqlDbMock,
 		SqlDbContainerMock:     sqlconnect.NewMockSqlDbContainer(t),
 		PgPoolContainerMock:    sqlconnect.NewMockPgPoolContainer(t),
+		PgQueierMock:           mockPgquerier,
 	}
 }
 

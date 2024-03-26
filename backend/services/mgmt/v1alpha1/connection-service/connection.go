@@ -90,8 +90,6 @@ func (s *Service) CheckConnectionConfig(
 			}), nil
 		}
 
-		fmt.Println("pg", pgDbPrivilegeRows[0])
-
 		for _, v := range pgDbPrivilegeRows {
 			key := fmt.Sprintf("%s.%s", v.TableSchema, v.TableName)
 			schemaTablePrivsMap[key] = append(schemaTablePrivsMap[key], v.PrivilegeType)
