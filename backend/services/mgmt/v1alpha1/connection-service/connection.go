@@ -3,6 +3,7 @@ package v1alpha1_connectionservice
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -147,10 +148,9 @@ func (s *Service) CheckConnectionConfig(
 			ConnectionError: nil,
 		}), nil
 	default:
-		return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
-			IsConnected:     false,
-			ConnectionError: nil,
-		}), nil
+		msg := "ConnectionConfig type not implemented"
+		err := errors.New(msg)
+		return nil, err
 	}
 
 }
