@@ -38,7 +38,6 @@ func (s *Service) CheckConnectionConfig(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.CheckConnectionConfigRequest],
 ) (*connect.Response[mgmtv1alpha1.CheckConnectionConfigResponse], error) {
-
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	connectionTimeout := uint32(5)
 
@@ -96,7 +95,6 @@ func (s *Service) CheckConnectionConfig(
 		}
 
 		for key, privSlice := range schemaTablePrivsMap {
-
 			parts := strings.SplitN(key, ".", 2)
 			schema, table := parts[0], parts[1]
 
@@ -150,7 +148,6 @@ func (s *Service) CheckConnectionConfig(
 		err := errors.New(msg)
 		return nil, err
 	}
-
 }
 
 func (s *Service) IsConnectionNameAvailable(

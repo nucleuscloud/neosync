@@ -16,7 +16,6 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/nucleuscloud/neosync/backend/internal/apikey"
 	auth_apikey "github.com/nucleuscloud/neosync/backend/internal/auth/apikey"
@@ -757,56 +756,6 @@ func getConnectionMock(accountId, name string, id pgtype.UUID, connType ConnType
 			},
 		},
 	}
-}
-
-func getConnectionMockAsConnection(accountId, name string, id string, connType ConnTypeMock) *mgmtv1alpha1.Connection {
-	timestamp := timestamppb.New(time.Now())
-	connection := &mgmtv1alpha1.Connection{
-		AccountId:       accountId,
-		Name:            name,
-		Id:              id,
-		CreatedByUserId: mockUserId,
-		UpdatedByUserId: mockUserId,
-		CreatedAt:       timestamp,
-		UpdatedAt:       timestamp,
-	}
-	if connType == MysqlMock {
-		connection.ConnectionConfig = &mgmtv1alpha1.ConnectionConfig{
-			Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
-				MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
-					ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Connection{
-						Connection: &mgmtv1alpha1.MysqlConnection{
-							Host:     "host",
-							Port:     5432,
-							Name:     "database",
-							User:     "user",
-							Pass:     "topsecret",
-							Protocol: "tcp",
-						},
-					},
-				},
-			},
-		}
-	} else if connType == PostgresMock {
-		sslMode := "disable"
-		connection.ConnectionConfig = &mgmtv1alpha1.ConnectionConfig{
-			Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
-				PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
-					ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Connection{
-						Connection: &mgmtv1alpha1.PostgresConnection{
-							Host:    "host",
-							Port:    5432,
-							Name:    "database",
-							User:    "user",
-							Pass:    "topsecret",
-							SslMode: &sslMode,
-						},
-					},
-				},
-			},
-		}
-	}
-	return connection
 }
 
 func getPostgresConfigMock() *mgmtv1alpha1.ConnectionConfig {

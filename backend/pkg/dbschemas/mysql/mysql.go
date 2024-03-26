@@ -330,7 +330,6 @@ func GetMysqlRolePermissions(mysqlquerier mysql_queries.Querier,
 	conn mysql_queries.DBTX,
 	role string,
 ) ([]*mysql_queries.GetMysqlRolePermissionsRow, error) {
-
 	rows, err := mysqlquerier.GetMysqlRolePermissions(ctx, conn, role)
 	if err != nil {
 		return nil, err

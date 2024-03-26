@@ -381,7 +381,6 @@ func GetPostgresRolePermissions(pgquerier pg_queries.Querier,
 	conn pg_queries.DBTX,
 	role string,
 ) ([]*pg_queries.GetPostgresRolePermissionsRow, error) {
-
 	rows, err := pgquerier.GetPostgresRolePermissions(ctx, conn, role)
 	if err != nil {
 		return nil, err

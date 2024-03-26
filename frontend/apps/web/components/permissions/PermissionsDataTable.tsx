@@ -6,7 +6,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { JobMappingFormValues } from '@/yup-validations/jobs';
 import {
   ColumnDef,
   flexRender,
@@ -20,8 +19,6 @@ import {
 } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import React, { ReactElement } from 'react';
-
-export type Row = JobMappingFormValues;
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
