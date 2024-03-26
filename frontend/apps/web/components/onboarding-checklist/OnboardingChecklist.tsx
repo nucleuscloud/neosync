@@ -73,15 +73,6 @@ export default function OnboardingChecklist() {
           ? (({ hasInvitedMembers, ...rest }) => rest)(data.config)
           : data.config;
 
-      // check if any of the steps are false, if so, then surface the guide
-      if (
-        account?.type == UserAccountType.PERSONAL &&
-        !didUserCompleteOnboarding(updatedConfig)
-      ) {
-        setShowGuide(true);
-        setIsOpen(true);
-      }
-
       // construct the stepsArray so that we can map over it.
       const stepsArray = Object.entries(updatedConfig).map(([key, value]) => {
         return {
