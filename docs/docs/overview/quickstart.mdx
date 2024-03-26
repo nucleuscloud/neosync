@@ -15,7 +15,7 @@ Let's get started.
 
 ## Setting up Neon
 
-First, create a [Neon](https://neon.tech) account by clicking on **Sign up** and signing in with an email/password or oAuth provider of your choice.
+First, create a [Neon](https://neon.tech) account by clicking on **Sign up** and signing in with an email/password or OAuth provider of your choice.
 
 Once you're signed in, create a new project. If you don't have a Neon account then give your project and database a name and select a region like below:
 
@@ -23,7 +23,7 @@ Once you're signed in, create a new project. If you don't have a Neon account th
 
 Then, click on "Create Project". You'll be prompted with a pop-up containing the connection string to your newly created database. We'll come back to this later, so you can close this for now.
 
-Next, you'll defined need to define your database schema. For this demo, we'll just create one table.
+Next, you'll need to define your database schema. For this demo, we'll just create one table.
 
 On the left-hand menu, click on **SQL editor**. In the SQL editor code input box, click into the box and press **Command + A** on your keyboard to highlight all of the text, then click **Delete** to delete everything.
 
@@ -39,17 +39,19 @@ CREATE TABLE public.users (
 );
 ```
 
-You can do a quick sanity check by going to **Tables** and expanding the **Users** menu to check that the table and it's columns was successfully created.
+You can do a quick sanity check by going to **Tables** and expanding the **Users** menu to check that the table creation was successful.
 
 ![neon-created-tables](/img/neon-show-table.gif)
 
-Nice! Okay, last step for Neon. Let's get our connection string so we can connect to Neon from Neosync. We can find our connection string by going to **Dashboard** and then under the **Connection String** header, you can find your connection string. Click on the copy icon to copy it.
+Nice! Okay, last step for Neon. Let's get our connection string so we can connect to Neon from Neosync.
+We can find our connection string by going to **Dashboard**.
+The **Connection Details** section, under the **Connection String** sub-header, will be the connection string. Click on the copy icon to copy it to your computer's clipboard.
 
 ## Setting up Neosync
 
 Let's get started with Neosync. First, sign up for a [Neosync account](https://app.neosync.dev).
 
-Sign in with an email/password or Google oAuth. Once you're logged in, you'll be directed to the **Jobs** page.
+Sign in with an email/password or Google OAuth. Once you're logged in, you'll be directed to the **Jobs** page.
 
 Next, you'll want to create a connection to your Neon database and then create a Job to generate data. Let's get started.
 
@@ -114,13 +116,15 @@ For the age column, use the `Generate Random Int64` Transformer to randomly gene
 
 ![neosync-test](/img/update-age.gif)
 
-Now that we've configured everything, you can click on **Submit** and create the Job! We'll get routed to the Job page and the Job will start to run. After a few seconds, the **Status** will update to **Complete** in the **Recent Job Runs** table.
+Now that we've configured everything, you can click on **Submit** and create the Job! We'll get routed to the Job page and the Job will start to run.
+After a few seconds, the **Status** will update to **Complete** in the **Recent Job Runs** table.
+You may need to manually click the reload button next to the **Recent Job Runs** heading.
 
 ![neosync-test](/img/success-job.png)
 
 Success!
 
-Now we can head back over to Neon and check on our data. First let's check the count and make sure we generated 1000 rows.
+Now we can head back over to Neon and check on our data. First, let's check the count and make sure we generated 1000 rows.
 
 Click on **SQL Editor** on the left-hand menu and in the SQL editor code box, delete any existing queries and then copy and paste the following SQL query and click **Run**.
 
