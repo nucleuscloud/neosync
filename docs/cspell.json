@@ -72,10 +72,17 @@
     "didlenfioq",
     "Hjiqs",
     "Praji",
-    "Supabase"
+    "Supabase",
+    "quickstart",
+    "Quickstart"
   ],
-  "flagWords": ["hte"],
-  "files": ["blog/**/*.md*", "docs/**/*.md*"],
+  "flagWords": [
+    "hte"
+  ],
+  "files": [
+    "blog/**/*.md*",
+    "docs/**/*.md*"
+  ],
   "useGitignore": true,
   "dictionaries": [
     "en_US",
