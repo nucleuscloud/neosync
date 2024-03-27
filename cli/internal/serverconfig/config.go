@@ -1,7 +1,10 @@
 package serverconfig
 
-import "github.com/spf13/viper"
+import (
+	"github.com/spf13/viper"
+)
 
+// This variable is replaced at build time
 var defaultBaseUrl string = "http://localhost:8080"
 
 func GetApiBaseUrl() string {
