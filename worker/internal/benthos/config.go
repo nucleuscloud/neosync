@@ -164,6 +164,23 @@ type Outputs struct {
 	Resource        string                 `json:"resource,omitempty" yaml:"resource,omitempty"`
 	Fallback        []Outputs              `json:"fallback,omitempty" yaml:"fallback,omitempty"`
 	RedisHashOutput *RedisHashOutputConfig `json:"redis_hash_output,omitempty" yaml:"redis_hash_output,omitempty"`
+	Error           *ErrorOutputConfig     `json:"error,omitempty" yaml:"error,omitempty"`
+	Switch          *SwitchOutputConfig    `json:"switch,omitempty" yaml:"switch,omitempty"`
+}
+
+type SwitchOutputConfig struct {
+	RetryUntilSuccess bool               `json:"retry_until_success,omitempty" yaml:"retry_until_success,omitempty"`
+	StrictMode        bool               `json:"strict_mode,omitempty" yaml:"strict_mode,omitempty"`
+	Cases             []SwitchOutputCase `json:"cases,omitempty" yaml:"cases,omitempty"`
+}
+
+type SwitchOutputCase struct {
+	Check    string  `json:"check,omitempty" yaml:"check,omitempty"`
+	Continue bool    `json:"continue,omitempty" yaml:"continue,omitempty"`
+	Output   Outputs `json:"output,omitempty" yaml:"output,omitempty"`
+}
+type ErrorOutputConfig struct {
+	Batching *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
 }
 
 type RedisHashOutputConfig struct {
