@@ -137,7 +137,7 @@ func serve(ctx context.Context) error {
 		redisconfig,
 		getIsOtelEnabled(),
 	)
-	syncActivity := sync_activity.New(connclient, &sync.Map{}, temporalClient, activityMeter)
+	syncActivity := sync_activity.New(connclient, &sync.Map{}, temporalClient, activityMeter, sync_activity.NewBenthosStreamManager())
 
 	w.RegisterWorkflow(datasync_workflow.Workflow)
 	w.RegisterActivity(syncActivity.Sync)

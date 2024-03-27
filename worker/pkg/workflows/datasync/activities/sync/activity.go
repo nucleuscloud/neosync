@@ -52,15 +52,17 @@ func New(
 	tunnelmanagermap *sync.Map,
 	temporalclient client.Client,
 	meter metric.Meter,
+	benthosStreamManager BenthosStreamManagerClient,
 ) *Activity {
-	return &Activity{connclient: connclient, tunnelmanagermap: tunnelmanagermap, temporalclient: temporalclient, meter: meter}
+	return &Activity{connclient: connclient, tunnelmanagermap: tunnelmanagermap, temporalclient: temporalclient, meter: meter, benthosStreamManager: benthosStreamManager}
 }
 
 type Activity struct {
-	connclient       mgmtv1alpha1connect.ConnectionServiceClient
-	tunnelmanagermap *sync.Map
-	temporalclient   client.Client
-	meter            metric.Meter // optional
+	connclient           mgmtv1alpha1connect.ConnectionServiceClient
+	tunnelmanagermap     *sync.Map
+	temporalclient       client.Client
+	meter                metric.Meter // optional
+	benthosStreamManager BenthosStreamManagerClient
 }
 
 func (a *Activity) getTunnelManagerByRunId(wfId, runId string) (*ConnectionTunnelManager, error) {
@@ -99,48 +101,53 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	}
 	logger := log.With(activity.GetLogger(ctx), loggerKeyVals...)
 	slogger := logger_utils.NewJsonSLogger().With(loggerKeyVals...)
-	stopWorkflowChan := make(chan bool)
-	errorMutex := &sync.Mutex{}
-	var benthosError error
-	var benthosStream *service.Stream
+	stopActivityChan := make(chan bool, 1)
+	resultChan := make(chan error, 1)
+	benthosStreamMutex := sync.Mutex{}
+	var benthosStream BenthosStreamClient
 	go func() {
 		for {
 			select {
 			case <-time.After(1 * time.Second):
 				activity.RecordHeartbeat(ctx)
-			case <-stopWorkflowChan:
+			case <-stopActivityChan:
+				resultChan <- fmt.Errorf("received stop activity signal")
+				benthosStreamMutex.Lock()
 				if benthosStream != nil {
-					errorMutex.Lock()
-					benthosError = fmt.Errorf("received stop workflow signal")
-					errorMutex.Unlock()
 					// this must be here because stream.Run(ctx) doesn't seem to fully obey a canceled context when
 					// a sink is in an error state. We want to explicitly call stop here because the workflow has been canceled.
 					err := benthosStream.StopWithin(1 * time.Millisecond)
 					if err != nil {
 						logger.Error(err.Error())
 					}
-					return
 				}
+				benthosStreamMutex.Unlock()
+				return
 			case <-activity.GetWorkerStopChannel(ctx):
+				resultChan <- fmt.Errorf("received worker stop signal")
+				benthosStreamMutex.Lock()
 				if benthosStream != nil {
 					// this must be here because stream.Run(ctx) doesn't seem to fully obey a canceled context when
 					// a sink is in an error state. We want to explicitly call stop here because the workflow has been canceled.
-					err := benthosStream.Stop(ctx)
+					err := benthosStream.StopWithin(1 * time.Millisecond)
 					if err != nil {
 						logger.Error(err.Error())
 					}
 				}
+				benthosStreamMutex.Unlock()
 				return
 			case <-ctx.Done():
+				benthosStreamMutex.Lock()
 				if benthosStream != nil {
 					// this must be here because stream.Run(ctx) doesn't seem to fully obey a canceled context when
 					// a sink is in an error state. We want to explicitly call stop here because the workflow has been canceled.
-					err := benthosStream.Stop(ctx)
+					err := benthosStream.StopWithin(1 * time.Millisecond)
 					if err != nil {
 						logger.Error(err.Error())
 					}
 				}
-				return
+				benthosStreamMutex.Unlock()
+				resultChan <- nil
 			}
 		}
 	}()
@@ -235,7 +242,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		return nil, fmt.Errorf("unable to register pooled_sql_raw input to benthos instance: %w", err)
 	}
 
-	err = neosync_benthos_error.RegisterErrorProcessor(benthosenv, stopWorkflowChan)
+	err = neosync_benthos_error.RegisterErrorProcessor(benthosenv, stopActivityChan)
 	if err != nil {
 		return nil, fmt.Errorf("unable to register error processor to benthos instance: %w", err)
 	}
@@ -258,22 +265,30 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		return nil, fmt.Errorf("unable to convert benthos config to yaml for stream builder: %w", err)
 	}
 
-	stream, err := streambldr.Build()
+	stream, err := a.benthosStreamManager.NewBenthosStreamFromBuilder(streambldr)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build benthos config: %w", err)
 	}
 
+	benthosStreamMutex.Lock()
 	benthosStream = stream
-	err = stream.Run(ctx)
+	benthosStreamMutex.Unlock()
+	go func() {
+		err := stream.Run(ctx)
+		if err != nil {
+			resultChan <- fmt.Errorf("unable to run benthos stream: %w", err)
+			return
+		}
+		resultChan <- nil
+	}()
+
+	err = <-resultChan
 	if err != nil {
 		return nil, err
 	}
+	benthosStreamMutex.Lock()
 	benthosStream = nil
-	errorMutex.Lock()
-	if benthosError != nil {
-		return nil, benthosError
-	}
-	errorMutex.Unlock()
+	benthosStreamMutex.Unlock()
 
 	logger.Info("sync complete")
 	return &SyncResponse{}, nil
