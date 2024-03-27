@@ -7,7 +7,6 @@ import Link from 'next/link';
 import posthog from 'posthog-js';
 import { ReactElement } from 'react';
 import { SiYcombinator } from 'react-icons/si';
-import GetaDemoButton from '../buttons/GetADemo';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 
@@ -37,7 +36,19 @@ export default function Hero(): ReactElement {
         data privacy, testing and developer experience.
       </div>
       <div className="flex flex-col lg:flex-row lg:space-y-0 space-y-2 lg:space-x-4 z-30 items-center">
-        <GetaDemoButton />
+        <Link href="https://app.neosync.dev" target="_blank">
+          <Button
+            variant="default"
+            className="px-6 w-[188px]"
+            onClick={() =>
+              posthog.capture('user click', {
+                page: 'hero app sign up',
+              })
+            }
+          >
+            Neosync Cloud <ArrowRightIcon className="ml-2 h-4 w-4" />
+          </Button>
+        </Link>
         <Button
           variant="secondary"
           className="px-4 border border-gray-300 w-[188px]"

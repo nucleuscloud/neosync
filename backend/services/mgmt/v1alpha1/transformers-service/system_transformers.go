@@ -1,7 +1,9 @@
 package v1alpha1_transformersservice
 
 import (
+	"cmp"
 	"context"
+	"slices"
 
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -553,6 +555,10 @@ return input;`},
 )
 
 func init() {
+	slices.SortFunc(systemTransformers, func(t1, t2 *mgmtv1alpha1.SystemTransformer) int {
+		return cmp.Compare(t1.Name, t2.Name)
+	})
+
 	// hydrate the system transformer map when the system boots up
 	for _, transformer := range systemTransformers {
 		systemTransformerSourceMap[TransformerSource(transformer.Source)] = transformer

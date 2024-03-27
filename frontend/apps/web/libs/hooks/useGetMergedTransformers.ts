@@ -1,15 +1,13 @@
 import {
   filterInputFreeSystemTransformers,
-  filterInputFreeUdfTransformers,
+  filterInputFreeUdTransformers,
 } from '@/app/(mgmt)/[account]/transformers/EditTransformerOptions';
-import { Transformer, joinTransformers } from '@/shared/transformers';
 import { SystemTransformer, UserDefinedTransformer } from '@neosync/sdk';
 import { useMemo } from 'react';
 import { useGetSystemTransformers } from './useGetSystemTransformers';
 import { useGetUserDefinedTransformers } from './useGetUserDefinedTransformers';
 
 interface GetMergedTransformersResponse {
-  transformers: Transformer[];
   systemTransformers: SystemTransformer[];
   systemMap: Map<string, SystemTransformer>;
   userDefinedTransformers: UserDefinedTransformer[];
@@ -23,12 +21,12 @@ export function useGetMergedTransformers(
   accountId: string
 ): GetMergedTransformersResponse {
   const {
-    data: systemTransformers,
+    data: systemTransformersData,
     isLoading: isLoadingSystemTransformers,
     isValidating: isSystemValidating,
   } = useGetSystemTransformers();
   const {
-    data: customTransformers,
+    data: customTransformersData,
     isLoading: isLoadingCustomTransformers,
     isValidating: isCustomValidating,
   } = useGetUserDefinedTransformers(accountId);
@@ -36,45 +34,30 @@ export function useGetMergedTransformers(
   const isLoading = isLoadingSystemTransformers || isLoadingCustomTransformers;
   const isValidating = isSystemValidating || isCustomValidating;
 
-  const { filteredSystem, filteredCustom, merged, userMap, sysMap } =
-    useMemo(() => {
-      if (!systemTransformers || !customTransformers) {
-        return {
-          merged: [],
-          filteredCustom: [],
-          filteredSystem: [],
-          sysMap: new Map(),
-          userMap: new Map(),
-        };
-      }
+  const { filteredSystem, filteredCustom, userMap, sysMap } = useMemo(() => {
+    const systemTransformers = systemTransformersData?.transformers ?? [];
+    const customTransformers = customTransformersData?.transformers ?? [];
 
-      const filteredSystemTransformers = excludeInputReqTransformers
-        ? filterInputFreeSystemTransformers(
-            systemTransformers.transformers ?? []
-          )
-        : systemTransformers.transformers ?? [];
+    const filteredSystemTransformers = excludeInputReqTransformers
+      ? filterInputFreeSystemTransformers(systemTransformers)
+      : systemTransformers;
 
-      const filteredCustomTransformers = excludeInputReqTransformers
-        ? filterInputFreeUdfTransformers(
-            customTransformers.transformers ?? [],
-            filteredSystemTransformers
-          )
-        : customTransformers.transformers ?? [];
+    const filteredCustomTransformers = excludeInputReqTransformers
+      ? filterInputFreeUdTransformers(
+          customTransformers,
+          filteredSystemTransformers
+        )
+      : customTransformers;
 
-      return {
-        merged: joinTransformers(
-          filteredSystemTransformers,
-          filteredCustomTransformers
-        ),
-        filteredSystem: filteredSystemTransformers,
-        filteredCustom: filteredCustomTransformers,
-        sysMap: new Map(filteredSystemTransformers.map((t) => [t.source, t])),
-        userMap: new Map(filteredCustomTransformers.map((t) => [t.id, t])),
-      };
-    }, [isValidating, excludeInputReqTransformers]);
+    return {
+      filteredSystem: filteredSystemTransformers,
+      filteredCustom: filteredCustomTransformers,
+      sysMap: new Map(filteredSystemTransformers.map((t) => [t.source, t])),
+      userMap: new Map(filteredCustomTransformers.map((t) => [t.id, t])),
+    };
+  }, [isValidating, excludeInputReqTransformers]);
 
   return {
-    transformers: merged,
     systemTransformers: filteredSystem,
     userDefinedTransformers: filteredCustom,
     systemMap: sysMap,

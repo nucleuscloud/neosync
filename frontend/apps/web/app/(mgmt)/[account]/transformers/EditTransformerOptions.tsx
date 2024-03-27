@@ -770,7 +770,7 @@ export function filterInputFreeSystemTransformers(
   );
 }
 
-export function filterInputFreeUdfTransformers(
+export function filterInputFreeUdTransformers(
   udfTransformers: UserDefinedTransformer[],
   systemTransformers: SystemTransformer[]
 ): UserDefinedTransformer[] {
