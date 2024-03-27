@@ -11,6 +11,30 @@ The Neosync Go SDK is publicly available and can be added to any Go-based projec
 
 Neosync's CLI is the primary user of the Go SDK today, and can be referenced for examples of how to use the SDK.
 
+## Configuration
+
+There are a few inputs that the SDK needs in order to be properly configured.
+
+1. API URL
+2. Account ID
+3. API Key (required for Neosync Cloud or self-hosted authenticated environments)
+
+### API Url
+
+If using Neosync Cloud, the backend api url is: `https://neosync-api.svcs.neosync.dev`
+
+The standard localhost url is: `http://localhost:8080`
+
+### Account ID
+
+The account ID is necessary for some requests that do not have an obvious identifier like retrieving a list of jobs, or a list of connections.
+This can be found by going into the app on the `/:accountName/settings` page and found in the header.
+
+### API Key
+
+An access token (api key, or user jwt) must be used to access authenticated Neosync environments.
+For an API Key, this can be created at `/:accountName/settings/api-keys`.
+
 ## Getting Started
 
 Neosync is made up of a number of different services that live inside of the same process.
