@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
-import { useGetMergedTransformers } from '@/libs/hooks/useGetMergedTransformers';
+import { useGetTransformersHandler } from '@/libs/hooks/useGetTransformersHandler';
 import {
   JobMappingFormValues,
   SchemaFormValues,
@@ -58,27 +58,20 @@ export function SchemaTable(props: Props): ReactElement {
   } = props;
 
   const { account } = useAccount();
+
   const {
-    systemTransformers,
-    userDefinedTransformers,
-    userDefinedMap,
-    systemMap,
+    handler: transformerHandler,
     isLoading,
     isValidating,
-  } = useGetMergedTransformers(
-    excludeInputReqTransformers ?? false,
-    account?.id ?? ''
-  );
+  } = useGetTransformersHandler(account?.id ?? '');
+
   const [selectedItems, setSelectedItems] = useState<Set<string>>(
     new Set(data.map((d) => `${d.schema}.${d.table}`))
   );
 
   const columns = useMemo(() => {
     return getSchemaColumns({
-      systemTransformers,
-      userDefinedTransformers,
-      systemMap,
-      userDefinedMap,
+      transformerHandler,
       constraintHandler,
     });
   }, [isValidating, constraintHandler]);
@@ -217,10 +210,7 @@ export function SchemaTable(props: Props): ReactElement {
       <SchemaPageTable
         columns={columns}
         data={data}
-        userDefinedTransformerMap={userDefinedMap}
-        userDefinedTransformers={userDefinedTransformers}
-        systemTransformerMap={systemMap}
-        systemTransformers={systemTransformers}
+        transformerHandler={transformerHandler}
         constraintHandler={constraintHandler}
       />
     </div>
