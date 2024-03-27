@@ -36,6 +36,7 @@ import {
 } from '@/components/ui/accordion';
 import { Separator } from '@/components/ui/separator';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { DEFAULT_CRON_STRING } from '../../../jobs/[id]/components/ScheduleCard';
 
 const isBrowser = () => typeof window !== 'undefined';
 
@@ -64,13 +65,15 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       },
     }
   );
-  const [disableSchedule, setDisableSchedule] = useState<boolean>(false);
+  const [isScheduleEnabled, setIsScheduleEnabled] = useState<boolean>(false);
 
   const form = useForm<DefineFormValues>({
     mode: 'onChange',
     resolver: yupResolver<DefineFormValues>(DEFINE_FORM_SCHEMA),
     defaultValues,
-    context: { accountId: account?.id ?? '', showSchedule: disableSchedule },
+    context: {
+      accountId: account?.id ?? '',
+    },
   });
 
   useFormPersist(`${sessionPrefix}-new-job-define`, {
@@ -82,7 +85,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const newJobType = getNewJobType(getSingleOrUndefined(searchParams?.jobType));
 
   async function onSubmit(_values: DefineFormValues) {
-    if (!disableSchedule) {
+    if (!isScheduleEnabled) {
       form.setValue('cronSchedule', '');
     }
     if (newJobType === 'generate-table') {
@@ -95,12 +98,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       );
     }
   }
-
-  useEffect(() => {
-    if (form.getValues('cronSchedule')) {
-      setDisableSchedule(true);
-    }
-  }, [disableSchedule, form]);
 
   return (
     <div
@@ -149,23 +146,26 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 <div className="flex flex-row items-center gap-2">
                   <FormLabel>Schedule</FormLabel>
                   <Switch
-                    checked={disableSchedule}
-                    onCheckedChange={() => {
-                      disableSchedule
-                        ? setDisableSchedule(false)
-                        : setDisableSchedule(true);
+                    checked={isScheduleEnabled}
+                    onCheckedChange={(isChecked) => {
+                      setIsScheduleEnabled(isChecked);
+                      if (!isChecked) {
+                        form.resetField('cronSchedule', {
+                          keepError: false,
+                        });
+                      }
                     }}
                   />
                 </div>
                 <FormDescription>
                   Define a cron schedule to run this job. If disabled, the job
-                  will need to be manually executed.
+                  will be paused and a default cron will be set
                 </FormDescription>
                 <FormControl>
                   <Input
-                    placeholder="0 0 * * * "
+                    placeholder={DEFAULT_CRON_STRING}
                     {...field}
-                    disabled={!disableSchedule}
+                    disabled={!isScheduleEnabled}
                   />
                 </FormControl>
                 <FormMessage />

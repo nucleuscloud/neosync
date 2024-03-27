@@ -6,6 +6,7 @@ import {
   SOURCE_FORM_SCHEMA,
 } from '@/yup-validations/jobs';
 import { Connection, IsJobNameAvailableResponse } from '@neosync/sdk';
+import cron from 'cron-validate';
 import * as Yup from 'yup';
 
 // Schema for a job's workflow settings
@@ -49,10 +50,6 @@ export const ActivityOptionsSchema = Yup.object({
 
 export type ActivityOptionsSchema = Yup.InferType<typeof ActivityOptionsSchema>;
 
-const cronRegex = new RegExp(
-  '^([0-5]?\\d|\\*) \\s*([01]?\\d|2[0-3]|\\*) \\s*([0-2]?\\d|3[01]|\\*|\\?) \\s*([1-9]|1[0-2]|\\*|\\?) \\s*([0-6]|\\*|\\?)$'
-);
-
 export const DEFINE_FORM_SCHEMA = Yup.object({
   jobName: Yup.string()
     .trim()
@@ -82,13 +79,21 @@ export const DEFINE_FORM_SCHEMA = Yup.object({
     ),
   cronSchedule: Yup.string()
     .optional()
-    .test('validateCron', 'Invalid cron string', (value, context) => {
-      const showSchedule = context.options.context?.showSchedule;
-      if (!showSchedule) {
+    .test('validateCron', 'Not a valid cron schedule', (value, context) => {
+      if (!value) {
         return true;
-      } else {
-        return !value || cronRegex.test(value);
       }
+      const output = cron(value);
+      if (output.isValid()) {
+        return true;
+      }
+      if (output.isError()) {
+        const errors = output.getError();
+        if (errors.length > 0) {
+          return context.createError({ message: errors.join(', ') });
+        }
+      }
+      return output.isValid();
     }),
   initiateJobRun: Yup.boolean(),
   workflowSettings: WorkflowSettingsSchema.optional(),
