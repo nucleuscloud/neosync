@@ -347,7 +347,7 @@ output:
 	mockBenthosStreamManager.On("NewBenthosStreamFromBuilder", mock.Anything).Return(mockBenthosStream, nil)
 	errmsg := "benthos error"
 	mockBenthosStream.On("Run", mock.Anything).Return(errors.New(errmsg))
-	mockBenthosStream.On("Stop", mock.Anything).Return(nil).Maybe()
+	mockBenthosStream.On("StopWithin", mock.Anything).Return(nil).Maybe()
 
 	activity := New(nil, &sync.Map{}, nil, nil, mockBenthosStreamManager)
 
