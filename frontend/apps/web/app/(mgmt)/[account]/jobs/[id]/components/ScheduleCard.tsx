@@ -30,14 +30,26 @@ import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 
+export const DEFAULT_CRON_STRING = '0 0 1 1 *';
+
 const SCHEDULE_FORM_SCHEMA = Yup.object({
   cronSchedule: Yup.string()
     .optional()
-    .test('isValidCron', 'Not a valid cron schedule', (value) => {
+    .test('isValidCron', 'Not a valid cron schedule', (value, context) => {
       if (!value) {
+        return false;
+      }
+      const output = cron(value);
+      if (output.isValid()) {
         return true;
       }
-      return !!value && cron(value).isValid();
+      if (output.isError()) {
+        const errors = output.getError();
+        if (errors.length > 0) {
+          return context.createError({ message: errors.join(', ') });
+        }
+      }
+      return output.isValid();
     }),
 });
 
@@ -53,7 +65,6 @@ export default function JobScheduleCard({ job, mutate }: Props): ReactElement {
   const form = useForm({
     mode: 'onChange',
     resolver: yupResolver<ScheduleFormValues>(SCHEDULE_FORM_SCHEMA),
-    defaultValues: { cronSchedule: '' },
     values: { cronSchedule: job?.cronSchedule },
   });
   const { account } = useAccount();
