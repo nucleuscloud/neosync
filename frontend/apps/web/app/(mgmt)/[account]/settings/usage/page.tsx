@@ -43,7 +43,7 @@ export default function UsagePage(): ReactElement {
       Header={
         <PageHeader
           header="Usage"
-          description={`${getPeriodLabel(period)}: ${getDateRangeLabel(start, end)}`}
+          subHeadings={`${getPeriodLabel(period)}: ${getDateRangeLabel(start, end)}`}
           extraHeading={
             <UsagePeriodSelector period={period} setPeriod={setPeriod} />
           }

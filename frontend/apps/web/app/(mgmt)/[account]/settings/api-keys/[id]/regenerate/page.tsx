@@ -134,7 +134,7 @@ export default function RegenerateAccountApiKey({
       Header={
         <PageHeader
           header={`Regenerate API Key: ${data.apiKey.name}`}
-          description={
+          subHeadings={
             'Submitting this form will generate a new token. Be aware that any scripts or applications using this token will need to be updated.'
           }
         />

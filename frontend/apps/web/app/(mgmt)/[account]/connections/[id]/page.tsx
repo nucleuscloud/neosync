@@ -1,5 +1,6 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
+import ResourceId from '@/components/ResourceId';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
@@ -67,6 +68,13 @@ export default function ConnectionPage({ params }: PageProps) {
           )}
         <RemoveConnectionButton connectionId={id} />
       </div>
+    ),
+    subHeading: (
+      <ResourceId
+        labelText={data?.connection?.id ?? ''}
+        copyText={data?.connection?.id ?? ''}
+        onHoverText="Copy the connection id"
+      />
     ),
   });
   return (

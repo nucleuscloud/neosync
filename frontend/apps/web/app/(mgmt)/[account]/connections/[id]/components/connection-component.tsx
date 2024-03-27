@@ -1,5 +1,4 @@
 'use client';
-import { CopyButton } from '@/components/CopyButton';
 import ConnectionIcon from '@/components/connections/ConnectionIcon';
 import PageHeader from '@/components/headers/PageHeader';
 import {
@@ -25,12 +24,14 @@ interface GetConnectionComponentDetailsProps {
   onSaved(updatedConnResp: UpdateConnectionResponse): void;
   onSaveFailed(err: unknown): void;
   extraPageHeading?: ReactElement;
+  subHeading?: ReactElement;
 }
 
 export function getConnectionComponentDetails(
   props: GetConnectionComponentDetailsProps
 ): ConnectionComponent {
-  const { connection, onSaved, extraPageHeading, onSaveFailed } = props;
+  const { connection, onSaved, extraPageHeading, onSaveFailed, subHeading } =
+    props;
 
   switch (connection?.connectionConfig?.config?.case) {
     case 'pgConfig':
@@ -97,15 +98,7 @@ export function getConnectionComponentDetails(
               )
             }
             extraHeading={extraPageHeading}
-            description={connection.id}
-            copyIcon={
-              <CopyButton
-                onHoverText="Copy the Connection ID"
-                textToCopy={connection.id}
-                onCopiedText="Success!"
-                buttonVariant="outline"
-              />
-            }
+            subHeadings={subHeading}
           />
         ),
         body: (
@@ -154,17 +147,9 @@ export function getConnectionComponentDetails(
             header: (
               <PageHeader
                 header="Mysql"
-                description={connection.id}
-                copyIcon={
-                  <CopyButton
-                    onHoverText="Copy the Connection ID"
-                    textToCopy={connection.id}
-                    onCopiedText="Success!"
-                    buttonVariant="outline"
-                  />
-                }
                 leftIcon={<ConnectionIcon name="mysql" />}
                 extraHeading={extraPageHeading}
+                subHeadings={subHeading}
               />
             ),
             body: (
@@ -234,15 +219,7 @@ export function getConnectionComponentDetails(
             header="AWS S3"
             leftIcon={<ConnectionIcon name="aws S3" />}
             extraHeading={extraPageHeading}
-            description={connection.id}
-            copyIcon={
-              <CopyButton
-                onHoverText="Copy the Connection ID"
-                textToCopy={connection.id}
-                onCopiedText="Success!"
-                buttonVariant="outline"
-              />
-            }
+            subHeadings={subHeading}
           />
         ),
         body: (

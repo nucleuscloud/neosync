@@ -111,7 +111,7 @@ export default function Page({ params }: PageProps): ReactElement {
       <div className="my-10">
         <PageHeader
           header="Create new Destination Connections"
-          description={`Connect new destination datasources.`}
+          subHeadings={`Connect new destination datasources.`}
         />
       </div>
 
