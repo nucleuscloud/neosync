@@ -550,6 +550,7 @@ jobs:
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
           AUR_KEY: ${{ secrets.AUR_PRIVATE_KEY }}
           DISABLE_CHANGELOG: false
+          NEOSYNC_BASE_URL: ${{ var.DEFAULT_NEOSYNC_ENDPOINT }}
 
   ts-sdk:
     name: TypeScript SDK Release
