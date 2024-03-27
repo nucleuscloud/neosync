@@ -5,26 +5,27 @@ import { Separator } from '../ui/separator';
 
 interface Props {
   header: string;
-  description?: string | JSX.Element;
   leftBadgeValue?: string;
   extraHeading?: ReactNode;
   leftIcon?: ReactNode;
   progressSteps?: JSX.Element;
   pageHeaderContainerClassName?: string;
-  copyIcon?: JSX.Element;
+  subHeadings?: ReactNode | ReactNode[];
 }
 
 export default function PageHeader(props: Props) {
   const {
     header,
-    description,
-    copyIcon,
     extraHeading,
     leftIcon,
     pageHeaderContainerClassName,
     leftBadgeValue,
     progressSteps,
+    subHeadings: subHeadingsOrSingle,
   } = props;
+  const subHeadings = Array.isArray(subHeadingsOrSingle)
+    ? subHeadingsOrSingle
+    : [subHeadingsOrSingle];
   return (
     <div
       className={cn(
@@ -43,17 +44,12 @@ export default function PageHeader(props: Props) {
           </div>
         </div>
 
-        <div className="flex-1 flex justify-center">{progressSteps}</div>
-
+        {progressSteps && (
+          <div className="flex-1 flex justify-center">{progressSteps}</div>
+        )}
         {extraHeading ? <div>{extraHeading}</div> : null}
       </div>
-      <div className="flex flex-row items-center gap-4">
-        {description ? (
-          <h3 className="text-muted-foreground text-sm">{description}</h3>
-        ) : null}
-        {copyIcon && copyIcon}
-      </div>
-
+      {subHeadings.map((subheading) => subheading)}
       <Separator className="dark:bg-gray-600" />
     </div>
   );
