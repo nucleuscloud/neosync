@@ -26,6 +26,7 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
+import { RESOURCE_NAME_REGEX } from '@/yup-validations/connections';
 import { Timestamp } from '@bufbuild/protobuf';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
@@ -43,7 +44,24 @@ import { mutate } from 'swr';
 import * as Yup from 'yup';
 
 const FORM_SCHEMA = Yup.object({
-  name: Yup.string().required(),
+  name: Yup.string()
+    .required()
+    .min(3)
+    .max(30)
+    .test(
+      'validApiKeyName',
+      'API Key Name must be at least 3 characters long and can only include lowercase letters, numbers, and hyphens.',
+      (value) => {
+        if (!value || value.length < 3) {
+          return false;
+        }
+        if (!RESOURCE_NAME_REGEX.test(value)) {
+          return false;
+        }
+        // todo: add server-side check to see if it's available on the backend
+        return true;
+      }
+    ),
   expiresAtSelect: Yup.string().oneOf(['7', '30', '60', '90', 'custom']),
   expiresAt: Yup.date().required(),
 });
@@ -58,6 +76,7 @@ export default function NewApiKeyForm(): ReactElement {
   const { toast } = useToast();
   const router = useRouter();
   const form = useForm<FormValues>({
+    mode: 'onChange',
     resolver: yupResolver(FORM_SCHEMA),
     defaultValues: {
       name: '',

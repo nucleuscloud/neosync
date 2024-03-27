@@ -224,6 +224,9 @@ func (s *Service) CreateTeamAccount(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.CreateTeamAccountRequest],
 ) (*connect.Response[mgmtv1alpha1.CreateTeamAccountResponse], error) {
+	if !s.cfg.IsAuthEnabled {
+		return nil, nucleuserrors.NewForbidden("unable to create team account as authentication is not enabled")
+	}
 	user, err := s.GetUser(ctx, connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
 	if err != nil {
 		return nil, err

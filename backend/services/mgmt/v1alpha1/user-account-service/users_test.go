@@ -21,6 +21,7 @@ import (
 	clientmanager "github.com/nucleuscloud/neosync/backend/internal/temporal/client-manager"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -359,6 +360,14 @@ func Test_CreateTeamAccount(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
 	assert.Equal(t, mockAccountId, resp.Msg.AccountId)
+}
+
+func Test_CreateTeamAccount_NoAuth(t *testing.T) {
+	m := createServiceMock(t, &Config{IsAuthEnabled: false})
+
+	resp, err := m.Service.CreateTeamAccount(context.Background(), &connect.Request[mgmtv1alpha1.CreateTeamAccountRequest]{Msg: &mgmtv1alpha1.CreateTeamAccountRequest{Name: "foo"}})
+	require.Error(t, err)
+	require.Nil(t, resp)
 }
 
 // GetTeamAccountMembers

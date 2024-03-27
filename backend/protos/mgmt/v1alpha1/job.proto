@@ -28,7 +28,7 @@ message JobSourceOptions {
 }
 
 message CreateJobDestination {
-  string connection_id = 1;
+  string connection_id = 1 [(buf.validate.field).string.uuid = true];
   JobDestinationOptions options = 2;
 }
 
@@ -120,7 +120,7 @@ message CreateJobRequest {
   // The unique account identifier that this job will be associated with
   string account_id = 1 [(buf.validate.field).string.uuid = true];
   // The unique, friendly name of the job. This is unique per account
-  string job_name = 2 [(buf.validate.field).string.min_len = 1];
+  string job_name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,30}$"];
   // Optionally provide a cron schedule. Goes into effect if the job status is set to enabled
   optional string cron_schedule = 3;
   repeated JobMapping mappings = 4;
@@ -266,7 +266,7 @@ message DeleteJobDestinationConnectionRequest {
 message DeleteJobDestinationConnectionResponse {}
 
 message CreateJobDestinationConnectionsRequest {
-  string job_id = 1;
+  string job_id = 1 [(buf.validate.field).string.uuid = true];
   repeated CreateJobDestination destinations = 2;
 }
 message CreateJobDestinationConnectionsResponse {
@@ -279,7 +279,7 @@ message DeleteJobRequest {
 message DeleteJobResponse {}
 
 message IsJobNameAvailableRequest {
-  string name = 1;
+  string name = 1 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,30}$"];
   string account_id = 2 [(buf.validate.field).string.uuid = true];
 }
 message IsJobNameAvailableResponse {
@@ -305,7 +305,7 @@ message GetJobRunResponse {
 }
 
 message CreateJobRunRequest {
-  string job_id = 1;
+  string job_id = 1 [(buf.validate.field).string.uuid = true];
 }
 message CreateJobRunResponse {}
 
@@ -352,7 +352,7 @@ message JobRecentRun {
 }
 
 message GetJobRecentRunsRequest {
-  string job_id = 1;
+  string job_id = 1 [(buf.validate.field).string.uuid = true];
 }
 message GetJobRecentRunsResponse {
   repeated JobRecentRun recent_runs = 1;
