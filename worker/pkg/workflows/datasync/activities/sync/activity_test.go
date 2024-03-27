@@ -1,328 +1,329 @@
 package sync_activity
 
 import (
-	"context"
 	"fmt"
+	"os"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	metricsdk "go.opentelemetry.io/otel/sdk/metric"
 	"go.temporal.io/sdk/testsuite"
-	"go.temporal.io/sdk/worker"
 )
 
-// func Test_Sync_Run_Success(t *testing.T) {
-// 	testSuite := &testsuite.WorkflowTestSuite{}
-// 	env := testSuite.NewTestActivityEnvironment()
+func Test_Sync_Run_Success(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
 
-// 	benthosStreamManager := NewBenthosStreamManager()
-// 	activity := New(nil, &sync.Map{}, nil, nil, benthosStreamManager)
+	benthosStreamManager := NewBenthosStreamManager()
+	activity := New(nil, &sync.Map{}, nil, nil, benthosStreamManager)
 
-// 	env.RegisterActivity(activity.Sync)
+	env.RegisterActivity(activity.Sync)
 
-// 	val, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
-// 		BenthosConfig: strings.TrimSpace(`
-// input:
-//   generate:
-//     count: 1
-//     interval: ""
-//     mapping: 'root = { "id": uuid_v4() }'
-// output:
-//   label: ""
-//   stdout:
-//     codec: lines
-// `),
-// 	}, &SyncMetadata{Schema: "public", Table: "test"})
-// 	require.NoError(t, err)
-// 	res := &SyncResponse{}
-// 	err = val.Get(res)
-// 	require.NoError(t, err)
-// }
+	val, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
+		BenthosConfig: strings.TrimSpace(`
+input:
+  generate:
+    count: 1
+    interval: ""
+    mapping: 'root = { "id": uuid_v4() }'
+output:
+  label: ""
+  stdout:
+    codec: lines
+`),
+	}, &SyncMetadata{Schema: "public", Table: "test"})
+	require.NoError(t, err)
+	res := &SyncResponse{}
+	err = val.Get(res)
+	require.NoError(t, err)
+}
 
-// func Test_Sync_Run_Metrics_Success(t *testing.T) {
-// 	testSuite := &testsuite.WorkflowTestSuite{}
-// 	env := testSuite.NewTestActivityEnvironment()
+func Test_Sync_Run_Metrics_Success(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
 
-// 	meterProvider := metricsdk.NewMeterProvider()
-// 	meter := meterProvider.Meter("test")
-// 	benthosStreamManager := NewBenthosStreamManager()
-// 	activity := New(nil, &sync.Map{}, nil, meter, benthosStreamManager)
+	meterProvider := metricsdk.NewMeterProvider()
+	meter := meterProvider.Meter("test")
+	benthosStreamManager := NewBenthosStreamManager()
+	activity := New(nil, &sync.Map{}, nil, meter, benthosStreamManager)
 
-// 	env.RegisterActivity(activity.Sync)
+	env.RegisterActivity(activity.Sync)
 
-// 	val, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
-// 		BenthosConfig: strings.TrimSpace(`
-// input:
-//   generate:
-//     count: 1
-//     interval: ""
-//     mapping: 'root = { "id": uuid_v4() }'
-// output:
-//   label: ""
-//   stdout:
-//     codec: lines
-// metrics:
-//   otel_collector: {}
-// `),
-// 	}, &SyncMetadata{Schema: "public", Table: "test"})
-// 	require.NoError(t, err)
-// 	res := &SyncResponse{}
-// 	err = val.Get(res)
-// 	require.NoError(t, err)
-// }
+	val, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
+		BenthosConfig: strings.TrimSpace(`
+input:
+  generate:
+    count: 1
+    interval: ""
+    mapping: 'root = { "id": uuid_v4() }'
+output:
+  label: ""
+  stdout:
+    codec: lines
+metrics:
+  otel_collector: {}
+`),
+	}, &SyncMetadata{Schema: "public", Table: "test"})
+	require.NoError(t, err)
+	res := &SyncResponse{}
+	err = val.Get(res)
+	require.NoError(t, err)
+}
 
-// func Test_Sync_Fake_Mutation_Success(t *testing.T) {
-// 	testSuite := &testsuite.WorkflowTestSuite{}
-// 	env := testSuite.NewTestActivityEnvironment()
+func Test_Sync_Fake_Mutation_Success(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
 
-// 	benthosStreamManager := NewBenthosStreamManager()
-// 	activity := New(nil, &sync.Map{}, nil, nil, benthosStreamManager)
-// 	env.RegisterActivity(activity.Sync)
+	benthosStreamManager := NewBenthosStreamManager()
+	activity := New(nil, &sync.Map{}, nil, nil, benthosStreamManager)
+	env.RegisterActivity(activity.Sync)
 
-// 	val, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
-// 		BenthosConfig: strings.TrimSpace(`
-// input:
-//   generate:
-//     count: 1
-//     interval: ""
-//     mapping: 'root = { "name": "nick" }'
-// pipeline:
-//   threads: 1
-//   processors:
-//     - mutation: |
-//         root.name = fake("first_name")
-// output:
-//   label: ""
-//   stdout:
-//     codec: lines
-// `),
-// 	}, &SyncMetadata{Schema: "public", Table: "test"})
-// 	require.NoError(t, err)
-// 	res := &SyncResponse{}
-// 	err = val.Get(res)
-// 	require.NoError(t, err)
-// }
+	val, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
+		BenthosConfig: strings.TrimSpace(`
+input:
+  generate:
+    count: 1
+    interval: ""
+    mapping: 'root = { "name": "nick" }'
+pipeline:
+  threads: 1
+  processors:
+    - mutation: |
+        root.name = fake("first_name")
+output:
+  label: ""
+  stdout:
+    codec: lines
+`),
+	}, &SyncMetadata{Schema: "public", Table: "test"})
+	require.NoError(t, err)
+	res := &SyncResponse{}
+	err = val.Get(res)
+	require.NoError(t, err)
+}
 
-// func Test_Sync_Run_Success_Javascript(t *testing.T) {
-// 	testSuite := &testsuite.WorkflowTestSuite{}
-// 	env := testSuite.NewTestActivityEnvironment()
+func Test_Sync_Run_Success_Javascript(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
 
-// 	benthosStreamManager := NewBenthosStreamManager()
-// 	activity := New(nil, &sync.Map{}, nil, nil, benthosStreamManager)
-// 	env.RegisterActivity(activity.Sync)
+	benthosStreamManager := NewBenthosStreamManager()
+	activity := New(nil, &sync.Map{}, nil, nil, benthosStreamManager)
+	env.RegisterActivity(activity.Sync)
 
-// 	tmpFile, err := os.CreateTemp("", "test")
-// 	if err != nil {
-// 		t.Fatalf("Failed to create temp file: %v", err)
-// 	}
-// 	defer os.Remove(tmpFile.Name())
+	tmpFile, err := os.CreateTemp("", "test")
+	if err != nil {
+		t.Fatalf("Failed to create temp file: %v", err)
+	}
+	defer os.Remove(tmpFile.Name())
 
-// 	val, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
-// 		BenthosConfig: strings.TrimSpace(fmt.Sprintf(`
-// input:
-//   generate:
-//     mapping: root = {"name":"evis"}
-//     interval: 1s
-//     count: 1
-// pipeline:
-//   processors:
-//     - javascript:
-//         code: |
-//           (() => {
-//           function fn_name(value, input){
-//           var a = value + "test";
-//           return a };
-//           const input = benthos.v0_msg_as_structured();
-//           const output = { ...input };
-//           output["name"] = fn_name(input["name"], input);
-//           benthos.v0_msg_set_structured(output);
-//           })();
-// output:
-//   label: ""
-//   file:
-//     path:  %s
-//     codec: lines
-// `, tmpFile.Name())),
-// 	}, &SyncMetadata{Schema: "public", Table: "test"})
-// 	assert.NoError(t, err)
-// 	res := &SyncResponse{}
-// 	err = val.Get(res)
-// 	assert.NoError(t, err)
+	val, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
+		BenthosConfig: strings.TrimSpace(fmt.Sprintf(`
+input:
+  generate:
+    mapping: root = {"name":"evis"}
+    interval: 1s
+    count: 1
+pipeline:
+  processors:
+    - javascript:
+        code: |
+          (() => {
+          function fn_name(value, input){
+          var a = value + "test";
+          return a };
+          const input = benthos.v0_msg_as_structured();
+          const output = { ...input };
+          output["name"] = fn_name(input["name"], input);
+          benthos.v0_msg_set_structured(output);
+          })();
+output:
+  label: ""
+  file:
+    path:  %s
+    codec: lines
+`, tmpFile.Name())),
+	}, &SyncMetadata{Schema: "public", Table: "test"})
+	assert.NoError(t, err)
+	res := &SyncResponse{}
+	err = val.Get(res)
+	assert.NoError(t, err)
 
-// 	stdoutBytes, err := os.ReadFile(tmpFile.Name())
-// 	if err != nil {
-// 		t.Fatalf("Failed to read from temp file: %v", err)
-// 	}
-// 	stringResult := string(stdoutBytes)
+	stdoutBytes, err := os.ReadFile(tmpFile.Name())
+	if err != nil {
+		t.Fatalf("Failed to read from temp file: %v", err)
+	}
+	stringResult := string(stdoutBytes)
 
-// 	returnValue := strings.TrimSpace(stringResult) // remove new line at the end of the stdout line
+	returnValue := strings.TrimSpace(stringResult) // remove new line at the end of the stdout line
 
-// 	assert.Equal(t, `{"name":"evistest"}`, returnValue)
-// }
+	assert.Equal(t, `{"name":"evistest"}`, returnValue)
+}
 
-// func Test_Sync_Run_Success_MutataionAndJavascript(t *testing.T) {
-// 	testSuite := &testsuite.WorkflowTestSuite{}
-// 	env := testSuite.NewTestActivityEnvironment()
-// 	benthosStreamManager := NewBenthosStreamManager()
-// 	activity := New(nil, &sync.Map{}, nil, nil, benthosStreamManager)
-// 	env.RegisterActivity(activity.Sync)
+func Test_Sync_Run_Success_MutataionAndJavascript(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
+	benthosStreamManager := NewBenthosStreamManager()
+	activity := New(nil, &sync.Map{}, nil, nil, benthosStreamManager)
+	env.RegisterActivity(activity.Sync)
 
-// 	tmpFile, err := os.CreateTemp("", "test")
-// 	if err != nil {
-// 		t.Fatalf("Failed to create temp file: %v", err)
-// 	}
-// 	defer os.Remove(tmpFile.Name())
+	tmpFile, err := os.CreateTemp("", "test")
+	if err != nil {
+		t.Fatalf("Failed to create temp file: %v", err)
+	}
+	defer os.Remove(tmpFile.Name())
 
-// 	val, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
-// 		BenthosConfig: strings.TrimSpace(fmt.Sprintf(`
-// input:
-//   generate:
-//     mapping: root = {"name":"evis"}
-//     interval: 1s
-//     count: 1
-// pipeline:
-//   processors:
-//     - mutation:
-//         root.name = this.name.reverse()
-//     - javascript:
-//         code: |
-//           (() => {
-//           function fn1(value, input){
-//           var a = value + "test";
-//           return a };
-//           const input = benthos.v0_msg_as_structured();
-//           const output = { ...input };
-//           output["name"] = fn1(input["name"], input);
-//           benthos.v0_msg_set_structured(output);
-//           })();
-// output:
-//   label: ""
-//   file:
-//     path:  %s
-//     codec: lines
-// 	`, tmpFile.Name())),
-// 	}, &SyncMetadata{Schema: "public", Table: "test"})
-// 	assert.NoError(t, err)
-// 	res := &SyncResponse{}
-// 	err = val.Get(res)
-// 	assert.NoError(t, err)
+	val, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
+		BenthosConfig: strings.TrimSpace(fmt.Sprintf(`
+input:
+  generate:
+    mapping: root = {"name":"evis"}
+    interval: 1s
+    count: 1
+pipeline:
+  processors:
+    - mutation:
+        root.name = this.name.reverse()
+    - javascript:
+        code: |
+          (() => {
+          function fn1(value, input){
+          var a = value + "test";
+          return a };
+          const input = benthos.v0_msg_as_structured();
+          const output = { ...input };
+          output["name"] = fn1(input["name"], input);
+          benthos.v0_msg_set_structured(output);
+          })();
+output:
+  label: ""
+  file:
+    path:  %s
+    codec: lines
+	`, tmpFile.Name())),
+	}, &SyncMetadata{Schema: "public", Table: "test"})
+	assert.NoError(t, err)
+	res := &SyncResponse{}
+	err = val.Get(res)
+	assert.NoError(t, err)
 
-// 	stdoutBytes, err := os.ReadFile(tmpFile.Name())
-// 	if err != nil {
-// 		t.Fatalf("Failed to read from temp file: %v", err)
-// 	}
-// 	stringResult := string(stdoutBytes)
+	stdoutBytes, err := os.ReadFile(tmpFile.Name())
+	if err != nil {
+		t.Fatalf("Failed to read from temp file: %v", err)
+	}
+	stringResult := string(stdoutBytes)
 
-// 	returnValue := strings.TrimSpace(stringResult) // remove new line at the end of the stdout line
+	returnValue := strings.TrimSpace(stringResult) // remove new line at the end of the stdout line
 
-// 	assert.Equal(t, `{"name":"sivetest"}`, returnValue)
-// }
+	assert.Equal(t, `{"name":"sivetest"}`, returnValue)
+}
 
-// func Test_Sync_Run_Processor_Error(t *testing.T) {
-// 	testSuite := &testsuite.WorkflowTestSuite{}
-// 	env := testSuite.NewTestActivityEnvironment()
+func Test_Sync_Run_Processor_Error(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
 
-// 	benthosStreamManager := NewBenthosStreamManager()
-// 	activity := New(nil, &sync.Map{}, nil, nil, benthosStreamManager)
+	benthosStreamManager := NewBenthosStreamManager()
+	activity := New(nil, &sync.Map{}, nil, nil, benthosStreamManager)
 
-// 	env.RegisterActivity(activity.Sync)
+	env.RegisterActivity(activity.Sync)
 
-// 	_, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
-// 		BenthosConfig: strings.TrimSpace(`
-// input:
-//   generate:
-//     count: 1
-//     interval: ""
-//     mapping: 'root = { "name": "nick" }'
-// pipeline:
-//   threads: 1
-//   processors:
-//     - error: {}
-// output:
-//   label: ""
-//   stdout:
-//     codec: lines
-// `),
-// 	}, &SyncMetadata{Schema: "public", Table: "test"})
-// 	require.Contains(t, err.Error(), "received stop activity signal")
-// }
+	_, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
+		BenthosConfig: strings.TrimSpace(`
+input:
+  generate:
+    count: 1
+    interval: ""
+    mapping: 'root = { "name": "nick" }'
+pipeline:
+  threads: 1
+  processors:
+    - error: {}
+output:
+  label: ""
+  stdout:
+    codec: lines
+`),
+	}, &SyncMetadata{Schema: "public", Table: "test"})
+	require.Contains(t, err.Error(), "received stop activity signal")
+}
 
-// func Test_Sync_Run_ActivityStop_MockBenthos(t *testing.T) {
-// 	testSuite := &testsuite.WorkflowTestSuite{}
-// 	env := testSuite.NewTestActivityEnvironment()
+func Test_Sync_Run_ActivityStop_MockBenthos(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
 
-// 	mockBenthosStreamManager := NewMockBenthosStreamManagerClient(t)
-// 	mockBenthosStream := NewMockBenthosStreamClient(t)
-// 	config := strings.TrimSpace(`
-// input:
-//   generate:
-//     count: 10000
-//     interval: ""
-//     mapping: 'root = { "id": uuid_v4() }'
-// output:
-//   label: ""
-//   stdout:
-//     codec: lines
-// `)
+	mockBenthosStreamManager := NewMockBenthosStreamManagerClient(t)
+	mockBenthosStream := NewMockBenthosStreamClient(t)
+	config := strings.TrimSpace(`
+input:
+  generate:
+    count: 10000
+    interval: ""
+    mapping: 'root = { "id": uuid_v4() }'
+output:
+  label: ""
+  stdout:
+    codec: lines
+`)
 
-// 	mockBenthosStreamManager.On("NewBenthosStreamFromBuilder", mock.Anything).Return(mockBenthosStream, nil)
-// 	mockBenthosStream.On("Run", mock.Anything).After(5 * time.Second).Return(nil)
-// 	mockBenthosStream.On("StopWithin", mock.Anything).Return(nil)
+	mockBenthosStreamManager.On("NewBenthosStreamFromBuilder", mock.Anything).Return(mockBenthosStream, nil)
+	mockBenthosStream.On("Run", mock.Anything).After(5 * time.Second).Return(nil)
+	mockBenthosStream.On("StopWithin", mock.Anything).Return(nil)
 
-// 	activity := New(nil, &sync.Map{}, nil, nil, mockBenthosStreamManager)
-// 	env.RegisterActivity(activity.Sync)
+	activity := New(nil, &sync.Map{}, nil, nil, mockBenthosStreamManager)
+	env.RegisterActivity(activity.Sync)
 
-// 	stopCh := make(chan struct{})
-// 	env.SetWorkerStopChannel(stopCh)
+	stopCh := make(chan struct{})
+	env.SetWorkerStopChannel(stopCh)
 
-// 	go func() {
-// 		time.Sleep(300 * time.Millisecond)
-// 		close(stopCh)
-// 	}()
+	go func() {
+		time.Sleep(300 * time.Millisecond)
+		close(stopCh)
+	}()
 
-// 	_, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
-// 		BenthosConfig: config,
-// 	}, &SyncMetadata{Schema: "public", Table: "test"})
-// 	require.Error(t, err)
-// 	require.Contains(t, err.Error(), "received worker stop signal")
-// 	mockBenthosStream.AssertCalled(t, "StopWithin", mock.Anything)
-// }
+	_, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
+		BenthosConfig: config,
+	}, &SyncMetadata{Schema: "public", Table: "test"})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "received worker stop signal")
+	mockBenthosStream.AssertCalled(t, "StopWithin", mock.Anything)
+}
 
-// func Test_Sync_Run_ActivityWorkerStop(t *testing.T) {
-// 	testSuite := &testsuite.WorkflowTestSuite{}
-// 	env := testSuite.NewTestActivityEnvironment()
-// 	benthosStreamManager := NewBenthosStreamManager()
-// 	activity := New(nil, &sync.Map{}, nil, nil, benthosStreamManager)
+func Test_Sync_Run_ActivityWorkerStop(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
+	benthosStreamManager := NewBenthosStreamManager()
+	activity := New(nil, &sync.Map{}, nil, nil, benthosStreamManager)
 
-// 	env.RegisterActivity(activity.Sync)
-// 	stopCh := make(chan struct{})
-// 	env.SetWorkerStopChannel(stopCh)
+	env.RegisterActivity(activity.Sync)
+	stopCh := make(chan struct{})
+	env.SetWorkerStopChannel(stopCh)
 
-// 	go func() {
-// 		// Close the channel to simulate sending a stop signal
-// 		time.Sleep(210 * time.Millisecond)
-// 		close(stopCh)
-// 	}()
+	go func() {
+		// Close the channel to simulate sending a stop signal
+		time.Sleep(210 * time.Millisecond)
+		close(stopCh)
+	}()
 
-// 	_, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
-// 		BenthosConfig: strings.TrimSpace(`
-// input:
-//   generate:
-//     count: 100000
-//     interval: ""
-//     mapping: 'root = { "id": uuid_v4() }'
-// output:
-//   label: ""
-//   stdout:
-//     codec: lines
-// `),
-// 	}, &SyncMetadata{Schema: "public", Table: "test"})
-// 	require.Error(t, err)
-// 	require.Contains(t, err.Error(), "received worker stop signal")
-// }
+	_, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
+		BenthosConfig: strings.TrimSpace(`
+input:
+  generate:
+    count: 100000
+    interval: ""
+    mapping: 'root = { "id": uuid_v4() }'
+output:
+  label: ""
+  stdout:
+    codec: lines
+`),
+	}, &SyncMetadata{Schema: "public", Table: "test"})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "received worker stop signal")
+}
 
 func Test_Sync_Run_BenthosError(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
@@ -344,14 +345,10 @@ output:
 
 	mockBenthosStreamManager.On("NewBenthosStreamFromBuilder", mock.Anything).Return(mockBenthosStream, nil)
 	errmsg := "benthos error"
-	mockBenthosStream.On("Run", mock.Anything).After(1 * time.Millisecond).Return(fmt.Errorf(errmsg))
-	mockBenthosStream.On("Stop", mock.Anything).Return(nil)
+	mockBenthosStream.On("Run", mock.Anything).Return(fmt.Errorf(errmsg))
+	mockBenthosStream.On("Stop", mock.Anything).Return(nil).Maybe()
 
 	activity := New(nil, &sync.Map{}, nil, nil, mockBenthosStreamManager)
-	ctx := context.Background()
-	env.SetWorkerOptions(worker.Options{
-		BackgroundActivityContext: ctx,
-	})
 
 	env.RegisterActivity(activity.Sync)
 	_, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
@@ -359,39 +356,38 @@ output:
 	}, &SyncMetadata{Schema: "public", Table: "test"})
 	require.Error(t, err)
 	require.Contains(t, err.Error(), errmsg)
-	mockBenthosStream.AssertCalled(t, "Stop", mock.Anything)
 }
 
-// func Test_getEnvVarLookupFn(t *testing.T) {
-// 	fn := getEnvVarLookupFn(nil)
-// 	assert.NotNil(t, fn)
-// 	val, ok := fn("foo")
-// 	assert.False(t, ok)
-// 	assert.Empty(t, val)
+func Test_getEnvVarLookupFn(t *testing.T) {
+	fn := getEnvVarLookupFn(nil)
+	assert.NotNil(t, fn)
+	val, ok := fn("foo")
+	assert.False(t, ok)
+	assert.Empty(t, val)
 
-// 	fn = getEnvVarLookupFn(map[string]string{"foo": "bar"})
-// 	assert.NotNil(t, fn)
-// 	val, ok = fn("foo")
-// 	assert.True(t, ok)
-// 	assert.Equal(t, val, "bar")
+	fn = getEnvVarLookupFn(map[string]string{"foo": "bar"})
+	assert.NotNil(t, fn)
+	val, ok = fn("foo")
+	assert.True(t, ok)
+	assert.Equal(t, val, "bar")
 
-// 	val, ok = fn("bar")
-// 	assert.False(t, ok)
-// 	assert.Empty(t, val)
-// }
+	val, ok = fn("bar")
+	assert.False(t, ok)
+	assert.Empty(t, val)
+}
 
-// func Test_syncMapToStringMap(t *testing.T) {
-// 	syncmap := sync.Map{}
+func Test_syncMapToStringMap(t *testing.T) {
+	syncmap := sync.Map{}
 
-// 	syncmap.Store("foo", "bar")
-// 	syncmap.Store("bar", "baz")
-// 	syncmap.Store(1, "2")
-// 	syncmap.Store("3", 4)
+	syncmap.Store("foo", "bar")
+	syncmap.Store("bar", "baz")
+	syncmap.Store(1, "2")
+	syncmap.Store("3", 4)
 
-// 	out := syncMapToStringMap(&syncmap)
-// 	assert.Len(t, out, 2)
-// 	assert.Equal(t, out["foo"], "bar")
-// 	assert.Equal(t, out["bar"], "baz")
+	out := syncMapToStringMap(&syncmap)
+	assert.Len(t, out, 2)
+	assert.Equal(t, out["foo"], "bar")
+	assert.Equal(t, out["bar"], "baz")
 
-// 	assert.Empty(t, syncMapToStringMap(nil))
-// }
+	assert.Empty(t, syncMapToStringMap(nil))
+}

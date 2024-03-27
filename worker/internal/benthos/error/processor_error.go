@@ -34,9 +34,9 @@ func newErrorProcessor(logger *service.Logger, channel chan bool) *errorProcesso
 }
 
 func (r *errorProcessor) ProcessBatch(_ context.Context, batch service.MessageBatch) ([]service.MessageBatch, error) {
-	r.logger.Info("Error processor: sending stop workflow signal")
+	r.logger.Info("Error processor: sending stop activity signal")
 	r.stopWorkflowChannel <- true
-	return nil, fmt.Errorf("Processor error occurred. Stopping workflow.")
+	return nil, fmt.Errorf("Processor error occurred. Stopping Activity.")
 }
 
 func (r *errorProcessor) Close(ctx context.Context) error {

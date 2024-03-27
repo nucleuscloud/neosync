@@ -110,7 +110,6 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 			case <-time.After(1 * time.Second):
 				activity.RecordHeartbeat(ctx)
 			case <-stopActivityChan:
-				fmt.Println("stop activity signal received")
 				resultChan <- fmt.Errorf("received stop activity signal")
 				if benthosStream != nil {
 					// this must be here because stream.Run(ctx) doesn't seem to fully obey a canceled context when
@@ -122,35 +121,25 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 					return
 				}
 			case <-activity.GetWorkerStopChannel(ctx):
-				fmt.Println("worker stop channel start")
-				fmt.Println("sends received worker stop signal to result channel")
 				resultChan <- fmt.Errorf("received worker stop signal")
 				if benthosStream != nil {
 					// this must be here because stream.Run(ctx) doesn't seem to fully obey a canceled context when
 					// a sink is in an error state. We want to explicitly call stop here because the workflow has been canceled.
-					fmt.Println("stopping benthos stream")
 					err := benthosStream.StopWithin(1 * time.Millisecond)
 					if err != nil {
 						logger.Error(err.Error())
 					}
-					fmt.Println("benthos stream stopped")
 				}
-
-				// cancelStream()
-				fmt.Println("worker stop channel done")
 				return
 			case <-ctx.Done():
-				fmt.Println("ctx done start")
 				if benthosStream != nil {
 					// this must be here because stream.Run(ctx) doesn't seem to fully obey a canceled context when
 					// a sink is in an error state. We want to explicitly call stop here because the workflow has been canceled.
 					err := benthosStream.Stop(ctx)
 					if err != nil {
-						fmt.Println("ctx done stream stop error")
 						logger.Error(err.Error())
 					}
 				}
-				fmt.Println("ctx done done")
 				resultChan <- nil
 			}
 		}
@@ -276,40 +265,21 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 
 	benthosStream = stream
 	go func() {
-		fmt.Println("running stream")
 		err := stream.Run(ctx)
 		if err != nil {
-			fmt.Println("stream error")
-			resultChan <- err
+			resultChan <- fmt.Errorf("unable to run benthos stream: %w", err)
 			return
 		}
-		fmt.Println("stream done send nil to channel")
 		resultChan <- nil
 	}()
 
 	err = <-resultChan
-	fmt.Println(err)
 	if err != nil {
 		return nil, err
 	}
+	benthosStream = nil
 	logger.Info("sync complete")
 	return &SyncResponse{}, nil
-
-	// for {
-	// 	select {
-	// 	case <-resultChan:
-	// 		fmt.Println("setting benthosstream to nil")
-	// 		benthosStream = nil
-	// 		err = <-resultChan
-	// 		fmt.Println(err.Error())
-	// 		if err != nil {
-	// 			return nil, err
-	// 		}
-	// 		logger.Info("sync complete")
-	// 		return &SyncResponse{}, nil
-	// 	}
-	// }
-
 }
 
 func getEnvVarLookupFn(input map[string]string) func(key string) (string, bool) {
