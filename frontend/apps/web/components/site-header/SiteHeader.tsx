@@ -48,8 +48,7 @@ export default function SiteHeader(): ReactElement {
               </SheetFooter>
             </SheetContent>
           </Sheet>
-          {/* {systemAppConfig.isAuthEnabled && <AccountSwitcher />} */}
-          {<AccountSwitcher />}
+          {systemAppConfig.isAuthEnabled && <AccountSwitcher />}
           <ModeToggle />
           <UserNav />
         </div>
