@@ -28,7 +28,7 @@ import (
 func Test_GetJobRuns_ByJobId(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 	temporalClientMock := new(MockTemporalClient)
-	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	jobId := nucleusdb.UUIDString(job.ID)
 	workflowId := uuid.NewString()
 	workflowExecutionMock := getWorfklowExecutionInfoMock(jobId, workflowId)
@@ -64,7 +64,7 @@ func Test_GetJobRuns_ByAccountId(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 	temporalClientMock := new(MockTemporalClient)
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
-	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	jobId := nucleusdb.UUIDString(job.ID)
 	workflowId := uuid.NewString()
 	workflowExecutionMock := getWorfklowExecutionInfoMock(jobId, workflowId)
@@ -97,7 +97,7 @@ func Test_GetJobRun(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 	temporalClientMock := new(MockTemporalClient)
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
-	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	jobId := nucleusdb.UUIDString(job.ID)
 	runId := uuid.NewString()
 	workflowId := uuid.NewString()
@@ -130,7 +130,7 @@ func Test_GetJobRun(t *testing.T) {
 func Test_CreateJobRun(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 	mockHandle := new(MockScheduleHandle)
-	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, job.ID).Return(job, nil)

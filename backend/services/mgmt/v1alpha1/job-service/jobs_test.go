@@ -54,8 +54,8 @@ func Test_GetJobs(t *testing.T) {
 
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
-	job1 := mockJob(mockAccountId, mockUserId, uuid.NewString())
-	job2 := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	job1 := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
+	job2 := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	destConn1 := getConnectionMock(mockAccountId, "test-1")
 	destConn2 := getConnectionMock(mockAccountId, "test-2")
 	destConnAssociation1 := mockJobDestConnAssociation(job1.ID, destConn1.ID, &pg_models.JobDestinationOptions{})
@@ -89,7 +89,7 @@ func Test_GetJobs_MissingDestinations(t *testing.T) {
 
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
-	job1 := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	job1 := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	m.QuerierMock.On("GetJobsByAccount", context.Background(), mock.Anything, accountUuid).Return([]db_queries.NeosyncApiJob{job1}, nil)
 	m.QuerierMock.On("GetJobConnectionDestinationsByJobIds", context.Background(), mock.Anything, []pgtype.UUID{job1.ID}).Return([]db_queries.NeosyncApiJobDestinationConnectionAssociation{}, nil)
 	resp, err := m.Service.GetJobs(context.Background(), &connect.Request[mgmtv1alpha1.GetJobsRequest]{
@@ -109,7 +109,7 @@ func Test_GetJob(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
-	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	destConn := getConnectionMock(mockAccountId, "test-1")
 	destConnAssociation := mockJobDestConnAssociation(job.ID, destConn.ID, &pg_models.JobDestinationOptions{})
 	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, job.ID).Return(job, nil)
@@ -130,7 +130,7 @@ func Test_GetJob(t *testing.T) {
 func Test_GetJob_Supports_WorkerApiKeys(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 
-	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	destConn := getConnectionMock(mockAccountId, "test-1")
 	destConnAssociation := mockJobDestConnAssociation(job.ID, destConn.ID, &pg_models.JobDestinationOptions{})
 	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, job.ID).Return(job, nil)
@@ -156,7 +156,7 @@ func Test_GetJob_MissingDestinations(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
-	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, job.ID).Return(job, nil)
 	m.QuerierMock.On("GetJobConnectionDestinations", mock.Anything, mock.Anything, job.ID).Return([]db_queries.NeosyncApiJobDestinationConnectionAssociation{}, nil)
 	jobId := nucleusdb.UUIDString(job.ID)
@@ -176,7 +176,7 @@ func Test_GetJob_UnauthorizedUser(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 
 	mockIsUserInAccount(m.UserAccountServiceMock, false)
-	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, job.ID).Return(job, nil)
 	m.QuerierMock.On("GetJobConnectionDestinations", mock.Anything, mock.Anything, job.ID).Return([]db_queries.NeosyncApiJobDestinationConnectionAssociation{}, nil)
 	jobId := nucleusdb.UUIDString(job.ID)
@@ -213,7 +213,7 @@ func Test_GetJobStatus_Paused(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
-	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	jobId := nucleusdb.UUIDString(job.ID)
 
 	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, mock.Anything).Return(job, nil)
@@ -245,7 +245,7 @@ func Test_GetJobStatus_Enabled(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
-	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	jobId := nucleusdb.UUIDString(job.ID)
 
 	m.QuerierMock.On("GetJobById", mock.Anything, mock.Anything, job.ID).Return(job, nil)
@@ -281,7 +281,7 @@ func Test_GetJobStatuses(t *testing.T) {
 	mockScheduleClient.Handle = mockHandle
 
 	mockIsUserInAccount(m.UserAccountServiceMock, true)
-	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 
 	m.QuerierMock.On("GetJobsByAccount", mock.Anything, mock.Anything, job.AccountID).Return([]db_queries.NeosyncApiJob{job}, nil)
 	m.TemporalWfManagerMock.On("GetScheduleClientByAccount", mock.Anything, mock.Anything, mock.Anything).Return(mockScheduleClient, nil)
@@ -322,7 +322,10 @@ func Test_CreateJob(t *testing.T) {
 
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
-	job1 := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	cron := pgtype.Text{}
+	_ = cron.Scan(cronSchedule)
+
+	job1 := mockJob(mockAccountId, mockUserId, uuid.NewString(), cron)
 	srcConn := getConnectionMock(mockAccountId, "test-4")
 	destConn := getConnectionMock(mockAccountId, "test-1")
 	destConnAssociation := mockJobDestConnAssociation(job1.ID, destConn.ID, &pg_models.JobDestinationOptions{
@@ -335,8 +338,6 @@ func Test_CreateJob(t *testing.T) {
 		},
 	})
 
-	cron := pgtype.Text{}
-	_ = cron.Scan(cronSchedule)
 	destinationParams := []db_queries.CreateJobConnectionDestinationsParams{
 		{JobID: job1.ID, ConnectionID: destConn.ID, Options: &pg_models.JobDestinationOptions{
 			PostgresOptions: &pg_models.PostgresDestinationOptions{
@@ -475,12 +476,12 @@ func Test_CreateJob_Schedule_Creation_Error(t *testing.T) {
 
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
-	job1 := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	cron := pgtype.Text{}
+	_ = cron.Scan(cronSchedule)
+	job1 := mockJob(mockAccountId, mockUserId, uuid.NewString(), cron)
 	srcConn := getConnectionMock(mockAccountId, "test-4")
 	destConn := getConnectionMock(mockAccountId, "test-1")
 
-	cron := pgtype.Text{}
-	_ = cron.Scan(cronSchedule)
 	destinationParams := []db_queries.CreateJobConnectionDestinationsParams{
 		{JobID: job1.ID, ConnectionID: destConn.ID, Options: &pg_models.JobDestinationOptions{
 			PostgresOptions: &pg_models.PostgresDestinationOptions{
@@ -619,12 +620,12 @@ func Test_CreateJob_Schedule_Creation_Error_JobCleanup_Error(t *testing.T) {
 
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
-	job1 := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	cron := pgtype.Text{}
+	_ = cron.Scan(cronSchedule)
+	job1 := mockJob(mockAccountId, mockUserId, uuid.NewString(), cron)
 	srcConn := getConnectionMock(mockAccountId, "test-4")
 	destConn := getConnectionMock(mockAccountId, "test-1")
 
-	cron := pgtype.Text{}
-	_ = cron.Scan(cronSchedule)
 	destinationParams := []db_queries.CreateJobConnectionDestinationsParams{
 		{JobID: job1.ID, ConnectionID: destConn.ID, Options: &pg_models.JobDestinationOptions{
 			PostgresOptions: &pg_models.PostgresDestinationOptions{
@@ -762,7 +763,7 @@ func Test_CreateJobDestinationConnections(t *testing.T) {
 	mockScheduleClient.Handle = mockHandle
 
 	mockUserAccountCalls(m.UserAccountServiceMock, true)
-	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	destConn := getConnectionMock(mockAccountId, "test-1")
 	destConnAssociation := mockJobDestConnAssociation(job.ID, destConn.ID, &pg_models.JobDestinationOptions{})
 
@@ -818,7 +819,7 @@ func Test_CreateJobDestinationConnections_ConnectionNotInAccount(t *testing.T) {
 	mockScheduleClient.Handle = mockHandle
 
 	mockUserAccountCalls(m.UserAccountServiceMock, true)
-	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	destConn := getConnectionMock(uuid.NewString(), "test-1")
 	destConnAssociation := mockJobDestConnAssociation(job.ID, destConn.ID, &pg_models.JobDestinationOptions{})
 
@@ -858,12 +859,12 @@ func Test_UpdateJobSchedule(t *testing.T) {
 	mockTx := new(nucleusdb.MockTx)
 
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
-	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
-	destConn := getConnectionMock(mockAccountId, "test-1")
-	destConnAssociation := mockJobDestConnAssociation(job.ID, destConn.ID, &pg_models.JobDestinationOptions{})
-	cronSchedule := "* * * * *"
 	cron := pgtype.Text{}
 	_ = cron.Scan(cronSchedule)
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), cron)
+	destConn := getConnectionMock(mockAccountId, "test-1")
+	destConnAssociation := mockJobDestConnAssociation(job.ID, destConn.ID, &pg_models.JobDestinationOptions{})
+
 	jobId := nucleusdb.UUIDString(job.ID)
 
 	mockUserAccountCalls(m.UserAccountServiceMock, true)
@@ -895,7 +896,7 @@ func Test_PauseJob_Pause(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 	mockHandle := new(MockScheduleHandle)
 
-	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	destConn := getConnectionMock(mockAccountId, "test-1")
 	destConnAssociation := mockJobDestConnAssociation(job.ID, destConn.ID, &pg_models.JobDestinationOptions{})
 	jobId := nucleusdb.UUIDString(job.ID)
@@ -920,7 +921,7 @@ func Test_PauseJob_UnPause(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 	mockHandle := new(MockScheduleHandle)
 
-	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	destConn := getConnectionMock(mockAccountId, "test-1")
 	destConnAssociation := mockJobDestConnAssociation(job.ID, destConn.ID, &pg_models.JobDestinationOptions{})
 	jobId := nucleusdb.UUIDString(job.ID)
@@ -946,7 +947,7 @@ func Test_UpdateJobSourceConnection_Success(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 	mockTx := new(nucleusdb.MockTx)
 
-	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	conn := getConnectionMock(mockAccountId, "test-1")
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
@@ -1030,7 +1031,7 @@ func Test_UpdateJobSourceConnection_GenerateSuccess(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 	mockTx := new(nucleusdb.MockTx)
 
-	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
 	fkString := uuid.NewString()
@@ -1110,7 +1111,7 @@ func Test_UpdateJobSourceConnection_GenerateSuccess(t *testing.T) {
 func Test_UpdateJobSourceConnection_PgMismatchError(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 
-	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	conn := getConnectionMock(mockAccountId, "test-1")
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	whereClause := "where1"
@@ -1168,7 +1169,7 @@ func Test_UpdateJobSourceConnection_PgMismatchError(t *testing.T) {
 func Test_UpdateJobSourceConnection_MysqlMismatchError(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 
-	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	conn := getConnectionMock(mockAccountId, "test-1")
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	whereClause := "where1"
@@ -1226,7 +1227,7 @@ func Test_UpdateJobSourceConnection_MysqlMismatchError(t *testing.T) {
 func Test_UpdateJobSourceConnection_AwsS3MismatchError(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 
-	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	conn := getConnectionMock(mockAccountId, "test-1")
 	accountUuid, _ := nucleusdb.ToUuid(mockAccountId)
 	whereClause := "where1"
@@ -1284,7 +1285,7 @@ func Test_UpdateJobSourceConnection_AwsS3MismatchError(t *testing.T) {
 // SetJobSourceSqlConnectionSubsets
 func Test_SetJobSourceSqlConnectionSubsets_Invalid_Connection_No_ConnectionId(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	jobId := nucleusdb.UUIDString(job.ID)
 	whereClause := "where2"
 
@@ -1318,7 +1319,7 @@ func Test_SetJobSourceSqlConnectionSubsets_Invalid_Connection_No_ConnectionId(t 
 // UpdateJobDestinationConnection
 func Test_UpdateJobDestinationConnection_Update(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	jobId := nucleusdb.UUIDString(job.ID)
 	destinationId := uuid.NewString()
 	destinationUuid, _ := nucleusdb.ToUuid(destinationId)
@@ -1369,7 +1370,7 @@ func Test_UpdateJobDestinationConnection_Update(t *testing.T) {
 
 func Test_UpdateJobDestinationConnection_Create(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	jobId := nucleusdb.UUIDString(job.ID)
 	destinationId := uuid.NewString()
 	connectionId := uuid.NewString()
@@ -1420,7 +1421,7 @@ func Test_UpdateJobDestinationConnection_Create(t *testing.T) {
 
 func Test_DeleteJobDestinationConnection(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
-	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	destinationId := uuid.NewString()
 	destinationUuid, _ := nucleusdb.ToUuid(destinationId)
 	connId, _ := nucleusdb.ToUuid(uuid.NewString())
@@ -1572,7 +1573,7 @@ func mockUserAccountCalls(userAccountServiceMock *mgmtv1alpha1connect.MockUserAc
 }
 
 //nolint:all
-func mockJob(accountId, userId, srcConnId string) db_queries.NeosyncApiJob {
+func mockJob(accountId, userId, srcConnId string, cronSchedule pgtype.Text) db_queries.NeosyncApiJob {
 	id, _ := nucleusdb.ToUuid(uuid.NewString())
 	accountUuid, _ := nucleusdb.ToUuid(accountId)
 	userUuid, _ := nucleusdb.ToUuid(userId)
@@ -1590,6 +1591,7 @@ func mockJob(accountId, userId, srcConnId string) db_queries.NeosyncApiJob {
 		Name:              "some-name",
 		ConnectionOptions: &pg_models.JobSourceOptions{},
 		Mappings:          []*pg_models.JobMapping{},
+		CronSchedule:      cronSchedule,
 	}
 
 }
@@ -1649,7 +1651,7 @@ func Test_SetJobWorkflowOptions(t *testing.T) {
 	mockTx := new(nucleusdb.MockTx)
 
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
-	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	destConn := getConnectionMock(mockAccountId, "test-1")
 	destConnAssociation := mockJobDestConnAssociation(job.ID, destConn.ID, &pg_models.JobDestinationOptions{})
 	jobId := nucleusdb.UUIDString(job.ID)
@@ -1687,7 +1689,7 @@ func Test_SetJobSyncOptions(t *testing.T) {
 	m := createServiceMock(t, &Config{IsAuthEnabled: true})
 
 	userUuid, _ := nucleusdb.ToUuid(mockUserId)
-	job := mockJob(mockAccountId, mockUserId, uuid.NewString())
+	job := mockJob(mockAccountId, mockUserId, uuid.NewString(), pgtype.Text{})
 	destConn := getConnectionMock(mockAccountId, "test-1")
 	destConnAssociation := mockJobDestConnAssociation(job.ID, destConn.ID, &pg_models.JobDestinationOptions{})
 	jobId := nucleusdb.UUIDString(job.ID)

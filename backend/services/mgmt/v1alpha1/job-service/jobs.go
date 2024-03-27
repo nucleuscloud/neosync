@@ -490,7 +490,7 @@ func (s *Service) CreateJob(
 	paused := true
 	spec := temporalclient.ScheduleSpec{}
 	// we only want to unpause the temporal schedule if the user provided the cronstring directly
-	if req.Msg.GetCronSchedule() != "" {
+	if req.Msg.GetCronSchedule() != "" && schedule != nil {
 		spec.CronExpressions = []string{*schedule}
 		paused = false
 	}
