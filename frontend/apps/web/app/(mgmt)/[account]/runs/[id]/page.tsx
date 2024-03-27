@@ -18,7 +18,7 @@ import { refreshWhenJobRunning, useGetJobRun } from '@/libs/hooks/useGetJobRun';
 import { JobRunStatus as JobRunStatusEnum } from '@neosync/sdk';
 import { TiCancel } from 'react-icons/ti';
 
-import { CopyButton } from '@/components/CopyButton';
+import ResourceId from '@/components/ResourceId';
 import {
   refreshEventsWhenEventsIncomplete,
   useGetJobRunEvents,
@@ -113,15 +113,6 @@ export default function Page({ params }: PageProps): ReactElement {
       Header={
         <PageHeader
           header="Job Run Details"
-          description={jobRun?.id || ''}
-          copyIcon={
-            <CopyButton
-              onHoverText="Copy the Run ID"
-              textToCopy={jobRun?.id || ''}
-              onCopiedText="Success!"
-              buttonVariant="outline"
-            />
-          }
           extraHeading={
             <div className="flex flex-row space-x-4">
               <DeleteConfirmationDialog
@@ -167,6 +158,13 @@ export default function Page({ params }: PageProps): ReactElement {
               )}
               <ButtonLink jobId={jobRun?.jobId} />
             </div>
+          }
+          subHeadings={
+            <ResourceId
+              labelText={jobRun?.id ?? ''}
+              copyText={jobRun?.id ?? ''}
+              onHoverText="Copy the Run ID"
+            />
           }
         />
       }

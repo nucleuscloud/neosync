@@ -9,7 +9,7 @@ export default async function Postgres() {
       Header={
         <PageHeader
           header="Neon"
-          description="Configure a Neon database as a connection"
+          subHeadings="Configure a Neon database as a connection"
           leftIcon={<NeonLogo />}
         />
       }

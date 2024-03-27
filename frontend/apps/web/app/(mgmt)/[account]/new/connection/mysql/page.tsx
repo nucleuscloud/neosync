@@ -9,7 +9,7 @@ export default async function Postgres() {
       Header={
         <PageHeader
           header="MySQL"
-          description="Configure a MySQL database as a connection"
+          subHeadings="Configure a MySQL database as a connection"
           leftIcon={<DiMysql className="w-[40px] h-[40px]" />}
         />
       }

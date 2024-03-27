@@ -9,7 +9,7 @@ export default async function Postgres() {
       Header={
         <PageHeader
           header="PostgreSQL"
-          description="Configure a PostgreSQL database as a connection"
+          subHeadings="Configure a PostgreSQL database as a connection"
           leftIcon={<DiPostgresql className=" w-[40px] h-[40px]" />}
         />
       }

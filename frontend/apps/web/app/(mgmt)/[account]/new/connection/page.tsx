@@ -36,7 +36,7 @@ export default function NewConnection(): ReactElement {
       Header={
         <PageHeader
           header="Create a new Connection"
-          description="Connect a new datasource to use in sync or generate jobs."
+          subHeadings="Connect a new datasource to use in sync or generate jobs."
           pageHeaderContainerClassName="mx-24"
         />
       }

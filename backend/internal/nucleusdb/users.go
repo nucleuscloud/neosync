@@ -41,9 +41,7 @@ func (d *NucleusDb) SetUserByAuthSub(
 			} else {
 				user, err = d.Q.GetUser(ctx, dbtx, association.UserID)
 				if err != nil && !IsNoRows(err) {
-					if err != nil {
-						return err
-					}
+					return err
 				} else if err != nil && IsNoRows(err) {
 					user, err = d.Q.CreateNonMachineUser(ctx, dbtx)
 					if err != nil {

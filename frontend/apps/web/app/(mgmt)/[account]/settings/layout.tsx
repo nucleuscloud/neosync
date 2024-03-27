@@ -1,4 +1,5 @@
 'use client';
+import ResourceId from '@/components/ResourceId';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
@@ -20,9 +21,23 @@ export default function SettingsLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const { account } = useAccount();
   return (
     <div>
-      <OverviewContainer Header={<PageHeader header="Settings" />}>
+      <OverviewContainer
+        Header={
+          <PageHeader
+            header="Settings"
+            subHeadings={
+              <ResourceId
+                labelText={`${account?.name} - ${account?.id}`}
+                copyText={account?.id ?? ''}
+                onHoverText="Copy account Id"
+              />
+            }
+          />
+        }
+      >
         <div className="flex flex-row gap-20">
           <div className="flex flex-col gap-2 w-1/6">
             <NavSettings />

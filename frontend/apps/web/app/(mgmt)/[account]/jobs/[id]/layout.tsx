@@ -1,7 +1,7 @@
 'use client';
 import ButtonText from '@/components/ButtonText';
-import { CopyButton } from '@/components/CopyButton';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
+import ResourceId from '@/components/ResourceId';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
@@ -123,13 +123,11 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
             <PageHeader
               pageHeaderContainerClassName="gap-2"
               header={data?.job?.name || ''}
-              description={data?.job?.id || ''}
-              copyIcon={
-                <CopyButton
+              subHeadings={
+                <ResourceId
+                  labelText={data?.job?.id ?? ''}
+                  copyText={data?.job?.id ?? ''}
                   onHoverText="Copy the Job ID"
-                  textToCopy={data?.job?.id || ''}
-                  onCopiedText="Success!"
-                  buttonVariant="outline"
                 />
               }
               leftBadgeValue={
