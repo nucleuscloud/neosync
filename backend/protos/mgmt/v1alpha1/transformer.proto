@@ -37,10 +37,10 @@ message GetUserDefinedTransformerByIdResponse {
 
 message CreateUserDefinedTransformerRequest {
   string account_id = 1 [(buf.validate.field).string.uuid = true];
-  string name = 2;
+  string name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,30}$"];
   string description = 3;
   string type = 4;
-  string source = 5;
+  string source = 5 [(buf.validate.field).string.min_len = 1];
   TransformerConfig transformer_config = 6;
 }
 
@@ -56,7 +56,7 @@ message DeleteUserDefinedTransformerResponse {}
 
 message UpdateUserDefinedTransformerRequest {
   string transformer_id = 1 [(buf.validate.field).string.uuid = true];
-  string name = 2;
+  string name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,30}$"];
   string description = 3;
   TransformerConfig transformer_config = 4;
 }

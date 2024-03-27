@@ -32,7 +32,7 @@ message CreateConnectionResponse {
 
 message UpdateConnectionRequest {
   string id = 1 [(buf.validate.field).string.uuid = true];
-  string name = 2;
+  string name = 2 [(buf.validate.field).string.pattern = "^[a-z0-9-]{3,30}$"];
   ConnectionConfig connection_config = 3;
 }
 message UpdateConnectionResponse {
