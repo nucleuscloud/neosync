@@ -263,10 +263,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           {isClient && (
             <SchemaTable
               data={form.watch('mappings')}
-              excludeInputReqTransformers
               constraintHandler={schemaConstraintHandler}
               schema={connectionSchemaDataMap?.schemaMap ?? {}}
-              jobType={'generate'}
+              jobType="generate"
             />
           )}
           {form.formState.errors.root && (
