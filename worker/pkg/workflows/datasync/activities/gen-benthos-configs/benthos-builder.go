@@ -430,38 +430,22 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					// 	},
 					// })
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-						Switch: &neosync_benthos.SwitchOutputConfig{
-							RetryUntilSuccess: false,
-							Cases: []neosync_benthos.SwitchOutputCase{
-								{
-									Continue: false,
-									Check:    "errored()",
-									Output: neosync_benthos.Outputs{
-										Error: &neosync_benthos.ErrorOutputConfig{
-											Batching: &neosync_benthos.Batching{
-												Period: "5s",
-												Count:  100,
-											},
-										},
-									},
-								},
-								{
-									Output: neosync_benthos.Outputs{
-										PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
-											Driver: postgresDriver,
-											Dsn:    dsn,
+						Fallback: []neosync_benthos.Outputs{
+							{
+								PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
+									Driver: postgresDriver,
+									Dsn:    dsn,
 
-											Query:       out.Query,
-											ArgsMapping: out.ArgsMapping,
+									Query:       out.Query,
+									ArgsMapping: out.ArgsMapping,
 
-											Batching: &neosync_benthos.Batching{
-												Period: "5s",
-												Count:  100,
-											},
-										},
+									Batching: &neosync_benthos.Batching{
+										Period: "5s",
+										Count:  100,
 									},
 								},
 							},
+							{Error: &neosync_benthos.ErrorOutputConfig{}},
 						},
 					})
 

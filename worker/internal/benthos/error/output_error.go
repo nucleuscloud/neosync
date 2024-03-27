@@ -2,13 +2,16 @@ package neosync_benthos_error
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/benthosdev/benthos/v4/public/service"
 )
 
 func errorOutputSpec() *service.ConfigSpec {
 	return service.NewConfigSpec().
-		Summary(`Sends stop Activity signal`)
+		Summary(`Sends stop Activity signal`).
+		Field(service.NewIntField("max_in_flight").Default(64)).
+		Field(service.NewBatchPolicyField("batching"))
 }
 
 // Registers an processor on a benthos environment called error
@@ -47,7 +50,10 @@ func (e *errorOutput) Connect(ctx context.Context) error {
 }
 
 func (e *errorOutput) WriteBatch(ctx context.Context, batch service.MessageBatch) error {
-	e.logger.Info("Error output: sending stop activity signal")
+	fmt.Println()
+	fmt.Println("HERE")
+	fmt.Println()
+	e.logger.Error("Error output: sending stop activity signal")
 	e.stopActivityChannel <- true
 	return nil
 }

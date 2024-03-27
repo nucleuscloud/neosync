@@ -246,6 +246,10 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	if err != nil {
 		return nil, fmt.Errorf("unable to register error processor to benthos instance: %w", err)
 	}
+	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, stopActivityChan)
+	if err != nil {
+		return nil, fmt.Errorf("unable to register error output to benthos instance: %w", err)
+	}
 
 	envKeyMap := syncMapToStringMap(&envKeyDsnSyncMap)
 	envKeyMap["TEMPORAL_WORKFLOW_ID"] = info.WorkflowExecution.ID
