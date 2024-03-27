@@ -1,3 +1,4 @@
+import { RESOURCE_NAME_REGEX } from '@/yup-validations/connections';
 import {
   DESTINATION_FORM_SCHEMA,
   JOB_MAPPING_SCHEMA,
@@ -62,8 +63,14 @@ export const DEFINE_FORM_SCHEMA = Yup.object({
       'checkNameUnique',
       'This name is already taken.',
       async (value, context) => {
-        if (!value || value.length === 0) {
+        if (!value || value.length < 3) {
           return false;
+        }
+        if (!RESOURCE_NAME_REGEX.test(value)) {
+          return context.createError({
+            message:
+              'Job Name can only include lowercase letters, numbers, and hyphens',
+          });
         }
         const accountId = context.options.context?.accountId;
         if (!accountId) {

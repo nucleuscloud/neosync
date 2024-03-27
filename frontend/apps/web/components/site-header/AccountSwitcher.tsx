@@ -4,17 +4,21 @@ import {
   CheckIcon,
   PlusCircledIcon,
 } from '@radix-ui/react-icons';
-import * as React from 'react';
 import { ReactElement } from 'react';
 
 import { useGetUserAccounts } from '@/libs/hooks/useUserAccounts';
 import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
+import { RESOURCE_NAME_REGEX } from '@/yup-validations/connections';
+import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CreateTeamAccountRequest,
   CreateTeamAccountResponse,
   UserAccountType,
 } from '@neosync/sdk';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import * as Yup from 'yup';
 import { useAccount } from '../providers/account-provider';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Button } from '../ui/button';
@@ -36,29 +40,64 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '../ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from '../ui/form';
 import { Input } from '../ui/input';
-import { Label } from '../ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Skeleton } from '../ui/skeleton';
 import { toast } from '../ui/use-toast';
+
+const CreateTeamFormValues = Yup.object({
+  name: Yup.string()
+    .required()
+    .min(3)
+    .max(30)
+    .test(
+      'valid account name',
+      'Account Name must be of length 3-30 and only include lowercased letters, numbers, and/or hyphens.',
+      (value) => {
+        if (!value || value.length < 3) {
+          return false;
+        }
+        if (!RESOURCE_NAME_REGEX.test(value)) {
+          return false;
+        }
+        // todo: test to make sure that account is valid across neosync
+        return true;
+      }
+    ),
+});
+type CreateTeamFormValues = Yup.InferType<typeof CreateTeamFormValues>;
 
 interface Props {}
 
 export default function AccountSwitcher(_: Props): ReactElement {
   const { account, setAccount } = useAccount();
   const { data, mutate, isLoading } = useGetUserAccounts();
-  const [open, setOpen] = React.useState(false);
-  const [showNewTeamDialog, setShowNewTeamDialog] = React.useState(false);
-  const [teamName, setTeamName] = React.useState('');
+  const [open, setOpen] = useState(false);
+  const [showNewTeamDialog, setShowNewTeamDialog] = useState(false);
+  const form = useForm({
+    mode: 'onChange',
+    resolver: yupResolver(CreateTeamFormValues),
+    defaultValues: {
+      name: '',
+    },
+  });
 
+  const accounts = data?.accounts ?? [];
   const personalAccounts =
-    data?.accounts.filter((a) => a.type === UserAccountType.PERSONAL) || [];
+    accounts.filter((a) => a.type === UserAccountType.PERSONAL) ?? [];
   const teamAccounts =
-    data?.accounts.filter((a) => a.type === UserAccountType.TEAM) || [];
+    accounts.filter((a) => a.type === UserAccountType.TEAM) ?? [];
 
-  async function onSubmit(teamName: string): Promise<void> {
+  async function onSubmit(values: CreateTeamFormValues): Promise<void> {
     try {
-      await createTeamAccount(teamName);
+      await createTeamAccount(values.name);
       setShowNewTeamDialog(false);
       mutate();
       toast({
@@ -180,28 +219,37 @@ export default function AccountSwitcher(_: Props): ReactElement {
           </Command>
         </PopoverContent>
       </Popover>
-      <DialogContent>
+      <DialogContent className="flex flex-col gap-3">
         <DialogHeader>
           <DialogTitle>Create team</DialogTitle>
-          <DialogDescription>Add a new team to manage jobs.</DialogDescription>
+          <DialogDescription>
+            Create a new team account to collaborate with your co-workers.
+          </DialogDescription>
         </DialogHeader>
-        <div>
-          <div className="space-y-4 py-2 pb-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Team name</Label>
-              <Input
-                id="name"
-                placeholder="Acme Inc."
-                onChange={(event) => setTeamName(event.target.value)}
-              />
-            </div>
-          </div>
+        <div className="space-y-4 py-2">
+          <Form {...form}>
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input placeholder="acme" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </Form>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setShowNewTeamDialog(false)}>
             Cancel
           </Button>
-          <Button type="submit" onClick={() => onSubmit(teamName)}>
+          <Button
+            type="submit"
+            onClick={(e) => form.handleSubmit((values) => onSubmit(values))(e)}
+          >
             Continue
           </Button>
         </DialogFooter>

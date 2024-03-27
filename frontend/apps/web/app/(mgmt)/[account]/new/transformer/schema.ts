@@ -1,3 +1,4 @@
+import { RESOURCE_NAME_REGEX } from '@/yup-validations/connections';
 import {
   IsTransformerNameAvailableResponse,
   TransformerConfig,
@@ -523,6 +524,8 @@ export type TransformerConfigSchema = Yup.InferType<
 
 const transformerNameSchema = Yup.string()
   .required()
+  .min(3)
+  .max(30)
   .test(
     'checkNameUnique',
     'Transformer Name must be at least 3 characters long and can only include lowercase letters, numbers, and hyphens.',
@@ -534,8 +537,7 @@ const transformerNameSchema = Yup.string()
         });
       }
 
-      const regex = /^[a-z0-9-]+$/;
-      if (!regex.test(value)) {
+      if (!RESOURCE_NAME_REGEX.test(value)) {
         return context.createError({
           message:
             'Transformer name Name can only include lowercase letters, numbers, and hyphens.',

@@ -2,55 +2,13 @@ import { isConnectionNameAvailable } from '@/app/(mgmt)/[account]/new/connection
 import { getErrorMessage } from '@/util/util';
 import * as Yup from 'yup';
 
-export const POSTGRES_CONNECTION = Yup.object({
-  host: Yup.string().required(),
-  name: Yup.string().required(),
-  user: Yup.string().required(),
-  pass: Yup.string().required(),
-  port: Yup.number().integer().positive().required(),
-  sslMode: Yup.string().optional(),
-});
-
-// todo: need to do better validation here
-export const SSH_TUNNEL_FORM_SCHEMA = Yup.object({
-  host: Yup.string(),
-  port: Yup.number()
-    .min(0)
-    .when('host', (host, schema) => ([host] ? schema.required() : schema)),
-  user: Yup.string().when('host', (values, schema) => {
-    const [host] = values;
-    return host ? schema.required() : schema;
-  }),
-
-  knownHostPublicKey: Yup.string(),
-
-  privateKey: Yup.string(),
-  passphrase: Yup.string(),
-});
-
-export const NEW_POSTGRES_CONNECTION = Yup.object({
-  connectionName: Yup.string().required(),
-  connection: POSTGRES_CONNECTION,
-  tunnel: SSH_TUNNEL_FORM_SCHEMA,
-});
-
-export const EXISTING_POSTGRES_CONNECTION = Yup.object({
-  id: Yup.string().uuid().required(),
-  connection: POSTGRES_CONNECTION,
-  tunnel: SSH_TUNNEL_FORM_SCHEMA,
-});
-
-export const SSL_MODES = [
-  'disable',
-  'allow',
-  'prefer',
-  'require',
-  'verify-ca',
-  'verify-full',
-];
+/* This is the standard regular expression we assign to all or most "name" fields on the backend. */
+export const RESOURCE_NAME_REGEX = /^[a-z0-9-]{3,30}$/;
 
 const connectionNameSchema = Yup.string()
   .required()
+  .min(3)
+  .max(30)
   .test(
     'validConnectionName',
     'Connection Name must be at least 3 characters long and can only include lowercase letters, numbers, and hyphens.',
@@ -59,8 +17,7 @@ const connectionNameSchema = Yup.string()
         return false;
       }
 
-      const regex = /^[a-z0-9-]{3,50}$/;
-      if (!regex.test(value)) {
+      if (!RESOURCE_NAME_REGEX.test(value)) {
         return context.createError({
           message:
             'Connection Name can only include lowercase letters, numbers, and hyphens.',
@@ -95,6 +52,53 @@ const connectionNameSchema = Yup.string()
       }
     }
   );
+
+export const POSTGRES_CONNECTION = Yup.object({
+  host: Yup.string().required(),
+  name: Yup.string().required(),
+  user: Yup.string().required(),
+  pass: Yup.string().required(),
+  port: Yup.number().integer().positive().required(),
+  sslMode: Yup.string().optional(),
+});
+
+// todo: need to do better validation here
+export const SSH_TUNNEL_FORM_SCHEMA = Yup.object({
+  host: Yup.string(),
+  port: Yup.number()
+    .min(0)
+    .when('host', (host, schema) => ([host] ? schema.required() : schema)),
+  user: Yup.string().when('host', (values, schema) => {
+    const [host] = values;
+    return host ? schema.required() : schema;
+  }),
+
+  knownHostPublicKey: Yup.string(),
+
+  privateKey: Yup.string(),
+  passphrase: Yup.string(),
+});
+
+export const NEW_POSTGRES_CONNECTION = Yup.object({
+  connectionName: connectionNameSchema,
+  connection: POSTGRES_CONNECTION,
+  tunnel: SSH_TUNNEL_FORM_SCHEMA,
+});
+
+export const EXISTING_POSTGRES_CONNECTION = Yup.object({
+  id: Yup.string().uuid().required(),
+  connection: POSTGRES_CONNECTION,
+  tunnel: SSH_TUNNEL_FORM_SCHEMA,
+});
+
+export const SSL_MODES = [
+  'disable',
+  'allow',
+  'prefer',
+  'require',
+  'verify-ca',
+  'verify-full',
+];
 
 export const MYSQL_CONNECTION_PROTOCOLS = ['tcp', 'sock', 'pipe', 'memory'];
 
