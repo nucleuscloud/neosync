@@ -1,13 +1,16 @@
 package sync_activity
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	metricsdk "go.opentelemetry.io/otel/sdk/metric"
 	"go.temporal.io/sdk/testsuite"
@@ -17,7 +20,8 @@ func Test_Sync_Run_Success(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 
-	activity := New(nil, &sync.Map{}, nil, nil)
+	benthosStreamManager := NewBenthosStreamManager()
+	activity := New(nil, &sync.Map{}, nil, nil, benthosStreamManager)
 
 	env.RegisterActivity(activity.Sync)
 
@@ -46,7 +50,8 @@ func Test_Sync_Run_Metrics_Success(t *testing.T) {
 
 	meterProvider := metricsdk.NewMeterProvider()
 	meter := meterProvider.Meter("test")
-	activity := New(nil, &sync.Map{}, nil, meter)
+	benthosStreamManager := NewBenthosStreamManager()
+	activity := New(nil, &sync.Map{}, nil, meter, benthosStreamManager)
 
 	env.RegisterActivity(activity.Sync)
 
@@ -75,7 +80,8 @@ func Test_Sync_Fake_Mutation_Success(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 
-	activity := New(nil, &sync.Map{}, nil, nil)
+	benthosStreamManager := NewBenthosStreamManager()
+	activity := New(nil, &sync.Map{}, nil, nil, benthosStreamManager)
 	env.RegisterActivity(activity.Sync)
 
 	val, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
@@ -106,7 +112,8 @@ func Test_Sync_Run_Success_Javascript(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 
-	activity := New(nil, &sync.Map{}, nil, nil)
+	benthosStreamManager := NewBenthosStreamManager()
+	activity := New(nil, &sync.Map{}, nil, nil, benthosStreamManager)
 	env.RegisterActivity(activity.Sync)
 
 	tmpFile, err := os.CreateTemp("", "test")
@@ -161,7 +168,8 @@ output:
 func Test_Sync_Run_Success_MutataionAndJavascript(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
-	activity := New(nil, &sync.Map{}, nil, nil)
+	benthosStreamManager := NewBenthosStreamManager()
+	activity := New(nil, &sync.Map{}, nil, nil, benthosStreamManager)
 	env.RegisterActivity(activity.Sync)
 
 	tmpFile, err := os.CreateTemp("", "test")
@@ -219,7 +227,8 @@ func Test_Sync_Run_Processor_Error(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 
-	activity := New(nil, &sync.Map{}, nil, nil)
+	benthosStreamManager := NewBenthosStreamManager()
+	activity := New(nil, &sync.Map{}, nil, nil, benthosStreamManager)
 
 	env.RegisterActivity(activity.Sync)
 
@@ -233,14 +242,121 @@ input:
 pipeline:
   threads: 1
   processors:
-    - error: {} 
+    - error: {}
 output:
   label: ""
   stdout:
     codec: lines
 `),
 	}, &SyncMetadata{Schema: "public", Table: "test"})
-	require.EqualError(t, err, "activity error (type: Sync, scheduledEventID: 0, startedEventID: 0, identity: ): received stop workflow signal")
+	require.Contains(t, err.Error(), "received stop activity signal")
+}
+
+func Test_Sync_Run_ActivityStop_MockBenthos(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
+
+	mockBenthosStreamManager := NewMockBenthosStreamManagerClient(t)
+	mockBenthosStream := NewMockBenthosStreamClient(t)
+	config := strings.TrimSpace(`
+input:
+  generate:
+    count: 10000
+    interval: ""
+    mapping: 'root = { "id": uuid_v4() }'
+output:
+  label: ""
+  stdout:
+    codec: lines
+`)
+
+	mockBenthosStreamManager.On("NewBenthosStreamFromBuilder", mock.Anything).Return(mockBenthosStream, nil)
+	mockBenthosStream.On("Run", mock.Anything).After(5 * time.Second).Return(nil)
+	mockBenthosStream.On("StopWithin", mock.Anything).Return(nil)
+
+	activity := New(nil, &sync.Map{}, nil, nil, mockBenthosStreamManager)
+	env.RegisterActivity(activity.Sync)
+
+	stopCh := make(chan struct{})
+	env.SetWorkerStopChannel(stopCh)
+
+	go func() {
+		time.Sleep(300 * time.Millisecond)
+		close(stopCh)
+	}()
+
+	_, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
+		BenthosConfig: config,
+	}, &SyncMetadata{Schema: "public", Table: "test"})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "received worker stop signal")
+	mockBenthosStream.AssertCalled(t, "StopWithin", mock.Anything)
+}
+
+func Test_Sync_Run_ActivityWorkerStop(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
+	benthosStreamManager := NewBenthosStreamManager()
+	activity := New(nil, &sync.Map{}, nil, nil, benthosStreamManager)
+
+	env.RegisterActivity(activity.Sync)
+	stopCh := make(chan struct{})
+	env.SetWorkerStopChannel(stopCh)
+
+	go func() {
+		// Close the channel to simulate sending a stop signal
+		time.Sleep(210 * time.Millisecond)
+		close(stopCh)
+	}()
+
+	_, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
+		BenthosConfig: strings.TrimSpace(`
+input:
+  generate:
+    count: 100000
+    interval: ""
+    mapping: 'root = { "id": uuid_v4() }'
+output:
+  label: ""
+  stdout:
+    codec: lines
+`),
+	}, &SyncMetadata{Schema: "public", Table: "test"})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "received worker stop signal")
+}
+
+func Test_Sync_Run_BenthosError(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
+
+	mockBenthosStreamManager := NewMockBenthosStreamManagerClient(t)
+	mockBenthosStream := NewMockBenthosStreamClient(t)
+	config := strings.TrimSpace(`
+input:
+  generate:
+    count: 1000
+    interval: ""
+    mapping: 'root = { "id": uuid_v4() }'
+output:
+  label: ""
+  stdout:
+    codec: lines
+`)
+
+	mockBenthosStreamManager.On("NewBenthosStreamFromBuilder", mock.Anything).Return(mockBenthosStream, nil)
+	errmsg := "benthos error"
+	mockBenthosStream.On("Run", mock.Anything).Return(errors.New(errmsg))
+	mockBenthosStream.On("StopWithin", mock.Anything).Return(nil).Maybe()
+
+	activity := New(nil, &sync.Map{}, nil, nil, mockBenthosStreamManager)
+
+	env.RegisterActivity(activity.Sync)
+	_, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
+		BenthosConfig: config,
+	}, &SyncMetadata{Schema: "public", Table: "test"})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), errmsg)
 }
 
 func Test_getEnvVarLookupFn(t *testing.T) {

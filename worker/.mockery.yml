@@ -11,3 +11,5 @@ packages:
     interfaces:
       sqlProvider:
       sqlDbtx:
+      BenthosStreamClient:
+      BenthosStreamManagerClient:
