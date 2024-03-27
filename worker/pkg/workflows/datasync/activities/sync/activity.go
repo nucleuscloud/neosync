@@ -103,6 +103,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	slogger := logger_utils.NewJsonSLogger().With(loggerKeyVals...)
 	stopActivityChan := make(chan bool, 1)
 	resultChan := make(chan error, 1)
+	benthosStreamMutex := sync.Mutex{}
 	var benthosStream BenthosStreamClient
 	go func() {
 		for {
@@ -111,6 +112,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 				activity.RecordHeartbeat(ctx)
 			case <-stopActivityChan:
 				resultChan <- fmt.Errorf("received stop activity signal")
+				benthosStreamMutex.Lock()
 				if benthosStream != nil {
 					// this must be here because stream.Run(ctx) doesn't seem to fully obey a canceled context when
 					// a sink is in an error state. We want to explicitly call stop here because the workflow has been canceled.
@@ -118,10 +120,12 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 					if err != nil {
 						logger.Error(err.Error())
 					}
-					return
 				}
+				benthosStreamMutex.Unlock()
+				return
 			case <-activity.GetWorkerStopChannel(ctx):
 				resultChan <- fmt.Errorf("received worker stop signal")
+				benthosStreamMutex.Lock()
 				if benthosStream != nil {
 					// this must be here because stream.Run(ctx) doesn't seem to fully obey a canceled context when
 					// a sink is in an error state. We want to explicitly call stop here because the workflow has been canceled.
@@ -130,8 +134,10 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 						logger.Error(err.Error())
 					}
 				}
+				benthosStreamMutex.Unlock()
 				return
 			case <-ctx.Done():
+				benthosStreamMutex.Lock()
 				if benthosStream != nil {
 					// this must be here because stream.Run(ctx) doesn't seem to fully obey a canceled context when
 					// a sink is in an error state. We want to explicitly call stop here because the workflow has been canceled.
@@ -140,6 +146,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 						logger.Error(err.Error())
 					}
 				}
+				benthosStreamMutex.Unlock()
 				resultChan <- nil
 			}
 		}
@@ -263,7 +270,9 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		return nil, fmt.Errorf("unable to build benthos config: %w", err)
 	}
 
+	benthosStreamMutex.Lock()
 	benthosStream = stream
+	benthosStreamMutex.Unlock()
 	go func() {
 		err := stream.Run(ctx)
 		if err != nil {
@@ -277,7 +286,10 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	if err != nil {
 		return nil, err
 	}
+	benthosStreamMutex.Lock()
 	benthosStream = nil
+	benthosStreamMutex.Unlock()
+
 	logger.Info("sync complete")
 	return &SyncResponse{}, nil
 }

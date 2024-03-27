@@ -1,6 +1,7 @@
 package sync_activity
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -345,7 +346,7 @@ output:
 
 	mockBenthosStreamManager.On("NewBenthosStreamFromBuilder", mock.Anything).Return(mockBenthosStream, nil)
 	errmsg := "benthos error"
-	mockBenthosStream.On("Run", mock.Anything).Return(fmt.Errorf(errmsg))
+	mockBenthosStream.On("Run", mock.Anything).Return(errors.New(errmsg))
 	mockBenthosStream.On("Stop", mock.Anything).Return(nil).Maybe()
 
 	activity := New(nil, &sync.Map{}, nil, nil, mockBenthosStreamManager)
