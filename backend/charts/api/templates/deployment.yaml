@@ -137,6 +137,31 @@ spec:
                   fieldPath: metadata.labels['tags.datadoghq.com/version']
             {{- end }}
 
+            {{- with .Values.extraEnvVars }}
+            {{- range .}}
+            - name: {{ .name }}
+              {{- if .value }}
+              value: {{ .value | quote }}
+              {{- else if .valueFrom }}
+              valueFrom:
+                {{- if .valueFrom.secretKeyRef }}
+                secretKeyRef:
+                  name: {{ .valueFrom.secretKeyRef.name }}
+                  key: {{ .valueFrom.secretKeyRef.key }}
+                {{- end }}
+                {{- if .valueFrom.configMapKeyRef }}
+                configMapKeyRef:
+                  name: {{ .valueFrom.configMapKeyRef.name }}
+                  key: {{ .valueFrom.configMapKeyRef.key }}
+                {{- end }}
+                {{- if .valueFrom.fieldRef }}
+                fieldRef:
+                  fieldPath: {{ .valueFrom.fieldRef.fieldPath }}
+                {{- end }}
+              {{- end }}
+            {{- end }}
+            {{- end }}
+
           envFrom:
             - secretRef:
                 name: {{ template "neosync-api.fullname" . }}-service-evs
