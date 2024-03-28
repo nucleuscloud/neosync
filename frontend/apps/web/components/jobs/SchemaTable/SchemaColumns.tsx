@@ -399,9 +399,22 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         };
         const datatype = constraintHandler.getDataType(key);
         return (
-          <span className="max-w-[500px] truncate font-medium">
-            <Badge variant="outline">{handleDataTypeBadge(datatype)}</Badge>
-          </span>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <Badge variant="outline" className="max-w-[100px]">
+                    <span className="truncate block overflow-hidden">
+                      {handleDataTypeBadge(datatype)}
+                    </span>
+                  </Badge>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{datatype}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         );
       },
     },
@@ -541,18 +554,18 @@ function IndeterminateCheckbox({
 
 // cleans up the data type values since some are too long , can add on more here
 function handleDataTypeBadge(dataType: string): string {
+  // Check for "timezone" and replace accordingly without entering the switch
+  if (dataType.includes('timezone')) {
+    return dataType
+      .replace('timestamp with time zone', 'timestamp(tz)')
+      .replace('timestamp without time zone', 'timestamp');
+  }
+
   const splitDt = dataType.split('(');
   switch (splitDt[0]) {
     case 'character varying':
-      if (splitDt[1] == undefined) {
-        return 'varchar(' + splitDt[1] + ')';
-      } else {
-        return 'varchar(' + splitDt[1];
-      }
-    case 'timestamp with time zone':
-      return 'timestamp(tz)';
-    case 'timestamp without time zone':
-      return 'timestamp';
+      // The condition inside the if statement seemed reversed. It should return 'varchar' directly if splitDt[1] is undefined.
+      return splitDt[1] !== undefined ? `varchar(${splitDt[1]}` : 'varchar';
     default:
       return dataType;
   }
