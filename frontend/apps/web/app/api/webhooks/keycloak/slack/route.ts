@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import * as Yup from 'yup';
 import { Block } from './block';
 
-const SIG_SECRET = process.env.KEYCLOAK_SLACK_WEBHOOK_HMAC_SECRET ?? 'foobar';
+const SIG_SECRET = process.env.KEYCLOAK_SLACK_WEBHOOK_HMAC_SECRET;
 const KEYCLOAK_SIG_HEADER = 'X-Keycloak-Signature';
 const SLACK_WEBHOOK_URL = process.env.KEYCLOAK_SLACK_WEBHOOK_URL;
 
