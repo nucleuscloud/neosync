@@ -122,6 +122,9 @@ function getSlackMessage(event: RegisterEvent): { blocks: Block[] } {
           },
         ],
       },
+      {
+        type: 'divider',
+      },
     ],
   };
 }

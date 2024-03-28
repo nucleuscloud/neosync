@@ -1,33 +1,33 @@
 export type Block = HeaderBlock | DividerBlock | SectionBlock;
-export type Text = PlainText | MarkdownText;
+type Text = PlainText | MarkdownText;
 
-export interface HeaderBlock {
+interface HeaderBlock {
   type: 'header';
   text: Text;
 }
 
-export interface DividerBlock {
+interface DividerBlock {
   type: 'divider';
 }
 
-export interface PlainText {
+interface PlainText {
   type: 'plain_text';
   text: string;
   emoji?: boolean;
 }
 
-export interface MarkdownText {
+interface MarkdownText {
   type: 'mrkdwn';
   text: string;
 }
 
-export type SectionBlock = SectionTextBlock | SectionFieldsBlock;
+type SectionBlock = SectionTextBlock | SectionFieldsBlock;
 
-export interface SectionTextBlock {
+interface SectionTextBlock {
   type: 'section';
   text: Text;
 }
-export interface SectionFieldsBlock {
+interface SectionFieldsBlock {
   type: 'section';
   fields: Text[];
 }
