@@ -1,5 +1,13 @@
 import { SystemTransformer, UserDefinedTransformer } from '@neosync/sdk';
 
+export interface BasicTransformerHandler {
+  getSystemTransformers(): SystemTransformer[];
+  getUserDefinedTransformers(): UserDefinedTransformer[];
+
+  getSystemTransformerBySource(source: string): SystemTransformer | undefined;
+  getUserDefinedTransformerById(id: string): UserDefinedTransformer | undefined;
+}
+
 export class TransformerHandler {
   private readonly systemTransformers: SystemTransformer[];
   private readonly userDefinedTransformers: UserDefinedTransformer[];
@@ -20,10 +28,17 @@ export class TransformerHandler {
     );
   }
 
-  public getAllSystemTransformers(): SystemTransformer[] {
+  public getFilteredTransformers(filters: any): {
+    system: SystemTransformer[];
+    userDefined: UserDefinedTransformer[];
+  } {
+    return { system: [], userDefined: [] };
+  }
+
+  public getSystemTransformers(): SystemTransformer[] {
     return this.systemTransformers;
   }
-  public getAllUserDefinedTransformers(): UserDefinedTransformer[] {
+  public getUserDefinedTransformers(): UserDefinedTransformer[] {
     return this.userDefinedTransformers;
   }
 
@@ -33,7 +48,9 @@ export class TransformerHandler {
     return this.systemBySource.get(source);
   }
 
-  public getUserDefinedById(id: string): UserDefinedTransformer | undefined {
+  public getUserDefinedTransformerById(
+    id: string
+  ): UserDefinedTransformer | undefined {
     return this.userDefinedById.get(id);
   }
 }

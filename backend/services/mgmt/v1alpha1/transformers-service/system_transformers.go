@@ -55,13 +55,26 @@ const (
 	TransformCharacterScramble TransformerSource = "transform_character_scramble"
 )
 
+type TransformerDataType string
+
+const (
+	StringDataType  TransformerDataType = "string"
+	BooleanDataType TransformerDataType = "boolean"
+	IntDataType     TransformerDataType = "int64"
+	AnyDataType     TransformerDataType = "any"
+	FloatDataType   TransformerDataType = "float64"
+	TimeDataType    TransformerDataType = "time"
+	UuidDataType    TransformerDataType = "uuid"
+	NullDataType    TransformerDataType = "null"
+)
+
 var (
 	systemTransformers = []*mgmtv1alpha1.SystemTransformer{
 		{
 
 			Name:        "Generate Email",
 			Description: "Generates a new randomized email address.",
-			DataType:    "string",
+			DataType:    string(StringDataType),
 			Source:      string(GenerateEmail),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateEmailConfig{
@@ -72,7 +85,7 @@ var (
 		{
 			Name:        "Transform Email",
 			Description: "Transforms an existing email address.",
-			DataType:    "string",
+			DataType:    string(StringDataType),
 			Source:      string(TransformEmail),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
@@ -87,7 +100,7 @@ var (
 		{
 			Name:        "Generate Boolean",
 			Description: "Generates a boolean value at random.",
-			DataType:    "boolean",
+			DataType:    string(BooleanDataType),
 			Source:      string(GenerateBool),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateBoolConfig{
@@ -98,7 +111,7 @@ var (
 		{
 			Name:        "Generate Card Number",
 			Description: "Generates a card number.",
-			DataType:    "int64",
+			DataType:    string(IntDataType),
 			Source:      string(GenerateCardNumber),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateCardNumberConfig{
@@ -111,7 +124,7 @@ var (
 		{
 			Name:        "Generate City",
 			Description: "Randomly selects a city from a list of predfined US cities.",
-			DataType:    "string",
+			DataType:    string(StringDataType),
 			Source:      string(GenerateCity),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateCityConfig{
@@ -122,7 +135,7 @@ var (
 		{
 			Name:        "Generate Default",
 			Description: "Defers to the database column default",
-			DataType:    "string",
+			DataType:    string(StringDataType),
 			Source:      string(GenerateDefault),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{
@@ -133,7 +146,7 @@ var (
 		{
 			Name:        "Generate International Phone Number",
 			Description: "Generates a phone number in international format with the + character at the start of the phone number. Note that the + sign is not included in the min or max.",
-			DataType:    "string",
+			DataType:    string(StringDataType),
 			Source:      string(GenerateE164PhoneNumber),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateE164PhoneNumberConfig{
@@ -147,7 +160,7 @@ var (
 		{
 			Name:        "Generate First Name",
 			Description: "Generates a random first name. ",
-			DataType:    "string",
+			DataType:    string(StringDataType),
 			Source:      string(GenerateFirstName),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateFirstNameConfig{
@@ -174,7 +187,7 @@ var (
 		{
 			Name:        "Generate Full Address",
 			Description: "Randomly generates a street address in the format: {street_num} {street_addresss} {street_descriptor} {city}, {state} {zipcode}. For example, 123 Main Street Boston, Massachusetts 02169.",
-			DataType:    "string",
+			DataType:    string(StringDataType),
 			Source:      string(GenerateFullAddress),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateFullAddressConfig{
@@ -185,7 +198,7 @@ var (
 		{
 			Name:        "Generate Full Name",
 			Description: "Generates a new full name consisting of a first and last name",
-			DataType:    "string",
+			DataType:    string(StringDataType),
 			Source:      string(GenerateFullName),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
@@ -196,7 +209,7 @@ var (
 		{
 			Name:        "Generate Gender",
 			Description: "Randomly generates one of the following genders: female, male, undefined, nonbinary.",
-			DataType:    "string",
+			DataType:    string(StringDataType),
 			Source:      string(GenerateGender),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateGenderConfig{
@@ -209,7 +222,7 @@ var (
 		{
 			Name:        "Generate Int64 Phone Number",
 			Description: "Generates a new phone number with a default length of 10.",
-			DataType:    "int64",
+			DataType:    string(IntDataType),
 			Source:      string(GenerateInt64PhoneNumber),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64PhoneNumberConfig{
@@ -219,7 +232,7 @@ var (
 		},
 		{
 			Name:        "Generate Random Int64",
-			Description: "Generates a random int64 value.", DataType: "int64",
+			Description: "Generates a random int64 value.", DataType: string(IntDataType),
 			Source: string(GenerateInt64),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateInt64Config{
@@ -233,7 +246,7 @@ var (
 		},
 		{
 			Name:        "Generate Last Name",
-			Description: "Generates a random last name.", DataType: "int64",
+			Description: "Generates a random last name.", DataType: string(IntDataType),
 			Source: string(GenerateLastName),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateLastNameConfig{
@@ -244,7 +257,7 @@ var (
 		{
 			Name:        "Generate SHA256 Hash",
 			Description: "SHA256 hashes a randomly generated value.",
-			DataType:    "string",
+			DataType:    string(StringDataType),
 			Source:      string(GenerateShaHash256),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateSha256HashConfig{
@@ -255,7 +268,7 @@ var (
 		{
 			Name:        "Generate SSN",
 			Description: "Generates a completely random social security numbers including the hyphens in the format <xxx-xx-xxxx>",
-			DataType:    "string",
+			DataType:    string(StringDataType),
 			Source:      string(GenerateSSN),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateSsnConfig{
@@ -266,7 +279,7 @@ var (
 		{
 			Name:        "Generate State",
 			Description: "Randomly selects a US state and returns the two-character state code.",
-			DataType:    "string",
+			DataType:    string(StringDataType),
 			Source:      string(GenerateState),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStateConfig{
@@ -277,7 +290,7 @@ var (
 		{
 			Name:        "Generate Street Address",
 			Description: "Randomly generates a street address in the format: {street_num} {street_addresss} {street_descriptor}. For example, 123 Main Street.",
-			DataType:    "string",
+			DataType:    string(StringDataType),
 			Source:      string(GenerateStreetAddress),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStreetAddressConfig{
@@ -288,7 +301,7 @@ var (
 		{
 			Name:        "Generate String Phone Number",
 			Description: "Generates a phone number and returns it as a string.",
-			DataType:    "string",
+			DataType:    string(StringDataType),
 			Source:      string(GenerateStringPhoneNumber),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringPhoneNumberConfig{
@@ -302,7 +315,7 @@ var (
 		{
 			Name:        "Generate Random String",
 			Description: "Creates a randomly ordered alphanumeric string between the specified range",
-			DataType:    "string",
+			DataType:    string(StringDataType),
 			Source:      string(GenerateString),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateStringConfig{
@@ -316,7 +329,7 @@ var (
 		{
 			Name:        "Generate Unix Timestamp",
 			Description: "Randomly generates a Unix timestamp",
-			DataType:    "int64",
+			DataType:    string(IntDataType),
 			Source:      string(GenerateUnixTimestamp),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateUnixtimestampConfig{
@@ -327,7 +340,7 @@ var (
 		{
 			Name:        "Generate Username",
 			Description: "Randomly generates a username in the format<first_initial><last_name>.",
-			DataType:    "string",
+			DataType:    string(StringDataType),
 			Source:      string(GenerateUsername),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateUsernameConfig{
@@ -362,7 +375,7 @@ var (
 		{
 			Name:        "Generate Zipcode",
 			Description: "Randomly selects a zip code from a list of predefined US zipcodes.",
-			DataType:    "string",
+			DataType:    string(StringDataType),
 			Source:      string(GenerateZipcode),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateZipcodeConfig{
@@ -373,7 +386,7 @@ var (
 		{
 			Name:        "Transform E164 Phone Number",
 			Description: "Transforms an existing E164 formatted phone number.",
-			DataType:    "string",
+			DataType:    string(StringDataType),
 			Source:      string(TransformE164PhoneNumber),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformE164PhoneNumberConfig{
@@ -386,7 +399,7 @@ var (
 		{
 			Name:        "Transform First Name",
 			Description: "Transforms an existing first name",
-			DataType:    "string",
+			DataType:    string(StringDataType),
 			Source:      string(TransformFirstName),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformFirstNameConfig{
@@ -413,7 +426,7 @@ var (
 		{
 			Name:        "Transform Full Name",
 			Description: "Transforms an existing full name.",
-			DataType:    "string",
+			DataType:    string(StringDataType),
 			Source:      string(TransformFullName),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformFullNameConfig{
@@ -426,7 +439,7 @@ var (
 		{
 			Name:        "Transform Int64 Phone Number",
 			Description: "Transforms an existing phone number that is typed as an integer",
-			DataType:    "int64",
+			DataType:    string(IntDataType),
 			Source:      string(TransformInt64PhoneNumber),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformInt64PhoneNumberConfig{
@@ -439,7 +452,7 @@ var (
 		{
 			Name:        "Transform Int64",
 			Description: "Transforms an existing integer value.",
-			DataType:    "int64",
+			DataType:    string(IntDataType),
 			Source:      string(TransformInt64),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformInt64Config{
@@ -453,7 +466,7 @@ var (
 		{
 			Name:        "Transform Last Name",
 			Description: "Transforms an existing last name.",
-			DataType:    "string",
+			DataType:    string(StringDataType),
 			Source:      string(TransformLastName),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformLastNameConfig{
@@ -466,7 +479,7 @@ var (
 		{
 			Name:        "Transform String Phone Number",
 			Description: "Transforms an existing phone number that is typed as a string.",
-			DataType:    "string",
+			DataType:    string(StringDataType),
 			Source:      string(TransformPhoneNumber),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformPhoneNumberConfig{
@@ -479,7 +492,7 @@ var (
 		{
 			Name:        "Transform String",
 			Description: "Transforms an existing string value.",
-			DataType:    "string",
+			DataType:    string(StringDataType),
 			Source:      string(TransformString),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformStringConfig{
@@ -492,7 +505,7 @@ var (
 		{
 			Name:        "Passthrough",
 			Description: "Passes the input value through to the desination with no changes.",
-			DataType:    "string",
+			DataType:    string(StringDataType),
 			Source:      string(Passthrough),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_PassthroughConfig{
@@ -502,8 +515,8 @@ var (
 		},
 		{
 			Name:        "Null",
-			Description: "Inserts a <null> string instead of the source value.",
-			DataType:    "string",
+			Description: "Inserts NULL instead of the source value.",
+			DataType:    string(NullDataType),
 			Source:      string(Null),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_Nullconfig{
@@ -514,7 +527,7 @@ var (
 		{
 			Name:        "Transform Javascript",
 			Description: "Write custom javascript to transform data",
-			DataType:    "any",
+			DataType:    string(AnyDataType),
 			Source:      string(TransformJavascript),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
@@ -526,7 +539,7 @@ return input;`},
 		{
 			Name:        "Generate Categorical",
 			Description: "Randomly selects a value from a predefined list of values",
-			DataType:    "string",
+			DataType:    string(StringDataType),
 			Source:      string(GenerateCategorical),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateCategoricalConfig{
@@ -539,7 +552,7 @@ return input;`},
 		{
 			Name:        "Transform Character Scramble",
 			Description: "Transforms a string value by scrambling each character with another character in the same unicode block. Letters will be substituted with letters, numbers with numbers and special characters with special characters. Spaces and capitalization is preserved.",
-			DataType:    "string",
+			DataType:    string(StringDataType),
 			Source:      string(TransformCharacterScramble),
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformCharacterScrambleConfig{

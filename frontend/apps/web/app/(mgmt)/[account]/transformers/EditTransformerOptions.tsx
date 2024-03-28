@@ -32,7 +32,6 @@ import {
   GenerateStringPhoneNumber,
   GenerateUuid,
   JobMappingTransformer,
-  SystemTransformer,
   TransformCharacterScramble,
   TransformE164PhoneNumber,
   TransformEmail,
@@ -46,7 +45,6 @@ import {
   TransformPhoneNumber,
   TransformString,
   TransformerConfig,
-  UserDefinedTransformer,
 } from '@neosync/sdk';
 import {
   Cross2Icon,
@@ -756,29 +754,4 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
       </Alert>
     </div>
   );
-}
-
-export function filterInputFreeSystemTransformers(
-  transformers: SystemTransformer[]
-): SystemTransformer[] {
-  return transformers.filter(
-    (t) =>
-      t.source !== 'passthrough' &&
-      (t.source === 'null' ||
-        t.source === 'default' ||
-        t.source.startsWith('generate_'))
-  );
-}
-
-export function filterInputFreeUdTransformers(
-  udfTransformers: UserDefinedTransformer[],
-  systemTransformers: SystemTransformer[]
-): UserDefinedTransformer[] {
-  const sysMap = new Map(
-    filterInputFreeSystemTransformers(systemTransformers).map((t) => [
-      t.source,
-      t,
-    ])
-  );
-  return udfTransformers.filter((t) => sysMap.has(t.source));
 }

@@ -48,7 +48,7 @@ export function SchemaTableToolbar<TData>({
     bulkTransformer.source === 'custom' &&
     bulkTransformer.config.case === 'userDefinedTransformerConfig'
   ) {
-    transformer = transformerHandler.getUserDefinedById(
+    transformer = transformerHandler.getUserDefinedTransformerById(
       bulkTransformer.config.value.id
     );
   } else {

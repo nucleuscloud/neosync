@@ -24,7 +24,7 @@ import {
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 
-import { TransformerHandler } from './transformer-handler';
+import { BasicTransformerHandler } from './transformer-handler';
 
 type Side = (typeof SIDE_OPTIONS)[number];
 
@@ -36,7 +36,7 @@ interface Props {
   placeholder: string;
   side: Side;
   disabled: boolean;
-  transformerHandler: TransformerHandler;
+  transformerHandler: BasicTransformerHandler;
 }
 
 export default function TransformerSelect(props: Props): ReactElement {
@@ -78,9 +78,9 @@ export default function TransformerSelect(props: Props): ReactElement {
           <CommandInput placeholder={placeholder} />
           <CommandEmpty>No transformers found.</CommandEmpty>
           <div className="max-h-[450px] overflow-y-scroll">
-            {transformerHandler.getAllUserDefinedTransformers().length > 0 && (
+            {transformerHandler.getUserDefinedTransformers().length > 0 && (
               <CommandGroup heading="Custom">
-                {transformerHandler.getAllUserDefinedTransformers().map((t) => {
+                {transformerHandler.getUserDefinedTransformers().map((t) => {
                   return (
                     <CommandItem
                       key={t.id}
@@ -129,7 +129,7 @@ export default function TransformerSelect(props: Props): ReactElement {
               </CommandGroup>
             )}
             <CommandGroup heading="System">
-              {transformerHandler.getAllSystemTransformers().map((t) => {
+              {transformerHandler.getSystemTransformers().map((t) => {
                 return (
                   <CommandItem
                     key={t.source}
@@ -175,7 +175,7 @@ export default function TransformerSelect(props: Props): ReactElement {
 
 function getPopoverTriggerButtonText(
   value: JobMappingTransformerForm,
-  transformerHandler: TransformerHandler,
+  transformerHandler: BasicTransformerHandler,
   placeholder: string
 ): string {
   if (!value?.config) {
@@ -185,7 +185,10 @@ function getPopoverTriggerButtonText(
   switch (value?.config?.case) {
     case 'userDefinedTransformerConfig':
       const id = value.config.value.id;
-      return transformerHandler.getUserDefinedById(id)?.name ?? placeholder;
+      return (
+        transformerHandler.getUserDefinedTransformerById(id)?.name ??
+        placeholder
+      );
     default:
       return (
         transformerHandler.getSystemTransformerBySource(value.source)?.name ??
