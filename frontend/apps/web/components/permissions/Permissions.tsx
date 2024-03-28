@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { ConnectionRolePrivileges } from '@neosync/sdk';
+import { ConnectionRolePrivilege } from '@neosync/sdk';
 import { CheckCircledIcon } from '@radix-ui/react-icons';
 import { ReactElement } from 'react';
 import { IoWarning } from 'react-icons/io5';
@@ -17,7 +17,7 @@ import PermissionsDataTable from './PermissionsDataTable';
 import { getPermissionColumns } from './columns';
 
 interface Props {
-  data: ConnectionRolePrivileges[];
+  data: ConnectionRolePrivilege[];
   openPermissionDialog: boolean;
   setOpenPermissionDialog: (open: boolean) => void;
   isValidating: boolean;
@@ -75,7 +75,7 @@ export default function Permissions(props: Props) {
 interface TestConnectionResultProps {
   resp: boolean;
   connectionName: string;
-  data: ConnectionRolePrivileges[];
+  data: ConnectionRolePrivilege[];
 }
 
 function TestConnectionResult(props: TestConnectionResultProps): ReactElement {

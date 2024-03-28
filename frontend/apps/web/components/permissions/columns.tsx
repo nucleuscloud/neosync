@@ -3,12 +3,12 @@
 import { ColumnDef } from '@tanstack/react-table';
 
 import { PlainMessage } from '@bufbuild/protobuf';
-import { ConnectionRolePrivileges } from '@neosync/sdk';
+import { ConnectionRolePrivilege } from '@neosync/sdk';
 import { CheckCircledIcon, CircleBackslashIcon } from '@radix-ui/react-icons';
 import { DataTableColumnHeader } from './data-table-column-header';
 
 export function getPermissionColumns(): ColumnDef<
-  PlainMessage<ConnectionRolePrivileges>
+  PlainMessage<ConnectionRolePrivilege>
 >[] {
   return [
     {

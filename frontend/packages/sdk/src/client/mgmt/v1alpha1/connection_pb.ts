@@ -452,9 +452,9 @@ export class CheckConnectionConfigResponse extends Message<CheckConnectionConfig
   connectionError?: string;
 
   /**
-   * @generated from field: repeated mgmt.v1alpha1.ConnectionRolePrivileges privileges = 3;
+   * @generated from field: repeated mgmt.v1alpha1.ConnectionRolePrivilege privileges = 3;
    */
-  privileges: ConnectionRolePrivileges[] = [];
+  privileges: ConnectionRolePrivilege[] = [];
 
   constructor(data?: PartialMessage<CheckConnectionConfigResponse>) {
     super();
@@ -466,7 +466,7 @@ export class CheckConnectionConfigResponse extends Message<CheckConnectionConfig
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "is_connected", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 2, name: "connection_error", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 3, name: "privileges", kind: "message", T: ConnectionRolePrivileges, repeated: true },
+    { no: 3, name: "privileges", kind: "message", T: ConnectionRolePrivilege, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CheckConnectionConfigResponse {
@@ -487,9 +487,9 @@ export class CheckConnectionConfigResponse extends Message<CheckConnectionConfig
 }
 
 /**
- * @generated from message mgmt.v1alpha1.ConnectionRolePrivileges
+ * @generated from message mgmt.v1alpha1.ConnectionRolePrivilege
  */
-export class ConnectionRolePrivileges extends Message<ConnectionRolePrivileges> {
+export class ConnectionRolePrivilege extends Message<ConnectionRolePrivilege> {
   /**
    * The role that was given the permissions
    *
@@ -518,13 +518,13 @@ export class ConnectionRolePrivileges extends Message<ConnectionRolePrivileges> 
    */
   privilegeType: string[] = [];
 
-  constructor(data?: PartialMessage<ConnectionRolePrivileges>) {
+  constructor(data?: PartialMessage<ConnectionRolePrivilege>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "mgmt.v1alpha1.ConnectionRolePrivileges";
+  static readonly typeName = "mgmt.v1alpha1.ConnectionRolePrivilege";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "grantee", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
@@ -532,20 +532,20 @@ export class ConnectionRolePrivileges extends Message<ConnectionRolePrivileges> 
     { no: 4, name: "privilege_type", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectionRolePrivileges {
-    return new ConnectionRolePrivileges().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectionRolePrivilege {
+    return new ConnectionRolePrivilege().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ConnectionRolePrivileges {
-    return new ConnectionRolePrivileges().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ConnectionRolePrivilege {
+    return new ConnectionRolePrivilege().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ConnectionRolePrivileges {
-    return new ConnectionRolePrivileges().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ConnectionRolePrivilege {
+    return new ConnectionRolePrivilege().fromJsonString(jsonString, options);
   }
 
-  static equals(a: ConnectionRolePrivileges | PlainMessage<ConnectionRolePrivileges> | undefined, b: ConnectionRolePrivileges | PlainMessage<ConnectionRolePrivileges> | undefined): boolean {
-    return proto3.util.equals(ConnectionRolePrivileges, a, b);
+  static equals(a: ConnectionRolePrivilege | PlainMessage<ConnectionRolePrivilege> | undefined, b: ConnectionRolePrivilege | PlainMessage<ConnectionRolePrivilege> | undefined): boolean {
+    return proto3.util.equals(ConnectionRolePrivilege, a, b);
   }
 }
 

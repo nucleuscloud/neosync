@@ -46,7 +46,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
   ConnectionConfig,
-  ConnectionRolePrivileges,
+  ConnectionRolePrivilege,
   CreateConnectionRequest,
   CreateConnectionResponse,
   GetConnectionResponse,
@@ -110,7 +110,7 @@ export default function PostgresForm() {
   const [openPermissionDialog, setOpenPermissionDialog] =
     useState<boolean>(false);
   const [permissionData, setPermissionData] =
-    useState<ConnectionRolePrivileges[]>();
+    useState<ConnectionRolePrivilege[]>();
 
   async function onSubmit(values: PostgresFormValues) {
     if (!account) {

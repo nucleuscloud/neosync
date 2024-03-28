@@ -40,7 +40,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
   ConnectionConfig,
-  ConnectionRolePrivileges,
+  ConnectionRolePrivilege,
   MysqlConnection,
   MysqlConnectionConfig,
   SSHAuthentication,
@@ -84,7 +84,7 @@ export default function MysqlForm(props: Props) {
   const [openPermissionDialog, setOpenPermissionDialog] =
     useState<boolean>(false);
   const [permissionData, setPermissionData] =
-    useState<ConnectionRolePrivileges[]>();
+    useState<ConnectionRolePrivilege[]>();
   async function onSubmit(values: MysqlFormValues) {
     try {
       const connectionResp = await updateMysqlConnection(

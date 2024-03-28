@@ -21,19 +21,6 @@ import (
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 )
 
-/*
-TODO:
-2. do manual testing on the permissions (mysql):
-  a. create user that has no access to a schema and validate - the connection should connect but no read/write to tables
-  b. check what happens when db schema doens't exist - for ex. maybe they want to create it later
-  c. create role that has some read/write privileges to some tables but not all
-  d. create role that has access to one schema but not another
-3. update docs for all of this
-4. update back end tests
-5. persist permissions in a separate tab (stretch)
-7. handle root user - since root user has access to everything, update to return checks if user is root
-*/
-
 func (s *Service) CheckConnectionConfig(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.CheckConnectionConfigRequest],
@@ -46,7 +33,7 @@ func (s *Service) CheckConnectionConfig(
 
 		var pgDbPrivilegeRows []*pg_queries.GetPostgresRolePermissionsRow
 		var role string
-		var privs []*mgmtv1alpha1.ConnectionRolePrivileges
+		var privs []*mgmtv1alpha1.ConnectionRolePrivilege
 		schemaTablePrivsMap := make(map[string][]string)
 
 		conn, err := s.sqlConnector.NewPgPoolFromConnectionConfig(req.Msg.GetConnectionConfig().GetPgConfig(), &connectionTimeout, logger)
@@ -62,7 +49,7 @@ func (s *Service) CheckConnectionConfig(
 
 		defer conn.Close()
 
-		cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		cctx, cancel := context.WithCancel(ctx)
 		defer cancel()
 		if err != nil {
 			return nil, err
@@ -98,7 +85,7 @@ func (s *Service) CheckConnectionConfig(
 			parts := strings.SplitN(key, ".", 2)
 			schema, table := parts[0], parts[1]
 
-			privs = append(privs, &mgmtv1alpha1.ConnectionRolePrivileges{
+			privs = append(privs, &mgmtv1alpha1.ConnectionRolePrivilege{
 				Grantee:       role,
 				Schema:        schema,
 				Table:         table,

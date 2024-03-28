@@ -78,8 +78,6 @@ export default function ConnectionPage({ params }: PageProps) {
     ),
   });
 
-  const basePath = `/${account?.name}/connections/${data?.connection?.id}`;
-
   return (
     <OverviewContainer
       Header={connectionComponent.header}
