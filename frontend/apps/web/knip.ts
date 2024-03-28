@@ -33,6 +33,8 @@ const config = {
     'eslint',
     'prettier',
     '@types/react-dom',
+    '@typescript-eslint/eslint-plugin',
+    '@types/react-window',
   ],
   ignoreBinaries: ['tail', 'next'],
 };

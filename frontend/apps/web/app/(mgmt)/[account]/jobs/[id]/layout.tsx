@@ -265,7 +265,12 @@ interface SubNavProps extends React.HTMLAttributes<HTMLElement> {
   buttonClassName?: string;
 }
 
-function SubNav({ className, items, buttonClassName, ...props }: SubNavProps) {
+export function SubNav({
+  className,
+  items,
+  buttonClassName,
+  ...props
+}: SubNavProps) {
   const pathname = usePathname();
   return (
     <nav

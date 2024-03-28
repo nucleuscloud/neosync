@@ -53,6 +53,18 @@ message CheckConnectionConfigResponse {
   bool is_connected = 1;
   // This is the error that was received if the API was unable to connect
   optional string connection_error = 2;
+  repeated ConnectionRolePrivilege privileges = 3;
+}
+
+message ConnectionRolePrivilege {
+  // The role that was given the permissions
+  string grantee = 1;
+  // The database schema. Ex: public
+  string schema = 2;
+  // The name of the table in the schema
+  string table = 3;
+  // The privileges given to that role
+  repeated string privilege_type = 4;
 }
 
 message Connection {

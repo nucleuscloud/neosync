@@ -41,3 +41,10 @@ create table information_schema.table_constraints (
   table_name text not null,
   column_name text not null
 );
+
+create table information_schema.table_privileges (
+  table_schema text not null,
+  table_name text not null,
+  grantee text not null,
+  privilege_type text not null
+);

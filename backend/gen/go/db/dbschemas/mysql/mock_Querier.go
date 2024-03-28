@@ -140,6 +140,66 @@ func (_c *MockQuerier_GetForeignKeyConstraints_Call) RunAndReturn(run func(conte
 	return _c
 }
 
+// GetMysqlRolePermissions provides a mock function with given fields: ctx, db, role
+func (_m *MockQuerier) GetMysqlRolePermissions(ctx context.Context, db DBTX, role string) ([]*GetMysqlRolePermissionsRow, error) {
+	ret := _m.Called(ctx, db, role)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetMysqlRolePermissions")
+	}
+
+	var r0 []*GetMysqlRolePermissionsRow
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, string) ([]*GetMysqlRolePermissionsRow, error)); ok {
+		return rf(ctx, db, role)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, string) []*GetMysqlRolePermissionsRow); ok {
+		r0 = rf(ctx, db, role)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*GetMysqlRolePermissionsRow)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, string) error); ok {
+		r1 = rf(ctx, db, role)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockQuerier_GetMysqlRolePermissions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetMysqlRolePermissions'
+type MockQuerier_GetMysqlRolePermissions_Call struct {
+	*mock.Call
+}
+
+// GetMysqlRolePermissions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - db DBTX
+//   - role string
+func (_e *MockQuerier_Expecter) GetMysqlRolePermissions(ctx interface{}, db interface{}, role interface{}) *MockQuerier_GetMysqlRolePermissions_Call {
+	return &MockQuerier_GetMysqlRolePermissions_Call{Call: _e.mock.On("GetMysqlRolePermissions", ctx, db, role)}
+}
+
+func (_c *MockQuerier_GetMysqlRolePermissions_Call) Run(run func(ctx context.Context, db DBTX, role string)) *MockQuerier_GetMysqlRolePermissions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(DBTX), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *MockQuerier_GetMysqlRolePermissions_Call) Return(_a0 []*GetMysqlRolePermissionsRow, _a1 error) *MockQuerier_GetMysqlRolePermissions_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockQuerier_GetMysqlRolePermissions_Call) RunAndReturn(run func(context.Context, DBTX, string) ([]*GetMysqlRolePermissionsRow, error)) *MockQuerier_GetMysqlRolePermissions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetPrimaryKeyConstraints provides a mock function with given fields: ctx, db, tableSchema
 func (_m *MockQuerier) GetPrimaryKeyConstraints(ctx context.Context, db DBTX, tableSchema string) ([]*GetPrimaryKeyConstraintsRow, error) {
 	ret := _m.Called(ctx, db, tableSchema)

@@ -77,6 +77,7 @@ export default function ConnectionPage({ params }: PageProps) {
       />
     ),
   });
+
   return (
     <OverviewContainer
       Header={connectionComponent.header}
@@ -84,9 +85,7 @@ export default function ConnectionPage({ params }: PageProps) {
     >
       <div className="connection-details-container">
         <div>
-          <div className="flex flex-col">
-            <div>{connectionComponent.body}</div>
-          </div>
+          <div>{connectionComponent.body}</div>
         </div>
       </div>
     </OverviewContainer>

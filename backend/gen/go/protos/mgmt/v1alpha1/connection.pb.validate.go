@@ -1404,6 +1404,40 @@ func (m *CheckConnectionConfigResponse) validate(all bool) error {
 
 	// no validation rules for IsConnected
 
+	for idx, item := range m.GetPrivileges() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, CheckConnectionConfigResponseValidationError{
+						field:  fmt.Sprintf("Privileges[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, CheckConnectionConfigResponseValidationError{
+						field:  fmt.Sprintf("Privileges[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CheckConnectionConfigResponseValidationError{
+					field:  fmt.Sprintf("Privileges[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
 	if m.ConnectionError != nil {
 		// no validation rules for ConnectionError
 	}
@@ -1488,6 +1522,114 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = CheckConnectionConfigResponseValidationError{}
+
+// Validate checks the field values on ConnectionRolePrivilege with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ConnectionRolePrivilege) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ConnectionRolePrivilege with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ConnectionRolePrivilegeMultiError, or nil if none found.
+func (m *ConnectionRolePrivilege) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ConnectionRolePrivilege) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Grantee
+
+	// no validation rules for Schema
+
+	// no validation rules for Table
+
+	if len(errors) > 0 {
+		return ConnectionRolePrivilegeMultiError(errors)
+	}
+
+	return nil
+}
+
+// ConnectionRolePrivilegeMultiError is an error wrapping multiple validation
+// errors returned by ConnectionRolePrivilege.ValidateAll() if the designated
+// constraints aren't met.
+type ConnectionRolePrivilegeMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ConnectionRolePrivilegeMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ConnectionRolePrivilegeMultiError) AllErrors() []error { return m }
+
+// ConnectionRolePrivilegeValidationError is the validation error returned by
+// ConnectionRolePrivilege.Validate if the designated constraints aren't met.
+type ConnectionRolePrivilegeValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ConnectionRolePrivilegeValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ConnectionRolePrivilegeValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ConnectionRolePrivilegeValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ConnectionRolePrivilegeValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ConnectionRolePrivilegeValidationError) ErrorName() string {
+	return "ConnectionRolePrivilegeValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ConnectionRolePrivilegeValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sConnectionRolePrivilege.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ConnectionRolePrivilegeValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ConnectionRolePrivilegeValidationError{}
 
 // Validate checks the field values on Connection with the rules defined in the
 // proto definition for this message. If any rules are violated, the first

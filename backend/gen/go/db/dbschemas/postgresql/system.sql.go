@@ -302,6 +302,47 @@ func (q *Queries) GetForeignKeyConstraints(ctx context.Context, db DBTX, tablesc
 	return items, nil
 }
 
+const getPostgresRolePermissions = `-- name: GetPostgresRolePermissions :many
+SELECT
+    rtg.table_schema as table_schema, 
+    rtg.table_name as table_name, 
+    rtg.privilege_type as privilege_type
+FROM 
+    information_schema.role_table_grants as rtg
+WHERE 
+    table_schema NOT IN ('pg_catalog', 'information_schema') 
+AND grantee =  $1
+ORDER BY 
+    table_schema, 
+    table_name
+`
+
+type GetPostgresRolePermissionsRow struct {
+	TableSchema   string
+	TableName     string
+	PrivilegeType string
+}
+
+func (q *Queries) GetPostgresRolePermissions(ctx context.Context, db DBTX, role interface{}) ([]*GetPostgresRolePermissionsRow, error) {
+	rows, err := db.Query(ctx, getPostgresRolePermissions, role)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetPostgresRolePermissionsRow
+	for rows.Next() {
+		var i GetPostgresRolePermissionsRow
+		if err := rows.Scan(&i.TableSchema, &i.TableName, &i.PrivilegeType); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPrimaryKeyConstraints = `-- name: GetPrimaryKeyConstraints :many
 SELECT
     tc.table_schema AS schema_name,

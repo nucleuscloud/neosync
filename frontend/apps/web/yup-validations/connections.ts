@@ -120,25 +120,43 @@ export type MysqlFormValues = Yup.InferType<typeof MYSQL_FORM_SCHEMA>;
 export const POSTGRES_FORM_SCHEMA = Yup.object({
   connectionName: connectionNameSchema,
   db: Yup.object({
-    host: Yup.string().required(),
-    name: Yup.string().required(),
-    user: Yup.string().required(),
-    pass: Yup.string().required(),
-    port: Yup.number().integer().positive().required(),
+    host: Yup.string().when('$activeTab', {
+      is: 'parameters', // Only require if activeTab is 'parameters'
+      then: (schema) => schema.required('The host name is required.'),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+    name: Yup.string().when('$activeTab', {
+      is: 'parameters',
+      then: (schema) => schema.required('The database name is required'),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+    user: Yup.string().when('$activeTab', {
+      is: 'parameters',
+      then: (schema) => schema.required('The database user is required'),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+    pass: Yup.string().when('$activeTab', {
+      is: 'parameters',
+      then: (schema) => schema.required('The database password is required'),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+    port: Yup.number()
+      .integer()
+      .positive()
+      .when('$activeTab', {
+        is: 'parameters',
+        then: (schema) => schema.required('The database port is required'),
+        otherwise: (schema) => schema.notRequired(),
+      }),
     sslMode: Yup.string().optional(),
-  }).optional(),
-  url: Yup.string(),
+  }),
+  url: Yup.string().when('$activeTab', {
+    is: 'url', // Only require if activeTab is 'url'
+    then: (schema) => schema.required('The connection url is required'),
+  }),
   tunnel: SSH_TUNNEL_FORM_SCHEMA,
-}).test(
-  'dbOrUrl',
-  'Either the Connection Host or the Connection URL must be provided',
-  function (value) {
-    const { db, url } = value;
-    const isDbValid = db ? true : false;
-    const isUrlValid = !!url;
-    return isDbValid || isUrlValid;
-  }
-);
+});
+
 export type PostgresFormValues = Yup.InferType<typeof POSTGRES_FORM_SCHEMA>;
 
 export const AWS_FORM_SCHEMA = Yup.object({

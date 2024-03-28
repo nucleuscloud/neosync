@@ -4,6 +4,7 @@ import FormError from '@/components/FormError';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import { setOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
+import Permissions from '@/components/permissions/Permissions';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import {
@@ -45,6 +46,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
   ConnectionConfig,
+  ConnectionRolePrivilege,
   CreateConnectionRequest,
   CreateConnectionResponse,
   GetConnectionResponse,
@@ -56,10 +58,7 @@ import {
   SSHPrivateKey,
   SSHTunnel,
 } from '@neosync/sdk';
-import {
-  CheckCircledIcon,
-  ExclamationTriangleIcon,
-} from '@radix-ui/react-icons';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ReactElement, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -72,6 +71,8 @@ export default function PostgresForm() {
   const { data: onboardingData, mutate } = useGetAccountOnboardingConfig(
     account?.id ?? ''
   );
+  // used to know which tab - param or url that the user is on when we submit the form
+  const [activeTab, setActiveTab] = useState<string>('parameters');
 
   const form = useForm<PostgresFormValues>({
     resolver: yupResolver(POSTGRES_FORM_SCHEMA),
@@ -97,14 +98,19 @@ export default function PostgresForm() {
       },
     },
 
-    context: { accountId: account?.id ?? '' },
+    context: { accountId: account?.id ?? '', activeTab: activeTab },
   });
   const router = useRouter();
-  const [checkResp, setCheckResp] = useState<
+  const [validationResponse, setValidationResponse] = useState<
     CheckConnectionConfigResponse | undefined
   >();
 
-  const [isTesting, setIsTesting] = useState<boolean>(false);
+  const [isValidating, setIsValidating] = useState<boolean>(false);
+
+  const [openPermissionDialog, setOpenPermissionDialog] =
+    useState<boolean>(false);
+  const [permissionData, setPermissionData] =
+    useState<ConnectionRolePrivilege[]>();
 
   async function onSubmit(values: PostgresFormValues) {
     if (!account) {
@@ -112,13 +118,27 @@ export default function PostgresForm() {
     }
 
     try {
-      const connection = await createPostgresConnection(
-        values.db,
-        values.url ?? '',
-        values.connectionName,
-        account.id,
-        values.tunnel
+      let connection: CreateConnectionResponse = new CreateConnectionResponse(
+        {}
       );
+      if (activeTab === 'parameters') {
+        connection = await createPostgresConnection(
+          values.connectionName,
+          account.id,
+          values.db,
+          undefined, // don't pass in the url since user is submitting the db values
+          values.tunnel
+        );
+      } else if (activeTab === 'url') {
+        connection = await createPostgresConnection(
+          values.connectionName,
+          account.id,
+          undefined, // don't pass in the db values since user is submitting the url
+          values.url ?? '',
+          values.tunnel
+        );
+      }
+
       toast({
         title: 'Successfully created connection!',
         variant: 'success',
@@ -314,7 +334,7 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
             </FormItem>
           )}
         />
-        <Tabs defaultValue="parameters">
+        <Tabs defaultValue="parameters" onValueChange={(e) => setActiveTab(e)}>
           <TabsList className="grid grid-cols-2 w-[400px]">
             <TabsTrigger value="parameters">Connection Parameters</TabsTrigger>
             <TabsTrigger value="url">Connection URL</TabsTrigger>
@@ -599,38 +619,61 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
             </AccordionContent>
           </AccordionItem>
         </Accordion>
-        <TestConnectionResult resp={checkResp} />
+        <Permissions
+          data={permissionData ?? []}
+          openPermissionDialog={openPermissionDialog}
+          setOpenPermissionDialog={setOpenPermissionDialog}
+          isValidating={isValidating}
+          validationResponse={validationResponse?.isConnected ?? false}
+          connectionName={form.getValues('connectionName')}
+        />
         <div className="flex flex-row gap-3 justify-between">
           <Button
             variant="outline"
-            disabled={!form.formState.isValid}
             onClick={async () => {
-              setIsTesting(true);
+              setIsValidating(true);
               try {
-                const resp = await checkPostgresConnection(
-                  form.getValues().db,
-                  form.getValues().url ?? '',
-                  form.getValues().tunnel,
-                  account?.id ?? ''
-                );
-                setCheckResp(resp);
-                setIsTesting(false);
+                let res: CheckConnectionConfigResponse =
+                  new CheckConnectionConfigResponse({});
+                if (activeTab === 'parameters') {
+                  res = await checkPostgresConnection(
+                    account?.id ?? '',
+                    form.getValues().db,
+                    form.getValues().tunnel,
+                    undefined
+                  );
+                } else if (activeTab === 'url') {
+                  res = await checkPostgresConnection(
+                    account?.id ?? '',
+                    undefined,
+                    form.getValues().tunnel,
+                    form.getValues().url ?? ''
+                  );
+                }
+                setIsValidating(false);
+                setValidationResponse(res);
+                setPermissionData(res.privileges);
+                setOpenPermissionDialog(res?.isConnected && true);
               } catch (err) {
-                setCheckResp(
+                setValidationResponse(
                   new CheckConnectionConfigResponse({
                     isConnected: false,
                     connectionError:
                       err instanceof Error ? err.message : 'unknown error',
                   })
                 );
-                setIsTesting(false);
+                setIsValidating(false);
               }
             }}
             type="button"
           >
             <ButtonText
               leftIcon={
-                isTesting ? <Spinner className="text-black" /> : <div></div>
+                isValidating ? (
+                  <Spinner className="text-black dark:text-white" />
+                ) : (
+                  <div></div>
+                )
               }
               text="Test Connection"
             />
@@ -643,53 +686,18 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
             />
           </Button>
         </div>
+        {validationResponse && !validationResponse.isConnected && (
+          <ErrorAlert
+            title="Unable to connect"
+            description={
+              validationResponse.connectionError ?? 'no error returned'
+            }
+          />
+        )}
       </form>
     </Form>
   );
 }
-
-interface TestConnectionResultProps {
-  resp: CheckConnectionConfigResponse | undefined;
-}
-
-function TestConnectionResult(props: TestConnectionResultProps): ReactElement {
-  const { resp } = props;
-  if (resp) {
-    if (resp.isConnected) {
-      return (
-        <SuccessAlert
-          title="Success!"
-          description="Successfully connected to the database!"
-        />
-      );
-    } else {
-      return (
-        <ErrorAlert
-          title="Unable to connect"
-          description={resp.connectionError ?? 'no error returned'}
-        />
-      );
-    }
-  }
-  return <div />;
-}
-
-interface SuccessAlertProps {
-  title: string;
-  description: string;
-}
-
-function SuccessAlert(props: SuccessAlertProps): ReactElement {
-  const { title, description } = props;
-  return (
-    <Alert variant="success">
-      <CheckCircledIcon className="h-4 w-4" />
-      <AlertTitle>{title}</AlertTitle>
-      <AlertDescription>{description}</AlertDescription>
-    </Alert>
-  );
-}
-
 interface ErrorAlertProps {
   title: string;
   description: string;
@@ -706,11 +714,11 @@ function ErrorAlert(props: ErrorAlertProps): ReactElement {
   );
 }
 async function createPostgresConnection(
-  db: PostgresFormValues['db'],
-  url: string,
   name: string,
   accountId: string,
-  tunnel: PostgresFormValues['tunnel']
+  db?: PostgresFormValues['db'],
+  url?: string,
+  tunnel?: PostgresFormValues['tunnel']
 ): Promise<CreateConnectionResponse> {
   let pgconfig = new PostgresConnectionConfig({});
 
@@ -788,10 +796,10 @@ async function createPostgresConnection(
 }
 
 async function checkPostgresConnection(
-  db: PostgresFormValues['db'],
-  url: string,
-  tunnel: PostgresFormValues['tunnel'],
-  accountId: string
+  accountId: string,
+  db?: PostgresFormValues['db'],
+  tunnel?: PostgresFormValues['tunnel'],
+  url?: string
 ): Promise<CheckConnectionConfigResponse> {
   let requestBody;
   if (url) {
