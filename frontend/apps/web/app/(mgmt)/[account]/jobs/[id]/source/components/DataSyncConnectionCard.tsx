@@ -1,10 +1,10 @@
 'use client';
 import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
-import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/SchemaColumns';
 import {
   SchemaTable,
   getConnectionSchema,
 } from '@/components/jobs/SchemaTable/SchemaTable';
+import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Button } from '@/components/ui/button';

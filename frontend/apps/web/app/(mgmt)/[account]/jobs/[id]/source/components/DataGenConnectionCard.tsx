@@ -3,8 +3,8 @@ import {
   SINGLE_TABLE_SCHEMA_FORM_SCHEMA,
   SingleTableSchemaFormValues,
 } from '@/app/(mgmt)/[account]/new/job/schema';
-import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/SchemaColumns';
 import { SchemaTable } from '@/components/jobs/SchemaTable/SchemaTable';
+import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Alert, AlertTitle } from '@/components/ui/alert';
@@ -165,7 +165,6 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
 
         <SchemaTable
           data={form.watch('mappings')}
-          excludeInputReqTransformers
           jobType="generate"
           constraintHandler={schemaConstraintHandler}
           schema={connectionSchemaDataMap?.schemaMap ?? {}}

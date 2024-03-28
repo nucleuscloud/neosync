@@ -18,50 +18,30 @@ import {
 } from '@/yup-validations/jobs';
 import {
   JobMappingTransformer,
-  SystemTransformer,
   TransformerConfig,
-  UserDefinedTransformer,
   UserDefinedTransformerConfig,
 } from '@neosync/sdk';
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
 
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { BasicTransformerHandler } from './transformer-handler';
 
 type Side = (typeof SIDE_OPTIONS)[number];
 
 var SIDE_OPTIONS: readonly ['top', 'right', 'bottom', 'left'];
 
 interface Props {
-  userDefinedTransformers: UserDefinedTransformer[];
-  systemTransformers: SystemTransformer[];
-
-  userDefinedTransformerMap: Map<string, UserDefinedTransformer>;
-  systemTransformerMap: Map<string, SystemTransformer>;
   value: JobMappingTransformerForm;
   onSelect(value: JobMappingTransformerForm): void;
   placeholder: string;
   side: Side;
   disabled: boolean;
+  transformerHandler: BasicTransformerHandler;
 }
 
 export default function TransformerSelect(props: Props): ReactElement {
-  const {
-    userDefinedTransformers,
-    systemTransformers,
-    userDefinedTransformerMap,
-    systemTransformerMap,
-    value,
-    onSelect,
-    placeholder,
-    side,
-    disabled,
-  } = props;
+  const { value, onSelect, placeholder, side, disabled, transformerHandler } =
+    props;
   const [open, setOpen] = useState(false);
 
   return (
@@ -82,8 +62,7 @@ export default function TransformerSelect(props: Props): ReactElement {
           <div className="whitespace-nowrap truncate lg:w-[200px] text-left">
             {getPopoverTriggerButtonText(
               value,
-              userDefinedTransformerMap,
-              systemTransformerMap,
+              transformerHandler,
               placeholder
             )}
           </div>
@@ -99,9 +78,9 @@ export default function TransformerSelect(props: Props): ReactElement {
           <CommandInput placeholder={placeholder} />
           <CommandEmpty>No transformers found.</CommandEmpty>
           <div className="max-h-[450px] overflow-y-scroll">
-            {userDefinedTransformers.length > 0 && (
+            {transformerHandler.getUserDefinedTransformers().length > 0 && (
               <CommandGroup heading="Custom">
-                {userDefinedTransformers.map((t) => {
+                {transformerHandler.getUserDefinedTransformers().map((t) => {
                   return (
                     <CommandItem
                       key={t.id}
@@ -150,7 +129,7 @@ export default function TransformerSelect(props: Props): ReactElement {
               </CommandGroup>
             )}
             <CommandGroup heading="System">
-              {systemTransformers.map((t) => {
+              {transformerHandler.getSystemTransformers().map((t) => {
                 return (
                   <CommandItem
                     key={t.source}
@@ -196,8 +175,7 @@ export default function TransformerSelect(props: Props): ReactElement {
 
 function getPopoverTriggerButtonText(
   value: JobMappingTransformerForm,
-  udfTransformerMap: Map<string, UserDefinedTransformer>,
-  systemTransformerMap: Map<string, SystemTransformer>,
+  transformerHandler: BasicTransformerHandler,
   placeholder: string
 ): string {
   if (!value?.config) {
@@ -207,54 +185,14 @@ function getPopoverTriggerButtonText(
   switch (value?.config?.case) {
     case 'userDefinedTransformerConfig':
       const id = value.config.value.id;
-      return udfTransformerMap.get(id)?.name ?? placeholder;
+      return (
+        transformerHandler.getUserDefinedTransformerById(id)?.name ??
+        placeholder
+      );
     default:
-      return systemTransformerMap.get(value.source)?.name ?? placeholder;
+      return (
+        transformerHandler.getSystemTransformerBySource(value.source)?.name ??
+        placeholder
+      );
   }
-}
-
-interface MockButtonProps {
-  value: JobMappingTransformerForm;
-  placeholder: string;
-  udfTransformerMap: Map<string, UserDefinedTransformer>;
-  systemTransformerMap: Map<string, SystemTransformer>;
-}
-
-// have to do this otherwise react throws a warning where they don't want you to have a button as a child of a button (TooltipTrigger). If you do that and then disable the button the tooltip doesn't work on hover.
-function MockButtonWithToolTip(props: MockButtonProps): ReactElement {
-  const { placeholder, value, udfTransformerMap, systemTransformerMap } = props;
-
-  return (
-    <div>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div
-              className={cn(
-                placeholder.startsWith('Bulk')
-                  ? 'justify-between w-[275px]'
-                  : 'justify-center w-[175px] cursor-pointer flex flex-row items-center  rounded-md text-sm font-gay- h-9 px-4 py-2 border border-input opacity-50'
-              )}
-            >
-              <div className="whitespace-nowrap truncate lg:w-[200px] text-left">
-                {getPopoverTriggerButtonText(
-                  value,
-                  udfTransformerMap,
-                  systemTransformerMap,
-                  placeholder
-                )}
-              </div>
-              <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </div>
-          </TooltipTrigger>
-          <TooltipContent>
-            <div className="max-w-[140px] text-wrap">
-              Cannot assign a Transformer to Foreign Key if Primary Key has
-              Transformer{' '}
-            </div>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    </div>
-  );
 }
