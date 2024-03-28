@@ -9,7 +9,7 @@ export default async function Supabase() {
       Header={
         <PageHeader
           header="Supabase"
-          description="Configure a Supabase database as a connection"
+          subHeadings="Configure a Neon database as a connection"
           leftIcon={<SupabaseLogo />}
         />
       }
