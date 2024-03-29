@@ -14,6 +14,7 @@ import Error from 'next/error';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
 import { GrClone } from 'react-icons/gr';
+import { SubNav } from '../../jobs/[id]/layout';
 import { getConnectionType } from '../components/ConnectionsTable/data-table-row-actions';
 import RemoveConnectionButton from './components/RemoveConnectionButton';
 import { getConnectionComponentDetails } from './components/connection-component';
@@ -78,13 +79,30 @@ export default function ConnectionPage({ params }: PageProps) {
     ),
   });
 
+  const basePath = `/${account?.name}/connections/${data?.connection?.id}`;
+
+  const subnav = [
+    {
+      title: 'Configuration',
+      href: `${basePath}`,
+    },
+    {
+      title: 'Permissions',
+      href: `${basePath}/permissions`,
+    },
+  ];
+
+  const isPostgres =
+    data?.connection?.connectionConfig?.config.case == 'pgConfig';
+
   return (
     <OverviewContainer
       Header={connectionComponent.header}
       containerClassName="px-32"
     >
       <div className="connection-details-container">
-        <div>
+        <div className="flex flex-col gap-8">
+          {isPostgres && <SubNav items={subnav} buttonClassName="" />}
           <div>{connectionComponent.body}</div>
         </div>
       </div>
@@ -97,7 +115,9 @@ interface CloneConnectionProps {
   id: string;
 }
 
-function CloneConnectionButton(props: CloneConnectionProps): ReactElement {
+export function CloneConnectionButton(
+  props: CloneConnectionProps
+): ReactElement {
   const { connectionType, id } = props;
   const { account } = useAccount();
 
