@@ -572,9 +572,8 @@ const transformerNameSchema = Yup.string()
 
 export const CREATE_USER_DEFINED_TRANSFORMER_SCHEMA = Yup.object({
   name: transformerNameSchema,
-  source: Yup.string(),
+  source: Yup.number(),
   description: Yup.string().required(),
-  type: Yup.string().required(),
   config: TransformerConfigSchema,
 });
 
@@ -618,7 +617,7 @@ export const SYSTEM_TRANSFORMER_SCHEMA = Yup.object({
   name: Yup.string(),
   type: Yup.string(),
   description: Yup.string().required(),
-  source: Yup.string().required(),
+  source: Yup.number().required(),
   config: TransformerConfigSchema,
 });
 

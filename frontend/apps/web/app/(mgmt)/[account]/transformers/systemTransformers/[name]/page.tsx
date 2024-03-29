@@ -24,6 +24,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useGetSystemTransformerBySource } from '@/libs/hooks/useGetSystemTransformerBySource';
 import { convertTransformerConfigToForm } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { TransformerSource } from '@neosync/sdk';
 import Error from 'next/error';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
@@ -44,7 +45,7 @@ export default function ViewSystemTransformers({
       name: systemTransformer?.name ?? '',
       description: systemTransformer?.description ?? '',
       type: systemTransformer?.dataType ?? '',
-      source: systemTransformer?.source ?? '',
+      source: systemTransformer?.source ?? TransformerSource.UNSPECIFIED,
       config: convertTransformerConfigToForm(systemTransformer?.config),
     },
   });
@@ -143,7 +144,10 @@ export default function ViewSystemTransformers({
             </div>
           </div>
           <div>
-            {handleUserDefinedTransformerForm(systemTransformer?.source, true)}
+            {handleUserDefinedTransformerForm(
+              systemTransformer?.source ?? TransformerSource.UNSPECIFIED,
+              true
+            )}
           </div>
           <div className="flex flex-row justify-start">
             <NextLink href={`/${account?.name}/transformers?tab=system`}>
@@ -157,7 +161,7 @@ export default function ViewSystemTransformers({
 }
 
 interface CloneTransformerProps {
-  source: string;
+  source: TransformerSource;
 }
 
 function CloneTransformerButton(props: CloneTransformerProps): ReactElement {
