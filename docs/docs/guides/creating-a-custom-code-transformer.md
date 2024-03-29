@@ -22,8 +22,7 @@ In order to create a custom code transformer:
 4. Then move onto to the **Custom Code** section. Here you can write in custom javascript code to transform your input value. Note that the value that you will be transforming is available at the `value` keyword and is of `any` type. For example, if the input value was `john` of type string then the following code:
 
 ```javascript
-let input = value + 'test';
-return input;
+return value + 'test';
 ```
 
 You can also do more complicated transformations such as:
