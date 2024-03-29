@@ -1,3 +1,6 @@
+-- This migration adds a new temporary column "source_id", populates it with the integer equivalent of the string value
+-- It then drops the source column and renames source_id to source.
+-- This migration also converts the source key in the job mappings to its integer equivalent
 ALTER TABLE
   neosync_api.transformers
 ADD COLUMN IF NOT EXISTS source_id int NULL;
@@ -73,7 +76,6 @@ ALTER TABLE neosync_api.transformers
   DROP COLUMN IF EXISTS type;
 
 -- Update job mappings
-
 WITH updated_mappings AS (
     SELECT
         id,

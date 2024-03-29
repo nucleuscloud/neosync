@@ -68,12 +68,11 @@ SET source_case =
   RENAME COLUMN source_case TO source;
 
 
--- This was destructive so we need to se the default to empty string so we can revert back to the column existing in a good state
+-- This was destructive so we need to set the default to empty string so we can revert back to the column existing in a good state
 ALTER TABLE neosync_api.transformers
   ADD COLUMN IF NOT EXISTS type text not null default '';
 
 -- Revert the job mappings back to their string equivalent
-
 WITH updated_mappings AS (
     SELECT
         id,
