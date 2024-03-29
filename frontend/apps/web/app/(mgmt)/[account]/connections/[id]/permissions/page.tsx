@@ -1,7 +1,9 @@
 'use client';
 'use client';
+import { CloneConnectionButton } from '@/components/CloneConnectionButton';
 import ResourceId from '@/components/ResourceId';
 import Spinner from '@/components/Spinner';
+import { SubNav } from '@/components/SubNav';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import LearnMoreTag from '@/components/labels/LearnMoreTag';
 import { TestConnectionResult } from '@/components/permissions/Permissions';
@@ -27,10 +29,8 @@ import { ColumnDef } from '@tanstack/react-table';
 import Error from 'next/error';
 import { useEffect, useState } from 'react';
 import { KeyedMutator } from 'swr';
-import { SubNav } from '../../../jobs/[id]/layout';
 import RemoveConnectionButton from '../components/RemoveConnectionButton';
 import { getConnectionComponentDetails } from '../components/connection-component';
-import { CloneConnectionButton } from '../page';
 
 export default function PermissionsPage({ params }: PageProps) {
   const id = params?.id ?? '';

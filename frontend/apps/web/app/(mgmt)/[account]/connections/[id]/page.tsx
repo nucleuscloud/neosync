@@ -1,21 +1,16 @@
 'use client';
-import ButtonText from '@/components/ButtonText';
+import { CloneConnectionButton } from '@/components/CloneConnectionButton';
 import ResourceId from '@/components/ResourceId';
+import { SubNav } from '@/components/SubNav';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
-import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnection } from '@/libs/hooks/useGetConnection';
 import { getErrorMessage } from '@/util/util';
 import { GetConnectionResponse } from '@neosync/sdk';
 import Error from 'next/error';
-import NextLink from 'next/link';
-import { ReactElement } from 'react';
-import { GrClone } from 'react-icons/gr';
-import { SubNav } from '../../jobs/[id]/layout';
-import { getConnectionType } from '../components/ConnectionsTable/data-table-row-actions';
 import RemoveConnectionButton from './components/RemoveConnectionButton';
 import { getConnectionComponentDetails } from './components/connection-component';
 
@@ -107,30 +102,5 @@ export default function ConnectionPage({ params }: PageProps) {
         </div>
       </div>
     </OverviewContainer>
-  );
-}
-
-interface CloneConnectionProps {
-  connectionType: string;
-  id: string;
-}
-
-export function CloneConnectionButton(
-  props: CloneConnectionProps
-): ReactElement {
-  const { connectionType, id } = props;
-  const { account } = useAccount();
-
-  return (
-    <NextLink
-      href={`/${account?.name}/new/connection/${getConnectionType(connectionType)}?sourceId=${id}`}
-    >
-      <Button>
-        <ButtonText
-          text="Clone Connection"
-          leftIcon={<GrClone className="mr-1" />}
-        />
-      </Button>
-    </NextLink>
   );
 }
