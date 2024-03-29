@@ -584,9 +584,8 @@ export type CreateUserDefinedTransformerSchema = Yup.InferType<
 export const UPDATE_USER_DEFINED_TRANSFORMER = Yup.object({
   name: transformerNameSchema,
   id: Yup.string(),
-  source: Yup.string(),
+  source: Yup.number(),
   description: Yup.string().required(),
-  type: Yup.string(),
   config: TransformerConfigSchema,
 });
 

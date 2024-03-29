@@ -51,7 +51,6 @@ export default function UpdateUserDefinedTransformerForm(
       name: currentTransformer?.name ?? '',
       source: currentTransformer?.source ?? '',
       description: currentTransformer?.description ?? '',
-      type: currentTransformer?.dataType ?? '',
       id: currentTransformer?.id ?? '',
       config: convertTransformerConfigToForm(currentTransformer.config),
     },
