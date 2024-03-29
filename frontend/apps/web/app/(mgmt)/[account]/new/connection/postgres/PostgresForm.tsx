@@ -25,6 +25,8 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Select,
   SelectContent,
@@ -32,7 +34,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/use-toast';
 import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
@@ -71,8 +72,8 @@ export default function PostgresForm() {
   const { data: onboardingData, mutate } = useGetAccountOnboardingConfig(
     account?.id ?? ''
   );
-  // used to know which tab - param or url that the user is on when we submit the form
-  const [activeTab, setActiveTab] = useState<string>('parameters');
+  // used to know which tab - host or url that the user is on when we submit the form
+  const [activeTab, setActiveTab] = useState<string>('url');
 
   const form = useForm<PostgresFormValues>({
     resolver: yupResolver(POSTGRES_FORM_SCHEMA),
@@ -121,7 +122,7 @@ export default function PostgresForm() {
       let connection: CreateConnectionResponse = new CreateConnectionResponse(
         {}
       );
-      if (activeTab === 'parameters') {
+      if (activeTab === 'host') {
         connection = await createPostgresConnection(
           values.connectionName,
           account.id,
@@ -334,12 +335,48 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
             </FormItem>
           )}
         />
-        <Tabs defaultValue="parameters" onValueChange={(e) => setActiveTab(e)}>
-          <TabsList className="grid grid-cols-2 w-[400px]">
-            <TabsTrigger value="parameters">Connection Parameters</TabsTrigger>
-            <TabsTrigger value="url">Connection URL</TabsTrigger>
-          </TabsList>
-          <TabsContent value="parameters" className="flex flex-col gap-8">
+
+        <RadioGroup
+          defaultValue="url"
+          onValueChange={(e) => setActiveTab(e)}
+          value={activeTab}
+        >
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="text-sm">Connect by:</div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="url" id="r2" />
+              <Label htmlFor="r2">URL</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="host" id="r1" />
+              <Label htmlFor="r1">Host</Label>
+            </div>
+          </div>
+        </RadioGroup>
+        {activeTab == 'url' && (
+          <FormField
+            control={form.control}
+            name="url"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  <RequiredLabel />
+                  Connection URL
+                </FormLabel>
+                <FormDescription>Your connection URL</FormDescription>
+                <FormControl>
+                  <Input
+                    placeholder="postgres://test:test@host.com?sslMode=require"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+        {activeTab == 'host' && (
+          <>
             <FormField
               control={form.control}
               name="db.host"
@@ -471,28 +508,8 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
                 </FormItem>
               )}
             />
-          </TabsContent>
-          <TabsContent value="url">
-            <FormField
-              control={form.control}
-              name="url"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    <RequiredLabel />
-                    Connection URL
-                  </FormLabel>
-                  <FormDescription>Your connection URL</FormDescription>
-                  <FormControl>
-                    <Input placeholder="Connection URL" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </TabsContent>
-        </Tabs>
-
+          </>
+        )}
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="bastion">
             <AccordionTrigger> Bastion Host Configuration</AccordionTrigger>
@@ -635,7 +652,7 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
               try {
                 let res: CheckConnectionConfigResponse =
                   new CheckConnectionConfigResponse({});
-                if (activeTab === 'parameters') {
+                if (activeTab === 'host') {
                   res = await checkPostgresConnection(
                     account?.id ?? '',
                     form.getValues().db,
