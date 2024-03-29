@@ -279,6 +279,68 @@ proto3.util.setEnumType(TransformerSource, "mgmt.v1alpha1.TransformerSource", [
 ]);
 
 /**
+ * @generated from enum mgmt.v1alpha1.TransformerDataType
+ */
+export enum TransformerDataType {
+  /**
+   * @generated from enum value: TRANSFORMER_DATA_TYPE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: TRANSFORMER_DATA_TYPE_STRING = 1;
+   */
+  STRING = 1,
+
+  /**
+   * @generated from enum value: TRANSFORMER_DATA_TYPE_INT64 = 2;
+   */
+  INT64 = 2,
+
+  /**
+   * @generated from enum value: TRANSFORMER_DATA_TYPE_BOOLEAN = 3;
+   */
+  BOOLEAN = 3,
+
+  /**
+   * @generated from enum value: TRANSFORMER_DATA_TYPE_FLOAT64 = 4;
+   */
+  FLOAT64 = 4,
+
+  /**
+   * @generated from enum value: TRANSFORMER_DATA_TYPE_NULL = 5;
+   */
+  NULL = 5,
+
+  /**
+   * @generated from enum value: TRANSFORMER_DATA_TYPE_ANY = 6;
+   */
+  ANY = 6,
+
+  /**
+   * @generated from enum value: TRANSFORMER_DATA_TYPE_TIME = 7;
+   */
+  TIME = 7,
+
+  /**
+   * @generated from enum value: TRANSFORMER_DATA_TYPE_UUID = 8;
+   */
+  UUID = 8,
+}
+// Retrieve enum metadata with: proto3.getEnumType(TransformerDataType)
+proto3.util.setEnumType(TransformerDataType, "mgmt.v1alpha1.TransformerDataType", [
+  { no: 0, name: "TRANSFORMER_DATA_TYPE_UNSPECIFIED" },
+  { no: 1, name: "TRANSFORMER_DATA_TYPE_STRING" },
+  { no: 2, name: "TRANSFORMER_DATA_TYPE_INT64" },
+  { no: 3, name: "TRANSFORMER_DATA_TYPE_BOOLEAN" },
+  { no: 4, name: "TRANSFORMER_DATA_TYPE_FLOAT64" },
+  { no: 5, name: "TRANSFORMER_DATA_TYPE_NULL" },
+  { no: 6, name: "TRANSFORMER_DATA_TYPE_ANY" },
+  { no: 7, name: "TRANSFORMER_DATA_TYPE_TIME" },
+  { no: 8, name: "TRANSFORMER_DATA_TYPE_UUID" },
+]);
+
+/**
  * @generated from message mgmt.v1alpha1.GetSystemTransformersRequest
  */
 export class GetSystemTransformersRequest extends Message<GetSystemTransformersRequest> {
@@ -936,13 +998,11 @@ export class UserDefinedTransformer extends Message<UserDefinedTransformer> {
   /**
    * This property is readonly and is calculated based off the origin system transformer
    *
-   * @generated from field: string data_type = 5;
+   * @generated from field: mgmt.v1alpha1.TransformerDataType data_type = 5;
    */
-  dataType = "";
+  dataType = TransformerDataType.UNSPECIFIED;
 
   /**
-   * This property is readonly and is calculated based off the origin system transformer
-   *
    * @generated from field: mgmt.v1alpha1.TransformerSource source = 6;
    */
   source = TransformerSource.UNSPECIFIED;
@@ -978,7 +1038,7 @@ export class UserDefinedTransformer extends Message<UserDefinedTransformer> {
     { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "data_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "data_type", kind: "enum", T: proto3.getEnumType(TransformerDataType) },
     { no: 6, name: "source", kind: "enum", T: proto3.getEnumType(TransformerSource) },
     { no: 7, name: "config", kind: "message", T: TransformerConfig },
     { no: 8, name: "created_at", kind: "message", T: Timestamp },
@@ -1018,9 +1078,9 @@ export class SystemTransformer extends Message<SystemTransformer> {
   description = "";
 
   /**
-   * @generated from field: string data_type = 3;
+   * @generated from field: mgmt.v1alpha1.TransformerDataType data_type = 3;
    */
-  dataType = "";
+  dataType = TransformerDataType.UNSPECIFIED;
 
   /**
    * @generated from field: mgmt.v1alpha1.TransformerSource source = 4;
@@ -1042,7 +1102,7 @@ export class SystemTransformer extends Message<SystemTransformer> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "data_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "data_type", kind: "enum", T: proto3.getEnumType(TransformerDataType) },
     { no: 4, name: "source", kind: "enum", T: proto3.getEnumType(TransformerSource) },
     { no: 5, name: "config", kind: "message", T: TransformerConfig },
   ]);

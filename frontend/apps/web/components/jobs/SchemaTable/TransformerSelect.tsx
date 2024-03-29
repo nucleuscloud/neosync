@@ -20,6 +20,7 @@ import {
   JobMappingTransformer,
   SystemTransformer,
   TransformerConfig,
+  TransformerDataType,
   TransformerSource,
   UserDefinedTransformer,
   UserDefinedTransformerConfig,
@@ -96,6 +97,7 @@ export default function TransformerSelect(props: Props): ReactElement {
             {userDefinedTransformers.length > 0 && (
               <CommandGroup heading="Custom">
                 {userDefinedTransformers.map((t) => {
+                  const dataType = TransformerDataType[t.dataType];
                   return (
                     <CommandItem
                       key={t.id}
@@ -136,7 +138,7 @@ export default function TransformerSelect(props: Props): ReactElement {
                           <div className="items-center">{t?.name}</div>
                         </div>
                         <div className="ml-2 text-gray-400 text-xs">
-                          {t.dataType}
+                          {dataType ? dataType.toLowerCase() : 'unknown'}
                         </div>
                       </div>
                     </CommandItem>
@@ -146,6 +148,7 @@ export default function TransformerSelect(props: Props): ReactElement {
             )}
             <CommandGroup heading="System">
               {systemTransformers.map((t) => {
+                const dataType = TransformerDataType[t.dataType];
                 return (
                   <CommandItem
                     key={t.source}
@@ -175,7 +178,7 @@ export default function TransformerSelect(props: Props): ReactElement {
                         <div className="items-center">{t?.name}</div>
                       </div>
                       <div className="ml-2 text-gray-400 text-xs">
-                        {t.dataType}
+                        {dataType ? dataType.toLowerCase() : 'unknown'}
                       </div>
                     </div>
                   </CommandItem>

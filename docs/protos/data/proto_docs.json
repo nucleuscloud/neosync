@@ -3575,6 +3575,59 @@
       "hasServices": true,
       "enums": [
         {
+          "name": "TransformerDataType",
+          "longName": "TransformerDataType",
+          "fullName": "mgmt.v1alpha1.TransformerDataType",
+          "description": "",
+          "values": [
+            {
+              "name": "TRANSFORMER_DATA_TYPE_UNSPECIFIED",
+              "number": "0",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_DATA_TYPE_STRING",
+              "number": "1",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_DATA_TYPE_INT64",
+              "number": "2",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_DATA_TYPE_BOOLEAN",
+              "number": "3",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_DATA_TYPE_FLOAT64",
+              "number": "4",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_DATA_TYPE_NULL",
+              "number": "5",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_DATA_TYPE_ANY",
+              "number": "6",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_DATA_TYPE_TIME",
+              "number": "7",
+              "description": ""
+            },
+            {
+              "name": "TRANSFORMER_DATA_TYPE_UUID",
+              "number": "8",
+              "description": ""
+            }
+          ]
+        },
+        {
           "name": "TransformerSource",
           "longName": "TransformerSource",
           "fullName": "mgmt.v1alpha1.TransformerSource",
@@ -4746,9 +4799,9 @@
               "name": "data_type",
               "description": "",
               "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
+              "type": "TransformerDataType",
+              "longType": "TransformerDataType",
+              "fullType": "mgmt.v1alpha1.TransformerDataType",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -5754,9 +5807,9 @@
               "name": "data_type",
               "description": "This property is readonly and is calculated based off the origin system transformer",
               "label": "",
-              "type": "string",
-              "longType": "string",
-              "fullType": "string",
+              "type": "TransformerDataType",
+              "longType": "TransformerDataType",
+              "fullType": "mgmt.v1alpha1.TransformerDataType",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -5764,7 +5817,7 @@
             },
             {
               "name": "source",
-              "description": "This property is readonly and is calculated based off the origin system transformer",
+              "description": "",
               "label": "",
               "type": "TransformerSource",
               "longType": "TransformerSource",

@@ -3,7 +3,7 @@
 import { Badge } from '@/components/ui/badge';
 import { formatDateTime } from '@/util/util';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
-import { UserDefinedTransformer } from '@neosync/sdk';
+import { TransformerDataType, UserDefinedTransformer } from '@neosync/sdk';
 import { ColumnDef } from '@tanstack/react-table';
 import NextLink from 'next/link';
 import { DataTableColumnHeader } from './data-table-column-header';
@@ -46,13 +46,17 @@ export function getUserDefinedTransformerColumns(
     {
       id: 'type',
       accessorKey: 'type',
+      accessorFn: (row) => {
+        const value = TransformerDataType[row.dataType];
+        return value ? value.toLowerCase() : 'unknown';
+      },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Data Type" />
       ),
-      cell: ({ row }) => {
+      cell: ({ getValue }) => {
         return (
           <div className="flex space-x-2">
-            <Badge variant="outline">{row.original.dataType}</Badge>
+            <Badge variant="outline">{getValue<string>()}</Badge>
           </div>
         );
       },

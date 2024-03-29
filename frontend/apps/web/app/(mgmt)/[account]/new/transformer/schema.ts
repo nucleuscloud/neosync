@@ -614,7 +614,7 @@ async function isTransformerNameAvailable(
 
 export const SYSTEM_TRANSFORMER_SCHEMA = Yup.object({
   name: Yup.string(),
-  type: Yup.string(),
+  type: Yup.number(),
   description: Yup.string().required(),
   source: Yup.number().required(),
   config: TransformerConfigSchema,

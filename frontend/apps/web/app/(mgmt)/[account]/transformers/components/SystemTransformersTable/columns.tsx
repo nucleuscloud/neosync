@@ -2,7 +2,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import { PlainMessage } from '@bufbuild/protobuf';
-import { SystemTransformer } from '@neosync/sdk';
+import { SystemTransformer, TransformerDataType } from '@neosync/sdk';
 import { ColumnDef } from '@tanstack/react-table';
 import NextLink from 'next/link';
 import { DataTableColumnHeader } from './data-table-column-header';
@@ -43,13 +43,17 @@ export function getSystemTransformerColumns(
     {
       id: 'type',
       accessorKey: 'type',
+      accessorFn: (row) => {
+        const value = TransformerDataType[row.dataType];
+        return value ? value.toLowerCase() : 'unknown';
+      },
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Data Type" />
       ),
-      cell: ({ row }) => {
+      cell: ({ getValue }) => {
         return (
           <div className="flex space-x-2">
-            <Badge variant="outline">{row.original.dataType}</Badge>
+            <Badge variant="outline">{getValue<string>()}</Badge>
           </div>
         );
       },

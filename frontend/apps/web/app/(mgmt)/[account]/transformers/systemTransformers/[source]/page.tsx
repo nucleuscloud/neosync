@@ -24,7 +24,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useGetSystemTransformerBySource } from '@/libs/hooks/useGetSystemTransformerBySource';
 import { convertTransformerConfigToForm } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { TransformerSource } from '@neosync/sdk';
+import { TransformerDataType, TransformerSource } from '@neosync/sdk';
 import Error from 'next/error';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
@@ -52,7 +52,7 @@ export default function ViewSystemTransformers({
     values: {
       name: systemTransformer?.name ?? '',
       description: systemTransformer?.description ?? '',
-      type: systemTransformer?.dataType ?? '',
+      type: systemTransformer?.dataType ?? TransformerDataType.UNSPECIFIED,
       source: systemTransformer?.source ?? TransformerSource.UNSPECIFIED,
       config: convertTransformerConfigToForm(systemTransformer?.config),
     },

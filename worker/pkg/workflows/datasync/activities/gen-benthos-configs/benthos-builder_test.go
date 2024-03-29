@@ -4484,7 +4484,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 	jsT := mgmtv1alpha1.SystemTransformer{
 		Name:        "stage",
 		Description: "description",
-		DataType:    "string",
+		DataType:    mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_STRING,
 		Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_EMAIL,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
@@ -4529,7 +4529,7 @@ func Test_buildProcessorConfigsJavascript(t *testing.T) {
 	jsT := mgmtv1alpha1.SystemTransformer{
 		Name:        "stage",
 		Description: "description",
-		DataType:    "string",
+		DataType:    mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_STRING,
 		Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
@@ -4575,7 +4575,7 @@ func Test_buildProcessorConfigsJavascriptMultiLineScript(t *testing.T) {
 	jsT := mgmtv1alpha1.SystemTransformer{
 		Name:        "stage",
 		Description: "description",
-		DataType:    "string",
+		DataType:    mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_STRING,
 		Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
@@ -4618,7 +4618,7 @@ func Test_buildProcessorConfigsJavascriptMultiple(t *testing.T) {
 	jsT := mgmtv1alpha1.SystemTransformer{
 		Name:        "stage",
 		Description: "description",
-		DataType:    "string",
+		DataType:    mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_STRING,
 		Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
@@ -4632,7 +4632,7 @@ func Test_buildProcessorConfigsJavascriptMultiple(t *testing.T) {
 	jsT2 := mgmtv1alpha1.SystemTransformer{
 		Name:        "stage",
 		Description: "description",
-		DataType:    "string",
+		DataType:    mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_STRING,
 		Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
@@ -4745,7 +4745,7 @@ func Test_buildProcessorConfigsJavascriptEmpty(t *testing.T) {
 	jsT := mgmtv1alpha1.SystemTransformer{
 		Name:        "stage",
 		Description: "description",
-		DataType:    "string",
+		DataType:    mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_STRING,
 		Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
@@ -4779,7 +4779,7 @@ func Test_convertUserDefinedFunctionConfig(t *testing.T) {
 			Id:          "123",
 			Name:        "stage",
 			Description: "description",
-			DataType:    "string",
+			DataType:    mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_STRING,
 			Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_EMAIL,
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformEmailConfig{
