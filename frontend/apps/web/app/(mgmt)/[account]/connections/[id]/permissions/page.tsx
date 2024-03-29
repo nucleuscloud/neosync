@@ -27,7 +27,7 @@ import {
 import { UpdateIcon } from '@radix-ui/react-icons';
 import { ColumnDef } from '@tanstack/react-table';
 import Error from 'next/error';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { KeyedMutator } from 'swr';
 import RemoveConnectionButton from '../components/RemoveConnectionButton';
 import { getConnectionComponentDetails } from '../components/connection-component';
@@ -37,26 +37,15 @@ export default function PermissionsPage({ params }: PageProps) {
   const { account } = useAccount();
   const { data, isLoading, mutate } = useGetConnection(account?.id ?? '', id);
 
-  const [pgConfig, setPgConfig] = useState<PostgresConnectionConfig | null>(
-    null
-  );
-
-  useEffect(() => {
-    if (
-      !pgConfig &&
-      data?.connection?.connectionConfig?.config.case === 'pgConfig'
-    ) {
-      setPgConfig(data.connection.connectionConfig.config.value);
-    }
-  }, [data, pgConfig]); //TODO: should listen to the fields in these objects but we don't know which ones will be filled out
-
   const {
     data: validationRes,
     isLoading: isLoadingValidation,
     mutate: mutateValidation,
   } = useTestProgressConnection(
     account?.id ?? '',
-    pgConfig ?? new PostgresConnectionConfig({})
+    data?.connection?.connectionConfig?.config.case === 'pgConfig'
+      ? data.connection.connectionConfig.config.value
+      : new PostgresConnectionConfig({})
   );
 
   const { toast } = useToast();
