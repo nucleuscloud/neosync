@@ -795,7 +795,7 @@ async function createPostgresConnection(
   return CreateConnectionResponse.fromJson(await res.json());
 }
 
-export async function checkPostgresConnection(
+async function checkPostgresConnection(
   accountId: string,
   db?: PostgresFormValues['db'],
   tunnel?: PostgresFormValues['tunnel'],
