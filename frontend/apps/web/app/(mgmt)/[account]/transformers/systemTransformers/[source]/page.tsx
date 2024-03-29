@@ -30,10 +30,18 @@ import NextLink from 'next/link';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 
+function getTransformerSource(sourceStr: string): TransformerSource {
+  const sourceNum = parseInt(sourceStr, 10);
+  if (isNaN(sourceNum) || !TransformerSource[sourceNum]) {
+    return TransformerSource.UNSPECIFIED;
+  }
+  return sourceNum as TransformerSource;
+}
+
 export default function ViewSystemTransformers({
   params,
 }: PageProps): ReactElement {
-  const sourceParam = params?.name ?? '';
+  const sourceParam = getTransformerSource(params?.source ?? '');
   const { data: systemTransformerData, isLoading } =
     useGetSystemTransformerBySource(sourceParam);
   const { account } = useAccount();

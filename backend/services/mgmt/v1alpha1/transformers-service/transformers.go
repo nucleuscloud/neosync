@@ -33,7 +33,11 @@ func (s *Service) GetUserDefinedTransformers(
 	dtoTransformers := []*mgmtv1alpha1.UserDefinedTransformer{}
 	for idx := range transformers {
 		transformer := transformers[idx]
-		dtoTransformers = append(dtoTransformers, dtomaps.ToUserDefinedTransformerDto(&transformer))
+		dto, err := dtomaps.ToUserDefinedTransformerDto(&transformer, systemTransformerSourceMap)
+		if err != nil {
+			return nil, fmt.Errorf("failed to map user defined transformer %s with source %d", nucleusdb.UUIDString(transformer.ID), transformer.Source)
+		}
+		dtoTransformers = append(dtoTransformers, dto)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.GetUserDefinedTransformersResponse{
@@ -62,8 +66,13 @@ func (s *Service) GetUserDefinedTransformerById(
 		return nil, err
 	}
 
+	dto, err := dtomaps.ToUserDefinedTransformerDto(&transformer, systemTransformerSourceMap)
+	if err != nil {
+		return nil, fmt.Errorf("failed to map user defined transformer %s with source %d", nucleusdb.UUIDString(transformer.ID), transformer.Source)
+	}
+
 	return connect.NewResponse(&mgmtv1alpha1.GetUserDefinedTransformerByIdResponse{
-		Transformer: dtomaps.ToUserDefinedTransformerDto(&transformer),
+		Transformer: dto,
 	}), nil
 }
 
@@ -98,8 +107,13 @@ func (s *Service) CreateUserDefinedTransformer(ctx context.Context, req *connect
 		return nil, err
 	}
 
+	dto, err := dtomaps.ToUserDefinedTransformerDto(&ct, systemTransformerSourceMap)
+	if err != nil {
+		return nil, fmt.Errorf("failed to map user defined transformer %s with source %d", nucleusdb.UUIDString(ct.ID), ct.Source)
+	}
+
 	return connect.NewResponse(&mgmtv1alpha1.CreateUserDefinedTransformerResponse{
-		Transformer: dtomaps.ToUserDefinedTransformerDto(&ct),
+		Transformer: dto,
 	}), nil
 }
 
@@ -173,8 +187,13 @@ func (s *Service) UpdateUserDefinedTransformer(ctx context.Context, req *connect
 		return nil, err
 	}
 
+	dto, err := dtomaps.ToUserDefinedTransformerDto(&updatedTransformer, systemTransformerSourceMap)
+	if err != nil {
+		return nil, fmt.Errorf("failed to map user defined transformer %s with source %d", nucleusdb.UUIDString(updatedTransformer.ID), updatedTransformer.Source)
+	}
+
 	return connect.NewResponse(&mgmtv1alpha1.UpdateUserDefinedTransformerResponse{
-		Transformer: dtomaps.ToUserDefinedTransformerDto(&updatedTransformer),
+		Transformer: dto,
 	}), err
 }
 
