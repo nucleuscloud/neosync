@@ -80,8 +80,7 @@ message UserDefinedTransformer {
   string name = 2;
   string description = 3;
   // This property is readonly and is calculated based off the origin system transformer
-  string data_type = 5;
-  // This property is readonly and is calculated based off the origin system transformer
+  TransformerDataType data_type = 5;
   TransformerSource source = 6;
   TransformerConfig config = 7;
   google.protobuf.Timestamp created_at = 8;
@@ -136,10 +135,22 @@ enum TransformerSource {
   TRANSFORMER_SOURCE_USER_DEFINED = 44;
 }
 
+enum TransformerDataType {
+  TRANSFORMER_DATA_TYPE_UNSPECIFIED = 0;
+  TRANSFORMER_DATA_TYPE_STRING = 1;
+  TRANSFORMER_DATA_TYPE_INT64 = 2;
+  TRANSFORMER_DATA_TYPE_BOOLEAN = 3;
+  TRANSFORMER_DATA_TYPE_FLOAT64 = 4;
+  TRANSFORMER_DATA_TYPE_NULL = 5;
+  TRANSFORMER_DATA_TYPE_ANY = 6;
+  TRANSFORMER_DATA_TYPE_TIME = 7;
+  TRANSFORMER_DATA_TYPE_UUID = 8;
+}
+
 message SystemTransformer {
   string name = 1;
   string description = 2;
-  string data_type = 3;
+  TransformerDataType data_type = 3;
   TransformerSource source = 4;
   TransformerConfig config = 5;
 }
