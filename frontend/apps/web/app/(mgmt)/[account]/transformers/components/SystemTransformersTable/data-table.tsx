@@ -41,9 +41,6 @@ export function SystemTransformersDataTable<TData, TValue>({
     columns,
     initialState: {
       pagination: { pageIndex: pagination, pageSize: pageSize },
-      columnVisibility: {
-        source: false,
-      },
     },
     enableRowSelection: false,
     getCoreRowModel: getCoreRowModel(),

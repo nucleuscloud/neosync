@@ -1,9 +1,13 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
-import { formatDateTime } from '@/util/util';
+import {
+  formatDateTime,
+  getTransformerDataTypeString,
+  getTransformerSourceString,
+} from '@/util/util';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
-import { TransformerDataType, UserDefinedTransformer } from '@neosync/sdk';
+import { UserDefinedTransformer } from '@neosync/sdk';
 import { ColumnDef } from '@tanstack/react-table';
 import NextLink from 'next/link';
 import { DataTableColumnHeader } from './data-table-column-header';
@@ -46,10 +50,7 @@ export function getUserDefinedTransformerColumns(
     {
       id: 'type',
       accessorKey: 'type',
-      accessorFn: (row) => {
-        const value = TransformerDataType[row.dataType];
-        return value ? value.toLowerCase() : 'unknown';
-      },
+      accessorFn: (row) => getTransformerDataTypeString(row.dataType),
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Data Type" />
       ),
@@ -63,14 +64,15 @@ export function getUserDefinedTransformerColumns(
     },
     {
       accessorKey: 'source',
+      accessorFn: (row) => getTransformerSourceString(row.source),
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Source" />
       ),
-      cell: ({ row }) => {
+      cell: ({ getValue }) => {
         return (
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
-              {row.original.source}
+              {getValue<string>()}
             </span>
           </div>
         );

@@ -1,9 +1,5 @@
 'use client';
 import { handleUserDefinedTransformerForm } from '@/app/(mgmt)/[account]/new/transformer/UserDefinedTransformerForms/HandleUserDefinedTransformersForm';
-import {
-  SYSTEM_TRANSFORMER_SCHEMA,
-  SystemTransformersSchema,
-} from '@/app/(mgmt)/[account]/new/transformer/schema';
 import ButtonText from '@/components/ButtonText';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
@@ -22,8 +18,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetSystemTransformerBySource } from '@/libs/hooks/useGetSystemTransformerBySource';
+import {
+  getTransformerDataTypeString,
+  getTransformerSourceString,
+} from '@/util/util';
 import { convertTransformerConfigToForm } from '@/yup-validations/jobs';
-import { yupResolver } from '@hookform/resolvers/yup';
 import { TransformerDataType, TransformerSource } from '@neosync/sdk';
 import Error from 'next/error';
 import NextLink from 'next/link';
@@ -47,13 +46,16 @@ export default function ViewSystemTransformers({
   const { account } = useAccount();
   const systemTransformer = systemTransformerData?.transformer;
 
-  const form = useForm<SystemTransformersSchema>({
-    resolver: yupResolver(SYSTEM_TRANSFORMER_SCHEMA),
+  const form = useForm({
     values: {
       name: systemTransformer?.name ?? '',
       description: systemTransformer?.description ?? '',
-      type: systemTransformer?.dataType ?? TransformerDataType.UNSPECIFIED,
-      source: systemTransformer?.source ?? TransformerSource.UNSPECIFIED,
+      type: getTransformerDataTypeString(
+        systemTransformer?.dataType ?? TransformerDataType.UNSPECIFIED
+      ),
+      source: getTransformerSourceString(
+        systemTransformer?.source ?? TransformerSource.UNSPECIFIED
+      ),
       config: convertTransformerConfigToForm(systemTransformer?.config),
     },
   });
