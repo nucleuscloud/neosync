@@ -78,10 +78,10 @@ interface TestConnectionResultProps {
   data: ConnectionRolePrivilege[];
 }
 
-function TestConnectionResult(props: TestConnectionResultProps): ReactElement {
+export function TestConnectionResult(
+  props: TestConnectionResultProps
+): ReactElement {
   const { resp, connectionName, data } = props;
-
-  console.log('data', data);
 
   if (resp && data.length == 0) {
     return (
