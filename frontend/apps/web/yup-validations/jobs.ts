@@ -18,7 +18,7 @@ import * as Yup from 'yup';
 
 // Yup schema form JobMappingTransformers
 const JobMappingTransformerForm = Yup.object({
-  source: Yup.string().required('A valid transformer source must be specified'),
+  source: Yup.number().required('A valid transformer source must be specified'),
   config: TransformerConfigSchema,
 });
 
