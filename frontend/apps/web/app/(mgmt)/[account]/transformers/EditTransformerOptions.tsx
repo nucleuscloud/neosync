@@ -762,13 +762,14 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
 export function filterInputFreeSystemTransformers(
   transformers: SystemTransformer[]
 ): SystemTransformer[] {
-  return transformers.filter(
-    (t) =>
+  return transformers.filter((t) => {
+    return (
       t.source !== TransformerSource.PASSTHROUGH &&
       (t.source === TransformerSource.GENERATE_NULL ||
         t.source === TransformerSource.GENERATE_DEFAULT ||
-        TransformerSource[t.source]?.startsWith('generate_'))
-  );
+        TransformerSource[t.source]?.startsWith('GENERATE_'))
+    );
+  });
 }
 
 export function filterInputFreeUdTransformers(

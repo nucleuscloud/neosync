@@ -89,7 +89,7 @@ var (
 			Name:        "Generate International Phone Number",
 			Description: "Generates a phone number in international format with the + character at the start of the phone number. Note that the + sign is not included in the min or max.",
 			DataType:    "string",
-			Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_E164_PHONE_NUMBER,
+			Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_E164_PHONE_NUMBER,
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateE164PhoneNumberConfig{
 					GenerateE164PhoneNumberConfig: &mgmtv1alpha1.GenerateE164PhoneNumber{
@@ -329,7 +329,7 @@ var (
 			Name:        "Transform E164 Phone Number",
 			Description: "Transforms an existing E164 formatted phone number.",
 			DataType:    "string",
-			Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_E164_PHONE_NUMBER,
+			Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_E164_PHONE_NUMBER,
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformE164PhoneNumberConfig{
 					TransformE164PhoneNumberConfig: &mgmtv1alpha1.TransformE164PhoneNumber{
@@ -369,7 +369,7 @@ var (
 			Name:        "Transform Full Name",
 			Description: "Transforms an existing full name.",
 			DataType:    "string",
-			Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_NAME,
+			Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FULL_NAME,
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformFullNameConfig{
 					TransformFullNameConfig: &mgmtv1alpha1.TransformFullName{
@@ -422,7 +422,7 @@ var (
 			Name:        "Transform String Phone Number",
 			Description: "Transforms an existing phone number that is typed as a string.",
 			DataType:    "string",
-			Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_STRING_PHONE_NUMBER,
+			Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_PHONE_NUMBER,
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_TransformPhoneNumberConfig{
 					TransformPhoneNumberConfig: &mgmtv1alpha1.TransformPhoneNumber{
