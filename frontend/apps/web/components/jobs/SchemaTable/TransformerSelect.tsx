@@ -12,6 +12,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/libs/utils';
+import { getTransformerDataTypeString } from '@/util/util';
 import {
   JobMappingTransformerForm,
   convertJobMappingTransformerToForm,
@@ -20,18 +21,12 @@ import {
   JobMappingTransformer,
   SystemTransformer,
   TransformerConfig,
+  TransformerSource,
   UserDefinedTransformer,
   UserDefinedTransformerConfig,
 } from '@neosync/sdk';
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
-
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 
 type Side = (typeof SIDE_OPTIONS)[number];
 
@@ -42,7 +37,7 @@ interface Props {
   systemTransformers: SystemTransformer[];
 
   userDefinedTransformerMap: Map<string, UserDefinedTransformer>;
-  systemTransformerMap: Map<string, SystemTransformer>;
+  systemTransformerMap: Map<TransformerSource, SystemTransformer>;
   value: JobMappingTransformerForm;
   onSelect(value: JobMappingTransformerForm): void;
   placeholder: string;
@@ -109,7 +104,7 @@ export default function TransformerSelect(props: Props): ReactElement {
                         onSelect(
                           convertJobMappingTransformerToForm(
                             new JobMappingTransformer({
-                              source: 'custom',
+                              source: TransformerSource.USER_DEFINED,
                               config: new TransformerConfig({
                                 config: {
                                   case: 'userDefinedTransformerConfig',
@@ -132,7 +127,8 @@ export default function TransformerSelect(props: Props): ReactElement {
                               'mr-2 h-4 w-4',
                               value?.config?.case ===
                                 'userDefinedTransformerConfig' &&
-                                value?.source === 'custom' &&
+                                value?.source ===
+                                  TransformerSource.USER_DEFINED &&
                                 value.config.value.id === t.id
                                 ? 'opacity-100'
                                 : 'opacity-0'
@@ -141,7 +137,7 @@ export default function TransformerSelect(props: Props): ReactElement {
                           <div className="items-center">{t?.name}</div>
                         </div>
                         <div className="ml-2 text-gray-400 text-xs">
-                          {t.dataType}
+                          {getTransformerDataTypeString(t.dataType)}
                         </div>
                       </div>
                     </CommandItem>
@@ -180,7 +176,7 @@ export default function TransformerSelect(props: Props): ReactElement {
                         <div className="items-center">{t?.name}</div>
                       </div>
                       <div className="ml-2 text-gray-400 text-xs">
-                        {t.dataType}
+                        {getTransformerDataTypeString(t.dataType)}
                       </div>
                     </div>
                   </CommandItem>
@@ -197,7 +193,7 @@ export default function TransformerSelect(props: Props): ReactElement {
 function getPopoverTriggerButtonText(
   value: JobMappingTransformerForm,
   udfTransformerMap: Map<string, UserDefinedTransformer>,
-  systemTransformerMap: Map<string, SystemTransformer>,
+  systemTransformerMap: Map<TransformerSource, SystemTransformer>,
   placeholder: string
 ): string {
   if (!value?.config) {
@@ -211,50 +207,4 @@ function getPopoverTriggerButtonText(
     default:
       return systemTransformerMap.get(value.source)?.name ?? placeholder;
   }
-}
-
-interface MockButtonProps {
-  value: JobMappingTransformerForm;
-  placeholder: string;
-  udfTransformerMap: Map<string, UserDefinedTransformer>;
-  systemTransformerMap: Map<string, SystemTransformer>;
-}
-
-// have to do this otherwise react throws a warning where they don't want you to have a button as a child of a button (TooltipTrigger). If you do that and then disable the button the tooltip doesn't work on hover.
-function MockButtonWithToolTip(props: MockButtonProps): ReactElement {
-  const { placeholder, value, udfTransformerMap, systemTransformerMap } = props;
-
-  return (
-    <div>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div
-              className={cn(
-                placeholder.startsWith('Bulk')
-                  ? 'justify-between w-[275px]'
-                  : 'justify-center w-[175px] cursor-pointer flex flex-row items-center  rounded-md text-sm font-gay- h-9 px-4 py-2 border border-input opacity-50'
-              )}
-            >
-              <div className="whitespace-nowrap truncate lg:w-[200px] text-left">
-                {getPopoverTriggerButtonText(
-                  value,
-                  udfTransformerMap,
-                  systemTransformerMap,
-                  placeholder
-                )}
-              </div>
-              <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </div>
-          </TooltipTrigger>
-          <TooltipContent>
-            <div className="max-w-[140px] text-wrap">
-              Cannot assign a Transformer to Foreign Key if Primary Key has
-              Transformer{' '}
-            </div>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    </div>
-  );
 }

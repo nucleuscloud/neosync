@@ -408,7 +408,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 				resp.BenthosDsns = append(resp.BenthosDsns, &shared.BenthosDsn{EnvVarKey: dstEnvVarKey, ConnectionId: destinationConnection.Id})
 
 				if resp.Config.Input.SqlSelect != nil || resp.Config.Input.PooledSqlRaw != nil {
-					colSourceMap := map[string]string{}
+					colSourceMap := map[string]mgmtv1alpha1.TransformerSource{}
 					for _, col := range tm.Mappings {
 						colSourceMap[col.Column] = col.GetTransformer().Source
 					}
@@ -440,7 +440,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					}
 				} else if resp.Config.Input.Generate != nil {
 					cols := buildPlainColumns(tm.Mappings)
-					colSourceMap := map[string]string{}
+					colSourceMap := map[string]mgmtv1alpha1.TransformerSource{}
 					for _, col := range tm.Mappings {
 						colSourceMap[col.Column] = col.GetTransformer().Source
 					}
@@ -467,7 +467,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 				resp.BenthosDsns = append(resp.BenthosDsns, &shared.BenthosDsn{EnvVarKey: dstEnvVarKey, ConnectionId: destination.ConnectionId})
 
 				if resp.Config.Input.SqlSelect != nil || resp.Config.Input.PooledSqlRaw != nil {
-					colSourceMap := map[string]string{}
+					colSourceMap := map[string]mgmtv1alpha1.TransformerSource{}
 					for _, col := range tm.Mappings {
 						colSourceMap[col.Column] = col.GetTransformer().Source
 					}
@@ -498,7 +498,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					}
 				} else if resp.Config.Input.Generate != nil {
 					cols := buildPlainColumns(tm.Mappings)
-					colSourceMap := map[string]string{}
+					colSourceMap := map[string]mgmtv1alpha1.TransformerSource{}
 					for _, col := range tm.Mappings {
 						colSourceMap[col.Column] = col.GetTransformer().Source
 					}
@@ -622,7 +622,7 @@ type sqlOutput struct {
 	Columns     []string
 }
 
-func buildPostgresOutputQueryAndArgs(resp *BenthosConfigResponse, tm *tableMapping, schema, table string, colSourceMap map[string]string) *sqlOutput {
+func buildPostgresOutputQueryAndArgs(resp *BenthosConfigResponse, tm *tableMapping, schema, table string, colSourceMap map[string]mgmtv1alpha1.TransformerSource) *sqlOutput {
 	if len(resp.excludeColumns) > 0 {
 		filteredInsertMappings := []*mgmtv1alpha1.JobMapping{}
 		for _, m := range tm.Mappings {
@@ -667,7 +667,7 @@ func buildPostgresOutputQueryAndArgs(resp *BenthosConfigResponse, tm *tableMappi
 	}
 }
 
-func buildMysqlOutputQueryAndArgs(resp *BenthosConfigResponse, tm *tableMapping, schema, table string, colSourceMap map[string]string) *sqlOutput {
+func buildMysqlOutputQueryAndArgs(resp *BenthosConfigResponse, tm *tableMapping, schema, table string, colSourceMap map[string]mgmtv1alpha1.TransformerSource) *sqlOutput {
 	if len(resp.excludeColumns) > 0 {
 		filteredInsertMappings := []*mgmtv1alpha1.JobMapping{}
 		for _, m := range tm.Mappings {
@@ -840,13 +840,13 @@ func (b *benthosBuilder) getAllMysqlPkConstraints(
 	return pkMap, nil
 }
 
-func buildPostgresUpdateQuery(schema, table string, columns []string, colSourceMap map[string]string, primaryKeys []string) string {
+func buildPostgresUpdateQuery(schema, table string, columns []string, colSourceMap map[string]mgmtv1alpha1.TransformerSource, primaryKeys []string) string {
 	values := make([]string, len(columns))
 	var where string
 	paramCount := 1
 	for i, col := range columns {
 		colSource := colSourceMap[col]
-		if colSource == generateDefault {
+		if colSource == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT {
 			values[i] = dbDefault
 		} else {
 			values[i] = fmt.Sprintf("%s = $%d", dbschemas_postgres.EscapePgColumn(col), paramCount)
@@ -864,12 +864,12 @@ func buildPostgresUpdateQuery(schema, table string, columns []string, colSourceM
 	return fmt.Sprintf("UPDATE %s SET %s %s;", fmt.Sprintf("%q.%q", schema, table), strings.Join(values, ", "), where)
 }
 
-func buildPostgresInsertQuery(schema, table string, columns []string, colSourceMap map[string]string) string {
+func buildPostgresInsertQuery(schema, table string, columns []string, colSourceMap map[string]mgmtv1alpha1.TransformerSource) string {
 	values := make([]string, len(columns))
 	paramCount := 1
 	for i, col := range columns {
 		colSource := colSourceMap[col]
-		if colSource == generateDefault {
+		if colSource == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT {
 			values[i] = dbDefault
 		} else {
 			values[i] = fmt.Sprintf("$%d", paramCount)
@@ -884,11 +884,11 @@ func buildPostgresInsertQuery(schema, table string, columns []string, colSourceM
 	)
 }
 
-func buildMysqlInsertQuery(schema, table string, columns []string, colSourceMap map[string]string) string {
+func buildMysqlInsertQuery(schema, table string, columns []string, colSourceMap map[string]mgmtv1alpha1.TransformerSource) string {
 	values := make([]string, len(columns))
 	for i, col := range columns {
 		colSource := colSourceMap[col]
-		if colSource == generateDefault {
+		if colSource == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT {
 			values[i] = dbDefault
 		} else {
 			values[i] = "?"
@@ -902,12 +902,12 @@ func buildMysqlInsertQuery(schema, table string, columns []string, colSourceMap 
 	)
 }
 
-func buildMysqlUpdateQuery(schema, table string, columns []string, colSourceMap map[string]string, primaryKeys []string) string {
+func buildMysqlUpdateQuery(schema, table string, columns []string, colSourceMap map[string]mgmtv1alpha1.TransformerSource, primaryKeys []string) string {
 	values := make([]string, len(columns))
 	var where string
 	for i, col := range columns {
 		colSource := colSourceMap[col]
-		if colSource == generateDefault {
+		if colSource == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT {
 			values[i] = dbDefault
 		} else {
 			values[i] = fmt.Sprintf("%s = ?", dbschemas_mysql.EscapeMysqlColumn(col))
@@ -923,11 +923,11 @@ func buildMysqlUpdateQuery(schema, table string, columns []string, colSourceMap 
 	return fmt.Sprintf("UPDATE %s SET %s %s;", fmt.Sprintf("`%s`.`%s`", schema, table), strings.Join(values, ", "), where)
 }
 
-func filterColsBySource(columns []string, colSourceMap map[string]string) []string {
+func filterColsBySource(columns []string, colSourceMap map[string]mgmtv1alpha1.TransformerSource) []string {
 	filteredCols := []string{}
 	for _, col := range columns {
 		colSource := colSourceMap[col]
-		if colSource != generateDefault {
+		if colSource != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT {
 			filteredCols = append(filteredCols, col)
 		}
 	}
@@ -964,7 +964,7 @@ func createSqlUpdateBenthosConfig(
 	schema string,
 	table string,
 	tm *tableMapping,
-	colSourceMap map[string]string,
+	colSourceMap map[string]mgmtv1alpha1.TransformerSource,
 	groupedColInfo map[string]map[string]*dbschemas_utils.ColumnInfo,
 	fkMap map[string]*dbschemas_utils.ForeignKey,
 	jobId, runId string,
@@ -1077,9 +1077,8 @@ func createSqlUpdateBenthosConfig(
 	return nil, errors.New("unable to build sql update benthos config")
 }
 
-func hasTransformer(t string) bool {
-	return t != "" &&
-		t != passthrough
+func hasTransformer(t mgmtv1alpha1.TransformerSource) bool {
+	return t != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_UNSPECIFIED && t != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH
 }
 
 type sqlSourceTableOptions struct {
@@ -1479,7 +1478,7 @@ func extractJsFunctionsAndOutputs(ctx context.Context, transformerclient mgmtv1a
 				}
 				col.Transformer = val
 			}
-			if col.Transformer.Source == "transform_javascript" {
+			if col.Transformer.Source == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT {
 				code := col.Transformer.Config.GetTransformJavascriptConfig().Code
 				if code != "" {
 					jsFunctions = append(jsFunctions, constructJsFunction(code, col.Column))
@@ -1515,7 +1514,7 @@ func buildMutationConfigs(
 				}
 				col.Transformer = val
 			}
-			if col.Transformer.Source != "transform_javascript" {
+			if col.Transformer.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT {
 				mutation, err := computeMutationFunction(col, colInfo)
 				if err != nil {
 					return "", fmt.Errorf("%s is not a supported transformer: %w", col.Transformer, err)
@@ -1595,17 +1594,17 @@ func buildRedisGetBranchConfig(
 
 func shouldProcessColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {
 	return t != nil &&
-		t.Source != "" &&
-		t.Source != passthrough &&
-		t.Source != "generate_default"
+		t.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_UNSPECIFIED &&
+		t.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH &&
+		t.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT
 }
 
 func shouldProcessFkColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {
 	return t != nil &&
-		t.Source != "" &&
-		t.Source != "null" &&
-		t.Source != passthrough &&
-		t.Source != "generate_default"
+		t.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_UNSPECIFIED &&
+		t.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL &&
+		t.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH &&
+		t.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT
 }
 
 func constructJsFunction(jsCode, col string) string {
@@ -1680,12 +1679,12 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 	}
 
 	switch col.Transformer.Source {
-	case "generate_categorical":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_CATEGORICAL:
 		categories := col.Transformer.Config.GetGenerateCategoricalConfig().Categories
 		return fmt.Sprintf(`generate_categorical(categories: %q)`, categories), nil
-	case "generate_email":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_EMAIL:
 		return fmt.Sprintf(`generate_email(max_length:%d)`, maxLen), nil
-	case "transform_email":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_EMAIL:
 		pd := col.Transformer.Config.GetTransformEmailConfig().PreserveDomain
 		pl := col.Transformer.Config.GetTransformEmailConfig().PreserveLength
 		excludedDomains := col.Transformer.Config.GetTransformEmailConfig().ExcludedDomains
@@ -1696,108 +1695,108 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		}
 
 		return fmt.Sprintf("transform_email(email:this.%q,preserve_domain:%t,preserve_length:%t,excluded_domains:%v,max_length:%d)", col.Column, pd, pl, excludedDomainsStr, maxLen), nil
-	case "generate_bool":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_BOOL:
 		return "generate_bool()", nil
-	case "generate_card_number":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_CARD_NUMBER:
 		luhn := col.Transformer.Config.GetGenerateCardNumberConfig().ValidLuhn
 		return fmt.Sprintf(`generate_card_number(valid_luhn:%t)`, luhn), nil
-	case "generate_city":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_CITY:
 		return fmt.Sprintf(`generate_city(max_length:%d)`, maxLen), nil
-	case "generate_e164_phone_number":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_E164_PHONE_NUMBER:
 		min := col.Transformer.Config.GetGenerateE164PhoneNumberConfig().Min
 		max := col.Transformer.Config.GetGenerateE164PhoneNumberConfig().Max
 		return fmt.Sprintf(`generate_e164_phone_number(min:%d,max:%d)`, min, max), nil
-	case "generate_first_name":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FIRST_NAME:
 		return fmt.Sprintf(`generate_first_name(max_length:%d)`, maxLen), nil
-	case "generate_float64":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FLOAT64:
 		randomSign := col.Transformer.Config.GetGenerateFloat64Config().RandomizeSign
 		min := col.Transformer.Config.GetGenerateFloat64Config().Min
 		max := col.Transformer.Config.GetGenerateFloat64Config().Max
 		precision := col.Transformer.Config.GetGenerateFloat64Config().Precision
 		return fmt.Sprintf(`generate_float64(randomize_sign:%t, min:%f, max:%f, precision:%d)`, randomSign, min, max, precision), nil
-	case "generate_full_address":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_ADDRESS:
 		return fmt.Sprintf(`generate_full_address(max_length:%d)`, maxLen), nil
-	case "generate_full_name":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_NAME:
 		return fmt.Sprintf(`generate_full_name(max_length:%d)`, maxLen), nil
-	case "generate_gender":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_GENDER:
 		ab := col.Transformer.Config.GetGenerateGenderConfig().Abbreviate
 		return fmt.Sprintf(`generate_gender(abbreviate:%t,max_length:%d)`, ab, maxLen), nil
-	case "generate_int64_phone_number":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_INT64_PHONE_NUMBER:
 		return "generate_int64_phone_number()", nil
-	case "generate_int64":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_INT64:
 		sign := col.Transformer.Config.GetGenerateInt64Config().RandomizeSign
 		min := col.Transformer.Config.GetGenerateInt64Config().Min
 		max := col.Transformer.Config.GetGenerateInt64Config().Max
 		return fmt.Sprintf(`generate_int64(randomize_sign:%t,min:%d, max:%d)`, sign, min, max), nil
-	case "generate_last_name":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_LAST_NAME:
 		return fmt.Sprintf(`generate_last_name(max_length:%d)`, maxLen), nil
-	case "generate_sha256hash":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_SHA256HASH:
 		return `generate_sha256hash()`, nil
-	case "generate_ssn":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_SSN:
 		return "generate_ssn()", nil
-	case "generate_state":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_STATE:
 		return "generate_state()", nil
-	case "generate_street_address":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_STREET_ADDRESS:
 		return fmt.Sprintf(`generate_street_address(max_length:%d)`, maxLen), nil
-	case "generate_string_phone_number":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_STRING_PHONE_NUMBER:
 		min := col.Transformer.Config.GetGenerateStringPhoneNumberConfig().Min
 		max := col.Transformer.Config.GetGenerateStringPhoneNumberConfig().Max
 		min = transformer_utils.MinInt(min, maxLen)
 		max = transformer_utils.Ceil(max, maxLen)
 		return fmt.Sprintf("generate_string_phone_number(min:%d,max:%d)", min, max), nil
-	case "generate_string":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_RANDOM_STRING:
 		min := col.Transformer.Config.GetGenerateStringConfig().Min
 		max := col.Transformer.Config.GetGenerateStringConfig().Max
 		min = transformer_utils.MinInt(min, maxLen) // ensure the min is not larger than the max allowed length
 		max = transformer_utils.Ceil(max, maxLen)
 		// todo: we need to pull in the min from the database schema
 		return fmt.Sprintf(`generate_string(min:%d,max:%d)`, min, max), nil
-	case "generate_unixtimestamp":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UNIXTIMESTAMP:
 		return "generate_unixtimestamp()", nil
-	case "generate_username":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_USERNAME:
 		return fmt.Sprintf(`generate_username(max_length:%d)`, maxLen), nil
-	case "generate_utctimestamp":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UTCTIMESTAMP:
 		return "generate_utctimestamp()", nil
-	case "generate_uuid":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UUID:
 		ih := col.Transformer.Config.GetGenerateUuidConfig().IncludeHyphens
 		return fmt.Sprintf("generate_uuid(include_hyphens:%t)", ih), nil
-	case "generate_zipcode":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_ZIPCODE:
 		return "generate_zipcode()", nil
-	case "transform_e164_phone_number":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_E164_PHONE_NUMBER:
 		pl := col.Transformer.Config.GetTransformE164PhoneNumberConfig().PreserveLength
 		return fmt.Sprintf("transform_e164_phone_number(value:this.%q,preserve_length:%t,max_length:%d)", col.Column, pl, maxLen), nil
-	case "transform_first_name":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FIRST_NAME:
 		pl := col.Transformer.Config.GetTransformFirstNameConfig().PreserveLength
 		return fmt.Sprintf("transform_first_name(value:this.%q,preserve_length:%t,max_length:%d)", col.Column, pl, maxLen), nil
-	case "transform_float64":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FLOAT64:
 		rMin := col.Transformer.Config.GetTransformFloat64Config().RandomizationRangeMin
 		rMax := col.Transformer.Config.GetTransformFloat64Config().RandomizationRangeMax
 		return fmt.Sprintf(`transform_float64(value:this.%q,randomization_range_min:%f,randomization_range_max:%f)`, col.Column, rMin, rMax), nil
-	case "transform_full_name":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FULL_NAME:
 		pl := col.Transformer.Config.GetTransformFullNameConfig().PreserveLength
 		return fmt.Sprintf("transform_full_name(value:this.%q,preserve_length:%t,max_length:%d)", col.Column, pl, maxLen), nil
-	case "transform_int64_phone_number":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_INT64_PHONE_NUMBER:
 		pl := col.Transformer.Config.GetTransformInt64PhoneNumberConfig().PreserveLength
 		return fmt.Sprintf("transform_int64_phone_number(value:this.%q,preserve_length:%t)", col.Column, pl), nil
-	case "transform_int64":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_INT64:
 		rMin := col.Transformer.Config.GetTransformInt64Config().RandomizationRangeMin
 		rMax := col.Transformer.Config.GetTransformInt64Config().RandomizationRangeMax
 		return fmt.Sprintf(`transform_int64(value:this.%q,randomization_range_min:%d,randomization_range_max:%d)`, col.Column, rMin, rMax), nil
-	case "transform_last_name":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_LAST_NAME:
 		pl := col.Transformer.Config.GetTransformLastNameConfig().PreserveLength
 		return fmt.Sprintf("transform_last_name(value:this.%q,preserve_length:%t,max_length:%d)", col.Column, pl, maxLen), nil
-	case "transform_phone_number":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_PHONE_NUMBER:
 		pl := col.Transformer.Config.GetTransformPhoneNumberConfig().PreserveLength
 		return fmt.Sprintf("transform_phone_number(value:this.%q,preserve_length:%t,max_length:%d)", col.Column, pl, maxLen), nil
-	case "transform_string":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_STRING:
 		pl := col.Transformer.Config.GetTransformStringConfig().PreserveLength
 		minLength := int64(3) // todo: we need to pull in this value from the database schema
 		return fmt.Sprintf(`transform_string(value:this.%q,preserve_length:%t,min_length:%d,max_length:%d)`, col.Column, pl, minLength, maxLen), nil
-	case shared.NullString:
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL:
 		return shared.NullString, nil
-	case generateDefault:
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT:
 		return "default", nil
-	case "transform_character_scramble":
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_CHARACTER_SCRAMBLE:
 		regex := col.Transformer.Config.GetTransformCharacterScrambleConfig().UserProvidedRegex
 
 		if regex != nil {

@@ -28,8 +28,7 @@ const (
 	mockAccountId              = "5629813e-1a35-4874-922c-9827d85f0378"
 	mockTransformerName        = "transformer-name"
 	mockTransformerDescription = "transformer-description"
-	mockTransformerType        = "transformer-type"
-	mockTransformerSource      = "transformer-source"
+	mockTransformerSource      = mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH
 	mockTransformerId          = "884765c6-1708-488d-b03a-70a02b12c81e"
 )
 
@@ -114,8 +113,7 @@ func Test_CreateUserDefinedTransformer(t *testing.T) {
 		Name:              mockTransformerName,
 		Description:       mockTransformerDescription,
 		TransformerConfig: mockTransformerConfig,
-		Type:              mockTransformerType,
-		Source:            mockTransformerSource,
+		Source:            int32(mockTransformerSource),
 		CreatedByID:       userUuid,
 		UpdatedByID:       userUuid,
 	}).Return(transformer, nil)
@@ -125,7 +123,6 @@ func Test_CreateUserDefinedTransformer(t *testing.T) {
 			AccountId:         mockAccountId,
 			Name:              mockTransformerName,
 			Description:       mockTransformerDescription,
-			Type:              mockTransformerType,
 			Source:            mockTransformerSource,
 			TransformerConfig: mockMgmtTransformerConfig,
 		},
@@ -160,8 +157,7 @@ func Test_CreateUserDefinedTransformer_Error(t *testing.T) {
 		Name:              mockTransformerName,
 		Description:       mockTransformerDescription,
 		TransformerConfig: mockTransformerConfig,
-		Type:              mockTransformerType,
-		Source:            mockTransformerSource,
+		Source:            int32(mockTransformerSource),
 		CreatedByID:       userUuid,
 		UpdatedByID:       userUuid,
 	}).Return(nilConnection, errors.New("help"))
@@ -171,7 +167,6 @@ func Test_CreateUserDefinedTransformer_Error(t *testing.T) {
 			AccountId:         mockAccountId,
 			Name:              mockTransformerName,
 			Description:       mockTransformerDescription,
-			Type:              mockTransformerType,
 			Source:            mockTransformerSource,
 			TransformerConfig: mockMgmtTransformerConfig,
 		},
@@ -485,8 +480,7 @@ func mockTransformer(accountId, userId, transformerId string) db_queries.Neosync
 		UpdatedAt:         timestamp,
 		Name:              mockTransformerName,
 		Description:       mockTransformerDescription,
-		Type:              mockTransformerType,
-		Source:            mockTransformerSource,
+		Source:            int32(mockTransformerSource),
 		TransformerConfig: &pg_models.TransformerConfigs{},
 		AccountID:         accountUuid,
 		CreatedByID:       userUuid,

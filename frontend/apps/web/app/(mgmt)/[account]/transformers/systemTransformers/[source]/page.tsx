@@ -1,9 +1,5 @@
 'use client';
 import { handleUserDefinedTransformerForm } from '@/app/(mgmt)/[account]/new/transformer/UserDefinedTransformerForms/HandleUserDefinedTransformersForm';
-import {
-  SYSTEM_TRANSFORMER_SCHEMA,
-  SystemTransformersSchema,
-} from '@/app/(mgmt)/[account]/new/transformer/schema';
 import ButtonText from '@/components/ButtonText';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
@@ -22,29 +18,44 @@ import {
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetSystemTransformerBySource } from '@/libs/hooks/useGetSystemTransformerBySource';
+import {
+  getTransformerDataTypeString,
+  getTransformerSourceString,
+} from '@/util/util';
 import { convertTransformerConfigToForm } from '@/yup-validations/jobs';
-import { yupResolver } from '@hookform/resolvers/yup';
+import { TransformerDataType, TransformerSource } from '@neosync/sdk';
 import Error from 'next/error';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 
+function getTransformerSource(sourceStr: string): TransformerSource {
+  const sourceNum = parseInt(sourceStr, 10);
+  if (isNaN(sourceNum) || !TransformerSource[sourceNum]) {
+    return TransformerSource.UNSPECIFIED;
+  }
+  return sourceNum as TransformerSource;
+}
+
 export default function ViewSystemTransformers({
   params,
 }: PageProps): ReactElement {
-  const sourceParam = params?.name ?? '';
+  const sourceParam = getTransformerSource(params?.source ?? '');
   const { data: systemTransformerData, isLoading } =
     useGetSystemTransformerBySource(sourceParam);
   const { account } = useAccount();
   const systemTransformer = systemTransformerData?.transformer;
 
-  const form = useForm<SystemTransformersSchema>({
-    resolver: yupResolver(SYSTEM_TRANSFORMER_SCHEMA),
+  const form = useForm({
     values: {
       name: systemTransformer?.name ?? '',
       description: systemTransformer?.description ?? '',
-      type: systemTransformer?.dataType ?? '',
-      source: systemTransformer?.source ?? '',
+      type: getTransformerDataTypeString(
+        systemTransformer?.dataType ?? TransformerDataType.UNSPECIFIED
+      ),
+      source: getTransformerSourceString(
+        systemTransformer?.source ?? TransformerSource.UNSPECIFIED
+      ),
       config: convertTransformerConfigToForm(systemTransformer?.config),
     },
   });
@@ -143,7 +154,10 @@ export default function ViewSystemTransformers({
             </div>
           </div>
           <div>
-            {handleUserDefinedTransformerForm(systemTransformer?.source, true)}
+            {handleUserDefinedTransformerForm(
+              systemTransformer?.source ?? TransformerSource.UNSPECIFIED,
+              true
+            )}
           </div>
           <div className="flex flex-row justify-start">
             <NextLink href={`/${account?.name}/transformers?tab=system`}>
@@ -157,7 +171,7 @@ export default function ViewSystemTransformers({
 }
 
 interface CloneTransformerProps {
-  source: string;
+  source: TransformerSource;
 }
 
 function CloneTransformerButton(props: CloneTransformerProps): ReactElement {

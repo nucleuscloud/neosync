@@ -572,9 +572,8 @@ const transformerNameSchema = Yup.string()
 
 export const CREATE_USER_DEFINED_TRANSFORMER_SCHEMA = Yup.object({
   name: transformerNameSchema,
-  source: Yup.string(),
+  source: Yup.number(),
   description: Yup.string().required(),
-  type: Yup.string().required(),
   config: TransformerConfigSchema,
 });
 
@@ -585,9 +584,7 @@ export type CreateUserDefinedTransformerSchema = Yup.InferType<
 export const UPDATE_USER_DEFINED_TRANSFORMER = Yup.object({
   name: transformerNameSchema,
   id: Yup.string(),
-  source: Yup.string(),
   description: Yup.string().required(),
-  type: Yup.string(),
   config: TransformerConfigSchema,
 });
 
@@ -613,15 +610,3 @@ async function isTransformerNameAvailable(
   }
   return IsTransformerNameAvailableResponse.fromJson(await res.json());
 }
-
-export const SYSTEM_TRANSFORMER_SCHEMA = Yup.object({
-  name: Yup.string(),
-  type: Yup.string(),
-  description: Yup.string().required(),
-  source: Yup.string().required(),
-  config: TransformerConfigSchema,
-});
-
-export type SystemTransformersSchema = Yup.InferType<
-  typeof SYSTEM_TRANSFORMER_SCHEMA
->;

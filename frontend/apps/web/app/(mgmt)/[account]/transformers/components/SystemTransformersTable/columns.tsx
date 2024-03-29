@@ -1,6 +1,10 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
+import {
+  getTransformerDataTypeString,
+  getTransformerSourceString,
+} from '@/util/util';
 import { PlainMessage } from '@bufbuild/protobuf';
 import { SystemTransformer } from '@neosync/sdk';
 import { ColumnDef } from '@tanstack/react-table';
@@ -43,27 +47,29 @@ export function getSystemTransformerColumns(
     {
       id: 'type',
       accessorKey: 'type',
+      accessorFn: (row) => getTransformerDataTypeString(row.dataType),
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Data Type" />
       ),
-      cell: ({ row }) => {
+      cell: ({ getValue }) => {
         return (
           <div className="flex space-x-2">
-            <Badge variant="outline">{row.original.dataType}</Badge>
+            <Badge variant="outline">{getValue<string>()}</Badge>
           </div>
         );
       },
     },
     {
       accessorKey: 'source',
+      accessorFn: (row) => getTransformerSourceString(row.source),
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Source" />
       ),
-      cell: ({ row }) => {
+      cell: ({ getValue }) => {
         return (
           <div className="flex space-x-2">
             <span className="max-w-[500px] truncate font-medium">
-              {row.original.source}
+              {getValue<string>()}
             </span>
           </div>
         );

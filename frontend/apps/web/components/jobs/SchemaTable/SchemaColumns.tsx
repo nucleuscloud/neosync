@@ -23,6 +23,7 @@ import {
   ForeignKey,
   PrimaryConstraint,
   SystemTransformer,
+  TransformerSource,
   UniqueConstraint,
   UserDefinedTransformer,
 } from '@neosync/sdk';
@@ -195,7 +196,7 @@ function RowAlert(props: RowAlertProps): ReactElement {
 interface Props {
   systemTransformers: SystemTransformer[];
   userDefinedTransformers: UserDefinedTransformer[];
-  systemMap: Map<string, SystemTransformer>;
+  systemMap: Map<TransformerSource, SystemTransformer>;
   userDefinedMap: Map<string, UserDefinedTransformer>;
   constraintHandler: SchemaConstraintHandler;
 }
@@ -431,12 +432,12 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
 
         const fkSystemTransformers: SystemTransformer[] = [];
         if (isForeignKey) {
-          const passthrough = systemMap.get('passthrough');
+          const passthrough = systemMap.get(TransformerSource.PASSTHROUGH);
           if (passthrough) {
             fkSystemTransformers.push(passthrough);
           }
           if (constraintHandler.getIsNullable(colkey)) {
-            const nullableTf = systemMap.get('null');
+            const nullableTf = systemMap.get(TransformerSource.GENERATE_NULL);
             if (nullableTf) {
               fkSystemTransformers.push(nullableTf);
             }
@@ -459,7 +460,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                 const fv = field.value as JobMappingTransformerForm;
                 let transformer: Transformer | undefined;
                 if (
-                  fv.source === 'custom' &&
+                  fv.source === TransformerSource.USER_DEFINED &&
                   fv.config.case === 'userDefinedTransformerConfig'
                 ) {
                   transformer = userDefinedMap.get(fv.config.value.id);

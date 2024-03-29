@@ -23,7 +23,7 @@ func Test_GetSystemTransformerBySource_NotFound(t *testing.T) {
 	m := createServiceMock(t)
 
 	resp, err := m.Service.GetSystemTransformerBySource(context.Background(), connect.NewRequest(&mgmtv1alpha1.GetSystemTransformerBySourceRequest{
-		Source: "i-do-not-exist",
+		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_UNSPECIFIED,
 	}))
 
 	assert.Error(t, err)
@@ -34,10 +34,10 @@ func Test_GetSystemTransformerBySource_Found(t *testing.T) {
 	m := createServiceMock(t)
 
 	resp, err := m.Service.GetSystemTransformerBySource(context.Background(), connect.NewRequest(&mgmtv1alpha1.GetSystemTransformerBySourceRequest{
-		Source: string(Null),
+		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL,
 	}))
 
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
-	assert.Equal(t, resp.Msg.Transformer.Source, string(Null))
+	assert.Equal(t, resp.Msg.Transformer.Source, mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL)
 }

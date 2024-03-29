@@ -24,5 +24,5 @@ export async function getConnection(
 }
 
 export function isDataGenJob(job?: Job): boolean {
-  return job?.source?.options?.config.case === 'generate';
+  return job?.source?.options?.config?.case === 'generate';
 }

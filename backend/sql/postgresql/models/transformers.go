@@ -5,7 +5,7 @@ import (
 )
 
 type JobMappingTransformerModel struct {
-	Source string              `json:"source"`
+	Source int32               `json:"source"`
 	Config *TransformerConfigs `json:"config,omitempty"`
 }
 
@@ -191,7 +191,7 @@ type TransformCharacterScramble struct {
 
 // from API -> DB
 func (t *JobMappingTransformerModel) FromTransformerDto(tr *mgmtv1alpha1.JobMappingTransformer) error {
-	t.Source = tr.Source
+	t.Source = int32(tr.Source)
 
 	config := &TransformerConfigs{}
 
@@ -352,10 +352,16 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 }
 
 // DB -> API
-
 func (t *JobMappingTransformerModel) ToTransformerDto() *mgmtv1alpha1.JobMappingTransformer {
+	_, ok := mgmtv1alpha1.TransformerSource_name[t.Source]
+	var source mgmtv1alpha1.TransformerSource
+	if !ok {
+		source = mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_UNSPECIFIED
+	} else {
+		source = mgmtv1alpha1.TransformerSource(t.Source)
+	}
 	return &mgmtv1alpha1.JobMappingTransformer{
-		Source: t.Source,
+		Source: source,
 		Config: t.Config.ToTransformerConfigDto(),
 	}
 }
