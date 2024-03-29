@@ -9,9 +9,9 @@ SELECT * from neosync_api.transformers WHERE id = $1;
 
 -- name: CreateUserDefinedTransformer :one
 INSERT INTO neosync_api.transformers (
-  name, description, type, source, account_id, transformer_config, created_by_id, updated_by_id
+  name, description, source, account_id, transformer_config, created_by_id, updated_by_id
 ) VALUES (
-  $1, $2, $3, $4, $5, $6, $7, $8
+  $1, $2, $3, $4, $5, $6, $7
 )
 RETURNING *;
 

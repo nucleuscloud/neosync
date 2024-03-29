@@ -14,8 +14,7 @@ func ToUserDefinedTransformerDto(
 		Id:          nucleusdb.UUIDString(input.ID),
 		Name:        input.Name,
 		Description: input.Description,
-		DataType:    input.Type,
-		Source:      input.Source,
+		Source:      mgmtv1alpha1.TransformerSource(input.Source), // todo: verify
 		Config:      input.TransformerConfig.ToTransformerConfigDto(),
 		CreatedAt:   timestamppb.New(input.CreatedAt.Time),
 		UpdatedAt:   timestamppb.New(input.UpdatedAt.Time),

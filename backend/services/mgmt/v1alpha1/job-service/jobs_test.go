@@ -394,11 +394,11 @@ func Test_CreateJob(t *testing.T) {
 		},
 		Mappings: []*pg_models.JobMapping{
 			{Schema: "schema-1", Table: "table-1", Column: "col", JobMappingTransformer: &pg_models.JobMappingTransformerModel{
-				Source: "passthrough",
+				Source: int32(mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH),
 				Config: &pg_models.TransformerConfigs{},
 			}},
 			{Schema: "schema-2", Table: "table-2", Column: "col", JobMappingTransformer: &pg_models.JobMappingTransformerModel{
-				Source: "passthrough",
+				Source: int32(mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH),
 				Config: &pg_models.TransformerConfigs{},
 			}},
 		},
@@ -449,11 +449,11 @@ func Test_CreateJob(t *testing.T) {
 			},
 			Mappings: []*mgmtv1alpha1.JobMapping{
 				{Schema: "schema-1", Table: "table-1", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: "passthrough",
+					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 					Config: &mgmtv1alpha1.TransformerConfig{},
 				}},
 				{Schema: "schema-2", Table: "table-2", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: "passthrough",
+					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 					Config: &mgmtv1alpha1.TransformerConfig{},
 				}},
 			},
@@ -534,11 +534,11 @@ func Test_CreateJob_Schedule_Creation_Error(t *testing.T) {
 		},
 		Mappings: []*pg_models.JobMapping{
 			{Schema: "schema-1", Table: "table-1", Column: "col", JobMappingTransformer: &pg_models.JobMappingTransformerModel{
-				Source: "passthrough",
+				Source: int32(mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH),
 				Config: &pg_models.TransformerConfigs{},
 			}},
 			{Schema: "schema-2", Table: "table-2", Column: "col", JobMappingTransformer: &pg_models.JobMappingTransformerModel{
-				Source: "passthrough",
+				Source: int32(mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH),
 				Config: &pg_models.TransformerConfigs{},
 			}},
 		},
@@ -591,11 +591,11 @@ func Test_CreateJob_Schedule_Creation_Error(t *testing.T) {
 			},
 			Mappings: []*mgmtv1alpha1.JobMapping{
 				{Schema: "schema-1", Table: "table-1", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: "passthrough",
+					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 					Config: &mgmtv1alpha1.TransformerConfig{},
 				}},
 				{Schema: "schema-2", Table: "table-2", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: "passthrough",
+					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 					Config: &mgmtv1alpha1.TransformerConfig{},
 				}},
 			},
@@ -678,11 +678,11 @@ func Test_CreateJob_Schedule_Creation_Error_JobCleanup_Error(t *testing.T) {
 		},
 		Mappings: []*pg_models.JobMapping{
 			{Schema: "schema-1", Table: "table-1", Column: "col", JobMappingTransformer: &pg_models.JobMappingTransformerModel{
-				Source: "passthrough",
+				Source: int32(mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH),
 				Config: &pg_models.TransformerConfigs{},
 			}},
 			{Schema: "schema-2", Table: "table-2", Column: "col", JobMappingTransformer: &pg_models.JobMappingTransformerModel{
-				Source: "passthrough",
+				Source: int32(mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH),
 				Config: &pg_models.TransformerConfigs{},
 			}},
 		},
@@ -735,11 +735,11 @@ func Test_CreateJob_Schedule_Creation_Error_JobCleanup_Error(t *testing.T) {
 			},
 			Mappings: []*mgmtv1alpha1.JobMapping{
 				{Schema: "schema-1", Table: "table-1", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: "passthrough",
+					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 					Config: &mgmtv1alpha1.TransformerConfig{},
 				}},
 				{Schema: "schema-2", Table: "table-2", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: "passthrough",
+					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 					Config: &mgmtv1alpha1.TransformerConfig{},
 				}},
 			},
@@ -975,7 +975,7 @@ func Test_UpdateJobSourceConnection_Success(t *testing.T) {
 		ID: job.ID,
 		Mappings: []*pg_models.JobMapping{
 			{Schema: "schema-1", Table: "table-1", Column: "col", JobMappingTransformer: &pg_models.JobMappingTransformerModel{
-				Source: "passthrough",
+				Source: int32(mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH),
 				Config: &pg_models.TransformerConfigs{},
 			}},
 		},
@@ -1016,7 +1016,7 @@ func Test_UpdateJobSourceConnection_Success(t *testing.T) {
 			},
 			Mappings: []*mgmtv1alpha1.JobMapping{
 				{Schema: "schema-1", Table: "table-1", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: "passthrough",
+					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 					Config: &mgmtv1alpha1.TransformerConfig{},
 				}},
 			},
@@ -1058,7 +1058,7 @@ func Test_UpdateJobSourceConnection_GenerateSuccess(t *testing.T) {
 		ID: job.ID,
 		Mappings: []*pg_models.JobMapping{
 			{Schema: "schema-1", Table: "table-1", Column: "col", JobMappingTransformer: &pg_models.JobMappingTransformerModel{
-				Source: "passthrough",
+				Source: int32(mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH),
 				Config: &pg_models.TransformerConfigs{},
 			}},
 		},
@@ -1097,7 +1097,7 @@ func Test_UpdateJobSourceConnection_GenerateSuccess(t *testing.T) {
 			},
 			Mappings: []*mgmtv1alpha1.JobMapping{
 				{Schema: "schema-1", Table: "table-1", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: "passthrough",
+					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 					Config: &mgmtv1alpha1.TransformerConfig{},
 				}},
 			},
@@ -1154,7 +1154,7 @@ func Test_UpdateJobSourceConnection_PgMismatchError(t *testing.T) {
 			},
 			Mappings: []*mgmtv1alpha1.JobMapping{
 				{Schema: "schema-1", Table: "table-1", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: "passthrough",
+					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 					Config: &mgmtv1alpha1.TransformerConfig{},
 				}},
 			},
@@ -1212,7 +1212,7 @@ func Test_UpdateJobSourceConnection_MysqlMismatchError(t *testing.T) {
 			},
 			Mappings: []*mgmtv1alpha1.JobMapping{
 				{Schema: "schema-1", Table: "table-1", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: "passthrough",
+					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 					Config: &mgmtv1alpha1.TransformerConfig{},
 				}},
 			},
@@ -1270,7 +1270,7 @@ func Test_UpdateJobSourceConnection_AwsS3MismatchError(t *testing.T) {
 			},
 			Mappings: []*mgmtv1alpha1.JobMapping{
 				{Schema: "schema-1", Table: "table-1", Column: "col", Transformer: &mgmtv1alpha1.JobMappingTransformer{
-					Source: "passthrough",
+					Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 					Config: &mgmtv1alpha1.TransformerConfig{},
 				}},
 			},

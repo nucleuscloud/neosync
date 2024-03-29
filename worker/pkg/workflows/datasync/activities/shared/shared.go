@@ -90,7 +90,7 @@ func GetUniqueTablesFromMappings(mappings []*mgmtv1alpha1.JobMapping) map[string
 // Checks each transformer source in the set of mappings and returns true if they are all source=null
 func AreAllColsNull(mappings []*mgmtv1alpha1.JobMapping) bool {
 	for _, col := range mappings {
-		if col.Transformer.Source != NullString {
+		if col.Transformer.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL {
 			return false
 		}
 	}

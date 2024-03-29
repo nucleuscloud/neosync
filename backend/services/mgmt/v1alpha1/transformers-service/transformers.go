@@ -83,8 +83,7 @@ func (s *Service) CreateUserDefinedTransformer(ctx context.Context, req *connect
 		Name:              req.Msg.Name,
 		Description:       req.Msg.Description,
 		TransformerConfig: &pg_models.TransformerConfigs{},
-		Type:              req.Msg.Type,
-		Source:            req.Msg.Source,
+		Source:            int32(req.Msg.Source),
 		CreatedByID:       *userUuid,
 		UpdatedByID:       *userUuid,
 	}

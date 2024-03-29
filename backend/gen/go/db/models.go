@@ -94,12 +94,11 @@ type NeosyncApiTransformer struct {
 	UpdatedAt         pgtype.Timestamp
 	Name              string
 	Description       string
-	Type              string
-	Source            string
 	AccountID         pgtype.UUID
 	TransformerConfig *pg_models.TransformerConfigs
 	CreatedByID       pgtype.UUID
 	UpdatedByID       pgtype.UUID
+	Source            int32
 }
 
 type NeosyncApiUser struct {
