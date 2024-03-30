@@ -15,6 +15,7 @@ import {
   isSystemTransformer,
   isUserDefinedTransformer,
 } from '@/shared/transformers';
+import { getTransformerDataTypeString } from '@/util/util';
 import {
   JobMappingTransformerForm,
   convertJobMappingTransformerToForm,
@@ -130,11 +131,6 @@ export default function EditTransformerOptions(props: Props): ReactElement {
         <Button
           variant="outline"
           size="sm"
-          // disabling this form if the transformer is user defined becuase the form is meant to load job mappings that are system transformers
-          // however, that doesn't really work when the job mapping is "custom" because the config is not a system transformer config so it doens't know how to load the values
-          // we need to load the custom transformer values and push them into the component, but the components expect the "form", which is the Job Mapping.
-          // this would require a refactor of the lower components to not rely on the react-hook-form and instead values as props to the component itself.
-          // until that is true, this needs to be disabled.
           disabled={disabled}
           onClick={() => setIsSheetOpen(true)}
           className="ml-auto hidden h-[36px] lg:flex"
@@ -151,8 +147,10 @@ export default function EditTransformerOptions(props: Props): ReactElement {
           <div className="flex flex-row justify-between w-full">
             <div className="flex flex-col space-y-2">
               <div className="flex flex-row gap-2">
-                <SheetTitle>{transformer?.name}</SheetTitle>
-                <Badge variant="outline">{transformer?.dataType}</Badge>
+                <SheetTitle>{transformer.name}</SheetTitle>
+                <Badge variant="outline">
+                  {getTransformerDataTypeString(transformer.dataType)}
+                </Badge>
               </div>
               <SheetDescription>{transformer?.description}</SheetDescription>
             </div>
