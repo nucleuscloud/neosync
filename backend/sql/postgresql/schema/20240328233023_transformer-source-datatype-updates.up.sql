@@ -12,6 +12,7 @@ SET source_id =
     WHEN '' THEN 0
     WHEN 'passthrough' THEN 1
     WHEN 'default' THEN 2
+    WHEN 'generate_default' THEN 2
     WHEN 'transform_javascript' THEN 3
     WHEN 'generate_email' THEN 4
     WHEN 'transform_email' THEN 5
@@ -89,6 +90,7 @@ WITH updated_mappings AS (
                         WHEN obj->'jobMappingTransformerModel'->>'source' = '' THEN 0
                         WHEN obj->'jobMappingTransformerModel'->>'source' = 'passthrough' THEN 1
                         WHEN obj->'jobMappingTransformerModel'->>'source' = 'default' THEN 2
+                        WHEN obj->'jobMappingTransformerModel'->>'source' = 'generate_default' THEN 2
                         WHEN obj->'jobMappingTransformerModel'->>'source' = 'transform_javascript' THEN 3
                         WHEN obj->'jobMappingTransformerModel'->>'source' = 'generate_email' THEN 4
                         WHEN obj->'jobMappingTransformerModel'->>'source' = 'transform_email' THEN 5

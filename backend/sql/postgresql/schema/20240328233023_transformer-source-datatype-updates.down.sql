@@ -7,7 +7,7 @@ SET source_case =
   CASE source
     WHEN 0 THEN ''
     WHEN 1 THEN 'passthrough'
-    WHEN 2 THEN 'default'
+    WHEN 2 THEN 'generate_default'
     WHEN 3 THEN 'transform_javascript'
     WHEN 4 THEN 'generate_email'
     WHEN 5 THEN 'transform_email'
@@ -85,6 +85,7 @@ WITH updated_mappings AS (
                         WHEN (obj->'jobMappingTransformerModel'->'source')::int = 0 THEN ''
                         WHEN (obj->'jobMappingTransformerModel'->'source')::int = 1 THEN 'passthrough'
                         WHEN (obj->'jobMappingTransformerModel'->'source')::int = 2 THEN 'default'
+                        WHEN (obj->'jobMappingTransformerModel'->'source')::int = 2 THEN 'generate_default'
                         WHEN (obj->'jobMappingTransformerModel'->'source')::int = 3 THEN 'transform_javascript'
                         WHEN (obj->'jobMappingTransformerModel'->'source')::int = 4 THEN 'generate_email'
                         WHEN (obj->'jobMappingTransformerModel'->'source')::int = 5 THEN 'transform_email'
