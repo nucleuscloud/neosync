@@ -753,6 +753,11 @@ func buildBenthosGenerateSourceConfigResponses(
 			mutations = "root = {}"
 		}
 
+		var processors []neosync_benthos.ProcessorConfig
+		if jsCode != "" {
+			processors = []neosync_benthos.ProcessorConfig{{Javascript: &neosync_benthos.JavascriptConfig{Code: jsCode}}}
+		}
+
 		bc := &neosync_benthos.BenthosConfig{
 			StreamConfig: neosync_benthos.StreamConfig{
 				Input: &neosync_benthos.InputConfig{
@@ -766,7 +771,7 @@ func buildBenthosGenerateSourceConfigResponses(
 				},
 				Pipeline: &neosync_benthos.PipelineConfig{
 					Threads:    -1,
-					Processors: []neosync_benthos.ProcessorConfig{{Javascript: &neosync_benthos.JavascriptConfig{Code: jsCode}}},
+					Processors: processors,
 				},
 				Output: &neosync_benthos.OutputConfig{
 					Outputs: neosync_benthos.Outputs{
