@@ -83,7 +83,9 @@ export const DEFINE_FORM_SCHEMA = Yup.object({
       if (!value) {
         return true;
       }
+      console.log('validating');
       const output = cron(value);
+      console.log('output', output);
       if (output.isValid()) {
         return true;
       }
