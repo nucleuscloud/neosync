@@ -4878,14 +4878,12 @@ benthos.v0_msg_set_structured(output);
 }
 
 func Test_ConstructBenthosOutputTranformJs(t *testing.T) {
-
 	s := mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT
 	res := constructBenthosOutput("col", s)
 	assert.Equal(t, `output["col"] = fn_col(input["col"], input);`, res)
 }
 
 func Test_ConstructBenthosOutputGenerateJs(t *testing.T) {
-
 	s := mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT
 	res := constructBenthosOutput("col", s)
 	assert.Equal(t, `output["col"] = fn_col();`, res)

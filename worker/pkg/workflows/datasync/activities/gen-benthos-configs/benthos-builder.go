@@ -1438,7 +1438,6 @@ func buildProcessorConfigs(
 	jobId, runId string,
 	redisConfig *shared.RedisConfig,
 ) ([]*neosync_benthos.ProcessorConfig, error) {
-
 	jsCode, err := extractJsFunctionsAndOutputs(ctx, transformerclient, cols)
 	if err != nil {
 		return nil, err
@@ -1509,19 +1508,6 @@ func extractJsFunctionsAndOutputs(ctx context.Context, transformerclient mgmtv1a
 					benthosOutputs = append(benthosOutputs, constructBenthosOutput(col.Column, col.Transformer.Source))
 				}
 			}
-			// if col.Transformer.Source == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT {
-			// 	code := col.Transformer.Config.GetTransformJavascriptConfig().Code
-			// 	if code != "" {
-			// 		jsFunctions = append(jsFunctions, constructTransformJsFunction(code, col.Column))
-			// 		benthosOutputs = append(benthosOutputs, constructBenthosOutput(col.Column))
-			// 	}
-			// } else if col.Transformer.Source == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT {
-			// 	code := col.Transformer.Config.GetGenerateJavascriptConfig().Code
-			// 	if code != "" {
-			// 		jsFunctions = append(jsFunctions, constructGenerateJsFunction(code, col.Column))
-			// 		benthosOutputs = append(benthosOutputs, constructBenthosOutput(col.Column))
-			// 	}
-			// }
 		}
 	}
 
@@ -1669,7 +1655,6 @@ func shouldProcessFkColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {
 // }
 
 func constructJsFunction(jsCode, col string, source mgmtv1alpha1.TransformerSource) string {
-
 	switch source {
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT:
 		return fmt.Sprintf(`
@@ -1705,7 +1690,6 @@ benthos.v0_msg_set_structured(output);
 }
 
 func constructBenthosOutput(col string, source mgmtv1alpha1.TransformerSource) string {
-
 	switch source {
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT:
 		return fmt.Sprintf(`output["%[1]s"] = fn_%[1]s(input["%[1]s"], input);`, col)
@@ -1714,7 +1698,6 @@ func constructBenthosOutput(col string, source mgmtv1alpha1.TransformerSource) s
 	default:
 		return ""
 	}
-
 }
 
 // takes in an user defined config with just an id field and return the right transformer config for that user defined function id
