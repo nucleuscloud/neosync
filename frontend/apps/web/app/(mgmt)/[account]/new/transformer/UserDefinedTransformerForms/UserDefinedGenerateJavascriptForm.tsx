@@ -13,10 +13,6 @@ import { useAccount } from '@/components/providers/account-provider';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Editor from '@monaco-editor/react';
-import {
-  ValidateUserJavascriptCodeRequest,
-  ValidateUserJavascriptCodeResponse,
-} from '@neosync/sdk';
 import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
 import { useTheme } from 'next-themes';
 import { ReactElement, useState } from 'react';
@@ -25,12 +21,14 @@ import {
   CreateUserDefinedTransformerSchema,
   UpdateUserDefinedTransformer,
 } from '../schema';
+import {
+  IsUserJavascriptCodeValid,
+  ValidCode,
+} from './UserDefinedTransformJavascriptForm';
 
 interface Props {
   isDisabled?: boolean;
 }
-
-export type ValidCode = 'valid' | 'invalid' | 'null';
 
 export default function UserDefinedGenerateJavascriptForm(
   props: Props
@@ -146,29 +144,4 @@ export default function UserDefinedGenerateJavascriptForm(
       />
     </div>
   );
-}
-
-export async function IsUserJavascriptCodeValid(
-  code: string,
-  accountId: string
-): Promise<ValidateUserJavascriptCodeResponse> {
-  const body = new ValidateUserJavascriptCodeRequest({
-    code: code,
-    accountId: accountId,
-  });
-  const res = await fetch(
-    `/api/accounts/${accountId}/transformers/user-defined/validate-code`,
-    {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return ValidateUserJavascriptCodeResponse.fromJson(await res.json());
 }
