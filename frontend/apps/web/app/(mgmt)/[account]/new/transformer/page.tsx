@@ -180,7 +180,7 @@ export default function NewTransformer(): ReactElement {
               </FormItem>
             )}
           />
-          {form.getValues('source') && (
+          {form.getValues('source') != 0 && (
             <div>
               <Controller
                 control={form.control}

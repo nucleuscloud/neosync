@@ -29,6 +29,7 @@ import {
   GenerateFloat64,
   GenerateGender,
   GenerateInt64,
+  GenerateJavascript,
   GenerateString,
   GenerateStringPhoneNumber,
   GenerateUuid,
@@ -59,6 +60,7 @@ import {
 import { ReactElement, useEffect, useRef, useState } from 'react';
 import GenerateCardNumberForm from './Sheetforms/GenerateCardNumberForm';
 import GenerateCategoricalForm from './Sheetforms/GenerateCategoricalForm';
+import GenerateJavascriptForm from './Sheetforms/GenerateeJavascriptForm';
 import GenerateFloatForm from './Sheetforms/GenerateFloat64Form';
 import GenerateGenderForm from './Sheetforms/GenerateGenderForm';
 import GenerateIntForm from './Sheetforms/GenerateInt64Form';
@@ -730,6 +732,32 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
                   config: new TransformerConfig({
                     config: {
                       case: 'transformCharacterScrambleConfig',
+                      value: newconfig,
+                    },
+                  }),
+                })
+              )
+            );
+          }}
+        />
+      );
+    case TransformerSource.GENERATE_JAVASCRIPT:
+      return (
+        <GenerateJavascriptForm
+          isReadonly={isReadonly}
+          existingConfig={
+            new GenerateJavascript({
+              ...(valueConfig.value as PlainMessage<GenerateJavascript>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            onSubmit(
+              convertJobMappingTransformerToForm(
+                new JobMappingTransformer({
+                  source: transformer.source,
+                  config: new TransformerConfig({
+                    config: {
+                      case: 'generateJavascriptConfig',
                       value: newconfig,
                     },
                   }),

@@ -133,6 +133,7 @@ enum TransformerSource {
   TRANSFORMER_SOURCE_GENERATE_CATEGORICAL = 42;
   TRANSFORMER_SOURCE_TRANSFORM_CHARACTER_SCRAMBLE = 43;
   TRANSFORMER_SOURCE_USER_DEFINED = 44;
+  TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT = 45;
 }
 
 enum TransformerDataType {
@@ -200,6 +201,7 @@ message TransformerConfig {
     TransformJavascript transform_javascript_config = 39;
     GenerateCategorical generate_categorical_config = 40;
     TransformCharacterScramble transform_character_scramble_config = 41;
+    GenerateJavascript generate_javascript_config = 42;
   }
 }
 
@@ -349,6 +351,10 @@ message GenerateCategorical {
 message TransformCharacterScramble {
   // a user provided regular expression that they wish to validate if it compiles in GO
   optional string user_provided_regex = 1;
+}
+
+message GenerateJavascript {
+  string code = 1;
 }
 
 message ValidateUserRegexCodeRequest {

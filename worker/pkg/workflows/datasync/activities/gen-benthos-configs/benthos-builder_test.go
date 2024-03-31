@@ -4519,7 +4519,8 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 	assert.Equal(t, *output[0].Mutation, `root."email" = transform_email(email:this."email",preserve_domain:true,preserve_length:false,excluded_domains:[],max_length:40)`)
 }
 
-const defaultJavascriptCodeFnStr = `var payload = value+=" hello";return payload;`
+const transformJsCodeFnStr = `var payload = value+=" hello";return payload;`
+const generateJSCodeFnStr = `var payload = "hello";return payload;`
 
 func Test_buildProcessorConfigsJavascript(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
@@ -4534,7 +4535,7 @@ func Test_buildProcessorConfigsJavascript(t *testing.T) {
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
-					Code: defaultJavascriptCodeFnStr,
+					Code: transformJsCodeFnStr,
 				},
 			},
 		},
@@ -4554,6 +4555,46 @@ function fn_address(value, input){
 const input = benthos.v0_msg_as_structured();
 const output = { ...input };
 output["address"] = fn_address(input["address"], input);
+benthos.v0_msg_set_structured(output);
+})();`,
+		res[0].Javascript.Code,
+	)
+}
+
+func Test_buildProcessorConfigsGenerateJavascript(t *testing.T) {
+	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+
+	ctx := context.Background()
+	genCode := `var payload = "test";return payload;`
+
+	jsT := mgmtv1alpha1.SystemTransformer{
+		Name:        "stage",
+		Description: "description",
+		DataType:    mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_STRING,
+		Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT,
+		Config: &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
+				GenerateJavascriptConfig: &mgmtv1alpha1.GenerateJavascript{
+					Code: genCode,
+				},
+			},
+		},
+	}
+
+	res, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
+		{Schema: "public", Table: "users", Column: "test", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
+
+	assert.NoError(t, err)
+	assert.Equal(t, `
+(() => {
+
+function fn_test(){
+  var payload = "test";return payload;
+};
+
+const input = benthos.v0_msg_as_structured();
+const output = { ...input };
+output["test"] = fn_test();
 benthos.v0_msg_set_structured(output);
 })();`,
 		res[0].Javascript.Code,
@@ -4623,7 +4664,7 @@ func Test_buildProcessorConfigsJavascriptMultiple(t *testing.T) {
 		Config: &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
 				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
-					Code: defaultJavascriptCodeFnStr,
+					Code: transformJsCodeFnStr,
 				},
 			},
 		},
@@ -4670,6 +4711,68 @@ benthos.v0_msg_set_structured(output);
 	)
 }
 
+func Test_buildProcessorConfigsTransformAndGenerateJavascript(t *testing.T) {
+	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+	ctx := context.Background()
+
+	col2 := "test"
+	genCode := `var payload = "test";return payload;`
+
+	jsT := mgmtv1alpha1.SystemTransformer{
+		Name:        "stage",
+		Description: "description",
+		DataType:    mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_STRING,
+		Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT,
+		Config: &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_TransformJavascriptConfig{
+				TransformJavascriptConfig: &mgmtv1alpha1.TransformJavascript{
+					Code: transformJsCodeFnStr,
+				},
+			},
+		},
+	}
+
+	jsT2 := mgmtv1alpha1.SystemTransformer{
+		Name:        "stage",
+		Description: "description",
+		DataType:    mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_STRING,
+		Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT,
+		Config: &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
+				GenerateJavascriptConfig: &mgmtv1alpha1.GenerateJavascript{
+					Code: genCode,
+				},
+			},
+		},
+	}
+
+	res, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
+		{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}},
+		{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
+
+	assert.NoError(t, err)
+	assert.Equal(t, `
+(() => {
+
+function fn_name(value, input){
+  var payload = value+=" hello";return payload;
+};
+
+
+function fn_test(){
+  var payload = "test";return payload;
+};
+
+const input = benthos.v0_msg_as_structured();
+const output = { ...input };
+output["name"] = fn_name(input["name"], input);
+output["test"] = fn_test();
+benthos.v0_msg_set_structured(output);
+})();`,
+		res[0].Javascript.Code,
+	)
+}
+
 func Test_ShouldProcessColumnTrue(t *testing.T) {
 	val := &mgmtv1alpha1.JobMappingTransformer{
 		Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_EMAIL,
@@ -4698,8 +4801,10 @@ func Test_ShouldProcessColumnFalse(t *testing.T) {
 	assert.Equal(t, false, res)
 }
 
-func Test_ConstructJsFunction(t *testing.T) {
-	res := constructJsFunction(defaultJavascriptCodeFnStr, "col")
+func Test_ConstructJsFunctionTransformJs(t *testing.T) {
+	s := mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT
+
+	res := constructJsFunction(transformJsCodeFnStr, "col", s)
 	assert.Equal(t, `
 function fn_col(value, input){
   var payload = value+=" hello";return payload;
@@ -4707,12 +4812,24 @@ function fn_col(value, input){
 `, res)
 }
 
-func Test_ConstructBenthosJsProcessor(t *testing.T) {
+func Test_ConstructJsFunctionGenerateJS(t *testing.T) {
+	s := mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT
+
+	res := constructJsFunction(generateJSCodeFnStr, "col", s)
+	assert.Equal(t, `
+function fn_col(){
+  var payload = "hello";return payload;
+};
+`, res)
+}
+
+func Test_ConstructBenthosJsProcessorTransformJS(t *testing.T) {
 	jsFunctions := []string{}
 	benthosOutputs := []string{}
+	s := mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT
 
-	benthosOutput := constructBenthosOutput(nameCol)
-	jsFunction := constructJsFunction(defaultJavascriptCodeFnStr, nameCol)
+	benthosOutput := constructBenthosOutput(nameCol, s)
+	jsFunction := constructJsFunction(transformJsCodeFnStr, nameCol, s)
 	benthosOutputs = append(benthosOutputs, benthosOutput)
 
 	jsFunctions = append(jsFunctions, jsFunction)
@@ -4733,9 +4850,45 @@ benthos.v0_msg_set_structured(output);
 })();`, res)
 }
 
-func Test_ConstructBenthosOutput(t *testing.T) {
-	res := constructBenthosOutput("col")
+func Test_ConstructBenthosJsProcessorGenerateJS(t *testing.T) {
+	jsFunctions := []string{}
+	benthosOutputs := []string{}
+	s := mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT
+
+	benthosOutput := constructBenthosOutput(nameCol, s)
+	jsFunction := constructJsFunction(generateJSCodeFnStr, nameCol, s)
+	benthosOutputs = append(benthosOutputs, benthosOutput)
+
+	jsFunctions = append(jsFunctions, jsFunction)
+
+	res := constructBenthosJsProcessor(jsFunctions, benthosOutputs)
+
+	assert.Equal(t, `
+(() => {
+
+function fn_name(){
+  var payload = "hello";return payload;
+};
+
+const input = benthos.v0_msg_as_structured();
+const output = { ...input };
+output["name"] = fn_name();
+benthos.v0_msg_set_structured(output);
+})();`, res)
+}
+
+func Test_ConstructBenthosOutputTranformJs(t *testing.T) {
+
+	s := mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT
+	res := constructBenthosOutput("col", s)
 	assert.Equal(t, `output["col"] = fn_col(input["col"], input);`, res)
+}
+
+func Test_ConstructBenthosOutputGenerateJs(t *testing.T) {
+
+	s := mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT
+	res := constructBenthosOutput("col", s)
+	assert.Equal(t, `output["col"] = fn_col();`, res)
 }
 
 func Test_buildProcessorConfigsJavascriptEmpty(t *testing.T) {

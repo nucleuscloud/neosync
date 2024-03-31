@@ -6,6 +6,7 @@ import UserDefinedGenerateFloat64Form from './UserDefinedGenerateFloat64Form';
 import UserDefinedGenerateGenderForm from './UserDefinedGenerateGenderForm';
 import UserDefinedGenerateInt64Form from './UserDefinedGenerateInt64Form';
 import UserDefinedGenerateInternationalPhoneNumberForm from './UserDefinedGenerateInternationalPhoneNumberForm';
+import UserDefinedGenerateJavascriptForm from './UserDefinedGenerateJavascriptForm';
 import UserDefinedGenerateStringForm from './UserDefinedGenerateStringForm';
 import UserDefinedGenerateStringPhoneNumberNumberForm from './UserDefinedGenerateStringPhoneNumberForm';
 import UserDefinedGenerateUuidForm from './UserDefinedGenerateUuidForm';
@@ -78,6 +79,8 @@ export function handleUserDefinedTransformerForm(
       return (
         <UserDefinedTransformCharacterScrambleForm isDisabled={disabled} />
       );
+    case TransformerSource.GENERATE_JAVASCRIPT:
+      return <UserDefinedGenerateJavascriptForm isDisabled={disabled} />;
     default:
       <div>No transformer found</div>;
   }

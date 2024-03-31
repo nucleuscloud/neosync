@@ -3852,6 +3852,11 @@
               "name": "TRANSFORMER_SOURCE_USER_DEFINED",
               "number": "44",
               "description": ""
+            },
+            {
+              "name": "TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT",
+              "number": "45",
+              "description": ""
             }
           ]
         }
@@ -4304,6 +4309,30 @@
           "hasOneofs": false,
           "extensions": [],
           "fields": []
+        },
+        {
+          "name": "GenerateJavascript",
+          "longName": "GenerateJavascript",
+          "fullName": "mgmt.v1alpha1.GenerateJavascript",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "code",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
         },
         {
           "name": "GenerateLastName",
@@ -5666,6 +5695,18 @@
               "type": "TransformCharacterScramble",
               "longType": "TransformCharacterScramble",
               "fullType": "mgmt.v1alpha1.TransformCharacterScramble",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            },
+            {
+              "name": "generate_javascript_config",
+              "description": "",
+              "label": "",
+              "type": "GenerateJavascript",
+              "longType": "GenerateJavascript",
+              "fullType": "mgmt.v1alpha1.GenerateJavascript",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",

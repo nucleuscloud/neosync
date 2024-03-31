@@ -229,6 +229,11 @@ export enum TransformerSource {
    * @generated from enum value: TRANSFORMER_SOURCE_USER_DEFINED = 44;
    */
   USER_DEFINED = 44,
+
+  /**
+   * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT = 45;
+   */
+  GENERATE_JAVASCRIPT = 45,
 }
 // Retrieve enum metadata with: proto3.getEnumType(TransformerSource)
 proto3.util.setEnumType(TransformerSource, "mgmt.v1alpha1.TransformerSource", [
@@ -276,6 +281,7 @@ proto3.util.setEnumType(TransformerSource, "mgmt.v1alpha1.TransformerSource", [
   { no: 42, name: "TRANSFORMER_SOURCE_GENERATE_CATEGORICAL" },
   { no: 43, name: "TRANSFORMER_SOURCE_TRANSFORM_CHARACTER_SCRAMBLE" },
   { no: 44, name: "TRANSFORMER_SOURCE_USER_DEFINED" },
+  { no: 45, name: "TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT" },
 ]);
 
 /**
@@ -1377,6 +1383,12 @@ export class TransformerConfig extends Message<TransformerConfig> {
      */
     value: TransformCharacterScramble;
     case: "transformCharacterScrambleConfig";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.GenerateJavascript generate_javascript_config = 42;
+     */
+    value: GenerateJavascript;
+    case: "generateJavascriptConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<TransformerConfig>) {
@@ -1428,6 +1440,7 @@ export class TransformerConfig extends Message<TransformerConfig> {
     { no: 39, name: "transform_javascript_config", kind: "message", T: TransformJavascript, oneof: "config" },
     { no: 40, name: "generate_categorical_config", kind: "message", T: GenerateCategorical, oneof: "config" },
     { no: 41, name: "transform_character_scramble_config", kind: "message", T: TransformCharacterScramble, oneof: "config" },
+    { no: 42, name: "generate_javascript_config", kind: "message", T: GenerateJavascript, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformerConfig {
@@ -3001,6 +3014,43 @@ export class TransformCharacterScramble extends Message<TransformCharacterScramb
 
   static equals(a: TransformCharacterScramble | PlainMessage<TransformCharacterScramble> | undefined, b: TransformCharacterScramble | PlainMessage<TransformCharacterScramble> | undefined): boolean {
     return proto3.util.equals(TransformCharacterScramble, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GenerateJavascript
+ */
+export class GenerateJavascript extends Message<GenerateJavascript> {
+  /**
+   * @generated from field: string code = 1;
+   */
+  code = "";
+
+  constructor(data?: PartialMessage<GenerateJavascript>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GenerateJavascript";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "code", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateJavascript {
+    return new GenerateJavascript().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GenerateJavascript {
+    return new GenerateJavascript().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GenerateJavascript {
+    return new GenerateJavascript().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GenerateJavascript | PlainMessage<GenerateJavascript> | undefined, b: GenerateJavascript | PlainMessage<GenerateJavascript> | undefined): boolean {
+    return proto3.util.equals(GenerateJavascript, a, b);
   }
 }
 
