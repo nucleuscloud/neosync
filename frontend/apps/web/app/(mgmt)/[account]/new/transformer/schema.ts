@@ -400,7 +400,7 @@ const userDefinedTransformerConfig = Yup.object().shape({
   id: Yup.string().required('This field is required.'),
 });
 
-const transformJavascriptConfig = Yup.object().shape({
+const JavascriptConfig = Yup.object().shape({
   code: Yup.string()
     .required('This field is required.')
     .test(
@@ -494,9 +494,10 @@ export const TRANSFORMER_SCHEMA_CONFIGS = {
   transformPhoneNumberConfig: transformStringPhoneNumberConfig,
   transformStringConfig: transformStringConfig,
   userDefinedTransformerConfig: userDefinedTransformerConfig,
-  transformJavascriptConfig: transformJavascriptConfig,
+  transformJavascriptConfig: JavascriptConfig,
   generateCategoricalConfig: generateCategoricalConfig,
   transformCharacterScrambleConfig: transformCharacterScrambleConfig,
+  generateJavascriptConfig: JavascriptConfig,
 } as const;
 
 // This is here so that whenever we add a new transformer, it errors due to the typing of the key to the TransformerConfigCase
