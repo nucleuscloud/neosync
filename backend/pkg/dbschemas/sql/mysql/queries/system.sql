@@ -86,3 +86,20 @@ WHERE
 ORDER BY
     tc.table_name,
     kcu.column_name;
+
+
+-- name: GetMysqlRolePermissions :many
+SELECT
+    t.table_schema,
+    t.table_name,
+	p.grantee,
+	p.privilege_type
+FROM
+    information_schema.tables t
+    JOIN information_schema.table_privileges p ON t.table_schema = p.table_schema
+    AND t.table_name = p.table_name
+WHERE
+    t.table_schema NOT IN ('sys', 'performance_schema', 'mysql', 'information_schema')
+  AND p.GRANTEE = sqlc.arg('role')
+ORDER BY
+    t.table_schema, t.table_name, p.GRANTEE;

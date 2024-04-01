@@ -19,7 +19,7 @@ export default function SignupForm(): ReactElement {
 
   const handleSubmit = () => {
     posthog.capture('user click', {
-      page: 'private beta',
+      page: 'submitted neosync cloud',
     });
 
     if (!isValidEmail(email)) {

@@ -5,7 +5,7 @@ import (
 )
 
 type JobMappingTransformerModel struct {
-	Source string              `json:"source"`
+	Source int32               `json:"source"`
 	Config *TransformerConfigs `json:"config,omitempty"`
 }
 
@@ -51,6 +51,7 @@ type TransformerConfigs struct {
 	TransformJavascript        *TransformJavascriptConfig       `json:"transformJavascript,omitempty"`
 	GenerateCategorical        *GenerateCategoricalConfig       `json:"generateCategorical,omitempty"`
 	TransformCharacterScramble *TransformCharacterScramble      `json:"transformCharacterScramble,omitempty"`
+	GenerateJavascript         *GenerateJavascript              `json:"generateJavascript,omitempty"`
 }
 
 type GenerateEmailConfig struct{}
@@ -189,9 +190,13 @@ type TransformCharacterScramble struct {
 	UserProvidedRegex *string `json:"userProvidedRegex,omitempty"`
 }
 
+type GenerateJavascript struct {
+	Code string `json:"code"`
+}
+
 // from API -> DB
 func (t *JobMappingTransformerModel) FromTransformerDto(tr *mgmtv1alpha1.JobMappingTransformer) error {
-	t.Source = tr.Source
+	t.Source = int32(tr.Source)
 
 	config := &TransformerConfigs{}
 
@@ -344,6 +349,10 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 		t.TransformCharacterScramble = &TransformCharacterScramble{
 			UserProvidedRegex: tr.GetTransformCharacterScrambleConfig().UserProvidedRegex,
 		}
+	case *mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig:
+		t.GenerateJavascript = &GenerateJavascript{
+			Code: tr.GetGenerateJavascriptConfig().Code,
+		}
 	default:
 		t = &TransformerConfigs{}
 	}
@@ -352,10 +361,16 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 }
 
 // DB -> API
-
 func (t *JobMappingTransformerModel) ToTransformerDto() *mgmtv1alpha1.JobMappingTransformer {
+	_, ok := mgmtv1alpha1.TransformerSource_name[t.Source]
+	var source mgmtv1alpha1.TransformerSource
+	if !ok {
+		source = mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_UNSPECIFIED
+	} else {
+		source = mgmtv1alpha1.TransformerSource(t.Source)
+	}
 	return &mgmtv1alpha1.JobMappingTransformer{
-		Source: t.Source,
+		Source: source,
 		Config: t.Config.ToTransformerConfigDto(),
 	}
 }
@@ -659,6 +674,14 @@ func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerC
 			Config: &mgmtv1alpha1.TransformerConfig_TransformCharacterScrambleConfig{
 				TransformCharacterScrambleConfig: &mgmtv1alpha1.TransformCharacterScramble{
 					UserProvidedRegex: t.TransformCharacterScramble.UserProvidedRegex,
+				},
+			},
+		}
+	case t.GenerateJavascript != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
+				GenerateJavascriptConfig: &mgmtv1alpha1.GenerateJavascript{
+					Code: t.GenerateJavascript.Code,
 				},
 			},
 		}

@@ -24,6 +24,10 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+const (
+	defaultCronStr = "0 0 1 1 *"
+)
+
 func (s *Service) GetJobs(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetJobsRequest],
@@ -395,12 +399,14 @@ func (s *Service) CreateJob(
 		}
 	}
 
-	cron := pgtype.Text{}
-	if req.Msg.CronSchedule != nil {
-		err := cron.Scan(req.Msg.GetCronSchedule())
-		if err != nil {
-			return nil, err
-		}
+	cronStr := req.Msg.GetCronSchedule()
+	if cronStr == "" {
+		cronStr = defaultCronStr
+	}
+	cronText := pgtype.Text{}
+	err = cronText.Scan(cronStr)
+	if err != nil {
+		return nil, err
 	}
 
 	mappings := []*pg_models.JobMapping{}
@@ -464,7 +470,7 @@ func (s *Service) CreateJob(
 		Name:              req.Msg.JobName,
 		AccountID:         *accountUuid,
 		Status:            int16(mgmtv1alpha1.JobStatus_JOB_STATUS_ENABLED),
-		CronSchedule:      cron,
+		CronSchedule:      cronText,
 		ConnectionOptions: connectionOptions,
 		Mappings:          mappings,
 		CreatedByID:       *userUuid,
@@ -483,7 +489,8 @@ func (s *Service) CreateJob(
 	schedule := nucleusdb.ToNullableString(cj.CronSchedule)
 	paused := true
 	spec := temporalclient.ScheduleSpec{}
-	if schedule != nil && *schedule != "" {
+	// we only want to unpause the temporal schedule if the user provided the cronstring directly
+	if req.Msg.GetCronSchedule() != "" && schedule != nil {
 		spec.CronExpressions = []string{*schedule}
 		paused = false
 	}
@@ -507,7 +514,7 @@ func (s *Service) CreateJob(
 		logger.Error(fmt.Errorf("unable to create schedule workflow in temporal: %w", err).Error())
 		logger.Info("deleting newly created job")
 		removeJobErr := s.db.Q.RemoveJobById(ctx, s.db.Db, cj.ID)
-		if err != nil {
+		if removeJobErr != nil {
 			return nil, fmt.Errorf("unable to create scheduled job and was unable to fully cleanup partially created resources: %w: %w", removeJobErr, err)
 		}
 		return nil, fmt.Errorf("unable to create scheduled job: %w", err)
@@ -726,18 +733,20 @@ func (s *Service) UpdateJobSchedule(
 		return nil, err
 	}
 
-	cron := pgtype.Text{}
-	if req.Msg.CronSchedule != nil {
-		err := cron.Scan(req.Msg.GetCronSchedule())
-		if err != nil {
-			return nil, err
-		}
+	cronStr := req.Msg.GetCronSchedule()
+	if cronStr == "" {
+		cronStr = defaultCronStr
+	}
+	cronText := pgtype.Text{}
+	err = cronText.Scan(cronStr)
+	if err != nil {
+		return nil, err
 	}
 
 	if err := s.db.WithTx(ctx, nil, func(dbtx nucleusdb.BaseDBTX) error {
 		_, err = s.db.Q.UpdateJobSchedule(ctx, dbtx, db_queries.UpdateJobScheduleParams{
 			ID:           job.ID,
-			CronSchedule: cron,
+			CronSchedule: cronText,
 			UpdatedByID:  *userUuid,
 		})
 		if err != nil {
@@ -745,9 +754,7 @@ func (s *Service) UpdateJobSchedule(
 		}
 
 		spec := &temporalclient.ScheduleSpec{}
-		if req.Msg.CronSchedule != nil && *req.Msg.CronSchedule != "" {
-			spec.CronExpressions = []string{*req.Msg.CronSchedule}
-		}
+		spec.CronExpressions = []string{cronStr}
 
 		// update temporal scheduled job
 		scheduleHandle, err := s.temporalWfManager.GetScheduleHandleClientByAccount(ctx, nucleusdb.UUIDString(job.AccountID), nucleusdb.UUIDString(job.ID), logger)

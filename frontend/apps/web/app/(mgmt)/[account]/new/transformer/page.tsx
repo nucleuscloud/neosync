@@ -37,6 +37,7 @@ import {
   CreateUserDefinedTransformerResponse,
   SystemTransformer,
   TransformerConfig,
+  TransformerSource,
 } from '@neosync/sdk';
 import { CheckIcon } from '@radix-ui/react-icons';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -48,6 +49,14 @@ import {
   CreateUserDefinedTransformerSchema,
 } from './schema';
 
+function getTransformerSource(sourceStr: string): TransformerSource {
+  const sourceNum = parseInt(sourceStr, 10);
+  if (isNaN(sourceNum) || !TransformerSource[sourceNum]) {
+    return TransformerSource.UNSPECIFIED;
+  }
+  return sourceNum as TransformerSource;
+}
+
 export default function NewTransformer(): ReactElement {
   const { account } = useAccount();
 
@@ -56,8 +65,11 @@ export default function NewTransformer(): ReactElement {
     data?.transformers.sort((a, b) => a.name.localeCompare(b.name)) ?? [];
 
   const transformerQueryParam = useSearchParams().get('transformer');
+  const transformerSource = getTransformerSource(
+    transformerQueryParam ?? TransformerSource.UNSPECIFIED.toString()
+  );
   const [base, setBase] = useState<SystemTransformer>(
-    transformers.find((item) => item.source === transformerQueryParam) ??
+    transformers.find((item) => item.source === transformerSource) ??
       new SystemTransformer({})
   );
   const [openBaseSelect, setOpenBaseSelect] = useState(false);
@@ -67,8 +79,7 @@ export default function NewTransformer(): ReactElement {
     mode: 'onChange',
     defaultValues: {
       name: '',
-      source: transformerQueryParam ?? '',
-      type: '',
+      source: transformerSource,
       config: convertTransformerConfigToForm(new TransformerConfig()),
       description: '',
     },
@@ -144,7 +155,6 @@ export default function NewTransformer(): ReactElement {
                                   'config',
                                   convertTransformerConfigToForm(t.config)
                                 );
-                                form.setValue('type', t.dataType);
                                 setBase(t ?? new SystemTransformer({}));
                                 setOpenBaseSelect(false);
                               }}
@@ -170,7 +180,7 @@ export default function NewTransformer(): ReactElement {
               </FormItem>
             )}
           />
-          {form.getValues('source') && (
+          {form.getValues('source') != 0 && (
             <div>
               <Controller
                 control={form.control}
@@ -222,7 +232,9 @@ export default function NewTransformer(): ReactElement {
             </div>
           )}
           <div>
-            {handleUserDefinedTransformerForm(form.getValues('source'))}
+            {handleUserDefinedTransformerForm(
+              form.getValues('source') ?? TransformerSource.UNSPECIFIED
+            )}
           </div>
           <div className="flex flex-row justify-end">
             <Button type="submit" disabled={!form.formState.isValid}>
@@ -243,7 +255,6 @@ async function createNewTransformer(
     accountId: accountId,
     name: formData.name,
     description: formData.description,
-    type: formData.type,
     source: formData.source,
     transformerConfig: convertTransformerConfigSchemaToTransformerConfig(
       formData.config

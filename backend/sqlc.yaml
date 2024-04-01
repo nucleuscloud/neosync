@@ -140,3 +140,9 @@ sql:
             go_type: string
           - column: information_schema.constraint_column_usage.column_name
             go_type: string
+          - column: information_schema.role_table_grants.table_schema
+            go_type: string
+          - column: information_schema.role_table_grants.table_name
+            go_type: string
+          - column: information_schema.role_table_grants.privilege_type
+            go_type: string

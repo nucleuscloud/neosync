@@ -236,7 +236,7 @@ func Test_Sync_Run_Processor_Error(t *testing.T) {
 		BenthosConfig: strings.TrimSpace(`
 input:
   generate:
-    count: 1
+    count: 1000
     interval: ""
     mapping: 'root = { "name": "nick" }'
 pipeline:
@@ -249,6 +249,7 @@ output:
     codec: lines
 `),
 	}, &SyncMetadata{Schema: "public", Table: "test"})
+	require.Error(t, err, "error was nil when it should be present")
 	require.Contains(t, err.Error(), "received stop activity signal")
 }
 

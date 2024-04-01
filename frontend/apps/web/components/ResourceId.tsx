@@ -16,7 +16,7 @@ export default function ResourceId(props: Props): ReactElement {
     copyText,
     onHoverText,
     onCopiedText = 'Success!',
-    copyButtonVariant = 'outline',
+    copyButtonVariant = 'ghost',
   } = props;
 
   return (

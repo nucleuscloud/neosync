@@ -49,7 +49,11 @@ export default function PageHeader(props: Props) {
         )}
         {extraHeading ? <div>{extraHeading}</div> : null}
       </div>
-      {subHeadings.map((subheading) => subheading)}
+      {subHeadings.map((subheading, ind) => (
+        <div key={ind} className="text-sm">
+          {subheading}
+        </div>
+      ))}
       <Separator className="dark:bg-gray-600" />
     </div>
   );

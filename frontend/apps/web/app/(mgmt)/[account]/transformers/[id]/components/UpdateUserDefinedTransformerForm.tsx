@@ -18,7 +18,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
-import { getErrorMessage } from '@/util/util';
+import { getErrorMessage, getTransformerSourceString } from '@/util/util';
 import {
   convertTransformerConfigSchemaToTransformerConfig,
   convertTransformerConfigToForm,
@@ -49,9 +49,7 @@ export default function UpdateUserDefinedTransformerForm(
     resolver: yupResolver(UPDATE_USER_DEFINED_TRANSFORMER),
     values: {
       name: currentTransformer?.name ?? '',
-      source: currentTransformer?.source ?? '',
       description: currentTransformer?.description ?? '',
-      type: currentTransformer?.dataType ?? '',
       id: currentTransformer?.id ?? '',
       config: convertTransformerConfigToForm(currentTransformer.config),
     },
@@ -89,19 +87,18 @@ export default function UpdateUserDefinedTransformerForm(
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <FormField
-          control={form.control}
           name="source"
           render={() => (
             <FormItem>
               <FormLabel>Source Transformer</FormLabel>
-              <FormDescription>
-                The system transformer to clone.
-              </FormDescription>
+              <FormDescription>The system transformer source.</FormDescription>
               <FormControl>
                 <Select disabled={true}>
                   <SelectTrigger>
                     <SelectValue
-                      placeholder={String(currentTransformer?.source ?? '')}
+                      placeholder={getTransformerSourceString(
+                        currentTransformer.source
+                      )}
                     />
                   </SelectTrigger>
                 </Select>

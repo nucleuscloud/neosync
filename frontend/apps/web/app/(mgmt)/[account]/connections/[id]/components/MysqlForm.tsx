@@ -40,6 +40,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
   ConnectionConfig,
+  ConnectionRolePrivilege,
   MysqlConnection,
   MysqlConnectionConfig,
   SSHAuthentication,
@@ -74,12 +75,16 @@ export default function MysqlForm(props: Props) {
       accountId: account?.id ?? '',
     },
   });
-  const [checkResp, setCheckResp] = useState<
+  const [validationResponse, setValidationResponse] = useState<
     CheckConnectionConfigResponse | undefined
   >();
 
-  const [isTesting, setIsTesting] = useState<boolean>(false);
+  const [isValidating, setIsValidating] = useState<boolean>(false);
 
+  const [openPermissionDialog, setOpenPermissionDialog] =
+    useState<boolean>(false);
+  const [permissionData, setPermissionData] =
+    useState<ConnectionRolePrivilege[]>();
   async function onSubmit(values: MysqlFormValues) {
     try {
       const connectionResp = await updateMysqlConnection(
@@ -380,37 +385,42 @@ export default function MysqlForm(props: Props) {
             </AccordionContent>
           </AccordionItem>
         </Accordion>
-        <TestConnectionResult resp={checkResp} />
         <div className="flex flex-row gap-3 justify-between">
           <Button
             variant="outline"
             disabled={!form.formState.isValid}
             onClick={async () => {
-              setIsTesting(true);
+              setIsValidating(true);
               try {
-                const resp = await checkMysqlConnection(
+                const res = await checkMysqlConnection(
                   form.getValues('db'),
                   form.getValues('tunnel'),
                   account?.id ?? ''
                 );
-                setCheckResp(resp);
-                setIsTesting(false);
+                setIsValidating(false);
+                setValidationResponse(res);
+                setPermissionData(res.privileges);
+                setOpenPermissionDialog(res?.isConnected && true);
               } catch (err) {
-                setCheckResp(
+                setIsValidating(false);
+                setValidationResponse(
                   new CheckConnectionConfigResponse({
                     isConnected: false,
                     connectionError:
                       err instanceof Error ? err.message : 'unknown error',
                   })
                 );
-                setIsTesting(false);
               }
             }}
             type="button"
           >
             <ButtonText
               leftIcon={
-                isTesting ? <Spinner className="text-black" /> : <div></div>
+                isValidating ? (
+                  <Spinner className="text-black dark:text-white" />
+                ) : (
+                  <div></div>
+                )
               }
               text="Test Connection"
             />
@@ -423,49 +433,36 @@ export default function MysqlForm(props: Props) {
             />
           </Button>
         </div>
+        {validationResponse && validationResponse.isConnected && (
+          <SuccessAlert description={'Successfully connected!'} />
+        )}
+        {validationResponse && !validationResponse.isConnected && (
+          <ErrorAlert
+            title="Unable to connect"
+            description={
+              validationResponse.connectionError ?? 'no error returned'
+            }
+          />
+        )}
       </form>
     </Form>
   );
 }
 
-interface TestConnectionResultProps {
-  resp: CheckConnectionConfigResponse | undefined;
-}
-
-function TestConnectionResult(props: TestConnectionResultProps): ReactElement {
-  const { resp } = props;
-  if (resp) {
-    if (resp.isConnected) {
-      return (
-        <SuccessAlert
-          title="Success!"
-          description="Successfully connected to the database!"
-        />
-      );
-    } else {
-      return (
-        <ErrorAlert
-          title="Unable to connect"
-          description={resp.connectionError ?? 'no error returned'}
-        />
-      );
-    }
-  }
-  return <div />;
-}
-
 interface SuccessAlertProps {
-  title: string;
   description: string;
 }
 
 function SuccessAlert(props: SuccessAlertProps): ReactElement {
-  const { title, description } = props;
+  const { description } = props;
   return (
     <Alert variant="success">
-      <CheckCircledIcon className="h-4 w-4" />
-      <AlertTitle>{title}</AlertTitle>
-      <AlertDescription>{description}</AlertDescription>
+      <div className="flex flex-row items-center gap-2">
+        <CheckCircledIcon className="h-4 w-4 text-green-900 dark:text-green-400" />
+        <div className="font-normal text-green-900 dark:text-green-400">
+          {description}
+        </div>
+      </div>
     </Alert>
   );
 }

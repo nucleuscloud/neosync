@@ -1,3 +1,4 @@
+import { TransformerDataType, TransformerSource } from '@neosync/sdk';
 import { format } from 'date-fns';
 
 export function formatDateTime(
@@ -68,4 +69,14 @@ export function convertNanosecondsToMinutes(duration: bigint): number {
 export function convertMinutesToNanoseconds(minutes: number): bigint {
   const minutesBigInt = BigInt(minutes);
   return minutesBigInt * SECONDS_PER_MIN * NANOS_PER_SECOND;
+}
+
+export function getTransformerDataTypeString(dt: TransformerDataType): string {
+  const value = TransformerDataType[dt];
+  return value ? value.toLowerCase() : 'unspecified';
+}
+
+export function getTransformerSourceString(ds: TransformerSource): string {
+  const value = TransformerSource[ds];
+  return value ? value.toLowerCase() : 'unspecified';
 }

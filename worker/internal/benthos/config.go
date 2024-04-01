@@ -60,7 +60,8 @@ type Inputs struct {
 }
 
 type Generate struct {
-	Mapping   string `json:"mapping" yaml:"mapping"`
+	Mapping string `json:"mapping" yaml:"mapping"`
+
 	Interval  string `json:"interval" yaml:"interval"`
 	Count     int    `json:"count" yaml:"count"`
 	BatchSize *int   `json:"batch_size,omitempty" yaml:"batch_size,omitempty"`

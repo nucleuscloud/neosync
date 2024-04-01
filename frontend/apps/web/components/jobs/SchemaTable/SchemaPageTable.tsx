@@ -24,7 +24,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { JobMappingFormValues } from '@/yup-validations/jobs';
-import { SystemTransformer, UserDefinedTransformer } from '@neosync/sdk';
+import {
+  SystemTransformer,
+  TransformerSource,
+  UserDefinedTransformer,
+} from '@neosync/sdk';
 import { GoWorkflow } from 'react-icons/go';
 import { SchemaConstraintHandler } from './SchemaColumns';
 import { SchemaTableToolbar } from './SchemaTableToolBar';
@@ -38,7 +42,7 @@ interface DataTableProps<TData, TValue> {
   systemTransformers: SystemTransformer[];
 
   userDefinedTransformerMap: Map<string, UserDefinedTransformer>;
-  systemTransformerMap: Map<string, SystemTransformer>;
+  systemTransformerMap: Map<TransformerSource, SystemTransformer>;
   constraintHandler: SchemaConstraintHandler;
 }
 

@@ -10,7 +10,10 @@ import (
 	"connectrpc.com/connect"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgxpool"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
+	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 
@@ -40,7 +43,41 @@ const (
 )
 
 // CheckConnectionConfig
-func Test_CheckConnectionConfig(t *testing.T) {
+func Test_CheckConnectionConfig_Postgres(t *testing.T) {
+	m := createServiceMock(t)
+	defer m.SqlDbMock.Close()
+
+	pool, _ := pgxpool.New(context.Background(), "")
+	m.PgPoolContainerMock.On("Open", mock.Anything).Return(pool, nil)
+	m.PgPoolContainerMock.On("Close")
+	m.SqlConnectorMock.On("NewPgPoolFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.PgPoolContainerMock, nil)
+
+	m.PgQueierMock.On("GetPostgresRolePermissions", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*pg_queries.GetPostgresRolePermissionsRow{
+			{
+				TableSchema:   "Users",
+				TableName:     "Users",
+				PrivilegeType: "Insert",
+			},
+			{
+				TableSchema:   "Users",
+				TableName:     "Users",
+				PrivilegeType: "Delete",
+			},
+		}, nil)
+
+	resp, err := m.Service.CheckConnectionConfig(context.Background(), &connect.Request[mgmtv1alpha1.CheckConnectionConfigRequest]{
+		Msg: &mgmtv1alpha1.CheckConnectionConfigRequest{
+			ConnectionConfig: getPostgresConfigMock(),
+		},
+	})
+
+	assert.Nil(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, 2, len(resp.Msg.Privileges[0].PrivilegeType), "There should be two privilege types for this connection")
+}
+
+func Test_CheckConnectionConfig_Mysql(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
@@ -51,7 +88,7 @@ func Test_CheckConnectionConfig(t *testing.T) {
 
 	resp, err := m.Service.CheckConnectionConfig(context.Background(), &connect.Request[mgmtv1alpha1.CheckConnectionConfigRequest]{
 		Msg: &mgmtv1alpha1.CheckConnectionConfigRequest{
-			ConnectionConfig: getPostgresConfigMock(),
+			ConnectionConfig: getMysqlConfigMock(),
 		},
 	})
 
@@ -75,7 +112,7 @@ func Test_CheckConnectionConfigs_Fail(t *testing.T) {
 
 	resp, err := m.Service.CheckConnectionConfig(context.Background(), &connect.Request[mgmtv1alpha1.CheckConnectionConfigRequest]{
 		Msg: &mgmtv1alpha1.CheckConnectionConfigRequest{
-			ConnectionConfig: getPostgresConfigMock(),
+			ConnectionConfig: getMysqlConfigMock(),
 		},
 	})
 
@@ -90,10 +127,6 @@ func Test_CheckConnectionConfigs_Fail(t *testing.T) {
 
 func Test_CheckConnectionConfig_NotImplemented(t *testing.T) {
 	m := createServiceMock(t)
-	defer m.SqlDbMock.Close()
-
-	m.SqlDbContainerMock.On("Open").Return(nil, errors.New("test error"))
-	m.SqlConnectorMock.On("NewDbFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.SqlDbContainerMock, nil)
 
 	resp, err := m.Service.CheckConnectionConfig(context.Background(), &connect.Request[mgmtv1alpha1.CheckConnectionConfigRequest]{
 		Msg: &mgmtv1alpha1.CheckConnectionConfigRequest{
@@ -626,6 +659,7 @@ type serviceMocks struct {
 	SqlDbMock              *sql.DB
 	SqlDbContainerMock     *sqlconnect.MockSqlDbContainer
 	PgPoolContainerMock    *sqlconnect.MockPgPoolContainer
+	PgQueierMock           *pg_queries.MockQuerier
 }
 
 func createServiceMock(t *testing.T) *serviceMocks {
@@ -633,13 +667,15 @@ func createServiceMock(t *testing.T) *serviceMocks {
 	mockQuerier := db_queries.NewMockQuerier(t)
 	mockUserAccountService := mgmtv1alpha1connect.NewMockUserAccountServiceClient(t)
 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
+	mockPgquerier := pg_queries.NewMockQuerier(t)
+	mockMysqlquerier := mysql_queries.NewMockQuerier(t)
 
 	sqlDbMock, sqlMock, err := sqlmock.New(sqlmock.MonitorPingsOption(true))
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
 
-	service := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService, mockSqlConnector)
+	service := New(&Config{}, nucleusdb.New(mockDbtx, mockQuerier), mockUserAccountService, mockSqlConnector, mockPgquerier, mockMysqlquerier)
 
 	return &serviceMocks{
 		Service:                service,
@@ -651,6 +687,7 @@ func createServiceMock(t *testing.T) *serviceMocks {
 		SqlDbMock:              sqlDbMock,
 		SqlDbContainerMock:     sqlconnect.NewMockSqlDbContainer(t),
 		PgPoolContainerMock:    sqlconnect.NewMockPgPoolContainer(t),
+		PgQueierMock:           mockPgquerier,
 	}
 }
 
@@ -730,6 +767,29 @@ func getPostgresConfigMock() *mgmtv1alpha1.ConnectionConfig {
 				},
 			},
 		},
+	}
+}
+
+func getMysqlConfigMock() *mgmtv1alpha1.ConnectionConfig {
+	return &mgmtv1alpha1.ConnectionConfig{
+		Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+			MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+				ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Connection{
+					Connection: getMysqlConnectionMock(),
+				},
+			},
+		},
+	}
+}
+
+func getMysqlConnectionMock() *mgmtv1alpha1.MysqlConnection {
+	return &mgmtv1alpha1.MysqlConnection{
+		Host:     "host",
+		Port:     3306,
+		Name:     "database",
+		User:     "user",
+		Pass:     "topsecret",
+		Protocol: "tcp",
 	}
 }
 

@@ -289,8 +289,11 @@ func serve(ctx context.Context) error {
 		),
 	)
 
+	pgquerier := pg_queries.New()
+	mysqlquerier := mysql_queries.New()
 	sqlConnector := &sqlconnect.SqlOpenConnector{}
-	connectionService := v1alpha1_connectionservice.New(&v1alpha1_connectionservice.Config{}, db, useraccountService, sqlConnector)
+	connectionService := v1alpha1_connectionservice.New(&v1alpha1_connectionservice.Config{}, db, useraccountService, sqlConnector, pgquerier,
+		mysqlquerier)
 	api.Handle(
 		mgmtv1alpha1connect.NewConnectionServiceHandler(
 			connectionService,
@@ -329,8 +332,6 @@ func serve(ctx context.Context) error {
 		),
 	)
 
-	pgquerier := pg_queries.New()
-	mysqlquerier := mysql_queries.New()
 	awsManager := awsmanager.New()
 	connectionDataService := v1alpha1_connectiondataservice.New(
 		&v1alpha1_connectiondataservice.Config{},

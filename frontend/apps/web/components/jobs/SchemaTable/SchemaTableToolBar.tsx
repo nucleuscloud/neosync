@@ -14,6 +14,7 @@ import {
 import {
   JobMappingTransformer,
   SystemTransformer,
+  TransformerSource,
   UserDefinedTransformer,
 } from '@neosync/sdk';
 import { CheckIcon, Cross2Icon } from '@radix-ui/react-icons';
@@ -29,7 +30,7 @@ interface DataTableToolbarProps<TData> {
   systemTransformers: SystemTransformer[];
 
   userDefinedTransformerMap: Map<string, UserDefinedTransformer>;
-  systemTransformerMap: Map<string, SystemTransformer>;
+  systemTransformerMap: Map<TransformerSource, SystemTransformer>;
   constraintHandler: SchemaConstraintHandler;
 }
 
@@ -55,7 +56,7 @@ export function SchemaTableToolbar<TData>({
 
   let transformer: Transformer | undefined;
   if (
-    bulkTransformer.source === 'custom' &&
+    bulkTransformer.source === TransformerSource.USER_DEFINED &&
     bulkTransformer.config.case === 'userDefinedTransformerConfig'
   ) {
     transformer = userDefinedTransformerMap.get(
@@ -156,12 +157,12 @@ function isBulkUpdateable(
   isForeignKey: boolean,
   isNullable: boolean
 ): boolean {
-  if (!isForeignKey || transformer.source === '') {
+  if (!isForeignKey || transformer.source === TransformerSource.UNSPECIFIED) {
     return true;
   }
-  const valid = new Set(['passthrough']);
+  const valid = new Set<TransformerSource>([TransformerSource.PASSTHROUGH]);
   if (isNullable) {
-    valid.add('null');
+    valid.add(TransformerSource.GENERATE_NULL);
   }
 
   return valid.has(transformer.source);

@@ -2,25 +2,24 @@
 import ButtonText from '@/components/ButtonText';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import ResourceId from '@/components/ResourceId';
+import { SubNav } from '@/components/SubNav';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { LayoutProps } from '@/components/types';
 import { Alert, AlertTitle } from '@/components/ui/alert';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 import { useGetJobRecentRuns } from '@/libs/hooks/useGetJobRecentRuns';
 import { useGetJobRunsByJob } from '@/libs/hooks/useGetJobRunsByJob';
 import { useGetJobStatus } from '@/libs/hooks/useGetJobStatus';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
-import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
 import { GetJobStatusResponse, Job, JobStatus } from '@neosync/sdk';
 import { LightningBoltIcon, TrashIcon } from '@radix-ui/react-icons';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import JobPauseButton from './components/JobPauseButton';
 import { isDataGenJob } from './util';
 
@@ -255,45 +254,4 @@ async function triggerJobRun(accountId: string, jobId: string): Promise<void> {
     throw new Error(body.message);
   }
   await res.json();
-}
-
-interface SubNavProps extends React.HTMLAttributes<HTMLElement> {
-  items: {
-    href: string;
-    title: string;
-  }[];
-  buttonClassName?: string;
-}
-
-function SubNav({ className, items, buttonClassName, ...props }: SubNavProps) {
-  const pathname = usePathname();
-  return (
-    <nav
-      className={cn(
-        'flex flex-col lg:flex-row gap-2 lg:gap-y-0 lg:gap-x-2',
-        className
-      )}
-      {...props}
-    >
-      {items.map((item) => {
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              buttonVariants({ variant: 'outline' }),
-              pathname === item.href
-                ? 'bg-muted hover:bg-muted'
-                : 'hover:bg-gray-100 dark:hover:bg-gray-800',
-              'justify-start',
-              buttonClassName,
-              'px-6'
-            )}
-          >
-            {item.title}
-          </Link>
-        );
-      })}
-    </nav>
-  );
 }

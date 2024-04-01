@@ -225,7 +225,7 @@ func Test_buildSelectQueryMap(t *testing.T) {
 							Table:  "users",
 							Column: "id",
 							Transformer: &mgmtv1alpha1.JobMappingTransformer{
-								Source: "generate_default",
+								Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 							},
 						},
 						{
@@ -233,7 +233,7 @@ func Test_buildSelectQueryMap(t *testing.T) {
 							Table:  "users",
 							Column: "name",
 							Transformer: &mgmtv1alpha1.JobMappingTransformer{
-								Source: "",
+								Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_UNSPECIFIED,
 							},
 						},
 					},
@@ -247,7 +247,7 @@ func Test_buildSelectQueryMap(t *testing.T) {
 							Table:  "accounts",
 							Column: "id",
 							Transformer: &mgmtv1alpha1.JobMappingTransformer{
-								Source: "generate_default",
+								Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 							},
 						},
 						{
@@ -255,7 +255,7 @@ func Test_buildSelectQueryMap(t *testing.T) {
 							Table:  "accounts",
 							Column: "name",
 							Transformer: &mgmtv1alpha1.JobMappingTransformer{
-								Source: "",
+								Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_UNSPECIFIED,
 							},
 						},
 					},
@@ -286,7 +286,7 @@ func Test_buildSelectQueryMap(t *testing.T) {
 							Table:  "users",
 							Column: "id",
 							Transformer: &mgmtv1alpha1.JobMappingTransformer{
-								Source: "generate_default",
+								Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 							},
 						},
 						{
@@ -294,7 +294,7 @@ func Test_buildSelectQueryMap(t *testing.T) {
 							Table:  "users",
 							Column: "name",
 							Transformer: &mgmtv1alpha1.JobMappingTransformer{
-								Source: "",
+								Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_UNSPECIFIED,
 							},
 						},
 					},
@@ -308,7 +308,7 @@ func Test_buildSelectQueryMap(t *testing.T) {
 							Table:  "accounts",
 							Column: "id",
 							Transformer: &mgmtv1alpha1.JobMappingTransformer{
-								Source: "generate_default",
+								Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 							},
 						},
 						{
@@ -316,7 +316,7 @@ func Test_buildSelectQueryMap(t *testing.T) {
 							Table:  "accounts",
 							Column: "name",
 							Transformer: &mgmtv1alpha1.JobMappingTransformer{
-								Source: "",
+								Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_UNSPECIFIED,
 							},
 						},
 					},
@@ -359,7 +359,7 @@ func Test_buildSelectQueryMap_SubsetsForeignKeys(t *testing.T) {
 					Table:  "a",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 			},
@@ -373,7 +373,7 @@ func Test_buildSelectQueryMap_SubsetsForeignKeys(t *testing.T) {
 					Table:  "b",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -381,7 +381,7 @@ func Test_buildSelectQueryMap_SubsetsForeignKeys(t *testing.T) {
 					Table:  "b",
 					Column: "name",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -389,7 +389,7 @@ func Test_buildSelectQueryMap_SubsetsForeignKeys(t *testing.T) {
 					Table:  "b",
 					Column: "a_id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 			},
@@ -403,7 +403,7 @@ func Test_buildSelectQueryMap_SubsetsForeignKeys(t *testing.T) {
 					Table:  "c",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -411,7 +411,7 @@ func Test_buildSelectQueryMap_SubsetsForeignKeys(t *testing.T) {
 					Table:  "c",
 					Column: "b_id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 			},
@@ -425,7 +425,7 @@ func Test_buildSelectQueryMap_SubsetsForeignKeys(t *testing.T) {
 					Table:  "d",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -433,7 +433,7 @@ func Test_buildSelectQueryMap_SubsetsForeignKeys(t *testing.T) {
 					Table:  "d",
 					Column: "c_id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 			},
@@ -492,7 +492,7 @@ func Test_buildSelectQueryMap_SubsetsOffForeignKeys(t *testing.T) {
 					Table:  "a",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 			},
@@ -506,7 +506,7 @@ func Test_buildSelectQueryMap_SubsetsOffForeignKeys(t *testing.T) {
 					Table:  "b",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -514,7 +514,7 @@ func Test_buildSelectQueryMap_SubsetsOffForeignKeys(t *testing.T) {
 					Table:  "b",
 					Column: "name",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -522,7 +522,7 @@ func Test_buildSelectQueryMap_SubsetsOffForeignKeys(t *testing.T) {
 					Table:  "b",
 					Column: "a_id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 			},
@@ -536,7 +536,7 @@ func Test_buildSelectQueryMap_SubsetsOffForeignKeys(t *testing.T) {
 					Table:  "c",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -544,7 +544,7 @@ func Test_buildSelectQueryMap_SubsetsOffForeignKeys(t *testing.T) {
 					Table:  "c",
 					Column: "b_id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 			},
@@ -558,7 +558,7 @@ func Test_buildSelectQueryMap_SubsetsOffForeignKeys(t *testing.T) {
 					Table:  "d",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -566,7 +566,7 @@ func Test_buildSelectQueryMap_SubsetsOffForeignKeys(t *testing.T) {
 					Table:  "d",
 					Column: "c_id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 			},
@@ -626,7 +626,7 @@ func Test_buildSelectQueryMap_CircularDependency(t *testing.T) {
 					Table:  "a",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -634,7 +634,7 @@ func Test_buildSelectQueryMap_CircularDependency(t *testing.T) {
 					Table:  "a",
 					Column: "c_id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 			},
@@ -648,7 +648,7 @@ func Test_buildSelectQueryMap_CircularDependency(t *testing.T) {
 					Table:  "b",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -656,7 +656,7 @@ func Test_buildSelectQueryMap_CircularDependency(t *testing.T) {
 					Table:  "b",
 					Column: "name",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -664,7 +664,7 @@ func Test_buildSelectQueryMap_CircularDependency(t *testing.T) {
 					Table:  "b",
 					Column: "a_id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 			},
@@ -678,7 +678,7 @@ func Test_buildSelectQueryMap_CircularDependency(t *testing.T) {
 					Table:  "c",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -686,7 +686,7 @@ func Test_buildSelectQueryMap_CircularDependency(t *testing.T) {
 					Table:  "c",
 					Column: "b_id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 			},
@@ -745,7 +745,7 @@ func Test_buildSelectQueryMap_MultiplSubsets(t *testing.T) {
 					Table:  "a",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 			},
@@ -759,7 +759,7 @@ func Test_buildSelectQueryMap_MultiplSubsets(t *testing.T) {
 					Table:  "b",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -767,7 +767,7 @@ func Test_buildSelectQueryMap_MultiplSubsets(t *testing.T) {
 					Table:  "b",
 					Column: "name",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -775,7 +775,7 @@ func Test_buildSelectQueryMap_MultiplSubsets(t *testing.T) {
 					Table:  "b",
 					Column: "a_id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 			},
@@ -789,7 +789,7 @@ func Test_buildSelectQueryMap_MultiplSubsets(t *testing.T) {
 					Table:  "c",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -797,7 +797,7 @@ func Test_buildSelectQueryMap_MultiplSubsets(t *testing.T) {
 					Table:  "c",
 					Column: "b_id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 			},
@@ -811,7 +811,7 @@ func Test_buildSelectQueryMap_MultiplSubsets(t *testing.T) {
 					Table:  "d",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 			},
@@ -825,7 +825,7 @@ func Test_buildSelectQueryMap_MultiplSubsets(t *testing.T) {
 					Table:  "e",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -833,7 +833,7 @@ func Test_buildSelectQueryMap_MultiplSubsets(t *testing.T) {
 					Table:  "e",
 					Column: "d_id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 			},
@@ -847,7 +847,7 @@ func Test_buildSelectQueryMap_MultiplSubsets(t *testing.T) {
 					Table:  "f",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -855,7 +855,7 @@ func Test_buildSelectQueryMap_MultiplSubsets(t *testing.T) {
 					Table:  "f",
 					Column: "e_id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 			},
@@ -928,7 +928,7 @@ func Test_buildSelectQueryMap_MultipleRoots(t *testing.T) {
 					Table:  "a",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 			},
@@ -942,7 +942,7 @@ func Test_buildSelectQueryMap_MultipleRoots(t *testing.T) {
 					Table:  "b",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 			},
@@ -956,7 +956,7 @@ func Test_buildSelectQueryMap_MultipleRoots(t *testing.T) {
 					Table:  "c",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -964,7 +964,7 @@ func Test_buildSelectQueryMap_MultipleRoots(t *testing.T) {
 					Table:  "c",
 					Column: "a_id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -972,7 +972,7 @@ func Test_buildSelectQueryMap_MultipleRoots(t *testing.T) {
 					Table:  "c",
 					Column: "b_id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 			},
@@ -986,7 +986,7 @@ func Test_buildSelectQueryMap_MultipleRoots(t *testing.T) {
 					Table:  "d",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -994,7 +994,7 @@ func Test_buildSelectQueryMap_MultipleRoots(t *testing.T) {
 					Table:  "d",
 					Column: "c_id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 			},
@@ -1008,7 +1008,7 @@ func Test_buildSelectQueryMap_MultipleRoots(t *testing.T) {
 					Table:  "e",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -1016,7 +1016,7 @@ func Test_buildSelectQueryMap_MultipleRoots(t *testing.T) {
 					Table:  "e",
 					Column: "c_id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 			},
@@ -1077,7 +1077,7 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyRoot(t *testing.T) {
 					Table:  "a",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -1085,7 +1085,7 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyRoot(t *testing.T) {
 					Table:  "a",
 					Column: "a_id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -1093,7 +1093,7 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyRoot(t *testing.T) {
 					Table:  "a",
 					Column: "a_a_id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 			},
@@ -1107,7 +1107,7 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyRoot(t *testing.T) {
 					Table:  "b",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -1115,7 +1115,7 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyRoot(t *testing.T) {
 					Table:  "b",
 					Column: "a_id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 			},
@@ -1166,7 +1166,7 @@ func Test_buildSelectQueryMap_doubleCircularDependencyRoot_mysql(t *testing.T) {
 					Table:  "a",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -1174,7 +1174,7 @@ func Test_buildSelectQueryMap_doubleCircularDependencyRoot_mysql(t *testing.T) {
 					Table:  "a",
 					Column: "a_id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -1182,7 +1182,7 @@ func Test_buildSelectQueryMap_doubleCircularDependencyRoot_mysql(t *testing.T) {
 					Table:  "a",
 					Column: "a_a_id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 			},
@@ -1196,7 +1196,7 @@ func Test_buildSelectQueryMap_doubleCircularDependencyRoot_mysql(t *testing.T) {
 					Table:  "b",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -1204,7 +1204,7 @@ func Test_buildSelectQueryMap_doubleCircularDependencyRoot_mysql(t *testing.T) {
 					Table:  "b",
 					Column: "a_id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 			},
@@ -1255,7 +1255,7 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyChild(t *testing.T) {
 					Table:  "a",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -1263,7 +1263,7 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyChild(t *testing.T) {
 					Table:  "a",
 					Column: "a_id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -1271,7 +1271,7 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyChild(t *testing.T) {
 					Table:  "a",
 					Column: "a_a_id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 				{
@@ -1279,7 +1279,7 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyChild(t *testing.T) {
 					Table:  "a",
 					Column: "b_id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 			},
@@ -1293,7 +1293,7 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyChild(t *testing.T) {
 					Table:  "b",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: "generate_default",
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
 			},

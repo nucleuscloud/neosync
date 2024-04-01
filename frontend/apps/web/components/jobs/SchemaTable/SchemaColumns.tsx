@@ -23,6 +23,7 @@ import {
   ForeignKey,
   PrimaryConstraint,
   SystemTransformer,
+  TransformerSource,
   UniqueConstraint,
   UserDefinedTransformer,
 } from '@neosync/sdk';
@@ -195,7 +196,7 @@ function RowAlert(props: RowAlertProps): ReactElement {
 interface Props {
   systemTransformers: SystemTransformer[];
   userDefinedTransformers: UserDefinedTransformer[];
-  systemMap: Map<string, SystemTransformer>;
+  systemMap: Map<TransformerSource, SystemTransformer>;
   userDefinedMap: Map<string, UserDefinedTransformer>;
   constraintHandler: SchemaConstraintHandler;
 }
@@ -399,9 +400,22 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         };
         const datatype = constraintHandler.getDataType(key);
         return (
-          <span className="max-w-[500px] truncate font-medium">
-            <Badge variant="outline">{handleDataTypeBadge(datatype)}</Badge>
-          </span>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <Badge variant="outline" className="max-w-[100px]">
+                    <span className="truncate block overflow-hidden">
+                      {handleDataTypeBadge(datatype)}
+                    </span>
+                  </Badge>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{datatype}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         );
       },
     },
@@ -418,12 +432,12 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
 
         const fkSystemTransformers: SystemTransformer[] = [];
         if (isForeignKey) {
-          const passthrough = systemMap.get('passthrough');
+          const passthrough = systemMap.get(TransformerSource.PASSTHROUGH);
           if (passthrough) {
             fkSystemTransformers.push(passthrough);
           }
           if (constraintHandler.getIsNullable(colkey)) {
-            const nullableTf = systemMap.get('null');
+            const nullableTf = systemMap.get(TransformerSource.GENERATE_NULL);
             if (nullableTf) {
               fkSystemTransformers.push(nullableTf);
             }
@@ -446,7 +460,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                 const fv = field.value as JobMappingTransformerForm;
                 let transformer: Transformer | undefined;
                 if (
-                  fv.source === 'custom' &&
+                  fv.source === TransformerSource.USER_DEFINED &&
                   fv.config.case === 'userDefinedTransformerConfig'
                 ) {
                   transformer = userDefinedMap.get(fv.config.value.id);
@@ -541,18 +555,18 @@ function IndeterminateCheckbox({
 
 // cleans up the data type values since some are too long , can add on more here
 function handleDataTypeBadge(dataType: string): string {
+  // Check for "timezone" and replace accordingly without entering the switch
+  if (dataType.includes('timezone')) {
+    return dataType
+      .replace('timestamp with time zone', 'timestamp(tz)')
+      .replace('timestamp without time zone', 'timestamp');
+  }
+
   const splitDt = dataType.split('(');
   switch (splitDt[0]) {
     case 'character varying':
-      if (splitDt[1] == undefined) {
-        return 'varchar(' + splitDt[1] + ')';
-      } else {
-        return 'varchar(' + splitDt[1];
-      }
-    case 'timestamp with time zone':
-      return 'timestamp(tz)';
-    case 'timestamp without time zone':
-      return 'timestamp';
+      // The condition inside the if statement seemed reversed. It should return 'varchar' directly if splitDt[1] is undefined.
+      return splitDt[1] !== undefined ? `varchar(${splitDt[1]}` : 'varchar';
     default:
       return dataType;
   }

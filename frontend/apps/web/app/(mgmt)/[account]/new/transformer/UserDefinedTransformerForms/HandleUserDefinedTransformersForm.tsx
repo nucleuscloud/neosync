@@ -1,3 +1,4 @@
+import { TransformerSource } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import UserDefinedGenerateCardNumberForm from './UserDefinedGenerateCardNumber';
 import UserDefinedGenerateCategoricalForm from './UserDefinedGenerateCategoricalForm';
@@ -5,6 +6,7 @@ import UserDefinedGenerateFloat64Form from './UserDefinedGenerateFloat64Form';
 import UserDefinedGenerateGenderForm from './UserDefinedGenerateGenderForm';
 import UserDefinedGenerateInt64Form from './UserDefinedGenerateInt64Form';
 import UserDefinedGenerateInternationalPhoneNumberForm from './UserDefinedGenerateInternationalPhoneNumberForm';
+import UserDefinedGenerateJavascriptForm from './UserDefinedGenerateJavascriptForm';
 import UserDefinedGenerateStringForm from './UserDefinedGenerateStringForm';
 import UserDefinedGenerateStringPhoneNumberNumberForm from './UserDefinedGenerateStringPhoneNumberForm';
 import UserDefinedGenerateUuidForm from './UserDefinedGenerateUuidForm';
@@ -23,60 +25,62 @@ import UserDefinedTransformStringForm from './UserDefinedTransformStringForm';
 
 // handles rendering custom transformer configs
 export function handleUserDefinedTransformerForm(
-  value: string | undefined,
+  value: TransformerSource,
   disabled?: boolean
 ): ReactElement {
   switch (value) {
-    case 'generate_card_number':
+    case TransformerSource.GENERATE_CARD_NUMBER:
       return <UserDefinedGenerateCardNumberForm isDisabled={disabled} />;
-    case 'generate_categorical':
+    case TransformerSource.GENERATE_CATEGORICAL:
       return <UserDefinedGenerateCategoricalForm isDisabled={disabled} />;
-    case 'generate_e164_phone_number':
+    case TransformerSource.GENERATE_E164_PHONE_NUMBER:
       return (
         <UserDefinedGenerateInternationalPhoneNumberForm
           isDisabled={disabled}
         />
       );
-    case 'generate_float64':
+    case TransformerSource.GENERATE_FLOAT64:
       return <UserDefinedGenerateFloat64Form isDisabled={disabled} />;
-    case 'generate_gender':
+    case TransformerSource.GENERATE_GENDER:
       return <UserDefinedGenerateGenderForm isDisabled={disabled} />;
-    case 'generate_int64':
+    case TransformerSource.GENERATE_INT64:
       return <UserDefinedGenerateInt64Form isDisabled={disabled} />;
-    case 'generate_random_string':
+    case TransformerSource.GENERATE_STRING:
       return <UserDefinedGenerateStringForm isDisabled={disabled} />;
-    case 'generate_string_phone_number':
+    case TransformerSource.GENERATE_STRING_PHONE_NUMBER:
       return (
         <UserDefinedGenerateStringPhoneNumberNumberForm isDisabled={disabled} />
       );
-    case 'generate_uuid':
+    case TransformerSource.GENERATE_UUID:
       return <UserDefinedGenerateUuidForm isDisabled={disabled} />;
-    case 'transform_e164_phone_number':
+    case TransformerSource.TRANSFORM_E164_PHONE_NUMBER:
       return <UserDefinedTransformE164NumberForm isDisabled={disabled} />;
-    case 'transform_email':
+    case TransformerSource.TRANSFORM_EMAIL:
       return <UserDefinedTransformEmailForm isDisabled={disabled} />;
-    case 'transform_first_name':
+    case TransformerSource.TRANSFORM_FIRST_NAME:
       return <UserDefinedTransformFirstNameForm isDisabled={disabled} />;
-    case 'transform_float64':
+    case TransformerSource.TRANSFORM_FLOAT64:
       return <UserDefinedTransformFloat64Form isDisabled={disabled} />;
-    case 'transform_full_name':
+    case TransformerSource.TRANSFORM_FULL_NAME:
       return <UserDefinedTransformFullNameForm isDisabled={disabled} />;
-    case 'transform_int64':
+    case TransformerSource.TRANSFORM_INT64:
       return <UserDefinedTransformInt64Form isDisabled={disabled} />;
-    case 'transform_int64_phone_number':
+    case TransformerSource.TRANSFORM_INT64_PHONE_NUMBER:
       return <UserDefinedTransformIntPhoneNumberForm isDisabled={disabled} />;
-    case 'transform_last_name':
+    case TransformerSource.TRANSFORM_LAST_NAME:
       return <UserDefinedTransformLastNameForm isDisabled={disabled} />;
-    case 'transform_phone_number':
+    case TransformerSource.TRANSFORM_PHONE_NUMBER:
       return <UserDefinedTransformPhoneNumberForm isDisabled={disabled} />;
-    case 'transform_string':
+    case TransformerSource.TRANSFORM_STRING:
       return <UserDefinedTransformStringForm isDisabled={disabled} />;
-    case 'transform_javascript':
+    case TransformerSource.TRANSFORM_JAVASCRIPT:
       return <UserDefinedTransformJavascriptForm isDisabled={disabled} />;
-    case 'transform_character_scramble':
+    case TransformerSource.TRANSFORM_CHARACTER_SCRAMBLE:
       return (
         <UserDefinedTransformCharacterScrambleForm isDisabled={disabled} />
       );
+    case TransformerSource.GENERATE_JAVASCRIPT:
+      return <UserDefinedGenerateJavascriptForm isDisabled={disabled} />;
     default:
       <div>No transformer found</div>;
   }

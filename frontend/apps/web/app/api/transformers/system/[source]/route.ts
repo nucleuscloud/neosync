@@ -9,7 +9,9 @@ export async function GET(
 ): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
     return ctx.client.transformers.getSystemTransformerBySource(
-      new GetSystemTransformerBySourceRequest({ source: params.source })
+      new GetSystemTransformerBySourceRequest({
+        source: parseInt(params.source ?? '', 10),
+      })
     );
   })(req);
 }

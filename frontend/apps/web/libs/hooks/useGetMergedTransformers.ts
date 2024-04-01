@@ -2,14 +2,18 @@ import {
   filterInputFreeSystemTransformers,
   filterInputFreeUdTransformers,
 } from '@/app/(mgmt)/[account]/transformers/EditTransformerOptions';
-import { SystemTransformer, UserDefinedTransformer } from '@neosync/sdk';
+import {
+  SystemTransformer,
+  TransformerSource,
+  UserDefinedTransformer,
+} from '@neosync/sdk';
 import { useMemo } from 'react';
 import { useGetSystemTransformers } from './useGetSystemTransformers';
 import { useGetUserDefinedTransformers } from './useGetUserDefinedTransformers';
 
 interface GetMergedTransformersResponse {
   systemTransformers: SystemTransformer[];
-  systemMap: Map<string, SystemTransformer>;
+  systemMap: Map<TransformerSource, SystemTransformer>;
   userDefinedTransformers: UserDefinedTransformer[];
   userDefinedMap: Map<string, UserDefinedTransformer>;
   isLoading: boolean;

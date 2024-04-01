@@ -155,6 +155,58 @@ func (q *Queries) GetForeignKeyConstraints(ctx context.Context, db DBTX, tableSc
 	return items, nil
 }
 
+const getMysqlRolePermissions = `-- name: GetMysqlRolePermissions :many
+SELECT
+    t.table_schema,
+    t.table_name,
+	p.grantee,
+	p.privilege_type
+FROM
+    information_schema.tables t
+    JOIN information_schema.table_privileges p ON t.table_schema = p.table_schema
+    AND t.table_name = p.table_name
+WHERE
+    t.table_schema NOT IN ('sys', 'performance_schema', 'mysql', 'information_schema')
+  AND p.GRANTEE = ?
+ORDER BY
+    t.table_schema, t.table_name, p.GRANTEE
+`
+
+type GetMysqlRolePermissionsRow struct {
+	TableSchema   string
+	TableName     string
+	Grantee       string
+	PrivilegeType string
+}
+
+func (q *Queries) GetMysqlRolePermissions(ctx context.Context, db DBTX, role string) ([]*GetMysqlRolePermissionsRow, error) {
+	rows, err := db.QueryContext(ctx, getMysqlRolePermissions, role)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*GetMysqlRolePermissionsRow
+	for rows.Next() {
+		var i GetMysqlRolePermissionsRow
+		if err := rows.Scan(
+			&i.TableSchema,
+			&i.TableName,
+			&i.Grantee,
+			&i.PrivilegeType,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, &i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPrimaryKeyConstraints = `-- name: GetPrimaryKeyConstraints :many
 SELECT 
 	table_schema AS schema_name,

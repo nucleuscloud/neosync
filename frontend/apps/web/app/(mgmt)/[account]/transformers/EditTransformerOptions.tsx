@@ -15,6 +15,7 @@ import {
   isSystemTransformer,
   isUserDefinedTransformer,
 } from '@/shared/transformers';
+import { getTransformerDataTypeString } from '@/util/util';
 import {
   JobMappingTransformerForm,
   convertJobMappingTransformerToForm,
@@ -28,6 +29,7 @@ import {
   GenerateFloat64,
   GenerateGender,
   GenerateInt64,
+  GenerateJavascript,
   GenerateString,
   GenerateStringPhoneNumber,
   GenerateUuid,
@@ -46,6 +48,7 @@ import {
   TransformPhoneNumber,
   TransformString,
   TransformerConfig,
+  TransformerSource,
   UserDefinedTransformer,
 } from '@neosync/sdk';
 import {
@@ -57,6 +60,7 @@ import {
 import { ReactElement, useEffect, useRef, useState } from 'react';
 import GenerateCardNumberForm from './Sheetforms/GenerateCardNumberForm';
 import GenerateCategoricalForm from './Sheetforms/GenerateCategoricalForm';
+import GenerateJavascriptForm from './Sheetforms/GenerateeJavascriptForm';
 import GenerateFloatForm from './Sheetforms/GenerateFloat64Form';
 import GenerateGenderForm from './Sheetforms/GenerateGenderForm';
 import GenerateIntForm from './Sheetforms/GenerateInt64Form';
@@ -129,11 +133,6 @@ export default function EditTransformerOptions(props: Props): ReactElement {
         <Button
           variant="outline"
           size="sm"
-          // disabling this form if the transformer is user defined becuase the form is meant to load job mappings that are system transformers
-          // however, that doesn't really work when the job mapping is "custom" because the config is not a system transformer config so it doens't know how to load the values
-          // we need to load the custom transformer values and push them into the component, but the components expect the "form", which is the Job Mapping.
-          // this would require a refactor of the lower components to not rely on the react-hook-form and instead values as props to the component itself.
-          // until that is true, this needs to be disabled.
           disabled={disabled}
           onClick={() => setIsSheetOpen(true)}
           className="ml-auto hidden h-[36px] lg:flex"
@@ -150,8 +149,10 @@ export default function EditTransformerOptions(props: Props): ReactElement {
           <div className="flex flex-row justify-between w-full">
             <div className="flex flex-col space-y-2">
               <div className="flex flex-row gap-2">
-                <SheetTitle>{transformer?.name}</SheetTitle>
-                <Badge variant="outline">{transformer?.dataType}</Badge>
+                <SheetTitle>{transformer.name}</SheetTitle>
+                <Badge variant="outline">
+                  {getTransformerDataTypeString(transformer.dataType)}
+                </Badge>
               </div>
               <SheetDescription>{transformer?.description}</SheetDescription>
             </div>
@@ -194,7 +195,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
     : convertTransformerConfigToForm(transformer.config);
 
   switch (transformer.source) {
-    case 'generate_card_number':
+    case TransformerSource.GENERATE_CARD_NUMBER:
       return (
         <GenerateCardNumberForm
           isReadonly={isReadonly}
@@ -220,7 +221,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           }}
         />
       );
-    case 'generate_e164_phone_number':
+    case TransformerSource.GENERATE_E164_PHONE_NUMBER:
       return (
         <GenerateInternationalPhoneNumberForm
           isReadonly={isReadonly}
@@ -246,7 +247,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           }}
         />
       );
-    case 'generate_float64':
+    case TransformerSource.GENERATE_FLOAT64:
       return (
         <GenerateFloatForm
           isReadonly={isReadonly}
@@ -272,7 +273,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           }}
         />
       );
-    case 'generate_gender':
+    case TransformerSource.GENERATE_GENDER:
       return (
         <GenerateGenderForm
           isReadonly={isReadonly}
@@ -298,7 +299,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           }}
         />
       );
-    case 'generate_int64':
+    case TransformerSource.GENERATE_INT64:
       return (
         <GenerateIntForm
           isReadonly={isReadonly}
@@ -324,7 +325,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           }}
         />
       );
-    case 'generate_string':
+    case TransformerSource.GENERATE_STRING:
       return (
         <GenerateStringForm
           isReadonly={isReadonly}
@@ -350,7 +351,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           }}
         />
       );
-    case 'generate_string_phone_number':
+    case TransformerSource.GENERATE_STRING_PHONE_NUMBER:
       return (
         <GenerateStringPhoneNumberForm
           isReadonly={isReadonly}
@@ -376,7 +377,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           }}
         />
       );
-    case 'generate_uuid':
+    case TransformerSource.GENERATE_UUID:
       return (
         <GenerateUuidForm
           isReadonly={isReadonly}
@@ -402,7 +403,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           }}
         />
       );
-    case 'transform_e164_phone_number':
+    case TransformerSource.TRANSFORM_E164_PHONE_NUMBER:
       return (
         <TransformE164NumberForm
           isReadonly={isReadonly}
@@ -428,7 +429,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           }}
         />
       );
-    case 'transform_email':
+    case TransformerSource.TRANSFORM_EMAIL:
       return (
         <TransformEmailForm
           isReadonly={isReadonly}
@@ -454,7 +455,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           }}
         />
       );
-    case 'transform_first_name':
+    case TransformerSource.TRANSFORM_FIRST_NAME:
       return (
         <TransformFirstNameForm
           isReadonly={isReadonly}
@@ -480,7 +481,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           }}
         />
       );
-    case 'transform_float64':
+    case TransformerSource.TRANSFORM_FLOAT64:
       return (
         <TransformFloatForm
           isReadonly={isReadonly}
@@ -506,7 +507,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           }}
         />
       );
-    case 'transform_full_name':
+    case TransformerSource.TRANSFORM_FULL_NAME:
       return (
         <TransformFullNameForm
           isReadonly={isReadonly}
@@ -532,7 +533,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           }}
         />
       );
-    case 'transform_int64':
+    case TransformerSource.TRANSFORM_INT64:
       return (
         <TransformInt64Form
           isReadonly={isReadonly}
@@ -558,7 +559,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           }}
         />
       );
-    case 'transform_int64_phone_number':
+    case TransformerSource.TRANSFORM_INT64_PHONE_NUMBER:
       return (
         <TransformInt64PhoneForm
           isReadonly={isReadonly}
@@ -584,7 +585,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           }}
         />
       );
-    case 'transform_last_name':
+    case TransformerSource.TRANSFORM_LAST_NAME:
       return (
         <TransformLastNameForm
           isReadonly={isReadonly}
@@ -610,7 +611,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           }}
         />
       );
-    case 'transform_string_phone_number':
+    case TransformerSource.TRANSFORM_PHONE_NUMBER:
       return (
         <TransformStringPhoneNumberForm
           isReadonly={isReadonly}
@@ -636,7 +637,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           }}
         />
       );
-    case 'transform_string':
+    case TransformerSource.TRANSFORM_STRING:
       return (
         <TransformStringForm
           isReadonly={isReadonly}
@@ -662,7 +663,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           }}
         />
       );
-    case 'transform_javascript':
+    case TransformerSource.TRANSFORM_JAVASCRIPT:
       return (
         <TransformJavascriptForm
           isReadonly={isReadonly}
@@ -688,7 +689,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           }}
         />
       );
-    case 'generate_categorical':
+    case TransformerSource.GENERATE_CATEGORICAL:
       return (
         <GenerateCategoricalForm
           isReadonly={isReadonly}
@@ -714,7 +715,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           }}
         />
       );
-    case 'transform_character_scramble':
+    case TransformerSource.TRANSFORM_CHARACTER_SCRAMBLE:
       return (
         <TransformCharacterScrambleForm
           isReadonly={isReadonly}
@@ -731,6 +732,32 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
                   config: new TransformerConfig({
                     config: {
                       case: 'transformCharacterScrambleConfig',
+                      value: newconfig,
+                    },
+                  }),
+                })
+              )
+            );
+          }}
+        />
+      );
+    case TransformerSource.GENERATE_JAVASCRIPT:
+      return (
+        <GenerateJavascriptForm
+          isReadonly={isReadonly}
+          existingConfig={
+            new GenerateJavascript({
+              ...(valueConfig.value as PlainMessage<GenerateJavascript>),
+            })
+          }
+          onSubmit={(newconfig) => {
+            onSubmit(
+              convertJobMappingTransformerToForm(
+                new JobMappingTransformer({
+                  source: transformer.source,
+                  config: new TransformerConfig({
+                    config: {
+                      case: 'generateJavascriptConfig',
                       value: newconfig,
                     },
                   }),
@@ -761,13 +788,14 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
 export function filterInputFreeSystemTransformers(
   transformers: SystemTransformer[]
 ): SystemTransformer[] {
-  return transformers.filter(
-    (t) =>
-      t.source !== 'passthrough' &&
-      (t.source === 'null' ||
-        t.source === 'default' ||
-        t.source.startsWith('generate_'))
-  );
+  return transformers.filter((t) => {
+    return (
+      t.source !== TransformerSource.PASSTHROUGH &&
+      (t.source === TransformerSource.GENERATE_NULL ||
+        t.source === TransformerSource.GENERATE_DEFAULT ||
+        TransformerSource[t.source]?.startsWith('GENERATE_'))
+    );
+  });
 }
 
 export function filterInputFreeUdTransformers(

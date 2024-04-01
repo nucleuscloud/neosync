@@ -451,6 +451,11 @@ export class CheckConnectionConfigResponse extends Message<CheckConnectionConfig
    */
   connectionError?: string;
 
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.ConnectionRolePrivilege privileges = 3;
+   */
+  privileges: ConnectionRolePrivilege[] = [];
+
   constructor(data?: PartialMessage<CheckConnectionConfigResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -461,6 +466,7 @@ export class CheckConnectionConfigResponse extends Message<CheckConnectionConfig
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "is_connected", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 2, name: "connection_error", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 3, name: "privileges", kind: "message", T: ConnectionRolePrivilege, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CheckConnectionConfigResponse {
@@ -477,6 +483,69 @@ export class CheckConnectionConfigResponse extends Message<CheckConnectionConfig
 
   static equals(a: CheckConnectionConfigResponse | PlainMessage<CheckConnectionConfigResponse> | undefined, b: CheckConnectionConfigResponse | PlainMessage<CheckConnectionConfigResponse> | undefined): boolean {
     return proto3.util.equals(CheckConnectionConfigResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.ConnectionRolePrivilege
+ */
+export class ConnectionRolePrivilege extends Message<ConnectionRolePrivilege> {
+  /**
+   * The role that was given the permissions
+   *
+   * @generated from field: string grantee = 1;
+   */
+  grantee = "";
+
+  /**
+   * The database schema. Ex: public
+   *
+   * @generated from field: string schema = 2;
+   */
+  schema = "";
+
+  /**
+   * The name of the table in the schema
+   *
+   * @generated from field: string table = 3;
+   */
+  table = "";
+
+  /**
+   * The privileges given to that role
+   *
+   * @generated from field: repeated string privilege_type = 4;
+   */
+  privilegeType: string[] = [];
+
+  constructor(data?: PartialMessage<ConnectionRolePrivilege>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.ConnectionRolePrivilege";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "grantee", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "privilege_type", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectionRolePrivilege {
+    return new ConnectionRolePrivilege().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ConnectionRolePrivilege {
+    return new ConnectionRolePrivilege().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ConnectionRolePrivilege {
+    return new ConnectionRolePrivilege().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ConnectionRolePrivilege | PlainMessage<ConnectionRolePrivilege> | undefined, b: ConnectionRolePrivilege | PlainMessage<ConnectionRolePrivilege> | undefined): boolean {
+    return proto3.util.equals(ConnectionRolePrivilege, a, b);
   }
 }
 

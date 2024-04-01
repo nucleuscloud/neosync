@@ -208,3 +208,17 @@ WHERE
 ORDER BY
     tc.table_name,
     kcu.column_name;
+
+-- name: GetPostgresRolePermissions :many
+SELECT
+    rtg.table_schema as table_schema, 
+    rtg.table_name as table_name, 
+    rtg.privilege_type as privilege_type
+FROM 
+    information_schema.role_table_grants as rtg
+WHERE 
+    table_schema NOT IN ('pg_catalog', 'information_schema') 
+AND grantee =  sqlc.arg('role')
+ORDER BY 
+    table_schema, 
+    table_name;

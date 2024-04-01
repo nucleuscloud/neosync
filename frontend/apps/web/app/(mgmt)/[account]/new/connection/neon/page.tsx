@@ -3,7 +3,7 @@ import PageHeader from '@/components/headers/PageHeader';
 import NeonForm from './NeonForm';
 import { NeonLogo } from './NeonLogo';
 
-export default async function Postgres() {
+export default async function Neon() {
   return (
     <OverviewContainer
       Header={
