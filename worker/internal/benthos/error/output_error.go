@@ -2,6 +2,7 @@ package neosync_benthos_error
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -61,19 +62,16 @@ func (e *errorOutput) Connect(ctx context.Context) error {
 }
 
 func (e *errorOutput) WriteBatch(ctx context.Context, batch service.MessageBatch) error {
-	fmt.Println("")
-	fmt.Println("ERROR OUTPUT")
-	fmt.Println("")
 	for i := range batch {
 		errMsg, err := batch.TryInterpolatedString(i, e.errorMsg)
 		if err != nil {
 			return fmt.Errorf("error message interpolation error: %w", err)
 		}
 		if isMaxConnectionError(errMsg) {
-			fmt.Println("ignore error")
-			return nil
+			// throw error so that benthos retries
+			return errors.New(errMsg)
 		}
-		fmt.Println("sending stop activity signal")
+		// kill activity
 		e.logger.Error(fmt.Sprintf("Benthos Error output - sending stop activity signal: %s ", errMsg))
 		e.stopActivityChannel <- fmt.Errorf("%s", errMsg)
 	}

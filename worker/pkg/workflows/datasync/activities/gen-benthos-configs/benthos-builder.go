@@ -415,23 +415,10 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 					out := buildPostgresOutputQueryAndArgs(resp, tm, resp.TableSchema, resp.TableName, colSourceMap)
 					resp.Columns = out.Columns
-					// resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-					// 	PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
-					// 		Driver: postgresDriver,
-					// 		Dsn:    dsn,
-
-					// 		Query:       out.Query,P
-					// 		ArgsMapping: out.ArgsMapping,
-
-					// 		Batching: &neosync_benthos.Batching{
-					// 			Period: "5s",
-					// 			Count:  100,
-					// 		},
-					// 	},
-					// })
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						Fallback: []neosync_benthos.Outputs{
 							{
+								// retry processor and output several times
 								Retry: &neosync_benthos.RetryConfig{
 									InlineRetryConfig: neosync_benthos.InlineRetryConfig{
 										MaxRetries: 5,
@@ -446,8 +433,8 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 												ArgsMapping: out.ArgsMapping,
 
 												Batching: &neosync_benthos.Batching{
-													Period: "1s",
-													Count:  1,
+													Period: "5s",
+													Count:  100,
 												},
 											},
 										},
@@ -455,51 +442,10 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 									},
 								},
 							},
-							{
-								Switch: &neosync_benthos.SwitchOutputConfig{
-									RetryUntilSuccess: true,
-									Cases: []neosync_benthos.SwitchOutputCase{
-										{Check: "errored()", Continue: true, Output: neosync_benthos.Outputs{
-											Error: &neosync_benthos.ErrorOutputConfig{
-												ErrorMsg: `${! meta("fallback_error")}`,
-											}}},
-										{
-											Output: neosync_benthos.Outputs{
-												PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
-													Driver: postgresDriver,
-													Dsn:    dsn,
-
-													Query:       out.Query,
-													ArgsMapping: out.ArgsMapping,
-
-													Batching: &neosync_benthos.Batching{
-														Period: "1s",
-														Count:  1,
-													},
-												},
-											},
-											// Processors: resp.Config.Pipeline.Processors,
-										},
-									},
-								},
-							},
-							// {Error: &neosync_benthos.ErrorOutputConfig{
-							// 	ErrorMsg: `${! meta("fallback_error")}`,
-							// }},
-							// {
-							// 	PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
-							// 		Driver: postgresDriver,
-							// 		Dsn:    dsn,
-
-							// 		Query:       out.Query,
-							// 		ArgsMapping: out.ArgsMapping,
-
-							// 		Batching: &neosync_benthos.Batching{
-							// 			Period: "1s",
-							// 			Count:  1,
-							// 		},
-							// 	},
-							// },
+							// kills activity depending on error
+							{Error: &neosync_benthos.ErrorOutputConfig{
+								ErrorMsg: `${! meta("fallback_error")}`,
+							}},
 						},
 					})
 					resp.Config.Pipeline.Processors = []neosync_benthos.ProcessorConfig{}
