@@ -223,36 +223,35 @@ output:
 	assert.Equal(t, `{"name":"sivetest"}`, returnValue)
 }
 
-// todo: fix flaky test
-// func Test_Sync_Run_Processor_Error(t *testing.T) {
-// 	testSuite := &testsuite.WorkflowTestSuite{}
-// 	env := testSuite.NewTestActivityEnvironment()
+func Test_Sync_Run_Processor_Error(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
 
-// 	benthosStreamManager := NewBenthosStreamManager()
-// 	activity := New(nil, &sync.Map{}, nil, nil, benthosStreamManager)
+	benthosStreamManager := NewBenthosStreamManager()
+	activity := New(nil, &sync.Map{}, nil, nil, benthosStreamManager)
 
-// 	env.RegisterActivity(activity.Sync)
+	env.RegisterActivity(activity.Sync)
 
-// 	_, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
-// 		BenthosConfig: strings.TrimSpace(`
-// input:
-//   generate:
-//     count: 1
-//     interval: ""
-//     mapping: 'root = { "name": "nick" }'
-// pipeline:
-//   threads: 1
-//   processors:
-//     - error: {}
-// output:
-//   label: ""
-//   stdout:
-//     codec: lines
-// `),
-// 	}, &SyncMetadata{Schema: "public", Table: "test"})
-// 	require.Error(t, err, "error was nil when it should be present")
-// 	require.Contains(t, err.Error(), "received stop activity signal")
-// }
+	_, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
+		BenthosConfig: strings.TrimSpace(`
+input:
+  generate:
+    count: 1000
+    interval: ""
+    mapping: 'root = { "name": "nick" }'
+pipeline:
+  threads: 1
+  processors:
+    - error: {}
+output:
+  label: ""
+  stdout:
+    codec: lines
+`),
+	}, &SyncMetadata{Schema: "public", Table: "test"})
+	require.Error(t, err, "error was nil when it should be present")
+	require.Contains(t, err.Error(), "received stop activity signal")
+}
 
 func Test_Sync_Run_ActivityStop_MockBenthos(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
