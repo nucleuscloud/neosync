@@ -57,6 +57,7 @@ export default function DualListBox(props: Props): ReactElement {
           onRowSelectionChange={setLeftSelected}
           rowSelection={leftSelected}
           mode={mode}
+          noDataMessage={getLeftBoxNoMessage(options, leftData)}
         />
       </div>
       <div className="flex flex-row md:flex-col justify-center gap-2">
@@ -143,8 +144,29 @@ export default function DualListBox(props: Props): ReactElement {
           onRowSelectionChange={setRightSelected}
           rowSelection={rightSelected}
           mode={mode}
+          noDataMessage={getRightBoxNoMessage(options, rightData)}
         />
       </div>
     </div>
   );
+}
+
+function getLeftBoxNoMessage(options: Option[], leftData: Row[]): string {
+  if (options.length === 0) {
+    return 'Found no schema data or was unable to load connection';
+  }
+  if (leftData.length === 0) {
+    return 'All tables have been added!';
+  }
+  return '';
+}
+
+function getRightBoxNoMessage(options: Option[], rightData: Row[]): string {
+  if (options.length === 0) {
+    return 'Found no schema data or was unable to load connection/mappings';
+  }
+  if (rightData.length === 0) {
+    return 'Add tables to get started!';
+  }
+  return '';
 }

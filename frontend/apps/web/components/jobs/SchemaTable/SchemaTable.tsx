@@ -4,6 +4,7 @@ import DualListBox, {
   Action,
   Option,
 } from '@/components/DualListBox/DualListBox';
+import Spinner from '@/components/Spinner';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Badge } from '@/components/ui/badge';
@@ -44,6 +45,7 @@ interface Props {
   excludeInputReqTransformers?: boolean; // will result in only generators (functions with no data input)
   jobType: JobType;
   schema: ConnectionSchemaMap;
+  isSchemaDataReloading: boolean;
   constraintHandler: SchemaConstraintHandler;
 }
 
@@ -150,6 +152,7 @@ export function SchemaTable(props: Props): ReactElement {
                 <TableIcon className="h-4 w-4" />
               </div>
               <CardTitle>Table Selection</CardTitle>
+              <div>{isValidating ? <Spinner /> : null}</div>
             </div>
             <CardDescription>
               Select the tables that you want to transform and move them from

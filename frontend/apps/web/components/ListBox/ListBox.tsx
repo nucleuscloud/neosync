@@ -21,6 +21,7 @@ import {
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { ReactElement, useRef } from 'react';
 import { Mode } from '../DualListBox/columns';
+import { Skeleton } from '../ui/skeleton';
 
 interface Props<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -29,6 +30,8 @@ interface Props<TData, TValue> {
   onRowSelectionChange: OnChangeFn<RowSelectionState>;
   tableContainerClassName?: string;
   mode?: Mode;
+  isDataLoading?: boolean;
+  noDataMessage?: string;
 }
 
 export default function ListBox<TData, TValue>(
@@ -41,6 +44,8 @@ export default function ListBox<TData, TValue>(
     onRowSelectionChange,
     tableContainerClassName,
     mode = 'many',
+    isDataLoading,
+    noDataMessage,
   } = props;
   const table = useReactTable({
     data,
@@ -70,6 +75,10 @@ export default function ListBox<TData, TValue>(
         : undefined,
     overscan: 5,
   });
+
+  if (isDataLoading) {
+    return <Skeleton className="w-full h-full" />;
+  }
 
   return (
     <div
@@ -113,6 +122,11 @@ export default function ListBox<TData, TValue>(
           }}
           className="relative grid"
         >
+          {rows.length === 0 && !!noDataMessage && (
+            <TableRow className="flex justify-center items-center py-10 text-gray-500">
+              <td>{noDataMessage}</td>
+            </TableRow>
+          )}
           {rowVirtualizer.getVirtualItems().map((virtualRow) => {
             const row = rows[virtualRow.index];
             return (

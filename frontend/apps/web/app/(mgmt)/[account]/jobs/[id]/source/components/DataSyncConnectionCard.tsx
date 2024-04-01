@@ -251,6 +251,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
             jobType="sync"
             constraintHandler={schemaConstraintHandler}
             schema={connectionSchemaDataMap?.schemaMap ?? {}}
+            isSchemaDataReloading={isSchemaMapValidating}
           />
           <div className="flex flex-row items-center justify-end w-full mt-4">
             <Button type="submit">Save</Button>
