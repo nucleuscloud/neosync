@@ -89,7 +89,7 @@ export default function OnboardingChecklist(): ReactElement {
   const isCompleted = isChecklistComplete(progress);
 
   useEffect(() => {
-    if (error) {
+    if (error || isLoading) {
       return; // don't show the onboarding guide if we failed to load the onboarding data
     }
     if (showGuide && isCompleted) {
@@ -98,14 +98,10 @@ export default function OnboardingChecklist(): ReactElement {
         return;
       }
     }
-    // the form is completed, no need to show the guide
-    if (!showGuide && isCompleted) {
-      return;
-    }
     if (!showGuide && !isCompleted) {
       setShowGuide(true);
     }
-  }, [isValidating, error, isCompleted]);
+  }, [isLoading, isValidating, error, isCompleted]);
 
   if (isLoading) {
     return <Skeleton />;
