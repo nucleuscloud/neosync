@@ -447,33 +447,31 @@ const transformCharacterScrambleConfig = Yup.object().shape({
   userProvidedRegex: Yup.string().optional(),
 });
 
-const EMPTY_TRANSFORMER_CONFIG = Yup.object({
-  case: Yup.string(),
-  value: Yup.object(),
-});
+// This is intended to be empty and is used for any transformer config that has no configuration options
+const EMPTY_TRANSFORMER_VALUE_CONFIG = Yup.object({});
 
 // Using this "as const" allows typescript to infer the types based on the shape we've described in the Yup object
 // Ideally we can more explicitly type this in the future based on the Transformer types we get from @neosync/sdk
 export const TRANSFORMER_SCHEMA_CONFIGS = {
-  generateBoolConfig: EMPTY_TRANSFORMER_CONFIG,
-  generateCityConfig: EMPTY_TRANSFORMER_CONFIG,
-  generateDefaultConfig: EMPTY_TRANSFORMER_CONFIG,
-  generateEmailConfig: EMPTY_TRANSFORMER_CONFIG,
-  generateFirstNameConfig: EMPTY_TRANSFORMER_CONFIG,
-  generateFullAddressConfig: EMPTY_TRANSFORMER_CONFIG,
-  generateFullNameConfig: EMPTY_TRANSFORMER_CONFIG,
-  generateInt64PhoneNumberConfig: EMPTY_TRANSFORMER_CONFIG,
-  generateLastNameConfig: EMPTY_TRANSFORMER_CONFIG,
-  generateSha256hashConfig: EMPTY_TRANSFORMER_CONFIG,
-  generateSsnConfig: EMPTY_TRANSFORMER_CONFIG,
-  generateStateConfig: EMPTY_TRANSFORMER_CONFIG,
-  generateStreetAddressConfig: EMPTY_TRANSFORMER_CONFIG,
-  generateUnixtimestampConfig: EMPTY_TRANSFORMER_CONFIG,
-  generateUsernameConfig: EMPTY_TRANSFORMER_CONFIG,
-  generateUtctimestampConfig: EMPTY_TRANSFORMER_CONFIG,
-  generateZipcodeConfig: EMPTY_TRANSFORMER_CONFIG,
-  nullconfig: EMPTY_TRANSFORMER_CONFIG,
-  passthroughConfig: EMPTY_TRANSFORMER_CONFIG,
+  generateBoolConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
+  generateCityConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
+  generateDefaultConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
+  generateEmailConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
+  generateFirstNameConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
+  generateFullAddressConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
+  generateFullNameConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
+  generateInt64PhoneNumberConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
+  generateLastNameConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
+  generateSha256hashConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
+  generateSsnConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
+  generateStateConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
+  generateStreetAddressConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
+  generateUnixtimestampConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
+  generateUsernameConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
+  generateUtctimestampConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
+  generateZipcodeConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
+  nullconfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
+  passthroughConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
 
   transformEmailConfig: transformEmailConfig,
   generateCardNumberConfig: generateCardNumberConfig,
@@ -509,7 +507,12 @@ const KEYED_TRANSFORMER_SCHEMA_CONFIGS: Record<
 export const TransformerConfigSchema = Yup.lazy((v) => {
   const ccase = v?.case as TransformerConfigCase;
   if (!ccase) {
-    return EMPTY_TRANSFORMER_CONFIG;
+    return Yup.object({
+      case: Yup.string().required(
+        'A valid transformer configuration must be provided.'
+      ),
+      value: Yup.object().required(),
+    });
   }
   const cconfig = KEYED_TRANSFORMER_SCHEMA_CONFIGS[ccase];
   return Yup.object({
