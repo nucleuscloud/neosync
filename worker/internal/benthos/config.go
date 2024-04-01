@@ -180,6 +180,7 @@ type SwitchOutputCase struct {
 	Output   Outputs `json:"output,omitempty" yaml:"output,omitempty"`
 }
 type ErrorOutputConfig struct {
+	ErrorMsg string    `json:"error_msg" yaml:"error_msg"`
 	Batching *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
 }
 

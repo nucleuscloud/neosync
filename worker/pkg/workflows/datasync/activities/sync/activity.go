@@ -101,7 +101,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	}
 	logger := log.With(activity.GetLogger(ctx), loggerKeyVals...)
 	slogger := logger_utils.NewJsonSLogger().With(loggerKeyVals...)
-	stopActivityChan := make(chan bool, 1)
+	stopActivityChan := make(chan error, 1)
 	resultChan := make(chan error, 1)
 	benthosStreamMutex := sync.Mutex{}
 	var benthosStream BenthosStreamClient
@@ -110,8 +110,8 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 			select {
 			case <-time.After(1 * time.Second):
 				activity.RecordHeartbeat(ctx)
-			case <-stopActivityChan:
-				resultChan <- fmt.Errorf("received stop activity signal")
+			case activityErr := <-stopActivityChan:
+				resultChan <- activityErr
 				benthosStreamMutex.Lock()
 				if benthosStream != nil {
 					// this must be here because stream.Run(ctx) doesn't seem to fully obey a canceled context when

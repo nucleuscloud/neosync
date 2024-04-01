@@ -13,7 +13,7 @@ func errorProcessorSpec() *service.ConfigSpec {
 }
 
 // Registers an processor on a benthos environment called error
-func RegisterErrorProcessor(env *service.Environment, stopActivityChannel chan bool) error {
+func RegisterErrorProcessor(env *service.Environment, stopActivityChannel chan error) error {
 	return env.RegisterBatchProcessor(
 		"error", errorProcessorSpec(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchProcessor, error) {
@@ -23,10 +23,10 @@ func RegisterErrorProcessor(env *service.Environment, stopActivityChannel chan b
 
 type errorProcessor struct {
 	logger              *service.Logger
-	stopWorkflowChannel chan bool
+	stopWorkflowChannel chan error
 }
 
-func newErrorProcessor(logger *service.Logger, channel chan bool) *errorProcessor {
+func newErrorProcessor(logger *service.Logger, channel chan error) *errorProcessor {
 	return &errorProcessor{
 		logger:              logger,
 		stopWorkflowChannel: channel,
@@ -35,8 +35,8 @@ func newErrorProcessor(logger *service.Logger, channel chan bool) *errorProcesso
 
 func (r *errorProcessor) ProcessBatch(_ context.Context, batch service.MessageBatch) ([]service.MessageBatch, error) {
 	r.logger.Error("Error processor: sending stop activity signal")
-	r.stopWorkflowChannel <- true
-	return nil, fmt.Errorf("Processor error occurred. Stopping Activity.")
+	r.stopWorkflowChannel <- fmt.Errorf("Processor Error") // todo replace this with real error
+	return []service.MessageBatch{}, nil
 }
 
 func (r *errorProcessor) Close(ctx context.Context) error {

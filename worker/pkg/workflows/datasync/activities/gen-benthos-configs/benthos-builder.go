@@ -420,7 +420,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					// 		Driver: postgresDriver,
 					// 		Dsn:    dsn,
 
-					// 		Query:       out.Query,
+					// 		Query:       out.Query,P
 					// 		ArgsMapping: out.ArgsMapping,
 
 					// 		Batching: &neosync_benthos.Batching{
@@ -440,12 +440,28 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 									ArgsMapping: out.ArgsMapping,
 
 									Batching: &neosync_benthos.Batching{
-										Period: "5s",
-										Count:  100,
+										Period: "1s",
+										Count:  1,
 									},
 								},
 							},
-							{Error: &neosync_benthos.ErrorOutputConfig{}},
+							{Error: &neosync_benthos.ErrorOutputConfig{
+								ErrorMsg: `${! meta("fallback_error")}`,
+							}},
+							{
+								PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
+									Driver: postgresDriver,
+									Dsn:    dsn,
+
+									Query:       out.Query,
+									ArgsMapping: out.ArgsMapping,
+
+									Batching: &neosync_benthos.Batching{
+										Period: "1s",
+										Count:  1,
+									},
+								},
+							},
 						},
 					})
 

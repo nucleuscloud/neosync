@@ -14,11 +14,11 @@ func Test_ErrorProcessorEmptyShutdown(t *testing.T) {
 }
 
 func Test_ErrorProcessorSendSignal(t *testing.T) {
-	stopWorkflowChan := make(chan bool, 1)
-	errorProcessor := newErrorProcessor(service.MockResources().Logger(), stopWorkflowChan)
+	stopActivityChan := make(chan error, 1)
+	errorProcessor := newErrorProcessor(service.MockResources().Logger(), stopActivityChan)
 	ctx := context.Background()
 	_, err := errorProcessor.ProcessBatch(ctx, service.MessageBatch{})
-	out := <-stopWorkflowChan
-	require.True(t, out)
-	require.Error(t, err)
+	out := <-stopActivityChan
+	require.Error(t, out)
+	require.NoError(t, err)
 }
