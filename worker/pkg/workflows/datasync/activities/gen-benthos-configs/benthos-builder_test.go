@@ -4828,7 +4828,7 @@ func Test_ConstructBenthosJsProcessorTransformJS(t *testing.T) {
 	benthosOutputs := []string{}
 	s := mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT
 
-	benthosOutput := constructBenthosOutput(nameCol, s)
+	benthosOutput := constructBenthosJavascriptObject(nameCol, s)
 	jsFunction := constructJsFunction(transformJsCodeFnStr, nameCol, s)
 	benthosOutputs = append(benthosOutputs, benthosOutput)
 
@@ -4855,7 +4855,7 @@ func Test_ConstructBenthosJsProcessorGenerateJS(t *testing.T) {
 	benthosOutputs := []string{}
 	s := mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT
 
-	benthosOutput := constructBenthosOutput(nameCol, s)
+	benthosOutput := constructBenthosJavascriptObject(nameCol, s)
 	jsFunction := constructJsFunction(generateJSCodeFnStr, nameCol, s)
 	benthosOutputs = append(benthosOutputs, benthosOutput)
 
@@ -4879,13 +4879,13 @@ benthos.v0_msg_set_structured(output);
 
 func Test_ConstructBenthosOutputTranformJs(t *testing.T) {
 	s := mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT
-	res := constructBenthosOutput("col", s)
+	res := constructBenthosJavascriptObject("col", s)
 	assert.Equal(t, `output["col"] = fn_col(input["col"], input);`, res)
 }
 
 func Test_ConstructBenthosOutputGenerateJs(t *testing.T) {
 	s := mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT
-	res := constructBenthosOutput("col", s)
+	res := constructBenthosJavascriptObject("col", s)
 	assert.Equal(t, `output["col"] = fn_col();`, res)
 }
 
