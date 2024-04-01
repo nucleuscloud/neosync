@@ -267,6 +267,7 @@ async function updateJobConnection(
   values: SourceFormValues,
   connection: Connection
 ): Promise<UpdateJobSourceConnectionResponse> {
+  console.log('values', values);
   const res = await fetch(
     `/api/accounts/${accountId}/jobs/${job.id}/source-connection`,
     {
