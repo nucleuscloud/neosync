@@ -142,18 +142,24 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   };
 
+  // used to set the select if the user navigates bakc to the form
   useEffect(() => {
     const cron = form.getValues('cronSchedule');
-
+    // TODO: handle setting the select back to the value that the user selected in the useEffect
     console.log('the cron', cron);
 
-    if (scheduleOptions.some((item) => item.cron == cron)) {
+    if (cron && scheduleOptions.some((item) => item.cron == cron)) {
       setIsScheduleEnabled(true);
       setCronSchedule(scheduleOptions.find((item) => item.cron == cron)?.name!);
       console.log('crrrrrr on useEffect', cron);
+      console.log(
+        'finding it ',
+        scheduleOptions.find((item) => item.cron == cron)?.name
+      );
     }
-  }, [form.getValues('cronSchedule')]);
+  });
 
+  // used to handle setting the error states on the custom cron input
   useEffect(() => {
     if (form.formState.errors.cronSchedule) {
       form.setError('cronSchedule', {
@@ -164,6 +170,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   }, [form.formState.errors.cronSchedule?.message]);
 
   console.log('schedle', cronSchedule);
+  console.log('the string', form.getValues('cronSchedule'));
 
   return (
     <div
