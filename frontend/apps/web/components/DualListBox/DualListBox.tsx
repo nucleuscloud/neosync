@@ -137,7 +137,7 @@ export default function DualListBox(props: Props): ReactElement {
           </div>
         )}
       </div>
-      <div className="flex flex-1 border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden">
+      <div className="flex flex-1 min-h-10 border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden">
         <ListBox
           columns={rightCols}
           data={rightData}
