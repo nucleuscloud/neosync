@@ -137,6 +137,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             jobType="sync"
             constraintHandler={schemaConstraintHandler}
             schema={connectionSchemaDataMap?.schemaMap ?? {}}
+            isSchemaDataReloading={isSchemaMapValidating}
           />
           <div className="flex flex-row gap-1 justify-between">
             <Button key="back" type="button" onClick={() => router.back()}>

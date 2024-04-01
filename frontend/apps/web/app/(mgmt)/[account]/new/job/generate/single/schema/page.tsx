@@ -266,6 +266,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               excludeInputReqTransformers
               constraintHandler={schemaConstraintHandler}
               schema={connectionSchemaDataMap?.schemaMap ?? {}}
+              isSchemaDataReloading={isSchemaMapValidating}
               jobType={'generate'}
             />
           )}

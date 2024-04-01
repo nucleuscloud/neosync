@@ -45,13 +45,10 @@ export function getListBoxColumns(props: ListBoxColumnProps): ColumnDef<Row>[] {
     {
       accessorKey: 'value',
       header: ({ column }) => <ColumnHeader column={column} title={title} />,
-      cell: ({ row }) => {
+      cell: ({ getValue }) => {
         return (
-          <label
-            htmlFor={row.getValue('value')}
-            className="max-w-[500px] truncate font-medium cursor-pointer"
-          >
-            {row.getValue('value')}
+          <label className="max-w-[500px] truncate font-medium cursor-pointer">
+            {getValue<string>()}
           </label>
         );
       },
