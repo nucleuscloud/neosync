@@ -505,6 +505,17 @@ var (
 				},
 			},
 		},
+		{
+			Name:        "Generate Javascript",
+			Description: "Write custom Javascript to generate synthetic data.",
+			DataType:    mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_ANY,
+			Source:      mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT,
+			Config: &mgmtv1alpha1.TransformerConfig{
+				Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
+					GenerateJavascriptConfig: &mgmtv1alpha1.GenerateJavascript{Code: `return "testvalue";`},
+				},
+			},
+		},
 	}
 
 	systemTransformerSourceMap = map[mgmtv1alpha1.TransformerSource]*mgmtv1alpha1.SystemTransformer{}

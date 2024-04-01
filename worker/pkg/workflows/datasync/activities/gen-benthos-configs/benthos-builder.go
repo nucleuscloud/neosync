@@ -380,7 +380,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 				transformer := colTransformerMap[tableKey][col]
 				if shouldProcessFkColumn(transformer) {
 					if b.redisConfig == nil {
-						return nil, fmt.Errorf("missing redis config. this operation requires redis.")
+						return nil, fmt.Errorf("missing redis config. this operation requires redis")
 					}
 					hashedKey := neosync_benthos.HashBenthosCacheKey(b.jobId, b.runId, tableKey, col)
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
@@ -737,9 +737,25 @@ func buildBenthosGenerateSourceConfigResponses(
 			count = tableOpt.Count
 		}
 
-		mapping, err := buildMutationConfigs(ctx, transformerclient, tableMapping.Mappings, columnInfo)
+		jsCode, err := extractJsFunctionsAndOutputs(ctx, transformerclient, tableMapping.Mappings)
 		if err != nil {
 			return nil, err
+		}
+
+		mutations, err := buildMutationConfigs(ctx, transformerclient, tableMapping.Mappings, columnInfo)
+		if err != nil {
+			return nil, err
+		}
+
+		// for the generate input, benthos requires a mapping, so falling back to a
+		// generic empty object if the mutations are empty
+		if mutations == "" {
+			mutations = "root = {}"
+		}
+
+		var processors []neosync_benthos.ProcessorConfig
+		if jsCode != "" {
+			processors = []neosync_benthos.ProcessorConfig{{Javascript: &neosync_benthos.JavascriptConfig{Code: jsCode}}}
 		}
 
 		bc := &neosync_benthos.BenthosConfig{
@@ -749,13 +765,13 @@ func buildBenthosGenerateSourceConfigResponses(
 						Generate: &neosync_benthos.Generate{
 							Interval: "",
 							Count:    count,
-							Mapping:  mapping,
+							Mapping:  mutations,
 						},
 					},
 				},
 				Pipeline: &neosync_benthos.PipelineConfig{
 					Threads:    -1,
-					Processors: []neosync_benthos.ProcessorConfig{},
+					Processors: processors,
 				},
 				Output: &neosync_benthos.OutputConfig{
 					Outputs: neosync_benthos.Outputs{
@@ -1478,11 +1494,18 @@ func extractJsFunctionsAndOutputs(ctx context.Context, transformerclient mgmtv1a
 				}
 				col.Transformer = val
 			}
-			if col.Transformer.Source == mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT {
+			switch col.Transformer.Source {
+			case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT:
 				code := col.Transformer.Config.GetTransformJavascriptConfig().Code
 				if code != "" {
-					jsFunctions = append(jsFunctions, constructJsFunction(code, col.Column))
-					benthosOutputs = append(benthosOutputs, constructBenthosOutput(col.Column))
+					jsFunctions = append(jsFunctions, constructJsFunction(code, col.Column, col.Transformer.Source))
+					benthosOutputs = append(benthosOutputs, constructBenthosJavascriptObject(col.Column, col.Transformer.Source))
+				}
+			case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT:
+				code := col.Transformer.Config.GetGenerateJavascriptConfig().Code
+				if code != "" {
+					jsFunctions = append(jsFunctions, constructJsFunction(code, col.Column, col.Transformer.Source))
+					benthosOutputs = append(benthosOutputs, constructBenthosJavascriptObject(col.Column, col.Transformer.Source))
 				}
 			}
 		}
@@ -1514,7 +1537,7 @@ func buildMutationConfigs(
 				}
 				col.Transformer = val
 			}
-			if col.Transformer.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT {
+			if col.Transformer.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT && col.Transformer.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT {
 				mutation, err := computeMutationFunction(col, colInfo)
 				if err != nil {
 					return "", fmt.Errorf("%s is not a supported transformer: %w", col.Transformer, err)
@@ -1572,7 +1595,7 @@ func buildRedisGetBranchConfig(
 	redisConfig *shared.RedisConfig,
 ) (*neosync_benthos.BranchConfig, error) {
 	if redisConfig == nil {
-		return nil, fmt.Errorf("missing redis config. this operation requires redis.")
+		return nil, fmt.Errorf("missing redis config. this operation requires redis")
 	}
 	return &neosync_benthos.BranchConfig{
 		RequestMap: requestMap,
@@ -1607,14 +1630,21 @@ func shouldProcessFkColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {
 		t.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT
 }
 
-func constructJsFunction(jsCode, col string) string {
-	if jsCode != "" {
+func constructJsFunction(jsCode, col string, source mgmtv1alpha1.TransformerSource) string {
+	switch source {
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT:
 		return fmt.Sprintf(`
 function fn_%s(value, input){
   %s
 };
 `, col, jsCode)
-	} else {
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT:
+		return fmt.Sprintf(`
+function fn_%s(){
+  %s
+};
+`, col, jsCode)
+	default:
 		return ""
 	}
 }
@@ -1635,8 +1665,15 @@ benthos.v0_msg_set_structured(output);
 	return jsCode
 }
 
-func constructBenthosOutput(col string) string {
-	return fmt.Sprintf(`output["%[1]s"] = fn_%[1]s(input["%[1]s"], input);`, col)
+func constructBenthosJavascriptObject(col string, source mgmtv1alpha1.TransformerSource) string {
+	switch source {
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT:
+		return fmt.Sprintf(`output["%[1]s"] = fn_%[1]s(input["%[1]s"], input);`, col)
+	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT:
+		return fmt.Sprintf(`output["%[1]s"] = fn_%[1]s();`, col)
+	default:
+		return ""
+	}
 }
 
 // takes in an user defined config with just an id field and return the right transformer config for that user defined function id

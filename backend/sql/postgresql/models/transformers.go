@@ -51,6 +51,7 @@ type TransformerConfigs struct {
 	TransformJavascript        *TransformJavascriptConfig       `json:"transformJavascript,omitempty"`
 	GenerateCategorical        *GenerateCategoricalConfig       `json:"generateCategorical,omitempty"`
 	TransformCharacterScramble *TransformCharacterScramble      `json:"transformCharacterScramble,omitempty"`
+	GenerateJavascript         *GenerateJavascript              `json:"generateJavascript,omitempty"`
 }
 
 type GenerateEmailConfig struct{}
@@ -187,6 +188,10 @@ type GenerateCategoricalConfig struct {
 
 type TransformCharacterScramble struct {
 	UserProvidedRegex *string `json:"userProvidedRegex,omitempty"`
+}
+
+type GenerateJavascript struct {
+	Code string `json:"code"`
 }
 
 // from API -> DB
@@ -343,6 +348,10 @@ func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.Transform
 	case *mgmtv1alpha1.TransformerConfig_TransformCharacterScrambleConfig:
 		t.TransformCharacterScramble = &TransformCharacterScramble{
 			UserProvidedRegex: tr.GetTransformCharacterScrambleConfig().UserProvidedRegex,
+		}
+	case *mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig:
+		t.GenerateJavascript = &GenerateJavascript{
+			Code: tr.GetGenerateJavascriptConfig().Code,
 		}
 	default:
 		t = &TransformerConfigs{}
@@ -665,6 +674,14 @@ func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerC
 			Config: &mgmtv1alpha1.TransformerConfig_TransformCharacterScrambleConfig{
 				TransformCharacterScrambleConfig: &mgmtv1alpha1.TransformCharacterScramble{
 					UserProvidedRegex: t.TransformCharacterScramble.UserProvidedRegex,
+				},
+			},
+		}
+	case t.GenerateJavascript != nil:
+		return &mgmtv1alpha1.TransformerConfig{
+			Config: &mgmtv1alpha1.TransformerConfig_GenerateJavascriptConfig{
+				GenerateJavascriptConfig: &mgmtv1alpha1.GenerateJavascript{
+					Code: t.GenerateJavascript.Code,
 				},
 			},
 		}
