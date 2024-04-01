@@ -2,7 +2,7 @@ package neosync_benthos_sql
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"sync"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
@@ -139,41 +139,42 @@ func (s *pooledOutput) Connect(ctx context.Context) error {
 }
 
 func (s *pooledOutput) WriteBatch(ctx context.Context, batch service.MessageBatch) error {
-	s.dbMut.RLock()
-	defer s.dbMut.RUnlock()
+	return errors.New("write error")
+	// s.dbMut.RLock()
+	// defer s.dbMut.RUnlock()
 
-	for i := range batch {
-		var args []any
-		if s.argsMapping != nil {
-			resMsg, err := batch.BloblangQuery(i, s.argsMapping)
-			if err != nil {
-				return err
-			}
+	// for i := range batch {
+	// 	var args []any
+	// 	if s.argsMapping != nil {
+	// 		resMsg, err := batch.BloblangQuery(i, s.argsMapping)
+	// 		if err != nil {
+	// 			return err
+	// 		}
 
-			iargs, err := resMsg.AsStructured()
-			if err != nil {
-				return err
-			}
+	// 		iargs, err := resMsg.AsStructured()
+	// 		if err != nil {
+	// 			return err
+	// 		}
 
-			var ok bool
-			if args, ok = iargs.([]any); !ok {
-				return fmt.Errorf("mapping returned non-array result: %T", iargs)
-			}
-		}
+	// 		var ok bool
+	// 		if args, ok = iargs.([]any); !ok {
+	// 			return fmt.Errorf("mapping returned non-array result: %T", iargs)
+	// 		}
+	// 	}
 
-		queryStr := s.queryStatic
-		if s.queryDyn != nil {
-			var err error
-			if queryStr, err = batch.TryInterpolatedString(i, s.queryDyn); err != nil {
-				return fmt.Errorf("query interpolation error: %w", err)
-			}
-		}
+	// 	queryStr := s.queryStatic
+	// 	if s.queryDyn != nil {
+	// 		var err error
+	// 		if queryStr, err = batch.TryInterpolatedString(i, s.queryDyn); err != nil {
+	// 			return fmt.Errorf("query interpolation error: %w", err)
+	// 		}
+	// 	}
 
-		if _, err := s.db.ExecContext(ctx, queryStr, args...); err != nil {
-			return err
-		}
-	}
-	return nil
+	// 	if _, err := s.db.ExecContext(ctx, queryStr, args...); err != nil {
+	// 		return err
+	// 	}
+	// }
+	// return nil
 }
 
 func (s *pooledOutput) Close(ctx context.Context) error {

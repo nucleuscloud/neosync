@@ -61,6 +61,9 @@ func (e *errorOutput) Connect(ctx context.Context) error {
 }
 
 func (e *errorOutput) WriteBatch(ctx context.Context, batch service.MessageBatch) error {
+	fmt.Println("")
+	fmt.Println("ERROR OUTPUT")
+	fmt.Println("")
 	for i := range batch {
 		errMsg, err := batch.TryInterpolatedString(i, e.errorMsg)
 		if err != nil {
@@ -68,8 +71,7 @@ func (e *errorOutput) WriteBatch(ctx context.Context, batch service.MessageBatch
 		}
 		if isMaxConnectionError(errMsg) {
 			fmt.Println("ignore error")
-			// continue // skip sending a stop activity signal
-			return fmt.Errorf("skip connection error")
+			return nil
 		}
 		fmt.Println("sending stop activity signal")
 		e.logger.Error(fmt.Sprintf("Benthos Error output - sending stop activity signal: %s ", errMsg))

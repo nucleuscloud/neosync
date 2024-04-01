@@ -148,8 +148,9 @@ type JavascriptConfig struct {
 }
 
 type OutputConfig struct {
-	Label   string `json:"label" yaml:"label"`
-	Outputs `json:",inline" yaml:",inline"`
+	Label      string `json:"label" yaml:"label"`
+	Outputs    `json:",inline" yaml:",inline"`
+	Processors []ProcessorConfig `json:"processors,omitempty" yaml:"processors,omitempty"`
 	// Broker  *OutputBrokerConfig `json:"broker,omitempty" yaml:"broker,omitempty"`
 }
 
@@ -229,9 +230,9 @@ type InlineRetryConfig struct {
 }
 
 type Backoff struct {
-	InitialInterval string `json:"initial_interval" yaml:"initial_interval"`
-	MaxInterval     string `json:"max_interval" yaml:"max_interval"`
-	MaxElapsedTime  string `json:"max_elapsed_time" yaml:"max_elapsed_time"`
+	InitialInterval string `json:"initial_interval,omitempty" yaml:"initial_interval,omitempty"`
+	MaxInterval     string `json:"max_interval,omitempty" yaml:"max_interval,omitempty"`
+	MaxElapsedTime  string `json:"max_elapsed_time,omitempty" yaml:"max_elapsed_time,omitempty"`
 }
 
 type SqlRaw struct {

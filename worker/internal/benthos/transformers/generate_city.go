@@ -1,6 +1,7 @@
 package transformers
 
 import (
+	"fmt"
 	"math/rand"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
@@ -52,6 +53,9 @@ func GenerateRandomCity(maxLength int64) (string, error) {
 	// -1 because addresses is an array so we don't overflow
 	//nolint:all
 	randomIndex := rand.Intn(len(filteredCities) - 1)
+	fmt.Println()
+	fmt.Println(filteredCities[randomIndex])
+	fmt.Println()
 
 	return filteredCities[randomIndex], nil
 }
