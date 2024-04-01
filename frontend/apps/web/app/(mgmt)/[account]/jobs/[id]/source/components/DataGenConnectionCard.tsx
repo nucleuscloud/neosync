@@ -231,7 +231,7 @@ async function updateJobConnection(
   values: SingleTableSchemaFormValues
 ): Promise<UpdateJobSourceConnectionResponse> {
   const schema = values.mappings.length > 0 ? values.mappings[0].schema : null;
-  const table = values.mappings.length > 0 ? values.mappings[1].table : null;
+  const table = values.mappings.length > 0 ? values.mappings[0].table : null;
   const res = await fetch(
     `/api/accounts/${accountId}/jobs/${job.id}/source-connection`,
     {
