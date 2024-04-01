@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Editor } from '@monaco-editor/react';
-import { TransformJavascript } from '@neosync/sdk';
+import { GenerateJavascript } from '@neosync/sdk';
 import { CheckCircledIcon, CrossCircledIcon } from '@radix-ui/react-icons';
 import { useTheme } from 'next-themes';
 import { ReactElement, useState } from 'react';
@@ -25,7 +25,7 @@ import {
 } from '../../new/transformer/UserDefinedTransformerForms/UserDefinedTransformJavascriptForm';
 import { TRANSFORMER_SCHEMA_CONFIGS } from '../../new/transformer/schema';
 import { TransformerFormProps } from './util';
-interface Props extends TransformerFormProps<TransformJavascript> {}
+interface Props extends TransformerFormProps<GenerateJavascript> {}
 
 export default function GenerateJavascriptForm(props: Props): ReactElement {
   const { existingConfig, onSubmit, isReadonly } = props;
@@ -142,7 +142,7 @@ export default function GenerateJavascriptForm(props: Props): ReactElement {
             onClick={(e) => {
               form.handleSubmit((values) => {
                 onSubmit(
-                  new TransformJavascript({
+                  new GenerateJavascript({
                     ...values,
                   })
                 );

@@ -1499,13 +1499,13 @@ func extractJsFunctionsAndOutputs(ctx context.Context, transformerclient mgmtv1a
 				code := col.Transformer.Config.GetTransformJavascriptConfig().Code
 				if code != "" {
 					jsFunctions = append(jsFunctions, constructJsFunction(code, col.Column, col.Transformer.Source))
-					benthosOutputs = append(benthosOutputs, constructBenthosOutput(col.Column, col.Transformer.Source))
+					benthosOutputs = append(benthosOutputs, constructBenthosJavascriptObject(col.Column, col.Transformer.Source))
 				}
 			case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT:
 				code := col.Transformer.Config.GetGenerateJavascriptConfig().Code
 				if code != "" {
 					jsFunctions = append(jsFunctions, constructJsFunction(code, col.Column, col.Transformer.Source))
-					benthosOutputs = append(benthosOutputs, constructBenthosOutput(col.Column, col.Transformer.Source))
+					benthosOutputs = append(benthosOutputs, constructBenthosJavascriptObject(col.Column, col.Transformer.Source))
 				}
 			}
 		}
@@ -1630,30 +1630,6 @@ func shouldProcessFkColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {
 		t.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT
 }
 
-// func constructTransformJsFunction(jsCode, col string) string {
-// 	if jsCode != "" {
-// 		return fmt.Sprintf(`
-// function fn_%s(value, input){
-//   %s
-// };
-// `, col, jsCode)
-// 	} else {
-// 		return ""
-// 	}
-// }
-
-// func constructGenerateJsFunction(jsCode, col string) string {
-// 	if jsCode != "" {
-// 		return fmt.Sprintf(`
-// function fn_%s(){
-//   %s
-// };
-// `, col, jsCode)
-// 	} else {
-// 		return ""
-// 	}
-// }
-
 func constructJsFunction(jsCode, col string, source mgmtv1alpha1.TransformerSource) string {
 	switch source {
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT:
@@ -1689,7 +1665,7 @@ benthos.v0_msg_set_structured(output);
 	return jsCode
 }
 
-func constructBenthosOutput(col string, source mgmtv1alpha1.TransformerSource) string {
+func constructBenthosJavascriptObject(col string, source mgmtv1alpha1.TransformerSource) string {
 	switch source {
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT:
 		return fmt.Sprintf(`output["%[1]s"] = fn_%[1]s(input["%[1]s"], input);`, col)
