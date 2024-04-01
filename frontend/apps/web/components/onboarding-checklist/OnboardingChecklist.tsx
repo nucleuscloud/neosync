@@ -90,7 +90,7 @@ export default function OnboardingChecklist(): ReactElement {
 
   useEffect(() => {
     if (error || isLoading) {
-      return; // don't show the onboarding guide if we failed to load the onboarding data
+      return;
     }
     if (showGuide && isCompleted) {
       {
