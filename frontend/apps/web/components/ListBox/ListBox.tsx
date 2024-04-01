@@ -137,6 +137,7 @@ export default function ListBox<TData, TValue>(
                   transform: `translateY(${virtualRow.start}px)`,
                 }}
                 className="items-center flex absolute w-full px-2"
+                onClick={row.getToggleSelectedHandler()}
               >
                 {row.getVisibleCells().map((cell) => {
                   return (
