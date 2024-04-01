@@ -83,7 +83,7 @@ export default function ListBox<TData, TValue>(
   return (
     <div
       className={cn(
-        'max-h-[164px] overflow-auto relative w-full',
+        'max-h-[164px] overflow-x-auto relative w-full rounded-md border border-gray-300 dark:border-gray-700',
         tableContainerClassName
       )}
       ref={tableContainerRef}
