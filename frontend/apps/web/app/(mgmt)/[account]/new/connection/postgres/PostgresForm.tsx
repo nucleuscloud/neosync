@@ -50,6 +50,7 @@ import {
   ConnectionRolePrivilege,
   CreateConnectionRequest,
   CreateConnectionResponse,
+  GetAccountOnboardingConfigResponse,
   GetConnectionResponse,
   IsConnectionNameAvailableResponse,
   PostgresConnection,
@@ -148,14 +149,18 @@ export default function PostgresForm() {
       // updates the onboarding data
       if (onboardingData?.config?.hasCreatedSourceConnection) {
         try {
-          await setOnboardingConfig(account.id, {
+          const resp = await setOnboardingConfig(account.id, {
             hasCreatedSourceConnection:
               onboardingData.config.hasCreatedSourceConnection,
             hasCreatedDestinationConnection: true,
             hasCreatedJob: onboardingData.config.hasCreatedJob,
             hasInvitedMembers: onboardingData.config.hasInvitedMembers,
           });
-          mutate();
+          mutate(
+            new GetAccountOnboardingConfigResponse({
+              config: resp.config,
+            })
+          );
         } catch (e) {
           toast({
             title: 'Unable to update onboarding status!',
@@ -164,7 +169,7 @@ export default function PostgresForm() {
         }
       } else {
         try {
-          await setOnboardingConfig(account.id, {
+          const resp = await setOnboardingConfig(account.id, {
             hasCreatedSourceConnection: true,
             hasCreatedDestinationConnection:
               onboardingData?.config?.hasCreatedSourceConnection ?? true,
@@ -172,7 +177,11 @@ export default function PostgresForm() {
             hasInvitedMembers:
               onboardingData?.config?.hasInvitedMembers ?? true,
           });
-          mutate();
+          mutate(
+            new GetAccountOnboardingConfigResponse({
+              config: resp.config,
+            })
+          );
         } catch (e) {
           toast({
             title: 'Unable to update onboarding status!',
@@ -202,7 +211,7 @@ export default function PostgresForm() {
   }
 
   /* we call the underlying useGetConnection API directly since we can't call
-the hook in the useEffect conditionally. This is used to retrieve the values for the clone connection so that we can update the form. 
+the hook in the useEffect conditionally. This is used to retrieve the values for the clone connection so that we can update the form.
 */
   useEffect(() => {
     const fetchData = async () => {

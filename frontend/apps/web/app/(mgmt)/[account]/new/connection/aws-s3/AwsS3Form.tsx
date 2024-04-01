@@ -29,6 +29,7 @@ import {
   ConnectionConfig,
   CreateConnectionRequest,
   CreateConnectionResponse,
+  GetAccountOnboardingConfigResponse,
 } from '@neosync/sdk';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -73,14 +74,18 @@ export default function AwsS3Form() {
         !onboardingData?.config.hasCreatedDestinationConnection
       ) {
         try {
-          await setOnboardingConfig(account.id, {
+          const resp = await setOnboardingConfig(account.id, {
             hasCreatedSourceConnection:
               onboardingData.config.hasCreatedSourceConnection,
             hasCreatedDestinationConnection: true,
             hasCreatedJob: onboardingData.config.hasCreatedJob,
             hasInvitedMembers: onboardingData.config.hasInvitedMembers,
           });
-          mutate();
+          mutate(
+            new GetAccountOnboardingConfigResponse({
+              config: resp.config,
+            })
+          );
         } catch (e) {
           toast({
             title: 'Unable to update onboarding status!',
@@ -89,7 +94,7 @@ export default function AwsS3Form() {
         }
       } else {
         try {
-          await setOnboardingConfig(account.id, {
+          const resp = await setOnboardingConfig(account.id, {
             hasCreatedSourceConnection: true,
             hasCreatedDestinationConnection:
               onboardingData?.config?.hasCreatedSourceConnection ?? true,
@@ -97,7 +102,11 @@ export default function AwsS3Form() {
             hasInvitedMembers:
               onboardingData?.config?.hasInvitedMembers ?? true,
           });
-          mutate();
+          mutate(
+            new GetAccountOnboardingConfigResponse({
+              config: resp.config,
+            })
+          );
         } catch (e) {
           toast({
             title: 'Unable to update onboarding status!',
@@ -121,7 +130,7 @@ export default function AwsS3Form() {
     }
   }
   /* we call the underlying useGetConnection API directly since we can't call
-the hook in the useEffect conditionally. This is used to retrieve the values for the clone connection so that we can update the form. 
+the hook in the useEffect conditionally. This is used to retrieve the values for the clone connection so that we can update the form.
 */
   useEffect(() => {
     const fetchData = async () => {
