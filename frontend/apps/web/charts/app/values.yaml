@@ -40,7 +40,7 @@ terminationGracePeriodSeconds:
 shutdownTimeoutSeconds:
 
 neosyncApi:
-  url:
+  url: http://neosync-api
 
 nextAuthSecret: 'This is an example'
 nextAuthUrl: 'http://localhost:3000'
@@ -56,7 +56,9 @@ auth:
   scope:
   audience:
 
+# check out the ingress.yaml file to see what ither values are available for configuration on this object.
 ingress:
+  # enable this if using K8s ingress to expose the backend to the internet
   enabled: false
 
 analytics:

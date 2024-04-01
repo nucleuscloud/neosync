@@ -51,14 +51,14 @@ resources:
     cpu: "100m"
     memory: "128Mi"
   limits:
-    cpu: "300m"
-    memory: "384Mi"
+    cpu: "500m"
+    memory: "512Mi"
 
 autoscaling:
-  enabled: true
+  enabled: false
   minReplicas: 1
   maxReplicas: 10
-  targetCPUUtilizationPercentage: 70
+  targetCPUUtilizationPercentage: 80
 
 istio:
   enabled: false
@@ -88,7 +88,13 @@ auth:
     provider:
 
 temporal:
+  # default value based on how Temporal manifests are by default configured
+  # change this based on your temporal configuration
   url: temporal.temporal:7233
+  # if not provided, falls back to hardcoded default value
+  defaultNamespace:
+  # if not provided, falls back to hardcoded default value
+  defaultSyncJobQueue:
   certificate:
     keyFilePath:
     certFilePath:
@@ -108,11 +114,14 @@ neosyncCloud:
 
 kubernetes:
   enabled: true
+  # falls back to the helm release namespace
   namespace:
   # corresponds with the app label that is present on the worker pod
   workerAppName: neosync-worker
 
+# check out the ingress.yaml file to see what ither values are available for configuration on this object.
 ingress:
+  # enable this if using K8s ingress to expose the backend to the internet
   enabled: false
 
 # configure whether or not the api should expose the service metrics proto
