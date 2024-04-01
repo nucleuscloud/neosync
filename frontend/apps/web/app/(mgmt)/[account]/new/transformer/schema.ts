@@ -507,7 +507,9 @@ export const TransformerConfigSchema = Yup.lazy((v) => {
   const ccase = v?.case as TransformerConfigCase;
   if (!ccase) {
     return Yup.object({
-      case: Yup.string().required(),
+      case: Yup.string().required(
+        'A valid transformer configuration must be provided.'
+      ),
       value: Yup.object().required(),
     });
   }
