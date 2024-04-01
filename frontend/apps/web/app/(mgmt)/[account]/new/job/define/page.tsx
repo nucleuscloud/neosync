@@ -129,20 +129,30 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const [customCron, setCustomCron] = useState<boolean>(false);
   const [cronSchedule, setCronSchedule] = useState<string>('');
 
-  console.log('form', form.getValues('cronSchedule'));
-  console.log('controlled cron string', cronSchedule);
-
   const handleSettingCronSchedule = (val: string) => {
-    if (val == 'custom') {
+    const cs = scheduleOptions.find((item) => item.name == val)?.cron;
+    if (val == 'Custom') {
       setCustomCron(true);
       setCronSchedule(val);
     } else {
       setCustomCron(false);
       setCronSchedule(val);
-      form.setValue('cronSchedule', val);
+      form.setValue('cronSchedule', cs);
       form.clearErrors();
     }
   };
+
+  useEffect(() => {
+    const cron = form.getValues('cronSchedule');
+
+    console.log('the cron', cron);
+
+    if (scheduleOptions.some((item) => item.cron == cron)) {
+      setIsScheduleEnabled(true);
+      setCronSchedule(scheduleOptions.find((item) => item.cron == cron)?.name!);
+      console.log('crrrrrr on useEffect', cron);
+    }
+  }, [form.getValues('cronSchedule')]);
 
   useEffect(() => {
     if (form.formState.errors.cronSchedule) {
@@ -153,10 +163,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   }, [form.formState.errors.cronSchedule?.message]);
 
-  console.log('errors', form.formState.errors);
-  console.log('form', form.getValues());
-
-  //TODO: handle saving the staet of the form when you toggle back and forth between pages
+  console.log('schedle', cronSchedule);
 
   return (
     <div
@@ -228,10 +235,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                         handleSettingCronSchedule(value);
                       }}
                       value={cronSchedule}
-                      // defaultValue={
-                      //   scheduleOptions.find((item) => item.name == 'daily')
-                      //     ?.cron!
-                      // }
                     >
                       <SelectTrigger
                         disabled={!isScheduleEnabled}
@@ -244,12 +247,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                           <SelectItem
                             className="cursor-pointer"
                             key={opts.name}
-                            value={opts.cron}
-                            defaultValue={
-                              scheduleOptions.find(
-                                (item) => item.name == 'daily'
-                              )?.cron!
-                            }
+                            value={opts.name}
                           >
                             {opts.name}
                           </SelectItem>
