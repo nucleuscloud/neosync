@@ -156,6 +156,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   console.log('errors', form.formState.errors);
   console.log('form', form.getValues());
 
+  //TODO: handle saving the staet of the form when you toggle back and forth between pages
+
   return (
     <div
       id="newjobdefine"
@@ -209,6 +211,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                       if (!isChecked) {
                         form.resetField('cronSchedule', {
                           keepError: false,
+                          defaultValue: DEFAULT_CRON_STRING,
                         });
                       }
                     }}
@@ -234,7 +237,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                         disabled={!isScheduleEnabled}
                         className="min-w-[400px] w-[400px]"
                       >
-                        <SelectValue placeholder="Select a schedule" />
+                        <SelectValue placeholder="Set a schedule" />
                       </SelectTrigger>
                       <SelectContent>
                         {scheduleOptions.map((opts) => (
