@@ -31,14 +31,14 @@ resources:
     cpu: "100m"
     memory: "128Mi"
   limits:
-    cpu: "300m"
-    memory: "384Mi"
+    cpu: "500m"
+    memory: "512Mi"
 
 autoscaling:
-  enabled: true
+  enabled: false
   minReplicas: 1
   maxReplicas: 10
-  targetCPUUtilizationPercentage: 70
+  targetCPUUtilizationPercentage: 80
 
 istio:
   enabled: false
@@ -50,12 +50,17 @@ terminationGracePeriodSeconds:
 shutdownTimeoutSeconds:
 
 neosync:
-  url:
+  url: http://neosync-api
+  # only required if running the backend in auth-mode
   apiKey:
 
 temporal:
-  url:
+  # default value based on how Temporal manifests are by default configured
+  # change this based on your temporal configuration
+  url: temporal.temporal:7233
+  # if not provided, falls back to hardcoded default value
   namespace:
+  # if not provided, falls back to hardcoded default value
   taskQueue:
 
   certificate:
