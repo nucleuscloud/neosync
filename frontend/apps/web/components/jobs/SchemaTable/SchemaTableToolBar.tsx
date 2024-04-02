@@ -11,35 +11,24 @@ import {
   SchemaFormValues,
   convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
-import {
-  JobMappingTransformer,
-  SystemTransformer,
-  TransformerSource,
-  UserDefinedTransformer,
-} from '@neosync/sdk';
+import { JobMappingTransformer, TransformerSource } from '@neosync/sdk';
 import { CheckIcon, Cross2Icon } from '@radix-ui/react-icons';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { SchemaConstraintHandler } from './SchemaColumns';
 import { SchemaTableViewOptions } from './SchemaTableViewOptions';
 import TransformerSelect from './TransformerSelect';
+import { SchemaConstraintHandler } from './schema-constraint-handler';
+import { TransformerHandler } from './transformer-handler';
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
-  userDefinedTransformers: UserDefinedTransformer[];
-  systemTransformers: SystemTransformer[];
-
-  userDefinedTransformerMap: Map<string, UserDefinedTransformer>;
-  systemTransformerMap: Map<TransformerSource, SystemTransformer>;
+  transformerHandler: TransformerHandler;
   constraintHandler: SchemaConstraintHandler;
 }
 
 export function SchemaTableToolbar<TData>({
   table,
-  userDefinedTransformerMap,
-  userDefinedTransformers,
-  systemTransformerMap,
-  systemTransformers,
+  transformerHandler,
   constraintHandler,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
@@ -59,11 +48,13 @@ export function SchemaTableToolbar<TData>({
     bulkTransformer.source === TransformerSource.USER_DEFINED &&
     bulkTransformer.config.case === 'userDefinedTransformerConfig'
   ) {
-    transformer = userDefinedTransformerMap.get(
+    transformer = transformerHandler.getUserDefinedTransformerById(
       bulkTransformer.config.value.id
     );
   } else {
-    transformer = systemTransformerMap.get(bulkTransformer.source);
+    transformer = transformerHandler.getSystemTransformerBySource(
+      bulkTransformer.source
+    );
   }
 
   return (
@@ -71,10 +62,7 @@ export function SchemaTableToolbar<TData>({
       <div className="flex flex-row justify-between pb-2 items-center w-full">
         <div className="flex flex-col md:flex-row gap-3 w-[250px]">
           <TransformerSelect
-            systemTransformerMap={systemTransformerMap}
-            systemTransformers={systemTransformers}
-            userDefinedTransformerMap={userDefinedTransformerMap}
-            userDefinedTransformers={userDefinedTransformers}
+            transformerHandler={transformerHandler}
             value={bulkTransformer}
             side={'bottom'}
             onSelect={(value) => {

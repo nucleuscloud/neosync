@@ -24,35 +24,24 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { JobMappingFormValues } from '@/yup-validations/jobs';
-import {
-  SystemTransformer,
-  TransformerSource,
-  UserDefinedTransformer,
-} from '@neosync/sdk';
 import { GoWorkflow } from 'react-icons/go';
-import { SchemaConstraintHandler } from './SchemaColumns';
 import { SchemaTableToolbar } from './SchemaTableToolBar';
+import { SchemaConstraintHandler } from './schema-constraint-handler';
+import { TransformerHandler } from './transformer-handler';
 
 export type Row = JobMappingFormValues;
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  userDefinedTransformers: UserDefinedTransformer[];
-  systemTransformers: SystemTransformer[];
-
-  userDefinedTransformerMap: Map<string, UserDefinedTransformer>;
-  systemTransformerMap: Map<TransformerSource, SystemTransformer>;
+  transformerHandler: TransformerHandler;
   constraintHandler: SchemaConstraintHandler;
 }
 
 export default function SchemaPageTable<TData, TValue>({
   columns,
   data,
-  userDefinedTransformerMap,
-  userDefinedTransformers,
-  systemTransformerMap,
-  systemTransformers,
+  transformerHandler,
   constraintHandler,
 }: DataTableProps<TData, TValue>): ReactElement {
   const table = useReactTable({
@@ -106,10 +95,7 @@ export default function SchemaPageTable<TData, TValue>({
       <div className="z-50 pt-4">
         <SchemaTableToolbar
           table={table}
-          systemTransformerMap={systemTransformerMap}
-          systemTransformers={systemTransformers}
-          userDefinedTransformerMap={userDefinedTransformerMap}
-          userDefinedTransformers={userDefinedTransformers}
+          transformerHandler={transformerHandler}
           constraintHandler={constraintHandler}
         />
       </div>

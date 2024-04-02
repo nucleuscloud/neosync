@@ -15,11 +15,6 @@ import {
   JobMappingTransformerForm,
   SchemaFormValues,
 } from '@/yup-validations/jobs';
-import {
-  SystemTransformer,
-  TransformerSource,
-  UserDefinedTransformer,
-} from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ColumnDef, Row } from '@tanstack/react-table';
 import { HTMLProps, ReactElement, useEffect, useRef } from 'react';
@@ -28,6 +23,7 @@ import { SchemaColumnHeader } from './SchemaColumnHeader';
 import { Row as RowData } from './SchemaPageTable';
 import TransformerSelect from './TransformerSelect';
 import { SchemaConstraintHandler } from './schema-constraint-handler';
+import { TransformerHandler } from './transformer-handler';
 
 interface ColumnKey {
   schema: string;
@@ -91,21 +87,13 @@ function RowAlert(props: RowAlertProps): ReactElement {
 }
 
 interface Props {
-  systemTransformers: SystemTransformer[];
-  userDefinedTransformers: UserDefinedTransformer[];
-  systemMap: Map<TransformerSource, SystemTransformer>;
-  userDefinedMap: Map<string, UserDefinedTransformer>;
+  transformerHandler: TransformerHandler;
   constraintHandler: SchemaConstraintHandler;
+  jobType: 'sync' | 'generate';
 }
 
 export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
-  const {
-    systemTransformers,
-    userDefinedTransformers,
-    systemMap,
-    userDefinedMap,
-    constraintHandler,
-  } = props;
+  const { transformerHandler, constraintHandler, jobType } = props;
 
   return [
     {
@@ -324,27 +312,6 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         <SchemaColumnHeader column={column} title="Transformer" />
       ),
       cell: (info) => {
-        const colkey = fromRowDataToColKey(info.row);
-        const [isForeignKey] = constraintHandler.getIsForeignKey(colkey);
-
-        const fkSystemTransformers: SystemTransformer[] = [];
-        if (isForeignKey) {
-          const passthrough = systemMap.get(TransformerSource.PASSTHROUGH);
-          if (passthrough) {
-            fkSystemTransformers.push(passthrough);
-          }
-          if (constraintHandler.getIsNullable(colkey)) {
-            const nullableTf = systemMap.get(TransformerSource.GENERATE_NULL);
-            if (nullableTf) {
-              fkSystemTransformers.push(nullableTf);
-            }
-          }
-        }
-
-        const fkSystemTransformersMap = new Map(
-          fkSystemTransformers.map((t) => [t.source, t])
-        );
-
         const fctx = useFormContext<
           SchemaFormValues | SingleTableSchemaFormValues
         >();
@@ -355,15 +322,34 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
               control={fctx.control}
               render={({ field, fieldState, formState }) => {
                 const fv = field.value as JobMappingTransformerForm;
+                const colkey = fromRowDataToColKey(info.row);
+
+                const [isForeignKey] =
+                  constraintHandler.getIsForeignKey(colkey);
+                const datatype = constraintHandler.getDataType(colkey);
+                const isNullable = constraintHandler.getIsNullable(colkey);
+
+                const filtered = transformerHandler.getFilteredTransformers({
+                  dataTypes: undefined,
+                  foreignKeyOnly: isForeignKey,
+                  isNullable,
+                  jobType,
+                });
+
+                const filteredTransformerHandler = new TransformerHandler(
+                  filtered.system,
+                  filtered.userDefined
+                );
+
                 let transformer: Transformer | undefined;
-                if (
-                  fv.source === TransformerSource.USER_DEFINED &&
-                  fv.config.case === 'userDefinedTransformerConfig'
-                ) {
-                  transformer = userDefinedMap.get(fv.config.value.id);
-                } else {
-                  transformer = systemMap.get(fv.source);
-                }
+                // if (
+                //   fv.source === TransformerSource.USER_DEFINED &&
+                //   fv.config.case === 'userDefinedTransformerConfig'
+                // ) {
+                //   transformer = userDefinedMap.get(fv.config.value.id);
+                // } else {
+                //   transformer = systemMap.get(fv.source);
+                // }
                 return (
                   <FormItem>
                     <FormControl>
@@ -382,20 +368,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                         )}
                         <div>
                           <TransformerSelect
-                            userDefinedTransformers={
-                              isForeignKey ? [] : userDefinedTransformers
-                            }
-                            userDefinedTransformerMap={
-                              isForeignKey ? new Map() : userDefinedMap
-                            }
-                            systemTransformers={
-                              isForeignKey
-                                ? fkSystemTransformers
-                                : systemTransformers
-                            }
-                            systemTransformerMap={
-                              isForeignKey ? fkSystemTransformersMap : systemMap
-                            }
+                            transformerHandler={filteredTransformerHandler}
                             value={fv}
                             onSelect={field.onChange}
                             placeholder="Select Transformer..."
