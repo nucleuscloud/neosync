@@ -169,6 +169,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
           jobType="generate"
           constraintHandler={schemaConstraintHandler}
           schema={connectionSchemaDataMap?.schemaMap ?? {}}
+          isSchemaDataReloading={isSchemaMapValidating}
         />
 
         {form.formState.errors.mappings && (

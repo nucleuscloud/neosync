@@ -149,7 +149,6 @@ export default function SchemaPageTable<TData, TValue>({
             style={{
               height: `${rowVirtualizer.getTotalSize()}px`, //tells scrollbar how big the table is
             }}
-            className="relative grid"
           >
             {rows.length === 0 && (
               <TableRow className="flex justify-center items-center py-10 text-gray-500">

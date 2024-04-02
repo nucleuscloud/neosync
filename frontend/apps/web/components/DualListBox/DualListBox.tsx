@@ -50,13 +50,14 @@ export default function DualListBox(props: Props): ReactElement {
 
   return (
     <div className="flex gap-3 flex-col md:flex-row">
-      <div className="flex flex-1 border border-gray-300 dark:border-gray-700 overflow-hidden rounded-lg">
+      <div className="flex flex-1">
         <ListBox
           columns={leftCols}
           data={leftData}
           onRowSelectionChange={setLeftSelected}
           rowSelection={leftSelected}
           mode={mode}
+          noDataMessage={getLeftBoxNoMessage(options, leftData)}
         />
       </div>
       <div className="flex flex-row md:flex-col justify-center gap-2">
@@ -136,15 +137,37 @@ export default function DualListBox(props: Props): ReactElement {
           </div>
         )}
       </div>
-      <div className="flex flex-1 border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden">
+      <div className="flex flex-1">
         <ListBox
           columns={rightCols}
           data={rightData}
           onRowSelectionChange={setRightSelected}
           rowSelection={rightSelected}
           mode={mode}
+          noDataMessage={getRightBoxNoMessage(options, rightData)}
         />
       </div>
     </div>
   );
+}
+
+function getLeftBoxNoMessage(options: Option[], leftData: Row[]): string {
+  // this isnt super useful right now because the options are always a combination of schema+jobmappings
+  if (options.length === 0) {
+    return 'Found no schema data or was unable to load connection';
+  }
+  if (leftData.length === 0) {
+    return 'All tables have been added!';
+  }
+  return '';
+}
+
+function getRightBoxNoMessage(options: Option[], rightData: Row[]): string {
+  if (options.length === 0) {
+    return 'Found no schema data or was unable to load connection/mappings';
+  }
+  if (rightData.length === 0) {
+    return 'Add tables to get started!';
+  }
+  return '';
 }

@@ -33,6 +33,7 @@ import {
   Connection,
   CreateJobRequest,
   CreateJobResponse,
+  GetAccountOnboardingConfigResponse,
   JobDestination,
   JobMapping,
   JobSource,
@@ -160,7 +161,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       // updates the onboarding data
       if (!onboardingData?.config?.hasCreatedJob) {
         try {
-          await setOnboardingConfig(account.id, {
+          const resp = await setOnboardingConfig(account.id, {
             hasCreatedSourceConnection:
               onboardingData?.config?.hasCreatedSourceConnection ?? true,
             hasCreatedDestinationConnection:
@@ -169,7 +170,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             hasInvitedMembers:
               onboardingData?.config?.hasInvitedMembers ?? true,
           });
-          mutate();
+          mutate(
+            new GetAccountOnboardingConfigResponse({
+              config: resp.config,
+            })
+          );
         } catch (e) {
           toast({
             title: 'Unable to update onboarding status!',

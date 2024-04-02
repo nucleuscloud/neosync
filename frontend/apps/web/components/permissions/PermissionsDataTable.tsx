@@ -95,53 +95,51 @@ export default function PermissionsDataTable<TData, TValue>({
               </TableRow>
             ))}
           </TableHeader>
-          {rows.length == 0 ? (
-            <div className="flex justify-center items-center py-10 text-gray-500">
-              No Schema(s) or Table(s) found.
-            </div>
-          ) : (
-            <TableBody
-              style={{
-                height: `${rowVirtualizer.getTotalSize()}px`, //tells scrollbar how big the table is
-              }}
-              className="relative grid"
-            >
-              {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-                const row = rows[virtualRow.index];
+          <TableBody
+            style={{
+              height: `${rowVirtualizer.getTotalSize()}px`, //tells scrollbar how big the table is
+            }}
+          >
+            {rows.length === 0 && (
+              <TableRow className="flex justify-center items-center py-10 text-gray-500">
+                <td>No Schema(s) or Table(s) selected.</td>
+              </TableRow>
+            )}
+            {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+              const row = rows[virtualRow.index];
 
-                return (
-                  <TableRow
-                    data-index={virtualRow.index} //needed for dynamic row height measurement
-                    ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
-                    key={row.id}
-                    style={{
-                      transform: `translateY(${virtualRow.start}px)`,
-                    }}
-                    className="items-center flex absolute w-full justify-between px-2"
-                  >
-                    {row.getVisibleCells().map((cell) => {
-                      return (
-                        <td
-                          key={cell.id}
-                          className="py-2 text-sm"
-                          style={{
-                            minWidth: cell.column.getSize(),
-                          }}
-                        >
-                          <div>
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </div>
-                        </td>
-                      );
-                    })}
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          )}
+              return (
+                <TableRow
+                  data-index={virtualRow.index} //needed for dynamic row height measurement
+                  ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
+                  key={row.id}
+                  style={{
+                    transform: `translateY(${virtualRow.start}px)`,
+                  }}
+                  className="items-center flex absolute w-full justify-between px-2"
+                >
+                  {row.getVisibleCells().map((cell) => {
+                    return (
+                      <td
+                        key={cell.id}
+                        className="py-2 text-sm"
+                        style={{
+                          minWidth: cell.column.getSize(),
+                        }}
+                      >
+                        <div>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </div>
+                      </td>
+                    );
+                  })}
+                </TableRow>
+              );
+            })}
+          </TableBody>
         </Table>
       </div>
     </div>
