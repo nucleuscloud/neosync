@@ -127,13 +127,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   ];
 
   const [customCron, setCustomCron] = useState<boolean>(false);
-  const [cronScheduleName, setCronScheduleName] = useState<string>('');
 
   const handleSettingCronSchedule = (val: string) => {
     const cs = scheduleOptions.find((item) => item.name == val)?.cron;
     if (val == 'Custom') {
       setCustomCron(true);
-      setCronScheduleName(val);
       form.setValue('cronSchedule', cs);
     } else {
       setCustomCron(false);
@@ -213,25 +211,30 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                   <Switch
                     checked={isScheduleEnabled}
                     onCheckedChange={(isChecked) => {
-                      if (isChecked) {
-                        setIsScheduleEnabled(false);
+                      setIsScheduleEnabled(isChecked);
+                      if (!isChecked) {
                         form.resetField('cronSchedule', {
                           keepError: false,
-                          defaultValue: DEFAULT_CRON_STRING,
                         });
-                        // setCronScheduleName('');
-                      } else {
-                        setIsScheduleEnabled(true);
                       }
-                      setIsScheduleEnabled(isChecked);
-                      // if (!isChecked) {
-                      //   setIsScheduleEnabled(false);
-                      //   form.resetField('cronSchedule', {
-                      //     keepError: false,
-                      //     defaultValue: DEFAULT_CRON_STRING,
-                      //   });
-                      // }
                     }}
+                    // onCheckedChange={(isChecked) => {
+                    //   if (isChecked) {
+                    //     setIsScheduleEnabled(false);
+                    //     form.setValue('cronSchedule', DEFAULT_CRON_STRING);
+                    //     // setCronScheduleName('');
+                    //   } else {
+                    //     setIsScheduleEnabled(true);
+                    //   }
+                    //   setIsScheduleEnabled(isChecked);
+                    //   // if (!isChecked) {
+                    //   //   setIsScheduleEnabled(false);
+                    //   //   form.resetField('cronSchedule', {
+                    //   //     keepError: false,
+                    //   //     defaultValue: DEFAULT_CRON_STRING,
+                    //   //   });
+                    //   // }
+                    // }}
                   />
                 </div>
                 <FormDescription>
