@@ -127,16 +127,16 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   ];
 
   const [customCron, setCustomCron] = useState<boolean>(false);
-  const [cronSchedule, setCronSchedule] = useState<string>('');
+  const [cronScheduleName, setCronScheduleName] = useState<string>('');
 
   const handleSettingCronSchedule = (val: string) => {
     const cs = scheduleOptions.find((item) => item.name == val)?.cron;
     if (val == 'Custom') {
       setCustomCron(true);
-      setCronSchedule(val);
+      setCronScheduleName(val);
+      form.setValue('cronSchedule', cs);
     } else {
       setCustomCron(false);
-      setCronSchedule(val);
       form.setValue('cronSchedule', cs);
       form.clearErrors();
     }
@@ -145,19 +145,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   // used to set the select if the user navigates bakc to the form
   useEffect(() => {
     const cron = form.getValues('cronSchedule');
-    // TODO: handle setting the select back to the value that the user selected in the useEffect
-    console.log('the cron', cron);
-
-    if (cron && scheduleOptions.some((item) => item.cron == cron)) {
+    if (cron) {
       setIsScheduleEnabled(true);
-      setCronSchedule(scheduleOptions.find((item) => item.cron == cron)?.name!);
-      console.log('crrrrrr on useEffect', cron);
-      console.log(
-        'finding it ',
-        scheduleOptions.find((item) => item.cron == cron)?.name
-      );
     }
-  });
+  }, [form.watch('cronSchedule')]);
 
   // used to handle setting the error states on the custom cron input
   useEffect(() => {
@@ -169,8 +160,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   }, [form.formState.errors.cronSchedule?.message]);
 
-  console.log('schedle', cronSchedule);
-  console.log('the string', form.getValues('cronSchedule'));
+  console.log('form', form.getValues('cronSchedule'));
+
+  // TODO: update the value that gets set when you enabled and disable the schedule
 
   return (
     <div
@@ -221,13 +213,24 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                   <Switch
                     checked={isScheduleEnabled}
                     onCheckedChange={(isChecked) => {
-                      setIsScheduleEnabled(isChecked);
-                      if (!isChecked) {
+                      if (isChecked) {
+                        setIsScheduleEnabled(false);
                         form.resetField('cronSchedule', {
                           keepError: false,
                           defaultValue: DEFAULT_CRON_STRING,
                         });
+                        // setCronScheduleName('');
+                      } else {
+                        setIsScheduleEnabled(true);
                       }
+                      setIsScheduleEnabled(isChecked);
+                      // if (!isChecked) {
+                      //   setIsScheduleEnabled(false);
+                      //   form.resetField('cronSchedule', {
+                      //     keepError: false,
+                      //     defaultValue: DEFAULT_CRON_STRING,
+                      //   });
+                      // }
                     }}
                   />
                 </div>
@@ -241,7 +244,18 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                       onValueChange={(value) => {
                         handleSettingCronSchedule(value);
                       }}
-                      value={cronSchedule}
+                      value={
+                        scheduleOptions.find(
+                          (item) => item.cron == form.getValues('cronSchedule')
+                        )?.name
+                          ? scheduleOptions.find(
+                              (item) =>
+                                item.cron == form.getValues('cronSchedule')
+                            )?.name
+                          : customCron
+                            ? 'Custom'
+                            : ''
+                      }
                     >
                       <SelectTrigger
                         disabled={!isScheduleEnabled}
