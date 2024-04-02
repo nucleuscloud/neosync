@@ -209,6 +209,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 <div className="flex flex-row items-center gap-2">
                   <FormLabel>Schedule</FormLabel>
                   <Switch
+                    p
                     checked={isScheduleEnabled}
                     onCheckedChange={(isChecked) => {
                       setIsScheduleEnabled(isChecked);
