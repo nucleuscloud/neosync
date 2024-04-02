@@ -454,6 +454,10 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					}
 
 					filteredCols := filterColsBySource(cols, colSourceMap) // filters out default columns
+					processorConfigs := []neosync_benthos.ProcessorConfig{}
+					for _, pc := range resp.Processors {
+						processorConfigs = append(processorConfigs, *pc)
+					}
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						Fallback: []neosync_benthos.Outputs{
 							{
@@ -470,14 +474,9 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 												Query:       buildPostgresInsertQuery(resp.TableSchema, resp.TableName, cols, colSourceMap),
 												ArgsMapping: buildPlainInsertArgs(filteredCols),
-
-												Batching: &neosync_benthos.Batching{
-													Period: "5s",
-													Count:  100,
-												},
 											},
 										},
-										Processors: resp.Config.Pipeline.Processors,
+										Processors: processorConfigs,
 									},
 								},
 							},
@@ -487,7 +486,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 							}},
 						},
 					})
-					resp.Config.Pipeline.Processors = nil
 				} else {
 					return nil, errors.New("unable to build destination connection due to unsupported source connection")
 				}
@@ -541,6 +539,11 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					// filters out default columns
 					filteredCols := filterColsBySource(cols, colSourceMap)
 
+					processorConfigs := []neosync_benthos.ProcessorConfig{}
+					for _, pc := range resp.Processors {
+						processorConfigs = append(processorConfigs, *pc)
+					}
+
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						Fallback: []neosync_benthos.Outputs{
 							{
@@ -557,14 +560,9 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 												Query:       buildMysqlInsertQuery(resp.TableSchema, resp.TableName, cols, colSourceMap),
 												ArgsMapping: buildPlainInsertArgs(filteredCols),
-
-												Batching: &neosync_benthos.Batching{
-													Period: "5s",
-													Count:  100,
-												},
 											},
 										},
-										Processors: resp.Config.Pipeline.Processors,
+										Processors: processorConfigs,
 									},
 								},
 							},
@@ -801,16 +799,22 @@ func buildBenthosGenerateSourceConfigResponses(
 		if err != nil {
 			return nil, err
 		}
-
+		var processors []*neosync_benthos.ProcessorConfig
 		// for the generate input, benthos requires a mapping, so falling back to a
 		// generic empty object if the mutations are empty
 		if mutations == "" {
 			mutations = "root = {}"
 		}
+		processors = append(processors, &neosync_benthos.ProcessorConfig{Mutation: &mutations})
 
-		var processors []neosync_benthos.ProcessorConfig
 		if jsCode != "" {
-			processors = []neosync_benthos.ProcessorConfig{{Javascript: &neosync_benthos.JavascriptConfig{Code: jsCode}}}
+			processors = append(processors, &neosync_benthos.ProcessorConfig{Javascript: &neosync_benthos.JavascriptConfig{Code: jsCode}})
+		}
+		if len(processors) > 0 {
+			// add catch and error processor
+			processors = append(processors, &neosync_benthos.ProcessorConfig{Catch: []*neosync_benthos.ProcessorConfig{
+				{Error: &neosync_benthos.ErrorProcessorConfig{}},
+			}})
 		}
 
 		bc := &neosync_benthos.BenthosConfig{
@@ -820,13 +824,13 @@ func buildBenthosGenerateSourceConfigResponses(
 						Generate: &neosync_benthos.Generate{
 							Interval: "",
 							Count:    count,
-							Mapping:  mutations,
+							Mapping:  "root = {}",
 						},
 					},
 				},
 				Pipeline: &neosync_benthos.PipelineConfig{
 					Threads:    -1,
-					Processors: processors,
+					Processors: []neosync_benthos.ProcessorConfig{}, // leave empty. processors should be on output
 				},
 				Output: &neosync_benthos.OutputConfig{
 					Outputs: neosync_benthos.Outputs{
@@ -846,6 +850,8 @@ func buildBenthosGenerateSourceConfigResponses(
 
 			TableSchema: tableMapping.Schema,
 			TableName:   tableMapping.Table,
+
+			Processors: processors,
 
 			metriclabels: metrics.MetricLabels{
 				metrics.NewEqLabel(metrics.TableSchemaLabel, tableMapping.Schema),
