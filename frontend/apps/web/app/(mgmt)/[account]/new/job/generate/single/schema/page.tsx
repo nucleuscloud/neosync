@@ -268,7 +268,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           {isClient && (
             <SchemaTable
               data={form.watch('mappings')}
-              excludeInputReqTransformers
               constraintHandler={schemaConstraintHandler}
               schema={connectionSchemaDataMap?.schemaMap ?? {}}
               isSchemaDataReloading={isSchemaMapValidating}

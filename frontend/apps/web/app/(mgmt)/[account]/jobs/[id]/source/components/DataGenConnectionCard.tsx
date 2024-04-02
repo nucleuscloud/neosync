@@ -165,7 +165,6 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
 
         <SchemaTable
           data={form.watch('mappings')}
-          excludeInputReqTransformers
           jobType="generate"
           constraintHandler={schemaConstraintHandler}
           schema={connectionSchemaDataMap?.schemaMap ?? {}}

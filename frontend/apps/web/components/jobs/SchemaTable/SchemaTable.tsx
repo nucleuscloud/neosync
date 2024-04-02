@@ -43,7 +43,6 @@ type JobType = 'sync' | 'generate';
 
 interface Props {
   data: JobMappingFormValues[];
-  excludeInputReqTransformers?: boolean; // will result in only generators (functions with no data input)
   jobType: JobType;
   schema: ConnectionSchemaMap;
   isSchemaDataReloading: boolean;
@@ -51,13 +50,7 @@ interface Props {
 }
 
 export function SchemaTable(props: Props): ReactElement {
-  const {
-    data,
-    excludeInputReqTransformers,
-    constraintHandler,
-    jobType,
-    schema,
-  } = props;
+  const { data, constraintHandler, jobType, schema } = props;
 
   const { account } = useAccount();
   const { handler, isLoading, isValidating } = useGetTransformersHandler(
