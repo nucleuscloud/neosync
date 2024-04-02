@@ -34,4 +34,6 @@ func Test_Parallel(t *testing.T) {
 		})
 		i++
 	}
+	err := errgrp.Wait()
+	require.NoError(t, err)
 }
