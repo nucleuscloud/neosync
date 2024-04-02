@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"math/rand"
 	"testing"
+	"time"
 
+	transformers_dataset "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/data-sets"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -325,4 +327,25 @@ func Test_getRangeFromCandidates(t *testing.T) {
 			require.Equal(t, tc.expected, actual)
 		})
 	}
+}
+
+func Test_randomInt64(t *testing.T) {
+	output := randomInt64(rand.New(rand.NewSource(time.Now().UnixNano())), -2, 0)
+	require.GreaterOrEqual(t, output, int64(0))
+}
+
+func Test_foo(t *testing.T) {
+	min := 0 // for example
+	max := 5 // for example
+	// values := []string{"1", "2", "3", "4", "5", "6"}
+
+	// Seed the random number generator
+	rand.Seed(time.Now().UnixNano())
+
+	// Generate a random number in the range [min, max]
+	randomIndex := min + rand.Intn(max-min+1)
+
+	fmt.Println(randomIndex)
+
+	fmt.Println(transformers_dataset.LastNames[87266])
 }

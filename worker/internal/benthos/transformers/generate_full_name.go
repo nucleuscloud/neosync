@@ -2,12 +2,12 @@ package transformers
 
 import (
 	"fmt"
-	"math/rand"
 	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
+	"github.com/nucleuscloud/neosync/worker/internal/rng"
 )
 
 func init() {
@@ -24,7 +24,7 @@ func init() {
 		if err != nil {
 			return nil, err
 		}
-		randomizer := rand.New(rand.NewSource(seed)) //nolint:gosec
+		randomizer := rng.New(seed)
 
 		return func() (any, error) {
 			res, err := generateRandomFullName(randomizer, maxLength)
@@ -38,7 +38,7 @@ func init() {
 }
 
 /* Generates a random full name */
-func generateRandomFullName(randomizer *rand.Rand, maxLength int64) (string, error) {
+func generateRandomFullName(randomizer rng.Rand, maxLength int64) (string, error) {
 	maxLengthMinusSpace := maxLength - 1
 	if maxLengthMinusSpace <= 0 {
 		return "", fmt.Errorf("unable to generate full name including space with provided max length: %d", maxLength)
