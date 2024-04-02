@@ -10,7 +10,7 @@ authors:
 
 # Introduction
 
-We recently shipped Subsetting with Referential Integrity in Neosync and we wanted to give an overview of how we built referential integirty into subsetting. We expose the ability to use referential integrity in your Subsetting page through a simple switch component but under the covers there is a lot of logic and code to make this happen.
+We recently shipped Subsetting with Referential Integrity in Neosync and we wanted to give an overview of how we built referential integrity into subsetting. We expose the ability to use referential integrity in your Subsetting page through a simple switch component but under the covers there is a lot of logic and code to make this happen.
 
 ![refInt](/images/blogs/refimg.png)
 
@@ -32,7 +32,7 @@ Functionally this means that we need to understand the relationships between tab
 
 # Defining the experience
 
-Whenver we design a new feature, we try to follow our design philosophy: flexibility without complexity. This means designing a feature that is super simple to use but is also really flexible and powerful. Here is the interface to the subsetting page:
+Whenever we design a new feature, we try to follow our design philosophy: flexibility without complexity. This means designing a feature that is super simple to use but is also really flexible and powerful. Here is the interface to the subsetting page:
 
 ![subsetpage](/images/blogs/ss.png)
 
@@ -50,7 +50,7 @@ In the following sections, we'll break both of these types down and explain the 
 
 ## Linear dependencies
 
-Linear dependencies move in one direction and do not form an enclosed loop. In classic computer scienece language, this would be called a Directed Acyclic Graph (DAG). It's Acyclic because there is no loop formed. In the example above, `table a` points to `table b` and `table c` but no closed loop is formed. This is pretty common in most databases where you have a table that references another table with one or more foreign keys.
+Linear dependencies move in one direction and do not form an enclosed loop. In classic computer science language, this would be called a Directed Acyclic Graph (DAG). It's Acyclic because there is no loop formed. In the example above, `table a` points to `table b` and `table c` but no closed loop is formed. This is pretty common in most databases where you have a table that references another table with one or more foreign keys.
 
 In Neosync, a user would provide us one or multiple SQL queries that they want to use to filter the table by. We can think of this as our entrypoint since this is where we start from. The general approach is:
 
@@ -76,7 +76,7 @@ The other wrinkle to mention here is if the user wants to transform their primar
 
 ![subsetpage](/images/blogs/circle.png)
 
-Circular dependencies form one or more closed loops within a number of tables or within a table as shown in the image above. Circular dependencies are more complicated than linear dependencies and require that we do more work (and use recurision!) to be able to handle them appropriately.
+Circular dependencies form one or more closed loops within a number of tables or within a table as shown in the image above. Circular dependencies are more complicated than linear dependencies and require that we do more work (and use recursion!) to be able to handle them appropriately.
 
 Similar to the linear dependencies, a user would provide us with one or multiple SQL queries that they want to use to filter the table by. This would serve as our entrypoint.
 
