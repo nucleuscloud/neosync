@@ -4,13 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"math/rand"
 	"net/mail"
 	"strings"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/google/uuid"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
+	"github.com/nucleuscloud/neosync/worker/internal/rng"
 )
 
 func init() {
@@ -80,7 +80,7 @@ func init() {
 				return nil, err
 			}
 		}
-		randomizer := rand.New(rand.NewSource(seed)) //nolint:gosec
+		randomizer := rng.New(seed)
 		return func() (any, error) {
 			output, err := transformEmail(randomizer, email, transformeEmailOptions{
 				PreserveLength:  preserveLength,
@@ -133,7 +133,7 @@ type transformeEmailOptions struct {
 
 // Anonymizes an existing email address. This function returns a string pointer to handle nullable email columns where an input email value may not exist.
 func transformEmail(
-	randomizer *rand.Rand,
+	randomizer rng.Rand,
 	email string,
 	opts transformeEmailOptions,
 ) (*string, error) {

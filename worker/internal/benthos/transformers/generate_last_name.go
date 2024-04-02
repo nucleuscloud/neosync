@@ -2,12 +2,12 @@ package transformers
 
 import (
 	"fmt"
-	"math/rand"
 	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
+	"github.com/nucleuscloud/neosync/worker/internal/rng"
 )
 
 func init() {
@@ -24,7 +24,7 @@ func init() {
 		if err != nil {
 			return nil, err
 		}
-		randomizer := rand.New(rand.NewSource(seed)) //nolint:gosec
+		randomizer := rng.New(seed)
 
 		return func() (any, error) {
 			output, err := generateRandomLastName(randomizer, nil, maxLength)
@@ -40,7 +40,7 @@ func init() {
 	}
 }
 
-func generateRandomLastName(randomizer *rand.Rand, minLength *int64, maxLength int64) (string, error) {
+func generateRandomLastName(randomizer rng.Rand, minLength *int64, maxLength int64) (string, error) {
 	return transformer_utils.GenerateStringFromCorpus(
 		randomizer,
 		transformers_dataset.LastNames,

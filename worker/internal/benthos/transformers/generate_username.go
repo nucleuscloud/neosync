@@ -2,12 +2,12 @@ package transformers
 
 import (
 	"fmt"
-	"math/rand"
 	"strings"
 	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
+	"github.com/nucleuscloud/neosync/worker/internal/rng"
 )
 
 func init() {
@@ -25,7 +25,7 @@ func init() {
 			if err != nil {
 				return nil, err
 			}
-			randomizer := rand.New(rand.NewSource(seed)) //nolint:gosec
+			randomizer := rng.New(seed)
 
 			res, err := generateUsername(randomizer, maxLength)
 			if err != nil {
@@ -41,7 +41,7 @@ func init() {
 }
 
 // Generates a username with a lowercase first initial and titlecase lastname
-func generateUsername(randomizer *rand.Rand, maxLength int64) (string, error) {
+func generateUsername(randomizer rng.Rand, maxLength int64) (string, error) {
 	fn := transformer_utils.GetRandomCharacterString(randomizer, 1)
 
 	ln, err := generateRandomLastName(randomizer, nil, maxLength-1)

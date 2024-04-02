@@ -3,13 +3,13 @@ package transformers
 import (
 	"errors"
 	"fmt"
-	"math/rand"
 	"strings"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/google/uuid"
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
+	"github.com/nucleuscloud/neosync/worker/internal/rng"
 )
 
 type generateEmailType string
@@ -60,7 +60,7 @@ func init() {
 				return nil, err
 			}
 		}
-		randomizer := rand.New(rand.NewSource(seed)) //nolint:gosec
+		randomizer := rng.New(seed)
 
 		var excludedDomains []string
 
@@ -85,7 +85,7 @@ func getEmailTypeOrDefault(input string) generateEmailType {
 	return uuidV4EmailType
 }
 
-func getRandomEmailDomain(randomizer *rand.Rand, maxLength int64, excludedDomains []string) (string, error) {
+func getRandomEmailDomain(randomizer rng.Rand, maxLength int64, excludedDomains []string) (string, error) {
 	return transformer_utils.GenerateStringFromCorpus(
 		randomizer,
 		transformers_dataset.EmailDomains,
@@ -98,7 +98,7 @@ func getRandomEmailDomain(randomizer *rand.Rand, maxLength int64, excludedDomain
 }
 
 /* Generates an email in the format <username@domain.tld> such as jdoe@gmail.com */
-func generateRandomEmail(randomizer *rand.Rand, maxLength int64, emailType generateEmailType, excludedDomains []string) (string, error) {
+func generateRandomEmail(randomizer rng.Rand, maxLength int64, emailType generateEmailType, excludedDomains []string) (string, error) {
 	if emailType == anyEmailType {
 		emailType = getRandomEmailType(randomizer)
 	}
@@ -108,7 +108,7 @@ func generateRandomEmail(randomizer *rand.Rand, maxLength int64, emailType gener
 	return generateFullnameEmail(randomizer, maxLength, excludedDomains)
 }
 
-func getRandomEmailType(randomizer *rand.Rand) generateEmailType {
+func getRandomEmailType(randomizer rng.Rand) generateEmailType {
 	randInt := randomizer.Intn(2)
 	if randInt == 0 {
 		return uuidV4EmailType
@@ -116,7 +116,7 @@ func getRandomEmailType(randomizer *rand.Rand) generateEmailType {
 	return fullNameEmailType
 }
 
-func generateFullnameEmail(randomizer *rand.Rand, maxLength int64, excludedDomains []string) (string, error) {
+func generateFullnameEmail(randomizer rng.Rand, maxLength int64, excludedDomains []string) (string, error) {
 	domainMaxLength := maxLength - 2 // is there enough room for at least one character and an @ sign
 	if (domainMaxLength) <= 0 {
 		return "", fmt.Errorf("for the given max length, unable to generate an email of sufficient length: %d", maxLength)
@@ -140,7 +140,7 @@ func generateFullnameEmail(randomizer *rand.Rand, maxLength int64, excludedDomai
 // If the max length is constrictive, it may not be able to generate a full name.
 // If it can't generate a full name, will generate a last name. If it can't, it will generate a random character string.
 // Currently it can still hit failure conditions, if this proves difficult, it can be updated to try to not fail at all costs
-func generateNameForEmail(randomizer *rand.Rand, minLength *int64, maxLength int64) (string, error) {
+func generateNameForEmail(randomizer rng.Rand, minLength *int64, maxLength int64) (string, error) {
 	maxFirstNameIdx, maxLastNameIdx := transformer_utils.FindClosestPair(
 		transformers_dataset.FirstNameIndices, transformers_dataset.LastNameIndices,
 		maxLength,
@@ -196,7 +196,7 @@ func generateNameForEmail(randomizer *rand.Rand, minLength *int64, maxLength int
 	return fullname, nil
 }
 
-func generateUuidEmail(randomizer *rand.Rand, maxLength int64, excludedDomains []string) (string, error) {
+func generateUuidEmail(randomizer rng.Rand, maxLength int64, excludedDomains []string) (string, error) {
 	domainMaxLength := maxLength - 2 // is there enough room for at least one character and an @ sign
 	if (domainMaxLength) <= 0 {
 		return "", fmt.Errorf("for the given max length, unable to generate an email of sufficient length: %d", maxLength)
