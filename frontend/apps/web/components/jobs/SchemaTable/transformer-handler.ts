@@ -1,5 +1,7 @@
 import {
+  SupportedJobType,
   SystemTransformer,
+  TransformerDataType,
   TransformerSource,
   UserDefinedTransformer,
 } from '@neosync/sdk';
@@ -34,11 +36,33 @@ export class TransformerHandler {
     );
   }
 
-  public getFilteredTransformers(filters: any): {
+  public getFilteredTransformers(filters: Filters): {
     system: SystemTransformer[];
     userDefined: UserDefinedTransformer[];
   } {
-    return { system: [], userDefined: [] };
+    const systemMap = new Map(
+      this.systemTransformers.map((t) => [
+        t.source,
+        shouldIncludeSystem(t, filters),
+      ])
+    );
+
+    const userMap = new Map(
+      this.userDefinedTransformers.map((t) => {
+        const underlyingSystem = this.systemBySource.get(t.source);
+        if (!underlyingSystem) {
+          // uh oh
+          return [t.id, false];
+        }
+        return [t.id, systemMap.get(underlyingSystem.source) ?? false];
+      })
+    );
+    return {
+      system: this.systemTransformers.filter((t) => systemMap.get(t.source)),
+      userDefined: this.userDefinedTransformers.filter((t) =>
+        userMap.get(t.id)
+      ),
+    };
   }
 
   public getSystemTransformers(): SystemTransformer[] {
@@ -59,4 +83,58 @@ export class TransformerHandler {
   ): UserDefinedTransformer | undefined {
     return this.userDefinedById.get(id);
   }
+}
+
+function shouldIncludeSystem(
+  transformer: SystemTransformer,
+  filters: Filters
+): boolean {
+  if (
+    !filters.hasDefault &&
+    transformer.source === TransformerSource.GENERATE_DEFAULT
+  ) {
+    return false;
+  }
+  if (filters.isForeignKey) {
+    if (filters.isNullable) {
+      return (
+        transformer.source === TransformerSource.GENERATE_NULL ||
+        transformer.source === TransformerSource.PASSTHROUGH
+      );
+    }
+    return transformer.source === TransformerSource.PASSTHROUGH;
+  }
+  if (!transformer.supportedJobTypes.some((jt) => jt === filters.jobType)) {
+    return false;
+  }
+  if (
+    filters.isNullable &&
+    !transformer.dataTypes.some((dt) => dt === TransformerDataType.NULL)
+  ) {
+    return false;
+  }
+  const tdts = new Set(transformer.dataTypes);
+  if (filters.dataType === TransformerDataType.UNSPECIFIED) {
+    return tdts.has(TransformerDataType.ANY);
+  }
+  return tdts.has(filters.dataType) || tdts.has(TransformerDataType.ANY);
+}
+
+interface Filters {
+  isForeignKey: boolean;
+  dataType: TransformerDataType;
+  isNullable: boolean;
+  hasDefault: boolean;
+  jobType: SupportedJobType;
+}
+
+export function toSupportedJobtype(
+  jobtype: 'sync' | 'generate'
+): SupportedJobType {
+  if (jobtype === 'sync') {
+    return SupportedJobType.SYNC;
+  } else if (jobtype === 'generate') {
+    return SupportedJobType.GENERATE;
+  }
+  return SupportedJobType.UNSPECIFIED;
 }

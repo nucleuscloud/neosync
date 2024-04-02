@@ -5,6 +5,7 @@ import {
   ForeignConstraintTables,
   ForeignKey,
   PrimaryConstraint,
+  TransformerDataType,
   UniqueConstraint,
 } from '@neosync/sdk';
 
@@ -13,8 +14,10 @@ export interface SchemaConstraintHandler {
   getIsForeignKey(key: ColumnKey): [boolean, string[]];
   getIsNullable(key: ColumnKey): boolean;
   getDataType(key: ColumnKey): string;
+  getConvertedDataType(key: ColumnKey): TransformerDataType; // Returns the databases data types transformed to the Neosync Transformer Data Types
   getIsInSchema(key: ColumnKey): boolean;
   getIsUniqueConstraint(key: ColumnKey): boolean;
+  getHasDefault(key: ColumnKey): boolean;
 }
 
 interface ColumnKey {
@@ -47,6 +50,13 @@ export function getSchemaConstraintHandler(
     getDataType(key) {
       return colmap[fromColKey(key)]?.dataType ?? '';
     },
+    getConvertedDataType(key) {
+      const datatype = colmap[fromColKey(key)]?.dataType ?? '';
+      if (datatype === '') {
+        return TransformerDataType.UNSPECIFIED;
+      }
+      return dbDataTypeToTransformerDataType(datatype);
+    },
     getIsForeignKey(key) {
       return colmap[fromColKey(key)]?.fk ?? [false, []];
     },
@@ -62,7 +72,109 @@ export function getSchemaConstraintHandler(
     getIsInSchema(key) {
       return !!colmap[fromColKey(key)];
     },
+    getHasDefault(key) {
+      return true; // todo
+    },
   };
+}
+
+function dbDataTypeToTransformerDataType(
+  dataType: string
+): TransformerDataType {
+  const dt = postgresTypeToTransformerDataType(dataType);
+  if (dt === TransformerDataType.UNSPECIFIED) {
+    return mysqlTypeToTransformerDataType(dataType);
+  }
+  return dt;
+}
+
+function postgresTypeToTransformerDataType(
+  postgresType: string
+): TransformerDataType {
+  const isArray = postgresType.endsWith('[]');
+  const baseType = postgresType
+    .replace('[]', '')
+    .split('(')[0]
+    .trim()
+    .toLowerCase();
+
+  if (isArray) {
+    return TransformerDataType.ANY;
+  }
+
+  switch (baseType) {
+    case 'bigint':
+    case 'integer':
+    case 'smallint':
+    case 'bigserial':
+    case 'serial':
+      return TransformerDataType.INT64;
+    case 'text':
+    case 'varchar':
+    case 'char':
+    case 'citext':
+    case 'character varying':
+      return TransformerDataType.STRING;
+    case 'boolean':
+      return TransformerDataType.BOOLEAN;
+    case 'real':
+    case 'double precision':
+    case 'numeric':
+      return TransformerDataType.FLOAT64;
+    case 'uuid':
+      return TransformerDataType.UUID;
+    case 'timestamp':
+    case 'date':
+    case 'time':
+      return TransformerDataType.TIME;
+    case 'json':
+    case 'jsonb':
+      return TransformerDataType.ANY;
+    default:
+      return TransformerDataType.UNSPECIFIED;
+  }
+}
+
+function mysqlTypeToTransformerDataType(
+  mysqlType: string
+): TransformerDataType {
+  const baseType = mysqlType.split('(')[0].trim().toLowerCase();
+
+  switch (baseType) {
+    case 'int':
+    case 'integer':
+    case 'smallint':
+    case 'mediumint':
+    case 'bigint':
+    case 'tinyint': // Could be BOOLEAN, but treated as INT64 for consistency
+      return TransformerDataType.INT64;
+    case 'varchar':
+    case 'text':
+    case 'char':
+    case 'enum':
+    case 'set':
+    case 'mediumtext':
+    case 'longtext':
+      return TransformerDataType.STRING;
+    case 'tinyint(1)':
+      return TransformerDataType.BOOLEAN;
+    case 'float':
+    case 'double':
+    case 'decimal':
+      return TransformerDataType.FLOAT64;
+    case 'datetime':
+    case 'timestamp':
+    case 'date':
+    case 'time':
+    case 'year':
+      return TransformerDataType.TIME;
+    case 'json':
+      return TransformerDataType.ANY;
+    case 'uuid': // Note: MySQL doesn't have a native UUID type, but this is for compatibility
+      return TransformerDataType.UUID;
+    default:
+      return TransformerDataType.UNSPECIFIED;
+  }
 }
 
 function buildColDetailsMap(

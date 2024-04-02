@@ -15,6 +15,7 @@ import {
   JobMappingTransformerForm,
   SchemaFormValues,
 } from '@/yup-validations/jobs';
+import { TransformerSource } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ColumnDef, Row } from '@tanstack/react-table';
 import { HTMLProps, ReactElement, useEffect, useRef } from 'react';
@@ -23,7 +24,7 @@ import { SchemaColumnHeader } from './SchemaColumnHeader';
 import { Row as RowData } from './SchemaPageTable';
 import TransformerSelect from './TransformerSelect';
 import { SchemaConstraintHandler } from './schema-constraint-handler';
-import { TransformerHandler } from './transformer-handler';
+import { TransformerHandler, toSupportedJobtype } from './transformer-handler';
 
 interface ColumnKey {
   schema: string;
@@ -326,14 +327,17 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
 
                 const [isForeignKey] =
                   constraintHandler.getIsForeignKey(colkey);
-                const datatype = constraintHandler.getDataType(colkey);
                 const isNullable = constraintHandler.getIsNullable(colkey);
+                const convertedDataType =
+                  constraintHandler.getConvertedDataType(colkey);
+                const hasDefault = constraintHandler.getHasDefault(colkey);
 
                 const filtered = transformerHandler.getFilteredTransformers({
-                  dataTypes: undefined,
-                  foreignKeyOnly: isForeignKey,
+                  dataType: convertedDataType,
+                  isForeignKey: isForeignKey,
                   isNullable,
-                  jobType,
+                  jobType: toSupportedJobtype(jobType),
+                  hasDefault,
                 });
 
                 const filteredTransformerHandler = new TransformerHandler(
@@ -342,14 +346,20 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                 );
 
                 let transformer: Transformer | undefined;
-                // if (
-                //   fv.source === TransformerSource.USER_DEFINED &&
-                //   fv.config.case === 'userDefinedTransformerConfig'
-                // ) {
-                //   transformer = userDefinedMap.get(fv.config.value.id);
-                // } else {
-                //   transformer = systemMap.get(fv.source);
-                // }
+                if (
+                  fv.source === TransformerSource.USER_DEFINED &&
+                  fv.config.case === 'userDefinedTransformerConfig'
+                ) {
+                  transformer =
+                    filteredTransformerHandler.getUserDefinedTransformerById(
+                      fv.config.value.id
+                    );
+                } else {
+                  transformer =
+                    filteredTransformerHandler.getSystemTransformerBySource(
+                      fv.source
+                    );
+                }
                 return (
                   <FormItem>
                     <FormControl>

@@ -156,6 +156,13 @@ message SystemTransformer {
   TransformerSource source = 4;
   TransformerConfig config = 5;
   repeated TransformerDataType data_types = 6;
+  repeated SupportedJobType supported_job_types = 7;
+}
+
+enum SupportedJobType {
+  SUPPORTED_JOB_TYPE_UNSPECIFIED = 0;
+  SUPPORTED_JOB_TYPE_SYNC = 1;
+  SUPPORTED_JOB_TYPE_GENERATE = 2;
 }
 
 message TransformerConfig {

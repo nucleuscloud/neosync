@@ -72,7 +72,7 @@ export default function TransformerSelect(props: Props): ReactElement {
       </PopoverTrigger>
       <PopoverContent
         className="w-[350px] p-0"
-        avoidCollisions={false}
+        avoidCollisions={true} // this prevents the popover from overflowing out of the viewport (meaning there is content the user isn't able to access)
         side={side}
       >
         <Command>
