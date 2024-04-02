@@ -56,19 +56,25 @@ export function SchemaTableToolbar<TData>({
       bulkTransformer.source
     );
   }
+  const buttonText = transformer ? transformer.name : 'Bulk set transformers';
 
   return (
     <div className="flex flex-col items-start w-full gap-2">
       <div className="flex flex-row justify-between pb-2 items-center w-full">
         <div className="flex flex-col md:flex-row gap-3 w-[250px]">
           <TransformerSelect
-            transformerHandler={transformerHandler}
+            getTransformers={() => {
+              return {
+                system: transformerHandler.getSystemTransformers(),
+                userDefined: transformerHandler.getUserDefinedTransformers(),
+              };
+            }}
             value={bulkTransformer}
             side={'bottom'}
             onSelect={(value) => {
               setBulkTransformer(value);
             }}
-            placeholder="Bulk set transformers"
+            buttonText={buttonText}
             disabled={!hasSelectedRows}
           />
           <Button

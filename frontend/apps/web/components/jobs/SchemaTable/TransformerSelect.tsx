@@ -19,8 +19,10 @@ import {
 } from '@/yup-validations/jobs';
 import {
   JobMappingTransformer,
+  SystemTransformer,
   TransformerConfig,
   TransformerSource,
+  UserDefinedTransformer,
   UserDefinedTransformerConfig,
 } from '@neosync/sdk';
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
@@ -32,18 +34,25 @@ type Side = (typeof SIDE_OPTIONS)[number];
 var SIDE_OPTIONS: readonly ['top', 'right', 'bottom', 'left'];
 
 interface Props {
-  transformerHandler: BasicTransformerHandler;
+  getTransformers(): {
+    system: SystemTransformer[];
+    userDefined: UserDefinedTransformer[];
+  };
   value: JobMappingTransformerForm;
+  buttonText: string;
   onSelect(value: JobMappingTransformerForm): void;
-  placeholder: string;
   side: Side;
   disabled: boolean;
 }
 
 export default function TransformerSelect(props: Props): ReactElement {
-  const { transformerHandler, value, onSelect, placeholder, side, disabled } =
+  const { getTransformers, value, onSelect, buttonText, side, disabled } =
     props;
   const [open, setOpen] = useState(false);
+
+  const { system, userDefined } = open
+    ? getTransformers()
+    : { system: [], userDefined: [] };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -55,17 +64,13 @@ export default function TransformerSelect(props: Props): ReactElement {
           aria-expanded={open}
           disabled={disabled}
           className={cn(
-            placeholder.startsWith('Bulk')
+            buttonText.startsWith('Bulk')
               ? 'justify-between w-[275px]'
               : 'justify-between w-[175px]'
           )}
         >
           <div className="whitespace-nowrap truncate lg:w-[200px] text-left">
-            {getPopoverTriggerButtonText(
-              value,
-              transformerHandler,
-              placeholder
-            )}
+            {buttonText}
           </div>
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -76,12 +81,12 @@ export default function TransformerSelect(props: Props): ReactElement {
         side={side}
       >
         <Command>
-          <CommandInput placeholder={placeholder} />
+          <CommandInput placeholder={buttonText} />
           <CommandEmpty>No transformers found.</CommandEmpty>
           <div className="max-h-[450px] overflow-y-scroll">
-            {transformerHandler.getUserDefinedTransformers().length > 0 && (
+            {userDefined.length > 0 && (
               <CommandGroup heading="Custom">
-                {transformerHandler.getUserDefinedTransformers().map((t) => {
+                {userDefined.map((t) => {
                   return (
                     <CommandItem
                       key={t.id}
@@ -131,7 +136,7 @@ export default function TransformerSelect(props: Props): ReactElement {
               </CommandGroup>
             )}
             <CommandGroup heading="System">
-              {transformerHandler.getSystemTransformers().map((t) => {
+              {system.map((t) => {
                 return (
                   <CommandItem
                     key={t.source}

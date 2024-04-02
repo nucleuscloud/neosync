@@ -360,6 +360,9 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                       fv.source
                     );
                 }
+                const buttonText = transformer
+                  ? transformer.name
+                  : 'Select Transformer';
                 return (
                   <FormItem>
                     <FormControl>
@@ -378,10 +381,10 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                         )}
                         <div>
                           <TransformerSelect
-                            transformerHandler={filteredTransformerHandler}
+                            getTransformers={() => filtered}
+                            buttonText={buttonText}
                             value={fv}
                             onSelect={field.onChange}
-                            placeholder="Select Transformer..."
                             side={'left'}
                             disabled={false}
                           />
