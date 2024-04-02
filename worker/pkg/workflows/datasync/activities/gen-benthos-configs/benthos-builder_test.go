@@ -162,9 +162,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Pg(t *testing.T) 
 input:
     label: ""
     generate:
-        mapping: |-
-            root."id" = generate_uuid(include_hyphens:true)
-            root."name" = generate_ssn()
+        mapping: root = {}
         interval: ""
         count: 10
 pipeline:
@@ -185,12 +183,12 @@ output:
                             query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
                             args_mapping: root = [this."id", this."name"]
                             init_statement: ""
-                            batching:
-                                count: 100
-                                byte_size: 0
-                                period: 5s
-                                check: ""
-                                processors: []
+                        processors:
+                            - mutation: |-
+                                root."id" = generate_uuid(include_hyphens:true)
+                                root."name" = generate_ssn()
+                            - catch:
+                                - error: {}
                     max_retries: 5
                     backoff: {}
                 - error:
@@ -204,6 +202,10 @@ output:
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_error.RegisterErrorProcessor(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
@@ -331,9 +333,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Metrics(t *testing.T) {
 input:
     label: ""
     generate:
-        mapping: |-
-            root."id" = generate_uuid(include_hyphens:true)
-            root."name" = generate_ssn()
+        mapping: root = {}
         interval: ""
         count: 10
 pipeline:
@@ -344,18 +344,26 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - pooled_sql_raw:
-                driver: postgres
-                dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
-                args_mapping: root = [this."id", this."name"]
-                init_statement: ""
-                batching:
-                    count: 100
-                    byte_size: 0
-                    period: 5s
-                    check: ""
-                    processors: []
+            - fallback:
+                - retry:
+                    output:
+                        label: ""
+                        pooled_sql_raw:
+                            driver: postgres
+                            dsn: ${DESTINATION_0_CONNECTION_DSN}
+                            query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
+                            args_mapping: root = [this."id", this."name"]
+                            init_statement: ""
+                        processors:
+                            - mutation: |-
+                                root."id" = generate_uuid(include_hyphens:true)
+                                root."name" = generate_ssn()
+                            - catch:
+                                - error: {}
+                    max_retries: 5
+                    backoff: {}
+                - error:
+                    error_msg: ${! meta("fallback_error")}
 metrics:
     otel_collector: {}
     mapping: |-
@@ -375,6 +383,10 @@ metrics:
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_error.RegisterErrorProcessor(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = benthos_metrics.RegisterOtelMetricsExporter(benthosenv, nil)
 	assert.NoError(t, err)
@@ -500,7 +512,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Generate_Pg_Default(t *testing.T
 input:
     label: ""
     generate:
-        mapping: root."name" = generate_ssn()
+        mapping: root = {}
         interval: ""
         count: 10
 pipeline:
@@ -511,18 +523,24 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - pooled_sql_raw:
-                driver: postgres
-                dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO "public"."users" ("id", "name") VALUES (DEFAULT, $1);
-                args_mapping: root = [this."name"]
-                init_statement: ""
-                batching:
-                    count: 100
-                    byte_size: 0
-                    period: 5s
-                    check: ""
-                    processors: []
+            - fallback:
+                - retry:
+                    output:
+                        label: ""
+                        pooled_sql_raw:
+                            driver: postgres
+                            dsn: ${DESTINATION_0_CONNECTION_DSN}
+                            query: INSERT INTO "public"."users" ("id", "name") VALUES (DEFAULT, $1);
+                            args_mapping: root = [this."name"]
+                            init_statement: ""
+                        processors:
+                            - mutation: root."name" = generate_ssn()
+                            - catch:
+                                - error: {}
+                    max_retries: 5
+                    backoff: {}
+                - error:
+                    error_msg: ${! meta("fallback_error")}
 `),
 	)
 
@@ -531,6 +549,10 @@ output:
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_error.RegisterErrorProcessor(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
@@ -688,18 +710,21 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - pooled_sql_raw:
-                driver: postgres
-                dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
-                args_mapping: root = [this."id", this."name"]
-                init_statement: ""
-                batching:
-                    count: 100
-                    byte_size: 0
-                    period: 5s
-                    check: ""
-                    processors: []
+            - fallback:
+                - pooled_sql_raw:
+                    driver: postgres
+                    dsn: ${DESTINATION_0_CONNECTION_DSN}
+                    query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
+                    args_mapping: root = [this."id", this."name"]
+                    init_statement: ""
+                    batching:
+                        count: 100
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
+                - error:
+                    error_msg: ${! meta("fallback_error")}
 `),
 	)
 
@@ -707,6 +732,8 @@ output:
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
@@ -930,18 +957,21 @@ output:
                 walk_json_object: false
                 fields_mapping: 'root = {meta("neosync_id"): json("id")}'
                 kind: simple
-            - pooled_sql_raw:
-                driver: postgres
-                dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
-                args_mapping: root = [this."id", this."name"]
-                init_statement: ""
-                batching:
-                    count: 100
-                    byte_size: 0
-                    period: 5s
-                    check: ""
-                    processors: []
+            - fallback:
+                - pooled_sql_raw:
+                    driver: postgres
+                    dsn: ${DESTINATION_0_CONNECTION_DSN}
+                    query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
+                    args_mapping: root = [this."id", this."name"]
+                    init_statement: ""
+                    batching:
+                        count: 100
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
+                - error:
+                    error_msg: ${! meta("fallback_error")}
 `),
 	)
 
@@ -979,18 +1009,21 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - pooled_sql_raw:
-                driver: postgres
-                dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO "public"."orders" ("id", "buyer_id") VALUES ($1, $2);
-                args_mapping: root = [this."id", this."buyer_id"]
-                init_statement: ""
-                batching:
-                    count: 100
-                    byte_size: 0
-                    period: 5s
-                    check: ""
-                    processors: []
+            - fallback:
+                - pooled_sql_raw:
+                    driver: postgres
+                    dsn: ${DESTINATION_0_CONNECTION_DSN}
+                    query: INSERT INTO "public"."orders" ("id", "buyer_id") VALUES ($1, $2);
+                    args_mapping: root = [this."id", this."buyer_id"]
+                    init_statement: ""
+                    batching:
+                        count: 100
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
+                - error:
+                    error_msg: ${! meta("fallback_error")}
 `),
 	)
 
@@ -1001,6 +1034,9 @@ output:
 	assert.NoError(t, err)
 	err = neosync_benthos_error.RegisterErrorProcessor(benthosenv, nil)
 	assert.NoError(t, err)
+	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
+	assert.NoError(t, err)
+
 	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
@@ -1199,18 +1235,21 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - pooled_sql_raw:
-                driver: postgres
-                dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
-                args_mapping: root = [this."id", this."name"]
-                init_statement: ""
-                batching:
-                    count: 100
-                    byte_size: 0
-                    period: 5s
-                    check: ""
-                    processors: []
+            - fallback:
+                - pooled_sql_raw:
+                    driver: postgres
+                    dsn: ${DESTINATION_0_CONNECTION_DSN}
+                    query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
+                    args_mapping: root = [this."id", this."name"]
+                    init_statement: ""
+                    batching:
+                        count: 100
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
+                - error:
+                    error_msg: ${! meta("fallback_error")}
 
 `),
 	)
@@ -1238,18 +1277,21 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - pooled_sql_raw:
-                driver: postgres
-                dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO "public"."orders" ("id", "buyer_id") VALUES ($1, $2);
-                args_mapping: root = [this."id", this."buyer_id"]
-                init_statement: ""
-                batching:
-                    count: 100
-                    byte_size: 0
-                    period: 5s
-                    check: ""
-                    processors: []
+            - fallback:
+                - pooled_sql_raw:
+                    driver: postgres
+                    dsn: ${DESTINATION_0_CONNECTION_DSN}
+                    query: INSERT INTO "public"."orders" ("id", "buyer_id") VALUES ($1, $2);
+                    args_mapping: root = [this."id", this."buyer_id"]
+                    init_statement: ""
+                    batching:
+                        count: 100
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
+                - error:
+                    error_msg: ${! meta("fallback_error")}
 
 `),
 	)
@@ -1258,6 +1300,8 @@ output:
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
@@ -1450,19 +1494,21 @@ output:
                 walk_json_object: false
                 fields_mapping: 'root = {meta("neosync_id"): json("id")}'
                 kind: simple
-            - pooled_sql_raw:
-                driver: postgres
-                dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO "public"."jobs" ("id") VALUES ($1);
-                args_mapping: root = [this."id"]
-                init_statement: ""
-                batching:
-                    count: 100
-                    byte_size: 0
-                    period: 5s
-                    check: ""
-                    processors: []
-
+            - fallback:
+                - pooled_sql_raw:
+                    driver: postgres
+                    dsn: ${DESTINATION_0_CONNECTION_DSN}
+                    query: INSERT INTO "public"."jobs" ("id") VALUES ($1);
+                    args_mapping: root = [this."id"]
+                    init_statement: ""
+                    batching:
+                        count: 100
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
+                - error:
+                    error_msg: ${! meta("fallback_error")}
 `),
 	)
 
@@ -1509,18 +1555,21 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - pooled_sql_raw:
-                driver: postgres
-                dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: UPDATE "public"."jobs" SET "parent_id" = $1 WHERE "id" = $2;
-                args_mapping: root = [this."parent_id", this."id"]
-                init_statement: ""
-                batching:
-                    count: 100
-                    byte_size: 0
-                    period: 5s
-                    check: ""
-                    processors: []
+            - fallback:
+                - pooled_sql_raw:
+                    driver: postgres
+                    dsn: ${DESTINATION_0_CONNECTION_DSN}
+                    query: UPDATE "public"."jobs" SET "parent_id" = $1 WHERE "id" = $2;
+                    args_mapping: root = [this."parent_id", this."id"]
+                    init_statement: ""
+                    batching:
+                        count: 100
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
+                - error:
+                    error_msg: ${! meta("fallback_error")}
 
 `),
 	)
@@ -1531,6 +1580,8 @@ output:
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_error.RegisterErrorProcessor(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
@@ -1688,18 +1739,21 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - pooled_sql_raw:
-                driver: postgres
-                dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO "public"."users" ("id", "name") VALUES (DEFAULT, $1);
-                args_mapping: root = [this."name"]
-                init_statement: ""
-                batching:
-                    count: 100
-                    byte_size: 0
-                    period: 5s
-                    check: ""
-                    processors: []
+            - fallback:
+                - pooled_sql_raw:
+                    driver: postgres
+                    dsn: ${DESTINATION_0_CONNECTION_DSN}
+                    query: INSERT INTO "public"."users" ("id", "name") VALUES (DEFAULT, $1);
+                    args_mapping: root = [this."name"]
+                    init_statement: ""
+                    batching:
+                        count: 100
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
+                - error:
+                    error_msg: ${! meta("fallback_error")}
 `),
 	)
 
@@ -1708,6 +1762,8 @@ output:
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
@@ -1908,18 +1964,21 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - pooled_sql_raw:
-                driver: postgres
-                dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
-                args_mapping: root = [this."id", this."name"]
-                init_statement: ""
-                batching:
-                    count: 100
-                    byte_size: 0
-                    period: 5s
-                    check: ""
-                    processors: []
+            - fallback:
+                - pooled_sql_raw:
+                    driver: postgres
+                    dsn: ${DESTINATION_0_CONNECTION_DSN}
+                    query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
+                    args_mapping: root = [this."id", this."name"]
+                    init_statement: ""
+                    batching:
+                        count: 100
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
+                - error:
+                    error_msg: ${! meta("fallback_error")}
 `),
 	)
 
@@ -1946,18 +2005,21 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - pooled_sql_raw:
-                driver: postgres
-                dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO "public"."user_account_associations" ("id", "user_id") VALUES ($1, $2);
-                args_mapping: root = [this."id", this."user_id"]
-                init_statement: ""
-                batching:
-                    count: 100
-                    byte_size: 0
-                    period: 5s
-                    check: ""
-                    processors: []
+            - fallback:
+                - pooled_sql_raw:
+                    driver: postgres
+                    dsn: ${DESTINATION_0_CONNECTION_DSN}
+                    query: INSERT INTO "public"."user_account_associations" ("id", "user_id") VALUES ($1, $2);
+                    args_mapping: root = [this."id", this."user_id"]
+                    init_statement: ""
+                    batching:
+                        count: 100
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
+                - error:
+                    error_msg: ${! meta("fallback_error")}
 `),
 	)
 
@@ -1965,6 +2027,8 @@ output:
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
@@ -2194,18 +2258,21 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - pooled_sql_raw:
-                driver: postgres
-                dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
-                args_mapping: root = [this."id", this."name"]
-                init_statement: ""
-                batching:
-                    count: 100
-                    byte_size: 0
-                    period: 5s
-                    check: ""
-                    processors: []
+            - fallback:
+                - pooled_sql_raw:
+                    driver: postgres
+                    dsn: ${DESTINATION_0_CONNECTION_DSN}
+                    query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
+                    args_mapping: root = [this."id", this."name"]
+                    init_statement: ""
+                    batching:
+                        count: 100
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
+                - error:
+                    error_msg: ${! meta("fallback_error")}
 `),
 	)
 
@@ -2233,18 +2300,21 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - pooled_sql_raw:
-                driver: postgres
-                dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: UPDATE "public"."users" SET "user_assoc_id" = $1 WHERE "id" = $2;
-                args_mapping: root = [this."user_assoc_id", this."id"]
-                init_statement: ""
-                batching:
-                    count: 100
-                    byte_size: 0
-                    period: 5s
-                    check: ""
-                    processors: []
+            - fallback:
+                - pooled_sql_raw:
+                    driver: postgres
+                    dsn: ${DESTINATION_0_CONNECTION_DSN}
+                    query: UPDATE "public"."users" SET "user_assoc_id" = $1 WHERE "id" = $2;
+                    args_mapping: root = [this."user_assoc_id", this."id"]
+                    init_statement: ""
+                    batching:
+                        count: 100
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
+                - error:
+                    error_msg: ${! meta("fallback_error")}
 `),
 	)
 
@@ -2271,18 +2341,21 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - pooled_sql_raw:
-                driver: postgres
-                dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO "public"."user_account_associations" ("id", "user_id") VALUES ($1, $2);
-                args_mapping: root = [this."id", this."user_id"]
-                init_statement: ""
-                batching:
-                    count: 100
-                    byte_size: 0
-                    period: 5s
-                    check: ""
-                    processors: []
+            - fallback:
+                - pooled_sql_raw:
+                    driver: postgres
+                    dsn: ${DESTINATION_0_CONNECTION_DSN}
+                    query: INSERT INTO "public"."user_account_associations" ("id", "user_id") VALUES ($1, $2);
+                    args_mapping: root = [this."id", this."user_id"]
+                    init_statement: ""
+                    batching:
+                        count: 100
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
+                - error:
+                    error_msg: ${! meta("fallback_error")}
 `),
 	)
 
@@ -2290,6 +2363,8 @@ output:
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
@@ -2550,36 +2625,42 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - pooled_sql_raw:
-                driver: postgres
-                dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
-                args_mapping: root = [this."id", this."name"]
-                init_statement: ""
-                batching:
-                    count: 100
-                    byte_size: 0
-                    period: 5s
-                    check: ""
-                    processors: []
-            - aws_s3:
-                bucket: s3-bucket
-                max_in_flight: 64
-                path: /workflows/123/activities/public.users/data/${!count("files")}.txt.gz
-                batching:
-                    count: 100
-                    byte_size: 0
-                    period: 5s
-                    check: ""
-                    processors:
-                        - archive:
-                            format: lines
-                        - compress:
-                            algorithm: gzip
-                region: us-west-2
-                credentials:
-                    id: access-key
-                    secret: secret
+            - fallback:
+                - pooled_sql_raw:
+                    driver: postgres
+                    dsn: ${DESTINATION_0_CONNECTION_DSN}
+                    query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
+                    args_mapping: root = [this."id", this."name"]
+                    init_statement: ""
+                    batching:
+                        count: 100
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
+                - error:
+                    error_msg: ${! meta("fallback_error")}
+            - fallback:
+                - aws_s3:
+                    bucket: s3-bucket
+                    max_in_flight: 64
+                    path: /workflows/123/activities/public.users/data/${!count("files")}.txt.gz
+                    batching:
+                        count: 100
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors:
+                            - archive:
+                                format: lines
+                            - compress:
+                                algorithm: gzip
+                    region: us-west-2
+                    credentials:
+                        id: access-key
+                        secret: secret
+                - error:
+                    error_msg: ${! meta("fallback_error")}
 `),
 	)
 
@@ -2608,18 +2689,21 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - pooled_sql_raw:
-                driver: postgres
-                dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: UPDATE "public"."users" SET "user_assoc_id" = $1 WHERE "id" = $2;
-                args_mapping: root = [this."user_assoc_id", this."id"]
-                init_statement: ""
-                batching:
-                    count: 100
-                    byte_size: 0
-                    period: 5s
-                    check: ""
-                    processors: []
+            - fallback:
+                - pooled_sql_raw:
+                    driver: postgres
+                    dsn: ${DESTINATION_0_CONNECTION_DSN}
+                    query: UPDATE "public"."users" SET "user_assoc_id" = $1 WHERE "id" = $2;
+                    args_mapping: root = [this."user_assoc_id", this."id"]
+                    init_statement: ""
+                    batching:
+                        count: 100
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
+                - error:
+                    error_msg: ${! meta("fallback_error")}
 `),
 	)
 
@@ -2647,36 +2731,42 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - pooled_sql_raw:
-                driver: postgres
-                dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO "public"."user_account_associations" ("id", "user_id") VALUES ($1, $2);
-                args_mapping: root = [this."id", this."user_id"]
-                init_statement: ""
-                batching:
-                    count: 100
-                    byte_size: 0
-                    period: 5s
-                    check: ""
-                    processors: []
-            - aws_s3:
-                bucket: s3-bucket
-                max_in_flight: 64
-                path: /workflows/123/activities/public.user_account_associations/data/${!count("files")}.txt.gz
-                batching:
-                    count: 100
-                    byte_size: 0
-                    period: 5s
-                    check: ""
-                    processors:
-                        - archive:
-                            format: lines
-                        - compress:
-                            algorithm: gzip
-                region: us-west-2
-                credentials:
-                    id: access-key
-                    secret: secret
+            - fallback:
+                - pooled_sql_raw:
+                    driver: postgres
+                    dsn: ${DESTINATION_0_CONNECTION_DSN}
+                    query: INSERT INTO "public"."user_account_associations" ("id", "user_id") VALUES ($1, $2);
+                    args_mapping: root = [this."id", this."user_id"]
+                    init_statement: ""
+                    batching:
+                        count: 100
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
+                - error:
+                    error_msg: ${! meta("fallback_error")}
+            - fallback:
+                - aws_s3:
+                    bucket: s3-bucket
+                    max_in_flight: 64
+                    path: /workflows/123/activities/public.user_account_associations/data/${!count("files")}.txt.gz
+                    batching:
+                        count: 100
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors:
+                            - archive:
+                                format: lines
+                            - compress:
+                                algorithm: gzip
+                    region: us-west-2
+                    credentials:
+                        id: access-key
+                        secret: secret
+                - error:
+                    error_msg: ${! meta("fallback_error")}
 `),
 	)
 
@@ -2684,6 +2774,8 @@ output:
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
@@ -2807,14 +2899,11 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Mysql(t *testing.
 	assert.NoError(t, err)
 	assert.Equal(
 		t,
-		strings.TrimSpace(string(out)),
 		strings.TrimSpace(`
 input:
     label: ""
     generate:
-        mapping: |-
-            root."id" = generate_uuid(include_hyphens:true)
-            root."name" = generate_ssn()
+        mapping: root = {}
         interval: ""
         count: 10
 pipeline:
@@ -2825,19 +2914,27 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - pooled_sql_raw:
-                driver: mysql
-                dsn: ${DESTINATION_0_CONNECTION_DSN}
-                `+"query: INSERT INTO `public`.`users` (`id`, `name`) VALUES (?, ?);"+`
-                args_mapping: root = [this."id", this."name"]
-                init_statement: ""
-                batching:
-                    count: 100
-                    byte_size: 0
-                    period: 5s
-                    check: ""
-                    processors: []
-`),
+            - fallback:
+                - retry:
+                    output:
+                        label: ""
+                        pooled_sql_raw:
+                            driver: mysql
+                            dsn: ${DESTINATION_0_CONNECTION_DSN}
+                            `+"query: INSERT INTO `public`.`users` (`id`, `name`) VALUES (?, ?);"+`
+                            args_mapping: root = [this."id", this."name"]
+                            init_statement: ""
+                        processors:
+                            - mutation: |-
+                                root."id" = generate_uuid(include_hyphens:true)
+                                root."name" = generate_ssn()
+                            - catch:
+                                - error: {}
+                    max_retries: 5
+                    backoff: {}
+                - error:
+                    error_msg: ${! meta("fallback_error")}
+`), strings.TrimSpace(string(out)),
 	)
 
 	benthosenv := service.NewEnvironment()
@@ -2845,6 +2942,11 @@ output:
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
 	assert.NoError(t, err)
+	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_error.RegisterErrorProcessor(benthosenv, nil)
+	assert.NoError(t, err)
+
 	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
@@ -3001,18 +3103,21 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - pooled_sql_raw:
-                driver: mysql
-                dsn: ${DESTINATION_0_CONNECTION_DSN}
-                `+"query: INSERT INTO `public`.`users` (`id`, `name`) VALUES (?, ?);"+`
-                args_mapping: root = [this."id", this."name"]
-                init_statement: ""
-                batching:
-                    count: 100
-                    byte_size: 0
-                    period: 5s
-                    check: ""
-                    processors: []
+            - fallback:
+                - pooled_sql_raw:
+                    driver: mysql
+                    dsn: ${DESTINATION_0_CONNECTION_DSN}
+                    `+"query: INSERT INTO `public`.`users` (`id`, `name`) VALUES (?, ?);"+`
+                    args_mapping: root = [this."id", this."name"]
+                    init_statement: ""
+                    batching:
+                        count: 100
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
+                - error:
+                    error_msg: ${! meta("fallback_error")}
 `),
 	)
 
@@ -3020,6 +3125,8 @@ output:
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
@@ -3219,18 +3326,21 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - pooled_sql_raw:
-                driver: mysql
-                dsn: ${DESTINATION_0_CONNECTION_DSN}
-                `+"query: INSERT INTO `public`.`users` (`id`, `name`) VALUES (?, ?);"+`
-                args_mapping: root = [this."id", this."name"]
-                init_statement: ""
-                batching:
-                    count: 100
-                    byte_size: 0
-                    period: 5s
-                    check: ""
-                    processors: []
+            - fallback:
+                - pooled_sql_raw:
+                    driver: mysql
+                    dsn: ${DESTINATION_0_CONNECTION_DSN}
+                    `+"query: INSERT INTO `public`.`users` (`id`, `name`) VALUES (?, ?);"+`
+                    args_mapping: root = [this."id", this."name"]
+                    init_statement: ""
+                    batching:
+                        count: 100
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
+                - error:
+                    error_msg: ${! meta("fallback_error")}
 `),
 	)
 
@@ -3257,18 +3367,21 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - pooled_sql_raw:
-                driver: mysql
-                dsn: ${DESTINATION_0_CONNECTION_DSN}
-                `+"query: INSERT INTO `public`.`user_account_associations` (`id`, `user_id`) VALUES (?, ?);"+`
-                args_mapping: root = [this."id", this."user_id"]
-                init_statement: ""
-                batching:
-                    count: 100
-                    byte_size: 0
-                    period: 5s
-                    check: ""
-                    processors: []
+            - fallback:
+                - pooled_sql_raw:
+                    driver: mysql
+                    dsn: ${DESTINATION_0_CONNECTION_DSN}
+                    `+"query: INSERT INTO `public`.`user_account_associations` (`id`, `user_id`) VALUES (?, ?);"+`
+                    args_mapping: root = [this."id", this."user_id"]
+                    init_statement: ""
+                    batching:
+                        count: 100
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
+                - error:
+                    error_msg: ${! meta("fallback_error")}
 `),
 	)
 
@@ -3276,6 +3389,8 @@ output:
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
@@ -3506,18 +3621,21 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - pooled_sql_raw:
-                driver: mysql
-                dsn: ${DESTINATION_0_CONNECTION_DSN}
-                `+"query: INSERT INTO `public`.`users` (`id`, `name`) VALUES (?, ?);"+`
-                args_mapping: root = [this."id", this."name"]
-                init_statement: ""
-                batching:
-                    count: 100
-                    byte_size: 0
-                    period: 5s
-                    check: ""
-                    processors: []
+            - fallback:
+                - pooled_sql_raw:
+                    driver: mysql
+                    dsn: ${DESTINATION_0_CONNECTION_DSN}
+                    `+"query: INSERT INTO `public`.`users` (`id`, `name`) VALUES (?, ?);"+`
+                    args_mapping: root = [this."id", this."name"]
+                    init_statement: ""
+                    batching:
+                        count: 100
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
+                - error:
+                    error_msg: ${! meta("fallback_error")}
 `),
 	)
 
@@ -3545,18 +3663,21 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - pooled_sql_raw:
-                driver: mysql
-                dsn: ${DESTINATION_0_CONNECTION_DSN}
-                `+"query: UPDATE `public`.`users` SET `user_assoc_id` = ? WHERE `id` = ?;"+`
-                args_mapping: root = [this."user_assoc_id", this."id"]
-                init_statement: ""
-                batching:
-                    count: 100
-                    byte_size: 0
-                    period: 5s
-                    check: ""
-                    processors: []
+            - fallback:
+                - pooled_sql_raw:
+                    driver: mysql
+                    dsn: ${DESTINATION_0_CONNECTION_DSN}
+                    `+"query: UPDATE `public`.`users` SET `user_assoc_id` = ? WHERE `id` = ?;"+`
+                    args_mapping: root = [this."user_assoc_id", this."id"]
+                    init_statement: ""
+                    batching:
+                        count: 100
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
+                - error:
+                    error_msg: ${! meta("fallback_error")}
 `),
 	)
 
@@ -3583,18 +3704,21 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - pooled_sql_raw:
-                driver: mysql
-                dsn: ${DESTINATION_0_CONNECTION_DSN}
-                `+"query: INSERT INTO `public`.`user_account_associations` (`id`, `user_id`) VALUES (?, ?);"+`
-                args_mapping: root = [this."id", this."user_id"]
-                init_statement: ""
-                batching:
-                    count: 100
-                    byte_size: 0
-                    period: 5s
-                    check: ""
-                    processors: []
+            - fallback:
+                - pooled_sql_raw:
+                    driver: mysql
+                    dsn: ${DESTINATION_0_CONNECTION_DSN}
+                    `+"query: INSERT INTO `public`.`user_account_associations` (`id`, `user_id`) VALUES (?, ?);"+`
+                    args_mapping: root = [this."id", this."user_id"]
+                    init_statement: ""
+                    batching:
+                        count: 100
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
+                - error:
+                    error_msg: ${! meta("fallback_error")}
 `),
 	)
 
@@ -3602,6 +3726,8 @@ output:
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
@@ -3729,7 +3855,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Mysql_Default(t *
 input:
     label: ""
     generate:
-        mapping: root."name" = generate_ssn()
+        mapping: root = {}
         interval: ""
         count: 10
 pipeline:
@@ -3740,18 +3866,24 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - pooled_sql_raw:
-                driver: mysql
-                dsn: ${DESTINATION_0_CONNECTION_DSN}
-                `+"query: INSERT INTO `public`.`users` (`id`, `name`) VALUES (DEFAULT, ?);"+`
-                args_mapping: root = [this."name"]
-                init_statement: ""
-                batching:
-                    count: 100
-                    byte_size: 0
-                    period: 5s
-                    check: ""
-                    processors: []
+            - fallback:
+                - retry:
+                    output:
+                        label: ""
+                        pooled_sql_raw:
+                            driver: mysql
+                            dsn: ${DESTINATION_0_CONNECTION_DSN}
+                            `+"query: INSERT INTO `public`.`users` (`id`, `name`) VALUES (DEFAULT, ?);"+`
+                            args_mapping: root = [this."name"]
+                            init_statement: ""
+                        processors:
+                            - mutation: root."name" = generate_ssn()
+                            - catch:
+                                - error: {}
+                    max_retries: 5
+                    backoff: {}
+                - error:
+                    error_msg: ${! meta("fallback_error")}
 `),
 	)
 
@@ -3761,6 +3893,11 @@ output:
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
 	assert.NoError(t, err)
+	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_error.RegisterErrorProcessor(benthosenv, nil)
+	assert.NoError(t, err)
+
 	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
@@ -3917,18 +4054,21 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - pooled_sql_raw:
-                driver: mysql
-                dsn: ${DESTINATION_0_CONNECTION_DSN}
-                `+"query: INSERT INTO `public`.`users` (`id`, `name`) VALUES (DEFAULT, ?);"+`
-                args_mapping: root = [this."name"]
-                init_statement: ""
-                batching:
-                    count: 100
-                    byte_size: 0
-                    period: 5s
-                    check: ""
-                    processors: []
+            - fallback:
+                - pooled_sql_raw:
+                    driver: mysql
+                    dsn: ${DESTINATION_0_CONNECTION_DSN}
+                    `+"query: INSERT INTO `public`.`users` (`id`, `name`) VALUES (DEFAULT, ?);"+`
+                    args_mapping: root = [this."name"]
+                    init_statement: ""
+                    batching:
+                        count: 100
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
+                - error:
+                    error_msg: ${! meta("fallback_error")}
 `),
 	)
 	// create a new streambuilder instance so we can access the SetYaml method
@@ -3936,6 +4076,8 @@ output:
 	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 

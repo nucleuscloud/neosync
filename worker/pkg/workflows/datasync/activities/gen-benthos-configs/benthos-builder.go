@@ -595,21 +595,29 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 				cols := buildPlainColumns(tm.Mappings)
 				resp.Columns = cols
 				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-					AwsS3: &neosync_benthos.AwsS3Insert{
-						Bucket:      connection.AwsS3Config.Bucket,
-						MaxInFlight: 64,
-						Path:        fmt.Sprintf("/%s", strings.Join(s3pathpieces, "/")),
-						Batching: &neosync_benthos.Batching{
-							Count:  100,
-							Period: "5s",
-							Processors: []*neosync_benthos.BatchProcessor{
-								{Archive: &neosync_benthos.ArchiveProcessor{Format: "lines"}},
-								{Compress: &neosync_benthos.CompressProcessor{Algorithm: "gzip"}},
+					Fallback: []neosync_benthos.Outputs{
+						{
+							AwsS3: &neosync_benthos.AwsS3Insert{
+								Bucket:      connection.AwsS3Config.Bucket,
+								MaxInFlight: 64,
+								Path:        fmt.Sprintf("/%s", strings.Join(s3pathpieces, "/")),
+								Batching: &neosync_benthos.Batching{
+									Count:  100,
+									Period: "5s",
+									Processors: []*neosync_benthos.BatchProcessor{
+										{Archive: &neosync_benthos.ArchiveProcessor{Format: "lines"}},
+										{Compress: &neosync_benthos.CompressProcessor{Algorithm: "gzip"}},
+									},
+								},
+								Credentials: buildBenthosS3Credentials(connection.AwsS3Config.Credentials),
+								Region:      connection.AwsS3Config.GetRegion(),
+								Endpoint:    connection.AwsS3Config.GetEndpoint(),
 							},
 						},
-						Credentials: buildBenthosS3Credentials(connection.AwsS3Config.Credentials),
-						Region:      connection.AwsS3Config.GetRegion(),
-						Endpoint:    connection.AwsS3Config.GetEndpoint(),
+						// kills activity depending on error
+						{Error: &neosync_benthos.ErrorOutputConfig{
+							ErrorMsg: `${! meta("fallback_error")}`,
+						}},
 					},
 				})
 			default:
