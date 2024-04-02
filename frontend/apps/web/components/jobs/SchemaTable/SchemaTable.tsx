@@ -35,8 +35,9 @@ import {
 } from '@radix-ui/react-icons';
 import { ReactElement, useMemo, useState } from 'react';
 import { FieldErrors, useFieldArray, useFormContext } from 'react-hook-form';
-import { SchemaConstraintHandler, getSchemaColumns } from './SchemaColumns';
+import { getSchemaColumns } from './SchemaColumns';
 import SchemaPageTable from './SchemaPageTable';
+import { SchemaConstraintHandler } from './schema-constraint-handler';
 
 type JobType = 'sync' | 'generate';
 
