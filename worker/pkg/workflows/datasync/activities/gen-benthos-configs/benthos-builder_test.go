@@ -175,18 +175,26 @@ output:
     broker:
         pattern: fan_out
         outputs:
-            - pooled_sql_raw:
-                driver: postgres
-                dsn: ${DESTINATION_0_CONNECTION_DSN}
-                query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
-                args_mapping: root = [this."id", this."name"]
-                init_statement: ""
-                batching:
-                    count: 100
-                    byte_size: 0
-                    period: 5s
-                    check: ""
-                    processors: []
+            - fallback:
+                - retry:
+                    output:
+                        label: ""
+                        pooled_sql_raw:
+                            driver: postgres
+                            dsn: ${DESTINATION_0_CONNECTION_DSN}
+                            query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
+                            args_mapping: root = [this."id", this."name"]
+                            init_statement: ""
+                            batching:
+                                count: 100
+                                byte_size: 0
+                                period: 5s
+                                check: ""
+                                processors: []
+                    max_retries: 5
+                    backoff: {}
+                - error:
+                    error_msg: ${! meta("fallback_error")}
 `),
 		strings.TrimSpace(string(out)),
 	)

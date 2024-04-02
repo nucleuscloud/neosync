@@ -418,27 +418,16 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						Fallback: []neosync_benthos.Outputs{
 							{
-								// retry processor and output several times
-								Retry: &neosync_benthos.RetryConfig{
-									InlineRetryConfig: neosync_benthos.InlineRetryConfig{
-										MaxRetries: 5,
-									},
-									Output: neosync_benthos.OutputConfig{
-										Outputs: neosync_benthos.Outputs{
-											PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
-												Driver: postgresDriver,
-												Dsn:    dsn,
+								PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
+									Driver: postgresDriver,
+									Dsn:    dsn,
 
-												Query:       out.Query,
-												ArgsMapping: out.ArgsMapping,
+									Query:       out.Query,
+									ArgsMapping: out.ArgsMapping,
 
-												Batching: &neosync_benthos.Batching{
-													Period: "5s",
-													Count:  100,
-												},
-											},
-										},
-										Processors: resp.Config.Pipeline.Processors,
+									Batching: &neosync_benthos.Batching{
+										Period: "5s",
+										Count:  100,
 									},
 								},
 							},
@@ -448,7 +437,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 							}},
 						},
 					})
-					resp.Config.Pipeline.Processors = []neosync_benthos.ProcessorConfig{}
 
 					if resp.updateConfig != nil {
 						// circular dependency -> create update benthos config
@@ -467,19 +455,39 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 					filteredCols := filterColsBySource(cols, colSourceMap) // filters out default columns
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-						PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
-							Driver: postgresDriver,
-							Dsn:    dsn,
+						Fallback: []neosync_benthos.Outputs{
+							{
+								// retry processor and output several times
+								Retry: &neosync_benthos.RetryConfig{
+									InlineRetryConfig: neosync_benthos.InlineRetryConfig{
+										MaxRetries: 5,
+									},
+									Output: neosync_benthos.OutputConfig{
+										Outputs: neosync_benthos.Outputs{
+											PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
+												Driver: postgresDriver,
+												Dsn:    dsn,
 
-							Query:       buildPostgresInsertQuery(resp.TableSchema, resp.TableName, cols, colSourceMap),
-							ArgsMapping: buildPlainInsertArgs(filteredCols),
+												Query:       buildPostgresInsertQuery(resp.TableSchema, resp.TableName, cols, colSourceMap),
+												ArgsMapping: buildPlainInsertArgs(filteredCols),
 
-							Batching: &neosync_benthos.Batching{
-								Period: "5s",
-								Count:  100,
+												Batching: &neosync_benthos.Batching{
+													Period: "5s",
+													Count:  100,
+												},
+											},
+										},
+										Processors: resp.Config.Pipeline.Processors,
+									},
+								},
 							},
+							// kills activity depending on error
+							{Error: &neosync_benthos.ErrorOutputConfig{
+								ErrorMsg: `${! meta("fallback_error")}`,
+							}},
 						},
 					})
+					resp.Config.Pipeline.Processors = nil
 				} else {
 					return nil, errors.New("unable to build destination connection due to unsupported source connection")
 				}
@@ -495,17 +503,25 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					out := buildMysqlOutputQueryAndArgs(resp, tm, resp.TableSchema, resp.TableName, colSourceMap)
 					resp.Columns = out.Columns
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-						PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
-							Driver: mysqlDriver,
-							Dsn:    dsn,
+						Fallback: []neosync_benthos.Outputs{
+							{
+								PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
+									Driver: mysqlDriver,
+									Dsn:    dsn,
 
-							Query:       out.Query,
-							ArgsMapping: out.ArgsMapping,
+									Query:       out.Query,
+									ArgsMapping: out.ArgsMapping,
 
-							Batching: &neosync_benthos.Batching{
-								Period: "5s",
-								Count:  100,
+									Batching: &neosync_benthos.Batching{
+										Period: "5s",
+										Count:  100,
+									},
+								},
 							},
+							// kills activity depending on error
+							{Error: &neosync_benthos.ErrorOutputConfig{
+								ErrorMsg: `${! meta("fallback_error")}`,
+							}},
 						},
 					})
 					if resp.updateConfig != nil {
@@ -526,17 +542,36 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					filteredCols := filterColsBySource(cols, colSourceMap)
 
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-						PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
-							Driver: mysqlDriver,
-							Dsn:    dsn,
+						Fallback: []neosync_benthos.Outputs{
+							{
+								// retry processor and output several times
+								Retry: &neosync_benthos.RetryConfig{
+									InlineRetryConfig: neosync_benthos.InlineRetryConfig{
+										MaxRetries: 5,
+									},
+									Output: neosync_benthos.OutputConfig{
+										Outputs: neosync_benthos.Outputs{
+											PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
+												Driver: mysqlDriver,
+												Dsn:    dsn,
 
-							Query:       buildMysqlInsertQuery(resp.TableSchema, resp.TableName, cols, colSourceMap),
-							ArgsMapping: buildPlainInsertArgs(filteredCols),
+												Query:       buildMysqlInsertQuery(resp.TableSchema, resp.TableName, cols, colSourceMap),
+												ArgsMapping: buildPlainInsertArgs(filteredCols),
 
-							Batching: &neosync_benthos.Batching{
-								Period: "5s",
-								Count:  100,
+												Batching: &neosync_benthos.Batching{
+													Period: "5s",
+													Count:  100,
+												},
+											},
+										},
+										Processors: resp.Config.Pipeline.Processors,
+									},
+								},
 							},
+							// kills activity depending on error
+							{Error: &neosync_benthos.ErrorOutputConfig{
+								ErrorMsg: `${! meta("fallback_error")}`,
+							}},
 						},
 					})
 				} else {
@@ -1095,17 +1130,25 @@ func createSqlUpdateBenthosConfig(
 		}
 		newResp.BenthosDsns = insertConfig.BenthosDsns
 		newResp.Config.Output.Broker.Outputs = append(newResp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-			PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
-				Driver: driver,
-				Dsn:    dsn,
+			Fallback: []neosync_benthos.Outputs{
+				{
+					PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
+						Driver: driver,
+						Dsn:    dsn,
 
-				Query:       output.Query,
-				ArgsMapping: output.ArgsMapping,
+						Query:       output.Query,
+						ArgsMapping: output.ArgsMapping,
 
-				Batching: &neosync_benthos.Batching{
-					Period: "5s",
-					Count:  100,
+						Batching: &neosync_benthos.Batching{
+							Period: "5s",
+							Count:  100,
+						},
+					},
 				},
+				// kills activity depending on error
+				{Error: &neosync_benthos.ErrorOutputConfig{
+					ErrorMsg: `${! meta("fallback_error")}`,
+				}},
 			},
 		})
 		return newResp, nil
