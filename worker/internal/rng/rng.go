@@ -24,14 +24,14 @@ func New(seed int64) *Randomizer {
 
 func (r *Randomizer) Int63n(n int64) int64 {
 	r.mu.Lock()
+	defer r.mu.Unlock()
 	out := r.rng.Int63n(n)
-	r.mu.Unlock()
 	return out
 }
 
 func (r *Randomizer) Intn(n int) int {
 	r.mu.Lock()
+	defer r.mu.Unlock()
 	out := r.rng.Intn(n)
-	r.mu.Unlock()
 	return out
 }
