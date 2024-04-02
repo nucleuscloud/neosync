@@ -464,7 +464,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 								// retry processor and output several times
 								Retry: &neosync_benthos.RetryConfig{
 									InlineRetryConfig: neosync_benthos.InlineRetryConfig{
-										MaxRetries: 5,
+										MaxRetries: 10,
 									},
 									Output: neosync_benthos.OutputConfig{
 										Outputs: neosync_benthos.Outputs{
@@ -550,7 +550,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 								// retry processor and output several times
 								Retry: &neosync_benthos.RetryConfig{
 									InlineRetryConfig: neosync_benthos.InlineRetryConfig{
-										MaxRetries: 5,
+										MaxRetries: 10,
 									},
 									Output: neosync_benthos.OutputConfig{
 										Outputs: neosync_benthos.Outputs{
@@ -821,7 +821,9 @@ func buildBenthosGenerateSourceConfigResponses(
 		if len(processors) > 0 {
 			// add catch and error processor
 			processors = append(processors, &neosync_benthos.ProcessorConfig{Catch: []*neosync_benthos.ProcessorConfig{
-				{Error: &neosync_benthos.ErrorProcessorConfig{}},
+				{Error: &neosync_benthos.ErrorProcessorConfig{
+					ErrorMsg: `${! meta("fallback_error")}`,
+				}},
 			}})
 		}
 
@@ -1117,7 +1119,9 @@ func createSqlUpdateBenthosConfig(
 			if len(processorConfigs) > 0 {
 				// add catch and error processor
 				processorConfigs = append(processorConfigs, neosync_benthos.ProcessorConfig{Catch: []*neosync_benthos.ProcessorConfig{
-					{Error: &neosync_benthos.ErrorProcessorConfig{}},
+					{Error: &neosync_benthos.ErrorProcessorConfig{
+						ErrorMsg: `${! meta("fallback_error")}`,
+					}},
 				}})
 			}
 			newResp.Config.StreamConfig.Pipeline.Processors = processorConfigs
@@ -1551,7 +1555,9 @@ func buildProcessorConfigs(
 	if len(processorConfigs) > 0 {
 		// add catch and error processor
 		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Catch: []*neosync_benthos.ProcessorConfig{
-			{Error: &neosync_benthos.ErrorProcessorConfig{}},
+			{Error: &neosync_benthos.ErrorProcessorConfig{
+				ErrorMsg: `${! meta("fallback_error")}`,
+			}},
 		}})
 	}
 

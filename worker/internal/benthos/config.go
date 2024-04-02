@@ -110,7 +110,9 @@ type WhileProcessorConfig struct {
 	Processors  []*ProcessorConfig `json:"processors,omitempty" yaml:"processors,omitempty"`
 }
 
-type ErrorProcessorConfig struct{}
+type ErrorProcessorConfig struct {
+	ErrorMsg string `json:"error_msg" yaml:"error_msg"`
+}
 
 type RedisProcessorConfig struct {
 	Url         string          `json:"url" yaml:"url"`

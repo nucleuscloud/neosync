@@ -188,8 +188,9 @@ output:
                                 root."id" = generate_uuid(include_hyphens:true)
                                 root."name" = generate_ssn()
                             - catch:
-                                - error: {}
-                    max_retries: 5
+                                - error:
+                                    error_msg: ${! meta("fallback_error")}
+                    max_retries: 10
                     backoff: {}
                 - error:
                     error_msg: ${! meta("fallback_error")}
@@ -359,8 +360,9 @@ output:
                                 root."id" = generate_uuid(include_hyphens:true)
                                 root."name" = generate_ssn()
                             - catch:
-                                - error: {}
-                    max_retries: 5
+                                - error:
+                                    error_msg: ${! meta("fallback_error")}
+                    max_retries: 10
                     backoff: {}
                 - error:
                     error_msg: ${! meta("fallback_error")}
@@ -536,8 +538,9 @@ output:
                         processors:
                             - mutation: root."name" = generate_ssn()
                             - catch:
-                                - error: {}
-                    max_retries: 5
+                                - error:
+                                    error_msg: ${! meta("fallback_error")}
+                    max_retries: 10
                     backoff: {}
                 - error:
                     error_msg: ${! meta("fallback_error")}
@@ -944,7 +947,8 @@ pipeline:
         - mapping: meta neosync_id = this."id"
         - mutation: root."id" = generate_uuid(include_hyphens:true)
         - catch:
-            - error: {}
+            - error:
+                error_msg: ${! meta("fallback_error")}
 output:
     label: ""
     broker:
@@ -1003,7 +1007,8 @@ pipeline:
             request_map: root = if this."buyer_id" == null { deleted() } else { this }
             result_map: root."buyer_id" = this
         - catch:
-            - error: {}
+            - error:
+                error_msg: ${! meta("fallback_error")}
 output:
     label: ""
     broker:
@@ -1481,7 +1486,8 @@ pipeline:
         - mapping: meta neosync_id = this."id"
         - mutation: root."id" = generate_uuid(include_hyphens:true)
         - catch:
-            - error: {}
+            - error:
+                error_msg: ${! meta("fallback_error")}
 output:
     label: ""
     broker:
@@ -1549,7 +1555,8 @@ pipeline:
             request_map: root = if this."id" == null { deleted() } else { this }
             result_map: root."id" = this
         - catch:
-            - error: {}
+            - error:
+                error_msg: ${! meta("fallback_error")}
 output:
     label: ""
     broker:
@@ -2929,8 +2936,9 @@ output:
                                 root."id" = generate_uuid(include_hyphens:true)
                                 root."name" = generate_ssn()
                             - catch:
-                                - error: {}
-                    max_retries: 5
+                                - error:
+                                    error_msg: ${! meta("fallback_error")}
+                    max_retries: 10
                     backoff: {}
                 - error:
                     error_msg: ${! meta("fallback_error")}
@@ -3879,8 +3887,9 @@ output:
                         processors:
                             - mutation: root."name" = generate_ssn()
                             - catch:
-                                - error: {}
-                    max_retries: 5
+                                - error:
+                                    error_msg: ${! meta("fallback_error")}
+                    max_retries: 10
                     backoff: {}
                 - error:
                     error_msg: ${! meta("fallback_error")}
@@ -4376,7 +4385,8 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
         benthos.v0_msg_set_structured(output);
         })();
 - catch:
-    - error: {}
+    - error:
+        error_msg: ${! meta("fallback_error")}
       `), strings.TrimSpace(string(out)))
 }
 
@@ -4474,7 +4484,8 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
         benthos.v0_msg_set_structured(output);
         })();
 - catch:
-    - error: {}
+    - error:
+        error_msg: ${! meta("fallback_error")}
       `), strings.TrimSpace(string(out)))
 }
 

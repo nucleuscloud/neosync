@@ -9,7 +9,8 @@ import (
 
 func errorProcessorSpec() *service.ConfigSpec {
 	return service.NewConfigSpec().
-		Summary(`Sends stop workflow signal`)
+		Summary(`Sends stop workflow signal`).
+		Field(service.NewStringField("error_msg"))
 }
 
 // Registers an processor on a benthos environment called error
@@ -17,25 +18,42 @@ func RegisterErrorProcessor(env *service.Environment, stopActivityChannel chan e
 	return env.RegisterBatchProcessor(
 		"error", errorProcessorSpec(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchProcessor, error) {
-			return newErrorProcessor(mgr.Logger(), stopActivityChannel), nil
+			out, err := newErrorProcessor(conf, mgr, stopActivityChannel)
+			if err != nil {
+				return nil, err
+			}
+			return out, nil
 		})
 }
 
 type errorProcessor struct {
 	logger              *service.Logger
-	stopWorkflowChannel chan error
+	stopActivityChannel chan error
+	errorMsg            *service.InterpolatedString
 }
 
-func newErrorProcessor(logger *service.Logger, channel chan error) *errorProcessor {
-	return &errorProcessor{
-		logger:              logger,
-		stopWorkflowChannel: channel,
+func newErrorProcessor(conf *service.ParsedConfig, mgr *service.Resources, channel chan error) (*errorProcessor, error) {
+	errMsg, err := conf.FieldInterpolatedString("error_msg")
+	if err != nil {
+		return nil, err
 	}
+	return &errorProcessor{
+		logger:              mgr.Logger(),
+		stopActivityChannel: channel,
+		errorMsg:            errMsg,
+	}, nil
 }
 
 func (r *errorProcessor) ProcessBatch(_ context.Context, batch service.MessageBatch) ([]service.MessageBatch, error) {
-	r.logger.Error("Error processor: sending stop activity signal")
-	r.stopWorkflowChannel <- fmt.Errorf("Processor Error") // todo replace this with real error
+	for i := range batch {
+		errMsg, err := batch.TryInterpolatedString(i, r.errorMsg)
+		if err != nil {
+			return nil, fmt.Errorf("error message interpolation error: %w", err)
+		}
+		// kill activity
+		r.logger.Error(fmt.Sprintf("Benthos Error processor - sending stop activity signal: %s ", errMsg))
+		r.stopActivityChannel <- fmt.Errorf("%s", errMsg)
+	}
 	return []service.MessageBatch{}, nil
 }
 

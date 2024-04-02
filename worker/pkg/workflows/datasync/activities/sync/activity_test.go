@@ -205,7 +205,7 @@ output:
   file:
     path:  %s
     codec: lines
-	`, tmpFile.Name())),
+  `, tmpFile.Name())),
 	}, &SyncMetadata{Schema: "public", Table: "test"})
 	assert.NoError(t, err)
 	res := &SyncResponse{}
@@ -242,7 +242,8 @@ input:
 pipeline:
   threads: 1
   processors:
-    - error: {}
+    - error:
+        error_msg: ${! meta("fallback_error")}
 output:
   label: ""
   stdout:
@@ -250,7 +251,35 @@ output:
 `),
 	}, &SyncMetadata{Schema: "public", Table: "test"})
 	require.Error(t, err, "error was nil when it should be present")
-	require.Contains(t, err.Error(), "received stop activity signal")
+}
+
+func Test_Sync_Run_Output_Error(t *testing.T) {
+	testSuite := &testsuite.WorkflowTestSuite{}
+	env := testSuite.NewTestActivityEnvironment()
+
+	benthosStreamManager := NewBenthosStreamManager()
+	activity := New(nil, &sync.Map{}, nil, nil, benthosStreamManager)
+
+	env.RegisterActivity(activity.Sync)
+
+	_, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
+		BenthosConfig: strings.TrimSpace(`
+input:
+  generate:
+    count: 1000
+    interval: ""
+    mapping: 'root = { "name": "nick" }'
+pipeline:
+  threads: 1
+  processors: []
+output:
+  label: ""
+  error:
+     error_msg: ${! meta("fallback_error")}
+`),
+	}, &SyncMetadata{Schema: "public", Table: "test"})
+	require.Error(t, err, "error was nil when it should be present")
+	require.Contains(t, err.Error(), "activity error")
 }
 
 func Test_Sync_Run_ActivityStop_MockBenthos(t *testing.T) {
