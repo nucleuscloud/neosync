@@ -26,7 +26,7 @@ import {
 import { JobMappingFormValues } from '@/yup-validations/jobs';
 import { GoWorkflow } from 'react-icons/go';
 import { SchemaTableToolbar } from './SchemaTableToolBar';
-import { SchemaConstraintHandler } from './schema-constraint-handler';
+import { JobType, SchemaConstraintHandler } from './schema-constraint-handler';
 import { TransformerHandler } from './transformer-handler';
 
 export type Row = JobMappingFormValues;
@@ -36,6 +36,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
   transformerHandler: TransformerHandler;
   constraintHandler: SchemaConstraintHandler;
+  jobType: JobType;
 }
 
 export default function SchemaPageTable<TData, TValue>({
@@ -43,6 +44,7 @@ export default function SchemaPageTable<TData, TValue>({
   data,
   transformerHandler,
   constraintHandler,
+  jobType,
 }: DataTableProps<TData, TValue>): ReactElement {
   const table = useReactTable({
     data,
@@ -97,6 +99,7 @@ export default function SchemaPageTable<TData, TValue>({
           table={table}
           transformerHandler={transformerHandler}
           constraintHandler={constraintHandler}
+          jobType={jobType}
         />
       </div>
       <div

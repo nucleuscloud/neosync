@@ -9,6 +9,8 @@ import {
   UniqueConstraint,
 } from '@neosync/sdk';
 
+export type JobType = 'sync' | 'generate';
+
 export interface SchemaConstraintHandler {
   getIsPrimaryKey(key: ColumnKey): boolean;
   getIsForeignKey(key: ColumnKey): [boolean, string[]];

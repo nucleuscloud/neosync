@@ -23,7 +23,7 @@ import { useFormContext } from 'react-hook-form';
 import { SchemaColumnHeader } from './SchemaColumnHeader';
 import { Row as RowData } from './SchemaPageTable';
 import TransformerSelect from './TransformerSelect';
-import { SchemaConstraintHandler } from './schema-constraint-handler';
+import { JobType, SchemaConstraintHandler } from './schema-constraint-handler';
 import {
   TransformerFilters,
   TransformerHandler,
@@ -94,7 +94,7 @@ function RowAlert(props: RowAlertProps): ReactElement {
 interface Props {
   transformerHandler: TransformerHandler;
   constraintHandler: SchemaConstraintHandler;
-  jobType: 'sync' | 'generate';
+  jobType: JobType;
 }
 
 export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
@@ -450,7 +450,7 @@ function handleDataTypeBadge(dataType: string): string {
 export function getTransformerFilter(
   constraintHandler: SchemaConstraintHandler,
   colkey: ColumnKey,
-  jobType: 'sync' | 'generate'
+  jobType: JobType
 ): TransformerFilters {
   const [isForeignKey] = constraintHandler.getIsForeignKey(colkey);
   const isNullable = constraintHandler.getIsNullable(colkey);

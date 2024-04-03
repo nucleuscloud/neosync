@@ -24,19 +24,21 @@ import { fromRowDataToColKey, getTransformerFilter } from './SchemaColumns';
 import { Row as RowData } from './SchemaPageTable';
 import { SchemaTableViewOptions } from './SchemaTableViewOptions';
 import TransformerSelect from './TransformerSelect';
-import { SchemaConstraintHandler } from './schema-constraint-handler';
+import { JobType, SchemaConstraintHandler } from './schema-constraint-handler';
 import { TransformerHandler } from './transformer-handler';
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
   transformerHandler: TransformerHandler;
   constraintHandler: SchemaConstraintHandler;
+  jobType: JobType;
 }
 
 export function SchemaTableToolbar<TData>({
   table,
   transformerHandler,
   constraintHandler,
+  jobType,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
   const hasSelectedRows = Object.values(table.getState().rowSelection).some(
@@ -79,7 +81,7 @@ export function SchemaTableToolbar<TData>({
                     getTransformerFilter(
                       constraintHandler,
                       fromRowDataToColKey(row as unknown as Row<RowData>),
-                      'sync'
+                      jobType
                     )
                   );
                 systemArrays.push(system);

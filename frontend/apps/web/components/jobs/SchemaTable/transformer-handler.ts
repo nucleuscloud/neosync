@@ -5,6 +5,7 @@ import {
   TransformerSource,
   UserDefinedTransformer,
 } from '@neosync/sdk';
+import { JobType } from './schema-constraint-handler';
 
 export class TransformerHandler {
   private readonly systemTransformers: SystemTransformer[];
@@ -111,9 +112,7 @@ export interface TransformerFilters {
   jobType: SupportedJobType;
 }
 
-export function toSupportedJobtype(
-  jobtype: 'sync' | 'generate'
-): SupportedJobType {
+export function toSupportedJobtype(jobtype: JobType): SupportedJobType {
   if (jobtype === 'sync') {
     return SupportedJobType.SYNC;
   } else if (jobtype === 'generate') {
