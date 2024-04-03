@@ -245,37 +245,3 @@ function findCommonUserDefined(arrays: UserDefinedTransformer[][]): string[] {
 
   return commonElements;
 }
-
-// squishes the list down to the most constrained variant
-// function squishFilteres(filters: TransformerFilters[]): TransformerFilters {
-//   if (filters.length === 0) {
-//     return {
-//       dataType: TransformerDataType.ANY,
-//       hasDefault: true,
-//       isForeignKey: false,
-//       isNullable: true,
-//       jobType: SupportedJobType.UNSPECIFIED,
-//     }
-//   }
-//   const hasDefault = filters.every(f => f.hasDefault);
-//   const isForeignKey = filters.some(f => f.isForeignKey)
-//   const isNullable = filters.every(f => f.isNullable);
-//   const uniqueDataTypes = new Set(filters.map(f => f.dataType))
-
-//   // const dataTypes: TransformerDataType[] = [];
-
-//   // if (uniqueDataTypes.has(TransformerDataType.ANY)) {
-//   //   dataTypes.push(TransformerDataType.ANY)
-//   // }
-//   // if (isNullable && uniqueDataTypes.has(TransformerDataType.NULL)) {
-//   //   dataTypes.push(TransformerDataType.NULL);
-//   // }
-//   // const toRemove: TransformerDataType[] = [TransformerDataType.UNSPECIFIED, TransformerDataType.ANY, TransformerDataType.NULL];
-//   // toRemove.forEach((dt) => uniqueDataTypes.delete(dt));
-//   // if (uniqueDataTypes.size <= 1) {
-//   //   dataTypes.push(...Array.from(uniqueDataTypes))
-//   // }
-//   // return {
-
-//   // }
-// }
