@@ -89,7 +89,7 @@ interface Props {
 
 // Note: this has issues with re-rendering due to being embedded within the tanstack table.
 // This will cause the sheet to close when the user clicks back onto the page.
-// This is partially solved by memoizing the tanstack columns, but any time the columns need to re-render, this sheet will close if it's open.
+// This is partially solved by memoizing the tanstack columns, but any time the columns need to re-render, this sheet will close if it's open.`
 export default function EditTransformerOptions(props: Props): ReactElement {
   const { transformer, disabled, value, onSubmit } = props;
   const [isSheetOpen, setIsSheetOpen] = useState(false);

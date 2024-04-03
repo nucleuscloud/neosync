@@ -36,7 +36,7 @@ interface ColumnKey {
   column: string;
 }
 
-function fromRowDataToColKey(row: Row<RowData>): ColumnKey {
+export function fromRowDataToColKey(row: Row<RowData>): ColumnKey {
   return {
     schema: row.getValue('schema'),
     table: row.getValue('table'),
@@ -329,20 +329,9 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                 const fv = field.value as JobMappingTransformerForm;
                 const colkey = fromRowDataToColKey(info.row);
 
-                const [isForeignKey] =
-                  constraintHandler.getIsForeignKey(colkey);
-                const isNullable = constraintHandler.getIsNullable(colkey);
-                const convertedDataType =
-                  constraintHandler.getConvertedDataType(colkey);
-                const hasDefault = constraintHandler.getHasDefault(colkey);
-
-                const filtered = transformerHandler.getFilteredTransformers({
-                  dataType: convertedDataType,
-                  isForeignKey: isForeignKey,
-                  isNullable,
-                  jobType: toSupportedJobtype(jobType),
-                  hasDefault,
-                });
+                const filtered = transformerHandler.getFilteredTransformers(
+                  getTransformerFilter(constraintHandler, colkey, jobType)
+                );
 
                 const filteredTransformerHandler = new TransformerHandler(
                   filtered.system,
@@ -460,11 +449,9 @@ function handleDataTypeBadge(dataType: string): string {
 
 export function getTransformerFilter(
   constraintHandler: SchemaConstraintHandler,
-  row: Row<RowData>,
+  colkey: ColumnKey,
   jobType: 'sync' | 'generate'
 ): TransformerFilters {
-  const colkey = fromRowDataToColKey(row);
-
   const [isForeignKey] = constraintHandler.getIsForeignKey(colkey);
   const isNullable = constraintHandler.getIsNullable(colkey);
   const convertedDataType = constraintHandler.getConvertedDataType(colkey);

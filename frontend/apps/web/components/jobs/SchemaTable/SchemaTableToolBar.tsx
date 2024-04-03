@@ -20,7 +20,7 @@ import {
 import { CheckIcon, Cross2Icon } from '@radix-ui/react-icons';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { getTransformerFilter } from './SchemaColumns';
+import { fromRowDataToColKey, getTransformerFilter } from './SchemaColumns';
 import { Row as RowData } from './SchemaPageTable';
 import { SchemaTableViewOptions } from './SchemaTableViewOptions';
 import TransformerSelect from './TransformerSelect';
@@ -78,7 +78,7 @@ export function SchemaTableToolbar<TData>({
                   transformerHandler.getFilteredTransformers(
                     getTransformerFilter(
                       constraintHandler,
-                      row as unknown as Row<RowData>,
+                      fromRowDataToColKey(row as unknown as Row<RowData>),
                       'sync'
                     )
                   );
