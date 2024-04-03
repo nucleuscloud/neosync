@@ -73,7 +73,7 @@ export function getSchemaConstraintHandler(
       return !!colmap[fromColKey(key)];
     },
     getHasDefault(key) {
-      return true; // todo
+      return true; // todo - NEOS-969
     },
   };
 }
