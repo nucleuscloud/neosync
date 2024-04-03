@@ -15,7 +15,7 @@ import {
   JobMappingTransformerForm,
   SchemaFormValues,
 } from '@/yup-validations/jobs';
-import { TransformerSource } from '@neosync/sdk';
+import { SystemTransformer, TransformerSource } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ColumnDef, Row } from '@tanstack/react-table';
 import { HTMLProps, ReactElement, useEffect, useRef } from 'react';
@@ -391,18 +391,17 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                             onSelect={field.onChange}
                             side={'left'}
                             disabled={false}
+                            buttonClassName="w-[175px]"
                           />
                         </div>
-                        {transformer && (
-                          <EditTransformerOptions
-                            transformer={transformer}
-                            value={fv}
-                            onSubmit={(newvalue) => {
-                              field.onChange(newvalue);
-                            }}
-                            disabled={false}
-                          />
-                        )}
+                        <EditTransformerOptions
+                          transformer={transformer ?? new SystemTransformer()}
+                          value={fv}
+                          onSubmit={(newvalue) => {
+                            field.onChange(newvalue);
+                          }}
+                          disabled={!transformer}
+                        />
                       </div>
                     </FormControl>
                   </FormItem>

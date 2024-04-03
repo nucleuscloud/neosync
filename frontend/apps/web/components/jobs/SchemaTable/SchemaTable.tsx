@@ -66,7 +66,7 @@ export function SchemaTable(props: Props): ReactElement {
       constraintHandler,
       jobType,
     });
-  }, [isValidating, constraintHandler]);
+  }, [handler, constraintHandler, jobType]);
 
   const form = useFormContext<SchemaFormValues | SingleTableSchemaFormValues>();
   const { append, remove, fields } = useFieldArray<

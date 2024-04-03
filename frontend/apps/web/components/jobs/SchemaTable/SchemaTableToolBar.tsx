@@ -104,6 +104,7 @@ export function SchemaTableToolbar<TData>({
             }}
             buttonText={buttonText}
             disabled={!hasSelectedRows}
+            buttonClassName="w-[275px]"
           />
           <Button
             disabled={!bulkTransformer || !hasSelectedRows}
@@ -142,14 +143,12 @@ export function SchemaTableToolbar<TData>({
           >
             <CheckIcon />
           </Button>
-          {transformer && (
-            <EditTransformerOptions
-              transformer={transformer}
-              value={bulkTransformer}
-              onSubmit={setBulkTransformer}
-              disabled={false}
-            />
-          )}
+          <EditTransformerOptions
+            transformer={transformer ?? new SystemTransformer({})}
+            value={bulkTransformer}
+            onSubmit={setBulkTransformer}
+            disabled={!transformer}
+          />
         </div>
         <div className="flex flex-row items-center gap-2">
           {isFiltered && (

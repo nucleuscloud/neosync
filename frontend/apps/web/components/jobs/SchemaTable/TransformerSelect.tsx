@@ -38,14 +38,22 @@ interface Props {
   };
   value: JobMappingTransformerForm;
   buttonText: string;
+  buttonClassName?: string;
   onSelect(value: JobMappingTransformerForm): void;
   side: Side;
   disabled: boolean;
 }
 
 export default function TransformerSelect(props: Props): ReactElement {
-  const { getTransformers, value, onSelect, buttonText, side, disabled } =
-    props;
+  const {
+    getTransformers,
+    value,
+    onSelect,
+    buttonText,
+    side,
+    disabled,
+    buttonClassName,
+  } = props;
   const [open, setOpen] = useState(false);
 
   const { system, userDefined } = open
@@ -61,11 +69,7 @@ export default function TransformerSelect(props: Props): ReactElement {
           role="combobox"
           aria-expanded={open}
           disabled={disabled}
-          className={cn(
-            buttonText.startsWith('Bulk')
-              ? 'justify-between w-[275px]'
-              : 'justify-between w-[175px]'
-          )}
+          className={cn('justify-between', buttonClassName)}
         >
           <div className="whitespace-nowrap truncate lg:w-[200px] text-left">
             {buttonText}
