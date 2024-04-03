@@ -2,6 +2,7 @@ package neosync_benthos_sql
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sync"
 
@@ -27,7 +28,8 @@ func sqlInsertOutputSpec() *service.ConfigSpec {
 }
 
 type DbPoolProvider interface {
-	GetDb(driver, dsn string) (mysql_queries.DBTX, error)
+	// GetDb(driver, dsn string) (mysql_queries.DBTX, error)
+	GetDb(driver, dsn string) (sqlDbtx, error)
 }
 
 // Registers an output on a benthos environment called pooled_sql_raw
@@ -44,7 +46,7 @@ func RegisterPooledSqlInsertOutput(env *service.Environment, dbprovider DbPoolPr
 			if err != nil {
 				return nil, service.BatchPolicy{}, -1, err
 			}
-			out, err := newOutput(conf, mgr, dbprovider)
+			out, err := newInsertOutput(conf, mgr, dbprovider)
 			if err != nil {
 				return nil, service.BatchPolicy{}, -1, err
 			}
@@ -53,9 +55,9 @@ func RegisterPooledSqlInsertOutput(env *service.Environment, dbprovider DbPoolPr
 	)
 }
 
-var _ service.BatchOutput = &pooledOutput{}
+var _ service.BatchOutput = &pooledInsertOutput{}
 
-type pooledOutput struct {
+type pooledInsertOutput struct {
 	driver   string
 	dsn      string
 	provider DbPoolProvider
@@ -71,7 +73,7 @@ type pooledOutput struct {
 	shutSig     *shutdown.Signaller
 }
 
-func newOutput(conf *service.ParsedConfig, mgr *service.Resources, provider DbPoolProvider) (*pooledOutput, error) {
+func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provider DbPoolProvider) (*pooledInsertOutput, error) {
 	driver, err := conf.FieldString("driver")
 	if err != nil {
 		return nil, err
@@ -103,7 +105,7 @@ func newOutput(conf *service.ParsedConfig, mgr *service.Resources, provider DbPo
 		}
 	}
 
-	output := &pooledOutput{
+	output := &pooledInsertOutput{
 		driver:      driver,
 		dsn:         dsn,
 		logger:      mgr.Logger(),
@@ -117,7 +119,7 @@ func newOutput(conf *service.ParsedConfig, mgr *service.Resources, provider DbPo
 	return output, nil
 }
 
-func (s *pooledOutput) Connect(ctx context.Context) error {
+func (s *pooledInsertOutput) Connect(ctx context.Context) error {
 	s.dbMut.Lock()
 	defer s.dbMut.Unlock()
 
@@ -145,7 +147,7 @@ func (s *pooledOutput) Connect(ctx context.Context) error {
 }
 
 // how to handle defaults??
-func (s *pooledOutput) WriteBatch(ctx context.Context, batch service.MessageBatch) error {
+func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.MessageBatch) error {
 	s.dbMut.RLock()
 	defer s.dbMut.RUnlock()
 
@@ -168,6 +170,8 @@ func (s *pooledOutput) WriteBatch(ctx context.Context, batch service.MessageBatc
 		if s.argsMapping == nil {
 			continue
 		}
+		jsonF, _ := json.MarshalIndent(s.argsMapping, "", " ")
+		fmt.Printf("\n argsMapping: %s \n", string(jsonF))
 		resMsg, err := batch.BloblangQuery(i, s.argsMapping)
 		if err != nil {
 			return err
@@ -209,7 +213,7 @@ func (s *pooledOutput) WriteBatch(ctx context.Context, batch service.MessageBatc
 	return nil
 }
 
-func (s *pooledOutput) Close(ctx context.Context) error {
+func (s *pooledInsertOutput) Close(ctx context.Context) error {
 	s.shutSig.CloseNow()
 	s.dbMut.RLock()
 	isNil := s.db == nil

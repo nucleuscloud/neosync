@@ -51,9 +51,9 @@ func RegisterPooledSqlRawOutput(env *service.Environment, dbprovider DbPoolProvi
 	)
 }
 
-var _ service.BatchOutput = &pooledInsertOutput{}
+var _ service.BatchOutput = &pooledOutput{}
 
-type pooledInsertOutput struct {
+type pooledOutput struct {
 	driver   string
 	dsn      string
 	provider DbPoolProvider
@@ -68,7 +68,7 @@ type pooledInsertOutput struct {
 	shutSig     *shutdown.Signaller
 }
 
-func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provider DbPoolProvider) (*pooledInsertOutput, error) {
+func newOutput(conf *service.ParsedConfig, mgr *service.Resources, provider DbPoolProvider) (*pooledOutput, error) {
 	driver, err := conf.FieldString("driver")
 	if err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		}
 	}
 
-	output := &pooledInsertOutput{
+	output := &pooledOutput{
 		driver:      driver,
 		dsn:         dsn,
 		logger:      mgr.Logger(),
@@ -112,7 +112,7 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 	return output, nil
 }
 
-func (s *pooledInsertOutput) Connect(ctx context.Context) error {
+func (s *pooledOutput) Connect(ctx context.Context) error {
 	s.dbMut.Lock()
 	defer s.dbMut.Unlock()
 
@@ -139,7 +139,7 @@ func (s *pooledInsertOutput) Connect(ctx context.Context) error {
 	return nil
 }
 
-func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.MessageBatch) error {
+func (s *pooledOutput) WriteBatch(ctx context.Context, batch service.MessageBatch) error {
 	s.dbMut.RLock()
 	defer s.dbMut.RUnlock()
 
@@ -209,7 +209,7 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 	return nil
 }
 
-func (s *pooledInsertOutput) Close(ctx context.Context) error {
+func (s *pooledOutput) Close(ctx context.Context) error {
 	s.shutSig.CloseNow()
 	s.dbMut.RLock()
 	isNil := s.db == nil

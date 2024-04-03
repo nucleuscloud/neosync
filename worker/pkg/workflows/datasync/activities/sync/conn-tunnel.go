@@ -1,6 +1,7 @@
 package sync_activity
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -17,6 +18,7 @@ import (
 type sqlDbtx interface {
 	mysql_queries.DBTX
 
+	BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error)
 	Close() error
 }
 

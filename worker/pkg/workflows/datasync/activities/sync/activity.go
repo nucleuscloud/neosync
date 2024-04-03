@@ -219,6 +219,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	}
 
 	poolprovider := newPoolProvider(func(dsn string) (mysql_queries.DBTX, error) {
+
 		connid, ok := dsnToConnectionIdMap.Load(dsn)
 		if !ok {
 			return nil, errors.New("unable to find connection id by dsn when getting db pool")
