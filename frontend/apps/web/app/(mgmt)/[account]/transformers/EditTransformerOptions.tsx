@@ -15,7 +15,7 @@ import {
   isSystemTransformer,
   isUserDefinedTransformer,
 } from '@/shared/transformers';
-import { getTransformerDataTypeString } from '@/util/util';
+import { getTransformerDataTypesString } from '@/util/util';
 import {
   JobMappingTransformerForm,
   convertJobMappingTransformerToForm,
@@ -60,7 +60,6 @@ import {
 import { ReactElement, useEffect, useRef, useState } from 'react';
 import GenerateCardNumberForm from './Sheetforms/GenerateCardNumberForm';
 import GenerateCategoricalForm from './Sheetforms/GenerateCategoricalForm';
-import GenerateJavascriptForm from './Sheetforms/GenerateeJavascriptForm';
 import GenerateFloatForm from './Sheetforms/GenerateFloat64Form';
 import GenerateGenderForm from './Sheetforms/GenerateGenderForm';
 import GenerateIntForm from './Sheetforms/GenerateInt64Form';
@@ -68,6 +67,7 @@ import GenerateInternationalPhoneNumberForm from './Sheetforms/GenerateInternati
 import GenerateStringForm from './Sheetforms/GenerateRandomStringForm';
 import GenerateStringPhoneNumberForm from './Sheetforms/GenerateStringPhoneNumberForm';
 import GenerateUuidForm from './Sheetforms/GenerateUuidForm';
+import GenerateJavascriptForm from './Sheetforms/GenerateeJavascriptForm';
 import TransformCharacterScrambleForm from './Sheetforms/TransformCharacterScrambleForm';
 import TransformE164NumberForm from './Sheetforms/TransformE164PhoneNumberForm';
 import TransformEmailForm from './Sheetforms/TransformEmailForm';
@@ -151,7 +151,7 @@ export default function EditTransformerOptions(props: Props): ReactElement {
               <div className="flex flex-row gap-2">
                 <SheetTitle>{transformer.name}</SheetTitle>
                 <Badge variant="outline">
-                  {getTransformerDataTypeString(transformer.dataType)}
+                  {getTransformerDataTypesString(transformer.dataTypes)}
                 </Badge>
               </div>
               <SheetDescription>{transformer?.description}</SheetDescription>

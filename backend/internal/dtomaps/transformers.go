@@ -27,7 +27,7 @@ func ToUserDefinedTransformerDto(
 		Description: input.Description,
 		Source:      source,
 		DataType:    transformer.DataType,
-		DataTypes:   []mgmtv1alpha1.TransformerDataType{transformer.DataType},
+		DataTypes:   transformer.DataTypes,
 		Config:      input.TransformerConfig.ToTransformerConfigDto(),
 		CreatedAt:   timestamppb.New(input.CreatedAt.Time),
 		UpdatedAt:   timestamppb.New(input.UpdatedAt.Time),

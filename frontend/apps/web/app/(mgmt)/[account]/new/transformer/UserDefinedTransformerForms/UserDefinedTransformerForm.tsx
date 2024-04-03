@@ -23,11 +23,13 @@ import UserDefinedTransformLastNameForm from './UserDefinedTransformLastNameForm
 import UserDefinedTransformPhoneNumberForm from './UserDefinedTransformPhoneNumberForm';
 import UserDefinedTransformStringForm from './UserDefinedTransformStringForm';
 
+interface Props {
+  value: TransformerSource;
+  disabled?: boolean;
+}
 // handles rendering custom transformer configs
-export function handleUserDefinedTransformerForm(
-  value: TransformerSource,
-  disabled?: boolean
-): ReactElement {
+export function UserDefinedTransformerForm(props: Props): ReactElement {
+  const { value, disabled } = props;
   switch (value) {
     case TransformerSource.GENERATE_CARD_NUMBER:
       return <UserDefinedGenerateCardNumberForm isDisabled={disabled} />;

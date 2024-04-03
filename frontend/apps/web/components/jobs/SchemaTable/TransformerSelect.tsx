@@ -12,7 +12,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/libs/utils';
-import { getTransformerDataTypeString } from '@/util/util';
 import {
   JobMappingTransformerForm,
   convertJobMappingTransformerToForm,
@@ -27,7 +26,6 @@ import {
 } from '@neosync/sdk';
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import { ReactElement, useState } from 'react';
-import { BasicTransformerHandler } from './transformer-handler';
 
 type Side = (typeof SIDE_OPTIONS)[number];
 
@@ -126,9 +124,6 @@ export default function TransformerSelect(props: Props): ReactElement {
                           />
                           <div className="items-center">{t?.name}</div>
                         </div>
-                        <div className="ml-2 text-gray-400 text-xs">
-                          {getTransformerDataTypeString(t.dataType)}
-                        </div>
                       </div>
                     </CommandItem>
                   );
@@ -165,9 +160,6 @@ export default function TransformerSelect(props: Props): ReactElement {
                         />
                         <div className="items-center">{t?.name}</div>
                       </div>
-                      <div className="ml-2 text-gray-400 text-xs">
-                        {getTransformerDataTypeString(t.dataType)}
-                      </div>
                     </div>
                   </CommandItem>
                 );
@@ -178,28 +170,4 @@ export default function TransformerSelect(props: Props): ReactElement {
       </PopoverContent>
     </Popover>
   );
-}
-
-function getPopoverTriggerButtonText(
-  value: JobMappingTransformerForm,
-  transformerHandler: BasicTransformerHandler,
-  placeholder: string
-): string {
-  if (!value?.config) {
-    return placeholder;
-  }
-
-  switch (value?.config?.case) {
-    case 'userDefinedTransformerConfig':
-      const id = value.config.value.id;
-      return (
-        transformerHandler.getUserDefinedTransformerById(id)?.name ??
-        placeholder
-      );
-    default:
-      return (
-        transformerHandler.getSystemTransformerBySource(value.source)?.name ??
-        placeholder
-      );
-  }
 }

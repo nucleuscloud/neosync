@@ -76,6 +76,12 @@ export function getTransformerDataTypeString(dt: TransformerDataType): string {
   return value ? value.toLowerCase() : 'unspecified';
 }
 
+export function getTransformerDataTypesString(
+  dts: TransformerDataType[]
+): string {
+  return dts.map((dt) => getTransformerDataTypeString(dt)).join(' | ');
+}
+
 export function getTransformerSourceString(ds: TransformerSource): string {
   const value = TransformerSource[ds];
   return value ? value.toLowerCase() : 'unspecified';
