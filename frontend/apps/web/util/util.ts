@@ -71,9 +71,15 @@ export function convertMinutesToNanoseconds(minutes: number): bigint {
   return minutesBigInt * SECONDS_PER_MIN * NANOS_PER_SECOND;
 }
 
-export function getTransformerDataTypeString(dt: TransformerDataType): string {
+function getTransformerDataTypeString(dt: TransformerDataType): string {
   const value = TransformerDataType[dt];
   return value ? value.toLowerCase() : 'unspecified';
+}
+
+export function getTransformerDataTypesString(
+  dts: TransformerDataType[]
+): string {
+  return dts.map((dt) => getTransformerDataTypeString(dt)).join(' | ');
 }
 
 export function getTransformerSourceString(ds: TransformerSource): string {

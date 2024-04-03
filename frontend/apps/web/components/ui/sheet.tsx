@@ -12,10 +12,7 @@ const SheetTrigger = SheetPrimitive.Trigger;
 
 const SheetClose = SheetPrimitive.Close;
 
-const SheetPortal = ({ ...props }: SheetPrimitive.DialogPortalProps) => (
-  <SheetPrimitive.Portal {...props} />
-);
-SheetPortal.displayName = SheetPrimitive.Portal.displayName;
+const SheetPortal = SheetPrimitive.Portal;
 
 const SheetOverlay = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Overlay>,
@@ -67,7 +64,6 @@ const SheetContent = React.forwardRef<
       {...props}
     >
       {children}
-      {/* Commenting this out since form is in a controlled state, have to manually implement the close logic for the button*/}
       {/* <SheetPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
         <Cross2Icon className="h-4 w-4" />
         <span className="sr-only">Close</span>
@@ -76,6 +72,7 @@ const SheetContent = React.forwardRef<
   </SheetPortal>
 ));
 SheetContent.displayName = SheetPrimitive.Content.displayName;
+
 const SheetHeader = ({
   className,
   ...props

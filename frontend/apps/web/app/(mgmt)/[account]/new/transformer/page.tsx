@@ -43,7 +43,7 @@ import { CheckIcon } from '@radix-ui/react-icons';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ReactElement, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { handleUserDefinedTransformerForm } from './UserDefinedTransformerForms/HandleUserDefinedTransformersForm';
+import { UserDefinedTransformerForm } from './UserDefinedTransformerForms/UserDefinedTransformerForm';
 import {
   CREATE_USER_DEFINED_TRANSFORMER_SCHEMA,
   CreateUserDefinedTransformerSchema,
@@ -232,9 +232,9 @@ export default function NewTransformer(): ReactElement {
             </div>
           )}
           <div>
-            {handleUserDefinedTransformerForm(
-              form.getValues('source') ?? TransformerSource.UNSPECIFIED
-            )}
+            <UserDefinedTransformerForm
+              value={form.getValues('source') ?? TransformerSource.UNSPECIFIED}
+            />
           </div>
           <div className="flex flex-row justify-end">
             <Button type="submit" disabled={!form.formState.isValid}>

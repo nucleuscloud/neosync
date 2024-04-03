@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
-import { useGetMergedTransformers } from '@/libs/hooks/useGetMergedTransformers';
+import { useGetTransformersHandler } from '@/libs/hooks/useGetTransformersHandler';
 import {
   JobMappingFormValues,
   SchemaFormValues,
@@ -35,14 +35,12 @@ import {
 } from '@radix-ui/react-icons';
 import { ReactElement, useMemo, useState } from 'react';
 import { FieldErrors, useFieldArray, useFormContext } from 'react-hook-form';
-import { SchemaConstraintHandler, getSchemaColumns } from './SchemaColumns';
+import { getSchemaColumns } from './SchemaColumns';
 import SchemaPageTable from './SchemaPageTable';
-
-type JobType = 'sync' | 'generate';
+import { JobType, SchemaConstraintHandler } from './schema-constraint-handler';
 
 interface Props {
   data: JobMappingFormValues[];
-  excludeInputReqTransformers?: boolean; // will result in only generators (functions with no data input)
   jobType: JobType;
   schema: ConnectionSchemaMap;
   isSchemaDataReloading: boolean;
@@ -50,24 +48,10 @@ interface Props {
 }
 
 export function SchemaTable(props: Props): ReactElement {
-  const {
-    data,
-    excludeInputReqTransformers,
-    constraintHandler,
-    jobType,
-    schema,
-  } = props;
+  const { data, constraintHandler, jobType, schema } = props;
 
   const { account } = useAccount();
-  const {
-    systemTransformers,
-    userDefinedTransformers,
-    userDefinedMap,
-    systemMap,
-    isLoading,
-    isValidating,
-  } = useGetMergedTransformers(
-    excludeInputReqTransformers ?? false,
+  const { handler, isLoading, isValidating } = useGetTransformersHandler(
     account?.id ?? ''
   );
   const [selectedItems, setSelectedItems] = useState<Set<string>>(
@@ -76,13 +60,11 @@ export function SchemaTable(props: Props): ReactElement {
 
   const columns = useMemo(() => {
     return getSchemaColumns({
-      systemTransformers,
-      userDefinedTransformers,
-      systemMap,
-      userDefinedMap,
+      transformerHandler: handler,
       constraintHandler,
+      jobType,
     });
-  }, [isValidating, constraintHandler]);
+  }, [handler, constraintHandler, jobType]);
 
   const form = useFormContext<SchemaFormValues | SingleTableSchemaFormValues>();
   const { append, remove, fields } = useFieldArray<
@@ -219,11 +201,9 @@ export function SchemaTable(props: Props): ReactElement {
       <SchemaPageTable
         columns={columns}
         data={data}
-        userDefinedTransformerMap={userDefinedMap}
-        userDefinedTransformers={userDefinedTransformers}
-        systemTransformerMap={systemMap}
-        systemTransformers={systemTransformers}
+        transformerHandler={handler}
         constraintHandler={constraintHandler}
+        jobType={jobType}
       />
     </div>
   );

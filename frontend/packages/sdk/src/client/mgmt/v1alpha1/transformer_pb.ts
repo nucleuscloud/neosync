@@ -347,6 +347,32 @@ proto3.util.setEnumType(TransformerDataType, "mgmt.v1alpha1.TransformerDataType"
 ]);
 
 /**
+ * @generated from enum mgmt.v1alpha1.SupportedJobType
+ */
+export enum SupportedJobType {
+  /**
+   * @generated from enum value: SUPPORTED_JOB_TYPE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: SUPPORTED_JOB_TYPE_SYNC = 1;
+   */
+  SYNC = 1,
+
+  /**
+   * @generated from enum value: SUPPORTED_JOB_TYPE_GENERATE = 2;
+   */
+  GENERATE = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(SupportedJobType)
+proto3.util.setEnumType(SupportedJobType, "mgmt.v1alpha1.SupportedJobType", [
+  { no: 0, name: "SUPPORTED_JOB_TYPE_UNSPECIFIED" },
+  { no: 1, name: "SUPPORTED_JOB_TYPE_SYNC" },
+  { no: 2, name: "SUPPORTED_JOB_TYPE_GENERATE" },
+]);
+
+/**
  * @generated from message mgmt.v1alpha1.GetSystemTransformersRequest
  */
 export class GetSystemTransformersRequest extends Message<GetSystemTransformersRequest> {
@@ -1033,6 +1059,11 @@ export class UserDefinedTransformer extends Message<UserDefinedTransformer> {
    */
   accountId = "";
 
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.TransformerDataType data_types = 11;
+   */
+  dataTypes: TransformerDataType[] = [];
+
   constructor(data?: PartialMessage<UserDefinedTransformer>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1050,6 +1081,7 @@ export class UserDefinedTransformer extends Message<UserDefinedTransformer> {
     { no: 8, name: "created_at", kind: "message", T: Timestamp },
     { no: 9, name: "updated_at", kind: "message", T: Timestamp },
     { no: 10, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 11, name: "data_types", kind: "enum", T: proto3.getEnumType(TransformerDataType), repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UserDefinedTransformer {
@@ -1098,6 +1130,16 @@ export class SystemTransformer extends Message<SystemTransformer> {
    */
   config?: TransformerConfig;
 
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.TransformerDataType data_types = 6;
+   */
+  dataTypes: TransformerDataType[] = [];
+
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.SupportedJobType supported_job_types = 7;
+   */
+  supportedJobTypes: SupportedJobType[] = [];
+
   constructor(data?: PartialMessage<SystemTransformer>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1111,6 +1153,8 @@ export class SystemTransformer extends Message<SystemTransformer> {
     { no: 3, name: "data_type", kind: "enum", T: proto3.getEnumType(TransformerDataType) },
     { no: 4, name: "source", kind: "enum", T: proto3.getEnumType(TransformerSource) },
     { no: 5, name: "config", kind: "message", T: TransformerConfig },
+    { no: 6, name: "data_types", kind: "enum", T: proto3.getEnumType(TransformerDataType), repeated: true },
+    { no: 7, name: "supported_job_types", kind: "enum", T: proto3.getEnumType(SupportedJobType), repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SystemTransformer {

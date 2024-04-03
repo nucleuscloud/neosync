@@ -2,7 +2,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import {
-  getTransformerDataTypeString,
+  getTransformerDataTypesString,
   getTransformerSourceString,
 } from '@/util/util';
 import { PlainMessage } from '@bufbuild/protobuf';
@@ -45,11 +45,11 @@ export function getSystemTransformerColumns(
       },
     },
     {
-      id: 'type',
-      accessorKey: 'type',
-      accessorFn: (row) => getTransformerDataTypeString(row.dataType),
+      id: 'types',
+      accessorKey: 'types',
+      accessorFn: (row) => getTransformerDataTypesString(row.dataTypes),
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Data Type" />
+        <DataTableColumnHeader column={column} title="Data Types" />
       ),
       cell: ({ getValue }) => {
         return (
