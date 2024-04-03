@@ -1,11 +1,14 @@
 'use client';
 import {
   CaretSortIcon,
+  CheckCircledIcon,
   CheckIcon,
+  CircleIcon,
   PlusCircledIcon,
 } from '@radix-ui/react-icons';
 import { ReactElement } from 'react';
 
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useGetUserAccounts } from '@/libs/hooks/useUserAccounts';
 import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
@@ -17,7 +20,7 @@ import {
   UserAccountType,
 } from '@neosync/sdk';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, UseFormReturn } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useAccount } from '../providers/account-provider';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
@@ -52,7 +55,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Skeleton } from '../ui/skeleton';
 import { toast } from '../ui/use-toast';
 
-const CreateTeamFormValues = Yup.object({
+export const CreateTeamFormValues = Yup.object({
   name: Yup.string()
     .required()
     .min(3)
@@ -71,8 +74,9 @@ const CreateTeamFormValues = Yup.object({
         return true;
       }
     ),
+  convertExistingAccount: Yup.boolean().required(),
 });
-type CreateTeamFormValues = Yup.InferType<typeof CreateTeamFormValues>;
+export type CreateTeamFormValues = Yup.InferType<typeof CreateTeamFormValues>;
 
 interface Props {}
 
@@ -86,6 +90,7 @@ export default function AccountSwitcher(_: Props): ReactElement {
     resolver: yupResolver(CreateTeamFormValues),
     defaultValues: {
       name: '',
+      convertExistingAccount: true,
     },
   });
 
@@ -226,6 +231,62 @@ export default function AccountSwitcher(_: Props): ReactElement {
             Create a new team account to collaborate with your co-workers.
           </DialogDescription>
         </DialogHeader>
+        <CreateNewTeamDialog
+          form={form}
+          onSubmit={onSubmit}
+          setShowNewTeamDialog={setShowNewTeamDialog}
+        />
+        <DialogFooter>
+          <div className="flex flex-row justify-between w-full pt-6">
+            <Button
+              variant="outline"
+              onClick={() => setShowNewTeamDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              onClick={(e) =>
+                form.handleSubmit((values) => onSubmit(values))(e)
+              }
+              disabled={!form.formState.isValid}
+            >
+              Continue
+            </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+interface CreateNewTeamDialogProps {
+  form: UseFormReturn<
+    {
+      name: string;
+      convertExistingAccount: boolean;
+    },
+    any,
+    undefined
+  >;
+  onSubmit: (values: CreateTeamFormValues) => Promise<void>;
+  setShowNewTeamDialog: (val: boolean) => void;
+}
+
+export function CreateNewTeamDialog(
+  props: CreateNewTeamDialogProps
+): ReactElement {
+  const { form, onSubmit, setShowNewTeamDialog } = props;
+
+  return (
+    <div>
+      <DialogContent className="flex flex-col gap-3">
+        <DialogHeader>
+          <DialogTitle>Create team</DialogTitle>
+          <DialogDescription>
+            Create a new team account to collaborate with your co-workers.
+          </DialogDescription>
+        </DialogHeader>
         <div className="space-y-4 py-2">
           <Form {...form}>
             <FormField
@@ -240,25 +301,102 @@ export default function AccountSwitcher(_: Props): ReactElement {
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="convertExistingAccount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <ToggleGroup
+                      type="single"
+                      className="flex justify-start flex-col w-full gap-2 pt-6"
+                      onValueChange={(value) =>
+                        field.onChange(value === 'true')
+                      }
+                      value={field.value ? 'true' : 'false'}
+                      defaultValue="true"
+                    >
+                      <ToggleGroupItem
+                        value="true"
+                        className={
+                          field.value == true
+                            ? `border border-gray-800 rounded-xl px-8 py-12 w-[462px]`
+                            : `border border-gray-300 dark:border-gray-800 rounded-xl px-8 py-12 w-[462px] hover:dark:bg-gray-800/40`
+                        }
+                      >
+                        <div className="text-left flex flex-row justify-between items-center w-full">
+                          <div className="flex flex-col gap-2">
+                            <div>Import existing data</div>
+                            <div className="text-xs text-gray-500">
+                              Import your existing data to a new team account.
+                            </div>
+                          </div>
+                          <div>
+                            {field.value == true ? (
+                              <CheckCircledIcon className="text-white rounded-full bg-black dark:bg-black" />
+                            ) : (
+                              <CircleIcon className="dark:bg-transparent  text-black" />
+                            )}
+                          </div>
+                        </div>
+                      </ToggleGroupItem>
+                      <ToggleGroupItem
+                        value="false"
+                        className={
+                          field.value == false
+                            ? `border border-gray-800 rounded-xl px-8 py-12 w-[462px]`
+                            : `border border-gray-300 dark:border-gray-800 rounded-xl px-8 py-12 w-[462px] hover:dark:bg-gray-800/40`
+                        }
+                      >
+                        <div className="text-left flex flex-row justify-between items-center w-full">
+                          <div className="flex flex-col gap-2">
+                            <div>Create new team account</div>
+                            <div className="text-xs text-gray-500">
+                              Start from scratch in a new team account
+                            </div>
+                          </div>
+                          <div>
+                            {field.value == false ? (
+                              <CheckCircledIcon className="text-white rounded-full bg-black dark:bg-black" />
+                            ) : (
+                              <CircleIcon className="dark:bg-transparent  text-black" />
+                            )}
+                          </div>
+                        </div>
+                      </ToggleGroupItem>
+                    </ToggleGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </Form>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setShowNewTeamDialog(false)}>
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            onClick={(e) => form.handleSubmit((values) => onSubmit(values))(e)}
-          >
-            Continue
-          </Button>
+          <div className="flex flex-row justify-between w-full pt-6">
+            <Button
+              variant="outline"
+              onClick={() => setShowNewTeamDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              onClick={(e) =>
+                form.handleSubmit((values) => onSubmit(values))(e)
+              }
+              disabled={!form.formState.isValid}
+            >
+              Continue
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
-    </Dialog>
+    </div>
   );
 }
 
-async function createTeamAccount(
+export async function createTeamAccount(
   teamName: string
 ): Promise<CreateTeamAccountResponse | undefined> {
   const res = await fetch(`/api/users/accounts`, {
