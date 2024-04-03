@@ -12,7 +12,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/libs/utils';
-import { getTransformerDataTypeString } from '@/util/util';
 import {
   JobMappingTransformerForm,
   convertJobMappingTransformerToForm,
@@ -33,31 +32,33 @@ type Side = (typeof SIDE_OPTIONS)[number];
 var SIDE_OPTIONS: readonly ['top', 'right', 'bottom', 'left'];
 
 interface Props {
-  userDefinedTransformers: UserDefinedTransformer[];
-  systemTransformers: SystemTransformer[];
-
-  userDefinedTransformerMap: Map<string, UserDefinedTransformer>;
-  systemTransformerMap: Map<TransformerSource, SystemTransformer>;
+  getTransformers(): {
+    system: SystemTransformer[];
+    userDefined: UserDefinedTransformer[];
+  };
   value: JobMappingTransformerForm;
+  buttonText: string;
+  buttonClassName?: string;
   onSelect(value: JobMappingTransformerForm): void;
-  placeholder: string;
   side: Side;
   disabled: boolean;
 }
 
 export default function TransformerSelect(props: Props): ReactElement {
   const {
-    userDefinedTransformers,
-    systemTransformers,
-    userDefinedTransformerMap,
-    systemTransformerMap,
+    getTransformers,
     value,
     onSelect,
-    placeholder,
+    buttonText,
     side,
     disabled,
+    buttonClassName,
   } = props;
   const [open, setOpen] = useState(false);
+
+  const { system, userDefined } = open
+    ? getTransformers()
+    : { system: [], userDefined: [] };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -68,35 +69,26 @@ export default function TransformerSelect(props: Props): ReactElement {
           role="combobox"
           aria-expanded={open}
           disabled={disabled}
-          className={cn(
-            placeholder.startsWith('Bulk')
-              ? 'justify-between w-[275px]'
-              : 'justify-between w-[175px]'
-          )}
+          className={cn('justify-between', buttonClassName)}
         >
           <div className="whitespace-nowrap truncate lg:w-[200px] text-left">
-            {getPopoverTriggerButtonText(
-              value,
-              userDefinedTransformerMap,
-              systemTransformerMap,
-              placeholder
-            )}
+            {buttonText}
           </div>
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent
         className="w-[350px] p-0"
-        avoidCollisions={false}
+        avoidCollisions={true} // this prevents the popover from overflowing out of the viewport (meaning there is content the user isn't able to access)
         side={side}
       >
         <Command>
-          <CommandInput placeholder={placeholder} />
+          <CommandInput placeholder={buttonText} />
           <CommandEmpty>No transformers found.</CommandEmpty>
           <div className="max-h-[450px] overflow-y-scroll">
-            {userDefinedTransformers.length > 0 && (
+            {userDefined.length > 0 && (
               <CommandGroup heading="Custom">
-                {userDefinedTransformers.map((t) => {
+                {userDefined.map((t) => {
                   return (
                     <CommandItem
                       key={t.id}
@@ -136,9 +128,6 @@ export default function TransformerSelect(props: Props): ReactElement {
                           />
                           <div className="items-center">{t?.name}</div>
                         </div>
-                        <div className="ml-2 text-gray-400 text-xs">
-                          {getTransformerDataTypeString(t.dataType)}
-                        </div>
                       </div>
                     </CommandItem>
                   );
@@ -146,7 +135,7 @@ export default function TransformerSelect(props: Props): ReactElement {
               </CommandGroup>
             )}
             <CommandGroup heading="System">
-              {systemTransformers.map((t) => {
+              {system.map((t) => {
                 return (
                   <CommandItem
                     key={t.source}
@@ -175,9 +164,6 @@ export default function TransformerSelect(props: Props): ReactElement {
                         />
                         <div className="items-center">{t?.name}</div>
                       </div>
-                      <div className="ml-2 text-gray-400 text-xs">
-                        {getTransformerDataTypeString(t.dataType)}
-                      </div>
                     </div>
                   </CommandItem>
                 );
@@ -188,23 +174,4 @@ export default function TransformerSelect(props: Props): ReactElement {
       </PopoverContent>
     </Popover>
   );
-}
-
-function getPopoverTriggerButtonText(
-  value: JobMappingTransformerForm,
-  udfTransformerMap: Map<string, UserDefinedTransformer>,
-  systemTransformerMap: Map<TransformerSource, SystemTransformer>,
-  placeholder: string
-): string {
-  if (!value?.config) {
-    return placeholder;
-  }
-
-  switch (value?.config?.case) {
-    case 'userDefinedTransformerConfig':
-      const id = value.config.value.id;
-      return udfTransformerMap.get(id)?.name ?? placeholder;
-    default:
-      return systemTransformerMap.get(value.source)?.name ?? placeholder;
-  }
 }

@@ -2,12 +2,12 @@ package transformers
 
 import (
 	"fmt"
-	"math/rand"
 	"strings"
 	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
+	"github.com/nucleuscloud/neosync/worker/internal/rng"
 )
 
 func init() {
@@ -42,7 +42,7 @@ func init() {
 		if err != nil {
 			return nil, err
 		}
-		randomizer := rand.New(rand.NewSource(seed)) //nolint:gosec
+		randomizer := rng.New(seed)
 
 		return func() (any, error) {
 			res, err := transformFullName(randomizer, value, preserveLength, maxLength)
@@ -58,7 +58,7 @@ func init() {
 	}
 }
 
-func transformFullName(randomizer *rand.Rand, name string, preserveLength bool, maxLength int64) (*string, error) {
+func transformFullName(randomizer rng.Rand, name string, preserveLength bool, maxLength int64) (*string, error) {
 	if name == "" {
 		return nil, nil
 	}

@@ -3,7 +3,7 @@
 import { Badge } from '@/components/ui/badge';
 import {
   formatDateTime,
-  getTransformerDataTypeString,
+  getTransformerDataTypesString,
   getTransformerSourceString,
 } from '@/util/util';
 import { PlainMessage, Timestamp } from '@bufbuild/protobuf';
@@ -48,11 +48,11 @@ export function getUserDefinedTransformerColumns(
       },
     },
     {
-      id: 'type',
-      accessorKey: 'type',
-      accessorFn: (row) => getTransformerDataTypeString(row.dataType),
+      id: 'types',
+      accessorKey: 'types',
+      accessorFn: (row) => getTransformerDataTypesString(row.dataTypes),
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Data Type" />
+        <DataTableColumnHeader column={column} title="Data Types" />
       ),
       cell: ({ getValue }) => {
         return (

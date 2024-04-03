@@ -2,11 +2,11 @@ package transformers
 
 import (
 	"fmt"
-	"math/rand"
 	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
+	"github.com/nucleuscloud/neosync/worker/internal/rng"
 )
 
 func init() {
@@ -40,7 +40,7 @@ func init() {
 		if err != nil {
 			return nil, err
 		}
-		randomizer := rand.New(rand.NewSource(seed)) //nolint:gosec
+		randomizer := rng.New(seed)
 
 		return func() (any, error) {
 			res, err := transformLastName(randomizer, value, preserveLength, maxLength)
@@ -57,7 +57,7 @@ func init() {
 }
 
 // Generates a random last name which can be of either random length between [2,12] characters or as long as the input name
-func transformLastName(randomizer *rand.Rand, name string, preserveLength bool, maxLength int64) (*string, error) {
+func transformLastName(randomizer rng.Rand, name string, preserveLength bool, maxLength int64) (*string, error) {
 	if name == "" {
 		return nil, nil
 	}

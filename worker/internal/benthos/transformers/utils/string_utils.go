@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"strings"
 	"unicode"
+
+	"github.com/nucleuscloud/neosync/worker/internal/rng"
 )
 
 var SpecialCharsSet = map[rune]struct{}{
@@ -196,7 +198,7 @@ func WithoutCharacters(input string, invalidChars []rune) string {
 	return builder.String()
 }
 
-func GetRandomCharacterString(randomizer *rand.Rand, size int64) string {
+func GetRandomCharacterString(randomizer rng.Rand, size int64) string {
 	var stringBuilder []rune = make([]rune, size)
 	for i := int64(0); i < size; i++ {
 		num := randomizer.Intn(26)
@@ -211,7 +213,7 @@ func GetRandomCharacterString(randomizer *rand.Rand, size int64) string {
 // Eventually this will be abstracted into a Corpus struct for better readability.
 // The expectation is the values, lengthMap, and mapKeys are all in their optimal, sorted form.
 func GenerateStringFromCorpus(
-	randomizer *rand.Rand,
+	randomizer rng.Rand,
 	values []string,
 	lengthMap map[int64][2]int,
 	mapKeys []int64,
@@ -287,6 +289,6 @@ func getRangeText(minLength *int64, maxLength int64) string {
 	return fmt.Sprintf("[-:%d]", maxLength)
 }
 
-func randomInt64(randomizer *rand.Rand, min, max int64) int64 {
+func randomInt64(randomizer rng.Rand, min, max int64) int64 {
 	return min + randomizer.Int63n(max-min+1)
 }

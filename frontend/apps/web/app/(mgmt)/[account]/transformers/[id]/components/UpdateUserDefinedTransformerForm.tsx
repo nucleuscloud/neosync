@@ -1,5 +1,5 @@
 'use client';
-import { handleUserDefinedTransformerForm } from '@/app/(mgmt)/[account]/new/transformer/UserDefinedTransformerForms/HandleUserDefinedTransformersForm';
+import { UserDefinedTransformerForm } from '@/app/(mgmt)/[account]/new/transformer/UserDefinedTransformerForms/UserDefinedTransformerForm';
 import {
   UPDATE_USER_DEFINED_TRANSFORMER,
   UpdateUserDefinedTransformer,
@@ -148,9 +148,7 @@ export default function UpdateUserDefinedTransformerForm(
             />
           </div>
         </div>
-        <div>
-          {handleUserDefinedTransformerForm(currentTransformer?.source)}
-        </div>
+        <div>{UserDefinedTransformerForm(currentTransformer?.source)}</div>
         <div className="flex flex-row justify-between">
           <NextLink href={`/${account?.name}/transformers?tab=ud`}>
             <Button type="button">Back</Button>

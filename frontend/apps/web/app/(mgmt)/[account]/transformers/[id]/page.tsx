@@ -5,11 +5,8 @@ import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { PageProps } from '@/components/types';
 import { useGetUserDefinedTransformersById } from '@/libs/hooks/useGetUserDefinedTransformerById';
-import { getTransformerDataTypeString } from '@/util/util';
-import {
-  GetUserDefinedTransformerByIdResponse,
-  TransformerDataType,
-} from '@neosync/sdk';
+import { getTransformerDataTypesString } from '@/util/util';
+import { GetUserDefinedTransformerByIdResponse } from '@neosync/sdk';
 import RemoveTransformerButton from './components/RemoveTransformerButton';
 import UpdateUserDefinedTransformerForm from './components/UpdateUserDefinedTransformerForm';
 
@@ -37,8 +34,8 @@ export default function UpdateUserDefinedTransformerPage({
       Header={
         <PageHeader
           header={data?.transformer?.name ?? 'Custom Transformer'}
-          leftBadgeValue={getTransformerDataTypeString(
-            data?.transformer?.dataType ?? TransformerDataType.UNSPECIFIED
+          leftBadgeValue={getTransformerDataTypesString(
+            data?.transformer?.dataTypes ?? []
           )}
           extraHeading={
             <RemoveTransformerButton

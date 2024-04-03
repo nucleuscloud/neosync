@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetDescription,
   SheetHeader,
@@ -15,7 +16,7 @@ import {
   isSystemTransformer,
   isUserDefinedTransformer,
 } from '@/shared/transformers';
-import { getTransformerDataTypeString } from '@/util/util';
+import { getTransformerDataTypesString } from '@/util/util';
 import {
   JobMappingTransformerForm,
   convertJobMappingTransformerToForm,
@@ -34,7 +35,6 @@ import {
   GenerateStringPhoneNumber,
   GenerateUuid,
   JobMappingTransformer,
-  SystemTransformer,
   TransformCharacterScramble,
   TransformE164PhoneNumber,
   TransformEmail,
@@ -49,7 +49,6 @@ import {
   TransformString,
   TransformerConfig,
   TransformerSource,
-  UserDefinedTransformer,
 } from '@neosync/sdk';
 import {
   Cross2Icon,
@@ -57,10 +56,9 @@ import {
   MixerHorizontalIcon,
   Pencil1Icon,
 } from '@radix-ui/react-icons';
-import { ReactElement, useEffect, useRef, useState } from 'react';
+import { ReactElement, useState } from 'react';
 import GenerateCardNumberForm from './Sheetforms/GenerateCardNumberForm';
 import GenerateCategoricalForm from './Sheetforms/GenerateCategoricalForm';
-import GenerateJavascriptForm from './Sheetforms/GenerateeJavascriptForm';
 import GenerateFloatForm from './Sheetforms/GenerateFloat64Form';
 import GenerateGenderForm from './Sheetforms/GenerateGenderForm';
 import GenerateIntForm from './Sheetforms/GenerateInt64Form';
@@ -68,6 +66,7 @@ import GenerateInternationalPhoneNumberForm from './Sheetforms/GenerateInternati
 import GenerateStringForm from './Sheetforms/GenerateRandomStringForm';
 import GenerateStringPhoneNumberForm from './Sheetforms/GenerateStringPhoneNumberForm';
 import GenerateUuidForm from './Sheetforms/GenerateUuidForm';
+import GenerateJavascriptForm from './Sheetforms/GenerateeJavascriptForm';
 import TransformCharacterScrambleForm from './Sheetforms/TransformCharacterScrambleForm';
 import TransformE164NumberForm from './Sheetforms/TransformE164PhoneNumberForm';
 import TransformEmailForm from './Sheetforms/TransformEmailForm';
@@ -88,54 +87,22 @@ interface Props {
   onSubmit(newValue: JobMappingTransformerForm): void;
 }
 
+// Note: this has issues with re-rendering due to being embedded within the tanstack table.
+// This will cause the sheet to close when the user clicks back onto the page.
+// This is partially solved by memoizing the tanstack columns, but any time the columns need to re-render, this sheet will close if it's open.`
 export default function EditTransformerOptions(props: Props): ReactElement {
   const { transformer, disabled, value, onSubmit } = props;
-
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const sheetRef = useRef<HTMLDivElement | null>(null);
 
-  // handles click outside of sheet so that it closes correctly
-  useEffect(() => {
-    const handleOutsideClick = (event: MouseEvent) => {
-      if (
-        sheetRef.current &&
-        !sheetRef.current.contains(event.target as Node)
-      ) {
-        setIsSheetOpen(false);
-      }
-    };
-
-    if (isSheetOpen) {
-      document.addEventListener('mousedown', handleOutsideClick);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleOutsideClick);
-    };
-  }, [isSheetOpen]);
-
-  // since component is in a controlled state, have to manually handle closing the sheet when the user presses escape
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsSheetOpen!(false);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    // Clean up the event listener when the component unmounts
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, []);
   return (
-    <Sheet open={isSheetOpen} onOpenChange={() => setIsSheetOpen(true)}>
+    <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
       <SheetTrigger asChild>
         <Button
           variant="outline"
           size="sm"
           disabled={disabled}
-          onClick={() => setIsSheetOpen(true)}
           className="ml-auto hidden h-[36px] lg:flex"
+          type="button"
         >
           {isUserDefinedTransformer(transformer) ? (
             <EyeOpenIcon />
@@ -144,21 +111,24 @@ export default function EditTransformerOptions(props: Props): ReactElement {
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-[800px]" ref={sheetRef}>
+      <SheetContent className="w-[800px]">
         <SheetHeader>
-          <div className="flex flex-row justify-between w-full">
-            <div className="flex flex-col space-y-2">
-              <div className="flex flex-row gap-2">
-                <SheetTitle>{transformer.name}</SheetTitle>
-                <Badge variant="outline">
-                  {getTransformerDataTypeString(transformer.dataType)}
-                </Badge>
+          <div className="flex flex-row w-full">
+            <div className="flex flex-col space-y-2 w-full">
+              <div className="flex flex-row justify-between items-center">
+                <div className="flex flex-row gap-2">
+                  <SheetTitle>{transformer.name}</SheetTitle>
+                  <Badge variant="outline">
+                    {getTransformerDataTypesString(transformer.dataTypes)}
+                  </Badge>
+                </div>
+                <SheetClose>
+                  <Cross2Icon className="h-4 w-4" />
+                  <span className="sr-only">Close</span>
+                </SheetClose>
               </div>
               <SheetDescription>{transformer?.description}</SheetDescription>
             </div>
-            <Button variant="ghost" onClick={() => setIsSheetOpen(false)}>
-              <Cross2Icon className="h-4 w-4" />
-            </Button>
           </div>
           <Separator />
         </SheetHeader>
@@ -783,30 +753,4 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
       </Alert>
     </div>
   );
-}
-
-export function filterInputFreeSystemTransformers(
-  transformers: SystemTransformer[]
-): SystemTransformer[] {
-  return transformers.filter((t) => {
-    return (
-      t.source !== TransformerSource.PASSTHROUGH &&
-      (t.source === TransformerSource.GENERATE_NULL ||
-        t.source === TransformerSource.GENERATE_DEFAULT ||
-        TransformerSource[t.source]?.startsWith('GENERATE_'))
-    );
-  });
-}
-
-export function filterInputFreeUdTransformers(
-  udfTransformers: UserDefinedTransformer[],
-  systemTransformers: SystemTransformer[]
-): UserDefinedTransformer[] {
-  const sysMap = new Map(
-    filterInputFreeSystemTransformers(systemTransformers).map((t) => [
-      t.source,
-      t,
-    ])
-  );
-  return udfTransformers.filter((t) => sysMap.has(t.source));
 }

@@ -2,8 +2,8 @@
 
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
-import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/SchemaColumns';
 import { SchemaTable } from '@/components/jobs/SchemaTable/SchemaTable';
+import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
 import { setOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
 import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
@@ -268,7 +268,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           {isClient && (
             <SchemaTable
               data={form.watch('mappings')}
-              excludeInputReqTransformers
               constraintHandler={schemaConstraintHandler}
               schema={connectionSchemaDataMap?.schemaMap ?? {}}
               isSchemaDataReloading={isSchemaMapValidating}
