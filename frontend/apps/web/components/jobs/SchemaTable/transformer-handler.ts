@@ -90,10 +90,10 @@ function shouldIncludeSystem(
   filters: TransformerFilters
 ): boolean {
   if (
-    !filters.hasDefault &&
+    filters.hasDefault &&
     transformer.source === TransformerSource.GENERATE_DEFAULT
   ) {
-    return false;
+    return true;
   }
   if (filters.isForeignKey) {
     if (filters.isNullable) {
