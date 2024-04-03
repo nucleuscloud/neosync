@@ -414,15 +414,19 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					}
 
 					out := buildPostgresOutputQueryAndArgs(resp, tm, resp.TableSchema, resp.TableName, colSourceMap)
+					// filteredCols := filterColsBySource(out.Columns, colSourceMap) // filters out default columns
+
 					resp.Columns = out.Columns
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						Fallback: []neosync_benthos.Outputs{
 							{
-								PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
+								PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
 									Driver: postgresDriver,
 									Dsn:    dsn,
 
-									Query:       out.Query,
+									Schema:      resp.TableSchema,
+									Table:       resp.TableName,
+									Columns:     out.Columns,
 									ArgsMapping: out.ArgsMapping,
 
 									Batching: &neosync_benthos.Batching{
@@ -434,6 +438,10 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 							// kills activity depending on error
 							{Error: &neosync_benthos.ErrorOutputConfig{
 								ErrorMsg: `${! meta("fallback_error")}`,
+								Batching: &neosync_benthos.Batching{
+									Period: "5s",
+									Count:  1,
+								},
 							}},
 						},
 					})
@@ -453,11 +461,13 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						colSourceMap[col.Column] = col.GetTransformer().Source
 					}
 
-					filteredCols := filterColsBySource(cols, colSourceMap) // filters out default columns
+					// filteredCols := filterColsBySource(cols, colSourceMap) // filters out default columns
 					processorConfigs := []neosync_benthos.ProcessorConfig{}
 					for _, pc := range resp.Processors {
 						processorConfigs = append(processorConfigs, *pc)
 					}
+					// out := buildPostgresOutputQueryAndArgs(resp, tm, resp.TableSchema, resp.TableName, colSourceMap)
+
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						Fallback: []neosync_benthos.Outputs{
 							{
@@ -468,12 +478,21 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 									},
 									Output: neosync_benthos.OutputConfig{
 										Outputs: neosync_benthos.Outputs{
-											PooledSqlRaw: &neosync_benthos.PooledSqlRaw{
+											PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
 												Driver: postgresDriver,
 												Dsn:    dsn,
 
-												Query:       buildPostgresInsertQuery(resp.TableSchema, resp.TableName, cols, colSourceMap),
-												ArgsMapping: buildPlainInsertArgs(filteredCols),
+												// Query:       buildPostgresInsertQuery(resp.TableSchema, resp.TableName, cols, colSourceMap),
+												Schema:  resp.TableSchema,
+												Table:   resp.TableName,
+												Columns: cols,
+
+												ArgsMapping: buildPlainInsertArgs(cols),
+
+												Batching: &neosync_benthos.Batching{
+													Period: "5s",
+													Count:  100,
+												},
 											},
 										},
 										Processors: processorConfigs,
@@ -519,6 +538,10 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 							// kills activity depending on error
 							{Error: &neosync_benthos.ErrorOutputConfig{
 								ErrorMsg: `${! meta("fallback_error")}`,
+								Batching: &neosync_benthos.Batching{
+									Period: "5s",
+									Count:  100,
+								},
 							}},
 						},
 					})
@@ -617,6 +640,10 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						// kills activity depending on error
 						{Error: &neosync_benthos.ErrorOutputConfig{
 							ErrorMsg: `${! meta("fallback_error")}`,
+							Batching: &neosync_benthos.Batching{
+								Period: "5s",
+								Count:  100,
+							},
 						}},
 					},
 				})
@@ -719,10 +746,10 @@ func buildPostgresOutputQueryAndArgs(resp *BenthosConfigResponse, tm *tableMappi
 		}
 	} else {
 		cols := buildPlainColumns(tm.Mappings)
-		filteredCols := filterColsBySource(cols, colSourceMap) // filters out default columns
+		// filteredCols := filterColsBySource(cols, colSourceMap) // filters out default columns
 		return &sqlOutput{
 			Query:       buildPostgresInsertQuery(schema, table, cols, colSourceMap),
-			ArgsMapping: buildPlainInsertArgs(filteredCols),
+			ArgsMapping: buildPlainInsertArgs(cols),
 			Columns:     cols,
 		}
 	}
@@ -1166,6 +1193,10 @@ func createSqlUpdateBenthosConfig(
 				// kills activity depending on error
 				{Error: &neosync_benthos.ErrorOutputConfig{
 					ErrorMsg: `${! meta("fallback_error")}`,
+					Batching: &neosync_benthos.Batching{
+						Period: "5s",
+						Count:  100,
+					},
 				}},
 			},
 		})
@@ -1701,8 +1732,8 @@ func buildRedisGetBranchConfig(
 func shouldProcessColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {
 	return t != nil &&
 		t.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_UNSPECIFIED &&
-		t.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH &&
-		t.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT
+		t.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH
+	// t.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT
 }
 
 func shouldProcessFkColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {
@@ -1915,7 +1946,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL:
 		return shared.NullString, nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT:
-		return "default", nil
+		return `"DEFAULT"`, nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_CHARACTER_SCRAMBLE:
 		regex := col.Transformer.Config.GetTransformCharacterScrambleConfig().UserProvidedRegex
 

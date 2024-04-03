@@ -62,8 +62,8 @@ func (e *errorOutput) Connect(ctx context.Context) error {
 }
 
 func (e *errorOutput) WriteBatch(ctx context.Context, batch service.MessageBatch) error {
-	for i := range batch {
-		errMsg, err := batch.TryInterpolatedString(i, e.errorMsg)
+	if len(batch) > 0 {
+		errMsg, err := batch.TryInterpolatedString(0, e.errorMsg)
 		if err != nil {
 			return fmt.Errorf("error message interpolation error: %w", err)
 		}

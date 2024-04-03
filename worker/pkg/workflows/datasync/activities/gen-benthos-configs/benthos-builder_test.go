@@ -728,6 +728,10 @@ output:
                         processors: []
                 - error:
                     error_msg: ${! meta("fallback_error")}
+                    batching:
+                        count: 100
+                        byte_size: 0
+                        period: 5s
 `),
 	)
 

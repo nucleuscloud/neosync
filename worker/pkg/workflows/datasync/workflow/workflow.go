@@ -273,6 +273,7 @@ func invokeSync(
 			return
 		}
 		logger.Info("scheduling Sync for execution.")
+		fmt.Println(string(configbits))
 
 		var result sync_activity.SyncResponse
 		activity := sync_activity.Activity{}
