@@ -1,6 +1,6 @@
 'use client';
 
-import { Table } from '@tanstack/react-table';
+import { Row, Table } from '@tanstack/react-table';
 
 import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
 import EditTransformerOptions from '@/app/(mgmt)/[account]/transformers/EditTransformerOptions';
@@ -21,6 +21,7 @@ import { CheckIcon, Cross2Icon } from '@radix-ui/react-icons';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { getTransformerFilter } from './SchemaColumns';
+import { Row as RowData } from './SchemaPageTable';
 import { SchemaTableViewOptions } from './SchemaTableViewOptions';
 import TransformerSelect from './TransformerSelect';
 import { SchemaConstraintHandler } from './schema-constraint-handler';
@@ -75,8 +76,12 @@ export function SchemaTableToolbar<TData>({
               table.getSelectedRowModel().rows.forEach((row) => {
                 const { system, userDefined } =
                   transformerHandler.getFilteredTransformers(
-                    getTransformerFilter(constraintHandler, row as any, 'sync')
-                  ); // todo: any
+                    getTransformerFilter(
+                      constraintHandler,
+                      row as unknown as Row<RowData>,
+                      'sync'
+                    )
+                  );
                 systemArrays.push(system);
                 userDefinedArrays.push(userDefined);
               });
