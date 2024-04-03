@@ -24,7 +24,11 @@ import { SchemaColumnHeader } from './SchemaColumnHeader';
 import { Row as RowData } from './SchemaPageTable';
 import TransformerSelect from './TransformerSelect';
 import { SchemaConstraintHandler } from './schema-constraint-handler';
-import { TransformerHandler, toSupportedJobtype } from './transformer-handler';
+import {
+  TransformerFilters,
+  TransformerHandler,
+  toSupportedJobtype,
+} from './transformer-handler';
 
 interface ColumnKey {
   schema: string;
@@ -453,4 +457,24 @@ function handleDataTypeBadge(dataType: string): string {
     default:
       return dataType;
   }
+}
+
+export function getTransformerFilter(
+  constraintHandler: SchemaConstraintHandler,
+  row: Row<RowData>,
+  jobType: 'sync' | 'generate'
+): TransformerFilters {
+  const colkey = fromRowDataToColKey(row);
+
+  const [isForeignKey] = constraintHandler.getIsForeignKey(colkey);
+  const isNullable = constraintHandler.getIsNullable(colkey);
+  const convertedDataType = constraintHandler.getConvertedDataType(colkey);
+  const hasDefault = constraintHandler.getHasDefault(colkey);
+  return {
+    dataType: convertedDataType,
+    hasDefault,
+    isForeignKey,
+    isNullable,
+    jobType: toSupportedJobtype(jobType),
+  };
 }

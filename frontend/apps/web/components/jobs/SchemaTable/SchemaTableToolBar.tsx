@@ -11,10 +11,16 @@ import {
   SchemaFormValues,
   convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
-import { JobMappingTransformer, TransformerSource } from '@neosync/sdk';
+import {
+  JobMappingTransformer,
+  SystemTransformer,
+  TransformerSource,
+  UserDefinedTransformer,
+} from '@neosync/sdk';
 import { CheckIcon, Cross2Icon } from '@radix-ui/react-icons';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
+import { getTransformerFilter } from './SchemaColumns';
 import { SchemaTableViewOptions } from './SchemaTableViewOptions';
 import TransformerSelect from './TransformerSelect';
 import { SchemaConstraintHandler } from './schema-constraint-handler';
@@ -64,9 +70,31 @@ export function SchemaTableToolbar<TData>({
         <div className="flex flex-col md:flex-row gap-3 w-[250px]">
           <TransformerSelect
             getTransformers={() => {
+              const systemArrays: SystemTransformer[][] = [];
+              const userDefinedArrays: UserDefinedTransformer[][] = [];
+              table.getSelectedRowModel().rows.forEach((row) => {
+                const { system, userDefined } =
+                  transformerHandler.getFilteredTransformers(
+                    getTransformerFilter(constraintHandler, row as any, 'sync')
+                  ); // todo: any
+                systemArrays.push(system);
+                userDefinedArrays.push(userDefined);
+              });
+              const uniqueSystemSources = findCommonSystem(systemArrays);
+              const uniqueSystem = uniqueSystemSources
+                .map((source) =>
+                  transformerHandler.getSystemTransformerBySource(source)
+                )
+                .filter((x): x is SystemTransformer => !!x);
+              const uniqueIds = findCommonUserDefined(userDefinedArrays);
+              const uniqueUserDef = uniqueIds
+                .map((id) =>
+                  transformerHandler.getUserDefinedTransformerById(id)
+                )
+                .filter((x): x is UserDefinedTransformer => !!x);
               return {
-                system: transformerHandler.getSystemTransformers(),
-                userDefined: transformerHandler.getUserDefinedTransformers(),
+                system: uniqueSystem,
+                userDefined: uniqueUserDef,
               };
             }}
             value={bulkTransformer}
@@ -161,3 +189,87 @@ function isBulkUpdateable(
 
   return valid.has(transformer.source);
 }
+
+function findCommonSystem(arrays: SystemTransformer[][]): TransformerSource[] {
+  const elementCount: Record<TransformerSource, number> = {} as any;
+  const subArrayCount = arrays.length;
+  const commonElements: TransformerSource[] = [];
+
+  arrays.forEach((subArray) => {
+    // Use a Set to ensure each element in a sub-array is counted only once
+    new Set(subArray).forEach((element) => {
+      if (!elementCount[element.source]) {
+        elementCount[element.source] = 1;
+      } else {
+        elementCount[element.source]++;
+      }
+    });
+  });
+
+  for (const [element, count] of Object.entries(elementCount)) {
+    if (count === subArrayCount) {
+      commonElements.push(+element as TransformerSource);
+    }
+  }
+
+  return commonElements;
+}
+
+function findCommonUserDefined(arrays: UserDefinedTransformer[][]): string[] {
+  const elementCount: Record<string, number> = {};
+  const subArrayCount = arrays.length;
+  const commonElements: string[] = [];
+
+  arrays.forEach((subArray) => {
+    // Use a Set to ensure each element in a sub-array is counted only once
+    new Set(subArray).forEach((element) => {
+      if (!elementCount[element.source]) {
+        elementCount[element.source] = 1;
+      } else {
+        elementCount[element.source]++;
+      }
+    });
+  });
+
+  for (const [element, count] of Object.entries(elementCount)) {
+    if (count === subArrayCount) {
+      commonElements.push(element);
+    }
+  }
+
+  return commonElements;
+}
+
+// squishes the list down to the most constrained variant
+// function squishFilteres(filters: TransformerFilters[]): TransformerFilters {
+//   if (filters.length === 0) {
+//     return {
+//       dataType: TransformerDataType.ANY,
+//       hasDefault: true,
+//       isForeignKey: false,
+//       isNullable: true,
+//       jobType: SupportedJobType.UNSPECIFIED,
+//     }
+//   }
+//   const hasDefault = filters.every(f => f.hasDefault);
+//   const isForeignKey = filters.some(f => f.isForeignKey)
+//   const isNullable = filters.every(f => f.isNullable);
+//   const uniqueDataTypes = new Set(filters.map(f => f.dataType))
+
+//   // const dataTypes: TransformerDataType[] = [];
+
+//   // if (uniqueDataTypes.has(TransformerDataType.ANY)) {
+//   //   dataTypes.push(TransformerDataType.ANY)
+//   // }
+//   // if (isNullable && uniqueDataTypes.has(TransformerDataType.NULL)) {
+//   //   dataTypes.push(TransformerDataType.NULL);
+//   // }
+//   // const toRemove: TransformerDataType[] = [TransformerDataType.UNSPECIFIED, TransformerDataType.ANY, TransformerDataType.NULL];
+//   // toRemove.forEach((dt) => uniqueDataTypes.delete(dt));
+//   // if (uniqueDataTypes.size <= 1) {
+//   //   dataTypes.push(...Array.from(uniqueDataTypes))
+//   // }
+//   // return {
+
+//   // }
+// }

@@ -36,7 +36,7 @@ export class TransformerHandler {
     );
   }
 
-  public getFilteredTransformers(filters: Filters): {
+  public getFilteredTransformers(filters: TransformerFilters): {
     system: SystemTransformer[];
     userDefined: UserDefinedTransformer[];
   } {
@@ -87,7 +87,7 @@ export class TransformerHandler {
 
 function shouldIncludeSystem(
   transformer: SystemTransformer,
-  filters: Filters
+  filters: TransformerFilters
 ): boolean {
   if (
     !filters.hasDefault &&
@@ -120,7 +120,7 @@ function shouldIncludeSystem(
   return tdts.has(filters.dataType) || tdts.has(TransformerDataType.ANY);
 }
 
-interface Filters {
+export interface TransformerFilters {
   isForeignKey: boolean;
   dataType: TransformerDataType;
   isNullable: boolean;
