@@ -154,7 +154,7 @@ export default function DualListBox(props: Props): ReactElement {
 function getLeftBoxNoMessage(options: Option[], leftData: Row[]): string {
   // this isnt super useful right now because the options are always a combination of schema+jobmappings
   if (options.length === 0) {
-    return 'Found no schema data or was unable to load connection';
+    return 'Unable to load schema from connection';
   }
   if (leftData.length === 0) {
     return 'All tables have been added!';
@@ -164,7 +164,7 @@ function getLeftBoxNoMessage(options: Option[], leftData: Row[]): string {
 
 function getRightBoxNoMessage(options: Option[], rightData: Row[]): string {
   if (options.length === 0) {
-    return 'Found no schema data or was unable to load connection/mappings';
+    return 'Unable to load schema from connection';
   }
   if (rightData.length === 0) {
     return 'Add tables to get started!';
