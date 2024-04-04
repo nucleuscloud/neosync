@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/benthosdev/benthos/v4/public/service"
+	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 )
 
 func errorOutputSpec() *service.ConfigSpec {
@@ -67,7 +67,7 @@ func (e *errorOutput) WriteBatch(ctx context.Context, batch service.MessageBatch
 		if err != nil {
 			return fmt.Errorf("error message interpolation error: %w", err)
 		}
-		if isMaxConnectionError(errMsg) {
+		if neosync_benthos.IsMaxConnectionError(errMsg) {
 			// throw error so that benthos retries
 			return errors.New(errMsg)
 		}
@@ -80,25 +80,4 @@ func (e *errorOutput) WriteBatch(ctx context.Context, batch service.MessageBatch
 
 func (e *errorOutput) Close(ctx context.Context) error {
 	return nil
-}
-
-// checks if the error message matches a max connections error
-func isMaxConnectionError(errMsg string) bool {
-	// list of known error messages for when max connections are reached
-	maxConnErrors := []string{
-		"too many clients already",
-		"remaining connection slots are reserved",
-		"maximum number of connections reached",
-	}
-
-	for _, errStr := range maxConnErrors {
-		if containsIgnoreCase(errMsg, errStr) {
-			return true
-		}
-	}
-	return false
-}
-
-func containsIgnoreCase(s, substr string) bool {
-	return strings.Contains(strings.ToLower(s), strings.ToLower(substr))
 }

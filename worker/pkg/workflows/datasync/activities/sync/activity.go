@@ -240,7 +240,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	if err != nil {
 		return nil, err
 	}
-	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, poolprovider)
+	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, poolprovider, stopActivityChan)
 	if err != nil {
 		return nil, fmt.Errorf("unable to register pooled_sql_raw input to benthos instance: %w", err)
 	}
