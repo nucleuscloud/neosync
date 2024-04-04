@@ -3575,29 +3575,6 @@
       "hasServices": true,
       "enums": [
         {
-          "name": "SupportedJobType",
-          "longName": "SupportedJobType",
-          "fullName": "mgmt.v1alpha1.SupportedJobType",
-          "description": "",
-          "values": [
-            {
-              "name": "SUPPORTED_JOB_TYPE_UNSPECIFIED",
-              "number": "0",
-              "description": ""
-            },
-            {
-              "name": "SUPPORTED_JOB_TYPE_SYNC",
-              "number": "1",
-              "description": ""
-            },
-            {
-              "name": "SUPPORTED_JOB_TYPE_GENERATE",
-              "number": "2",
-              "description": ""
-            }
-          ]
-        },
-        {
           "name": "TransformerDataType",
           "longName": "TransformerDataType",
           "fullName": "mgmt.v1alpha1.TransformerDataType",
@@ -4882,30 +4859,6 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
-            },
-            {
-              "name": "data_types",
-              "description": "",
-              "label": "repeated",
-              "type": "TransformerDataType",
-              "longType": "TransformerDataType",
-              "fullType": "mgmt.v1alpha1.TransformerDataType",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "supported_job_types",
-              "description": "",
-              "label": "repeated",
-              "type": "SupportedJobType",
-              "longType": "SupportedJobType",
-              "fullType": "mgmt.v1alpha1.SupportedJobType",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
             }
           ]
         },
@@ -5958,18 +5911,6 @@
               "type": "string",
               "longType": "string",
               "fullType": "string",
-              "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
-              "defaultValue": ""
-            },
-            {
-              "name": "data_types",
-              "description": "",
-              "label": "repeated",
-              "type": "TransformerDataType",
-              "longType": "TransformerDataType",
-              "fullType": "mgmt.v1alpha1.TransformerDataType",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -10394,6 +10335,11 @@
             {
               "name": "USER_ACCOUNT_TYPE_TEAM",
               "number": "2",
+              "description": ""
+            },
+            {
+              "name": "USER_ACCOUNT_TYPE_ENTERPRISE",
+              "number": "3",
               "description": ""
             }
           ]
