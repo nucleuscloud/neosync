@@ -11,7 +11,7 @@ import (
 )
 
 func Test_GenerateUsername(t *testing.T) {
-	randomizer := rand.New(rand.NewSource(1))
+	randomizer := rand.New(rand.NewSource(2))
 	res, err := generateUsername(randomizer, maxLength)
 	assert.NoError(t, err)
 
