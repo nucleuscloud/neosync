@@ -261,13 +261,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             </div>
             <div className="flex flex-col gap-2">
               <div>
-                <h2 className="text-1xl font-bold tracking-tight">
-                  Set table subset rules by pressing the edit button and filling
-                  out the form below
-                </h2>
-              </div>
-
-              <div>
                 <SubsetTable
                   data={Object.values(tableRowData)}
                   onEdit={(schema, table) => {
