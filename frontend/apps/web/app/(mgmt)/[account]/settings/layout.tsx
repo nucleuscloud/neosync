@@ -5,6 +5,7 @@ import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
 import { cn } from '@/libs/utils';
+import { toTitleCase } from '@/util/util';
 import { UserAccountType } from '@neosync/sdk';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -30,7 +31,7 @@ export default function SettingsLayout({
             header="Settings"
             subHeadings={
               <ResourceId
-                labelText={`${account?.name} - ${account?.id}`}
+                labelText={`${toTitleCase(account?.name ?? '')} - ${account?.id}`}
                 copyText={account?.id ?? ''}
                 onHoverText="Copy account Id"
               />
@@ -86,7 +87,9 @@ function useGetNavSettings(): Item[] {
     // filter members page if account is not a team
     account?.type === UserAccountType.TEAM
       ? items
-      : items.filter((item) => item.ref !== 'members');
+      : items.filter(
+          (item) => item.ref !== 'members' && item.ref !== 'billing'
+        );
   // filter temporal page if app is in neosync cloud mode
   items =
     !isSystemConfigLoading && systemAppConfigData?.isNeosyncCloud
@@ -97,6 +100,7 @@ function useGetNavSettings(): Item[] {
     !isSystemConfigLoading && !systemAppConfigData?.isMetricsServiceEnabled
       ? items.filter((item) => item.ref !== 'usage')
       : items;
+
   return items;
 }
 
@@ -116,6 +120,11 @@ function getAllNavSettings(accountName: string): Item[] {
       href: `/${accountName}/settings/members`,
       ref: 'members',
       title: 'Members',
+    },
+    {
+      href: `/${accountName}/settings/billing`,
+      ref: 'billing',
+      title: 'Billing',
     },
     {
       href: `/${accountName}/settings/usage`,

@@ -152,10 +152,10 @@ export default function ViewSystemTransformers({
             </div>
           </div>
           <div>
-            {UserDefinedTransformerForm(
-              systemTransformer?.source ?? TransformerSource.UNSPECIFIED,
-              true
-            )}
+            {UserDefinedTransformerForm({
+              value: systemTransformer?.source ?? TransformerSource.UNSPECIFIED,
+              disabled: true,
+            })}
           </div>
           <div className="flex flex-row justify-start">
             <NextLink href={`/${account?.name}/transformers?tab=system`}>

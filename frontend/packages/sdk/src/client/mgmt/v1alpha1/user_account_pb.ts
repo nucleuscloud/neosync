@@ -24,12 +24,18 @@ export enum UserAccountType {
    * @generated from enum value: USER_ACCOUNT_TYPE_TEAM = 2;
    */
   TEAM = 2,
+
+  /**
+   * @generated from enum value: USER_ACCOUNT_TYPE_ENTERPRISE = 3;
+   */
+  ENTERPRISE = 3,
 }
 // Retrieve enum metadata with: proto3.getEnumType(UserAccountType)
 proto3.util.setEnumType(UserAccountType, "mgmt.v1alpha1.UserAccountType", [
   { no: 0, name: "USER_ACCOUNT_TYPE_UNSPECIFIED" },
   { no: 1, name: "USER_ACCOUNT_TYPE_PERSONAL" },
   { no: 2, name: "USER_ACCOUNT_TYPE_TEAM" },
+  { no: 3, name: "USER_ACCOUNT_TYPE_ENTERPRISE" },
 ]);
 
 /**

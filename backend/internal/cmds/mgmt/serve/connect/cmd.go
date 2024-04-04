@@ -378,7 +378,6 @@ func serve(ctx context.Context) error {
 			),
 		)
 	}
-
 	mux.Handle("/", api)
 
 	httpServer := http.Server{

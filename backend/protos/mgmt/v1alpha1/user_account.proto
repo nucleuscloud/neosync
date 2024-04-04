@@ -30,6 +30,7 @@ enum UserAccountType {
   USER_ACCOUNT_TYPE_UNSPECIFIED = 0;
   USER_ACCOUNT_TYPE_PERSONAL = 1;
   USER_ACCOUNT_TYPE_TEAM = 2;
+  USER_ACCOUNT_TYPE_ENTERPRISE = 3;
 }
 
 message ConvertPersonalToTeamAccountRequest {}

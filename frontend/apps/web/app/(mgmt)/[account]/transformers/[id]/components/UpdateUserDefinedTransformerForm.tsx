@@ -148,7 +148,9 @@ export default function UpdateUserDefinedTransformerForm(
             />
           </div>
         </div>
-        <div>{UserDefinedTransformerForm(currentTransformer?.source)}</div>
+        <div>
+          {UserDefinedTransformerForm({ value: currentTransformer?.source })}
+        </div>
         <div className="flex flex-row justify-between">
           <NextLink href={`/${account?.name}/transformers?tab=ud`}>
             <Button type="button">Back</Button>

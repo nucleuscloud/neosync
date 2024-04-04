@@ -16,8 +16,9 @@ import {
   CreateTeamAccountResponse,
   UserAccountType,
 } from '@neosync/sdk';
+import Link from 'next/link';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, UseFormReturn } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useAccount } from '../providers/account-provider';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
@@ -52,7 +53,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Skeleton } from '../ui/skeleton';
 import { toast } from '../ui/use-toast';
 
-const CreateTeamFormValues = Yup.object({
+export const CreateTeamFormValues = Yup.object({
   name: Yup.string()
     .required()
     .min(3)
@@ -72,7 +73,7 @@ const CreateTeamFormValues = Yup.object({
       }
     ),
 });
-type CreateTeamFormValues = Yup.InferType<typeof CreateTeamFormValues>;
+export type CreateTeamFormValues = Yup.InferType<typeof CreateTeamFormValues>;
 
 interface Props {}
 
@@ -219,46 +220,120 @@ export default function AccountSwitcher(_: Props): ReactElement {
           </Command>
         </PopoverContent>
       </Popover>
-      <DialogContent className="flex flex-col gap-3">
-        <DialogHeader>
-          <DialogTitle>Create team</DialogTitle>
-          <DialogDescription>
-            Create a new team account to collaborate with your co-workers.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4 py-2">
-          <Form {...form}>
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input placeholder="acme" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </Form>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setShowNewTeamDialog(false)}>
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            onClick={(e) => form.handleSubmit((values) => onSubmit(values))(e)}
-          >
-            Continue
-          </Button>
-        </DialogFooter>
-      </DialogContent>
+      <CreateNewTeamDialog
+        form={form}
+        onSubmit={onSubmit}
+        setShowNewTeamDialog={setShowNewTeamDialog}
+        planType={account?.type ?? UserAccountType.PERSONAL}
+      />
     </Dialog>
   );
 }
 
-async function createTeamAccount(
+interface CreateNewTeamDialogProps {
+  form: UseFormReturn<
+    {
+      name: string;
+    },
+    any,
+    undefined
+  >;
+  onSubmit: (values: CreateTeamFormValues) => Promise<void>;
+  setShowNewTeamDialog: (val: boolean) => void;
+  planType: UserAccountType;
+}
+
+export function CreateNewTeamDialog(
+  props: CreateNewTeamDialogProps
+): ReactElement {
+  const { form, onSubmit, setShowNewTeamDialog, planType } = props;
+
+  return (
+    <div>
+      {planType && planType == UserAccountType.PERSONAL ? (
+        <UpgradeDialog planType={planType} />
+      ) : (
+        <DialogContent className="flex flex-col gap-3">
+          <DialogHeader>
+            <DialogTitle>Create team</DialogTitle>
+            <DialogDescription>
+              Create a new team account to collaborate with your co-workers.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <Form {...form}>
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input placeholder="acme" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </Form>
+          </div>
+          <DialogFooter>
+            <div className="flex flex-row justify-between w-full pt-6">
+              <Button
+                variant="outline"
+                onClick={() => setShowNewTeamDialog(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                onClick={(e) =>
+                  form.handleSubmit((values) => onSubmit(values))(e)
+                }
+                disabled={!form.formState.isValid}
+              >
+                Continue
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      )}
+    </div>
+  );
+}
+
+interface UpgradeDialog {
+  planType: UserAccountType;
+}
+
+function UpgradeDialog({ planType }: UpgradeDialog) {
+  return (
+    <div>
+      <DialogContent className="flex flex-col gap-3">
+        <DialogHeader>
+          <DialogTitle>Upgrade to a Team plan</DialogTitle>
+          <DialogDescription>
+            Upgrade to a Team plan in order to create a team.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <div className="flex flex-row w-full pt-6 justify-center">
+            <Button>
+              <Link
+                href="https://calendly.com/evis1/30min"
+                className="w-[242px]"
+                target="_blank"
+              >
+                Get in touch
+              </Link>
+            </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </div>
+  );
+}
+
+export async function createTeamAccount(
   teamName: string
 ): Promise<CreateTeamAccountResponse | undefined> {
   const res = await fetch(`/api/users/accounts`, {
