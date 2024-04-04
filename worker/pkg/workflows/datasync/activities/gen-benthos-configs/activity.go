@@ -39,6 +39,7 @@ type BenthosConfigResponse struct {
 	TableName   string
 	Columns     []string
 
+	Processors  []*neosync_benthos.ProcessorConfig
 	BenthosDsns []*shared.BenthosDsn
 	RedisConfig []*BenthosRedisConfig
 

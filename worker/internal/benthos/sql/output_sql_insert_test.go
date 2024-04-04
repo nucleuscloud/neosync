@@ -8,20 +8,21 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_SqlRawOutputEmptyShutdown(t *testing.T) {
+func Test_SqlInsertOutputEmptyShutdown(t *testing.T) {
 	conf := `
 driver: postgres
 dsn: foo
-query: "select * from public.users"
+schema: bar
+table: baz
 args_mapping: 'root = [this.id]'
 `
-	spec := sqlRawOutputSpec()
+	spec := sqlInsertOutputSpec()
 	env := service.NewEnvironment()
 
 	insertConfig, err := spec.ParseYAML(conf, env)
 	require.NoError(t, err)
 
-	insertOutput, err := newOutput(insertConfig, service.MockResources(), nil)
+	insertOutput, err := newInsertOutput(insertConfig, service.MockResources(), nil)
 	require.NoError(t, err)
 	require.NoError(t, insertOutput.Close(context.Background()))
 }

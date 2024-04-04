@@ -110,7 +110,9 @@ type WhileProcessorConfig struct {
 	Processors  []*ProcessorConfig `json:"processors,omitempty" yaml:"processors,omitempty"`
 }
 
-type ErrorProcessorConfig struct{}
+type ErrorProcessorConfig struct {
+	ErrorMsg string `json:"error_msg" yaml:"error_msg"`
+}
 
 type RedisProcessorConfig struct {
 	Url         string          `json:"url" yaml:"url"`
@@ -148,8 +150,9 @@ type JavascriptConfig struct {
 }
 
 type OutputConfig struct {
-	Label   string `json:"label" yaml:"label"`
-	Outputs `json:",inline" yaml:",inline"`
+	Label      string `json:"label" yaml:"label"`
+	Outputs    `json:",inline" yaml:",inline"`
+	Processors []ProcessorConfig `json:"processors,omitempty" yaml:"processors,omitempty"`
 	// Broker  *OutputBrokerConfig `json:"broker,omitempty" yaml:"broker,omitempty"`
 }
 
@@ -157,6 +160,8 @@ type Outputs struct {
 	SqlInsert       *SqlInsert             `json:"sql_insert,omitempty" yaml:"sql_insert,omitempty"`
 	SqlRaw          *SqlRaw                `json:"sql_raw,omitempty" yaml:"sql_raw,omitempty"`
 	PooledSqlRaw    *PooledSqlRaw          `json:"pooled_sql_raw,omitempty" yaml:"pooled_sql_raw,omitempty"`
+	PooledSqlInsert *PooledSqlInsert       `json:"pooled_sql_insert,omitempty" yaml:"pooled_sql_insert,omitempty"`
+	PooledSqlUpdate *PooledSqlUpdate       `json:"pooled_sql_update,omitempty" yaml:"pooled_sql_update,omitempty"`
 	AwsS3           *AwsS3Insert           `json:"aws_s3,omitempty" yaml:"aws_s3,omitempty"`
 	Retry           *RetryConfig           `json:"retry,omitempty" yaml:"retry,omitempty"`
 	Broker          *OutputBrokerConfig    `json:"broker,omitempty" yaml:"broker,omitempty"`
@@ -165,6 +170,24 @@ type Outputs struct {
 	Resource        string                 `json:"resource,omitempty" yaml:"resource,omitempty"`
 	Fallback        []Outputs              `json:"fallback,omitempty" yaml:"fallback,omitempty"`
 	RedisHashOutput *RedisHashOutputConfig `json:"redis_hash_output,omitempty" yaml:"redis_hash_output,omitempty"`
+	Error           *ErrorOutputConfig     `json:"error,omitempty" yaml:"error,omitempty"`
+	Switch          *SwitchOutputConfig    `json:"switch,omitempty" yaml:"switch,omitempty"`
+}
+
+type SwitchOutputConfig struct {
+	RetryUntilSuccess bool               `json:"retry_until_success,omitempty" yaml:"retry_until_success,omitempty"`
+	StrictMode        bool               `json:"strict_mode,omitempty" yaml:"strict_mode,omitempty"`
+	Cases             []SwitchOutputCase `json:"cases,omitempty" yaml:"cases,omitempty"`
+}
+
+type SwitchOutputCase struct {
+	Check    string  `json:"check,omitempty" yaml:"check,omitempty"`
+	Continue bool    `json:"continue,omitempty" yaml:"continue,omitempty"`
+	Output   Outputs `json:"output,omitempty" yaml:"output,omitempty"`
+}
+type ErrorOutputConfig struct {
+	ErrorMsg string    `json:"error_msg" yaml:"error_msg"`
+	Batching *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
 }
 
 type RedisHashOutputConfig struct {
@@ -211,9 +234,9 @@ type InlineRetryConfig struct {
 }
 
 type Backoff struct {
-	InitialInterval string `json:"initial_interval" yaml:"initial_interval"`
-	MaxInterval     string `json:"max_interval" yaml:"max_interval"`
-	MaxElapsedTime  string `json:"max_elapsed_time" yaml:"max_elapsed_time"`
+	InitialInterval string `json:"initial_interval,omitempty" yaml:"initial_interval,omitempty"`
+	MaxInterval     string `json:"max_interval,omitempty" yaml:"max_interval,omitempty"`
+	MaxElapsedTime  string `json:"max_elapsed_time,omitempty" yaml:"max_elapsed_time,omitempty"`
 }
 
 type SqlRaw struct {
@@ -240,6 +263,27 @@ type PooledSqlRaw struct {
 	// ConnMaxIdle     int       `json:"conn_max_idle,omitempty" yaml:"conn_max_idle,omitempty"`
 	// ConnMaxOpen     int       `json:"conn_max_open,omitempty" yaml:"conn_max_open,omitempty"`
 	Batching *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
+}
+
+type PooledSqlUpdate struct {
+	Driver       string    `json:"driver" yaml:"driver"`
+	Dsn          string    `json:"dsn" yaml:"dsn"`
+	Schema       string    `json:"schema" yaml:"schema"`
+	Table        string    `json:"table" yaml:"table"`
+	Columns      []string  `json:"columns" yaml:"columns"`
+	WhereColumns []string  `json:"where_columns" yaml:"where_columns"`
+	ArgsMapping  string    `json:"args_mapping" yaml:"args_mapping"`
+	Batching     *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
+}
+
+type PooledSqlInsert struct {
+	Driver      string    `json:"driver" yaml:"driver"`
+	Dsn         string    `json:"dsn" yaml:"dsn"`
+	Schema      string    `json:"schema" yaml:"schema"`
+	Table       string    `json:"table" yaml:"table"`
+	Columns     []string  `json:"columns" yaml:"columns"`
+	ArgsMapping string    `json:"args_mapping" yaml:"args_mapping"`
+	Batching    *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
 }
 
 type SqlInsert struct {

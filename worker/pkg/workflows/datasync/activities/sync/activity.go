@@ -25,7 +25,6 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/benthosdev/benthos/v4/public/service"
-	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -101,7 +100,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	}
 	logger := log.With(activity.GetLogger(ctx), loggerKeyVals...)
 	slogger := logger_utils.NewJsonSLogger().With(loggerKeyVals...)
-	stopActivityChan := make(chan bool, 1)
+	stopActivityChan := make(chan error, 1)
 	resultChan := make(chan error, 1)
 	benthosStreamMutex := sync.Mutex{}
 	var benthosStream BenthosStreamClient
@@ -110,8 +109,8 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 			select {
 			case <-time.After(1 * time.Second):
 				activity.RecordHeartbeat(ctx)
-			case <-stopActivityChan:
-				resultChan <- fmt.Errorf("received stop activity signal")
+			case activityErr := <-stopActivityChan:
+				resultChan <- activityErr
 				benthosStreamMutex.Lock()
 				if benthosStream != nil {
 					// this must be here because stream.Run(ctx) doesn't seem to fully obey a canceled context when
@@ -218,7 +217,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		return nil, fmt.Errorf("was unable to build connection details for some or all connections: %w", err)
 	}
 
-	poolprovider := newPoolProvider(func(dsn string) (mysql_queries.DBTX, error) {
+	poolprovider := newPoolProvider(func(dsn string) (neosync_benthos_sql.SqlDbtx, error) {
 		connid, ok := dsnToConnectionIdMap.Load(dsn)
 		if !ok {
 			return nil, errors.New("unable to find connection id by dsn when getting db pool")
@@ -233,9 +232,13 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		}
 		return tunnelmanager.GetConnection(session, connection, slogger)
 	})
-	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, poolprovider)
+	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, poolprovider)
 	if err != nil {
-		return nil, fmt.Errorf("unable to register pooled_sql_raw output to benthos instance: %w", err)
+		return nil, fmt.Errorf("unable to register pooled_sql_insert input to benthos instance: %w", err)
+	}
+	err = neosync_benthos_sql.RegisterPooledSqlUpdateOutput(benthosenv, poolprovider)
+	if err != nil {
+		return nil, err
 	}
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, poolprovider)
 	if err != nil {
@@ -245,6 +248,10 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	err = neosync_benthos_error.RegisterErrorProcessor(benthosenv, stopActivityChan)
 	if err != nil {
 		return nil, fmt.Errorf("unable to register error processor to benthos instance: %w", err)
+	}
+	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, stopActivityChan)
+	if err != nil {
+		return nil, fmt.Errorf("unable to register error output to benthos instance: %w", err)
 	}
 
 	envKeyMap := syncMapToStringMap(&envKeyDsnSyncMap)

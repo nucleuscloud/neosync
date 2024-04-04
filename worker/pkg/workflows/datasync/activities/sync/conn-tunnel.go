@@ -8,36 +8,30 @@ import (
 	"sync"
 	"time"
 
-	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/internal/benthos/sql"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
-
-type sqlDbtx interface {
-	mysql_queries.DBTX
-
-	Close() error
-}
 
 type defaultSqlProvider struct{}
 
 func (d *defaultSqlProvider) GetConnectionDetails(cc *mgmtv1alpha1.ConnectionConfig, connTimeout *uint32, logger *slog.Logger) (*sqlconnect.ConnectionDetails, error) {
 	return sqlconnect.GetConnectionDetails(cc, connTimeout, logger)
 }
-func (d *defaultSqlProvider) DbOpen(driver, dsn string) (sqlDbtx, error) {
+func (d *defaultSqlProvider) DbOpen(driver, dsn string) (neosync_benthos_sql.SqlDbtx, error) {
 	return sql.Open(driver, dsn)
 }
 
 type sqlProvider interface {
 	GetConnectionDetails(cc *mgmtv1alpha1.ConnectionConfig, connTimeout *uint32, logger *slog.Logger) (*sqlconnect.ConnectionDetails, error)
 
-	DbOpen(driver, dsn string) (sqlDbtx, error)
+	DbOpen(driver, dsn string) (neosync_benthos_sql.SqlDbtx, error)
 }
 
 func NewConnectionTunnelManager(sqlprovider sqlProvider) *ConnectionTunnelManager {
 	return &ConnectionTunnelManager{
-		connMap:        map[string]sqlDbtx{},
+		connMap:        map[string]neosync_benthos_sql.SqlDbtx{},
 		sessionMap:     map[string]map[string]struct{}{},
 		connDetailsMap: map[string]*sqlconnect.ConnectionDetails{},
 		shutdown:       make(chan any),
@@ -60,7 +54,7 @@ type ConnectionTunnelManager struct {
 	sessionMu  sync.RWMutex
 
 	// connection id to sql connection
-	connMap map[string]sqlDbtx
+	connMap map[string]neosync_benthos_sql.SqlDbtx
 	connMu  sync.RWMutex
 
 	shutdown chan any
@@ -123,7 +117,7 @@ func (c *ConnectionTunnelManager) GetConnection(
 	session string,
 	connection *mgmtv1alpha1.Connection,
 	logger *slog.Logger,
-) (mysql_queries.DBTX, error) {
+) (neosync_benthos_sql.SqlDbtx, error) {
 	c.connMu.RLock()
 	existingDb, ok := c.connMap[connection.Id]
 	if ok {

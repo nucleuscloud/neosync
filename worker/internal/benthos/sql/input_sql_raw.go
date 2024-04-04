@@ -116,6 +116,7 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
 	s.rows = rows
 	go func() {
 		<-s.shutSig.CloseNowChan()

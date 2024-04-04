@@ -7,30 +7,29 @@ import (
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/benthosdev/benthos/v4/public/service"
+	"github.com/doug-martin/goqu/v9"
+	_ "github.com/doug-martin/goqu/v9/dialect/mysql"
+	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	"github.com/nucleuscloud/neosync/worker/internal/benthos/shutdown"
 )
 
-func sqlRawOutputSpec() *service.ConfigSpec {
+func sqlInsertOutputSpec() *service.ConfigSpec {
 	return service.NewConfigSpec().
 		Field(service.NewStringField("driver")).
 		Field(service.NewStringField("dsn")).
-		Field(service.NewStringField("query")).
-		Field(service.NewBoolField("unsafe_dynamic_query").Default(false)).
+		Field(service.NewStringField("schema")).
+		Field(service.NewStringField("table")).
+		Field(service.NewStringListField("columns")).
 		Field(service.NewBloblangField("args_mapping").Optional()).
 		Field(service.NewIntField("max_in_flight").Default(64)).
-		Field(service.NewBatchPolicyField("batching")).
-		Field(service.NewStringField("init_statement").Optional())
-}
-
-type DbPoolProvider interface {
-	GetDb(driver, dsn string) (mysql_queries.DBTX, error)
+		Field(service.NewBatchPolicyField("batching"))
 }
 
 // Registers an output on a benthos environment called pooled_sql_raw
-func RegisterPooledSqlRawOutput(env *service.Environment, dbprovider DbPoolProvider) error {
+func RegisterPooledSqlInsertOutput(env *service.Environment, dbprovider DbPoolProvider) error {
 	return env.RegisterBatchOutput(
-		"pooled_sql_raw", sqlRawOutputSpec(),
+		"pooled_sql_insert", sqlInsertOutputSpec(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchOutput, service.BatchPolicy, int, error) {
 			batchPolicy, err := conf.FieldBatchPolicy("batching")
 			if err != nil {
@@ -41,7 +40,7 @@ func RegisterPooledSqlRawOutput(env *service.Environment, dbprovider DbPoolProvi
 			if err != nil {
 				return nil, service.BatchPolicy{}, -1, err
 			}
-			out, err := newOutput(conf, mgr, dbprovider)
+			out, err := newInsertOutput(conf, mgr, dbprovider)
 			if err != nil {
 				return nil, service.BatchPolicy{}, -1, err
 			}
@@ -50,9 +49,9 @@ func RegisterPooledSqlRawOutput(env *service.Environment, dbprovider DbPoolProvi
 	)
 }
 
-var _ service.BatchOutput = &pooledOutput{}
+var _ service.BatchOutput = &pooledInsertOutput{}
 
-type pooledOutput struct {
+type pooledInsertOutput struct {
 	driver   string
 	dsn      string
 	provider DbPoolProvider
@@ -60,14 +59,15 @@ type pooledOutput struct {
 	db       mysql_queries.DBTX
 	logger   *service.Logger
 
-	queryStatic string
-	queryDyn    *service.InterpolatedString
+	schema  string
+	table   string
+	columns []string
 
 	argsMapping *bloblang.Executor
 	shutSig     *shutdown.Signaller
 }
 
-func newOutput(conf *service.ParsedConfig, mgr *service.Resources, provider DbPoolProvider) (*pooledOutput, error) {
+func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provider DbPoolProvider) (*pooledInsertOutput, error) {
 	driver, err := conf.FieldString("driver")
 	if err != nil {
 		return nil, err
@@ -77,18 +77,19 @@ func newOutput(conf *service.ParsedConfig, mgr *service.Resources, provider DbPo
 		return nil, err
 	}
 
-	queryStatic, err := conf.FieldString("query")
+	schema, err := conf.FieldString("schema")
 	if err != nil {
 		return nil, err
 	}
 
-	var queryDyn *service.InterpolatedString
-	if unsafeDyn, err := conf.FieldBool("unsafe_dynamic_query"); err != nil {
+	table, err := conf.FieldString("table")
+	if err != nil {
 		return nil, err
-	} else if unsafeDyn {
-		if queryDyn, err = conf.FieldInterpolatedString("query"); err != nil {
-			return nil, err
-		}
+	}
+
+	columns, err := conf.FieldStringList("columns")
+	if err != nil {
+		return nil, err
 	}
 
 	var argsMapping *bloblang.Executor
@@ -98,20 +99,21 @@ func newOutput(conf *service.ParsedConfig, mgr *service.Resources, provider DbPo
 		}
 	}
 
-	output := &pooledOutput{
+	output := &pooledInsertOutput{
 		driver:      driver,
 		dsn:         dsn,
 		logger:      mgr.Logger(),
 		shutSig:     shutdown.NewSignaller(),
-		queryStatic: queryStatic,
-		queryDyn:    queryDyn,
 		argsMapping: argsMapping,
 		provider:    provider,
+		schema:      schema,
+		table:       table,
+		columns:     columns,
 	}
 	return output, nil
 }
 
-func (s *pooledOutput) Connect(ctx context.Context) error {
+func (s *pooledInsertOutput) Connect(ctx context.Context) error {
 	s.dbMut.Lock()
 	defer s.dbMut.Unlock()
 
@@ -138,45 +140,66 @@ func (s *pooledOutput) Connect(ctx context.Context) error {
 	return nil
 }
 
-func (s *pooledOutput) WriteBatch(ctx context.Context, batch service.MessageBatch) error {
+func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.MessageBatch) error {
 	s.dbMut.RLock()
 	defer s.dbMut.RUnlock()
 
+	batchLen := len(batch)
+	if batchLen == 0 {
+		return nil
+	}
+	builder := goqu.Dialect(s.driver)
+	table := goqu.S(s.schema).Table(s.table)
+	insertCols := make([]any, len(s.columns))
+	for i, col := range s.columns {
+		insertCols[i] = col
+	}
+	insert := builder.Insert(table).Cols(insertCols...)
+	rows := [][]interface{}{} //nolint:gofmt
+
 	for i := range batch {
-		var args []any
-		if s.argsMapping != nil {
-			resMsg, err := batch.BloblangQuery(i, s.argsMapping)
-			if err != nil {
-				return err
-			}
-
-			iargs, err := resMsg.AsStructured()
-			if err != nil {
-				return err
-			}
-
-			var ok bool
-			if args, ok = iargs.([]any); !ok {
-				return fmt.Errorf("mapping returned non-array result: %T", iargs)
-			}
+		if s.argsMapping == nil {
+			continue
 		}
-
-		queryStr := s.queryStatic
-		if s.queryDyn != nil {
-			var err error
-			if queryStr, err = batch.TryInterpolatedString(i, s.queryDyn); err != nil {
-				return fmt.Errorf("query interpolation error: %w", err)
-			}
-		}
-
-		if _, err := s.db.ExecContext(ctx, queryStr, args...); err != nil {
+		resMsg, err := batch.BloblangQuery(i, s.argsMapping)
+		if err != nil {
 			return err
 		}
+
+		iargs, err := resMsg.AsStructured()
+		if err != nil {
+			return err
+		}
+
+		args, ok := iargs.([]any)
+		if !ok {
+			return fmt.Errorf("mapping returned non-array result: %T", iargs)
+		}
+
+		// set any default transformations
+		for idx, a := range args {
+			if a == "DEFAULT" {
+				args[idx] = goqu.L("DEFAULT")
+			}
+		}
+
+		rows = append(rows, args)
+	}
+	// add rows to the dataset
+	for _, row := range rows {
+		insert = insert.Vals(row)
+	}
+	query, args, err := insert.ToSQL()
+	if err != nil {
+		return err
+	}
+	if _, err := s.db.ExecContext(ctx, query, args...); err != nil {
+		return err
 	}
 	return nil
 }
 
-func (s *pooledOutput) Close(ctx context.Context) error {
+func (s *pooledInsertOutput) Close(ctx context.Context) error {
 	s.shutSig.CloseNow()
 	s.dbMut.RLock()
 	isNil := s.db == nil
