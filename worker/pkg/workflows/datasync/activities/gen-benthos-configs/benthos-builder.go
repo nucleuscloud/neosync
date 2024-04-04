@@ -148,7 +148,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		if sqlOpts != nil {
 			sourceTableOpts = groupPostgresSourceOptionsByTable(sqlOpts.Schemas)
 		}
-		tableSubsetMap := buildTableSubsetMap(sourceTableOpts)
 
 		if _, ok := b.pgpool[sourceConnection.Id]; !ok {
 			pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(pgconfig, shared.Ptr(uint32(5)), slogger)
@@ -192,6 +191,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		}
 
 		tables := filterNullTables(groupedMappings)
+		tableSubsetMap := buildTableSubsetMap(sourceTableOpts)
 		dependencyConfigs := tabledependency.GetRunConfigs(td, tables, tableSubsetMap)
 
 		// reverse of table dependency
@@ -260,7 +260,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		if sqlOpts != nil {
 			sourceTableOpts = groupMysqlSourceOptionsByTable(sqlOpts.Schemas)
 		}
-		tableSubsetMap := buildTableSubsetMap(sourceTableOpts)
 
 		if _, ok := b.mysqlpool[sourceConnection.Id]; !ok {
 			conn, err := b.sqlconnector.NewDbFromConnectionConfig(sourceConnection.ConnectionConfig, shared.Ptr(uint32(5)), slogger)
@@ -303,6 +302,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		}
 
 		tables := filterNullTables(groupedMappings)
+		tableSubsetMap := buildTableSubsetMap(sourceTableOpts)
 		dependencyConfigs := tabledependency.GetRunConfigs(td, tables, tableSubsetMap)
 
 		// reverse of table dependency
@@ -404,7 +404,11 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			}
 
 			switch connection := destinationConnection.ConnectionConfig.Config.(type) {
-			case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+			case *mgmtv1alpha1.ConnectionConfig_PgConfig, *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+				driver, err := getSqlDriverFromConnection(destinationConnection)
+				if err != nil {
+					return nil, err
+				}
 				resp.BenthosDsns = append(resp.BenthosDsns, &shared.BenthosDsn{EnvVarKey: dstEnvVarKey, ConnectionId: destinationConnection.Id})
 
 				if resp.Config.Input.SqlSelect != nil || resp.Config.Input.PooledSqlRaw != nil {
@@ -414,7 +418,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						Fallback: []neosync_benthos.Outputs{
 							{
 								PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
-									Driver: postgresDriver,
+									Driver: driver,
 									Dsn:    dsn,
 
 									Schema:      resp.TableSchema,
@@ -497,99 +501,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 				} else {
 					return nil, errors.New("unable to build destination connection due to unsupported source connection")
 				}
-			case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-				resp.BenthosDsns = append(resp.BenthosDsns, &shared.BenthosDsn{EnvVarKey: dstEnvVarKey, ConnectionId: destination.ConnectionId})
-
-				if resp.Config.Input.SqlSelect != nil || resp.Config.Input.PooledSqlRaw != nil {
-					out := buildOutputArgs(resp, tm)
-					resp.Columns = out.Columns
-					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-						Fallback: []neosync_benthos.Outputs{
-							{
-								PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
-									Driver: mysqlDriver,
-									Dsn:    dsn,
-
-									Schema:      resp.TableSchema,
-									Table:       resp.TableName,
-									Columns:     out.Columns,
-									ArgsMapping: out.ArgsMapping,
-
-									Batching: &neosync_benthos.Batching{
-										Period: "5s",
-										Count:  100,
-									},
-								},
-							},
-							// kills activity depending on error
-							{Error: &neosync_benthos.ErrorOutputConfig{
-								ErrorMsg: `${! meta("fallback_error")}`,
-								Batching: &neosync_benthos.Batching{
-									Period: "5s",
-									Count:  1,
-								},
-							}},
-						},
-					})
-					if resp.updateConfig != nil {
-						// circular dependency -> create update benthos config
-						updateResp, err := createSqlUpdateBenthosConfig(ctx, b.transformerclient, resp, dsn, resp.TableSchema, resp.TableName, tm, groupedColInfoMap, tableConstraintsSource[neosync_benthos.BuildBenthosTable(resp.TableSchema, resp.TableName)], b.jobId, b.runId, b.redisConfig)
-						if err != nil {
-							return nil, fmt.Errorf("unable to create sql update benthos config: %w", err)
-						}
-						updateResponses = append(updateResponses, updateResp)
-					}
-				} else if resp.Config.Input.Generate != nil {
-					cols := buildPlainColumns(tm.Mappings)
-					processorConfigs := []neosync_benthos.ProcessorConfig{}
-					for _, pc := range resp.Processors {
-						processorConfigs = append(processorConfigs, *pc)
-					}
-
-					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-						Fallback: []neosync_benthos.Outputs{
-							{
-								// retry processor and output several times
-								Retry: &neosync_benthos.RetryConfig{
-									InlineRetryConfig: neosync_benthos.InlineRetryConfig{
-										MaxRetries: 10,
-									},
-									Output: neosync_benthos.OutputConfig{
-										Outputs: neosync_benthos.Outputs{
-											PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
-												Driver: mysqlDriver,
-												Dsn:    dsn,
-
-												Schema:  resp.TableSchema,
-												Table:   resp.TableName,
-												Columns: cols,
-
-												ArgsMapping: buildPlainInsertArgs(cols),
-
-												Batching: &neosync_benthos.Batching{
-													Period: "5s",
-													Count:  100,
-												},
-											},
-										},
-										Processors: processorConfigs,
-									},
-								},
-							},
-							// kills activity depending on error
-							{Error: &neosync_benthos.ErrorOutputConfig{
-								ErrorMsg: `${! meta("fallback_error")}`,
-								Batching: &neosync_benthos.Batching{
-									Period: "5s",
-									Count:  1,
-								},
-							}},
-						},
-					})
-				} else {
-					return nil, errors.New("unable to build destination connection due to unsupported source connection")
-				}
-
 			case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
 				s3pathpieces := []string{}
 				if connection.AwsS3Config.PathPrefix != nil && *connection.AwsS3Config.PathPrefix != "" {
@@ -704,6 +615,7 @@ type sqlUpdateOutput struct {
 
 func buildOutputArgs(resp *BenthosConfigResponse, tm *tableMapping) *sqlUpdateOutput {
 	if len(resp.excludeColumns) > 0 {
+		// insert excluding specific columns
 		filteredInsertMappings := []*mgmtv1alpha1.JobMapping{}
 		for _, m := range tm.Mappings {
 			if !slices.Contains(resp.excludeColumns, m.Column) {
@@ -716,6 +628,7 @@ func buildOutputArgs(resp *BenthosConfigResponse, tm *tableMapping) *sqlUpdateOu
 			Columns:     cols,
 		}
 	} else if resp.updateConfig != nil && resp.updateConfig.Columns != nil && len(resp.updateConfig.Columns.Include) > 0 {
+		// update specific columns
 		filteredUpdateMappings := []*mgmtv1alpha1.JobMapping{}
 		for _, m := range tm.Mappings {
 			if slices.Contains(resp.updateConfig.Columns.Include, m.Column) {
@@ -733,6 +646,7 @@ func buildOutputArgs(resp *BenthosConfigResponse, tm *tableMapping) *sqlUpdateOu
 			WhereCols:   resp.primaryKeys,
 		}
 	}
+	// insert all columns
 	cols := buildPlainColumns(tm.Mappings)
 	return &sqlUpdateOutput{
 		ArgsMapping: buildPlainInsertArgs(cols),
@@ -912,6 +826,17 @@ func getDriverFromBenthosInput(input *neosync_benthos.Inputs) (string, error) {
 		return input.PooledSqlRaw.Driver, nil
 	}
 	return "", errors.New("invalid benthos input when trying to find database driver")
+}
+
+func getSqlDriverFromConnection(conn *mgmtv1alpha1.Connection) (string, error) {
+	switch conn.ConnectionConfig.Config.(type) {
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		return postgresDriver, nil
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		return mysqlDriver, nil
+	default:
+		return "", fmt.Errorf("unsupported sql connection config")
+	}
 }
 
 func createSqlUpdateBenthosConfig(
@@ -1270,17 +1195,6 @@ func shouldHaltOnSchemaAddition(
 		}
 	}
 	return false
-}
-
-func escapeColsByDriver(cols []string, driver string) []string {
-	switch driver {
-	case postgresDriver:
-		return dbschemas_postgres.EscapePgColumns(cols)
-	case mysqlDriver:
-		return dbschemas_mysql.EscapeMysqlColumns(cols)
-	default:
-		return cols
-	}
 }
 
 func buildPlainColumns(mappings []*mgmtv1alpha1.JobMapping) []string {

@@ -5151,25 +5151,6 @@ func Test_buildPlainInsertArgs(t *testing.T) {
 	assert.Equal(t, buildPlainInsertArgs([]string{"foo", "bar", "baz"}), `root = [this."foo", this."bar", this."baz"]`)
 }
 
-func Test_escapeColsByDriver(t *testing.T) {
-	assert.Empty(t, escapeColsByDriver(nil, ""))
-	assert.Equal(
-		t,
-		escapeColsByDriver([]string{"foo", "bar", "baz"}, "postgres"),
-		[]string{`"foo"`, `"bar"`, `"baz"`},
-	)
-	assert.Equal(
-		t,
-		escapeColsByDriver([]string{"foo", "bar", "baz"}, "mysql"),
-		[]string{"`foo`", "`bar`", "`baz`"},
-	)
-	assert.Equal(
-		t,
-		escapeColsByDriver([]string{"foo", "bar", "baz"}, ""),
-		[]string{"foo", "bar", "baz"},
-	)
-}
-
 func Test_buildPlainColumns(t *testing.T) {
 	assert.Empty(t, buildPlainColumns(nil))
 	assert.Empty(t, buildPlainColumns([]*mgmtv1alpha1.JobMapping{}))
