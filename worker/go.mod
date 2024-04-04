@@ -30,8 +30,8 @@ require (
 	go.temporal.io/api v1.30.1
 	go.temporal.io/sdk v1.26.0
 	go.uber.org/atomic v1.11.0
-	golang.org/x/net v0.22.0
-	golang.org/x/sync v0.6.0
+	golang.org/x/net v0.23.0
+	golang.org/x/sync v0.7.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
