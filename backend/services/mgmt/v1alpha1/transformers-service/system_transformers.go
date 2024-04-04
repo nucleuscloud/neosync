@@ -88,7 +88,7 @@ var (
 			Name:              "Generate Default",
 			Description:       "Defers to the database column default",
 			DataType:          mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_STRING,
-			DataTypes:         []mgmtv1alpha1.TransformerDataType{mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_STRING, mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_NULL},
+			DataTypes:         []mgmtv1alpha1.TransformerDataType{mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_ANY, mgmtv1alpha1.TransformerDataType_TRANSFORMER_DATA_TYPE_NULL},
 			SupportedJobTypes: []mgmtv1alpha1.SupportedJobType{mgmtv1alpha1.SupportedJobType_SUPPORTED_JOB_TYPE_GENERATE, mgmtv1alpha1.SupportedJobType_SUPPORTED_JOB_TYPE_SYNC},
 			Source:            mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 			Config: &mgmtv1alpha1.TransformerConfig{
