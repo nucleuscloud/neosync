@@ -437,7 +437,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 								ErrorMsg: `${! meta("fallback_error")}`,
 								Batching: &neosync_benthos.Batching{
 									Period: "5s",
-									Count:  1,
+									Count:  100,
 								},
 							}},
 						},
@@ -493,7 +493,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 								ErrorMsg: `${! meta("fallback_error")}`,
 								Batching: &neosync_benthos.Batching{
 									Period: "5s",
-									Count:  1,
+									Count:  100,
 								},
 							}},
 						},
@@ -544,7 +544,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 							ErrorMsg: `${! meta("fallback_error")}`,
 							Batching: &neosync_benthos.Batching{
 								Period: "5s",
-								Count:  1,
+								Count:  100,
 							},
 						}},
 					},
@@ -964,7 +964,7 @@ func createSqlUpdateBenthosConfig(
 					ErrorMsg: `${! meta("fallback_error")}`,
 					Batching: &neosync_benthos.Batching{
 						Period: "5s",
-						Count:  1,
+						Count:  100,
 					},
 				}},
 			},

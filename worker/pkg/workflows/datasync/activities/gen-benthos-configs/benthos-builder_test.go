@@ -204,7 +204,7 @@ output:
                 - error:
                     error_msg: ${! meta("fallback_error")}
                     batching:
-                        count: 1
+                        count: 100
                         byte_size: 0
                         period: 5s
                         check: ""
@@ -391,7 +391,7 @@ output:
                 - error:
                     error_msg: ${! meta("fallback_error")}
                     batching:
-                        count: 1
+                        count: 100
                         byte_size: 0
                         period: 5s
                         check: ""
@@ -586,7 +586,7 @@ output:
                 - error:
                     error_msg: ${! meta("fallback_error")}
                     batching:
-                        count: 1
+                        count: 100
                         byte_size: 0
                         period: 5s
                         check: ""
@@ -846,7 +846,7 @@ output:
                 - error:
                     error_msg: ${! meta("fallback_error")}
                     batching:
-                        count: 1
+                        count: 100
                         byte_size: 0
                         period: 5s
                         check: ""
@@ -908,7 +908,7 @@ output:
                 - error:
                     error_msg: ${! meta("fallback_error")}
                     batching:
-                        count: 1
+                        count: 100
                         byte_size: 0
                         period: 5s
                         check: ""
@@ -1143,7 +1143,7 @@ output:
                 - error:
                     error_msg: ${! meta("fallback_error")}
                     batching:
-                        count: 1
+                        count: 100
                         byte_size: 0
                         period: 5s
                         check: ""
@@ -1193,7 +1193,7 @@ output:
                 - error:
                     error_msg: ${! meta("fallback_error")}
                     batching:
-                        count: 1
+                        count: 100
                         byte_size: 0
                         period: 5s
                         check: ""
@@ -1418,7 +1418,7 @@ output:
                 - error:
                     error_msg: ${! meta("fallback_error")}
                     batching:
-                        count: 1
+                        count: 100
                         byte_size: 0
                         period: 5s
                         check: ""
@@ -1490,7 +1490,7 @@ output:
                 - error:
                     error_msg: ${! meta("fallback_error")}
                     batching:
-                        count: 1
+                        count: 100
                         byte_size: 0
                         period: 5s
                         check: ""
@@ -1952,7 +1952,7 @@ output:
                 - error:
                     error_msg: ${! meta("fallback_error")}
                     batching:
-                        count: 1
+                        count: 100
                         byte_size: 0
                         period: 5s
                         check: ""
@@ -2004,7 +2004,7 @@ output:
                 - error:
                     error_msg: ${! meta("fallback_error")}
                     batching:
-                        count: 1
+                        count: 100
                         byte_size: 0
                         period: 5s
                         check: ""
@@ -2054,7 +2054,7 @@ output:
                 - error:
                     error_msg: ${! meta("fallback_error")}
                     batching:
-                        count: 1
+                        count: 100
                         byte_size: 0
                         period: 5s
                         check: ""
@@ -2349,7 +2349,7 @@ output:
                 - error:
                     error_msg: ${! meta("fallback_error")}
                     batching:
-                        count: 1
+                        count: 100
                         byte_size: 0
                         period: 5s
                         check: ""
@@ -2376,7 +2376,7 @@ output:
                 - error:
                     error_msg: ${! meta("fallback_error")}
                     batching:
-                        count: 1
+                        count: 100
                         byte_size: 0
                         period: 5s
                         check: ""
@@ -2429,7 +2429,7 @@ output:
                 - error:
                     error_msg: ${! meta("fallback_error")}
                     batching:
-                        count: 1
+                        count: 100
                         byte_size: 0
                         period: 5s
                         check: ""
@@ -2480,7 +2480,7 @@ output:
                 - error:
                     error_msg: ${! meta("fallback_error")}
                     batching:
-                        count: 1
+                        count: 100
                         byte_size: 0
                         period: 5s
                         check: ""
@@ -2507,7 +2507,7 @@ output:
                 - error:
                     error_msg: ${! meta("fallback_error")}
                     batching:
-                        count: 1
+                        count: 100
                         byte_size: 0
                         period: 5s
                         check: ""
@@ -2742,7 +2742,7 @@ output:
                 - error:
                     error_msg: ${! meta("fallback_error")}
                     batching:
-                        count: 1
+                        count: 100
                         byte_size: 0
                         period: 5s
                         check: ""
@@ -2792,7 +2792,7 @@ output:
                 - error:
                     error_msg: ${! meta("fallback_error")}
                     batching:
-                        count: 1
+                        count: 100
                         byte_size: 0
                         period: 5s
                         check: ""
