@@ -15,6 +15,7 @@ import { Separator } from '@/components/ui/separator';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
 import { CheckCircle2Icon } from 'lucide-react';
+import Link from 'next/link';
 import { ReactElement, useEffect, useState } from 'react';
 
 export default function Pricing() {
@@ -50,11 +51,14 @@ function FreePlan(): ReactElement {
     'Shared Infrastructure',
     'Community Discord',
   ];
+
   return (
-    <div className="border-2 border-gray-400 rounded-xl py-8 px-12 lg:mt-28 lg:w-[350px]">
+    <div className="border-2 border-gray-400 rounded-xl py-8 px-12 lg:mt-28 lg:w-[350px] bg-gradient-to-b from-[#ffffff] to-[#f3f3f3]">
       <div className="flex flex-col gap-6">
         <div className="flex justify-center">
-          <Badge variant="outline">Individual</Badge>
+          <Badge variant="outline" className="border-gray-400 border">
+            Individual
+          </Badge>
         </div>
         <div className="flex justify-center flex-row gap-2">
           <div className="text-3xl ">Free</div>
@@ -71,7 +75,9 @@ function FreePlan(): ReactElement {
         </div>
         <div className="flex justify-center pt-6">
           <Button variant="default" className="w-full">
-            Start for free
+            <Link href="https://app.neosync.dev" target="_blank">
+              Start for free
+            </Link>
           </Button>
         </div>
       </div>
@@ -84,21 +90,23 @@ function TeamPlan(): ReactElement {
     '5M records/mo ($60/1M after)',
     'Unlimited Jobs',
     '5 users ($10/user after)',
-    'US Region (EU coming soon!)',
-    'Social, SSO (seriously)',
+    'US or EU Region',
+    'Social, SSO',
     'Shared Infrastructure',
     'Private Discord/Slack',
   ];
 
   return (
-    <div className="lg:w-[350px]">
+    <div className="lg:w-[350px] bg-gradient-to-b from-[#ffffff] to-[#f3f3f3]">
       <div className="flex justify-center bg-gradient-to-t from-[#191919] to-[#484848] text-white p-4 shadow-lg rounded-t-xl">
         Most Popular
       </div>
       <div className="border-4 border-gray-800 rounded-b-xl p-8 gap-6 shadow-xl">
         <div className="flex flex-col gap-6">
           <div className="flex justify-center">
-            <Badge variant="outline">Team</Badge>
+            <Badge variant="outline" className="border-gray-400 border">
+              Team
+            </Badge>
           </div>
           <div className="flex justify-center flex-row gap-2">
             <div className="text-3xl ">$299</div>
@@ -116,9 +124,13 @@ function TeamPlan(): ReactElement {
         </div>
         <div className="flex justify-center pt-10 w-full">
           <ShimmeringButton>
-            {/* <Button variant="default" className="w-full"> */}
-            <div className="text-white w-full">Start today </div>
-            {/* </Button> */}
+            <Link
+              href="https://calendly.com/evis1/30min"
+              className="w-[242px]"
+              target="_blank"
+            >
+              <div className="text-white w-full">Get in touch</div>
+            </Link>
           </ShimmeringButton>
         </div>
       </div>
@@ -138,10 +150,12 @@ function CustomPlan(): ReactElement {
   ];
 
   return (
-    <div className="border-2 border-gray-400 rounded-xl p-8 lg:mt-28 lg:w-[350px]">
+    <div className="border-2 border-gray-400 rounded-xl p-8 lg:mt-28 lg:w-[350px] bg-gradient-to-b from-[#ffffff] to-[#f3f3f3]">
       <div className="flex flex-col gap-6">
         <div className="flex justify-center">
-          <Badge variant="outline">Enterprise</Badge>
+          <Badge variant="outline" className="border-gray-400 border">
+            Enterprise
+          </Badge>
         </div>
         <div className="flex justify-center flex-row gap-2">
           <div className="text-3xl ">Custom</div>
@@ -157,7 +171,13 @@ function CustomPlan(): ReactElement {
         </div>
         <div className="flex justify-center pt-6">
           <Button variant="default" className="w-full">
-            Contact us
+            <Link
+              href="https://calendly.com/evis1/30min"
+              className="w-[242px]"
+              target="_blank"
+            >
+              Contact us
+            </Link>
           </Button>
         </div>
       </div>
