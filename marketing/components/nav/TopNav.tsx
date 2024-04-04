@@ -90,6 +90,12 @@ const links: NavLinks[] = [
     ],
   },
   {
+    title: 'Pricing',
+    href: '/pricing',
+    description: '',
+    children: [],
+  },
+  {
     title: 'Docs',
     href: 'https://docs.neosync.dev',
     description: '',
