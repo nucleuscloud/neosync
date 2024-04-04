@@ -1,14 +1,11 @@
 'use client';
 import {
   CaretSortIcon,
-  CheckCircledIcon,
   CheckIcon,
-  CircleIcon,
   PlusCircledIcon,
 } from '@radix-ui/react-icons';
 import { ReactElement } from 'react';
 
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useGetUserAccounts } from '@/libs/hooks/useUserAccounts';
 import { cn } from '@/libs/utils';
 import { getErrorMessage } from '@/util/util';
@@ -19,6 +16,7 @@ import {
   CreateTeamAccountResponse,
   UserAccountType,
 } from '@neosync/sdk';
+import Link from 'next/link';
 import { useState } from 'react';
 import { useForm, UseFormReturn } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -74,7 +72,6 @@ export const CreateTeamFormValues = Yup.object({
         return true;
       }
     ),
-  convertExistingAccount: Yup.boolean().required(),
 });
 export type CreateTeamFormValues = Yup.InferType<typeof CreateTeamFormValues>;
 
@@ -90,7 +87,6 @@ export default function AccountSwitcher(_: Props): ReactElement {
     resolver: yupResolver(CreateTeamFormValues),
     defaultValues: {
       name: '',
-      convertExistingAccount: true,
     },
   });
 
@@ -224,38 +220,12 @@ export default function AccountSwitcher(_: Props): ReactElement {
           </Command>
         </PopoverContent>
       </Popover>
-      <DialogContent className="flex flex-col gap-3">
-        <DialogHeader>
-          <DialogTitle>Create team</DialogTitle>
-          <DialogDescription>
-            Create a new team account to collaborate with your co-workers.
-          </DialogDescription>
-        </DialogHeader>
-        <CreateNewTeamDialog
-          form={form}
-          onSubmit={onSubmit}
-          setShowNewTeamDialog={setShowNewTeamDialog}
-        />
-        <DialogFooter>
-          <div className="flex flex-row justify-between w-full pt-6">
-            <Button
-              variant="outline"
-              onClick={() => setShowNewTeamDialog(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              onClick={(e) =>
-                form.handleSubmit((values) => onSubmit(values))(e)
-              }
-              disabled={!form.formState.isValid}
-            >
-              Continue
-            </Button>
-          </div>
-        </DialogFooter>
-      </DialogContent>
+      <CreateNewTeamDialog
+        form={form}
+        onSubmit={onSubmit}
+        setShowNewTeamDialog={setShowNewTeamDialog}
+        planType={account?.type ?? UserAccountType.PERSONAL}
+      />
     </Dialog>
   );
 }
@@ -264,130 +234,97 @@ interface CreateNewTeamDialogProps {
   form: UseFormReturn<
     {
       name: string;
-      convertExistingAccount: boolean;
     },
     any,
     undefined
   >;
   onSubmit: (values: CreateTeamFormValues) => Promise<void>;
   setShowNewTeamDialog: (val: boolean) => void;
+  planType: UserAccountType;
 }
 
 export function CreateNewTeamDialog(
   props: CreateNewTeamDialogProps
 ): ReactElement {
-  const { form, onSubmit, setShowNewTeamDialog } = props;
+  const { form, onSubmit, setShowNewTeamDialog, planType } = props;
 
+  return (
+    <div>
+      {planType && planType == UserAccountType.PERSONAL ? (
+        <UpgradeDialog planType={planType} />
+      ) : (
+        <DialogContent className="flex flex-col gap-3">
+          <DialogHeader>
+            <DialogTitle>Create team</DialogTitle>
+            <DialogDescription>
+              Create a new team account to collaborate with your co-workers.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <Form {...form}>
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input placeholder="acme" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </Form>
+          </div>
+          <DialogFooter>
+            <div className="flex flex-row justify-between w-full pt-6">
+              <Button
+                variant="outline"
+                onClick={() => setShowNewTeamDialog(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                onClick={(e) =>
+                  form.handleSubmit((values) => onSubmit(values))(e)
+                }
+                disabled={!form.formState.isValid}
+              >
+                Continue
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      )}
+    </div>
+  );
+}
+
+interface UpgradeDialog {
+  planType: UserAccountType;
+}
+
+function UpgradeDialog({ planType }: UpgradeDialog) {
   return (
     <div>
       <DialogContent className="flex flex-col gap-3">
         <DialogHeader>
-          <DialogTitle>Create team</DialogTitle>
+          <DialogTitle>Upgrade to a Team plan</DialogTitle>
           <DialogDescription>
-            Create a new team account to collaborate with your co-workers.
+            Upgrade to a Team plan in order to create a team.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-2">
-          <Form {...form}>
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input placeholder="acme" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="convertExistingAccount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <ToggleGroup
-                      type="single"
-                      className="flex justify-start flex-col w-full gap-2 pt-6"
-                      onValueChange={(value) =>
-                        field.onChange(value === 'true')
-                      }
-                      value={field.value ? 'true' : 'false'}
-                      defaultValue="true"
-                    >
-                      <ToggleGroupItem
-                        value="true"
-                        className={
-                          field.value == true
-                            ? `border border-gray-800 rounded-xl px-8 py-12 w-[462px]`
-                            : `border border-gray-300 dark:border-gray-800 rounded-xl px-8 py-12 w-[462px] hover:dark:bg-gray-800/40`
-                        }
-                      >
-                        <div className="text-left flex flex-row justify-between items-center w-full">
-                          <div className="flex flex-col gap-2">
-                            <div>Import existing data</div>
-                            <div className="text-xs text-gray-500">
-                              Import your existing data to a new team account.
-                            </div>
-                          </div>
-                          <div>
-                            {field.value == true ? (
-                              <CheckCircledIcon className="text-white rounded-full bg-black dark:bg-black" />
-                            ) : (
-                              <CircleIcon className="dark:bg-transparent  text-black" />
-                            )}
-                          </div>
-                        </div>
-                      </ToggleGroupItem>
-                      <ToggleGroupItem
-                        value="false"
-                        className={
-                          field.value == false
-                            ? `border border-gray-800 rounded-xl px-8 py-12 w-[462px]`
-                            : `border border-gray-300 dark:border-gray-800 rounded-xl px-8 py-12 w-[462px] hover:dark:bg-gray-800/40`
-                        }
-                      >
-                        <div className="text-left flex flex-row justify-between items-center w-full">
-                          <div className="flex flex-col gap-2">
-                            <div>Create new team account</div>
-                            <div className="text-xs text-gray-500">
-                              Start from scratch in a new team account
-                            </div>
-                          </div>
-                          <div>
-                            {field.value == false ? (
-                              <CheckCircledIcon className="text-white rounded-full bg-black dark:bg-black" />
-                            ) : (
-                              <CircleIcon className="dark:bg-transparent  text-black" />
-                            )}
-                          </div>
-                        </div>
-                      </ToggleGroupItem>
-                    </ToggleGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </Form>
-        </div>
         <DialogFooter>
-          <div className="flex flex-row justify-between w-full pt-6">
-            <Button
-              variant="outline"
-              onClick={() => setShowNewTeamDialog(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              onClick={(e) =>
-                form.handleSubmit((values) => onSubmit(values))(e)
-              }
-              disabled={!form.formState.isValid}
-            >
-              Continue
+          <div className="flex flex-row w-full pt-6 justify-center">
+            <Button>
+              <Link
+                href="https://calendly.com/evis1/30min"
+                className="w-[242px]"
+                target="_blank"
+              >
+                Get in touch
+              </Link>
             </Button>
           </div>
         </DialogFooter>

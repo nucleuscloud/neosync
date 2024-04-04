@@ -88,6 +88,7 @@ export default function Billing(): ReactElement {
       });
     }
   }
+
   if (isSystemAppConfigDataLoading || !account?.type) {
     return <Skeleton />;
   }
@@ -95,8 +96,6 @@ export default function Billing(): ReactElement {
   if (systemAppConfigData?.isNeosyncCloud) {
     return <Error statusCode={404} />;
   }
-
-  console.log('account', account?.type == UserAccountType.TEAM);
 
   return (
     <div>
@@ -110,7 +109,7 @@ export default function Billing(): ReactElement {
         </div>
         <NeedHelp />
         <Plans
-          planType={account?.type ?? UserAccountType.UNSPECIFIED}
+          planType={account.type ?? UserAccountType.PERSONAL}
           setShowNewTeamDialog={setShowNewTeamDialog}
           showNewTeamDialog={showNewTeamDialog}
           onSubmit={onSubmit}
@@ -161,7 +160,6 @@ function Plans({
     resolver: yupResolver(CreateTeamFormValues),
     defaultValues: {
       name: '',
-      convertExistingAccount: true,
     },
   });
 
@@ -171,23 +169,43 @@ function Plans({
   ): ReactNode => {
     switch (plan) {
       case 'Personal':
-        return <Button>Free Plan</Button>;
+        if (planType == UserAccountType.PERSONAL) {
+          return <div></div>;
+        } else {
+          return <Button>Get Started</Button>;
+        }
       case 'Team':
-        return (
-          <Button onClick={() => setShowNewTeamDialog(true)}>Upgrade</Button>
-        );
+        if (planType == UserAccountType.TEAM) {
+          return <div></div>;
+        } else {
+          return (
+            <Button>
+              <Link
+                href="https://calendly.com/evis1/30min"
+                className="w-[242px]"
+                target="_blank"
+              >
+                Get in touch
+              </Link>
+            </Button>
+          );
+        }
       case 'Enterprise':
-        return (
-          <Button>
-            <Link
-              href="https://calendly.com/evis1/30min"
-              className="w-[242px]"
-              target="_blank"
-            >
-              Get in touch
-            </Link>
-          </Button>
-        );
+        if (planType == UserAccountType.ENTERPRISE) {
+          return <div></div>;
+        } else {
+          return (
+            <Button>
+              <Link
+                href="https://calendly.com/evis1/30min"
+                className="w-[242px]"
+                target="_blank"
+              >
+                Get in touch
+              </Link>
+            </Button>
+          );
+        }
     }
   };
   return (
@@ -215,8 +233,8 @@ function Plans({
                 <div
                   className={
                     planType == ind + 1
-                      ? `flex flex-col items-center gap-2 border border-gray-300 p-6 rounded-b-xl lg:w-[350px]`
-                      : `flex flex-col items-center gap-2 border border-gray-300 p-6 rounded-xl lg:w-[350px] mt-[56px]`
+                      ? `flex flex-col items-center gap-2 border-4 border-gray-800 p-6 rounded-b-xl lg:w-[350px] h-[459px]`
+                      : `flex flex-col items-center gap-2 border border-gray-300 p-6 rounded-xl lg:w-[350px] mt-[56px] h-[459px]`
                   }
                 >
                   <div className="flex flex-col gap-6">
@@ -225,7 +243,7 @@ function Plans({
                     </div>
                     <div className="flex justify-center flex-row gap-2">
                       <div className="text-3xl ">{plan.price}</div>
-                      {plan.name != 'Enterprise' && (
+                      {plan.name == 'Team' && (
                         <div className="text-sm self-end pb-1">/mo</div>
                       )}
                     </div>
@@ -237,6 +255,7 @@ function Plans({
                         form={form}
                         onSubmit={onSubmit}
                         setShowNewTeamDialog={setShowNewTeamDialog}
+                        planType={planType}
                       />
                     </Dialog>
                     <div className="flex flex-col gap-2">

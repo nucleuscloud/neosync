@@ -300,6 +300,7 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stoewer/go-strcase v1.3.0 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
+	github.com/stripe/stripe-go/v76 v76.23.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tetratelabs/wazero v1.7.0-pre.1.0.20240312010644-4242b5e21147 // indirect
 	github.com/tilinna/z85 v1.0.0 // indirect
