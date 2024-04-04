@@ -3,6 +3,7 @@ package neosync_benthos
 import (
 	"crypto/sha256"
 	"fmt"
+	"strings"
 )
 
 func BuildBenthosTable(schema, table string) string {
@@ -17,8 +18,26 @@ func HashBenthosCacheKey(jobId, runId, table, col string) string {
 }
 
 func ToSha256(input string) string {
-	h := sha256.New()
-	h.Write([]byte(input))
-	bs := h.Sum(nil)
-	return fmt.Sprintf("%x", bs)
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(input)))
+}
+
+// checks if the error message matches a max connections error
+func IsMaxConnectionError(errMsg string) bool {
+	// list of known error messages for when max connections are reached
+	maxConnErrors := []string{
+		"too many clients already",
+		"remaining connection slots are reserved",
+		"maximum number of connections reached",
+	}
+
+	for _, errStr := range maxConnErrors {
+		if containsIgnoreCase(errMsg, errStr) {
+			return true
+		}
+	}
+	return false
+}
+
+func containsIgnoreCase(s, substr string) bool {
+	return strings.Contains(strings.ToLower(s), strings.ToLower(substr))
 }

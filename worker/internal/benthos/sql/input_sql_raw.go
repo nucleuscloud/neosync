@@ -9,6 +9,7 @@ import (
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/benthosdev/benthos/v4/public/service"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	"github.com/nucleuscloud/neosync/worker/internal/benthos/shutdown"
 )
 
@@ -21,11 +22,11 @@ func sqlRawInputSpec() *service.ConfigSpec {
 }
 
 // Registers an input on a benthos environment called pooled_sql_raw
-func RegisterPooledSqlRawInput(env *service.Environment, dbprovider DbPoolProvider) error {
+func RegisterPooledSqlRawInput(env *service.Environment, dbprovider DbPoolProvider, stopActivityChannel chan error) error {
 	return env.RegisterInput(
 		"pooled_sql_raw", sqlRawInputSpec(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.Input, error) {
-			input, err := newInput(conf, mgr, dbprovider)
+			input, err := newInput(conf, mgr, dbprovider, stopActivityChannel)
 			if err != nil {
 				return nil, err
 			}
@@ -48,9 +49,11 @@ type pooledInput struct {
 	rows  *sql.Rows
 
 	shutSig *shutdown.Signaller
+
+	stopActivityChannel chan error
 }
 
-func newInput(conf *service.ParsedConfig, mgr *service.Resources, dbprovider DbPoolProvider) (*pooledInput, error) {
+func newInput(conf *service.ParsedConfig, mgr *service.Resources, dbprovider DbPoolProvider, channel chan error) (*pooledInput, error) {
 	driver, err := conf.FieldString("driver")
 	if err != nil {
 		return nil, err
@@ -74,13 +77,14 @@ func newInput(conf *service.ParsedConfig, mgr *service.Resources, dbprovider DbP
 	}
 
 	return &pooledInput{
-		logger:      mgr.Logger(),
-		shutSig:     shutdown.NewSignaller(),
-		driver:      driver,
-		dsn:         dsn,
-		queryStatic: queryStatic,
-		argsMapping: argsMapping,
-		provider:    dbprovider,
+		logger:              mgr.Logger(),
+		shutSig:             shutdown.NewSignaller(),
+		driver:              driver,
+		dsn:                 dsn,
+		queryStatic:         queryStatic,
+		argsMapping:         argsMapping,
+		provider:            dbprovider,
+		stopActivityChannel: channel,
 	}, nil
 }
 
@@ -114,6 +118,10 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 
 	rows, err := db.QueryContext(ctx, s.queryStatic, args...)
 	if err != nil {
+		if !neosync_benthos.IsMaxConnectionError(err.Error()) {
+			s.logger.Error(fmt.Sprintf("Benthos input error - sending stop activity signal: %s ", err.Error()))
+			s.stopActivityChannel <- err
+		}
 		return err
 	}
 

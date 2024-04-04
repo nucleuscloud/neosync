@@ -21,7 +21,7 @@ args_mapping: 'root = [this.id]'
 	selectConfig, err := spec.ParseYAML(conf, env)
 	require.NoError(t, err)
 
-	selectInput, err := newInput(selectConfig, service.MockResources(), nil)
+	selectInput, err := newInput(selectConfig, service.MockResources(), nil, nil)
 	require.NoError(t, err)
 	require.NoError(t, selectInput.Close(context.Background()))
 }
