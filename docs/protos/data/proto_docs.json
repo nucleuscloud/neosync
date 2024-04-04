@@ -10395,11 +10395,6 @@
               "name": "USER_ACCOUNT_TYPE_TEAM",
               "number": "2",
               "description": ""
-            },
-            {
-              "name": "USER_ACCOUNT_TYPE_ENTERPRISE",
-              "number": "3",
-              "description": ""
             }
           ]
         }
