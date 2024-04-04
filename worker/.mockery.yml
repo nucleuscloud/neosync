@@ -10,6 +10,8 @@ packages:
   github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync:
     interfaces:
       sqlProvider:
-      sqlDbtx:
       BenthosStreamClient:
       BenthosStreamManagerClient:
+  github.com/nucleuscloud/neosync/worker/internal/benthos/sql:
+    interfaces:
+      SqlDbtx:

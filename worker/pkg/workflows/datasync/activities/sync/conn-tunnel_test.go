@@ -6,6 +6,7 @@ import (
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/internal/benthos/sql"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"golang.org/x/sync/errgroup"
@@ -139,7 +140,7 @@ func Test_ConnectionTunnelManager_GetConnection(t *testing.T) {
 			GeneralDbConnectConfig: getPgGenDbConfig(t),
 		}, nil)
 	mockSqlProvider.On("DbOpen", "postgres", "postgres://foo:bar@localhost:5432/test").
-		Return(NewMocksqlDbtx(t), nil)
+		Return(neosync_benthos_sql.NewMockSqlDbtx(t), nil)
 	db, err := mgr.GetConnection("111", conn, slog.Default())
 	assert.NoError(t, err)
 	assert.NotNil(t, db)
@@ -161,7 +162,7 @@ func Test_ConnectionTunnelManager_GetConnection_Parallel_Sessions_Same_Connectio
 			GeneralDbConnectConfig: getPgGenDbConfig(t),
 		}, nil)
 	mockSqlProvider.On("DbOpen", "postgres", "postgres://foo:bar@localhost:5432/test").
-		Return(NewMocksqlDbtx(t), nil)
+		Return(neosync_benthos_sql.NewMockSqlDbtx(t), nil)
 
 	errgrp := errgroup.Group{}
 	errgrp.Go(func() error {
@@ -222,7 +223,7 @@ func Test_ConnectionTunnelManager_close(t *testing.T) {
 		Return(&sqlconnect.ConnectionDetails{
 			GeneralDbConnectConfig: getPgGenDbConfig(t),
 		}, nil)
-	mockDb := NewMocksqlDbtx(t)
+	mockDb := neosync_benthos_sql.NewMockSqlDbtx(t)
 	mockSqlProvider.On("DbOpen", "postgres", "postgres://foo:bar@localhost:5432/test").
 		Return(mockDb, nil)
 	mockDb.On("Close").Return(nil)
