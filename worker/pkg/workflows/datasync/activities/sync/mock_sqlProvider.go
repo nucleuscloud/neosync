@@ -6,6 +6,8 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	mock "github.com/stretchr/testify/mock"
 
+	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/internal/benthos/sql"
+
 	slog "log/slog"
 
 	sqlconnect "github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
@@ -25,23 +27,23 @@ func (_m *MocksqlProvider) EXPECT() *MocksqlProvider_Expecter {
 }
 
 // DbOpen provides a mock function with given fields: driver, dsn
-func (_m *MocksqlProvider) DbOpen(driver string, dsn string) (sqlDbtx, error) {
+func (_m *MocksqlProvider) DbOpen(driver string, dsn string) (neosync_benthos_sql.SqlDbtx, error) {
 	ret := _m.Called(driver, dsn)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DbOpen")
 	}
 
-	var r0 sqlDbtx
+	var r0 neosync_benthos_sql.SqlDbtx
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string) (sqlDbtx, error)); ok {
+	if rf, ok := ret.Get(0).(func(string, string) (neosync_benthos_sql.SqlDbtx, error)); ok {
 		return rf(driver, dsn)
 	}
-	if rf, ok := ret.Get(0).(func(string, string) sqlDbtx); ok {
+	if rf, ok := ret.Get(0).(func(string, string) neosync_benthos_sql.SqlDbtx); ok {
 		r0 = rf(driver, dsn)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(sqlDbtx)
+			r0 = ret.Get(0).(neosync_benthos_sql.SqlDbtx)
 		}
 	}
 
@@ -73,12 +75,12 @@ func (_c *MocksqlProvider_DbOpen_Call) Run(run func(driver string, dsn string)) 
 	return _c
 }
 
-func (_c *MocksqlProvider_DbOpen_Call) Return(_a0 sqlDbtx, _a1 error) *MocksqlProvider_DbOpen_Call {
+func (_c *MocksqlProvider_DbOpen_Call) Return(_a0 neosync_benthos_sql.SqlDbtx, _a1 error) *MocksqlProvider_DbOpen_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MocksqlProvider_DbOpen_Call) RunAndReturn(run func(string, string) (sqlDbtx, error)) *MocksqlProvider_DbOpen_Call {
+func (_c *MocksqlProvider_DbOpen_Call) RunAndReturn(run func(string, string) (neosync_benthos_sql.SqlDbtx, error)) *MocksqlProvider_DbOpen_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -25,7 +25,6 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/benthosdev/benthos/v4/public/service"
-	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -218,7 +217,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		return nil, fmt.Errorf("was unable to build connection details for some or all connections: %w", err)
 	}
 
-	poolprovider := newPoolProvider(func(dsn string) (mysql_queries.DBTX, error) {
+	poolprovider := newPoolProvider(func(dsn string) (neosync_benthos_sql.SqlDbtx, error) {
 
 		connid, ok := dsnToConnectionIdMap.Load(dsn)
 		if !ok {
@@ -234,13 +233,13 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		}
 		return tunnelmanager.GetConnection(session, connection, slogger)
 	})
-	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, poolprovider)
-	if err != nil {
-		return nil, fmt.Errorf("unable to register pooled_sql_raw output to benthos instance: %w", err)
-	}
 	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, poolprovider)
 	if err != nil {
 		return nil, fmt.Errorf("unable to register pooled_sql_insert input to benthos instance: %w", err)
+	}
+	err = neosync_benthos_sql.RegisterPooledSqlUpdateOutput(benthosenv, poolprovider)
+	if err != nil {
+		return nil, err
 	}
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, poolprovider)
 	if err != nil {

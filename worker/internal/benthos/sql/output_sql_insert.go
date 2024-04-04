@@ -2,7 +2,6 @@ package neosync_benthos_sql
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"sync"
 
@@ -25,11 +24,6 @@ func sqlInsertOutputSpec() *service.ConfigSpec {
 		Field(service.NewBloblangField("args_mapping").Optional()).
 		Field(service.NewIntField("max_in_flight").Default(64)).
 		Field(service.NewBatchPolicyField("batching"))
-}
-
-type DbPoolProvider interface {
-	// GetDb(driver, dsn string) (mysql_queries.DBTX, error)
-	GetDb(driver, dsn string) (sqlDbtx, error)
 }
 
 // Registers an output on a benthos environment called pooled_sql_raw
@@ -162,16 +156,12 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		insertCols[i] = col
 	}
 	insert := builder.Insert(table).Cols(insertCols...)
-	fmt.Println()
-	fmt.Println(batchLen)
-	rows := [][]interface{}{}
+	rows := [][]interface{}{} //nolint:gofmt
 
 	for i := range batch {
 		if s.argsMapping == nil {
 			continue
 		}
-		jsonF, _ := json.MarshalIndent(s.argsMapping, "", " ")
-		fmt.Printf("\n argsMapping: %s \n", string(jsonF))
 		resMsg, err := batch.BloblangQuery(i, s.argsMapping)
 		if err != nil {
 			return err
@@ -186,7 +176,6 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		if !ok {
 			return fmt.Errorf("mapping returned non-array result: %T", iargs)
 		}
-		fmt.Printf("%+v\n", args)
 
 		for idx, a := range args {
 			if a == "DEFAULT" {
@@ -200,14 +189,11 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 	for _, row := range rows {
 		insert = insert.Vals(row)
 	}
-	query, _, err := insert.ToSQL()
+	query, args, err := insert.ToSQL()
 	if err != nil {
 		return err
 	}
-	fmt.Println()
-	fmt.Println(query)
-	fmt.Println()
-	if _, err := s.db.ExecContext(ctx, query); err != nil {
+	if _, err := s.db.ExecContext(ctx, query, args...); err != nil {
 		return err
 	}
 	return nil

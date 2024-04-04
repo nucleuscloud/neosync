@@ -16,11 +16,15 @@ import (
 	"github.com/nucleuscloud/neosync/worker/internal/benthos/shutdown"
 )
 
-type sqlDbtx interface {
+type SqlDbtx interface {
 	mysql_queries.DBTX
 
 	BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error)
 	Close() error
+}
+
+type DbPoolProvider interface {
+	GetDb(driver, dsn string) (SqlDbtx, error)
 }
 
 func sqlUpdateOutputSpec() *service.ConfigSpec {
@@ -67,7 +71,7 @@ type pooledUpdateOutput struct {
 	provider DbPoolProvider
 	dbMut    sync.RWMutex
 	// db       mysql_queries.DBTX
-	db     sqlDbtx
+	db     SqlDbtx
 	logger *service.Logger
 
 	schema    string
@@ -169,11 +173,11 @@ func (s *pooledUpdateOutput) WriteBatch(ctx context.Context, batch service.Messa
 	}
 	builder := goqu.Dialect(s.driver)
 	table := goqu.S(s.schema).Table(s.table)
-	update := builder.Update(table)
+
 	fmt.Println()
 	fmt.Println(batchLen)
 
-	tx, err := s.db.BeginTx()
+	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
 		return err
 	}
@@ -206,13 +210,13 @@ func (s *pooledUpdateOutput) WriteBatch(ctx context.Context, batch service.Messa
 			colValMap[col] = args[idx]
 		}
 
-		updateRecords := []goqu.Record{}
+		updateRecord := goqu.Record{}
 		for _, col := range s.columns {
 			val := colValMap[col]
 			if val == "DEFAULT" {
-				updateRecords = append(updateRecords, goqu.Record{col: goqu.L("DEFAULT")})
+				updateRecord[col] = goqu.L("DEFAULT")
 			} else {
-				updateRecords = append(updateRecords, goqu.Record{col: val})
+				updateRecord[col] = val
 			}
 		}
 
@@ -222,19 +226,24 @@ func (s *pooledUpdateOutput) WriteBatch(ctx context.Context, batch service.Messa
 			where = append(where, goqu.Ex{col: val})
 		}
 
-		sql := update.
-			Set(updateRecords).
+		update := builder.Update(table).
+			Set(updateRecord).
 			Where(where...)
-		query, args, err := sql.ToSQL()
+		query, args, err := update.ToSQL()
 		if err != nil {
-			tx.Rollback()
+			rollErr := tx.Rollback()
+			if rollErr != nil {
+				s.logger.Errorf("transaction rollback failed: %w", rollErr)
+			}
 			return err
 		}
 		if _, err := tx.Exec(query, args...); err != nil {
-			tx.Rollback()
+			rollErr := tx.Rollback()
+			if rollErr != nil {
+				s.logger.Errorf("transaction rollback failed: %w", rollErr)
+			}
 			return err
 		}
-
 	}
 	if err := tx.Commit(); err != nil {
 		return err

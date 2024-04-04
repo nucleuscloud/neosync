@@ -161,6 +161,7 @@ type Outputs struct {
 	SqlRaw          *SqlRaw                `json:"sql_raw,omitempty" yaml:"sql_raw,omitempty"`
 	PooledSqlRaw    *PooledSqlRaw          `json:"pooled_sql_raw,omitempty" yaml:"pooled_sql_raw,omitempty"`
 	PooledSqlInsert *PooledSqlInsert       `json:"pooled_sql_insert,omitempty" yaml:"pooled_sql_insert,omitempty"`
+	PooledSqlUpdate *PooledSqlUpdate       `json:"pooled_sql_update,omitempty" yaml:"pooled_sql_update,omitempty"`
 	AwsS3           *AwsS3Insert           `json:"aws_s3,omitempty" yaml:"aws_s3,omitempty"`
 	Retry           *RetryConfig           `json:"retry,omitempty" yaml:"retry,omitempty"`
 	Broker          *OutputBrokerConfig    `json:"broker,omitempty" yaml:"broker,omitempty"`
@@ -262,6 +263,17 @@ type PooledSqlRaw struct {
 	// ConnMaxIdle     int       `json:"conn_max_idle,omitempty" yaml:"conn_max_idle,omitempty"`
 	// ConnMaxOpen     int       `json:"conn_max_open,omitempty" yaml:"conn_max_open,omitempty"`
 	Batching *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
+}
+
+type PooledSqlUpdate struct {
+	Driver       string    `json:"driver" yaml:"driver"`
+	Dsn          string    `json:"dsn" yaml:"dsn"`
+	Schema       string    `json:"schema" yaml:"schema"`
+	Table        string    `json:"table" yaml:"table"`
+	Columns      []string  `json:"columns" yaml:"columns"`
+	WhereColumns []string  `json:"where_columns" yaml:"where_columns"`
+	ArgsMapping  string    `json:"args_mapping" yaml:"args_mapping"`
+	Batching     *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
 }
 
 type PooledSqlInsert struct {
