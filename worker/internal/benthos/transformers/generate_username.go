@@ -16,16 +16,17 @@ func init() {
 		Param(bloblang.NewInt64Param("seed").Default(time.Now().UnixNano()))
 
 	err := bloblang.RegisterFunctionV2("generate_username", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
+		maxLength, err := args.GetInt64("max_length")
+		if err != nil {
+			return nil, err
+		}
+		seed, err := args.GetInt64("seed")
+		if err != nil {
+			return nil, err
+		}
+		randomizer := rng.New(seed)
+
 		return func() (any, error) {
-			maxLength, err := args.GetInt64("max_length")
-			if err != nil {
-				return nil, err
-			}
-			seed, err := args.GetInt64("seed")
-			if err != nil {
-				return nil, err
-			}
-			randomizer := rng.New(seed)
 
 			res, err := generateUsername(randomizer, maxLength)
 			if err != nil {
