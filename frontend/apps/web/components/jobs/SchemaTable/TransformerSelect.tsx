@@ -60,6 +60,8 @@ export default function TransformerSelect(props: Props): ReactElement {
     ? getTransformers()
     : { system: [], userDefined: [] };
 
+  console.log('system', system);
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
