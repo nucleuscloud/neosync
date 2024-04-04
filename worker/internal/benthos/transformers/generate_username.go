@@ -27,7 +27,6 @@ func init() {
 		randomizer := rng.New(seed)
 
 		return func() (any, error) {
-
 			res, err := generateUsername(randomizer, maxLength)
 			if err != nil {
 				return nil, fmt.Errorf("unable to run generate_username: %w", err)
