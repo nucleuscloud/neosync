@@ -378,7 +378,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			constraints := tableConstraintsSource[tableKey]
 			for col := range constraints {
 				transformer := colTransformerMap[tableKey][col]
-				if shouldProcessFkColumn(transformer) {
+				if shouldProcessStrict(transformer) {
 					if b.redisConfig == nil {
 						return nil, fmt.Errorf("missing redis config. this operation requires redis")
 					}
@@ -964,7 +964,7 @@ func createSqlUpdateBenthosConfig(
 					ErrorMsg: `${! meta("fallback_error")}`,
 					Batching: &neosync_benthos.Batching{
 						Period: "5s",
-						Count:  100,
+						Count:  1,
 					},
 				}},
 			},
@@ -1008,7 +1008,7 @@ func buildBenthosSqlSourceConfigResponses(
 		for _, tc := range constraints.Constraints {
 			// only add constraint if foreign key has transformer
 			transformer, transformerOk := colTransformerMap[tc.ForeignKey.Table][tc.ForeignKey.Column]
-			if transformerOk && shouldProcessFkColumn(transformer) {
+			if transformerOk && shouldProcessStrict(transformer) {
 				tableConstraints[table][tc.Column] = tc.ForeignKey
 			}
 		}
@@ -1358,7 +1358,7 @@ func extractJsFunctionsAndOutputs(ctx context.Context, transformerclient mgmtv1a
 	var jsFunctions []string
 
 	for _, col := range cols {
-		if shouldProcessColumn(col.Transformer) {
+		if shouldProcessStrict(col.Transformer) {
 			if _, ok := col.Transformer.Config.Config.(*mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig); ok {
 				val, err := convertUserDefinedFunctionConfig(ctx, transformerclient, col.Transformer)
 				if err != nil {
@@ -1491,10 +1491,9 @@ func shouldProcessColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {
 	return t != nil &&
 		t.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_UNSPECIFIED &&
 		t.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH
-	// t.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT
 }
 
-func shouldProcessFkColumn(t *mgmtv1alpha1.JobMappingTransformer) bool {
+func shouldProcessStrict(t *mgmtv1alpha1.JobMappingTransformer) bool {
 	return t != nil &&
 		t.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_UNSPECIFIED &&
 		t.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL &&

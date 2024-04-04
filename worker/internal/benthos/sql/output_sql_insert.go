@@ -140,7 +140,6 @@ func (s *pooledInsertOutput) Connect(ctx context.Context) error {
 	return nil
 }
 
-// how to handle defaults??
 func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.MessageBatch) error {
 	s.dbMut.RLock()
 	defer s.dbMut.RUnlock()
@@ -177,6 +176,7 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 			return fmt.Errorf("mapping returned non-array result: %T", iargs)
 		}
 
+		// set any default transformations
 		for idx, a := range args {
 			if a == "DEFAULT" {
 				args[idx] = goqu.L("DEFAULT")
@@ -185,7 +185,7 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 
 		rows = append(rows, args)
 	}
-	// Add all rows to the dataset
+	// add rows to the dataset
 	for _, row := range rows {
 		insert = insert.Vals(row)
 	}

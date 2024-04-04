@@ -177,12 +177,21 @@ output:
                 - retry:
                     output:
                         label: ""
-                        pooled_sql_raw:
+                        pooled_sql_insert:
                             driver: postgres
                             dsn: ${DESTINATION_0_CONNECTION_DSN}
-                            query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
+                            schema: public
+                            table: users
+                            columns:
+                                - id
+                                - name
                             args_mapping: root = [this."id", this."name"]
-                            init_statement: ""
+                            batching:
+                                count: 100
+                                byte_size: 0
+                                period: 5s
+                                check: ""
+                                processors: []
                         processors:
                             - mutation: |-
                                 root."id" = generate_uuid(include_hyphens:true)
@@ -194,13 +203,19 @@ output:
                     backoff: {}
                 - error:
                     error_msg: ${! meta("fallback_error")}
+                    batching:
+                        count: 1
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
 `),
 		strings.TrimSpace(string(out)),
 	)
 
 	// create a new streambuilder instance so we can access the SetYaml method
 	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
 	assert.NoError(t, err)
@@ -349,12 +364,21 @@ output:
                 - retry:
                     output:
                         label: ""
-                        pooled_sql_raw:
+                        pooled_sql_insert:
                             driver: postgres
                             dsn: ${DESTINATION_0_CONNECTION_DSN}
-                            query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
+                            schema: public
+                            table: users
+                            columns:
+                                - id
+                                - name
                             args_mapping: root = [this."id", this."name"]
-                            init_statement: ""
+                            batching:
+                                count: 100
+                                byte_size: 0
+                                period: 5s
+                                check: ""
+                                processors: []
                         processors:
                             - mutation: |-
                                 root."id" = generate_uuid(include_hyphens:true)
@@ -366,6 +390,12 @@ output:
                     backoff: {}
                 - error:
                     error_msg: ${! meta("fallback_error")}
+                    batching:
+                        count: 1
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
 metrics:
     otel_collector: {}
     mapping: |-
@@ -382,7 +412,7 @@ metrics:
 
 	// create a new streambuilder instance so we can access the SetYaml method
 	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
 	assert.NoError(t, err)
@@ -399,7 +429,7 @@ metrics:
 	assert.NoError(t, err)
 }
 
-func Test_BenthosBuilder_GenerateBenthosConfigs_Generate_Pg_Default(t *testing.T) {
+func Test_BenthosBuilder_GenerateBenthosConfigs_Generate_Pg_Pg(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
@@ -529,14 +559,25 @@ output:
                 - retry:
                     output:
                         label: ""
-                        pooled_sql_raw:
+                        pooled_sql_insert:
                             driver: postgres
                             dsn: ${DESTINATION_0_CONNECTION_DSN}
-                            query: INSERT INTO "public"."users" ("id", "name") VALUES (DEFAULT, $1);
-                            args_mapping: root = [this."name"]
-                            init_statement: ""
+                            schema: public
+                            table: users
+                            columns:
+                                - id
+                                - name
+                            args_mapping: root = [this."id", this."name"]
+                            batching:
+                                count: 100
+                                byte_size: 0
+                                period: 5s
+                                check: ""
+                                processors: []
                         processors:
-                            - mutation: root."name" = generate_ssn()
+                            - mutation: |-
+                                root."id" = "DEFAULT"
+                                root."name" = generate_ssn()
                             - catch:
                                 - error:
                                     error_msg: ${! meta("fallback_error")}
@@ -544,201 +585,22 @@ output:
                     backoff: {}
                 - error:
                     error_msg: ${! meta("fallback_error")}
+                    batching:
+                        count: 1
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
 `),
 	)
 
 	// create a new streambuilder instance so we can access the SetYaml method
 	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_error.RegisterErrorProcessor(benthosenv, nil)
-	assert.NoError(t, err)
-	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
-	assert.NoError(t, err)
-	newSB := benthosenv.NewStreamBuilder()
-
-	// SetYAML parses a full Benthos config and uses it to configure the builder.
-	err = newSB.SetYAML(string(out))
-	assert.NoError(t, err)
-}
-
-func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg(t *testing.T) {
-	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
-	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-
-	pgcache := map[string]pg_queries.DBTX{
-		"123": pg_queries.NewMockDBTX(t),
-		"456": pg_queries.NewMockDBTX(t),
-	}
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{}
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
-
-	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
-		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
-			Job: &mgmtv1alpha1.Job{
-				Source: &mgmtv1alpha1.JobSource{
-					Options: &mgmtv1alpha1.JobSourceOptions{
-						Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
-							Postgres: &mgmtv1alpha1.PostgresSourceConnectionOptions{
-								ConnectionId: "123",
-							},
-						},
-					},
-				},
-				Mappings: []*mgmtv1alpha1.JobMapping{
-					{
-						Schema: "public",
-						Table:  "users",
-						Column: "id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "public",
-						Table:  "users",
-						Column: "name",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-				},
-				Destinations: []*mgmtv1alpha1.JobDestination{
-					{
-						ConnectionId: "456",
-					},
-				},
-			},
-		}), nil)
-	mockConnectionClient.On(
-		"GetConnection",
-		mock.Anything,
-		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: "123",
-		}),
-	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		Connection: &mgmtv1alpha1.Connection{
-			Id:   "123",
-			Name: "prod",
-			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
-					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
-						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-							Url: "fake-prod-url",
-						},
-					},
-				},
-			},
-		},
-	}), nil)
-	mockConnectionClient.On(
-		"GetConnection",
-		mock.Anything,
-		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: "456",
-		}),
-	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		Connection: &mgmtv1alpha1.Connection{
-			Id:   "456",
-			Name: "stage",
-			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
-					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
-						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-							Url: "fake-stage-url",
-						},
-					},
-				},
-			},
-		},
-	}), nil)
-
-	pgquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetDatabaseSchemaRow{
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "name",
-			},
-		}, nil)
-	pgquerier.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetForeignKeyConstraintsRow{}, nil)
-	pgquerier.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetPrimaryKeyConstraintsRow{{
-			SchemaName:     "public",
-			TableName:      "users",
-			ConstraintName: "name",
-			ColumnName:     "id",
-		}}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil, false)
-
-	resp, err := bbuilder.GenerateBenthosConfigs(
-		context.Background(),
-		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		slog.Default(),
-	)
-	assert.Nil(t, err)
-	assert.NotEmpty(t, resp.BenthosConfigs)
-	assert.Len(t, resp.BenthosConfigs, 1)
-	bc := resp.BenthosConfigs[0]
-	assert.Equal(t, bc.Name, "public.users")
-	assert.Empty(t, bc.DependsOn)
-	out, err := yaml.Marshal(bc.Config)
-	assert.NoError(t, err)
-	assert.Equal(
-		t,
-		strings.TrimSpace(string(out)),
-		strings.TrimSpace(`
-input:
-    label: ""
-    pooled_sql_raw:
-        driver: postgres
-        dsn: ${SOURCE_CONNECTION_DSN}
-        query: SELECT "id", "name" FROM "public"."users";
-pipeline:
-    threads: -1
-    processors: []
-output:
-    label: ""
-    broker:
-        pattern: fan_out
-        outputs:
-            - fallback:
-                - pooled_sql_raw:
-                    driver: postgres
-                    dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
-                    args_mapping: root = [this."id", this."name"]
-                    init_statement: ""
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-                - error:
-                    error_msg: ${! meta("fallback_error")}
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-`),
-	)
-
-	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
-	assert.NoError(t, err)
-	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
 	assert.NoError(t, err)
@@ -966,12 +828,15 @@ output:
                 fields_mapping: 'root = {meta("neosync_id"): json("id")}'
                 kind: simple
             - fallback:
-                - pooled_sql_raw:
+                - pooled_sql_insert:
                     driver: postgres
                     dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
+                    schema: public
+                    table: users
+                    columns:
+                        - id
+                        - name
                     args_mapping: root = [this."id", this."name"]
-                    init_statement: ""
                     batching:
                         count: 100
                         byte_size: 0
@@ -980,6 +845,12 @@ output:
                         processors: []
                 - error:
                     error_msg: ${! meta("fallback_error")}
+                    batching:
+                        count: 1
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
 `),
 	)
 
@@ -1019,12 +890,15 @@ output:
         pattern: fan_out
         outputs:
             - fallback:
-                - pooled_sql_raw:
+                - pooled_sql_insert:
                     driver: postgres
                     dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    query: INSERT INTO "public"."orders" ("id", "buyer_id") VALUES ($1, $2);
+                    schema: public
+                    table: orders
+                    columns:
+                        - id
+                        - buyer_id
                     args_mapping: root = [this."id", this."buyer_id"]
-                    init_statement: ""
                     batching:
                         count: 100
                         byte_size: 0
@@ -1033,11 +907,17 @@ output:
                         processors: []
                 - error:
                     error_msg: ${! meta("fallback_error")}
+                    batching:
+                        count: 1
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
 `),
 	)
 
 	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
 	assert.NoError(t, err)
@@ -1245,12 +1125,15 @@ output:
         pattern: fan_out
         outputs:
             - fallback:
-                - pooled_sql_raw:
+                - pooled_sql_insert:
                     driver: postgres
                     dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
+                    schema: public
+                    table: users
+                    columns:
+                        - id
+                        - name
                     args_mapping: root = [this."id", this."name"]
-                    init_statement: ""
                     batching:
                         count: 100
                         byte_size: 0
@@ -1259,7 +1142,12 @@ output:
                         processors: []
                 - error:
                     error_msg: ${! meta("fallback_error")}
-
+                    batching:
+                        count: 1
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
 `),
 	)
 
@@ -1287,12 +1175,15 @@ output:
         pattern: fan_out
         outputs:
             - fallback:
-                - pooled_sql_raw:
+                - pooled_sql_insert:
                     driver: postgres
                     dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    query: INSERT INTO "public"."orders" ("id", "buyer_id") VALUES ($1, $2);
+                    schema: public
+                    table: orders
+                    columns:
+                        - id
+                        - buyer_id
                     args_mapping: root = [this."id", this."buyer_id"]
-                    init_statement: ""
                     batching:
                         count: 100
                         byte_size: 0
@@ -1301,12 +1192,17 @@ output:
                         processors: []
                 - error:
                     error_msg: ${! meta("fallback_error")}
-
+                    batching:
+                        count: 1
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
 `),
 	)
 
 	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
 	assert.NoError(t, err)
@@ -1505,12 +1401,14 @@ output:
                 fields_mapping: 'root = {meta("neosync_id"): json("id")}'
                 kind: simple
             - fallback:
-                - pooled_sql_raw:
+                - pooled_sql_insert:
                     driver: postgres
                     dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    query: INSERT INTO "public"."jobs" ("id") VALUES ($1);
+                    schema: public
+                    table: jobs
+                    columns:
+                        - id
                     args_mapping: root = [this."id"]
-                    init_statement: ""
                     batching:
                         count: 100
                         byte_size: 0
@@ -1519,6 +1417,12 @@ output:
                         processors: []
                 - error:
                     error_msg: ${! meta("fallback_error")}
+                    batching:
+                        count: 1
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
 `),
 	)
 
@@ -1567,12 +1471,16 @@ output:
         pattern: fan_out
         outputs:
             - fallback:
-                - pooled_sql_raw:
+                - pooled_sql_update:
                     driver: postgres
                     dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    query: UPDATE "public"."jobs" SET "parent_id" = $1 WHERE "id" = $2;
+                    schema: public
+                    table: jobs
+                    columns:
+                        - parent_id
+                    where_columns:
+                        - id
                     args_mapping: root = [this."parent_id", this."id"]
-                    init_statement: ""
                     batching:
                         count: 100
                         byte_size: 0
@@ -1581,198 +1489,24 @@ output:
                         processors: []
                 - error:
                     error_msg: ${! meta("fallback_error")}
+                    batching:
+                        count: 1
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
 
 `),
 	)
 
 	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_sql.RegisterPooledSqlUpdateOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_error.RegisterErrorProcessor(benthosenv, nil)
-	assert.NoError(t, err)
-	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
-	assert.NoError(t, err)
-	newSB := benthosenv.NewStreamBuilder()
-
-	// SetYAML parses a full Benthos config and uses it to configure the builder.
-	err = newSB.SetYAML(string(out))
-	assert.NoError(t, err)
-}
-
-func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_Default(t *testing.T) {
-	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
-	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-
-	pgcache := map[string]pg_queries.DBTX{
-		"123": pg_queries.NewMockDBTX(t),
-		"456": pg_queries.NewMockDBTX(t),
-	}
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{}
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
-
-	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
-		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
-			Job: &mgmtv1alpha1.Job{
-				Source: &mgmtv1alpha1.JobSource{
-					Options: &mgmtv1alpha1.JobSourceOptions{
-						Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
-							Postgres: &mgmtv1alpha1.PostgresSourceConnectionOptions{
-								ConnectionId: "123",
-							},
-						},
-					},
-				},
-				Mappings: []*mgmtv1alpha1.JobMapping{
-					{
-						Schema: "public",
-						Table:  "users",
-						Column: "id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-						},
-					},
-					{
-						Schema: "public",
-						Table:  "users",
-						Column: "name",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-				},
-				Destinations: []*mgmtv1alpha1.JobDestination{
-					{
-						ConnectionId: "456",
-					},
-				},
-			},
-		}), nil)
-	mockConnectionClient.On(
-		"GetConnection",
-		mock.Anything,
-		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: "123",
-		}),
-	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		Connection: &mgmtv1alpha1.Connection{
-			Id:   "123",
-			Name: "prod",
-			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
-					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
-						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-							Url: "fake-prod-url",
-						},
-					},
-				},
-			},
-		},
-	}), nil)
-	mockConnectionClient.On(
-		"GetConnection",
-		mock.Anything,
-		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: "456",
-		}),
-	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		Connection: &mgmtv1alpha1.Connection{
-			Id:   "456",
-			Name: "stage",
-			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
-					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
-						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-							Url: "fake-stage-url",
-						},
-					},
-				},
-			},
-		},
-	}), nil)
-
-	pgquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetDatabaseSchemaRow{
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "name",
-			},
-		}, nil)
-	pgquerier.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetForeignKeyConstraintsRow{}, nil)
-	pgquerier.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetPrimaryKeyConstraintsRow{{
-			SchemaName:     "public",
-			TableName:      "users",
-			ConstraintName: "name",
-			ColumnName:     "id",
-		}}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil, false)
-
-	resp, err := bbuilder.GenerateBenthosConfigs(
-		context.Background(),
-		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		slog.Default(),
-	)
-	assert.Nil(t, err)
-	assert.NotEmpty(t, resp.BenthosConfigs)
-	assert.Len(t, resp.BenthosConfigs, 1)
-	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
-	assert.Equal(t, bc.Name, "public.users")
-	assert.Empty(t, bc.DependsOn)
-	out, err := yaml.Marshal(bc.Config)
-	assert.NoError(t, err)
-	assert.Equal(
-		t,
-		strings.TrimSpace(string(out)),
-		strings.TrimSpace(`
-input:
-    label: ""
-    pooled_sql_raw:
-        driver: postgres
-        dsn: ${SOURCE_CONNECTION_DSN}
-        query: SELECT "id", "name" FROM "public"."users";
-pipeline:
-    threads: -1
-    processors: []
-output:
-    label: ""
-    broker:
-        pattern: fan_out
-        outputs:
-            - fallback:
-                - pooled_sql_raw:
-                    driver: postgres
-                    dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    query: INSERT INTO "public"."users" ("id", "name") VALUES (DEFAULT, $1);
-                    args_mapping: root = [this."name"]
-                    init_statement: ""
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-                - error:
-                    error_msg: ${! meta("fallback_error")}
-`),
-	)
-
-	// create a new streambuilder instance so we can access the SetYaml method
-	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
-	assert.NoError(t, err)
-	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
 	assert.NoError(t, err)
@@ -1957,85 +1691,15 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 	assert.Empty(t, bc.DependsOn)
 	out, err := yaml.Marshal(bc.Config)
 	assert.NoError(t, err)
-	assert.Equal(
-		t,
-		strings.TrimSpace(string(out)),
-		strings.TrimSpace(`
-input:
-    label: ""
-    pooled_sql_raw:
-        driver: postgres
-        dsn: ${SOURCE_CONNECTION_DSN}
-        query: SELECT "id", "name" FROM "public"."users";
-pipeline:
-    threads: -1
-    processors: []
-output:
-    label: ""
-    broker:
-        pattern: fan_out
-        outputs:
-            - fallback:
-                - pooled_sql_raw:
-                    driver: postgres
-                    dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
-                    args_mapping: root = [this."id", this."name"]
-                    init_statement: ""
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-                - error:
-                    error_msg: ${! meta("fallback_error")}
-`),
-	)
 
 	bc2 := getBenthosConfigByName(resp.BenthosConfigs, "public.user_account_associations")
 	assert.Equal(t, bc2.Name, "public.user_account_associations")
 	assert.Equal(t, bc2.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}})
 	out2, err := yaml.Marshal(bc2.Config)
 	assert.NoError(t, err)
-	assert.Equal(
-		t,
-		strings.TrimSpace(string(out2)),
-		strings.TrimSpace(`
-input:
-    label: ""
-    pooled_sql_raw:
-        driver: postgres
-        dsn: ${SOURCE_CONNECTION_DSN}
-        query: SELECT "id", "user_id" FROM "public"."user_account_associations";
-pipeline:
-    threads: -1
-    processors: []
-output:
-    label: ""
-    broker:
-        pattern: fan_out
-        outputs:
-            - fallback:
-                - pooled_sql_raw:
-                    driver: postgres
-                    dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    query: INSERT INTO "public"."user_account_associations" ("id", "user_id") VALUES ($1, $2);
-                    args_mapping: root = [this."id", this."user_id"]
-                    init_statement: ""
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-                - error:
-                    error_msg: ${! meta("fallback_error")}
-`),
-	)
 
 	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
 	assert.NoError(t, err)
@@ -2270,12 +1934,15 @@ output:
         pattern: fan_out
         outputs:
             - fallback:
-                - pooled_sql_raw:
+                - pooled_sql_insert:
                     driver: postgres
                     dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
+                    schema: public
+                    table: users
+                    columns:
+                        - id
+                        - name
                     args_mapping: root = [this."id", this."name"]
-                    init_statement: ""
                     batching:
                         count: 100
                         byte_size: 0
@@ -2284,6 +1951,12 @@ output:
                         processors: []
                 - error:
                     error_msg: ${! meta("fallback_error")}
+                    batching:
+                        count: 1
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
 `),
 	)
 
@@ -2312,12 +1985,16 @@ output:
         pattern: fan_out
         outputs:
             - fallback:
-                - pooled_sql_raw:
+                - pooled_sql_update:
                     driver: postgres
                     dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    query: UPDATE "public"."users" SET "user_assoc_id" = $1 WHERE "id" = $2;
+                    schema: public
+                    table: users
+                    columns:
+                        - user_assoc_id
+                    where_columns:
+                        - id
                     args_mapping: root = [this."user_assoc_id", this."id"]
-                    init_statement: ""
                     batching:
                         count: 100
                         byte_size: 0
@@ -2326,6 +2003,12 @@ output:
                         processors: []
                 - error:
                     error_msg: ${! meta("fallback_error")}
+                    batching:
+                        count: 1
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
 `),
 	)
 
@@ -2353,12 +2036,15 @@ output:
         pattern: fan_out
         outputs:
             - fallback:
-                - pooled_sql_raw:
+                - pooled_sql_insert:
                     driver: postgres
                     dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    query: INSERT INTO "public"."user_account_associations" ("id", "user_id") VALUES ($1, $2);
+                    schema: public
+                    table: user_account_associations
+                    columns:
+                        - id
+                        - user_id
                     args_mapping: root = [this."id", this."user_id"]
-                    init_statement: ""
                     batching:
                         count: 100
                         byte_size: 0
@@ -2367,11 +2053,19 @@ output:
                         processors: []
                 - error:
                     error_msg: ${! meta("fallback_error")}
+                    batching:
+                        count: 1
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
 `),
 	)
 
 	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_sql.RegisterPooledSqlUpdateOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
 	assert.NoError(t, err)
@@ -2637,12 +2331,15 @@ output:
         pattern: fan_out
         outputs:
             - fallback:
-                - pooled_sql_raw:
+                - pooled_sql_insert:
                     driver: postgres
                     dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    query: INSERT INTO "public"."users" ("id", "name") VALUES ($1, $2);
+                    schema: public
+                    table: users
+                    columns:
+                        - id
+                        - name
                     args_mapping: root = [this."id", this."name"]
-                    init_statement: ""
                     batching:
                         count: 100
                         byte_size: 0
@@ -2651,6 +2348,12 @@ output:
                         processors: []
                 - error:
                     error_msg: ${! meta("fallback_error")}
+                    batching:
+                        count: 1
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
             - fallback:
                 - aws_s3:
                     bucket: s3-bucket
@@ -2672,6 +2375,12 @@ output:
                         secret: secret
                 - error:
                     error_msg: ${! meta("fallback_error")}
+                    batching:
+                        count: 1
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
 `),
 	)
 
@@ -2701,12 +2410,16 @@ output:
         pattern: fan_out
         outputs:
             - fallback:
-                - pooled_sql_raw:
+                - pooled_sql_update:
                     driver: postgres
                     dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    query: UPDATE "public"."users" SET "user_assoc_id" = $1 WHERE "id" = $2;
+                    schema: public
+                    table: users
+                    columns:
+                        - user_assoc_id
+                    where_columns:
+                        - id
                     args_mapping: root = [this."user_assoc_id", this."id"]
-                    init_statement: ""
                     batching:
                         count: 100
                         byte_size: 0
@@ -2715,6 +2428,12 @@ output:
                         processors: []
                 - error:
                     error_msg: ${! meta("fallback_error")}
+                    batching:
+                        count: 1
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
 `),
 	)
 
@@ -2743,12 +2462,15 @@ output:
         pattern: fan_out
         outputs:
             - fallback:
-                - pooled_sql_raw:
+                - pooled_sql_insert:
                     driver: postgres
                     dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    query: INSERT INTO "public"."user_account_associations" ("id", "user_id") VALUES ($1, $2);
+                    schema: public
+                    table: user_account_associations
+                    columns:
+                        - id
+                        - user_id
                     args_mapping: root = [this."id", this."user_id"]
-                    init_statement: ""
                     batching:
                         count: 100
                         byte_size: 0
@@ -2757,6 +2479,12 @@ output:
                         processors: []
                 - error:
                     error_msg: ${! meta("fallback_error")}
+                    batching:
+                        count: 1
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
             - fallback:
                 - aws_s3:
                     bucket: s3-bucket
@@ -2778,11 +2506,17 @@ output:
                         secret: secret
                 - error:
                     error_msg: ${! meta("fallback_error")}
+                    batching:
+                        count: 1
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
 `),
 	)
 
 	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
 	assert.NoError(t, err)
@@ -2798,356 +2532,7 @@ output:
 	assert.NoError(t, err)
 }
 
-func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Mysql(t *testing.T) {
-	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
-	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-	pgcache := map[string]pg_queries.DBTX{}
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{
-		"123": mysql_queries.NewMockDBTX(t),
-		"456": mysql_queries.NewMockDBTX(t),
-	}
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
-
-	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
-		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
-			Job: &mgmtv1alpha1.Job{
-				Source: &mgmtv1alpha1.JobSource{
-					Options: &mgmtv1alpha1.JobSourceOptions{
-						Config: &mgmtv1alpha1.JobSourceOptions_Generate{
-							Generate: &mgmtv1alpha1.GenerateSourceOptions{
-								Schemas: []*mgmtv1alpha1.GenerateSourceSchemaOption{
-									{
-										Schema: "public",
-										Tables: []*mgmtv1alpha1.GenerateSourceTableOption{
-											{
-												Table:    "users",
-												RowCount: 10,
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-				Mappings: []*mgmtv1alpha1.JobMapping{
-					{
-						Schema: "public",
-						Table:  "users",
-						Column: "id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UUID,
-							Config: &mgmtv1alpha1.TransformerConfig{
-								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
-									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
-										IncludeHyphens: true,
-									},
-								},
-							},
-						},
-					},
-					{
-						Schema: "public",
-						Table:  "users",
-						Column: "name",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_SSN,
-							Config: &mgmtv1alpha1.TransformerConfig{
-								Config: &mgmtv1alpha1.TransformerConfig_GenerateSsnConfig{
-									GenerateSsnConfig: &mgmtv1alpha1.GenerateSSN{},
-								},
-							},
-						},
-					},
-				},
-				Destinations: []*mgmtv1alpha1.JobDestination{
-					{
-						ConnectionId: "456",
-					},
-				},
-			},
-		}), nil)
-
-	mockConnectionClient.On(
-		"GetConnection",
-		mock.Anything,
-		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: "456",
-		}),
-	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		Connection: &mgmtv1alpha1.Connection{
-			Id:   "456",
-			Name: "stage",
-			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
-					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
-						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
-							Url: "fake-stage-url",
-						},
-					},
-				},
-			},
-		},
-	}), nil)
-
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil, false)
-
-	resp, err := bbuilder.GenerateBenthosConfigs(
-		context.Background(),
-		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		slog.Default(),
-	)
-	assert.Nil(t, err)
-	assert.NotEmpty(t, resp.BenthosConfigs)
-	assert.Len(t, resp.BenthosConfigs, 1)
-	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
-	assert.Equal(t, bc.Name, "public.users")
-	assert.Empty(t, bc.DependsOn)
-	out, err := yaml.Marshal(bc.Config)
-	assert.NoError(t, err)
-	assert.Equal(
-		t,
-		strings.TrimSpace(`
-input:
-    label: ""
-    generate:
-        mapping: root = {}
-        interval: ""
-        count: 10
-pipeline:
-    threads: -1
-    processors: []
-output:
-    label: ""
-    broker:
-        pattern: fan_out
-        outputs:
-            - fallback:
-                - retry:
-                    output:
-                        label: ""
-                        pooled_sql_raw:
-                            driver: mysql
-                            dsn: ${DESTINATION_0_CONNECTION_DSN}
-                            `+"query: INSERT INTO `public`.`users` (`id`, `name`) VALUES (?, ?);"+`
-                            args_mapping: root = [this."id", this."name"]
-                            init_statement: ""
-                        processors:
-                            - mutation: |-
-                                root."id" = generate_uuid(include_hyphens:true)
-                                root."name" = generate_ssn()
-                            - catch:
-                                - error:
-                                    error_msg: ${! meta("fallback_error")}
-                    max_retries: 10
-                    backoff: {}
-                - error:
-                    error_msg: ${! meta("fallback_error")}
-`), strings.TrimSpace(string(out)),
-	)
-
-	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
-	assert.NoError(t, err)
-	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
-	assert.NoError(t, err)
-	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
-	assert.NoError(t, err)
-	err = neosync_benthos_error.RegisterErrorProcessor(benthosenv, nil)
-	assert.NoError(t, err)
-
-	newSB := benthosenv.NewStreamBuilder()
-
-	// SetYAML parses a full Benthos config and uses it to configure the builder.
-	err = newSB.SetYAML(string(out))
-	assert.NoError(t, err)
-}
-
 func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) {
-	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
-	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-
-	pgcache := map[string]pg_queries.DBTX{}
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{
-		"123": mysql_queries.NewMockDBTX(t),
-		"456": mysql_queries.NewMockDBTX(t),
-	}
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
-
-	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
-		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
-			Job: &mgmtv1alpha1.Job{
-				Source: &mgmtv1alpha1.JobSource{
-					Options: &mgmtv1alpha1.JobSourceOptions{
-						Config: &mgmtv1alpha1.JobSourceOptions_Mysql{
-							Mysql: &mgmtv1alpha1.MysqlSourceConnectionOptions{
-								ConnectionId: "123",
-							},
-						},
-					},
-				},
-				Mappings: []*mgmtv1alpha1.JobMapping{
-					{
-						Schema: "public",
-						Table:  "users",
-						Column: "id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "public",
-						Table:  "users",
-						Column: "name",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-				},
-				Destinations: []*mgmtv1alpha1.JobDestination{
-					{
-						ConnectionId: "456",
-					},
-				},
-			},
-		}), nil)
-	mockConnectionClient.On(
-		"GetConnection",
-		mock.Anything,
-		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: "123",
-		}),
-	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		Connection: &mgmtv1alpha1.Connection{
-			Id:   "123",
-			Name: "prod",
-			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
-					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
-						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
-							Url: "fake-prod-url",
-						},
-					},
-				},
-			},
-		},
-	}), nil)
-	mockConnectionClient.On(
-		"GetConnection",
-		mock.Anything,
-		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: "456",
-		}),
-	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		Connection: &mgmtv1alpha1.Connection{
-			Id:   "456",
-			Name: "stage",
-			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
-					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
-						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
-							Url: "fake-stage-url",
-						},
-					},
-				},
-			},
-		},
-	}), nil)
-
-	mysqlquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
-		Return([]*mysql_queries.GetDatabaseSchemaRow{
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "name",
-			},
-		}, nil)
-	mysqlquerier.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*mysql_queries.GetForeignKeyConstraintsRow{}, nil)
-	mysqlquerier.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*mysql_queries.GetPrimaryKeyConstraintsRow{{
-			SchemaName:     "public",
-			TableName:      "users",
-			ConstraintName: "pk-id",
-			ColumnName:     "id",
-		}}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil, false)
-
-	resp, err := bbuilder.GenerateBenthosConfigs(
-		context.Background(),
-		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		slog.Default(),
-	)
-	assert.Nil(t, err)
-	assert.NotEmpty(t, resp.BenthosConfigs)
-	assert.Len(t, resp.BenthosConfigs, 1)
-	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
-	assert.Equal(t, bc.Name, "public.users")
-	assert.Empty(t, bc.DependsOn)
-	out, err := yaml.Marshal(bc.Config)
-	assert.NoError(t, err)
-	assert.Equal(
-		t,
-		strings.TrimSpace(string(out)),
-		strings.TrimSpace(`
-input:
-    label: ""
-    pooled_sql_raw:
-        driver: mysql
-        dsn: ${SOURCE_CONNECTION_DSN}
-        `+"query: SELECT `id`, `name` FROM `public`.`users`;"+`
-pipeline:
-    threads: -1
-    processors: []
-output:
-    label: ""
-    broker:
-        pattern: fan_out
-        outputs:
-            - fallback:
-                - pooled_sql_raw:
-                    driver: mysql
-                    dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    `+"query: INSERT INTO `public`.`users` (`id`, `name`) VALUES (?, ?);"+`
-                    args_mapping: root = [this."id", this."name"]
-                    init_statement: ""
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-                - error:
-                    error_msg: ${! meta("fallback_error")}
-`),
-	)
-
-	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
-	assert.NoError(t, err)
-	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
-	assert.NoError(t, err)
-	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
-	assert.NoError(t, err)
-	newSB := benthosenv.NewStreamBuilder()
-
-	// SetYAML parses a full Benthos config and uses it to configure the builder.
-	err = newSB.SetYAML(string(out))
-	assert.NoError(t, err)
-}
-
-func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Constraints(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformersClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
@@ -3339,12 +2724,15 @@ output:
         pattern: fan_out
         outputs:
             - fallback:
-                - pooled_sql_raw:
+                - pooled_sql_insert:
                     driver: mysql
                     dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    `+"query: INSERT INTO `public`.`users` (`id`, `name`) VALUES (?, ?);"+`
+                    schema: public
+                    table: users
+                    columns:
+                        - id
+                        - name
                     args_mapping: root = [this."id", this."name"]
-                    init_statement: ""
                     batching:
                         count: 100
                         byte_size: 0
@@ -3353,6 +2741,12 @@ output:
                         processors: []
                 - error:
                     error_msg: ${! meta("fallback_error")}
+                    batching:
+                        count: 1
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
 `),
 	)
 
@@ -3380,12 +2774,15 @@ output:
         pattern: fan_out
         outputs:
             - fallback:
-                - pooled_sql_raw:
+                - pooled_sql_insert:
                     driver: mysql
                     dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    `+"query: INSERT INTO `public`.`user_account_associations` (`id`, `user_id`) VALUES (?, ?);"+`
+                    schema: public
+                    table: user_account_associations
+                    columns:
+                        - id
+                        - user_id
                     args_mapping: root = [this."id", this."user_id"]
-                    init_statement: ""
                     batching:
                         count: 100
                         byte_size: 0
@@ -3394,11 +2791,17 @@ output:
                         processors: []
                 - error:
                     error_msg: ${! meta("fallback_error")}
+                    batching:
+                        count: 1
+                        byte_size: 0
+                        period: 5s
+                        check: ""
+                        processors: []
 `),
 	)
 
 	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
 	assert.NoError(t, err)
@@ -3615,41 +3018,6 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_
 	assert.Empty(t, insertConfig.DependsOn)
 	out, err := yaml.Marshal(insertConfig.Config)
 	assert.NoError(t, err)
-	assert.Equal(
-		t,
-		strings.TrimSpace(string(out)),
-		strings.TrimSpace(`
-input:
-    label: ""
-    pooled_sql_raw:
-        driver: mysql
-        dsn: ${SOURCE_CONNECTION_DSN}
-        `+"query: SELECT `id`, `name`, `user_assoc_id` FROM `public`.`users`;"+`
-pipeline:
-    threads: -1
-    processors: []
-output:
-    label: ""
-    broker:
-        pattern: fan_out
-        outputs:
-            - fallback:
-                - pooled_sql_raw:
-                    driver: mysql
-                    dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    `+"query: INSERT INTO `public`.`users` (`id`, `name`) VALUES (?, ?);"+`
-                    args_mapping: root = [this."id", this."name"]
-                    init_statement: ""
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-                - error:
-                    error_msg: ${! meta("fallback_error")}
-`),
-	)
 
 	updateConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users.update")
 	assert.NotNil(t, updateConfig)
@@ -3657,85 +3025,17 @@ output:
 	assert.Equal(t, updateConfig.DependsOn, []*tabledependency.DependsOn{{Table: "public.user_account_associations", Columns: []string{"id"}}})
 	out1, err := yaml.Marshal(updateConfig.Config)
 	assert.NoError(t, err)
-	assert.Equal(
-		t,
-		strings.TrimSpace(string(out1)),
-		strings.TrimSpace(`
-input:
-    label: ""
-    pooled_sql_raw:
-        driver: mysql
-        dsn: ${SOURCE_CONNECTION_DSN}
-        `+"query: SELECT `id`, `name`, `user_assoc_id` FROM `public`.`users`;"+`
-pipeline:
-    threads: -1
-    processors: []
-output:
-    label: ""
-    broker:
-        pattern: fan_out
-        outputs:
-            - fallback:
-                - pooled_sql_raw:
-                    driver: mysql
-                    dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    `+"query: UPDATE `public`.`users` SET `user_assoc_id` = ? WHERE `id` = ?;"+`
-                    args_mapping: root = [this."user_assoc_id", this."id"]
-                    init_statement: ""
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-                - error:
-                    error_msg: ${! meta("fallback_error")}
-`),
-	)
 
 	bc2 := getBenthosConfigByName(resp.BenthosConfigs, "public.user_account_associations")
 	assert.Equal(t, bc2.Name, "public.user_account_associations")
 	assert.Equal(t, bc2.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}})
 	out2, err := yaml.Marshal(bc2.Config)
 	assert.NoError(t, err)
-	assert.Equal(
-		t,
-		strings.TrimSpace(string(out2)),
-		strings.TrimSpace(`
-input:
-    label: ""
-    pooled_sql_raw:
-        driver: mysql
-        dsn: ${SOURCE_CONNECTION_DSN}
-        `+"query: SELECT `id`, `user_id` FROM `public`.`user_account_associations`;"+`
-pipeline:
-    threads: -1
-    processors: []
-output:
-    label: ""
-    broker:
-        pattern: fan_out
-        outputs:
-            - fallback:
-                - pooled_sql_raw:
-                    driver: mysql
-                    dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    `+"query: INSERT INTO `public`.`user_account_associations` (`id`, `user_id`) VALUES (?, ?);"+`
-                    args_mapping: root = [this."id", this."user_id"]
-                    init_statement: ""
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-                - error:
-                    error_msg: ${! meta("fallback_error")}
-`),
-	)
 
 	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
+	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil)
+	assert.NoError(t, err)
+	err = neosync_benthos_sql.RegisterPooledSqlUpdateOutput(benthosenv, nil)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
 	assert.NoError(t, err)
@@ -3745,357 +3045,12 @@ output:
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
+	assert.NoError(t, err)
+
+	err = newSB.SetYAML(string(out1))
 	assert.NoError(t, err)
 
 	err = newSB.SetYAML(string(out2))
-	assert.NoError(t, err)
-}
-
-func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Mysql_Default(t *testing.T) {
-	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
-	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-
-	pgcache := map[string]pg_queries.DBTX{}
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{
-		"123": mysql_queries.NewMockDBTX(t),
-		"456": mysql_queries.NewMockDBTX(t),
-	}
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
-
-	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
-		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
-			Job: &mgmtv1alpha1.Job{
-				Source: &mgmtv1alpha1.JobSource{
-					Options: &mgmtv1alpha1.JobSourceOptions{
-						Config: &mgmtv1alpha1.JobSourceOptions_Generate{
-							Generate: &mgmtv1alpha1.GenerateSourceOptions{
-								Schemas: []*mgmtv1alpha1.GenerateSourceSchemaOption{
-									{
-										Schema: "public",
-										Tables: []*mgmtv1alpha1.GenerateSourceTableOption{
-											{
-												Table:    "users",
-												RowCount: 10,
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-				Mappings: []*mgmtv1alpha1.JobMapping{
-					{
-						Schema: "public",
-						Table:  "users",
-						Column: "id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-							Config: &mgmtv1alpha1.TransformerConfig{
-								Config: &mgmtv1alpha1.TransformerConfig_GenerateDefaultConfig{
-									GenerateDefaultConfig: &mgmtv1alpha1.GenerateDefault{},
-								},
-							},
-						},
-					},
-					{
-						Schema: "public",
-						Table:  "users",
-						Column: "name",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_SSN,
-							Config: &mgmtv1alpha1.TransformerConfig{
-								Config: &mgmtv1alpha1.TransformerConfig_GenerateSsnConfig{
-									GenerateSsnConfig: &mgmtv1alpha1.GenerateSSN{},
-								},
-							},
-						},
-					},
-				},
-				Destinations: []*mgmtv1alpha1.JobDestination{
-					{
-						ConnectionId: "456",
-					},
-				},
-			},
-		}), nil)
-
-	mockConnectionClient.On(
-		"GetConnection",
-		mock.Anything,
-		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: "456",
-		}),
-	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		Connection: &mgmtv1alpha1.Connection{
-			Id:   "456",
-			Name: "stage",
-			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
-					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
-						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
-							Url: "fake-stage-url",
-						},
-					},
-				},
-			},
-		},
-	}), nil)
-
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil, false)
-
-	resp, err := bbuilder.GenerateBenthosConfigs(
-		context.Background(),
-		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		slog.Default(),
-	)
-	assert.Nil(t, err)
-	assert.NotEmpty(t, resp.BenthosConfigs)
-	assert.Len(t, resp.BenthosConfigs, 1)
-	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
-	assert.Equal(t, bc.Name, "public.users")
-	assert.Empty(t, bc.DependsOn)
-	out, err := yaml.Marshal(bc.Config)
-	assert.NoError(t, err)
-	assert.Equal(
-		t,
-		strings.TrimSpace(string(out)),
-		strings.TrimSpace(`
-input:
-    label: ""
-    generate:
-        mapping: root = {}
-        interval: ""
-        count: 10
-pipeline:
-    threads: -1
-    processors: []
-output:
-    label: ""
-    broker:
-        pattern: fan_out
-        outputs:
-            - fallback:
-                - retry:
-                    output:
-                        label: ""
-                        pooled_sql_raw:
-                            driver: mysql
-                            dsn: ${DESTINATION_0_CONNECTION_DSN}
-                            `+"query: INSERT INTO `public`.`users` (`id`, `name`) VALUES (DEFAULT, ?);"+`
-                            args_mapping: root = [this."name"]
-                            init_statement: ""
-                        processors:
-                            - mutation: root."name" = generate_ssn()
-                            - catch:
-                                - error:
-                                    error_msg: ${! meta("fallback_error")}
-                    max_retries: 10
-                    backoff: {}
-                - error:
-                    error_msg: ${! meta("fallback_error")}
-`),
-	)
-
-	// create a new streambuilder instance so we can access the SetYaml method
-	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
-	assert.NoError(t, err)
-	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
-	assert.NoError(t, err)
-	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
-	assert.NoError(t, err)
-	err = neosync_benthos_error.RegisterErrorProcessor(benthosenv, nil)
-	assert.NoError(t, err)
-
-	newSB := benthosenv.NewStreamBuilder()
-
-	// SetYAML parses a full Benthos config and uses it to configure the builder.
-	err = newSB.SetYAML(string(out))
-	assert.NoError(t, err)
-}
-
-func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Default(t *testing.T) {
-	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
-	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-
-	pgcache := map[string]pg_queries.DBTX{}
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{
-		"123": mysql_queries.NewMockDBTX(t),
-		"456": mysql_queries.NewMockDBTX(t),
-	}
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
-
-	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
-		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
-			Job: &mgmtv1alpha1.Job{
-				Source: &mgmtv1alpha1.JobSource{
-					Options: &mgmtv1alpha1.JobSourceOptions{
-						Config: &mgmtv1alpha1.JobSourceOptions_Mysql{
-							Mysql: &mgmtv1alpha1.MysqlSourceConnectionOptions{
-								ConnectionId: "123",
-							},
-						},
-					},
-				},
-				Mappings: []*mgmtv1alpha1.JobMapping{
-					{
-						Schema: "public",
-						Table:  "users",
-						Column: "id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-						},
-					},
-					{
-						Schema: "public",
-						Table:  "users",
-						Column: "name",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-				},
-				Destinations: []*mgmtv1alpha1.JobDestination{
-					{
-						ConnectionId: "456",
-					},
-				},
-			},
-		}), nil)
-	mockConnectionClient.On(
-		"GetConnection",
-		mock.Anything,
-		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: "123",
-		}),
-	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		Connection: &mgmtv1alpha1.Connection{
-			Id:   "123",
-			Name: "prod",
-			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
-					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
-						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
-							Url: "fake-prod-url",
-						},
-					},
-				},
-			},
-		},
-	}), nil)
-	mockConnectionClient.On(
-		"GetConnection",
-		mock.Anything,
-		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: "456",
-		}),
-	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		Connection: &mgmtv1alpha1.Connection{
-			Id:   "456",
-			Name: "stage",
-			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
-					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
-						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
-							Url: "fake-stage-url",
-						},
-					},
-				},
-			},
-		},
-	}), nil)
-
-	mysqlquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
-		Return([]*mysql_queries.GetDatabaseSchemaRow{
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "name",
-			},
-		}, nil)
-	mysqlquerier.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*mysql_queries.GetForeignKeyConstraintsRow{}, nil)
-	mysqlquerier.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*mysql_queries.GetPrimaryKeyConstraintsRow{{
-			SchemaName:     "public",
-			TableName:      "users",
-			ConstraintName: "pk-id",
-			ColumnName:     "id",
-		}}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil, false)
-
-	resp, err := bbuilder.GenerateBenthosConfigs(
-		context.Background(),
-		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		slog.Default(),
-	)
-	assert.Nil(t, err)
-	assert.NotEmpty(t, resp.BenthosConfigs)
-	assert.Len(t, resp.BenthosConfigs, 1)
-	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
-	assert.Equal(t, bc.Name, "public.users")
-	assert.Empty(t, bc.DependsOn)
-	out, err := yaml.Marshal(bc.Config)
-	assert.NoError(t, err)
-	assert.Equal(
-		t,
-		strings.TrimSpace(string(out)),
-		strings.TrimSpace(`
-input:
-    label: ""
-    pooled_sql_raw:
-        driver: mysql
-        dsn: ${SOURCE_CONNECTION_DSN}
-        `+"query: SELECT `id`, `name` FROM `public`.`users`;"+`
-pipeline:
-    threads: -1
-    processors: []
-output:
-    label: ""
-    broker:
-        pattern: fan_out
-        outputs:
-            - fallback:
-                - pooled_sql_raw:
-                    driver: mysql
-                    dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    `+"query: INSERT INTO `public`.`users` (`id`, `name`) VALUES (DEFAULT, ?);"+`
-                    args_mapping: root = [this."name"]
-                    init_statement: ""
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-                - error:
-                    error_msg: ${! meta("fallback_error")}
-`),
-	)
-	// create a new streambuilder instance so we can access the SetYaml method
-	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlRawOutput(benthosenv, nil)
-	assert.NoError(t, err)
-	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil)
-	assert.NoError(t, err)
-	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
-	assert.NoError(t, err)
-	newSB := benthosenv.NewStreamBuilder()
-
-	// SetYAML parses a full Benthos config and uses it to configure the builder.
-	err = newSB.SetYAML(string(out))
 	assert.NoError(t, err)
 }
 
@@ -4123,7 +3078,7 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 					Table:  "users",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
 					},
 				},
 				{
@@ -4242,7 +3197,8 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 					Table:  "users",
 					Column: "id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+						Config: &mgmtv1alpha1.TransformerConfig{},
 					},
 				},
 				{

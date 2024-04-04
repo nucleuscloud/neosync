@@ -174,9 +174,6 @@ func (s *pooledUpdateOutput) WriteBatch(ctx context.Context, batch service.Messa
 	builder := goqu.Dialect(s.driver)
 	table := goqu.S(s.schema).Table(s.table)
 
-	fmt.Println()
-	fmt.Println(batchLen)
-
 	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
 		return err
@@ -213,6 +210,7 @@ func (s *pooledUpdateOutput) WriteBatch(ctx context.Context, batch service.Messa
 		updateRecord := goqu.Record{}
 		for _, col := range s.columns {
 			val := colValMap[col]
+			// set any default transformations
 			if val == "DEFAULT" {
 				updateRecord[col] = goqu.L("DEFAULT")
 			} else {
@@ -229,6 +227,7 @@ func (s *pooledUpdateOutput) WriteBatch(ctx context.Context, batch service.Messa
 		update := builder.Update(table).
 			Set(updateRecord).
 			Where(where...)
+
 		query, args, err := update.ToSQL()
 		if err != nil {
 			rollErr := tx.Rollback()

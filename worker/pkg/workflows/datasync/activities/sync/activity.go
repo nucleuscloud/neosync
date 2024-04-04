@@ -218,7 +218,6 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	}
 
 	poolprovider := newPoolProvider(func(dsn string) (neosync_benthos_sql.SqlDbtx, error) {
-
 		connid, ok := dsnToConnectionIdMap.Load(dsn)
 		if !ok {
 			return nil, errors.New("unable to find connection id by dsn when getting db pool")
