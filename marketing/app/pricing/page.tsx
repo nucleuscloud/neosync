@@ -10,13 +10,10 @@ import {
 } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { cn } from '@/lib/utils';
 import { CheckCircle2Icon } from 'lucide-react';
 import Link from 'next/link';
-import { ReactElement, useEffect, useState } from 'react';
+import { ReactElement } from 'react';
 
 export default function Pricing() {
   return (
@@ -32,7 +29,6 @@ export default function Pricing() {
         <TeamPlan />
         <CustomPlan />
       </div>
-      <PricingCalc />
       <FAQs />
       <div className="px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto py-10 lg:py-20">
         <CTA />
@@ -185,128 +181,128 @@ function CustomPlan(): ReactElement {
   );
 }
 
-function PricingCalc(): ReactElement {
-  const basePrice = 400;
-  const bucketTop = 5000000;
-  const ratePerM = 100; // $100 per additional 1M records
-  const [inputRecord, setInputRecord] = useState<number>(1000000);
-  const [syncFreq, setSyncFreq] = useState<number>(4);
-  const [finalEstimate, setFinalEstimate] = useState<number>(400);
+// function PricingCalc(): ReactElement {
+//   const basePrice = 400;
+//   const bucketTop = 5000000;
+//   const ratePerM = 100; // $100 per additional 1M records
+//   const [inputRecord, setInputRecord] = useState<number>(1000000);
+//   const [syncFreq, setSyncFreq] = useState<number>(4);
+//   const [finalEstimate, setFinalEstimate] = useState<number>(400);
 
-  useEffect(() => {
-    if (inputRecord < 100001) {
-      setFinalEstimate(0);
-    } else {
-      const additionalRecords: number = inputRecord - bucketTop;
-      const additionalPrice: number =
-        additionalRecords > 0 ? (additionalRecords / 1000000) * ratePerM : 0;
-      const totalPrice: number = basePrice + additionalPrice;
-      setFinalEstimate(parseFloat(totalPrice.toFixed(0)));
-    }
-  }, [inputRecord, syncFreq]);
+//   useEffect(() => {
+//     if (inputRecord < 100001) {
+//       setFinalEstimate(0);
+//     } else {
+//       const additionalRecords: number = inputRecord - bucketTop;
+//       const additionalPrice: number =
+//         additionalRecords > 0 ? (additionalRecords / 1000000) * ratePerM : 0;
+//       const totalPrice: number = basePrice + additionalPrice;
+//       setFinalEstimate(parseFloat(totalPrice.toFixed(0)));
+//     }
+//   }, [inputRecord, syncFreq]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/,/g, '');
-    if (value === '') {
-      setInputRecord(0);
-    } else {
-      const parsedValue = parseFloat(value);
-      if (!isNaN(parsedValue)) {
-        setInputRecord(parsedValue);
-      }
-    }
-  };
-  return (
-    <div className=" bg-[#1E1E1E]  pt-20 rounded-3xl mt-20 lg:mt-40 py-10 justify-center flex flex-col lg:mx-40">
-      <div className="mx-10 lg:mx-40">
-        <div className="text-center font-semibold text-2xl lg:text-5xl font-satoshi text-white ">
-          Estimate your monthly price
-        </div>
-        <div className="text-center text-white font-semibold text-md font-satoshi pt-6">
-          Complete the form below to get an estimate of your monthly cost.
-        </div>
+//   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+//     const value = e.target.value.replace(/,/g, '');
+//     if (value === '') {
+//       setInputRecord(0);
+//     } else {
+//       const parsedValue = parseFloat(value);
+//       if (!isNaN(parsedValue)) {
+//         setInputRecord(parsedValue);
+//       }
+//     }
+//   };
+//   return (
+//     <div className=" bg-[#1E1E1E]  pt-20 rounded-3xl mt-20 lg:mt-40 py-10 justify-center flex flex-col lg:mx-40">
+//       <div className="mx-10 lg:mx-40">
+//         <div className="text-center font-semibold text-2xl lg:text-5xl font-satoshi text-white ">
+//           Estimate your monthly price
+//         </div>
+//         <div className="text-center text-white font-semibold text-md font-satoshi pt-6">
+//           Complete the form below to get an estimate of your monthly cost.
+//         </div>
 
-        <div className="flex flex-col xl:flex-row items-center justify-center p-4 gap-8 rounded-xl mt-10">
-          <div className="gap-6 flex flex-col">
-            <div className="flex flex-col gap-2">
-              <div className="text-white text-sm">
-                Number of records to Sync or Generate
-              </div>
-              <div className="flex flex-col items-center rounded-lg gap-4 ">
-                <Input
-                  id="record_count"
-                  type="string"
-                  value={
-                    inputRecord > 0 ? formatNumberWithCommas(inputRecord) : ''
-                  }
-                  className="bg-transparent border border-gray-700 text-white sm:w-[150px] lg:w-[300px]"
-                  onChange={handleInputChange}
-                />
-              </div>
-            </div>
-            <div className="flex flex-col gap-2">
-              <div className="text-white text-sm">Sync frequency</div>
-              <div className="flex flex-col items-start rounded-lg gap-4">
-                <ToggleGroup
-                  type="single"
-                  id="sync_count"
-                  className="text-white outline"
-                  onValueChange={(e) => setSyncFreq(parseFloat(e))}
-                  defaultValue="4"
-                >
-                  <ToggleGroupItem
-                    value="30"
-                    className={cn(
-                      syncFreq == 30
-                        ? 'bg-gray-700 text-white'
-                        : 'border border-gray-700 hover:bg-gray-800'
-                    )}
-                  >
-                    Daily
-                  </ToggleGroupItem>
-                  <ToggleGroupItem
-                    value="4"
-                    className={cn(
-                      syncFreq == 4
-                        ? 'bg-gray-700 text-white'
-                        : 'border border-gray-700 hover:bg-gray-800'
-                    )}
-                  >
-                    Weekly
-                  </ToggleGroupItem>
-                  <ToggleGroupItem
-                    value="1"
-                    className={cn(
-                      syncFreq == 1
-                        ? 'bg-gray-700 text-white'
-                        : 'border border-gray-700 hover:bg-gray-800'
-                    )}
-                  >
-                    Monthly
-                  </ToggleGroupItem>
-                </ToggleGroup>
-              </div>
-            </div>
-          </div>
-          <div className="block xl:hidden">
-            <Separator className="bg-gray-600 h-[1px] w-60" />
-          </div>
-          <div className="hidden xl:block">
-            <Separator className="bg-gray-600 w-[1px] h-32" />
-          </div>
-          <div className="border border-gray-600 p-6 lg:p-14 rounded-xl">
-            <div className="flex justify-center flex-row gap-2">
-              <div className="text-3xl text-white ">
-                {formatMoney(finalEstimate)}
-              </div>
-              <div className="text-sm text-white self-end pb-1">/mo</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+//         <div className="flex flex-col xl:flex-row items-center justify-center p-4 gap-8 rounded-xl mt-10">
+//           <div className="gap-6 flex flex-col">
+//             <div className="flex flex-col gap-2">
+//               <div className="text-white text-sm">
+//                 Number of records to Sync or Generate
+//               </div>
+//               <div className="flex flex-col items-center rounded-lg gap-4 ">
+//                 <Input
+//                   id="record_count"
+//                   type="string"
+//                   value={
+//                     inputRecord > 0 ? formatNumberWithCommas(inputRecord) : ''
+//                   }
+//                   className="bg-transparent border border-gray-700 text-white sm:w-[150px] lg:w-[300px]"
+//                   onChange={handleInputChange}
+//                 />
+//               </div>
+//             </div>
+//             <div className="flex flex-col gap-2">
+//               <div className="text-white text-sm">Sync frequency</div>
+//               <div className="flex flex-col items-start rounded-lg gap-4">
+//                 <ToggleGroup
+//                   type="single"
+//                   id="sync_count"
+//                   className="text-white outline"
+//                   onValueChange={(e) => setSyncFreq(parseFloat(e))}
+//                   defaultValue="4"
+//                 >
+//                   <ToggleGroupItem
+//                     value="30"
+//                     className={cn(
+//                       syncFreq == 30
+//                         ? 'bg-gray-700 text-white'
+//                         : 'border border-gray-700 hover:bg-gray-800'
+//                     )}
+//                   >
+//                     Daily
+//                   </ToggleGroupItem>
+//                   <ToggleGroupItem
+//                     value="4"
+//                     className={cn(
+//                       syncFreq == 4
+//                         ? 'bg-gray-700 text-white'
+//                         : 'border border-gray-700 hover:bg-gray-800'
+//                     )}
+//                   >
+//                     Weekly
+//                   </ToggleGroupItem>
+//                   <ToggleGroupItem
+//                     value="1"
+//                     className={cn(
+//                       syncFreq == 1
+//                         ? 'bg-gray-700 text-white'
+//                         : 'border border-gray-700 hover:bg-gray-800'
+//                     )}
+//                   >
+//                     Monthly
+//                   </ToggleGroupItem>
+//                 </ToggleGroup>
+//               </div>
+//             </div>
+//           </div>
+//           <div className="block xl:hidden">
+//             <Separator className="bg-gray-600 h-[1px] w-60" />
+//           </div>
+//           <div className="hidden xl:block">
+//             <Separator className="bg-gray-600 w-[1px] h-32" />
+//           </div>
+//           <div className="border border-gray-600 p-6 lg:p-14 rounded-xl">
+//             <div className="flex justify-center flex-row gap-2">
+//               <div className="text-3xl text-white ">
+//                 {formatMoney(finalEstimate)}
+//               </div>
+//               <div className="text-sm text-white self-end pb-1">/mo</div>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
 
 function FAQs(): ReactElement {
   return (
@@ -343,10 +339,8 @@ function FAQs(): ReactElement {
           <AccordionContent>
             A record is a row of a table that is successfully inserted into the
             final destination. For ex, if you had 10 rows and then subsetted the
-            dataset such that only 5 were sent to the destination, you would
-            only be charged for 5 rows. Additionally, if you have two tables
-            each with 10 rows and inserted both into one destination, then we
-            would count that as 20 rows.
+            dataset to 5, you would only be charged for 5 rows. We do not charge
+            extra for multiple destinations.
           </AccordionContent>
         </AccordionItem>
         <AccordionItem value="item-2">
@@ -374,10 +368,11 @@ function FAQs(): ReactElement {
         </AccordionItem>
         <AccordionItem value="item-5">
           <AccordionTrigger>
-            When will the EU region be available?
+            How can I get set up in the EU Region?
           </AccordionTrigger>
           <AccordionContent>
-            We&apos;re working on it and expect to have it in early H2!
+            Right now, we&apos;re onboarding folks into the EU region manually.
+            Please reach out to us!
           </AccordionContent>
         </AccordionItem>
       </Accordion>
