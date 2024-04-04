@@ -48,7 +48,7 @@ export default function Permissions(props: Props) {
           <DialogTitle>Connection Permissions</DialogTitle>
           <div className="text-muted-foreground text-sm">
             Review the permissions that Neoynsc has to your connection.{' '}
-            <LearnMoreTag href="https://docs.neosync.dev/transformers/user-defined#transform-character-scramble" />
+            <LearnMoreTag href="https://docs.neosync.dev/connections/postgres#testing-your-connection" />
           </div>
         </DialogHeader>
         <TestConnectionResult
