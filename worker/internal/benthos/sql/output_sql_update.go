@@ -70,9 +70,8 @@ type pooledUpdateOutput struct {
 	dsn      string
 	provider DbPoolProvider
 	dbMut    sync.RWMutex
-	// db       mysql_queries.DBTX
-	db     SqlDbtx
-	logger *service.Logger
+	db       SqlDbtx
+	logger   *service.Logger
 
 	schema    string
 	table     string
@@ -162,7 +161,6 @@ func (s *pooledUpdateOutput) Connect(ctx context.Context) error {
 	return nil
 }
 
-// how to handle defaults??
 func (s *pooledUpdateOutput) WriteBatch(ctx context.Context, batch service.MessageBatch) error {
 	s.dbMut.RLock()
 	defer s.dbMut.RUnlock()
