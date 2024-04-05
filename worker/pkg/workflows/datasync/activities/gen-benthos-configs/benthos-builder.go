@@ -10,16 +10,11 @@ import (
 	"strings"
 
 	"connectrpc.com/connect"
-	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
-	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
-	dbschemas_mysql "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/mysql"
-	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/postgres"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
-	"github.com/nucleuscloud/neosync/backend/pkg/sqladapter"
-	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	sql_adapter "github.com/nucleuscloud/neosync/backend/pkg/sqladapter"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
@@ -38,14 +33,7 @@ const (
 )
 
 type benthosBuilder struct {
-	pgpool    map[string]pg_queries.DBTX
-	pgquerier pg_queries.Querier
-
-	mysqlpool    map[string]mysql_queries.DBTX
-	mysqlquerier mysql_queries.Querier
-
-	sqlconnector sqlconnect.SqlConnector
-	sqladapter   sqladapter.SqlAdapter
+	sqladapter sql_adapter.SqlAdapter
 
 	jobclient         mgmtv1alpha1connect.JobServiceClient
 	connclient        mgmtv1alpha1connect.ConnectionServiceClient
@@ -60,19 +48,11 @@ type benthosBuilder struct {
 }
 
 func newBenthosBuilder(
-	pgpool map[string]pg_queries.DBTX,
-	pgquerier pg_queries.Querier,
-
-	mysqlpool map[string]mysql_queries.DBTX,
-	mysqlquerier mysql_queries.Querier,
-
-	sqladapter sqladapter.SqlAdapter,
+	sqladapter sql_adapter.SqlAdapter,
 
 	jobclient mgmtv1alpha1connect.JobServiceClient,
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
-
-	sqlconnector sqlconnect.SqlConnector,
 
 	jobId, runId string,
 
@@ -81,11 +61,6 @@ func newBenthosBuilder(
 	metricsEnabled bool,
 ) *benthosBuilder {
 	return &benthosBuilder{
-		pgpool:            pgpool,
-		pgquerier:         pgquerier,
-		mysqlpool:         mysqlpool,
-		mysqlquerier:      mysqlquerier,
-		sqlconnector:      sqlconnector,
 		sqladapter:        sqladapter,
 		jobclient:         jobclient,
 		connclient:        connclient,
@@ -138,22 +113,31 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		}
 		responses = append(responses, sourceResponses...)
 
-	case *mgmtv1alpha1.JobSourceOptions_Postgres:
-		sourceConnection, err := b.getConnectionById(ctx, jobSourceConfig.Postgres.ConnectionId)
+	case *mgmtv1alpha1.JobSourceOptions_Postgres, *mgmtv1alpha1.JobSourceOptions_Mysql:
+		// sourceConnection, err := b.getConnectionById(ctx, jobSourceConfig.Postgres.ConnectionId)
+		sourceConnection, err := b.getJobSourceConnection(ctx, job.GetSource())
 		if err != nil {
-			return nil, fmt.Errorf("unable to get connection by id (%s): %w", jobSourceConfig.Postgres.ConnectionId, err)
+			return nil, fmt.Errorf("unable to get connection by id: %w", err)
 		}
 
-		sqlOpts := jobSourceConfig.Postgres // TODO FIX THIS
+		sqlDriver, err := getSqlDriverFromConnection(sourceConnection)
+		if err != nil {
+			return nil, err
+		}
+
+		sqlSourceOpts, err := getSqlJobSourceOpts(job.Source)
+		if err != nil {
+			return nil, err
+		}
 		var sourceTableOpts map[string]*sqlSourceTableOptions
-		if sqlOpts != nil {
-			sourceTableOpts, err = groupJobSourceOptionsByTable(job.Source)
+		if sqlSourceOpts != nil {
+			sourceTableOpts, err = groupJobSourceOptionsByTable(sqlSourceOpts)
 			if err != nil {
 				return nil, err
 			}
 		}
 
-		db, err := b.sqladapter.NewSqlDb(ctx, postgresDriver, slogger, sourceConnection)
+		db, err := b.sqladapter.NewSqlDb(ctx, sqlDriver, slogger, sourceConnection)
 		if err != nil {
 			return nil, fmt.Errorf("unable to create new sql db: %w", err)
 		}
@@ -162,11 +146,11 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		if err != nil {
 			return nil, fmt.Errorf("unable to get database schema for connection: %w", err)
 		}
-		groupedSchemas := sqladapter.GetUniqueSchemaColMappings(dbschemas)
+		groupedSchemas := sql_adapter.GetUniqueSchemaColMappings(dbschemas)
 		if !areMappingsSubsetOfSchemas(groupedSchemas, job.Mappings) {
 			return nil, errors.New(jobmappingSubsetErrMsg)
 		}
-		if sqlOpts != nil && sqlOpts.HaltOnNewColumnAddition &&
+		if sqlSourceOpts != nil && sqlSourceOpts.HaltOnNewColumnAddition &&
 			shouldHaltOnSchemaAddition(groupedSchemas, job.Mappings) {
 			return nil, errors.New(haltOnSchemaAdditionErrMsg)
 		}
@@ -178,13 +162,13 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, fmt.Errorf("unable to retrieve database foreign key constraints: %w", err)
 		}
 		slogger.Info(fmt.Sprintf("found %d foreign key constraints for database", len(allConstraints)))
-		td := sqladapter.GetDbTableDependencies(allConstraints)
+		td := sql_adapter.GetDbTableDependencies(allConstraints)
 
 		primaryKeys, err := db.GetAllPrimaryKeyConstraints(ctx, uniqueSchemas)
 		if err != nil {
 			return nil, fmt.Errorf("unable to get all primary key constraints: %w", err)
 		}
-		primaryKeyMap := sqladapter.GetTablePrimaryKeysMap(primaryKeys)
+		primaryKeyMap := sql_adapter.GetTablePrimaryKeysMap(primaryKeys)
 
 		tables := filterNullTables(groupedMappings)
 		tableSubsetMap := buildTableSubsetMap(sourceTableOpts)
@@ -193,12 +177,12 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		// reverse of table dependency
 		// map of foreign key to source table + column
 		tableConstraintsSource = getForeignKeyToSourceMap(td)
-		tableQueryMap, err := buildSelectQueryMap(postgresDriver, groupedTableMapping, sourceTableOpts, td, dependencyConfigs, jobSourceConfig.Postgres.SubsetByForeignKeyConstraints)
+		tableQueryMap, err := buildSelectQueryMap(sqlDriver, groupedTableMapping, sourceTableOpts, td, dependencyConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build select queries: %w", err)
 		}
 
-		sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedMappings, jobSourceConfig.Postgres.ConnectionId, postgresDriver, tableQueryMap, groupedSchemas, td, colTransformerMap, primaryKeyMap, b.jobId, b.runId, b.redisConfig)
+		sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedMappings, sourceConnection.Id, sqlDriver, tableQueryMap, groupedSchemas, td, colTransformerMap, primaryKeyMap, b.jobId, b.runId, b.redisConfig)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build benthos sql source config responses: %w", err)
 		}
@@ -238,115 +222,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 				resp.DependsOn = configs[0].DependsOn
 			} else {
 				return nil, fmt.Errorf("unexpected number of dependency configs")
-			}
-		}
-
-	case *mgmtv1alpha1.JobSourceOptions_Mysql:
-		sourceConnection, err := b.getConnectionById(ctx, jobSourceConfig.Mysql.ConnectionId)
-		if err != nil {
-			return nil, fmt.Errorf("unable to get connection (%s) by id: %w", jobSourceConfig.Mysql.ConnectionId, err)
-		}
-		mysqlconfig := sourceConnection.ConnectionConfig.GetMysqlConfig()
-		if mysqlconfig == nil {
-			return nil, fmt.Errorf("source connection (%s) is not a mysql config", jobSourceConfig.Mysql.ConnectionId)
-		}
-
-		sqlOpts := jobSourceConfig.Mysql
-		var sourceTableOpts map[string]*sqlSourceTableOptions
-		if sqlOpts != nil {
-			sourceTableOpts = groupMysqlSourceOptionsByTable(sqlOpts.Schemas)
-		}
-
-		if _, ok := b.mysqlpool[sourceConnection.Id]; !ok {
-			conn, err := b.sqlconnector.NewDbFromConnectionConfig(sourceConnection.ConnectionConfig, shared.Ptr(uint32(5)), slogger)
-			if err != nil {
-				return nil, fmt.Errorf("unable to create new mysql pool from connection config: %w", err)
-			}
-			pool, err := conn.Open()
-			if err != nil {
-				return nil, fmt.Errorf("unable to open mysql connection: %w", err)
-			}
-			defer conn.Close()
-			b.mysqlpool[sourceConnection.Id] = pool
-		}
-		pool := b.mysqlpool[sourceConnection.Id]
-
-		// validate job mappings align with sql connections
-		dbschemas, err := b.mysqlquerier.GetDatabaseSchema(ctx, pool)
-		if err != nil {
-			return nil, fmt.Errorf("unable to get database schema for mysql connection: %w", err)
-		}
-		groupedSchemas := dbschemas_mysql.GetUniqueSchemaColMappings(dbschemas)
-		if !areMappingsSubsetOfSchemas(groupedSchemas, job.Mappings) {
-			return nil, errors.New(jobmappingSubsetErrMsg)
-		}
-		if sqlOpts != nil && sqlOpts.HaltOnNewColumnAddition &&
-			shouldHaltOnSchemaAddition(groupedSchemas, job.Mappings) {
-			return nil, errors.New(haltOnSchemaAdditionErrMsg)
-		}
-		groupedColInfoMap = groupedSchemas
-
-		allConstraints, err := dbschemas_mysql.GetAllMysqlFkConstraints(b.mysqlquerier, ctx, pool, uniqueSchemas)
-		if err != nil {
-			return nil, fmt.Errorf("unable to retrieve mysql foreign key constraints: %w", err)
-		}
-		slogger.Info(fmt.Sprintf("found %d foreign key constraints for database", len(allConstraints)))
-		td := dbschemas_mysql.GetMysqlTableDependencies(allConstraints)
-		primaryKeys, err := b.getAllMysqlPkConstraints(ctx, pool, uniqueSchemas)
-		if err != nil {
-			return nil, fmt.Errorf("unable to get all mysql primary key constraints: %w", err)
-		}
-
-		tables := filterNullTables(groupedMappings)
-		tableSubsetMap := buildTableSubsetMap(sourceTableOpts)
-		dependencyConfigs := tabledependency.GetRunConfigs(td, tables, tableSubsetMap)
-
-		// reverse of table dependency
-		// map of foreign key to source table + column
-		tableConstraintsSource = getForeignKeyToSourceMap(td)
-		tableQueryMap, err := buildSelectQueryMap(mysqlDriver, groupedTableMapping, sourceTableOpts, td, dependencyConfigs, jobSourceConfig.Mysql.SubsetByForeignKeyConstraints)
-		if err != nil {
-			return nil, fmt.Errorf("unable to build mysql select queries: %w", err)
-		}
-		sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedMappings, jobSourceConfig.Mysql.ConnectionId, mysqlDriver, tableQueryMap, groupedSchemas, td, colTransformerMap, primaryKeys, b.jobId, b.runId, b.redisConfig)
-		if err != nil {
-			return nil, fmt.Errorf("unable to build mysql benthos sql source config responses: %w", err)
-		}
-		responses = append(responses, sourceResponses...)
-
-		dependencyMap := map[string][]*tabledependency.RunConfig{}
-		for _, cfg := range dependencyConfigs {
-			_, ok := dependencyMap[cfg.Table]
-			if ok {
-				dependencyMap[cfg.Table] = append(dependencyMap[cfg.Table], cfg)
-			} else {
-				dependencyMap[cfg.Table] = []*tabledependency.RunConfig{cfg}
-			}
-		}
-
-		for _, resp := range responses {
-			tableName := neosync_benthos.BuildBenthosTable(resp.TableSchema, resp.TableName)
-			configs := dependencyMap[tableName]
-			if len(configs) > 1 {
-				// circular dependency
-				for _, c := range configs {
-					if c.Columns != nil && c.Columns.Exclude != nil && len(c.Columns.Exclude) > 0 {
-						resp.excludeColumns = c.Columns.Exclude
-						resp.DependsOn = c.DependsOn
-					} else if c.Columns != nil && c.Columns.Include != nil && len(c.Columns.Include) > 0 {
-						pks := primaryKeys[tableName]
-						if len(pks) == 0 {
-							return nil, fmt.Errorf("no primary keys found for table (%s). Unable to build update query", tableName)
-						}
-						// config for sql update
-						resp.updateConfig = c
-						resp.primaryKeys = primaryKeys[tableName]
-					}
-				}
-			} else if len(configs) == 1 {
-				resp.DependsOn = configs[0].DependsOn
-			} else {
-				return nil, fmt.Errorf("unexpected number of benthos configs")
 			}
 		}
 
@@ -778,32 +653,6 @@ func (b *benthosBuilder) getConnectionById(
 	return getConnResp.Msg.Connection, nil
 }
 
-func (b *benthosBuilder) getAllPostgresPkConstraints(
-	ctx context.Context,
-	conn pg_queries.DBTX,
-	uniqueSchemas []string,
-) (map[string][]string, error) {
-	primaryKeyConstraints, err := dbschemas_postgres.GetAllPostgresPkConstraints(b.pgquerier, ctx, conn, uniqueSchemas)
-	if err != nil {
-		return nil, err
-	}
-	pkMap := dbschemas_postgres.GetPostgresTablePrimaryKeys(primaryKeyConstraints)
-	return pkMap, nil
-}
-
-func (b *benthosBuilder) getAllMysqlPkConstraints(
-	ctx context.Context,
-	conn mysql_queries.DBTX,
-	uniqueSchemas []string,
-) (map[string][]string, error) {
-	primaryKeyConstraints, err := dbschemas_mysql.GetAllMysqlPkConstraints(b.mysqlquerier, ctx, conn, uniqueSchemas)
-	if err != nil {
-		return nil, err
-	}
-	pkMap := dbschemas_mysql.GetMysqlTablePrimaryKeys(primaryKeyConstraints)
-	return pkMap, nil
-}
-
 // filters out tables where all cols are set to null
 func filterNullTables(mappings []*tableMapping) []string {
 	tables := []string{}
@@ -1229,77 +1078,106 @@ func groupGenerateSourceOptionsByTable(
 }
 
 func groupJobSourceOptionsByTable(
-	source *mgmtv1alpha1.JobSource,
+	sqlSourceOpts *sqlJobSourceOpts,
 ) (map[string]*sqlSourceTableOptions, error) {
 	groupedMappings := map[string]*sqlSourceTableOptions{}
 
-	switch jobSourceConfig := source.GetOptions().GetConfig().(type) {
-	case *mgmtv1alpha1.JobSourceOptions_Postgres:
-		schemaOptions := jobSourceConfig.Postgres.Schemas
-		for idx := range schemaOptions {
-			schemaOpt := schemaOptions[idx]
-			for tidx := range schemaOpt.Tables {
-				tableOpt := schemaOpt.Tables[tidx]
-				key := neosync_benthos.BuildBenthosTable(schemaOpt.Schema, tableOpt.Table)
-				groupedMappings[key] = &sqlSourceTableOptions{
-					WhereClause: tableOpt.WhereClause,
-				}
+	for _, schemaOpt := range sqlSourceOpts.SchemaOpt {
+		for tidx := range schemaOpt.Tables {
+			tableOpt := schemaOpt.Tables[tidx]
+			key := neosync_benthos.BuildBenthosTable(schemaOpt.Schema, tableOpt.Table)
+			groupedMappings[key] = &sqlSourceTableOptions{
+				WhereClause: tableOpt.WhereClause,
 			}
 		}
-	case *mgmtv1alpha1.JobSourceOptions_Mysql:
-		schemaOptions := jobSourceConfig.Postgres.Schemas
-		for idx := range schemaOptions {
-			schemaOpt := schemaOptions[idx]
-			for tidx := range schemaOpt.Tables {
-				tableOpt := schemaOpt.Tables[tidx]
-				key := neosync_benthos.BuildBenthosTable(schemaOpt.Schema, tableOpt.Table)
-				groupedMappings[key] = &sqlSourceTableOptions{
-					WhereClause: tableOpt.WhereClause,
-				}
-			}
-		}
-	default:
-		return nil, errors.New("unsupported job source options type")
 	}
 	return groupedMappings, nil
 }
 
-func groupPostgresSourceOptionsByTable(
-	schemaOptions []*mgmtv1alpha1.PostgresSourceSchemaOption,
-) map[string]*sqlSourceTableOptions {
-	groupedMappings := map[string]*sqlSourceTableOptions{}
-
-	for idx := range schemaOptions {
-		schemaOpt := schemaOptions[idx]
-		for tidx := range schemaOpt.Tables {
-			tableOpt := schemaOpt.Tables[tidx]
-			key := neosync_benthos.BuildBenthosTable(schemaOpt.Schema, tableOpt.Table)
-			groupedMappings[key] = &sqlSourceTableOptions{
-				WhereClause: tableOpt.WhereClause,
-			}
-		}
-	}
-
-	return groupedMappings
+type sqlJobSourceOpts struct {
+	HaltOnNewColumnAddition       bool
+	SubsetByForeignKeyConstraints bool
+	SchemaOpt                     []*schemaOptions
+}
+type schemaOptions struct {
+	Schema string
+	Tables []*tableOptions
+}
+type tableOptions struct {
+	Table       string
+	WhereClause *string
 }
 
-func groupMysqlSourceOptionsByTable(
-	schemaOptions []*mgmtv1alpha1.MysqlSourceSchemaOption,
-) map[string]*sqlSourceTableOptions {
-	groupedMappings := map[string]*sqlSourceTableOptions{}
-
-	for idx := range schemaOptions {
-		schemaOpt := schemaOptions[idx]
-		for tidx := range schemaOpt.Tables {
-			tableOpt := schemaOpt.Tables[tidx]
-			key := neosync_benthos.BuildBenthosTable(schemaOpt.Schema, tableOpt.Table)
-			groupedMappings[key] = &sqlSourceTableOptions{
-				WhereClause: tableOpt.WhereClause,
-			}
+func getSqlJobSourceOpts(
+	source *mgmtv1alpha1.JobSource,
+) (*sqlJobSourceOpts, error) {
+	switch jobSourceConfig := source.GetOptions().GetConfig().(type) {
+	case *mgmtv1alpha1.JobSourceOptions_Postgres:
+		if jobSourceConfig.Postgres == nil {
+			return nil, nil
 		}
+		schemaOpt := []*schemaOptions{}
+		for _, opt := range jobSourceConfig.Postgres.Schemas {
+			tableOpts := []*tableOptions{}
+			for _, t := range opt.GetTables() {
+				tableOpts = append(tableOpts, &tableOptions{
+					Table:       t.Table,
+					WhereClause: t.WhereClause,
+				})
+			}
+			schemaOpt = append(schemaOpt, &schemaOptions{
+				Schema: opt.GetSchema(),
+				Tables: tableOpts,
+			})
+		}
+		return &sqlJobSourceOpts{
+			HaltOnNewColumnAddition:       jobSourceConfig.Postgres.HaltOnNewColumnAddition,
+			SubsetByForeignKeyConstraints: jobSourceConfig.Postgres.SubsetByForeignKeyConstraints,
+			SchemaOpt:                     schemaOpt,
+		}, nil
+	case *mgmtv1alpha1.JobSourceOptions_Mysql:
+		if jobSourceConfig.Mysql == nil {
+			return nil, nil
+		}
+		schemaOpt := []*schemaOptions{}
+		for _, opt := range jobSourceConfig.Mysql.Schemas {
+			tableOpts := []*tableOptions{}
+			for _, t := range opt.GetTables() {
+				tableOpts = append(tableOpts, &tableOptions{
+					Table:       t.Table,
+					WhereClause: t.WhereClause,
+				})
+			}
+			schemaOpt = append(schemaOpt, &schemaOptions{
+				Schema: opt.GetSchema(),
+				Tables: tableOpts,
+			})
+		}
+		return &sqlJobSourceOpts{
+			HaltOnNewColumnAddition:       jobSourceConfig.Mysql.HaltOnNewColumnAddition,
+			SubsetByForeignKeyConstraints: jobSourceConfig.Mysql.SubsetByForeignKeyConstraints,
+			SchemaOpt:                     schemaOpt,
+		}, nil
+	default:
+		return nil, errors.New("unsupported job source options type")
 	}
+}
 
-	return groupedMappings
+func (b *benthosBuilder) getJobSourceConnection(ctx context.Context, jobSource *mgmtv1alpha1.JobSource) (*mgmtv1alpha1.Connection, error) {
+	var connectionId string
+	switch jobSourceConfig := jobSource.GetOptions().GetConfig().(type) {
+	case *mgmtv1alpha1.JobSourceOptions_Postgres:
+		connectionId = jobSourceConfig.Postgres.GetConnectionId()
+	case *mgmtv1alpha1.JobSourceOptions_Mysql:
+		connectionId = jobSourceConfig.Mysql.GetConnectionId()
+	default:
+		return nil, errors.New("unsupported job source options type")
+	}
+	sourceConnection, err := b.getConnectionById(ctx, connectionId)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get connection by id (%s): %w", connectionId, err)
+	}
+	return sourceConnection, nil
 }
 
 func groupMappingsByTable(

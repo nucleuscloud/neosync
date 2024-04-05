@@ -8,6 +8,7 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
+	sql_adapter "github.com/nucleuscloud/neosync/backend/pkg/sqladapter"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
@@ -116,15 +117,13 @@ func (a *Activity) GenerateBenthosConfigs(
 	pgpoolmap := map[string]pg_queries.DBTX{}
 	mysqlpoolmap := map[string]mysql_queries.DBTX{}
 
+	sqladapter := sql_adapter.NewSqlAdapter(pgpoolmap, a.pgquerier, mysqlpoolmap, a.mysqlquerier, a.sqlconnector)
+
 	bbuilder := newBenthosBuilder(
-		pgpoolmap,
-		a.pgquerier,
-		mysqlpoolmap,
-		a.mysqlquerier,
+		*sqladapter,
 		a.jobclient,
 		a.connclient,
 		a.transformerclient,
-		a.sqlconnector,
 		req.JobId,
 		info.WorkflowExecution.RunID,
 		a.redisConfig,
