@@ -3,6 +3,7 @@
 import { Badge } from '@/components/ui/badge';
 import {
   getTransformerDataTypesString,
+  getTransformerJobTypesString,
   getTransformerSourceString,
 } from '@/util/util';
 import { PlainMessage } from '@bufbuild/protobuf';
@@ -55,6 +56,23 @@ export function getSystemTransformerColumns(
         return (
           <div className="flex space-x-2">
             <Badge variant="outline">{getValue<string>()}</Badge>
+          </div>
+        );
+      },
+    },
+    {
+      id: 'jobTypes',
+      accessorKey: 'jobTypes',
+      accessorFn: (row) => getTransformerJobTypesString(row.supportedJobTypes),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Job Types" />
+      ),
+      cell: ({ getValue }) => {
+        return (
+          <div className="flex space-x-2">
+            {getValue<string[]>().map((item) => (
+              <Badge variant="outline">{item}</Badge>
+            ))}
           </div>
         );
       },
