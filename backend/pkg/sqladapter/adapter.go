@@ -17,6 +17,7 @@ type SqlDatabase interface {
 	GetDatabaseSchema(ctx context.Context) ([]*DatabaseSchemaRow, error)
 	GetAllForeignKeyConstraints(ctx context.Context, schemas []string) ([]*ForeignKeyConstraintsRow, error)
 	GetAllPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*PrimaryKeyConstraintsRow, error)
+	ClosePool()
 }
 
 type SqlAdapter struct {
@@ -46,8 +47,7 @@ func NewSqlAdapter(
 }
 
 type SqlConnection struct {
-	db        SqlDatabase
-	ClosePool func()
+	db SqlDatabase
 }
 
 func (s *SqlAdapter) NewSqlDb(
@@ -57,7 +57,6 @@ func (s *SqlAdapter) NewSqlDb(
 	connection *mgmtv1alpha1.Connection,
 ) (*SqlConnection, error) {
 	var db SqlDatabase
-	var closePool func()
 	switch driver {
 	case "postgres":
 		adapter := &PostgresAdapter{
@@ -77,7 +76,7 @@ func (s *SqlAdapter) NewSqlDb(
 				return nil, fmt.Errorf("unable to open postgres connection: %w", err)
 			}
 			s.pgpool.Store(connection.Id, pool)
-			closePool = func() {
+			adapter.closePool = func() {
 				if pgconn != nil {
 					pgconn.Close()
 					s.pgpool.Delete(connection.Id)
@@ -105,7 +104,7 @@ func (s *SqlAdapter) NewSqlDb(
 				return nil, fmt.Errorf("unable to open mysql connection: %w", err)
 			}
 			s.mysqlpool.Store(connection.Id, pool)
-			closePool = func() {
+			adapter.closePool = func() {
 				if conn != nil {
 					err := conn.Close()
 					if err != nil {
@@ -127,8 +126,7 @@ func (s *SqlAdapter) NewSqlDb(
 	}
 
 	return &SqlConnection{
-		db:        db,
-		ClosePool: closePool,
+		db: db,
 	}, nil
 }
 
@@ -173,4 +171,8 @@ type PrimaryKeyConstraintsRow struct {
 
 func (s *SqlConnection) GetAllPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*PrimaryKeyConstraintsRow, error) {
 	return s.db.GetAllPrimaryKeyConstraints(ctx, schemas)
+}
+
+func (s *SqlConnection) ClosePool() {
+	s.db.ClosePool()
 }
