@@ -1,0 +1,120 @@
+services:
+  # otel-collector:
+  #   container_name: neosync-otel
+  #   image: otel/opentelemetry-collector-contrib:0.96.0
+  #   networks:
+  #     - neosync-network
+  #     - metrics
+  #   volumes:
+  #     - $PWD/hack/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
+  #   ports:
+  #     - 1888:1888 # pprof extension
+  #     - 8888:8888 # Prometheus metrics exposed by the Collector
+  #     - 8889:8889 # Prometheus exporter metrics
+  #     - 13133:13133 # health_check extension
+  #     - 4317:4317 # OTLP gRPC receiver
+  #     - 4318:4318 # OTLP http receiver
+  #     - 55679:55679 # zpages extension
+
+  # prometheus:
+  #   container_name: neosync-prom
+  #   image: prom/prometheus
+  #   networks:
+  #     - neosync-network
+  #     - metrics
+  #   volumes:
+  #     - $PWD/hack/prometheus.yaml:/etc/prometheus/prometheus.yml
+  #   ports:
+  #     - 9090:9090
+
+  # victoriametrics:
+  #   container_name: victoriametrics
+  #   image: victoriametrics/victoria-metrics:v1.99.0
+  #   ports:
+  #     - 8428:8428
+  #     - 8089:8089
+  #     - 8089:8089/udp
+  #     - 2003:2003
+  #     - 2003:2003/udp
+  #     - 4242:4242
+  #   volumes:
+  #     - $PWD/hack/prometheus.yaml:/etc/victoriametrics/prometheus.yaml
+  #     - vmdata:/storage
+  #   command:
+  #     - "--storageDataPath=/storage"
+  #     - "--graphiteListenAddr=:2003"
+  #     - "--opentsdbListenAddr=:4242"
+  #     - "--httpListenAddr=:8428"
+  #     - "--influxListenAddr=:8089"
+  #     - "--promscrape.config=/etc/victoriametrics/prometheus.yaml"
+  #     # - "--vmalert.proxyURL=http://vmalert:8880"
+  #   networks:
+  #     - neosync-network
+  #     - metrics
+
+  grafana:
+    container_name: neosync-grafana
+    image: grafana/grafana-enterprise
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /etc/grafana/provisioning/datasources
+        cat <<EOF > /etc/grafana/provisioning/datasources/ds.yaml
+        apiVersion: 1
+        datasources:
+        - name: Loki
+          type: loki
+          access: proxy
+          orgId: 1
+          url: http://loki:3100
+          basicAuth: false
+          isDefault: true
+          version: 1
+          editable: false
+        EOF
+        /run.sh
+    networks:
+      - metrics
+    ports:
+      - 3003:3000
+    volumes:
+      - grafana:/var/lib/grafana
+
+  loki:
+    container_name: neosync-loki
+    image: grafana/loki:2.9.4
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/loki-config.yaml
+    volumes:
+      - $PWD/hack/loki-config.yaml:/etc/loki/loki-config.yaml
+    networks:
+      - metrics
+      - neosync-network
+
+  promtail:
+    container_name: neosync-promtail
+    image: grafana/promtail:2.9.4
+    command: -config.file=/etc/promtail/config.yml
+    volumes:
+      - $PWD/hack/promtail-config.yaml:/etc/promtail/config.yml
+      - /var/lib/docker/containers:/var/log/docker/containers:ro
+    networks:
+      - metrics
+      - neosync-network
+
+networks:
+  neosync-network:
+    external: true
+  metrics:
+    driver: bridge
+    name: metrics
+volumes:
+  grafana:
+  application_logs:
+    external: true
