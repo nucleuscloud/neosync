@@ -489,10 +489,12 @@ func (s *Service) CreateJob(
 	schedule := nucleusdb.ToNullableString(cj.CronSchedule)
 	paused := true
 	spec := temporalclient.ScheduleSpec{}
-	// we only want to unpause the temporal schedule if the user provided the cronstring directly
-	if req.Msg.GetCronSchedule() != "" && schedule != nil {
+	if schedule != nil {
 		spec.CronExpressions = []string{*schedule}
-		paused = false
+		// we only want to unpause the temporal schedule if the user provided the cronstring directly
+		if req.Msg.GetCronSchedule() != "" {
+			paused = false
+		}
 	}
 	action := &temporalclient.ScheduleWorkflowAction{
 		Workflow:  datasync_workflow.Workflow,
