@@ -137,7 +137,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		if err != nil {
 			return nil, fmt.Errorf("unable to create new sql db: %w", err)
 		}
-		defer db.Close()
+		defer db.ClosePool()
 
 		dbschemas, err := db.GetDatabaseSchema(ctx)
 		if err != nil {

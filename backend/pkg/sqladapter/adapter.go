@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"sync"
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
@@ -16,23 +17,22 @@ type SqlDatabase interface {
 	GetDatabaseSchema(ctx context.Context) ([]*DatabaseSchemaRow, error)
 	GetAllForeignKeyConstraints(ctx context.Context, schemas []string) ([]*ForeignKeyConstraintsRow, error)
 	GetAllPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*PrimaryKeyConstraintsRow, error)
-	Close() error
 }
 
 type SqlAdapter struct {
-	pgpool    map[string]pg_queries.DBTX
+	pgpool    *sync.Map
 	pgquerier pg_queries.Querier
 
-	mysqlpool    map[string]mysql_queries.DBTX
+	mysqlpool    *sync.Map
 	mysqlquerier mysql_queries.Querier
 
 	sqlconnector sqlconnect.SqlConnector
 }
 
 func NewSqlAdapter(
-	pgpool map[string]pg_queries.DBTX,
+	pgpool *sync.Map,
 	pgquerier pg_queries.Querier,
-	mysqlpool map[string]mysql_queries.DBTX,
+	mysqlpool *sync.Map,
 	mysqlquerier mysql_queries.Querier,
 	sqlconnector sqlconnect.SqlConnector,
 ) *SqlAdapter {
@@ -46,7 +46,8 @@ func NewSqlAdapter(
 }
 
 type SqlConnection struct {
-	db SqlDatabase
+	db        SqlDatabase
+	ClosePool func()
 }
 
 func (s *SqlAdapter) NewSqlDb(
@@ -56,12 +57,13 @@ func (s *SqlAdapter) NewSqlDb(
 	connection *mgmtv1alpha1.Connection,
 ) (*SqlConnection, error) {
 	var db SqlDatabase
+	var closePool func()
 	switch driver {
 	case "postgres":
 		adapter := &PostgresAdapter{
 			querier: s.pgquerier,
 		}
-		if _, ok := s.pgpool[connection.Id]; !ok {
+		if _, ok := s.pgpool.Load(connection.Id); !ok {
 			pgconfig := connection.ConnectionConfig.GetPgConfig()
 			if pgconfig == nil {
 				return nil, fmt.Errorf("source connection (%s) is not a postgres config", connection.Id)
@@ -74,17 +76,26 @@ func (s *SqlAdapter) NewSqlDb(
 			if err != nil {
 				return nil, fmt.Errorf("unable to open postgres connection: %w", err)
 			}
-			adapter.CloseConnection = pgconn.Close
-			s.pgpool[connection.Id] = pool
+			s.pgpool.Store(connection.Id, pool)
+			closePool = func() {
+				if pgconn != nil {
+					pgconn.Close()
+					s.pgpool.Delete(connection.Id)
+				}
+			}
 		}
-		pool := s.pgpool[connection.Id]
+		val, _ := s.pgpool.Load(connection.Id)
+		pool, ok := val.(pg_queries.DBTX)
+		if !ok {
+			return nil, fmt.Errorf("pool found, but type assertion to pg_queries.DBTX failed")
+		}
 		adapter.pool = pool
 		db = adapter
 	case "mysql":
 		adapter := &MysqlAdapter{
 			querier: s.mysqlquerier,
 		}
-		if _, ok := s.mysqlpool[connection.Id]; !ok {
+		if _, ok := s.mysqlpool.Load(connection.Id); !ok {
 			conn, err := s.sqlconnector.NewDbFromConnectionConfig(connection.ConnectionConfig, shared.Ptr(uint32(5)), slogger)
 			if err != nil {
 				return nil, fmt.Errorf("unable to create new mysql pool from connection config: %w", err)
@@ -93,10 +104,22 @@ func (s *SqlAdapter) NewSqlDb(
 			if err != nil {
 				return nil, fmt.Errorf("unable to open mysql connection: %w", err)
 			}
-			adapter.CloseConnection = conn.Close
-			s.mysqlpool[connection.Id] = pool
+			s.mysqlpool.Store(connection.Id, pool)
+			closePool = func() {
+				if conn != nil {
+					err := conn.Close()
+					if err != nil {
+						slogger.Error(fmt.Errorf("failed to close connection: %w", err).Error())
+					}
+					s.mysqlpool.Delete(connection.Id)
+				}
+			}
 		}
-		pool := s.mysqlpool[connection.Id]
+		val, _ := s.mysqlpool.Load(connection.Id)
+		pool, ok := val.(mysql_queries.DBTX)
+		if !ok {
+			return nil, fmt.Errorf("pool found, but type assertion to mysql_queries.DBTX failed")
+		}
 		adapter.pool = pool
 		db = adapter
 	default:
@@ -104,7 +127,8 @@ func (s *SqlAdapter) NewSqlDb(
 	}
 
 	return &SqlConnection{
-		db: db,
+		db:        db,
+		ClosePool: closePool,
 	}, nil
 }
 
@@ -149,8 +173,4 @@ type PrimaryKeyConstraintsRow struct {
 
 func (s *SqlConnection) GetAllPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*PrimaryKeyConstraintsRow, error) {
 	return s.db.GetAllPrimaryKeyConstraints(ctx, schemas)
-}
-
-func (s *SqlConnection) Close() error {
-	return s.db.Close()
 }

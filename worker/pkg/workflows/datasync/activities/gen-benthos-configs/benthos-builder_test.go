@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"sync"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -53,12 +54,12 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Pg(t *testing.T) 
 
 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
-	pgcache := map[string]pg_queries.DBTX{
-		"123": pg_queries.NewMockDBTX(t),
-		"456": pg_queries.NewMockDBTX(t),
-	}
+	pgcache := &sync.Map{}
+	pgcache.Store("123", pg_queries.NewMockDBTX(t))
+	pgcache.Store("456", pg_queries.NewMockDBTX(t))
+
 	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlcache := &sync.Map{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 
 	mockSqlAdapter := sql_adapter.NewSqlAdapter(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
@@ -240,12 +241,11 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Metrics(t *testing.T) {
 
 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
-	pgcache := map[string]pg_queries.DBTX{
-		"123": pg_queries.NewMockDBTX(t),
-		"456": pg_queries.NewMockDBTX(t),
-	}
+	pgcache := &sync.Map{}
+	pgcache.Store("123", pg_queries.NewMockDBTX(t))
+	pgcache.Store("456", pg_queries.NewMockDBTX(t))
 	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlcache := &sync.Map{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 	mockSqlAdapter := sql_adapter.NewSqlAdapter(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
 
@@ -439,12 +439,11 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Generate_Pg_Pg(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
-	pgcache := map[string]pg_queries.DBTX{
-		"123": pg_queries.NewMockDBTX(t),
-		"456": pg_queries.NewMockDBTX(t),
-	}
+	pgcache := &sync.Map{}
+	pgcache.Store("123", pg_queries.NewMockDBTX(t))
+	pgcache.Store("456", pg_queries.NewMockDBTX(t))
 	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlcache := &sync.Map{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 	mockSqlAdapter := sql_adapter.NewSqlAdapter(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
 
@@ -622,12 +621,11 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Transformer_Pg_Pg(t *
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
-	pgcache := map[string]pg_queries.DBTX{
-		"123": pg_queries.NewMockDBTX(t),
-		"456": pg_queries.NewMockDBTX(t),
-	}
+	pgcache := &sync.Map{}
+	pgcache.Store("123", pg_queries.NewMockDBTX(t))
+	pgcache.Store("456", pg_queries.NewMockDBTX(t))
 	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlcache := &sync.Map{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 	mockSqlAdapter := sql_adapter.NewSqlAdapter(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
 
@@ -946,12 +944,11 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Passthrough_Pg_Pg(t *
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
-	pgcache := map[string]pg_queries.DBTX{
-		"123": pg_queries.NewMockDBTX(t),
-		"456": pg_queries.NewMockDBTX(t),
-	}
+	pgcache := &sync.Map{}
+	pgcache.Store("123", pg_queries.NewMockDBTX(t))
+	pgcache.Store("456", pg_queries.NewMockDBTX(t))
 	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlcache := &sync.Map{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 	mockSqlAdapter := sql_adapter.NewSqlAdapter(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
 
@@ -1229,12 +1226,11 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_CircularDependency_PrimaryKey_Tr
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
-	pgcache := map[string]pg_queries.DBTX{
-		"123": pg_queries.NewMockDBTX(t),
-		"456": pg_queries.NewMockDBTX(t),
-	}
+	pgcache := &sync.Map{}
+	pgcache.Store("123", pg_queries.NewMockDBTX(t))
+	pgcache.Store("456", pg_queries.NewMockDBTX(t))
 	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlcache := &sync.Map{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 	mockSqlAdapter := sql_adapter.NewSqlAdapter(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
 
@@ -1533,12 +1529,11 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
-	pgcache := map[string]pg_queries.DBTX{
-		"123": pg_queries.NewMockDBTX(t),
-		"456": pg_queries.NewMockDBTX(t),
-	}
+	pgcache := &sync.Map{}
+	pgcache.Store("123", pg_queries.NewMockDBTX(t))
+	pgcache.Store("456", pg_queries.NewMockDBTX(t))
 	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlcache := &sync.Map{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 	mockSqlAdapter := sql_adapter.NewSqlAdapter(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
 
@@ -1732,12 +1727,11 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
-	pgcache := map[string]pg_queries.DBTX{
-		"123": pg_queries.NewMockDBTX(t),
-		"456": pg_queries.NewMockDBTX(t),
-	}
+	pgcache := &sync.Map{}
+	pgcache.Store("123", pg_queries.NewMockDBTX(t))
+	pgcache.Store("456", pg_queries.NewMockDBTX(t))
 	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlcache := &sync.Map{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 	mockSqlAdapter := sql_adapter.NewSqlAdapter(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
 
@@ -2099,12 +2093,11 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
-	pgcache := map[string]pg_queries.DBTX{
-		"123": pg_queries.NewMockDBTX(t),
-		"456": pg_queries.NewMockDBTX(t),
-	}
+	pgcache := &sync.Map{}
+	pgcache.Store("123", pg_queries.NewMockDBTX(t))
+	pgcache.Store("456", pg_queries.NewMockDBTX(t))
 	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlcache := &sync.Map{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 	mockSqlAdapter := sql_adapter.NewSqlAdapter(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
 
@@ -2551,12 +2544,11 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) 
 	mockTransformersClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
-	pgcache := map[string]pg_queries.DBTX{}
+	pgcache := &sync.Map{}
 	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{
-		"123": mysql_queries.NewMockDBTX(t),
-		"456": mysql_queries.NewMockDBTX(t),
-	}
+	mysqlcache := &sync.Map{}
+	mysqlcache.Store("123", mysql_queries.NewMockDBTX(t))
+	mysqlcache.Store("456", mysql_queries.NewMockDBTX(t))
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 	mockSqlAdapter := sql_adapter.NewSqlAdapter(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
 
@@ -2838,12 +2830,12 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
-	pgcache := map[string]pg_queries.DBTX{}
+	pgcache := &sync.Map{}
 	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{
-		"123": mysql_queries.NewMockDBTX(t),
-		"456": mysql_queries.NewMockDBTX(t),
-	}
+	mysqlcache := &sync.Map{}
+	mysqlcache.Store("123", mysql_queries.NewMockDBTX(t))
+	mysqlcache.Store("456", mysql_queries.NewMockDBTX(t))
+
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
 	mockSqlAdapter := sql_adapter.NewSqlAdapter(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
 

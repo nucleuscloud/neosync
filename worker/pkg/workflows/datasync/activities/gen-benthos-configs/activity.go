@@ -2,6 +2,7 @@ package genbenthosconfigs_activity
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
@@ -114,8 +115,8 @@ func (a *Activity) GenerateBenthosConfigs(
 		}
 	}()
 
-	pgpoolmap := map[string]pg_queries.DBTX{}
-	mysqlpoolmap := map[string]mysql_queries.DBTX{}
+	pgpoolmap := &sync.Map{}
+	mysqlpoolmap := &sync.Map{}
 
 	sqladapter := sql_adapter.NewSqlAdapter(pgpoolmap, a.pgquerier, mysqlpoolmap, a.mysqlquerier, a.sqlconnector)
 
