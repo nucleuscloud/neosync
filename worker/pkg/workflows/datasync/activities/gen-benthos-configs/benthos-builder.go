@@ -18,6 +18,7 @@ import (
 	dbschemas_mysql "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/mysql"
 	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/postgres"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqladapter"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
@@ -44,6 +45,7 @@ type benthosBuilder struct {
 	mysqlquerier mysql_queries.Querier
 
 	sqlconnector sqlconnect.SqlConnector
+	sqladapter   sqladapter.SqlAdapter
 
 	jobclient         mgmtv1alpha1connect.JobServiceClient
 	connclient        mgmtv1alpha1connect.ConnectionServiceClient
@@ -64,6 +66,8 @@ func newBenthosBuilder(
 	mysqlpool map[string]mysql_queries.DBTX,
 	mysqlquerier mysql_queries.Querier,
 
+	sqladapter sqladapter.SqlAdapter,
+
 	jobclient mgmtv1alpha1connect.JobServiceClient,
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
@@ -82,6 +86,7 @@ func newBenthosBuilder(
 		mysqlpool:         mysqlpool,
 		mysqlquerier:      mysqlquerier,
 		sqlconnector:      sqlconnector,
+		sqladapter:        sqladapter,
 		jobclient:         jobclient,
 		connclient:        connclient,
 		transformerclient: transformerclient,
@@ -149,26 +154,36 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			sourceTableOpts = groupPostgresSourceOptionsByTable(sqlOpts.Schemas)
 		}
 
-		if _, ok := b.pgpool[sourceConnection.Id]; !ok {
-			pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(pgconfig, shared.Ptr(uint32(5)), slogger)
-			if err != nil {
-				return nil, fmt.Errorf("unable to create new postgres pool from connection config: %w", err)
-			}
-			pool, err := pgconn.Open(ctx)
-			if err != nil {
-				return nil, fmt.Errorf("unable to open postgres connection: %w", err)
-			}
-			defer pgconn.Close()
-			b.pgpool[sourceConnection.Id] = pool
-		}
-		pool := b.pgpool[sourceConnection.Id]
+		// if _, ok := b.pgpool[sourceConnection.Id]; !ok {
+		// 	pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(pgconfig, shared.Ptr(uint32(5)), slogger)
+		// 	if err != nil {
+		// 		return nil, fmt.Errorf("unable to create new postgres pool from connection config: %w", err)
+		// 	}
+		// 	pool, err := pgconn.Open(ctx)
+		// 	if err != nil {
+		// 		return nil, fmt.Errorf("unable to open postgres connection: %w", err)
+		// 	}
+		// 	defer pgconn.Close()
+		// 	b.pgpool[sourceConnection.Id] = pool
+		// }
+		// pool := b.pgpool[sourceConnection.Id]
 
-		// validate job mappings align with sql connections
-		dbschemas, err := b.pgquerier.GetDatabaseSchema(ctx, pool)
+		db, err := b.sqladapter.NewSqlDb(ctx, postgresDriver, slogger, sourceConnection)
+		if err != nil {
+			return nil, fmt.Errorf("unable to create new sql db: %w", err)
+		}
+
+		dbschemas, err := db.GetDatabaseSchema(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("unable to get database schema for postgres connection: %w", err)
 		}
-		groupedSchemas := dbschemas_postgres.GetUniqueSchemaColMappings(dbschemas)
+		// validate job mappings align with sql connections
+		// dbschemas, err := b.pgquerier.GetDatabaseSchema(ctx, pool)
+		// if err != nil {
+		// 	return nil, fmt.Errorf("unable to get database schema for postgres connection: %w", err)
+		// }
+		// groupedSchemas := dbschemas_postgres.GetUniqueSchemaColMappings(dbschemas)
+		groupedSchemas := sqladapter.GetUniqueSchemaColMappings(dbschemas)
 		if !areMappingsSubsetOfSchemas(groupedSchemas, job.Mappings) {
 			return nil, errors.New(jobmappingSubsetErrMsg)
 		}
@@ -179,16 +194,21 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 		groupedColInfoMap = groupedSchemas
 
-		allConstraints, err := dbschemas_postgres.GetAllPostgresFkConstraints(b.pgquerier, ctx, pool, uniqueSchemas)
+		// allConstraints, err := dbschemas_postgres.GetAllPostgresFkConstraints(b.pgquerier, ctx, pool, uniqueSchemas)
+		allConstraints, err := db.GetAllForeignKeyConstraints(ctx, uniqueSchemas)
 		if err != nil {
-			return nil, fmt.Errorf("unable to retrieve postgres foreign key constraints: %w", err)
+			return nil, fmt.Errorf("unable to retrieve database foreign key constraints: %w", err)
 		}
 		slogger.Info(fmt.Sprintf("found %d foreign key constraints for database", len(allConstraints)))
-		td := dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
-		primaryKeys, err := b.getAllPostgresPkConstraints(ctx, pool, uniqueSchemas)
+		// td := dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
+		td := sqladapter.GetDbTableDependencies(allConstraints)
+		// primaryKeys, err := b.getAllPostgresPkConstraints(ctx, pool, uniqueSchemas)
+
+		primaryKeys, err := db.GetAllPrimaryKeyConstraints(ctx, uniqueSchemas)
 		if err != nil {
 			return nil, fmt.Errorf("unable to get all postgres primary key constraints: %w", err)
 		}
+		primaryKeyMap := sqladapter.GetTablePrimaryKeysMap(primaryKeys)
 
 		tables := filterNullTables(groupedMappings)
 		tableSubsetMap := buildTableSubsetMap(sourceTableOpts)
@@ -228,7 +248,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						resp.excludeColumns = c.Columns.Exclude
 						resp.DependsOn = c.DependsOn
 					} else if c.Columns != nil && c.Columns.Include != nil && len(c.Columns.Include) > 0 {
-						pks := primaryKeys[tableName]
+						pks := primaryKeyMap[tableName]
 						if len(pks) == 0 {
 							return nil, fmt.Errorf("no primary keys found for table (%s). Unable to build update query", tableName)
 						}
