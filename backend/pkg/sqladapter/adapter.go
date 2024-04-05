@@ -113,7 +113,7 @@ type DatabaseSchemaRow struct {
 	TableName              string
 	ColumnName             string
 	DataType               string
-	ColumnDefault          interface{}
+	ColumnDefault          string
 	IsNullable             string
 	CharacterMaximumLength int32
 	NumericPrecision       int32

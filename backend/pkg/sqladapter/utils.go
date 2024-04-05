@@ -20,16 +20,9 @@ func GetUniqueSchemaColMappings(
 }
 
 func toColumnInfo(row *DatabaseSchemaRow) *dbschemas.ColumnInfo {
-	var colDefault string
-	if row.ColumnDefault != nil {
-		val, ok := row.ColumnDefault.(string)
-		if ok {
-			colDefault = val
-		}
-	}
 	return &dbschemas.ColumnInfo{
 		OrdinalPosition:        int32(row.OrdinalPosition),
-		ColumnDefault:          colDefault,
+		ColumnDefault:          row.ColumnDefault,
 		IsNullable:             row.IsNullable,
 		DataType:               row.DataType,
 		CharacterMaximumLength: ptr(row.CharacterMaximumLength),

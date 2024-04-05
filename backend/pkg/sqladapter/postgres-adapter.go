@@ -21,12 +21,19 @@ func (p *PostgresAdapter) GetDatabaseSchema(ctx context.Context) ([]*DatabaseSch
 	}
 	result := []*DatabaseSchemaRow{}
 	for _, row := range dbschemas {
+		var colDefault string
+		if row.ColumnDefault != nil {
+			val, ok := row.ColumnDefault.(string)
+			if ok {
+				colDefault = val
+			}
+		}
 		result = append(result, &DatabaseSchemaRow{
 			TableSchema:            row.TableSchema,
 			TableName:              row.TableName,
 			ColumnName:             row.ColumnName,
 			DataType:               row.DataType,
-			ColumnDefault:          row.ColumnDefault,
+			ColumnDefault:          colDefault,
 			IsNullable:             row.IsNullable,
 			CharacterMaximumLength: row.CharacterMaximumLength,
 			NumericPrecision:       row.NumericPrecision,
