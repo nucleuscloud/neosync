@@ -99,7 +99,7 @@ export default function DestinationOptionsForm(
                       isChecked={field.value || false}
                       onCheckedChange={field.onChange}
                       title="Init Table Schema"
-                      description="Creates the table schema and its constraints"
+                      description="Creates table(s) schema and its constraints. The database schema must exist. "
                     />
                   </FormControl>
                   <FormMessage />
@@ -153,7 +153,7 @@ export default function DestinationOptionsForm(
                           isChecked={field.value || false}
                           onCheckedChange={field.onChange}
                           title="Init Table Schema"
-                          description="Creates the table schema and its constraints"
+                          description="Creates table(s) schema and its constraints. The database schema must exist. "
                         />
                       </FormControl>
                       <FormMessage />
