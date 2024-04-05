@@ -9,8 +9,9 @@ import (
 )
 
 type PostgresAdapter struct {
-	querier pg_queries.Querier
-	pool    pg_queries.DBTX
+	querier         pg_queries.Querier
+	pool            pg_queries.DBTX
+	CloseConnection func()
 }
 
 func (p *PostgresAdapter) GetDatabaseSchema(ctx context.Context) ([]*DatabaseSchemaRow, error) {
@@ -72,4 +73,11 @@ func (p *PostgresAdapter) GetAllPrimaryKeyConstraints(ctx context.Context, schem
 		})
 	}
 	return result, nil
+}
+
+func (p *PostgresAdapter) Close() error {
+	if p.pool != nil && p.CloseConnection != nil {
+		p.CloseConnection()
+	}
+	return nil
 }

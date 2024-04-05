@@ -9,8 +9,9 @@ import (
 )
 
 type MysqlAdapter struct {
-	querier mysql_queries.Querier
-	pool    mysql_queries.DBTX
+	querier         mysql_queries.Querier
+	pool            mysql_queries.DBTX
+	CloseConnection func() error
 }
 
 func (m *MysqlAdapter) GetDatabaseSchema(ctx context.Context) ([]*DatabaseSchemaRow, error) {
@@ -68,4 +69,12 @@ func (m *MysqlAdapter) GetAllPrimaryKeyConstraints(ctx context.Context, schemas 
 		})
 	}
 	return result, nil
+}
+
+func (m *MysqlAdapter) Close() error {
+	if m.pool != nil && m.CloseConnection != nil {
+		err := m.CloseConnection()
+		return err
+	}
+	return nil
 }

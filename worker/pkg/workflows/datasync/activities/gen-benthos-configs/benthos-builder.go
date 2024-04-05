@@ -114,7 +114,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		responses = append(responses, sourceResponses...)
 
 	case *mgmtv1alpha1.JobSourceOptions_Postgres, *mgmtv1alpha1.JobSourceOptions_Mysql:
-		// sourceConnection, err := b.getConnectionById(ctx, jobSourceConfig.Postgres.ConnectionId)
 		sourceConnection, err := b.getJobSourceConnection(ctx, job.GetSource())
 		if err != nil {
 			return nil, fmt.Errorf("unable to get connection by id: %w", err)
@@ -131,16 +130,14 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		}
 		var sourceTableOpts map[string]*sqlSourceTableOptions
 		if sqlSourceOpts != nil {
-			sourceTableOpts, err = groupJobSourceOptionsByTable(sqlSourceOpts)
-			if err != nil {
-				return nil, err
-			}
+			sourceTableOpts = groupJobSourceOptionsByTable(sqlSourceOpts)
 		}
 
 		db, err := b.sqladapter.NewSqlDb(ctx, sqlDriver, slogger, sourceConnection)
 		if err != nil {
 			return nil, fmt.Errorf("unable to create new sql db: %w", err)
 		}
+		defer db.Close()
 
 		dbschemas, err := db.GetDatabaseSchema(ctx)
 		if err != nil {
@@ -1079,9 +1076,8 @@ func groupGenerateSourceOptionsByTable(
 
 func groupJobSourceOptionsByTable(
 	sqlSourceOpts *sqlJobSourceOpts,
-) (map[string]*sqlSourceTableOptions, error) {
+) map[string]*sqlSourceTableOptions {
 	groupedMappings := map[string]*sqlSourceTableOptions{}
-
 	for _, schemaOpt := range sqlSourceOpts.SchemaOpt {
 		for tidx := range schemaOpt.Tables {
 			tableOpt := schemaOpt.Tables[tidx]
@@ -1091,7 +1087,7 @@ func groupJobSourceOptionsByTable(
 			}
 		}
 	}
-	return groupedMappings, nil
+	return groupedMappings
 }
 
 type sqlJobSourceOpts struct {

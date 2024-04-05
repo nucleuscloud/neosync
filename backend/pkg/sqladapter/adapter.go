@@ -16,6 +16,7 @@ type SqlDatabase interface {
 	GetDatabaseSchema(ctx context.Context) ([]*DatabaseSchemaRow, error)
 	GetAllForeignKeyConstraints(ctx context.Context, schemas []string) ([]*ForeignKeyConstraintsRow, error)
 	GetAllPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*PrimaryKeyConstraintsRow, error)
+	Close() error
 }
 
 type SqlAdapter struct {
@@ -40,6 +41,7 @@ func NewSqlAdapter(
 		pgquerier:    pgquerier,
 		mysqlpool:    mysqlpool,
 		mysqlquerier: mysqlquerier,
+		sqlconnector: sqlconnector,
 	}
 }
 
@@ -56,6 +58,9 @@ func (s *SqlAdapter) NewSqlDb(
 	var db SqlDatabase
 	switch driver {
 	case "postgres":
+		adapter := &PostgresAdapter{
+			querier: s.pgquerier,
+		}
 		if _, ok := s.pgpool[connection.Id]; !ok {
 			pgconfig := connection.ConnectionConfig.GetPgConfig()
 			if pgconfig == nil {
@@ -69,15 +74,16 @@ func (s *SqlAdapter) NewSqlDb(
 			if err != nil {
 				return nil, fmt.Errorf("unable to open postgres connection: %w", err)
 			}
-			defer pgconn.Close()
+			adapter.CloseConnection = pgconn.Close
 			s.pgpool[connection.Id] = pool
 		}
 		pool := s.pgpool[connection.Id]
-		db = &PostgresAdapter{
-			querier: s.pgquerier,
-			pool:    pool,
-		}
+		adapter.pool = pool
+		db = adapter
 	case "mysql":
+		adapter := &MysqlAdapter{
+			querier: s.mysqlquerier,
+		}
 		if _, ok := s.mysqlpool[connection.Id]; !ok {
 			conn, err := s.sqlconnector.NewDbFromConnectionConfig(connection.ConnectionConfig, shared.Ptr(uint32(5)), slogger)
 			if err != nil {
@@ -87,14 +93,12 @@ func (s *SqlAdapter) NewSqlDb(
 			if err != nil {
 				return nil, fmt.Errorf("unable to open mysql connection: %w", err)
 			}
-			defer conn.Close()
+			adapter.CloseConnection = conn.Close
 			s.mysqlpool[connection.Id] = pool
 		}
 		pool := s.mysqlpool[connection.Id]
-		db = &MysqlAdapter{
-			querier: s.mysqlquerier,
-			pool:    pool,
-		}
+		adapter.pool = pool
+		db = adapter
 	default:
 		return nil, fmt.Errorf("unsupported database driver: %s", driver)
 	}
@@ -145,4 +149,8 @@ type PrimaryKeyConstraintsRow struct {
 
 func (s *SqlConnection) GetAllPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*PrimaryKeyConstraintsRow, error) {
 	return s.db.GetAllPrimaryKeyConstraints(ctx, schemas)
+}
+
+func (s *SqlConnection) Close() error {
+	return s.db.Close()
 }
