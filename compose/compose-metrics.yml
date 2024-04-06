@@ -116,5 +116,3 @@ networks:
     name: metrics
 volumes:
   grafana:
-  application_logs:
-    external: true

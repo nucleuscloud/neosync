@@ -31,7 +31,6 @@ scrape_configs:
           level: null
           namespace: null
           runID: null
-          time: null
           workflowID: null
-      - output:
-          source: msg
+      # - output:
+      #     source: msg

@@ -15,11 +15,28 @@ type Service struct {
 	temporalWfManager clientmanager.TemporalClientManagerClient
 }
 
+type RunLogType string
+
+const (
+	KubePodRunLogType RunLogType = "k8s-pods"
+	LokiRunLogType    RunLogType = "loki"
+)
+
+type KubePodRunLogConfig struct {
+	Namespace     string
+	WorkerAppName string
+}
+
+type LokiRunLogConfig struct {
+	BaseUrl string
+}
+
 type Config struct {
-	IsAuthEnabled           bool
-	IsKubernetesEnabled     bool
-	KubernetesNamespace     string
-	KubernetesWorkerAppName string
+	IsAuthEnabled bool
+	RunLogType    *RunLogType
+
+	RunLogPodConfig  *KubePodRunLogConfig // required if RunLogType is k8s-pods
+	LokiRunLogConfig *LokiRunLogConfig    // required if RunLogType is loki
 }
 
 func New(

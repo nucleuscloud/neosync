@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"sort"
 	"time"
 
 	"connectrpc.com/connect"
@@ -14,6 +15,7 @@ import (
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
+	"github.com/nucleuscloud/neosync/backend/internal/loki"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	commonpb "go.temporal.io/api/common/v1"
@@ -437,7 +439,16 @@ func (s *Service) GetJobRunLogsStream(
 ) error {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("jobRunId", req.Msg.JobRunId)
-	if s.cfg.IsKubernetesEnabled {
+
+	if s.cfg.RunLogType == nil {
+		return nucleuserrors.NewNotImplemented("streaming log pods not implemented for this container type")
+	}
+
+	switch *s.cfg.RunLogType {
+	case KubePodRunLogType:
+		if s.cfg.RunLogPodConfig == nil {
+			return nucleuserrors.NewInternalError("run logs configured but not config provided")
+		}
 		verifResp, err := s.getVerifiedJobRun(ctx, logger, req.Msg.JobRunId, req.Msg.AccountId)
 		if err != nil {
 			return err
@@ -455,12 +466,13 @@ func (s *Service) GetJobRunLogsStream(
 			return err
 		}
 
-		appNameSelector, err := labels.NewRequirement("app", selection.Equals, []string{s.cfg.KubernetesWorkerAppName})
+		appNameSelector, err := labels.NewRequirement("app", selection.Equals, []string{s.cfg.RunLogPodConfig.WorkerAppName})
 		if err != nil {
 			logger.Error(fmt.Errorf("unable to build label selector to find logs: %w", err).Error())
 			return err
 		}
-		pods, err := clientset.CoreV1().Pods(s.cfg.KubernetesNamespace).List(context.Background(), metav1.ListOptions{
+		podclient := clientset.CoreV1().Pods(s.cfg.RunLogPodConfig.Namespace)
+		pods, err := podclient.List(ctx, metav1.ListOptions{
 			LabelSelector: appNameSelector.String(),
 		})
 		if err != nil {
@@ -469,11 +481,11 @@ func (s *Service) GetJobRunLogsStream(
 		}
 		for idx := range pods.Items {
 			pod := pods.Items[idx]
-			logsReq := clientset.CoreV1().Pods(s.cfg.KubernetesNamespace).GetLogs(pod.Name, &corev1.PodLogOptions{
+			logsReq := podclient.GetLogs(pod.Name, &corev1.PodLogOptions{
 				Container: "user-container",
 				Follow:    req.Msg.ShouldTail,
 				TailLines: req.Msg.MaxLogLines,
-				SinceTime: getLogFilterTime(req.Msg.GetWindow()),
+				SinceTime: getLogFilterTime(req.Msg.GetWindow(), time.Now()),
 			})
 			logstream, err := logsReq.Stream(ctx)
 			if err != nil && !errors.IsNotFound(err) {
@@ -505,23 +517,70 @@ func (s *Service) GetJobRunLogsStream(
 			logstream.Close()
 		}
 		return nil
+	case LokiRunLogType:
+		return s.streamLokiLogs(ctx, req, stream)
+	default:
+		return nucleuserrors.NewNotImplemented("streaming log pods not implemented for this container type")
 	}
-	return nucleuserrors.NewNotImplemented("streaming log pods not implemented for this container type")
 }
 
-func getLogFilterTime(window mgmtv1alpha1.LogWindow) *metav1.Time {
+func (s *Service) streamLokiLogs(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetJobRunLogsStreamRequest],
+	stream *connect.ServerStream[mgmtv1alpha1.GetJobRunLogsStreamResponse],
+) error {
+	if s.cfg.LokiRunLogConfig == nil {
+		return nucleuserrors.NewInternalError("run logs configured but not config provided")
+	}
+	lokiclient := loki.New(s.cfg.LokiRunLogConfig.BaseUrl)
+	direction := loki.BACKWARD
+	end := time.Now()
+	resp, err := lokiclient.QueryRange(ctx, &loki.QueryRangeRequest{
+		Query:     "",
+		Limit:     req.Msg.MaxLogLines,
+		Direction: &direction,
+		Start:     &getLogFilterTime(req.Msg.GetWindow(), end).Time,
+		End:       &end,
+	})
+	if err != nil {
+		return fmt.Errorf("unable to query loki for logs: %w", err)
+	}
+	if resp.Status != "success" {
+		return fmt.Errorf("received non-success status response from loki: %s", resp.Status)
+	}
+	streams, err := loki.GetStreamsFromResponseData(&resp.Data)
+	if err != nil {
+		return err
+	}
+	entries := loki.GetEntriesFromStreams(streams)
+	// we have to unfortunately sort these due to the loki json query parsing returning
+	// logs out of order...
+	sort.Slice(entries, func(i, j int) bool {
+		// will have to change if we expose the query direction
+		return entries[i].Timestamp.After(entries[j].Timestamp)
+	})
+	for _, entry := range entries {
+		err := stream.Send(&mgmtv1alpha1.GetJobRunLogsStreamResponse{LogLine: entry.Line})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func getLogFilterTime(window mgmtv1alpha1.LogWindow, endTime time.Time) *metav1.Time {
 	switch window {
 	case mgmtv1alpha1.LogWindow_LOG_WINDOW_FIFTEEN_MIN:
 		return &metav1.Time{
-			Time: time.Now().Add(-15 * time.Minute),
+			Time: endTime.Add(-15 * time.Minute),
 		}
 	case mgmtv1alpha1.LogWindow_LOG_WINDOW_ONE_HOUR:
 		return &metav1.Time{
-			Time: time.Now().Add(-1 * time.Hour),
+			Time: endTime.Add(-1 * time.Hour),
 		}
 	case mgmtv1alpha1.LogWindow_LOG_WINDOW_ONE_DAY:
 		return &metav1.Time{
-			Time: time.Now().Add(-24 * time.Hour),
+			Time: endTime.Add(-24 * time.Hour),
 		}
 	}
 	return nil
