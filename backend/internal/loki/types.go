@@ -10,6 +10,14 @@ import (
 	"unsafe"
 )
 
+/*
+These types were pulled from the github.com/grafana/loki/pkg/logcli/client/client.go file
+The ResultType stuff can be pulled from github.com/grafana/loki/pkg/loghttp/query.go
+
+We aren't using this package directly because it installs conflicting kube client types
+and doesn't work with our current go.mod
+*/
+
 // Define a struct that matches the structure of the JSON response you expect from Loki.
 // This is a simplified example; adjust according to the actual response structure you need.
 // QueryResponse represents the http json response to a label query
