@@ -14,7 +14,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
-	sql_adapter "github.com/nucleuscloud/neosync/backend/pkg/sqladapter"
+	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
@@ -22,8 +22,6 @@ import (
 )
 
 const (
-	postgresDriver             = "postgres"
-	mysqlDriver                = "mysql"
 	generateDefault            = "generate_default"
 	passthrough                = "passthrough"
 	dbDefault                  = "DEFAULT"
@@ -33,7 +31,7 @@ const (
 )
 
 type benthosBuilder struct {
-	sqladapter sql_adapter.SqlAdapter
+	sqladapter sql_manager.SqlManager
 
 	jobclient         mgmtv1alpha1connect.JobServiceClient
 	connclient        mgmtv1alpha1connect.ConnectionServiceClient
@@ -48,7 +46,7 @@ type benthosBuilder struct {
 }
 
 func newBenthosBuilder(
-	sqladapter sql_adapter.SqlAdapter,
+	sqladapter sql_manager.SqlManager,
 
 	jobclient mgmtv1alpha1connect.JobServiceClient,
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
@@ -119,11 +117,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, fmt.Errorf("unable to get connection by id: %w", err)
 		}
 
-		sqlDriver, err := getSqlDriverFromConnection(sourceConnection)
-		if err != nil {
-			return nil, err
-		}
-
 		sqlSourceOpts, err := getSqlJobSourceOpts(job.Source)
 		if err != nil {
 			return nil, err
@@ -133,7 +126,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			sourceTableOpts = groupJobSourceOptionsByTable(sqlSourceOpts)
 		}
 
-		db, err := b.sqladapter.NewSqlDb(ctx, sqlDriver, slogger, sourceConnection)
+		db, err := b.sqladapter.NewSqlDb(ctx, slogger, sourceConnection)
 		if err != nil {
 			return nil, fmt.Errorf("unable to create new sql db: %w", err)
 		}
@@ -143,7 +136,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		if err != nil {
 			return nil, fmt.Errorf("unable to get database schema for connection: %w", err)
 		}
-		groupedSchemas := sql_adapter.GetUniqueSchemaColMappings(dbschemas)
+		groupedSchemas := sql_manager.GetUniqueSchemaColMappings(dbschemas)
 		if !areMappingsSubsetOfSchemas(groupedSchemas, job.Mappings) {
 			return nil, errors.New(jobmappingSubsetErrMsg)
 		}
@@ -159,13 +152,13 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, fmt.Errorf("unable to retrieve database foreign key constraints: %w", err)
 		}
 		slogger.Info(fmt.Sprintf("found %d foreign key constraints for database", len(allConstraints)))
-		td := sql_adapter.GetDbTableDependencies(allConstraints)
+		td := sql_manager.GetDbTableDependencies(allConstraints)
 
 		primaryKeys, err := db.GetAllPrimaryKeyConstraints(ctx, uniqueSchemas)
 		if err != nil {
 			return nil, fmt.Errorf("unable to get all primary key constraints: %w", err)
 		}
-		primaryKeyMap := sql_adapter.GetTablePrimaryKeysMap(primaryKeys)
+		primaryKeyMap := sql_manager.GetTablePrimaryKeysMap(primaryKeys)
 
 		tables := filterNullTables(groupedMappings)
 		tableSubsetMap := buildTableSubsetMap(sourceTableOpts)
@@ -174,12 +167,12 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		// reverse of table dependency
 		// map of foreign key to source table + column
 		tableConstraintsSource = getForeignKeyToSourceMap(td)
-		tableQueryMap, err := buildSelectQueryMap(sqlDriver, groupedTableMapping, sourceTableOpts, td, dependencyConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints)
+		tableQueryMap, err := buildSelectQueryMap(db.Driver, groupedTableMapping, sourceTableOpts, td, dependencyConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build select queries: %w", err)
 		}
 
-		sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedMappings, sourceConnection.Id, sqlDriver, tableQueryMap, groupedSchemas, td, colTransformerMap, primaryKeyMap, b.jobId, b.runId, b.redisConfig)
+		sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedMappings, sourceConnection.Id, db.Driver, tableQueryMap, groupedSchemas, td, colTransformerMap, primaryKeyMap, b.jobId, b.runId, b.redisConfig)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build benthos sql source config responses: %w", err)
 		}
@@ -277,6 +270,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 				if err != nil {
 					return nil, err
 				}
+
 				resp.BenthosDsns = append(resp.BenthosDsns, &shared.BenthosDsn{EnvVarKey: dstEnvVarKey, ConnectionId: destinationConnection.Id})
 
 				if resp.Config.Input.SqlSelect != nil || resp.Config.Input.PooledSqlRaw != nil {
@@ -337,7 +331,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 									Output: neosync_benthos.OutputConfig{
 										Outputs: neosync_benthos.Outputs{
 											PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
-												Driver: postgresDriver,
+												Driver: driver,
 												Dsn:    dsn,
 
 												Schema:  resp.TableSchema,
@@ -668,17 +662,6 @@ func getDriverFromBenthosInput(input *neosync_benthos.Inputs) (string, error) {
 		return input.PooledSqlRaw.Driver, nil
 	}
 	return "", errors.New("invalid benthos input when trying to find database driver")
-}
-
-func getSqlDriverFromConnection(conn *mgmtv1alpha1.Connection) (string, error) {
-	switch conn.ConnectionConfig.Config.(type) {
-	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		return postgresDriver, nil
-	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		return mysqlDriver, nil
-	default:
-		return "", fmt.Errorf("unsupported sql connection config")
-	}
 }
 
 func createSqlUpdateBenthosConfig(
@@ -1072,6 +1055,17 @@ func groupGenerateSourceOptionsByTable(
 	}
 
 	return groupedMappings
+}
+
+func getSqlDriverFromConnection(conn *mgmtv1alpha1.Connection) (string, error) {
+	switch conn.ConnectionConfig.Config.(type) {
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		return sql_manager.PostgresDriver, nil
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		return sql_manager.MysqlDriver, nil
+	default:
+		return "", fmt.Errorf("unsupported sql connection config")
+	}
 }
 
 func groupJobSourceOptionsByTable(

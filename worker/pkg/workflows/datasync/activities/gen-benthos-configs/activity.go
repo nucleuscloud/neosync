@@ -9,8 +9,8 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
-	sql_adapter "github.com/nucleuscloud/neosync/backend/pkg/sqladapter"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	logger_utils "github.com/nucleuscloud/neosync/worker/internal/logger"
@@ -118,7 +118,7 @@ func (a *Activity) GenerateBenthosConfigs(
 	pgpoolmap := &sync.Map{}
 	mysqlpoolmap := &sync.Map{}
 
-	sqladapter := sql_adapter.NewSqlAdapter(pgpoolmap, a.pgquerier, mysqlpoolmap, a.mysqlquerier, a.sqlconnector)
+	sqladapter := sql_manager.NewSqlManager(pgpoolmap, a.pgquerier, mysqlpoolmap, a.mysqlquerier, a.sqlconnector)
 
 	bbuilder := newBenthosBuilder(
 		*sqladapter,
