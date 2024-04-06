@@ -485,7 +485,7 @@ func (s *Service) GetJobRunLogsStream(
 				Container: "user-container",
 				Follow:    req.Msg.ShouldTail,
 				TailLines: req.Msg.MaxLogLines,
-				SinceTime: getLogFilterTime(req.Msg.GetWindow(), time.Now()),
+				SinceTime: &metav1.Time{Time: getLogFilterTime(req.Msg.GetWindow(), time.Now())},
 			})
 			logstream, err := logsReq.Stream(ctx)
 			if err != nil && !errors.IsNotFound(err) {
@@ -535,11 +535,12 @@ func (s *Service) streamLokiLogs(
 	lokiclient := loki.New(s.cfg.LokiRunLogConfig.BaseUrl)
 	direction := loki.BACKWARD
 	end := time.Now()
+	start := getLogFilterTime(req.Msg.GetWindow(), end)
 	resp, err := lokiclient.QueryRange(ctx, &loki.QueryRangeRequest{
-		Query:     "",
+		Query:     fmt.Sprintf("{namespace=%q, app=%q} | json | ...", "", ""), // todo
 		Limit:     req.Msg.MaxLogLines,
 		Direction: &direction,
-		Start:     &getLogFilterTime(req.Msg.GetWindow(), end).Time,
+		Start:     &start,
 		End:       &end,
 	})
 	if err != nil {
@@ -568,20 +569,15 @@ func (s *Service) streamLokiLogs(
 	return nil
 }
 
-func getLogFilterTime(window mgmtv1alpha1.LogWindow, endTime time.Time) *metav1.Time {
+func getLogFilterTime(window mgmtv1alpha1.LogWindow, endTime time.Time) time.Time {
 	switch window {
 	case mgmtv1alpha1.LogWindow_LOG_WINDOW_FIFTEEN_MIN:
-		return &metav1.Time{
-			Time: endTime.Add(-15 * time.Minute),
-		}
+		return endTime.Add(-15 * time.Minute)
 	case mgmtv1alpha1.LogWindow_LOG_WINDOW_ONE_HOUR:
-		return &metav1.Time{
-			Time: endTime.Add(-1 * time.Hour),
-		}
+		return endTime.Add(-1 * time.Hour)
 	case mgmtv1alpha1.LogWindow_LOG_WINDOW_ONE_DAY:
-		return &metav1.Time{
-			Time: endTime.Add(-24 * time.Hour),
-		}
+		return endTime.Add(-24 * time.Hour)
+	default:
+		return endTime.Add(-15 * time.Minute)
 	}
-	return nil
 }
