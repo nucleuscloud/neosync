@@ -447,7 +447,7 @@ func (s *Service) GetJobRunLogsStream(
 	switch *s.cfg.RunLogType {
 	case KubePodRunLogType:
 		if s.cfg.RunLogPodConfig == nil {
-			return nucleuserrors.NewInternalError("run logs configured but not config provided")
+			return nucleuserrors.NewInternalError("run logs configured but no config provided")
 		}
 		verifResp, err := s.getVerifiedJobRun(ctx, logger, req.Msg.JobRunId, req.Msg.AccountId)
 		if err != nil {
@@ -530,7 +530,7 @@ func (s *Service) streamLokiLogs(
 	stream *connect.ServerStream[mgmtv1alpha1.GetJobRunLogsStreamResponse],
 ) error {
 	if s.cfg.LokiRunLogConfig == nil {
-		return nucleuserrors.NewInternalError("run logs configured but not config provided")
+		return nucleuserrors.NewInternalError("run logs configured but no config provided")
 	}
 	lokiclient := loki.New(s.cfg.LokiRunLogConfig.BaseUrl)
 	direction := loki.BACKWARD
