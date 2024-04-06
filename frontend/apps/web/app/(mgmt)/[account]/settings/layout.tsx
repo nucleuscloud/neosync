@@ -82,14 +82,13 @@ function useGetNavSettings(): Item[] {
 
   let items = getAllNavSettings(account?.name ?? '');
   items =
-    !isSystemConfigLoading &&
-    systemAppConfigData?.isAuthEnabled &&
-    // filter members page if account is not a team
-    account?.type === UserAccountType.TEAM
+    (!isSystemConfigLoading &&
+      systemAppConfigData?.isAuthEnabled &&
+      // filter members page if account is not a team
+      account?.type === UserAccountType.TEAM) ||
+    account?.type === UserAccountType.ENTERPRISE
       ? items
-      : items.filter(
-          (item) => item.ref !== 'members' && item.ref !== 'billing'
-        );
+      : items.filter((item) => item.ref !== 'members');
   // filter temporal page if app is in neosync cloud mode
   items =
     !isSystemConfigLoading && systemAppConfigData?.isNeosyncCloud
@@ -100,6 +99,11 @@ function useGetNavSettings(): Item[] {
     !isSystemConfigLoading && !systemAppConfigData?.isMetricsServiceEnabled
       ? items.filter((item) => item.ref !== 'usage')
       : items;
+  // filter out billing for local
+  items =
+    !isSystemConfigLoading && systemAppConfigData?.isNeosyncCloud
+      ? items
+      : items.filter((item) => item.ref !== 'billing');
 
   return items;
 }
