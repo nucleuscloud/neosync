@@ -1,0 +1,33 @@
+---
+title: Using Neosync to Migrate Data across Postgres Databases
+description: A walkthrough tutorial on how to use Neosync to migrate data from one Postgres DB to another
+date: 2024-04-05
+published: true
+image: /images/blogs/openai-header.png
+authors:
+  - evis
+---
+
+# Introduction
+
+We've been seeing more and more customers use Neosync to simply move data across Postgres databases and I wanted to write up a quick blog on how others can do this and why using Neosync to migrate data may make more sense than using something like `pg_dump`.
+
+# Using Neosync to Migrate Data
+
+In order to get started, you'll need a Neosync account. You can sign up for a [free account here](https://neosync.dev).
+
+Once you're signed up, navigate to the **Connections** page on the top navigation bar and click on **+ New Connection**.
+
+![neosync-connect-form](/images/blogs/connections.png)
+
+Then select the **Postgres** connection and you'll be taken to the Postgres connection form.
+
+Let's name our connection `prod-db` and then in the **Connection URL** field, paste in the connection string we copied earlier. Click on **Test Connection** to see validate your connection. You should see a modal pop up like so:
+
+![trans-page](/images/blogs/candidates-table.png)
+
+Nice! Looks like we can see our database and table and that our permissions are correct. Click on **Close** and then **Submit** to save the connection.
+
+# Conclusion
+
+In this blog, we went over how to use Neosync to easily migrate data from one Postgres database to another. There are many ways that you can migrate data across databases but depending on your security, privacy and operational requirements, Neosync can be a great "easy button".
