@@ -163,7 +163,7 @@ export function DataTableRowActions<TData>({
   );
 }
 
-async function removeJobRun(
+export async function removeJobRun(
   jobRunId: string,
   accountId: string
 ): Promise<void> {
@@ -177,7 +177,7 @@ async function removeJobRun(
   await res.json();
 }
 
-async function cancelJobRun(
+export async function cancelJobRun(
   jobRunId: string,
   accountId: string
 ): Promise<void> {
@@ -194,7 +194,7 @@ async function cancelJobRun(
   await res.json();
 }
 
-async function terminateJobRun(
+export async function terminateJobRun(
   jobRunId: string,
   accountId: string
 ): Promise<void> {

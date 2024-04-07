@@ -1,8 +1,17 @@
 'use client';
+import ConfirmationDialog from '@/components/ConfirmationDialog';
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import { useAccount } from '@/components/providers/account-provider';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardTitle } from '@/components/ui/card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
@@ -12,13 +21,25 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { toast } from '@/components/ui/use-toast';
 import { useGetJobRecentRuns } from '@/libs/hooks/useGetJobRecentRuns';
 import { useGetJobRunsByJob } from '@/libs/hooks/useGetJobRunsByJob';
-import { formatDateTime } from '@/util/util';
-import { ArrowRightIcon, ReloadIcon } from '@radix-ui/react-icons';
+import { formatDateTime, getErrorMessage } from '@/util/util';
+import { JobRunStatus as JobRunStatusEnum } from '@neosync/sdk';
+import {
+  Cross2Icon,
+  DotsHorizontalIcon,
+  ReloadIcon,
+} from '@radix-ui/react-icons';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ReactElement } from 'react';
 import JobRunStatus from '../../../runs/components/JobRunStatus';
+import {
+  cancelJobRun,
+  removeJobRun,
+  terminateJobRun,
+} from '../../../runs/components/JobRunsTable/data-table-row-actions';
 
 interface Props {
   jobId: string;
@@ -52,6 +73,65 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
   function onRefreshClick(): void {
     recentRunsMutate();
     jobsRunsMutate();
+  }
+
+  const router = useRouter();
+
+  async function onDelete(runId: string): Promise<void> {
+    try {
+      await removeJobRun(runId, account?.id ?? '');
+      toast({
+        title: 'Job run removed successfully!',
+        variant: 'success',
+      });
+      // onDeleted();
+      recentRunsMutate();
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: 'Unable to remove job run',
+        description: getErrorMessage(err),
+        variant: 'destructive',
+      });
+    }
+  }
+
+  async function onCancel(runId: string): Promise<void> {
+    try {
+      await cancelJobRun(runId, account?.id ?? '');
+      toast({
+        title: 'Job run canceled successfully!',
+        variant: 'success',
+      });
+      // onDeleted();
+      recentRunsMutate();
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: 'Unable to cancel job run',
+        description: getErrorMessage(err),
+        variant: 'destructive',
+      });
+    }
+  }
+
+  async function onTerminate(runId: string): Promise<void> {
+    try {
+      await terminateJobRun(runId, account?.id ?? '');
+      toast({
+        title: 'Job run terminated successfully!',
+        variant: 'success',
+      });
+      // onDeleted();
+      recentRunsMutate();
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: 'Unable to terminate job run',
+        description: getErrorMessage(err),
+        variant: 'destructive',
+      });
+    }
   }
 
   return (
@@ -120,11 +200,86 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
                     </TableCell>
                     <TableCell>
                       {jobRun && (
-                        <Link href={`/${account?.name}/runs/${jobRun.id}`}>
-                          <Button variant="ghost" size="icon">
-                            <ArrowRightIcon />
-                          </Button>
-                        </Link>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
+                            >
+                              <DotsHorizontalIcon className="h-4 w-4" />
+                              <span className="sr-only">Open menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent
+                            align="end"
+                            className="w-[160px]"
+                          >
+                            <DropdownMenuItem
+                              className="cursor-pointer"
+                              onClick={() =>
+                                router.push(
+                                  `/${account?.name}/runs/${jobRun.id}`
+                                )
+                              }
+                            >
+                              View
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            {(jobRun.status === JobRunStatusEnum.RUNNING ||
+                              jobRun.status === JobRunStatusEnum.PENDING) && (
+                              <div>
+                                <ConfirmationDialog
+                                  trigger={
+                                    <DropdownMenuItem
+                                      className="cursor-pointer"
+                                      onSelect={(e) => e.preventDefault()}
+                                    >
+                                      Cancel
+                                    </DropdownMenuItem>
+                                  }
+                                  headerText="Are you sure you want to cancel this job run?"
+                                  description=""
+                                  onConfirm={async () => onCancel(jobRun.id)}
+                                  buttonText="Cancel"
+                                  buttonVariant="default"
+                                  buttonIcon={<Cross2Icon />}
+                                />
+                                <DropdownMenuSeparator />
+                                <ConfirmationDialog
+                                  trigger={
+                                    <DropdownMenuItem
+                                      className="cursor-pointer"
+                                      onSelect={(e) => e.preventDefault()}
+                                    >
+                                      Terminate
+                                    </DropdownMenuItem>
+                                  }
+                                  headerText="Are you sure you want to terminate this job run?"
+                                  description=""
+                                  onConfirm={async () => onTerminate(jobRun.id)}
+                                  buttonText="Terminate"
+                                  buttonVariant="default"
+                                  buttonIcon={<Cross2Icon />}
+                                />
+                                <DropdownMenuSeparator />
+                              </div>
+                            )}
+
+                            <DeleteConfirmationDialog
+                              trigger={
+                                <DropdownMenuItem
+                                  className="cursor-pointer"
+                                  onSelect={(e) => e.preventDefault()}
+                                >
+                                  Delete
+                                </DropdownMenuItem>
+                              }
+                              headerText="Are you sure you want to delete this job run?"
+                              description=""
+                              onConfirm={async () => onDelete(jobRun.id)}
+                            />
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       )}
                     </TableCell>
                   </TableRow>
