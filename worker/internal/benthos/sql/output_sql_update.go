@@ -70,9 +70,8 @@ type pooledUpdateOutput struct {
 	dsn      string
 	provider DbPoolProvider
 	dbMut    sync.RWMutex
-	// db       mysql_queries.DBTX
-	db     SqlDbtx
-	logger *service.Logger
+	db       SqlDbtx
+	logger   *service.Logger
 
 	schema    string
 	table     string
@@ -162,7 +161,6 @@ func (s *pooledUpdateOutput) Connect(ctx context.Context) error {
 	return nil
 }
 
-// how to handle defaults??
 func (s *pooledUpdateOutput) WriteBatch(ctx context.Context, batch service.MessageBatch) error {
 	s.dbMut.RLock()
 	defer s.dbMut.RUnlock()
@@ -173,11 +171,6 @@ func (s *pooledUpdateOutput) WriteBatch(ctx context.Context, batch service.Messa
 	}
 	builder := goqu.Dialect(s.driver)
 	table := goqu.S(s.schema).Table(s.table)
-
-	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
-	if err != nil {
-		return err
-	}
 
 	for i := range batch {
 		if s.argsMapping == nil {
@@ -230,22 +223,11 @@ func (s *pooledUpdateOutput) WriteBatch(ctx context.Context, batch service.Messa
 
 		query, args, err := update.ToSQL()
 		if err != nil {
-			rollErr := tx.Rollback()
-			if rollErr != nil {
-				s.logger.Errorf("transaction rollback failed: %w", rollErr)
-			}
 			return err
 		}
-		if _, err := tx.Exec(query, args...); err != nil {
-			rollErr := tx.Rollback()
-			if rollErr != nil {
-				s.logger.Errorf("transaction rollback failed: %w", rollErr)
-			}
+		if _, err := s.db.ExecContext(ctx, query, args...); err != nil {
 			return err
 		}
-	}
-	if err := tx.Commit(); err != nil {
-		return err
 	}
 
 	return nil

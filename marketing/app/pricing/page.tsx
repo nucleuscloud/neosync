@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { CheckCircle2Icon } from 'lucide-react';
 import Link from 'next/link';
+import posthog from 'posthog-js';
 import { ReactElement } from 'react';
 
 export default function Pricing() {
@@ -70,7 +71,15 @@ function FreePlan(): ReactElement {
           ))}
         </div>
         <div className="flex justify-center pt-6">
-          <Button variant="default" className="w-full">
+          <Button
+            variant="default"
+            className="w-full"
+            onClick={() =>
+              posthog.capture('user click', {
+                page: 'sign up for free',
+              })
+            }
+          >
             <Link href="https://app.neosync.dev" target="_blank">
               Start for free
             </Link>
@@ -119,7 +128,13 @@ function TeamPlan(): ReactElement {
           ))}
         </div>
         <div className="flex justify-center pt-10 w-full">
-          <ShimmeringButton>
+          <ShimmeringButton
+            onClick={() =>
+              posthog.capture('user click', {
+                page: 'sign up for pro plan',
+              })
+            }
+          >
             <Link
               href="https://calendly.com/evis1/30min"
               className="w-[242px]"

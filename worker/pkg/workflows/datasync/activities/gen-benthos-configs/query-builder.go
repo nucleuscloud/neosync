@@ -8,6 +8,7 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	dbschemas "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
+	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 
@@ -107,7 +108,7 @@ func buildSelectRecursiveQuery(
 ) (string, error) {
 	recursiveCteAlias := "related"
 	var builder goqu.DialectWrapper
-	if driver == mysqlDriver {
+	if driver == sql_manager.MysqlDriver {
 		opts := goqu.DefaultDialectOptions()
 		opts.QuoteRune = '`'
 		opts.SupportsWithCTERecursive = true
@@ -483,13 +484,13 @@ func qualifyWhereColumnNames(driver, where, schema, table string) (string, error
 	sql := fmt.Sprintf("%s%s", sqlSelect, where)
 	var updatedSql string
 	switch driver {
-	case mysqlDriver:
+	case sql_manager.MysqlDriver:
 		sql, err := qualifyMysqlWhereColumnNames(sql, schema, table)
 		if err != nil {
 			return "", err
 		}
 		updatedSql = sql
-	case postgresDriver:
+	case sql_manager.PostgresDriver:
 		sql, err := qualifyPostgresWhereColumnNames(sql, schema, table)
 		if err != nil {
 			return "", err

@@ -93,7 +93,7 @@ export default function Billing(): ReactElement {
     return <Skeleton />;
   }
 
-  if (systemAppConfigData?.isNeosyncCloud) {
+  if (!systemAppConfigData?.isNeosyncCloud) {
     return <Error statusCode={404} />;
   }
 

@@ -7,6 +7,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	dbschemas "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
+	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/stretchr/testify/assert"
 )
@@ -1499,7 +1500,7 @@ func Test_qualifyWhereColumnNames_mysql(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%s_%s", t.Name(), tt.name), func(t *testing.T) {
-			response, err := qualifyWhereColumnNames(mysqlDriver, tt.where, tt.schema, tt.table)
+			response, err := qualifyWhereColumnNames(sql_manager.MysqlDriver, tt.where, tt.schema, tt.table)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, response)
 		})
@@ -1553,7 +1554,7 @@ func Test_qualifyWhereColumnNames_postgres(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%s_%s", t.Name(), tt.name), func(t *testing.T) {
-			response, err := qualifyWhereColumnNames(postgresDriver, tt.where, tt.schema, tt.table)
+			response, err := qualifyWhereColumnNames(sql_manager.PostgresDriver, tt.where, tt.schema, tt.table)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, response)
 		})
