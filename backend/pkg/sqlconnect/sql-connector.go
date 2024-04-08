@@ -117,6 +117,7 @@ func GetConnectionDetails(c *mgmtv1alpha1.ConnectionConfig, connectionTimeout *u
 				GeneralDbConnectConfig: *connDetails,
 			}, nil
 		}
+
 		connDetails, err := getGeneralDbConnectConfigFromPg(config, connectionTimeout)
 		if err != nil {
 			return nil, err
