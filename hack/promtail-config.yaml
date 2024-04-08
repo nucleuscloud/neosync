@@ -21,16 +21,7 @@ scrape_configs:
       - docker:
       - json:
           expressions:
-            level: level
-            msg: msg
-            namespace: Namespace
-            runID: RunID
             time: time
-            workflowID: WorkflowID
-      - labels:
-          level: null
-          namespace: null
-          runID: null
-          workflowID: null
-      # - output:
-      #     source: msg
+      - timestamp:
+          source: time
+          format: RFC3339Nano

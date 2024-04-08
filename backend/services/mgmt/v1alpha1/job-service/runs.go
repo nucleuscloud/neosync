@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	"sort"
+	"strings"
 	"time"
 
 	"connectrpc.com/connect"
@@ -440,13 +440,13 @@ func (s *Service) GetJobRunLogsStream(
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("jobRunId", req.Msg.JobRunId)
 
-	if s.cfg.RunLogType == nil {
-		return nucleuserrors.NewNotImplemented("streaming log pods not implemented for this container type")
+	if s.cfg.RunLogConfig == nil || !s.cfg.RunLogConfig.IsEnabled || s.cfg.RunLogConfig.RunLogType == nil {
+		return nucleuserrors.NewNotImplemented("job run logs streaming is not enabled. please configure or contact system administrator to enable logs.")
 	}
 
-	switch *s.cfg.RunLogType {
+	switch *s.cfg.RunLogConfig.RunLogType {
 	case KubePodRunLogType:
-		if s.cfg.RunLogPodConfig == nil {
+		if s.cfg.RunLogConfig.RunLogPodConfig == nil {
 			return nucleuserrors.NewInternalError("run logs configured but no config provided")
 		}
 		verifResp, err := s.getVerifiedJobRun(ctx, logger, req.Msg.JobRunId, req.Msg.AccountId)
@@ -466,12 +466,12 @@ func (s *Service) GetJobRunLogsStream(
 			return err
 		}
 
-		appNameSelector, err := labels.NewRequirement("app", selection.Equals, []string{s.cfg.RunLogPodConfig.WorkerAppName})
+		appNameSelector, err := labels.NewRequirement("app", selection.Equals, []string{s.cfg.RunLogConfig.RunLogPodConfig.WorkerAppName})
 		if err != nil {
 			logger.Error(fmt.Errorf("unable to build label selector to find logs: %w", err).Error())
 			return err
 		}
-		podclient := clientset.CoreV1().Pods(s.cfg.RunLogPodConfig.Namespace)
+		podclient := clientset.CoreV1().Pods(s.cfg.RunLogConfig.RunLogPodConfig.Namespace)
 		pods, err := podclient.List(ctx, metav1.ListOptions{
 			LabelSelector: appNameSelector.String(),
 		})
@@ -518,7 +518,7 @@ func (s *Service) GetJobRunLogsStream(
 		}
 		return nil
 	case LokiRunLogType:
-		return s.streamLokiLogs(ctx, req, stream)
+		return s.streamLokiLogs(ctx, req, stream, logger)
 	default:
 		return nucleuserrors.NewNotImplemented("streaming log pods not implemented for this container type")
 	}
@@ -528,16 +528,29 @@ func (s *Service) streamLokiLogs(
 	ctx context.Context,
 	req *connect.Request[mgmtv1alpha1.GetJobRunLogsStreamRequest],
 	stream *connect.ServerStream[mgmtv1alpha1.GetJobRunLogsStreamResponse],
+	logger *slog.Logger,
 ) error {
-	if s.cfg.LokiRunLogConfig == nil {
+	if s.cfg.RunLogConfig == nil || !s.cfg.RunLogConfig.IsEnabled || s.cfg.RunLogConfig.LokiRunLogConfig == nil {
 		return nucleuserrors.NewInternalError("run logs configured but no config provided")
 	}
-	lokiclient := loki.New(s.cfg.LokiRunLogConfig.BaseUrl)
+	if s.cfg.RunLogConfig.LokiRunLogConfig.LabelsQuery == "" {
+		return nucleuserrors.NewInternalError("must provide a labels query for loki to filter by")
+	}
+	jobrunResp, err := s.getVerifiedJobRun(ctx, logger, req.Msg.GetJobRunId(), req.Msg.GetAccountId())
+	if err != nil {
+		return err
+	}
+
+	lokiclient := loki.New(s.cfg.RunLogConfig.LokiRunLogConfig.BaseUrl)
 	direction := loki.BACKWARD
 	end := time.Now()
 	start := getLogFilterTime(req.Msg.GetWindow(), end)
 	resp, err := lokiclient.QueryRange(ctx, &loki.QueryRangeRequest{
-		Query:     fmt.Sprintf("{namespace=%q, app=%q} | json | ...", "", ""), // todo
+		Query: buildLokiQuery(
+			s.cfg.RunLogConfig.LokiRunLogConfig.LabelsQuery,
+			s.cfg.RunLogConfig.LokiRunLogConfig.KeepLabels,
+			jobrunResp.WorkflowExecution.Execution.WorkflowId,
+		),
 		Limit:     req.Msg.MaxLogLines,
 		Direction: &direction,
 		Start:     &start,
@@ -553,20 +566,22 @@ func (s *Service) streamLokiLogs(
 	if err != nil {
 		return err
 	}
-	entries := loki.GetEntriesFromStreams(streams)
-	// we have to unfortunately sort these due to the loki json query parsing returning
-	// logs out of order...
-	sort.Slice(entries, func(i, j int) bool {
-		// will have to change if we expose the query direction
-		return entries[i].Timestamp.After(entries[j].Timestamp)
-	})
-	for _, entry := range entries {
+	for _, entry := range loki.GetEntriesFromStreams(streams) {
 		err := stream.Send(&mgmtv1alpha1.GetJobRunLogsStreamResponse{LogLine: entry.Line})
 		if err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func buildLokiQuery(lokiLables string, keep []string, workflowId string) string {
+	query := fmt.Sprintf("{%s} | json", lokiLables)
+	query = fmt.Sprintf("%s |= WorkflowID=%q", query, workflowId)
+	if len(keep) > 0 {
+		query = fmt.Sprintf("%s | keep %s", query, strings.Join(keep, ", "))
+	}
+	return query
 }
 
 func getLogFilterTime(window mgmtv1alpha1.LogWindow, endTime time.Time) time.Time {

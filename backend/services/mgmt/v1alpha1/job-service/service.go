@@ -29,12 +29,21 @@ type KubePodRunLogConfig struct {
 
 type LokiRunLogConfig struct {
 	BaseUrl string
+
+	LabelsQuery string // Labels to filter loki by, without the curly braces
+	// labels to keep after the json filtering. Keeps ordering. Not sure if it will always need to equal the labels query keys, so separating this
+	KeepLabels []string
 }
 
 type Config struct {
 	IsAuthEnabled bool
-	RunLogType    *RunLogType
 
+	RunLogConfig *RunLogConfig
+}
+
+type RunLogConfig struct {
+	IsEnabled        bool
+	RunLogType       *RunLogType
 	RunLogPodConfig  *KubePodRunLogConfig // required if RunLogType is k8s-pods
 	LokiRunLogConfig *LokiRunLogConfig    // required if RunLogType is loki
 }

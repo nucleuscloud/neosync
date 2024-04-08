@@ -77,7 +77,7 @@ func (c *LokiClient) QueryRange(
 	}
 
 	if res.StatusCode > 399 {
-		// log error
+		// todo: log error
 		fmt.Println(string(body))
 		return nil, fmt.Errorf("received non 200 status code for loki query_range: %d", res.StatusCode)
 	}
