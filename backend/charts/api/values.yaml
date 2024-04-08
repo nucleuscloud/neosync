@@ -112,12 +112,29 @@ neosyncCloud:
   enabled: false
   workerApiKeys: []
 
+# currently this is used for k8s pods runLogs but is deprecated and runLogs should be configured instead
 kubernetes:
   enabled: true
   # falls back to the helm release namespace
   namespace:
   # corresponds with the app label that is present on the worker pod
   workerAppName: neosync-worker
+
+# is runLogs are disabled, will fallback on the kubernetes configuration above for backwards compat
+runLogs:
+  # Independently set so that configuration can exist but logs can still be independently disabled
+  # defaults to true with k8s-pods configuration for backwards compat and because this is a helm chart this is defacto kubernetes
+  enabled: true
+  # possible values: k8s-pods, loki
+  type: k8s-pods
+
+  podConfig:
+    workerNamespace: # falls back to the release namespace
+    workerAppName: neosync-worker
+  lokiConfig:
+    baseUrl: # base url to loki instance
+    labelsQuery: # LogQL labels query (without the {} as those are provided by the system)
+    keepLabels: # list form
 
 # check out the ingress.yaml file to see what ither values are available for configuration on this object.
 ingress:
@@ -137,3 +154,13 @@ updateStrategy:
 
 # Provide extra environment variables that will be applied to the deployment.
 extraEnvVars: []
+
+runLogs:
+  enabled: true
+  type: loki
+  lokiConfig:
+    baseUrl: http://loki
+    labelsQuery: foo="bar", baz="boo"
+    keepLabels:
+      - foo
+      - baz

@@ -707,8 +707,8 @@ func getRunLogConfig() (*v1alpha1_jobservice.RunLogConfig, error) {
 	runlogtype := getRunLogType()
 	switch *runlogtype {
 	case v1alpha1_jobservice.KubePodRunLogType:
-		ksNs := viper.GetString("RUN_LOGS_POD_WORKER_NAMESPACE")
-		ksWorkerAppName := viper.GetString("RUN_LOGS_POD_WORKER_APP_NAME")
+		ksNs := viper.GetString("RUN_LOGS_PODCONFIG_WORKER_NAMESPACE")
+		ksWorkerAppName := viper.GetString("RUN_LOGS_PODCONFIG_WORKER_APPNAME")
 		if ksNs == "" {
 			ksNs = getKubernetesNamespace()
 		}
@@ -730,15 +730,15 @@ func getRunLogConfig() (*v1alpha1_jobservice.RunLogConfig, error) {
 			},
 		}, nil
 	case v1alpha1_jobservice.LokiRunLogType:
-		lokibaseurl := viper.GetString("RUN_LOGS_LOKI_BASEURL")
+		lokibaseurl := viper.GetString("RUN_LOGS_LOKICONFIG_BASEURL")
 		if lokibaseurl == "" {
 			return nil, errors.New("must provide loki baseurl when loki run log type has been configured")
 		}
-		labelsQuery := viper.GetString("RUN_LOGS_LOKI_LABELS_QUERY")
+		labelsQuery := viper.GetString("RUN_LOGS_LOKICONFIG_LABELSQUERY")
 		if labelsQuery == "" {
 			labelsQuery = `namespace="neosync", app="worker"`
 		}
-		keepLabels := viper.GetStringSlice("RUN_LOGS_LOKI_KEEP_LABELS")
+		keepLabels := viper.GetStringSlice("RUN_LOGS_LOKICONFIG_KEEPLABELS")
 		return &v1alpha1_jobservice.RunLogConfig{
 			IsEnabled:  true,
 			RunLogType: runlogtype,
@@ -753,12 +753,8 @@ func getRunLogConfig() (*v1alpha1_jobservice.RunLogConfig, error) {
 	}
 }
 
-func getIsRunLogsEnabled() bool {
-	return viper.GetBool("RUN_LOGS_ENABLED")
-}
-
 func getRunLogType() *v1alpha1_jobservice.RunLogType {
-	logtype := viper.GetString("RUN_LOG_TYPE")
+	logtype := viper.GetString("RUN_LOGS_TYPE")
 	switch logtype {
 	case string(v1alpha1_jobservice.KubePodRunLogType):
 		rt := v1alpha1_jobservice.KubePodRunLogType
@@ -769,14 +765,6 @@ func getRunLogType() *v1alpha1_jobservice.RunLogType {
 	default:
 		return nil
 	}
-}
-
-func getRunLogPodConfig() *v1alpha1_jobservice.KubePodRunLogConfig {
-	return nil
-}
-
-func getLokiRunLogConfig() *v1alpha1_jobservice.LokiRunLogConfig {
-	return nil
 }
 
 func getIsKubernetes() bool {

@@ -127,3 +127,26 @@ stringData:
     {{- if and .Values.protometrics .Values.protometrics.apiKey }}
     METRICS_API_KEY: {{ .Values.protometrics.apiKey | quote }}
     {{- end }}
+
+
+    {{- if and .Values.runLogs .Values.runLogs.enabled }}
+
+    RUN_LOGS_ENABLED: {{ .Values.runLogs.enabled | toString | quote }}
+    RUN_LOGS_TYPE: {{ .Values.runLogs.type | quote }}
+
+    {{- if eq .Values.runLogs.type "k8s-pods" }}
+    RUN_LOGS_PODCONFIG_WORKER_NAMESPACE: {{ default .Release.Namespace .Values.runLogs.podConfig.workerNamespace | quote }}
+    RUN_LOGS_PODCONFIG_WORKER_APPNAME: {{ .Values.runLogs.podConfig.workerAppName | quote }}
+    {{- end }}
+
+    {{- if eq .Values.runLogs.type "loki" }}
+    RUN_LOGS_LOKICONFIG_BASEURL: {{ .Values.runLogs.lokiConfig.baseUrl | quote }}
+    RUN_LOGS_LOKICONFIG_LABELSQUERY: {{ .Values.runLogs.lokiConfig.labelsQuery | quote }}
+
+    {{- if .Values.runLogs.lokiConfig.keepLabels }}
+    RUN_LOGS_LOKICONFIG_KEEPLABELS: {{ .Values.runLogs.lokiConfig.keepLabels | join "," | quote }}
+    {{- end }}
+    {{- end }} # ends loki check
+
+    {{- end }} # ends runLogs.enabled check
+
