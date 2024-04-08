@@ -46,6 +46,10 @@ func (s *SqlDb) Open() (SqlDBTX, error) {
 			s.details.Tunnel.Close()
 			return nil, err
 		}
+		// set max number of connections.
+		if s.details.MaxConnectionLimit != nil {
+			db.SetMaxOpenConns(int(*s.details.MaxConnectionLimit))
+		}
 		s.db = db
 		s.dsn = dsn
 		s.tunnel = s.details.Tunnel
@@ -58,6 +62,10 @@ func (s *SqlDb) Open() (SqlDBTX, error) {
 		return nil, err
 	}
 	s.dsn = dsn
+	// set max number of connections.
+	if s.details.MaxConnectionLimit != nil {
+		db.SetMaxOpenConns(int(*s.details.MaxConnectionLimit))
+	}
 	return db, nil
 }
 

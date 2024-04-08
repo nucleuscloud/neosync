@@ -765,6 +765,11 @@ export class PostgresConnectionConfig extends Message<PostgresConnectionConfig> 
    */
   tunnel?: SSHTunnel;
 
+  /**
+   * @generated from field: mgmt.v1alpha1.SqlConnectionOptions connection_options = 4;
+   */
+  connectionOptions?: SqlConnectionOptions;
+
   constructor(data?: PartialMessage<PostgresConnectionConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -776,6 +781,7 @@ export class PostgresConnectionConfig extends Message<PostgresConnectionConfig> 
     { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "connection_config" },
     { no: 2, name: "connection", kind: "message", T: PostgresConnection, oneof: "connection_config" },
     { no: 3, name: "tunnel", kind: "message", T: SSHTunnel },
+    { no: 4, name: "connection_options", kind: "message", T: SqlConnectionOptions },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PostgresConnectionConfig {
@@ -792,6 +798,43 @@ export class PostgresConnectionConfig extends Message<PostgresConnectionConfig> 
 
   static equals(a: PostgresConnectionConfig | PlainMessage<PostgresConnectionConfig> | undefined, b: PostgresConnectionConfig | PlainMessage<PostgresConnectionConfig> | undefined): boolean {
     return proto3.util.equals(PostgresConnectionConfig, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.SqlConnectionOptions
+ */
+export class SqlConnectionOptions extends Message<SqlConnectionOptions> {
+  /**
+   * @generated from field: optional int32 max_connection_limit = 1;
+   */
+  maxConnectionLimit?: number;
+
+  constructor(data?: PartialMessage<SqlConnectionOptions>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.SqlConnectionOptions";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "max_connection_limit", kind: "scalar", T: 5 /* ScalarType.INT32 */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SqlConnectionOptions {
+    return new SqlConnectionOptions().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SqlConnectionOptions {
+    return new SqlConnectionOptions().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SqlConnectionOptions {
+    return new SqlConnectionOptions().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SqlConnectionOptions | PlainMessage<SqlConnectionOptions> | undefined, b: SqlConnectionOptions | PlainMessage<SqlConnectionOptions> | undefined): boolean {
+    return proto3.util.equals(SqlConnectionOptions, a, b);
   }
 }
 
@@ -1176,6 +1219,11 @@ export class MysqlConnectionConfig extends Message<MysqlConnectionConfig> {
    */
   tunnel?: SSHTunnel;
 
+  /**
+   * @generated from field: mgmt.v1alpha1.SqlConnectionOptions connection_options = 4;
+   */
+  connectionOptions?: SqlConnectionOptions;
+
   constructor(data?: PartialMessage<MysqlConnectionConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1187,6 +1235,7 @@ export class MysqlConnectionConfig extends Message<MysqlConnectionConfig> {
     { no: 1, name: "url", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "connection_config" },
     { no: 2, name: "connection", kind: "message", T: MysqlConnection, oneof: "connection_config" },
     { no: 3, name: "tunnel", kind: "message", T: SSHTunnel },
+    { no: 4, name: "connection_options", kind: "message", T: SqlConnectionOptions },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MysqlConnectionConfig {

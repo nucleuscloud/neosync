@@ -1923,6 +1923,18 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "connection_options",
+              "description": "",
+              "label": "",
+              "type": "SqlConnectionOptions",
+              "longType": "SqlConnectionOptions",
+              "fullType": "mgmt.v1alpha1.SqlConnectionOptions",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
@@ -2051,6 +2063,18 @@
               "type": "SSHTunnel",
               "longType": "SSHTunnel",
               "fullType": "mgmt.v1alpha1.SSHTunnel",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "connection_options",
+              "description": "",
+              "label": "",
+              "type": "SqlConnectionOptions",
+              "longType": "SqlConnectionOptions",
+              "fullType": "mgmt.v1alpha1.SqlConnectionOptions",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -2222,6 +2246,30 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "SqlConnectionOptions",
+          "longName": "SqlConnectionOptions",
+          "fullName": "mgmt.v1alpha1.SqlConnectionOptions",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "max_connection_limit",
+              "description": "",
+              "label": "optional",
+              "type": "int32",
+              "longType": "int32",
+              "fullType": "int32",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_max_connection_limit",
               "defaultValue": ""
             }
           ]
