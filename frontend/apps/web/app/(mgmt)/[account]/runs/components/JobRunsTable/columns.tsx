@@ -130,7 +130,7 @@ export function getColumns(
       cell: ({ row }) => (
         <DataTableRowActions
           row={row}
-          onDeleted={() => onDeleted(row.id)}
+          onDeleted={() => onDeleted(row.original.id)}
           accountId={accountId}
         />
       ),
