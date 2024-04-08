@@ -20,8 +20,8 @@ Example register event
       "realmId": "neosync-stage",
       "clientId": "neosync-app",
       "userId": "88251cc6-7408-4b31-a4c7-b2840d99b916",
-      "ipAddress": "104.56.113.42",
-      "username": "nickzelei+test@gmail.com",
+      "ipAddress": "111.11.111.11",
+      "username": "nick@example.com",
       "sessionId": "3cd8d025-d5d4-4ff2-82d3-a9c552ba422c"
   },
   "type": "access.REGISTER",
@@ -33,8 +33,8 @@ Example register event
       "redirect_uri": "https://app.stage.neosync.dev/api/auth/callback/neosync",
       "first_name": "Nick",
       "code_id": "3cd8d025-d5d4-4ff2-82d3-a9c552ba422c",
-      "email": "nickzelei+test@gmail.com",
-      "username": "nickzelei+test@gmail.com"
+      "email": "nick@example.com",
+      "username": "nick@example.com"
   }
 }
 */
