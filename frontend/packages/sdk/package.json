@@ -33,7 +33,7 @@
   "license": "MIT",
   "devDependencies": {
     "tsup": "^8.0.2",
-    "typescript": "^5.4.3"
+    "typescript": "^5.4.4"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^1.7.2",
