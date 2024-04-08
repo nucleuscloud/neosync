@@ -12,12 +12,16 @@ import (
 	"time"
 )
 
-type LokiClient struct {
-	baseUrl string
-	client  *http.Client
+type LokiHttpClient interface {
+	Do(req *http.Request) (*http.Response, error)
 }
 
-func New(baseUrl string, client *http.Client) *LokiClient {
+type LokiClient struct {
+	baseUrl string
+	client  LokiHttpClient
+}
+
+func New(baseUrl string, client LokiHttpClient) *LokiClient {
 	return &LokiClient{baseUrl: baseUrl, client: client}
 }
 
