@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"time"
@@ -13,10 +14,11 @@ import (
 
 type LokiClient struct {
 	baseUrl string
+	client  *http.Client
 }
 
-func New(baseUrl string) *LokiClient {
-	return &LokiClient{baseUrl: baseUrl}
+func New(baseUrl string, client *http.Client) *LokiClient {
+	return &LokiClient{baseUrl: baseUrl, client: client}
 }
 
 type Direction string
@@ -41,6 +43,7 @@ type QueryRangeRequest struct {
 func (c *LokiClient) QueryRange(
 	ctx context.Context,
 	request *QueryRangeRequest,
+	logger *slog.Logger,
 ) (*QueryResponse, error) {
 	baseUrl := fmt.Sprintf("%s/loki/api/v1/query_range", c.baseUrl)
 
@@ -65,7 +68,7 @@ func (c *LokiClient) QueryRange(
 		return nil, fmt.Errorf("could not create query_range request: %w", err)
 	}
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := c.client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("could not receive query_range response: %w", err)
 	}
@@ -77,8 +80,7 @@ func (c *LokiClient) QueryRange(
 	}
 
 	if res.StatusCode > 399 {
-		// todo: log error
-		fmt.Println(string(body))
+		logger.Error(fmt.Sprintf("received non 200 status code: %d when querying loki for logs", res.StatusCode), "body", string(body))
 		return nil, fmt.Errorf("received non 200 status code for loki query_range: %d", res.StatusCode)
 	}
 

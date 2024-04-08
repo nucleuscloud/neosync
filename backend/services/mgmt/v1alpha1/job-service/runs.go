@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"net/http"
 	"strings"
 	"time"
 
@@ -550,7 +551,7 @@ func (s *Service) streamLokiWorkerLogs(
 		return err
 	}
 
-	lokiclient := loki.New(s.cfg.RunLogConfig.LokiRunLogConfig.BaseUrl)
+	lokiclient := loki.New(s.cfg.RunLogConfig.LokiRunLogConfig.BaseUrl, http.DefaultClient)
 	direction := loki.BACKWARD
 	end := time.Now()
 	start := getLogFilterTime(req.Msg.GetWindow(), end)
@@ -564,7 +565,7 @@ func (s *Service) streamLokiWorkerLogs(
 		Direction: &direction,
 		Start:     &start,
 		End:       &end,
-	})
+	}, logger)
 	if err != nil {
 		return fmt.Errorf("unable to query loki for logs: %w", err)
 	}
