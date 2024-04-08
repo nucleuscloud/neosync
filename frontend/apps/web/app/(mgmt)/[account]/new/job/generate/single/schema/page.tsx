@@ -333,7 +333,7 @@ async function createNewJob(
   }
   const tableSchema =
     schema.mappings.length > 0 ? schema.mappings[0].schema : null;
-  const table = schema.mappings.length > 0 ? schema.mappings[1].table : null;
+  const table = schema.mappings.length > 0 ? schema.mappings[0].table : null;
   const body = new CreateJobRequest({
     accountId,
     jobName: define.jobName,

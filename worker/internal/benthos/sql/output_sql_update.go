@@ -172,11 +172,6 @@ func (s *pooledUpdateOutput) WriteBatch(ctx context.Context, batch service.Messa
 	builder := goqu.Dialect(s.driver)
 	table := goqu.S(s.schema).Table(s.table)
 
-	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{})
-	if err != nil {
-		return err
-	}
-
 	for i := range batch {
 		if s.argsMapping == nil {
 			continue
@@ -228,22 +223,11 @@ func (s *pooledUpdateOutput) WriteBatch(ctx context.Context, batch service.Messa
 
 		query, args, err := update.ToSQL()
 		if err != nil {
-			rollErr := tx.Rollback()
-			if rollErr != nil {
-				s.logger.Errorf("transaction rollback failed: %w", rollErr)
-			}
 			return err
 		}
-		if _, err := tx.Exec(query, args...); err != nil {
-			rollErr := tx.Rollback()
-			if rollErr != nil {
-				s.logger.Errorf("transaction rollback failed: %w", rollErr)
-			}
+		if _, err := s.db.ExecContext(ctx, query, args...); err != nil {
 			return err
 		}
-	}
-	if err := tx.Commit(); err != nil {
-		return err
 	}
 
 	return nil

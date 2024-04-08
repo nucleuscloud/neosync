@@ -1,4 +1,8 @@
-import { TransformerDataType, TransformerSource } from '@neosync/sdk';
+import {
+  SupportedJobType,
+  TransformerDataType,
+  TransformerSource,
+} from '@neosync/sdk';
 import { format } from 'date-fns';
 
 export function formatDateTime(
@@ -80,6 +84,17 @@ export function getTransformerDataTypesString(
   dts: TransformerDataType[]
 ): string {
   return dts.map((dt) => getTransformerDataTypeString(dt)).join(' | ');
+}
+
+function getTransformerJobTypeString(dt: SupportedJobType): string {
+  const value = SupportedJobType[dt];
+  return value ? toTitleCase(value) : 'unspecified';
+}
+
+export function getTransformerJobTypesString(
+  dts: SupportedJobType[]
+): string[] {
+  return dts.map((dt) => getTransformerJobTypeString(dt));
 }
 
 export function getTransformerSourceString(ds: TransformerSource): string {
