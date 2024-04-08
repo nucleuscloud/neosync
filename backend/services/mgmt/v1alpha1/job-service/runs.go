@@ -555,18 +555,20 @@ func (s *Service) streamLokiWorkerLogs(
 	direction := loki.BACKWARD
 	end := time.Now()
 	start := getLogFilterTime(req.Msg.GetWindow(), end)
+	query := buildLokiQuery(
+		s.cfg.RunLogConfig.LokiRunLogConfig.LabelsQuery,
+		s.cfg.RunLogConfig.LokiRunLogConfig.KeepLabels,
+		jobrunResp.WorkflowExecution.Execution.WorkflowId,
+	)
 	resp, err := lokiclient.QueryRange(ctx, &loki.QueryRangeRequest{
-		Query: buildLokiQuery(
-			s.cfg.RunLogConfig.LokiRunLogConfig.LabelsQuery,
-			s.cfg.RunLogConfig.LokiRunLogConfig.KeepLabels,
-			jobrunResp.WorkflowExecution.Execution.WorkflowId,
-		),
+		Query:     query,
 		Limit:     req.Msg.MaxLogLines,
 		Direction: &direction,
 		Start:     &start,
 		End:       &end,
 	}, logger)
 	if err != nil {
+		logger.Error("failed to query loki", "query", query)
 		return fmt.Errorf("unable to query loki for logs: %w", err)
 	}
 	if resp.Status != "success" {
@@ -587,7 +589,7 @@ func (s *Service) streamLokiWorkerLogs(
 
 func buildLokiQuery(lokiLables string, keep []string, workflowId string) string {
 	query := fmt.Sprintf("{%s} | json", lokiLables)
-	query = fmt.Sprintf("%s |= WorkflowID=%q", query, workflowId)
+	query = fmt.Sprintf("%s | WorkflowID=%q", query, workflowId)
 	if len(keep) > 0 {
 		query = fmt.Sprintf("%s | keep %s", query, strings.Join(keep, ", "))
 	}
