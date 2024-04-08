@@ -692,7 +692,13 @@ func getRunLogConfig() (*v1alpha1_jobservice.RunLogConfig, error) {
 		isKubernetes := getIsKubernetes()
 		ksNs := getKubernetesNamespace()
 		ksWorkerAppName := getKubernetesWorkerAppName()
-		if isKubernetes && ksNs != "" && ksWorkerAppName != "" {
+		if isKubernetes {
+			if ksNs == "" {
+				ksNs = "neosync"
+			}
+			if ksWorkerAppName == "" {
+				ksWorkerAppName = "neosync-worker"
+			}
 			runlogtype := v1alpha1_jobservice.KubePodRunLogType
 			return &v1alpha1_jobservice.RunLogConfig{
 				IsEnabled:  true,
@@ -719,7 +725,7 @@ func getRunLogConfig() (*v1alpha1_jobservice.RunLogConfig, error) {
 			ksWorkerAppName = getKubernetesWorkerAppName()
 		}
 		if ksWorkerAppName == "" {
-			ksWorkerAppName = "worker"
+			ksWorkerAppName = "neosync-worker"
 		}
 		return &v1alpha1_jobservice.RunLogConfig{
 			IsEnabled:  true,
@@ -736,7 +742,7 @@ func getRunLogConfig() (*v1alpha1_jobservice.RunLogConfig, error) {
 		}
 		labelsQuery := viper.GetString("RUN_LOGS_LOKICONFIG_LABELSQUERY")
 		if labelsQuery == "" {
-			labelsQuery = `namespace="neosync", app="worker"`
+			labelsQuery = `namespace="neosync", app="neosync-worker"`
 		}
 		keepLabels := viper.GetStringSlice("RUN_LOGS_LOKICONFIG_KEEPLABELS")
 		return &v1alpha1_jobservice.RunLogConfig{
