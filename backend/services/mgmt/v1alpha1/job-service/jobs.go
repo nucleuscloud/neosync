@@ -254,6 +254,8 @@ func (s *Service) GetJobRecentRuns(
 		return nil, err
 	}
 
+	fmt.Println("sched", schedule.Info.RecentActions[0])
+
 	return connect.NewResponse(&mgmtv1alpha1.GetJobRecentRunsResponse{
 		RecentRuns: dtomaps.ToJobRecentRunsDto(schedule),
 	}), nil

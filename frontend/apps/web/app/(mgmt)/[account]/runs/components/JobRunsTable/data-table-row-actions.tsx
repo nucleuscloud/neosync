@@ -39,7 +39,8 @@ export function DataTableRowActions<TData>({
     try {
       await removeJobRun(run.id, accountId);
       toast({
-        title: 'Job run removed successfully!',
+        title: 'Removing Job Run. This may take a minute to delete!',
+        variant: 'success',
       });
       onDeleted();
     } catch (err) {
@@ -56,7 +57,8 @@ export function DataTableRowActions<TData>({
     try {
       await cancelJobRun(run.id, accountId);
       toast({
-        title: 'Job run canceled successfully!',
+        title: 'Canceling Job Run. This may take a minute to cancel!',
+        variant: 'success',
       });
       onDeleted();
     } catch (err) {
@@ -73,7 +75,8 @@ export function DataTableRowActions<TData>({
     try {
       await terminateJobRun(run.id, accountId);
       toast({
-        title: 'Job run terminated successfully!',
+        title: 'Terminating Job Run. This may take a minute to terminate!',
+        variant: 'success',
       });
       onDeleted();
     } catch (err) {
@@ -156,7 +159,9 @@ export function DataTableRowActions<TData>({
           }
           headerText="Are you sure you want to delete this job run?"
           description=""
-          onConfirm={async () => onDelete()}
+          onConfirm={async () => {
+            await onDelete();
+          }}
         />
       </DropdownMenuContent>
     </DropdownMenu>

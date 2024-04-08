@@ -80,12 +80,11 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
   async function onDelete(runId: string): Promise<void> {
     try {
       await removeJobRun(runId, account?.id ?? '');
+      onRefreshClick();
       toast({
-        title: 'Job run removed successfully!',
+        title: 'Removing Job Run. This may take a minute to delete!',
         variant: 'success',
       });
-      // onDeleted();
-      recentRunsMutate();
     } catch (err) {
       console.error(err);
       toast({
@@ -100,11 +99,10 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
     try {
       await cancelJobRun(runId, account?.id ?? '');
       toast({
-        title: 'Job run canceled successfully!',
+        title: 'Canceling Job Run. This may take a minute to cancel!',
         variant: 'success',
       });
-      // onDeleted();
-      recentRunsMutate();
+      onRefreshClick();
     } catch (err) {
       console.error(err);
       toast({
@@ -119,11 +117,10 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
     try {
       await terminateJobRun(runId, account?.id ?? '');
       toast({
-        title: 'Job run terminated successfully!',
+        title: 'Terminating Job Run. This may take a minute to terminate!',
         variant: 'success',
       });
-      // onDeleted();
-      recentRunsMutate();
+      onRefreshClick();
     } catch (err) {
       console.error(err);
       toast({
