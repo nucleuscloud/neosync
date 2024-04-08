@@ -28,6 +28,7 @@ func IsMaxConnectionError(errMsg string) bool {
 		"too many clients already",
 		"remaining connection slots are reserved",
 		"maximum number of connections reached",
+		"Deadlock found when trying to get lock",
 	}
 
 	for _, errStr := range maxConnErrors {
