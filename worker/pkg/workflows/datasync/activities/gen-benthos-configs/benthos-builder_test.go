@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"sync"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -17,6 +18,7 @@ import (
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -52,13 +54,15 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Pg(t *testing.T) 
 
 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
-	pgcache := map[string]pg_queries.DBTX{
-		"123": pg_queries.NewMockDBTX(t),
-		"456": pg_queries.NewMockDBTX(t),
-	}
+	pgcache := &sync.Map{}
+	pgcache.Store("123", pg_queries.NewMockDBTX(t))
+	pgcache.Store("456", pg_queries.NewMockDBTX(t))
+
 	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlcache := &sync.Map{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
+
+	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
@@ -142,7 +146,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Pg(t *testing.T) 
 		},
 	}), nil)
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil, false)
+	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
@@ -237,13 +241,13 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Metrics(t *testing.T) {
 
 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
-	pgcache := map[string]pg_queries.DBTX{
-		"123": pg_queries.NewMockDBTX(t),
-		"456": pg_queries.NewMockDBTX(t),
-	}
+	pgcache := &sync.Map{}
+	pgcache.Store("123", pg_queries.NewMockDBTX(t))
+	pgcache.Store("456", pg_queries.NewMockDBTX(t))
 	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlcache := &sync.Map{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
+	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
@@ -329,7 +333,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Metrics(t *testing.T) {
 		},
 	}), nil)
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil, true)
+	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, true)
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
@@ -435,13 +439,13 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Generate_Pg_Pg(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
-	pgcache := map[string]pg_queries.DBTX{
-		"123": pg_queries.NewMockDBTX(t),
-		"456": pg_queries.NewMockDBTX(t),
-	}
+	pgcache := &sync.Map{}
+	pgcache.Store("123", pg_queries.NewMockDBTX(t))
+	pgcache.Store("456", pg_queries.NewMockDBTX(t))
 	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlcache := &sync.Map{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
+	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
@@ -523,7 +527,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Generate_Pg_Pg(t *testing.T) {
 		},
 	}), nil)
 
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil, false)
+	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
@@ -617,13 +621,14 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Transformer_Pg_Pg(t *
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
-	pgcache := map[string]pg_queries.DBTX{
-		"123": pg_queries.NewMockDBTX(t),
-		"456": pg_queries.NewMockDBTX(t),
-	}
+	pgcache := &sync.Map{}
+	pgcache.Store("123", pg_queries.NewMockDBTX(t))
+	pgcache.Store("456", pg_queries.NewMockDBTX(t))
 	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlcache := &sync.Map{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
+	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
+
 	redisConfig := &shared.RedisConfig{
 		Url:  "redis://localhost:6379",
 		Kind: "simple",
@@ -779,7 +784,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Transformer_Pg_Pg(t *
 			ConstraintName: "orders",
 			ColumnName:     "id",
 		}}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, redisConfig, false)
+	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, redisConfig, false)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -939,13 +944,13 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Passthrough_Pg_Pg(t *
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
-	pgcache := map[string]pg_queries.DBTX{
-		"123": pg_queries.NewMockDBTX(t),
-		"456": pg_queries.NewMockDBTX(t),
-	}
+	pgcache := &sync.Map{}
+	pgcache.Store("123", pg_queries.NewMockDBTX(t))
+	pgcache.Store("456", pg_queries.NewMockDBTX(t))
 	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlcache := &sync.Map{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
+	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
@@ -1090,7 +1095,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Passthrough_Pg_Pg(t *
 			ConstraintName: "orders",
 			ColumnName:     "id",
 		}}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil, false)
+	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -1221,13 +1226,14 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_CircularDependency_PrimaryKey_Tr
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
-	pgcache := map[string]pg_queries.DBTX{
-		"123": pg_queries.NewMockDBTX(t),
-		"456": pg_queries.NewMockDBTX(t),
-	}
+	pgcache := &sync.Map{}
+	pgcache.Store("123", pg_queries.NewMockDBTX(t))
+	pgcache.Store("456", pg_queries.NewMockDBTX(t))
 	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlcache := &sync.Map{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
+	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
+
 	redisConfig := &shared.RedisConfig{
 		Url:  "redis://localhost:6379",
 		Kind: "simple",
@@ -1352,7 +1358,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_CircularDependency_PrimaryKey_Tr
 			ConstraintName: "job",
 			ColumnName:     "id",
 		}}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, redisConfig, false)
+	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, redisConfig, false)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -1523,13 +1529,13 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
-	pgcache := map[string]pg_queries.DBTX{
-		"123": pg_queries.NewMockDBTX(t),
-		"456": pg_queries.NewMockDBTX(t),
-	}
+	pgcache := &sync.Map{}
+	pgcache.Store("123", pg_queries.NewMockDBTX(t))
+	pgcache.Store("456", pg_queries.NewMockDBTX(t))
 	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlcache := &sync.Map{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
+	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
@@ -1674,7 +1680,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 			ConstraintName: "acc_assoc_constraint",
 			ColumnName:     "id",
 		}}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil, false)
+	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -1721,13 +1727,13 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
-	pgcache := map[string]pg_queries.DBTX{
-		"123": pg_queries.NewMockDBTX(t),
-		"456": pg_queries.NewMockDBTX(t),
-	}
+	pgcache := &sync.Map{}
+	pgcache.Store("123", pg_queries.NewMockDBTX(t))
+	pgcache.Store("456", pg_queries.NewMockDBTX(t))
 	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlcache := &sync.Map{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
+	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
@@ -1898,7 +1904,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 			ColumnName:     "id",
 		},
 	}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil, false)
+	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -2087,13 +2093,13 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
-	pgcache := map[string]pg_queries.DBTX{
-		"123": pg_queries.NewMockDBTX(t),
-		"456": pg_queries.NewMockDBTX(t),
-	}
+	pgcache := &sync.Map{}
+	pgcache.Store("123", pg_queries.NewMockDBTX(t))
+	pgcache.Store("456", pg_queries.NewMockDBTX(t))
 	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{}
+	mysqlcache := &sync.Map{}
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
+	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
@@ -2294,7 +2300,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 			ColumnName:     "id",
 		},
 	}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil, false)
+	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -2538,13 +2544,13 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) 
 	mockTransformersClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
-	pgcache := map[string]pg_queries.DBTX{}
+	pgcache := &sync.Map{}
 	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{
-		"123": mysql_queries.NewMockDBTX(t),
-		"456": mysql_queries.NewMockDBTX(t),
-	}
+	mysqlcache := &sync.Map{}
+	mysqlcache.Store("123", mysql_queries.NewMockDBTX(t))
+	mysqlcache.Store("456", mysql_queries.NewMockDBTX(t))
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
+	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
@@ -2689,7 +2695,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) 
 			ConstraintName: "pk-users-assoc-id",
 			ColumnName:     "id",
 		}}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformersClient, mockSqlConnector, mockJobId, mockRunId, nil, false)
+	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformersClient, mockJobId, mockRunId, nil, false)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -2824,13 +2830,14 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
 
-	pgcache := map[string]pg_queries.DBTX{}
+	pgcache := &sync.Map{}
 	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{
-		"123": mysql_queries.NewMockDBTX(t),
-		"456": mysql_queries.NewMockDBTX(t),
-	}
+	mysqlcache := &sync.Map{}
+	mysqlcache.Store("123", mysql_queries.NewMockDBTX(t))
+	mysqlcache.Store("456", mysql_queries.NewMockDBTX(t))
+
 	mysqlquerier := mysql_queries.NewMockQuerier(t)
+	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
@@ -3001,7 +3008,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_
 			ColumnName:     "id",
 		},
 	}, nil)
-	bbuilder := newBenthosBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockTransformerClient, mockSqlConnector, mockJobId, mockRunId, nil, false)
+	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
