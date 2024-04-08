@@ -15,11 +15,37 @@ type Service struct {
 	temporalWfManager clientmanager.TemporalClientManagerClient
 }
 
+type RunLogType string
+
+const (
+	KubePodRunLogType RunLogType = "k8s-pods"
+	LokiRunLogType    RunLogType = "loki"
+)
+
+type KubePodRunLogConfig struct {
+	Namespace     string
+	WorkerAppName string
+}
+
+type LokiRunLogConfig struct {
+	BaseUrl string
+
+	LabelsQuery string // Labels to filter loki by, without the curly braces
+	// labels to keep after the json filtering. Keeps ordering. Not sure if it will always need to equal the labels query keys, so separating this
+	KeepLabels []string
+}
+
 type Config struct {
-	IsAuthEnabled           bool
-	IsKubernetesEnabled     bool
-	KubernetesNamespace     string
-	KubernetesWorkerAppName string
+	IsAuthEnabled bool
+
+	RunLogConfig *RunLogConfig
+}
+
+type RunLogConfig struct {
+	IsEnabled        bool
+	RunLogType       *RunLogType
+	RunLogPodConfig  *KubePodRunLogConfig // required if RunLogType is k8s-pods
+	LokiRunLogConfig *LokiRunLogConfig    // required if RunLogType is loki
 }
 
 func New(

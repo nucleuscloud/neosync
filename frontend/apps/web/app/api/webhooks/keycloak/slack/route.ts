@@ -10,6 +10,34 @@ const SIG_SECRET = process.env.KEYCLOAK_SLACK_WEBHOOK_HMAC_SECRET;
 const KEYCLOAK_SIG_HEADER = 'X-Keycloak-Signature';
 const SLACK_WEBHOOK_URL = process.env.KEYCLOAK_SLACK_WEBHOOK_URL;
 
+/*
+Example register event
+{
+  "time": 1711651627565,
+  "realmId": "7a11ef96-d5ef-4bfe-beb8-a5d81f9de464",
+  "uid": "d2e0fe26-f8e6-4012-b22f-87f989c3c9e7",
+  "authDetails": {
+      "realmId": "neosync-stage",
+      "clientId": "neosync-app",
+      "userId": "88251cc6-7408-4b31-a4c7-b2840d99b916",
+      "ipAddress": "111.11.111.11",
+      "username": "nick@example.com",
+      "sessionId": "3cd8d025-d5d4-4ff2-82d3-a9c552ba422c"
+  },
+  "type": "access.REGISTER",
+  "details": {
+      "auth_method": "openid-connect",
+      "auth_type": "code",
+      "register_method": "form",
+      "last_name": "Zelei",
+      "redirect_uri": "https://app.stage.neosync.dev/api/auth/callback/neosync",
+      "first_name": "Nick",
+      "code_id": "3cd8d025-d5d4-4ff2-82d3-a9c552ba422c",
+      "email": "nick@example.com",
+      "username": "nick@example.com"
+  }
+}
+*/
 const RegisterEvent = Yup.object({
   time: Yup.number().required(),
   type: Yup.string().oneOf(['access.REGISTER']).required(),

@@ -302,11 +302,14 @@ func serve(ctx context.Context) error {
 		),
 	)
 
+	runLogConfig, err := getRunLogConfig()
+	if err != nil {
+		return err
+	}
+
 	jobServiceConfig := &v1alpha1_jobservice.Config{
-		IsAuthEnabled:           isAuthEnabled,
-		IsKubernetesEnabled:     getIsKubernetes(),
-		KubernetesNamespace:     getKubernetesNamespace(),
-		KubernetesWorkerAppName: getKubernetesWorkerAppName(),
+		IsAuthEnabled: isAuthEnabled,
+		RunLogConfig:  runLogConfig,
 	}
 	jobService := v1alpha1_jobservice.New(
 		jobServiceConfig,
@@ -642,18 +645,6 @@ func getAllowedWorkerApiKeys(isNeosyncCloud bool) []string {
 	return []string{}
 }
 
-func getIsKubernetes() bool {
-	return viper.GetBool("KUBERNETES_ENABLED")
-}
-
-func getKubernetesNamespace() string {
-	return viper.GetString("KUBERNETES_NAMESPACE")
-}
-
-func getKubernetesWorkerAppName() string {
-	return viper.GetString("KUBERNETES_WORKER_APP_NAME")
-}
-
 func getAuthAdminClient(ctx context.Context, authclient auth_client.Interface, logger *slog.Logger) (authmgmt.Interface, error) {
 	authApiBaseUrl := getAuthApiBaseUrl()
 	authApiClientId := getAuthApiClientId()
@@ -692,4 +683,104 @@ func getPromApiKey() *string {
 		return nil
 	}
 	return &key
+}
+
+func getRunLogConfig() (*v1alpha1_jobservice.RunLogConfig, error) {
+	isRunLogsEnabled := viper.GetBool("RUN_LOGS_ENABLED")
+	if !isRunLogsEnabled {
+		// look for fallback variables
+		isKubernetes := getIsKubernetes()
+		ksNs := getKubernetesNamespace()
+		ksWorkerAppName := getKubernetesWorkerAppName()
+		if isKubernetes {
+			if ksNs == "" {
+				ksNs = "neosync"
+			}
+			if ksWorkerAppName == "" {
+				ksWorkerAppName = "neosync-worker"
+			}
+			runlogtype := v1alpha1_jobservice.KubePodRunLogType
+			return &v1alpha1_jobservice.RunLogConfig{
+				IsEnabled:  true,
+				RunLogType: &runlogtype,
+				RunLogPodConfig: &v1alpha1_jobservice.KubePodRunLogConfig{
+					Namespace:     ksNs,
+					WorkerAppName: ksWorkerAppName,
+				},
+			}, nil
+		}
+	}
+	runlogtype := getRunLogType()
+	switch *runlogtype {
+	case v1alpha1_jobservice.KubePodRunLogType:
+		ksNs := viper.GetString("RUN_LOGS_PODCONFIG_WORKER_NAMESPACE")
+		ksWorkerAppName := viper.GetString("RUN_LOGS_PODCONFIG_WORKER_APPNAME")
+		if ksNs == "" {
+			ksNs = getKubernetesNamespace()
+		}
+		if ksNs == "" {
+			ksNs = "neosync"
+		}
+		if ksWorkerAppName == "" {
+			ksWorkerAppName = getKubernetesWorkerAppName()
+		}
+		if ksWorkerAppName == "" {
+			ksWorkerAppName = "neosync-worker"
+		}
+		return &v1alpha1_jobservice.RunLogConfig{
+			IsEnabled:  true,
+			RunLogType: runlogtype,
+			RunLogPodConfig: &v1alpha1_jobservice.KubePodRunLogConfig{
+				Namespace:     ksNs,
+				WorkerAppName: ksWorkerAppName,
+			},
+		}, nil
+	case v1alpha1_jobservice.LokiRunLogType:
+		lokibaseurl := viper.GetString("RUN_LOGS_LOKICONFIG_BASEURL")
+		if lokibaseurl == "" {
+			return nil, errors.New("must provide loki baseurl when loki run log type has been configured")
+		}
+		labelsQuery := viper.GetString("RUN_LOGS_LOKICONFIG_LABELSQUERY")
+		if labelsQuery == "" {
+			labelsQuery = `namespace="neosync", app="neosync-worker"`
+		}
+		keepLabels := viper.GetStringSlice("RUN_LOGS_LOKICONFIG_KEEPLABELS")
+		return &v1alpha1_jobservice.RunLogConfig{
+			IsEnabled:  true,
+			RunLogType: runlogtype,
+			LokiRunLogConfig: &v1alpha1_jobservice.LokiRunLogConfig{
+				BaseUrl:     lokibaseurl,
+				LabelsQuery: labelsQuery,
+				KeepLabels:  keepLabels,
+			},
+		}, nil
+	default:
+		return nil, errors.New("unsupported or no run log type configured, but run logs are enabled.")
+	}
+}
+
+func getRunLogType() *v1alpha1_jobservice.RunLogType {
+	logtype := viper.GetString("RUN_LOGS_TYPE")
+	switch logtype {
+	case string(v1alpha1_jobservice.KubePodRunLogType):
+		rt := v1alpha1_jobservice.KubePodRunLogType
+		return &rt
+	case string(v1alpha1_jobservice.LokiRunLogType):
+		rt := v1alpha1_jobservice.LokiRunLogType
+		return &rt
+	default:
+		return nil
+	}
+}
+
+func getIsKubernetes() bool {
+	return viper.GetBool("KUBERNETES_ENABLED")
+}
+
+func getKubernetesNamespace() string {
+	return viper.GetString("KUBERNETES_NAMESPACE")
+}
+
+func getKubernetesWorkerAppName() string {
+	return viper.GetString("KUBERNETES_WORKER_APP_NAME")
 }

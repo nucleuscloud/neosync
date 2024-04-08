@@ -74,3 +74,6 @@ packages:
       inpackage: False
     interfaces:
       API:
+  github.com/nucleuscloud/neosync/backend/internal/loki:
+    interfaces:
+      LokiHttpClient:

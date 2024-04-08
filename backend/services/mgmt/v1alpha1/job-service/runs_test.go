@@ -15,6 +15,7 @@ import (
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"go.temporal.io/api/common/v1"
 	"go.temporal.io/api/enums/v1"
 	workflowpb "go.temporal.io/api/workflow/v1"
@@ -219,5 +220,51 @@ func getWorfklowExecutionInfoMock(jobId, workflowId string) *workflowpb.Workflow
 		Execution: &common.WorkflowExecution{
 			WorkflowId: workflowId,
 		},
+	}
+}
+
+func Test_buildLokiQuery(t *testing.T) {
+	type testcase struct {
+		labels     string
+		keep       []string
+		workflowId string
+		expected   string
+	}
+
+	testcases := []testcase{
+		{`foo="bar"`, []string{"foo"}, "123", `{foo="bar"} | json | WorkflowID="123" | keep foo`},
+		{`foo="bar", foo2="bar2"`, []string{"foo"}, "123", `{foo="bar", foo2="bar2"} | json | WorkflowID="123" | keep foo`},
+		{`foo="bar", foo2="bar2"`, []string{}, "123", `{foo="bar", foo2="bar2"} | json | WorkflowID="123"`},
+	}
+
+	for _, tc := range testcases {
+		t.Run("", func(t *testing.T) {
+			actual := buildLokiQuery(tc.labels, tc.keep, tc.workflowId)
+			require.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
+func Test_getLogFilterTime(t *testing.T) {
+	type testcase struct {
+		window   mgmtv1alpha1.LogWindow
+		endTime  time.Time
+		expected time.Time
+	}
+
+	now := time.Now()
+
+	testcases := []testcase{
+		{mgmtv1alpha1.LogWindow_LOG_WINDOW_FIFTEEN_MIN, now, now.Add(-15 * time.Minute)},
+		{mgmtv1alpha1.LogWindow_LOG_WINDOW_ONE_HOUR, now, now.Add(-1 * time.Hour)},
+		{mgmtv1alpha1.LogWindow_LOG_WINDOW_ONE_DAY, now, now.Add(-24 * time.Hour)},
+		{mgmtv1alpha1.LogWindow_LOG_WINDOW_NO_TIME_UNSPECIFIED, now, now.Add(-15 * time.Minute)},
+	}
+
+	for _, tc := range testcases {
+		t.Run("", func(t *testing.T) {
+			actual := getLogFilterTime(tc.window, tc.endTime)
+			require.Equal(t, tc.expected, actual)
+		})
 	}
 }

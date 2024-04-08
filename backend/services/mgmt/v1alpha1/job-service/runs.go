@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"net/http"
+	"strings"
 	"time"
 
 	"connectrpc.com/connect"
@@ -14,6 +16,7 @@ import (
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
+	"github.com/nucleuscloud/neosync/backend/internal/loki"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	commonpb "go.temporal.io/api/common/v1"
@@ -437,92 +440,171 @@ func (s *Service) GetJobRunLogsStream(
 ) error {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	logger = logger.With("jobRunId", req.Msg.JobRunId)
-	if s.cfg.IsKubernetesEnabled {
-		verifResp, err := s.getVerifiedJobRun(ctx, logger, req.Msg.JobRunId, req.Msg.AccountId)
-		if err != nil {
-			return err
-		}
 
-		kubeConfig, err := rest.InClusterConfig()
-		if err != nil {
-			logger.Error(fmt.Errorf("error getting kubernetes config: %w", err).Error())
-			return err
-		}
-
-		clientset, err := kubernetes.NewForConfig(kubeConfig)
-		if err != nil {
-			logger.Error(fmt.Errorf("error getting kubernetes clientset: %w", err).Error())
-			return err
-		}
-
-		appNameSelector, err := labels.NewRequirement("app", selection.Equals, []string{s.cfg.KubernetesWorkerAppName})
-		if err != nil {
-			logger.Error(fmt.Errorf("unable to build label selector to find logs: %w", err).Error())
-			return err
-		}
-		pods, err := clientset.CoreV1().Pods(s.cfg.KubernetesNamespace).List(context.Background(), metav1.ListOptions{
-			LabelSelector: appNameSelector.String(),
-		})
-		if err != nil {
-			logger.Error(fmt.Errorf("error getting pods: %w", err).Error())
-			return err
-		}
-		for idx := range pods.Items {
-			pod := pods.Items[idx]
-			logsReq := clientset.CoreV1().Pods(s.cfg.KubernetesNamespace).GetLogs(pod.Name, &corev1.PodLogOptions{
-				Container: "user-container",
-				Follow:    req.Msg.ShouldTail,
-				TailLines: req.Msg.MaxLogLines,
-				SinceTime: getLogFilterTime(req.Msg.GetWindow()),
-			})
-			logstream, err := logsReq.Stream(ctx)
-			if err != nil && !errors.IsNotFound(err) {
-				return err
-			} else if err != nil && errors.IsNotFound(err) {
-				return nucleuserrors.NewNotFound("pod no longer exists")
-			}
-
-			scanner := bufio.NewScanner(logstream)
-
-			for scanner.Scan() {
-				txt := scanner.Text()
-				var logLine LogLine
-				err := json.Unmarshal([]byte(txt), &logLine)
-				if err != nil {
-					logger.Error("error unmarshaling log line: %v\n", err)
-					continue // Skip lines that can't be unmarshaled
-				}
-
-				if logLine.WorkflowID == verifResp.WorkflowExecution.Execution.WorkflowId {
-					if err := stream.Send(&mgmtv1alpha1.GetJobRunLogsStreamResponse{LogLine: txt}); err != nil {
-						if err == io.EOF {
-							return nil
-						}
-						return err
-					}
-				}
-			}
-			logstream.Close()
-		}
-		return nil
+	if s.cfg.RunLogConfig == nil || !s.cfg.RunLogConfig.IsEnabled || s.cfg.RunLogConfig.RunLogType == nil {
+		return nucleuserrors.NewNotImplemented("job run logs streaming is not enabled. please configure or contact system administrator to enable logs.")
 	}
-	return nucleuserrors.NewNotImplemented("streaming log pods not implemented for this container type")
+
+	switch *s.cfg.RunLogConfig.RunLogType {
+	case KubePodRunLogType:
+		return s.streamK8sWorkerPodLogs(ctx, req, stream, logger)
+	case LokiRunLogType:
+		return s.streamLokiWorkerLogs(ctx, req, stream, logger)
+	default:
+		return nucleuserrors.NewNotImplemented("streaming log pods not implemented for this container type")
+	}
 }
 
-func getLogFilterTime(window mgmtv1alpha1.LogWindow) *metav1.Time {
-	switch window {
-	case mgmtv1alpha1.LogWindow_LOG_WINDOW_FIFTEEN_MIN:
-		return &metav1.Time{
-			Time: time.Now().Add(-15 * time.Minute),
+func (s *Service) streamK8sWorkerPodLogs(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetJobRunLogsStreamRequest],
+	stream *connect.ServerStream[mgmtv1alpha1.GetJobRunLogsStreamResponse],
+	logger *slog.Logger,
+) error {
+	if s.cfg.RunLogConfig.RunLogPodConfig == nil {
+		return nucleuserrors.NewInternalError("run logs configured but no config provided")
+	}
+	verifResp, err := s.getVerifiedJobRun(ctx, logger, req.Msg.JobRunId, req.Msg.AccountId)
+	if err != nil {
+		return err
+	}
+
+	kubeConfig, err := rest.InClusterConfig()
+	if err != nil {
+		logger.Error(fmt.Errorf("error getting kubernetes config: %w", err).Error())
+		return err
+	}
+
+	clientset, err := kubernetes.NewForConfig(kubeConfig)
+	if err != nil {
+		logger.Error(fmt.Errorf("error getting kubernetes clientset: %w", err).Error())
+		return err
+	}
+
+	appNameSelector, err := labels.NewRequirement("app", selection.Equals, []string{s.cfg.RunLogConfig.RunLogPodConfig.WorkerAppName})
+	if err != nil {
+		logger.Error(fmt.Errorf("unable to build label selector to find logs: %w", err).Error())
+		return err
+	}
+	podclient := clientset.CoreV1().Pods(s.cfg.RunLogConfig.RunLogPodConfig.Namespace)
+	pods, err := podclient.List(ctx, metav1.ListOptions{
+		LabelSelector: appNameSelector.String(),
+	})
+	if err != nil {
+		logger.Error(fmt.Errorf("error getting pods: %w", err).Error())
+		return err
+	}
+	for idx := range pods.Items {
+		pod := pods.Items[idx]
+		logsReq := podclient.GetLogs(pod.Name, &corev1.PodLogOptions{
+			Container: "user-container",
+			Follow:    req.Msg.ShouldTail,
+			TailLines: req.Msg.MaxLogLines,
+			SinceTime: &metav1.Time{Time: getLogFilterTime(req.Msg.GetWindow(), time.Now())},
+		})
+		logstream, err := logsReq.Stream(ctx)
+		if err != nil && !errors.IsNotFound(err) {
+			return err
+		} else if err != nil && errors.IsNotFound(err) {
+			return nucleuserrors.NewNotFound("pod no longer exists")
 		}
-	case mgmtv1alpha1.LogWindow_LOG_WINDOW_ONE_HOUR:
-		return &metav1.Time{
-			Time: time.Now().Add(-1 * time.Hour),
+
+		scanner := bufio.NewScanner(logstream)
+
+		for scanner.Scan() {
+			txt := scanner.Text()
+			var logLine LogLine
+			err := json.Unmarshal([]byte(txt), &logLine)
+			if err != nil {
+				logger.Error("error unmarshaling log line: %v\n", err)
+				continue // Skip lines that can't be unmarshaled
+			}
+
+			if logLine.WorkflowID == verifResp.WorkflowExecution.Execution.WorkflowId {
+				if err := stream.Send(&mgmtv1alpha1.GetJobRunLogsStreamResponse{LogLine: txt}); err != nil {
+					if err == io.EOF {
+						return nil
+					}
+					return err
+				}
+			}
 		}
-	case mgmtv1alpha1.LogWindow_LOG_WINDOW_ONE_DAY:
-		return &metav1.Time{
-			Time: time.Now().Add(-24 * time.Hour),
+		logstream.Close()
+	}
+	return nil
+}
+
+func (s *Service) streamLokiWorkerLogs(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetJobRunLogsStreamRequest],
+	stream *connect.ServerStream[mgmtv1alpha1.GetJobRunLogsStreamResponse],
+	logger *slog.Logger,
+) error {
+	if s.cfg.RunLogConfig == nil || !s.cfg.RunLogConfig.IsEnabled || s.cfg.RunLogConfig.LokiRunLogConfig == nil {
+		return nucleuserrors.NewInternalError("run logs configured but no config provided")
+	}
+	if s.cfg.RunLogConfig.LokiRunLogConfig.LabelsQuery == "" {
+		return nucleuserrors.NewInternalError("must provide a labels query for loki to filter by")
+	}
+	jobrunResp, err := s.getVerifiedJobRun(ctx, logger, req.Msg.GetJobRunId(), req.Msg.GetAccountId())
+	if err != nil {
+		return err
+	}
+
+	lokiclient := loki.New(s.cfg.RunLogConfig.LokiRunLogConfig.BaseUrl, http.DefaultClient)
+	direction := loki.BACKWARD
+	end := time.Now()
+	start := getLogFilterTime(req.Msg.GetWindow(), end)
+	query := buildLokiQuery(
+		s.cfg.RunLogConfig.LokiRunLogConfig.LabelsQuery,
+		s.cfg.RunLogConfig.LokiRunLogConfig.KeepLabels,
+		jobrunResp.WorkflowExecution.Execution.WorkflowId,
+	)
+	resp, err := lokiclient.QueryRange(ctx, &loki.QueryRangeRequest{
+		Query:     query,
+		Limit:     req.Msg.MaxLogLines,
+		Direction: &direction,
+		Start:     &start,
+		End:       &end,
+	}, logger)
+	if err != nil {
+		logger.Error("failed to query loki", "query", query)
+		return fmt.Errorf("unable to query loki for logs: %w", err)
+	}
+	if resp.Status != "success" {
+		return fmt.Errorf("received non-success status response from loki: %s", resp.Status)
+	}
+	streams, err := loki.GetStreamsFromResponseData(&resp.Data)
+	if err != nil {
+		return err
+	}
+	for _, entry := range loki.GetEntriesFromStreams(streams) {
+		err := stream.Send(&mgmtv1alpha1.GetJobRunLogsStreamResponse{LogLine: entry.Line})
+		if err != nil {
+			return err
 		}
 	}
 	return nil
+}
+
+func buildLokiQuery(lokiLables string, keep []string, workflowId string) string {
+	query := fmt.Sprintf("{%s} | json", lokiLables)
+	query = fmt.Sprintf("%s | WorkflowID=%q", query, workflowId)
+	if len(keep) > 0 {
+		query = fmt.Sprintf("%s | keep %s", query, strings.Join(keep, ", "))
+	}
+	return query
+}
+
+func getLogFilterTime(window mgmtv1alpha1.LogWindow, endTime time.Time) time.Time {
+	switch window {
+	case mgmtv1alpha1.LogWindow_LOG_WINDOW_FIFTEEN_MIN:
+		return endTime.Add(-15 * time.Minute)
+	case mgmtv1alpha1.LogWindow_LOG_WINDOW_ONE_HOUR:
+		return endTime.Add(-1 * time.Hour)
+	case mgmtv1alpha1.LogWindow_LOG_WINDOW_ONE_DAY:
+		return endTime.Add(-24 * time.Hour)
+	default:
+		return endTime.Add(-15 * time.Minute)
+	}
 }
