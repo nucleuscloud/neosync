@@ -72,16 +72,20 @@ export function DataTable<TData, TValue>({
         ref={tableContainerRef}
       >
         <StickyHeaderTable>
-          <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky">
+          <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 w-full px-2">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow
+                key={headerGroup.id}
+                className="flex flex-row w-full"
+                id="table-header-row"
+              >
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead
                       key={header.id}
                       style={{ minWidth: `${header.column.getSize()}px` }}
                       colSpan={header.colSpan}
-                      className="px-2"
+                      className="flex items-center px-2"
                     >
                       {header.isPlaceholder
                         ? null
@@ -97,12 +101,12 @@ export function DataTable<TData, TValue>({
           </TableHeader>
           <TableBody
             style={{
-              height: `${rowVirtualizer.getTotalSize()}px`, // tells scrollbar how big the table is
+              height: `${rowVirtualizer.getTotalSize()}px`, //tells scrollbar how big the table is
             }}
           >
             {rows.length === 0 && (
               <TableRow className="flex justify-center items-center py-10 text-gray-500">
-                <td>No Logs found</td>
+                <td>No Schema(s) or Table(s) selected.</td>
               </TableRow>
             )}
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {
@@ -115,22 +119,21 @@ export function DataTable<TData, TValue>({
                   style={{
                     transform: `translateY(${virtualRow.start}px)`,
                   }}
+                  className="items-center flex absolute w-full px-2"
                 >
                   {row.getVisibleCells().map((cell) => {
                     return (
                       <td
                         key={cell.id}
-                        className="p-2"
+                        className="flex py-2"
                         style={{
                           minWidth: cell.column.getSize(),
                         }}
                       >
-                        <div>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </div>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
                       </td>
                     );
                   })}

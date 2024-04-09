@@ -16,15 +16,18 @@ export function getColumns(
     {
       accessorKey: 'timestamp',
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Ts" />
+        <DataTableColumnHeader column={column} title="Timestamp" />
       ),
-      cell: ({ getValue }) => {
+      cell: ({ getValue, cell }) => {
         return (
-          <div className="flex space-x-2">
-            <span className="max-w-[500px] truncate font-medium">
+          <div
+            className="flex space-x-2"
+            style={{ maxWidth: cell.column.getSize() }}
+          >
+            <p className="font-medium">
               {getValue<Timestamp | undefined>()?.toDate()?.toISOString() ??
                 '-'}
-            </span>
+            </p>
           </div>
         );
       },
@@ -34,13 +37,9 @@ export function getColumns(
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Log" />
       ),
-      cell: ({ getValue }) => {
+      cell: ({ getValue, cell }) => {
         return (
-          <div className="flex space-x-2">
-            <span className="max-w-[500px] truncate font-medium">
-              {getValue<string>()}
-            </span>
-          </div>
+          <p className="font-medium text-wrap truncate">{getValue<string>()}</p>
         );
       },
     },
