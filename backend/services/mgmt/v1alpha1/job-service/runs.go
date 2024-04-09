@@ -592,7 +592,7 @@ func buildLokiQuery(lokiLables string, keep []string, workflowId string) string 
 	query := fmt.Sprintf("{%s} | json", lokiLables)
 	query = fmt.Sprintf("%s | WorkflowID=%q", query, workflowId)
 	if len(keep) > 0 {
-		query = fmt.Sprintf("%s | keep %s", query, strings.Join(keep, ", "))
+		query = fmt.Sprintf("%s | line_format \"[{{.level}}] - {{.msg}}\" | keep %s", query, strings.Join(keep, ", "))
 	}
 	return query
 }
