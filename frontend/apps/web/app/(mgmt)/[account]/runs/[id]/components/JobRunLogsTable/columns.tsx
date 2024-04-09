@@ -37,7 +37,7 @@ export function getColumns(
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Log" />
       ),
-      cell: ({ getValue, cell }) => {
+      cell: ({ getValue }) => {
         return (
           <div className="flex space-x-2">
             <p className="font-medium text-wrap truncate">
