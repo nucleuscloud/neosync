@@ -50,7 +50,8 @@ func (c *ConnectionConfig) ToDto() *mgmtv1alpha1.ConnectionConfig {
 						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
 							Url: *c.PgConfig.Url,
 						},
-						Tunnel: tunnel,
+						Tunnel:            tunnel,
+						ConnectionOptions: connectionOptions,
 					},
 				},
 			}

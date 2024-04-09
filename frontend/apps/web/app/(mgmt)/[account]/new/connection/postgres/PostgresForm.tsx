@@ -59,6 +59,7 @@ import {
   SSHPassphrase,
   SSHPrivateKey,
   SSHTunnel,
+  SqlConnectionOptions,
 } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -90,6 +91,9 @@ export default function PostgresForm() {
         sslMode: 'disable',
       },
       url: '',
+      options: {
+        maxConnectionLimit: 80,
+      },
       tunnel: {
         host: '',
         port: 22,
@@ -129,7 +133,8 @@ export default function PostgresForm() {
           account.id,
           values.db,
           undefined, // don't pass in the url since user is submitting the db values
-          values.tunnel
+          values.tunnel,
+          values.options
         );
       } else if (activeTab === 'url') {
         connection = await createPostgresConnection(
@@ -137,7 +142,8 @@ export default function PostgresForm() {
           account.id,
           undefined, // don't pass in the db values since user is submitting the url
           values.url ?? '',
-          values.tunnel
+          values.tunnel,
+          values.options
         );
       }
 
@@ -280,6 +286,10 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
               connectionName: connData.connection?.name + '-copy',
               db: dbConfig,
               url: typeof pgConfig === 'string' ? pgConfig : '',
+              options: {
+                maxConnectionLimit:
+                  config.connectionOptions?.maxConnectionLimit ?? 80,
+              },
               tunnel: {
                 host: config.tunnel?.host ?? '',
                 port: config.tunnel?.port ?? 22,
@@ -519,6 +529,34 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
             />
           </>
         )}
+        <FormField
+          control={form.control}
+          name="options.maxConnectionLimit"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+              <div className="space-y-0.5">
+                <FormLabel>Max Connection Limit</FormLabel>
+                <FormDescription>
+                  The maximum number of concurrent database connections allowed.
+                  If set to 0 then there is no limit on the number of open
+                  connections.
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Input
+                  {...field}
+                  className="max-w-[180px]"
+                  type="number"
+                  value={field.value ? field.value.toString() : 80}
+                  onChange={(event) => {
+                    field.onChange(event.target.valueAsNumber);
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="bastion">
             <AccordionTrigger> Bastion Host Configuration</AccordionTrigger>
@@ -744,7 +782,8 @@ async function createPostgresConnection(
   accountId: string,
   db?: PostgresFormValues['db'],
   url?: string,
-  tunnel?: PostgresFormValues['tunnel']
+  tunnel?: PostgresFormValues['tunnel'],
+  options?: PostgresFormValues['options']
 ): Promise<CreateConnectionResponse> {
   let pgconfig = new PostgresConnectionConfig({});
 
@@ -766,6 +805,13 @@ async function createPostgresConnection(
       }),
     };
   }
+
+  if (options && options.maxConnectionLimit != 0) {
+    pgconfig.connectionOptions = new SqlConnectionOptions({
+      maxConnectionLimit: options.maxConnectionLimit,
+    });
+  }
+
   if (tunnel && tunnel.host) {
     pgconfig.tunnel = new SSHTunnel({
       host: tunnel.host,

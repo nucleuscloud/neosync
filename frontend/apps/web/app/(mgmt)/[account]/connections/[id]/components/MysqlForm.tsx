@@ -47,6 +47,7 @@ import {
   SSHPassphrase,
   SSHPrivateKey,
   SSHTunnel,
+  SqlConnectionOptions,
   UpdateConnectionRequest,
   UpdateConnectionResponse,
 } from '@neosync/sdk';
@@ -92,7 +93,8 @@ export default function MysqlForm(props: Props) {
         values.connectionName,
         values.db,
         values.tunnel,
-        account?.id ?? ''
+        account?.id ?? '',
+        values.options
       );
       onSaved(connectionResp);
     } catch (err) {
@@ -253,6 +255,34 @@ export default function MysqlForm(props: Props) {
                     ))}
                   </SelectContent>
                 </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="options.maxConnectionLimit"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+              <div className="space-y-0.5">
+                <FormLabel>Max Connection Limit</FormLabel>
+                <FormDescription>
+                  The maximum number of concurrent database connections allowed.
+                  If set to 0 then there is no limit on the number of open
+                  connections.
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Input
+                  {...field}
+                  className="max-w-[180px]"
+                  type="number"
+                  value={field.value ? field.value.toString() : 0}
+                  onChange={(event) => {
+                    field.onChange(event.target.valueAsNumber);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -488,7 +518,8 @@ async function updateMysqlConnection(
   connectionName: string,
   db: MysqlFormValues['db'],
   tunnel: MysqlFormValues['tunnel'],
-  accountId: string
+  accountId: string,
+  options: MysqlFormValues['options']
 ): Promise<UpdateConnectionResponse> {
   const myconfig = new MysqlConnectionConfig({
     connectionConfig: {
@@ -503,6 +534,11 @@ async function updateMysqlConnection(
       }),
     },
   });
+  if (options && options.maxConnectionLimit != 0) {
+    myconfig.connectionOptions = new SqlConnectionOptions({
+      maxConnectionLimit: options.maxConnectionLimit,
+    });
+  }
   if (tunnel && tunnel.host) {
     myconfig.tunnel = new SSHTunnel({
       host: tunnel.host,

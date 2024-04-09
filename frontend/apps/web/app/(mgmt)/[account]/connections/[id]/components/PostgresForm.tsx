@@ -49,6 +49,7 @@ import {
   SSHPassphrase,
   SSHPrivateKey,
   SSHTunnel,
+  SqlConnectionOptions,
   UpdateConnectionRequest,
   UpdateConnectionResponse,
 } from '@neosync/sdk';
@@ -103,7 +104,8 @@ export default function PostgresForm(props: Props) {
           account?.id ?? '',
           values.db,
           values.tunnel,
-          undefined
+          undefined,
+          values.options
         );
       } else if (activeTab === 'url') {
         connection = await updatePostgresConnection(
@@ -112,7 +114,8 @@ export default function PostgresForm(props: Props) {
           account?.id ?? '',
           undefined,
           undefined,
-          values.url
+          values.url,
+          values.options
         );
       }
       onSaved(connection);
@@ -331,6 +334,34 @@ export default function PostgresForm(props: Props) {
             />
           </>
         )}
+        <FormField
+          control={form.control}
+          name="options.maxConnectionLimit"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+              <div className="space-y-0.5">
+                <FormLabel>Max Connection Limit</FormLabel>
+                <FormDescription>
+                  The maximum number of concurrent database connections allowed.
+                  If set to 0 then there is no limit on the number of open
+                  connections.
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Input
+                  {...field}
+                  className="max-w-[180px]"
+                  type="number"
+                  value={field.value ? field.value.toString() : 0}
+                  onChange={(event) => {
+                    field.onChange(event.target.valueAsNumber);
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="bastion">
             <AccordionTrigger> Bastion Host Configuration</AccordionTrigger>
@@ -543,7 +574,8 @@ async function updatePostgresConnection(
   accountId: string,
   db?: PostgresFormValues['db'],
   tunnel?: PostgresFormValues['tunnel'],
-  url?: string
+  url?: string,
+  options?: PostgresFormValues['options']
 ): Promise<UpdateConnectionResponse> {
   let pgconfig = new PostgresConnectionConfig({});
   if (url) {
@@ -563,6 +595,11 @@ async function updatePostgresConnection(
         sslMode: db?.sslMode,
       }),
     };
+  }
+  if (options && options.maxConnectionLimit != 0) {
+    pgconfig.connectionOptions = new SqlConnectionOptions({
+      maxConnectionLimit: options.maxConnectionLimit,
+    });
   }
   if (tunnel && tunnel.host) {
     pgconfig.tunnel = new SSHTunnel({

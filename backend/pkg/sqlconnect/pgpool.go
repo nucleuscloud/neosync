@@ -77,7 +77,6 @@ func (s *PgPool) Open(ctx context.Context) (pg_queries.DBTX, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	// set max number of connections.
 	if s.details.MaxConnectionLimit != nil {
 		config.MaxConns = *s.details.MaxConnectionLimit
