@@ -275,12 +275,12 @@ func getMaxConnectionLimitFromConnection(connection *mgmtv1alpha1.Connection) (*
 	}
 	switch config := connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		if config.MysqlConfig.ConnectionOptions != nil {
+		if config.MysqlConfig != nil && config.MysqlConfig.ConnectionOptions != nil {
 			return config.MysqlConfig.ConnectionOptions.MaxConnectionLimit, nil
 		}
 		return nil, nil
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		if config.PgConfig.ConnectionOptions != nil {
+		if config.PgConfig != nil && config.PgConfig.ConnectionOptions != nil {
 			return config.PgConfig.ConnectionOptions.MaxConnectionLimit, nil
 		}
 		return nil, nil

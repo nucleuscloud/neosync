@@ -79,7 +79,7 @@ export const SSH_TUNNEL_FORM_SCHEMA = Yup.object({
   passphrase: Yup.string(),
 });
 
-export const SQL_OPTIONS_FORM_SCHEMA = Yup.object({
+const SQL_OPTIONS_FORM_SCHEMA = Yup.object({
   maxConnectionLimit: Yup.number().min(0).max(10000).optional(),
 });
 
