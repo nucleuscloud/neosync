@@ -254,18 +254,50 @@ func Test_ConnectionTunnelManager_close(t *testing.T) {
 	mockDb := neosync_benthos_sql.NewMockSqlDbtx(t)
 	mockSqlProvider.On("DbOpen", "postgres", "postgres://foo:bar@localhost:5432/test", mock.Anything).
 		Return(mockDb, nil)
-	mockDb.On("Close").Return(nil)
+	mockDb.On("Close", mock.Anything).Return(nil)
 
 	_, err := mgr.GetConnection("111", conn, slog.Default())
 	assert.NoError(t, err)
 
 	assert.NotEmpty(t, mgr.connDetailsMap, "has an active connection")
 	assert.NotEmpty(t, mgr.connMap, "has an active connection")
-	mgr.close()
+	mgr.close(false)
 	assert.NotEmpty(t, mgr.connDetailsMap, "not empty due to active session")
 	assert.NotEmpty(t, mgr.connMap, "not empty due to active session")
 	assert.True(t, mgr.ReleaseSession("111"), "released an existing session")
-	mgr.close()
+	mgr.close(false)
+	assert.Empty(t, mgr.connDetailsMap, "now empty due to no active sessions")
+	assert.Empty(t, mgr.connMap, "now empty due to no active sessions")
+}
+
+func Test_ConnectionTunnelManager_close_hardstop(t *testing.T) {
+	mockSqlProvider := NewMocksqlProvider(t)
+	mgr := NewConnectionTunnelManager(mockSqlProvider)
+
+	assert.False(t, mgr.ReleaseSession("111"), "currently no session")
+
+	conn := &mgmtv1alpha1.Connection{
+		Id: "1",
+		ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+			Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{},
+		},
+	}
+
+	mockSqlProvider.On("GetConnectionDetails", mock.Anything, mock.Anything, mock.Anything).
+		Return(&sqlconnect.ConnectionDetails{
+			GeneralDbConnectConfig: getPgGenDbConfig(t),
+		}, nil)
+	mockDb := neosync_benthos_sql.NewMockSqlDbtx(t)
+	mockSqlProvider.On("DbOpen", "postgres", "postgres://foo:bar@localhost:5432/test", mock.Anything).
+		Return(mockDb, nil)
+	mockDb.On("Close", mock.Anything).Return(nil)
+
+	_, err := mgr.GetConnection("111", conn, slog.Default())
+	assert.NoError(t, err)
+
+	assert.NotEmpty(t, mgr.connDetailsMap, "has an active connection")
+	assert.NotEmpty(t, mgr.connMap, "has an active connection")
+	mgr.close(true)
 	assert.Empty(t, mgr.connDetailsMap, "now empty due to no active sessions")
 	assert.Empty(t, mgr.connMap, "now empty due to no active sessions")
 }
