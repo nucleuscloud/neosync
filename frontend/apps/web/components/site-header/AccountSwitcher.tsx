@@ -97,6 +97,7 @@ export default function AccountSwitcher(_: Props): ReactElement {
     accounts.filter((a) => a.type === UserAccountType.TEAM) ?? [];
 
   async function onSubmit(values: CreateTeamFormValues): Promise<void> {
+    // add acount type here
     try {
       await createTeamAccount(values.name);
       setShowNewTeamDialog(false);
@@ -247,10 +248,11 @@ export function CreateNewTeamDialog(
   props: CreateNewTeamDialogProps
 ): ReactElement {
   const { form, onSubmit, setShowNewTeamDialog, planType } = props;
-
+  console.log('plantype', planType);
   return (
     <div>
-      {planType && planType == UserAccountType.PERSONAL ? (
+      {(planType && planType == UserAccountType.PERSONAL) ||
+      planType == UserAccountType.TEAM ? (
         <UpgradeDialog planType={planType} />
       ) : (
         <DialogContent className="flex flex-col gap-3">
@@ -310,9 +312,13 @@ function UpgradeDialog({ planType }: UpgradeDialog) {
     <div>
       <DialogContent className="flex flex-col gap-3">
         <DialogHeader>
-          <DialogTitle>Upgrade to a Team plan</DialogTitle>
+          {planType == UserAccountType.PERSONAL ? (
+            <DialogTitle>Upgrade to a Team plan</DialogTitle>
+          ) : (
+            <DialogTitle>Contact us to create another Team plan</DialogTitle>
+          )}
           <DialogDescription>
-            Upgrade to a Team plan in order to create a team.
+            Contact us in order to create a new team.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>

@@ -70,7 +70,7 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
     return <Skeleton className="w-full h-full" />;
   }
 
-  function onRefreshClick(): void {
+  async function onRefreshClick(): Promise<void> {
     recentRunsMutate();
     jobsRunsMutate();
   }
