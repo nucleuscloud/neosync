@@ -18,7 +18,7 @@ import {
 } from '@neosync/sdk';
 import Link from 'next/link';
 import { useState } from 'react';
-import { useForm, UseFormReturn } from 'react-hook-form';
+import { UseFormReturn, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useAccount } from '../providers/account-provider';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
@@ -248,7 +248,6 @@ export function CreateNewTeamDialog(
   props: CreateNewTeamDialogProps
 ): ReactElement {
   const { form, onSubmit, setShowNewTeamDialog, planType } = props;
-  console.log('plantype', planType);
   return (
     <div>
       {(planType && planType == UserAccountType.PERSONAL) ||
