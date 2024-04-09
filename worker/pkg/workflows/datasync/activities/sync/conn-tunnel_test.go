@@ -254,7 +254,7 @@ func Test_ConnectionTunnelManager_close(t *testing.T) {
 	mockDb := neosync_benthos_sql.NewMockSqlDbtx(t)
 	mockSqlProvider.On("DbOpen", "postgres", "postgres://foo:bar@localhost:5432/test", mock.Anything).
 		Return(mockDb, nil)
-	mockDb.On("Close", mock.Anything).Return(nil)
+	mockDb.On("Close").Return(nil)
 
 	_, err := mgr.GetConnection("111", conn, slog.Default())
 	assert.NoError(t, err)
