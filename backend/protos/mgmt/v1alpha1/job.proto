@@ -516,6 +516,7 @@ message GetJobRunLogsStreamRequest {
 }
 message GetJobRunLogsStreamResponse {
   string log_line = 1;
+  optional google.protobuf.Timestamp timestamp = 2;
 }
 
 message SetJobWorkflowOptionsRequest {

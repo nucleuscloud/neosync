@@ -25,6 +25,7 @@ import (
 	"go.temporal.io/api/workflowservice/v1"
 	temporalclient "go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/converter"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -430,7 +431,8 @@ func (s *Service) getVerifiedJobRun(
 }
 
 type LogLine struct {
-	WorkflowID string `json:"WorkflowID"`
+	WorkflowID string     `json:"WorkflowID"`
+	Time       *time.Time `json:"time,omitempty"`
 }
 
 func (s *Service) GetJobRunLogsStream(
@@ -521,7 +523,11 @@ func (s *Service) streamK8sWorkerPodLogs(
 			}
 
 			if logLine.WorkflowID == verifResp.WorkflowExecution.Execution.WorkflowId {
-				if err := stream.Send(&mgmtv1alpha1.GetJobRunLogsStreamResponse{LogLine: txt}); err != nil {
+				var timestamp *timestamppb.Timestamp
+				if logLine.Time != nil {
+					timestamp = timestamppb.New(*logLine.Time)
+				}
+				if err := stream.Send(&mgmtv1alpha1.GetJobRunLogsStreamResponse{LogLine: txt, Timestamp: timestamp}); err != nil {
 					if err == io.EOF {
 						return nil
 					}
@@ -561,8 +567,9 @@ func (s *Service) streamLokiWorkerLogs(
 		jobrunResp.WorkflowExecution.Execution.WorkflowId,
 	)
 	resp, err := lokiclient.QueryRange(ctx, &loki.QueryRangeRequest{
-		Query:     query,
-		Limit:     req.Msg.MaxLogLines,
+		Query: query,
+		Limit: req.Msg.MaxLogLines,
+
 		Direction: &direction,
 		Start:     &start,
 		End:       &end,
@@ -579,7 +586,7 @@ func (s *Service) streamLokiWorkerLogs(
 		return err
 	}
 	for _, entry := range loki.GetEntriesFromStreams(streams) {
-		err := stream.Send(&mgmtv1alpha1.GetJobRunLogsStreamResponse{LogLine: entry.Line})
+		err := stream.Send(&mgmtv1alpha1.GetJobRunLogsStreamResponse{LogLine: entry.Line, Timestamp: timestamppb.New(entry.Timestamp)})
 		if err != nil {
 			return err
 		}
@@ -589,7 +596,7 @@ func (s *Service) streamLokiWorkerLogs(
 
 func buildLokiQuery(lokiLables string, keep []string, workflowId string) string {
 	query := fmt.Sprintf("{%s} | json", lokiLables)
-	query = fmt.Sprintf("%s | WorkflowID=%q", query, workflowId)
+	query = fmt.Sprintf("%s | WorkflowID=%q | line_format %q", query, workflowId, "[{{.level}}] - {{.msg}}")
 	if len(keep) > 0 {
 		query = fmt.Sprintf("%s | keep %s", query, strings.Join(keep, ", "))
 	}

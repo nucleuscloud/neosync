@@ -1,6 +1,10 @@
 import { withNeosyncContext } from '@/api-only/neosync-context';
 import { RequestContext } from '@/shared';
-import { GetJobRunLogsStreamRequest, LogWindow } from '@neosync/sdk';
+import {
+  GetJobRunLogsStreamRequest,
+  GetJobRunLogsStreamResponse,
+  LogWindow,
+} from '@neosync/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
@@ -17,9 +21,9 @@ export async function GET(
         maxLogLines: BigInt('1000'),
       })
     );
-    const logs: string[] = [];
+    const logs: GetJobRunLogsStreamResponse[] = [];
     for await (const logRes of response) {
-      logs.push(logRes.logLine);
+      logs.push(logRes);
     }
     return logs;
   })(req);
