@@ -70,7 +70,7 @@ func (a *Activity) getTunnelManagerByRunId(wfId, runId string) (*ConnectionTunne
 	if !ok {
 		return nil, fmt.Errorf("unable to retrieve connection tunnel manager from tunnel manager map. Expected *ConnectionTunnelManager, received: %T", manager)
 	}
-	if loaded {
+	if !loaded {
 		go manager.Reaper()
 		go func() {
 			// periodically waits for the workflow run to complete so that it can shut down the tunnel manager for that run
