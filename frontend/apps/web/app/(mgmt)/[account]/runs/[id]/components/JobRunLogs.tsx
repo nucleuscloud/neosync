@@ -1,10 +1,7 @@
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import {
-  refreshLogsWhenRunNotComplete,
-  useGetJobRunLogs,
-} from '@/libs/hooks/useGetJobRunLogs';
+import { useGetJobRunLogs } from '@/libs/hooks/useGetJobRunLogs';
 import { ReloadIcon } from '@radix-ui/react-icons';
 import { ReactElement, useMemo } from 'react';
 import { getColumns } from './JobRunLogsTable/columns';
@@ -26,7 +23,7 @@ export default function JobRunLogs({
     mutate: logsMutate,
     error: logsError,
   } = useGetJobRunLogs(runId, accountId, {
-    refreshIntervalFn: refreshLogsWhenRunNotComplete,
+    // refreshIntervalFn: refreshLogsWhenRunNotComplete,
   });
   const logResponses = logsData ?? [];
   const columns = useMemo(() => getColumns({}), []);
@@ -51,7 +48,7 @@ export default function JobRunLogs({
         <Alert variant="destructive">
           <AlertTitle>{`Log Errors: check logs for errors`}</AlertTitle>
         </Alert>
-      )}
+      )} */}
       <div className="flex flex-row items-center space-x-2">
         <h1 className="text-2xl font-bold tracking-tight">Logs</h1>
         <Button
