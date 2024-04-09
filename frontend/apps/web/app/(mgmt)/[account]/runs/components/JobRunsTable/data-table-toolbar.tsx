@@ -25,6 +25,7 @@ interface DataTableToolbarProps<TData, TAutoRefreshInterval extends string> {
   autoRefreshIntervalOptions: TAutoRefreshInterval[];
   onAutoRefreshIntervalChange(interval: TAutoRefreshInterval): void;
   isRefreshing: boolean;
+  jobNameMap: Record<string, string>;
 }
 
 export function DataTableToolbar<TData, TAutoRefreshInterval extends string>({
@@ -34,19 +35,19 @@ export function DataTableToolbar<TData, TAutoRefreshInterval extends string>({
   autoRefreshIntervalOptions,
   onAutoRefreshIntervalChange,
   isRefreshing,
+  jobNameMap,
 }: DataTableToolbarProps<TData, TAutoRefreshInterval>) {
   const isFiltered = table.getState().columnFilters.length > 0;
-
   return (
     <div className="flex items-center justify-between space-x-4">
       <div className="flex flex-1 items-center space-x-2">
         <Input
-          placeholder="Filter job runs..."
-          value={(table.getColumn('jobId')?.getFilterValue() as string) ?? ''}
+          placeholder="Filter by Job Name..."
+          value={(table.getColumn('jobName')?.getFilterValue() as string) ?? ''}
           onChange={(event) =>
-            table.getColumn('jobId')?.setFilterValue(event.target.value)
+            table.getColumn('jobName')?.setFilterValue(event.target.value)
           }
-          className="h-8 w-[150px] lg:w-[250px]"
+          className="h-8 w-[150px] lg:w-[350px]"
         />
         {isFiltered && (
           <Button
