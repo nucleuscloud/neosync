@@ -25,6 +25,7 @@ import (
 	"go.temporal.io/api/workflowservice/v1"
 	temporalclient "go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/converter"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -579,7 +580,7 @@ func (s *Service) streamLokiWorkerLogs(
 		return err
 	}
 	for _, entry := range loki.GetEntriesFromStreams(streams) {
-		err := stream.Send(&mgmtv1alpha1.GetJobRunLogsStreamResponse{LogLine: entry.Line})
+		err := stream.Send(&mgmtv1alpha1.GetJobRunLogsStreamResponse{LogLine: entry.Line, Timestamp: timestamppb.New(entry.Timestamp)})
 		if err != nil {
 			return err
 		}

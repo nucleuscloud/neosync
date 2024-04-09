@@ -4042,6 +4042,11 @@ export class GetJobRunLogsStreamResponse extends Message<GetJobRunLogsStreamResp
    */
   logLine = "";
 
+  /**
+   * @generated from field: optional google.protobuf.Timestamp timestamp = 2;
+   */
+  timestamp?: Timestamp;
+
   constructor(data?: PartialMessage<GetJobRunLogsStreamResponse>) {
     super();
     proto3.util.initPartial(data, this);
@@ -4051,6 +4056,7 @@ export class GetJobRunLogsStreamResponse extends Message<GetJobRunLogsStreamResp
   static readonly typeName = "mgmt.v1alpha1.GetJobRunLogsStreamResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "log_line", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "timestamp", kind: "message", T: Timestamp, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetJobRunLogsStreamResponse {

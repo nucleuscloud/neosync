@@ -1,13 +1,11 @@
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import {
-  refreshLogsWhenRunNotComplete,
-  useGetJobRunLogs,
-} from '@/libs/hooks/useGetJobRunLogs';
+import { useGetJobRunLogs } from '@/libs/hooks/useGetJobRunLogs';
 import { ReloadIcon } from '@radix-ui/react-icons';
-import { useVirtualizer } from '@tanstack/react-virtual';
-import { ReactElement, useRef } from 'react';
+import { ReactElement } from 'react';
+import { getColumns } from './JobRunLogsTable/columns';
+import { DataTable } from './JobRunLogsTable/data-table';
 
 interface JobRunLogsProps {
   accountId: string;
@@ -25,20 +23,11 @@ export default function JobRunLogs({
     mutate: logsMutate,
     error: logsError,
   } = useGetJobRunLogs(runId, accountId, {
-    refreshIntervalFn: refreshLogsWhenRunNotComplete,
+    // refreshIntervalFn: refreshLogsWhenRunNotComplete,
   });
-  const logs = logsData || [];
-
-  const parentRef = useRef<HTMLDivElement>(null);
-
-  const count = logs.length;
-  const virtualizer = useVirtualizer({
-    count,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 45,
-  });
-
-  const items = virtualizer.getVirtualItems();
+  const logResponses = logsData ?? [];
+  console.log(logResponses);
+  const columns = getColumns({});
 
   function onRefreshClick(): void {
     logsMutate();
@@ -54,11 +43,11 @@ export default function JobRunLogs({
 
   return (
     <div className="space-y-4">
-      {logs?.some((l) => l.includes('ERROR')) && (
+      {/* {logResponses?.some((l) => l.includes('ERROR')) && (
         <Alert variant="destructive">
           <AlertTitle>{`Log Errors: check logs for errors`}</AlertTitle>
         </Alert>
-      )}
+      )} */}
       <div className="flex flex-row items-center space-x-2">
         <h1 className="text-2xl font-bold tracking-tight">Logs</h1>
         <Button
@@ -74,31 +63,7 @@ export default function JobRunLogs({
       {isLogsLoading ? (
         <SkeletonTable />
       ) : (
-        <div
-          ref={parentRef}
-          className="w-100 h-[500px] p-2 border rounded-md dark:border-gray-700 overflow-y-auto	contain-[strict]"
-        >
-          <div className={`h-[${virtualizer.getTotalSize()}px] w-100 relative`}>
-            <div
-              className={`absolute w-100 top-0 left-0`}
-              style={{
-                transform: `translateY(${items[0]?.start ?? 0}px)`, // do not use tailwind for this
-              }}
-            >
-              {items.map((virtualRow) => (
-                <div
-                  key={virtualRow.key}
-                  data-index={virtualRow.index}
-                  ref={virtualizer.measureElement}
-                >
-                  <div className="p-1">
-                    <p className="text-sm">{logs[virtualRow.index]}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <DataTable columns={columns} data={logResponses} />
       )}
     </div>
   );
