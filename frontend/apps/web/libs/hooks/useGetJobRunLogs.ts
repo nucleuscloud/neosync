@@ -21,26 +21,30 @@ export function useGetJobRunLogs(
       refreshInterval: getRefreshIntervalFn(refreshIntervalFn),
     },
     (data) => {
-      if (Array.isArray(data)) {
-        return data.map((d) =>
-          d instanceof GetJobRunLogsStreamResponse
-            ? d
-            : GetJobRunLogsStreamResponse.fromJson(d)
-        );
-      }
-      return data instanceof GetJobRunLogsStreamResponse
-        ? [data]
-        : [GetJobRunLogsStreamResponse.fromJson(data)];
+      const dataArr = Array.isArray(data) ? data : [data];
+      return dataArr.map((d) =>
+        d instanceof GetJobRunLogsStreamResponse
+          ? d
+          : GetJobRunLogsStreamResponse.fromJson(d)
+      );
     }
   );
 }
 
 const TEN_SECONDS = 5 * 1000;
 
-export function refreshLogsWhenRunNotComplete(data: string[]): number {
-  return data.some(
-    (l) => l.includes('context canceled') || l.includes('workflow completed')
-  )
+export function refreshLogsWhenRunNotComplete(data: JsonValue): number {
+  const dataArr = Array.isArray(data) ? data : [data];
+  return dataArr.some((d) => {
+    const converted =
+      d instanceof GetJobRunLogsStreamResponse
+        ? d
+        : GetJobRunLogsStreamResponse.fromJson(d);
+    return (
+      converted.logLine.includes('context canceled') ||
+      converted.logLine.includes('workflow completed')
+    );
+  })
     ? 0
     : TEN_SECONDS;
 }

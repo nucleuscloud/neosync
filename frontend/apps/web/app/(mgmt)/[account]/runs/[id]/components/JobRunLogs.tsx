@@ -1,9 +1,12 @@
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { useGetJobRunLogs } from '@/libs/hooks/useGetJobRunLogs';
+import {
+  refreshLogsWhenRunNotComplete,
+  useGetJobRunLogs,
+} from '@/libs/hooks/useGetJobRunLogs';
 import { ReloadIcon } from '@radix-ui/react-icons';
-import { ReactElement } from 'react';
+import { ReactElement, useMemo } from 'react';
 import { getColumns } from './JobRunLogsTable/columns';
 import { DataTable } from './JobRunLogsTable/data-table';
 
@@ -23,14 +26,15 @@ export default function JobRunLogs({
     mutate: logsMutate,
     error: logsError,
   } = useGetJobRunLogs(runId, accountId, {
-    // refreshIntervalFn: refreshLogsWhenRunNotComplete,
+    refreshIntervalFn: refreshLogsWhenRunNotComplete,
   });
   const logResponses = logsData ?? [];
-  console.log(logResponses);
-  const columns = getColumns({});
+  const columns = useMemo(() => getColumns({}), []);
 
   function onRefreshClick(): void {
-    logsMutate();
+    if (!isLogsValidating) {
+      logsMutate();
+    }
   }
 
   if (logsError) {
@@ -43,11 +47,11 @@ export default function JobRunLogs({
 
   return (
     <div className="space-y-4">
-      {/* {logResponses?.some((l) => l.includes('ERROR')) && (
+      {logResponses?.some((l) => l.logLine.startsWith('[ERROR]')) && (
         <Alert variant="destructive">
           <AlertTitle>{`Log Errors: check logs for errors`}</AlertTitle>
         </Alert>
-      )} */}
+      )}
       <div className="flex flex-row items-center space-x-2">
         <h1 className="text-2xl font-bold tracking-tight">Logs</h1>
         <Button

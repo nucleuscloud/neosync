@@ -76,7 +76,7 @@ export function DataTable<TData, TValue>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
-                className="flex flex-row w-full"
+                className="flex flex-row w-full px-2"
                 id="table-header-row"
               >
                 {headerGroup.headers.map((header) => {
@@ -119,7 +119,7 @@ export function DataTable<TData, TValue>({
                   style={{
                     transform: `translateY(${virtualRow.start}px)`,
                   }}
-                  className="items-center flex absolute w-full px-2"
+                  className="items-center flex absolute w-full gap-2 px-1"
                 >
                   {row.getVisibleCells().map((cell) => {
                     return (

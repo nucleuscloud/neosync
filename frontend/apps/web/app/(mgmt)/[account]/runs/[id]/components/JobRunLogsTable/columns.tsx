@@ -18,6 +18,7 @@ export function getColumns(
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Timestamp" />
       ),
+      size: 210,
       cell: ({ getValue, cell }) => {
         const date = getValue<Timestamp | undefined>()?.toDate();
         const text = date ? date.toISOString() : '-';
@@ -36,9 +37,13 @@ export function getColumns(
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Log" />
       ),
-      cell: ({ getValue }) => {
+      cell: ({ getValue, cell }) => {
         return (
-          <p className="font-medium text-wrap truncate">{getValue<string>()}</p>
+          <div className="flex space-x-2">
+            <p className="font-medium text-wrap truncate">
+              {getValue<string>()}
+            </p>
+          </div>
         );
       },
     },
