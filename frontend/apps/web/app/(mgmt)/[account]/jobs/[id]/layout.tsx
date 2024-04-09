@@ -44,6 +44,14 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
   const { data: systemAppConfigData, isLoading: isSystemConfigLoading } =
     useGetSystemAppConfig();
 
+  async function updateData() {
+    try {
+      await Promise.all([mutateRecentRuns(), mutateJobRunsByJob()]);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   async function onTriggerJobRun(): Promise<void> {
     try {
       await triggerJobRun(account?.id ?? '', id);
@@ -51,10 +59,11 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
         title: 'Job run triggered successfully!',
         variant: 'success',
       });
-      setTimeout(() => {
-        mutateRecentRuns();
-        mutateJobRunsByJob();
-      }, 3000); // delay briefly as there can sometimes be a trigger delay in temporal
+      // setTimeout(() => {
+      //   mutateRecentRuns();
+      //   mutateJobRunsByJob();
+      // }, 3000); // delay briefly as there can sometimes be a trigger delay in temporal
+      setTimeout(updateData, 3000);
     } catch (err) {
       console.error(err);
       toast({
