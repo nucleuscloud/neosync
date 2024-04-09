@@ -14,6 +14,25 @@ import { ReactElement } from 'react';
 
 export const metadata: Metadata = {
   title: 'Neosync | Blog',
+  openGraph: {
+    title: 'Neosync',
+    description: 'Blog',
+    url: 'https://neosync.dev/blog',
+    siteName: 'Neosync',
+    images: [
+      {
+        url: '/neosync/marketingsite/blogOG.svg',
+        width: 1200,
+        height: 630,
+        alt: 'mainOG',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  alternates: {
+    canonical: 'https://neosync.dev/blog',
+  },
 };
 
 export default async function BlogPage(): Promise<ReactElement> {

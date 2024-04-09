@@ -27,6 +27,9 @@ export const metadata: Metadata = {
     locale: 'en_US',
     type: 'website',
   },
+  alternates: {
+    canonical: 'https://neosync.dev/solutions/unblock-local-development',
+  },
 };
 
 export default function Page(): ReactElement {

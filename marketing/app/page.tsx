@@ -28,6 +28,9 @@ export const metadata: Metadata = {
     locale: 'en_US',
     type: 'website',
   },
+  alternates: {
+    canonical: 'https://neosync.dev',
+  },
 };
 
 export default function Home(): ReactElement {
