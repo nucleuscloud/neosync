@@ -1,5 +1,3 @@
-'use client';
-
 import ShimmeringButton from '@/components/buttons/ShimmeringButton';
 import CTA from '@/components/cta/CTA';
 import {
