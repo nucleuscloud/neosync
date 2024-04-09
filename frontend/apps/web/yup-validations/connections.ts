@@ -79,16 +79,22 @@ export const SSH_TUNNEL_FORM_SCHEMA = Yup.object({
   passphrase: Yup.string(),
 });
 
+const SQL_OPTIONS_FORM_SCHEMA = Yup.object({
+  maxConnectionLimit: Yup.number().min(0).max(10000).optional(),
+});
+
 export const NEW_POSTGRES_CONNECTION = Yup.object({
   connectionName: connectionNameSchema,
   connection: POSTGRES_CONNECTION,
   tunnel: SSH_TUNNEL_FORM_SCHEMA,
+  options: SQL_OPTIONS_FORM_SCHEMA,
 });
 
 export const EXISTING_POSTGRES_CONNECTION = Yup.object({
   id: Yup.string().uuid().required(),
   connection: POSTGRES_CONNECTION,
   tunnel: SSH_TUNNEL_FORM_SCHEMA,
+  options: SQL_OPTIONS_FORM_SCHEMA,
 });
 
 export const SSL_MODES = [
@@ -113,6 +119,7 @@ export const MYSQL_FORM_SCHEMA = Yup.object({
     protocol: Yup.string().required(),
   }).required(),
   tunnel: SSH_TUNNEL_FORM_SCHEMA,
+  options: SQL_OPTIONS_FORM_SCHEMA,
 });
 
 export type MysqlFormValues = Yup.InferType<typeof MYSQL_FORM_SCHEMA>;
@@ -155,6 +162,7 @@ export const POSTGRES_FORM_SCHEMA = Yup.object({
     then: (schema) => schema.required('The connection url is required'),
   }),
   tunnel: SSH_TUNNEL_FORM_SCHEMA,
+  options: SQL_OPTIONS_FORM_SCHEMA,
 });
 
 export type PostgresFormValues = Yup.InferType<typeof POSTGRES_FORM_SCHEMA>;

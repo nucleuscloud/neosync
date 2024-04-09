@@ -50,7 +50,18 @@ func (s *PgPool) Open(ctx context.Context) (pg_queries.DBTX, error) {
 		newPort := int32(localport)
 		s.details.GeneralDbConnectConfig.Port = newPort
 		dsn := s.details.GeneralDbConnectConfig.String()
-		db, err := pgxpool.New(ctx, dsn)
+
+		config, err := pgxpool.ParseConfig(dsn)
+		if err != nil {
+			return nil, err
+		}
+
+		// set max number of connections.
+		if s.details.MaxConnectionLimit != nil {
+			config.MaxConns = *s.details.MaxConnectionLimit
+		}
+
+		db, err := pgxpool.NewWithConfig(ctx, config)
 		if err != nil {
 			s.details.Tunnel.Close()
 			return nil, err
@@ -62,7 +73,16 @@ func (s *PgPool) Open(ctx context.Context) (pg_queries.DBTX, error) {
 	}
 
 	dsn := s.details.GeneralDbConnectConfig.String()
-	db, err := pgxpool.New(ctx, dsn)
+	config, err := pgxpool.ParseConfig(dsn)
+	if err != nil {
+		return nil, err
+	}
+	// set max number of connections.
+	if s.details.MaxConnectionLimit != nil {
+		config.MaxConns = *s.details.MaxConnectionLimit
+	}
+
+	db, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {
 		return nil, err
 	}

@@ -20,6 +20,10 @@ func (c *ConnectionConfig) ToDto() *mgmtv1alpha1.ConnectionConfig {
 		if c.PgConfig.SSHTunnel != nil {
 			tunnel = c.PgConfig.SSHTunnel.ToDto()
 		}
+		var connectionOptions *mgmtv1alpha1.SqlConnectionOptions
+		if c.PgConfig.ConnectionOptions != nil {
+			connectionOptions = c.PgConfig.ConnectionOptions.ToDto()
+		}
 		if c.PgConfig.Connection != nil {
 			return &mgmtv1alpha1.ConnectionConfig{
 				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
@@ -34,7 +38,8 @@ func (c *ConnectionConfig) ToDto() *mgmtv1alpha1.ConnectionConfig {
 								SslMode: c.PgConfig.Connection.SslMode,
 							},
 						},
-						Tunnel: tunnel,
+						Tunnel:            tunnel,
+						ConnectionOptions: connectionOptions,
 					},
 				},
 			}
@@ -45,7 +50,8 @@ func (c *ConnectionConfig) ToDto() *mgmtv1alpha1.ConnectionConfig {
 						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
 							Url: *c.PgConfig.Url,
 						},
-						Tunnel: tunnel,
+						Tunnel:            tunnel,
+						ConnectionOptions: connectionOptions,
 					},
 				},
 			}
@@ -54,6 +60,10 @@ func (c *ConnectionConfig) ToDto() *mgmtv1alpha1.ConnectionConfig {
 		var tunnel *mgmtv1alpha1.SSHTunnel
 		if c.MysqlConfig.SSHTunnel != nil {
 			tunnel = c.MysqlConfig.SSHTunnel.ToDto()
+		}
+		var connectionOptions *mgmtv1alpha1.SqlConnectionOptions
+		if c.MysqlConfig.ConnectionOptions != nil {
+			connectionOptions = c.MysqlConfig.ConnectionOptions.ToDto()
 		}
 		if c.MysqlConfig.Connection != nil {
 			return &mgmtv1alpha1.ConnectionConfig{
@@ -69,7 +79,8 @@ func (c *ConnectionConfig) ToDto() *mgmtv1alpha1.ConnectionConfig {
 								Name:     c.MysqlConfig.Connection.Name,
 							},
 						},
-						Tunnel: tunnel,
+						Tunnel:            tunnel,
+						ConnectionOptions: connectionOptions,
 					},
 				},
 			}
@@ -109,6 +120,10 @@ func (c *ConnectionConfig) FromDto(dto *mgmtv1alpha1.ConnectionConfig) error {
 			c.PgConfig.SSHTunnel = &SSHTunnel{}
 			c.PgConfig.SSHTunnel.FromDto(config.PgConfig.Tunnel)
 		}
+		if config.PgConfig.ConnectionOptions != nil {
+			c.PgConfig.ConnectionOptions = &ConnectionOptions{}
+			c.PgConfig.ConnectionOptions.FromDto(config.PgConfig.ConnectionOptions)
+		}
 		switch pgcfg := config.PgConfig.ConnectionConfig.(type) {
 		case *mgmtv1alpha1.PostgresConnectionConfig_Connection:
 			c.PgConfig.Connection = &PostgresConnection{
@@ -129,6 +144,10 @@ func (c *ConnectionConfig) FromDto(dto *mgmtv1alpha1.ConnectionConfig) error {
 		if config.MysqlConfig.Tunnel != nil {
 			c.MysqlConfig.SSHTunnel = &SSHTunnel{}
 			c.MysqlConfig.SSHTunnel.FromDto(config.MysqlConfig.Tunnel)
+		}
+		if config.MysqlConfig.ConnectionOptions != nil {
+			c.MysqlConfig.ConnectionOptions = &ConnectionOptions{}
+			c.MysqlConfig.ConnectionOptions.FromDto(config.MysqlConfig.ConnectionOptions)
 		}
 		switch mysqlcfg := config.MysqlConfig.ConnectionConfig.(type) {
 		case *mgmtv1alpha1.MysqlConnectionConfig_Connection:
@@ -161,9 +180,10 @@ func (c *ConnectionConfig) FromDto(dto *mgmtv1alpha1.ConnectionConfig) error {
 }
 
 type PostgresConnectionConfig struct {
-	Connection *PostgresConnection `json:"connection,omitempty"`
-	Url        *string             `json:"url,omitempty"`
-	SSHTunnel  *SSHTunnel          `json:"sshTunnel,omitempty"`
+	Connection        *PostgresConnection `json:"connection,omitempty"`
+	Url               *string             `json:"url,omitempty"`
+	SSHTunnel         *SSHTunnel          `json:"sshTunnel,omitempty"`
+	ConnectionOptions *ConnectionOptions  `json:"connectionOptions,omitempty"`
 }
 
 type PostgresConnection struct {
@@ -173,6 +193,20 @@ type PostgresConnection struct {
 	User    string  `json:"user"`
 	Pass    string  `json:"pass"`
 	SslMode *string `json:"sslMode,omitempty"`
+}
+
+type ConnectionOptions struct {
+	MaxConnectionLimit *int32 `json:"maxConnectionLimit,omitempty"`
+}
+
+func (s *ConnectionOptions) ToDto() *mgmtv1alpha1.SqlConnectionOptions {
+	return &mgmtv1alpha1.SqlConnectionOptions{
+		MaxConnectionLimit: s.MaxConnectionLimit,
+	}
+}
+
+func (s *ConnectionOptions) FromDto(dto *mgmtv1alpha1.SqlConnectionOptions) {
+	s.MaxConnectionLimit = dto.MaxConnectionLimit
 }
 
 type SSHTunnel struct {
@@ -260,9 +294,10 @@ type SSHPrivateKey struct {
 }
 
 type MysqlConnectionConfig struct {
-	Connection *MysqlConnection `json:"connection,omitempty"`
-	Url        *string          `json:"url,omitempty"`
-	SSHTunnel  *SSHTunnel       `json:"sshTunnel,omitempty"`
+	Connection        *MysqlConnection   `json:"connection,omitempty"`
+	Url               *string            `json:"url,omitempty"`
+	SSHTunnel         *SSHTunnel         `json:"sshTunnel,omitempty"`
+	ConnectionOptions *ConnectionOptions `json:"connectionOptions,omitempty"`
 }
 
 type MysqlConnection struct {

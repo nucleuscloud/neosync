@@ -55,6 +55,7 @@ import {
   SSHPassphrase,
   SSHPrivateKey,
   SSHTunnel,
+  SqlConnectionOptions,
 } from '@neosync/sdk';
 import {
   CheckCircledIcon,
@@ -85,6 +86,9 @@ export default function MysqlForm() {
         pass: 'mysql',
         port: 3306,
         protocol: 'tcp',
+      },
+      options: {
+        maxConnectionLimit: 80,
       },
       tunnel: {
         host: '',
@@ -118,7 +122,8 @@ export default function MysqlForm() {
         values.db,
         values.connectionName,
         account.id,
-        values.tunnel
+        values.tunnel,
+        values.options
       );
       toast({
         title: 'Successfully created connection!',
@@ -436,6 +441,34 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
             </FormItem>
           )}
         />
+        <FormField
+          control={form.control}
+          name="options.maxConnectionLimit"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+              <div className="space-y-0.5">
+                <FormLabel>Max Connection Limit</FormLabel>
+                <FormDescription>
+                  The maximum number of concurrent database connections allowed.
+                  If set to 0 then there is no limit on the number of open
+                  connections.
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Input
+                  {...field}
+                  className="max-w-[180px]"
+                  type="number"
+                  value={field.value ? field.value.toString() : 80}
+                  onChange={(event) => {
+                    field.onChange(event.target.valueAsNumber);
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="bastion">
             <AccordionTrigger> Bastion Host Configuration</AccordionTrigger>
@@ -663,7 +696,8 @@ async function createMysqlConnection(
   db: MysqlFormValues['db'],
   name: string,
   accountId: string,
-  tunnel: MysqlFormValues['tunnel']
+  tunnel: MysqlFormValues['tunnel'],
+  options: MysqlFormValues['options']
 ): Promise<CreateConnectionResponse> {
   const mysqlconfig = new MysqlConnectionConfig({
     connectionConfig: {
@@ -678,6 +712,11 @@ async function createMysqlConnection(
       }),
     },
   });
+  if (options && options.maxConnectionLimit != 0) {
+    mysqlconfig.connectionOptions = new SqlConnectionOptions({
+      maxConnectionLimit: options.maxConnectionLimit,
+    });
+  }
   if (tunnel && tunnel.host) {
     mysqlconfig.tunnel = new SSHTunnel({
       host: tunnel.host,

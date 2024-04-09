@@ -19,14 +19,21 @@ type defaultSqlProvider struct{}
 func (d *defaultSqlProvider) GetConnectionDetails(cc *mgmtv1alpha1.ConnectionConfig, connTimeout *uint32, logger *slog.Logger) (*sqlconnect.ConnectionDetails, error) {
 	return sqlconnect.GetConnectionDetails(cc, connTimeout, logger)
 }
-func (d *defaultSqlProvider) DbOpen(driver, dsn string) (neosync_benthos_sql.SqlDbtx, error) {
-	return sql.Open(driver, dsn)
+func (d *defaultSqlProvider) DbOpen(driver, dsn string, maxConnectionLimits *int32) (neosync_benthos_sql.SqlDbtx, error) {
+	db, err := sql.Open(driver, dsn)
+	if err != nil {
+		return nil, err
+	}
+	if maxConnectionLimits != nil {
+		db.SetMaxOpenConns(int(*maxConnectionLimits))
+	}
+	return db, nil
 }
 
 type sqlProvider interface {
 	GetConnectionDetails(cc *mgmtv1alpha1.ConnectionConfig, connTimeout *uint32, logger *slog.Logger) (*sqlconnect.ConnectionDetails, error)
 
-	DbOpen(driver, dsn string) (neosync_benthos_sql.SqlDbtx, error)
+	DbOpen(driver, dsn string, maxConnectionLimits *int32) (neosync_benthos_sql.SqlDbtx, error)
 }
 
 func NewConnectionTunnelManager(sqlprovider sqlProvider) *ConnectionTunnelManager {
@@ -144,7 +151,12 @@ func (c *ConnectionTunnelManager) GetConnection(
 		return nil, err
 	}
 
-	dbconn, err := c.sqlprovider.DbOpen(driver, connectionString)
+	maxConnectionLimit, err := getMaxConnectionLimitFromConnection(connection)
+	if err != nil {
+		return nil, err
+	}
+
+	dbconn, err := c.sqlprovider.DbOpen(driver, connectionString, maxConnectionLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -255,4 +267,23 @@ func getDriverFromConnection(connection *mgmtv1alpha1.Connection) (string, error
 		return "postgres", nil
 	}
 	return "", errors.New("unsupported connection type when computing driver")
+}
+
+func getMaxConnectionLimitFromConnection(connection *mgmtv1alpha1.Connection) (*int32, error) {
+	if connection == nil {
+		return nil, errors.New("connection was nil")
+	}
+	switch config := connection.ConnectionConfig.Config.(type) {
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		if config.MysqlConfig != nil && config.MysqlConfig.ConnectionOptions != nil {
+			return config.MysqlConfig.ConnectionOptions.MaxConnectionLimit, nil
+		}
+		return nil, nil
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		if config.PgConfig != nil && config.PgConfig.ConnectionOptions != nil {
+			return config.PgConfig.ConnectionOptions.MaxConnectionLimit, nil
+		}
+		return nil, nil
+	}
+	return nil, errors.New("unsupported connection type when getting max connection limit")
 }

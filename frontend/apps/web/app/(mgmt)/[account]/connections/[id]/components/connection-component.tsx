@@ -108,6 +108,9 @@ export function getConnectionComponentDetails(
               connectionName: connection.name,
               db: dbConfig,
               url: typeof pgConfig === 'string' ? pgConfig : '',
+              options: {
+                maxConnectionLimit: value.connectionOptions?.maxConnectionLimit,
+              },
               tunnel: {
                 host: value.tunnel?.host ?? '',
                 port: value.tunnel?.port ?? 22,
@@ -164,6 +167,10 @@ export function getConnectionComponentDetails(
                     user: mysqlValue.connectionConfig.value.user,
                     pass: mysqlValue.connectionConfig.value.pass,
                     protocol: mysqlValue.connectionConfig.value.protocol,
+                  },
+                  options: {
+                    maxConnectionLimit:
+                      mysqlValue.connectionOptions?.maxConnectionLimit,
                   },
                   tunnel: {
                     host: mysqlValue.tunnel?.host ?? '',

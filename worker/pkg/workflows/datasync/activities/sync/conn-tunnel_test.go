@@ -134,12 +134,40 @@ func Test_ConnectionTunnelManager_GetConnection(t *testing.T) {
 			Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{},
 		},
 	}
-
+	var nilInt32 *int32
 	mockSqlProvider.On("GetConnectionDetails", mock.Anything, mock.Anything, mock.Anything).
 		Return(&sqlconnect.ConnectionDetails{
 			GeneralDbConnectConfig: getPgGenDbConfig(t),
 		}, nil)
-	mockSqlProvider.On("DbOpen", "postgres", "postgres://foo:bar@localhost:5432/test").
+	mockSqlProvider.On("DbOpen", "postgres", "postgres://foo:bar@localhost:5432/test", nilInt32).
+		Return(neosync_benthos_sql.NewMockSqlDbtx(t), nil)
+	db, err := mgr.GetConnection("111", conn, slog.Default())
+	assert.NoError(t, err)
+	assert.NotNil(t, db)
+}
+
+func Test_ConnectionTunnelManager_GetConnection_MaxConnectionLimit(t *testing.T) {
+	mockSqlProvider := NewMocksqlProvider(t)
+	mgr := NewConnectionTunnelManager(mockSqlProvider)
+
+	maxConnLimit := int32(50)
+	conn := &mgmtv1alpha1.Connection{
+		Id: "1",
+		ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+			Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+				PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+					ConnectionOptions: &mgmtv1alpha1.SqlConnectionOptions{
+						MaxConnectionLimit: &maxConnLimit,
+					},
+				},
+			},
+		},
+	}
+	mockSqlProvider.On("GetConnectionDetails", mock.Anything, mock.Anything, mock.Anything).
+		Return(&sqlconnect.ConnectionDetails{
+			GeneralDbConnectConfig: getPgGenDbConfig(t),
+		}, nil)
+	mockSqlProvider.On("DbOpen", "postgres", "postgres://foo:bar@localhost:5432/test", &maxConnLimit).
 		Return(neosync_benthos_sql.NewMockSqlDbtx(t), nil)
 	db, err := mgr.GetConnection("111", conn, slog.Default())
 	assert.NoError(t, err)
@@ -161,7 +189,7 @@ func Test_ConnectionTunnelManager_GetConnection_Parallel_Sessions_Same_Connectio
 		Return(&sqlconnect.ConnectionDetails{
 			GeneralDbConnectConfig: getPgGenDbConfig(t),
 		}, nil)
-	mockSqlProvider.On("DbOpen", "postgres", "postgres://foo:bar@localhost:5432/test").
+	mockSqlProvider.On("DbOpen", "postgres", "postgres://foo:bar@localhost:5432/test", mock.Anything).
 		Return(neosync_benthos_sql.NewMockSqlDbtx(t), nil)
 
 	errgrp := errgroup.Group{}
@@ -224,7 +252,7 @@ func Test_ConnectionTunnelManager_close(t *testing.T) {
 			GeneralDbConnectConfig: getPgGenDbConfig(t),
 		}, nil)
 	mockDb := neosync_benthos_sql.NewMockSqlDbtx(t)
-	mockSqlProvider.On("DbOpen", "postgres", "postgres://foo:bar@localhost:5432/test").
+	mockSqlProvider.On("DbOpen", "postgres", "postgres://foo:bar@localhost:5432/test", mock.Anything).
 		Return(mockDb, nil)
 	mockDb.On("Close").Return(nil)
 
@@ -283,6 +311,57 @@ func Test_getDriverFromConnection(t *testing.T) {
 	}})
 	assert.Error(t, err)
 	assert.Empty(t, driver)
+}
+
+func Test_getMaxConnectionLimitFromConnection(t *testing.T) {
+	var nilInt32 *int32
+	maxConnLimit := int32(50)
+
+	actual, err := getMaxConnectionLimitFromConnection(nil)
+	assert.Error(t, err)
+	assert.Empty(t, actual)
+
+	actual, err = getMaxConnectionLimitFromConnection(&mgmtv1alpha1.Connection{ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+		Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{},
+	}})
+	assert.NoError(t, err)
+	assert.Equal(t, nilInt32, actual)
+
+	actual, err = getMaxConnectionLimitFromConnection(&mgmtv1alpha1.Connection{ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+		Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+			PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+				ConnectionOptions: &mgmtv1alpha1.SqlConnectionOptions{
+					MaxConnectionLimit: &maxConnLimit,
+				},
+			},
+		},
+	}})
+	assert.NoError(t, err)
+	assert.Equal(t, &maxConnLimit, actual)
+
+	actual, err = getMaxConnectionLimitFromConnection(&mgmtv1alpha1.Connection{ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+		Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{},
+	}})
+	assert.NoError(t, err)
+	assert.Equal(t, nilInt32, actual)
+
+	actual, err = getMaxConnectionLimitFromConnection(&mgmtv1alpha1.Connection{ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+		Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+			MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+				ConnectionOptions: &mgmtv1alpha1.SqlConnectionOptions{
+					MaxConnectionLimit: &maxConnLimit,
+				},
+			},
+		},
+	}})
+	assert.NoError(t, err)
+	assert.Equal(t, &maxConnLimit, actual)
+
+	actual, err = getMaxConnectionLimitFromConnection(&mgmtv1alpha1.Connection{ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+		Config: &mgmtv1alpha1.ConnectionConfig_AwsS3Config{},
+	}})
+	assert.Error(t, err)
+	assert.Empty(t, actual)
 }
 
 func getPgGenDbConfig(t *testing.T) sqlconnect.GeneralDbConnectConfig {

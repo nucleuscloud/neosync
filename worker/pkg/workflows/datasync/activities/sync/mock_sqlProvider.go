@@ -26,9 +26,9 @@ func (_m *MocksqlProvider) EXPECT() *MocksqlProvider_Expecter {
 	return &MocksqlProvider_Expecter{mock: &_m.Mock}
 }
 
-// DbOpen provides a mock function with given fields: driver, dsn
-func (_m *MocksqlProvider) DbOpen(driver string, dsn string) (neosync_benthos_sql.SqlDbtx, error) {
-	ret := _m.Called(driver, dsn)
+// DbOpen provides a mock function with given fields: driver, dsn, maxConnectionLimits
+func (_m *MocksqlProvider) DbOpen(driver string, dsn string, maxConnectionLimits *int32) (neosync_benthos_sql.SqlDbtx, error) {
+	ret := _m.Called(driver, dsn, maxConnectionLimits)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DbOpen")
@@ -36,19 +36,19 @@ func (_m *MocksqlProvider) DbOpen(driver string, dsn string) (neosync_benthos_sq
 
 	var r0 neosync_benthos_sql.SqlDbtx
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string) (neosync_benthos_sql.SqlDbtx, error)); ok {
-		return rf(driver, dsn)
+	if rf, ok := ret.Get(0).(func(string, string, *int32) (neosync_benthos_sql.SqlDbtx, error)); ok {
+		return rf(driver, dsn, maxConnectionLimits)
 	}
-	if rf, ok := ret.Get(0).(func(string, string) neosync_benthos_sql.SqlDbtx); ok {
-		r0 = rf(driver, dsn)
+	if rf, ok := ret.Get(0).(func(string, string, *int32) neosync_benthos_sql.SqlDbtx); ok {
+		r0 = rf(driver, dsn, maxConnectionLimits)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(neosync_benthos_sql.SqlDbtx)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(driver, dsn)
+	if rf, ok := ret.Get(1).(func(string, string, *int32) error); ok {
+		r1 = rf(driver, dsn, maxConnectionLimits)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -64,13 +64,14 @@ type MocksqlProvider_DbOpen_Call struct {
 // DbOpen is a helper method to define mock.On call
 //   - driver string
 //   - dsn string
-func (_e *MocksqlProvider_Expecter) DbOpen(driver interface{}, dsn interface{}) *MocksqlProvider_DbOpen_Call {
-	return &MocksqlProvider_DbOpen_Call{Call: _e.mock.On("DbOpen", driver, dsn)}
+//   - maxConnectionLimits *int32
+func (_e *MocksqlProvider_Expecter) DbOpen(driver interface{}, dsn interface{}, maxConnectionLimits interface{}) *MocksqlProvider_DbOpen_Call {
+	return &MocksqlProvider_DbOpen_Call{Call: _e.mock.On("DbOpen", driver, dsn, maxConnectionLimits)}
 }
 
-func (_c *MocksqlProvider_DbOpen_Call) Run(run func(driver string, dsn string)) *MocksqlProvider_DbOpen_Call {
+func (_c *MocksqlProvider_DbOpen_Call) Run(run func(driver string, dsn string, maxConnectionLimits *int32)) *MocksqlProvider_DbOpen_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(string))
+		run(args[0].(string), args[1].(string), args[2].(*int32))
 	})
 	return _c
 }
@@ -80,7 +81,7 @@ func (_c *MocksqlProvider_DbOpen_Call) Return(_a0 neosync_benthos_sql.SqlDbtx, _
 	return _c
 }
 
-func (_c *MocksqlProvider_DbOpen_Call) RunAndReturn(run func(string, string) (neosync_benthos_sql.SqlDbtx, error)) *MocksqlProvider_DbOpen_Call {
+func (_c *MocksqlProvider_DbOpen_Call) RunAndReturn(run func(string, string, *int32) (neosync_benthos_sql.SqlDbtx, error)) *MocksqlProvider_DbOpen_Call {
 	_c.Call.Return(run)
 	return _c
 }

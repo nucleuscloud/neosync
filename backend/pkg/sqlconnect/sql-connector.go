@@ -62,6 +62,7 @@ func (rc *SqlOpenConnector) NewPgPoolFromConnectionConfig(pgconfig *mgmtv1alpha1
 
 type ConnectionDetails struct {
 	GeneralDbConnectConfig
+	MaxConnectionLimit *int32
 
 	Tunnel *sshtunnel.Sshtunnel
 }
@@ -81,6 +82,10 @@ func GetConnectionDetails(c *mgmtv1alpha1.ConnectionConfig, connectionTimeout *u
 	}
 	switch config := c.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		var maxConnLimit *int32
+		if config.PgConfig.ConnectionOptions != nil {
+			maxConnLimit = config.PgConfig.ConnectionOptions.MaxConnectionLimit
+		}
 		if config.PgConfig.Tunnel != nil {
 			destination, err := getEndpointFromPgConnectionConfig(config)
 			if err != nil {
@@ -115,6 +120,7 @@ func GetConnectionDetails(c *mgmtv1alpha1.ConnectionConfig, connectionTimeout *u
 			return &ConnectionDetails{
 				Tunnel:                 tunnel,
 				GeneralDbConnectConfig: *connDetails,
+				MaxConnectionLimit:     maxConnLimit,
 			}, nil
 		}
 
@@ -124,8 +130,13 @@ func GetConnectionDetails(c *mgmtv1alpha1.ConnectionConfig, connectionTimeout *u
 		}
 		return &ConnectionDetails{
 			GeneralDbConnectConfig: *connDetails,
+			MaxConnectionLimit:     maxConnLimit,
 		}, nil
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		var maxConnLimit *int32
+		if config.MysqlConfig.ConnectionOptions != nil {
+			maxConnLimit = config.MysqlConfig.ConnectionOptions.MaxConnectionLimit
+		}
 		if config.MysqlConfig.Tunnel != nil {
 			destination, err := getEndpointFromMysqlConnectionConfig(config)
 			if err != nil {
@@ -160,6 +171,7 @@ func GetConnectionDetails(c *mgmtv1alpha1.ConnectionConfig, connectionTimeout *u
 			return &ConnectionDetails{
 				Tunnel:                 tunnel,
 				GeneralDbConnectConfig: *connDetails,
+				MaxConnectionLimit:     maxConnLimit,
 			}, nil
 		}
 
@@ -169,6 +181,7 @@ func GetConnectionDetails(c *mgmtv1alpha1.ConnectionConfig, connectionTimeout *u
 		}
 		return &ConnectionDetails{
 			GeneralDbConnectConfig: *connDetails,
+			MaxConnectionLimit:     maxConnLimit,
 		}, nil
 	default:
 		return nil, nucleuserrors.NewNotImplemented("this connection config is not currently supported")
