@@ -709,8 +709,14 @@ func getRunLogConfig() (*v1alpha1_jobservice.RunLogConfig, error) {
 				},
 			}, nil
 		}
+		return &v1alpha1_jobservice.RunLogConfig{
+			IsEnabled: false,
+		}, nil
 	}
 	runlogtype := getRunLogType()
+	if runlogtype == nil {
+		return nil, errors.New("run logs is enabled but run log type was unspecified or invalid")
+	}
 	switch *runlogtype {
 	case v1alpha1_jobservice.KubePodRunLogType:
 		ksNs := viper.GetString("RUN_LOGS_PODCONFIG_WORKER_NAMESPACE")
