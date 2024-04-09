@@ -86,6 +86,9 @@ export async function generateMetadata({
       images: [ogUrl.toString()],
     },
     metadataBase: new URL(url),
+    alternates: {
+      canonical: absoluteUrl(post.slug),
+    },
   };
 }
 
