@@ -232,9 +232,9 @@ func Test_buildLokiQuery(t *testing.T) {
 	}
 
 	testcases := []testcase{
-		{`foo="bar"`, []string{"foo"}, "123", `{foo="bar"} | json | WorkflowID="123" | keep foo`},
-		{`foo="bar", foo2="bar2"`, []string{"foo"}, "123", `{foo="bar", foo2="bar2"} | json | WorkflowID="123" | keep foo`},
-		{`foo="bar", foo2="bar2"`, []string{}, "123", `{foo="bar", foo2="bar2"} | json | WorkflowID="123"`},
+		{`foo="bar"`, []string{"foo"}, "123", `{foo="bar"} | json | WorkflowID="123" | line_format "[{{.level}}] - {{.msg}}" | keep foo`},
+		{`foo="bar", foo2="bar2"`, []string{"foo"}, "123", `{foo="bar", foo2="bar2"} | json | WorkflowID="123" | line_format "[{{.level}}] - {{.msg}}" | keep foo`},
+		{`foo="bar", foo2="bar2"`, []string{}, "123", `{foo="bar", foo2="bar2"} | json | WorkflowID="123" | line_format "[{{.level}}] - {{.msg}}"`},
 	}
 
 	for _, tc := range testcases {
