@@ -6425,6 +6425,39 @@
           ]
         },
         {
+          "name": "LogLevel",
+          "longName": "LogLevel",
+          "fullName": "mgmt.v1alpha1.LogLevel",
+          "description": "",
+          "values": [
+            {
+              "name": "LOG_LEVEL_UNSPECIFIED",
+              "number": "0",
+              "description": ""
+            },
+            {
+              "name": "LOG_LEVEL_DEBUG",
+              "number": "1",
+              "description": ""
+            },
+            {
+              "name": "LOG_LEVEL_INFO",
+              "number": "2",
+              "description": ""
+            },
+            {
+              "name": "LOG_LEVEL_WARN",
+              "number": "3",
+              "description": ""
+            },
+            {
+              "name": "LOG_LEVEL_ERROR",
+              "number": "4",
+              "description": ""
+            }
+          ]
+        },
+        {
           "name": "LogWindow",
           "longName": "LogWindow",
           "fullName": "mgmt.v1alpha1.LogWindow",
@@ -7361,7 +7394,7 @@
             },
             {
               "name": "window",
-              "description": "",
+              "description": "The time window in which to retrieve the logs",
               "label": "",
               "type": "LogWindow",
               "longType": "LogWindow",
@@ -7373,7 +7406,7 @@
             },
             {
               "name": "should_tail",
-              "description": "",
+              "description": "Whether or not to tail the stream. Note: only works with k8s-pods and is not currently supported with Loki logs",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -7385,7 +7418,7 @@
             },
             {
               "name": "max_log_lines",
-              "description": "",
+              "description": "Optionally provide a max log limit",
               "label": "optional",
               "type": "int64",
               "longType": "int64",
@@ -7393,6 +7426,18 @@
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "_max_log_lines",
+              "defaultValue": ""
+            },
+            {
+              "name": "log_levels",
+              "description": "Provide a list of log levels to filter by. If any of these are UNSPECIFIED, all log levels are returned.",
+              "label": "repeated",
+              "type": "LogLevel",
+              "longType": "LogLevel",
+              "fullType": "mgmt.v1alpha1.LogLevel",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
               "defaultValue": ""
             }
           ]

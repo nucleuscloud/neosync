@@ -228,18 +228,19 @@ func Test_buildLokiQuery(t *testing.T) {
 		labels     string
 		keep       []string
 		workflowId string
+		levels     []string
 		expected   string
 	}
 
 	testcases := []testcase{
-		{`foo="bar"`, []string{"foo"}, "123", `{foo="bar"} | json | WorkflowID="123" | line_format "[{{.level}}] - {{.msg}}" | keep foo`},
-		{`foo="bar", foo2="bar2"`, []string{"foo"}, "123", `{foo="bar", foo2="bar2"} | json | WorkflowID="123" | line_format "[{{.level}}] - {{.msg}}" | keep foo`},
-		{`foo="bar", foo2="bar2"`, []string{}, "123", `{foo="bar", foo2="bar2"} | json | WorkflowID="123" | line_format "[{{.level}}] - {{.msg}}"`},
+		{`foo="bar"`, []string{"foo"}, "123", []string{}, `{foo="bar"} | json | WorkflowID="123" | line_format "[{{.level}}] - {{.msg}}" | keep foo`},
+		{`foo="bar", foo2="bar2"`, []string{"foo"}, "123", []string{}, `{foo="bar", foo2="bar2"} | json | WorkflowID="123" | line_format "[{{.level}}] - {{.msg}}" | keep foo`},
+		{`foo="bar", foo2="bar2"`, []string{}, "123", []string{}, `{foo="bar", foo2="bar2"} | json | WorkflowID="123" | line_format "[{{.level}}] - {{.msg}}"`},
 	}
 
 	for _, tc := range testcases {
 		t.Run("", func(t *testing.T) {
-			actual := buildLokiQuery(tc.labels, tc.keep, tc.workflowId)
+			actual := buildLokiQuery(tc.labels, tc.keep, tc.workflowId, tc.levels)
 			require.Equal(t, tc.expected, actual)
 		})
 	}
