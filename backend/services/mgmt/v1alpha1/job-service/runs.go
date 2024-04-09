@@ -431,7 +431,8 @@ func (s *Service) getVerifiedJobRun(
 }
 
 type LogLine struct {
-	WorkflowID string `json:"WorkflowID"`
+	WorkflowID string     `json:"WorkflowID"`
+	Time       *time.Time `json:"time,omitempty"`
 }
 
 func (s *Service) GetJobRunLogsStream(
@@ -522,7 +523,11 @@ func (s *Service) streamK8sWorkerPodLogs(
 			}
 
 			if logLine.WorkflowID == verifResp.WorkflowExecution.Execution.WorkflowId {
-				if err := stream.Send(&mgmtv1alpha1.GetJobRunLogsStreamResponse{LogLine: txt}); err != nil {
+				var timestamp *timestamppb.Timestamp
+				if logLine.Time != nil {
+					timestamp = timestamppb.New(*logLine.Time)
+				}
+				if err := stream.Send(&mgmtv1alpha1.GetJobRunLogsStreamResponse{LogLine: txt, Timestamp: timestamp}); err != nil {
 					if err == io.EOF {
 						return nil
 					}
@@ -562,8 +567,9 @@ func (s *Service) streamLokiWorkerLogs(
 		jobrunResp.WorkflowExecution.Execution.WorkflowId,
 	)
 	resp, err := lokiclient.QueryRange(ctx, &loki.QueryRangeRequest{
-		Query:     query,
-		Limit:     req.Msg.MaxLogLines,
+		Query: query,
+		Limit: req.Msg.MaxLogLines,
+
 		Direction: &direction,
 		Start:     &start,
 		End:       &end,
