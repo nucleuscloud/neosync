@@ -261,16 +261,16 @@ func Test_ConnectionTunnelManager_close(t *testing.T) {
 
 	assert.NotEmpty(t, mgr.connDetailsMap, "has an active connection")
 	assert.NotEmpty(t, mgr.connMap, "has an active connection")
-	mgr.close(false)
+	mgr.close()
 	assert.NotEmpty(t, mgr.connDetailsMap, "not empty due to active session")
 	assert.NotEmpty(t, mgr.connMap, "not empty due to active session")
 	assert.True(t, mgr.ReleaseSession("111"), "released an existing session")
-	mgr.close(false)
+	mgr.close()
 	assert.Empty(t, mgr.connDetailsMap, "now empty due to no active sessions")
 	assert.Empty(t, mgr.connMap, "now empty due to no active sessions")
 }
 
-func Test_ConnectionTunnelManager_close_hardstop(t *testing.T) {
+func Test_ConnectionTunnelManager_hardClose(t *testing.T) {
 	mockSqlProvider := NewMocksqlProvider(t)
 	mgr := NewConnectionTunnelManager(mockSqlProvider)
 
@@ -297,7 +297,7 @@ func Test_ConnectionTunnelManager_close_hardstop(t *testing.T) {
 
 	assert.NotEmpty(t, mgr.connDetailsMap, "has an active connection")
 	assert.NotEmpty(t, mgr.connMap, "has an active connection")
-	mgr.close(true)
+	mgr.hardClose()
 	assert.Empty(t, mgr.connDetailsMap, "now empty due to no active sessions")
 	assert.Empty(t, mgr.connMap, "now empty due to no active sessions")
 }

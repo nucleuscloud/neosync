@@ -210,45 +210,39 @@ func (c *ConnectionTunnelManager) Reaper() {
 	for {
 		select {
 		case <-c.shutdown:
-			hardstop := true
-			c.close(hardstop)
+			c.hardClose()
 			return
 		case <-time.After(1 * time.Minute):
-			hardstop := false
-			c.close(hardstop)
+			c.close()
 		}
 	}
 }
 
-func (c *ConnectionTunnelManager) close(hardstop bool) {
-	if hardstop {
-		c.connMu.Lock()
-		c.sessionMu.Lock()
-		for connId, dbConn := range c.connMap {
-			dbConn.Close()
-			delete(c.connMap, connId)
-		}
-		c.sessionMu.Unlock()
-		c.connMu.Unlock()
-
-		c.connDetailsMu.Lock()
-		c.sessionMu.Lock()
-		for connId, details := range c.connDetailsMap {
-			if details.Tunnel != nil {
-				details.Tunnel.Close()
-			}
-			delete(c.connDetailsMap, connId)
-		}
-		c.sessionMu.Unlock()
-		c.connDetailsMu.Unlock()
-
-		c.sessionMu.Lock()
-		for sessionId := range c.sessionMap {
-			delete(c.sessionMap, sessionId)
-		}
-		c.sessionMu.Unlock()
-		return
+func (c *ConnectionTunnelManager) hardClose() {
+	c.connMu.Lock()
+	c.connDetailsMu.Lock()
+	c.sessionMu.Lock()
+	for connId, dbConn := range c.connMap {
+		dbConn.Close()
+		delete(c.connMap, connId)
 	}
+
+	for connId, details := range c.connDetailsMap {
+		if details.Tunnel != nil {
+			details.Tunnel.Close()
+		}
+		delete(c.connDetailsMap, connId)
+	}
+
+	for sessionId := range c.sessionMap {
+		delete(c.sessionMap, sessionId)
+	}
+	c.connMu.Unlock()
+	c.connDetailsMu.Unlock()
+	c.sessionMu.Unlock()
+}
+
+func (c *ConnectionTunnelManager) close() {
 	c.connMu.Lock()
 	c.sessionMu.Lock()
 	sessionConnections := getUniqueConnectionIdsFromSessions(c.sessionMap)
