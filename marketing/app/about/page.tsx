@@ -10,8 +10,8 @@ export const metadata: Metadata = {
   title: 'Neosync | About',
   openGraph: {
     title: 'Neosync | About',
-    description: `Learn more about Neosync&apos;s mission and values `,
-    url: 'https://neosync.dev/solutions/keep-environments-in-sync',
+    description: `Learn more about Neosync's mission and values `,
+    url: 'https://neosync.dev/about',
     siteName: 'Neosync',
     images: [
       {
@@ -23,6 +23,9 @@ export const metadata: Metadata = {
     ],
     locale: 'en_US',
     type: 'website',
+  },
+  alternates: {
+    canonical: 'https://neosync.dev/about',
   },
 };
 

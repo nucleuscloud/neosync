@@ -27,6 +27,9 @@ export const metadata: Metadata = {
     locale: 'en_US',
     type: 'website',
   },
+  alternates: {
+    canonical: 'https://neosync.dev/solutions/keep-environments-in-sync',
+  },
 };
 
 export default function Page(): ReactElement {
