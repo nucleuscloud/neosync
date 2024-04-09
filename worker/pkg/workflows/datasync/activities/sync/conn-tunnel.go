@@ -243,10 +243,11 @@ func (c *ConnectionTunnelManager) close(hardstop bool) {
 		c.connDetailsMu.Unlock()
 
 		c.sessionMu.Lock()
-		for sessionId, _ := range c.sessionMap {
+		for sessionId := range c.sessionMap {
 			delete(c.sessionMap, sessionId)
 		}
 		c.sessionMu.Unlock()
+		return
 	}
 	c.connMu.Lock()
 	c.sessionMu.Lock()
