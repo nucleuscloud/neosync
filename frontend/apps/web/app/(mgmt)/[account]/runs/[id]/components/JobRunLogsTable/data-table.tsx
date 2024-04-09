@@ -161,7 +161,11 @@ export function DataTable<TData, TValue>({
                     {isLoading ? (
                       <ReloadIcon className="h-4 w-4 animate-spin" />
                     ) : null}
-                    <p>No logs found for the given query</p>
+                    <p>
+                      {isLoading
+                        ? 'Waiting for logs to load...'
+                        : 'No logs found for the given query'}
+                    </p>
                   </div>
                 </td>
               </TableRow>
