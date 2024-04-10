@@ -11,9 +11,9 @@
     "prettier:write": "prettier --write ."
   },
   "devDependencies": {
-    "knip": "^5.7.0",
+    "knip": "^5.9.3",
     "prettier": "^3.2.5",
-    "turbo": "^1.13.0"
+    "turbo": "^1.13.2"
   },
   "workspaces": [
     "apps/*",
