@@ -60,6 +60,7 @@ export function getColumns(
     },
     {
       accessorKey: 'jobName',
+      accessorFn: (row) => jobNameMap[row.jobId],
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Job Name" />
       ),
