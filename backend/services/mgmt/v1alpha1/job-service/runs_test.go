@@ -236,6 +236,8 @@ func Test_buildLokiQuery(t *testing.T) {
 		{`foo="bar"`, []string{"foo"}, "123", []string{}, `{foo="bar"} | json | WorkflowID="123" | line_format "[{{.level}}] - {{.msg}}" | keep foo`},
 		{`foo="bar", foo2="bar2"`, []string{"foo"}, "123", []string{}, `{foo="bar", foo2="bar2"} | json | WorkflowID="123" | line_format "[{{.level}}] - {{.msg}}" | keep foo`},
 		{`foo="bar", foo2="bar2"`, []string{}, "123", []string{}, `{foo="bar", foo2="bar2"} | json | WorkflowID="123" | line_format "[{{.level}}] - {{.msg}}"`},
+		{`foo="bar", foo2="bar2"`, []string{}, "123", []string{"info"}, `{foo="bar", foo2="bar2"} | json | WorkflowID="123" | level=~"info" | line_format "[{{.level}}] - {{.msg}}"`},
+		{`foo="bar", foo2="bar2"`, []string{}, "123", []string{"info", "error"}, `{foo="bar", foo2="bar2"} | json | WorkflowID="123" | level=~"info|error" | line_format "[{{.level}}] - {{.msg}}"`},
 	}
 
 	for _, tc := range testcases {
@@ -265,6 +267,26 @@ func Test_getLogFilterTime(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run("", func(t *testing.T) {
 			actual := getLogFilterTime(tc.window, tc.endTime)
+			require.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
+func Test_getLogLevelFilters(t *testing.T) {
+	type testcase struct {
+		levels   []mgmtv1alpha1.LogLevel
+		expected []string
+	}
+
+	testcases := []testcase{
+		{[]mgmtv1alpha1.LogLevel{mgmtv1alpha1.LogLevel_LOG_LEVEL_UNSPECIFIED}, []string{}},
+		{[]mgmtv1alpha1.LogLevel{mgmtv1alpha1.LogLevel_LOG_LEVEL_UNSPECIFIED, mgmtv1alpha1.LogLevel_LOG_LEVEL_DEBUG}, []string{}},
+		{[]mgmtv1alpha1.LogLevel{mgmtv1alpha1.LogLevel_LOG_LEVEL_DEBUG, mgmtv1alpha1.LogLevel_LOG_LEVEL_ERROR, mgmtv1alpha1.LogLevel_LOG_LEVEL_INFO, mgmtv1alpha1.LogLevel_LOG_LEVEL_WARN}, []string{"DEBUG", "ERROR", "INFO", "WARN"}},
+	}
+
+	for _, tc := range testcases {
+		t.Run("", func(t *testing.T) {
+			actual := getLogLevelFilters(tc.levels)
 			require.Equal(t, tc.expected, actual)
 		})
 	}
