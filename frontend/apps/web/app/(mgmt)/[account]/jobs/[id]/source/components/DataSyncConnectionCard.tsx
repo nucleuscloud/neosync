@@ -25,7 +25,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectionForeignConstraints';
 import { useGetConnectionPrimaryConstraints } from '@/libs/hooks/useGetConnectionPrimaryConstraints';
-import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
+import {
+  GetConnectionSchemaMapResponse,
+  getConnectionSchema,
+  useGetConnectionSchemaMap,
+} from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetConnectionUniqueConstraints } from '@/libs/hooks/useGetConnectionUniqueConstraints';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { useGetJob } from '@/libs/hooks/useGetJob';
@@ -51,6 +55,7 @@ import {
 } from '@neosync/sdk';
 import { ReactElement, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import { KeyedMutator } from 'swr';
 import * as Yup from 'yup';
 import { getConnection } from '../../util';
 
@@ -139,7 +144,8 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
       const newValues = await getUpdatedValues(
         account?.id ?? '',
         value,
-        form.getValues()
+        form.getValues(),
+        mutateGetConnectionSchemaMap
       );
       form.reset(newValues);
       mutateGetConnectionSchemaMap();
@@ -422,20 +428,38 @@ function getJobSource(job?: Job): SourceFormValues {
 async function getUpdatedValues(
   accountId: string,
   connectionId: string,
-  originalValues: SourceFormValues
+  originalValues: SourceFormValues,
+  mutateConnectionSchemaRes:
+    | KeyedMutator<unknown>
+    | KeyedMutator<GetConnectionSchemaMapResponse>
 ): Promise<SourceFormValues> {
-  const connRes = await getConnection(accountId, connectionId);
-  if (!connRes) {
+  const [schemaRes, connRes] = await Promise.all([
+    getConnectionSchema(accountId, connectionId),
+    getConnection(accountId, connectionId),
+  ]);
+
+  if (!schemaRes || !connRes) {
     return originalValues;
   }
+
+  const sameKeys = new Set(
+    Object.values(schemaRes.schemaMap).flatMap((dbcols) =>
+      dbcols.map((dbcol) => `${dbcol.schema}.${dbcol.table}.${dbcol.column}`)
+    )
+  );
+
+  const mappings = originalValues.mappings.filter((mapping) =>
+    sameKeys.has(`${mapping.schema}.${mapping.table}.${mapping.column}`)
+  );
 
   const values = {
     sourceId: connectionId || '',
     sourceOptions: {},
     destinationIds: originalValues.destinationIds,
-    mappings: [],
+    mappings,
     connectionId: connectionId || '',
   };
+  mutateConnectionSchemaRes(schemaRes);
 
   switch (connRes.connection?.connectionConfig?.config.case) {
     case 'pgConfig':
