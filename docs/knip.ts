@@ -21,6 +21,7 @@ const config = {
     'class-variance-authority',
     'tailwind-merge',
     'docusaurus-protobuffet',
+    'posthog-docusaurus',
   ],
   ignoreBinaries: [],
 };
