@@ -433,6 +433,7 @@ func (s *Service) getVerifiedJobRun(
 type LogLine struct {
 	WorkflowID string     `json:"WorkflowID"`
 	Time       *time.Time `json:"time,omitempty"`
+	Level      string     `json:"level"`
 }
 
 func (s *Service) GetJobRunLogsStream(
@@ -496,6 +497,13 @@ func (s *Service) streamK8sWorkerPodLogs(
 		logger.Error(fmt.Errorf("error getting pods: %w", err).Error())
 		return err
 	}
+
+	loglevels := getLogLevelFilters(req.Msg.GetLogLevels())
+	uniqueloglevels := map[string]any{}
+	for _, ll := range loglevels {
+		uniqueloglevels[ll] = struct{}{}
+	}
+
 	for idx := range pods.Items {
 		pod := pods.Items[idx]
 		logsReq := podclient.GetLogs(pod.Name, &corev1.PodLogOptions{
@@ -523,6 +531,9 @@ func (s *Service) streamK8sWorkerPodLogs(
 			}
 
 			if logLine.WorkflowID == verifResp.WorkflowExecution.Execution.WorkflowId {
+				if _, ok := uniqueloglevels[logLine.Level]; !ok && len(uniqueloglevels) > 0 {
+					continue
+				}
 				var timestamp *timestamppb.Timestamp
 				if logLine.Time != nil {
 					timestamp = timestamppb.New(*logLine.Time)
