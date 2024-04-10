@@ -677,7 +677,23 @@ type AwsS3DestinationOptions struct{}
 type PostgresDestinationOptions struct {
 	TruncateTableConfig *PostgresTruncateTableConfig `json:"truncateTableconfig,omitempty"`
 	InitTableSchema     bool                         `json:"initTableSchema"`
+	OnConflictConfig    *PostgresOnConflictConfig    `json:"onConflictConfig,omitempty"`
 }
+
+type PostgresOnConflictConfig struct {
+	DoNothing bool `json:"doNothing"`
+}
+
+func (t *PostgresOnConflictConfig) ToDto() *mgmtv1alpha1.PostgresOnConflictConfig {
+	return &mgmtv1alpha1.PostgresOnConflictConfig{
+		DoNothing: t.DoNothing,
+	}
+}
+
+func (t *PostgresOnConflictConfig) FromDto(dto *mgmtv1alpha1.PostgresOnConflictConfig) {
+	t.DoNothing = dto.DoNothing
+}
+
 type PostgresTruncateTableConfig struct {
 	TruncateBeforeInsert bool `json:"truncateBeforeInsert"`
 	TruncateCascade      bool `json:"truncateCascade"`
@@ -698,7 +714,23 @@ func (t *PostgresTruncateTableConfig) FromDto(dto *mgmtv1alpha1.PostgresTruncate
 type MysqlDestinationOptions struct {
 	TruncateTableConfig *MysqlTruncateTableConfig `json:"truncateTableConfig,omitempty"`
 	InitTableSchema     bool                      `json:"initTableSchema"`
+	OnConflictConfig    *MysqlOnConflictConfig    `json:"onConflict,omitempty"`
 }
+
+type MysqlOnConflictConfig struct {
+	DoNothing bool `json:"doNothing"`
+}
+
+func (t *MysqlOnConflictConfig) ToDto() *mgmtv1alpha1.MysqlOnConflictConfig {
+	return &mgmtv1alpha1.MysqlOnConflictConfig{
+		DoNothing: t.DoNothing,
+	}
+}
+
+func (t *MysqlOnConflictConfig) FromDto(dto *mgmtv1alpha1.MysqlOnConflictConfig) {
+	t.DoNothing = dto.DoNothing
+}
+
 type MysqlTruncateTableConfig struct {
 	TruncateBeforeInsert bool `json:"truncateBeforeInsert"`
 }
@@ -718,11 +750,15 @@ func (j *JobDestinationOptions) ToDto() *mgmtv1alpha1.JobDestinationOptions {
 		if j.PostgresOptions.TruncateTableConfig == nil {
 			j.PostgresOptions.TruncateTableConfig = &PostgresTruncateTableConfig{}
 		}
+		if j.PostgresOptions.OnConflictConfig == nil {
+			j.PostgresOptions.OnConflictConfig = &PostgresOnConflictConfig{}
+		}
 		return &mgmtv1alpha1.JobDestinationOptions{
 			Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
 				PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{
 					TruncateTable:   j.PostgresOptions.TruncateTableConfig.ToDto(),
 					InitTableSchema: j.PostgresOptions.InitTableSchema,
+					OnConflict:      j.PostgresOptions.OnConflictConfig.ToDto(),
 				},
 			},
 		}
@@ -731,11 +767,15 @@ func (j *JobDestinationOptions) ToDto() *mgmtv1alpha1.JobDestinationOptions {
 		if j.MysqlOptions.TruncateTableConfig == nil {
 			j.MysqlOptions.TruncateTableConfig = &MysqlTruncateTableConfig{}
 		}
+		if j.MysqlOptions.OnConflictConfig == nil {
+			j.MysqlOptions.OnConflictConfig = &MysqlOnConflictConfig{}
+		}
 		return &mgmtv1alpha1.JobDestinationOptions{
 			Config: &mgmtv1alpha1.JobDestinationOptions_MysqlOptions{
 				MysqlOptions: &mgmtv1alpha1.MysqlDestinationConnectionOptions{
 					TruncateTable:   j.MysqlOptions.TruncateTableConfig.ToDto(),
 					InitTableSchema: j.MysqlOptions.InitTableSchema,
+					OnConflict:      j.MysqlOptions.OnConflictConfig.ToDto(),
 				},
 			},
 		}
@@ -756,16 +796,22 @@ func (j *JobDestinationOptions) FromDto(dto *mgmtv1alpha1.JobDestinationOptions)
 	case *mgmtv1alpha1.JobDestinationOptions_PostgresOptions:
 		truncateCfg := &PostgresTruncateTableConfig{}
 		truncateCfg.FromDto(config.PostgresOptions.TruncateTable)
+		onConflictCfg := &PostgresOnConflictConfig{}
+		onConflictCfg.FromDto(config.PostgresOptions.OnConflict)
 		j.PostgresOptions = &PostgresDestinationOptions{
 			InitTableSchema:     config.PostgresOptions.InitTableSchema,
 			TruncateTableConfig: truncateCfg,
+			OnConflictConfig:    onConflictCfg,
 		}
 	case *mgmtv1alpha1.JobDestinationOptions_MysqlOptions:
 		truncateCfg := &MysqlTruncateTableConfig{}
 		truncateCfg.FromDto(config.MysqlOptions.TruncateTable)
+		onConflictCfg := &MysqlOnConflictConfig{}
+		onConflictCfg.FromDto(config.MysqlOptions.OnConflict)
 		j.MysqlOptions = &MysqlDestinationOptions{
 			InitTableSchema:     config.MysqlOptions.InitTableSchema,
 			TruncateTableConfig: truncateCfg,
+			OnConflictConfig:    onConflictCfg,
 		}
 	case *mgmtv1alpha1.JobDestinationOptions_AwsS3Options:
 		j.AwsS3Options = &AwsS3DestinationOptions{}

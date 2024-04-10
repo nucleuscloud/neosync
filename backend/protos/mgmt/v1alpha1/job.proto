@@ -99,6 +99,11 @@ message JobDestinationOptions {
 message PostgresDestinationConnectionOptions {
   PostgresTruncateTableConfig truncate_table = 1;
   bool init_table_schema = 2;
+  PostgresOnConflictConfig on_conflict = 3;
+}
+
+message PostgresOnConflictConfig {
+  bool do_nothing = 1;
 }
 
 message PostgresTruncateTableConfig {
@@ -109,9 +114,13 @@ message PostgresTruncateTableConfig {
 message MysqlDestinationConnectionOptions {
   MysqlTruncateTableConfig truncate_table = 1;
   bool init_table_schema = 2;
+  MysqlOnConflictConfig on_conflict = 3;
 }
 message MysqlTruncateTableConfig {
   bool truncate_before_insert = 1;
+}
+message MysqlOnConflictConfig {
+  bool do_nothing = 1;
 }
 
 message AwsS3DestinationConnectionOptions {}

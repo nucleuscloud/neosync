@@ -8747,6 +8747,42 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "on_conflict",
+              "description": "",
+              "label": "",
+              "type": "MysqlOnConflictConfig",
+              "longType": "MysqlOnConflictConfig",
+              "fullType": "mgmt.v1alpha1.MysqlOnConflictConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "MysqlOnConflictConfig",
+          "longName": "MysqlOnConflictConfig",
+          "fullName": "mgmt.v1alpha1.MysqlOnConflictConfig",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "do_nothing",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
@@ -9074,6 +9110,42 @@
             },
             {
               "name": "init_table_schema",
+              "description": "",
+              "label": "",
+              "type": "bool",
+              "longType": "bool",
+              "fullType": "bool",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "on_conflict",
+              "description": "",
+              "label": "",
+              "type": "PostgresOnConflictConfig",
+              "longType": "PostgresOnConflictConfig",
+              "fullType": "mgmt.v1alpha1.PostgresOnConflictConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "PostgresOnConflictConfig",
+          "longName": "PostgresOnConflictConfig",
+          "fullName": "mgmt.v1alpha1.PostgresOnConflictConfig",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "do_nothing",
               "description": "",
               "label": "",
               "type": "bool",

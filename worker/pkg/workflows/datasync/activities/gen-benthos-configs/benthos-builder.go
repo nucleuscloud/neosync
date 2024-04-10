@@ -270,6 +270,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 				if err != nil {
 					return nil, err
 				}
+				onConflictDoNothing := getOnConflictDoNothing(destination)
 
 				resp.BenthosDsns = append(resp.BenthosDsns, &shared.BenthosDsn{EnvVarKey: dstEnvVarKey, ConnectionId: destinationConnection.Id})
 
@@ -283,10 +284,11 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 									Driver: driver,
 									Dsn:    dsn,
 
-									Schema:      resp.TableSchema,
-									Table:       resp.TableName,
-									Columns:     out.Columns,
-									ArgsMapping: out.ArgsMapping,
+									Schema:              resp.TableSchema,
+									Table:               resp.TableName,
+									Columns:             out.Columns,
+									OnConflictDoNothing: &onConflictDoNothing,
+									ArgsMapping:         out.ArgsMapping,
 
 									Batching: &neosync_benthos.Batching{
 										Period: "5s",
@@ -334,9 +336,10 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 												Driver: driver,
 												Dsn:    dsn,
 
-												Schema:  resp.TableSchema,
-												Table:   resp.TableName,
-												Columns: cols,
+												Schema:              resp.TableSchema,
+												Table:               resp.TableName,
+												Columns:             cols,
+												OnConflictDoNothing: &onConflictDoNothing,
 
 												ArgsMapping: buildPlainInsertArgs(cols),
 
@@ -1065,6 +1068,17 @@ func getSqlDriverFromConnection(conn *mgmtv1alpha1.Connection) (string, error) {
 		return sql_manager.MysqlDriver, nil
 	default:
 		return "", fmt.Errorf("unsupported sql connection config")
+	}
+}
+
+func getOnConflictDoNothing(dest *mgmtv1alpha1.JobDestination) bool {
+	switch config := dest.Options.Config.(type) {
+	case *mgmtv1alpha1.JobDestinationOptions_PostgresOptions:
+		return config.PostgresOptions.GetOnConflict().GetDoNothing()
+	case *mgmtv1alpha1.JobDestinationOptions_MysqlOptions:
+		return config.MysqlOptions.GetOnConflict().GetDoNothing()
+	default:
+		return false
 	}
 }
 
