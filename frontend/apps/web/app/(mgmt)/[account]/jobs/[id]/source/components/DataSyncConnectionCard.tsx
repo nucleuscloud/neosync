@@ -1,9 +1,6 @@
 'use client';
 import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
-import {
-  SchemaTable,
-  getConnectionSchema,
-} from '@/components/jobs/SchemaTable/SchemaTable';
+import { SchemaTable } from '@/components/jobs/SchemaTable/SchemaTable';
 import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
@@ -28,7 +25,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectionForeignConstraints';
 import { useGetConnectionPrimaryConstraints } from '@/libs/hooks/useGetConnectionPrimaryConstraints';
-import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
+import {
+  getConnectionSchema,
+  useGetConnectionSchemaMap,
+} from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetConnectionUniqueConstraints } from '@/libs/hooks/useGetConnectionUniqueConstraints';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { useGetJob } from '@/libs/hooks/useGetJob';
@@ -434,13 +434,15 @@ async function getUpdatedValues(
     return originalValues;
   }
 
-  const mappings = schemaRes.schemas.map((r) => {
-    return {
-      ...r,
-      transformer: convertJobMappingTransformerToForm(
-        new JobMappingTransformer({})
-      ),
-    };
+  const mappings = Object.values(schemaRes.schemaMap).flatMap((dbcols) => {
+    return dbcols.map((dbcol) => {
+      return {
+        ...dbcol,
+        transformer: convertJobMappingTransformerToForm(
+          new JobMappingTransformer({})
+        ),
+      };
+    });
   });
 
   const values = {
