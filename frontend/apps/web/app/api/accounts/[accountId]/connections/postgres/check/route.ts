@@ -19,7 +19,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
     const body = (await req.json()) ?? {};
 
-    let pgconfig = new PostgresConnectionConfig({});
+    let pgconfig = new PostgresConnectionConfig();
 
     if (body.url) {
       pgconfig.connectionConfig = {
@@ -32,6 +32,19 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         case: 'connection',
         value: new PostgresConnection(db),
       };
+    } else {
+      return new NextResponse(
+        JSON.stringify({
+          error:
+            'The Postgres connection must be either a connection or url case',
+        }),
+        {
+          status: 500,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
     }
     const tunnel = body.tunnel
       ? await SSH_TUNNEL_FORM_SCHEMA.validate(body.tunnel)

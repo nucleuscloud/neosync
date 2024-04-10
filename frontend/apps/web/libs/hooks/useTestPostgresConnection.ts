@@ -11,7 +11,7 @@ export function useTestProgressConnection(
   accountId: string,
   data: PostgresConnectionConfig
 ): HookReply<CheckConnectionConfigResponse> {
-  let requestBody;
+  let requestBody = {};
   let canProceed: boolean = false;
   if (data.connectionConfig.case == 'url') {
     const url = data.connectionConfig.value;
@@ -25,16 +25,30 @@ export function useTestProgressConnection(
     canProceed = !!db.host;
   }
 
-  const fetcher = () =>
-    fetch(`/api/accounts/${accountId}/connections/postgres/check`, {
+  const fetcher = (url: string) =>
+    fetch(url, {
       method: 'post',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data),
-    }).then((res) => res.json());
+      body: JSON.stringify(requestBody),
+      credentials: 'include',
+    }).then((res) =>
+      res.json().then((body) => {
+        if (res.ok) {
+          return body;
+        }
+        if (body.error) {
+          throw new Error(body.error);
+        }
+        if (res.status > 399 && body.message) {
+          throw new Error(body.message);
+        }
+        throw new Error('Unknown error when fetching');
+      })
+    );
 
-  return useNucleusAuthenticatedFetch<
+  const a = useNucleusAuthenticatedFetch<
     CheckConnectionConfigResponse,
     JsonValue | CheckConnectionConfigResponse
   >(
@@ -47,4 +61,6 @@ export function useTestProgressConnection(
         : CheckConnectionConfigResponse.fromJson(data),
     fetcher
   );
+
+  return a;
 }
