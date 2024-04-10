@@ -210,12 +210,36 @@ func (c *ConnectionTunnelManager) Reaper() {
 	for {
 		select {
 		case <-c.shutdown:
-			c.close()
+			c.hardClose()
 			return
 		case <-time.After(1 * time.Minute):
 			c.close()
 		}
 	}
+}
+
+func (c *ConnectionTunnelManager) hardClose() {
+	c.connMu.Lock()
+	c.connDetailsMu.Lock()
+	c.sessionMu.Lock()
+	for connId, dbConn := range c.connMap {
+		dbConn.Close()
+		delete(c.connMap, connId)
+	}
+
+	for connId, details := range c.connDetailsMap {
+		if details.Tunnel != nil {
+			details.Tunnel.Close()
+		}
+		delete(c.connDetailsMap, connId)
+	}
+
+	for sessionId := range c.sessionMap {
+		delete(c.sessionMap, sessionId)
+	}
+	c.connMu.Unlock()
+	c.connDetailsMu.Unlock()
+	c.sessionMu.Unlock()
 }
 
 func (c *ConnectionTunnelManager) close() {
