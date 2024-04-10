@@ -25,10 +25,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectionForeignConstraints';
 import { useGetConnectionPrimaryConstraints } from '@/libs/hooks/useGetConnectionPrimaryConstraints';
-import {
-  getConnectionSchema,
-  useGetConnectionSchemaMap,
-} from '@/libs/hooks/useGetConnectionSchemaMap';
+import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetConnectionUniqueConstraints } from '@/libs/hooks/useGetConnectionUniqueConstraints';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { useGetJob } from '@/libs/hooks/useGetJob';
@@ -425,51 +422,28 @@ async function getUpdatedValues(
   connectionId: string,
   originalValues: SourceFormValues
 ): Promise<SourceFormValues> {
-  const [schemaRes, connRes] = await Promise.all([
-    getConnectionSchema(accountId, connectionId),
-    getConnection(accountId, connectionId),
-  ]);
-
-  if (!schemaRes || !connRes) {
+  const connRes = await getConnection(accountId, connectionId);
+  if (!connRes) {
     return originalValues;
   }
-
-  const mappings = Object.values(schemaRes.schemaMap).flatMap((dbcols) => {
-    return dbcols.map((dbcol) => {
-      return {
-        ...dbcol,
-        transformer: convertJobMappingTransformerToForm(
-          new JobMappingTransformer({})
-        ),
-      };
-    });
-  });
 
   const values = {
     sourceId: connectionId || '',
     sourceOptions: {},
     destinationIds: originalValues.destinationIds,
-    mappings: mappings || [],
+    mappings: [],
     connectionId: connectionId || '',
-  };
-
-  const yupValidationValues = {
-    ...values,
-    mappings: values.mappings.map((mapping) => ({
-      ...mapping,
-      transformer: mapping.transformer,
-    })),
   };
 
   switch (connRes.connection?.connectionConfig?.config.case) {
     case 'pgConfig':
       return {
-        ...yupValidationValues,
+        ...values,
         sourceOptions: {
           haltOnNewColumnAddition: false,
         },
       };
     default:
-      return yupValidationValues;
+      return values;
   }
 }

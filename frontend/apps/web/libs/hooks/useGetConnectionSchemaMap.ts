@@ -26,26 +26,3 @@ export function useGetConnectionSchemaMap(
     (data) => data
   );
 }
-
-export async function getConnectionSchema(
-  accountId: string,
-  connectionId?: string
-): Promise<GetConnectionSchemaMapResponse | undefined> {
-  if (!accountId || !connectionId) {
-    return;
-  }
-  const res = await fetch(
-    `/api/accounts/${accountId}/connections/${connectionId}/schema/map`,
-    {
-      method: 'GET',
-      headers: {
-        'content-type': 'application/json',
-      },
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return res.json();
-}
