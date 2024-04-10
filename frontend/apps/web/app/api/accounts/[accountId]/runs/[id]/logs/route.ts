@@ -3,6 +3,7 @@ import { RequestContext } from '@/shared';
 import {
   GetJobRunLogsStreamRequest,
   GetJobRunLogsStreamResponse,
+  LogLevel,
   LogWindow,
 } from '@neosync/sdk';
 import { NextRequest, NextResponse } from 'next/server';
@@ -12,13 +13,16 @@ export async function GET(
   { params }: RequestContext
 ): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
+    const { searchParams } = new URL(req.url);
+    const loglevel = searchParams.get('loglevel');
     const response = ctx.client.jobs.getJobRunLogsStream(
       new GetJobRunLogsStreamRequest({
         jobRunId: params.id,
         accountId: params.accountId,
         window: getWindow('1d'),
         shouldTail: false,
-        maxLogLines: BigInt('1000'),
+        maxLogLines: BigInt('5000'),
+        logLevels: [loglevel ? parseInt(loglevel, 10) : LogLevel.UNSPECIFIED],
       })
     );
     const logs: GetJobRunLogsStreamResponse[] = [];

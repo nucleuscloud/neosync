@@ -433,6 +433,7 @@ func (s *Service) getVerifiedJobRun(
 type LogLine struct {
 	WorkflowID string     `json:"WorkflowID"`
 	Time       *time.Time `json:"time,omitempty"`
+	Level      string     `json:"level"`
 }
 
 func (s *Service) GetJobRunLogsStream(
@@ -496,6 +497,13 @@ func (s *Service) streamK8sWorkerPodLogs(
 		logger.Error(fmt.Errorf("error getting pods: %w", err).Error())
 		return err
 	}
+
+	loglevels := getLogLevelFilters(req.Msg.GetLogLevels())
+	uniqueloglevels := map[string]any{}
+	for _, ll := range loglevels {
+		uniqueloglevels[ll] = struct{}{}
+	}
+
 	for idx := range pods.Items {
 		pod := pods.Items[idx]
 		logsReq := podclient.GetLogs(pod.Name, &corev1.PodLogOptions{
@@ -523,6 +531,9 @@ func (s *Service) streamK8sWorkerPodLogs(
 			}
 
 			if logLine.WorkflowID == verifResp.WorkflowExecution.Execution.WorkflowId {
+				if _, ok := uniqueloglevels[logLine.Level]; !ok && len(uniqueloglevels) > 0 {
+					continue
+				}
 				var timestamp *timestamppb.Timestamp
 				if logLine.Time != nil {
 					timestamp = timestamppb.New(*logLine.Time)
@@ -565,6 +576,7 @@ func (s *Service) streamLokiWorkerLogs(
 		s.cfg.RunLogConfig.LokiRunLogConfig.LabelsQuery,
 		s.cfg.RunLogConfig.LokiRunLogConfig.KeepLabels,
 		jobrunResp.WorkflowExecution.Execution.WorkflowId,
+		getLogLevelFilters(req.Msg.GetLogLevels()),
 	)
 	resp, err := lokiclient.QueryRange(ctx, &loki.QueryRangeRequest{
 		Query: query,
@@ -594,9 +606,47 @@ func (s *Service) streamLokiWorkerLogs(
 	return nil
 }
 
-func buildLokiQuery(lokiLables string, keep []string, workflowId string) string {
+func getLogLevelFilters(loglevels []mgmtv1alpha1.LogLevel) []string {
+	levels := []string{}
+
+	for _, ll := range loglevels {
+		if ll == mgmtv1alpha1.LogLevel_LOG_LEVEL_UNSPECIFIED {
+			return []string{}
+		}
+		llstr := logLevelToString(ll)
+		if llstr == "" {
+			continue
+		}
+		levels = append(levels, llstr)
+	}
+	return levels
+}
+
+func logLevelToString(loglevel mgmtv1alpha1.LogLevel) string {
+	switch loglevel {
+	case mgmtv1alpha1.LogLevel_LOG_LEVEL_DEBUG:
+		return "DEBUG"
+	case mgmtv1alpha1.LogLevel_LOG_LEVEL_ERROR:
+		return "ERROR"
+	case mgmtv1alpha1.LogLevel_LOG_LEVEL_INFO:
+		return "INFO"
+	case mgmtv1alpha1.LogLevel_LOG_LEVEL_WARN:
+		return "WARN"
+	default:
+		return ""
+	}
+}
+
+func buildLokiQuery(lokiLables string, keep []string, workflowId string, loglevels []string) string {
 	query := fmt.Sprintf("{%s} | json", lokiLables)
-	query = fmt.Sprintf("%s | WorkflowID=%q | line_format %q", query, workflowId, "[{{.level}}] - {{.msg}}")
+	query = fmt.Sprintf("%s | WorkflowID=%q", query, workflowId)
+
+	if len(loglevels) > 0 {
+		query = fmt.Sprintf("%s | level=~%q", query, strings.Join(loglevels, "|"))
+	}
+
+	query = fmt.Sprintf("%s | line_format %q", query, "[{{.level}}] - {{.msg}}")
+
 	if len(keep) > 0 {
 		query = fmt.Sprintf("%s | keep %s", query, strings.Join(keep, ", "))
 	}

@@ -507,12 +507,24 @@ enum LogWindow {
   LOG_WINDOW_ONE_HOUR = 2;
   LOG_WINDOW_ONE_DAY = 3;
 }
+enum LogLevel {
+  LOG_LEVEL_UNSPECIFIED = 0;
+  LOG_LEVEL_DEBUG = 1;
+  LOG_LEVEL_INFO = 2;
+  LOG_LEVEL_WARN = 3;
+  LOG_LEVEL_ERROR = 4;
+}
 message GetJobRunLogsStreamRequest {
   string job_run_id = 1;
   string account_id = 2 [(buf.validate.field).string.uuid = true];
+  // The time window in which to retrieve the logs
   LogWindow window = 3;
+  // Whether or not to tail the stream. Note: only works with k8s-pods and is not currently supported with Loki logs
   bool should_tail = 4;
+  // Optionally provide a max log limit
   optional int64 max_log_lines = 5 [(buf.validate.field).int64.gte = 1];
+  // Provide a list of log levels to filter by. If any of these are UNSPECIFIED, all log levels are returned.
+  repeated LogLevel log_levels = 6;
 }
 message GetJobRunLogsStreamResponse {
   string log_line = 1;

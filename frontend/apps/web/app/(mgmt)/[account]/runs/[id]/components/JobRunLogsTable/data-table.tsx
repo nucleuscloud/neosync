@@ -2,6 +2,7 @@
 
 import {
   ColumnDef,
+  Table,
   flexRender,
   getCoreRowModel,
   getFacetedRowModel,
@@ -10,6 +11,14 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   StickyHeaderTable,
   TableBody,
@@ -17,31 +26,35 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { LogLevel } from '@neosync/sdk';
+import { ReloadIcon } from '@radix-ui/react-icons';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useRef } from 'react';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+
+  getFuzzyFilterValue(table: Table<TData>): string;
+  setFuzzyFilterValue(table: Table<TData>, value: string): void;
+
+  selectedLogLevel: LogLevel;
+  setSelectedLogLevel(newval: LogLevel): void;
+  isLoading: boolean;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  getFuzzyFilterValue,
+  setFuzzyFilterValue,
+  selectedLogLevel,
+  setSelectedLogLevel,
+  isLoading,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
     columns,
-    initialState: {
-      // sorting: [
-      //   { id: 'schema', desc: true },
-      //   { id: 'table', desc: true },
-      // ],
-      // columnVisibility: {
-      //   schema: false,
-      //   table: false,
-      // },
-    },
     enableRowSelection: false,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -64,9 +77,46 @@ export function DataTable<TData, TValue>({
         : undefined,
     overscan: 5,
   });
-
   return (
     <div className="space-y-4">
+      <div className="flex lg:w-1/2 gap-2 flex-col lg:flex-row">
+        <Input
+          placeholder="Search logs..."
+          value={getFuzzyFilterValue(table)}
+          onChange={(e) => setFuzzyFilterValue(table, e.target.value)}
+        />
+        <div className="flex flex-row gap-2 items-center">
+          <div>
+            <p className="font-light text-xs">Log Level</p>
+          </div>
+          <div className="flex w-full">
+            <Select
+              onValueChange={(value) =>
+                setSelectedLogLevel(parseInt(value, 10))
+              }
+              value={selectedLogLevel.toString()}
+            >
+              <SelectTrigger>
+                <SelectValue className="w-[500px]" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={LogLevel.UNSPECIFIED.toString()}>
+                  {'Any'}
+                </SelectItem>
+                <SelectItem value={LogLevel.INFO.toString()}>
+                  {LogLevel[LogLevel.INFO]}
+                </SelectItem>
+                <SelectItem value={LogLevel.WARN.toString()}>
+                  {LogLevel[LogLevel.WARN]}
+                </SelectItem>
+                <SelectItem value={LogLevel.ERROR.toString()}>
+                  {LogLevel[LogLevel.ERROR]}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
       <div
         className="rounded-md border max-h-[500px] relative overflow-x-auto"
         ref={tableContainerRef}
@@ -106,7 +156,18 @@ export function DataTable<TData, TValue>({
           >
             {rows.length === 0 && (
               <TableRow className="flex justify-center items-center py-10 text-gray-500">
-                <td>No Schema(s) or Table(s) selected.</td>
+                <td>
+                  <div className="flex w-full flex-row gap-2 items-center">
+                    {isLoading ? (
+                      <ReloadIcon className="h-4 w-4 animate-spin" />
+                    ) : null}
+                    <p>
+                      {isLoading
+                        ? 'Waiting for logs to load...'
+                        : 'No logs found for the given query'}
+                    </p>
+                  </div>
+                </td>
               </TableRow>
             )}
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {

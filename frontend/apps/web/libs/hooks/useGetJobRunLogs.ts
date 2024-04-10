@@ -1,5 +1,5 @@
 import { JsonValue } from '@bufbuild/protobuf';
-import { GetJobRunLogsStreamResponse } from '@neosync/sdk';
+import { GetJobRunLogsStreamResponse, LogLevel } from '@neosync/sdk';
 import { getRefreshIntervalFn } from '../utils';
 import { HookReply } from './types';
 import { useNucleusAuthenticatedFetch } from './useNucleusAuthenticatedFetch';
@@ -11,11 +11,15 @@ interface GetJobRunLogsOptions {
 export function useGetJobRunLogs(
   runId: string,
   accountId: string,
+  loglevel: LogLevel,
   opts: GetJobRunLogsOptions = {}
 ): HookReply<GetJobRunLogsStreamResponse[]> {
   const { refreshIntervalFn } = opts;
+  const query = new URLSearchParams({
+    loglevel: loglevel.toString(),
+  });
   return useNucleusAuthenticatedFetch<GetJobRunLogsStreamResponse[], JsonValue>(
-    `/api/accounts/${accountId}/runs/${runId}/logs`,
+    `/api/accounts/${accountId}/runs/${runId}/logs?${query.toString()}`,
     !!runId || !!accountId,
     {
       refreshInterval: getRefreshIntervalFn(refreshIntervalFn),

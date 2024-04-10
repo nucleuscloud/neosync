@@ -192,6 +192,44 @@ proto3.util.setEnumType(LogWindow, "mgmt.v1alpha1.LogWindow", [
 ]);
 
 /**
+ * @generated from enum mgmt.v1alpha1.LogLevel
+ */
+export enum LogLevel {
+  /**
+   * @generated from enum value: LOG_LEVEL_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: LOG_LEVEL_DEBUG = 1;
+   */
+  DEBUG = 1,
+
+  /**
+   * @generated from enum value: LOG_LEVEL_INFO = 2;
+   */
+  INFO = 2,
+
+  /**
+   * @generated from enum value: LOG_LEVEL_WARN = 3;
+   */
+  WARN = 3,
+
+  /**
+   * @generated from enum value: LOG_LEVEL_ERROR = 4;
+   */
+  ERROR = 4,
+}
+// Retrieve enum metadata with: proto3.getEnumType(LogLevel)
+proto3.util.setEnumType(LogLevel, "mgmt.v1alpha1.LogLevel", [
+  { no: 0, name: "LOG_LEVEL_UNSPECIFIED" },
+  { no: 1, name: "LOG_LEVEL_DEBUG" },
+  { no: 2, name: "LOG_LEVEL_INFO" },
+  { no: 3, name: "LOG_LEVEL_WARN" },
+  { no: 4, name: "LOG_LEVEL_ERROR" },
+]);
+
+/**
  * @generated from message mgmt.v1alpha1.GetJobsRequest
  */
 export class GetJobsRequest extends Message<GetJobsRequest> {
@@ -3987,19 +4025,32 @@ export class GetJobRunLogsStreamRequest extends Message<GetJobRunLogsStreamReque
   accountId = "";
 
   /**
+   * The time window in which to retrieve the logs
+   *
    * @generated from field: mgmt.v1alpha1.LogWindow window = 3;
    */
   window = LogWindow.NO_TIME_UNSPECIFIED;
 
   /**
+   * Whether or not to tail the stream. Note: only works with k8s-pods and is not currently supported with Loki logs
+   *
    * @generated from field: bool should_tail = 4;
    */
   shouldTail = false;
 
   /**
+   * Optionally provide a max log limit
+   *
    * @generated from field: optional int64 max_log_lines = 5;
    */
   maxLogLines?: bigint;
+
+  /**
+   * Provide a list of log levels to filter by. If any of these are UNSPECIFIED, all log levels are returned.
+   *
+   * @generated from field: repeated mgmt.v1alpha1.LogLevel log_levels = 6;
+   */
+  logLevels: LogLevel[] = [];
 
   constructor(data?: PartialMessage<GetJobRunLogsStreamRequest>) {
     super();
@@ -4014,6 +4065,7 @@ export class GetJobRunLogsStreamRequest extends Message<GetJobRunLogsStreamReque
     { no: 3, name: "window", kind: "enum", T: proto3.getEnumType(LogWindow) },
     { no: 4, name: "should_tail", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 5, name: "max_log_lines", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
+    { no: 6, name: "log_levels", kind: "enum", T: proto3.getEnumType(LogLevel), repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetJobRunLogsStreamRequest {
