@@ -40,6 +40,14 @@ const config: Config = {
     locales: ['en'],
   },
   plugins: [
+    [
+      'posthog-docusaurus',
+      {
+        apiKey: 'phc_2hFE16FGvpOmUdgVczrxrJPDJ1sp724se5w7uAte9GS',
+        appUrl: 'https://app.posthog.com',
+        enableInDevelopment: false,
+      },
+    ],
     async function tailwindcssPlugin(context, options) {
       return {
         name: 'docusaurus-tailwindcss',
