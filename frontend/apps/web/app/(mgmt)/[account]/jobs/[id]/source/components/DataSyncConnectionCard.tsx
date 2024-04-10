@@ -1,9 +1,6 @@
 'use client';
 import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
-import {
-  SchemaTable,
-  getConnectionSchema,
-} from '@/components/jobs/SchemaTable/SchemaTable';
+import { SchemaTable } from '@/components/jobs/SchemaTable/SchemaTable';
 import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
@@ -28,7 +25,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectionForeignConstraints';
 import { useGetConnectionPrimaryConstraints } from '@/libs/hooks/useGetConnectionPrimaryConstraints';
-import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
+import {
+  GetConnectionSchemaMapResponse,
+  getConnectionSchema,
+  useGetConnectionSchemaMap,
+} from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetConnectionUniqueConstraints } from '@/libs/hooks/useGetConnectionUniqueConstraints';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { useGetJob } from '@/libs/hooks/useGetJob';
@@ -54,6 +55,7 @@ import {
 } from '@neosync/sdk';
 import { ReactElement, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import { KeyedMutator } from 'swr';
 import * as Yup from 'yup';
 import { getConnection } from '../../util';
 
@@ -95,6 +97,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     data: connectionSchemaDataMap,
     isLoading: isSchemaDataMapLoading,
     isValidating: isSchemaMapValidating,
+    mutate: mutateGetConnectionSchemaMap,
   } = useGetConnectionSchemaMap(account?.id ?? '', sourceConnectionId ?? '');
 
   const { isLoading: isConnectionsLoading, data: connectionsData } =
@@ -141,9 +144,11 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
       const newValues = await getUpdatedValues(
         account?.id ?? '',
         value,
-        form.getValues()
+        form.getValues(),
+        mutateGetConnectionSchemaMap
       );
       form.reset(newValues);
+      mutateGetConnectionSchemaMap();
     } catch (err) {
       form.reset({ ...form.getValues, mappings: [], sourceId: value });
       toast({
@@ -423,7 +428,10 @@ function getJobSource(job?: Job): SourceFormValues {
 async function getUpdatedValues(
   accountId: string,
   connectionId: string,
-  originalValues: SourceFormValues
+  originalValues: SourceFormValues,
+  mutateConnectionSchemaRes:
+    | KeyedMutator<unknown>
+    | KeyedMutator<GetConnectionSchemaMapResponse>
 ): Promise<SourceFormValues> {
   const [schemaRes, connRes] = await Promise.all([
     getConnectionSchema(accountId, connectionId),
@@ -434,40 +442,34 @@ async function getUpdatedValues(
     return originalValues;
   }
 
-  const mappings = schemaRes.schemas.map((r) => {
-    return {
-      ...r,
-      transformer: convertJobMappingTransformerToForm(
-        new JobMappingTransformer({})
-      ),
-    };
-  });
+  const sameKeys = new Set(
+    Object.values(schemaRes.schemaMap).flatMap((dbcols) =>
+      dbcols.map((dbcol) => `${dbcol.schema}.${dbcol.table}.${dbcol.column}`)
+    )
+  );
+
+  const mappings = originalValues.mappings.filter((mapping) =>
+    sameKeys.has(`${mapping.schema}.${mapping.table}.${mapping.column}`)
+  );
 
   const values = {
     sourceId: connectionId || '',
     sourceOptions: {},
     destinationIds: originalValues.destinationIds,
-    mappings: mappings || [],
+    mappings,
     connectionId: connectionId || '',
   };
-
-  const yupValidationValues = {
-    ...values,
-    mappings: values.mappings.map((mapping) => ({
-      ...mapping,
-      transformer: mapping.transformer,
-    })),
-  };
+  mutateConnectionSchemaRes(schemaRes);
 
   switch (connRes.connection?.connectionConfig?.config.case) {
     case 'pgConfig':
       return {
-        ...yupValidationValues,
+        ...values,
         sourceOptions: {
           haltOnNewColumnAddition: false,
         },
       };
     default:
-      return yupValidationValues;
+      return values;
   }
 }

@@ -23,10 +23,7 @@ import {
   SchemaFormValues,
   convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
-import {
-  GetConnectionSchemaResponse,
-  JobMappingTransformer,
-} from '@neosync/sdk';
+import { JobMappingTransformer } from '@neosync/sdk';
 import {
   CheckCircledIcon,
   CheckIcon,
@@ -272,29 +269,6 @@ function formErrorsToMessages(errors: FormError[]): string[] {
   });
 
   return messages;
-}
-
-export async function getConnectionSchema(
-  accountId: string,
-  connectionId?: string
-): Promise<GetConnectionSchemaResponse | undefined> {
-  if (!accountId || !connectionId) {
-    return;
-  }
-  const res = await fetch(
-    `/api/accounts/${accountId}/connections/${connectionId}/schema`,
-    {
-      method: 'GET',
-      headers: {
-        'content-type': 'application/json',
-      },
-    }
-  );
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-  return GetConnectionSchemaResponse.fromJson(await res.json());
 }
 
 function getDelta(
