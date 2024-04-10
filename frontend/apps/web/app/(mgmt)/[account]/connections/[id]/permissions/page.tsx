@@ -48,6 +48,8 @@ export default function PermissionsPage({ params }: PageProps) {
       : new PostgresConnectionConfig({})
   );
 
+  console.log('res', validationRes);
+
   const { toast } = useToast();
   if (!id) {
     return <Error statusCode={404} />;
