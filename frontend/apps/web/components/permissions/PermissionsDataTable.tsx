@@ -59,7 +59,7 @@ export default function PermissionsDataTable<TData, TValue>({
   return (
     <div className="space-y-4">
       <div
-        className="rounded-md border relative overflow-auto max-h-[500px] dark:border-gray-700 "
+        className="rounded-md border relative overflow-y-auto max-h-[500px] dark:border-gray-700 "
         ref={tableContainerRef}
       >
         <StickyHeaderTable>
@@ -96,7 +96,7 @@ export default function PermissionsDataTable<TData, TValue>({
             }}
           >
             {rows.length === 0 && (
-              <TableRow className="flex justify-center absolute items-center py-10 text-gray-500">
+              <TableRow className="flex justify-center items-center py-10 text-gray-500">
                 <td>No Schema(s) or Table(s) selected.</td>
               </TableRow>
             )}
@@ -108,10 +108,10 @@ export default function PermissionsDataTable<TData, TValue>({
                   data-index={virtualRow.index} //needed for dynamic row height measurement
                   ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
                   key={row.id}
-                  // style={{
-                  //   transform: `translateY(${virtualRow.start}px)`,
-                  // }}
-                  className="items-center flex w-full justify-between px-2"
+                  style={{
+                    transform: `translateY(${virtualRow.start}px)`,
+                  }}
+                  className="items-center flex absolute w-full justify-between px-2"
                 >
                   {row.getVisibleCells().map((cell) => {
                     return (
