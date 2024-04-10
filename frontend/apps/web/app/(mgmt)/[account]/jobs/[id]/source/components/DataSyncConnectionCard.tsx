@@ -92,6 +92,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     data: connectionSchemaDataMap,
     isLoading: isSchemaDataMapLoading,
     isValidating: isSchemaMapValidating,
+    mutate: mutateGetConnectionSchemaMap,
   } = useGetConnectionSchemaMap(account?.id ?? '', sourceConnectionId ?? '');
 
   const { isLoading: isConnectionsLoading, data: connectionsData } =
@@ -141,6 +142,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
         form.getValues()
       );
       form.reset(newValues);
+      mutateGetConnectionSchemaMap();
     } catch (err) {
       form.reset({ ...form.getValues, mappings: [], sourceId: value });
       toast({
