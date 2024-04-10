@@ -1,6 +1,6 @@
 'use client';
 import {
-  Table,
+  StickyHeaderTable,
   TableBody,
   TableHead,
   TableHeader,
@@ -32,12 +32,6 @@ export default function PermissionsDataTable<TData, TValue>({
   const table = useReactTable({
     data,
     columns,
-    initialState: {
-      sorting: [
-        { id: 'schema', desc: true },
-        { id: 'table', desc: true },
-      ],
-    },
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -65,15 +59,16 @@ export default function PermissionsDataTable<TData, TValue>({
   return (
     <div className="space-y-4">
       <div
-        className="rounded-md border overflow-auto max-h-[500px] dark:border-gray-700 "
+        className="rounded-md border relative overflow-auto max-h-[500px] dark:border-gray-700 "
         ref={tableContainerRef}
       >
-        <Table>
+        <StickyHeaderTable>
           <TableHeader className="bg-gray-100 dark:bg-gray-800">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
                 className="flex flex-row items-center justify-between w-full px-2"
+                id="table-header-row"
               >
                 {headerGroup.headers.map((header) => {
                   return (
@@ -101,7 +96,7 @@ export default function PermissionsDataTable<TData, TValue>({
             }}
           >
             {rows.length === 0 && (
-              <TableRow className="flex justify-center items-center py-10 text-gray-500">
+              <TableRow className="flex justify-center absolute items-center py-10 text-gray-500">
                 <td>No Schema(s) or Table(s) selected.</td>
               </TableRow>
             )}
@@ -113,10 +108,10 @@ export default function PermissionsDataTable<TData, TValue>({
                   data-index={virtualRow.index} //needed for dynamic row height measurement
                   ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
                   key={row.id}
-                  style={{
-                    transform: `translateY(${virtualRow.start}px)`,
-                  }}
-                  className="items-center flex absolute w-full justify-between px-2"
+                  // style={{
+                  //   transform: `translateY(${virtualRow.start}px)`,
+                  // }}
+                  className="items-center flex w-full justify-between px-2"
                 >
                   {row.getVisibleCells().map((cell) => {
                     return (
@@ -140,7 +135,7 @@ export default function PermissionsDataTable<TData, TValue>({
               );
             })}
           </TableBody>
-        </Table>
+        </StickyHeaderTable>
       </div>
     </div>
   );

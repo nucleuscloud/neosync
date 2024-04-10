@@ -42,8 +42,6 @@ func (s *Service) CheckConnectionConfig(
 			return nil, err
 		}
 
-		fmt.Println("the request***************", req.Msg.ConnectionConfig.Config)
-
 		db, err := conn.Open(ctx)
 		if err != nil {
 			return nil, err
