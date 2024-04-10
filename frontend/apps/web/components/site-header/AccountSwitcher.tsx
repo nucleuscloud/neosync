@@ -41,14 +41,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '../ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from '../ui/form';
-import { Input } from '../ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Skeleton } from '../ui/skeleton';
 import { toast } from '../ui/use-toast';
@@ -248,13 +240,12 @@ export function CreateNewTeamDialog(
   props: CreateNewTeamDialogProps
 ): ReactElement {
   const { form, onSubmit, setShowNewTeamDialog, planType } = props;
-  console.log('plantype', planType);
   return (
     <div>
-      {(planType && planType == UserAccountType.PERSONAL) ||
-      planType == UserAccountType.TEAM ? (
-        <UpgradeDialog planType={planType} />
-      ) : (
+      {/* {(planType && planType == UserAccountType.PERSONAL) ||
+      planType == UserAccountType.TEAM ? ( */}
+      <UpgradeDialog planType={planType} />
+      {/* ) : (
         <DialogContent className="flex flex-col gap-3">
           <DialogHeader>
             <DialogTitle>Create team</DialogTitle>
@@ -298,7 +289,7 @@ export function CreateNewTeamDialog(
             </div>
           </DialogFooter>
         </DialogContent>
-      )}
+      )} */}
     </div>
   );
 }
@@ -312,11 +303,7 @@ function UpgradeDialog({ planType }: UpgradeDialog) {
     <div>
       <DialogContent className="flex flex-col gap-3">
         <DialogHeader>
-          {planType == UserAccountType.PERSONAL ? (
-            <DialogTitle>Upgrade to a Team plan</DialogTitle>
-          ) : (
-            <DialogTitle>Contact us to create another Team plan</DialogTitle>
-          )}
+          <DialogTitle>Upgrade your plan to create a Team</DialogTitle>
           <DialogDescription>
             Contact us in order to create a new team.
           </DialogDescription>
