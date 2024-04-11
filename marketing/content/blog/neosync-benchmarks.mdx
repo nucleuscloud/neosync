@@ -61,11 +61,11 @@ This really helped to speed things up. We also moved away from creating our own 
 
 ## Connection limits
 
-Our first implementation of Neosync didn't optimize how many connections we were opening to the database which caused intermittant connection errors if we were opening too many without closing existing ones.
+Our first implementation of Neosync didn't optimize how many connections we were opening to the database which caused intermitant connection errors if we were opening too many without closing existing ones.
 
 This happened because we parallelize the generation and syncing progress and each thread will try to open a connection to the database and then once it inserts the data, it closes that connection.
 
-This would occassionally throw an error saying that have reached the connection limit and cause our system to wait until we could close an existing connection and then retry again. This introduced a lot of waiting time until an existing connection closed which ate up a lot of time.
+This would occasionally throw an error saying that have reached the connection limit and cause our system to wait until we could close an existing connection and then retry again. This introduced a lot of waiting time until an existing connection closed which ate up a lot of time.
 
 After some work to implement connection limits, we saw a massive drop off in connection errors and much faster data generation times. So now for each database integration, we expose a max connection limit, with the default of 80, to ensure that we don't (or rarely) hit any connection limit errors. By preventing this error, we don't have to wait and retry to open another connection which saves a lot of time.
 
