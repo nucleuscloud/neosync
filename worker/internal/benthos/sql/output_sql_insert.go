@@ -23,12 +23,13 @@ func sqlInsertOutputSpec() *service.ConfigSpec {
 		Field(service.NewStringListField("columns")).
 		Field(service.NewBloblangField("args_mapping").Optional()).
 		Field(service.NewBoolField("on_conflict_do_nothing").Optional().Default(false)).
+		Field(service.NewBoolField("truncate_on_retry").Optional().Default(false)).
 		Field(service.NewIntField("max_in_flight").Default(64)).
 		Field(service.NewBatchPolicyField("batching"))
 }
 
 // Registers an output on a benthos environment called pooled_sql_raw
-func RegisterPooledSqlInsertOutput(env *service.Environment, dbprovider DbPoolProvider) error {
+func RegisterPooledSqlInsertOutput(env *service.Environment, dbprovider DbPoolProvider, isRetry bool) error {
 	return env.RegisterBatchOutput(
 		"pooled_sql_insert", sqlInsertOutputSpec(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchOutput, service.BatchPolicy, int, error) {
@@ -41,7 +42,7 @@ func RegisterPooledSqlInsertOutput(env *service.Environment, dbprovider DbPoolPr
 			if err != nil {
 				return nil, service.BatchPolicy{}, -1, err
 			}
-			out, err := newInsertOutput(conf, mgr, dbprovider)
+			out, err := newInsertOutput(conf, mgr, dbprovider, isRetry)
 			if err != nil {
 				return nil, service.BatchPolicy{}, -1, err
 			}
@@ -64,12 +65,14 @@ type pooledInsertOutput struct {
 	table               string
 	columns             []string
 	onConflictDoNothing bool
+	truncateOnRetry     bool
 
 	argsMapping *bloblang.Executor
 	shutSig     *shutdown.Signaller
+	isRetry     bool
 }
 
-func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provider DbPoolProvider) (*pooledInsertOutput, error) {
+func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provider DbPoolProvider, isRetry bool) (*pooledInsertOutput, error) {
 	driver, err := conf.FieldString("driver")
 	if err != nil {
 		return nil, err
@@ -99,6 +102,11 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		return nil, err
 	}
 
+	truncateOnRetry, err := conf.FieldBool("truncate_on_retry")
+	if err != nil {
+		return nil, err
+	}
+
 	var argsMapping *bloblang.Executor
 	if conf.Contains("args_mapping") {
 		if argsMapping, err = conf.FieldBloblang("args_mapping"); err != nil {
@@ -117,6 +125,8 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		table:               table,
 		columns:             columns,
 		onConflictDoNothing: onConflictDoNothing,
+		truncateOnRetry:     truncateOnRetry,
+		isRetry:             isRetry,
 	}
 	return output, nil
 }
@@ -134,6 +144,21 @@ func (s *pooledInsertOutput) Connect(ctx context.Context) error {
 		return err
 	}
 	s.db = db
+
+	// truncate table on retry
+	if s.isRetry && s.truncateOnRetry {
+		s.logger.Info("retry: truncating table before inserting")
+		builder := goqu.Dialect(s.driver)
+		table := goqu.S(s.schema).Table(s.table)
+		truncate := builder.Truncate(table)
+		query, _, err := truncate.ToSQL()
+		if err != nil {
+			return err
+		}
+		if _, err := s.db.ExecContext(ctx, query); err != nil {
+			return err
+		}
+	}
 
 	go func() {
 		<-s.shutSig.CloseNowChan()

@@ -22,7 +22,7 @@ args_mapping: 'root = [this.id]'
 	insertConfig, err := spec.ParseYAML(conf, env)
 	require.NoError(t, err)
 
-	insertOutput, err := newInsertOutput(insertConfig, service.MockResources(), nil)
+	insertOutput, err := newInsertOutput(insertConfig, service.MockResources(), nil, false)
 	require.NoError(t, err)
 	require.NoError(t, insertOutput.Close(context.Background()))
 }

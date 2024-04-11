@@ -92,6 +92,7 @@ func (a *Activity) getTunnelManagerByRunId(wfId, runId string) (*ConnectionTunne
 func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMetadata) (*SyncResponse, error) {
 	session := uuid.NewString()
 	info := activity.GetInfo(ctx)
+	isRetry := info.Attempt > 1
 	loggerKeyVals := []any{
 		"metadata", metadata,
 		"WorkflowID", info.WorkflowExecution.ID,
@@ -232,7 +233,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		}
 		return tunnelmanager.GetConnection(session, connection, slogger)
 	})
-	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, poolprovider)
+	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, poolprovider, isRetry)
 	if err != nil {
 		return nil, fmt.Errorf("unable to register pooled_sql_insert input to benthos instance: %w", err)
 	}
