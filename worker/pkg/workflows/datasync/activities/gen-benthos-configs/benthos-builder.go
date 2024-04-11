@@ -1072,6 +1072,9 @@ func getSqlDriverFromConnection(conn *mgmtv1alpha1.Connection) (string, error) {
 }
 
 func getOnConflictDoNothing(dest *mgmtv1alpha1.JobDestination) bool {
+	if dest == nil || dest.Options == nil || dest.Options.Config == nil {
+		return false
+	}
 	switch config := dest.Options.Config.(type) {
 	case *mgmtv1alpha1.JobDestinationOptions_PostgresOptions:
 		return config.PostgresOptions.GetOnConflict().GetDoNothing()

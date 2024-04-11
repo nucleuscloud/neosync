@@ -119,6 +119,15 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Pg(t *testing.T) 
 				Destinations: []*mgmtv1alpha1.JobDestination{
 					{
 						ConnectionId: "456",
+						Options: &mgmtv1alpha1.JobDestinationOptions{
+							Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
+								PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{
+									OnConflict: &mgmtv1alpha1.PostgresOnConflictConfig{
+										DoNothing: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -189,6 +198,7 @@ output:
                             columns:
                                 - id
                                 - name
+                            on_conflict_do_nothing: true
                             args_mapping: root = [this."id", this."name"]
                             batching:
                                 count: 100
@@ -376,6 +386,7 @@ output:
                             columns:
                                 - id
                                 - name
+                            on_conflict_do_nothing: false
                             args_mapping: root = [this."id", this."name"]
                             batching:
                                 count: 100
@@ -571,6 +582,7 @@ output:
                             columns:
                                 - id
                                 - name
+                            on_conflict_do_nothing: false
                             args_mapping: root = [this."id", this."name"]
                             batching:
                                 count: 100
@@ -841,6 +853,7 @@ output:
                     columns:
                         - id
                         - name
+                    on_conflict_do_nothing: false
                     args_mapping: root = [this."id", this."name"]
                     batching:
                         count: 100
@@ -903,6 +916,7 @@ output:
                     columns:
                         - id
                         - buyer_id
+                    on_conflict_do_nothing: false
                     args_mapping: root = [this."id", this."buyer_id"]
                     batching:
                         count: 100
@@ -1138,6 +1152,7 @@ output:
                     columns:
                         - id
                         - name
+                    on_conflict_do_nothing: false
                     args_mapping: root = [this."id", this."name"]
                     batching:
                         count: 100
@@ -1188,6 +1203,7 @@ output:
                     columns:
                         - id
                         - buyer_id
+                    on_conflict_do_nothing: false
                     args_mapping: root = [this."id", this."buyer_id"]
                     batching:
                         count: 100
@@ -1414,6 +1430,7 @@ output:
                     table: jobs
                     columns:
                         - id
+                    on_conflict_do_nothing: false
                     args_mapping: root = [this."id"]
                     batching:
                         count: 100
@@ -1948,6 +1965,7 @@ output:
                     columns:
                         - id
                         - name
+                    on_conflict_do_nothing: false
                     args_mapping: root = [this."id", this."name"]
                     batching:
                         count: 100
@@ -2050,6 +2068,7 @@ output:
                     columns:
                         - id
                         - user_id
+                    on_conflict_do_nothing: false
                     args_mapping: root = [this."id", this."user_id"]
                     batching:
                         count: 100
@@ -2345,6 +2364,7 @@ output:
                     columns:
                         - id
                         - name
+                    on_conflict_do_nothing: false
                     args_mapping: root = [this."id", this."name"]
                     batching:
                         count: 100
@@ -2476,6 +2496,7 @@ output:
                     columns:
                         - id
                         - user_id
+                    on_conflict_do_nothing: false
                     args_mapping: root = [this."id", this."user_id"]
                     batching:
                         count: 100
@@ -2738,6 +2759,7 @@ output:
                     columns:
                         - id
                         - name
+                    on_conflict_do_nothing: false
                     args_mapping: root = [this."id", this."name"]
                     batching:
                         count: 100
@@ -2788,6 +2810,7 @@ output:
                     columns:
                         - id
                         - user_id
+                    on_conflict_do_nothing: false
                     args_mapping: root = [this."id", this."user_id"]
                     batching:
                         count: 100
