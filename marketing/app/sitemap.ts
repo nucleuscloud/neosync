@@ -4,7 +4,7 @@ import { generateStaticParams } from './blog/[...slug]/page';
 const baseUrl = env.NEXT_PUBLIC_APP_URL;
 
 export default async function sitemap() {
-  const posts = await generateStaticParams(); //each slug gets resturned as an array with one string value
+  const posts = await generateStaticParams(); //each slug gets returned as an array with one string value
 
   const flattenedSlugs = posts.map((post) => post.slug[0]);
 
