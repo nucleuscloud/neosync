@@ -282,7 +282,8 @@ type PooledSqlInsert struct {
 	Schema              string    `json:"schema" yaml:"schema"`
 	Table               string    `json:"table" yaml:"table"`
 	Columns             []string  `json:"columns" yaml:"columns"`
-	OnConflictDoNothing *bool     `json:"on_conflict_do_nothing,omitempty" yaml:"on_conflict_do_nothing,omitempty"`
+	OnConflictDoNothing bool      `json:"on_conflict_do_nothing" yaml:"on_conflict_do_nothing"`
+	TruncateOnRetry     bool      `json:"truncate_on_retry" yaml:"truncate_on_retry"`
 	ArgsMapping         string    `json:"args_mapping" yaml:"args_mapping"`
 	Batching            *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
 }

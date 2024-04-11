@@ -270,8 +270,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 				if err != nil {
 					return nil, err
 				}
-				onConflictDoNothing := getOnConflictDoNothing(destination)
-
+				destOpts := getDestinationOptions(destination)
 				resp.BenthosDsns = append(resp.BenthosDsns, &shared.BenthosDsn{EnvVarKey: dstEnvVarKey, ConnectionId: destinationConnection.Id})
 
 				if resp.Config.Input.SqlSelect != nil || resp.Config.Input.PooledSqlRaw != nil {
@@ -287,7 +286,8 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 									Schema:              resp.TableSchema,
 									Table:               resp.TableName,
 									Columns:             out.Columns,
-									OnConflictDoNothing: &onConflictDoNothing,
+									OnConflictDoNothing: destOpts.OnConflictDoNothing,
+									TruncateOnRetry:     destOpts.Truncate,
 									ArgsMapping:         out.ArgsMapping,
 
 									Batching: &neosync_benthos.Batching{
@@ -339,7 +339,8 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 												Schema:              resp.TableSchema,
 												Table:               resp.TableName,
 												Columns:             cols,
-												OnConflictDoNothing: &onConflictDoNothing,
+												OnConflictDoNothing: destOpts.OnConflictDoNothing,
+												TruncateOnRetry:     destOpts.Truncate,
 
 												ArgsMapping: buildPlainInsertArgs(cols),
 
@@ -1071,17 +1072,30 @@ func getSqlDriverFromConnection(conn *mgmtv1alpha1.Connection) (string, error) {
 	}
 }
 
-func getOnConflictDoNothing(dest *mgmtv1alpha1.JobDestination) bool {
+type destinationOptions struct {
+	OnConflictDoNothing bool
+	Truncate            bool
+	TruncateCascade     bool
+}
+
+func getDestinationOptions(dest *mgmtv1alpha1.JobDestination) *destinationOptions {
 	if dest == nil || dest.Options == nil || dest.Options.Config == nil {
-		return false
+		return &destinationOptions{}
 	}
 	switch config := dest.Options.Config.(type) {
 	case *mgmtv1alpha1.JobDestinationOptions_PostgresOptions:
-		return config.PostgresOptions.GetOnConflict().GetDoNothing()
+		return &destinationOptions{
+			OnConflictDoNothing: config.PostgresOptions.GetOnConflict().GetDoNothing(),
+			Truncate:            config.PostgresOptions.GetTruncateTable().GetTruncateBeforeInsert(),
+			TruncateCascade:     config.PostgresOptions.GetTruncateTable().GetCascade(),
+		}
 	case *mgmtv1alpha1.JobDestinationOptions_MysqlOptions:
-		return config.MysqlOptions.GetOnConflict().GetDoNothing()
+		return &destinationOptions{
+			OnConflictDoNothing: config.MysqlOptions.GetOnConflict().GetDoNothing(),
+			Truncate:            config.MysqlOptions.GetTruncateTable().GetTruncateBeforeInsert(),
+		}
 	default:
-		return false
+		return &destinationOptions{}
 	}
 }
 

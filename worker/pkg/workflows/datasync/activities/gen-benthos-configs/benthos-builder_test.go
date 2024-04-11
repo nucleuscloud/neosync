@@ -122,6 +122,9 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Pg(t *testing.T) 
 						Options: &mgmtv1alpha1.JobDestinationOptions{
 							Config: &mgmtv1alpha1.JobDestinationOptions_PostgresOptions{
 								PostgresOptions: &mgmtv1alpha1.PostgresDestinationConnectionOptions{
+									TruncateTable: &mgmtv1alpha1.PostgresTruncateTableConfig{
+										TruncateBeforeInsert: true,
+									},
 									OnConflict: &mgmtv1alpha1.PostgresOnConflictConfig{
 										DoNothing: true,
 									},
@@ -199,6 +202,7 @@ output:
                                 - id
                                 - name
                             on_conflict_do_nothing: true
+                            truncate_on_retry: true
                             args_mapping: root = [this."id", this."name"]
                             batching:
                                 count: 100
@@ -229,7 +233,7 @@ output:
 
 	// create a new streambuilder instance so we can access the SetYaml method
 	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil)
+	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
 	assert.NoError(t, err)
@@ -387,6 +391,7 @@ output:
                                 - id
                                 - name
                             on_conflict_do_nothing: false
+                            truncate_on_retry: false
                             args_mapping: root = [this."id", this."name"]
                             batching:
                                 count: 100
@@ -427,7 +432,7 @@ metrics:
 
 	// create a new streambuilder instance so we can access the SetYaml method
 	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil)
+	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
 	assert.NoError(t, err)
@@ -583,6 +588,7 @@ output:
                                 - id
                                 - name
                             on_conflict_do_nothing: false
+                            truncate_on_retry: false
                             args_mapping: root = [this."id", this."name"]
                             batching:
                                 count: 100
@@ -612,7 +618,7 @@ output:
 
 	// create a new streambuilder instance so we can access the SetYaml method
 	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil)
+	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
 	assert.NoError(t, err)
@@ -854,6 +860,7 @@ output:
                         - id
                         - name
                     on_conflict_do_nothing: false
+                    truncate_on_retry: false
                     args_mapping: root = [this."id", this."name"]
                     batching:
                         count: 100
@@ -917,6 +924,7 @@ output:
                         - id
                         - buyer_id
                     on_conflict_do_nothing: false
+                    truncate_on_retry: false
                     args_mapping: root = [this."id", this."buyer_id"]
                     batching:
                         count: 100
@@ -936,7 +944,7 @@ output:
 	)
 
 	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil)
+	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
 	assert.NoError(t, err)
@@ -1153,6 +1161,7 @@ output:
                         - id
                         - name
                     on_conflict_do_nothing: false
+                    truncate_on_retry: false
                     args_mapping: root = [this."id", this."name"]
                     batching:
                         count: 100
@@ -1204,6 +1213,7 @@ output:
                         - id
                         - buyer_id
                     on_conflict_do_nothing: false
+                    truncate_on_retry: false
                     args_mapping: root = [this."id", this."buyer_id"]
                     batching:
                         count: 100
@@ -1223,7 +1233,7 @@ output:
 	)
 
 	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil)
+	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
 	assert.NoError(t, err)
@@ -1431,6 +1441,7 @@ output:
                     columns:
                         - id
                     on_conflict_do_nothing: false
+                    truncate_on_retry: false
                     args_mapping: root = [this."id"]
                     batching:
                         count: 100
@@ -1523,7 +1534,7 @@ output:
 	)
 
 	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil)
+	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlUpdateOutput(benthosenv, nil)
 	assert.NoError(t, err)
@@ -1722,7 +1733,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 	assert.NoError(t, err)
 
 	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil)
+	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
 	assert.NoError(t, err)
@@ -1966,6 +1977,7 @@ output:
                         - id
                         - name
                     on_conflict_do_nothing: false
+                    truncate_on_retry: false
                     args_mapping: root = [this."id", this."name"]
                     batching:
                         count: 100
@@ -2069,6 +2081,7 @@ output:
                         - id
                         - user_id
                     on_conflict_do_nothing: false
+                    truncate_on_retry: false
                     args_mapping: root = [this."id", this."user_id"]
                     batching:
                         count: 100
@@ -2088,7 +2101,7 @@ output:
 	)
 
 	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil)
+	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlUpdateOutput(benthosenv, nil)
 	assert.NoError(t, err)
@@ -2365,6 +2378,7 @@ output:
                         - id
                         - name
                     on_conflict_do_nothing: false
+                    truncate_on_retry: false
                     args_mapping: root = [this."id", this."name"]
                     batching:
                         count: 100
@@ -2497,6 +2511,7 @@ output:
                         - id
                         - user_id
                     on_conflict_do_nothing: false
+                    truncate_on_retry: false
                     args_mapping: root = [this."id", this."user_id"]
                     batching:
                         count: 100
@@ -2543,7 +2558,7 @@ output:
 	)
 
 	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil)
+	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
 	assert.NoError(t, err)
@@ -2760,6 +2775,7 @@ output:
                         - id
                         - name
                     on_conflict_do_nothing: false
+                    truncate_on_retry: false
                     args_mapping: root = [this."id", this."name"]
                     batching:
                         count: 100
@@ -2811,6 +2827,7 @@ output:
                         - id
                         - user_id
                     on_conflict_do_nothing: false
+                    truncate_on_retry: false
                     args_mapping: root = [this."id", this."user_id"]
                     batching:
                         count: 100
@@ -2830,7 +2847,7 @@ output:
 	)
 
 	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil)
+	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
 	assert.NoError(t, err)
@@ -3063,7 +3080,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_
 	assert.NoError(t, err)
 
 	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil)
+	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
 	assert.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlUpdateOutput(benthosenv, nil)
 	assert.NoError(t, err)
