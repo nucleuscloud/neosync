@@ -335,6 +335,9 @@ func Test_CreateJob(t *testing.T) {
 				TruncateCascade:      true,
 			},
 			InitTableSchema: true,
+			OnConflictConfig: &pg_models.PostgresOnConflictConfig{
+				DoNothing: true,
+			},
 		},
 	})
 
@@ -346,6 +349,9 @@ func Test_CreateJob(t *testing.T) {
 					TruncateCascade:      true,
 				},
 				InitTableSchema: true,
+				OnConflictConfig: &pg_models.PostgresOnConflictConfig{
+					DoNothing: true,
+				},
 			},
 		}},
 	}
@@ -443,6 +449,9 @@ func Test_CreateJob(t *testing.T) {
 								Cascade:              true,
 							},
 							InitTableSchema: true,
+							OnConflict: &mgmtv1alpha1.PostgresOnConflictConfig{
+								DoNothing: true,
+							},
 						},
 					},
 				}},
@@ -490,6 +499,9 @@ func Test_CreateJob_Schedule_Creation_Error(t *testing.T) {
 					TruncateCascade:      true,
 				},
 				InitTableSchema: true,
+				OnConflictConfig: &pg_models.PostgresOnConflictConfig{
+					DoNothing: true,
+				},
 			},
 		}},
 	}
@@ -585,6 +597,9 @@ func Test_CreateJob_Schedule_Creation_Error(t *testing.T) {
 								Cascade:              true,
 							},
 							InitTableSchema: true,
+							OnConflict: &mgmtv1alpha1.PostgresOnConflictConfig{
+								DoNothing: true,
+							},
 						},
 					},
 				}},
@@ -634,6 +649,9 @@ func Test_CreateJob_Schedule_Creation_Error_JobCleanup_Error(t *testing.T) {
 					TruncateCascade:      true,
 				},
 				InitTableSchema: true,
+				OnConflictConfig: &pg_models.PostgresOnConflictConfig{
+					DoNothing: true,
+				},
 			},
 		}},
 	}
@@ -729,6 +747,9 @@ func Test_CreateJob_Schedule_Creation_Error_JobCleanup_Error(t *testing.T) {
 								Cascade:              true,
 							},
 							InitTableSchema: true,
+							OnConflict: &mgmtv1alpha1.PostgresOnConflictConfig{
+								DoNothing: true,
+							},
 						},
 					},
 				}},
@@ -780,6 +801,9 @@ func Test_CreateJobDestinationConnections(t *testing.T) {
 						TruncateCascade:      true,
 					},
 					InitTableSchema: true,
+					OnConflictConfig: &pg_models.PostgresOnConflictConfig{
+						DoNothing: true,
+					},
 				},
 			},
 		},
@@ -800,6 +824,9 @@ func Test_CreateJobDestinationConnections(t *testing.T) {
 								Cascade:              true,
 							},
 							InitTableSchema: true,
+							OnConflict: &mgmtv1alpha1.PostgresOnConflictConfig{
+								DoNothing: true,
+							},
 						},
 					},
 				},
@@ -841,6 +868,9 @@ func Test_CreateJobDestinationConnections_ConnectionNotInAccount(t *testing.T) {
 								Cascade:              true,
 							},
 							InitTableSchema: true,
+							OnConflict: &mgmtv1alpha1.PostgresOnConflictConfig{
+								DoNothing: true,
+							},
 						},
 					},
 				},
@@ -1332,6 +1362,9 @@ func Test_UpdateJobDestinationConnection_Update(t *testing.T) {
 					TruncateBeforeInsert: true,
 					Cascade:              true,
 				},
+				OnConflict: &mgmtv1alpha1.PostgresOnConflictConfig{
+					DoNothing: true,
+				},
 			},
 		},
 	}
@@ -1348,6 +1381,9 @@ func Test_UpdateJobDestinationConnection_Update(t *testing.T) {
 				TruncateTableConfig: &pg_models.PostgresTruncateTableConfig{
 					TruncateBeforeInsert: true,
 					TruncateCascade:      true,
+				},
+				OnConflictConfig: &pg_models.PostgresOnConflictConfig{
+					DoNothing: true,
 				},
 			},
 		},
@@ -1382,6 +1418,9 @@ func Test_UpdateJobDestinationConnection_Create(t *testing.T) {
 					TruncateBeforeInsert: true,
 					Cascade:              true,
 				},
+				OnConflict: &mgmtv1alpha1.PostgresOnConflictConfig{
+					DoNothing: true,
+				},
 			},
 		},
 	}
@@ -1400,6 +1439,9 @@ func Test_UpdateJobDestinationConnection_Create(t *testing.T) {
 				TruncateTableConfig: &pg_models.PostgresTruncateTableConfig{
 					TruncateBeforeInsert: true,
 					TruncateCascade:      true,
+				},
+				OnConflictConfig: &pg_models.PostgresOnConflictConfig{
+					DoNothing: true,
 				},
 			},
 		},
