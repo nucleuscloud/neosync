@@ -123,7 +123,7 @@ export function BlogSummary(props: BlogSummaryProps): ReactElement {
         alt={post.title}
         width={1792}
         height={1024}
-        className="rounded-md border bg-muted transition-colors lg:max-w-xs"
+        className="rounded-md border bg-muted"
         priority={isPriority}
       />
       <div className="flex flex-col p-2 gap-2">
