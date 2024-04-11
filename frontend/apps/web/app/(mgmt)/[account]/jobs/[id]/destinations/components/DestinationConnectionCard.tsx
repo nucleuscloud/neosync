@@ -246,6 +246,7 @@ function getDefaultValues(d: JobDestination): FormValues {
             d.options.config.value.truncateTable?.truncateBeforeInsert,
           truncateCascade: d.options.config.value.truncateTable?.cascade,
           initTableSchema: d.options.config.value.initTableSchema,
+          onConflictDoNothing: d.options.config.value.onConflict?.doNothing,
         },
       };
     case 'mysqlOptions':
@@ -255,6 +256,7 @@ function getDefaultValues(d: JobDestination): FormValues {
           truncateBeforeInsert:
             d.options.config.value.truncateTable?.truncateBeforeInsert,
           initTableSchema: d.options.config.value.initTableSchema,
+          onConflictDoNothing: d.options.config.value.onConflict?.doNothing,
         },
       };
     default:

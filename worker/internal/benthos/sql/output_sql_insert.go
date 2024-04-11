@@ -22,6 +22,7 @@ func sqlInsertOutputSpec() *service.ConfigSpec {
 		Field(service.NewStringField("table")).
 		Field(service.NewStringListField("columns")).
 		Field(service.NewBloblangField("args_mapping").Optional()).
+		Field(service.NewBoolField("on_conflict_do_nothing").Optional().Default(false)).
 		Field(service.NewIntField("max_in_flight").Default(64)).
 		Field(service.NewBatchPolicyField("batching"))
 }
@@ -59,9 +60,10 @@ type pooledInsertOutput struct {
 	db       mysql_queries.DBTX
 	logger   *service.Logger
 
-	schema  string
-	table   string
-	columns []string
+	schema              string
+	table               string
+	columns             []string
+	onConflictDoNothing bool
 
 	argsMapping *bloblang.Executor
 	shutSig     *shutdown.Signaller
@@ -92,6 +94,11 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 		return nil, err
 	}
 
+	onConflictDoNothing, err := conf.FieldBool("on_conflict_do_nothing")
+	if err != nil {
+		return nil, err
+	}
+
 	var argsMapping *bloblang.Executor
 	if conf.Contains("args_mapping") {
 		if argsMapping, err = conf.FieldBloblang("args_mapping"); err != nil {
@@ -100,15 +107,16 @@ func newInsertOutput(conf *service.ParsedConfig, mgr *service.Resources, provide
 	}
 
 	output := &pooledInsertOutput{
-		driver:      driver,
-		dsn:         dsn,
-		logger:      mgr.Logger(),
-		shutSig:     shutdown.NewSignaller(),
-		argsMapping: argsMapping,
-		provider:    provider,
-		schema:      schema,
-		table:       table,
-		columns:     columns,
+		driver:              driver,
+		dsn:                 dsn,
+		logger:              mgr.Logger(),
+		shutSig:             shutdown.NewSignaller(),
+		argsMapping:         argsMapping,
+		provider:            provider,
+		schema:              schema,
+		table:               table,
+		columns:             columns,
+		onConflictDoNothing: onConflictDoNothing,
 	}
 	return output, nil
 }
@@ -189,6 +197,11 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 	for _, row := range rows {
 		insert = insert.Vals(row)
 	}
+	// adds on conflict do nothing to insert query
+	if s.onConflictDoNothing {
+		insert = insert.OnConflict(goqu.DoNothing())
+	}
+
 	query, args, err := insert.ToSQL()
 	if err != nil {
 		return err

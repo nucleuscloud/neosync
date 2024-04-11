@@ -1015,6 +1015,11 @@ export class PostgresDestinationConnectionOptions extends Message<PostgresDestin
    */
   initTableSchema = false;
 
+  /**
+   * @generated from field: mgmt.v1alpha1.PostgresOnConflictConfig on_conflict = 3;
+   */
+  onConflict?: PostgresOnConflictConfig;
+
   constructor(data?: PartialMessage<PostgresDestinationConnectionOptions>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1025,6 +1030,7 @@ export class PostgresDestinationConnectionOptions extends Message<PostgresDestin
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "truncate_table", kind: "message", T: PostgresTruncateTableConfig },
     { no: 2, name: "init_table_schema", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 3, name: "on_conflict", kind: "message", T: PostgresOnConflictConfig },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PostgresDestinationConnectionOptions {
@@ -1041,6 +1047,43 @@ export class PostgresDestinationConnectionOptions extends Message<PostgresDestin
 
   static equals(a: PostgresDestinationConnectionOptions | PlainMessage<PostgresDestinationConnectionOptions> | undefined, b: PostgresDestinationConnectionOptions | PlainMessage<PostgresDestinationConnectionOptions> | undefined): boolean {
     return proto3.util.equals(PostgresDestinationConnectionOptions, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.PostgresOnConflictConfig
+ */
+export class PostgresOnConflictConfig extends Message<PostgresOnConflictConfig> {
+  /**
+   * @generated from field: bool do_nothing = 1;
+   */
+  doNothing = false;
+
+  constructor(data?: PartialMessage<PostgresOnConflictConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.PostgresOnConflictConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "do_nothing", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PostgresOnConflictConfig {
+    return new PostgresOnConflictConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PostgresOnConflictConfig {
+    return new PostgresOnConflictConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PostgresOnConflictConfig {
+    return new PostgresOnConflictConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PostgresOnConflictConfig | PlainMessage<PostgresOnConflictConfig> | undefined, b: PostgresOnConflictConfig | PlainMessage<PostgresOnConflictConfig> | undefined): boolean {
+    return proto3.util.equals(PostgresOnConflictConfig, a, b);
   }
 }
 
@@ -1101,6 +1144,11 @@ export class MysqlDestinationConnectionOptions extends Message<MysqlDestinationC
    */
   initTableSchema = false;
 
+  /**
+   * @generated from field: mgmt.v1alpha1.MysqlOnConflictConfig on_conflict = 3;
+   */
+  onConflict?: MysqlOnConflictConfig;
+
   constructor(data?: PartialMessage<MysqlDestinationConnectionOptions>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1111,6 +1159,7 @@ export class MysqlDestinationConnectionOptions extends Message<MysqlDestinationC
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "truncate_table", kind: "message", T: MysqlTruncateTableConfig },
     { no: 2, name: "init_table_schema", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 3, name: "on_conflict", kind: "message", T: MysqlOnConflictConfig },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MysqlDestinationConnectionOptions {
@@ -1164,6 +1213,43 @@ export class MysqlTruncateTableConfig extends Message<MysqlTruncateTableConfig> 
 
   static equals(a: MysqlTruncateTableConfig | PlainMessage<MysqlTruncateTableConfig> | undefined, b: MysqlTruncateTableConfig | PlainMessage<MysqlTruncateTableConfig> | undefined): boolean {
     return proto3.util.equals(MysqlTruncateTableConfig, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.MysqlOnConflictConfig
+ */
+export class MysqlOnConflictConfig extends Message<MysqlOnConflictConfig> {
+  /**
+   * @generated from field: bool do_nothing = 1;
+   */
+  doNothing = false;
+
+  constructor(data?: PartialMessage<MysqlOnConflictConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.MysqlOnConflictConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "do_nothing", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): MysqlOnConflictConfig {
+    return new MysqlOnConflictConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): MysqlOnConflictConfig {
+    return new MysqlOnConflictConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): MysqlOnConflictConfig {
+    return new MysqlOnConflictConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: MysqlOnConflictConfig | PlainMessage<MysqlOnConflictConfig> | undefined, b: MysqlOnConflictConfig | PlainMessage<MysqlOnConflictConfig> | undefined): boolean {
+    return proto3.util.equals(MysqlOnConflictConfig, a, b);
   }
 }
 

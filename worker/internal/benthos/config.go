@@ -277,13 +277,14 @@ type PooledSqlUpdate struct {
 }
 
 type PooledSqlInsert struct {
-	Driver      string    `json:"driver" yaml:"driver"`
-	Dsn         string    `json:"dsn" yaml:"dsn"`
-	Schema      string    `json:"schema" yaml:"schema"`
-	Table       string    `json:"table" yaml:"table"`
-	Columns     []string  `json:"columns" yaml:"columns"`
-	ArgsMapping string    `json:"args_mapping" yaml:"args_mapping"`
-	Batching    *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
+	Driver              string    `json:"driver" yaml:"driver"`
+	Dsn                 string    `json:"dsn" yaml:"dsn"`
+	Schema              string    `json:"schema" yaml:"schema"`
+	Table               string    `json:"table" yaml:"table"`
+	Columns             []string  `json:"columns" yaml:"columns"`
+	OnConflictDoNothing *bool     `json:"on_conflict_do_nothing,omitempty" yaml:"on_conflict_do_nothing,omitempty"`
+	ArgsMapping         string    `json:"args_mapping" yaml:"args_mapping"`
+	Batching            *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
 }
 
 type SqlInsert struct {

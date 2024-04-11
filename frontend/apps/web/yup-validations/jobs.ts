@@ -6,9 +6,11 @@ import {
   JobDestinationOptions,
   JobMappingTransformer,
   MysqlDestinationConnectionOptions,
+  MysqlOnConflictConfig,
   MysqlSourceSchemaOption,
   MysqlTruncateTableConfig,
   PostgresDestinationConnectionOptions,
+  PostgresOnConflictConfig,
   PostgresSourceSchemaOption,
   PostgresSourceTableOption,
   PostgresTruncateTableConfig,
@@ -111,6 +113,7 @@ export const DESTINATION_FORM_SCHEMA = Yup.object({
     truncateBeforeInsert: Yup.boolean().optional(),
     truncateCascade: Yup.boolean().optional(),
     initTableSchema: Yup.boolean().optional(),
+    onConflictDoNothing: Yup.boolean().optional(),
   }),
 }).required();
 type DestinationFormValues = Yup.InferType<typeof DESTINATION_FORM_SCHEMA>;
@@ -133,6 +136,9 @@ export function toJobDestinationOptions(
                 values.destinationOptions.truncateBeforeInsert ?? false,
               cascade: values.destinationOptions.truncateCascade ?? false,
             }),
+            onConflict: new PostgresOnConflictConfig({
+              doNothing: values.destinationOptions.onConflictDoNothing ?? false,
+            }),
             initTableSchema: values.destinationOptions.initTableSchema,
           }),
         },
@@ -146,6 +152,9 @@ export function toJobDestinationOptions(
             truncateTable: new MysqlTruncateTableConfig({
               truncateBeforeInsert:
                 values.destinationOptions.truncateBeforeInsert ?? false,
+            }),
+            onConflict: new MysqlOnConflictConfig({
+              doNothing: values.destinationOptions.onConflictDoNothing ?? false,
             }),
             initTableSchema: values.destinationOptions.initTableSchema,
           }),

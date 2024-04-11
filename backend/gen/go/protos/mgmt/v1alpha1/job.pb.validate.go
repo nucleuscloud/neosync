@@ -2485,6 +2485,35 @@ func (m *PostgresDestinationConnectionOptions) validate(all bool) error {
 
 	// no validation rules for InitTableSchema
 
+	if all {
+		switch v := interface{}(m.GetOnConflict()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PostgresDestinationConnectionOptionsValidationError{
+					field:  "OnConflict",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PostgresDestinationConnectionOptionsValidationError{
+					field:  "OnConflict",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetOnConflict()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PostgresDestinationConnectionOptionsValidationError{
+				field:  "OnConflict",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	if len(errors) > 0 {
 		return PostgresDestinationConnectionOptionsMultiError(errors)
 	}
@@ -2566,6 +2595,110 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = PostgresDestinationConnectionOptionsValidationError{}
+
+// Validate checks the field values on PostgresOnConflictConfig with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *PostgresOnConflictConfig) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PostgresOnConflictConfig with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// PostgresOnConflictConfigMultiError, or nil if none found.
+func (m *PostgresOnConflictConfig) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PostgresOnConflictConfig) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for DoNothing
+
+	if len(errors) > 0 {
+		return PostgresOnConflictConfigMultiError(errors)
+	}
+
+	return nil
+}
+
+// PostgresOnConflictConfigMultiError is an error wrapping multiple validation
+// errors returned by PostgresOnConflictConfig.ValidateAll() if the designated
+// constraints aren't met.
+type PostgresOnConflictConfigMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PostgresOnConflictConfigMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PostgresOnConflictConfigMultiError) AllErrors() []error { return m }
+
+// PostgresOnConflictConfigValidationError is the validation error returned by
+// PostgresOnConflictConfig.Validate if the designated constraints aren't met.
+type PostgresOnConflictConfigValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PostgresOnConflictConfigValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PostgresOnConflictConfigValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PostgresOnConflictConfigValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PostgresOnConflictConfigValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PostgresOnConflictConfigValidationError) ErrorName() string {
+	return "PostgresOnConflictConfigValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e PostgresOnConflictConfigValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPostgresOnConflictConfig.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PostgresOnConflictConfigValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PostgresOnConflictConfigValidationError{}
 
 // Validate checks the field values on PostgresTruncateTableConfig with the
 // rules defined in the proto definition for this message. If any rules are
@@ -2727,6 +2860,35 @@ func (m *MysqlDestinationConnectionOptions) validate(all bool) error {
 	}
 
 	// no validation rules for InitTableSchema
+
+	if all {
+		switch v := interface{}(m.GetOnConflict()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, MysqlDestinationConnectionOptionsValidationError{
+					field:  "OnConflict",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, MysqlDestinationConnectionOptionsValidationError{
+					field:  "OnConflict",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetOnConflict()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return MysqlDestinationConnectionOptionsValidationError{
+				field:  "OnConflict",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	if len(errors) > 0 {
 		return MysqlDestinationConnectionOptionsMultiError(errors)
@@ -2913,6 +3075,110 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = MysqlTruncateTableConfigValidationError{}
+
+// Validate checks the field values on MysqlOnConflictConfig with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *MysqlOnConflictConfig) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MysqlOnConflictConfig with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// MysqlOnConflictConfigMultiError, or nil if none found.
+func (m *MysqlOnConflictConfig) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MysqlOnConflictConfig) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for DoNothing
+
+	if len(errors) > 0 {
+		return MysqlOnConflictConfigMultiError(errors)
+	}
+
+	return nil
+}
+
+// MysqlOnConflictConfigMultiError is an error wrapping multiple validation
+// errors returned by MysqlOnConflictConfig.ValidateAll() if the designated
+// constraints aren't met.
+type MysqlOnConflictConfigMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MysqlOnConflictConfigMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MysqlOnConflictConfigMultiError) AllErrors() []error { return m }
+
+// MysqlOnConflictConfigValidationError is the validation error returned by
+// MysqlOnConflictConfig.Validate if the designated constraints aren't met.
+type MysqlOnConflictConfigValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MysqlOnConflictConfigValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MysqlOnConflictConfigValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MysqlOnConflictConfigValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MysqlOnConflictConfigValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MysqlOnConflictConfigValidationError) ErrorName() string {
+	return "MysqlOnConflictConfigValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MysqlOnConflictConfigValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMysqlOnConflictConfig.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MysqlOnConflictConfigValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MysqlOnConflictConfigValidationError{}
 
 // Validate checks the field values on AwsS3DestinationConnectionOptions with
 // the rules defined in the proto definition for this message. If any rules
