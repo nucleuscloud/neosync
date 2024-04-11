@@ -3,7 +3,7 @@ title: How we reduced our data generation times by 50%
 description: A walkthrough of how we reduced the time it takes to generate data in Neosync by 50% + benchmarks.
 date: 2024-04-10
 published: true
-image: /images/blogs/bench.svg
+image: /images/blogs/datagentime.svg
 authors:
   - evis
 ---
@@ -61,7 +61,7 @@ This really helped to speed things up. We also moved away from creating our own 
 
 ## Connection limits
 
-Our first implementation of Neosync didn't optimize how many connections we were opening to the database which caused intermitant connection errors if we were opening too many without closing existing ones.
+Our first implementation of Neosync didn't optimize how many connections we were opening to the database which caused intermittent connection errors if we were opening too many without closing existing ones.
 
 This happened because we parallelize the generation and syncing progress and each thread will try to open a connection to the database and then once it inserts the data, it closes that connection.
 
