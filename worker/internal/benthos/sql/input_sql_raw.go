@@ -3,6 +3,7 @@ package neosync_benthos_sql
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"sync"
 
@@ -124,6 +125,8 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 		}
 		return err
 	}
+	jsonF, _ := json.MarshalIndent(rows, "", " ")
+	fmt.Printf("\n rows: %s \n", string(jsonF))
 
 	s.rows = rows
 	go func() {
@@ -169,6 +172,8 @@ func (s *pooledInput) Read(ctx context.Context) (*service.Message, service.AckFu
 		s.rows = nil
 		return nil, nil, err
 	}
+	jsonF, _ := json.MarshalIndent(obj, "", " ")
+	fmt.Printf("\n obj: %s \n", string(jsonF))
 
 	msg := service.NewMessage(nil)
 	msg.SetStructured(obj)
