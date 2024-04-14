@@ -124,6 +124,10 @@ PGAnonymizer is pretty flexible but there are some limitations that you should b
 2. **Metadata Leakage** - Depending on how you anonymize the data, anonymized data might still contain metadata(table names, column types, etc.) that could reveal sensitive information.
 3. **No Referential Integrity** - Arguably the biggest limitation is that PGAnonymizer does not handle referential integrity. So if you decide to anonymize a primary key that has foreign key, then it will likely break that relation and cause problems in your database.
 
+# PGAnonymizer vs Neosync
+
+PGanonymizer can be a great option depending on the use-case, but for those who need more power and flexibility, [Neosync](https://neosync.dev) takes PGAnonymizer to the next level by addressing one many of the weaknesses of PGAnonymizer. Namel,y [referentially integrtiy](/blog/referential-integirty) and orchestration. Additionally, Neosync has a GUI and doesn't require the user to define everything in SQL which makes for a better developer experience.
+
 # Conclusion
 
 PGAnonymizer is a powerful Postgres extension that allows you to anonymize sensitive data making it usable for development and testing. It has a lot of flexibility but also has some limitations to consider. At the end of the day, the tool that fits your use case is the right tool for you and you should consider all available options to protect customer data and privacy.
