@@ -37,7 +37,7 @@ export default function Page({ params }: PageProps): ReactElement {
       />
 
       {isLoading || isConnectionsLoading ? (
-        <Skeleton className="w-full h-48 rounded-lg" />
+        <Skeleton className="w-full h-96 rounded-lg" />
       ) : (
         <div className="space-y-10">
           {data?.job?.destinations.map((destination) => {

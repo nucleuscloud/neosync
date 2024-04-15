@@ -11,11 +11,9 @@ import {
   buildTableRowData,
 } from '@/components/jobs/subsets/utils';
 import { useAccount } from '@/components/providers/account-provider';
-import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 import { getErrorMessage } from '@/util/util';
@@ -36,6 +34,7 @@ import {
 import { ReactElement, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { getConnectionIdFromSource } from '../../source/components/util';
+import SubsetSkeleton from './SubsetSkeleton';
 
 interface Props {
   jobId: string;
@@ -75,9 +74,7 @@ export default function SubsetCard(props: Props): ReactElement {
   if (isJobLoading) {
     return (
       <div className="space-y-10">
-        <Skeleton className="w-full h-12" />
-        <Skeleton className="w-1/2 h-12" />
-        <SkeletonTable />
+        <SubsetSkeleton />
       </div>
     );
   }
