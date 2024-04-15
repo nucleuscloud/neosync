@@ -51,9 +51,8 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
         title: 'Job run triggered successfully!',
         variant: 'success',
       });
-      setTimeout(() => {
-        mutateRecentRuns();
-        mutateJobRunsByJob();
+      setTimeout(async () => {
+        await Promise.all([mutateRecentRuns(), mutateJobRunsByJob()]);
       }, 3000); // delay briefly as there can sometimes be a trigger delay in temporal
     } catch (err) {
       console.error(err);
