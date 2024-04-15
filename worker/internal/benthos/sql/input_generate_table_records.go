@@ -4,14 +4,19 @@ package neosync_benthos_sql
 
 import (
 	"context"
+	"database/sql"
+	"encoding/json"
+	"fmt"
 	"sync"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
-	"github.com/benthosdev/benthos/v4/public/component/input"
-	"github.com/benthosdev/benthos/v4/public/component/interop"
 	"github.com/benthosdev/benthos/v4/public/service"
+	"github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	"github.com/nucleuscloud/neosync/worker/internal/benthos/shutdown"
+	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 )
 
 func generateTableRecordsInputSpec() *service.ConfigSpec {
@@ -21,27 +26,18 @@ func generateTableRecordsInputSpec() *service.ConfigSpec {
 		Field(service.NewStringField("query")).
 		Field(service.NewAnyMapField("table_columns_map")).
 		Field(service.NewIntField("count")).
-		Field(service.NewBloblangField("args_mapping").Optional())
+		Fields(service.NewBloblangField("mapping").Optional())
 }
+
 func RegisterGenerateTableRecordsInput(env *service.Environment, dbprovider DbPoolProvider, stopActivityChannel chan error) error {
 	return env.RegisterBatchInput(
 		"generate_table_records", generateTableRecordsInputSpec(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchInput, error) {
-			// input, err := newSqlSelectGenerateInput(conf, mgr, dbprovider, stopActivityChannel)
-			// if err != nil {
-			// 	return nil, err
-			// }
-			// return input, nil
-			nm := interop.UnwrapManagement(mgr)
-			b, err := newGenerateReaderFromParsed(conf, nm, dbprovider, stopActivityChannel)
+			b, err := newGenerateReaderFromParsed(conf, mgr, dbprovider, stopActivityChannel)
 			if err != nil {
 				return nil, err
 			}
-			i, err := input.NewAsyncReader("generate", input.NewAsyncPreserver(b), nm)
-			if err != nil {
-				return nil, err
-			}
-			return interop.NewUnwrapInternalInput(i), nil
+			return service.AutoRetryNacksBatched(b), nil
 		},
 	)
 }
@@ -55,14 +51,11 @@ type generateReader struct {
 	provider     DbPoolProvider
 	logger       *service.Logger
 
-	argsMapping *bloblang.Executor
+	mapping *bloblang.Executor
 
-	db    mysql_queries.DBTX
-	dbMut sync.Mutex
-	// rows      *sql.Rows
-	remaining  int
-	index      int
-	joinedRows []map[string]any
+	db        mysql_queries.DBTX
+	dbMut     sync.Mutex
+	remaining int
 
 	shutSig *shutdown.Signaller
 
@@ -96,9 +89,9 @@ func newGenerateReaderFromParsed(conf *service.ParsedConfig, mgr *service.Resour
 		}
 		tableColsMap[k] = val
 	}
-	var argsMapping *bloblang.Executor
-	if conf.Contains("args_mapping") {
-		argsMapping, err = conf.FieldBloblang("args_mapping")
+	var mapping *bloblang.Executor
+	if conf.Contains("mapping") {
+		mapping, err = conf.FieldBloblang("mapping")
 		if err != nil {
 			return nil, err
 		}
@@ -110,11 +103,10 @@ func newGenerateReaderFromParsed(conf *service.ParsedConfig, mgr *service.Resour
 		driver:              driver,
 		dsn:                 dsn,
 		tableColsMap:        tableColsMap,
-		argsMapping:         argsMapping,
+		mapping:             mapping,
 		provider:            dbprovider,
 		stopActivityChannel: channel,
 		remaining:           count,
-		index:               0,
 	}, nil
 }
 
@@ -149,34 +141,167 @@ func (s *generateReader) Connect(ctx context.Context) error {
 }
 
 // ReadBatch a new bloblang generated message.
-func (b *generateReader) ReadBatch(ctx context.Context) (service.MessageBatch, input.AsyncAckFn, error) {
-	if b.remaining <= 0 {
+func (s *generateReader) ReadBatch(ctx context.Context) (service.MessageBatch, input.AsyncAckFn, error) {
+	if s.remaining <= 0 {
 		return nil, nil, service.ErrEndOfInput
 	}
 
-	// b.firstIsFree = false
+	sqlRandomStr := "RANDOM()"
+	if s.driver == "mysql" {
+		sqlRandomStr = "RAND()"
+	}
 
-	batch := make(service.MessageBatch, 0, batchSize)
-	for i := 0; i < batchSize; i++ {
-		p, err := b.exec.MapPart(0, batch)
+	tables := []string{}
+	for t := range s.tableColsMap {
+		tables = append(tables, t)
+	}
+
+	randomLrgLimit, err := transformer_utils.GenerateRandomInt64InValueRange(10, 50)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	table := tables[0]
+	otherTables := tables[1:]
+
+	cols := s.tableColsMap[table]
+	// update col names to be that of destination table or should it be handled on insert
+	selectColumns := make([]any, len(cols))
+	for i, col := range cols {
+		selectColumns[i] = col
+	}
+	orderBy := exp.NewOrderedExpression(exp.NewLiteralExpression(sqlRandomStr), exp.AscDir, exp.NullsLastSortType)
+	builder := goqu.Dialect(s.driver)
+	selectBuilder := builder.From(table).Select(selectColumns...).Order(orderBy).Limit(uint(randomLrgLimit))
+	selectSql, _, err := selectBuilder.ToSQL()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	rows, err := s.db.QueryContext(ctx, selectSql)
+	if err != nil {
+		if !neosync_benthos.IsMaxConnectionError(err.Error()) {
+			s.logger.Error(fmt.Sprintf("Benthos input error - sending stop activity signal: %s ", err.Error()))
+			s.stopActivityChannel <- err
+		}
+		return nil, nil, err
+	}
+
+	rowObjList, err := sqlRowsToMapList(rows)
+	if err != nil {
+		_ = rows.Close()
+		return nil, nil, err
+	}
+
+	batch := service.MessageBatch{}
+	for _, r := range rowObjList {
+		randomSmLimit, err := transformer_utils.GenerateRandomInt64InValueRange(0, 3)
 		if err != nil {
 			return nil, nil, err
 		}
-		if p != nil {
-			b.remaining--
-			batch = append(batch, p)
+		otherTableRows := [][]map[string]any{}
+		for _, t := range otherTables {
+			cols := s.tableColsMap[t]
+			selectColumns := make([]any, len(cols))
+			for i, col := range cols {
+				selectColumns[i] = col
+			}
+			selectBuilder := builder.From(table).Select(selectColumns...).Order(orderBy).Limit(uint(randomSmLimit))
+			selectSql, _, err := selectBuilder.ToSQL()
+			if err != nil {
+				return nil, nil, err
+			}
+			rows, err := s.db.QueryContext(ctx, selectSql)
+			if err != nil {
+				if !neosync_benthos.IsMaxConnectionError(err.Error()) {
+					s.logger.Error(fmt.Sprintf("Benthos input error - sending stop activity signal: %s ", err.Error()))
+					s.stopActivityChannel <- err
+				}
+				return nil, nil, err
+			}
+			rowObjList, err := sqlRowsToMapList(rows)
+			if err != nil {
+				_ = rows.Close()
+				return nil, nil, err
+			}
+			otherTableRows = append(otherTableRows, rowObjList)
+		}
+		combinedRows := combineRowLists(otherTableRows)
+		for _, cr := range combinedRows {
+			var args map[string]any
+			if s.mapping != nil {
+				var iargs any
+				if iargs, err = s.mapping.Query(nil); err != nil {
+					return nil, nil, err
+				}
+
+				var ok bool
+				if args, ok = iargs.(map[string]any); !ok {
+					err = fmt.Errorf("mapping returned non-array result: %T", iargs)
+					return nil, nil, err
+				}
+			}
+			newRow := combineRows([]map[string]any{r, cr, args})
+
+			rowStr, err := json.Marshal(newRow)
+			if err != nil {
+				return nil, nil, err
+			}
+			msg := service.NewMessage(rowStr)
+			batch = append(batch, msg)
 		}
 	}
-	if len(batch) == 0 {
-		return nil, nil, component.ErrTimeout
-	}
+
 	return batch, func(context.Context, error) error { return nil }, nil
 }
 
-// CloseAsync shuts down the bloblang reader.
-func (b *generateReader) Close(ctx context.Context) (err error) {
-	if b.timer != nil {
-		b.timer.Stop()
+func (s *generateReader) Close(ctx context.Context) (err error) {
+	s.shutSig.CloseNow()
+	s.dbMut.Lock()
+	isNil := s.db == nil
+	s.dbMut.Unlock()
+	if isNil {
+		return nil
 	}
-	return
+	select {
+	case <-s.shutSig.HasClosedChan():
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+	return nil
+}
+
+func sqlRowsToMapList(rows *sql.Rows) ([]map[string]any, error) {
+	results := []map[string]any{}
+	for rows.Next() {
+		obj, err := sqlRowToMap(rows)
+		if err != nil {
+			return nil, err
+		}
+		results = append(results, obj)
+	}
+	return results, nil
+}
+
+func combineRows(maps []map[string]any) map[string]any {
+	result := make(map[string]any)
+	for _, m := range maps {
+		for k, v := range m {
+			result[k] = v
+		}
+	}
+	return result
+}
+
+func combineRowLists(rows [][]map[string]any) []map[string]any {
+	results := []map[string]any{}
+	rowCount := len(rows[0])
+	for i := 0; i < rowCount; i++ {
+		rowsToCombine := []map[string]any{}
+		for _, r := range rows {
+			rowsToCombine = append(rowsToCombine, r[i])
+		}
+		results = append(results, combineRows(rowsToCombine))
+	}
+	return results
 }
