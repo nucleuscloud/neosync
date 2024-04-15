@@ -41,12 +41,12 @@
     "@docusaurus/module-type-aliases": "^3.2.1",
     "@docusaurus/types": "^3.2.1",
     "@tsconfig/docusaurus": "^2.0.3",
-    "cspell": "^8.6.1",
-    "knip": "^5.9.1",
+    "cspell": "^8.7.0",
+    "knip": "^5.9.4",
     "postcss-import": "^16.1.0",
     "postcss-nesting": "^12.1.1",
     "prettier": "^3.2.5",
-    "typescript": "^5.4.4"
+    "typescript": "^5.4.5"
   },
   "browserslist": {
     "production": [
