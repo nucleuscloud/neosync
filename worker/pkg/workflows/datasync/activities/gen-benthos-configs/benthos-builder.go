@@ -105,6 +105,36 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	case *mgmtv1alpha1.JobSourceOptions_Generate:
 		sourceTableOpts := groupGenerateSourceOptionsByTable(jobSourceConfig.Generate.Schemas)
 		// TODO this needs to be updated to get db schema
+		// get depenendcy configs
+		// split root tables vs children tables
+		// //////////////////////////////////////////////////////////////////////
+
+		sourceConnection, err := b.getJobSourceConnection(ctx, job.GetSource())
+		if err != nil {
+			return nil, fmt.Errorf("unable to get connection by id: %w", err)
+		}
+		db, err := b.sqladapter.NewSqlDb(ctx, slogger, sourceConnection)
+		if err != nil {
+			return nil, fmt.Errorf("unable to create new sql db: %w", err)
+		}
+		defer db.ClosePool()
+		allConstraints, err := db.GetAllForeignKeyConstraints(ctx, uniqueSchemas)
+		if err != nil {
+			return nil, fmt.Errorf("unable to retrieve database foreign key constraints: %w", err)
+		}
+		slogger.Info(fmt.Sprintf("found %d foreign key constraints for database", len(allConstraints)))
+		td := sql_manager.GetDbTableDependencies(allConstraints)
+
+		primaryKeys, err := db.GetAllPrimaryKeyConstraints(ctx, uniqueSchemas)
+		if err != nil {
+			return nil, fmt.Errorf("unable to get all primary key constraints: %w", err)
+		}
+		primaryKeyMap := sql_manager.GetTablePrimaryKeysMap(primaryKeys)
+
+		tables := filterNullTables(groupedMappings)
+		dependencyConfigs := tabledependency.GetRunConfigs(td, tables, map[string]string{})
+
+		// /////////////////////////////////////////////////////////////
 		sourceResponses, err := buildBenthosGenerateSourceConfigResponses(ctx, b.transformerclient, groupedMappings, sourceTableOpts, map[string]*dbschemas_utils.ColumnInfo{})
 		if err != nil {
 			return nil, fmt.Errorf("unable to build benthos generate source config responses: %w", err)

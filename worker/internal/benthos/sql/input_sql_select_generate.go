@@ -122,27 +122,22 @@ func (s *sqlSelectGenerateInput) Connect(ctx context.Context) error {
 		return nil
 	}
 
-	seed, err := transformer_utils.GenerateCryptoSeed()
-	if err != nil {
-		return err
-	}
-
 	db, err := s.provider.GetDb(s.driver, s.dsn)
 	if err != nil {
 		return nil
 	}
 
-	var args []any
-	if s.argsMapping != nil {
-		iargs, err := s.argsMapping.Query(nil)
-		if err != nil {
-			return err
-		}
-		var ok bool
-		if args, ok = iargs.([]any); !ok {
-			return fmt.Errorf("mapping returned non-array result: %T", iargs)
-		}
-	}
+	// var args []any
+	// if s.argsMapping != nil {
+	// 	iargs, err := s.argsMapping.Query(nil)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	var ok bool
+	// 	if args, ok = iargs.([]any); !ok {
+	// 		return fmt.Errorf("mapping returned non-array result: %T", iargs)
+	// 	}
+	// }
 
 	sqlRandomStr := "RANDOM()"
 	if s.driver == "mysql" {
@@ -177,8 +172,6 @@ func (s *sqlSelectGenerateInput) Connect(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-
-	// select rows from
 
 	rows, err := db.QueryContext(ctx, selectSql)
 	if err != nil {
@@ -227,7 +220,10 @@ func (s *sqlSelectGenerateInput) Connect(ctx context.Context) error {
 			}
 			otherTableRows = append(otherTableRows, rowObjList)
 		}
-
+		combinedRows := combineRowLists(otherTableRows)
+		for _, cr := range combinedRows {
+			joinedRows = append(joinedRows, combineRows([]map[string]any{r, cr}))
+		}
 	}
 
 	s.joinedRows = joinedRows
@@ -252,32 +248,39 @@ func (s *sqlSelectGenerateInput) Read(ctx context.Context) (*service.Message, se
 	s.dbMut.Lock()
 	defer s.dbMut.Unlock()
 
-	if s.db == nil && s.rows == nil {
-		return nil, nil, service.ErrNotConnected
-	}
-	if s.rows == nil {
+	// if s.db == nil s.rows == nil {
+	// 	return nil, nil, service.ErrNotConnected
+	// }
+	// if s.rows == nil {
+	// 	return nil, nil, service.ErrEndOfInput
+	// }
+	// if !s.rows.Next() {
+	// 	err := s.rows.Err()
+	// 	if err == nil {
+	// 		err = service.ErrEndOfInput
+	// 	}
+	// 	_ = s.rows.Close()
+	// 	s.rows = nil
+	// 	return nil, nil, err
+	// }
+	// if s.
+
+	// obj, err := sqlRowToMap(s.rows)
+	// if err != nil {
+	// 	_ = s.rows.Close()
+	// 	s.rows = nil
+	// 	return nil, nil, err
+	// }
+
+	if s.index >= 0 && s.index < len(s.joinedRows) {
+		msg := service.NewMessage(nil)
+		msg.SetStructured(s.joinedRows[s.index])
+		s.index++
+		s.remaining--
+		return msg, emptyAck, nil
+	} else {
 		return nil, nil, service.ErrEndOfInput
 	}
-	if !s.rows.Next() {
-		err := s.rows.Err()
-		if err == nil {
-			err = service.ErrEndOfInput
-		}
-		_ = s.rows.Close()
-		s.rows = nil
-		return nil, nil, err
-	}
-
-	obj, err := sqlRowToMap(s.rows)
-	if err != nil {
-		_ = s.rows.Close()
-		s.rows = nil
-		return nil, nil, err
-	}
-
-	msg := service.NewMessage(nil)
-	msg.SetStructured(obj)
-	return msg, emptyAck, nil
 }
 
 func (s *sqlSelectGenerateInput) Close(ctx context.Context) error {

@@ -141,7 +141,7 @@ func (s *generateReader) Connect(ctx context.Context) error {
 }
 
 // ReadBatch a new bloblang generated message.
-func (s *generateReader) ReadBatch(ctx context.Context) (service.MessageBatch, input.AsyncAckFn, error) {
+func (s *generateReader) ReadBatch(ctx context.Context) (service.MessageBatch, service.AckFunc, error) {
 	if s.remaining <= 0 {
 		return nil, nil, service.ErrEndOfInput
 	}
