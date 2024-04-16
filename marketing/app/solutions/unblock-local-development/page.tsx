@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     type: 'website',
   },
   alternates: {
-    canonical: 'https://neosync.dev/solutions/unblock-local-development',
+    canonical: 'https://www.neosync.dev/solutions/unblock-local-development',
   },
 };
 

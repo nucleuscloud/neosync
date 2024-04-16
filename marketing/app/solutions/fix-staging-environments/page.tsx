@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     type: 'website',
   },
   alternates: {
-    canonical: 'https://neosync.dev/solutions/fix-staging-environments',
+    canonical: 'https://www.neosync.dev/solutions/fix-staging-environments',
   },
 };
 
