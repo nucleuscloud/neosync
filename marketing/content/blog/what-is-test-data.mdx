@@ -56,12 +56,20 @@ There are many different ways to create test data depending on what your want to
 
 3. Now that have an idea of the shape of the data, it's time to generate it. If you only need a few rows of data the, then it might be sufficient to just write it by hand. If you need more data, then there specifically designed tools that you can use depending on your use-case. Here are some suggestions:
 
-- [Faker](https://github.com/faker)
 - [Neosync](https://neosync.dev)
+- [Faker](https://github.com/faker)
 - [SDV](https://github.com/sdv-dev)
 
 4. Manage the data lifecycle. Now that the data has been generated, you'll need to think about versioning, updating and maintaining the data throughout it's lifecycle.
 
+# Creating Test Data with Neosync
+
+[Neosync](https://neosync.dev) is built to create production-like test data that developers can use to test their applications. The best part is that it's all self-serve and developers have complete flexibility over the schema and how the data is generated. Neosync ships with 40+ Transformers out of the box or developers can create their [own using custom javascript](/blog/introducing-custom-transformers).
+
+Test data can be created by anonymizing existing data or generating net-new data using Neosync's [synthetic data generation](/blog/neosync-neon-data-gen-job).
+
 # Wrapping up
 
 Test data, though often overlooked, plays a crucial role in building secure and resilient applications. Whether you're training machine learning models or testing a SaaS application, test data can be the difference between a great user-experience and a not so great one.
+
+You can get started with a free Neosync account by signing up [here.](https://neosync.dev)

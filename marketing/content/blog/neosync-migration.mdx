@@ -26,11 +26,11 @@ For large databases, `pg_dump` and `pg_restore` can be slow, especially over net
 
 ## Partial Migrations
 
-Probably the most common reason we see users using Neosync for data migrations is that `pg_dump` isn't very flexible when it comes to selecting schemas, tables and filters. Since Neosync can subset data using SQL queries, we're seeing a lot of customers use it to selectively move some data.
+Probably the most common reason we see users using Neosync for data migrations is that `pg_dump` isn't very flexible when it comes to selecting schemas, tables and filters. Since Neosync can subset data using SQL queries, we're seeing a lot of customers use it to selectively move some data. You can learn more about this [here](/blog/subset-referential-integrity)
 
 ## Data Transformations
 
-Along with the partial migrations reason above, if you need to transform the data in any way before you insert it into the new destination, then you would need to do some pre- or post-processing of the data. Neosync makes this dead simple.
+Along with the partial migrations reason above, if you need to transform the data in any way before you insert it into the new destination, then you would need to do some pre- or post-processing of the data. Neosync makes this dead simple with [transformers](/blog/introduction-custom-transformers)
 
 ## Security and privacy
 

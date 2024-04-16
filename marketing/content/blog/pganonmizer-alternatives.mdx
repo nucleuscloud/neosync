@@ -1,6 +1,6 @@
 ---
-title: Reviewing Alternatives to PGAnonymizer
-description: We review some alternative solutions for PG Anonymizer.
+title: Five Alternatives to PGAnonymizer
+description: We review five alternative solutions to PG Anonymizer.
 date: 2024-02-26
 published: true
 image: /images/blogs/pgalt.svg
@@ -13,6 +13,24 @@ authors:
 In our earlier [blog post](/blog/what-is-pg-anonymizer), we talked about Postgres Anonymizer or PGAnonymizer and how engineering teams can use it to anonymize sensitive data in their Postgres databases. While PG Anonymizer works well for many use cases, there are some use cases that it doesn't work so well. And in those cases, you may need an alternative. In this blog post, we're going to review some alternatives to PG Anonymizer and their strengths and weaknesses.
 
 Let's jump in.
+
+# Neosync
+
+[Neosync](https://neosync.dev) is an open source synthetic test data platform that anonymizes and generates synthetic data and orchestrates it across environments.
+
+**Pros:**
+
+- Fully open source and MIT licensed
+- Support for relational and tabular data sets and relational integrity
+- Very flexible data anonymization and synthetic data techniques, can create your own custom transformers
+- Gitops enabled management through Terraform provider
+- Full orchestration feature set to manage async jobs across postgres, mysql and AWS S3
+
+**Cons:**
+
+- Nascent machine learning workflows
+- Early stage product
+- Limited RBAC
 
 # Faker
 
@@ -95,24 +113,6 @@ Though is a very bare bones implementation. In reality, you'll have to write a b
 - Commercial solution, which may not be feasible for all projects. Quite expensive.
 - Can't create your own custom anonymization using code
 - Not open source
-
-# Neosync
-
-[Neosync](https://neosync.dev) is an open source synthetic test data platform that anonymizes and generates synthetic data and orchestrates it across environments.
-
-**Pros:**
-
-- Fully open source and MIT licensed
-- Support for relational and tabular data sets and relational integrity
-- Very flexible data anonymization and synthetic data techniques, can create your own custom transformers
-- Gitops enabled management through Terraform provider
-- Full orchestration feature set to manage async jobs across postgres, mysql and AWS S3
-
-**Cons:**
-
-- Nascent machine learning workflows
-- Early stage product
-- Limited RBAC
 
 # Wrapping up
 
