@@ -12,7 +12,6 @@ import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { useGetJob } from '@/libs/hooks/useGetJob';
-import { useGetJobRecentRuns } from '@/libs/hooks/useGetJobRecentRuns';
 import { useGetJobRunsByJob } from '@/libs/hooks/useGetJobRunsByJob';
 import { useGetJobStatus } from '@/libs/hooks/useGetJobStatus';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
@@ -32,10 +31,6 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
     account?.id ?? '',
     id
   );
-  const { mutate: mutateRecentRuns } = useGetJobRecentRuns(
-    account?.id ?? '',
-    id
-  );
   const { mutate: mutateJobRunsByJob } = useGetJobRunsByJob(
     account?.id ?? '',
     id
@@ -52,7 +47,6 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
         variant: 'success',
       });
       setTimeout(() => {
-        mutateRecentRuns();
         mutateJobRunsByJob();
       }, 3000); // delay briefly as there can sometimes be a trigger delay in temporal
     } catch (err) {
