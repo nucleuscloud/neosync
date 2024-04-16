@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     type: 'website',
   },
   alternates: {
-    canonical: 'https://neosync.dev/solutions/security-privacy',
+    canonical: 'https://www.neosync.dev/solutions/security-privacy',
   },
 };
 

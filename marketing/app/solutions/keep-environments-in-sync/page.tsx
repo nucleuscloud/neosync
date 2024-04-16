@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     type: 'website',
   },
   alternates: {
-    canonical: 'https://neosync.dev/solutions/keep-environments-in-sync',
+    canonical: 'https://www.neosync.dev/solutions/keep-environments-in-sync',
   },
 };
 
