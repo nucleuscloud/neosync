@@ -3,7 +3,6 @@ import { PageProps } from '@/components/types';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 
 import { useAccount } from '@/components/providers/account-provider';
-import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import {
   Accordion,
   AccordionContent,
@@ -19,6 +18,7 @@ import JobNextRuns from './components/NextRuns';
 import JobRecentRuns from './components/RecentRuns';
 import JobScheduleCard from './components/ScheduleCard';
 import WorkflowSettingsCard from './components/WorkflowSettingsCard';
+import JobIdSkeletonForm from './JobIdSkeletonForm';
 
 export default function Page({ params }: PageProps): ReactElement {
   const id = params?.id ?? '';
@@ -29,7 +29,7 @@ export default function Page({ params }: PageProps): ReactElement {
   if (isLoading) {
     return (
       <div className="pt-10">
-        <SkeletonForm />
+        <JobIdSkeletonForm />
       </div>
     );
   }

@@ -3,7 +3,6 @@ import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
 import { SchemaTable } from '@/components/jobs/SchemaTable/SchemaTable';
 import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
 import { useAccount } from '@/components/providers/account-provider';
-import SkeletonTable from '@/components/skeleton/SkeletonTable';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -21,7 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectionForeignConstraints';
 import { useGetConnectionPrimaryConstraints } from '@/libs/hooks/useGetConnectionPrimaryConstraints';
@@ -58,6 +56,7 @@ import { useForm } from 'react-hook-form';
 import { KeyedMutator } from 'swr';
 import * as Yup from 'yup';
 import { getConnection } from '../../util';
+import SchemaPageSkeleton from './SchemaPageSkeleton';
 
 interface Props {
   jobId: string;
@@ -183,13 +182,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   }
 
   if (isConnectionsLoading || isSchemaDataMapLoading || isJobDataLoading) {
-    return (
-      <div className="space-y-10">
-        <Skeleton className="w-full h-12" />
-        <Skeleton className="w-1/2 h-12" />
-        <SkeletonTable />
-      </div>
-    );
+    return <SchemaPageSkeleton />;
   }
 
   const source = connections.find((item) => item.id === sourceConnectionId);

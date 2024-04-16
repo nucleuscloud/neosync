@@ -179,16 +179,16 @@ function PermissionsPageContainer(props: PermissionsPageContainerProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-row justify-between w-full">
-        <div className="text-xl">Connection Permissions</div>
+      <div className="flex flex-row justify-between items-center w-full">
+        <div className="text-muted-foreground text-sm">
+          Review the permissions that Neoynsc has to your connection.{' '}
+          <LearnMoreTag href="https://docs.neosync.dev/transformers/user-defined#transform-character-scramble" />
+        </div>
         <Button variant="outline" onClick={handleMutate}>
           {isMutating ? <Spinner /> : <UpdateIcon />}
         </Button>
       </div>
-      <div className="text-muted-foreground text-sm">
-        Review the permissions that Neoynsc has to your connection.{' '}
-        <LearnMoreTag href="https://docs.neosync.dev/transformers/user-defined#transform-character-scramble" />
-      </div>
+
       <TestConnectionResult
         resp={validationResponse}
         connectionName={connectionName}

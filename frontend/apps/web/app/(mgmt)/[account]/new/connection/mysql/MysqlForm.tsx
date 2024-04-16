@@ -5,7 +5,7 @@ import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import { setOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
 import { useAccount } from '@/components/providers/account-provider';
-import SkeletonTable from '@/components/skeleton/SkeletonTable';
+import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import {
   Accordion,
   AccordionContent,
@@ -273,7 +273,7 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
   }, [account?.id]);
 
   if (isLoading || !account?.id) {
-    return <SkeletonTable />;
+    return <SkeletonForm />;
   }
 
   return (

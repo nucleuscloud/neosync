@@ -6,7 +6,6 @@ import { SubNav } from '@/components/SubNav';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
-import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { LayoutProps } from '@/components/types';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -19,6 +18,7 @@ import { getErrorMessage } from '@/util/util';
 import { GetJobStatusResponse, Job, JobStatus } from '@neosync/sdk';
 import { LightningBoltIcon, TrashIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
+import JobIdSkeletonForm from './JobIdSkeletonForm';
 import JobPauseButton from './components/JobPauseButton';
 import { isDataGenJob } from './util';
 
@@ -87,7 +87,7 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
   if (isLoading) {
     return (
       <div>
-        <SkeletonForm />
+        <JobIdSkeletonForm />
       </div>
     );
   }
