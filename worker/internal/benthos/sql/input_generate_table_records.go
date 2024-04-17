@@ -23,8 +23,8 @@ func generateTableRecordsInputSpec() *service.ConfigSpec {
 	return service.NewConfigSpec().
 		Field(service.NewStringField("driver")).
 		Field(service.NewStringField("dsn")).
-		Field(service.NewStringField("query")).
 		Field(service.NewAnyMapField("table_columns_map")).
+		Field(service.NewStringMapField("column_name_map").Optional().Example("{ schema.table.column: new_column_name }")).
 		Field(service.NewIntField("count")).
 		Fields(service.NewBloblangField("mapping").Optional())
 }
@@ -45,11 +45,12 @@ func RegisterGenerateTableRecordsInput(env *service.Environment, dbprovider DbPo
 //------------------------------------------------------------------------------
 
 type generateReader struct {
-	driver       string
-	dsn          string
-	tableColsMap map[string][]string
-	provider     DbPoolProvider
-	logger       *service.Logger
+	driver        string
+	dsn           string
+	tableColsMap  map[string][]string
+	columnNameMap map[string]string
+	provider      DbPoolProvider
+	logger        *service.Logger
 
 	mapping *bloblang.Executor
 
@@ -89,6 +90,15 @@ func newGenerateReaderFromParsed(conf *service.ParsedConfig, mgr *service.Resour
 		}
 		tableColsMap[k] = val
 	}
+
+	columnNameMap := map[string]string{}
+	if conf.Contains("column_name_map") {
+		columnNameMap, err = conf.FieldStringMap("column_name_map")
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	var mapping *bloblang.Executor
 	if conf.Contains("mapping") {
 		mapping, err = conf.FieldBloblang("mapping")
@@ -103,6 +113,7 @@ func newGenerateReaderFromParsed(conf *service.ParsedConfig, mgr *service.Resour
 		driver:              driver,
 		dsn:                 dsn,
 		tableColsMap:        tableColsMap,
+		columnNameMap:       columnNameMap,
 		mapping:             mapping,
 		provider:            dbprovider,
 		stopActivityChannel: channel,
@@ -168,7 +179,12 @@ func (s *generateReader) ReadBatch(ctx context.Context) (service.MessageBatch, s
 	// update col names to be that of destination table or should it be handled on insert
 	selectColumns := make([]any, len(cols))
 	for i, col := range cols {
-		selectColumns[i] = col
+		as, ok := s.columnNameMap[fmt.Sprintf("%s.%s", table, col)]
+		if ok {
+			selectColumns[i] = goqu.I(col).As(as)
+		} else {
+			selectColumns[i] = col
+		}
 	}
 	orderBy := exp.NewOrderedExpression(exp.NewLiteralExpression(sqlRandomStr), exp.AscDir, exp.NullsLastSortType)
 	builder := goqu.Dialect(s.driver)
@@ -204,7 +220,12 @@ func (s *generateReader) ReadBatch(ctx context.Context) (service.MessageBatch, s
 			cols := s.tableColsMap[t]
 			selectColumns := make([]any, len(cols))
 			for i, col := range cols {
-				selectColumns[i] = col
+				as, ok := s.columnNameMap[fmt.Sprintf("%s.%s", t, col)]
+				if ok {
+					selectColumns[i] = goqu.I(col).As(as)
+				} else {
+					selectColumns[i] = col
+				}
 			}
 			selectBuilder := builder.From(table).Select(selectColumns...).Order(orderBy).Limit(uint(randomSmLimit))
 			selectSql, _, err := selectBuilder.ToSQL()
