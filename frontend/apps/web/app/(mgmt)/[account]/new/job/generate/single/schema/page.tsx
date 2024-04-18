@@ -57,9 +57,9 @@ import { useSessionStorage } from 'usehooks-ts';
 import JobsProgressSteps, { DATA_GEN_STEPS } from '../../../JobsProgressSteps';
 import {
   DefineFormValues,
-  SINGLE_TABLE_SCHEMA_FORM_SCHEMA,
+  MULTI_TABLE_SCHEMA_FORM_SCHEMA,
+  MultiTableSchemaFormValues,
   SingleTableConnectFormValues,
-  SingleTableSchemaFormValues,
 } from '../../../schema';
 const isBrowser = () => typeof window !== 'undefined';
 
@@ -98,7 +98,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const formKey = `${sessionPrefix}-new-job-single-table-schema`;
 
-  const [schemaFormData] = useSessionStorage<SingleTableSchemaFormValues>(
+  const [schemaFormData] = useSessionStorage<MultiTableSchemaFormValues>(
     formKey,
     {
       mappings: [],
@@ -117,8 +117,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const form = useForm({
     mode: 'onChange',
-    resolver: yupResolver<SingleTableSchemaFormValues>(
-      SINGLE_TABLE_SCHEMA_FORM_SCHEMA
+    resolver: yupResolver<MultiTableSchemaFormValues>(
+      MULTI_TABLE_SCHEMA_FORM_SCHEMA
     ),
     values: schemaFormData,
   });
@@ -133,7 +133,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     setIsClient(true);
   }, []);
 
-  async function onSubmit(values: SingleTableSchemaFormValues) {
+  async function onSubmit(values: MultiTableSchemaFormValues) {
     if (!account) {
       return;
     }
@@ -299,7 +299,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 async function createNewJob(
   define: DefineFormValues,
   connect: SingleTableConnectFormValues,
-  schema: SingleTableSchemaFormValues,
+  schema: MultiTableSchemaFormValues,
   accountId: string,
   connections: Connection[]
 ): Promise<CreateJobResponse> {

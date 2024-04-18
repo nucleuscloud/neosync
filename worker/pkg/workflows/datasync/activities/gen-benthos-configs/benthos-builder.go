@@ -143,44 +143,14 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			}
 		}
 
+		// how to handle unique constraints
 		///////////////////////////////////////////////////////////////
 
-		// root tables
-		sourceResponses, err := buildBenthosGenerateSourceConfigResponses(ctx, b.transformerclient, groupedMappings, sourceTableOpts, map[string]*dbschemas_utils.ColumnInfo{}, dependencyMap, db.Driver, sourceConnection.Id, primaryKeyMap)
+		sourceResponses, err := buildBenthosGenerateSourceConfigResponses(ctx, b.transformerclient, groupedMappings, sourceTableOpts, map[string]*dbschemas_utils.ColumnInfo{}, dependencyMap, db.Driver, sourceConnection.Id, td, primaryKeyMap)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build benthos generate source config responses: %w", err)
 		}
 		responses = append(responses, sourceResponses...)
-
-		///////////////////////////////////////////////////////////////
-
-		// for _, resp := range responses {
-		// 	tableName := neosync_benthos.BuildBenthosTable(resp.TableSchema, resp.TableName)
-		// 	configs := dependencyMap[tableName]
-		// 	if len(configs) > 1 {
-		// 		// circular dependency
-		// 		for _, c := range configs {
-		// 			if c.Columns != nil && c.Columns.Exclude != nil && len(c.Columns.Exclude) > 0 {
-		// 				resp.excludeColumns = c.Columns.Exclude
-		// 				resp.DependsOn = c.DependsOn
-		// 			} else if c.Columns != nil && c.Columns.Include != nil && len(c.Columns.Include) > 0 {
-		// 				pks := primaryKeyMap[tableName]
-		// 				if len(pks) == 0 {
-		// 					return nil, fmt.Errorf("no primary keys found for table (%s). Unable to build update query", tableName)
-		// 				}
-
-		// 				// config for sql update
-		// 				resp.updateConfig = c
-		// 				resp.primaryKeys = pks
-		// 			}
-		// 		}
-		// 	} else if len(configs) == 1 {
-		// 		resp.DependsOn = configs[0].DependsOn
-		// 	} else {
-		// 		return nil, fmt.Errorf("unexpected number of dependency configs")
-		// 	}
-		// }
-		///////////////////////////////////////////////////////////////
 
 	case *mgmtv1alpha1.JobSourceOptions_Postgres, *mgmtv1alpha1.JobSourceOptions_Mysql:
 		sourceConnection, err := b.getJobSourceConnection(ctx, job.GetSource())
@@ -388,44 +358,45 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					}
 				} else if resp.Config.Input.Generate != nil {
 					cols := buildPlainColumns(tm.Mappings)
-					processorConfigs := []neosync_benthos.ProcessorConfig{}
-					for _, pc := range resp.Processors {
-						processorConfigs = append(processorConfigs, *pc)
-					}
+					// processorConfigs := []neosync_benthos.ProcessorConfig{}
+					// for _, pc := range resp.Processors {
+					// 	processorConfigs = append(processorConfigs, *pc)
+					// }
 
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						Fallback: []neosync_benthos.Outputs{
 							{
 								// retry processor and output several times
-								Retry: &neosync_benthos.RetryConfig{
-									InlineRetryConfig: neosync_benthos.InlineRetryConfig{
-										MaxRetries: 10,
+								// Retry: &neosync_benthos.RetryConfig{
+								// 	InlineRetryConfig: neosync_benthos.InlineRetryConfig{
+								// 		MaxRetries: 10,
+								// 	},
+								// 	Output: neosync_benthos.OutputConfig{
+								// 		Outputs: neosync_benthos.Outputs{
+								PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
+									Driver: driver,
+									Dsn:    dsn,
+
+									Schema:              resp.TableSchema,
+									Table:               resp.TableName,
+									Columns:             cols,
+									OnConflictDoNothing: destOpts.OnConflictDoNothing,
+									TruncateOnRetry:     destOpts.Truncate,
+
+									ArgsMapping: buildPlainInsertArgs(cols),
+
+									Batching: &neosync_benthos.Batching{
+										Period: "5s",
+										Count:  100,
 									},
-									Output: neosync_benthos.OutputConfig{
-										Outputs: neosync_benthos.Outputs{
-											PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
-												Driver: driver,
-												Dsn:    dsn,
-
-												Schema:              resp.TableSchema,
-												Table:               resp.TableName,
-												Columns:             cols,
-												OnConflictDoNothing: destOpts.OnConflictDoNothing,
-												TruncateOnRetry:     destOpts.Truncate,
-
-												ArgsMapping: buildPlainInsertArgs(cols),
-
-												Batching: &neosync_benthos.Batching{
-													Period: "5s",
-													Count:  100,
-												},
-											},
-										},
-										Processors: processorConfigs,
-									},
+									// 	},
+									// },
+									// Processors: processorConfigs,
+									// },
 								},
 							},
 							// kills activity depending on error
+							// TODO add retry here
 							{Error: &neosync_benthos.ErrorOutputConfig{
 								ErrorMsg: `${! meta("fallback_error")}`,
 								Batching: &neosync_benthos.Batching{

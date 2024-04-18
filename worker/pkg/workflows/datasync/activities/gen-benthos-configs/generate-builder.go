@@ -24,11 +24,11 @@ func buildBenthosGenerateSourceConfigResponses(
 	columnInfo map[string]*dbschemas_utils.ColumnInfo,
 	dependencyMap map[string][]*tabledependency.RunConfig,
 	driver, dsnConnectionId string,
+	tableConstraintsMap map[string]*dbschemas_utils.TableConstraints,
 	primaryKeyMap map[string][]string,
 ) ([]*BenthosConfigResponse, error) {
 	responses := []*BenthosConfigResponse{}
 
-	// root tables
 	for _, tableMapping := range mappings {
 		if shared.AreAllColsNull(tableMapping.Mappings) {
 			// skiping table as no columns are mapped
@@ -75,17 +75,26 @@ func buildBenthosGenerateSourceConfigResponses(
 
 		var bc *neosync_benthos.BenthosConfig
 		if len(runConfigs) > 0 && len(runConfigs[0].DependsOn) > 0 {
+			columnNameMap := map[string]string{}
+			tableColsMaps := map[string][]string{}
+
+			constraints := tableConstraintsMap[tableName]
+			for _, tc := range constraints.Constraints {
+				columnNameMap[fmt.Sprintf("%s.%s", tc.ForeignKey.Table, tc.ForeignKey.Column)] = tc.Column
+				tableColsMaps[tc.ForeignKey.Table] = append(tableColsMaps[tc.ForeignKey.Table], tc.ForeignKey.Table)
+			}
+
 			bc = &neosync_benthos.BenthosConfig{
 				StreamConfig: neosync_benthos.StreamConfig{
 					Input: &neosync_benthos.InputConfig{
 						Inputs: neosync_benthos.Inputs{
 							GenerateSqlSelect: &neosync_benthos.GenerateSqlSelect{
-								Count:   count,
-								Mapping: mutations,
-								Driver:  driver,
-								Dsn:     "${SOURCE_CONNECTION_DSN}",
-								// TableColumnsMap: ,
-								// ColumnNameMap:,
+								Count:           count,
+								Mapping:         mutations,
+								Driver:          driver,
+								Dsn:             "${SOURCE_CONNECTION_DSN}",
+								TableColumnsMap: tableColsMaps,
+								ColumnNameMap:   columnNameMap,
 							},
 						},
 					},
