@@ -11,32 +11,56 @@ const KEYCLOAK_SIG_HEADER = 'X-Keycloak-Signature';
 const SLACK_WEBHOOK_URL = process.env.KEYCLOAK_SLACK_WEBHOOK_URL;
 
 /*
-Example register event
+Example register event for username/password
 {
   "time": 1711651627565,
   "realmId": "7a11ef96-d5ef-4bfe-beb8-a5d81f9de464",
   "uid": "d2e0fe26-f8e6-4012-b22f-87f989c3c9e7",
   "authDetails": {
-      "realmId": "neosync-stage",
-      "clientId": "neosync-app",
-      "userId": "88251cc6-7408-4b31-a4c7-b2840d99b916",
-      "ipAddress": "111.11.111.11",
-      "username": "nick@example.com",
-      "sessionId": "3cd8d025-d5d4-4ff2-82d3-a9c552ba422c"
+    "realmId": "neosync-stage",
+    "clientId": "neosync-app",
+    "userId": "88251cc6-7408-4b31-a4c7-b2840d99b916",
+    "ipAddress": "111.11.111.11",
+    "username": "nick@example.com",
+    "sessionId": "3cd8d025-d5d4-4ff2-82d3-a9c552ba422c"
   },
   "type": "access.REGISTER",
   "details": {
-      "auth_method": "openid-connect",
-      "auth_type": "code",
-      "register_method": "form",
-      "last_name": "Zelei",
-      "redirect_uri": "https://app.stage.neosync.dev/api/auth/callback/neosync",
-      "first_name": "Nick",
-      "code_id": "3cd8d025-d5d4-4ff2-82d3-a9c552ba422c",
-      "email": "nick@example.com",
-      "username": "nick@example.com"
+    "auth_method": "openid-connect",
+    "auth_type": "code",
+    "register_method": "form",
+    "last_name": "Zelei",
+    "redirect_uri": "https://app.stage.neosync.dev/api/auth/callback/neosync",
+    "first_name": "Nick",
+    "code_id": "3cd8d025-d5d4-4ff2-82d3-a9c552ba422c",
+    "email": "nick@example.com",
+    "username": "nick@example.com"
   }
 }
+
+Example register event for google
+  {
+    "time": 1713472787368,
+    "realmId": "7a11ef96-d5ef-4bfe-beb8-a5d81f9de464",
+    "uid": "cb444835-f5c3-4666-8a6f-1adfa6c0391d",
+    "authDetails": {
+      "realmId": "neosync-stage",
+      "clientId": "neosync-app",
+      "userId": "df684d95-fb16-457d-b461-3abfed5a7780",
+      "ipAddress": "111.11.111.11",
+      "username": "nickzelei@gmail.com",
+      "sessionId": "6b4ef980-feff-418d-8e24-a2d6513b3f61"
+    },
+    "type": "access.REGISTER",
+    "details": {
+      "identity_provider": "google",
+      "register_method": "broker",
+      "identity_provider_identity": "nickzelei@gmail.com",
+      "code_id": "6b4ef980-feff-418d-8e24-a2d6513b3f61",
+      "email": "nickzelei@example.com",
+      "username": "nickzelei@example.com"
+      }
+  }
 */
 const RegisterEvent = Yup.object({
   time: Yup.number().required(),
@@ -49,6 +73,7 @@ const RegisterEvent = Yup.object({
     email: Yup.string().required(),
     first_name: Yup.string(),
     last_name: Yup.string(),
+    identity_provider: Yup.string(),
   }).required(),
 });
 type RegisterEvent = Yup.InferType<typeof RegisterEvent>;
@@ -116,44 +141,58 @@ function verifySignature(
 }
 
 function getSlackMessage(event: RegisterEvent): { blocks: Block[] } {
-  return {
-    blocks: [
+  const detailsBlock: Block = {
+    type: 'section',
+    fields: [
       {
-        type: 'header',
-        text: {
-          type: 'plain_text',
-          text: 'New Sign Up!',
-        },
+        type: 'mrkdwn',
+        text: `*IP*\n${event.authDetails.ipAddress}`,
       },
       {
-        type: 'section',
-        fields: [
-          {
-            type: 'mrkdwn',
-            text: `*IP*\n${event.authDetails.ipAddress}`,
-          },
-          {
-            type: 'mrkdwn',
-            text: `*User Id*\n${event.authDetails.userId}`,
-          },
-          {
-            type: 'mrkdwn',
-            text: `*Email*\n${event.details.email}`,
-          },
-          {
-            type: 'mrkdwn',
-            text: `*Name*\n${getFullname(event) ?? 'Unknown'}`,
-          },
-          {
-            type: 'mrkdwn',
-            text: `*When*\n${format(utcToZonedTime(new Date(event.time), 'America/Los_Angeles'), 'MMM d yyyy h:mma')}`,
-          },
-        ],
+        type: 'mrkdwn',
+        text: `*User Id*\n${event.authDetails.userId}`,
       },
       {
-        type: 'divider',
+        type: 'mrkdwn',
+        text: `*Email*\n${event.details.email}`,
+      },
+      {
+        type: 'mrkdwn',
+        text: `*When*\n${format(utcToZonedTime(new Date(event.time), 'America/Los_Angeles'), 'MMM d yyyy h:mma')}`,
       },
     ],
+  };
+
+  const fullname = getFullname(event);
+  if (fullname) {
+    detailsBlock.fields.push({
+      type: 'mrkdwn',
+      text: `*Name*\n${fullname}`,
+    });
+  }
+
+  if (event.details.identity_provider) {
+    detailsBlock.fields.push({
+      type: 'mrkdwn',
+      text: `*IdP*\n${event.details.identity_provider}`,
+    });
+  }
+
+  const blocks: Block[] = [
+    {
+      type: 'header',
+      text: {
+        type: 'plain_text',
+        text: 'New Sign Up!',
+      },
+    },
+    detailsBlock,
+    {
+      type: 'divider',
+    },
+  ];
+  return {
+    blocks: blocks,
   };
 }
 
