@@ -114,6 +114,11 @@ func serve(ctx context.Context) error {
 	mux.Handle(grpcreflect.NewHandlerV1(reflector))
 	mux.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
 
+	// prevents the server from crashing on panics and returns a valid error response to the user
+	recoverHandler := func(_ context.Context, _ connect.Spec, _ http.Header, r any) error {
+		return connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("panic: %v", r))
+	}
+
 	dbconfig, err := getDbConfig()
 	if err != nil {
 		return err
@@ -275,6 +280,7 @@ func serve(ctx context.Context) error {
 			useraccountService,
 			connect.WithInterceptors(stdInterceptors...),
 			connect.WithInterceptors(stdAuthInterceptors...),
+			connect.WithRecover(recoverHandler),
 		),
 	)
 
@@ -286,6 +292,7 @@ func serve(ctx context.Context) error {
 			apiKeyService,
 			connect.WithInterceptors(stdInterceptors...),
 			connect.WithInterceptors(jwtOnlyAuthInterceptors...),
+			connect.WithRecover(recoverHandler),
 		),
 	)
 
@@ -299,6 +306,7 @@ func serve(ctx context.Context) error {
 			connectionService,
 			connect.WithInterceptors(stdInterceptors...),
 			connect.WithInterceptors(stdAuthInterceptors...),
+			connect.WithRecover(recoverHandler),
 		),
 	)
 
@@ -323,6 +331,7 @@ func serve(ctx context.Context) error {
 			jobService,
 			connect.WithInterceptors(stdInterceptors...),
 			connect.WithInterceptors(stdAuthInterceptors...),
+			connect.WithRecover(recoverHandler),
 		),
 	)
 
@@ -332,6 +341,7 @@ func serve(ctx context.Context) error {
 			transformerService,
 			connect.WithInterceptors(stdInterceptors...),
 			connect.WithInterceptors(stdAuthInterceptors...),
+			connect.WithRecover(recoverHandler),
 		),
 	)
 
@@ -351,6 +361,7 @@ func serve(ctx context.Context) error {
 			connectionDataService,
 			connect.WithInterceptors(stdInterceptors...),
 			connect.WithInterceptors(stdAuthInterceptors...),
+			connect.WithRecover(recoverHandler),
 		),
 	)
 
@@ -378,6 +389,7 @@ func serve(ctx context.Context) error {
 				metricsService,
 				connect.WithInterceptors(stdInterceptors...),
 				connect.WithInterceptors(stdAuthInterceptors...),
+				connect.WithRecover(recoverHandler),
 			),
 		)
 	}
