@@ -331,9 +331,29 @@ async function createNewJob(
       }),
     });
   }
-  const tableSchema =
-    schema.mappings.length > 0 ? schema.mappings[0].schema : null;
-  const table = schema.mappings.length > 0 ? schema.mappings[0].table : null;
+  const schemas = schema.mappings.reduce(
+    (prev, curr) => {
+      const prevTables = prev[curr.schema] || {};
+      return {
+        ...prev,
+        [curr.schema]: { ...prevTables, [curr.table]: curr.table },
+      };
+    },
+    {} as Record<string, Record<string, string>>
+  );
+  const schemaRecords = Object.entries(schemas).map(([s, tables]) => {
+    return new GenerateSourceSchemaOption({
+      schema: s,
+      tables: Object.keys(tables).map(
+        (t) =>
+          new GenerateSourceTableOption({
+            rowCount: BigInt(schema.numRows),
+            table: t,
+          })
+      ),
+    });
+  });
+
   const body = new CreateJobRequest({
     accountId,
     jobName: define.jobName,
@@ -355,20 +375,7 @@ async function createNewJob(
           case: 'generate',
           value: new GenerateSourceOptions({
             fkSourceConnectionId: connect.connectionId,
-            schemas:
-              tableSchema && table
-                ? [
-                    new GenerateSourceSchemaOption({
-                      schema: tableSchema,
-                      tables: [
-                        new GenerateSourceTableOption({
-                          rowCount: BigInt(schema.numRows),
-                          table: table,
-                        }),
-                      ],
-                    }),
-                  ]
-                : [],
+            schemas: schemaRecords,
           }),
         },
       }),

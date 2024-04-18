@@ -1,7 +1,7 @@
 'use client';
 import {
-  SINGLE_TABLE_SCHEMA_FORM_SCHEMA,
-  SingleTableSchemaFormValues,
+  MULTI_TABLE_SCHEMA_FORM_SCHEMA,
+  MultiTableSchemaFormValues,
 } from '@/app/(mgmt)/[account]/new/job/schema';
 import { SchemaTable } from '@/components/jobs/SchemaTable/SchemaTable';
 import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
@@ -87,8 +87,8 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
       fkSourceConnectionId ?? ''
     );
 
-  const form = useForm<SingleTableSchemaFormValues>({
-    resolver: yupResolver(SINGLE_TABLE_SCHEMA_FORM_SCHEMA),
+  const form = useForm<MultiTableSchemaFormValues>({
+    resolver: yupResolver(MULTI_TABLE_SCHEMA_FORM_SCHEMA),
     values: getJobSource(data?.job),
   });
 
@@ -107,7 +107,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     return <SchemaPageSkeleton />;
   }
 
-  async function onSubmit(values: SingleTableSchemaFormValues) {
+  async function onSubmit(values: MultiTableSchemaFormValues) {
     const job = data?.job;
     if (!job) {
       return;
@@ -182,7 +182,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
   );
 }
 
-function getJobSource(job?: Job): SingleTableSchemaFormValues {
+function getJobSource(job?: Job): MultiTableSchemaFormValues {
   if (!job) {
     return {
       mappings: [],
@@ -200,7 +200,7 @@ function getJobSource(job?: Job): SingleTableSchemaFormValues {
     }
   }
 
-  const mappings: SingleTableSchemaFormValues['mappings'] = (
+  const mappings: MultiTableSchemaFormValues['mappings'] = (
     job.mappings ?? []
   ).map((mapping) => {
     return {
@@ -221,10 +221,31 @@ function getJobSource(job?: Job): SingleTableSchemaFormValues {
 async function updateJobConnection(
   accountId: string,
   job: Job,
-  values: SingleTableSchemaFormValues
+  values: MultiTableSchemaFormValues
 ): Promise<UpdateJobSourceConnectionResponse> {
-  const schema = values.mappings.length > 0 ? values.mappings[0].schema : null;
-  const table = values.mappings.length > 0 ? values.mappings[0].table : null;
+  const schemas = values.mappings.reduce(
+    (prev, curr) => {
+      const prevTables = prev[curr.schema] || {};
+      return {
+        ...prev,
+        [curr.schema]: { ...prevTables, [curr.table]: curr.table },
+      };
+    },
+    {} as Record<string, Record<string, string>>
+  );
+  const schemaRecords = Object.entries(schemas).map(([s, tables]) => {
+    return new GenerateSourceSchemaOption({
+      schema: s,
+      tables: Object.keys(tables).map(
+        (t) =>
+          new GenerateSourceTableOption({
+            rowCount: BigInt(values.numRows),
+            table: t,
+          })
+      ),
+    });
+  });
+
   const res = await fetch(
     `/api/accounts/${accountId}/jobs/${job.id}/source-connection`,
     {
@@ -252,20 +273,7 @@ async function updateJobConnection(
                 case: 'generate',
                 value: new GenerateSourceOptions({
                   fkSourceConnectionId: getFkIdFromGenerateSource(job.source),
-                  schemas:
-                    schema && table
-                      ? [
-                          new GenerateSourceSchemaOption({
-                            schema: schema,
-                            tables: [
-                              new GenerateSourceTableOption({
-                                table: table,
-                                rowCount: BigInt(values.numRows),
-                              }),
-                            ],
-                          }),
-                        ]
-                      : [],
+                  schemas: schemaRecords,
                 }),
               },
             }),
