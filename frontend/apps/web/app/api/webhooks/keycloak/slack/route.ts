@@ -48,14 +48,14 @@ Example register event for google
       "clientId": "neosync-app",
       "userId": "df684d95-fb16-457d-b461-3abfed5a7780",
       "ipAddress": "111.11.111.11",
-      "username": "nickzelei@gmail.com",
+      "username": "nickzelei@example.com",
       "sessionId": "6b4ef980-feff-418d-8e24-a2d6513b3f61"
     },
     "type": "access.REGISTER",
     "details": {
       "identity_provider": "google",
       "register_method": "broker",
-      "identity_provider_identity": "nickzelei@gmail.com",
+      "identity_provider_identity": "nickzelei@example.com",
       "code_id": "6b4ef980-feff-418d-8e24-a2d6513b3f61",
       "email": "nickzelei@example.com",
       "username": "nickzelei@example.com"
