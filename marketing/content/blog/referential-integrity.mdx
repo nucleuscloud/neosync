@@ -10,7 +10,7 @@ authors:
 
 # Introduction
 
-Maintaining the integrity and accuracy of data within a database is critical. Understanding and implementing referential integrity is a crucial step in ensuring that data remains reliable and useful. This blog dives deep into referential integrity, its importance, and applications in both real-world databases and synthetic data.
+Maintaining the integrity and accuracy of data within a database is critical. Understanding and implementing referential integrity is a crucial step in ensuring that data remains reliable and useful. This blog dives deep into referential integrity, its importance, and applications in both real-world databases and [synthetic data](/blog/synthetic-data-engineering).
 
 # What is Referential Integrity
 
@@ -38,6 +38,10 @@ We've mentioned a few ways that databases handle referential integrity in the se
 6. Stored procedures - Stored procedures encapsulate pre-prepared SQL code into well-defined transactions. They can perform multiple checks and operations atomically, ensuring that the database remains consistent.7. Transactions - Transactions are ways of ensuring that all of the steps of an action are completed to ensure data integrity before fully adding, deleting, updating, etc the record to a database.
 
 # Referential Integrity in Synthetic data
+
+Referential integrity is critical to ensuring that your data matches your database schema and doesn't break your constraints. When you're creating synthetic data, it's important to account for the table constraints that we mentioned AnimationPlaybackEvent, otherwise you'll have issues inserting data into your schema.
+
+This goes a step further if you're doing [subsetting](/blog/subset-referential-integrity). If you want to subset your data, you have to ensure that you're not breaking any of your table constraints as well. At [Neosync](https://neosync.dev) we automatically handle referential integrity across all databases and tabes to ensure that your schema is never broken.
 
 # Wrapping up
 

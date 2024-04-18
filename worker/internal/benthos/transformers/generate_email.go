@@ -31,7 +31,7 @@ func isValidEmailType(emailType string) bool {
 func init() {
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewInt64Param("max_length").Default(100000)).
-		Param(bloblang.NewStringParam("email_type").Default(fullNameEmailType.String())).
+		Param(bloblang.NewStringParam("email_type").Default(uuidV4EmailType.String())).
 		Param(bloblang.NewInt64Param("seed").Optional())
 
 	err := bloblang.RegisterFunctionV2("generate_email", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {

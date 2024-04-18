@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     type: 'website',
   },
   alternates: {
-    canonical: 'https://neosync.dev/blog',
+    canonical: 'https://www.neosync.dev/blog',
   },
 };
 

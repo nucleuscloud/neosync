@@ -70,9 +70,8 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
     return <Skeleton className="w-full h-full" />;
   }
 
-  function onRefreshClick(): void {
-    recentRunsMutate();
-    jobsRunsMutate();
+  async function onRefreshClick(): Promise<void> {
+    await Promise.all([recentRunsMutate(), jobsRunsMutate()]);
   }
 
   const router = useRouter();

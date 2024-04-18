@@ -6,13 +6,11 @@ import { SubNav } from '@/components/SubNav';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { useAccount } from '@/components/providers/account-provider';
-import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import { LayoutProps } from '@/components/types';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { useGetJob } from '@/libs/hooks/useGetJob';
-import { useGetJobRecentRuns } from '@/libs/hooks/useGetJobRecentRuns';
 import { useGetJobRunsByJob } from '@/libs/hooks/useGetJobRunsByJob';
 import { useGetJobStatus } from '@/libs/hooks/useGetJobStatus';
 import { useGetSystemAppConfig } from '@/libs/hooks/useGetSystemAppConfig';
@@ -20,6 +18,7 @@ import { getErrorMessage } from '@/util/util';
 import { GetJobStatusResponse, Job, JobStatus } from '@neosync/sdk';
 import { LightningBoltIcon, TrashIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
+import JobIdSkeletonForm from './JobIdSkeletonForm';
 import JobPauseButton from './components/JobPauseButton';
 import { isDataGenJob } from './util';
 
@@ -29,10 +28,6 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
   const { account } = useAccount();
   const { data, isLoading } = useGetJob(account?.id ?? '', id);
   const { data: jobStatus, mutate: mutateJobStatus } = useGetJobStatus(
-    account?.id ?? '',
-    id
-  );
-  const { mutate: mutateRecentRuns } = useGetJobRecentRuns(
     account?.id ?? '',
     id
   );
@@ -52,7 +47,6 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
         variant: 'success',
       });
       setTimeout(() => {
-        mutateRecentRuns();
         mutateJobRunsByJob();
       }, 3000); // delay briefly as there can sometimes be a trigger delay in temporal
     } catch (err) {
@@ -93,7 +87,7 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
   if (isLoading) {
     return (
       <div>
-        <SkeletonForm />
+        <JobIdSkeletonForm />
       </div>
     );
   }
