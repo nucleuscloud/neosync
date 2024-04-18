@@ -796,22 +796,26 @@ func (j *JobDestinationOptions) FromDto(dto *mgmtv1alpha1.JobDestinationOptions)
 	case *mgmtv1alpha1.JobDestinationOptions_PostgresOptions:
 		truncateCfg := &PostgresTruncateTableConfig{}
 		truncateCfg.FromDto(config.PostgresOptions.TruncateTable)
-		onConflictCfg := &PostgresOnConflictConfig{}
-		onConflictCfg.FromDto(config.PostgresOptions.OnConflict)
 		j.PostgresOptions = &PostgresDestinationOptions{
 			InitTableSchema:     config.PostgresOptions.InitTableSchema,
 			TruncateTableConfig: truncateCfg,
-			OnConflictConfig:    onConflictCfg,
+		}
+		if config.PostgresOptions.OnConflict != nil {
+			onConflictCfg := &PostgresOnConflictConfig{}
+			onConflictCfg.FromDto(config.PostgresOptions.OnConflict)
+			j.PostgresOptions.OnConflictConfig = onConflictCfg
 		}
 	case *mgmtv1alpha1.JobDestinationOptions_MysqlOptions:
 		truncateCfg := &MysqlTruncateTableConfig{}
 		truncateCfg.FromDto(config.MysqlOptions.TruncateTable)
-		onConflictCfg := &MysqlOnConflictConfig{}
-		onConflictCfg.FromDto(config.MysqlOptions.OnConflict)
 		j.MysqlOptions = &MysqlDestinationOptions{
 			InitTableSchema:     config.MysqlOptions.InitTableSchema,
 			TruncateTableConfig: truncateCfg,
-			OnConflictConfig:    onConflictCfg,
+		}
+		if config.MysqlOptions.OnConflict != nil {
+			onConflictCfg := &MysqlOnConflictConfig{}
+			onConflictCfg.FromDto(config.MysqlOptions.OnConflict)
+			j.MysqlOptions.OnConflictConfig = onConflictCfg
 		}
 	case *mgmtv1alpha1.JobDestinationOptions_AwsS3Options:
 		j.AwsS3Options = &AwsS3DestinationOptions{}
