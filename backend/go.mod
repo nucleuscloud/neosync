@@ -1,6 +1,7 @@
 module github.com/nucleuscloud/neosync/backend
 
-go 1.21.3
+go 1.22.0
+
 toolchain go1.22.2
 
 replace github.com/nucleuscloud/neosync/worker => ../worker
