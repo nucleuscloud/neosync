@@ -42,7 +42,7 @@ Companies use Neosync to:
 1. **Unblock local development** - Give developers the ability to self-serve de-identified and synthetic data whenever they need it
 2. **Fix broken staging environments** - Catch bugs before they hit production when you hydrate your staging and QA environments with production-like data
 3. **Keep environments in sync** - Keep your environments in sync with the latest synthetic data so you never hear "it works for me locally" again
-4. **Get frictionless security, privacy and compliance** - Easily comply with laws like HIPAA, GDPR, and DPDP with de-identified and synthetic
+4. **Get frictionless security, privacy and compliance** - Easily comply with laws like HIPAA, GDPR, and DPDP with de-identified and synthetic data
 5. **Seed development databases** - Easily seed development databases with synthetic data for unit testing, demos and more
 
 ## Features
