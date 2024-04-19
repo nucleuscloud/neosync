@@ -1,7 +1,7 @@
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { CloudSQLLogo } from './CloudSQLLogo';
-import ClouDSQLPostgresForm from './CloudSQLPostgresForm';
+import CloudSQLPostgresForm from './CloudSQLPostgresForm';
 
 export default async function CloudSQLPostgres() {
   return (
@@ -15,7 +15,7 @@ export default async function CloudSQLPostgres() {
       }
       containerClassName="px-12 md:px-24 lg:px-32"
     >
-      <ClouDSQLPostgresForm />
+      <CloudSQLPostgresForm />
     </OverviewContainer>
   );
 }

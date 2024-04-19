@@ -1,6 +1,6 @@
 'use client';
 import PostgresForm from '../postgres/PostgresForm';
 
-export default function ClouDSQLPostgresForm() {
+export default function CloudSQLPostgresForm() {
   return <PostgresForm />;
 }

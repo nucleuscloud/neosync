@@ -71,8 +71,6 @@ export function getConnectionComponentDetails(
           pgConfig = value.connectionConfig.value;
           if (pgConfig.includes('neon')) {
             headerType = 'neon';
-          } else if (pgConfig.includes('cloduSQLPostgres')) {
-            headerType = 'cloduSQLPostgres';
           } else {
             headerType = 'generic';
           }
@@ -93,13 +91,6 @@ export function getConnectionComponentDetails(
           <PageHeader
             header={handlePageHeaderType(headerType)}
             leftIcon={<ConnectionIcon name={headerType} />}
-            // leftIcon={
-            //   headerType == 'neon' ? (
-            //     <ConnectionIcon name="neon" />
-            //   ) : (
-            //     <ConnectionIcon name="postgres" />
-            //   )
-            // }
             extraHeading={extraPageHeading}
             subHeadings={subHeading}
           />
@@ -313,7 +304,6 @@ function getPrivateKeyFromSshAuthentication(
 }
 
 function handlePageHeaderType(ht: string): string {
-  console.log('ht', ht);
   switch (ht) {
     case 'neon':
       return 'Neon';

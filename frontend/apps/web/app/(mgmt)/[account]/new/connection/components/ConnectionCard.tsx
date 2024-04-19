@@ -24,8 +24,6 @@ export default function ConnectionCard(props: Props) {
   const router = useRouter();
   const { account } = useAccount();
   const searchParams = useSearchParams();
-
-  console.log('connection.', connection.name);
   return (
     <Card
       onClick={() =>
