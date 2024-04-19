@@ -24,7 +24,7 @@ require (
 	github.com/aws/smithy-go v1.20.2
 	github.com/dop251/goja v0.0.0-20231027120936-b396bb4c349d
 	github.com/gofrs/uuid v4.4.0+incompatible
-	github.com/golang-migrate/migrate/v4 v4.17.0
+	github.com/golang-migrate/migrate/v4 v4.17.1
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.5.5
 	github.com/nucleuscloud/neosync/worker v0.0.0-00010101000000-000000000000
