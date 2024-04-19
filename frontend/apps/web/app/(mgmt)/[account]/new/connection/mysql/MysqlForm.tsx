@@ -107,11 +107,6 @@ export default function MysqlForm() {
 
   const [isValidating, setIsValidating] = useState<boolean>(false);
 
-  // const [openPermissionDialog, setOpenPermissionDialog] =
-  //   useState<boolean>(false);
-  // const [permissionData, setPermissionData] =
-  //   useState<ConnectionRolePrivilege[]>();
-
   async function onSubmit(values: MysqlFormValues) {
     if (!account) {
       return;
@@ -608,8 +603,6 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
                 );
                 setIsValidating(false);
                 setValidationResponse(res);
-                setPermissionData(res.privileges);
-                setOpenPermissionDialog(res?.isConnected && true);
               } catch (err) {
                 setValidationResponse(
                   new CheckConnectionConfigResponse({

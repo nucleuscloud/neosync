@@ -81,10 +81,6 @@ export default function MysqlForm(props: Props) {
 
   const [isValidating, setIsValidating] = useState<boolean>(false);
 
-  // const [openPermissionDialog, setOpenPermissionDialog] =
-  //   useState<boolean>(false);
-  // const [permissionData, setPermissionData] =
-  //   useState<ConnectionRolePrivilege[]>();
   async function onSubmit(values: MysqlFormValues) {
     try {
       const connectionResp = await updateMysqlConnection(
@@ -428,8 +424,6 @@ export default function MysqlForm(props: Props) {
                 );
                 setIsValidating(false);
                 setValidationResponse(res);
-                setPermissionData(res.privileges);
-                setOpenPermissionDialog(res?.isConnected && true);
               } catch (err) {
                 setIsValidating(false);
                 setValidationResponse(
