@@ -182,7 +182,6 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         const key = toColKey(row.schema, row.table, row.column);
         const isPrimaryKey = constraintHandler.getIsPrimaryKey(key);
         const [isForeignKey, fkCols] = constraintHandler.getIsForeignKey(key);
-        const isUniqueConstraint = constraintHandler.getIsUniqueConstraint(key);
 
         const pieces: string[] = [];
         if (isPrimaryKey) {
@@ -317,6 +316,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         <SchemaColumnHeader column={column} title="Transformer" />
       ),
       cell: (info) => {
+        // eslint-disable-next-line react-hooks/rules-of-hooks
         const fctx = useFormContext<
           SchemaFormValues | SingleTableSchemaFormValues
         >();

@@ -106,14 +106,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   );
 
-  const {
-    data: connectionSchemaDataMap,
-    isLoading: isSchemaDataMapLoading,
-    isValidating: isSchemaMapValidating,
-  } = useGetConnectionSchemaMap(
-    account?.id ?? '',
-    connectFormValues.connectionId
-  );
+  const { data: connectionSchemaDataMap, isValidating: isSchemaMapValidating } =
+    useGetConnectionSchemaMap(
+      account?.id ?? '',
+      connectFormValues.connectionId
+    );
 
   const form = useForm({
     mode: 'onChange',

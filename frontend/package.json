@@ -15,9 +15,5 @@
     "prettier": "^3.2.5",
     "turbo": "^1.13.2"
   },
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
-  "dependencies": {}
+  "workspaces": ["apps/*", "packages/*"]
 }

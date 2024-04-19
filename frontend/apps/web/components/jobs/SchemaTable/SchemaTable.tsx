@@ -81,7 +81,7 @@ export function SchemaTable(props: Props): ReactElement {
     const [added, removed] = getDelta(items, selectedItems);
 
     const toRemove: number[] = [];
-    const toAdd: any[] = [];
+    const toAdd: JobMappingFormValues[] = [];
 
     fields.forEach((field, idx) => {
       if (removed.has(`${field.schema}.${field.table}`)) {
@@ -98,7 +98,6 @@ export function SchemaTable(props: Props): ReactElement {
           schema: dbcol.schema,
           table: dbcol.table,
           column: dbcol.column,
-          dataType: dbcol.dataType,
           transformer: convertJobMappingTransformerToForm(
             new JobMappingTransformer({})
           ),
@@ -239,7 +238,7 @@ function extractAllErrors(
         newPath = path ? `${path}.${column}` : column;
       }
     }
-    const error = (errors as any)[key as unknown as any] as any;
+    const error = (errors as any)[key as unknown as any] as any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
     if (!error) {
       continue;

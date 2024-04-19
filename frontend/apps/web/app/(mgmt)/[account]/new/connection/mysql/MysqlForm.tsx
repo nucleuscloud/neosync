@@ -45,7 +45,6 @@ import {
   CheckConnectionConfigRequest,
   CheckConnectionConfigResponse,
   ConnectionConfig,
-  ConnectionRolePrivilege,
   CreateConnectionRequest,
   CreateConnectionResponse,
   GetAccountOnboardingConfigResponse,
@@ -108,10 +107,10 @@ export default function MysqlForm() {
 
   const [isValidating, setIsValidating] = useState<boolean>(false);
 
-  const [openPermissionDialog, setOpenPermissionDialog] =
-    useState<boolean>(false);
-  const [permissionData, setPermissionData] =
-    useState<ConnectionRolePrivilege[]>();
+  // const [openPermissionDialog, setOpenPermissionDialog] =
+  //   useState<boolean>(false);
+  // const [permissionData, setPermissionData] =
+  //   useState<ConnectionRolePrivilege[]>();
 
   async function onSubmit(values: MysqlFormValues) {
     if (!account) {

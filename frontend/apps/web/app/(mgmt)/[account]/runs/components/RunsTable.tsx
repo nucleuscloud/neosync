@@ -89,7 +89,6 @@ export default function RunsTable(props: RunsTableProps): ReactElement {
         autoRefreshIntervalOptions={INTERVAL_SELECT_OPTIONS}
         onRefreshClick={refreshClick}
         isRefreshing={isValidating}
-        jobNameMap={jobNameMap}
       />
     </div>
   );

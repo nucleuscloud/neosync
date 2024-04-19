@@ -28,7 +28,6 @@ export default function DestinationOptionsForm(
 
   switch (connection?.connectionConfig?.config?.case) {
     case 'pgConfig':
-      const value = connection.connectionConfig.config.value;
       const truncateBeforeInsertName =
         index != null
           ? `destinations.${index}.destinationOptions.truncateBeforeInsert`
