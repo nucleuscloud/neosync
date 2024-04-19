@@ -7,7 +7,7 @@ toolchain go1.22.2
 replace github.com/nucleuscloud/neosync/worker => ../worker
 
 require (
-	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.33.0-20240221180331-f05a6f4403ce.1
+	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.33.0-20240401165935-b983156c5e99.1
 	connectrpc.com/connect v1.16.1
 	connectrpc.com/grpchealth v1.3.0
 	connectrpc.com/grpcreflect v1.2.0
