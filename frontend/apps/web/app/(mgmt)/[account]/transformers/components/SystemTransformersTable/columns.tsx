@@ -71,7 +71,9 @@ export function getSystemTransformerColumns(
         return (
           <div className="flex space-x-2">
             {getValue<string[]>().map((item) => (
-              <Badge variant="outline">{item}</Badge>
+              <Badge variant="outline" key={item}>
+                {item}
+              </Badge>
             ))}
           </div>
         );

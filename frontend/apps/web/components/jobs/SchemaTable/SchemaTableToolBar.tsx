@@ -197,7 +197,10 @@ function isBulkUpdateable(
 }
 
 function findCommonSystem(arrays: SystemTransformer[][]): TransformerSource[] {
-  const elementCount: Record<TransformerSource, number> = {} as any;
+  const elementCount: Record<TransformerSource, number> = {} as Record<
+    TransformerSource,
+    number
+  >;
   const subArrayCount = arrays.length;
   const commonElements: TransformerSource[] = [];
 

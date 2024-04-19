@@ -74,7 +74,7 @@ export function getSchemaConstraintHandler(
     getIsInSchema(key) {
       return !!colmap[fromColKey(key)];
     },
-    getHasDefault(key) {
+    getHasDefault(_key) {
       return true; // todo - NEOS-969
     },
   };

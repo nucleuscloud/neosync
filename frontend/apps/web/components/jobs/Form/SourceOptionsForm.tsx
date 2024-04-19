@@ -24,7 +24,6 @@ export default function SourceOptionsForm(
   }
   switch (connection?.connectionConfig?.config?.case) {
     case 'pgConfig':
-      const value = connection.connectionConfig.config.value;
       return (
         <div className={`grid grid-cols-1 md:grid-cols-1 ${grid} gap-4`}>
           <div>

@@ -501,7 +501,7 @@ export const TRANSFORMER_SCHEMA_CONFIGS = {
 // This is here so that whenever we add a new transformer, it errors due to the typing of the key to the TransformerConfigCase
 const KEYED_TRANSFORMER_SCHEMA_CONFIGS: Record<
   NonNullable<TransformerConfigCase>,
-  Yup.ObjectSchema<any>
+  Yup.ObjectSchema<any> // eslint-disable-line @typescript-eslint/no-explicit-any
 > = TRANSFORMER_SCHEMA_CONFIGS;
 
 export const TransformerConfigSchema = Yup.lazy((v) => {

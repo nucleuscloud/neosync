@@ -25,7 +25,6 @@ interface DataTableToolbarProps<TData, TAutoRefreshInterval extends string> {
   autoRefreshIntervalOptions: TAutoRefreshInterval[];
   onAutoRefreshIntervalChange(interval: TAutoRefreshInterval): void;
   isRefreshing: boolean;
-  jobNameMap: Record<string, string>;
 }
 
 export function DataTableToolbar<TData, TAutoRefreshInterval extends string>({
@@ -35,7 +34,6 @@ export function DataTableToolbar<TData, TAutoRefreshInterval extends string>({
   autoRefreshIntervalOptions,
   onAutoRefreshIntervalChange,
   isRefreshing,
-  jobNameMap,
 }: DataTableToolbarProps<TData, TAutoRefreshInterval>) {
   const isFiltered = table.getState().columnFilters.length > 0;
   return (

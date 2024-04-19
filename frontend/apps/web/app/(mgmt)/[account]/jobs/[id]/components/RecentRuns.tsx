@@ -65,6 +65,7 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
   const jobRunsIdMap = new Map(
     (jobRunsData?.jobRuns ?? []).map((jr) => [jr.id, jr])
   );
+  const router = useRouter();
 
   if (isLoading || jobRunsLoading) {
     return <Skeleton className="w-full h-full" />;
@@ -73,8 +74,6 @@ export default function JobRecentRuns({ jobId }: Props): ReactElement {
   async function onRefreshClick(): Promise<void> {
     await Promise.all([recentRunsMutate(), jobsRunsMutate()]);
   }
-
-  const router = useRouter();
 
   async function onDelete(runId: string): Promise<void> {
     try {
