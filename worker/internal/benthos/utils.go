@@ -21,23 +21,21 @@ func ToSha256(input string) string {
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(input)))
 }
 
-// checks if the error message matches a max connections error
-func IsMaxConnectionError(errMsg string) bool {
-	// list of known error messages for when max connections are reached
-	maxConnErrors := []string{
+func containsIgnoreCase(s, substr string) bool {
+	return strings.Contains(strings.ToLower(s), strings.ToLower(substr))
+}
+
+// checks if the error should stop activity
+func ShouldTerminate(errMsg string) bool {
+	// list of known error messages to terminate activity
+	stopErrors := []string{
 		"too many clients already",
-		"remaining connection slots are reserved",
-		"maximum number of connections reached",
 	}
 
-	for _, errStr := range maxConnErrors {
+	for _, errStr := range stopErrors {
 		if containsIgnoreCase(errMsg, errStr) {
 			return true
 		}
 	}
 	return false
-}
-
-func containsIgnoreCase(s, substr string) bool {
-	return strings.Contains(strings.ToLower(s), strings.ToLower(substr))
 }

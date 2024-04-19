@@ -13,6 +13,7 @@ func errorOutputSpec() *service.ConfigSpec {
 	return service.NewConfigSpec().
 		Summary(`Sends stop Activity signal`).
 		Field(service.NewStringField("error_msg")).
+		Field(service.NewIntField("max_retries").Optional()).
 		Field(service.NewIntField("max_in_flight").Default(64)).
 		Field(service.NewBatchPolicyField("batching"))
 }
@@ -31,6 +32,7 @@ func RegisterErrorOutput(env *service.Environment, stopActivityChannel chan erro
 			if err != nil {
 				return nil, service.BatchPolicy{}, -1, err
 			}
+
 			out, err := newErrorOutput(conf, mgr, stopActivityChannel)
 			if err != nil {
 				return nil, service.BatchPolicy{}, -1, err
@@ -44,10 +46,19 @@ func newErrorOutput(conf *service.ParsedConfig, mgr *service.Resources, channel 
 	if err != nil {
 		return nil, err
 	}
+	var retries *int
+	if conf.Contains("max_retries") {
+		maxRetries, err := conf.FieldInt("max_retries")
+		if err != nil {
+			return nil, err
+		}
+		retries = &maxRetries
+	}
 	return &errorOutput{
 		logger:              mgr.Logger(),
 		stopActivityChannel: channel,
 		errorMsg:            errMsg,
+		retries:             retries,
 	}, nil
 }
 
@@ -55,6 +66,7 @@ type errorOutput struct {
 	logger              *service.Logger
 	stopActivityChannel chan error
 	errorMsg            *service.InterpolatedString
+	retries             *int
 }
 
 func (e *errorOutput) Connect(ctx context.Context) error {
@@ -67,7 +79,10 @@ func (e *errorOutput) WriteBatch(ctx context.Context, batch service.MessageBatch
 		if err != nil {
 			return fmt.Errorf("error message interpolation error: %w", err)
 		}
-		if neosync_benthos.IsMaxConnectionError(errMsg) {
+		if !neosync_benthos.ShouldTerminate(errMsg) || (e.retries != nil && *e.retries > 0) {
+			if e.retries != nil {
+				*e.retries--
+			}
 			// throw error so that benthos retries
 			return errors.New(errMsg)
 		}

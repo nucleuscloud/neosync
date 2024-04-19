@@ -108,6 +108,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		// get depenendcy configs
 		// split root tables vs children tables
 		////////////////////////////////////////////////////////////////////////
+		test := []any{}
 
 		sourceConnection, err := b.getJobSourceConnection(ctx, job.GetSource())
 		if err != nil {
@@ -363,6 +364,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					// 	processorConfigs = append(processorConfigs, *pc)
 					// }
 
+					retries := 10
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						Fallback: []neosync_benthos.Outputs{
 							{
@@ -398,7 +400,8 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 							// kills activity depending on error
 							// TODO add retry here
 							{Error: &neosync_benthos.ErrorOutputConfig{
-								ErrorMsg: `${! meta("fallback_error")}`,
+								ErrorMsg:   `${! meta("fallback_error")}`,
+								MaxRetries: &retries,
 								Batching: &neosync_benthos.Batching{
 									Period: "5s",
 									Count:  100,

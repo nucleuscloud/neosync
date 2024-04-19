@@ -196,8 +196,9 @@ type SwitchOutputCase struct {
 	Output   Outputs `json:"output,omitempty" yaml:"output,omitempty"`
 }
 type ErrorOutputConfig struct {
-	ErrorMsg string    `json:"error_msg" yaml:"error_msg"`
-	Batching *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
+	ErrorMsg   string    `json:"error_msg" yaml:"error_msg"`
+	MaxRetries *int      `json:"max_retries,omitempty" yaml:"max_retries,omitempty"`
+	Batching   *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
 }
 
 type RedisHashOutputConfig struct {
