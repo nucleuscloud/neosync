@@ -71,6 +71,8 @@ export function getConnectionComponentDetails(
           pgConfig = value.connectionConfig.value;
           if (pgConfig.includes('neon')) {
             headerType = 'neon';
+          } else if (pgConfig.includes('cloduSQLPostgres')) {
+            headerType = 'cloduSQLPostgres';
           } else {
             headerType = 'generic';
           }
@@ -89,14 +91,15 @@ export function getConnectionComponentDetails(
         ),
         header: (
           <PageHeader
-            header={headerType == 'neon' ? 'Neon' : 'PostgreSQL'}
-            leftIcon={
-              headerType == 'neon' ? (
-                <ConnectionIcon name="neon" />
-              ) : (
-                <ConnectionIcon name="postgres" />
-              )
-            }
+            header={handlePageHeaderType(headerType)}
+            leftIcon={<ConnectionIcon name={headerType} />}
+            // leftIcon={
+            //   headerType == 'neon' ? (
+            //     <ConnectionIcon name="neon" />
+            //   ) : (
+            //     <ConnectionIcon name="postgres" />
+            //   )
+            // }
             extraHeading={extraPageHeading}
             subHeadings={subHeading}
           />
@@ -306,5 +309,17 @@ function getPrivateKeyFromSshAuthentication(
       return sshauth.authConfig.value.value;
     default:
       return undefined;
+  }
+}
+
+function handlePageHeaderType(ht: string): string {
+  console.log('ht', ht);
+  switch (ht) {
+    case 'neon':
+      return 'Neon';
+    case 'cloudSQLPostgres':
+      return 'CloudSQL (Postgres)';
+    default:
+      return 'PostgreSQL';
   }
 }

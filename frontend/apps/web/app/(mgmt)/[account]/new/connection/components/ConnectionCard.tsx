@@ -24,6 +24,8 @@ export default function ConnectionCard(props: Props) {
   const router = useRouter();
   const { account } = useAccount();
   const searchParams = useSearchParams();
+
+  console.log('connection.', connection.name);
   return (
     <Card
       onClick={() =>
@@ -42,7 +44,9 @@ export default function ConnectionCard(props: Props) {
             <p>{connection.name}</p>
           </div>
         </CardTitle>
-        <CardDescription>{connection.description}</CardDescription>
+        <CardDescription className="text-xs">
+          {connection.description}
+        </CardDescription>
       </CardHeader>
     </Card>
   );
