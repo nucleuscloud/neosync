@@ -160,9 +160,10 @@ func getCombinedScopesAndPermissions(scope string, permissions []string) []strin
 }
 
 func GetTokenDataFromCtx(ctx context.Context) (*TokenContextData, error) {
-	data, ok := ctx.Value(TokenContextKey{}).(*TokenContextData)
+	val := ctx.Value(TokenContextKey{})
+	data, ok := val.(*TokenContextData)
 	if !ok {
-		return nil, nucleuserrors.NewUnauthenticated("ctx does not contain TokenContextData or unable to cast struct")
+		return nil, nucleuserrors.NewUnauthenticated(fmt.Sprintf("ctx does not contain TokenContextData or unable to cast struct: %T", val))
 	}
 	return data, nil
 }

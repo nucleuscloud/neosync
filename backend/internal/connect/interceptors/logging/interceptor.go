@@ -3,28 +3,30 @@ package logging_interceptor
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"time"
 
 	"connectrpc.com/connect"
+	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 )
 
 type Interceptor struct {
-	logger *slog.Logger
 }
 
-func NewInterceptor(logger *slog.Logger) connect.Interceptor {
-	return &Interceptor{logger: logger}
+func NewInterceptor() connect.Interceptor {
+	return &Interceptor{}
 }
 
 func (i *Interceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
 	return func(ctx context.Context, request connect.AnyRequest) (connect.AnyResponse, error) {
+		logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+		logger = logger.With("procedure", request.Spec().Procedure)
+		ctx = logger_interceptor.SetLoggerContext(ctx, logger)
+
 		now := time.Now()
-		i.logger.Info(
+		logger.Info(
 			"started call",
 			"time_ms", fmt.Sprintf("%d", now.UnixMilli()),
 			"stream_type", request.Spec().StreamType.String(),
-			"procedure", request.Spec().Procedure,
 			"http_method", request.HTTPMethod(),
 			"peer_protocol", request.Peer().Protocol,
 		)
@@ -34,7 +36,6 @@ func (i *Interceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
 			"time_ms", fmt.Sprintf("%d", endNow.UnixMilli()),
 			"duration_ms", fmt.Sprintf("%d", endNow.Sub(now).Milliseconds()),
 			"stream_type", request.Spec().StreamType.String(),
-			"procedure", request.Spec().Procedure,
 			"http_method", request.HTTPMethod(),
 			"peer_protocol", request.Peer().Protocol,
 		}
@@ -48,16 +49,16 @@ func (i *Interceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
 				fields = append(fields, "connect.code", connect.CodeInternal.String())
 			}
 
-			i.logger.Error(err.Error(), fields...)
+			logger.Error(err.Error(), fields...)
 
-			i.logger.Info(
+			logger.Info(
 				"finished call",
 				fields...,
 			)
 			return nil, err
 		}
 		fields = append(fields, "connect.code", "ok")
-		i.logger.Info(
+		logger.Info(
 			"finished call",
 			fields...,
 		)
@@ -73,12 +74,15 @@ func (i *Interceptor) WrapStreamingClient(next connect.StreamingClientFunc) conn
 
 func (i *Interceptor) WrapStreamingHandler(next connect.StreamingHandlerFunc) connect.StreamingHandlerFunc {
 	return func(ctx context.Context, conn connect.StreamingHandlerConn) error {
+		logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+		logger = logger.With("procedure", conn.Spec().Procedure)
+		ctx = logger_interceptor.SetLoggerContext(ctx, logger)
+
 		now := time.Now()
-		i.logger.Info(
+		logger.Info(
 			"started call",
 			"time_ms", fmt.Sprintf("%d", now.UnixMilli()),
 			"stream_type", conn.Spec().StreamType.String(),
-			"procedure", conn.Spec().Procedure,
 			"peer_protocol", conn.Peer().Protocol,
 		)
 		err := next(ctx, conn)
@@ -87,7 +91,6 @@ func (i *Interceptor) WrapStreamingHandler(next connect.StreamingHandlerFunc) co
 			"time_ms", fmt.Sprintf("%d", endNow.UnixMilli()),
 			"duration_ms", fmt.Sprintf("%d", endNow.Sub(now).Milliseconds()),
 			"stream_type", conn.Spec().StreamType.String(),
-			"procedure", conn.Spec().Procedure,
 			"peer_protocol", conn.Peer().Protocol,
 		}
 		if err != nil {
@@ -97,14 +100,14 @@ func (i *Interceptor) WrapStreamingHandler(next connect.StreamingHandlerFunc) co
 				fields = append(fields, "connect.code", connectErr.Code().String())
 			}
 
-			i.logger.Info(
+			logger.Info(
 				"finished call",
 				fields...,
 			)
 			return err
 		}
 		fields = append(fields, "connect.code", "ok")
-		i.logger.Info(
+		logger.Info(
 			"finished call",
 			fields...,
 		)
