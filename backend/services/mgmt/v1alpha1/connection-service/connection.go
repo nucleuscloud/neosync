@@ -37,7 +37,6 @@ func (s *Service) CheckConnectionConfig(
 		schemaTablePrivsMap := make(map[string][]string)
 
 		conn, err := s.sqlConnector.NewPgPoolFromConnectionConfig(req.Msg.GetConnectionConfig().GetPgConfig(), &connectionTimeout, logger)
-
 		if err != nil {
 			return nil, err
 		}
@@ -46,14 +45,10 @@ func (s *Service) CheckConnectionConfig(
 		if err != nil {
 			return nil, err
 		}
-
 		defer conn.Close()
 
 		cctx, cancel := context.WithCancel(ctx)
 		defer cancel()
-		if err != nil {
-			return nil, err
-		}
 
 		switch config := req.Msg.ConnectionConfig.GetPgConfig().ConnectionConfig.(type) {
 		case *mgmtv1alpha1.PostgresConnectionConfig_Connection:
@@ -61,7 +56,11 @@ func (s *Service) CheckConnectionConfig(
 		case *mgmtv1alpha1.PostgresConnectionConfig_Url:
 			u, err := url.Parse(config.Url)
 			if err != nil {
-				return nil, err
+				var urlErr *url.Error
+				if errors.As(err, &urlErr) {
+					return nil, fmt.Errorf("unable to parse postgres url [%s]: %w", urlErr.Op, urlErr.Err)
+				}
+				return nil, fmt.Errorf("unable to parse postgres url: %w", err)
 			}
 			role = u.User.Username()
 		}
@@ -114,9 +113,6 @@ func (s *Service) CheckConnectionConfig(
 
 		cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 		defer cancel()
-		if err != nil {
-			return nil, err
-		}
 
 		err = db.PingContext(cctx)
 		if err != nil {
