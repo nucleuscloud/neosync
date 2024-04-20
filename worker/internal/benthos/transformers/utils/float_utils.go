@@ -25,7 +25,6 @@ func GenerateRandomFloat64WithInclusiveBounds(min, max float64) (float64, error)
 
 	// Scale and shift the value to the range
 	returnValue := min + randValue*(max-min)
-
 	return returnValue, nil
 }
 
@@ -65,18 +64,6 @@ func IsNegativeFloat64(val float64) bool {
 	} else {
 		return true
 	}
-}
-
-func IsFloat64InRandomizationRange(value, rMin, rMax float64) bool {
-	if rMin > rMax {
-		rMin, rMax = rMax, rMin
-	}
-
-	if rMin == rMax {
-		return value == rMin
-	}
-
-	return value >= rMin && value <= rMax
 }
 
 type FloatLength struct {

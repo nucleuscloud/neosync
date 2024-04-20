@@ -19,10 +19,6 @@ func init() {
 			return nil, err
 		}
 
-		var value float64
-		if valuePtr != nil {
-			value = *valuePtr
-		}
 		rMin, err := args.GetFloat64("randomization_range_min")
 		if err != nil {
 			return nil, err
@@ -33,7 +29,7 @@ func init() {
 			return nil, err
 		}
 		return func() (any, error) {
-			res, err := TransformFloat(value, rMin, rMax)
+			res, err := transformFloat(valuePtr, rMin, rMax)
 			if err != nil {
 				return nil, fmt.Errorf("unable to run transform_float64: %w", err)
 			}
@@ -46,25 +42,17 @@ func init() {
 	}
 }
 
-func TransformFloat(value, rMin, rMax float64) (*float64, error) {
-	if value == 0 {
+func transformFloat(value *float64, rMin, rMax float64) (*float64, error) {
+	if value == nil {
 		return nil, nil
 	}
 
-	// require that the value is in the randomization range so that we can transform it otherwise, should use the generate_int transformer
-
-	if !transformer_utils.IsFloat64InRandomizationRange(value, rMin, rMax) {
-		zeroVal := float64(0)
-		return &zeroVal, fmt.Errorf("the value is not the provided range")
-	}
-
-	minRange := value - rMin
-	maxRange := value + rMax
+	minRange := *value - rMin
+	maxRange := *value + rMax
 
 	val, err := transformer_utils.GenerateRandomFloat64WithInclusiveBounds(minRange, maxRange)
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate a random float64 with inclusive bounds with length [%f:%f]: %w", minRange, maxRange, err)
 	}
-
 	return &val, nil
 }
