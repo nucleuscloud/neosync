@@ -19,11 +19,6 @@ func init() {
 			return nil, err
 		}
 
-		var value int64
-		if valuePtr != nil {
-			value = *valuePtr
-		}
-
 		rMin, err := args.GetInt64("randomization_range_min")
 		if err != nil {
 			return nil, err
@@ -34,7 +29,7 @@ func init() {
 			return nil, err
 		}
 		return func() (any, error) {
-			res, err := TransformInt(value, rMin, rMax)
+			res, err := transformInt(valuePtr, rMin, rMax)
 			if err != nil {
 				return nil, fmt.Errorf("unable to run transform_int64: %w", err)
 			}
@@ -47,21 +42,13 @@ func init() {
 	}
 }
 
-func TransformInt(value, rMin, rMax int64) (*int64, error) {
-	if value == 0 {
+func transformInt(value *int64, rMin, rMax int64) (*int64, error) {
+	if value == nil {
 		return nil, nil
 	}
 
-	// require that the value is in the randomization range so that we can transform it
-	// otherwise, should use the generate_int transformer
-
-	if !transformer_utils.IsIntInRandomizationRange(value, rMin, rMax) {
-		zeroVal := int64(0)
-		return &zeroVal, fmt.Errorf("the value is not the provided range")
-	}
-
-	minRange := value - rMin
-	maxRange := value + rMax
+	minRange := *value - rMin
+	maxRange := *value + rMax
 
 	val, err := transformer_utils.GenerateRandomInt64InValueRange(minRange, maxRange)
 	if err != nil {
