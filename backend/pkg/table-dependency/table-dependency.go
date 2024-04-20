@@ -338,7 +338,12 @@ func getMultiTableCircularDependencies(dependencyMap map[string][]string) [][]st
 	return multiTableCycles
 }
 
-func GetTablesOrderedByDependency(dependencyMap map[string][]string) ([]string, bool, error) {
+type OrderedTablesResult struct {
+	OrderedTables []string
+	HasCycles     bool
+}
+
+func GetTablesOrderedByDependency(dependencyMap map[string][]string) (*OrderedTablesResult, error) {
 	hasCycles := false
 	cycles := getMultiTableCircularDependencies(dependencyMap)
 	if len(cycles) > 0 {
@@ -364,7 +369,7 @@ func GetTablesOrderedByDependency(dependencyMap map[string][]string) ([]string, 
 	for len(tableMap) > 0 {
 		// prevents looping forever
 		if prevTableLen == len(tableMap) {
-			return nil, false, fmt.Errorf("unable to build table order")
+			return nil, fmt.Errorf("unable to build table order")
 		}
 		prevTableLen = len(tableMap)
 		for table := range tableMap {
@@ -377,7 +382,7 @@ func GetTablesOrderedByDependency(dependencyMap map[string][]string) ([]string, 
 		}
 	}
 
-	return orderedTables, hasCycles, nil
+	return &OrderedTablesResult{OrderedTables: orderedTables, HasCycles: hasCycles}, nil
 }
 
 func isReady(seen map[string]struct{}, deps []string, table string, cycles [][]string) bool {

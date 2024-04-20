@@ -560,15 +560,15 @@ func runDestinationInitStatements(ctx context.Context, cmd *cmdConfig, syncConfi
 		}
 		defer pool.Close()
 		if cmd.Destination.InitSchema {
-			orderedTables, hasCycles, err := tabledependency.GetTablesOrderedByDependency(dependencyMap)
+			orderedTablesResp, err := tabledependency.GetTablesOrderedByDependency(dependencyMap)
 			if err != nil {
 				return err
 			}
-			if hasCycles {
+			if orderedTablesResp.HasCycles {
 				return errors.New("init schema: unable to handle circular dependencies")
 			}
 			orderedInitStatements := []string{}
-			for _, t := range orderedTables {
+			for _, t := range orderedTablesResp.OrderedTables {
 				orderedInitStatements = append(orderedInitStatements, schemaConfig.InitTableStatementsMap[t])
 			}
 			err = dbschemas_postgres.BatchExecStmts(ctx, pool, batchSize, orderedInitStatements)
@@ -592,11 +592,11 @@ func runDestinationInitStatements(ctx context.Context, cmd *cmdConfig, syncConfi
 				return err
 			}
 		} else if cmd.Destination.TruncateBeforeInsert {
-			orderedTables, _, err := tabledependency.GetTablesOrderedByDependency(dependencyMap)
+			orderedTablesResp, err := tabledependency.GetTablesOrderedByDependency(dependencyMap)
 			if err != nil {
 				return err
 			}
-			orderedTruncateStatement := dbschemas_postgres.BuildTruncateStatement(orderedTables)
+			orderedTruncateStatement := dbschemas_postgres.BuildTruncateStatement(orderedTablesResp.OrderedTables)
 			err = dbschemas_postgres.BatchExecStmts(ctx, pool, batchSize, []string{orderedTruncateStatement})
 			if err != nil {
 				fmt.Println("Error truncating tables:", err) //nolint:forbidigo
@@ -604,16 +604,16 @@ func runDestinationInitStatements(ctx context.Context, cmd *cmdConfig, syncConfi
 			}
 		}
 	} else if cmd.Destination.Driver == mysqlDriver {
-		orderedTables, hasCycles, err := tabledependency.GetTablesOrderedByDependency(dependencyMap)
+		orderedTablesResp, err := tabledependency.GetTablesOrderedByDependency(dependencyMap)
 		if err != nil {
 			return err
 		}
-		if cmd.Destination.InitSchema && hasCycles {
+		if cmd.Destination.InitSchema && orderedTablesResp.HasCycles {
 			return errors.New("init schema: unable to handle circular dependencies")
 		}
 		orderedInitStatements := []string{}
 		orderedTableTruncateStatements := []string{}
-		for _, t := range orderedTables {
+		for _, t := range orderedTablesResp.OrderedTables {
 			orderedInitStatements = append(orderedInitStatements, schemaConfig.InitTableStatementsMap[t])
 			orderedTableTruncateStatements = append(orderedTableTruncateStatements, schemaConfig.TruncateTableStatementsMap[t])
 		}
