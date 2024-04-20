@@ -29,7 +29,6 @@ type ConstraintColumns struct {
 }
 
 func GetRunConfigs(dependencies dbschemas.TableDependency, tables []string, subsets map[string]string) []*RunConfig {
-	depsMap := map[string][]string{}
 	filteredDepsMap := map[string][]string{}        // only include tables that are in tables arg list
 	foreignKeyMap := map[string]map[string]string{} // map: table -> foreign key table -> foreign key column
 	configs := []*RunConfig{}
@@ -37,7 +36,6 @@ func GetRunConfigs(dependencies dbschemas.TableDependency, tables []string, subs
 	for table, constraints := range dependencies {
 		foreignKeyMap[table] = map[string]string{}
 		for _, constraint := range constraints.Constraints {
-			depsMap[table] = append(depsMap[table], constraint.ForeignKey.Table)
 			foreignKeyMap[table][constraint.ForeignKey.Table] = constraint.ForeignKey.Column
 			if slices.Contains(tables, table) && slices.Contains(tables, constraint.ForeignKey.Table) {
 				filteredDepsMap[table] = append(filteredDepsMap[table], constraint.ForeignKey.Table)
@@ -340,10 +338,16 @@ func getMultiTableCircularDependencies(dependencyMap map[string][]string) [][]st
 	return multiTableCycles
 }
 
-func GetTablesOrderedByDependency(dependencyMap map[string][]string) ([]string, error) {
+type OrderedTablesResult struct {
+	OrderedTables []string
+	HasCycles     bool
+}
+
+func GetTablesOrderedByDependency(dependencyMap map[string][]string) (*OrderedTablesResult, error) {
+	hasCycles := false
 	cycles := getMultiTableCircularDependencies(dependencyMap)
 	if len(cycles) > 0 {
-		return nil, fmt.Errorf("unable to handle circular dependencies: %+v", cycles)
+		hasCycles = true
 	}
 
 	tableMap := map[string]struct{}{}
@@ -370,7 +374,7 @@ func GetTablesOrderedByDependency(dependencyMap map[string][]string) ([]string, 
 		prevTableLen = len(tableMap)
 		for table := range tableMap {
 			deps := dependencyMap[table]
-			if isReady(seenTables, deps, table) {
+			if isReady(seenTables, deps, table, cycles) {
 				orderedTables = append(orderedTables, table)
 				seenTables[table] = struct{}{}
 				delete(tableMap, table)
@@ -378,11 +382,23 @@ func GetTablesOrderedByDependency(dependencyMap map[string][]string) ([]string, 
 		}
 	}
 
-	return orderedTables, nil
+	return &OrderedTablesResult{OrderedTables: orderedTables, HasCycles: hasCycles}, nil
 }
 
-func isReady(seen map[string]struct{}, deps []string, table string) bool {
+func isReady(seen map[string]struct{}, deps []string, table string, cycles [][]string) bool {
+	// allow circular dependencies
+	circularDeps := getTableCirularDependencies(table, cycles)
+	circularDepsMap := map[string]struct{}{}
+	for _, cycle := range circularDeps {
+		for _, t := range cycle {
+			circularDepsMap[t] = struct{}{}
+		}
+	}
 	for _, d := range deps {
+		_, cdOk := circularDepsMap[d]
+		if cdOk {
+			return true
+		}
 		_, ok := seen[d]
 		// allow self dependencies
 		if !ok && d != table {

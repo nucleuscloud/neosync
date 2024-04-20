@@ -694,8 +694,12 @@ func Test_GetTablesOrderedByDependency_CircularDependency(t *testing.T) {
 		"c": {"a"},
 	}
 
-	_, err := GetTablesOrderedByDependency(dependencies)
-	assert.Error(t, err)
+	resp, err := GetTablesOrderedByDependency(dependencies)
+	assert.NoError(t, err)
+	assert.Equal(t, resp.HasCycles, true)
+	for _, e := range resp.OrderedTables {
+		assert.Contains(t, []string{"a", "b", "c"}, e)
+	}
 }
 
 func Test_GetTablesOrderedByDependency_Dependencies(t *testing.T) {
@@ -712,7 +716,9 @@ func Test_GetTablesOrderedByDependency_Dependencies(t *testing.T) {
 
 	actual, err := GetTablesOrderedByDependency(dependencies)
 	assert.NoError(t, err)
-	for idx, table := range actual {
+	assert.Equal(t, actual.HasCycles, false)
+
+	for idx, table := range actual.OrderedTables {
 		assert.Contains(t, expected[idx], table)
 	}
 }
@@ -728,11 +734,12 @@ func Test_GetTablesOrderedByDependency_Mixed(t *testing.T) {
 	expected := []string{"countries", "regions", "jobs", "locations"}
 	actual, err := GetTablesOrderedByDependency(dependencies)
 	assert.NoError(t, err)
-	assert.Len(t, actual, len(expected))
-	for _, table := range actual {
+	assert.Equal(t, actual.HasCycles, false)
+	assert.Len(t, actual.OrderedTables, len(expected))
+	for _, table := range actual.OrderedTables {
 		assert.Contains(t, expected, table)
 	}
-	assert.Equal(t, "locations", actual[len(actual)-1])
+	assert.Equal(t, "locations", actual.OrderedTables[len(actual.OrderedTables)-1])
 }
 
 func Test_GetTablesOrderedByDependency_BrokenDependencies_NoLoop(t *testing.T) {
@@ -758,7 +765,8 @@ func Test_GetTablesOrderedByDependency_NestedDependencies(t *testing.T) {
 	expected := []string{"d", "c", "b", "a"}
 	actual, err := GetTablesOrderedByDependency(dependencies)
 	assert.NoError(t, err)
-	assert.Equal(t, expected[0], actual[0])
+	assert.Equal(t, expected[0], actual.OrderedTables[0])
+	assert.Equal(t, actual.HasCycles, false)
 }
 
 func TestCycleKey(t *testing.T) {
