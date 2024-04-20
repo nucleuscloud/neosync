@@ -92,24 +92,6 @@ func Test_IsNegativeFloatFalse(t *testing.T) {
 	assert.False(t, val, "The value should be positive")
 }
 
-func Test_IsFloat64InRandomizationRangeTrue(t *testing.T) {
-	val := float64(27)
-	rMin := float64(22)
-	rMax := float64(29)
-
-	res := IsFloat64InRandomizationRange(val, rMin, rMax)
-	assert.Equal(t, true, res, "The value should be in the range")
-}
-
-func Test_IsFloat64InRandomizationRangeFalse(t *testing.T) {
-	val := float64(27)
-	rMin := float64(22)
-	rMax := float64(25)
-
-	res := IsFloat64InRandomizationRange(val, rMin, rMax)
-	assert.Equal(t, false, res, "The value should not be in the range")
-}
-
 func Test_GetFloatLength(t *testing.T) {
 	val := float64(3.14)
 	res := GetFloatLength(val)

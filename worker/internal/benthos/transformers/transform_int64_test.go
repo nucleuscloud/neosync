@@ -5,42 +5,32 @@ import (
 	"testing"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
-	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
-
-func Test_TransformIntErrorNotInRange(t *testing.T) {
-	val := int64(27)
-	rMin := int64(22)
-	rMax := int64(25)
-
-	res := transformer_utils.IsIntInRandomizationRange(val, rMin, rMax)
-	assert.Equal(t, false, res, "The value should not be in the range")
-}
 
 func Test_TransformIntInRange(t *testing.T) {
 	val := int64(27)
-	rMin := int64(22)
-	rMax := int64(29)
+	rMin := int64(5)
+	rMax := int64(5)
 
-	res, err := TransformInt(val, rMin, rMax)
-	assert.NoError(t, err)
+	res, err := transformInt(&val, rMin, rMax)
+	require.NoError(t, err)
 
-	assert.GreaterOrEqual(t, *res, val-rMin, "The result should be greater than the min")
-	assert.LessOrEqual(t, *res, val+rMax, "The result should be less than the max")
+	require.GreaterOrEqual(t, *res, val-rMin, "The result should be greater than the min")
+	require.LessOrEqual(t, *res, val+rMax, "The result should be less than the max")
 }
 
-func Test_TransformIntPhoneTransformerWithNilValue(t *testing.T) {
+func Test_TransformInt64_Benthos(t *testing.T) {
 	val := int64(27)
-	rMin := int64(22)
-	rMax := int64(29)
+	rMin := int64(5)
+	rMax := int64(5)
 
 	mapping := fmt.Sprintf(`root = transform_int64(value:%d, randomization_range_min:%d,randomization_range_max: %d)`, val, rMin, rMax)
 	ex, err := bloblang.Parse(mapping)
-	assert.NoError(t, err, "failed to parse the email transformer")
+	require.NoError(t, err, "failed to parse the email transformer")
 
 	res, err := ex.Query(nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	resInt, ok := res.(*int64)
 	if !ok {
@@ -49,9 +39,9 @@ func Test_TransformIntPhoneTransformerWithNilValue(t *testing.T) {
 	}
 
 	if resInt != nil {
-		assert.GreaterOrEqual(t, *resInt, val-rMin, "The result should be greater than the min")
-		assert.LessOrEqual(t, *resInt, val+rMax, "The result should be less than the max")
+		require.GreaterOrEqual(t, *resInt, val-rMin, "The result should be greater than the min")
+		require.LessOrEqual(t, *resInt, val+rMax, "The result should be less than the max")
 	} else {
-		assert.Error(t, err, "Expected the pointer to resolve to an int64")
+		require.Error(t, err, "Expected the pointer to resolve to an int64")
 	}
 }

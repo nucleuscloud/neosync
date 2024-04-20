@@ -92,18 +92,6 @@ func AbsInt[T int | int64 | int32 | uint | uint32 | uint64](n T) T {
 	return n
 }
 
-func IsIntInRandomizationRange[T int | int64 | int32 | uint | uint32 | uint64](value, rMin, rMax T) bool {
-	if rMin > rMax {
-		rMin, rMax = rMax, rMin
-	}
-
-	if rMin == rMax {
-		return value == rMin
-	}
-
-	return value >= rMin && value <= rMax
-}
-
 func MinInt[T int | int64 | int32 | uint | uint32 | uint64](a, b T) T {
 	if a < b {
 		return a

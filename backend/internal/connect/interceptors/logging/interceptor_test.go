@@ -12,12 +12,13 @@ import (
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_Interceptor_WrapUnary_Without_Error(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	interceptor := NewInterceptor(logger)
+	interceptor := NewInterceptor()
 
 	mux := http.NewServeMux()
 	mux.Handle(mgmtv1alpha1connect.UserAccountServiceGetUserProcedure, connect.NewUnaryHandler(
@@ -25,7 +26,7 @@ func Test_Interceptor_WrapUnary_Without_Error(t *testing.T) {
 		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetUserRequest]) (*connect.Response[mgmtv1alpha1.GetUserResponse], error) {
 			return connect.NewResponse(&mgmtv1alpha1.GetUserResponse{UserId: "123"}), nil
 		},
-		connect.WithInterceptors(interceptor),
+		connect.WithInterceptors(logger_interceptor.NewInterceptor(logger), interceptor),
 	))
 	srv := startHTTPServer(t, mux)
 
@@ -36,7 +37,7 @@ func Test_Interceptor_WrapUnary_Without_Error(t *testing.T) {
 
 func Test_Interceptor_WrapUnary_With_Generic_Error(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	interceptor := NewInterceptor(logger)
+	interceptor := NewInterceptor()
 
 	mux := http.NewServeMux()
 	mux.Handle(mgmtv1alpha1connect.UserAccountServiceGetUserProcedure, connect.NewUnaryHandler(
@@ -44,7 +45,7 @@ func Test_Interceptor_WrapUnary_With_Generic_Error(t *testing.T) {
 		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetUserRequest]) (*connect.Response[mgmtv1alpha1.GetUserResponse], error) {
 			return nil, errors.New("test")
 		},
-		connect.WithInterceptors(interceptor),
+		connect.WithInterceptors(logger_interceptor.NewInterceptor(logger), interceptor),
 	))
 	srv := startHTTPServer(t, mux)
 
@@ -55,7 +56,7 @@ func Test_Interceptor_WrapUnary_With_Generic_Error(t *testing.T) {
 
 func Test_Interceptor_WrapUnary_With_Connect_Error(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	interceptor := NewInterceptor(logger)
+	interceptor := NewInterceptor()
 
 	mux := http.NewServeMux()
 	mux.Handle(mgmtv1alpha1connect.UserAccountServiceGetUserProcedure, connect.NewUnaryHandler(
@@ -63,7 +64,7 @@ func Test_Interceptor_WrapUnary_With_Connect_Error(t *testing.T) {
 		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetUserRequest]) (*connect.Response[mgmtv1alpha1.GetUserResponse], error) {
 			return nil, connect.NewError(connect.CodeNotFound, errors.New("test"))
 		},
-		connect.WithInterceptors(interceptor),
+		connect.WithInterceptors(logger_interceptor.NewInterceptor(logger), interceptor),
 	))
 	srv := startHTTPServer(t, mux)
 
