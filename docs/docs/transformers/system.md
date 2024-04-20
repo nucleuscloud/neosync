@@ -709,16 +709,16 @@ The transform float transformer can anonymize an existing float64 value or gener
 For example:
 `32.2432`
 
-The params `randomizationRangeMin` and `randomizationRangeMax` set an upper and lower bound around the value that you want to anonymize. For example, if the input value is 10, and you set the `randomizationRangeMin` value to 5, then the maximum range will be 5. And if you set the `randomizationRangeMax` to 5, then the maximum range will be 15 ( 10 + 5 = 15).
+The params `randomizationRangeMin` and `randomizationRangeMax` set an upper and lower bound around the value that you want to anonymize relative to the input. For example, if the input value is 10, and you set the `randomizationRangeMin` value to 5, then the minimum will be 5. And if you set the `randomizationRangeMax` to 5, then the maximum will be 15 ( 10 + 5 = 15).
 
 **Configurations**
 
 Depending on your validations, you may want to configure the output float. The random float transformer has the following configurations:
 
-| Name                    | Description                                          | Default | Example Input | Example Output |
-| ----------------------- | ---------------------------------------------------- | ------- | ------------- | -------------- |
-| Randomization Range Min | Sets the lower bound of a range for the input value. | 20.00   | 50.23         | 43.30          |
-| Randomization Range Max | Sets the upper bound of a range for the input value. | 50.00   | 20.00         | 69.523         |
+| Name               | Description                                          | Default |
+| ------------------ | ---------------------------------------------------- | ------- |
+| Relative Range Min | Sets the lower bound of a range for the input value. | 20.00   |
+| Relative Range Max | Sets the upper bound of a range for the input value. | 50.00   |
 
 **Examples**
 
@@ -790,26 +790,24 @@ The random integer transformer generates a random integer.
 For example:
 `6782`
 
-By default, the random int transformer generates an integer of 4 digits long.
-
 **Configurations**
 
 Depending on your validations, you may want to configure the output integer. The random integer transformer has the following configurations:
 
-| Name                    | Description                                          | Default | Example Input | Example Output |
-| ----------------------- | ---------------------------------------------------- | ------- | ------------- | -------------- |
-| Randomization Range Min | Sets the lower bound of a range for the input value. | 20      | 50            | 43             |
-| Randomization Range Max | Sets the upper bound of a range for the input value. | 50      | 20            | 69             |
+| Name               | Description                                                  | Default |
+| ------------------ | ------------------------------------------------------------ | ------- |
+| Relative Range Min | Sets the lower bound of a range relative to the input value. | 20      |
+| Relative Range Max | Sets the upper bound of a range relative to the input value. | 50      |
 
 **Examples**
 
 There are several ways you can mix-and-match configurations to get different potential random int64 values. Here are some possible combinations:
 
-| Randomization Range Min | Randomization Range Max | Example Input | Example Output |
-| ----------------------- | ----------------------- | ------------- | -------------- |
-| 5                       | 50                      | 10            | 43             |
-| 10                      | 70                      | 23            | 91             |
-| 20                      | 90                      | 30            | 27             |
+| Relative Range Min | Relative Range Max | Example Input | Example Output |
+| ------------------ | ------------------ | ------------- | -------------- |
+| 5                  | 5                  | 10            | 15             |
+| 10                 | 70                 | 23            | 91             |
+| 20                 | 90                 | 30            | 27             |
 
 ### Transform Last Name\{#transform-last-name}
 
