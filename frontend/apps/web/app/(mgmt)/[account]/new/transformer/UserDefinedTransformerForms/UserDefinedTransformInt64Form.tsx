@@ -37,7 +37,7 @@ export default function UserDefinedTransformInt64Form(
             <div className="space-y-0.5">
               <FormLabel>Minimum Range Value</FormLabel>
               <FormDescription className="w-[90%]">
-                Sets a minium lower range value. This will create an lowerbound
+                Sets a minium lower range value. This will create a lowerbound
                 around the source input value. For example, if the input value
                 is 10, and you set this value to 5, then the maximum range will
                 be 5.
@@ -71,7 +71,7 @@ export default function UserDefinedTransformInt64Form(
         render={({ field }) => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border dark:border-gray-700 p-3 shadow-sm">
             <div className="space-y-0.5">
-              <FormLabel>Maxiumum Range Value</FormLabel>
+              <FormLabel>Maximum Range Value</FormLabel>
               <FormDescription className="w-[90%]">
                 Sets a maximum upper range value. This will create an upperbound
                 around the source input value. For example, if the input value
