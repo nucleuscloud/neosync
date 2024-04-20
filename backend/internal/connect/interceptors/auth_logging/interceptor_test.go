@@ -52,6 +52,30 @@ func Test_Interceptor_WrapUnary_JwtContextData_ValidUser(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func Test_Interceptor_WrapUnary_JwtContextData_NoUser_NoFail(t *testing.T) {
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+
+	mockDbtx := nucleusdb.NewMockDBTX(t)
+	mockQuerier := db_queries.NewMockQuerier(t)
+
+	mux := http.NewServeMux()
+	mux.Handle(mgmtv1alpha1connect.UserAccountServiceGetUserProcedure, connect.NewUnaryHandler(
+		mgmtv1alpha1connect.UserAccountServiceGetUserProcedure,
+		func(ctx context.Context, r *connect.Request[mgmtv1alpha1.GetUserRequest]) (*connect.Response[mgmtv1alpha1.GetUserResponse], error) {
+			return connect.NewResponse(&mgmtv1alpha1.GetUserResponse{UserId: "123"}), nil
+		},
+		connect.WithInterceptors(
+			logger_interceptor.NewInterceptor(logger),
+			NewInterceptor(nucleusdb.New(mockDbtx, mockQuerier)),
+		),
+	))
+
+	srv := startHTTPServer(t, mux)
+	client := mgmtv1alpha1connect.NewUserAccountServiceClient(srv.Client(), srv.URL)
+	_, err := client.GetUser(context.Background(), connect.NewRequest(&mgmtv1alpha1.GetUserRequest{}))
+	require.NoError(t, err)
+}
+
 type mockAuthInterceptor struct {
 	data *auth_jwt.TokenContextData
 }
