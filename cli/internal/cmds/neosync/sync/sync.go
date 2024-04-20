@@ -560,9 +560,12 @@ func runDestinationInitStatements(ctx context.Context, cmd *cmdConfig, syncConfi
 		}
 		defer pool.Close()
 		if cmd.Destination.InitSchema {
-			orderedTables, err := tabledependency.GetTablesOrderedByDependency(dependencyMap)
+			orderedTables, hasCycles, err := tabledependency.GetTablesOrderedByDependency(dependencyMap)
 			if err != nil {
 				return err
+			}
+			if hasCycles {
+				return errors.New("init schema: unable to handle circular dependencies")
 			}
 			orderedInitStatements := []string{}
 			for _, t := range orderedTables {
@@ -589,7 +592,7 @@ func runDestinationInitStatements(ctx context.Context, cmd *cmdConfig, syncConfi
 				return err
 			}
 		} else if cmd.Destination.TruncateBeforeInsert {
-			orderedTables, err := tabledependency.GetTablesOrderedByDependency(dependencyMap)
+			orderedTables, _, err := tabledependency.GetTablesOrderedByDependency(dependencyMap)
 			if err != nil {
 				return err
 			}
@@ -601,9 +604,12 @@ func runDestinationInitStatements(ctx context.Context, cmd *cmdConfig, syncConfi
 			}
 		}
 	} else if cmd.Destination.Driver == mysqlDriver {
-		orderedTables, err := tabledependency.GetTablesOrderedByDependency(dependencyMap)
+		orderedTables, hasCycles, err := tabledependency.GetTablesOrderedByDependency(dependencyMap)
 		if err != nil {
 			return err
+		}
+		if cmd.Destination.InitSchema && hasCycles {
+			return errors.New("init schema: unable to handle circular dependencies")
 		}
 		orderedInitStatements := []string{}
 		orderedTableTruncateStatements := []string{}

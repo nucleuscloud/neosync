@@ -216,10 +216,14 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				// create statements
 				if initSchema {
 					tableForeignDependencyMap := getFilteredForeignToPrimaryTableMap(tableDependencies, uniqueTables)
-					orderedTables, err := tabledependency.GetTablesOrderedByDependency(tableForeignDependencyMap)
+					orderedTables, hasCycles, err := tabledependency.GetTablesOrderedByDependency(tableForeignDependencyMap)
 					if err != nil {
 						return nil, err
 					}
+					if hasCycles {
+						return nil, errors.New("init schema: unable to handle circular dependencies")
+					}
+
 					tableCreateStmts := []string{}
 					for _, table := range orderedTables {
 						split := strings.Split(table, ".")
@@ -259,7 +263,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					}
 				} else if truncateBeforeInsert {
 					tablePrimaryDependencyMap := getFilteredForeignToPrimaryTableMap(tableDependencies, uniqueTables)
-					orderedTables, err := tabledependency.GetTablesOrderedByDependency(tablePrimaryDependencyMap)
+					orderedTables, _, err := tabledependency.GetTablesOrderedByDependency(tablePrimaryDependencyMap)
 					if err != nil {
 						return nil, err
 					}
@@ -314,9 +318,12 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				// create statements
 				if initSchema {
 					tableForeignDependencyMap := getFilteredForeignToPrimaryTableMap(tableDependencies, uniqueTables)
-					orderedTables, err := tabledependency.GetTablesOrderedByDependency(tableForeignDependencyMap)
+					orderedTables, hasCycles, err := tabledependency.GetTablesOrderedByDependency(tableForeignDependencyMap)
 					if err != nil {
 						return nil, err
+					}
+					if hasCycles {
+						return nil, errors.New("init schema: unable to handle circular dependencies")
 					}
 					// todo: make this more efficient to reduce amount of times we have to connect to the source database
 					tableCreateStmts := []string{}

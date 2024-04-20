@@ -694,8 +694,10 @@ func Test_GetTablesOrderedByDependency_CircularDependency(t *testing.T) {
 		"c": {"a"},
 	}
 
-	_, err := GetTablesOrderedByDependency(dependencies)
-	assert.Error(t, err)
+	resp, hasCycles, err := GetTablesOrderedByDependency(dependencies)
+	assert.NoError(t, err)
+	assert.Equal(t, resp, []string{"a", "b", "c"})
+	assert.Equal(t, hasCycles, true)
 }
 
 func Test_GetTablesOrderedByDependency_Dependencies(t *testing.T) {
@@ -710,8 +712,10 @@ func Test_GetTablesOrderedByDependency_Dependencies(t *testing.T) {
 	}
 	expected := [][]string{{"regions", "jobs"}, {"regions", "jobs"}, {"countries"}, {"locations"}, {"departments"}, {"employees"}, {"dependents"}}
 
-	actual, err := GetTablesOrderedByDependency(dependencies)
+	actual, hasCycles, err := GetTablesOrderedByDependency(dependencies)
 	assert.NoError(t, err)
+	assert.Equal(t, hasCycles, false)
+
 	for idx, table := range actual {
 		assert.Contains(t, expected[idx], table)
 	}
@@ -726,8 +730,9 @@ func Test_GetTablesOrderedByDependency_Mixed(t *testing.T) {
 	}
 
 	expected := []string{"countries", "regions", "jobs", "locations"}
-	actual, err := GetTablesOrderedByDependency(dependencies)
+	actual, hasCycles, err := GetTablesOrderedByDependency(dependencies)
 	assert.NoError(t, err)
+	assert.Equal(t, hasCycles, false)
 	assert.Len(t, actual, len(expected))
 	for _, table := range actual {
 		assert.Contains(t, expected, table)
@@ -743,8 +748,9 @@ func Test_GetTablesOrderedByDependency_BrokenDependencies_NoLoop(t *testing.T) {
 		"jobs":      {"b"},
 	}
 
-	_, err := GetTablesOrderedByDependency(dependencies)
+	_, hasCycles, err := GetTablesOrderedByDependency(dependencies)
 	assert.Error(t, err)
+	assert.Equal(t, hasCycles, false)
 }
 
 func Test_GetTablesOrderedByDependency_NestedDependencies(t *testing.T) {
@@ -756,9 +762,10 @@ func Test_GetTablesOrderedByDependency_NestedDependencies(t *testing.T) {
 	}
 
 	expected := []string{"d", "c", "b", "a"}
-	actual, err := GetTablesOrderedByDependency(dependencies)
+	actual, hasCycles, err := GetTablesOrderedByDependency(dependencies)
 	assert.NoError(t, err)
 	assert.Equal(t, expected[0], actual[0])
+	assert.Equal(t, hasCycles, false)
 }
 
 func TestCycleKey(t *testing.T) {
