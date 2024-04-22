@@ -31,7 +31,7 @@ func generateTableRecordsInputSpec() *service.ConfigSpec {
 
 func RegisterGenerateTableRecordsInput(env *service.Environment, dbprovider DbPoolProvider, stopActivityChannel chan error) error {
 	return env.RegisterBatchInput(
-		"generate_table_records", generateTableRecordsInputSpec(),
+		"generate_sql_select", generateTableRecordsInputSpec(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchInput, error) {
 			b, err := newGenerateReaderFromParsed(conf, mgr, dbprovider, stopActivityChannel)
 			if err != nil {
@@ -173,6 +173,7 @@ func (s *generateReader) ReadBatch(ctx context.Context) (service.MessageBatch, s
 	}
 
 	table := tables[0]
+	// need to remove self circular dependent tables
 	otherTables := tables[1:]
 
 	cols := s.tableColsMap[table]
@@ -196,7 +197,7 @@ func (s *generateReader) ReadBatch(ctx context.Context) (service.MessageBatch, s
 
 	rows, err := s.db.QueryContext(ctx, selectSql)
 	if err != nil {
-		if !neosync_benthos.IsMaxConnectionError(err.Error()) {
+		if !neosync_benthos.ShouldTerminate(err.Error()) {
 			s.logger.Error(fmt.Sprintf("Benthos input error - sending stop activity signal: %s ", err.Error()))
 			s.stopActivityChannel <- err
 		}
@@ -218,58 +219,84 @@ func (s *generateReader) ReadBatch(ctx context.Context) (service.MessageBatch, s
 		otherTableRows := [][]map[string]any{}
 		for _, t := range otherTables {
 			cols := s.tableColsMap[t]
+			jsonF, _ := json.MarshalIndent(cols, "", " ")
+			fmt.Printf("\n cols: %s \n", string(jsonF))
 			selectColumns := make([]any, len(cols))
 			for i, col := range cols {
-				as, ok := s.columnNameMap[fmt.Sprintf("%s.%s", t, col)]
+				tn := fmt.Sprintf("%s.%s", t, col)
+				fmt.Println(tn)
+				as, ok := s.columnNameMap[tn]
 				if ok {
 					selectColumns[i] = goqu.I(col).As(as)
 				} else {
 					selectColumns[i] = col
 				}
 			}
-			selectBuilder := builder.From(table).Select(selectColumns...).Order(orderBy).Limit(uint(randomSmLimit))
+			selectBuilder := builder.From(t).Select(selectColumns...).Order(orderBy).Limit(uint(randomSmLimit))
 			selectSql, _, err := selectBuilder.ToSQL()
 			if err != nil {
 				return nil, nil, err
 			}
+			fmt.Printf("\n gen batched select sql additional: %s \n", selectSql)
+
 			rows, err := s.db.QueryContext(ctx, selectSql)
 			if err != nil {
-				if !neosync_benthos.IsMaxConnectionError(err.Error()) {
+				if !neosync_benthos.ShouldTerminate(err.Error()) {
 					s.logger.Error(fmt.Sprintf("Benthos input error - sending stop activity signal: %s ", err.Error()))
 					s.stopActivityChannel <- err
 				}
 				return nil, nil, err
 			}
-			rowObjList, err := sqlRowsToMapList(rows)
+			rowObjList2, err := sqlRowsToMapList(rows)
 			if err != nil {
 				_ = rows.Close()
 				return nil, nil, err
 			}
-			otherTableRows = append(otherTableRows, rowObjList)
+			if len(rowObjList2) != 0 {
+				otherTableRows = append(otherTableRows, rowObjList2)
+			}
 		}
 		combinedRows := combineRowLists(otherTableRows)
-		for _, cr := range combinedRows {
-			var args map[string]any
-			if s.mapping != nil {
-				var iargs any
-				if iargs, err = s.mapping.Query(nil); err != nil {
+		if len(combinedRows) > 0 {
+			for _, cr := range combinedRows {
+				var args map[string]any
+				if s.mapping != nil {
+					var iargs any
+					if iargs, err = s.mapping.Query(nil); err != nil {
+						return nil, nil, err
+					}
+
+					var ok bool
+					if args, ok = iargs.(map[string]any); !ok {
+						err = fmt.Errorf("mapping returned non-array result: %T", iargs)
+						return nil, nil, err
+					}
+				}
+				newRow := combineRows([]map[string]any{r, cr, args})
+
+				rowStr, err := json.Marshal(newRow)
+				if err != nil {
 					return nil, nil, err
+				}
+				if s.remaining < 1 {
+					return batch, func(context.Context, error) error { return nil }, nil
 				}
 
-				var ok bool
-				if args, ok = iargs.(map[string]any); !ok {
-					err = fmt.Errorf("mapping returned non-array result: %T", iargs)
-					return nil, nil, err
-				}
+				msg := service.NewMessage(rowStr)
+				batch = append(batch, msg)
+				s.remaining--
 			}
-			newRow := combineRows([]map[string]any{r, cr, args})
-
-			rowStr, err := json.Marshal(newRow)
+		} else {
+			rowStr, err := json.Marshal(r)
 			if err != nil {
 				return nil, nil, err
 			}
+			if s.remaining < 1 {
+				return batch, func(context.Context, error) error { return nil }, nil
+			}
 			msg := service.NewMessage(rowStr)
 			batch = append(batch, msg)
+			s.remaining--
 		}
 	}
 
@@ -315,6 +342,11 @@ func combineRows(maps []map[string]any) map[string]any {
 }
 
 func combineRowLists(rows [][]map[string]any) []map[string]any {
+	jsonF, _ := json.MarshalIndent(rows, "", " ")
+	fmt.Printf("\n %s \n", string(jsonF))
+	if len(rows) == 0 {
+		return []map[string]any{}
+	}
 	results := []map[string]any{}
 	rowCount := len(rows[0])
 	for i := 0; i < rowCount; i++ {

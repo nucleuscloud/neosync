@@ -74,6 +74,10 @@ func buildBenthosGenerateSourceConfigResponses(
 		}
 
 		var bc *neosync_benthos.BenthosConfig
+		cols := []string{}
+		for _, m := range tableMapping.Mappings {
+			cols = append(cols, m.Column)
+		}
 		if len(runConfigs) > 0 && len(runConfigs[0].DependsOn) > 0 {
 			columnNameMap := map[string]string{}
 			tableColsMaps := map[string][]string{}
@@ -81,7 +85,7 @@ func buildBenthosGenerateSourceConfigResponses(
 			constraints := tableConstraintsMap[tableName]
 			for _, tc := range constraints.Constraints {
 				columnNameMap[fmt.Sprintf("%s.%s", tc.ForeignKey.Table, tc.ForeignKey.Column)] = tc.Column
-				tableColsMaps[tc.ForeignKey.Table] = append(tableColsMaps[tc.ForeignKey.Table], tc.ForeignKey.Table)
+				tableColsMaps[tc.ForeignKey.Table] = append(tableColsMaps[tc.ForeignKey.Table], tc.ForeignKey.Column)
 			}
 
 			bc = &neosync_benthos.BenthosConfig{
@@ -89,8 +93,8 @@ func buildBenthosGenerateSourceConfigResponses(
 					Input: &neosync_benthos.InputConfig{
 						Inputs: neosync_benthos.Inputs{
 							GenerateSqlSelect: &neosync_benthos.GenerateSqlSelect{
-								Count:           count,
-								Mapping:         mutations,
+								Count: count,
+								// Mapping:         mutations,
 								Driver:          driver,
 								Dsn:             "${SOURCE_CONNECTION_DSN}",
 								TableColumnsMap: tableColsMaps,
@@ -148,6 +152,7 @@ func buildBenthosGenerateSourceConfigResponses(
 
 			TableSchema: tableMapping.Schema,
 			TableName:   tableMapping.Table,
+			Columns:     cols,
 
 			// Processors: processors,
 

@@ -61,7 +61,7 @@ type Inputs struct {
 }
 
 type GenerateSqlSelect struct {
-	Mapping         string              `json:"mapping" yaml:"mapping"`
+	Mapping         string              `json:"mapping,omitempty" yaml:"mapping,omitempty"`
 	Count           int                 `json:"count" yaml:"count"`
 	Driver          string              `json:"driver" yaml:"driver"`
 	Dsn             string              `json:"dsn" yaml:"dsn"`

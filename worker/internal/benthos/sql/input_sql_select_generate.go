@@ -175,7 +175,7 @@ func (s *sqlSelectGenerateInput) Connect(ctx context.Context) error {
 
 	rows, err := db.QueryContext(ctx, selectSql)
 	if err != nil {
-		if !neosync_benthos.IsMaxConnectionError(err.Error()) {
+		if !neosync_benthos.ShouldTerminate(err.Error()) {
 			s.logger.Error(fmt.Sprintf("Benthos input error - sending stop activity signal: %s ", err.Error()))
 			s.stopActivityChannel <- err
 		}
@@ -207,7 +207,7 @@ func (s *sqlSelectGenerateInput) Connect(ctx context.Context) error {
 			}
 			rows, err := db.QueryContext(ctx, selectSql)
 			if err != nil {
-				if !neosync_benthos.IsMaxConnectionError(err.Error()) {
+				if !neosync_benthos.ShouldTerminate(err.Error()) {
 					s.logger.Error(fmt.Sprintf("Benthos input error - sending stop activity signal: %s ", err.Error()))
 					s.stopActivityChannel <- err
 				}

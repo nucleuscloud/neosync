@@ -356,7 +356,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						}
 						updateResponses = append(updateResponses, updateResp)
 					}
-				} else if resp.Config.Input.Generate != nil {
+				} else if resp.Config.Input.Generate != nil || resp.Config.Input.GenerateSqlSelect != nil {
 					cols := buildPlainColumns(tm.Mappings)
 					// processorConfigs := []neosync_benthos.ProcessorConfig{}
 					// for _, pc := range resp.Processors {
@@ -1130,12 +1130,16 @@ func getSqlJobSourceOpts(
 }
 
 func (b *benthosBuilder) getJobSourceConnection(ctx context.Context, jobSource *mgmtv1alpha1.JobSource) (*mgmtv1alpha1.Connection, error) {
+	jsonF, _ := json.MarshalIndent(jobSource, "", " ")
+	fmt.Printf("\n %s \n", string(jsonF))
 	var connectionId string
 	switch jobSourceConfig := jobSource.GetOptions().GetConfig().(type) {
 	case *mgmtv1alpha1.JobSourceOptions_Postgres:
 		connectionId = jobSourceConfig.Postgres.GetConnectionId()
 	case *mgmtv1alpha1.JobSourceOptions_Mysql:
 		connectionId = jobSourceConfig.Mysql.GetConnectionId()
+	case *mgmtv1alpha1.JobSourceOptions_Generate:
+		connectionId = jobSourceConfig.Generate.GetFkSourceConnectionId()
 	default:
 		return nil, errors.New("unsupported job source options type")
 	}

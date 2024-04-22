@@ -114,7 +114,6 @@ func buildMutationConfigs(
 	mutations := []string{}
 
 	for _, col := range cols {
-		colInfo := tableColumnInfo[col.Column]
 		if shouldProcessColumn(col.Transformer) {
 			if _, ok := col.Transformer.Config.Config.(*mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig); ok {
 				// handle user defined transformer -> get the user defined transformer configs using the id
@@ -125,6 +124,7 @@ func buildMutationConfigs(
 				col.Transformer = val
 			}
 			if col.Transformer.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT && col.Transformer.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT {
+				colInfo := tableColumnInfo[col.Column]
 				mutation, err := computeMutationFunction(col, colInfo)
 				if err != nil {
 					return "", fmt.Errorf("%s is not a supported transformer: %w", col.Transformer, err)
