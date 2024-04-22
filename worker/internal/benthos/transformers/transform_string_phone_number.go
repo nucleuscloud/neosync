@@ -48,17 +48,20 @@ func transformPhoneNumber(value *string, preserveLength bool, maxLength int64) (
 		return nil, nil
 	}
 
+	minL := int64(9)
+	maxL := maxLength
+
 	if preserveLength {
-		val, err := generateStringPhoneNumber(int64(len(*value)), int64(len(*value)))
-		if err != nil {
-			return nil, fmt.Errorf("unable to transformer phone number with length preserved: %w", err)
+		valueLength := int64(len(*value))
+		if valueLength == 0 {
+			return value, nil
 		}
-		return &val, nil
-	} else {
-		val, err := generateStringPhoneNumber(int64(9), maxLength)
-		if err != nil {
-			return nil, fmt.Errorf("unable to transform phone number with max length %d: %w", maxLength, err)
-		}
-		return &val, nil
+		minL = valueLength
+		maxL = valueLength
 	}
+	val, err := generateStringPhoneNumber(minL, maxL)
+	if err != nil {
+		return nil, fmt.Errorf("unable to transform phone number with length: [%d:%d]: %w", minL, maxL, err)
+	}
+	return &val, nil
 }
