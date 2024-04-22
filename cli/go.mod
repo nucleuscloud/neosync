@@ -30,7 +30,7 @@ require (
 )
 
 require (
-	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.33.0-20240221180331-f05a6f4403ce.1 // indirect
+	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.33.0-20240401165935-b983156c5e99.1 // indirect
 	cloud.google.com/go/bigquery v1.59.1 // indirect
 	cloud.google.com/go/trace v1.10.5 // indirect
 	cuelang.org/go v0.7.0 // indirect
