@@ -2,8 +2,6 @@ package transformers
 
 import (
 	"fmt"
-	"math"
-	"math/rand"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
@@ -53,33 +51,18 @@ func init() {
 
 /* Generates a random float64 value within the interval [min, max]*/
 func generateRandomFloat64(randomizeSign bool, min, max float64, precision int64) (float64, error) {
-	var returnValue float64
-
-	if randomizeSign {
-		res, err := transformer_utils.GenerateRandomFloat64WithInclusiveBounds(math.Abs(min), math.Abs(max))
-		if err != nil {
-			return 0, err
-		}
-
-		returnValue = res
-		//nolint:all
-		randInt := rand.Intn(2)
-		//nolint:all
-		if randInt == 2 {
-			returnValue = returnValue * -1
-		}
-	} else {
-		res, err := transformer_utils.GenerateRandomFloat64WithInclusiveBounds(min, max)
-		if err != nil {
-			return 0, err
-		}
-		returnValue = res
-	}
-
-	val, err := transformer_utils.ReduceFloat64Precision(int(precision), returnValue)
+	generatedVal, err := transformer_utils.GenerateRandomFloat64WithInclusiveBounds(min, max)
 	if err != nil {
 		return 0, err
 	}
 
-	return val, nil
+	if randomizeSign && generateRandomBool() {
+		generatedVal *= -1.
+	}
+
+	reducedVal, err := transformer_utils.ReduceFloat64Precision(int(precision), generatedVal)
+	if err != nil {
+		return 0, err
+	}
+	return reducedVal, nil
 }

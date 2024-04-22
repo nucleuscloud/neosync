@@ -40,8 +40,7 @@ export default function UserDefinedGenerateFloat64Form(
             <div className="space-y-0.5">
               <FormLabel>Randomize Sign</FormLabel>
               <FormDescription>
-                Randomly sets a sign to the generated float64 value. By default,
-                it generates a positive number.
+                Randomly sets a sign to the generated float64 value.
               </FormDescription>
             </div>
             <div className="flex flex-col h-14">

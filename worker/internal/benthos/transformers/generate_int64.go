@@ -2,7 +2,6 @@ package transformers
 
 import (
 	"fmt"
-	"math/rand"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
@@ -61,35 +60,15 @@ func init() {
 }
 
 /*
-Generates a random int64 up to 18 digits in the interval [min, max].
+Generates a random int64 in the interval [min, max].
 */
 func generateRandomInt64(randomizeSign bool, min, max int64) (int64, error) {
-	var returnValue int64
-
-	if randomizeSign {
-		res, err := transformer_utils.GenerateRandomInt64InValueRange(transformer_utils.AbsInt(min), transformer_utils.AbsInt(max))
-		if err != nil {
-			return 0, err
-		}
-
-		returnValue = res
-		//nolint:all
-		randInt := rand.Intn(2)
-		if randInt == 1 {
-			// return the positive value
-			return returnValue, nil
-		} else {
-			// return the negative value
-			return returnValue * -1, nil
-		}
-	} else {
-		res, err := transformer_utils.GenerateRandomInt64InValueRange(min, max)
-		if err != nil {
-			return 0, err
-		}
-
-		returnValue = res
+	output, err := transformer_utils.GenerateRandomInt64InValueRange(min, max)
+	if err != nil {
+		return 0, err
 	}
-
-	return returnValue, nil
+	if randomizeSign && generateRandomBool() {
+		output *= -1
+	}
+	return output, nil
 }
