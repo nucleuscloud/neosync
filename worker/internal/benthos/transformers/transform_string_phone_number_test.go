@@ -11,14 +11,14 @@ import (
 var testPhone = "1234567890"
 
 func Test_TransformStringPhoneNumber(t *testing.T) {
-	res, err := TransformPhoneNumber(testPhone, true, maxCharacterLimit)
+	res, err := TransformPhoneNumber(&testPhone, true, maxCharacterLimit)
 
 	assert.NoError(t, err)
 	assert.Equal(t, len(*res), len(testPhone), "The result should be the same length as the test phone")
 }
 
 func Test_TransformStringPhoneNumberEqualMinMax(t *testing.T) {
-	res, err := TransformPhoneNumber(testPhone, false, maxCharacterLimit)
+	res, err := TransformPhoneNumber(&testPhone, false, maxCharacterLimit)
 
 	assert.NoError(t, err)
 	assert.GreaterOrEqual(t, len(*res), 8, "Should be greater than 9 characters in length. 9 for the number and 1 for the plus sign.")

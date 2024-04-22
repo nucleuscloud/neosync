@@ -13,14 +13,9 @@ func init() {
 		Param(bloblang.NewInt64Param("max_length"))
 
 	err := bloblang.RegisterFunctionV2("transform_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		valuePtr, err := args.GetOptionalString("value")
+		value, err := args.GetOptionalString("value")
 		if err != nil {
 			return nil, err
-		}
-
-		var value string
-		if valuePtr != nil {
-			value = *valuePtr
 		}
 
 		preserveLength, err := args.GetBool("preserve_length")
@@ -48,13 +43,13 @@ func init() {
 }
 
 // Generates a random phone number and returns it as a string
-func TransformPhoneNumber(value string, preserveLength bool, maxLength int64) (*string, error) {
-	if value == "" {
+func TransformPhoneNumber(value *string, preserveLength bool, maxLength int64) (*string, error) {
+	if value == nil {
 		return nil, nil
 	}
 
 	if preserveLength {
-		val, err := GenerateStringPhoneNumber(int64(len(value)), int64(len(value)))
+		val, err := GenerateStringPhoneNumber(int64(len(*value)), int64(len(*value)))
 		if err != nil {
 			return nil, fmt.Errorf("unable to transformer phone number with length preserved: %w", err)
 		}
