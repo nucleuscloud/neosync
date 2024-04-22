@@ -14,8 +14,7 @@ func init() {
 
 	err := bloblang.RegisterFunctionV2("generate_unixtimestamp", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		return func() (any, error) {
-			val, err := GenerateRandomUnixTimestamp()
-
+			val, err := generateRandomUnixTimestamp()
 			if err != nil {
 				return false, fmt.Errorf("unable to run generate_unixtimestamp: %w", err)
 			}
@@ -27,7 +26,7 @@ func init() {
 	}
 }
 
-func GenerateRandomUnixTimestamp() (int64, error) {
+func generateRandomUnixTimestamp() (int64, error) {
 	// get the current UTC time
 	currentTime := time.Now().Unix()
 

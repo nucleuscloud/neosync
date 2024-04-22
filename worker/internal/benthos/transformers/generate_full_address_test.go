@@ -11,7 +11,7 @@ import (
 var faMaxLength = int64(40)
 
 func Test_GenerateFullAddress(t *testing.T) {
-	res, err := GenerateRandomFullAddress(faMaxLength)
+	res, err := generateRandomFullAddress(faMaxLength)
 	assert.NoError(t, err)
 
 	assert.IsType(t, "", res, "The returned full address should be a string")
@@ -21,7 +21,7 @@ func Test_GenerateFullAddress(t *testing.T) {
 func Test_GenerateFullAddressVeryShortMax(t *testing.T) {
 	shortMax := int64(15)
 
-	res, err := GenerateRandomFullAddress(shortMax)
+	res, err := generateRandomFullAddress(shortMax)
 	assert.NoError(t, err)
 
 	assert.IsType(t, "", res, "The returned full address should be a string")
@@ -31,7 +31,7 @@ func Test_GenerateFullAddressVeryShortMax(t *testing.T) {
 func Test_GenerateFullAddressShortMax(t *testing.T) {
 	shortMax := int64(25)
 
-	res, err := GenerateRandomFullAddress(shortMax)
+	res, err := generateRandomFullAddress(shortMax)
 	assert.NoError(t, err)
 
 	assert.IsType(t, "", res, "The returned full address should be a string")

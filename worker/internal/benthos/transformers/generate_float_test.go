@@ -5,105 +5,71 @@ import (
 	"testing"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
-	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func Test_GenerateRandomFloatPositiveRange(t *testing.T) {
-	min := float64(12.3)
-	max := float64(19.2)
-	precision := int64(7)
+func Test_GenerateRandomFloat(t *testing.T) {
+	type testcase struct {
+		randomizeSign bool
+		min           float64
+		max           float64
+		precision     int64
 
-	res, err := GenerateRandomFloat64(false, min, max, precision)
-	assert.NoError(t, err)
+		floor float64
+		ceil  float64
+	}
+	testcases := []testcase{
+		{randomizeSign: false, min: 0, max: 100, precision: 7, floor: 0, ceil: 100},
+		{randomizeSign: false, min: -100, max: 100, precision: 7, floor: -100, ceil: 100},
+		{randomizeSign: true, min: 20, max: 40, precision: 7, floor: -40, ceil: 40},
+		{randomizeSign: false, min: 12.3, max: 19.2, precision: 7, floor: 12.3, ceil: 19.2},
+		{randomizeSign: false, min: 12.3, max: 19.2, precision: 3, floor: 12.3, ceil: 19.2},
+	}
 
-	assert.GreaterOrEqual(t, res, min, "The result should be greater or equal to the minimum")
-	assert.LessOrEqual(t, res, max, "The result should be less or equal to the maximum")
-}
-
-func Test_GenerateRandomFloatNegativeRange(t *testing.T) {
-	min := float64(-12.3)
-	max := float64(-19.2)
-	precision := int64(7)
-
-	res, err := GenerateRandomFloat64(false, min, max, precision)
-	assert.NoError(t, err)
-
-	// swapped because negative min number is the max
-	assert.GreaterOrEqual(t, res, max, "The result should be greater or equal to the minimum")
-	assert.LessOrEqual(t, res, min, "The result should be less or equal to the maximum")
-}
-
-func Test_GenerateRandomFloatNegativetoPositiveRange(t *testing.T) {
-	min := float64(-12.3)
-	max := float64(19.2)
-	precision := int64(3)
-
-	res, err := GenerateRandomFloat64(false, min, max, precision)
-	assert.NoError(t, err)
-
-	assert.GreaterOrEqual(t, res, min, "The result should be greater or equal to the minimum")
-	assert.LessOrEqual(t, res, max, "The result should be less or equal to the maximum")
-}
-
-func Test_GenerateRandomFloatRandomizePositive(t *testing.T) {
-	min := float64(12.3)
-	max := float64(19.2)
-	precision := int64(7)
-
-	res, err := GenerateRandomFloat64(true, min, max, precision)
-	assert.NoError(t, err)
-
-	if !transformer_utils.IsNegativeFloat64(res) {
-		// res is positive
-		assert.GreaterOrEqual(t, res, min, "The result should be greater or equal to the minimum")
-		assert.LessOrEqual(t, res, max, "The result should be less or equal to the maximum")
-	} else {
-		// res is negative
-		assert.GreaterOrEqual(t, res, -max, "The result should be greater or equal to the minimum")
-		assert.LessOrEqual(t, res, -min, "The result should be less or equal to the maximum")
+	for _, tc := range testcases {
+		t.Run("", func(t *testing.T) {
+			output, err := generateRandomFloat64(tc.randomizeSign, tc.min, tc.max, tc.precision)
+			require.NoError(t, err)
+			require.GreaterOrEqual(t, output, tc.floor)
+			require.LessOrEqual(t, output, tc.ceil)
+		})
 	}
 }
 
-func Test_GenerateRandomFloatRandomizeNegative(t *testing.T) {
-	min := float64(-12.3)
-	max := float64(-19.2)
-	precision := int64(7)
+func Test_GenerateRandomFloat_Randomized_Range(t *testing.T) {
+	type testcase struct {
+		min       float64
+		max       float64
+		precision int64
 
-	res, err := GenerateRandomFloat64(true, min, max, precision)
-	assert.NoError(t, err)
+		negativeFloor float64
+		negativeCeil  float64
 
-	if !transformer_utils.IsNegativeFloat64(res) {
-		// res is positive
-		assert.GreaterOrEqual(t, res, -min, "The result should be greater or equal to the minimum")
-		assert.LessOrEqual(t, res, -max, "The result should be less or equal to the maximum")
-	} else {
-		// res is negative
-		assert.GreaterOrEqual(t, res, max, "The result should be greater or equal to the minimum")
-		assert.LessOrEqual(t, res, min, "The result should be less or equal to the maximum")
+		positiveFloor float64
+		positiveCeil  float64
+	}
+	testcases := []testcase{
+		{min: 20, max: 40, precision: 7, negativeFloor: -40, negativeCeil: -20, positiveFloor: 20, positiveCeil: 40},
+		{min: 0, max: 40, precision: 7, negativeFloor: -40, negativeCeil: 0, positiveFloor: 0, positiveCeil: 40},
+	}
+
+	for _, tc := range testcases {
+		t.Run("", func(t *testing.T) {
+			output, err := generateRandomFloat64(true, tc.min, tc.max, tc.precision)
+			require.NoError(t, err)
+			if output > 0 {
+				require.GreaterOrEqual(t, output, tc.positiveFloor)
+				require.LessOrEqual(t, output, tc.positiveCeil)
+			} else {
+				require.GreaterOrEqual(t, output, tc.negativeFloor)
+				require.LessOrEqual(t, output, tc.negativeCeil)
+			}
+		})
 	}
 }
 
-func Test_GenerateRandomFloatRandomizeNegativeToPositive(t *testing.T) {
-	min := float64(-12.3)
-	max := float64(19.2)
-	precision := int64(7)
-
-	res, err := GenerateRandomFloat64(true, min, max, precision)
-	assert.NoError(t, err)
-
-	if !transformer_utils.IsNegativeFloat64(res) {
-		// res is positive
-		assert.GreaterOrEqual(t, res, -min, "The result should be greater or equal to the minimum")
-		assert.LessOrEqual(t, res, max, "The result should be less or equal to the maximum")
-	} else {
-		// res is negative
-		assert.GreaterOrEqual(t, res, -max, "The result should be greater or equal to the minimum")
-		assert.LessOrEqual(t, res, min, "The result should be less or equal to the maximum")
-	}
-}
-
-func Test_GenerateRandomFloatTransformer(t *testing.T) {
+func Test_GenerateRandomFloat_Benthos(t *testing.T) {
 	min := float64(9.2)
 	max := float64(9.7)
 	randomizeSign := false

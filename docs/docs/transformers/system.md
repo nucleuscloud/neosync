@@ -270,16 +270,20 @@ This transformer supports both positive and negative float numbers with a max pr
 
 Depending on your validations, you may want to configure the output float. The random float transformer has the following configurations:
 
-| Name          | Description                                                                                           | Default  | Example Output |
-| ------------- | ----------------------------------------------------------------------------------------------------- | -------- | -------------- |
-| RandomizeSign | Randomly sets the sign of the value. Options are: positive, negative, random.                         | positive | 873.923        |
-| Min           | Specifies the min range for a generated float value. This supports negative values.                   | 1.00     | 94.17          |
-| Max           | Specifies the max range for a generated float value. This supports negative values.                   | 100.00   | 34.8           |
-| Precision     | Sets the precision of the value. For example, a precision of 6 will generate a value such as 42.9812. | 6        | 34.8367        |
+| Name          | Description                                                                                           | Default |
+| ------------- | ----------------------------------------------------------------------------------------------------- | ------- |
+| RandomizeSign | Randomly sets the sign of the value.                                                                  | false   |
+| Min           | Specifies the min range for a generated float value.                                                  | 1.00    |
+| Max           | Specifies the max range for a generated float value.                                                  | 100.00  |
+| Precision     | Sets the precision of the value. For example, a precision of 6 will generate a value such as 42.9812. | 6       |
 
 **Examples**
 
-There are several ways you can mix-and-match configurations to get different potential random float formats. Here are some possible combinations:
+There are several ways you can mix-and-match configurations to get different potential random float formats.
+
+Note: if randomize sign has been selected, this may cause the generated numbers to exist outside of the configured min/max range.
+
+Here are some possible combinations:
 
 | RandomizeSign | Min    | Max   | Precision | Example Output |
 | ------------- | ------ | ----- | --------- | -------------- |
@@ -384,21 +388,23 @@ The generate random int64 transformer generates a random integer and returns it 
 For example:
 `6782`
 
-By default, the generate random int64 transformer generates an integer of 4 digits long.
-
 **Configurations**
 
 Depending on your validations, you may want to configure the output float. The random integer transformer has the following configurations:
 
-| Name          | Description                                                                         | Default  | Example Output |
-| ------------- | ----------------------------------------------------------------------------------- | -------- | -------------- |
-| RandomizeSign | Randomly sets the sign of the value. Options are: positive, negative, random.       | positive | 873            |
-| Min           | Specifies the min range for a generated int64 value. This supports negative values. | 1        | 97             |
-| Max           | Specifies the max range for a generated int64 value. This supports negative values. | 40       | 34             |
+| Name          | Description                                          | Default |
+| ------------- | ---------------------------------------------------- | ------- |
+| RandomizeSign | Randomly sets the sign of the generated value.       | false   |
+| Min           | Specifies the min range for a generated int64 value. | 1       |
+| Max           | Specifies the max range for a generated int64 value. | 40      |
 
 **Examples**
 
-There are several ways you can mix-and-match configurations to get different potential random integer formats. Here are some possible combinations:
+There are several ways you can mix-and-match configurations to get different potential random integer formats.
+
+Note: if randomize sign has been selected, this may cause the generated numbers to exist outside of the configured min/max range.
+
+Here are some possible combinations:
 
 | RandomizeSign | Min | Max | Example Output |
 | ------------- | --- | --- | -------------- |

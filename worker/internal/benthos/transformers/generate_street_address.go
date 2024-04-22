@@ -27,7 +27,7 @@ func init() {
 		}
 
 		return func() (any, error) {
-			res, err := GenerateRandomStreetAddress(maxLength)
+			res, err := generateRandomStreetAddress(maxLength)
 			if err != nil {
 				return nil, fmt.Errorf("unable to run generate_street_address: %w", err)
 			}
@@ -40,7 +40,7 @@ func init() {
 }
 
 /* Generates a random street address in the United States in the format <house_number> <street name> <street ending>*/
-func GenerateRandomStreetAddress(maxLength int64) (string, error) {
+func generateRandomStreetAddress(maxLength int64) (string, error) {
 	addresses := transformers_dataset.Addresses
 	var filteredAddresses []string
 
@@ -73,9 +73,7 @@ func GenerateRandomStreetAddress(maxLength int64) (string, error) {
 		}
 	}
 
-	// -1 because addresses is an array so we don't overflow
-	//nolint:all
-	randomIndex := rand.Intn(len(filteredAddresses) - 1)
-
+	//nolint:gosec
+	randomIndex := rand.Intn(len(filteredAddresses))
 	return filteredAddresses[randomIndex], nil
 }

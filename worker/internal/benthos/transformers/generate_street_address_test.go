@@ -9,7 +9,7 @@ import (
 )
 
 func Test_GenerateStreetAddress(t *testing.T) {
-	res, err := GenerateRandomStreetAddress(maxLength)
+	res, err := generateRandomStreetAddress(maxLength)
 	assert.NoError(t, err)
 
 	assert.IsType(t, "", res, "The returned street address should be a string")
@@ -18,7 +18,7 @@ func Test_GenerateStreetAddress(t *testing.T) {
 }
 
 func Test_GenerateStreetAddressShortMax(t *testing.T) {
-	res, err := GenerateRandomStreetAddress(int64(5))
+	res, err := generateRandomStreetAddress(int64(5))
 	assert.NoError(t, err)
 
 	assert.IsType(t, "", res, "The returned street address should be a string")
@@ -27,7 +27,7 @@ func Test_GenerateStreetAddressShortMax(t *testing.T) {
 }
 
 func Test_GenerateStreetAddressSVeryhortMax(t *testing.T) {
-	res, err := GenerateRandomStreetAddress(int64(2))
+	res, err := generateRandomStreetAddress(int64(2))
 	assert.NoError(t, err)
 
 	assert.IsType(t, "", res, "The returned street address should be a string")
