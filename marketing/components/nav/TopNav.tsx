@@ -43,6 +43,7 @@ interface NavLinks {
   description: string;
   icon?: JSX.Element;
   children: NavLinks[];
+  newTab?: boolean;
 }
 
 const links: NavLinks[] = [
@@ -100,6 +101,7 @@ const links: NavLinks[] = [
     href: 'https://docs.neosync.dev',
     description: '',
     children: [],
+    newTab: true,
   },
   {
     title: 'Blog',
@@ -113,6 +115,7 @@ const links: NavLinks[] = [
     description: '',
     icon: <GitHubLogoIcon className="h-4 w-4" />,
     children: [],
+    newTab: true,
   },
   {
     title: '',
@@ -120,6 +123,7 @@ const links: NavLinks[] = [
     description: '',
     icon: <FaDiscord className=" h-5 w-5" />,
     children: [],
+    newTab: true,
   },
 ];
 
@@ -175,7 +179,7 @@ export default function TopNav(): ReactElement {
                   <Link href={link.href} passHref legacyBehavior>
                     <NavigationMenuLink
                       className={navigationMenuTriggerStyle()}
-                      target={link.title !== 'About' ? '_blank' : ''}
+                      target={link.newTab ? '_blank' : ''}
                     >
                       {link.title ? link.title : link.icon}
                     </NavigationMenuLink>

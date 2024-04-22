@@ -367,7 +367,9 @@ function FAQs(): ReactElement {
         <AccordionItem value="item-3">
           <AccordionTrigger>When do the record limits reset?</AccordionTrigger>
           <AccordionContent>
-            They reset exactly one month after you signed up.{' '}
+            Billing resets on the first of every month. If you sign up after the
+            first of the month, your bill and usage will be prorated
+            accordingly.
           </AccordionContent>
         </AccordionItem>
         <AccordionItem value="item-4">

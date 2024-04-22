@@ -1,5 +1,4 @@
 import { withNeosyncContext } from '@/api-only/neosync-context';
-import { getSystemAppConfig } from '@/app/api/config/config';
 import { RequestContext } from '@/shared';
 import {
   GetAccountOnboardingConfigRequest,
@@ -11,7 +10,6 @@ export async function GET(
   req: NextRequest,
   { params }: RequestContext
 ): Promise<NextResponse> {
-  const systemConfig = getSystemAppConfig();
   return withNeosyncContext(async (ctx) => {
     return ctx.client.users.getAccountOnboardingConfig(
       new GetAccountOnboardingConfigRequest({
@@ -22,7 +20,6 @@ export async function GET(
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  const systemConfig = getSystemAppConfig();
   return withNeosyncContext(async (ctx) => {
     return ctx.client.users.setAccountOnboardingConfig(
       SetAccountOnboardingConfigRequest.fromJson(await req.json())
@@ -31,7 +28,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 }
 
 export async function PUT(req: NextRequest): Promise<NextResponse> {
-  const systemConfig = getSystemAppConfig();
   return withNeosyncContext(async (ctx) => {
     return ctx.client.users.setAccountOnboardingConfig(
       SetAccountOnboardingConfigRequest.fromJson(await req.json())

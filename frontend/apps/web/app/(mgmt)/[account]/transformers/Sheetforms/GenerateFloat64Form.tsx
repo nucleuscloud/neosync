@@ -93,7 +93,7 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
               <div className="space-y-0.5">
-                <FormLabel>Maxiumum Value</FormLabel>
+                <FormLabel>Maximum Value</FormLabel>
                 <FormDescription>
                   Sets a maximum range for generated float64 value. This can be
                   negative as well.

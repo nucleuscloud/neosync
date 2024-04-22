@@ -228,7 +228,7 @@ interface CreateNewTeamDialogProps {
     {
       name: string;
     },
-    any,
+    any, // eslint-disable-line @typescript-eslint/no-explicit-any
     undefined
   >;
   onSubmit: (values: CreateTeamFormValues) => Promise<void>;
@@ -239,7 +239,7 @@ interface CreateNewTeamDialogProps {
 export function CreateNewTeamDialog(
   props: CreateNewTeamDialogProps
 ): ReactElement {
-  const { form, onSubmit, setShowNewTeamDialog, planType } = props;
+  const { planType } = props;
   return (
     <div>
       {/* {(planType && planType == UserAccountType.PERSONAL) ||
@@ -298,7 +298,7 @@ interface UpgradeDialog {
   planType: UserAccountType;
 }
 
-function UpgradeDialog({ planType }: UpgradeDialog) {
+function UpgradeDialog({}: UpgradeDialog) {
   return (
     <div>
       <DialogContent className="flex flex-col gap-3">

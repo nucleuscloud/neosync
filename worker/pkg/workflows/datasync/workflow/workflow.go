@@ -78,6 +78,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	if err != nil {
 		return nil, err
 	}
+	logger.Info("completed RetrieveActivityOptions.")
 
 	ctx = workflow.WithActivityOptions(wfctx, *actOptResp.SyncActivityOptions)
 	logger.Info("scheduling RunSqlInitTableStatements for execution.")
@@ -89,6 +90,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	if err != nil {
 		return nil, err
 	}
+	logger.Info("completed RunSqlInitTableStatements.")
 
 	started := sync.Map{}
 	completed := sync.Map{}

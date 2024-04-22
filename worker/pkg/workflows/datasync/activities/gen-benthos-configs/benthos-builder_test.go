@@ -1999,7 +1999,7 @@ output:
 	updateConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users.update")
 	assert.NotNil(t, updateConfig)
 	assert.Equal(t, updateConfig.Name, "public.users.update")
-	assert.Equal(t, updateConfig.DependsOn, []*tabledependency.DependsOn{{Table: "public.user_account_associations", Columns: []string{"id"}}})
+	assert.Equal(t, updateConfig.DependsOn, []*tabledependency.DependsOn{{Table: "public.user_account_associations", Columns: []string{"id"}}, {Table: "public.users", Columns: []string{"id"}}})
 	out1, err := yaml.Marshal(updateConfig.Config)
 	assert.NoError(t, err)
 	assert.Equal(
@@ -2427,7 +2427,7 @@ output:
 	updateConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users.update")
 	assert.NotNil(t, updateConfig)
 	assert.Equal(t, updateConfig.Name, "public.users.update")
-	assert.Equal(t, updateConfig.DependsOn, []*tabledependency.DependsOn{{Table: "public.user_account_associations", Columns: []string{"id"}}})
+	assert.Equal(t, updateConfig.DependsOn, []*tabledependency.DependsOn{{Table: "public.user_account_associations", Columns: []string{"id"}}, {Table: "public.users", Columns: []string{"id"}}})
 	out1, err := yaml.Marshal(updateConfig.Config)
 
 	assert.NoError(t, err)
@@ -3069,7 +3069,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_
 	updateConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users.update")
 	assert.NotNil(t, updateConfig)
 	assert.Equal(t, updateConfig.Name, "public.users.update")
-	assert.Equal(t, updateConfig.DependsOn, []*tabledependency.DependsOn{{Table: "public.user_account_associations", Columns: []string{"id"}}})
+	assert.Equal(t, updateConfig.DependsOn, []*tabledependency.DependsOn{{Table: "public.user_account_associations", Columns: []string{"id"}}, {Table: "public.users", Columns: []string{"id"}}})
 	out1, err := yaml.Marshal(updateConfig.Config)
 	assert.NoError(t, err)
 

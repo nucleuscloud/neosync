@@ -303,10 +303,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                         <FormItem>
                           <FormLabel>Maximum Retry Attempts</FormLabel>
                           <FormDescription>
-                            When exceeded, the retries stop even if they're not
+                            {`When exceeded, the retries stop even if they're not
                             expired yet. If not set or set to 0, it means
                             unlimited retry attemps and we rely on the max table
-                            timeout including retries to know when to stop.
+                            timeout including retries to know when to stop.`}
                           </FormDescription>
                           <FormControl>
                             <Input

@@ -31,6 +31,7 @@ import (
 	awsmanager "github.com/nucleuscloud/neosync/backend/internal/aws"
 	up_cmd "github.com/nucleuscloud/neosync/backend/internal/cmds/mgmt/migrate/up"
 	auth_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth"
+	authlogging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/auth_logging"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	logging_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logging"
 	neosynclogger "github.com/nucleuscloud/neosync/backend/internal/logger"
@@ -158,7 +159,7 @@ func serve(ctx context.Context) error {
 		return err
 	}
 	loggerInterceptor := logger_interceptor.NewInterceptor(logger)
-	loggingInterceptor := logging_interceptor.NewInterceptor(logger)
+	loggingInterceptor := logging_interceptor.NewInterceptor()
 
 	stdInterceptors := []connect.Interceptor{
 		otelInterceptor,
@@ -202,12 +203,14 @@ func serve(ctx context.Context) error {
 					apikeyClient,
 				).InjectTokenCtx,
 			),
+			authlogging_interceptor.NewInterceptor(db),
 		)
 		jwtOnlyAuthInterceptors = append(
 			jwtOnlyAuthInterceptors,
 			auth_interceptor.NewInterceptor(
 				jwtclient.InjectTokenCtx,
 			),
+			authlogging_interceptor.NewInterceptor(db),
 		)
 		authSvcInterceptors = append(
 			authSvcInterceptors,
@@ -221,6 +224,7 @@ func serve(ctx context.Context) error {
 					mgmtv1alpha1connect.AuthServiceRefreshCliProcedure,
 				},
 			),
+			authlogging_interceptor.NewInterceptor(db),
 		)
 	}
 

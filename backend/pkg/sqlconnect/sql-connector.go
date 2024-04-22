@@ -337,7 +337,11 @@ func getGeneralDbConnectConfigFromPg(config *mgmtv1alpha1.ConnectionConfig_PgCon
 	case *mgmtv1alpha1.PostgresConnectionConfig_Url:
 		u, err := url.Parse(cc.Url)
 		if err != nil {
-			return nil, err
+			var urlErr *url.Error
+			if errors.As(err, &urlErr) {
+				return nil, fmt.Errorf("unable to parse postgres url [%s]: %w", urlErr.Op, urlErr.Err)
+			}
+			return nil, fmt.Errorf("unable to parse postgres url: %w", err)
 		}
 
 		user := u.User.Username()
@@ -352,7 +356,7 @@ func getGeneralDbConnectConfigFromPg(config *mgmtv1alpha1.ConnectionConfig_PgCon
 		if portStr != "" {
 			port, err = strconv.ParseInt(portStr, 10, 32)
 			if err != nil {
-				return nil, fmt.Errorf("invalid port: %v", err)
+				return nil, fmt.Errorf("invalid port: %w", err)
 			}
 		} else {
 			// default to standard postgres port 5432 if port not provided

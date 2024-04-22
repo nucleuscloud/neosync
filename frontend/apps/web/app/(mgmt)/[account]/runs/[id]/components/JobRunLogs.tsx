@@ -71,7 +71,7 @@ export default function JobRunLogs({
         columns={columns}
         data={logResponses}
         getFuzzyFilterValue={(table) =>
-          (table.getColumn('logLine')?.getFilterValue() as any) ?? ''
+          (table.getColumn('logLine')?.getFilterValue() as string) ?? ''
         }
         setFuzzyFilterValue={(table, newval) => {
           table.getColumn('logLine')?.setFilterValue(newval);

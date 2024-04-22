@@ -103,7 +103,7 @@ export default function Billing(): ReactElement {
         <div>
           <div className="text-xl font-seminold">Billing</div>
           <div className="text-sm">
-            Manage your workspace's plan and billing information
+            {`Manage your workspace's plan and billing information`}
           </div>
           <Separator />
         </div>

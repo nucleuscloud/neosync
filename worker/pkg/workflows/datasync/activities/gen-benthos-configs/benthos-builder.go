@@ -707,6 +707,8 @@ func createSqlUpdateBenthosConfig(
 		newResp.metriclabels = append(newResp.metriclabels, metrics.NewEqLabel(metrics.IsUpdateConfigLabel, "true"))
 		output := buildOutputArgs(newResp, tm)
 		newResp.Columns = output.Columns
+		// add self to dependency so that insert always runs before update
+		newResp.DependsOn = append(newResp.DependsOn, &tabledependency.DependsOn{Table: insertConfig.updateConfig.Table, Columns: output.WhereCols})
 		if newResp.Config.Input.SqlSelect != nil {
 			newResp.Config.Input.SqlSelect.Where = insertConfig.Config.Input.SqlSelect.Where // keep the where clause the same as insert
 		} else if newResp.Config.Input.PooledSqlRaw != nil {
