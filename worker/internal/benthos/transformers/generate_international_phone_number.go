@@ -27,7 +27,10 @@ func init() {
 
 		return func() (any, error) {
 			res, err := GenerateInternationalPhoneNumber(min, max)
-			return res, err
+			if err != nil {
+				return nil, fmt.Errorf("unable to run generate_international_phone_number: %w", err)
+			}
+			return res, nil
 		}, nil
 	})
 

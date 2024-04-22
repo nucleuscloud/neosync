@@ -1,6 +1,7 @@
 package transformers
 
 import (
+	"fmt"
 	"math/rand"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
@@ -47,7 +48,10 @@ func init() {
 
 		return func() (any, error) {
 			res, err := GenerateRandomInt64(randomizeSign, min, max)
-			return res, err
+			if err != nil {
+				return nil, fmt.Errorf("unable to run generate_int64: %w", err)
+			}
+			return res, nil
 		}, nil
 	})
 

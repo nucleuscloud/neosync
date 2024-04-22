@@ -16,12 +16,10 @@ func init() {
 		if err != nil {
 			return nil, err
 		}
-
-		// convert stringified categories to array
-		catArray := strings.Split(catString, ",")
+		categories := strings.Split(catString, ",")
 
 		return func() (any, error) {
-			res := GenerateCategorical(catArray)
+			res := generateCategorical(categories)
 			return res, nil
 		}, nil
 	})
@@ -31,9 +29,11 @@ func init() {
 }
 
 // Generates a randomly selected value from the user-provided list of categories. We don't account for the maxLength param here because the input is user-provided. We assume that they values they provide in the set abide by the maxCharacterLength constraint.
-func GenerateCategorical(categories []string) string {
-	//nolint:all
+func generateCategorical(categories []string) string {
+	if len(categories) == 0 {
+		return ""
+	}
+	//nolint:gosec
 	randomIndex := rand.Intn(len(categories))
-
 	return categories[randomIndex]
 }

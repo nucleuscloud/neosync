@@ -1,6 +1,8 @@
 package transformers
 
 import (
+	"fmt"
+
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
@@ -14,7 +16,10 @@ func init() {
 	err := bloblang.RegisterFunctionV2("generate_int64_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		return func() (any, error) {
 			res, err := GenerateRandomInt64PhoneNumber()
-			return res, err
+			if err != nil {
+				return nil, fmt.Errorf("unable to run generate_int64_phone_number: %w", err)
+			}
+			return res, nil
 		}, nil
 	})
 

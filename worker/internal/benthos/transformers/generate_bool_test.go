@@ -8,7 +8,7 @@ import (
 )
 
 func Test_GenerateRandomBool(t *testing.T) {
-	res := GenerateRandomBool()
+	res := generateRandomBool()
 	assert.IsType(t, res, false)
 }
 

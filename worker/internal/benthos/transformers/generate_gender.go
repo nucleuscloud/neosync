@@ -1,6 +1,7 @@
 package transformers
 
 import (
+	"fmt"
 	"math/rand"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
@@ -24,9 +25,8 @@ func init() {
 
 		return func() (any, error) {
 			res, err := GenerateRandomGender(ab, maxLength)
-
 			if err != nil {
-				return false, err
+				return nil, fmt.Errorf("unable to run generate_gender: %w", err)
 			}
 			return res, nil
 		}, nil

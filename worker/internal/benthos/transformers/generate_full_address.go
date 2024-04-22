@@ -57,7 +57,7 @@ func GenerateRandomFullAddress(maxLength int64) (string, error) {
 			if err != nil {
 				return "", err
 			}
-			city, err := GenerateRandomCity(5)
+			city, err := generateRandomCity(5)
 			if err != nil {
 				return "", err
 			}

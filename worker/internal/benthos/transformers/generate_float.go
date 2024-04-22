@@ -1,6 +1,7 @@
 package transformers
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 
@@ -38,7 +39,10 @@ func init() {
 
 		return func() (any, error) {
 			res, err := GenerateRandomFloat64(randomizeSign, min, max, precision)
-			return res, err
+			if err != nil {
+				return nil, fmt.Errorf("unable to run generate_float: %w", err)
+			}
+			return res, nil
 		}, nil
 	})
 

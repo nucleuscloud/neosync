@@ -15,9 +15,8 @@ func init() {
 	err := bloblang.RegisterFunctionV2("generate_ssn", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		return func() (any, error) {
 			val, err := GenerateRandomSSN()
-
 			if err != nil {
-				return false, fmt.Errorf("unable to generate random ssn")
+				return nil, fmt.Errorf("unable to generate random ssn: %w", err)
 			}
 			return val, nil
 		}, nil
@@ -35,6 +34,5 @@ func GenerateRandomSSN() (string, error) {
 	}
 
 	returnVal := fmt.Sprintf("%03d-%02d-%04d", val/10000000, (val/10000)%100, val%10000)
-
 	return returnVal, nil
 }
