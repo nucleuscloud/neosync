@@ -108,7 +108,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		// get depenendcy configs
 		// split root tables vs children tables
 		////////////////////////////////////////////////////////////////////////
-		test := []any{}
 
 		sourceConnection, err := b.getJobSourceConnection(ctx, job.GetSource())
 		if err != nil {
