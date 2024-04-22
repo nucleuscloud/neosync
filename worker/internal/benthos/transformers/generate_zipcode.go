@@ -23,9 +23,7 @@ func init() {
 // Generates a randomly selected zip code that exists in the United States.
 func GenerateRandomZipcode() string {
 	addresses := transformers_dataset.Addresses
-
-	// -1 because addresses is an array so we don't overflow
 	//nolint:gosec
-	randomIndex := rand.Intn(len(addresses) - 1)
+	randomIndex := rand.Intn(len(addresses))
 	return addresses[randomIndex].Zipcode
 }

@@ -8,7 +8,7 @@ import (
 )
 
 func Test_GenerateUnixTimestamp(t *testing.T) {
-	timestamp, err := GenerateRandomUnixTimestamp()
+	timestamp, err := generateRandomUnixTimestamp()
 	assert.NoError(t, err, "Error generating random unix timestamp")
 
 	assert.True(t, timestamp > 0, "Generated timestamp is not a valid Unix timestamp")

@@ -5,13 +5,13 @@ import (
 	"testing"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
+	"github.com/nucleuscloud/neosync/worker/internal/rng"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_GenerateSSN(t *testing.T) {
-	res, err := GenerateRandomSSN()
+	res := generateRandomSSN(rng.New(int64(1)))
 
-	assert.NoError(t, err)
 	assert.IsType(t, "", res, "The actual value type should be a string")
 	assert.True(t, isValidSSN(res), `The returned ssn should follow this regex = ^\d{3}-\d{2}-\d{4}$)`)
 }

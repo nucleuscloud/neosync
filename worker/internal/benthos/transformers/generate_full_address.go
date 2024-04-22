@@ -62,7 +62,7 @@ func GenerateRandomFullAddress(maxLength int64) (string, error) {
 				return "", err
 			}
 
-			state := GenerateRandomState()
+			state := generateRandomState()
 
 			zip := GenerateRandomZipcode()
 
