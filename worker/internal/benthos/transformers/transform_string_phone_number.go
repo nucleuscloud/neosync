@@ -29,7 +29,7 @@ func init() {
 		}
 
 		return func() (any, error) {
-			res, err := TransformPhoneNumber(value, preserveLength, maxLength)
+			res, err := transformPhoneNumber(value, preserveLength, maxLength)
 			if err != nil {
 				return nil, fmt.Errorf("unable to run transform_phone_number: %w", err)
 			}
@@ -43,7 +43,7 @@ func init() {
 }
 
 // Generates a random phone number and returns it as a string
-func TransformPhoneNumber(value *string, preserveLength bool, maxLength int64) (*string, error) {
+func transformPhoneNumber(value *string, preserveLength bool, maxLength int64) (*string, error) {
 	if value == nil {
 		return nil, nil
 	}
