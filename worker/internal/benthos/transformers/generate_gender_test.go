@@ -5,27 +5,26 @@ import (
 	"testing"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
+	"github.com/nucleuscloud/neosync/worker/internal/rng"
 	"github.com/stretchr/testify/assert"
 )
 
 var maxGenderCharLimit = int64(6)
 
 func Test_GenerateGenderAbbreviateTrue(t *testing.T) {
-	res, err := GenerateRandomGender(true, maxGenderCharLimit)
+	res := generateRandomGender(rng.New(1), true, maxGenderCharLimit)
 
 	valid := []string{"f", "m", "u", "n"}
 
-	assert.NoError(t, err)
 	assert.Len(t, res, 1, "Generated gender must have a length of one")
 	assert.Contains(t, valid, res, "Gender should be one of female, male, undefined, nonbinary")
 }
 
 func Test_GenerateGenderAbbreviateFalse(t *testing.T) {
-	res, err := GenerateRandomGender(false, int64(20))
+	res := generateRandomGender(rng.New(1), false, int64(20))
 
 	valid := []string{"female", "male", "undefined", "nonbinary"}
 
-	assert.NoError(t, err)
 	assert.Contains(t, valid, res, "Gender should be one of female, male, undefined, nonbinary")
 }
 

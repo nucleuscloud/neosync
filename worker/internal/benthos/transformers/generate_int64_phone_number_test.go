@@ -9,7 +9,7 @@ import (
 )
 
 func Test_GenerateRandomIntPhoneNumber(t *testing.T) {
-	res, err := GenerateRandomInt64PhoneNumber()
+	res, err := generateRandomInt64PhoneNumber()
 	assert.NoError(t, err)
 
 	numStr := strconv.FormatInt(res, 10)

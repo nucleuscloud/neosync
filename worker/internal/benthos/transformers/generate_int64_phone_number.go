@@ -15,7 +15,7 @@ func init() {
 
 	err := bloblang.RegisterFunctionV2("generate_int64_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		return func() (any, error) {
-			res, err := GenerateRandomInt64PhoneNumber()
+			res, err := generateRandomInt64PhoneNumber()
 			if err != nil {
 				return nil, fmt.Errorf("unable to run generate_int64_phone_number: %w", err)
 			}
@@ -29,7 +29,7 @@ func init() {
 }
 
 /* Generates a random 10 digit phone number with a valid US area code and returns it as an int64. */
-func GenerateRandomInt64PhoneNumber() (int64, error) {
+func generateRandomInt64PhoneNumber() (int64, error) {
 	ac := transformers_dataset.AreaCodes
 
 	// get a random area code from the areacodes data set

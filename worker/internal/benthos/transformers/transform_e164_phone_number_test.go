@@ -14,7 +14,7 @@ func Test_TransformE164NumberPreserveLengthTrue(t *testing.T) {
 	res, err := TransformE164PhoneNumber(testE164Phone, true, maxCharacterLimit)
 
 	assert.NoError(t, err)
-	assert.Equal(t, ValidateE164(*res), ValidateE164(testE164Phone), "The expected value should be a valid e164 number.")
+	assert.Equal(t, validateE164(*res), validateE164(testE164Phone), "The expected value should be a valid e164 number.")
 	assert.Equal(t, len(*res), len(testE164Phone), "Generated phone number must be the same length as the input phone number")
 }
 
@@ -30,7 +30,7 @@ func Test_GenerateE164FormatPhoneNumberPreserveLength(t *testing.T) {
 	res, err := GenerateE164FormatPhoneNumberPreserveLength(testE164Phone)
 
 	assert.NoError(t, err)
-	assert.Equal(t, ValidateE164(res), ValidateE164(testE164Phone), "The expected value should be a valid e164 number.")
+	assert.Equal(t, validateE164(res), validateE164(testE164Phone), "The expected value should be a valid e164 number.")
 	// + 1 to account for the plus sign at the beginning
 	assert.Len(t, res, len(testE164Phone), "Generated phone number must be the same length as the input phone number")
 }
@@ -50,7 +50,7 @@ func Test_TransformE164NumberTransformer(t *testing.T) {
 	}
 
 	if resStr != nil {
-		assert.Equal(t, ValidateE164(*resStr), ValidateE164(testE164Phone), "The expected value should be a valid e164 number.")
+		assert.Equal(t, validateE164(*resStr), validateE164(testE164Phone), "The expected value should be a valid e164 number.")
 		assert.Len(t, *resStr, len(testE164Phone), "Generated phone number must be the same length as the input phone number")
 	} else {
 		t.Error("Pointer is nil, expected a valid string pointer")

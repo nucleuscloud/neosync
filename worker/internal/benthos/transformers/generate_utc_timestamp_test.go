@@ -9,7 +9,7 @@ import (
 )
 
 func Test_ProcessUTCTimestamp(t *testing.T) {
-	timestamp, err := GenerateRandomUTCTimestamp()
+	timestamp, err := generateRandomUTCTimestamp()
 	assert.NoError(t, err, "Error generating random UTC timestamp")
 
 	// Check if the timestamp's time zone is UTC

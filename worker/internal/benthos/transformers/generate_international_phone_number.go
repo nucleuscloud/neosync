@@ -26,7 +26,7 @@ func init() {
 		}
 
 		return func() (any, error) {
-			res, err := GenerateInternationalPhoneNumber(min, max)
+			res, err := generateInternationalPhoneNumber(min, max)
 			if err != nil {
 				return nil, fmt.Errorf("unable to run generate_international_phone_number: %w", err)
 			}
@@ -41,7 +41,7 @@ func init() {
 
 /*  Generates a random phone number in e164 format in the length interval [min, max] with the min length == 9 and the max length == 15.
  */
-func GenerateInternationalPhoneNumber(min, max int64) (string, error) {
+func generateInternationalPhoneNumber(min, max int64) (string, error) {
 	if min < 9 || max > 15 {
 		return "", errors.New("the length has between 9 and 15 characters long")
 	}
@@ -54,7 +54,7 @@ func GenerateInternationalPhoneNumber(min, max int64) (string, error) {
 	return fmt.Sprintf("+%d", val), nil
 }
 
-func ValidateE164(p string) bool {
+func validateE164(p string) bool {
 	if len(p) >= 10 && len(p) <= 15 && strings.Contains(p, "+") {
 		return true
 	}

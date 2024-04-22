@@ -38,7 +38,7 @@ func init() {
 		}
 
 		return func() (any, error) {
-			res, err := GenerateRandomFloat64(randomizeSign, min, max, precision)
+			res, err := generateRandomFloat64(randomizeSign, min, max, precision)
 			if err != nil {
 				return nil, fmt.Errorf("unable to run generate_float: %w", err)
 			}
@@ -52,7 +52,7 @@ func init() {
 }
 
 /* Generates a random float64 value within the interval [min, max]*/
-func GenerateRandomFloat64(randomizeSign bool, min, max float64, precision int64) (float64, error) {
+func generateRandomFloat64(randomizeSign bool, min, max float64, precision int64) (float64, error) {
 	var returnValue float64
 
 	if randomizeSign {

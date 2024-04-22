@@ -14,7 +14,7 @@ func Test_GenerateRandomFloatPositiveRange(t *testing.T) {
 	max := float64(19.2)
 	precision := int64(7)
 
-	res, err := GenerateRandomFloat64(false, min, max, precision)
+	res, err := generateRandomFloat64(false, min, max, precision)
 	assert.NoError(t, err)
 
 	assert.GreaterOrEqual(t, res, min, "The result should be greater or equal to the minimum")
@@ -26,7 +26,7 @@ func Test_GenerateRandomFloatNegativeRange(t *testing.T) {
 	max := float64(-19.2)
 	precision := int64(7)
 
-	res, err := GenerateRandomFloat64(false, min, max, precision)
+	res, err := generateRandomFloat64(false, min, max, precision)
 	assert.NoError(t, err)
 
 	// swapped because negative min number is the max
@@ -39,7 +39,7 @@ func Test_GenerateRandomFloatNegativetoPositiveRange(t *testing.T) {
 	max := float64(19.2)
 	precision := int64(3)
 
-	res, err := GenerateRandomFloat64(false, min, max, precision)
+	res, err := generateRandomFloat64(false, min, max, precision)
 	assert.NoError(t, err)
 
 	assert.GreaterOrEqual(t, res, min, "The result should be greater or equal to the minimum")
@@ -51,7 +51,7 @@ func Test_GenerateRandomFloatRandomizePositive(t *testing.T) {
 	max := float64(19.2)
 	precision := int64(7)
 
-	res, err := GenerateRandomFloat64(true, min, max, precision)
+	res, err := generateRandomFloat64(true, min, max, precision)
 	assert.NoError(t, err)
 
 	if !transformer_utils.IsNegativeFloat64(res) {
@@ -70,7 +70,7 @@ func Test_GenerateRandomFloatRandomizeNegative(t *testing.T) {
 	max := float64(-19.2)
 	precision := int64(7)
 
-	res, err := GenerateRandomFloat64(true, min, max, precision)
+	res, err := generateRandomFloat64(true, min, max, precision)
 	assert.NoError(t, err)
 
 	if !transformer_utils.IsNegativeFloat64(res) {
@@ -89,7 +89,7 @@ func Test_GenerateRandomFloatRandomizeNegativeToPositive(t *testing.T) {
 	max := float64(19.2)
 	precision := int64(7)
 
-	res, err := GenerateRandomFloat64(true, min, max, precision)
+	res, err := generateRandomFloat64(true, min, max, precision)
 	assert.NoError(t, err)
 
 	if !transformer_utils.IsNegativeFloat64(res) {

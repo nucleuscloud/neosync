@@ -47,7 +47,7 @@ func init() {
 		}
 
 		return func() (any, error) {
-			res, err := GenerateRandomInt64(randomizeSign, min, max)
+			res, err := generateRandomInt64(randomizeSign, min, max)
 			if err != nil {
 				return nil, fmt.Errorf("unable to run generate_int64: %w", err)
 			}
@@ -63,7 +63,7 @@ func init() {
 /*
 Generates a random int64 up to 18 digits in the interval [min, max].
 */
-func GenerateRandomInt64(randomizeSign bool, min, max int64) (int64, error) {
+func generateRandomInt64(randomizeSign bool, min, max int64) (int64, error) {
 	var returnValue int64
 
 	if randomizeSign {

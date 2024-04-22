@@ -24,9 +24,7 @@ func init() {
 func generateRandomState() string {
 	addresses := transformers_dataset.Addresses
 
-	// -1 because addresses is an array so we don't overflow
-	//nolint:all
-	randomIndex := rand.Intn(len(addresses) - 1)
-
+	//nolint:gosec
+	randomIndex := rand.Intn(len(addresses))
 	return addresses[randomIndex].State
 }

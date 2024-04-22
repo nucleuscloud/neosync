@@ -11,14 +11,14 @@ import (
 var testStringValue = "hello"
 
 func Test_TransformStringPreserveLengthTrue(t *testing.T) {
-	res, err := TransformString(&testStringValue, true, 3, maxCharacterLimit)
+	res, err := transformString(&testStringValue, true, 3, maxCharacterLimit)
 
 	assert.NoError(t, err)
 	assert.Equal(t, len(testStringValue), len(*res), "The output string should be as long as the input string")
 }
 
 func Test_TransformStringPreserveLengthFalse(t *testing.T) {
-	res, err := TransformString(&testStringValue, false, 3, maxCharacterLimit)
+	res, err := transformString(&testStringValue, false, 3, maxCharacterLimit)
 
 	assert.NoError(t, err)
 	assert.GreaterOrEqual(t, len(*res), 3, "The expected value should be greater than or equal to 3")
@@ -26,7 +26,7 @@ func Test_TransformStringPreserveLengthFalse(t *testing.T) {
 }
 
 func Test_TransformStringMaxLength(t *testing.T) {
-	res, err := TransformString(&testStringValue, false, 3, maxCharacterLimit)
+	res, err := transformString(&testStringValue, false, 3, maxCharacterLimit)
 
 	assert.NoError(t, err)
 	assert.GreaterOrEqual(t, len(*res), 3, "The expected value should be greater than or equal to 3")

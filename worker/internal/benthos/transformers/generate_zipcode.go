@@ -12,7 +12,7 @@ func init() {
 
 	err := bloblang.RegisterFunctionV2("generate_zipcode", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		return func() (any, error) {
-			return GenerateRandomZipcode(), nil
+			return generateRandomZipcode(), nil
 		}, nil
 	})
 	if err != nil {
@@ -21,7 +21,7 @@ func init() {
 }
 
 // Generates a randomly selected zip code that exists in the United States.
-func GenerateRandomZipcode() string {
+func generateRandomZipcode() string {
 	addresses := transformers_dataset.Addresses
 	//nolint:gosec
 	randomIndex := rand.Intn(len(addresses))
