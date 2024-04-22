@@ -40,7 +40,8 @@ export default function UserDefinedGenerateFloat64Form(
             <div className="space-y-0.5">
               <FormLabel>Randomize Sign</FormLabel>
               <FormDescription>
-                Randomly sets a sign to the generated float64 value.
+                {`After the value has been generated, will randomly flip the sign. This may cause the generated value to be out of the defined min/max range.
+                  If the min/max is 20-40, the value may be in the following ranges: 20 <= x <= 40 and -40 <= x <= -20`}
               </FormDescription>
             </div>
             <div className="flex flex-col h-14">
@@ -68,8 +69,7 @@ export default function UserDefinedGenerateFloat64Form(
             <div className="space-y-0.5">
               <FormLabel>Minimum Value</FormLabel>
               <FormDescription>
-                Sets a minimum range for generated float64 value. This can be
-                negative as well.
+                Sets a minimum range for generated float64 value.
               </FormDescription>
             </div>
             <div className="flex flex-col h-14">
@@ -102,8 +102,7 @@ export default function UserDefinedGenerateFloat64Form(
             <div className="space-y-0.5">
               <FormLabel>Maximum Value</FormLabel>
               <FormDescription>
-                Sets a maximum range for generated float64 value. This can be
-                negative as well.
+                Sets a maximum range for generated float64 value.
               </FormDescription>
             </div>
             <div className="flex flex-col h-14">
