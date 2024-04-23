@@ -93,8 +93,8 @@ func buildBenthosGenerateSourceConfigResponses(
 					Input: &neosync_benthos.InputConfig{
 						Inputs: neosync_benthos.Inputs{
 							GenerateSqlSelect: &neosync_benthos.GenerateSqlSelect{
-								Count: count,
-								// Mapping:         mutations,
+								Count:           count,
+								Mapping:         mutations,
 								Driver:          driver,
 								Dsn:             "${SOURCE_CONNECTION_DSN}",
 								TableColumnsMap: tableColsMaps,
@@ -103,8 +103,9 @@ func buildBenthosGenerateSourceConfigResponses(
 						},
 					},
 					Pipeline: &neosync_benthos.PipelineConfig{
-						Threads:    -1,
-						Processors: processors,
+						Threads: -1,
+						// Processors: processors,
+						Processors: []neosync_benthos.ProcessorConfig{},
 					},
 					Output: &neosync_benthos.OutputConfig{
 						Outputs: neosync_benthos.Outputs{

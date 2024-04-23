@@ -187,31 +187,13 @@ func (s *generateReader) ReadBatch(ctx context.Context) (service.MessageBatch, s
 			selectColumns[i] = col
 		}
 	}
-	orderBy := exp.NewOrderedExpression(exp.NewLiteralExpression(sqlRandomStr), exp.AscDir, exp.NullsLastSortType)
-	builder := goqu.Dialect(s.driver)
-	selectBuilder := builder.From(table).Select(selectColumns...).Order(orderBy).Limit(uint(randomLrgLimit))
-	selectSql, _, err := selectBuilder.ToSQL()
+	rows, err := s.queryDatabase(sqlRandomStr, table, randomLrgLimit, selectColumns)
 	if err != nil {
-		return nil, nil, err
-	}
-
-	rows, err := s.db.QueryContext(ctx, selectSql)
-	if err != nil {
-		if !neosync_benthos.ShouldTerminate(err.Error()) {
-			s.logger.Error(fmt.Sprintf("Benthos input error - sending stop activity signal: %s ", err.Error()))
-			s.stopActivityChannel <- err
-		}
-		return nil, nil, err
-	}
-
-	rowObjList, err := sqlRowsToMapList(rows)
-	if err != nil {
-		_ = rows.Close()
 		return nil, nil, err
 	}
 
 	batch := service.MessageBatch{}
-	for _, r := range rowObjList {
+	for _, r := range rows {
 		randomSmLimit, err := transformer_utils.GenerateRandomInt64InValueRange(0, 3)
 		if err != nil {
 			return nil, nil, err
@@ -219,12 +201,9 @@ func (s *generateReader) ReadBatch(ctx context.Context) (service.MessageBatch, s
 		otherTableRows := [][]map[string]any{}
 		for _, t := range otherTables {
 			cols := s.tableColsMap[t]
-			jsonF, _ := json.MarshalIndent(cols, "", " ")
-			fmt.Printf("\n cols: %s \n", string(jsonF))
 			selectColumns := make([]any, len(cols))
 			for i, col := range cols {
 				tn := fmt.Sprintf("%s.%s", t, col)
-				fmt.Println(tn)
 				as, ok := s.columnNameMap[tn]
 				if ok {
 					selectColumns[i] = goqu.I(col).As(as)
@@ -232,28 +211,13 @@ func (s *generateReader) ReadBatch(ctx context.Context) (service.MessageBatch, s
 					selectColumns[i] = col
 				}
 			}
-			selectBuilder := builder.From(t).Select(selectColumns...).Order(orderBy).Limit(uint(randomSmLimit))
-			selectSql, _, err := selectBuilder.ToSQL()
+			newRows, err := s.queryDatabase(sqlRandomStr, t, randomSmLimit, selectColumns)
 			if err != nil {
 				return nil, nil, err
 			}
-			fmt.Printf("\n gen batched select sql additional: %s \n", selectSql)
-
-			rows, err := s.db.QueryContext(ctx, selectSql)
-			if err != nil {
-				if !neosync_benthos.ShouldTerminate(err.Error()) {
-					s.logger.Error(fmt.Sprintf("Benthos input error - sending stop activity signal: %s ", err.Error()))
-					s.stopActivityChannel <- err
-				}
-				return nil, nil, err
-			}
-			rowObjList2, err := sqlRowsToMapList(rows)
-			if err != nil {
-				_ = rows.Close()
-				return nil, nil, err
-			}
-			if len(rowObjList2) != 0 {
-				otherTableRows = append(otherTableRows, rowObjList2)
+			if len(newRows) != 0 {
+				// how to handle tables that don't have enough data
+				otherTableRows = append(otherTableRows, newRows)
 			}
 		}
 		combinedRows := combineRowLists(otherTableRows)
@@ -261,19 +225,13 @@ func (s *generateReader) ReadBatch(ctx context.Context) (service.MessageBatch, s
 			for _, cr := range combinedRows {
 				var args map[string]any
 				if s.mapping != nil {
-					var iargs any
-					if iargs, err = s.mapping.Query(nil); err != nil {
-						return nil, nil, err
-					}
-
-					var ok bool
-					if args, ok = iargs.(map[string]any); !ok {
-						err = fmt.Errorf("mapping returned non-array result: %T", iargs)
+					args, err = s.queryBloblangMapping()
+					if err != nil {
 						return nil, nil, err
 					}
 				}
-				newRow := combineRows([]map[string]any{r, cr, args})
 
+				newRow := combineRows([]map[string]any{r, cr, args})
 				rowStr, err := json.Marshal(newRow)
 				if err != nil {
 					return nil, nil, err
@@ -287,7 +245,16 @@ func (s *generateReader) ReadBatch(ctx context.Context) (service.MessageBatch, s
 				s.remaining--
 			}
 		} else {
-			rowStr, err := json.Marshal(r)
+			newRow := r
+			if s.mapping != nil {
+				args, err := s.queryBloblangMapping()
+				if err != nil {
+					return nil, nil, err
+				}
+				newRow = combineRows([]map[string]any{r, args})
+			}
+
+			rowStr, err := json.Marshal(newRow)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -319,6 +286,48 @@ func (s *generateReader) Close(ctx context.Context) (err error) {
 	return nil
 }
 
+func (s *generateReader) queryBloblangMapping() (map[string]any, error) {
+	var iargs any
+	var err error
+	if iargs, err = s.mapping.Query(nil); err != nil {
+		return nil, err
+	}
+
+	var ok bool
+	var args map[string]any
+	if args, ok = iargs.(map[string]any); !ok {
+		err = fmt.Errorf("mapping returned non-array result: %T", iargs)
+		return nil, err
+	}
+	return args, nil
+}
+
+func (s *generateReader) queryDatabase(sqlRandomStr, table string, limit int64, columns []any) ([]map[string]any, error) {
+	orderBy := exp.NewOrderedExpression(exp.NewLiteralExpression(sqlRandomStr), exp.AscDir, exp.NullsLastSortType)
+	builder := goqu.Dialect(s.driver)
+	selectBuilder := builder.From(table).Select(columns...).Order(orderBy).Limit(uint(limit))
+	selectSql, _, err := selectBuilder.ToSQL()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := s.db.QueryContext(ctx, selectSql)
+	if err != nil {
+		if !neosync_benthos.ShouldTerminate(err.Error()) {
+			s.logger.Error(fmt.Sprintf("Benthos input error - sending stop activity signal: %s ", err.Error()))
+			s.stopActivityChannel <- err
+		}
+		return nil, err
+	}
+
+	rowObjList, err := sqlRowsToMapList(rows)
+	if err != nil {
+		_ = rows.Close()
+		return nil, err
+	}
+	return rowObjList, nil
+}
+
 func sqlRowsToMapList(rows *sql.Rows) ([]map[string]any, error) {
 	results := []map[string]any{}
 	for rows.Next() {
@@ -342,8 +351,6 @@ func combineRows(maps []map[string]any) map[string]any {
 }
 
 func combineRowLists(rows [][]map[string]any) []map[string]any {
-	jsonF, _ := json.MarshalIndent(rows, "", " ")
-	fmt.Printf("\n %s \n", string(jsonF))
 	if len(rows) == 0 {
 		return []map[string]any{}
 	}
