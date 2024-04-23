@@ -74,7 +74,10 @@
     "Praji",
     "Supabase",
     "quickstart",
-    "Quickstart"
+    "Quickstart",
+    "llms",
+    "cust",
+    "VARCHAR"
   ],
   "flagWords": ["hte"],
   "files": ["blog/**/*.md*", "docs/**/*.md*"],

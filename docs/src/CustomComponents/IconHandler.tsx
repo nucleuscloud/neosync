@@ -31,6 +31,7 @@ import { GrAnalytics, GrMysql } from 'react-icons/gr';
 import { IoBuildOutline } from 'react-icons/io5';
 import { MdPassword, MdStart } from 'react-icons/md';
 import { PiArrowsSplitLight, PiFlaskLight } from 'react-icons/pi';
+import { RiOpenaiFill } from 'react-icons/ri';
 import { SiGo, SiKubernetes, SiTerraform, SiTypescript } from 'react-icons/si';
 import { TbSdk, TbVariable } from 'react-icons/tb';
 
@@ -127,6 +128,8 @@ export function IconHandler(name: string): ReactElement {
       return <SiTerraform />;
     case 'Quickstart':
       return <RocketIcon />;
+    case 'Using Neosync with any LLM':
+      return <RiOpenaiFill />;
     default:
       return <LayersIcon />;
   }

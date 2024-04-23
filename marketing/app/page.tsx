@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Neosync',
     description: 'Open Source Synthetic Data Orchestration',
-    url: 'https://neosync.dev',
+    url: 'https://www.neosync.dev',
     siteName: 'Neosync',
     images: [
       {

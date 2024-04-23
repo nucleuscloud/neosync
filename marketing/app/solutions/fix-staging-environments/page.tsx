@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     title: 'Fix Staging Environments | Neosync',
     description:
       'Fix broken staging environments and catch bugs before production. ',
-    url: 'https://neosync.dev/solutions/fix-staging-environments',
+    url: 'https://www.neosync.dev/solutions/fix-staging-environments',
     siteName: 'Neosync',
     images: [
       {
