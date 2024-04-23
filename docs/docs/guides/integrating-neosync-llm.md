@@ -61,7 +61,7 @@ Nice! Looks like we can see our database and table and that our permissions are 
 
 ## Creating a Custom Transformer
 
-Neosync has the notion of Transformers. Transformers are modules that can generate synthetic data or anonymize existing data. We ship Neosync with 40+ transformers out of the box but you can also create your own [custom tranformers](/blog/introducing-custom-transformers) in code which is what we're going to do for this use case.
+Neosync has the notion of Transformers. Transformers are modules that can generate synthetic data or anonymize existing data. We ship Neosync with 40+ transformers out of the box but you can also create your own [custom transformers](/blog/introducing-custom-transformers) in code which is what we're going to do for this use case.
 
 Click on **Transformers** in the top navigation menu and then the **+ New Transformer** button.
 
@@ -125,7 +125,7 @@ Next, you'll be taken to the **Connect** page where you can select the connectio
 
 ![new-trans](/img/cust-gen-connect.png)
 
-Select the `cust-gen-db` connection and set the **Truncate Before Insert** option to `true`. This will give us a fresh slate everytime we want to run the job and clear out any existing data.
+Select the `cust-gen-db` connection and set the **Truncate Before Insert** option to `true`. This will give us a fresh slate every time we want to run the job and clear out any existing data.
 
 Click **Next** for the last step.
 
