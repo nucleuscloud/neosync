@@ -1329,6 +1329,154 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyChild(t *testing.T) {
 	assert.Equal(t, expected, sql)
 }
 
+func Test_buildSelectQueryMap_shouldContinue(t *testing.T) {
+	mappings := map[string]*tableMapping{
+		"public.a": {
+			Schema: "public",
+			Table:  "a",
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "public",
+					Table:  "a",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
+					},
+				},
+			},
+		},
+		"public.b": {
+			Schema: "public",
+			Table:  "b",
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "public",
+					Table:  "b",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
+					},
+				},
+				{
+					Schema: "public",
+					Table:  "b",
+					Column: "a_id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
+					},
+				},
+				{
+					Schema: "public",
+					Table:  "b",
+					Column: "d_id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
+					},
+				},
+			},
+		},
+		"public.c": {
+			Schema: "public",
+			Table:  "c",
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "public",
+					Table:  "c",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
+					},
+				},
+			},
+		},
+		"public.d": {
+			Schema: "public",
+			Table:  "d",
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "public",
+					Table:  "d",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
+					},
+				},
+				{
+					Schema: "public",
+					Table:  "d",
+					Column: "c_id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
+					},
+				},
+			},
+		},
+		"public.e": {
+			Schema: "public",
+			Table:  "e",
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "public",
+					Table:  "e",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
+					},
+				},
+				{
+					Schema: "public",
+					Table:  "e",
+					Column: "d_id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
+					},
+				},
+			},
+		},
+	}
+	aWhere := "id = 1"
+	sourceTableOpts := map[string]*sqlSourceTableOptions{
+		"public.a": {WhereClause: &aWhere},
+	}
+	tableDependencies := map[string]*dbschemas.TableConstraints{
+		"public.b": {
+			Constraints: []*dbschemas.ForeignConstraint{
+				{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
+				{Column: "d_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.d", Column: "id"}},
+			},
+		},
+		"public.d": {
+			Constraints: []*dbschemas.ForeignConstraint{
+				{Column: "c_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
+			},
+		},
+		"public.e": {
+			Constraints: []*dbschemas.ForeignConstraint{
+				{Column: "d_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.d", Column: "id"}},
+			},
+		},
+	}
+	dependencyConfigs := []*tabledependency.RunConfig{
+		{Table: "public.a", DependsOn: []*tabledependency.DependsOn{}},
+		{Table: "public.b", DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.d", Columns: []string{"id"}}}},
+		{Table: "public.c", DependsOn: []*tabledependency.DependsOn{}},
+		{Table: "public.d", DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+		{Table: "public.e", DependsOn: []*tabledependency.DependsOn{{Table: "public.d", Columns: []string{"id"}}}},
+	}
+	expected :=
+		map[string]string{
+			"public.a": `SELECT "id" FROM "public"."a" WHERE public.a.id = 1;`,
+			"public.b": `SELECT "public"."b"."id", "public"."b"."a_id", "public"."b"."d_id" FROM "public"."b" INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") WHERE public.a.id = 1;`,
+			"public.c": `SELECT "id" FROM "public"."c";`,
+			"public.d": `SELECT "id", "c_id" FROM "public"."d";`,
+			"public.e": `SELECT "id", "d_id" FROM "public"."e";`,
+		}
+	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, sql)
+}
+
 func Test_getBfsPathMap(t *testing.T) {
 	tests := []struct {
 		name     string
