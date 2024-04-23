@@ -56,7 +56,7 @@ func TransformInt64PhoneNumber(number int64, preserveLength bool) (*int64, error
 		}
 		return &res, nil
 	} else {
-		res, err := GenerateRandomInt64PhoneNumber()
+		res, err := generateRandomInt64PhoneNumber()
 		if err != nil {
 			return nil, err
 		}

@@ -28,7 +28,10 @@ func init() {
 
 		return func() (any, error) {
 			res, err := generateRandomFullName(randomizer, maxLength)
-			return res, err
+			if err != nil {
+				return nil, fmt.Errorf("unable to run generate_full_name: %w", err)
+			}
+			return res, nil
 		}, nil
 	})
 

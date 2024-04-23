@@ -9,7 +9,7 @@ import (
 )
 
 func Test_GenerateValidLuhnCardNumber(t *testing.T) {
-	val, err := GenerateValidLuhnCheckCardNumber()
+	val, err := generateValidLuhnCheckCardNumber()
 
 	assert.NoError(t, err)
 	assert.Equal(t, len(strconv.FormatInt(val, 10)), 16, "The output card should be 16 characters long")
@@ -17,7 +17,7 @@ func Test_GenerateValidLuhnCardNumber(t *testing.T) {
 }
 
 func Test_GenerateCardNumber(t *testing.T) {
-	val, err := GenerateCardNumber(false)
+	val, err := generateCardNumber(false)
 
 	assert.NoError(t, err)
 	assert.Len(t, strconv.FormatInt(val, 10), 16, "The output card should be 16 characters long")

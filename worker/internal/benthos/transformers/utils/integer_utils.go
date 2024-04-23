@@ -106,6 +106,7 @@ func MaxInt[T int | int64 | int32 | uint | uint32 | uint64](a, b T) T {
 	return b
 }
 
+// If n is less than floor, returns floor. Otherwise returns n.
 func Floor[T int | int64 | int32 | uint | uint32 | uint64](n, floor T) T {
 	if n > floor {
 		return n
@@ -113,6 +114,7 @@ func Floor[T int | int64 | int32 | uint | uint32 | uint64](n, floor T) T {
 	return floor
 }
 
+// If n is greater than ceiling, returns ceiling. Otherwise returns n.
 func Ceil[T int | int64 | int32 | uint | uint32 | uint64](n, ceiling T) T {
 	if n < ceiling {
 		return n

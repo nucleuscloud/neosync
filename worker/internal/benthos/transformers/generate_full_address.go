@@ -19,7 +19,7 @@ func init() {
 		}
 
 		return func() (any, error) {
-			res, err := GenerateRandomFullAddress(maxLength)
+			res, err := generateRandomFullAddress(maxLength)
 			if err != nil {
 				return nil, err
 			}
@@ -32,7 +32,7 @@ func init() {
 }
 
 /* Generates a random full address from the US including street address, city, state and zipcode */
-func GenerateRandomFullAddress(maxLength int64) (string, error) {
+func generateRandomFullAddress(maxLength int64) (string, error) {
 	addresses := transformers_dataset.Addresses
 
 	var filteredAddresses []string
@@ -53,26 +53,24 @@ func GenerateRandomFullAddress(maxLength int64) (string, error) {
 			}
 			return str, nil
 		} else {
-			sa, err := GenerateRandomStreetAddress(5)
+			sa, err := generateRandomStreetAddress(5)
 			if err != nil {
 				return "", err
 			}
-			city, err := GenerateRandomCity(5)
+			city, err := generateRandomCity(5)
 			if err != nil {
 				return "", err
 			}
 
-			state := GenerateRandomState()
+			state := generateRandomState()
 
-			zip := GenerateRandomZipcode()
+			zip := generateRandomZipcode()
 
 			return fmt.Sprintf(`%s %s %s, %s`, sa, city, state, zip), nil
 		}
 	}
 
-	// -1 because addresses is an array so we don't overflow
-	//nolint:all
-	randomIndex := rand.Intn(len(filteredAddresses) - 1)
-
+	//nolint:gosec
+	randomIndex := rand.Intn(len(filteredAddresses))
 	return filteredAddresses[randomIndex], nil
 }

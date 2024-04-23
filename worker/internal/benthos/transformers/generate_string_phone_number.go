@@ -23,7 +23,7 @@ func init() {
 			return nil, err
 		}
 		return func() (any, error) {
-			res, err := GenerateStringPhoneNumber(min, max)
+			res, err := generateStringPhoneNumber(min, max)
 			if err != nil {
 				return nil, fmt.Errorf("unable to run generate_string_phone_number: %w", err)
 			}
@@ -38,7 +38,7 @@ func init() {
 
 /*  Generates a string phone number in the length interval [min, max] with the min length == 9 and the max length == 15.
  */
-func GenerateStringPhoneNumber(min, max int64) (string, error) {
+func generateStringPhoneNumber(min, max int64) (string, error) {
 	min = transformer_utils.Floor(min, 9)
 	max = transformer_utils.Ceil(max, 15)
 

@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     title: ' Keep Environments In Sync | Neosync',
     description:
       'Keep environments in sync by anonymizing sensitive data and generating synthetic data and syncing it across environments. ',
-    url: 'https://neosync.dev/solutions/keep-environments-in-sync',
+    url: 'https://www.neosync.dev/solutions/keep-environments-in-sync',
     siteName: 'Neosync',
     images: [
       {

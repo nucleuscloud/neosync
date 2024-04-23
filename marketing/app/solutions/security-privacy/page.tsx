@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     title: 'Easily comply with Data Privacy, Security and Compliance | Neosync',
     description:
       'Easily comply with laws like HIPAA, GDPR, and DPDP with de-identified and synthetic data that structurally and statistically looks just like your production data. ',
-    url: 'https://neosync.dev/solutions/security-privacy',
+    url: 'https://www.neosync.dev/solutions/security-privacy',
     siteName: 'Neosync',
     images: [
       {

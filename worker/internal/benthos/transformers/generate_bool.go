@@ -11,7 +11,7 @@ func init() {
 
 	err := bloblang.RegisterFunctionV2("generate_bool", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		return func() (any, error) {
-			return GenerateRandomBool(), nil
+			return generateRandomBool(), nil
 		}, nil
 	})
 	if err != nil {
@@ -20,9 +20,8 @@ func init() {
 }
 
 // Generates a random bool value and returns it as a bool type.
-func GenerateRandomBool() bool {
-	//nolint:all
+func generateRandomBool() bool {
+	//nolint:gosec
 	randInt := rand.Intn(2)
-
 	return randInt == 1
 }

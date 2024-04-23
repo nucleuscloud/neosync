@@ -22,8 +22,11 @@ func init() {
 		}
 
 		return func() (any, error) {
-			res, err := GenerateCardNumber(luhn)
-			return res, err
+			res, err := generateCardNumber(luhn)
+			if err != nil {
+				return nil, fmt.Errorf("unable to run generate_card_number: %w", err)
+			}
+			return res, nil
 		}, nil
 	})
 
@@ -33,11 +36,11 @@ func init() {
 }
 
 // Generates a 16 digit card number that can pass a luhn check if the validLuhn param is set to true. Otherwise will generate a random 16 digit card number.
-func GenerateCardNumber(luhn bool) (int64, error) {
+func generateCardNumber(luhn bool) (int64, error) {
 	var returnValue int64
 
 	if luhn {
-		val, err := GenerateValidLuhnCheckCardNumber()
+		val, err := generateValidLuhnCheckCardNumber()
 		if err != nil {
 			return 0, err
 		}
@@ -56,7 +59,7 @@ func GenerateCardNumber(luhn bool) (int64, error) {
 }
 
 // generates a card number that passes luhn validation
-func GenerateValidLuhnCheckCardNumber() (int64, error) {
+func generateValidLuhnCheckCardNumber() (int64, error) {
 	// To find the checksum digit on
 	cardNo := make([]int, 0)
 	for _, c := range fmt.Sprintf("%d", defaultIIN) {

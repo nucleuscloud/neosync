@@ -12,7 +12,7 @@ import (
 func Test_GenerateCategorical(t *testing.T) {
 	categories := []string{"test", "me", "please", "sir"}
 
-	res := GenerateCategorical(categories)
+	res := generateCategorical(categories)
 
 	valueInCategory := false
 	for _, cat := range categories {

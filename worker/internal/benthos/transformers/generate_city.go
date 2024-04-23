@@ -1,6 +1,7 @@
 package transformers
 
 import (
+	"fmt"
 	"math/rand"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
@@ -18,9 +19,9 @@ func init() {
 		}
 
 		return func() (any, error) {
-			res, err := GenerateRandomCity(maxLength)
+			res, err := generateRandomCity(maxLength)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("unable to run generate_city: %w", err)
 			}
 			return res, nil
 		}, nil
@@ -31,7 +32,7 @@ func init() {
 }
 
 // Generates a randomly selected city that exists in the United States. Accounts for the maxLength of the column and searches for a city that is shorter than the maxLength. If not, it randomly generates a string that len(string) == maxLength
-func GenerateRandomCity(maxLength int64) (string, error) {
+func generateRandomCity(maxLength int64) (string, error) {
 	addresses := transformers_dataset.Addresses
 	var filteredCities []string
 

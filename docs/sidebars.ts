@@ -218,6 +218,11 @@ const sidebars: SidebarsConfig = {
       label: 'Neosync Terraform Provider',
     },
     {
+      type: 'doc',
+      id: 'guides/using-neosync-with-llms',
+      label: 'Using Neosync with any LLM',
+    },
+    {
       type: 'html',
       value: '<div>Connections</div>',
       className: 'sidebarcategory',

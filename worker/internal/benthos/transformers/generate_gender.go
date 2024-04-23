@@ -1,18 +1,21 @@
 package transformers
 
 import (
-	"math/rand"
+	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
+	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
+	"github.com/nucleuscloud/neosync/worker/internal/rng"
 )
 
 func init() {
 	spec := bloblang.NewPluginSpec().
-		Param(bloblang.NewBoolParam("abbreviate")).
-		Param(bloblang.NewInt64Param("max_length"))
+		Param(bloblang.NewBoolParam("abbreviate").Default(false)).
+		Param(bloblang.NewInt64Param("max_length").Default(10000)).
+		Param(bloblang.NewInt64Param("seed").Default(time.Now().UnixNano()))
 
 	err := bloblang.RegisterFunctionV2("generate_gender", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		ab, err := args.GetBool("abbreviate")
+		shouldAbbreviate, err := args.GetBool("abbreviate")
 		if err != nil {
 			return nil, err
 		}
@@ -22,12 +25,14 @@ func init() {
 			return nil, err
 		}
 
-		return func() (any, error) {
-			res, err := GenerateRandomGender(ab, maxLength)
+		seed, err := args.GetInt64("seed")
+		if err != nil {
+			return nil, err
+		}
+		randomizer := rng.New(seed)
 
-			if err != nil {
-				return false, err
-			}
+		return func() (any, error) {
+			res := generateRandomGender(randomizer, shouldAbbreviate, maxLength)
 			return res, nil
 		}, nil
 	})
@@ -36,21 +41,13 @@ func init() {
 	}
 }
 
-/* Generates a randomly selected gender from a predefined list */
-func GenerateRandomGender(ab bool, maxLength int64) (string, error) {
-	//nolint:all
-	randomInt := rand.Intn(4)
+var genders = []string{"undefined", "nonbinary", "female", "male"}
 
-	genderMap := map[int]string{
-		0: "undefined",
-		1: "nonbinary",
-		2: "female",
-		3: "male",
+func generateRandomGender(randomizer rng.Rand, shouldAbbreviate bool, maxLength int64) string {
+	genderIdx := randomizer.Intn(len(genders))
+	gender := transformer_utils.TrimStringIfExceeds(genders[genderIdx], maxLength)
+	if shouldAbbreviate {
+		gender = transformer_utils.TrimStringIfExceeds(gender, 1)
 	}
-	// we check if the maxLength is less than 9 since our longest non-abbreviated gender is 9 digits long
-	if ab || maxLength < 9 {
-		return genderMap[randomInt][:1], nil
-	} else {
-		return genderMap[randomInt], nil
-	}
+	return gender
 }

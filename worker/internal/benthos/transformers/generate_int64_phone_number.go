@@ -1,6 +1,8 @@
 package transformers
 
 import (
+	"fmt"
+
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformers_dataset "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/data-sets"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
@@ -13,8 +15,11 @@ func init() {
 
 	err := bloblang.RegisterFunctionV2("generate_int64_phone_number", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		return func() (any, error) {
-			res, err := GenerateRandomInt64PhoneNumber()
-			return res, err
+			res, err := generateRandomInt64PhoneNumber()
+			if err != nil {
+				return nil, fmt.Errorf("unable to run generate_int64_phone_number: %w", err)
+			}
+			return res, nil
 		}, nil
 	})
 
@@ -24,7 +29,7 @@ func init() {
 }
 
 /* Generates a random 10 digit phone number with a valid US area code and returns it as an int64. */
-func GenerateRandomInt64PhoneNumber() (int64, error) {
+func generateRandomInt64PhoneNumber() (int64, error) {
 	ac := transformers_dataset.AreaCodes
 
 	// get a random area code from the areacodes data set
