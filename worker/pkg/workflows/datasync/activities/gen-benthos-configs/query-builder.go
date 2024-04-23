@@ -244,7 +244,7 @@ func buildSelectQueryMap(
 			// check if query already created
 			_, seen := queryMap[table]
 			if seen {
-				break
+				continue
 			}
 			tableMapping := groupedMappings[table]
 			var where *string
