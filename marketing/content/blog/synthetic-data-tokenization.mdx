@@ -66,7 +66,7 @@ Now that we've understood what encryption, tokenization and synthetic data are, 
 
 # LLM data privacy
 
-One of the main use-cases that we see with regards to data privacy and LLMs is the ability to anonymize or generate synthetic data for training or fine-tuning use-cases. In those situations a machine learning engineer can use either synthetic data or tokeniztion. What we know today is that data that is used to train LLMs is tokenized and vectorized before it's trained. This results in a high-dimensionsal graph where distances between tokens indict similarity.
+One of the main use-cases that we see with regards to data privacy and LLMs is the ability to anonymize or generate synthetic data for training or fine-tuning use-cases. In those situations a machine learning engineer can use either synthetic data or tokenization. What we know today is that data that is used to train LLMs is tokenized and vectorized before it's trained. This results in a high-dimensional graph where distances between tokens indict similarity.
 
 For example, "queen" and "king" will be closer in distance in the graph than "queen" and "269745d2-1e30-4f98-beb3-3cace04769d2" or "queen" and "iosjdf09aufjw2". Why? Because semantically, queen and king have some relation while queen and UUID or queen and random string do not.
 
@@ -92,13 +92,13 @@ Given that our goal is to protect sensitive data without losing the semantic mea
 | joe@storm.com   | joe        | storm     | 19  | 64     |
 | larry@resan.com | larry      | resan     | 36  | 71     |
 
-We've updated our PII to generate new emails, first names and last names and then for the age and height columns we've generated a random value within a +/- range of 3. This data is brand new and does not leak any of our existing senstiive data. Semantically, it still makes sense. We've introduced a little more noise in the age and height columns but we have total control over that and how we update it.
+We've updated our PII to generate new emails, first names and last names and then for the age and height columns we've generated a random value within a +/- range of 3. This data is brand new and does not leak any of our existing sensitive data. Semantically, it still makes sense. We've introduced a little more noise in the age and height columns but we have total control over that and how we update it.
 
 That's the power of synthetic data. You're able to generate net new data that looks like our sensitive data and maintains generally the same semantic meaning but is privacy-safe.
 
 ## Tokenization
 
-Looking at tokenization, there are several different types of tokenization. Length-preserving and format-preserving tokeniztion are powerful features that mimic the format and length of the original data but the data itself is not retained. Let's see:
+Looking at tokenization, there are several different types of tokenization. Length-preserving and format-preserving tokenization are powerful features that mimic the format and length of the original data but the data itself is not retained. Let's see:
 
 | email                 | first_name | last_name | age | height |
 | --------------------- | ---------- | --------- | --- | ------ |
@@ -106,7 +106,7 @@ Looking at tokenization, there are several different types of tokenization. Leng
 | 8i778@qewf.wfe        | qwd        | eafs      | 23  | 45     |
 | 7kj7k8@wdqoij.jwfeoi  | qpzme      | ewaw      | 12  | 01     |
 
-Tokeniztion can still anonymize sensitive data however you will likely lose the semantic meaning of the data since the tokens it generates are typically non-sensical. For some use-cases this might be fine, but every bit of noise you add to the model, you make the model less accurate. So there is a trade-off and tokenization tends to add more noise than synthetic data.
+Tokenization can still anonymize sensitive data however you will likely lose the semantic meaning of the data since the tokens it generates are typically nonsense. For some use-cases this might be fine, but every bit of noise you add to the model, you make the model less accurate. So there is a trade-off and tokenization tends to add more noise than synthetic data.
 
 # Wrapping up
 
