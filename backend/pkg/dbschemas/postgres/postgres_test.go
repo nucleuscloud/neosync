@@ -7,28 +7,29 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	dbschemas "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_GetPostgresTableDependencies(t *testing.T) {
-	constraints := []*pg_queries.GetForeignKeyConstraintsRow{
-		{ConstraintName: "fk_account_user_associations_account_id", SchemaName: "neosync_api", TableName: "account_user_associations", ColumnName: "account_id", ForeignSchemaName: "neosync_api", ForeignTableName: "accounts", ForeignColumnName: "id", IsNullable: "NO"},
-		{ConstraintName: "fk_account_user_associations_user_id", SchemaName: "neosync_api", TableName: "account_user_associations", ColumnName: "user_id", ForeignSchemaName: "neosync_api", ForeignTableName: "users", ForeignColumnName: "id", IsNullable: "NO"},
-		{ConstraintName: "fk_connections_accounts_id", SchemaName: "neosync_api", TableName: "connections", ColumnName: "account_id", ForeignSchemaName: "neosync_api", ForeignTableName: "accounts", ForeignColumnName: "id", IsNullable: "NO"},
-		{ConstraintName: "fk_connections_created_by_users_id", SchemaName: "neosync_api", TableName: "connections", ColumnName: "created_by_id", ForeignSchemaName: "neosync_api", ForeignTableName: "users", ForeignColumnName: "id", IsNullable: "YES"},
-		{ConstraintName: "fk_connections_updated_by_users_id", SchemaName: "neosync_api", TableName: "connections", ColumnName: "updated_by_id", ForeignSchemaName: "neosync_api", ForeignTableName: "users", ForeignColumnName: "id", IsNullable: "NO"},
-		{ConstraintName: "fk_jobdstconassoc_conn_id_conn_id", SchemaName: "neosync_api", TableName: "job_destination_connection_associations", ColumnName: "connection_id", ForeignSchemaName: "neosync_api", ForeignTableName: "connections", ForeignColumnName: "id", IsNullable: "NO"},
-		{ConstraintName: "fk_jobdstconassoc_job_id_jobs_id", SchemaName: "neosync_api", TableName: "job_destination_connection_associations", ColumnName: "job_id", ForeignSchemaName: "neosync_api", ForeignTableName: "jobs", ForeignColumnName: "id", IsNullable: "NO"},
-		{ConstraintName: "fk_jobs_accounts_id", SchemaName: "neosync_api", TableName: "jobs", ColumnName: "account_id", ForeignSchemaName: "neosync_api", ForeignTableName: "accounts", ForeignColumnName: "id", IsNullable: "NO"},
-		{ConstraintName: "fk_jobs_accounts_id", SchemaName: "neosync_api", TableName: "jobs", ColumnName: "connection_source_id", ForeignSchemaName: "neosync_api", ForeignTableName: "connections", ForeignColumnName: "id", IsNullable: "NO"},
-		{ConstraintName: "fk_jobs_created_by_users_id", SchemaName: "neosync_api", TableName: "jobs", ColumnName: "created_by_id", ForeignSchemaName: "neosync_api", ForeignTableName: "users", ForeignColumnName: "id", IsNullable: "YES"},
-		{ConstraintName: "fk_jobs_updated_by_users_id", SchemaName: "neosync_api", TableName: "jobs", ColumnName: "updated_by_id", ForeignSchemaName: "neosync_api", ForeignTableName: "users", ForeignColumnName: "id", IsNullable: "NO"},
-		{ConstraintName: "fk_user_identity_provider_user_id", SchemaName: "neosync_api", TableName: "user_identity_provider_associations", ColumnName: "user_id", ForeignSchemaName: "neosync_api", ForeignTableName: "users", ForeignColumnName: "id", IsNullable: "NO"},
+	constraints := []*pg_queries.GetTableConstraintsBySchemaRow{
+		{ConstraintName: "fk_account_user_associations_account_id", SchemaName: "neosync_api", TableName: "account_user_associations", ConstraintColumns: []string{"account_id"}, ForeignSchemaName: "neosync_api", ForeignTableName: "accounts", ForeignColumnNames: []string{"id"}, Notnullable: []bool{true}, ConstraintType: "f"},
+		{ConstraintName: "fk_account_user_associations_user_id", SchemaName: "neosync_api", TableName: "account_user_associations", ConstraintColumns: []string{"user_id"}, ForeignSchemaName: "neosync_api", ForeignTableName: "users", ForeignColumnNames: []string{"id"}, Notnullable: []bool{true}, ConstraintType: "f"},
+		{ConstraintName: "fk_connections_accounts_id", SchemaName: "neosync_api", TableName: "connections", ConstraintColumns: []string{"account_id"}, ForeignSchemaName: "neosync_api", ForeignTableName: "accounts", ForeignColumnNames: []string{"id"}, Notnullable: []bool{true}, ConstraintType: "f"},
+		{ConstraintName: "fk_connections_created_by_users_id", SchemaName: "neosync_api", TableName: "connections", ConstraintColumns: []string{"created_by_id"}, ForeignSchemaName: "neosync_api", ForeignTableName: "users", ForeignColumnNames: []string{"id"}, Notnullable: []bool{false}, ConstraintType: "f"},
+		{ConstraintName: "fk_connections_updated_by_users_id", SchemaName: "neosync_api", TableName: "connections", ConstraintColumns: []string{"updated_by_id"}, ForeignSchemaName: "neosync_api", ForeignTableName: "users", ForeignColumnNames: []string{"id"}, Notnullable: []bool{true}, ConstraintType: "f"},
+		{ConstraintName: "fk_jobdstconassoc_conn_id_conn_id", SchemaName: "neosync_api", TableName: "job_destination_connection_associations", ConstraintColumns: []string{"connection_id"}, ForeignSchemaName: "neosync_api", ForeignTableName: "connections", ForeignColumnNames: []string{"id"}, Notnullable: []bool{true}, ConstraintType: "f"},
+		{ConstraintName: "fk_jobdstconassoc_job_id_jobs_id", SchemaName: "neosync_api", TableName: "job_destination_connection_associations", ConstraintColumns: []string{"job_id"}, ForeignSchemaName: "neosync_api", ForeignTableName: "jobs", ForeignColumnNames: []string{"id"}, Notnullable: []bool{true}, ConstraintType: "f"},
+		{ConstraintName: "fk_jobs_accounts_id", SchemaName: "neosync_api", TableName: "jobs", ConstraintColumns: []string{"account_id"}, ForeignSchemaName: "neosync_api", ForeignTableName: "accounts", ForeignColumnNames: []string{"id"}, Notnullable: []bool{true}, ConstraintType: "f"},
+		{ConstraintName: "fk_jobs_accounts_id", SchemaName: "neosync_api", TableName: "jobs", ConstraintColumns: []string{"connection_source_id"}, ForeignSchemaName: "neosync_api", ForeignTableName: "connections", ForeignColumnNames: []string{"id"}, Notnullable: []bool{true}, ConstraintType: "f"},
+		{ConstraintName: "fk_jobs_created_by_users_id", SchemaName: "neosync_api", TableName: "jobs", ConstraintColumns: []string{"created_by_id"}, ForeignSchemaName: "neosync_api", ForeignTableName: "users", ForeignColumnNames: []string{"id"}, Notnullable: []bool{false}, ConstraintType: "f"},
+		{ConstraintName: "fk_jobs_updated_by_users_id", SchemaName: "neosync_api", TableName: "jobs", ConstraintColumns: []string{"updated_by_id"}, ForeignSchemaName: "neosync_api", ForeignTableName: "users", ForeignColumnNames: []string{"id"}, Notnullable: []bool{true}, ConstraintType: "f"},
+		{ConstraintName: "fk_user_identity_provider_user_id", SchemaName: "neosync_api", TableName: "user_identity_provider_associations", ConstraintColumns: []string{"user_id"}, ForeignSchemaName: "neosync_api", ForeignTableName: "users", ForeignColumnNames: []string{"id"}, Notnullable: []bool{true}, ConstraintType: "f"},
 	}
 
-	td := GetPostgresTableDependencies(constraints)
-	assert.Equal(t, td, dbschemas.TableDependency{
+	td, err := GetPostgresTableDependencies(constraints)
+	require.NoError(t, err)
+	require.Equal(t, td, dbschemas.TableDependency{
 		"neosync_api.account_user_associations": {Constraints: []*dbschemas.ForeignConstraint{
 			{Column: "account_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "neosync_api.accounts", Column: "id"}},
 			{Column: "user_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "neosync_api.users", Column: "id"}},
@@ -55,16 +56,17 @@ func Test_GetPostgresTableDependencies(t *testing.T) {
 }
 
 func Test_GetPostgresTableDependenciesExtraEdgeCases(t *testing.T) {
-	constraints := []*pg_queries.GetForeignKeyConstraintsRow{
-		{ConstraintName: "t1_b_c_fkey", SchemaName: "neosync_api", TableName: "t1", ColumnName: "b", ForeignSchemaName: "neosync_api", ForeignTableName: "account_user_associations", ForeignColumnName: "account_id", IsNullable: "NO"},
-		{ConstraintName: "t1_b_c_fkey", SchemaName: "neosync_api", TableName: "t1", ColumnName: "c", ForeignSchemaName: "neosync_api", ForeignTableName: "account_user_associations", ForeignColumnName: "user_id", IsNullable: "NO"},
-		{ConstraintName: "t2_b_fkey", SchemaName: "neosync_api", TableName: "t2", ColumnName: "b", ForeignSchemaName: "neosync_api", ForeignTableName: "t2", ForeignColumnName: "a", IsNullable: "NO"},
-		{ConstraintName: "t3_b_fkey", SchemaName: "neosync_api", TableName: "t3", ColumnName: "b", ForeignSchemaName: "neosync_api", ForeignTableName: "t4", ForeignColumnName: "a", IsNullable: "NO"},
-		{ConstraintName: "t4_b_fkey", SchemaName: "neosync_api", TableName: "t4", ColumnName: "b", ForeignSchemaName: "neosync_api", ForeignTableName: "t3", ForeignColumnName: "a", IsNullable: "NO"},
+	constraints := []*pg_queries.GetTableConstraintsBySchemaRow{
+		{ConstraintName: "t1_b_c_fkey", SchemaName: "neosync_api", TableName: "t1", ConstraintColumns: []string{"b"}, ForeignSchemaName: "neosync_api", ForeignTableName: "account_user_associations", ForeignColumnNames: []string{"account_id"}, Notnullable: []bool{true}, ConstraintType: "f"},
+		{ConstraintName: "t1_b_c_fkey", SchemaName: "neosync_api", TableName: "t1", ConstraintColumns: []string{"c"}, ForeignSchemaName: "neosync_api", ForeignTableName: "account_user_associations", ForeignColumnNames: []string{"user_id"}, Notnullable: []bool{true}, ConstraintType: "f"},
+		{ConstraintName: "t2_b_fkey", SchemaName: "neosync_api", TableName: "t2", ConstraintColumns: []string{"b"}, ForeignSchemaName: "neosync_api", ForeignTableName: "t2", ForeignColumnNames: []string{"a"}, Notnullable: []bool{true}, ConstraintType: "f"},
+		{ConstraintName: "t3_b_fkey", SchemaName: "neosync_api", TableName: "t3", ConstraintColumns: []string{"b"}, ForeignSchemaName: "neosync_api", ForeignTableName: "t4", ForeignColumnNames: []string{"a"}, Notnullable: []bool{true}, ConstraintType: "f"},
+		{ConstraintName: "t4_b_fkey", SchemaName: "neosync_api", TableName: "t4", ConstraintColumns: []string{"b"}, ForeignSchemaName: "neosync_api", ForeignTableName: "t3", ForeignColumnNames: []string{"a"}, Notnullable: []bool{true}, ConstraintType: "f"},
 	}
 
-	td := GetPostgresTableDependencies(constraints)
-	assert.Equal(t, td, dbschemas.TableDependency{
+	td, err := GetPostgresTableDependencies(constraints)
+	require.NoError(t, err)
+	require.Equal(t, td, dbschemas.TableDependency{
 		"neosync_api.t1": {Constraints: []*dbschemas.ForeignConstraint{
 			{Column: "b", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "neosync_api.account_user_associations", Column: "account_id"}},
 			{Column: "c", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "neosync_api.account_user_associations", Column: "user_id"}},
@@ -171,7 +173,7 @@ func Test_GenerateCreateTableStatement(t *testing.T) {
 	for _, testcase := range cases {
 		t.Run(t.Name(), func(t *testing.T) {
 			actual := generateCreateTableStatement(testcase.schema, testcase.table, testcase.rows, testcase.constraints)
-			assert.Equal(t, testcase.expected, actual)
+			require.Equal(t, testcase.expected, actual)
 		})
 	}
 }
@@ -186,12 +188,12 @@ func Test_GetUniqueSchemaColMappings(t *testing.T) {
 			{TableSchema: "neosync_api", TableName: "accounts", ColumnName: "id"},
 		},
 	)
-	assert.Contains(t, mappings, "public.users", "job mappings are a subset of the present database schemas")
-	assert.Contains(t, mappings, "neosync_api.accounts", "job mappings are a subset of the present database schemas")
-	assert.Contains(t, mappings["public.users"], "id", "")
-	assert.Contains(t, mappings["public.users"], "created_by", "")
-	assert.Contains(t, mappings["public.users"], "updated_by", "")
-	assert.Contains(t, mappings["neosync_api.accounts"], "id", "")
+	require.Contains(t, mappings, "public.users", "job mappings are a subset of the present database schemas")
+	require.Contains(t, mappings, "neosync_api.accounts", "job mappings are a subset of the present database schemas")
+	require.Contains(t, mappings["public.users"], "id", "")
+	require.Contains(t, mappings["public.users"], "created_by", "")
+	require.Contains(t, mappings["public.users"], "updated_by", "")
+	require.Contains(t, mappings["neosync_api.accounts"], "id", "")
 }
 
 func Test_BatchExecStmts(t *testing.T) {
@@ -226,14 +228,14 @@ func Test_BatchExecStmts(t *testing.T) {
 			}
 
 			err := BatchExecStmts(ctx, dbtx, tt.batchSize, tt.statements)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 		})
 	}
 }
 
 func Test_EscapePgColumns(t *testing.T) {
-	assert.Empty(t, EscapePgColumns(nil))
-	assert.Equal(
+	require.Empty(t, EscapePgColumns(nil))
+	require.Equal(
 		t,
 		EscapePgColumns([]string{"foo", "bar", "baz"}),
 		[]string{`"foo"`, `"bar"`, `"baz"`},

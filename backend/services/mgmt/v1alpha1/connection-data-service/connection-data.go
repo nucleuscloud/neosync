@@ -602,7 +602,7 @@ func (s *Service) GetConnectionForeignConstraints(
 		}
 		defer conn.Close()
 
-		allConstraints, err := dbschemas_postgres.GetAllPostgresFkConstraints(s.pgquerier, ctx, db, schemas)
+		allConstraints, err := dbschemas_postgres.GetAllPostgresForeignKeyConstraints(ctx, db, s.pgquerier, schemas)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return nil, err
 		} else if err != nil && nucleusdb.IsNoRows(err) {
@@ -610,7 +610,11 @@ func (s *Service) GetConnectionForeignConstraints(
 				TableConstraints: map[string]*mgmtv1alpha1.ForeignConstraintTables{},
 			}), nil
 		}
-		td = dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
+		tdeps, err := dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
+		if err != nil {
+			return nil, err
+		}
+		td = tdeps
 
 	default:
 		return nil, errors.New("unsupported fk connection")
@@ -703,16 +707,11 @@ func (s *Service) GetConnectionPrimaryConstraints(
 		}
 		defer conn.Close()
 
-		allConstraints, err := dbschemas_postgres.GetAllPostgresPkConstraints(s.pgquerier, ctx, db, schemas)
-		if err != nil && !nucleusdb.IsNoRows(err) {
+		pcon, err := dbschemas_postgres.GetAllPostgresPrimaryKeyConstraintsByTableCols(ctx, db, s.pgquerier, schemas)
+		if err != nil {
 			return nil, err
-		} else if err != nil && nucleusdb.IsNoRows(err) {
-			return connect.NewResponse(&mgmtv1alpha1.GetConnectionPrimaryConstraintsResponse{
-				TableConstraints: map[string]*mgmtv1alpha1.PrimaryConstraint{},
-			}), nil
 		}
-		pc = dbschemas_postgres.GetPostgresTablePrimaryKeys(allConstraints)
-
+		pc = pcon
 	default:
 		return nil, errors.New("unsupported fk connection")
 	}
@@ -1010,15 +1009,11 @@ func (s *Service) GetConnectionUniqueConstraints(
 		}
 		defer conn.Close()
 
-		allConstraints, err := dbschemas_postgres.GetAllPostgresUniqueConstraints(s.pgquerier, ctx, db, schemas)
-		if err != nil && !nucleusdb.IsNoRows(err) {
+		ucon, err := dbschemas_postgres.GetAllPostgresUniqueConstraintsByTableCols(ctx, db, s.pgquerier, schemas)
+		if err != nil {
 			return nil, err
-		} else if err != nil && nucleusdb.IsNoRows(err) {
-			return connect.NewResponse(&mgmtv1alpha1.GetConnectionUniqueConstraintsResponse{
-				TableConstraints: map[string]*mgmtv1alpha1.UniqueConstraint{},
-			}), nil
 		}
-		uc = dbschemas_postgres.GetPostgresTableUniqueConstraints(allConstraints)
+		uc = ucon
 
 	default:
 		return nil, errors.New("unsupported unique constraint connection")

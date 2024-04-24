@@ -137,11 +137,15 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 		pool := b.pgpool[sourceConnection.Id]
 		sourceConnectionId = sourceConnection.Id
 
-		allConstraints, err := dbschemas_postgres.GetAllPostgresFkConstraints(b.pgquerier, ctx, pool, uniqueSchemas)
+		allConstraints, err := dbschemas_postgres.GetAllPostgresForeignKeyConstraints(ctx, pool, b.pgquerier, uniqueSchemas)
 		if err != nil {
 			return nil, fmt.Errorf("unable to retrieve postgres foreign key constraints: %w", err)
 		}
-		tableDependencies = dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
+		tableDeps, err := dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
+		if err != nil {
+			return nil, fmt.Errorf("uanble to build postgres table deps from fk constraints: %w", err)
+		}
+		tableDependencies = tableDeps
 
 	case *mgmtv1alpha1.JobSourceOptions_Mysql:
 		sourceConnection, err := b.getConnectionById(ctx, jobSourceConfig.Mysql.ConnectionId)

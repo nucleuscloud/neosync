@@ -1199,11 +1199,15 @@ func getDestinationForeignConstraints(ctx context.Context, connectionDriver Driv
 		}
 		cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
 		defer cancel()
-		allConstraints, err := dbschemas_postgres.GetAllPostgresFkConstraints(pgquerier, cctx, pool, schemas)
+		allConstraints, err := dbschemas_postgres.GetAllPostgresForeignKeyConstraints(cctx, pool, pgquerier, schemas)
 		if err != nil {
 			return nil, err
 		}
-		constraints = dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
+		tableDeps, err := dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
+		if err != nil {
+			return nil, err
+		}
+		constraints = tableDeps
 	case mysqlDriver:
 		mysqlquerier := mysql_queries.New()
 		conn, err := sql.Open(string(connectionDriver), connectionUrl)
@@ -1240,11 +1244,11 @@ func getDestinationPrimaryKeyConstraints(ctx context.Context, connectionDriver D
 		}
 		cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
 		defer cancel()
-		allConstraints, err := dbschemas_postgres.GetAllPostgresPkConstraints(pgquerier, cctx, pool, schemas)
+		pcon, err := dbschemas_postgres.GetAllPostgresPrimaryKeyConstraintsByTableCols(cctx, pool, pgquerier, schemas)
 		if err != nil {
 			return nil, err
 		}
-		pc = dbschemas_postgres.GetPostgresTablePrimaryKeys(allConstraints)
+		pc = pcon
 	case mysqlDriver:
 		mysqlquerier := mysql_queries.New()
 		conn, err := sql.Open(string(connectionDriver), connectionUrl)

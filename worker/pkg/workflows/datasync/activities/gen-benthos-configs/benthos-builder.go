@@ -146,7 +146,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		}
 
 		groupedColInfoMap = groupedSchemas
-
 		allConstraints, err := db.GetAllForeignKeyConstraints(ctx, uniqueSchemas)
 		if err != nil {
 			return nil, fmt.Errorf("unable to retrieve database foreign key constraints: %w", err)
@@ -158,6 +157,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		if err != nil {
 			return nil, fmt.Errorf("unable to get all primary key constraints: %w", err)
 		}
+		slogger.Info(fmt.Sprintf("found %d primary key constraints for database", len(primaryKeys)))
 		primaryKeyMap := sql_manager.GetTablePrimaryKeysMap(primaryKeys)
 
 		tables := filterNullTables(groupedMappings)

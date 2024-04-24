@@ -45,37 +45,56 @@ func (p *PostgresManager) GetDatabaseSchema(ctx context.Context) ([]*DatabaseSch
 }
 
 func (p *PostgresManager) GetAllForeignKeyConstraints(ctx context.Context, schemas []string) ([]*ForeignKeyConstraintsRow, error) {
-	fkConstraints, err := dbschemas_postgres.GetAllPostgresFkConstraints(p.querier, ctx, p.pool, schemas)
+	constraints, err := dbschemas_postgres.GetAllPostgresForeignKeyConstraints(ctx, p.pool, p.querier, schemas)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get database foreign keys for postgres connection: %w", err)
 	}
 	result := []*ForeignKeyConstraintsRow{}
-	for _, row := range fkConstraints {
-		result = append(result, &ForeignKeyConstraintsRow{
-			SchemaName:        row.SchemaName,
-			TableName:         row.TableName,
-			ColumnName:        row.ColumnName,
-			IsNullable:        row.IsNullable,
-			ConstraintName:    row.ConstraintName,
-			ForeignSchemaName: row.ForeignSchemaName,
-			ForeignTableName:  row.ForeignTableName,
-			ForeignColumnName: row.ForeignColumnName,
-		})
+	for _, row := range constraints {
+		if len(row.ConstraintColumns) != len(row.ForeignColumnNames) {
+			return nil, fmt.Errorf("length of columns was not equal to length of foreign key cols: %d %d", len(row.ConstraintColumns), len(row.ForeignColumnNames))
+		}
+		if len(row.ConstraintColumns) != len(row.Notnullable) {
+			return nil, fmt.Errorf("length of columns was not equal to length of not nullable cols: %d %d", len(row.ConstraintColumns), len(row.Notnullable))
+		}
+
+		for idx, colname := range row.ConstraintColumns {
+			fkcol := row.ForeignColumnNames[idx]
+			notnullable := row.Notnullable[idx]
+
+			result = append(result, &ForeignKeyConstraintsRow{
+				SchemaName:        row.SchemaName,
+				TableName:         row.TableName,
+				ColumnName:        colname,
+				IsNullable:        convertNotNullableToNullableText(notnullable),
+				ConstraintName:    row.ConstraintName,
+				ForeignSchemaName: row.ForeignSchemaName,
+				ForeignTableName:  row.ForeignTableName,
+				ForeignColumnName: fkcol,
+			})
+		}
 	}
 	return result, nil
 }
 
+func convertNotNullableToNullableText(notnullable bool) string {
+	if notnullable {
+		return "NO"
+	}
+	return "YES"
+}
+
 func (p *PostgresManager) GetAllPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*PrimaryKeyConstraintsRow, error) {
-	fkConstraints, err := dbschemas_postgres.GetAllPostgresPkConstraints(p.querier, ctx, p.pool, schemas)
+	constraints, err := dbschemas_postgres.GetAllPostgresPrimaryKeyConstraints(ctx, p.pool, p.querier, schemas)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get database primary keys for postgres connection: %w", err)
 	}
 	result := []*PrimaryKeyConstraintsRow{}
-	for _, row := range fkConstraints {
+	for _, row := range constraints {
 		result = append(result, &PrimaryKeyConstraintsRow{
 			SchemaName:     row.SchemaName,
 			TableName:      row.TableName,
-			ColumnName:     row.ColumnName,
+			ColumnName:     row.ConstraintColumns[0], // todo: hack, this should be fixed to support primary keys
 			ConstraintName: row.ConstraintName,
 		})
 	}
