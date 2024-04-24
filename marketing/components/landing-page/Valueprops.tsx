@@ -19,7 +19,7 @@ export default function ValueProps(): ReactElement {
       link: '/solutions/fix-staging-environments',
     },
     {
-      title: 'Keep your environments in sync',
+      title: 'Keep environments in sync',
       image: '/images/envsync3.svg',
       link: '/solutions/keep-environments-in-sync',
     },
@@ -33,7 +33,7 @@ export default function ValueProps(): ReactElement {
   return (
     <div>
       <div className="text-gray-900 font-semibold text-2xl lg:text-4xl font-satoshi text-center">
-        Protect Your Sensitive Data, Build Faster with Neosync
+        Unblock Your Developers, Build Faster with Neosync
       </div>
       <div className="text-lg text-gray-400 font-satoshi font-light pt-20 flex flex-col md:flex-row lg:flex-row gap-6 justify-center items-center">
         {features.map((item) => (
@@ -47,7 +47,7 @@ export default function ValueProps(): ReactElement {
               });
             }}
           >
-            <div className="border border-gray-300 bg-white rounded-xl p-2 lg:p-4 xl:p-8 shadow-xl flex flex-col justify-between gap-6 text-center w-full  max-w-[300px] lg:max-w-[400px] mx-auto h-[360px] hover:border-gray-400">
+            <div className="border border-gray-300 bg-white rounded-xl p-2 lg:p-4 xl:p-8 shadow-xl flex flex-col justify-between gap-6 text-center w-full  max-w-[300px] lg:w-[270px] lg:max-w-[400px] mx-auto h-[360px] hover:border-gray-400">
               <div>
                 <div className="flex justify-center">
                   <Image
