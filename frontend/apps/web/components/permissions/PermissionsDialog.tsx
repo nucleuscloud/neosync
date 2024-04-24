@@ -25,7 +25,7 @@ interface Props {
   connectionName: string;
 }
 
-export default function Permissions(props: Props) {
+export default function PermissionsDialog(props: Props): ReactElement {
   const {
     data,
     openPermissionDialog,
@@ -51,12 +51,18 @@ export default function Permissions(props: Props) {
             <LearnMoreTag href="https://docs.neosync.dev/connections/postgres#testing-your-connection" />
           </div>
         </DialogHeader>
-        <TestConnectionResult
-          resp={validationResponse}
-          connectionName={connectionName}
+
+        <PermissionsDataTable
+          ConnectionAlert={
+            <TestConnectionResult
+              isConnected={validationResponse}
+              connectionName={connectionName}
+              privileges={data}
+            />
+          }
           data={data}
+          columns={columns}
         />
-        <PermissionsDataTable data={data} columns={columns} />
         <DialogFooter className="pt-6">
           <div className="flex justify-end">
             <Button
@@ -73,23 +79,23 @@ export default function Permissions(props: Props) {
 }
 
 interface TestConnectionResultProps {
-  resp: boolean;
+  isConnected: boolean;
   connectionName: string;
-  data: ConnectionRolePrivilege[];
+  privileges: ConnectionRolePrivilege[];
 }
 
 export function TestConnectionResult(
   props: TestConnectionResultProps
 ): ReactElement {
-  const { resp, connectionName, data } = props;
+  const { isConnected, connectionName, privileges } = props;
 
-  if (resp && data.length == 0) {
+  if (isConnected && privileges.length == 0) {
     return (
       <WarningAlert
         description={`We were able to connect to: ${connectionName}, but were not able to find any schema(s) or table(s). Does your role have permissions? `}
       />
     );
-  } else if (resp) {
+  } else if (isConnected) {
     return (
       <SuccessAlert
         description={`Successfully connected to connection: ${connectionName}!`}

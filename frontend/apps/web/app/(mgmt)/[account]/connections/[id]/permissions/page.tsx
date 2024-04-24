@@ -6,8 +6,8 @@ import Spinner from '@/components/Spinner';
 import { SubNav } from '@/components/SubNav';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import LearnMoreTag from '@/components/labels/LearnMoreTag';
-import { TestConnectionResult } from '@/components/permissions/Permissions';
 import PermissionsDataTable from '@/components/permissions/PermissionsDataTable';
+import { TestConnectionResult } from '@/components/permissions/PermissionsDialog';
 import { getPermissionColumns } from '@/components/permissions/columns';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
@@ -132,7 +132,7 @@ export default function PermissionsPage({ params }: PageProps) {
           <div>
             <PermissionsPageContainer
               data={validationRes?.privileges ?? []}
-              validationResponse={validationRes?.isConnected ?? false}
+              isDbConnected={validationRes?.isConnected ?? false}
               connectionName={data?.connection?.name ?? ''}
               columns={columns}
               mutateValidation={mutateValidation}
@@ -148,7 +148,7 @@ export default function PermissionsPage({ params }: PageProps) {
 interface PermissionsPageContainerProps {
   connectionName: string;
   data: ConnectionRolePrivilege[];
-  validationResponse: boolean;
+  isDbConnected: boolean;
   columns: ColumnDef<PlainMessage<ConnectionRolePrivilege>>[];
   mutateValidation:
     | KeyedMutator<unknown>
@@ -160,7 +160,7 @@ function PermissionsPageContainer(props: PermissionsPageContainerProps) {
   const {
     data,
     connectionName,
-    validationResponse,
+    isDbConnected,
     columns,
     mutateValidation,
     isMutating,
@@ -184,20 +184,27 @@ function PermissionsPageContainer(props: PermissionsPageContainerProps) {
     <div className="flex flex-col gap-4">
       <div className="flex flex-row justify-between items-center w-full">
         <div className="text-muted-foreground text-sm">
-          Review the permissions that Neoynsc has to your connection.{' '}
+          Review the permissions that Neosync needs for your connection.{' '}
           <LearnMoreTag href="https://docs.neosync.dev/connections/postgres#testing-your-connection" />
         </div>
-        <Button type="button" variant="outline" onClick={handleMutate}>
-          {isMutating ? <Spinner /> : <UpdateIcon />}
-        </Button>
       </div>
 
-      <TestConnectionResult
-        resp={validationResponse}
-        connectionName={connectionName}
+      <PermissionsDataTable
+        ConnectionAlert={
+          <TestConnectionResult
+            isConnected={isDbConnected}
+            connectionName={connectionName}
+            privileges={data}
+          />
+        }
+        TestConnectionButton={
+          <Button type="button" variant="outline" onClick={handleMutate}>
+            {isMutating ? <Spinner /> : <UpdateIcon />}
+          </Button>
+        }
         data={data}
+        columns={columns}
       />
-      <PermissionsDataTable data={data} columns={columns} />
     </div>
   );
 }

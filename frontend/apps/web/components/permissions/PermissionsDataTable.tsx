@@ -26,11 +26,15 @@ import { Button } from '../ui/button';
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  ConnectionAlert: ReactElement;
+  TestConnectionButton?: ReactElement;
 }
 
 export default function PermissionsDataTable<TData, TValue>({
   columns,
   data,
+  ConnectionAlert,
+  TestConnectionButton,
 }: DataTableProps<TData, TValue>): ReactElement {
   const table = useReactTable({
     data,
@@ -68,19 +72,23 @@ export default function PermissionsDataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-row justify-end">
-        <Button
-          disabled={table.getState().columnFilters.length === 0}
-          type="button"
-          variant="outline"
-          className="px-2 lg:px-3"
-          onClick={() => table.resetColumnFilters()}
-        >
-          <ButtonText
-            leftIcon={<Cross2Icon className="h-3 w-3" />}
-            text="Clear filters"
-          />
-        </Button>
+      <div className="flex flex-row items-center gap-2 justify-between">
+        <div>{ConnectionAlert}</div>
+        <div className="flex flex-row items-center gap-2">
+          {TestConnectionButton && TestConnectionButton}
+          <Button
+            disabled={table.getState().columnFilters.length === 0}
+            type="button"
+            variant="outline"
+            className="px-2 lg:px-3"
+            onClick={() => table.resetColumnFilters()}
+          >
+            <ButtonText
+              leftIcon={<Cross2Icon className="h-3 w-3" />}
+              text="Clear filters"
+            />
+          </Button>
+        </div>
       </div>
       <div
         className="rounded-md border relative overflow-y-auto max-h-[500px] dark:border-gray-700 "

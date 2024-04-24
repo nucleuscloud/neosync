@@ -3,7 +3,7 @@ import ButtonText from '@/components/ButtonText';
 import FormError from '@/components/FormError';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
-import Permissions from '@/components/permissions/Permissions';
+import PermissionsDialog from '@/components/permissions/PermissionsDialog';
 import { useAccount } from '@/components/providers/account-provider';
 import {
   Accordion,
@@ -489,7 +489,7 @@ export default function PostgresForm(props: Props) {
             </AccordionContent>
           </AccordionItem>
         </Accordion>
-        <Permissions
+        <PermissionsDialog
           data={permissionData ?? []}
           openPermissionDialog={openPermissionDialog}
           setOpenPermissionDialog={setOpenPermissionDialog}
