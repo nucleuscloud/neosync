@@ -97,7 +97,7 @@ export default function PermissionsDataTable<TData, TValue>({
           >
             {rows.length === 0 && (
               <TableRow className="flex justify-center items-center py-10 text-gray-500">
-                <td>No Schema(s) or Table(s) selected.</td>
+                <td>No permissions found for the configured connection.</td>
               </TableRow>
             )}
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {
