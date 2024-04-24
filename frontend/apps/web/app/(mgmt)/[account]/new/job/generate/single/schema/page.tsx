@@ -57,9 +57,9 @@ import { useSessionStorage } from 'usehooks-ts';
 import JobsProgressSteps, { DATA_GEN_STEPS } from '../../../JobsProgressSteps';
 import {
   DefineFormValues,
-  SINGLE_TABLE_SCHEMA_FORM_SCHEMA,
+  MULTI_TABLE_SCHEMA_FORM_SCHEMA,
+  MultiTableSchemaFormValues,
   SingleTableConnectFormValues,
-  SingleTableSchemaFormValues,
 } from '../../../schema';
 const isBrowser = () => typeof window !== 'undefined';
 
@@ -98,7 +98,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const formKey = `${sessionPrefix}-new-job-single-table-schema`;
 
-  const [schemaFormData] = useSessionStorage<SingleTableSchemaFormValues>(
+  const [schemaFormData] = useSessionStorage<MultiTableSchemaFormValues>(
     formKey,
     {
       mappings: [],
@@ -114,8 +114,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const form = useForm({
     mode: 'onChange',
-    resolver: yupResolver<SingleTableSchemaFormValues>(
-      SINGLE_TABLE_SCHEMA_FORM_SCHEMA
+    resolver: yupResolver<MultiTableSchemaFormValues>(
+      MULTI_TABLE_SCHEMA_FORM_SCHEMA
     ),
     values: schemaFormData,
     context: { accountId: account?.id },
@@ -131,7 +131,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     setIsClient(true);
   }, []);
 
-  async function onSubmit(values: SingleTableSchemaFormValues) {
+  async function onSubmit(values: MultiTableSchemaFormValues) {
     if (!account) {
       return;
     }
@@ -297,7 +297,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 async function createNewJob(
   define: DefineFormValues,
   connect: SingleTableConnectFormValues,
-  schema: SingleTableSchemaFormValues,
+  schema: MultiTableSchemaFormValues,
   accountId: string,
   connections: Connection[]
 ): Promise<CreateJobResponse> {
@@ -329,9 +329,29 @@ async function createNewJob(
       }),
     });
   }
-  const tableSchema =
-    schema.mappings.length > 0 ? schema.mappings[0].schema : null;
-  const table = schema.mappings.length > 0 ? schema.mappings[0].table : null;
+  const schemas = schema.mappings.reduce(
+    (prev, curr) => {
+      const prevTables = prev[curr.schema] || {};
+      return {
+        ...prev,
+        [curr.schema]: { ...prevTables, [curr.table]: curr.table },
+      };
+    },
+    {} as Record<string, Record<string, string>>
+  );
+  const schemaRecords = Object.entries(schemas).map(([s, tables]) => {
+    return new GenerateSourceSchemaOption({
+      schema: s,
+      tables: Object.keys(tables).map(
+        (t) =>
+          new GenerateSourceTableOption({
+            rowCount: BigInt(schema.numRows),
+            table: t,
+          })
+      ),
+    });
+  });
+
   const body = new CreateJobRequest({
     accountId,
     jobName: define.jobName,
@@ -353,20 +373,7 @@ async function createNewJob(
           case: 'generate',
           value: new GenerateSourceOptions({
             fkSourceConnectionId: connect.connectionId,
-            schemas:
-              tableSchema && table
-                ? [
-                    new GenerateSourceSchemaOption({
-                      schema: tableSchema,
-                      tables: [
-                        new GenerateSourceTableOption({
-                          rowCount: BigInt(schema.numRows),
-                          table: table,
-                        }),
-                      ],
-                    }),
-                  ]
-                : [],
+            schemas: schemaRecords,
           }),
         },
       }),

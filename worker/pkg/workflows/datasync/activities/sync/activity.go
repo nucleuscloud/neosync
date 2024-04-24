@@ -245,6 +245,10 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	if err != nil {
 		return nil, fmt.Errorf("unable to register pooled_sql_raw input to benthos instance: %w", err)
 	}
+	err = neosync_benthos_sql.RegisterGenerateTableRecordsInput(benthosenv, poolprovider, stopActivityChan)
+	if err != nil {
+		return nil, fmt.Errorf("unable to register generate_sql_select input to benthos instance: %w", err)
+	}
 
 	err = neosync_benthos_error.RegisterErrorProcessor(benthosenv, stopActivityChan)
 	if err != nil {

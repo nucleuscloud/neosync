@@ -105,7 +105,48 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	case *mgmtv1alpha1.JobSourceOptions_Generate:
 		sourceTableOpts := groupGenerateSourceOptionsByTable(jobSourceConfig.Generate.Schemas)
 		// TODO this needs to be updated to get db schema
-		sourceResponses, err := buildBenthosGenerateSourceConfigResponses(ctx, b.transformerclient, groupedMappings, sourceTableOpts, map[string]*dbschemas_utils.ColumnInfo{})
+		// get depenendcy configs
+		// split root tables vs children tables
+		////////////////////////////////////////////////////////////////////////
+
+		sourceConnection, err := b.getJobSourceConnection(ctx, job.GetSource())
+		if err != nil {
+			return nil, fmt.Errorf("unable to get connection by id: %w", err)
+		}
+		db, err := b.sqladapter.NewSqlDb(ctx, slogger, sourceConnection)
+		if err != nil {
+			return nil, fmt.Errorf("unable to create new sql db: %w", err)
+		}
+		defer db.ClosePool()
+		allConstraints, err := db.GetAllForeignKeyConstraints(ctx, uniqueSchemas)
+		if err != nil {
+			return nil, fmt.Errorf("unable to retrieve database foreign key constraints: %w", err)
+		}
+		slogger.Info(fmt.Sprintf("found %d foreign key constraints for database", len(allConstraints)))
+		td := sql_manager.GetDbTableDependencies(allConstraints)
+
+		primaryKeys, err := db.GetAllPrimaryKeyConstraints(ctx, uniqueSchemas)
+		if err != nil {
+			return nil, fmt.Errorf("unable to get all primary key constraints: %w", err)
+		}
+		primaryKeyMap := sql_manager.GetTablePrimaryKeysMap(primaryKeys)
+
+		tables := filterNullTables(groupedMappings)
+		dependencyConfigs := tabledependency.GetRunConfigs(td, tables, map[string]string{})
+		dependencyMap := map[string][]*tabledependency.RunConfig{}
+		for _, cfg := range dependencyConfigs {
+			_, ok := dependencyMap[cfg.Table]
+			if ok {
+				dependencyMap[cfg.Table] = append(dependencyMap[cfg.Table], cfg)
+			} else {
+				dependencyMap[cfg.Table] = []*tabledependency.RunConfig{cfg}
+			}
+		}
+
+		// how to handle unique constraints
+		///////////////////////////////////////////////////////////////
+
+		sourceResponses, err := buildBenthosGenerateSourceConfigResponses(ctx, b.transformerclient, groupedMappings, sourceTableOpts, map[string]*dbschemas_utils.ColumnInfo{}, dependencyMap, db.Driver, sourceConnection.Id, td, primaryKeyMap)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build benthos generate source config responses: %w", err)
 		}
@@ -315,48 +356,51 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						}
 						updateResponses = append(updateResponses, updateResp)
 					}
-				} else if resp.Config.Input.Generate != nil {
+				} else if resp.Config.Input.Generate != nil || resp.Config.Input.GenerateSqlSelect != nil {
 					cols := buildPlainColumns(tm.Mappings)
-					processorConfigs := []neosync_benthos.ProcessorConfig{}
-					for _, pc := range resp.Processors {
-						processorConfigs = append(processorConfigs, *pc)
-					}
+					// processorConfigs := []neosync_benthos.ProcessorConfig{}
+					// for _, pc := range resp.Processors {
+					// 	processorConfigs = append(processorConfigs, *pc)
+					// }
 
+					retries := 10
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 						Fallback: []neosync_benthos.Outputs{
 							{
 								// retry processor and output several times
-								Retry: &neosync_benthos.RetryConfig{
-									InlineRetryConfig: neosync_benthos.InlineRetryConfig{
-										MaxRetries: 10,
+								// Retry: &neosync_benthos.RetryConfig{
+								// 	InlineRetryConfig: neosync_benthos.InlineRetryConfig{
+								// 		MaxRetries: 10,
+								// 	},
+								// 	Output: neosync_benthos.OutputConfig{
+								// 		Outputs: neosync_benthos.Outputs{
+								PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
+									Driver: driver,
+									Dsn:    dsn,
+
+									Schema:              resp.TableSchema,
+									Table:               resp.TableName,
+									Columns:             cols,
+									OnConflictDoNothing: destOpts.OnConflictDoNothing,
+									TruncateOnRetry:     destOpts.Truncate,
+
+									ArgsMapping: buildPlainInsertArgs(cols),
+
+									Batching: &neosync_benthos.Batching{
+										Period: "5s",
+										Count:  100,
 									},
-									Output: neosync_benthos.OutputConfig{
-										Outputs: neosync_benthos.Outputs{
-											PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
-												Driver: driver,
-												Dsn:    dsn,
-
-												Schema:              resp.TableSchema,
-												Table:               resp.TableName,
-												Columns:             cols,
-												OnConflictDoNothing: destOpts.OnConflictDoNothing,
-												TruncateOnRetry:     destOpts.Truncate,
-
-												ArgsMapping: buildPlainInsertArgs(cols),
-
-												Batching: &neosync_benthos.Batching{
-													Period: "5s",
-													Count:  100,
-												},
-											},
-										},
-										Processors: processorConfigs,
-									},
+									// 	},
+									// },
+									// Processors: processorConfigs,
+									// },
 								},
 							},
 							// kills activity depending on error
+							// TODO add retry here
 							{Error: &neosync_benthos.ErrorOutputConfig{
-								ErrorMsg: `${! meta("fallback_error")}`,
+								ErrorMsg:   `${! meta("fallback_error")}`,
+								MaxRetries: &retries,
 								Batching: &neosync_benthos.Batching{
 									Period: "5s",
 									Count:  100,
@@ -518,107 +562,6 @@ func buildOutputArgs(resp *BenthosConfigResponse, tm *tableMapping) *sqlUpdateOu
 		ArgsMapping: buildPlainInsertArgs(cols),
 		Columns:     cols,
 	}
-}
-
-type generateSourceTableOptions struct {
-	Count int
-}
-
-func buildBenthosGenerateSourceConfigResponses(
-	ctx context.Context,
-	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
-	mappings []*tableMapping,
-	sourceTableOpts map[string]*generateSourceTableOptions,
-	columnInfo map[string]*dbschemas_utils.ColumnInfo,
-) ([]*BenthosConfigResponse, error) {
-	responses := []*BenthosConfigResponse{}
-
-	for _, tableMapping := range mappings {
-		if shared.AreAllColsNull(tableMapping.Mappings) {
-			// skiping table as no columns are mapped
-			continue
-		}
-
-		var count = 0
-		tableOpt := sourceTableOpts[neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table)]
-		if tableOpt != nil {
-			count = tableOpt.Count
-		}
-
-		jsCode, err := extractJsFunctionsAndOutputs(ctx, transformerclient, tableMapping.Mappings)
-		if err != nil {
-			return nil, err
-		}
-
-		mutations, err := buildMutationConfigs(ctx, transformerclient, tableMapping.Mappings, columnInfo)
-		if err != nil {
-			return nil, err
-		}
-		var processors []*neosync_benthos.ProcessorConfig
-		// for the generate input, benthos requires a mapping, so falling back to a
-		// generic empty object if the mutations are empty
-		if mutations == "" {
-			mutations = "root = {}"
-		}
-		processors = append(processors, &neosync_benthos.ProcessorConfig{Mutation: &mutations})
-
-		if jsCode != "" {
-			processors = append(processors, &neosync_benthos.ProcessorConfig{Javascript: &neosync_benthos.JavascriptConfig{Code: jsCode}})
-		}
-		if len(processors) > 0 {
-			// add catch and error processor
-			processors = append(processors, &neosync_benthos.ProcessorConfig{Catch: []*neosync_benthos.ProcessorConfig{
-				{Error: &neosync_benthos.ErrorProcessorConfig{
-					ErrorMsg: `${! meta("fallback_error")}`,
-				}},
-			}})
-		}
-
-		bc := &neosync_benthos.BenthosConfig{
-			StreamConfig: neosync_benthos.StreamConfig{
-				Input: &neosync_benthos.InputConfig{
-					Inputs: neosync_benthos.Inputs{
-						Generate: &neosync_benthos.Generate{
-							Interval: "",
-							Count:    count,
-							Mapping:  "root = {}",
-						},
-					},
-				},
-				Pipeline: &neosync_benthos.PipelineConfig{
-					Threads:    -1,
-					Processors: []neosync_benthos.ProcessorConfig{}, // leave empty. processors should be on output
-				},
-				Output: &neosync_benthos.OutputConfig{
-					Outputs: neosync_benthos.Outputs{
-						Broker: &neosync_benthos.OutputBrokerConfig{
-							Pattern: "fan_out",
-							Outputs: []neosync_benthos.Outputs{},
-						},
-					},
-				},
-			},
-		}
-
-		responses = append(responses, &BenthosConfigResponse{
-			Name:      neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table), // todo: may need to expand on this
-			Config:    bc,
-			DependsOn: []*tabledependency.DependsOn{},
-
-			TableSchema: tableMapping.Schema,
-			TableName:   tableMapping.Table,
-
-			Processors: processors,
-
-			metriclabels: metrics.MetricLabels{
-				metrics.NewEqLabel(metrics.TableSchemaLabel, tableMapping.Schema),
-				metrics.NewEqLabel(metrics.TableNameLabel, tableMapping.Table),
-				metrics.NewEqLabel(metrics.JobTypeLabel, "generate"),
-			},
-		})
-	}
-
-	return responses, nil
 }
 
 func (b *benthosBuilder) getJobById(
@@ -1187,12 +1130,16 @@ func getSqlJobSourceOpts(
 }
 
 func (b *benthosBuilder) getJobSourceConnection(ctx context.Context, jobSource *mgmtv1alpha1.JobSource) (*mgmtv1alpha1.Connection, error) {
+	jsonF, _ := json.MarshalIndent(jobSource, "", " ")
+	fmt.Printf("\n %s \n", string(jsonF))
 	var connectionId string
 	switch jobSourceConfig := jobSource.GetOptions().GetConfig().(type) {
 	case *mgmtv1alpha1.JobSourceOptions_Postgres:
 		connectionId = jobSourceConfig.Postgres.GetConnectionId()
 	case *mgmtv1alpha1.JobSourceOptions_Mysql:
 		connectionId = jobSourceConfig.Mysql.GetConnectionId()
+	case *mgmtv1alpha1.JobSourceOptions_Generate:
+		connectionId = jobSourceConfig.Generate.GetFkSourceConnectionId()
 	default:
 		return nil, errors.New("unsupported job source options type")
 	}
@@ -1229,130 +1176,6 @@ type tableMapping struct {
 	Schema   string
 	Table    string
 	Mappings []*mgmtv1alpha1.JobMapping
-}
-
-func buildProcessorConfigs(
-	ctx context.Context,
-	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
-	cols []*mgmtv1alpha1.JobMapping,
-	tableColumnInfo map[string]*dbschemas_utils.ColumnInfo,
-	columnConstraints map[string]*dbschemas_utils.ForeignKey,
-	primaryKeys []string,
-	jobId, runId string,
-	redisConfig *shared.RedisConfig,
-) ([]*neosync_benthos.ProcessorConfig, error) {
-	jsCode, err := extractJsFunctionsAndOutputs(ctx, transformerclient, cols)
-	if err != nil {
-		return nil, err
-	}
-
-	mutations, err := buildMutationConfigs(ctx, transformerclient, cols, tableColumnInfo)
-	if err != nil {
-		return nil, err
-	}
-
-	cacheBranches, err := buildBranchCacheConfigs(cols, columnConstraints, jobId, runId, redisConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	pkMapping := buildPrimaryKeyMappingConfigs(cols, primaryKeys)
-
-	var processorConfigs []*neosync_benthos.ProcessorConfig
-	if pkMapping != "" {
-		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Mapping: &pkMapping})
-	}
-	if mutations != "" {
-		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Mutation: &mutations})
-	}
-	if jsCode != "" {
-		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Javascript: &neosync_benthos.JavascriptConfig{Code: jsCode}})
-	}
-	if len(cacheBranches) > 0 {
-		for _, config := range cacheBranches {
-			processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Branch: config})
-		}
-	}
-
-	if len(processorConfigs) > 0 {
-		// add catch and error processor
-		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Catch: []*neosync_benthos.ProcessorConfig{
-			{Error: &neosync_benthos.ErrorProcessorConfig{
-				ErrorMsg: `${! meta("fallback_error")}`,
-			}},
-		}})
-	}
-
-	return processorConfigs, err
-}
-
-func extractJsFunctionsAndOutputs(ctx context.Context, transformerclient mgmtv1alpha1connect.TransformersServiceClient, cols []*mgmtv1alpha1.JobMapping) (string, error) {
-	var benthosOutputs []string
-	var jsFunctions []string
-
-	for _, col := range cols {
-		if shouldProcessStrict(col.Transformer) {
-			if _, ok := col.Transformer.Config.Config.(*mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig); ok {
-				val, err := convertUserDefinedFunctionConfig(ctx, transformerclient, col.Transformer)
-				if err != nil {
-					return "", errors.New("unable to look up user defined transformer config by id")
-				}
-				col.Transformer = val
-			}
-			switch col.Transformer.Source {
-			case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT:
-				code := col.Transformer.Config.GetTransformJavascriptConfig().Code
-				if code != "" {
-					jsFunctions = append(jsFunctions, constructJsFunction(code, col.Column, col.Transformer.Source))
-					benthosOutputs = append(benthosOutputs, constructBenthosJavascriptObject(col.Column, col.Transformer.Source))
-				}
-			case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT:
-				code := col.Transformer.Config.GetGenerateJavascriptConfig().Code
-				if code != "" {
-					jsFunctions = append(jsFunctions, constructJsFunction(code, col.Column, col.Transformer.Source))
-					benthosOutputs = append(benthosOutputs, constructBenthosJavascriptObject(col.Column, col.Transformer.Source))
-				}
-			}
-		}
-	}
-
-	if len(jsFunctions) > 0 {
-		return constructBenthosJsProcessor(jsFunctions, benthosOutputs), nil
-	} else {
-		return "", nil
-	}
-}
-
-func buildMutationConfigs(
-	ctx context.Context,
-	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
-	cols []*mgmtv1alpha1.JobMapping,
-	tableColumnInfo map[string]*dbschemas_utils.ColumnInfo,
-) (string, error) {
-	mutations := []string{}
-
-	for _, col := range cols {
-		colInfo := tableColumnInfo[col.Column]
-		if shouldProcessColumn(col.Transformer) {
-			if _, ok := col.Transformer.Config.Config.(*mgmtv1alpha1.TransformerConfig_UserDefinedTransformerConfig); ok {
-				// handle user defined transformer -> get the user defined transformer configs using the id
-				val, err := convertUserDefinedFunctionConfig(ctx, transformerclient, col.Transformer)
-				if err != nil {
-					return "", errors.New("unable to look up user defined transformer config by id")
-				}
-				col.Transformer = val
-			}
-			if col.Transformer.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT && col.Transformer.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT {
-				mutation, err := computeMutationFunction(col, colInfo)
-				if err != nil {
-					return "", fmt.Errorf("%s is not a supported transformer: %w", col.Transformer, err)
-				}
-				mutations = append(mutations, fmt.Sprintf("root.%q = %s", col.Column, mutation))
-			}
-		}
-	}
-
-	return strings.Join(mutations, "\n"), nil
 }
 
 func buildPrimaryKeyMappingConfigs(cols []*mgmtv1alpha1.JobMapping, primaryKeys []string) string {

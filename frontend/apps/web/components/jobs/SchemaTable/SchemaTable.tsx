@@ -142,7 +142,7 @@ export function SchemaTable(props: Props): ReactElement {
               options={getDualListBoxOptions(schema, data)}
               selected={selectedItems}
               onChange={toggleItem}
-              mode={jobType === 'generate' ? 'single' : 'many'}
+              mode={'many'}
             />
           </CardContent>
         </Card>

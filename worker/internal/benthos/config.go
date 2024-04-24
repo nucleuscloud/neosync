@@ -54,9 +54,19 @@ type InputConfig struct {
 }
 
 type Inputs struct {
-	SqlSelect    *SqlSelect         `json:"sql_select,omitempty" yaml:"sql_select,omitempty"`
-	PooledSqlRaw *InputPooledSqlRaw `json:"pooled_sql_raw,omitempty" yaml:"pooled_sql_raw,omitempty"`
-	Generate     *Generate          `json:"generate,omitempty" yaml:"generate,omitempty"`
+	SqlSelect         *SqlSelect         `json:"sql_select,omitempty" yaml:"sql_select,omitempty"`
+	PooledSqlRaw      *InputPooledSqlRaw `json:"pooled_sql_raw,omitempty" yaml:"pooled_sql_raw,omitempty"`
+	Generate          *Generate          `json:"generate,omitempty" yaml:"generate,omitempty"`
+	GenerateSqlSelect *GenerateSqlSelect `json:"generate_sql_select,omitempty" yaml:"generate_sql_select,omitempty"`
+}
+
+type GenerateSqlSelect struct {
+	Mapping         string              `json:"mapping,omitempty" yaml:"mapping,omitempty"`
+	Count           int                 `json:"count" yaml:"count"`
+	Driver          string              `json:"driver" yaml:"driver"`
+	Dsn             string              `json:"dsn" yaml:"dsn"`
+	TableColumnsMap map[string][]string `json:"table_columns_map" yaml:"table_columns_map"`
+	ColumnNameMap   map[string]string   `json:"column_name_map,omitempty" yaml:"column_name_map,omitempty"`
 }
 
 type Generate struct {
@@ -186,8 +196,9 @@ type SwitchOutputCase struct {
 	Output   Outputs `json:"output,omitempty" yaml:"output,omitempty"`
 }
 type ErrorOutputConfig struct {
-	ErrorMsg string    `json:"error_msg" yaml:"error_msg"`
-	Batching *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
+	ErrorMsg   string    `json:"error_msg" yaml:"error_msg"`
+	MaxRetries *int      `json:"max_retries,omitempty" yaml:"max_retries,omitempty"`
+	Batching   *Batching `json:"batching,omitempty" yaml:"batching,omitempty"`
 }
 
 type RedisHashOutputConfig struct {

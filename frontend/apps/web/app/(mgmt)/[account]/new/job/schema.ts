@@ -251,6 +251,14 @@ export type SingleTableSchemaFormValues = Yup.InferType<
   typeof SINGLE_TABLE_SCHEMA_FORM_SCHEMA
 >;
 
+export const MULTI_TABLE_SCHEMA_FORM_SCHEMA = Yup.object({
+  mappings: Yup.array().of(JOB_MAPPING_SCHEMA).required(),
+  numRows: Yup.number().required().min(1),
+});
+export type MultiTableSchemaFormValues = Yup.InferType<
+  typeof MULTI_TABLE_SCHEMA_FORM_SCHEMA
+>;
+
 export const SUBSET_FORM_SCHEMA = Yup.object({
   subsets: Yup.array(SINGLE_SUBSET_FORM_SCHEMA).required(),
   subsetOptions: Yup.object({
