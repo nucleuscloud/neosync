@@ -370,14 +370,17 @@ func dedupeSlice(input []string) []string {
 	return output
 }
 
-func GetPostgresRolePermissions(pgquerier pg_queries.Querier,
+func GetPostgresRolePermissions(
 	ctx context.Context,
 	conn pg_queries.DBTX,
+	pgquerier pg_queries.Querier,
 	role string,
 ) ([]*pg_queries.GetPostgresRolePermissionsRow, error) {
 	rows, err := pgquerier.GetPostgresRolePermissions(ctx, conn, role)
-	if err != nil {
+	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return []*pg_queries.GetPostgresRolePermissionsRow{}, nil
 	}
 
 	output := []*pg_queries.GetPostgresRolePermissionsRow{}

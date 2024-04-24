@@ -6,8 +6,8 @@ import Spinner from '@/components/Spinner';
 import { SubNav } from '@/components/SubNav';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import LearnMoreTag from '@/components/labels/LearnMoreTag';
-import { TestConnectionResult } from '@/components/permissions/Permissions';
 import PermissionsDataTable from '@/components/permissions/PermissionsDataTable';
+import { TestConnectionResult } from '@/components/permissions/PermissionsDialog';
 import { getPermissionColumns } from '@/components/permissions/columns';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
@@ -27,7 +27,7 @@ import {
 import { UpdateIcon } from '@radix-ui/react-icons';
 import { ColumnDef } from '@tanstack/react-table';
 import Error from 'next/error';
-import { useState } from 'react';
+import { useMemo } from 'react';
 import { KeyedMutator } from 'swr';
 import RemoveConnectionButton from '../components/RemoveConnectionButton';
 import { getConnectionComponentDetails } from '../components/connection-component';
@@ -41,6 +41,7 @@ export default function PermissionsPage({ params }: PageProps) {
     data: validationRes,
     isLoading: isLoadingValidation,
     mutate: mutateValidation,
+    isValidating: isValidating,
   } = useTestProgressConnection(
     account?.id ?? '',
     data?.connection?.connectionConfig?.config.case === 'pgConfig'
@@ -49,6 +50,8 @@ export default function PermissionsPage({ params }: PageProps) {
   );
 
   const { toast } = useToast();
+  const columns = useMemo(() => getPermissionColumns(), []);
+
   if (!id) {
     return <Error statusCode={404} />;
   }
@@ -118,8 +121,6 @@ export default function PermissionsPage({ params }: PageProps) {
     },
   ];
 
-  const columns = getPermissionColumns();
-
   return (
     <OverviewContainer
       Header={connectionComponent.header}
@@ -131,10 +132,11 @@ export default function PermissionsPage({ params }: PageProps) {
           <div>
             <PermissionsPageContainer
               data={validationRes?.privileges ?? []}
-              validationResponse={validationRes?.isConnected ?? false}
+              isDbConnected={validationRes?.isConnected ?? false}
               connectionName={data?.connection?.name ?? ''}
               columns={columns}
               mutateValidation={mutateValidation}
+              isMutating={isValidating}
             />
           </div>
         </div>
@@ -146,26 +148,28 @@ export default function PermissionsPage({ params }: PageProps) {
 interface PermissionsPageContainerProps {
   connectionName: string;
   data: ConnectionRolePrivilege[];
-  validationResponse: boolean;
+  isDbConnected: boolean;
   columns: ColumnDef<PlainMessage<ConnectionRolePrivilege>>[];
   mutateValidation:
     | KeyedMutator<unknown>
     | KeyedMutator<CheckConnectionConfigResponse>;
+  isMutating: boolean;
 }
 
 function PermissionsPageContainer(props: PermissionsPageContainerProps) {
   const {
     data,
     connectionName,
-    validationResponse,
+    isDbConnected,
     columns,
     mutateValidation,
+    isMutating,
   } = props;
 
-  const [isMutating, setIsMutating] = useState<boolean>(false);
-
   const handleMutate = async () => {
-    setIsMutating(true);
+    if (isMutating) {
+      return;
+    }
     try {
       await mutateValidation();
     } catch (error) {
@@ -174,27 +178,33 @@ function PermissionsPageContainer(props: PermissionsPageContainerProps) {
         variant: 'destructive',
       });
     }
-    setIsMutating(false);
   };
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-row justify-between items-center w-full">
         <div className="text-muted-foreground text-sm">
-          Review the permissions that Neoynsc has to your connection.{' '}
-          <LearnMoreTag href="https://docs.neosync.dev/transformers/user-defined#transform-character-scramble" />
+          Review the permissions that Neosync needs for your connection.{' '}
+          <LearnMoreTag href="https://docs.neosync.dev/connections/postgres#permissions" />
         </div>
-        <Button variant="outline" onClick={handleMutate}>
-          {isMutating ? <Spinner /> : <UpdateIcon />}
-        </Button>
       </div>
 
-      <TestConnectionResult
-        resp={validationResponse}
-        connectionName={connectionName}
+      <PermissionsDataTable
+        ConnectionAlert={
+          <TestConnectionResult
+            isConnected={isDbConnected}
+            connectionName={connectionName}
+            privileges={data}
+          />
+        }
+        TestConnectionButton={
+          <Button type="button" variant="outline" onClick={handleMutate}>
+            {isMutating ? <Spinner /> : <UpdateIcon />}
+          </Button>
+        }
         data={data}
+        columns={columns}
       />
-      <PermissionsDataTable data={data} columns={columns} />
     </div>
   );
 }

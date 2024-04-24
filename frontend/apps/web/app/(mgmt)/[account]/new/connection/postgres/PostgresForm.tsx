@@ -4,7 +4,7 @@ import FormError from '@/components/FormError';
 import Spinner from '@/components/Spinner';
 import RequiredLabel from '@/components/labels/RequiredLabel';
 import { setOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
-import Permissions from '@/components/permissions/Permissions';
+import PermissionsDialog from '@/components/permissions/PermissionsDialog';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonForm from '@/components/skeleton/SkeletonForm';
 import {
@@ -683,7 +683,7 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
             </AccordionContent>
           </AccordionItem>
         </Accordion>
-        <Permissions
+        <PermissionsDialog
           data={permissionData ?? []}
           openPermissionDialog={openPermissionDialog}
           setOpenPermissionDialog={setOpenPermissionDialog}
