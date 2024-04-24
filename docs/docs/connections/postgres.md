@@ -3,6 +3,7 @@ title: PostgreSQL
 id: postgres
 hide_title: false
 slug: /connections/postgres
+# cSpell:words myrole
 ---
 
 ## Introduction
@@ -15,11 +16,11 @@ The following guide will show you how to configure and test your Postgres Connec
 
 In order to connect to your Postgres database, first navigate to **Connections** and then click **+ New Connection**.
 
-![newconn](/img/pgnew.png)
+![Postgres Connections Page](/img/pgnew.png)
 
 Then select a Postgres compatible database such as Neon, Supabase or just the base Postgres connection.
 
-![conn](/img/conn.png)
+![New Connection Page](/img/conn.png)
 
 You'll now be taken to the Postgres connection form.
 
@@ -29,7 +30,7 @@ Next, decide how you want to connect to your Postgres database. You can configur
 
 To connect using the connection URL, simply paste the connection url in the **Connection URL** input.
 
-![conn](/img/pgstring.png)
+![Configure Postgres Connection By String](/img/pgstring.png)
 
 To connect using the host and connection parameters, click on the **Host** radio button. You'll see a form appear with the different components of the connection string broken out into individual input fields.
 
@@ -44,7 +45,7 @@ To connect using the host and connection parameters, click on the **Host** radio
 
 Complete the fields in order to connect to your Postgres Database.
 
-![conn](/img/pghost.png)
+![Configure Postgres Connection By Host](/img/pghost.png)
 
 ## Permissions
 
@@ -77,7 +78,7 @@ GRANT USAGE ON SEQUENCE my_sequence TO myrole; -- or GRANT USAGE ON ALL SEQUENCE
 ### Destination Connections
 
 A destination connection is used for sync and generate jobs, where data will be inserted into the configured connection.
-This requires slighly more permissions, but you can get away with more or less depending on what you are looking to do.
+This requires slightly more permissions, but you can get away with more or less depending on what you are looking to do.
 
 At a bare minimum, this connection requires `CREATE, UPDATE` on all tables that will be written to.
 You will also need to grant permissions to any `sequences`, `triggers`, or `functions` that may be invoked during the insertion or update process.
@@ -123,4 +124,4 @@ If you are running in to issues with permissions, please consult us on Discord.
 
 A successful connection will return something like this:
 
-![conn](/img/pgpermissions.png)
+![Postgres Permissions Dialog](/img/pgpermissions.png)
