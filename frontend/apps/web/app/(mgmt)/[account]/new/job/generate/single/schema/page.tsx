@@ -118,6 +118,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       SINGLE_TABLE_SCHEMA_FORM_SCHEMA
     ),
     values: schemaFormData,
+    context: { accountId: account?.id },
   });
 
   useFormPersist(formKey, {
