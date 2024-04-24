@@ -140,9 +140,9 @@ func GetPostgresTableDependencies(
 		if !ok {
 			return nil, fmt.Errorf("unable to convert foreign table name to string: %T", row.ForeignTableName)
 		}
-		fkcols, ok := row.FkConstraintColumns.([]string)
+		fkcols, ok := row.ForeignColumnNames.([]string)
 		if !ok {
-			return nil, fmt.Errorf("unable to convert foreign table cols to []string: %T", row.FkConstraintColumns)
+			return nil, fmt.Errorf("unable to convert foreign table cols to []string: %T", row.ForeignColumnNames)
 		}
 		notnullable, ok := row.Notnullable.([]bool)
 		if !ok {
@@ -219,38 +219,6 @@ func toColumnInfo(row *pg_queries.GetDatabaseSchemaRow) *dbschemas.ColumnInfo {
 func ptr[T any](val T) *T {
 	return &val
 }
-
-// func GetAllPostgresFkConstraints(
-// 	pgquerier pg_queries.Querier,
-// 	ctx context.Context,
-// 	conn pg_queries.DBTX,
-// 	uniqueSchemas []string,
-// ) ([]*pg_queries.GetForeignKeyConstraintsRow, error) {
-// 	holder := make([][]*pg_queries.GetForeignKeyConstraintsRow, len(uniqueSchemas))
-// 	errgrp, errctx := errgroup.WithContext(ctx)
-// 	for idx := range uniqueSchemas {
-// 		idx := idx
-// 		schema := uniqueSchemas[idx]
-// 		errgrp.Go(func() error {
-// 			constraints, err := pgquerier.GetForeignKeyConstraints(errctx, conn, schema)
-// 			if err != nil {
-// 				return err
-// 			}
-// 			holder[idx] = constraints
-// 			return nil
-// 		})
-// 	}
-
-// 	if err := errgrp.Wait(); err != nil {
-// 		return nil, err
-// 	}
-
-// 	output := []*pg_queries.GetForeignKeyConstraintsRow{}
-// 	for _, schemas := range holder {
-// 		output = append(output, schemas...)
-// 	}
-// 	return output, nil
-// }
 
 func GetAllPostgresForeignKeyConstraints(
 	ctx context.Context,

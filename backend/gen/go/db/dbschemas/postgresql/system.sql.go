@@ -397,7 +397,7 @@ SELECT
     CASE
         WHEN con.contype = 'f' THEN array_agg(fk_att.attname)
         ELSE NULL
-    END AS fk_constraint_columns,
+    END AS foreign_column_names,
     pg_get_constraintdef(con.oid) AS constraint_definition
 FROM
     pg_catalog.pg_constraint con
@@ -428,7 +428,7 @@ type GetTableConstraintsRow struct {
 	Notnullable          interface{}
 	ForeignSchemaName    interface{}
 	ForeignTableName     interface{}
-	FkConstraintColumns  interface{}
+	ForeignColumnNames   interface{}
 	ConstraintDefinition string
 }
 
@@ -451,7 +451,7 @@ func (q *Queries) GetTableConstraints(ctx context.Context, db DBTX, arg *GetTabl
 			&i.Notnullable,
 			&i.ForeignSchemaName,
 			&i.ForeignTableName,
-			&i.FkConstraintColumns,
+			&i.ForeignColumnNames,
 			&i.ConstraintDefinition,
 		); err != nil {
 			return nil, err
@@ -487,7 +487,7 @@ SELECT
     CASE
         WHEN con.contype = 'f' THEN array_agg(fk_att.attname)
         ELSE NULL
-    END AS fk_constraint_columns,
+    END AS foreign_column_names,
     pg_get_constraintdef(con.oid) AS constraint_definition
 FROM
     pg_catalog.pg_constraint con
@@ -513,7 +513,7 @@ type GetTableConstraintsBySchemaRow struct {
 	Notnullable          interface{}
 	ForeignSchemaName    interface{}
 	ForeignTableName     interface{}
-	FkConstraintColumns  interface{}
+	ForeignColumnNames   interface{}
 	ConstraintDefinition string
 }
 
@@ -536,7 +536,7 @@ func (q *Queries) GetTableConstraintsBySchema(ctx context.Context, db DBTX, sche
 			&i.Notnullable,
 			&i.ForeignSchemaName,
 			&i.ForeignTableName,
-			&i.FkConstraintColumns,
+			&i.ForeignColumnNames,
 			&i.ConstraintDefinition,
 		); err != nil {
 			return nil, err

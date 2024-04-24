@@ -148,7 +148,7 @@ SELECT
     CASE
         WHEN con.contype = 'f' THEN array_agg(fk_att.attname)
         ELSE NULL
-    END AS fk_constraint_columns,
+    END AS foreign_column_names,
     pg_get_constraintdef(con.oid) AS constraint_definition
 FROM
     pg_catalog.pg_constraint con
@@ -186,7 +186,7 @@ SELECT
     CASE
         WHEN con.contype = 'f' THEN array_agg(fk_att.attname)
         ELSE NULL
-    END AS fk_constraint_columns,
+    END AS foreign_column_names,
     pg_get_constraintdef(con.oid) AS constraint_definition
 FROM
     pg_catalog.pg_constraint con
