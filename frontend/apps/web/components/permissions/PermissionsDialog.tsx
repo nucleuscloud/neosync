@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { ConnectionRolePrivilege } from '@neosync/sdk';
 import { CheckCircledIcon } from '@radix-ui/react-icons';
-import { ReactElement } from 'react';
+import { ReactElement, useMemo } from 'react';
 import { IoWarning } from 'react-icons/io5';
 import LearnMoreTag from '../labels/LearnMoreTag';
 import { Button } from '../ui/button';
@@ -35,7 +35,7 @@ export default function PermissionsDialog(props: Props): ReactElement {
     connectionName,
   } = props;
 
-  const columns = getPermissionColumns();
+  const columns = useMemo(() => getPermissionColumns(), []);
 
   if (isValidating) {
     return <Skeleton />;
