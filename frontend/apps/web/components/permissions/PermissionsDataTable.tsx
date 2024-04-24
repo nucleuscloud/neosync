@@ -6,6 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Cross2Icon } from '@radix-ui/react-icons';
 import {
   ColumnDef,
   flexRender,
@@ -19,6 +20,8 @@ import {
 } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import React, { ReactElement } from 'react';
+import ButtonText from '../ButtonText';
+import { Button } from '../ui/button';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -38,6 +41,13 @@ export default function PermissionsDataTable<TData, TValue>({
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
+    initialState: {
+      sorting: [{ id: 'schemaTable', desc: true }],
+      columnVisibility: {
+        schema: false,
+        table: false,
+      },
+    },
   });
 
   const { rows } = table.getRowModel();
@@ -58,6 +68,20 @@ export default function PermissionsDataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
+      <div className="flex flex-row justify-end">
+        <Button
+          disabled={table.getState().columnFilters.length === 0}
+          type="button"
+          variant="outline"
+          className="px-2 lg:px-3"
+          onClick={() => table.resetColumnFilters()}
+        >
+          <ButtonText
+            leftIcon={<Cross2Icon className="h-3 w-3" />}
+            text="Clear filters"
+          />
+        </Button>
+      </div>
       <div
         className="rounded-md border relative overflow-y-auto max-h-[500px] dark:border-gray-700 "
         ref={tableContainerRef}
@@ -97,7 +121,7 @@ export default function PermissionsDataTable<TData, TValue>({
           >
             {rows.length === 0 && (
               <TableRow className="flex justify-center items-center py-10 text-gray-500">
-                <td>No permissions found for the configured connection.</td>
+                <td>No permissions found for the connection or filter(s).</td>
               </TableRow>
             )}
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {

@@ -50,6 +50,8 @@ export default function PermissionsPage({ params }: PageProps) {
   );
 
   const { toast } = useToast();
+  const columns = useMemo(() => getPermissionColumns(), []);
+
   if (!id) {
     return <Error statusCode={404} />;
   }
@@ -119,8 +121,6 @@ export default function PermissionsPage({ params }: PageProps) {
     },
   ];
 
-  const columns = useMemo(() => getPermissionColumns(), []);
-
   return (
     <OverviewContainer
       Header={connectionComponent.header}
@@ -187,7 +187,7 @@ function PermissionsPageContainer(props: PermissionsPageContainerProps) {
           Review the permissions that Neoynsc has to your connection.{' '}
           <LearnMoreTag href="https://docs.neosync.dev/connections/postgres#testing-your-connection" />
         </div>
-        <Button variant="outline" onClick={handleMutate}>
+        <Button type="button" variant="outline" onClick={handleMutate}>
           {isMutating ? <Spinner /> : <UpdateIcon />}
         </Button>
       </div>

@@ -149,7 +149,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
           <div className="flex flex-row gap-2 items-center">
             <RowAlert row={row} handler={constraintHandler} />
             <span className="max-w-[500px] truncate font-medium">
-              {getValue() as string}
+              {getValue<string>()}
             </span>
           </div>
         );
