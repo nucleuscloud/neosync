@@ -146,23 +146,29 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		}
 
 		groupedColInfoMap = groupedSchemas
-
 		allConstraints, err := db.GetAllForeignKeyConstraints(ctx, uniqueSchemas)
 		if err != nil {
 			return nil, fmt.Errorf("unable to retrieve database foreign key constraints: %w", err)
 		}
 		slogger.Info(fmt.Sprintf("found %d foreign key constraints for database", len(allConstraints)))
 		td := sql_manager.GetDbTableDependencies(allConstraints)
+		bits, _ := json.MarshalIndent(td, "", "  ")
+		fmt.Println(string(bits))
 
 		primaryKeys, err := db.GetAllPrimaryKeyConstraints(ctx, uniqueSchemas)
 		if err != nil {
 			return nil, fmt.Errorf("unable to get all primary key constraints: %w", err)
 		}
+		slogger.Info(fmt.Sprintf("found %d primary key constraints for database", len(primaryKeys)))
 		primaryKeyMap := sql_manager.GetTablePrimaryKeysMap(primaryKeys)
 
+		bits, _ = json.MarshalIndent(primaryKeyMap, "", "  ")
+		fmt.Println(string(bits))
 		tables := filterNullTables(groupedMappings)
 		tableSubsetMap := buildTableSubsetMap(sourceTableOpts)
 		dependencyConfigs := tabledependency.GetRunConfigs(td, tables, tableSubsetMap)
+		bits, _ = json.MarshalIndent(dependencyConfigs, "", "  ")
+		fmt.Println(string(bits))
 
 		// reverse of table dependency
 		// map of foreign key to source table + column
