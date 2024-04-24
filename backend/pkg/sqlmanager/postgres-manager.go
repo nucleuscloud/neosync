@@ -73,9 +73,9 @@ func (p *PostgresManager) GetAllForeignKeyConstraints(ctx context.Context, schem
 		if !ok {
 			return nil, fmt.Errorf("unable to convert foreign table name to string: %T", row.ForeignTableName)
 		}
-		fkcols, ok := row.FkConstraintColumns.([]string)
+		fkcols, ok := row.ForeignColumnNames.([]string)
 		if !ok {
-			return nil, fmt.Errorf("unable to convert foreign table cols to []string: %T", row.FkConstraintColumns)
+			return nil, fmt.Errorf("unable to convert foreign table cols to []string: %T", row.ForeignColumnNames)
 		}
 		notnullable, ok := row.Notnullable.([]bool)
 		if !ok {

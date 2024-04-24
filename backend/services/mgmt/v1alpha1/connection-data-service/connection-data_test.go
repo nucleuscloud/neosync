@@ -27,8 +27,8 @@ import (
 	awsmanager "github.com/nucleuscloud/neosync/backend/internal/aws"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -106,10 +106,10 @@ func Test_GetConnectionSchema_AwsS3(t *testing.T) {
 		{Schema: "public", Table: "regions", Column: "region_name"},
 	}
 
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
-	assert.Equal(t, 2, len(resp.Msg.GetSchemas()))
-	assert.ElementsMatch(t, expected, resp.Msg.Schemas)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.Equal(t, 2, len(resp.Msg.GetSchemas()))
+	require.ElementsMatch(t, expected, resp.Msg.Schemas)
 }
 
 func Test_GetConnectionSchema_Postgres(t *testing.T) {
@@ -158,10 +158,10 @@ func Test_GetConnectionSchema_Postgres(t *testing.T) {
 		})
 	}
 
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
-	assert.Equal(t, 2, len(resp.Msg.GetSchemas()))
-	assert.ElementsMatch(t, expected, resp.Msg.Schemas)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.Equal(t, 2, len(resp.Msg.GetSchemas()))
+	require.ElementsMatch(t, expected, resp.Msg.Schemas)
 }
 
 func Test_GetConnectionSchema_Mysql(t *testing.T) {
@@ -201,9 +201,9 @@ func Test_GetConnectionSchema_Mysql(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
-	assert.Equal(t, 2, len(resp.Msg.GetSchemas()))
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.Equal(t, 2, len(resp.Msg.GetSchemas()))
 	if err := m.SqlMock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
@@ -230,10 +230,10 @@ func Test_GetConnectionSchema_NoRows(t *testing.T) {
 		},
 	})
 
-	assert.NoError(t, err)
-	assert.NotNil(t, resp)
-	assert.Equal(t, 0, len(resp.Msg.GetSchemas()))
-	assert.ElementsMatch(t, []*mgmtv1alpha1.DatabaseColumn{}, resp.Msg.Schemas)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.Equal(t, 0, len(resp.Msg.GetSchemas()))
+	require.ElementsMatch(t, []*mgmtv1alpha1.DatabaseColumn{}, resp.Msg.Schemas)
 	if err := m.SqlMock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
@@ -260,8 +260,8 @@ func Test_GetConnectionSchema_Error(t *testing.T) {
 		},
 	})
 
-	assert.Error(t, err)
-	assert.Nil(t, resp)
+	require.Error(t, err)
+	require.Nil(t, resp)
 	if err := m.SqlMock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
@@ -314,9 +314,9 @@ func Test_GetConnectionForeignConstraints_Mysql(t *testing.T) {
 		},
 	})
 
-	assert.Nil(t, err)
-	assert.Len(t, resp.Msg.TableConstraints, 1)
-	assert.EqualValues(t, map[string]*mgmtv1alpha1.ForeignConstraintTables{
+	require.Nil(t, err)
+	require.Len(t, resp.Msg.TableConstraints, 1)
+	require.EqualValues(t, map[string]*mgmtv1alpha1.ForeignConstraintTables{
 		"public.user_account_associations": {Constraints: []*mgmtv1alpha1.ForeignConstraint{
 			{Column: "user_id", IsNullable: false, ForeignKey: &mgmtv1alpha1.ForeignKey{Table: "public.users", Column: "id"}},
 		}},
@@ -350,17 +350,18 @@ func Test_GetConnectionForeignConstraints_Postgres(t *testing.T) {
 				ColumnName:  "name",
 			},
 		}, nil)
-	m.PgQueierMock.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetForeignKeyConstraintsRow{
+	m.PgQueierMock.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*pg_queries.GetTableConstraintsBySchemaRow{
 			{
-				ConstraintName:    "fk_user_account_associations_user_id_users_id",
-				SchemaName:        "public",
-				TableName:         "user_account_associations",
-				ColumnName:        "user_id",
-				IsNullable:        "NO",
-				ForeignSchemaName: "public",
-				ForeignTableName:  "users",
-				ForeignColumnName: "id",
+				ConstraintName:     "fk_user_account_associations_user_id_users_id",
+				SchemaName:         "public",
+				TableName:          "user_account_associations",
+				ConstraintColumns:  []string{"user_id"},
+				Notnullable:        []bool{true},
+				ForeignSchemaName:  "public",
+				ForeignTableName:   "users",
+				ForeignColumnNames: []string{"id"},
+				ConstraintType:     "f",
 			},
 		}, nil)
 
@@ -370,9 +371,10 @@ func Test_GetConnectionForeignConstraints_Postgres(t *testing.T) {
 		},
 	})
 
-	assert.Nil(t, err)
-	assert.Len(t, resp.Msg.TableConstraints, 1)
-	assert.EqualValues(t, map[string]*mgmtv1alpha1.ForeignConstraintTables{
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.Len(t, resp.Msg.TableConstraints, 1)
+	require.EqualValues(t, map[string]*mgmtv1alpha1.ForeignConstraintTables{
 		"public.user_account_associations": {Constraints: []*mgmtv1alpha1.ForeignConstraint{
 			{Column: "user_id", IsNullable: false, ForeignKey: &mgmtv1alpha1.ForeignKey{Table: "public.users", Column: "id"}},
 		}},
@@ -422,9 +424,9 @@ func Test_GetConnectionPrimaryConstraints_Mysql(t *testing.T) {
 		},
 	})
 
-	assert.Nil(t, err)
-	assert.Len(t, resp.Msg.TableConstraints, 1)
-	assert.EqualValues(t, map[string]*mgmtv1alpha1.PrimaryConstraint{
+	require.Nil(t, err)
+	require.Len(t, resp.Msg.TableConstraints, 1)
+	require.EqualValues(t, map[string]*mgmtv1alpha1.PrimaryConstraint{
 		"public.users": {Columns: []string{"id"}},
 	}, resp.Msg.TableConstraints)
 }
@@ -456,13 +458,14 @@ func Test_GetConnectionPrimaryConstraints_Postgres(t *testing.T) {
 				ColumnName:  "name",
 			},
 		}, nil)
-	m.PgQueierMock.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetPrimaryKeyConstraintsRow{
+	m.PgQueierMock.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*pg_queries.GetTableConstraintsBySchemaRow{
 			{
-				ConstraintName: "pk_users_id",
-				SchemaName:     "public",
-				TableName:      "users",
-				ColumnName:     "id",
+				ConstraintName:    "pk_users_id",
+				SchemaName:        "public",
+				TableName:         "users",
+				ConstraintColumns: []string{"id"},
+				ConstraintType:    "p",
 			},
 		}, nil)
 
@@ -472,9 +475,9 @@ func Test_GetConnectionPrimaryConstraints_Postgres(t *testing.T) {
 		},
 	})
 
-	assert.Nil(t, err)
-	assert.Len(t, resp.Msg.TableConstraints, 1)
-	assert.EqualValues(t, map[string]*mgmtv1alpha1.PrimaryConstraint{
+	require.Nil(t, err)
+	require.Len(t, resp.Msg.TableConstraints, 1)
+	require.EqualValues(t, map[string]*mgmtv1alpha1.PrimaryConstraint{
 		"public.users": {Columns: []string{"id"}},
 	}, resp.Msg.TableConstraints)
 }
@@ -519,10 +522,10 @@ func Test_GetConnectionInitStatements_Mysql_Create(t *testing.T) {
 	})
 
 	expectedInit := "CREATE TABLE IF NOT EXISTS  public.users;"
-	assert.Nil(t, err)
-	assert.Len(t, resp.Msg.TableInitStatements, 1)
-	assert.Len(t, resp.Msg.TableTruncateStatements, 0)
-	assert.Equal(t, expectedInit, resp.Msg.TableInitStatements["public.users"])
+	require.Nil(t, err)
+	require.Len(t, resp.Msg.TableInitStatements, 1)
+	require.Len(t, resp.Msg.TableTruncateStatements, 0)
+	require.Equal(t, expectedInit, resp.Msg.TableInitStatements["public.users"])
 }
 
 func Test_GetConnectionInitStatements_Mysql_Truncate(t *testing.T) {
@@ -562,10 +565,10 @@ func Test_GetConnectionInitStatements_Mysql_Truncate(t *testing.T) {
 	})
 
 	expectedTruncate := "TRUNCATE TABLE `public`.`users`;"
-	assert.Nil(t, err)
-	assert.Len(t, resp.Msg.TableInitStatements, 0)
-	assert.Len(t, resp.Msg.TableTruncateStatements, 1)
-	assert.Equal(t, expectedTruncate, resp.Msg.TableTruncateStatements["public.users"])
+	require.Nil(t, err)
+	require.Len(t, resp.Msg.TableInitStatements, 0)
+	require.Len(t, resp.Msg.TableTruncateStatements, 1)
+	require.Equal(t, expectedTruncate, resp.Msg.TableTruncateStatements["public.users"])
 }
 
 func Test_GetConnectionInitStatements_Postgres_Create(t *testing.T) {
@@ -636,10 +639,10 @@ func Test_GetConnectionInitStatements_Postgres_Create(t *testing.T) {
 	})
 
 	expectedInit := "CREATE TABLE IF NOT EXISTS \"public\".\"users\" (\"id\" uuid NOT NULL DEFAULT gen_random_uuid(), \"name\" varchar(40) NULL, CONSTRAINT users_pkey PRIMARY KEY (id));"
-	assert.Nil(t, err)
-	assert.Len(t, resp.Msg.TableInitStatements, 1)
-	assert.Len(t, resp.Msg.TableTruncateStatements, 0)
-	assert.Equal(t, expectedInit, resp.Msg.TableInitStatements["public.users"])
+	require.Nil(t, err)
+	require.Len(t, resp.Msg.TableInitStatements, 1)
+	require.Len(t, resp.Msg.TableTruncateStatements, 0)
+	require.Equal(t, expectedInit, resp.Msg.TableInitStatements["public.users"])
 }
 
 func Test_GetConnectionInitStatements_Postgres_Truncate(t *testing.T) {
@@ -681,10 +684,10 @@ func Test_GetConnectionInitStatements_Postgres_Truncate(t *testing.T) {
 	})
 
 	expectedTruncate := "TRUNCATE TABLE \"public\".\"users\" CASCADE;"
-	assert.Nil(t, err)
-	assert.Len(t, resp.Msg.TableInitStatements, 0)
-	assert.Len(t, resp.Msg.TableTruncateStatements, 1)
-	assert.Equal(t, expectedTruncate, resp.Msg.TableTruncateStatements["public.users"])
+	require.Nil(t, err)
+	require.Len(t, resp.Msg.TableInitStatements, 0)
+	require.Len(t, resp.Msg.TableTruncateStatements, 1)
+	require.Equal(t, expectedTruncate, resp.Msg.TableTruncateStatements["public.users"])
 }
 
 type serviceMocks struct {
@@ -867,7 +870,7 @@ func Test_isValidTable(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			actual := isValidTable(tt.table, tt.columns)
-			assert.Equal(t, tt.expected, actual)
+			require.Equal(t, tt.expected, actual)
 		})
 	}
 }
@@ -920,7 +923,7 @@ func Test_isValidSchema(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			actual := isValidSchema(tt.schema, tt.columns)
-			assert.Equal(t, tt.expected, actual)
+			require.Equal(t, tt.expected, actual)
 		})
 	}
 }
@@ -968,9 +971,9 @@ func Test_GetConnectionUniqueConstraints_Mysql(t *testing.T) {
 		},
 	})
 
-	assert.Nil(t, err)
-	assert.Len(t, resp.Msg.TableConstraints, 1)
-	assert.EqualValues(t, map[string]*mgmtv1alpha1.UniqueConstraint{
+	require.Nil(t, err)
+	require.Len(t, resp.Msg.TableConstraints, 1)
+	require.EqualValues(t, map[string]*mgmtv1alpha1.UniqueConstraint{
 		"public.users": {Columns: []string{"id"}},
 	}, resp.Msg.TableConstraints)
 }
@@ -1002,13 +1005,14 @@ func Test_GetConnectionUniqueConstraints_Postgres(t *testing.T) {
 				ColumnName:  "name",
 			},
 		}, nil)
-	m.PgQueierMock.On("GetUniqueConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetUniqueConstraintsRow{
+	m.PgQueierMock.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*pg_queries.GetTableConstraintsBySchemaRow{
 			{
-				ConstraintName: "id",
-				SchemaName:     "public",
-				TableName:      "users",
-				ColumnName:     "id",
+				ConstraintName:    "id",
+				SchemaName:        "public",
+				TableName:         "users",
+				ConstraintColumns: []string{"id"},
+				ConstraintType:    "u",
 			},
 		}, nil)
 
@@ -1018,9 +1022,9 @@ func Test_GetConnectionUniqueConstraints_Postgres(t *testing.T) {
 		},
 	})
 
-	assert.Nil(t, err)
-	assert.Len(t, resp.Msg.TableConstraints, 1)
-	assert.EqualValues(t, map[string]*mgmtv1alpha1.UniqueConstraint{
+	require.Nil(t, err)
+	require.Len(t, resp.Msg.TableConstraints, 1)
+	require.EqualValues(t, map[string]*mgmtv1alpha1.UniqueConstraint{
 		"public.users": {Columns: []string{"id"}},
 	}, resp.Msg.TableConstraints)
 }
