@@ -232,10 +232,6 @@ func (q *Queries) GetDatabaseTableSchema(ctx context.Context, db DBTX, arg *GetD
 }
 
 const getPostgresRolePermissions = `-- name: GetPostgresRolePermissions :many
-
-
-
-
 SELECT
     rtg.table_schema as table_schema,
     rtg.table_name as table_name,
@@ -256,102 +252,6 @@ type GetPostgresRolePermissionsRow struct {
 	PrivilegeType string
 }
 
-// -- name: GetForeignKeyConstraints :many
-// SELECT
-//
-//	rc.constraint_name,
-//	rc.constraint_schema AS schema_name,
-//	fk.table_name,
-//	fk.column_name,
-//	c.is_nullable,
-//	pk.table_schema AS foreign_schema_name,
-//	pk.table_name AS foreign_table_name,
-//	pk.column_name AS foreign_column_name
-//
-// FROM
-//
-//	information_schema.referential_constraints rc
-//
-// JOIN information_schema.key_column_usage fk ON
-//
-//	fk.constraint_catalog = rc.constraint_catalog AND
-//	fk.constraint_schema = rc.constraint_schema AND
-//	fk.constraint_name = rc.constraint_name
-//
-// JOIN information_schema.key_column_usage pk ON
-//
-//	pk.constraint_catalog = rc.unique_constraint_catalog AND
-//	pk.constraint_schema = rc.unique_constraint_schema AND
-//	pk.constraint_name = rc.unique_constraint_name
-//
-// JOIN information_schema.columns c ON
-//
-//	c.table_schema = fk.table_schema AND
-//	c.table_name = fk.table_name AND
-//	c.column_name = fk.column_name
-//
-// WHERE
-//
-//	rc.constraint_schema = sqlc.arg('tableSchema')
-//
-// ORDER BY
-//
-//	rc.constraint_name,
-//	fk.ordinal_position;
-//
-// -- name: GetPrimaryKeyConstraints :many
-// SELECT
-//
-//	tc.table_schema AS schema_name,
-//	tc.table_name as table_name,
-//	tc.constraint_name as constraint_name,
-//	kcu.column_name as column_name
-//
-// FROM
-//
-//	information_schema.table_constraints AS tc
-//
-// JOIN information_schema.key_column_usage AS kcu
-//
-//	ON tc.constraint_name = kcu.constraint_name
-//	AND tc.table_schema = kcu.table_schema
-//
-// WHERE
-//
-//	tc.table_schema = sqlc.arg('tableSchema')
-//	AND tc.constraint_type = 'PRIMARY KEY'
-//
-// ORDER BY
-//
-//	tc.table_name,
-//	kcu.column_name;
-//
-// -- name: GetUniqueConstraints :many
-// SELECT
-//
-//	tc.table_schema AS schema_name,
-//	tc.table_name AS table_name,
-//	tc.constraint_name AS constraint_name,
-//	kcu.column_name AS column_name
-//
-// FROM
-//
-//	information_schema.table_constraints AS tc
-//
-// JOIN information_schema.key_column_usage AS kcu
-//
-//	ON tc.constraint_name = kcu.constraint_name
-//	AND tc.table_schema = kcu.table_schema
-//
-// WHERE
-//
-//	tc.table_schema = sqlc.arg('tableSchema')
-//	AND tc.constraint_type = 'UNIQUE'
-//
-// ORDER BY
-//
-//	tc.table_name,
-//	kcu.column_name;
 func (q *Queries) GetPostgresRolePermissions(ctx context.Context, db DBTX, role interface{}) ([]*GetPostgresRolePermissionsRow, error) {
 	rows, err := db.Query(ctx, getPostgresRolePermissions, role)
 	if err != nil {
