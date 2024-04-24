@@ -375,8 +375,8 @@ func Test_InitStatementBuilder_Pg_TruncateCascade(t *testing.T) {
 			},
 		},
 	}), nil)
-	pgquerier.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetForeignKeyConstraintsRow{}, nil)
+	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*pg_queries.GetTableConstraintsBySchemaRow{}, nil)
 
 	var cmdtag pgconn.CommandTag
 	allowedQueries := []string{
@@ -524,16 +524,18 @@ func Test_InitStatementBuilder_Pg_Truncate(t *testing.T) {
 			},
 		},
 	}), nil)
-	pgquerier.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetForeignKeyConstraintsRow{
+	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*pg_queries.GetTableConstraintsBySchemaRow{
 			{
-				ConstraintName:    "fk_user_account_id",
-				SchemaName:        "public",
-				TableName:         "users",
-				ColumnName:        "account_id",
-				ForeignSchemaName: "public",
-				ForeignTableName:  "accounts",
-				ForeignColumnName: "id",
+				ConstraintName:     "fk_user_account_id",
+				SchemaName:         "public",
+				TableName:          "users",
+				ConstraintColumns:  []string{"account_id"},
+				ForeignSchemaName:  "public",
+				ForeignTableName:   "accounts",
+				ForeignColumnNames: []string{"id"},
+				Notnullable:        []bool{true},
+				ConstraintType:     "f",
 			},
 		}, nil)
 
@@ -678,16 +680,18 @@ func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 			},
 		},
 	}), nil)
-	pgquerier.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetForeignKeyConstraintsRow{
+	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*pg_queries.GetTableConstraintsBySchemaRow{
 			{
-				ConstraintName:    "fk_user_account_id",
-				SchemaName:        "public",
-				TableName:         "users",
-				ColumnName:        "account_id",
-				ForeignSchemaName: "public",
-				ForeignTableName:  "accounts",
-				ForeignColumnName: "id",
+				ConstraintName:     "fk_user_account_id",
+				SchemaName:         "public",
+				TableName:          "users",
+				ConstraintColumns:  []string{"account_id"},
+				ForeignSchemaName:  "public",
+				ForeignTableName:   "accounts",
+				ForeignColumnNames: []string{"id"},
+				Notnullable:        []bool{true},
+				ConstraintType:     "f",
 			},
 		}, nil)
 	pgquerier.On("GetTableConstraints", mock.Anything, mock.Anything, &pg_queries.GetTableConstraintsParams{

@@ -127,98 +127,88 @@ ORDER BY
 
 -- name: GetTableConstraints :many
 SELECT
-    nsp.nspname AS db_schema,
-    rel.relname AS table_name,
     con.conname AS constraint_name,
-    pg_get_constraintdef(con.oid) AS constraint_definition
+    con.contype::text AS constraint_type,
+    con.connamespace::regnamespace::text AS schema_name,
+    con.conrelid::regclass::text AS table_name,
+    CASE
+        WHEN con.contype IN ('f', 'p', 'u') THEN array_agg(att.attname)
+        ELSE NULL
+    END::text[] AS constraint_columns,
+    array_agg(att.attnotnull)::bool[] AS notnullable,
+    CASE
+        WHEN con.contype = 'f' THEN fn_cl.relnamespace::regnamespace::text
+        ELSE ''
+    END AS foreign_schema_name,
+    CASE
+        WHEN con.contype = 'f' THEN con.confrelid::regclass::text
+        ELSE ''
+    END AS foreign_table_name,
+    CASE
+        WHEN con.contype = 'f' THEN array_agg(fk_att.attname)::text[]
+        ELSE NULL::text[]
+    END AS foreign_column_names,
+    pg_get_constraintdef(con.oid)::text AS constraint_definition
 FROM
     pg_catalog.pg_constraint con
-INNER JOIN pg_catalog.pg_class rel
-                       ON
-    rel.oid = con.conrelid
-INNER JOIN pg_catalog.pg_namespace nsp
-                       ON
-    nsp.oid = connamespace
+LEFT JOIN
+    pg_catalog.pg_attribute fk_att ON fk_att.attrelid = con.confrelid AND fk_att.attnum = ANY(con.confkey)
+LEFT JOIN
+    pg_catalog.pg_attribute att ON att.attrelid = con.conrelid AND att.attnum = ANY(con.conkey)
+LEFT JOIN
+    pg_catalog.pg_class fn_cl ON fn_cl.oid = con.confrelid
 WHERE
-    nsp.nspname = sqlc.arg('schema') AND rel.relname = sqlc.arg('table');
+    con.connamespace::regnamespace::text = sqlc.arg('schema') AND con.conrelid::regclass::text = sqlc.arg('table')
+GROUP BY
+    con.oid, con.conname, con.conrelid, fn_cl.relnamespace, con.confrelid, con.contype;
 
--- name: GetForeignKeyConstraints :many
+-- name: GetTableConstraintsBySchema :many
 SELECT
-    rc.constraint_name,
-    rc.constraint_schema AS schema_name,
-    fk.table_name,
-    fk.column_name,
-    c.is_nullable,
-    pk.table_schema AS foreign_schema_name,
-    pk.table_name AS foreign_table_name,
-    pk.column_name AS foreign_column_name
+    con.conname AS constraint_name,
+    con.contype::text AS constraint_type,
+    con.connamespace::regnamespace::text AS schema_name,
+    con.conrelid::regclass::text AS table_name,
+    CASE
+        WHEN con.contype IN ('f', 'p', 'u') THEN array_agg(att.attname)
+        ELSE NULL
+    END::text[] AS constraint_columns,
+    array_agg(att.attnotnull)::bool[] AS notnullable,
+    CASE
+        WHEN con.contype = 'f' THEN fn_cl.relnamespace::regnamespace::text
+        ELSE ''
+    END AS foreign_schema_name,
+    CASE
+        WHEN con.contype = 'f' THEN con.confrelid::regclass::text
+        ELSE ''
+    END AS foreign_table_name,
+    CASE
+        WHEN con.contype = 'f' THEN array_agg(fk_att.attname)::text[]
+        ELSE NULL::text[]
+    END AS foreign_column_names,
+    pg_get_constraintdef(con.oid)::text AS constraint_definition
 FROM
-    information_schema.referential_constraints rc
-JOIN information_schema.key_column_usage fk ON
-    fk.constraint_catalog = rc.constraint_catalog AND
-    fk.constraint_schema = rc.constraint_schema AND
-    fk.constraint_name = rc.constraint_name
-JOIN information_schema.key_column_usage pk ON
-    pk.constraint_catalog = rc.unique_constraint_catalog AND
-    pk.constraint_schema = rc.unique_constraint_schema AND
-    pk.constraint_name = rc.unique_constraint_name
-JOIN information_schema.columns c ON
-    c.table_schema = fk.table_schema AND
-    c.table_name = fk.table_name AND
-    c.column_name = fk.column_name
+    pg_catalog.pg_constraint con
+LEFT JOIN
+    pg_catalog.pg_attribute fk_att ON fk_att.attrelid = con.confrelid AND fk_att.attnum = ANY(con.confkey)
+LEFT JOIN
+    pg_catalog.pg_attribute att ON att.attrelid = con.conrelid AND att.attnum = ANY(con.conkey)
+LEFT JOIN
+    pg_catalog.pg_class fn_cl ON fn_cl.oid = con.confrelid
 WHERE
-    rc.constraint_schema = sqlc.arg('tableSchema')
-ORDER BY
-    rc.constraint_name,
-    fk.ordinal_position;
-
--- name: GetPrimaryKeyConstraints :many
-SELECT
-    tc.table_schema AS schema_name,
-    tc.table_name as table_name,
-    tc.constraint_name as constraint_name,
-    kcu.column_name as column_name
-FROM
-    information_schema.table_constraints AS tc
-JOIN information_schema.key_column_usage AS kcu
-    ON tc.constraint_name = kcu.constraint_name
-    AND tc.table_schema = kcu.table_schema
-WHERE
-    tc.table_schema = sqlc.arg('tableSchema')
-    AND tc.constraint_type = 'PRIMARY KEY'
-ORDER BY
-    tc.table_name,
-    kcu.column_name;
-
-
--- name: GetUniqueConstraints :many
-SELECT
-    tc.table_schema AS schema_name,
-    tc.table_name AS table_name,
-    tc.constraint_name AS constraint_name,
-    kcu.column_name AS column_name
-FROM
-    information_schema.table_constraints AS tc
-JOIN information_schema.key_column_usage AS kcu
-    ON tc.constraint_name = kcu.constraint_name
-    AND tc.table_schema = kcu.table_schema
-WHERE
-    tc.table_schema = sqlc.arg('tableSchema')
-    AND tc.constraint_type = 'UNIQUE'
-ORDER BY
-    tc.table_name,
-    kcu.column_name;
+    con.connamespace::regnamespace::text = ANY(sqlc.arg('schema')::text[])
+GROUP BY
+    con.oid, con.conname, con.conrelid, fn_cl.relnamespace, con.confrelid, con.contype;
 
 -- name: GetPostgresRolePermissions :many
 SELECT
-    rtg.table_schema as table_schema, 
-    rtg.table_name as table_name, 
+    rtg.table_schema as table_schema,
+    rtg.table_name as table_name,
     rtg.privilege_type as privilege_type
-FROM 
+FROM
     information_schema.role_table_grants as rtg
-WHERE 
-    table_schema NOT IN ('pg_catalog', 'information_schema') 
+WHERE
+    table_schema NOT IN ('pg_catalog', 'information_schema')
 AND grantee =  sqlc.arg('role')
-ORDER BY 
-    table_schema, 
+ORDER BY
+    table_schema,
     table_name;
