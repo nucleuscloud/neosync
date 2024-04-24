@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
+	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	dbschemas "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 
 	"golang.org/x/sync/errgroup"
@@ -113,32 +114,70 @@ func buildNullableText(record *pg_queries.GetDatabaseTableSchemaRow) string {
 
 // Key is schema.table value is list of tables that key depends on
 func GetPostgresTableDependencies(
-	constraints []*pg_queries.GetForeignKeyConstraintsRow,
-) dbschemas.TableDependency {
+	constraintRows []*pg_queries.GetTableConstraintsBySchemaRow,
+) (dbschemas.TableDependency, error) {
 	tableConstraints := map[string]*dbschemas.TableConstraints{}
-	for _, c := range constraints {
-		tableName := dbschemas.BuildTable(c.SchemaName, c.TableName)
-
-		constraint, ok := tableConstraints[tableName]
+	for _, row := range constraintRows {
+		schemaname, ok := row.SchemaName.(string)
 		if !ok {
-			tableConstraints[tableName] = &dbschemas.TableConstraints{
-				Constraints: []*dbschemas.ForeignConstraint{
-					{Column: c.ColumnName, IsNullable: dbschemas.ConvertIsNullableToBool(c.IsNullable), ForeignKey: &dbschemas.ForeignKey{
-						Table:  dbschemas.BuildTable(c.ForeignSchemaName, c.ForeignTableName),
-						Column: c.ForeignColumnName,
-					}},
+			return nil, fmt.Errorf("unable to convert schemaname to string: %T", row.SchemaName)
+		}
+		tablename, ok := row.TableName.(string)
+		if !ok {
+			return nil, fmt.Errorf("unable to convert tablename to string: %T", row.TableName)
+		}
+		colnames, ok := row.ConstraintColumns.([]string)
+		if !ok {
+			return nil, fmt.Errorf("unable to convert constraint columns to []string: %T", row.ConstraintColumns)
+		}
+
+		fkschemaname, ok := row.ForeignSchemaName.(string)
+		if !ok {
+			return nil, fmt.Errorf("unable to convert foreign schema name to string: %T", row.ForeignSchemaName)
+		}
+
+		fktablename, ok := row.ForeignTableName.(string)
+		if !ok {
+			return nil, fmt.Errorf("unable to convert foreign table name to string: %T", row.ForeignTableName)
+		}
+		fkcols, ok := row.FkConstraintColumns.([]string)
+		if !ok {
+			return nil, fmt.Errorf("unable to convert foreign table cols to []string: %T", row.FkConstraintColumns)
+		}
+		notnullable, ok := row.Notnullable.([]bool)
+		if !ok {
+			return nil, fmt.Errorf("unable to convert not nullable cols to []bool: %T", row.Notnullable)
+		}
+		if len(colnames) != len(fkcols) {
+			return nil, fmt.Errorf("length of columns was not equal to length of foreign key cols: %d %d", len(colnames), len(fkcols))
+		}
+		if len(colnames) != len(notnullable) {
+			return nil, fmt.Errorf("length of columns was not equal to length of not nullable cols: %d %d", len(colnames), len(notnullable))
+		}
+
+		tableName := dbschemas.BuildTable(schemaname, tablename)
+		for idx, colname := range colnames {
+			fkcol := fkcols[idx]
+			notnullable := notnullable[idx]
+
+			constraints, ok := tableConstraints[tableName]
+			constraint := &dbschemas.ForeignConstraint{
+				Column:     colname,
+				IsNullable: !notnullable, ForeignKey: &dbschemas.ForeignKey{
+					Table:  dbschemas.BuildTable(fkschemaname, fktablename),
+					Column: fkcol,
 				},
 			}
-		} else {
-			constraint.Constraints = append(constraint.Constraints, &dbschemas.ForeignConstraint{
-				Column: c.ColumnName, IsNullable: dbschemas.ConvertIsNullableToBool(c.IsNullable), ForeignKey: &dbschemas.ForeignKey{
-					Table:  dbschemas.BuildTable(c.ForeignSchemaName, c.ForeignTableName),
-					Column: c.ForeignColumnName,
-				},
-			})
+			if ok {
+				constraints.Constraints = append(constraints.Constraints, constraint)
+			} else {
+				tableConstraints[tableName] = &dbschemas.TableConstraints{
+					Constraints: []*dbschemas.ForeignConstraint{constraint},
+				}
+			}
 		}
 	}
-	return tableConstraints
+	return tableConstraints, nil
 }
 
 func GetUniqueSchemaColMappings(
@@ -181,95 +220,135 @@ func ptr[T any](val T) *T {
 	return &val
 }
 
-func GetAllPostgresFkConstraints(
-	pgquerier pg_queries.Querier,
+// func GetAllPostgresFkConstraints(
+// 	pgquerier pg_queries.Querier,
+// 	ctx context.Context,
+// 	conn pg_queries.DBTX,
+// 	uniqueSchemas []string,
+// ) ([]*pg_queries.GetForeignKeyConstraintsRow, error) {
+// 	holder := make([][]*pg_queries.GetForeignKeyConstraintsRow, len(uniqueSchemas))
+// 	errgrp, errctx := errgroup.WithContext(ctx)
+// 	for idx := range uniqueSchemas {
+// 		idx := idx
+// 		schema := uniqueSchemas[idx]
+// 		errgrp.Go(func() error {
+// 			constraints, err := pgquerier.GetForeignKeyConstraints(errctx, conn, schema)
+// 			if err != nil {
+// 				return err
+// 			}
+// 			holder[idx] = constraints
+// 			return nil
+// 		})
+// 	}
+
+// 	if err := errgrp.Wait(); err != nil {
+// 		return nil, err
+// 	}
+
+// 	output := []*pg_queries.GetForeignKeyConstraintsRow{}
+// 	for _, schemas := range holder {
+// 		output = append(output, schemas...)
+// 	}
+// 	return output, nil
+// }
+
+func GetAllPostgresForeignKeyConstraints(
 	ctx context.Context,
 	conn pg_queries.DBTX,
-	uniqueSchemas []string,
-) ([]*pg_queries.GetForeignKeyConstraintsRow, error) {
-	holder := make([][]*pg_queries.GetForeignKeyConstraintsRow, len(uniqueSchemas))
-	errgrp, errctx := errgroup.WithContext(ctx)
-	for idx := range uniqueSchemas {
-		idx := idx
-		schema := uniqueSchemas[idx]
-		errgrp.Go(func() error {
-			constraints, err := pgquerier.GetForeignKeyConstraints(errctx, conn, schema)
-			if err != nil {
-				return err
-			}
-			holder[idx] = constraints
-			return nil
-		})
+	pgquerier pg_queries.Querier,
+	schemas []string,
+) ([]*pg_queries.GetTableConstraintsBySchemaRow, error) {
+	if len(schemas) == 0 {
+		return []*pg_queries.GetTableConstraintsBySchemaRow{}, nil
 	}
-
-	if err := errgrp.Wait(); err != nil {
+	rows, err := pgquerier.GetTableConstraintsBySchema(ctx, conn, schemas)
+	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return []*pg_queries.GetTableConstraintsBySchemaRow{}, nil
 	}
 
-	output := []*pg_queries.GetForeignKeyConstraintsRow{}
-	for _, schemas := range holder {
-		output = append(output, schemas...)
+	output := []*pg_queries.GetTableConstraintsBySchemaRow{}
+	for _, row := range rows {
+		if row.ConstraintType != "f" {
+			continue
+		}
+		output = append(output, row)
 	}
 	return output, nil
 }
 
-func GetAllPostgresPkConstraints(
-	pgquerier pg_queries.Querier,
+func GetAllPostgresPrimaryKeyConstraints(
 	ctx context.Context,
 	conn pg_queries.DBTX,
-	uniqueSchemas []string,
-) ([]*pg_queries.GetPrimaryKeyConstraintsRow, error) {
-	holder := make([][]*pg_queries.GetPrimaryKeyConstraintsRow, len(uniqueSchemas))
-	errgrp, errctx := errgroup.WithContext(ctx)
-	for idx := range uniqueSchemas {
-		idx := idx
-		schema := uniqueSchemas[idx]
-		errgrp.Go(func() error {
-			constraints, err := pgquerier.GetPrimaryKeyConstraints(errctx, conn, schema)
-			if err != nil {
-				return err
-			}
-			holder[idx] = constraints
-			return nil
-		})
+	pgquerier pg_queries.Querier,
+	schemas []string,
+) ([]*pg_queries.GetTableConstraintsBySchemaRow, error) {
+	if len(schemas) == 0 {
+		return []*pg_queries.GetTableConstraintsBySchemaRow{}, nil
 	}
-
-	if err := errgrp.Wait(); err != nil {
+	rows, err := pgquerier.GetTableConstraintsBySchema(ctx, conn, schemas)
+	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return []*pg_queries.GetTableConstraintsBySchemaRow{}, nil
 	}
 
-	output := []*pg_queries.GetPrimaryKeyConstraintsRow{}
-	for _, schemas := range holder {
-		output = append(output, schemas...)
+	output := []*pg_queries.GetTableConstraintsBySchemaRow{}
+	for _, row := range rows {
+		if row.ConstraintType != "p" {
+			continue
+		}
+		output = append(output, row)
 	}
 	return output, nil
 }
 
-func GetPostgresTablePrimaryKeys(
-	primaryKeyConstraints []*pg_queries.GetPrimaryKeyConstraintsRow,
-) map[string][]string {
-	pkConstraintMap := map[string][]*pg_queries.GetPrimaryKeyConstraintsRow{}
-	for _, c := range primaryKeyConstraints {
-		_, ok := pkConstraintMap[c.ConstraintName]
-		if ok {
-			pkConstraintMap[c.ConstraintName] = append(pkConstraintMap[c.ConstraintName], c)
+func GetAllPostgresPrimaryKeyConstraintsByTableCols(
+	ctx context.Context,
+	conn pg_queries.DBTX,
+	pgquerier pg_queries.Querier,
+	schemas []string,
+) (map[string][]string, error) {
+	if len(schemas) == 0 {
+		return map[string][]string{}, nil
+	}
+	rows, err := pgquerier.GetTableConstraintsBySchema(ctx, conn, schemas)
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return map[string][]string{}, nil
+	}
+
+	output := map[string][]string{}
+	for _, row := range rows {
+		if row.ConstraintType != "p" {
+			continue
+		}
+		schemaname, ok := row.SchemaName.(string)
+		if !ok {
+			return nil, fmt.Errorf("unable to convert schemaname to string: %T", row.SchemaName)
+		}
+		tablename, ok := row.TableName.(string)
+		if !ok {
+			return nil, fmt.Errorf("unable to convert tablename to string: %T", row.TableName)
+		}
+		colnames, ok := row.ConstraintColumns.([]string)
+		if !ok {
+			return nil, fmt.Errorf("unable to convert constraint columns to []string: %T", row.ConstraintColumns)
+		}
+		key := dbschemas.BuildTable(schemaname, tablename)
+		if _, ok := output[key]; ok {
+			output[key] = append(output[key], colnames...)
 		} else {
-			pkConstraintMap[c.ConstraintName] = []*pg_queries.GetPrimaryKeyConstraintsRow{c}
+			output[key] = append([]string{}, colnames...)
 		}
 	}
-	pkMap := map[string][]string{}
-	for _, constraints := range pkConstraintMap {
-		for _, c := range constraints {
-			key := dbschemas.BuildTable(c.SchemaName, c.TableName)
-			_, ok := pkMap[key]
-			if ok {
-				pkMap[key] = append(pkMap[key], c.ColumnName)
-			} else {
-				pkMap[key] = []string{c.ColumnName}
-			}
-		}
+
+	for key, val := range output {
+		output[key] = dedupeSlice(val)
 	}
-	return pkMap
+	return output, nil
 }
 
 func BuildTruncateStatement(
@@ -317,63 +396,64 @@ func EscapePgColumn(col string) string {
 	return fmt.Sprintf("%q", col)
 }
 
-func GetAllPostgresUniqueConstraints(
-	pgquerier pg_queries.Querier,
+// Returns a map by table name and lists all columns that are a part of a unique constraint
+func GetAllPostgresUniqueConstraintsByTableCols(
 	ctx context.Context,
 	conn pg_queries.DBTX,
-	uniqueSchemas []string,
-) ([]*pg_queries.GetUniqueConstraintsRow, error) {
-	holder := make([][]*pg_queries.GetUniqueConstraintsRow, len(uniqueSchemas))
-	errgrp, errctx := errgroup.WithContext(ctx)
-	for idx := range uniqueSchemas {
-		idx := idx
-		schema := uniqueSchemas[idx]
-		errgrp.Go(func() error {
-			constraints, err := pgquerier.GetUniqueConstraints(errctx, conn, schema)
-			if err != nil {
-				return err
-			}
-			holder[idx] = constraints
-			return nil
-		})
+	pgquerier pg_queries.Querier,
+	schemas []string,
+) (map[string][]string, error) {
+	if len(schemas) == 0 {
+		return map[string][]string{}, nil
 	}
-
-	if err := errgrp.Wait(); err != nil {
+	rows, err := pgquerier.GetTableConstraintsBySchema(ctx, conn, schemas)
+	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return map[string][]string{}, nil
 	}
 
-	output := []*pg_queries.GetUniqueConstraintsRow{}
-	for _, schemas := range holder {
-		output = append(output, schemas...)
+	output := map[string][]string{}
+	for _, row := range rows {
+		if row.ConstraintType != "u" {
+			continue
+		}
+		schemaname, ok := row.SchemaName.(string)
+		if !ok {
+			return nil, fmt.Errorf("unable to convert schemaname to string: %T", row.SchemaName)
+		}
+		tablename, ok := row.TableName.(string)
+		if !ok {
+			return nil, fmt.Errorf("unable to convert tablename to string: %T", row.TableName)
+		}
+		colnames, ok := row.ConstraintColumns.([]string)
+		if !ok {
+			return nil, fmt.Errorf("unable to convert constraint columns to []string: %T", row.ConstraintColumns)
+		}
+		key := dbschemas.BuildTable(schemaname, tablename)
+		if _, ok := output[key]; ok {
+			output[key] = append(output[key], colnames...)
+		} else {
+			output[key] = append([]string{}, colnames...)
+		}
+	}
+
+	for key, val := range output {
+		output[key] = dedupeSlice(val)
 	}
 	return output, nil
 }
 
-func GetPostgresTableUniqueConstraints(
-	uniqueConstraints []*pg_queries.GetUniqueConstraintsRow,
-) map[string][]string {
-	uniqueConstraintMap := map[string][]*pg_queries.GetUniqueConstraintsRow{}
-	for _, c := range uniqueConstraints {
-		_, ok := uniqueConstraintMap[c.ConstraintName]
-		if ok {
-			uniqueConstraintMap[c.ConstraintName] = append(uniqueConstraintMap[c.ConstraintName], c)
-		} else {
-			uniqueConstraintMap[c.ConstraintName] = []*pg_queries.GetUniqueConstraintsRow{c}
-		}
+func dedupeSlice(input []string) []string {
+	set := map[string]any{}
+	for _, i := range input {
+		set[i] = struct{}{}
 	}
-	pkMap := map[string][]string{}
-	for _, constraints := range uniqueConstraintMap {
-		for _, c := range constraints {
-			key := dbschemas.BuildTable(c.SchemaName, c.TableName)
-			_, ok := pkMap[key]
-			if ok {
-				pkMap[key] = append(pkMap[key], c.ColumnName)
-			} else {
-				pkMap[key] = []string{c.ColumnName}
-			}
-		}
+	output := make([]string, 0, len(set))
+	for key := range set {
+		output = append(output, key)
 	}
-	return pkMap
+	return output
 }
 
 func GetPostgresRolePermissions(pgquerier pg_queries.Querier,

@@ -146,3 +146,9 @@ sql:
             go_type: string
           - column: information_schema.role_table_grants.privilege_type
             go_type: string
+          - column: pg_catalog.pg_constraint.connamespace # this is normally an int but we are casting it in queries to the friendly name
+            go_type: string
+          - column: pg_catalog.pg_constraint.conrelid # this is normally an int but we are casting it in queries to the friendly name
+            go_type: string
+          - column: pg_catalog.pg_constraint.contype
+            go_type: string

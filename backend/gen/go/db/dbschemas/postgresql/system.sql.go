@@ -7,6 +7,8 @@ package pg_queries
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const getDatabaseSchema = `-- name: GetDatabaseSchema :many
@@ -231,89 +233,22 @@ func (q *Queries) GetDatabaseTableSchema(ctx context.Context, db DBTX, arg *GetD
 	return items, nil
 }
 
-const getForeignKeyConstraints = `-- name: GetForeignKeyConstraints :many
-SELECT
-    rc.constraint_name,
-    rc.constraint_schema AS schema_name,
-    fk.table_name,
-    fk.column_name,
-    c.is_nullable,
-    pk.table_schema AS foreign_schema_name,
-    pk.table_name AS foreign_table_name,
-    pk.column_name AS foreign_column_name
-FROM
-    information_schema.referential_constraints rc
-JOIN information_schema.key_column_usage fk ON
-    fk.constraint_catalog = rc.constraint_catalog AND
-    fk.constraint_schema = rc.constraint_schema AND
-    fk.constraint_name = rc.constraint_name
-JOIN information_schema.key_column_usage pk ON
-    pk.constraint_catalog = rc.unique_constraint_catalog AND
-    pk.constraint_schema = rc.unique_constraint_schema AND
-    pk.constraint_name = rc.unique_constraint_name
-JOIN information_schema.columns c ON
-    c.table_schema = fk.table_schema AND
-    c.table_name = fk.table_name AND
-    c.column_name = fk.column_name
-WHERE
-    rc.constraint_schema = $1
-ORDER BY
-    rc.constraint_name,
-    fk.ordinal_position
-`
-
-type GetForeignKeyConstraintsRow struct {
-	ConstraintName    string
-	SchemaName        string
-	TableName         string
-	ColumnName        string
-	IsNullable        string
-	ForeignSchemaName string
-	ForeignTableName  string
-	ForeignColumnName string
-}
-
-func (q *Queries) GetForeignKeyConstraints(ctx context.Context, db DBTX, tableschema string) ([]*GetForeignKeyConstraintsRow, error) {
-	rows, err := db.Query(ctx, getForeignKeyConstraints, tableschema)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []*GetForeignKeyConstraintsRow
-	for rows.Next() {
-		var i GetForeignKeyConstraintsRow
-		if err := rows.Scan(
-			&i.ConstraintName,
-			&i.SchemaName,
-			&i.TableName,
-			&i.ColumnName,
-			&i.IsNullable,
-			&i.ForeignSchemaName,
-			&i.ForeignTableName,
-			&i.ForeignColumnName,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, &i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const getPostgresRolePermissions = `-- name: GetPostgresRolePermissions :many
+
+
+
+
 SELECT
-    rtg.table_schema as table_schema, 
-    rtg.table_name as table_name, 
+    rtg.table_schema as table_schema,
+    rtg.table_name as table_name,
     rtg.privilege_type as privilege_type
-FROM 
+FROM
     information_schema.role_table_grants as rtg
-WHERE 
-    table_schema NOT IN ('pg_catalog', 'information_schema') 
+WHERE
+    table_schema NOT IN ('pg_catalog', 'information_schema')
 AND grantee =  $1
-ORDER BY 
-    table_schema, 
+ORDER BY
+    table_schema,
     table_name
 `
 
@@ -323,6 +258,102 @@ type GetPostgresRolePermissionsRow struct {
 	PrivilegeType string
 }
 
+// -- name: GetForeignKeyConstraints :many
+// SELECT
+//
+//	rc.constraint_name,
+//	rc.constraint_schema AS schema_name,
+//	fk.table_name,
+//	fk.column_name,
+//	c.is_nullable,
+//	pk.table_schema AS foreign_schema_name,
+//	pk.table_name AS foreign_table_name,
+//	pk.column_name AS foreign_column_name
+//
+// FROM
+//
+//	information_schema.referential_constraints rc
+//
+// JOIN information_schema.key_column_usage fk ON
+//
+//	fk.constraint_catalog = rc.constraint_catalog AND
+//	fk.constraint_schema = rc.constraint_schema AND
+//	fk.constraint_name = rc.constraint_name
+//
+// JOIN information_schema.key_column_usage pk ON
+//
+//	pk.constraint_catalog = rc.unique_constraint_catalog AND
+//	pk.constraint_schema = rc.unique_constraint_schema AND
+//	pk.constraint_name = rc.unique_constraint_name
+//
+// JOIN information_schema.columns c ON
+//
+//	c.table_schema = fk.table_schema AND
+//	c.table_name = fk.table_name AND
+//	c.column_name = fk.column_name
+//
+// WHERE
+//
+//	rc.constraint_schema = sqlc.arg('tableSchema')
+//
+// ORDER BY
+//
+//	rc.constraint_name,
+//	fk.ordinal_position;
+//
+// -- name: GetPrimaryKeyConstraints :many
+// SELECT
+//
+//	tc.table_schema AS schema_name,
+//	tc.table_name as table_name,
+//	tc.constraint_name as constraint_name,
+//	kcu.column_name as column_name
+//
+// FROM
+//
+//	information_schema.table_constraints AS tc
+//
+// JOIN information_schema.key_column_usage AS kcu
+//
+//	ON tc.constraint_name = kcu.constraint_name
+//	AND tc.table_schema = kcu.table_schema
+//
+// WHERE
+//
+//	tc.table_schema = sqlc.arg('tableSchema')
+//	AND tc.constraint_type = 'PRIMARY KEY'
+//
+// ORDER BY
+//
+//	tc.table_name,
+//	kcu.column_name;
+//
+// -- name: GetUniqueConstraints :many
+// SELECT
+//
+//	tc.table_schema AS schema_name,
+//	tc.table_name AS table_name,
+//	tc.constraint_name AS constraint_name,
+//	kcu.column_name AS column_name
+//
+// FROM
+//
+//	information_schema.table_constraints AS tc
+//
+// JOIN information_schema.key_column_usage AS kcu
+//
+//	ON tc.constraint_name = kcu.constraint_name
+//	AND tc.table_schema = kcu.table_schema
+//
+// WHERE
+//
+//	tc.table_schema = sqlc.arg('tableSchema')
+//	AND tc.constraint_type = 'UNIQUE'
+//
+// ORDER BY
+//
+//	tc.table_name,
+//	kcu.column_name;
 func (q *Queries) GetPostgresRolePermissions(ctx context.Context, db DBTX, role interface{}) ([]*GetPostgresRolePermissionsRow, error) {
 	rows, err := db.Query(ctx, getPostgresRolePermissions, role)
 	if err != nil {
@@ -343,73 +374,43 @@ func (q *Queries) GetPostgresRolePermissions(ctx context.Context, db DBTX, role 
 	return items, nil
 }
 
-const getPrimaryKeyConstraints = `-- name: GetPrimaryKeyConstraints :many
-SELECT
-    tc.table_schema AS schema_name,
-    tc.table_name as table_name,
-    tc.constraint_name as constraint_name,
-    kcu.column_name as column_name
-FROM
-    information_schema.table_constraints AS tc
-JOIN information_schema.key_column_usage AS kcu
-    ON tc.constraint_name = kcu.constraint_name
-    AND tc.table_schema = kcu.table_schema
-WHERE
-    tc.table_schema = $1
-    AND tc.constraint_type = 'PRIMARY KEY'
-ORDER BY
-    tc.table_name,
-    kcu.column_name
-`
-
-type GetPrimaryKeyConstraintsRow struct {
-	SchemaName     string
-	TableName      string
-	ConstraintName string
-	ColumnName     string
-}
-
-func (q *Queries) GetPrimaryKeyConstraints(ctx context.Context, db DBTX, tableschema string) ([]*GetPrimaryKeyConstraintsRow, error) {
-	rows, err := db.Query(ctx, getPrimaryKeyConstraints, tableschema)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []*GetPrimaryKeyConstraintsRow
-	for rows.Next() {
-		var i GetPrimaryKeyConstraintsRow
-		if err := rows.Scan(
-			&i.SchemaName,
-			&i.TableName,
-			&i.ConstraintName,
-			&i.ColumnName,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, &i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const getTableConstraints = `-- name: GetTableConstraints :many
 SELECT
-    nsp.nspname AS db_schema,
-    rel.relname AS table_name,
+    con.oid AS constraint_oid,
     con.conname AS constraint_name,
+    con.contype AS constraint_type,
+    con.connamespace::regclass AS schema_name,
+    con.conrelid::regclass AS table_name,
+    CASE
+        WHEN con.contype IN ('f', 'p', 'u') THEN array_agg(att.attname)
+        ELSE NULL
+    END AS constraint_columns,
+    array_agg(att.attnotnull) AS notnullable,
+    CASE
+        WHEN con.contype = 'f' THEN fn_cl.relnamespace::regnamespace
+        ELSE NULL
+    END AS foreign_schema_name,
+    CASE
+        WHEN con.contype = 'f' THEN con.confrelid::regclass
+        ELSE NULL
+    END AS foreign_table_name,
+    CASE
+        WHEN con.contype = 'f' THEN array_agg(fk_att.attname)
+        ELSE NULL
+    END AS fk_constraint_columns,
     pg_get_constraintdef(con.oid) AS constraint_definition
 FROM
     pg_catalog.pg_constraint con
-INNER JOIN pg_catalog.pg_class rel
-                       ON
-    rel.oid = con.conrelid
-INNER JOIN pg_catalog.pg_namespace nsp
-                       ON
-    nsp.oid = connamespace
+LEFT JOIN
+    pg_catalog.pg_attribute fk_att ON fk_att.attrelid = con.confrelid AND fk_att.attnum = ANY(con.confkey)
+LEFT JOIN
+    pg_catalog.pg_attribute att ON att.attrelid = con.conrelid AND att.attnum = ANY(con.conkey)
+LEFT JOIN
+    pg_catalog.pg_class fn_cl ON fn_cl.oid = con.confrelid
 WHERE
-    nsp.nspname = $1 AND rel.relname = $2
+    con.connamespace::regnamespace::text = $1 AND con.conrelid::regclass::text = $2
+GROUP BY
+    con.oid, con.conname, con.conrelid, fn_cl.relnamespace, con.confrelid, con.contype
 `
 
 type GetTableConstraintsParams struct {
@@ -418,9 +419,16 @@ type GetTableConstraintsParams struct {
 }
 
 type GetTableConstraintsRow struct {
-	DbSchema             string
-	TableName            string
+	ConstraintOid        pgtype.Uint32
 	ConstraintName       string
+	ConstraintType       string
+	SchemaName           interface{}
+	TableName            interface{}
+	ConstraintColumns    interface{}
+	Notnullable          interface{}
+	ForeignSchemaName    interface{}
+	ForeignTableName     interface{}
+	FkConstraintColumns  interface{}
 	ConstraintDefinition string
 }
 
@@ -434,9 +442,16 @@ func (q *Queries) GetTableConstraints(ctx context.Context, db DBTX, arg *GetTabl
 	for rows.Next() {
 		var i GetTableConstraintsRow
 		if err := rows.Scan(
-			&i.DbSchema,
-			&i.TableName,
+			&i.ConstraintOid,
 			&i.ConstraintName,
+			&i.ConstraintType,
+			&i.SchemaName,
+			&i.TableName,
+			&i.ConstraintColumns,
+			&i.Notnullable,
+			&i.ForeignSchemaName,
+			&i.ForeignTableName,
+			&i.FkConstraintColumns,
 			&i.ConstraintDefinition,
 		); err != nil {
 			return nil, err
@@ -449,46 +464,80 @@ func (q *Queries) GetTableConstraints(ctx context.Context, db DBTX, arg *GetTabl
 	return items, nil
 }
 
-const getUniqueConstraints = `-- name: GetUniqueConstraints :many
+const getTableConstraintsBySchema = `-- name: GetTableConstraintsBySchema :many
 SELECT
-    tc.table_schema AS schema_name,
-    tc.table_name AS table_name,
-    tc.constraint_name AS constraint_name,
-    kcu.column_name AS column_name
+    con.oid AS constraint_oid,
+    con.conname AS constraint_name,
+    con.contype AS constraint_type,
+    con.connamespace::regclass AS schema_name,
+    con.conrelid::regclass AS table_name,
+    CASE
+        WHEN con.contype IN ('f', 'p', 'u') THEN array_agg(att.attname)
+        ELSE NULL
+    END AS constraint_columns,
+    array_agg(att.attnotnull) AS notnullable,
+    CASE
+        WHEN con.contype = 'f' THEN fn_cl.relnamespace::regnamespace
+        ELSE NULL
+    END AS foreign_schema_name,
+    CASE
+        WHEN con.contype = 'f' THEN con.confrelid::regclass
+        ELSE NULL
+    END AS foreign_table_name,
+    CASE
+        WHEN con.contype = 'f' THEN array_agg(fk_att.attname)
+        ELSE NULL
+    END AS fk_constraint_columns,
+    pg_get_constraintdef(con.oid) AS constraint_definition
 FROM
-    information_schema.table_constraints AS tc
-JOIN information_schema.key_column_usage AS kcu
-    ON tc.constraint_name = kcu.constraint_name
-    AND tc.table_schema = kcu.table_schema
+    pg_catalog.pg_constraint con
+LEFT JOIN
+    pg_catalog.pg_attribute fk_att ON fk_att.attrelid = con.confrelid AND fk_att.attnum = ANY(con.confkey)
+LEFT JOIN
+    pg_catalog.pg_attribute att ON att.attrelid = con.conrelid AND att.attnum = ANY(con.conkey)
+LEFT JOIN
+    pg_catalog.pg_class fn_cl ON fn_cl.oid = con.confrelid
 WHERE
-    tc.table_schema = $1
-    AND tc.constraint_type = 'UNIQUE'
-ORDER BY
-    tc.table_name,
-    kcu.column_name
+    con.connamespace::regnamespace::text = ANY($1::text[])
+GROUP BY
+    con.oid, con.conname, con.conrelid, fn_cl.relnamespace, con.confrelid, con.contype
 `
 
-type GetUniqueConstraintsRow struct {
-	SchemaName     string
-	TableName      string
-	ConstraintName string
-	ColumnName     string
+type GetTableConstraintsBySchemaRow struct {
+	ConstraintOid        pgtype.Uint32
+	ConstraintName       string
+	ConstraintType       string
+	SchemaName           interface{}
+	TableName            interface{}
+	ConstraintColumns    interface{}
+	Notnullable          interface{}
+	ForeignSchemaName    interface{}
+	ForeignTableName     interface{}
+	FkConstraintColumns  interface{}
+	ConstraintDefinition string
 }
 
-func (q *Queries) GetUniqueConstraints(ctx context.Context, db DBTX, tableschema string) ([]*GetUniqueConstraintsRow, error) {
-	rows, err := db.Query(ctx, getUniqueConstraints, tableschema)
+func (q *Queries) GetTableConstraintsBySchema(ctx context.Context, db DBTX, schema []string) ([]*GetTableConstraintsBySchemaRow, error) {
+	rows, err := db.Query(ctx, getTableConstraintsBySchema, schema)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []*GetUniqueConstraintsRow
+	var items []*GetTableConstraintsBySchemaRow
 	for rows.Next() {
-		var i GetUniqueConstraintsRow
+		var i GetTableConstraintsBySchemaRow
 		if err := rows.Scan(
+			&i.ConstraintOid,
+			&i.ConstraintName,
+			&i.ConstraintType,
 			&i.SchemaName,
 			&i.TableName,
-			&i.ConstraintName,
-			&i.ColumnName,
+			&i.ConstraintColumns,
+			&i.Notnullable,
+			&i.ForeignSchemaName,
+			&i.ForeignTableName,
+			&i.FkConstraintColumns,
+			&i.ConstraintDefinition,
 		); err != nil {
 			return nil, err
 		}

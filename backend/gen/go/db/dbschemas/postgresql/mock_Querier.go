@@ -140,66 +140,6 @@ func (_c *MockQuerier_GetDatabaseTableSchema_Call) RunAndReturn(run func(context
 	return _c
 }
 
-// GetForeignKeyConstraints provides a mock function with given fields: ctx, db, tableschema
-func (_m *MockQuerier) GetForeignKeyConstraints(ctx context.Context, db DBTX, tableschema string) ([]*GetForeignKeyConstraintsRow, error) {
-	ret := _m.Called(ctx, db, tableschema)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetForeignKeyConstraints")
-	}
-
-	var r0 []*GetForeignKeyConstraintsRow
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, string) ([]*GetForeignKeyConstraintsRow, error)); ok {
-		return rf(ctx, db, tableschema)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, string) []*GetForeignKeyConstraintsRow); ok {
-		r0 = rf(ctx, db, tableschema)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*GetForeignKeyConstraintsRow)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, DBTX, string) error); ok {
-		r1 = rf(ctx, db, tableschema)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// MockQuerier_GetForeignKeyConstraints_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetForeignKeyConstraints'
-type MockQuerier_GetForeignKeyConstraints_Call struct {
-	*mock.Call
-}
-
-// GetForeignKeyConstraints is a helper method to define mock.On call
-//   - ctx context.Context
-//   - db DBTX
-//   - tableschema string
-func (_e *MockQuerier_Expecter) GetForeignKeyConstraints(ctx interface{}, db interface{}, tableschema interface{}) *MockQuerier_GetForeignKeyConstraints_Call {
-	return &MockQuerier_GetForeignKeyConstraints_Call{Call: _e.mock.On("GetForeignKeyConstraints", ctx, db, tableschema)}
-}
-
-func (_c *MockQuerier_GetForeignKeyConstraints_Call) Run(run func(ctx context.Context, db DBTX, tableschema string)) *MockQuerier_GetForeignKeyConstraints_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(DBTX), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *MockQuerier_GetForeignKeyConstraints_Call) Return(_a0 []*GetForeignKeyConstraintsRow, _a1 error) *MockQuerier_GetForeignKeyConstraints_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *MockQuerier_GetForeignKeyConstraints_Call) RunAndReturn(run func(context.Context, DBTX, string) ([]*GetForeignKeyConstraintsRow, error)) *MockQuerier_GetForeignKeyConstraints_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetPostgresRolePermissions provides a mock function with given fields: ctx, db, role
 func (_m *MockQuerier) GetPostgresRolePermissions(ctx context.Context, db DBTX, role interface{}) ([]*GetPostgresRolePermissionsRow, error) {
 	ret := _m.Called(ctx, db, role)
@@ -256,66 +196,6 @@ func (_c *MockQuerier_GetPostgresRolePermissions_Call) Return(_a0 []*GetPostgres
 }
 
 func (_c *MockQuerier_GetPostgresRolePermissions_Call) RunAndReturn(run func(context.Context, DBTX, interface{}) ([]*GetPostgresRolePermissionsRow, error)) *MockQuerier_GetPostgresRolePermissions_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// GetPrimaryKeyConstraints provides a mock function with given fields: ctx, db, tableschema
-func (_m *MockQuerier) GetPrimaryKeyConstraints(ctx context.Context, db DBTX, tableschema string) ([]*GetPrimaryKeyConstraintsRow, error) {
-	ret := _m.Called(ctx, db, tableschema)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetPrimaryKeyConstraints")
-	}
-
-	var r0 []*GetPrimaryKeyConstraintsRow
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, string) ([]*GetPrimaryKeyConstraintsRow, error)); ok {
-		return rf(ctx, db, tableschema)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, string) []*GetPrimaryKeyConstraintsRow); ok {
-		r0 = rf(ctx, db, tableschema)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*GetPrimaryKeyConstraintsRow)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, DBTX, string) error); ok {
-		r1 = rf(ctx, db, tableschema)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// MockQuerier_GetPrimaryKeyConstraints_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPrimaryKeyConstraints'
-type MockQuerier_GetPrimaryKeyConstraints_Call struct {
-	*mock.Call
-}
-
-// GetPrimaryKeyConstraints is a helper method to define mock.On call
-//   - ctx context.Context
-//   - db DBTX
-//   - tableschema string
-func (_e *MockQuerier_Expecter) GetPrimaryKeyConstraints(ctx interface{}, db interface{}, tableschema interface{}) *MockQuerier_GetPrimaryKeyConstraints_Call {
-	return &MockQuerier_GetPrimaryKeyConstraints_Call{Call: _e.mock.On("GetPrimaryKeyConstraints", ctx, db, tableschema)}
-}
-
-func (_c *MockQuerier_GetPrimaryKeyConstraints_Call) Run(run func(ctx context.Context, db DBTX, tableschema string)) *MockQuerier_GetPrimaryKeyConstraints_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(DBTX), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *MockQuerier_GetPrimaryKeyConstraints_Call) Return(_a0 []*GetPrimaryKeyConstraintsRow, _a1 error) *MockQuerier_GetPrimaryKeyConstraints_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *MockQuerier_GetPrimaryKeyConstraints_Call) RunAndReturn(run func(context.Context, DBTX, string) ([]*GetPrimaryKeyConstraintsRow, error)) *MockQuerier_GetPrimaryKeyConstraints_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -380,29 +260,29 @@ func (_c *MockQuerier_GetTableConstraints_Call) RunAndReturn(run func(context.Co
 	return _c
 }
 
-// GetUniqueConstraints provides a mock function with given fields: ctx, db, tableschema
-func (_m *MockQuerier) GetUniqueConstraints(ctx context.Context, db DBTX, tableschema string) ([]*GetUniqueConstraintsRow, error) {
-	ret := _m.Called(ctx, db, tableschema)
+// GetTableConstraintsBySchema provides a mock function with given fields: ctx, db, schema
+func (_m *MockQuerier) GetTableConstraintsBySchema(ctx context.Context, db DBTX, schema []string) ([]*GetTableConstraintsBySchemaRow, error) {
+	ret := _m.Called(ctx, db, schema)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetUniqueConstraints")
+		panic("no return value specified for GetTableConstraintsBySchema")
 	}
 
-	var r0 []*GetUniqueConstraintsRow
+	var r0 []*GetTableConstraintsBySchemaRow
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, string) ([]*GetUniqueConstraintsRow, error)); ok {
-		return rf(ctx, db, tableschema)
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []string) ([]*GetTableConstraintsBySchemaRow, error)); ok {
+		return rf(ctx, db, schema)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, DBTX, string) []*GetUniqueConstraintsRow); ok {
-		r0 = rf(ctx, db, tableschema)
+	if rf, ok := ret.Get(0).(func(context.Context, DBTX, []string) []*GetTableConstraintsBySchemaRow); ok {
+		r0 = rf(ctx, db, schema)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*GetUniqueConstraintsRow)
+			r0 = ret.Get(0).([]*GetTableConstraintsBySchemaRow)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, DBTX, string) error); ok {
-		r1 = rf(ctx, db, tableschema)
+	if rf, ok := ret.Get(1).(func(context.Context, DBTX, []string) error); ok {
+		r1 = rf(ctx, db, schema)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -410,32 +290,32 @@ func (_m *MockQuerier) GetUniqueConstraints(ctx context.Context, db DBTX, tables
 	return r0, r1
 }
 
-// MockQuerier_GetUniqueConstraints_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetUniqueConstraints'
-type MockQuerier_GetUniqueConstraints_Call struct {
+// MockQuerier_GetTableConstraintsBySchema_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTableConstraintsBySchema'
+type MockQuerier_GetTableConstraintsBySchema_Call struct {
 	*mock.Call
 }
 
-// GetUniqueConstraints is a helper method to define mock.On call
+// GetTableConstraintsBySchema is a helper method to define mock.On call
 //   - ctx context.Context
 //   - db DBTX
-//   - tableschema string
-func (_e *MockQuerier_Expecter) GetUniqueConstraints(ctx interface{}, db interface{}, tableschema interface{}) *MockQuerier_GetUniqueConstraints_Call {
-	return &MockQuerier_GetUniqueConstraints_Call{Call: _e.mock.On("GetUniqueConstraints", ctx, db, tableschema)}
+//   - schema []string
+func (_e *MockQuerier_Expecter) GetTableConstraintsBySchema(ctx interface{}, db interface{}, schema interface{}) *MockQuerier_GetTableConstraintsBySchema_Call {
+	return &MockQuerier_GetTableConstraintsBySchema_Call{Call: _e.mock.On("GetTableConstraintsBySchema", ctx, db, schema)}
 }
 
-func (_c *MockQuerier_GetUniqueConstraints_Call) Run(run func(ctx context.Context, db DBTX, tableschema string)) *MockQuerier_GetUniqueConstraints_Call {
+func (_c *MockQuerier_GetTableConstraintsBySchema_Call) Run(run func(ctx context.Context, db DBTX, schema []string)) *MockQuerier_GetTableConstraintsBySchema_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(DBTX), args[2].(string))
+		run(args[0].(context.Context), args[1].(DBTX), args[2].([]string))
 	})
 	return _c
 }
 
-func (_c *MockQuerier_GetUniqueConstraints_Call) Return(_a0 []*GetUniqueConstraintsRow, _a1 error) *MockQuerier_GetUniqueConstraints_Call {
+func (_c *MockQuerier_GetTableConstraintsBySchema_Call) Return(_a0 []*GetTableConstraintsBySchemaRow, _a1 error) *MockQuerier_GetTableConstraintsBySchema_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockQuerier_GetUniqueConstraints_Call) RunAndReturn(run func(context.Context, DBTX, string) ([]*GetUniqueConstraintsRow, error)) *MockQuerier_GetUniqueConstraints_Call {
+func (_c *MockQuerier_GetTableConstraintsBySchema_Call) RunAndReturn(run func(context.Context, DBTX, []string) ([]*GetTableConstraintsBySchemaRow, error)) *MockQuerier_GetTableConstraintsBySchema_Call {
 	_c.Call.Return(run)
 	return _c
 }
