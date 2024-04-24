@@ -107,6 +107,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   const form = useForm({
     resolver: yupResolver<SourceFormValues>(FORM_SCHEMA),
     values: getJobSource(data?.job),
+    context: { accountId: account?.id },
   });
 
   const { data: primaryConstraints, isValidating: isPkValidating } =

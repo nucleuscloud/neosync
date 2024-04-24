@@ -88,6 +88,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const form = useForm<SchemaFormValues>({
     resolver: yupResolver<SchemaFormValues>(SCHEMA_FORM_SCHEMA),
     values: getFormValues(connectFormValues.sourceId, schemaFormData),
+    context: { accountId: account?.id },
   });
 
   useFormPersist(`${sessionPrefix}-new-job-schema`, {

@@ -33,11 +33,11 @@ interface Props {
 export default function UserDefinedGenerateJavascriptForm(
   props: Props
 ): ReactElement {
+  const { isDisabled } = props;
+
   const fc = useFormContext<
     UpdateUserDefinedTransformer | CreateUserDefinedTransformerSchema
   >();
-
-  const { isDisabled } = props;
 
   const options = {
     minimap: { enabled: false },

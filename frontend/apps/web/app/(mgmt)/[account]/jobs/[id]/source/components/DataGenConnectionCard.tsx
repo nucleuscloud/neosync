@@ -90,6 +90,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
   const form = useForm<SingleTableSchemaFormValues>({
     resolver: yupResolver(SINGLE_TABLE_SCHEMA_FORM_SCHEMA),
     values: getJobSource(data?.job),
+    context: { accountId: account?.id },
   });
 
   const schemaConstraintHandler = useMemo(
