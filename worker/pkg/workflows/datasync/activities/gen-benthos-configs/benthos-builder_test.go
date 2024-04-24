@@ -22,8 +22,8 @@ import (
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 
 	_ "github.com/benthosdev/benthos/v4/public/components/aws"
@@ -164,15 +164,15 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Pg(t *testing.T) 
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
 		slog.Default(),
 	)
-	assert.Nil(t, err)
-	assert.NotEmpty(t, resp.BenthosConfigs)
-	assert.Len(t, resp.BenthosConfigs, 1)
+	require.Nil(t, err)
+	require.NotEmpty(t, resp.BenthosConfigs)
+	require.Len(t, resp.BenthosConfigs, 1)
 	bc := resp.BenthosConfigs[0]
-	assert.Equal(t, bc.Name, "public.users")
-	assert.Empty(t, bc.DependsOn)
+	require.Equal(t, bc.Name, "public.users")
+	require.Empty(t, bc.DependsOn)
 	out, err := yaml.Marshal(bc.Config)
-	assert.NoError(t, err)
-	assert.Equal(
+	require.NoError(t, err)
+	require.Equal(
 		t,
 		strings.TrimSpace(`
 input:
@@ -234,18 +234,18 @@ output:
 	// create a new streambuilder instance so we can access the SetYaml method
 	benthosenv := service.NewEnvironment()
 	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = neosync_benthos_error.RegisterErrorProcessor(benthosenv, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func Test_BenthosBuilder_GenerateBenthosConfigs_Metrics(t *testing.T) {
@@ -353,15 +353,15 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Metrics(t *testing.T) {
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
 		slog.Default(),
 	)
-	assert.Nil(t, err)
-	assert.NotEmpty(t, resp.BenthosConfigs)
-	assert.Len(t, resp.BenthosConfigs, 1)
+	require.Nil(t, err)
+	require.NotEmpty(t, resp.BenthosConfigs)
+	require.Len(t, resp.BenthosConfigs, 1)
 	bc := resp.BenthosConfigs[0]
-	assert.Equal(t, bc.Name, "public.users")
-	assert.Empty(t, bc.DependsOn)
+	require.Equal(t, bc.Name, "public.users")
+	require.Empty(t, bc.DependsOn)
 	out, err := yaml.Marshal(bc.Config)
-	assert.NoError(t, err)
-	assert.Equal(
+	require.NoError(t, err)
+	require.Equal(
 		t,
 		strings.TrimSpace(`
 input:
@@ -433,20 +433,20 @@ metrics:
 	// create a new streambuilder instance so we can access the SetYaml method
 	benthosenv := service.NewEnvironment()
 	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = neosync_benthos_error.RegisterErrorProcessor(benthosenv, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = benthos_metrics.RegisterOtelMetricsExporter(benthosenv, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func Test_BenthosBuilder_GenerateBenthosConfigs_Generate_Pg_Pg(t *testing.T) {
@@ -549,15 +549,15 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Generate_Pg_Pg(t *testing.T) {
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
 		slog.Default(),
 	)
-	assert.Nil(t, err)
-	assert.NotEmpty(t, resp.BenthosConfigs)
-	assert.Len(t, resp.BenthosConfigs, 1)
+	require.Nil(t, err)
+	require.NotEmpty(t, resp.BenthosConfigs)
+	require.Len(t, resp.BenthosConfigs, 1)
 	bc := resp.BenthosConfigs[0]
-	assert.Equal(t, bc.Name, "public.users")
-	assert.Empty(t, bc.DependsOn)
+	require.Equal(t, bc.Name, "public.users")
+	require.Empty(t, bc.DependsOn)
 	out, err := yaml.Marshal(bc.Config)
-	assert.NoError(t, err)
-	assert.Equal(
+	require.NoError(t, err)
+	require.Equal(
 		t,
 		strings.TrimSpace(string(out)),
 		strings.TrimSpace(`
@@ -619,18 +619,18 @@ output:
 	// create a new streambuilder instance so we can access the SetYaml method
 	benthosenv := service.NewEnvironment()
 	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = neosync_benthos_error.RegisterErrorProcessor(benthosenv, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Transformer_Pg_Pg(t *testing.T) {
@@ -778,30 +778,34 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Transformer_Pg_Pg(t *
 				ColumnName:  "buyer_id",
 			},
 		}, nil)
-	pgquerier.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetForeignKeyConstraintsRow{
+	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*pg_queries.GetTableConstraintsBySchemaRow{
 			{
-				ConstraintName:    "fk_user_account_associations_user_id_users_id",
+				ConstraintName:     "fk_user_account_associations_user_id_users_id",
+				SchemaName:         "public",
+				TableName:          "orders",
+				ConstraintColumns:  []string{"buyer_id"},
+				ForeignSchemaName:  "public",
+				ForeignTableName:   "users",
+				ForeignColumnNames: []string{"id"},
+				ConstraintType:     "f",
+			},
+		}, nil).
+		Return(
+			[]*pg_queries.GetTableConstraintsBySchemaRow{{
+				SchemaName:        "public",
+				TableName:         "users",
+				ConstraintName:    "users",
+				ConstraintColumns: []string{"id"},
+				ConstraintType:    "p",
+			}, {
 				SchemaName:        "public",
 				TableName:         "orders",
-				ColumnName:        "buyer_id",
-				ForeignSchemaName: "public",
-				ForeignTableName:  "users",
-				ForeignColumnName: "id",
-			},
-		}, nil)
-	pgquerier.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetPrimaryKeyConstraintsRow{{
-			SchemaName:     "public",
-			TableName:      "users",
-			ConstraintName: "users",
-			ColumnName:     "id",
-		}, {
-			SchemaName:     "public",
-			TableName:      "orders",
-			ConstraintName: "orders",
-			ColumnName:     "id",
-		}}, nil)
+				ConstraintName:    "orders",
+				ConstraintColumns: []string{"id"},
+				ConstraintType:    "p",
+			}}, nil,
+		)
 	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, redisConfig, false)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
@@ -810,17 +814,17 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Transformer_Pg_Pg(t *
 		slog.Default(),
 	)
 
-	assert.Nil(t, err)
-	assert.NotEmpty(t, resp.BenthosConfigs)
-	assert.Len(t, resp.BenthosConfigs, 2)
+	require.Nil(t, err)
+	require.NotEmpty(t, resp.BenthosConfigs)
+	require.Len(t, resp.BenthosConfigs, 2)
 	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
-	assert.Equal(t, bc.Name, "public.users")
-	assert.Len(t, bc.RedisConfig, 1)
-	assert.Equal(t, bc.RedisConfig[0].Table, "public.users")
-	assert.Equal(t, bc.RedisConfig[0].Column, "id")
+	require.Equal(t, bc.Name, "public.users")
+	require.Len(t, bc.RedisConfig, 1)
+	require.Equal(t, bc.RedisConfig[0].Table, "public.users")
+	require.Equal(t, bc.RedisConfig[0].Column, "id")
 	out, err := yaml.Marshal(bc.Config)
-	assert.NoError(t, err)
-	assert.Equal(
+	require.NoError(t, err)
+	require.Equal(
 		t,
 		strings.TrimSpace(string(out)),
 		strings.TrimSpace(`
@@ -880,11 +884,11 @@ output:
 	)
 
 	bc = getBenthosConfigByName(resp.BenthosConfigs, "public.orders")
-	assert.Equal(t, bc.Name, "public.orders")
-	assert.Empty(t, bc.RedisConfig)
+	require.Equal(t, bc.Name, "public.orders")
+	require.Empty(t, bc.RedisConfig)
 	out, err = yaml.Marshal(bc.Config)
-	assert.NoError(t, err)
-	assert.Equal(
+	require.NoError(t, err)
+	require.Equal(
 		t,
 		strings.TrimSpace(string(out)),
 		strings.TrimSpace(`
@@ -945,19 +949,19 @@ output:
 
 	benthosenv := service.NewEnvironment()
 	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = neosync_benthos_error.RegisterErrorProcessor(benthosenv, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Passthrough_Pg_Pg(t *testing.T) {
@@ -1093,30 +1097,34 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Passthrough_Pg_Pg(t *
 				ColumnName:  "buyer_id",
 			},
 		}, nil)
-	pgquerier.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetForeignKeyConstraintsRow{
+	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*pg_queries.GetTableConstraintsBySchemaRow{
 			{
-				ConstraintName:    "fk_user_account_associations_user_id_users_id",
+				ConstraintName:     "fk_user_account_associations_user_id_users_id",
+				SchemaName:         "public",
+				TableName:          "orders",
+				ConstraintColumns:  []string{"buyer_id"},
+				ForeignSchemaName:  "public",
+				ForeignTableName:   "users",
+				ForeignColumnNames: []string{"id"},
+				ConstraintType:     "f",
+			},
+		}, nil).
+		Return(
+			[]*pg_queries.GetTableConstraintsBySchemaRow{{
+				SchemaName:        "public",
+				TableName:         "users",
+				ConstraintName:    "users",
+				ConstraintColumns: []string{"id"},
+				ConstraintType:    "p",
+			}, {
 				SchemaName:        "public",
 				TableName:         "orders",
-				ColumnName:        "buyer_id",
-				ForeignSchemaName: "public",
-				ForeignTableName:  "users",
-				ForeignColumnName: "id",
-			},
-		}, nil)
-	pgquerier.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetPrimaryKeyConstraintsRow{{
-			SchemaName:     "public",
-			TableName:      "users",
-			ConstraintName: "users",
-			ColumnName:     "id",
-		}, {
-			SchemaName:     "public",
-			TableName:      "orders",
-			ConstraintName: "orders",
-			ColumnName:     "id",
-		}}, nil)
+				ConstraintName:    "orders",
+				ConstraintColumns: []string{"id"},
+				ConstraintType:    "p",
+			}}, nil,
+		)
 	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
@@ -1125,15 +1133,15 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Passthrough_Pg_Pg(t *
 		slog.Default(),
 	)
 
-	assert.Nil(t, err)
-	assert.NotEmpty(t, resp.BenthosConfigs)
-	assert.Len(t, resp.BenthosConfigs, 2)
+	require.Nil(t, err)
+	require.NotEmpty(t, resp.BenthosConfigs)
+	require.Len(t, resp.BenthosConfigs, 2)
 	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
-	assert.Equal(t, bc.Name, "public.users")
-	assert.Empty(t, bc.RedisConfig)
+	require.Equal(t, bc.Name, "public.users")
+	require.Empty(t, bc.RedisConfig)
 	out, err := yaml.Marshal(bc.Config)
-	assert.NoError(t, err)
-	assert.Equal(
+	require.NoError(t, err)
+	require.Equal(
 		t,
 		strings.TrimSpace(string(out)),
 		strings.TrimSpace(`
@@ -1181,11 +1189,11 @@ output:
 	)
 
 	bc = getBenthosConfigByName(resp.BenthosConfigs, "public.orders")
-	assert.Equal(t, bc.Name, "public.orders")
-	assert.Empty(t, bc.RedisConfig)
+	require.Equal(t, bc.Name, "public.orders")
+	require.Empty(t, bc.RedisConfig)
 	out, err = yaml.Marshal(bc.Config)
-	assert.NoError(t, err)
-	assert.Equal(
+	require.NoError(t, err)
+	require.Equal(
 		t,
 		strings.TrimSpace(string(out)),
 		strings.TrimSpace(`
@@ -1234,16 +1242,16 @@ output:
 
 	benthosenv := service.NewEnvironment()
 	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func Test_BenthosBuilder_GenerateBenthosConfigs_CircularDependency_PrimaryKey_Transformer_Pg_Pg(t *testing.T) {
@@ -1365,25 +1373,29 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_CircularDependency_PrimaryKey_Tr
 				ColumnName:  "parent_id",
 			},
 		}, nil)
-	pgquerier.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetForeignKeyConstraintsRow{
+	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*pg_queries.GetTableConstraintsBySchemaRow{
 			{
-				ConstraintName:    "fk_user_account_associations_user_id_users_id",
-				SchemaName:        "public",
-				TableName:         "jobs",
-				ColumnName:        "parent_id",
-				ForeignSchemaName: "public",
-				ForeignTableName:  "jobs",
-				ForeignColumnName: "id",
+				ConstraintName:     "fk_user_account_associations_user_id_users_id",
+				SchemaName:         "public",
+				TableName:          "jobs",
+				ConstraintColumns:  []string{"parent_id"},
+				ForeignSchemaName:  "public",
+				ForeignTableName:   "jobs",
+				ForeignColumnNames: []string{"id"},
+				ConstraintType:     "f",
 			},
-		}, nil)
-	pgquerier.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetPrimaryKeyConstraintsRow{{
-			SchemaName:     "public",
-			TableName:      "jobs",
-			ConstraintName: "job",
-			ColumnName:     "id",
-		}}, nil)
+		}, nil).
+		Return(
+			[]*pg_queries.GetTableConstraintsBySchemaRow{{
+				SchemaName:        "public",
+				TableName:         "users",
+				ConstraintName:    "jobs",
+				ConstraintColumns: []string{"id"},
+				ConstraintType:    "p",
+			}}, nil,
+		)
+
 	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, redisConfig, false)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
@@ -1392,17 +1404,17 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_CircularDependency_PrimaryKey_Tr
 		slog.Default(),
 	)
 
-	assert.Nil(t, err)
-	assert.NotEmpty(t, resp.BenthosConfigs)
-	assert.Len(t, resp.BenthosConfigs, 2)
+	require.Nil(t, err)
+	require.NotEmpty(t, resp.BenthosConfigs)
+	require.Len(t, resp.BenthosConfigs, 2)
 	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.jobs")
-	assert.Equal(t, bc.Name, "public.jobs")
-	assert.Len(t, bc.RedisConfig, 1)
-	assert.Equal(t, bc.RedisConfig[0].Table, "public.jobs")
-	assert.Equal(t, bc.RedisConfig[0].Column, "id")
+	require.Equal(t, bc.Name, "public.jobs")
+	require.Len(t, bc.RedisConfig, 1)
+	require.Equal(t, bc.RedisConfig[0].Table, "public.jobs")
+	require.Equal(t, bc.RedisConfig[0].Column, "id")
 	out, err := yaml.Marshal(bc.Config)
-	assert.NoError(t, err)
-	assert.Equal(
+	require.NoError(t, err)
+	require.Equal(
 		t,
 		strings.TrimSpace(string(out)),
 		strings.TrimSpace(`
@@ -1461,11 +1473,11 @@ output:
 	)
 
 	bc = getBenthosConfigByName(resp.BenthosConfigs, "public.jobs.update")
-	assert.Equal(t, bc.Name, "public.jobs.update")
-	assert.Empty(t, bc.RedisConfig)
+	require.Equal(t, bc.Name, "public.jobs.update")
+	require.Empty(t, bc.RedisConfig)
 	out, err = yaml.Marshal(bc.Config)
-	assert.NoError(t, err)
-	assert.Equal(
+	require.NoError(t, err)
+	require.Equal(
 		t,
 		strings.TrimSpace(string(out)),
 		strings.TrimSpace(`
@@ -1535,20 +1547,20 @@ output:
 
 	benthosenv := service.NewEnvironment()
 	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlUpdateOutput(benthosenv, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = neosync_benthos_error.RegisterErrorProcessor(benthosenv, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *testing.T) {
@@ -1684,30 +1696,35 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 				ColumnName:  "user_id",
 			},
 		}, nil)
-	pgquerier.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetForeignKeyConstraintsRow{
+	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*pg_queries.GetTableConstraintsBySchemaRow{
 			{
-				ConstraintName:    "fk_user_account_associations_user_id_users_id",
+				ConstraintName:     "fk_user_account_associations_user_id_users_id",
+				SchemaName:         "public",
+				TableName:          "user_account_associations",
+				ConstraintColumns:  []string{"user_id"},
+				ForeignSchemaName:  "public",
+				ForeignTableName:   "users",
+				ForeignColumnNames: []string{"id"},
+				ConstraintType:     "f",
+			},
+		}, nil).
+		Return(
+			[]*pg_queries.GetTableConstraintsBySchemaRow{{
+				SchemaName:        "public",
+				TableName:         "users",
+				ConstraintName:    "name",
+				ConstraintColumns: []string{"id"},
+				ConstraintType:    "p",
+			}, {
 				SchemaName:        "public",
 				TableName:         "user_account_associations",
-				ColumnName:        "user_id",
-				ForeignSchemaName: "public",
-				ForeignTableName:  "users",
-				ForeignColumnName: "id",
-			},
-		}, nil)
-	pgquerier.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetPrimaryKeyConstraintsRow{{
-			SchemaName:     "public",
-			TableName:      "users",
-			ConstraintName: "name",
-			ColumnName:     "id",
-		}, {
-			SchemaName:     "public",
-			TableName:      "user_account_associations",
-			ConstraintName: "acc_assoc_constraint",
-			ColumnName:     "id",
-		}}, nil)
+				ConstraintName:    "acc_assoc_constraint",
+				ConstraintColumns: []string{"id"},
+				ConstraintType:    "p",
+			}}, nil,
+		)
+
 	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
@@ -1715,38 +1732,38 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
 		slog.Default(),
 	)
-	assert.Nil(t, err)
-	assert.NotEmpty(t, resp.BenthosConfigs)
-	assert.Len(t, resp.BenthosConfigs, 2)
+	require.Nil(t, err)
+	require.NotEmpty(t, resp.BenthosConfigs)
+	require.Len(t, resp.BenthosConfigs, 2)
 
 	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
-	assert.NotNil(t, bc)
-	assert.Equal(t, bc.Name, "public.users")
-	assert.Empty(t, bc.DependsOn)
+	require.NotNil(t, bc)
+	require.Equal(t, bc.Name, "public.users")
+	require.Empty(t, bc.DependsOn)
 	out, err := yaml.Marshal(bc.Config)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	bc2 := getBenthosConfigByName(resp.BenthosConfigs, "public.user_account_associations")
-	assert.Equal(t, bc2.Name, "public.user_account_associations")
-	assert.Equal(t, bc2.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}})
+	require.Equal(t, bc2.Name, "public.user_account_associations")
+	require.Equal(t, bc2.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}})
 	out2, err := yaml.Marshal(bc2.Config)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	benthosenv := service.NewEnvironment()
 	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = newSB.SetYAML(string(out2))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Dependency(t *testing.T) {
@@ -1895,43 +1912,46 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 				ColumnName:  "user_id",
 			},
 		}, nil)
-	pgquerier.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetForeignKeyConstraintsRow{
+	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*pg_queries.GetTableConstraintsBySchemaRow{
 			{
-				ConstraintName:    "fk_user_account_associations_user_id_users_id",
-				SchemaName:        "public",
-				TableName:         "user_account_associations",
-				ColumnName:        "user_id",
-				ForeignSchemaName: "public",
-				ForeignTableName:  "users",
-				ForeignColumnName: "id",
-				IsNullable:        "NO",
+				ConstraintName:     "fk_user_account_associations_user_id_users_id",
+				SchemaName:         "public",
+				TableName:          "user_account_associations",
+				ConstraintColumns:  []string{"user_id"},
+				ForeignSchemaName:  "public",
+				ForeignTableName:   "users",
+				ForeignColumnNames: []string{"id"},
+				ConstraintType:     "f",
+				Notnullable:        []bool{true},
 			},
 			{
-				ConstraintName:    "fk_users_user_assoc_id_user_account_associations_id",
+				ConstraintName:     "fk_users_user_assoc_id_user_account_associations_id",
+				SchemaName:         "public",
+				TableName:          "users",
+				ConstraintColumns:  []string{"user_assoc_id"},
+				ForeignSchemaName:  "public",
+				ForeignTableName:   "user_account_associations",
+				ForeignColumnNames: []string{"id"},
+				ConstraintType:     "f",
+				Notnullable:        []bool{false},
+			},
+		}, nil).
+		Return(
+			[]*pg_queries.GetTableConstraintsBySchemaRow{{
 				SchemaName:        "public",
 				TableName:         "users",
-				ColumnName:        "user_assoc_id",
-				ForeignSchemaName: "public",
-				ForeignTableName:  "user_account_associations",
-				ForeignColumnName: "id",
-				IsNullable:        "YES",
-			},
-		}, nil)
-	pgquerier.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).Return([]*pg_queries.GetPrimaryKeyConstraintsRow{
-		{
-			ConstraintName: "pkey-user-id",
-			SchemaName:     "public",
-			TableName:      "users",
-			ColumnName:     "id",
-		},
-		{
-			ConstraintName: "pkey-user-assoc-id",
-			SchemaName:     "public",
-			TableName:      "users_account_associations",
-			ColumnName:     "id",
-		},
-	}, nil)
+				ConstraintName:    "pk-user-id",
+				ConstraintColumns: []string{"id"},
+				ConstraintType:    "p",
+			}, {
+				SchemaName:        "public",
+				TableName:         "users_account_associations",
+				ConstraintName:    "pk-user-assoc-id",
+				ConstraintColumns: []string{"id"},
+				ConstraintType:    "p",
+			}}, nil,
+		)
 	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
@@ -1939,17 +1959,17 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
 		slog.Default(),
 	)
-	assert.Nil(t, err)
-	assert.NotEmpty(t, resp.BenthosConfigs)
-	assert.Len(t, resp.BenthosConfigs, 3)
+	require.Nil(t, err)
+	require.NotEmpty(t, resp.BenthosConfigs)
+	require.Len(t, resp.BenthosConfigs, 3)
 
 	insertConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
-	assert.NotNil(t, insertConfig)
-	assert.Equal(t, insertConfig.Name, "public.users")
-	assert.Empty(t, insertConfig.DependsOn)
+	require.NotNil(t, insertConfig)
+	require.Equal(t, insertConfig.Name, "public.users")
+	require.Empty(t, insertConfig.DependsOn)
 	out, err := yaml.Marshal(insertConfig.Config)
-	assert.NoError(t, err)
-	assert.Equal(
+	require.NoError(t, err)
+	require.Equal(
 		t,
 		strings.TrimSpace(string(out)),
 		strings.TrimSpace(`
@@ -1997,12 +2017,12 @@ output:
 	)
 
 	updateConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users.update")
-	assert.NotNil(t, updateConfig)
-	assert.Equal(t, updateConfig.Name, "public.users.update")
-	assert.Equal(t, updateConfig.DependsOn, []*tabledependency.DependsOn{{Table: "public.user_account_associations", Columns: []string{"id"}}, {Table: "public.users", Columns: []string{"id"}}})
+	require.NotNil(t, updateConfig)
+	require.Equal(t, updateConfig.Name, "public.users.update")
+	require.Equal(t, updateConfig.DependsOn, []*tabledependency.DependsOn{{Table: "public.user_account_associations", Columns: []string{"id"}}, {Table: "public.users", Columns: []string{"id"}}})
 	out1, err := yaml.Marshal(updateConfig.Config)
-	assert.NoError(t, err)
-	assert.Equal(
+	require.NoError(t, err)
+	require.Equal(
 		t,
 		strings.TrimSpace(string(out1)),
 		strings.TrimSpace(`
@@ -2049,11 +2069,11 @@ output:
 	)
 
 	bc2 := getBenthosConfigByName(resp.BenthosConfigs, "public.user_account_associations")
-	assert.Equal(t, bc2.Name, "public.user_account_associations")
-	assert.Equal(t, bc2.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}})
+	require.Equal(t, bc2.Name, "public.user_account_associations")
+	require.Equal(t, bc2.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}})
 	out2, err := yaml.Marshal(bc2.Config)
-	assert.NoError(t, err)
-	assert.Equal(
+	require.NoError(t, err)
+	require.Equal(
 		t,
 		strings.TrimSpace(string(out2)),
 		strings.TrimSpace(`
@@ -2102,21 +2122,21 @@ output:
 
 	benthosenv := service.NewEnvironment()
 	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlUpdateOutput(benthosenv, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = newSB.SetYAML(string(out2))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Dependency_S3(t *testing.T) {
@@ -2295,43 +2315,47 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 				ColumnName:  "user_id",
 			},
 		}, nil)
-	pgquerier.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetForeignKeyConstraintsRow{
+	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*pg_queries.GetTableConstraintsBySchemaRow{
 			{
-				ConstraintName:    "fk_user_account_associations_user_id_users_id",
-				SchemaName:        "public",
-				TableName:         "user_account_associations",
-				ColumnName:        "user_id",
-				ForeignSchemaName: "public",
-				ForeignTableName:  "users",
-				ForeignColumnName: "id",
-				IsNullable:        "NO",
+				ConstraintName:     "fk_user_account_associations_user_id_users_id",
+				SchemaName:         "public",
+				TableName:          "user_account_associations",
+				ConstraintColumns:  []string{"user_id"},
+				ForeignSchemaName:  "public",
+				ForeignTableName:   "users",
+				ForeignColumnNames: []string{"id"},
+				ConstraintType:     "f",
+				Notnullable:        []bool{true},
 			},
 			{
-				ConstraintName:    "fk_users_user_assoc_id_user_account_associations_id",
+				ConstraintName:     "fk_users_user_assoc_id_user_account_associations_id",
+				SchemaName:         "public",
+				TableName:          "users",
+				ConstraintColumns:  []string{"user_assoc_id"},
+				ForeignSchemaName:  "public",
+				ForeignTableName:   "user_account_associations",
+				ForeignColumnNames: []string{"id"},
+				ConstraintType:     "f",
+				Notnullable:        []bool{false},
+			},
+		}, nil).
+		Return(
+			[]*pg_queries.GetTableConstraintsBySchemaRow{{
 				SchemaName:        "public",
 				TableName:         "users",
-				ColumnName:        "user_assoc_id",
-				ForeignSchemaName: "public",
-				ForeignTableName:  "user_account_associations",
-				ForeignColumnName: "id",
-				IsNullable:        "YES",
-			},
-		}, nil)
-	pgquerier.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).Return([]*pg_queries.GetPrimaryKeyConstraintsRow{
-		{
-			ConstraintName: "pkey-user-id",
-			SchemaName:     "public",
-			TableName:      "users",
-			ColumnName:     "id",
-		},
-		{
-			ConstraintName: "pkey-user-assoc-id",
-			SchemaName:     "public",
-			TableName:      "users_account_associations",
-			ColumnName:     "id",
-		},
-	}, nil)
+				ConstraintName:    "pk-user-id",
+				ConstraintColumns: []string{"id"},
+				ConstraintType:    "p",
+			}, {
+				SchemaName:        "public",
+				TableName:         "users_account_associations",
+				ConstraintName:    "pk-user-assoc-id",
+				ConstraintColumns: []string{"id"},
+				ConstraintType:    "p",
+			}}, nil,
+		)
+
 	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
@@ -2339,18 +2363,18 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
 		slog.Default(),
 	)
-	assert.Nil(t, err)
-	assert.NotEmpty(t, resp.BenthosConfigs)
-	assert.Len(t, resp.BenthosConfigs, 3)
+	require.Nil(t, err)
+	require.NotEmpty(t, resp.BenthosConfigs)
+	require.Len(t, resp.BenthosConfigs, 3)
 
 	insertConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
-	assert.NotNil(t, insertConfig)
-	assert.Equal(t, insertConfig.Name, "public.users")
-	assert.Empty(t, insertConfig.DependsOn)
+	require.NotNil(t, insertConfig)
+	require.Equal(t, insertConfig.Name, "public.users")
+	require.Empty(t, insertConfig.DependsOn)
 	out, err := yaml.Marshal(insertConfig.Config)
 
-	assert.NoError(t, err)
-	assert.Equal(
+	require.NoError(t, err)
+	require.Equal(
 		t,
 		strings.TrimSpace(string(out)),
 		strings.TrimSpace(`
@@ -2425,13 +2449,13 @@ output:
 	)
 
 	updateConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users.update")
-	assert.NotNil(t, updateConfig)
-	assert.Equal(t, updateConfig.Name, "public.users.update")
-	assert.Equal(t, updateConfig.DependsOn, []*tabledependency.DependsOn{{Table: "public.user_account_associations", Columns: []string{"id"}}, {Table: "public.users", Columns: []string{"id"}}})
+	require.NotNil(t, updateConfig)
+	require.Equal(t, updateConfig.Name, "public.users.update")
+	require.Equal(t, updateConfig.DependsOn, []*tabledependency.DependsOn{{Table: "public.user_account_associations", Columns: []string{"id"}}, {Table: "public.users", Columns: []string{"id"}}})
 	out1, err := yaml.Marshal(updateConfig.Config)
 
-	assert.NoError(t, err)
-	assert.Equal(
+	require.NoError(t, err)
+	require.Equal(
 		t,
 		strings.TrimSpace(string(out1)),
 		strings.TrimSpace(`
@@ -2478,12 +2502,12 @@ output:
 	)
 
 	bc2 := getBenthosConfigByName(resp.BenthosConfigs, "public.user_account_associations")
-	assert.Equal(t, bc2.Name, "public.user_account_associations")
-	assert.Equal(t, bc2.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}})
+	require.Equal(t, bc2.Name, "public.user_account_associations")
+	require.Equal(t, bc2.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}})
 	out2, err := yaml.Marshal(bc2.Config)
 
-	assert.NoError(t, err)
-	assert.Equal(
+	require.NoError(t, err)
+	require.Equal(
 		t,
 		strings.TrimSpace(string(out2)),
 		strings.TrimSpace(`
@@ -2559,19 +2583,19 @@ output:
 
 	benthosenv := service.NewEnvironment()
 	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = newSB.SetYAML(string(out2))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) {
@@ -2738,16 +2762,16 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) 
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
 		slog.Default(),
 	)
-	assert.Nil(t, err)
-	assert.NotEmpty(t, resp.BenthosConfigs)
-	assert.Len(t, resp.BenthosConfigs, 2)
+	require.Nil(t, err)
+	require.NotEmpty(t, resp.BenthosConfigs)
+	require.Len(t, resp.BenthosConfigs, 2)
 
 	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
-	assert.Equal(t, bc.Name, "public.users")
-	assert.Empty(t, bc.DependsOn)
+	require.Equal(t, bc.Name, "public.users")
+	require.Empty(t, bc.DependsOn)
 	out, err := yaml.Marshal(bc.Config)
-	assert.NoError(t, err)
-	assert.Equal(
+	require.NoError(t, err)
+	require.Equal(
 		t,
 		strings.TrimSpace(string(out)),
 		strings.TrimSpace(`
@@ -2795,11 +2819,11 @@ output:
 	)
 
 	bc2 := getBenthosConfigByName(resp.BenthosConfigs, "public.user_account_associations")
-	assert.Equal(t, bc2.Name, "public.user_account_associations")
-	assert.Equal(t, bc2.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}})
+	require.Equal(t, bc2.Name, "public.user_account_associations")
+	require.Equal(t, bc2.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}})
 	out2, err := yaml.Marshal(bc2.Config)
-	assert.NoError(t, err)
-	assert.Equal(
+	require.NoError(t, err)
+	require.Equal(
 		t,
 		strings.TrimSpace(string(out2)),
 		strings.TrimSpace(`
@@ -2848,20 +2872,20 @@ output:
 
 	benthosenv := service.NewEnvironment()
 	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out2))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_Dependency(t *testing.T) {
@@ -3055,50 +3079,50 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
 		slog.Default(),
 	)
-	assert.Nil(t, err)
-	assert.NotEmpty(t, resp.BenthosConfigs)
-	assert.Len(t, resp.BenthosConfigs, 3)
+	require.Nil(t, err)
+	require.NotEmpty(t, resp.BenthosConfigs)
+	require.Len(t, resp.BenthosConfigs, 3)
 
 	insertConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
-	assert.NotNil(t, insertConfig)
-	assert.Equal(t, insertConfig.Name, "public.users")
-	assert.Empty(t, insertConfig.DependsOn)
+	require.NotNil(t, insertConfig)
+	require.Equal(t, insertConfig.Name, "public.users")
+	require.Empty(t, insertConfig.DependsOn)
 	out, err := yaml.Marshal(insertConfig.Config)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	updateConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users.update")
-	assert.NotNil(t, updateConfig)
-	assert.Equal(t, updateConfig.Name, "public.users.update")
-	assert.Equal(t, updateConfig.DependsOn, []*tabledependency.DependsOn{{Table: "public.user_account_associations", Columns: []string{"id"}}, {Table: "public.users", Columns: []string{"id"}}})
+	require.NotNil(t, updateConfig)
+	require.Equal(t, updateConfig.Name, "public.users.update")
+	require.Equal(t, updateConfig.DependsOn, []*tabledependency.DependsOn{{Table: "public.user_account_associations", Columns: []string{"id"}}, {Table: "public.users", Columns: []string{"id"}}})
 	out1, err := yaml.Marshal(updateConfig.Config)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	bc2 := getBenthosConfigByName(resp.BenthosConfigs, "public.user_account_associations")
-	assert.Equal(t, bc2.Name, "public.user_account_associations")
-	assert.Equal(t, bc2.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}})
+	require.Equal(t, bc2.Name, "public.user_account_associations")
+	require.Equal(t, bc2.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}})
 	out2, err := yaml.Marshal(bc2.Config)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	benthosenv := service.NewEnvironment()
 	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlUpdateOutput(benthosenv, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	newSB := benthosenv.NewStreamBuilder()
 
 	// SetYAML parses a full Benthos config and uses it to configure the builder.
 	err = newSB.SetYAML(string(out))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = newSB.SetYAML(string(out1))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = newSB.SetYAML(string(out2))
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func getBenthosConfigByName(resps []*BenthosConfigResponse, name string) *BenthosConfigResponse {
@@ -3169,8 +3193,8 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 		mockRunId,
 		nil,
 	)
-	assert.Nil(t, err)
-	assert.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)
+	require.Nil(t, err)
+	require.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)
 }
 
 func Test_buildBenthosSqlSourceConfigResponses_skipTable(t *testing.T) {
@@ -3229,8 +3253,8 @@ func Test_buildBenthosSqlSourceConfigResponses_skipTable(t *testing.T) {
 		mockRunId,
 		nil,
 	)
-	assert.Nil(t, err)
-	assert.Len(t, res, 0)
+	require.Nil(t, err)
+	require.Len(t, res, 0)
 }
 func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
@@ -3295,8 +3319,8 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 		mockRunId,
 		nil,
 	)
-	assert.Nil(t, err)
-	assert.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)
+	require.Nil(t, err)
+	require.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)
 }
 
 func Test_ProcessorConfigMultiJavascript(t *testing.T) {
@@ -3365,11 +3389,11 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 		mockRunId,
 		nil,
 	)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	out, err := yaml.Marshal(res[0].Config.Pipeline.Processors)
-	assert.NoError(t, err)
-	assert.Equal(
+	require.NoError(t, err)
+	require.Equal(
 		t,
 		strings.TrimSpace(`
 - javascript:
@@ -3467,13 +3491,13 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
 		nil,
 	)
 
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
-	assert.Len(t, res[0].Config.Pipeline.Processors, 3)
+	require.Len(t, res[0].Config.Pipeline.Processors, 3)
 
 	out, err := yaml.Marshal(res[0].Config.Pipeline.Processors)
-	assert.NoError(t, err)
-	assert.Equal(
+	require.NoError(t, err)
+	require.Equal(
 		t,
 		strings.TrimSpace(`
 - mutation: root."email" = generate_email(max_length:40)
@@ -3513,7 +3537,7 @@ func TestAreMappingsSubsetOfSchemas(t *testing.T) {
 			{Schema: "public", Table: "users", Column: "created_by"},
 		},
 	)
-	assert.True(t, ok, "job mappings are a subset of the present database schemas")
+	require.True(t, ok, "job mappings are a subset of the present database schemas")
 
 	ok = areMappingsSubsetOfSchemas(
 		map[string]map[string]*dbschemas_utils.ColumnInfo{
@@ -3525,7 +3549,7 @@ func TestAreMappingsSubsetOfSchemas(t *testing.T) {
 			{Schema: "public", Table: "users", Column: "id2"},
 		},
 	)
-	assert.False(t, ok, "job mappings contain mapping that is not in the source schema")
+	require.False(t, ok, "job mappings contain mapping that is not in the source schema")
 
 	ok = areMappingsSubsetOfSchemas(
 		map[string]map[string]*dbschemas_utils.ColumnInfo{
@@ -3538,7 +3562,7 @@ func TestAreMappingsSubsetOfSchemas(t *testing.T) {
 			{Schema: "public", Table: "users", Column: "created_by"},
 		},
 	)
-	assert.False(t, ok, "job mappings contain more mappings than are present in the source schema")
+	require.False(t, ok, "job mappings contain more mappings than are present in the source schema")
 }
 
 func TestShouldHaltOnSchemaAddition(t *testing.T) {
@@ -3554,7 +3578,7 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 			{Schema: "public", Table: "users", Column: "created_by"},
 		},
 	)
-	assert.False(t, ok, "job mappings are valid set of database schemas")
+	require.False(t, ok, "job mappings are valid set of database schemas")
 
 	ok = shouldHaltOnSchemaAddition(
 		map[string]map[string]*dbschemas_utils.ColumnInfo{
@@ -3571,7 +3595,7 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 			{Schema: "public", Table: "users", Column: "created_by"},
 		},
 	)
-	assert.True(t, ok, "job mappings are missing database schema mappings")
+	require.True(t, ok, "job mappings are missing database schema mappings")
 
 	ok = shouldHaltOnSchemaAddition(
 		map[string]map[string]*dbschemas_utils.ColumnInfo{
@@ -3584,7 +3608,7 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 			{Schema: "public", Table: "users", Column: "id"},
 		},
 	)
-	assert.True(t, ok, "job mappings are missing table column")
+	require.True(t, ok, "job mappings are missing table column")
 
 	ok = shouldHaltOnSchemaAddition(
 		map[string]map[string]*dbschemas_utils.ColumnInfo{
@@ -3598,7 +3622,7 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 			{Schema: "public", Table: "users", Column: "updated_by"},
 		},
 	)
-	assert.True(t, ok, "job mappings have same column count, but missing specific column")
+	require.True(t, ok, "job mappings have same column count, but missing specific column")
 }
 
 func Test_buildProcessorConfigsMutation(t *testing.T) {
@@ -3607,30 +3631,30 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 	ctx := context.Background()
 
 	output, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
-	assert.Nil(t, err)
-	assert.Empty(t, output)
+	require.Nil(t, err)
+	require.Empty(t, output)
 
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
-	assert.Nil(t, err)
-	assert.Empty(t, output)
+	require.Nil(t, err)
+	require.Empty(t, output)
 
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id"},
 	}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
-	assert.Nil(t, err)
-	assert.Empty(t, output)
+	require.Nil(t, err)
+	require.Empty(t, output)
 
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{}},
 	}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
-	assert.Nil(t, err)
-	assert.Empty(t, output)
+	require.Nil(t, err)
+	require.Empty(t, output)
 
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH}},
 	}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
-	assert.Nil(t, err)
-	assert.Empty(t, output)
+	require.Nil(t, err)
+	require.Empty(t, output)
 
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL, Config: &mgmtv1alpha1.TransformerConfig{
@@ -3645,9 +3669,9 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 		}}},
 	}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
-	assert.Equal(t, *output[0].Mutation, "root.\"id\" = null\nroot.\"name\" = null")
+	require.Equal(t, *output[0].Mutation, "root.\"id\" = null\nroot.\"name\" = null")
 
 	jsT := mgmtv1alpha1.SystemTransformer{
 		Name:        "stage",
@@ -3683,8 +3707,8 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, groupedSchemas, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
-	assert.Nil(t, err)
-	assert.Equal(t, *output[0].Mutation, `root."email" = transform_email(email:this."email",preserve_domain:true,preserve_length:false,excluded_domains:[],max_length:40)`)
+	require.Nil(t, err)
+	require.Equal(t, *output[0].Mutation, `root."email" = transform_email(email:this."email",preserve_domain:true,preserve_length:false,excluded_domains:[],max_length:40)`)
 }
 
 const transformJsCodeFnStr = `var payload = value+=" hello";return payload;`
@@ -3712,8 +3736,8 @@ func Test_buildProcessorConfigsJavascript(t *testing.T) {
 	res, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "address", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
-	assert.NoError(t, err)
-	assert.Equal(t, `
+	require.NoError(t, err)
+	require.Equal(t, `
 (() => {
 
 function fn_address(value, input){
@@ -3752,8 +3776,8 @@ func Test_buildProcessorConfigsGenerateJavascript(t *testing.T) {
 	res, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "test", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
-	assert.NoError(t, err)
-	assert.Equal(t, `
+	require.NoError(t, err)
+	require.Equal(t, `
 (() => {
 
 function fn_test(){
@@ -3798,8 +3822,8 @@ func Test_buildProcessorConfigsJavascriptMultiLineScript(t *testing.T) {
 	res, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
-	assert.NoError(t, err)
-	assert.Equal(t, `
+	require.NoError(t, err)
+	require.Equal(t, `
 (() => {
 
 function fn_name(value, input){
@@ -3856,8 +3880,8 @@ func Test_buildProcessorConfigsJavascriptMultiple(t *testing.T) {
 		{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}},
 		{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
-	assert.NoError(t, err)
-	assert.Equal(t, `
+	require.NoError(t, err)
+	require.Equal(t, `
 (() => {
 
 function fn_name(value, input){
@@ -3918,8 +3942,8 @@ func Test_buildProcessorConfigsTransformAndGenerateJavascript(t *testing.T) {
 		{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}},
 		{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
-	assert.NoError(t, err)
-	assert.Equal(t, `
+	require.NoError(t, err)
+	require.Equal(t, `
 (() => {
 
 function fn_name(value, input){
@@ -3952,7 +3976,7 @@ func Test_ShouldProcessColumnTrue(t *testing.T) {
 	}
 
 	res := shouldProcessColumn(val)
-	assert.Equal(t, true, res)
+	require.Equal(t, true, res)
 }
 
 func Test_ShouldProcessColumnFalse(t *testing.T) {
@@ -3966,14 +3990,14 @@ func Test_ShouldProcessColumnFalse(t *testing.T) {
 	}
 
 	res := shouldProcessColumn(val)
-	assert.Equal(t, false, res)
+	require.Equal(t, false, res)
 }
 
 func Test_ConstructJsFunctionTransformJs(t *testing.T) {
 	s := mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT
 
 	res := constructJsFunction(transformJsCodeFnStr, "col", s)
-	assert.Equal(t, `
+	require.Equal(t, `
 function fn_col(value, input){
   var payload = value+=" hello";return payload;
 };
@@ -3984,7 +4008,7 @@ func Test_ConstructJsFunctionGenerateJS(t *testing.T) {
 	s := mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT
 
 	res := constructJsFunction(generateJSCodeFnStr, "col", s)
-	assert.Equal(t, `
+	require.Equal(t, `
 function fn_col(){
   var payload = "hello";return payload;
 };
@@ -4004,7 +4028,7 @@ func Test_ConstructBenthosJsProcessorTransformJS(t *testing.T) {
 
 	res := constructBenthosJsProcessor(jsFunctions, benthosOutputs)
 
-	assert.Equal(t, `
+	require.Equal(t, `
 (() => {
 
 function fn_name(value, input){
@@ -4031,7 +4055,7 @@ func Test_ConstructBenthosJsProcessorGenerateJS(t *testing.T) {
 
 	res := constructBenthosJsProcessor(jsFunctions, benthosOutputs)
 
-	assert.Equal(t, `
+	require.Equal(t, `
 (() => {
 
 function fn_name(){
@@ -4048,13 +4072,13 @@ benthos.v0_msg_set_structured(output);
 func Test_ConstructBenthosOutputTranformJs(t *testing.T) {
 	s := mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_JAVASCRIPT
 	res := constructBenthosJavascriptObject("col", s)
-	assert.Equal(t, `output["col"] = fn_col(input["col"], input);`, res)
+	require.Equal(t, `output["col"] = fn_col(input["col"], input);`, res)
 }
 
 func Test_ConstructBenthosOutputGenerateJs(t *testing.T) {
 	s := mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_JAVASCRIPT
 	res := constructBenthosJavascriptObject("col", s)
-	assert.Equal(t, `output["col"] = fn_col();`, res)
+	require.Equal(t, `output["col"] = fn_col();`, res)
 }
 
 func Test_buildProcessorConfigsJavascriptEmpty(t *testing.T) {
@@ -4078,8 +4102,8 @@ func Test_buildProcessorConfigsJavascriptEmpty(t *testing.T) {
 	resp, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
-	assert.NoError(t, err)
-	assert.Empty(t, resp)
+	require.NoError(t, err)
+	require.Empty(t, resp)
 }
 
 func Test_convertUserDefinedFunctionConfig(t *testing.T) {
@@ -4137,8 +4161,8 @@ func Test_convertUserDefinedFunctionConfig(t *testing.T) {
 	}
 
 	resp, err := convertUserDefinedFunctionConfig(ctx, mockTransformerClient, jmt)
-	assert.NoError(t, err)
-	assert.Equal(t, resp, expected)
+	require.NoError(t, err)
+	require.Equal(t, resp, expected)
 }
 
 func MockJobMappingTransformer(source int32, transformerId string) db_queries.NeosyncApiTransformer {
@@ -4149,15 +4173,15 @@ func MockJobMappingTransformer(source int32, transformerId string) db_queries.Ne
 }
 
 func Test_buildPlainInsertArgs(t *testing.T) {
-	assert.Empty(t, buildPlainInsertArgs(nil))
-	assert.Empty(t, buildPlainInsertArgs([]string{}))
-	assert.Equal(t, buildPlainInsertArgs([]string{"foo", "bar", "baz"}), `root = [this."foo", this."bar", this."baz"]`)
+	require.Empty(t, buildPlainInsertArgs(nil))
+	require.Empty(t, buildPlainInsertArgs([]string{}))
+	require.Equal(t, buildPlainInsertArgs([]string{"foo", "bar", "baz"}), `root = [this."foo", this."bar", this."baz"]`)
 }
 
 func Test_buildPlainColumns(t *testing.T) {
-	assert.Empty(t, buildPlainColumns(nil))
-	assert.Empty(t, buildPlainColumns([]*mgmtv1alpha1.JobMapping{}))
-	assert.Equal(
+	require.Empty(t, buildPlainColumns(nil))
+	require.Empty(t, buildPlainColumns([]*mgmtv1alpha1.JobMapping{}))
+	require.Equal(
 		t,
 		buildPlainColumns([]*mgmtv1alpha1.JobMapping{
 			{Column: "foo"},
@@ -4170,58 +4194,58 @@ func Test_buildPlainColumns(t *testing.T) {
 
 func Test_splitTableKey(t *testing.T) {
 	schema, table := splitTableKey("foo")
-	assert.Equal(t, schema, "public")
-	assert.Equal(t, table, "foo")
+	require.Equal(t, schema, "public")
+	require.Equal(t, table, "foo")
 
 	schema, table = splitTableKey("neosync.foo")
-	assert.Equal(t, schema, "neosync")
-	assert.Equal(t, table, "foo")
+	require.Equal(t, schema, "neosync")
+	require.Equal(t, table, "foo")
 }
 
 func Test_buildBenthosS3Credentials(t *testing.T) {
-	assert.Nil(t, buildBenthosS3Credentials(nil))
+	require.Nil(t, buildBenthosS3Credentials(nil))
 
-	assert.Equal(
+	require.Equal(
 		t,
 		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{}),
 		&neosync_benthos.AwsCredentials{},
 	)
-	assert.Equal(
+	require.Equal(
 		t,
 		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{Profile: shared.Ptr("foo")}),
 		&neosync_benthos.AwsCredentials{Profile: "foo"},
 	)
-	assert.Equal(
+	require.Equal(
 		t,
 		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{AccessKeyId: shared.Ptr("foo")}),
 		&neosync_benthos.AwsCredentials{Id: "foo"},
 	)
-	assert.Equal(
+	require.Equal(
 		t,
 		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{SecretAccessKey: shared.Ptr("foo")}),
 		&neosync_benthos.AwsCredentials{Secret: "foo"},
 	)
-	assert.Equal(
+	require.Equal(
 		t,
 		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{SessionToken: shared.Ptr("foo")}),
 		&neosync_benthos.AwsCredentials{Token: "foo"},
 	)
-	assert.Equal(
+	require.Equal(
 		t,
 		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{FromEc2Role: shared.Ptr(true)}),
 		&neosync_benthos.AwsCredentials{FromEc2Role: true},
 	)
-	assert.Equal(
+	require.Equal(
 		t,
 		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{RoleArn: shared.Ptr("foo")}),
 		&neosync_benthos.AwsCredentials{Role: "foo"},
 	)
-	assert.Equal(
+	require.Equal(
 		t,
 		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{RoleExternalId: shared.Ptr("foo")}),
 		&neosync_benthos.AwsCredentials{RoleExternalId: "foo"},
 	)
-	assert.Equal(
+	require.Equal(
 		t,
 		buildBenthosS3Credentials(&mgmtv1alpha1.AwsS3Credentials{
 			Profile:         shared.Ptr("profile"),
@@ -4251,8 +4275,8 @@ func Test_computeMutationFunction_null(t *testing.T) {
 				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL,
 			},
 		}, &dbschemas_utils.ColumnInfo{})
-	assert.NoError(t, err)
-	assert.Equal(t, val, "null")
+	require.NoError(t, err)
+	require.Equal(t, val, "null")
 }
 
 func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
@@ -4636,9 +4660,9 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 					},
 				}, emailColInfo)
 
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			_, err = bloblang.Parse(val)
-			assert.NoError(t, err, fmt.Sprintf("transformer lint failed, check that the transformer string is being constructed correctly. Failing source: %s", transformer.Source))
+			require.NoError(t, err, fmt.Sprintf("transformer lint failed, check that the transformer string is being constructed correctly. Failing source: %s", transformer.Source))
 		})
 	}
 }
@@ -4715,11 +4739,11 @@ func Test_computeMutationFunction_handles_Db_Maxlen(t *testing.T) {
 	for _, tc := range testcases {
 		t.Run(t.Name(), func(t *testing.T) {
 			out, err := computeMutationFunction(tc.jm, tc.ci)
-			assert.NoError(t, err)
-			assert.NotNil(t, out)
-			assert.Equal(t, tc.expected, out, "computed bloblang string was not expected")
+			require.NoError(t, err)
+			require.NotNil(t, out)
+			require.Equal(t, tc.expected, out, "computed bloblang string was not expected")
 			_, err = bloblang.Parse(out)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 		})
 	}
 }
@@ -4741,8 +4765,8 @@ func Test_buildBranchCacheConfigs_null(t *testing.T) {
 	}
 
 	resp, err := buildBranchCacheConfigs(cols, constraints, mockJobId, mockRunId, nil)
-	assert.NoError(t, err)
-	assert.Len(t, resp, 0)
+	require.NoError(t, err)
+	require.Len(t, resp, 0)
 }
 
 func Test_buildBranchCacheConfigs_missing_redis(t *testing.T) {
@@ -4762,7 +4786,7 @@ func Test_buildBranchCacheConfigs_missing_redis(t *testing.T) {
 	}
 
 	_, err := buildBranchCacheConfigs(cols, constraints, mockJobId, mockRunId, nil)
-	assert.Error(t, err)
+	require.Error(t, err)
 }
 
 func Test_buildBranchCacheConfigs_success(t *testing.T) {
@@ -4792,10 +4816,10 @@ func Test_buildBranchCacheConfigs_success(t *testing.T) {
 
 	resp, err := buildBranchCacheConfigs(cols, constraints, mockJobId, mockRunId, redisConfig)
 
-	assert.NoError(t, err)
-	assert.Len(t, resp, 1)
-	assert.Equal(t, *resp[0].RequestMap, `root = if this."user_id" == null { deleted() } else { this }`)
-	assert.Equal(t, *resp[0].ResultMap, `root."user_id" = this`)
+	require.NoError(t, err)
+	require.Len(t, resp, 1)
+	require.Equal(t, *resp[0].RequestMap, `root = if this."user_id" == null { deleted() } else { this }`)
+	require.Equal(t, *resp[0].ResultMap, `root."user_id" = this`)
 }
 
 func Test_buildBranchCacheConfigs_self_referencing(t *testing.T) {
@@ -4819,22 +4843,22 @@ func Test_buildBranchCacheConfigs_self_referencing(t *testing.T) {
 	}
 
 	resp, err := buildBranchCacheConfigs(cols, constraints, mockJobId, mockRunId, redisConfig)
-	assert.NoError(t, err)
-	assert.Len(t, resp, 0)
+	require.NoError(t, err)
+	require.Len(t, resp, 0)
 }
 
 func Test_ConverStringSliceToStringEmptySlice(t *testing.T) {
 	slc := []string{}
 
 	res, err := convertStringSliceToString(slc)
-	assert.NoError(t, err)
-	assert.Equal(t, "[]", res)
+	require.NoError(t, err)
+	require.Equal(t, "[]", res)
 }
 
 func Test_ConverStringSliceToStringNotEmptySlice(t *testing.T) {
 	slc := []string{"gmail.com", "yahoo.com"}
 
 	res, err := convertStringSliceToString(slc)
-	assert.NoError(t, err)
-	assert.Equal(t, `["gmail.com","yahoo.com"]`, res)
+	require.NoError(t, err)
+	require.Equal(t, `["gmail.com","yahoo.com"]`, res)
 }
