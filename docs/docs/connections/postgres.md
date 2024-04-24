@@ -107,10 +107,14 @@ GRANT CREATE ON SCHEMA public TO myrole;
 
 Once you've configured your connection either using the connection parameters or using the connection url, click on **Test Connection** in order to test the connectivity to your connection.
 
-When you click **Test Connection** we attempt to connect the database and query the `information_schema` in order to retrieve the schemas and tables that the configured role has access to.
+When you click **Test Connection**, the following tasks are done:
+
+1. Neosync attempts to simply connect and ping the database to ensure a valid connection
+2. Neosync queries the `information_schema` to return a view of what the configured role is able to access.
+
 You should validate that Neosync can see all of the schemas and tables that you'd like to work with. Otherwise, you may have to update your permissions or use a different role.
 
-Based on the connection type (source or destination) - you may see varying values here. Consult the permissions section above for more information on what you should expect to see based on how you've configured your role.
+Based on the connection type (source or destination) - you may see varying values here. Consult the permissions section above for more information on what you should expect to see based on how the role has been configured.
 
 **Please note that this is not fully encompassing and only checks permissions directly on tables themselves.
 This does not currently include functions, sequences, etc.**
