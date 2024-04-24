@@ -185,7 +185,7 @@ function PermissionsPageContainer(props: PermissionsPageContainerProps) {
       <div className="flex flex-row justify-between items-center w-full">
         <div className="text-muted-foreground text-sm">
           Review the permissions that Neosync needs for your connection.{' '}
-          <LearnMoreTag href="https://docs.neosync.dev/connections/postgres#testing-your-connection" />
+          <LearnMoreTag href="https://docs.neosync.dev/connections/postgres#permissions" />
         </div>
       </div>
 

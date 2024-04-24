@@ -48,7 +48,7 @@ export default function PermissionsDialog(props: Props): ReactElement {
           <DialogTitle>Connection Permissions</DialogTitle>
           <div className="text-muted-foreground text-sm">
             Review the permissions that Neosync needs for your connection.{' '}
-            <LearnMoreTag href="https://docs.neosync.dev/connections/postgres#testing-your-connection" />
+            <LearnMoreTag href="https://docs.neosync.dev/connections/postgres#permissions" />
           </div>
         </DialogHeader>
 
