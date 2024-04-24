@@ -130,9 +130,9 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		if err != nil {
 			return nil, fmt.Errorf("unable to create new sql db: %w", err)
 		}
-		defer db.ClosePool()
+		defer db.Db.ClosePool()
 
-		dbschemas, err := db.GetDatabaseSchema(ctx)
+		dbschemas, err := db.Db.GetDatabaseSchema(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("unable to get database schema for connection: %w", err)
 		}
@@ -147,14 +147,14 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 		groupedColInfoMap = groupedSchemas
 
-		allConstraints, err := db.GetAllForeignKeyConstraints(ctx, uniqueSchemas)
+		allConstraints, err := db.Db.GetAllForeignKeyConstraints(ctx, uniqueSchemas)
 		if err != nil {
 			return nil, fmt.Errorf("unable to retrieve database foreign key constraints: %w", err)
 		}
 		slogger.Info(fmt.Sprintf("found %d foreign key constraints for database", len(allConstraints)))
 		td := sql_manager.GetDbTableDependencies(allConstraints)
 
-		primaryKeys, err := db.GetAllPrimaryKeyConstraints(ctx, uniqueSchemas)
+		primaryKeys, err := db.Db.GetAllPrimaryKeyConstraints(ctx, uniqueSchemas)
 		if err != nil {
 			return nil, fmt.Errorf("unable to get all primary key constraints: %w", err)
 		}

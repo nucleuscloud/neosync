@@ -53,8 +53,39 @@ func NewSqlManager(
 }
 
 type SqlConnection struct {
-	db     SqlDatabase
+	Db     SqlDatabase
 	Driver string
+}
+
+type DatabaseSchemaRow struct {
+	TableSchema            string
+	TableName              string
+	ColumnName             string
+	DataType               string
+	ColumnDefault          string
+	IsNullable             string
+	CharacterMaximumLength int32
+	NumericPrecision       int32
+	NumericScale           int32
+	OrdinalPosition        int16
+}
+
+type ForeignKeyConstraintsRow struct {
+	ConstraintName    string
+	SchemaName        string
+	TableName         string
+	ColumnName        string
+	IsNullable        string
+	ForeignSchemaName string
+	ForeignTableName  string
+	ForeignColumnName string
+}
+
+type PrimaryKeyConstraintsRow struct {
+	SchemaName     string
+	TableName      string
+	ConstraintName string
+	ColumnName     string
 }
 
 func (s *SqlManager) NewSqlDb(
@@ -135,54 +166,23 @@ func (s *SqlManager) NewSqlDb(
 	}
 
 	return &SqlConnection{
-		db:     db,
+		Db:     db,
 		Driver: driver,
 	}, nil
 }
 
-type DatabaseSchemaRow struct {
-	TableSchema            string
-	TableName              string
-	ColumnName             string
-	DataType               string
-	ColumnDefault          string
-	IsNullable             string
-	CharacterMaximumLength int32
-	NumericPrecision       int32
-	NumericScale           int32
-	OrdinalPosition        int16
-}
+// func (s *SqlConnection) GetDatabaseSchema(ctx context.Context) ([]*DatabaseSchemaRow, error) {
+// 	return s.db.GetDatabaseSchema(ctx)
+// }
 
-func (s *SqlConnection) GetDatabaseSchema(ctx context.Context) ([]*DatabaseSchemaRow, error) {
-	return s.db.GetDatabaseSchema(ctx)
-}
+// func (s *SqlConnection) GetAllForeignKeyConstraints(ctx context.Context, schemas []string) ([]*ForeignKeyConstraintsRow, error) {
+// 	return s.db.GetAllForeignKeyConstraints(ctx, schemas)
+// }
 
-type ForeignKeyConstraintsRow struct {
-	ConstraintName    string
-	SchemaName        string
-	TableName         string
-	ColumnName        string
-	IsNullable        string
-	ForeignSchemaName string
-	ForeignTableName  string
-	ForeignColumnName string
-}
+// func (s *SqlConnection) GetAllPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*PrimaryKeyConstraintsRow, error) {
+// 	return s.db.GetAllPrimaryKeyConstraints(ctx, schemas)
+// }
 
-func (s *SqlConnection) GetAllForeignKeyConstraints(ctx context.Context, schemas []string) ([]*ForeignKeyConstraintsRow, error) {
-	return s.db.GetAllForeignKeyConstraints(ctx, schemas)
-}
-
-type PrimaryKeyConstraintsRow struct {
-	SchemaName     string
-	TableName      string
-	ConstraintName string
-	ColumnName     string
-}
-
-func (s *SqlConnection) GetAllPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*PrimaryKeyConstraintsRow, error) {
-	return s.db.GetAllPrimaryKeyConstraints(ctx, schemas)
-}
-
-func (s *SqlConnection) ClosePool() {
-	s.db.ClosePool()
-}
+// func (s *SqlConnection) ClosePool() {
+// 	s.db.ClosePool()
+// }
