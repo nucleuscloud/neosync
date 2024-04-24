@@ -7,7 +7,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { ConnectionRolePrivilege } from '@neosync/sdk';
-import { CheckCircledIcon } from '@radix-ui/react-icons';
+import {
+  CheckCircledIcon,
+  ExclamationTriangleIcon,
+} from '@radix-ui/react-icons';
 import { ReactElement, useMemo } from 'react';
 import { IoWarning } from 'react-icons/io5';
 import LearnMoreTag from '../labels/LearnMoreTag';
@@ -102,7 +105,7 @@ export function TestConnectionResult(
       />
     );
   }
-  return <div />;
+  return <ErrorAlert description="Not currently connected." />;
 }
 
 interface SuccessAlertProps {
@@ -136,6 +139,22 @@ function WarningAlert(props: WarningAlertProps): ReactElement {
         <div className="font-normal text-orange-900 dark:text-orange-400">
           {description}
         </div>
+      </div>
+    </Alert>
+  );
+}
+
+interface ErrorAlertProps {
+  description: string;
+}
+
+function ErrorAlert(props: ErrorAlertProps): ReactElement {
+  const { description } = props;
+  return (
+    <Alert variant="destructive">
+      <div className="flex flex-row items-center gap-2">
+        <ExclamationTriangleIcon className="h-4 w-4" />
+        <div className="font-normal">{description}</div>
       </div>
     </Alert>
   );
