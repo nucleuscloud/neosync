@@ -27,7 +27,7 @@ import {
 import { UpdateIcon } from '@radix-ui/react-icons';
 import { ColumnDef } from '@tanstack/react-table';
 import Error from 'next/error';
-import { useState } from 'react';
+import { useMemo } from 'react';
 import { KeyedMutator } from 'swr';
 import RemoveConnectionButton from '../components/RemoveConnectionButton';
 import { getConnectionComponentDetails } from '../components/connection-component';
@@ -41,6 +41,7 @@ export default function PermissionsPage({ params }: PageProps) {
     data: validationRes,
     isLoading: isLoadingValidation,
     mutate: mutateValidation,
+    isValidating: isValidating,
   } = useTestProgressConnection(
     account?.id ?? '',
     data?.connection?.connectionConfig?.config.case === 'pgConfig'
@@ -118,7 +119,7 @@ export default function PermissionsPage({ params }: PageProps) {
     },
   ];
 
-  const columns = getPermissionColumns();
+  const columns = useMemo(() => getPermissionColumns(), []);
 
   return (
     <OverviewContainer
@@ -135,6 +136,7 @@ export default function PermissionsPage({ params }: PageProps) {
               connectionName={data?.connection?.name ?? ''}
               columns={columns}
               mutateValidation={mutateValidation}
+              isMutating={isValidating}
             />
           </div>
         </div>
@@ -151,6 +153,7 @@ interface PermissionsPageContainerProps {
   mutateValidation:
     | KeyedMutator<unknown>
     | KeyedMutator<CheckConnectionConfigResponse>;
+  isMutating: boolean;
 }
 
 function PermissionsPageContainer(props: PermissionsPageContainerProps) {
@@ -160,12 +163,13 @@ function PermissionsPageContainer(props: PermissionsPageContainerProps) {
     validationResponse,
     columns,
     mutateValidation,
+    isMutating,
   } = props;
 
-  const [isMutating, setIsMutating] = useState<boolean>(false);
-
   const handleMutate = async () => {
-    setIsMutating(true);
+    if (isMutating) {
+      return;
+    }
     try {
       await mutateValidation();
     } catch (error) {
@@ -174,7 +178,6 @@ function PermissionsPageContainer(props: PermissionsPageContainerProps) {
         variant: 'destructive',
       });
     }
-    setIsMutating(false);
   };
 
   return (
