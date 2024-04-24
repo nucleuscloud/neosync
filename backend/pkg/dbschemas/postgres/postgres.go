@@ -118,53 +118,23 @@ func GetPostgresTableDependencies(
 ) (dbschemas.TableDependency, error) {
 	tableConstraints := map[string]*dbschemas.TableConstraints{}
 	for _, row := range constraintRows {
-		schemaname, ok := row.SchemaName.(string)
-		if !ok {
-			return nil, fmt.Errorf("unable to convert schemaname to string: %T", row.SchemaName)
+		if len(row.ConstraintColumns) != len(row.ForeignColumnNames) {
+			return nil, fmt.Errorf("length of columns was not equal to length of foreign key cols: %d %d", len(row.ConstraintColumns), len(row.ForeignColumnNames))
 		}
-		tablename, ok := row.TableName.(string)
-		if !ok {
-			return nil, fmt.Errorf("unable to convert tablename to string: %T", row.TableName)
-		}
-		colnames, ok := row.ConstraintColumns.([]string)
-		if !ok {
-			return nil, fmt.Errorf("unable to convert constraint columns to []string: %T", row.ConstraintColumns)
+		if len(row.ConstraintColumns) != len(row.Notnullable) {
+			return nil, fmt.Errorf("length of columns was not equal to length of not nullable cols: %d %d", len(row.ConstraintColumns), len(row.Notnullable))
 		}
 
-		fkschemaname, ok := row.ForeignSchemaName.(string)
-		if !ok {
-			return nil, fmt.Errorf("unable to convert foreign schema name to string: %T", row.ForeignSchemaName)
-		}
-
-		fktablename, ok := row.ForeignTableName.(string)
-		if !ok {
-			return nil, fmt.Errorf("unable to convert foreign table name to string: %T", row.ForeignTableName)
-		}
-		fkcols, ok := row.ForeignColumnNames.([]string)
-		if !ok {
-			return nil, fmt.Errorf("unable to convert foreign table cols to []string: %T", row.ForeignColumnNames)
-		}
-		notnullable, ok := row.Notnullable.([]bool)
-		if !ok {
-			return nil, fmt.Errorf("unable to convert not nullable cols to []bool: %T", row.Notnullable)
-		}
-		if len(colnames) != len(fkcols) {
-			return nil, fmt.Errorf("length of columns was not equal to length of foreign key cols: %d %d", len(colnames), len(fkcols))
-		}
-		if len(colnames) != len(notnullable) {
-			return nil, fmt.Errorf("length of columns was not equal to length of not nullable cols: %d %d", len(colnames), len(notnullable))
-		}
-
-		tableName := dbschemas.BuildTable(schemaname, tablename)
-		for idx, colname := range colnames {
-			fkcol := fkcols[idx]
-			notnullable := notnullable[idx]
+		tableName := dbschemas.BuildTable(row.SchemaName, row.TableName)
+		for idx, colname := range row.ConstraintColumns {
+			fkcol := row.ForeignColumnNames[idx]
+			notnullable := row.Notnullable[idx]
 
 			constraints, ok := tableConstraints[tableName]
 			constraint := &dbschemas.ForeignConstraint{
 				Column:     colname,
 				IsNullable: !notnullable, ForeignKey: &dbschemas.ForeignKey{
-					Table:  dbschemas.BuildTable(fkschemaname, fktablename),
+					Table:  dbschemas.BuildTable(row.ForeignSchemaName, row.ForeignTableName),
 					Column: fkcol,
 				},
 			}
@@ -293,23 +263,11 @@ func GetAllPostgresPrimaryKeyConstraintsByTableCols(
 		if row.ConstraintType != "p" {
 			continue
 		}
-		schemaname, ok := row.SchemaName.(string)
-		if !ok {
-			return nil, fmt.Errorf("unable to convert schemaname to string: %T", row.SchemaName)
-		}
-		tablename, ok := row.TableName.(string)
-		if !ok {
-			return nil, fmt.Errorf("unable to convert tablename to string: %T", row.TableName)
-		}
-		colnames, ok := row.ConstraintColumns.([]string)
-		if !ok {
-			return nil, fmt.Errorf("unable to convert constraint columns to []string: %T", row.ConstraintColumns)
-		}
-		key := dbschemas.BuildTable(schemaname, tablename)
+		key := dbschemas.BuildTable(row.SchemaName, row.TableName)
 		if _, ok := output[key]; ok {
-			output[key] = append(output[key], colnames...)
+			output[key] = append(output[key], row.ConstraintColumns...)
 		} else {
-			output[key] = append([]string{}, colnames...)
+			output[key] = append([]string{}, row.ConstraintColumns...)
 		}
 	}
 
@@ -386,23 +344,11 @@ func GetAllPostgresUniqueConstraintsByTableCols(
 		if row.ConstraintType != "u" {
 			continue
 		}
-		schemaname, ok := row.SchemaName.(string)
-		if !ok {
-			return nil, fmt.Errorf("unable to convert schemaname to string: %T", row.SchemaName)
-		}
-		tablename, ok := row.TableName.(string)
-		if !ok {
-			return nil, fmt.Errorf("unable to convert tablename to string: %T", row.TableName)
-		}
-		colnames, ok := row.ConstraintColumns.([]string)
-		if !ok {
-			return nil, fmt.Errorf("unable to convert constraint columns to []string: %T", row.ConstraintColumns)
-		}
-		key := dbschemas.BuildTable(schemaname, tablename)
+		key := dbschemas.BuildTable(row.SchemaName, row.TableName)
 		if _, ok := output[key]; ok {
-			output[key] = append(output[key], colnames...)
+			output[key] = append(output[key], row.ConstraintColumns...)
 		} else {
-			output[key] = append([]string{}, colnames...)
+			output[key] = append([]string{}, row.ConstraintColumns...)
 		}
 	}
 

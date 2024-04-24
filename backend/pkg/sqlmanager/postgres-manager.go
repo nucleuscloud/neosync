@@ -51,55 +51,25 @@ func (p *PostgresManager) GetAllForeignKeyConstraints(ctx context.Context, schem
 	}
 	result := []*ForeignKeyConstraintsRow{}
 	for _, row := range constraints {
-		schemaname, ok := row.SchemaName.(string)
-		if !ok {
-			return nil, fmt.Errorf("unable to convert schemaname to string: %T", row.SchemaName)
+		if len(row.ConstraintColumns) != len(row.ForeignColumnNames) {
+			return nil, fmt.Errorf("length of columns was not equal to length of foreign key cols: %d %d", len(row.ConstraintColumns), len(row.ForeignColumnNames))
 		}
-		tablename, ok := row.TableName.(string)
-		if !ok {
-			return nil, fmt.Errorf("unable to convert tablename to string: %T", row.TableName)
-		}
-		colnames, ok := row.ConstraintColumns.([]string)
-		if !ok {
-			return nil, fmt.Errorf("unable to convert constraint columns to []string: %T", row.ConstraintColumns)
+		if len(row.ConstraintColumns) != len(row.Notnullable) {
+			return nil, fmt.Errorf("length of columns was not equal to length of not nullable cols: %d %d", len(row.ConstraintColumns), len(row.Notnullable))
 		}
 
-		fkschemaname, ok := row.ForeignSchemaName.(string)
-		if !ok {
-			return nil, fmt.Errorf("unable to convert foreign schema name to string: %T", row.ForeignSchemaName)
-		}
-
-		fktablename, ok := row.ForeignTableName.(string)
-		if !ok {
-			return nil, fmt.Errorf("unable to convert foreign table name to string: %T", row.ForeignTableName)
-		}
-		fkcols, ok := row.ForeignColumnNames.([]string)
-		if !ok {
-			return nil, fmt.Errorf("unable to convert foreign table cols to []string: %T", row.ForeignColumnNames)
-		}
-		notnullable, ok := row.Notnullable.([]bool)
-		if !ok {
-			return nil, fmt.Errorf("unable to convert not nullable cols to []bool: %T", row.Notnullable)
-		}
-		if len(colnames) != len(fkcols) {
-			return nil, fmt.Errorf("length of columns was not equal to length of foreign key cols: %d %d", len(colnames), len(fkcols))
-		}
-		if len(colnames) != len(notnullable) {
-			return nil, fmt.Errorf("length of columns was not equal to length of not nullable cols: %d %d", len(colnames), len(notnullable))
-		}
-
-		for idx, colname := range colnames {
-			fkcol := fkcols[idx]
-			notnullable := notnullable[idx]
+		for idx, colname := range row.ConstraintColumns {
+			fkcol := row.ForeignColumnNames[idx]
+			notnullable := row.Notnullable[idx]
 
 			result = append(result, &ForeignKeyConstraintsRow{
-				SchemaName:        schemaname,
-				TableName:         tablename,
+				SchemaName:        row.SchemaName,
+				TableName:         row.TableName,
 				ColumnName:        colname,
 				IsNullable:        convertNotNullableToNullableText(notnullable),
 				ConstraintName:    row.ConstraintName,
-				ForeignSchemaName: fkschemaname,
-				ForeignTableName:  fktablename,
+				ForeignSchemaName: row.ForeignSchemaName,
+				ForeignTableName:  row.ForeignTableName,
 				ForeignColumnName: fkcol,
 			})
 		}
@@ -121,22 +91,10 @@ func (p *PostgresManager) GetAllPrimaryKeyConstraints(ctx context.Context, schem
 	}
 	result := []*PrimaryKeyConstraintsRow{}
 	for _, row := range constraints {
-		schemaname, ok := row.SchemaName.(string)
-		if !ok {
-			return nil, fmt.Errorf("unable to convert schemaname to string: %T", row.SchemaName)
-		}
-		tablename, ok := row.TableName.(string)
-		if !ok {
-			return nil, fmt.Errorf("unable to convert tablename to string: %T", row.TableName)
-		}
-		colnames, ok := row.ConstraintColumns.([]string)
-		if !ok {
-			return nil, fmt.Errorf("unable to convert constraint columns to []string: %T", row.ConstraintColumns)
-		}
 		result = append(result, &PrimaryKeyConstraintsRow{
-			SchemaName:     schemaname,
-			TableName:      tablename,
-			ColumnName:     colnames[0], // todo: hack, this should be fixed to support primary keys
+			SchemaName:     row.SchemaName,
+			TableName:      row.TableName,
+			ColumnName:     row.ConstraintColumns[0], // todo: hack, this should be fixed to support primary keys
 			ConstraintName: row.ConstraintName,
 		})
 	}

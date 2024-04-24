@@ -535,6 +535,7 @@ func Test_InitStatementBuilder_Pg_Truncate(t *testing.T) {
 				ForeignTableName:   "accounts",
 				ForeignColumnNames: []string{"id"},
 				Notnullable:        []bool{true},
+				ConstraintType:     "f",
 			},
 		}, nil)
 
@@ -690,6 +691,7 @@ func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 				ForeignTableName:   "accounts",
 				ForeignColumnNames: []string{"id"},
 				Notnullable:        []bool{true},
+				ConstraintType:     "f",
 			},
 		}, nil)
 	pgquerier.On("GetTableConstraints", mock.Anything, mock.Anything, &pg_queries.GetTableConstraintsParams{

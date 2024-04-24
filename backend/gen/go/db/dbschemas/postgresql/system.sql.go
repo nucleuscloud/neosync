@@ -7,8 +7,6 @@ package pg_queries
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const getDatabaseSchema = `-- name: GetDatabaseSchema :many
@@ -376,29 +374,28 @@ func (q *Queries) GetPostgresRolePermissions(ctx context.Context, db DBTX, role 
 
 const getTableConstraints = `-- name: GetTableConstraints :many
 SELECT
-    con.oid AS constraint_oid,
     con.conname AS constraint_name,
-    con.contype AS constraint_type,
-    con.connamespace::regclass AS schema_name,
-    con.conrelid::regclass AS table_name,
+    con.contype::text AS constraint_type,
+    con.connamespace::regnamespace::text AS schema_name,
+    con.conrelid::regclass::text AS table_name,
     CASE
         WHEN con.contype IN ('f', 'p', 'u') THEN array_agg(att.attname)
         ELSE NULL
-    END AS constraint_columns,
-    array_agg(att.attnotnull) AS notnullable,
+    END::text[] AS constraint_columns,
+    array_agg(att.attnotnull)::bool[] AS notnullable,
     CASE
-        WHEN con.contype = 'f' THEN fn_cl.relnamespace::regnamespace
-        ELSE NULL
+        WHEN con.contype = 'f' THEN fn_cl.relnamespace::regnamespace::text
+        ELSE ''
     END AS foreign_schema_name,
     CASE
-        WHEN con.contype = 'f' THEN con.confrelid::regclass
-        ELSE NULL
+        WHEN con.contype = 'f' THEN con.confrelid::regclass::text
+        ELSE ''
     END AS foreign_table_name,
     CASE
-        WHEN con.contype = 'f' THEN array_agg(fk_att.attname)
-        ELSE NULL
+        WHEN con.contype = 'f' THEN array_agg(fk_att.attname)::text[]
+        ELSE NULL::text[]
     END AS foreign_column_names,
-    pg_get_constraintdef(con.oid) AS constraint_definition
+    pg_get_constraintdef(con.oid)::text AS constraint_definition
 FROM
     pg_catalog.pg_constraint con
 LEFT JOIN
@@ -419,16 +416,15 @@ type GetTableConstraintsParams struct {
 }
 
 type GetTableConstraintsRow struct {
-	ConstraintOid        pgtype.Uint32
 	ConstraintName       string
 	ConstraintType       string
-	SchemaName           interface{}
-	TableName            interface{}
-	ConstraintColumns    interface{}
-	Notnullable          interface{}
-	ForeignSchemaName    interface{}
-	ForeignTableName     interface{}
-	ForeignColumnNames   interface{}
+	SchemaName           string
+	TableName            string
+	ConstraintColumns    []string
+	Notnullable          []bool
+	ForeignSchemaName    string
+	ForeignTableName     string
+	ForeignColumnNames   []string
 	ConstraintDefinition string
 }
 
@@ -442,7 +438,6 @@ func (q *Queries) GetTableConstraints(ctx context.Context, db DBTX, arg *GetTabl
 	for rows.Next() {
 		var i GetTableConstraintsRow
 		if err := rows.Scan(
-			&i.ConstraintOid,
 			&i.ConstraintName,
 			&i.ConstraintType,
 			&i.SchemaName,
@@ -466,29 +461,28 @@ func (q *Queries) GetTableConstraints(ctx context.Context, db DBTX, arg *GetTabl
 
 const getTableConstraintsBySchema = `-- name: GetTableConstraintsBySchema :many
 SELECT
-    con.oid AS constraint_oid,
     con.conname AS constraint_name,
-    con.contype AS constraint_type,
-    con.connamespace::regclass AS schema_name,
-    con.conrelid::regclass AS table_name,
+    con.contype::text AS constraint_type,
+    con.connamespace::regnamespace::text AS schema_name,
+    con.conrelid::regclass::text AS table_name,
     CASE
         WHEN con.contype IN ('f', 'p', 'u') THEN array_agg(att.attname)
         ELSE NULL
-    END AS constraint_columns,
-    array_agg(att.attnotnull) AS notnullable,
+    END::text[] AS constraint_columns,
+    array_agg(att.attnotnull)::bool[] AS notnullable,
     CASE
-        WHEN con.contype = 'f' THEN fn_cl.relnamespace::regnamespace
-        ELSE NULL
+        WHEN con.contype = 'f' THEN fn_cl.relnamespace::regnamespace::text
+        ELSE ''
     END AS foreign_schema_name,
     CASE
-        WHEN con.contype = 'f' THEN con.confrelid::regclass
-        ELSE NULL
+        WHEN con.contype = 'f' THEN con.confrelid::regclass::text
+        ELSE ''
     END AS foreign_table_name,
     CASE
-        WHEN con.contype = 'f' THEN array_agg(fk_att.attname)
-        ELSE NULL
+        WHEN con.contype = 'f' THEN array_agg(fk_att.attname)::text[]
+        ELSE NULL::text[]
     END AS foreign_column_names,
-    pg_get_constraintdef(con.oid) AS constraint_definition
+    pg_get_constraintdef(con.oid)::text AS constraint_definition
 FROM
     pg_catalog.pg_constraint con
 LEFT JOIN
@@ -504,16 +498,15 @@ GROUP BY
 `
 
 type GetTableConstraintsBySchemaRow struct {
-	ConstraintOid        pgtype.Uint32
 	ConstraintName       string
 	ConstraintType       string
-	SchemaName           interface{}
-	TableName            interface{}
-	ConstraintColumns    interface{}
-	Notnullable          interface{}
-	ForeignSchemaName    interface{}
-	ForeignTableName     interface{}
-	ForeignColumnNames   interface{}
+	SchemaName           string
+	TableName            string
+	ConstraintColumns    []string
+	Notnullable          []bool
+	ForeignSchemaName    string
+	ForeignTableName     string
+	ForeignColumnNames   []string
 	ConstraintDefinition string
 }
 
@@ -527,7 +520,6 @@ func (q *Queries) GetTableConstraintsBySchema(ctx context.Context, db DBTX, sche
 	for rows.Next() {
 		var i GetTableConstraintsBySchemaRow
 		if err := rows.Scan(
-			&i.ConstraintOid,
 			&i.ConstraintName,
 			&i.ConstraintType,
 			&i.SchemaName,
