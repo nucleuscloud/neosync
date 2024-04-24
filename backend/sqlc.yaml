@@ -93,53 +93,53 @@ sql:
         emit_params_struct_pointers: true
         emit_pointers_for_null_types: true
         overrides:
-          - column: information_schema.columns.table_schema
-            go_type: string
-          - column: information_schema.columns.table_name
-            go_type: string
-          - column: information_schema.columns.column_name
-            go_type: string
-          - column: information_schema.columns.ordinal_position
-            go_type: int
-          - column: information_schema.columns.column_default
-            go_type: "string"
-            nullable: true # this only appears to work on models
-          - column: information_schema.columns.is_nullable
-            go_type: string
-          - column: information_schema.columns.data_type
-            go_type: string
-          - column: information_schema.columns.character_maximum_length
-            go_type: int
-          - column: information_schema.columns.numeric_precision
-            go_type: int
-          - column: information_schema.columns.numeric_scale
-            go_type: int
-          - column: information_schema.tables.table_schema
-            go_type: string
-          - column: information_schema.tables.table_name
-            go_type: string
-          - column: information_schema.referential_constraints.constraint_name
-            go_type: string
-          - column: information_schema.referential_constraints.constraint_schema
-            go_type: string
-          - column: information_schema.key_column_usage.table_schema
-            go_type: string
-          - column: information_schema.key_column_usage.table_name
-            go_type: string
-          - column: information_schema.key_column_usage.column_name
-            go_type: string
-          - column: information_schema.table_constraints.table_schema
-            go_type: string
-          - column: information_schema.table_constraints.table_name
-            go_type: string
-          - column: information_schema.table_constraints.constraint_name
-            go_type: string
-          - column: information_schema.constraint_column_usage.table_schema
-            go_type: string
-          - column: information_schema.constraint_column_usage.table_name
-            go_type: string
-          - column: information_schema.constraint_column_usage.column_name
-            go_type: string
+          # - column: information_schema.columns.table_schema
+          #   go_type: string
+          # - column: information_schema.columns.table_name
+          #   go_type: string
+          # - column: information_schema.columns.column_name
+          #   go_type: string
+          # - column: information_schema.columns.ordinal_position
+          #   go_type: int
+          # - column: information_schema.columns.column_default
+          #   go_type: "string"
+          #   nullable: true # this only appears to work on models
+          # - column: information_schema.columns.is_nullable
+          #   go_type: string
+          # - column: information_schema.columns.data_type
+          #   go_type: string
+          # - column: information_schema.columns.character_maximum_length
+          #   go_type: int
+          # - column: information_schema.columns.numeric_precision
+          #   go_type: int
+          # - column: information_schema.columns.numeric_scale
+          #   go_type: int
+          # - column: information_schema.tables.table_schema
+          #   go_type: string
+          # - column: information_schema.tables.table_name
+          #   go_type: string
+          # - column: information_schema.referential_constraints.constraint_name
+          #   go_type: string
+          # - column: information_schema.referential_constraints.constraint_schema
+          #   go_type: string
+          # - column: information_schema.key_column_usage.table_schema
+          #   go_type: string
+          # - column: information_schema.key_column_usage.table_name
+          #   go_type: string
+          # - column: information_schema.key_column_usage.column_name
+          #   go_type: string
+          # - column: information_schema.table_constraints.table_schema
+          #   go_type: string
+          # - column: information_schema.table_constraints.table_name
+          #   go_type: string
+          # - column: information_schema.table_constraints.constraint_name
+          #   go_type: string
+          # - column: information_schema.constraint_column_usage.table_schema
+          #   go_type: string
+          # - column: information_schema.constraint_column_usage.table_name
+          #   go_type: string
+          # - column: information_schema.constraint_column_usage.column_name
+          #   go_type: string
           - column: information_schema.role_table_grants.table_schema
             go_type: string
           - column: information_schema.role_table_grants.table_name
@@ -149,6 +149,4 @@ sql:
           - column: pg_catalog.pg_constraint.connamespace # this is normally an int but we are casting it in queries to the friendly name
             go_type: string
           - column: pg_catalog.pg_constraint.conrelid # this is normally an int but we are casting it in queries to the friendly name
-            go_type: string
-          - column: pg_catalog.pg_constraint.contype
             go_type: string
