@@ -1393,7 +1393,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_CircularDependency_PrimaryKey_Tr
 				ForeignTableName:   "jobs",
 				ForeignColumnNames: []string{"id"},
 				ConstraintType:     "f",
-				Notnullable:        []bool{true},
+				Notnullable:        []bool{false},
 			},
 		}, nil)
 	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
@@ -1418,14 +1418,13 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_CircularDependency_PrimaryKey_Tr
 
 	require.NoError(t, err)
 	require.NotEmpty(t, resp.BenthosConfigs)
-	// require.Len(t, resp.BenthosConfigs, 2)
+	require.Len(t, resp.BenthosConfigs, 2)
 	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.jobs")
 	require.Equal(t, bc.Name, "public.jobs")
 	require.Len(t, bc.RedisConfig, 1)
 	require.Equal(t, bc.RedisConfig[0].Table, "public.jobs")
 	require.Equal(t, bc.RedisConfig[0].Column, "id")
 	out, err := yaml.Marshal(bc.Config)
-	fmt.Println(string(out))
 	require.NoError(t, err)
 	require.Equal(
 		t,
