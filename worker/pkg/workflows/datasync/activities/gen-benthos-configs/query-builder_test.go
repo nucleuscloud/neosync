@@ -98,11 +98,12 @@ func Test_buildSelectJoinQuery(t *testing.T) {
 			columns: []string{"id", "name", "email"},
 			joins: []*sqlJoin{
 				{
-					JoinType:   innerJoin,
-					JoinTable:  "public.b",
-					JoinColumn: "a_id",
-					BaseTable:  "public.a",
-					BaseColumn: "id",
+					JoinType:  innerJoin,
+					JoinTable: "public.b",
+					BaseTable: "public.a",
+					JoinColumnsMap: map[string]string{
+						"a_id": "id",
+					},
 				},
 			},
 			whereClauses: []string{`"public"."a"."name" = 'alisha'`, `"public"."b"."email" = 'fake@email.com'`},
@@ -116,22 +117,44 @@ func Test_buildSelectJoinQuery(t *testing.T) {
 			columns: []string{"id", "name", "email"},
 			joins: []*sqlJoin{
 				{
-					JoinType:   innerJoin,
-					JoinTable:  "public.b",
-					JoinColumn: "a_id",
-					BaseTable:  "public.a",
-					BaseColumn: "id",
+					JoinType:  innerJoin,
+					JoinTable: "public.b",
+					BaseTable: "public.a",
+					JoinColumnsMap: map[string]string{
+						"a_id": "id",
+					},
 				},
 				{
-					JoinType:   innerJoin,
-					JoinTable:  "public.c",
-					JoinColumn: "b_id",
-					BaseTable:  "public.b",
-					BaseColumn: "id",
+					JoinType:  innerJoin,
+					JoinTable: "public.c",
+					BaseTable: "public.b",
+					JoinColumnsMap: map[string]string{
+						"b_id": "id",
+					},
 				},
 			},
 			whereClauses: []string{`"public"."a"."name" = 'alisha'`, `"public"."b"."id" = 1`},
 			expected:     `SELECT "public"."a"."id", "public"."a"."name", "public"."a"."email" FROM "public"."a" INNER JOIN "public"."b" ON ("public"."b"."a_id" = "public"."a"."id") INNER JOIN "public"."c" ON ("public"."c"."b_id" = "public"."b"."id") WHERE ("public"."a"."name" = 'alisha' AND "public"."b"."id" = 1);`,
+		},
+		{
+			name:    "composite foreign key",
+			driver:  "postgres",
+			schema:  "public",
+			table:   "a",
+			columns: []string{"id", "name", "email"},
+			joins: []*sqlJoin{
+				{
+					JoinType:  innerJoin,
+					JoinTable: "public.b",
+					BaseTable: "public.a",
+					JoinColumnsMap: map[string]string{
+						"a_id":  "id",
+						"aa_id": "other_id",
+					},
+				},
+			},
+			whereClauses: []string{`"public"."a"."name" = 'alisha'`, `"public"."b"."email" = 'fake@email.com'`},
+			expected:     `SELECT "public"."a"."id", "public"."a"."name", "public"."a"."email" FROM "public"."a" INNER JOIN "public"."b" ON (("public"."b"."a_id" = "public"."a"."id") AND ("public"."b"."aa_id" = "public"."a"."other_id")) WHERE ("public"."a"."name" = 'alisha' AND "public"."b"."email" = 'fake@email.com');`,
 		},
 	}
 
@@ -177,17 +200,40 @@ func Test_buildSelectRecursiveQuery(t *testing.T) {
 			columns: []string{"employee_id", "name", "manager_id", "department_id", "big_boss_id"},
 			joins: []*sqlJoin{
 				{
-					JoinType:   innerJoin,
-					JoinTable:  "public.departments",
-					JoinColumn: "id",
-					BaseTable:  "public.employees",
-					BaseColumn: "department_id",
+					JoinType:  innerJoin,
+					JoinTable: "public.departments",
+					BaseTable: "public.employees",
+					JoinColumnsMap: map[string]string{
+						"id": "department_id",
+					},
 				},
 			},
 			whereClauses:  []string{`"public"."employees"."name" = 'alisha'`, `"public"."departments"."department_id" = 1`},
 			foreignKeys:   []string{"manager_id", "big_boss_id"},
 			primaryKeyCol: "employee_id",
 			expected:      `WITH RECURSIVE related AS (SELECT "public"."employees"."employee_id", "public"."employees"."name", "public"."employees"."manager_id", "public"."employees"."department_id", "public"."employees"."big_boss_id" FROM "public"."employees" INNER JOIN "public"."departments" ON ("public"."departments"."id" = "public"."employees"."department_id") WHERE ("public"."employees"."name" = 'alisha' AND "public"."departments"."department_id" = 1) UNION (SELECT "public"."employees"."employee_id", "public"."employees"."name", "public"."employees"."manager_id", "public"."employees"."department_id", "public"."employees"."big_boss_id" FROM "public"."employees" INNER JOIN "related" ON (("public"."employees"."employee_id" = "related"."manager_id") OR ("public"."employees"."employee_id" = "related"."big_boss_id")))) SELECT DISTINCT "employee_id", "name", "manager_id", "department_id", "big_boss_id" FROM "related";`,
+		},
+		{
+			name:    "composite foreign keys",
+			driver:  "postgres",
+			schema:  "public",
+			table:   "employees",
+			columns: []string{"employee_id", "name", "manager_id", "department_id", "big_boss_id"},
+			joins: []*sqlJoin{
+				{
+					JoinType:  innerJoin,
+					JoinTable: "public.departments",
+					BaseTable: "public.employees",
+					JoinColumnsMap: map[string]string{
+						"id":       "department_id",
+						"other_id": "another_id",
+					},
+				},
+			},
+			whereClauses:  []string{`"public"."employees"."name" = 'alisha'`, `"public"."departments"."department_id" = 1`},
+			foreignKeys:   []string{"manager_id", "big_boss_id"},
+			primaryKeyCol: "employee_id",
+			expected:      `WITH RECURSIVE related AS (SELECT "public"."employees"."employee_id", "public"."employees"."name", "public"."employees"."manager_id", "public"."employees"."department_id", "public"."employees"."big_boss_id" FROM "public"."employees" INNER JOIN "public"."departments" ON (("public"."departments"."id" = "public"."employees"."department_id") AND ("public"."departments"."other_id" = "public"."employees"."another_id")) WHERE ("public"."employees"."name" = 'alisha' AND "public"."departments"."department_id" = 1) UNION (SELECT "public"."employees"."employee_id", "public"."employees"."name", "public"."employees"."manager_id", "public"."employees"."department_id", "public"."employees"."big_boss_id" FROM "public"."employees" INNER JOIN "related" ON (("public"."employees"."employee_id" = "related"."manager_id") OR ("public"."employees"."employee_id" = "related"."big_boss_id")))) SELECT DISTINCT "employee_id", "name", "manager_id", "department_id", "big_boss_id" FROM "related";`,
 		},
 	}
 
@@ -475,6 +521,88 @@ func Test_buildSelectQueryMap_SubsetsForeignKeys(t *testing.T) {
 			"public.b": `SELECT "id", "name", "a_id" FROM "public"."b" WHERE public.b.name = 'bob';`,
 			"public.c": `SELECT "public"."c"."id", "public"."c"."b_id" FROM "public"."c" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE (public.b.name = 'bob' AND public.c.id = 1);`,
 			"public.d": `SELECT "public"."d"."id", "public"."d"."c_id" FROM "public"."d" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."d"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE (public.b.name = 'bob' AND public.c.id = 1);`,
+		}
+
+	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, sql)
+}
+
+func Test_buildSelectQueryMap_SubsetsCompositeForeignKeys(t *testing.T) {
+	mappings := map[string]*tableMapping{
+		"public.a": {
+			Schema: "public",
+			Table:  "a",
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "public",
+					Table:  "a",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
+					},
+				},
+				{
+					Schema: "public",
+					Table:  "a",
+					Column: "name",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
+					},
+				},
+			},
+		},
+		"public.b": {
+			Schema: "public",
+			Table:  "b",
+			Mappings: []*mgmtv1alpha1.JobMapping{
+				{
+					Schema: "public",
+					Table:  "b",
+					Column: "id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
+					},
+				},
+				{
+					Schema: "public",
+					Table:  "b",
+					Column: "a_name",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
+					},
+				},
+				{
+					Schema: "public",
+					Table:  "b",
+					Column: "a_id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
+					},
+				},
+			},
+		},
+	}
+	aWhere := "name = 'bob'"
+	sourceTableOpts := map[string]*sqlSourceTableOptions{
+		"public.a": {WhereClause: &aWhere},
+	}
+	tableDependencies := map[string]*dbschemas.TableConstraints{
+		"public.b": {
+			Constraints: []*dbschemas.ForeignConstraint{
+				{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
+				{Column: "a_name", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "name"}},
+			},
+		},
+	}
+	dependencyConfigs := []*tabledependency.RunConfig{
+		{Table: "public.a", DependsOn: []*tabledependency.DependsOn{}},
+		{Table: "public.b", DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id", "name"}}}},
+	}
+	expected :=
+		map[string]string{
+			"public.a": `SELECT "id", "name" FROM "public"."a" WHERE public.a.name = 'bob';`,
+			"public.b": `SELECT "public"."b"."id", "public"."b"."a_name", "public"."b"."a_id" FROM "public"."b" INNER JOIN "public"."a" ON (("public"."a"."id" = "public"."b"."a_id") AND ("public"."a"."name" = "public"."b"."a_name")) WHERE public.a.name = 'bob';`,
 		}
 
 	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
@@ -1705,6 +1833,85 @@ func Test_qualifyWhereColumnNames_postgres(t *testing.T) {
 			response, err := qualifyWhereColumnNames(sql_manager.PostgresDriver, tt.where, tt.schema, tt.table)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, response)
+		})
+	}
+}
+
+func TestGetPrimaryToForeignTableMapFromRunConfigs(t *testing.T) {
+	tests := []struct {
+		name       string
+		runConfigs []*tabledependency.RunConfig
+		expected   map[string][]string
+	}{
+		{
+			name:       "no configs",
+			runConfigs: nil,
+			expected:   map[string][]string{},
+		},
+		{
+			name: "single config without dependencies",
+			runConfigs: []*tabledependency.RunConfig{
+				{Table: "table1", DependsOn: nil},
+			},
+			expected: map[string][]string{},
+		},
+		{
+			name: "single config with one dependency",
+			runConfigs: []*tabledependency.RunConfig{
+				{Table: "table1", DependsOn: []*tabledependency.DependsOn{{Table: "table2"}}},
+			},
+			expected: map[string][]string{
+				"table2": {"table1"},
+			},
+		},
+		{
+			name: "multiple configs with shared dependencies",
+			runConfigs: []*tabledependency.RunConfig{
+				{Table: "table1", DependsOn: []*tabledependency.DependsOn{{Table: "table2"}}},
+				{Table: "table3", DependsOn: []*tabledependency.DependsOn{{Table: "table2"}}},
+			},
+			expected: map[string][]string{
+				"table2": {"table1", "table3"},
+			},
+		},
+		{
+			name: "config with multiple unique dependencies",
+			runConfigs: []*tabledependency.RunConfig{
+				{Table: "table1", DependsOn: []*tabledependency.DependsOn{{Table: "table2"}, {Table: "table3"}}},
+			},
+			expected: map[string][]string{
+				"table2": {"table1"},
+				"table3": {"table1"},
+			},
+		},
+		{
+			name: "circular dependencies",
+			runConfigs: []*tabledependency.RunConfig{
+				{Table: "table1", DependsOn: []*tabledependency.DependsOn{{Table: "table2"}}},
+				{Table: "table2", DependsOn: []*tabledependency.DependsOn{{Table: "table1"}}},
+			},
+			expected: map[string][]string{
+				"table2": {"table1"},
+				"table1": {"table2"},
+			},
+		},
+		{
+			name: "multiple configs with duplicates",
+			runConfigs: []*tabledependency.RunConfig{
+				{Table: "table1", DependsOn: []*tabledependency.DependsOn{{Table: "table2"}}},
+				{Table: "table1", DependsOn: []*tabledependency.DependsOn{{Table: "table2"}}},
+				{Table: "table3", DependsOn: []*tabledependency.DependsOn{{Table: "table2"}}},
+			},
+			expected: map[string][]string{
+				"table2": {"table1", "table3"},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actual := getPrimaryToForeignTableMapFromRunConfigs(tt.runConfigs)
+			assert.Equal(t, tt.expected, actual)
 		})
 	}
 }
