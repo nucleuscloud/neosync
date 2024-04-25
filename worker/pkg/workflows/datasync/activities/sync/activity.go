@@ -115,6 +115,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		for {
 			select {
 			case activityErr := <-stopActivityChan:
+				logger.Info("received stop activity from benthos channel, cleaning up...")
 				resultChan <- activityErr
 				benthosStreamMutex.Lock()
 				if benthosStream != nil {
@@ -128,6 +129,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 				benthosStreamMutex.Unlock()
 				return
 			case <-activity.GetWorkerStopChannel(ctx):
+				logger.Info("received worker stop, cleaning up...")
 				resultChan <- fmt.Errorf("received worker stop signal")
 				benthosStreamMutex.Lock()
 				if benthosStream != nil {
@@ -141,6 +143,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 				benthosStreamMutex.Unlock()
 				return
 			case <-ctx.Done():
+				logger.Info("received context done, cleaning up...")
 				benthosStreamMutex.Lock()
 				if benthosStream != nil {
 					// this must be here because stream.Run(ctx) doesn't seem to fully obey a canceled context when
@@ -151,7 +154,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 					}
 				}
 				benthosStreamMutex.Unlock()
-				resultChan <- nil
+				return
 			case <-time.After(1 * time.Second):
 				activity.RecordHeartbeat(ctx)
 			}
@@ -272,7 +275,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 
 	err = <-resultChan
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not successfully complete sync activity: %w", err)
 	}
 	benthosStreamMutex.Lock()
 	benthosStream = nil
