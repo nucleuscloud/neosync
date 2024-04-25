@@ -146,7 +146,7 @@ func (s *pooledInsertOutput) Connect(ctx context.Context) error {
 	s.db = db
 
 	// truncate table on retry
-	if s.isRetry && s.truncateOnRetry {
+	if s.isRetry && s.truncateOnRetry && !s.onConflictDoNothing {
 		s.logger.Info("retry: truncating table before inserting")
 		builder := goqu.Dialect(s.driver)
 		table := goqu.S(s.schema).Table(s.table)
