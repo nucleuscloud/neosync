@@ -150,6 +150,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               initTableSchema: false,
                               truncateBeforeInsert: false,
                               truncateCascade: false,
+                              onConflictDoNothing: false,
                             });
                           }}
                           value={field.value}

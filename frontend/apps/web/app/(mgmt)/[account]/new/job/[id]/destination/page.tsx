@@ -149,6 +149,7 @@ export default function Page({ params }: PageProps): ReactElement {
                                         truncateBeforeInsert: false,
                                         truncateCascade: false,
                                         initTableSchema: false,
+                                        onConflictDoNothing: false,
                                       }
                                     );
                                   }}
