@@ -262,7 +262,7 @@ func invokeSync(
 ) workflow.Future {
 	metadata := getSyncMetadata(config)
 	future, settable := workflow.NewFuture(ctx)
-	logger.Info("triggering config sync")
+	logger.Debug("triggering config sync")
 	started.Store(config.Name, struct{}{})
 	workflow.GoNamed(ctx, config.Name, func(ctx workflow.Context) {
 		configbits, err := yaml.Marshal(config.Config)
