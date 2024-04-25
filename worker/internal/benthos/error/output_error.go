@@ -18,7 +18,7 @@ func errorOutputSpec() *service.ConfigSpec {
 }
 
 // Registers an output on a benthos environment called error
-func RegisterErrorOutput(env *service.Environment, stopActivityChannel chan error) error {
+func RegisterErrorOutput(env *service.Environment, stopActivityChannel chan<- error) error {
 	return env.RegisterBatchOutput(
 		"error", errorOutputSpec(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchOutput, service.BatchPolicy, int, error) {
@@ -39,7 +39,7 @@ func RegisterErrorOutput(env *service.Environment, stopActivityChannel chan erro
 		})
 }
 
-func newErrorOutput(conf *service.ParsedConfig, mgr *service.Resources, channel chan error) (*errorOutput, error) {
+func newErrorOutput(conf *service.ParsedConfig, mgr *service.Resources, channel chan<- error) (*errorOutput, error) {
 	errMsg, err := conf.FieldInterpolatedString("error_msg")
 	if err != nil {
 		return nil, err
@@ -53,7 +53,7 @@ func newErrorOutput(conf *service.ParsedConfig, mgr *service.Resources, channel 
 
 type errorOutput struct {
 	logger              *service.Logger
-	stopActivityChannel chan error
+	stopActivityChannel chan<- error
 	errorMsg            *service.InterpolatedString
 }
 
