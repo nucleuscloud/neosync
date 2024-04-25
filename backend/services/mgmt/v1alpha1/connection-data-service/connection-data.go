@@ -786,7 +786,11 @@ func (s *Service) GetConnectionInitStatements(
 
 		if req.Msg.GetOptions().GetTruncateBeforeInsert() {
 			for k, v := range schemaTableMap {
-				truncateStmtsMap[k] = dbschemas_mysql.BuildTruncateStatement(v.Schema, v.Table)
+				stmt, err := dbschemas_mysql.BuildTruncateStatement(v.Schema, v.Table)
+				if err != nil {
+					return nil, err
+				}
+				truncateStmtsMap[k] = stmt
 			}
 		}
 
@@ -813,7 +817,11 @@ func (s *Service) GetConnectionInitStatements(
 
 		if req.Msg.GetOptions().GetTruncateCascade() {
 			for k, v := range schemaTableMap {
-				truncateStmtsMap[k] = dbschemas_postgres.BuildTruncateCascadeStatement(v.Schema, v.Table)
+				stmt, err := dbschemas_postgres.BuildTruncateCascadeStatement(v.Schema, v.Table)
+				if err != nil {
+					return nil, err
+				}
+				truncateStmtsMap[k] = stmt
 			}
 		} else if req.Msg.GetOptions().GetTruncateBeforeInsert() {
 			return nil, nucleuserrors.NewNotImplemented("postgres truncate unsupported. table foreig keys required to build truncate statement.")

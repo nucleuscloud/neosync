@@ -3,6 +3,7 @@ package sqlmanager
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	dbschemas_mysql "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/mysql"
@@ -69,6 +70,44 @@ func (m *MySqlManager) GetAllPrimaryKeyConstraints(ctx context.Context, schemas 
 		})
 	}
 	return result, nil
+}
+
+func (m *MySqlManager) GetCreateTableStatement(ctx context.Context, schema, table string) (string, error) {
+	stmt, err := dbschemas_mysql.GetTableCreateStatement(ctx, m.pool, &dbschemas_mysql.GetTableCreateStatementRequest{
+		Schema: schema,
+		Table:  table,
+	})
+	if err != nil {
+		return "", err
+	}
+	return stmt, nil
+}
+
+func (m *MySqlManager) BatchExec(ctx context.Context, batchSize int, statements []string, opts *BatchExecOpts) error {
+	for i := 0; i < len(statements); i += batchSize {
+		end := i + batchSize
+		if end > len(statements) {
+			end = len(statements)
+		}
+
+		batchCmd := strings.Join(statements[i:end], " ")
+		if opts != nil && opts.Prefix != nil && *opts.Prefix != "" {
+			batchCmd = fmt.Sprintf("%s %s", *opts.Prefix, batchCmd)
+		}
+		_, err := m.pool.ExecContext(ctx, batchCmd)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (m *MySqlManager) Exec(ctx context.Context, statement string) error {
+	_, err := m.pool.ExecContext(ctx, statement)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (m *MySqlManager) ClosePool() {

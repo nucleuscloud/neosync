@@ -31,7 +31,7 @@ const (
 )
 
 type benthosBuilder struct {
-	sqladapter sql_manager.SqlManager
+	sqlmanager sql_manager.SqlManagerClient
 
 	jobclient         mgmtv1alpha1connect.JobServiceClient
 	connclient        mgmtv1alpha1connect.ConnectionServiceClient
@@ -46,7 +46,7 @@ type benthosBuilder struct {
 }
 
 func newBenthosBuilder(
-	sqladapter sql_manager.SqlManager,
+	sqlmanager sql_manager.SqlManagerClient,
 
 	jobclient mgmtv1alpha1connect.JobServiceClient,
 	connclient mgmtv1alpha1connect.ConnectionServiceClient,
@@ -59,7 +59,7 @@ func newBenthosBuilder(
 	metricsEnabled bool,
 ) *benthosBuilder {
 	return &benthosBuilder{
-		sqladapter:        sqladapter,
+		sqlmanager:        sqlmanager,
 		jobclient:         jobclient,
 		connclient:        connclient,
 		transformerclient: transformerclient,
@@ -112,7 +112,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		responses = append(responses, sourceResponses...)
 
 	case *mgmtv1alpha1.JobSourceOptions_Postgres, *mgmtv1alpha1.JobSourceOptions_Mysql:
-		sourceConnection, err := b.getJobSourceConnection(ctx, job.GetSource())
+		sourceConnection, err := shared.GetJobSourceConnection(ctx, job.GetSource(), b.connclient)
 		if err != nil {
 			return nil, fmt.Errorf("unable to get connection by id: %w", err)
 		}
@@ -126,7 +126,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			sourceTableOpts = groupJobSourceOptionsByTable(sqlSourceOpts)
 		}
 
-		db, err := b.sqladapter.NewSqlDb(ctx, slogger, sourceConnection)
+		db, err := b.sqlmanager.NewSqlDb(ctx, slogger, sourceConnection)
 		if err != nil {
 			return nil, fmt.Errorf("unable to create new sql db: %w", err)
 		}
@@ -221,7 +221,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 	updateResponses := []*BenthosConfigResponse{} // update configs for circular dependecies
 	for destIdx, destination := range job.Destinations {
-		destinationConnection, err := b.getConnectionById(ctx, destination.ConnectionId)
+		destinationConnection, err := shared.GetConnectionById(ctx, b.connclient, destination.ConnectionId)
 		if err != nil {
 			return nil, fmt.Errorf("unable to get destination connection (%s) by id: %w", destination.ConnectionId, err)
 		}
@@ -633,19 +633,6 @@ func (b *benthosBuilder) getJobById(
 	}
 
 	return getjobResp.Msg.Job, nil
-}
-
-func (b *benthosBuilder) getConnectionById(
-	ctx context.Context,
-	connectionId string,
-) (*mgmtv1alpha1.Connection, error) {
-	getConnResp, err := b.connclient.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-		Id: connectionId,
-	}))
-	if err != nil {
-		return nil, err
-	}
-	return getConnResp.Msg.Connection, nil
 }
 
 // filters out tables where all cols are set to null
@@ -1184,23 +1171,6 @@ func getSqlJobSourceOpts(
 	default:
 		return nil, errors.New("unsupported job source options type")
 	}
-}
-
-func (b *benthosBuilder) getJobSourceConnection(ctx context.Context, jobSource *mgmtv1alpha1.JobSource) (*mgmtv1alpha1.Connection, error) {
-	var connectionId string
-	switch jobSourceConfig := jobSource.GetOptions().GetConfig().(type) {
-	case *mgmtv1alpha1.JobSourceOptions_Postgres:
-		connectionId = jobSourceConfig.Postgres.GetConnectionId()
-	case *mgmtv1alpha1.JobSourceOptions_Mysql:
-		connectionId = jobSourceConfig.Mysql.GetConnectionId()
-	default:
-		return nil, errors.New("unsupported job source options type")
-	}
-	sourceConnection, err := b.getConnectionById(ctx, connectionId)
-	if err != nil {
-		return nil, fmt.Errorf("unable to get connection by id (%s): %w", connectionId, err)
-	}
-	return sourceConnection, nil
 }
 
 func groupMappingsByTable(

@@ -1,9 +1,14 @@
 package shared
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"net/http"
 
+	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	http_client "github.com/nucleuscloud/neosync/worker/internal/http/client"
@@ -158,4 +163,41 @@ func BuildBenthosRedisTlsConfig(redisConfig *RedisConfig) *neosync_benthos.Redis
 		}
 	}
 	return tls
+}
+
+func GetJobSourceConnection(
+	ctx context.Context,
+	jobSource *mgmtv1alpha1.JobSource,
+	connclient mgmtv1alpha1connect.ConnectionServiceClient,
+) (*mgmtv1alpha1.Connection, error) {
+	var connectionId string
+	switch jobSourceConfig := jobSource.GetOptions().GetConfig().(type) {
+	case *mgmtv1alpha1.JobSourceOptions_Postgres:
+		connectionId = jobSourceConfig.Postgres.GetConnectionId()
+	case *mgmtv1alpha1.JobSourceOptions_Mysql:
+		connectionId = jobSourceConfig.Mysql.GetConnectionId()
+	case *mgmtv1alpha1.JobSourceOptions_Generate:
+		connectionId = jobSourceConfig.Generate.GetFkSourceConnectionId()
+	default:
+		return nil, errors.New("unsupported job source options type")
+	}
+	sourceConnection, err := GetConnectionById(ctx, connclient, connectionId)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get connection by id (%s): %w", connectionId, err)
+	}
+	return sourceConnection, nil
+}
+
+func GetConnectionById(
+	ctx context.Context,
+	connclient mgmtv1alpha1connect.ConnectionServiceClient,
+	connectionId string,
+) (*mgmtv1alpha1.Connection, error) {
+	getConnResp, err := connclient.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+		Id: connectionId,
+	}))
+	if err != nil {
+		return nil, err
+	}
+	return getConnResp.Msg.Connection, nil
 }

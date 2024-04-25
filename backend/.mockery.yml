@@ -61,6 +61,10 @@ packages:
       SqlConnector:
       SqlDbContainer:
       PgPoolContainer:
+  github.com/nucleuscloud/neosync/backend/pkg/sqlmanager:
+    interfaces:
+      SqlDatabase:
+      SqlManagerClient:
   github.com/nucleuscloud/neosync/backend/internal/aws:
     interfaces:
       NeosyncAwsManagerClient:

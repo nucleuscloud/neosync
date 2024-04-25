@@ -3,6 +3,7 @@ package sqlmanager
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/postgres"
@@ -100,6 +101,42 @@ func (p *PostgresManager) GetAllPrimaryKeyConstraints(ctx context.Context, schem
 	}
 	return result, nil
 }
+
+func (p *PostgresManager) GetCreateTableStatement(ctx context.Context, schema, table string) (string, error) {
+	stmt, err := dbschemas_postgres.GetTableCreateStatement(ctx, p.pool, p.querier, schema, table)
+	if err != nil {
+		return "", err
+	}
+	return stmt, nil
+}
+
+func (p *PostgresManager) BatchExec(ctx context.Context, batchSize int, statements []string, opts *BatchExecOpts) error {
+	for i := 0; i < len(statements); i += batchSize {
+		end := i + batchSize
+		if end > len(statements) {
+			end = len(statements)
+		}
+
+		batchCmd := strings.Join(statements[i:end], "\n")
+		if opts != nil && opts.Prefix != nil && *opts.Prefix != "" {
+			batchCmd = fmt.Sprintf("%s %s", *opts.Prefix, batchCmd)
+		}
+		_, err := p.pool.Exec(ctx, batchCmd)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (p *PostgresManager) Exec(ctx context.Context, statement string) error {
+	_, err := p.pool.Exec(ctx, statement)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (p *PostgresManager) ClosePool() {
 	if p.pool != nil && p.closePool != nil {
 		p.closePool()

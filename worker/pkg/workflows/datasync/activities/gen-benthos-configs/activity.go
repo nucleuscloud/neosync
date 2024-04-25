@@ -118,10 +118,10 @@ func (a *Activity) GenerateBenthosConfigs(
 	pgpoolmap := &sync.Map{}
 	mysqlpoolmap := &sync.Map{}
 
-	sqladapter := sql_manager.NewSqlManager(pgpoolmap, a.pgquerier, mysqlpoolmap, a.mysqlquerier, a.sqlconnector)
+	sqlmanager := sql_manager.NewSqlManager(pgpoolmap, a.pgquerier, mysqlpoolmap, a.mysqlquerier, a.sqlconnector)
 
 	bbuilder := newBenthosBuilder(
-		*sqladapter,
+		sqlmanager,
 		a.jobclient,
 		a.connclient,
 		a.transformerclient,

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/doug-martin/goqu/v9"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	dbschemas "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	"golang.org/x/sync/errgroup"
@@ -225,8 +226,15 @@ func GetAllMysqlPkConstraints(
 func BuildTruncateStatement(
 	schema string,
 	table string,
-) string {
-	return fmt.Sprintf("TRUNCATE TABLE `%s`.`%s`;", schema, table)
+) (string, error) {
+	builder := goqu.Dialect("mysql")
+	sqltable := goqu.S(schema).Table(table)
+	truncateStmt := builder.From(sqltable).Truncate()
+	stmt, _, err := truncateStmt.ToSQL()
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s;", stmt), nil
 }
 
 func BatchExecStmts(

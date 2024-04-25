@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/doug-martin/goqu/v9"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	dbschemas "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
@@ -282,11 +283,18 @@ func BuildTruncateStatement(
 ) string {
 	return fmt.Sprintf("TRUNCATE TABLE %s;", strings.Join(tables, ", "))
 }
+
 func BuildTruncateCascadeStatement(
 	schema string,
 	table string,
-) string {
-	return fmt.Sprintf("TRUNCATE TABLE %q.%q CASCADE;", schema, table)
+) (string, error) {
+	builder := goqu.Dialect("postgres")
+	sqltable := goqu.S(schema).Table(table)
+	stmt, _, err := builder.From(sqltable).Truncate().Cascade().ToSQL()
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s;", stmt), nil
 }
 
 func BatchExecStmts(

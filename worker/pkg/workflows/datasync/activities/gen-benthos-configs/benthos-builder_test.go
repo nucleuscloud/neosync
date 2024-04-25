@@ -5,21 +5,16 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
-	"sync"
 	"testing"
 
 	"connectrpc.com/connect"
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/benthosdev/benthos/v4/public/service"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
-	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
-	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
-	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/stretchr/testify/mock"
@@ -42,6 +37,48 @@ import (
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 )
 
+// import (
+// 	"context"
+// 	"fmt"
+// 	"log/slog"
+// 	"strings"
+// 	"sync"
+// 	"testing"
+
+// 	"connectrpc.com/connect"
+// 	"github.com/benthosdev/benthos/v4/public/bloblang"
+// 	"github.com/benthosdev/benthos/v4/public/service"
+// 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
+// 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
+// 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
+// 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
+// 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+// 	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
+// 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+// 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+// 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
+// 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
+// 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
+// 	"github.com/stretchr/testify/mock"
+// 	"github.com/stretchr/testify/require"
+// 	"gopkg.in/yaml.v3"
+
+// 	_ "github.com/benthosdev/benthos/v4/public/components/aws"
+// 	_ "github.com/benthosdev/benthos/v4/public/components/io"
+// 	_ "github.com/benthosdev/benthos/v4/public/components/javascript"
+// 	_ "github.com/benthosdev/benthos/v4/public/components/pure"
+// 	_ "github.com/benthosdev/benthos/v4/public/components/pure/extended"
+// 	_ "github.com/benthosdev/benthos/v4/public/components/redis"
+// 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
+// 	neosync_benthos_error "github.com/nucleuscloud/neosync/worker/internal/benthos/error"
+// 	benthos_metrics "github.com/nucleuscloud/neosync/worker/internal/benthos/metrics"
+// 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/redis"
+// 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/internal/benthos/sql"
+// 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
+
+// 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
+// )
+
 const (
 	mockJobId = "b1767636-3992-4cb4-9bf2-4bb9bddbf43c"
 	mockRunId = "26444272-0bb0-4325-ae60-17dcd9744785"
@@ -51,18 +88,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Pg(t *testing.T) 
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-
-	pgcache := &sync.Map{}
-	pgcache.Store("123", pg_queries.NewMockDBTX(t))
-	pgcache.Store("456", pg_queries.NewMockDBTX(t))
-
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := &sync.Map{}
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
-
-	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
+	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
@@ -158,7 +184,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Generate_Pg(t *testing.T) 
 		},
 	}), nil)
 
-	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
+	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
@@ -252,16 +278,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Metrics(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-
-	pgcache := &sync.Map{}
-	pgcache.Store("123", pg_queries.NewMockDBTX(t))
-	pgcache.Store("456", pg_queries.NewMockDBTX(t))
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := &sync.Map{}
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
-	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
+	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
@@ -347,7 +364,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Metrics(t *testing.T) {
 		},
 	}), nil)
 
-	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, true)
+	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, true)
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
@@ -453,15 +470,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Generate_Pg_Pg(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-
-	pgcache := &sync.Map{}
-	pgcache.Store("123", pg_queries.NewMockDBTX(t))
-	pgcache.Store("456", pg_queries.NewMockDBTX(t))
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := &sync.Map{}
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
-	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
+	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
@@ -543,7 +552,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Generate_Pg_Pg(t *testing.T) {
 		},
 	}), nil)
 
-	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
+	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
@@ -637,15 +646,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Transformer_Pg_Pg(t *
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-
-	pgcache := &sync.Map{}
-	pgcache.Store("123", pg_queries.NewMockDBTX(t))
-	pgcache.Store("456", pg_queries.NewMockDBTX(t))
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := &sync.Map{}
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
-	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
+	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
+	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
 
 	redisConfig := &shared.RedisConfig{
 		Url:  "redis://localhost:6379",
@@ -754,6 +756,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Transformer_Pg_Pg(t *
 			},
 		},
 	}), nil)
+	mockSqlManager.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.PostgresDriver}, nil)
 
 	pgquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
 		Return([]*pg_queries.GetDatabaseSchemaRow{
@@ -810,7 +813,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Transformer_Pg_Pg(t *
 				ConstraintType:    "p",
 			}}, nil,
 		)
-	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, redisConfig, false)
+	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, redisConfig, false)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -968,2184 +971,2184 @@ output:
 	require.NoError(t, err)
 }
 
-func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Passthrough_Pg_Pg(t *testing.T) {
-	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
-	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-
-	pgcache := &sync.Map{}
-	pgcache.Store("123", pg_queries.NewMockDBTX(t))
-	pgcache.Store("456", pg_queries.NewMockDBTX(t))
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := &sync.Map{}
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
-	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
-
-	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
-		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
-			Job: &mgmtv1alpha1.Job{
-				Source: &mgmtv1alpha1.JobSource{
-					Options: &mgmtv1alpha1.JobSourceOptions{
-						Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
-							Postgres: &mgmtv1alpha1.PostgresSourceConnectionOptions{
-								ConnectionId: "123",
-							},
-						},
-					},
-				},
-				Mappings: []*mgmtv1alpha1.JobMapping{
-					{
-						Schema: "public",
-						Table:  "users",
-						Column: "id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "public",
-						Table:  "users",
-						Column: "name",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "public",
-						Table:  "orders",
-						Column: "id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "public",
-						Table:  "orders",
-						Column: "buyer_id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-				},
-				Destinations: []*mgmtv1alpha1.JobDestination{
-					{
-						ConnectionId: "456",
-					},
-				},
-			},
-		}), nil)
-	mockConnectionClient.On(
-		"GetConnection",
-		mock.Anything,
-		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: "123",
-		}),
-	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		Connection: &mgmtv1alpha1.Connection{
-			Id:   "123",
-			Name: "prod",
-			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
-					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
-						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-							Url: "fake-prod-url",
-						},
-					},
-				},
-			},
-		},
-	}), nil)
-	mockConnectionClient.On(
-		"GetConnection",
-		mock.Anything,
-		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: "456",
-		}),
-	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		Connection: &mgmtv1alpha1.Connection{
-			Id:   "456",
-			Name: "stage",
-			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
-					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
-						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-							Url: "fake-stage-url",
-						},
-					},
-				},
-			},
-		},
-	}), nil)
-
-	pgquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetDatabaseSchemaRow{
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "name",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "orders",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "orders",
-				ColumnName:  "buyer_id",
-			},
-		}, nil)
-	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
-		Once().
-		Return([]*pg_queries.GetTableConstraintsBySchemaRow{
-			{
-				ConstraintName:     "fk_user_account_associations_user_id_users_id",
-				SchemaName:         "public",
-				TableName:          "orders",
-				ConstraintColumns:  []string{"buyer_id"},
-				ForeignSchemaName:  "public",
-				ForeignTableName:   "users",
-				ForeignColumnNames: []string{"id"},
-				ConstraintType:     "f",
-				Notnullable:        []bool{true},
-			},
-		}, nil)
-	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
-		Once().
-		Return(
-			[]*pg_queries.GetTableConstraintsBySchemaRow{{
-				SchemaName:        "public",
-				TableName:         "users",
-				ConstraintName:    "users",
-				ConstraintColumns: []string{"id"},
-				ConstraintType:    "p",
-			}, {
-				SchemaName:        "public",
-				TableName:         "orders",
-				ConstraintName:    "orders",
-				ConstraintColumns: []string{"id"},
-				ConstraintType:    "p",
-			}}, nil,
-		)
-	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
-
-	resp, err := bbuilder.GenerateBenthosConfigs(
-		context.Background(),
-		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		slog.Default(),
-	)
-
-	require.Nil(t, err)
-	require.NotEmpty(t, resp.BenthosConfigs)
-	require.Len(t, resp.BenthosConfigs, 2)
-	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
-	require.Equal(t, bc.Name, "public.users")
-	require.Empty(t, bc.RedisConfig)
-	out, err := yaml.Marshal(bc.Config)
-	require.NoError(t, err)
-	require.Equal(
-		t,
-		strings.TrimSpace(string(out)),
-		strings.TrimSpace(`
-input:
-    label: ""
-    pooled_sql_raw:
-        driver: postgres
-        dsn: ${SOURCE_CONNECTION_DSN}
-        query: SELECT "id", "name" FROM "public"."users";
-pipeline:
-    threads: -1
-    processors: []
-output:
-    label: ""
-    broker:
-        pattern: fan_out
-        outputs:
-            - fallback:
-                - pooled_sql_insert:
-                    driver: postgres
-                    dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    schema: public
-                    table: users
-                    columns:
-                        - id
-                        - name
-                    on_conflict_do_nothing: false
-                    truncate_on_retry: false
-                    args_mapping: root = [this."id", this."name"]
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-                - error:
-                    error_msg: ${! meta("fallback_error")}
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-`),
-	)
-
-	bc = getBenthosConfigByName(resp.BenthosConfigs, "public.orders")
-	require.Equal(t, bc.Name, "public.orders")
-	require.Empty(t, bc.RedisConfig)
-	out, err = yaml.Marshal(bc.Config)
-	require.NoError(t, err)
-	require.Equal(
-		t,
-		strings.TrimSpace(string(out)),
-		strings.TrimSpace(`
-input:
-    label: ""
-    pooled_sql_raw:
-        driver: postgres
-        dsn: ${SOURCE_CONNECTION_DSN}
-        query: SELECT "id", "buyer_id" FROM "public"."orders";
-pipeline:
-    threads: -1
-    processors: []
-output:
-    label: ""
-    broker:
-        pattern: fan_out
-        outputs:
-            - fallback:
-                - pooled_sql_insert:
-                    driver: postgres
-                    dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    schema: public
-                    table: orders
-                    columns:
-                        - id
-                        - buyer_id
-                    on_conflict_do_nothing: false
-                    truncate_on_retry: false
-                    args_mapping: root = [this."id", this."buyer_id"]
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-                - error:
-                    error_msg: ${! meta("fallback_error")}
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-`),
-	)
-
-	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
-	require.NoError(t, err)
-	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
-	require.NoError(t, err)
-	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
-	require.NoError(t, err)
-	newSB := benthosenv.NewStreamBuilder()
-
-	// SetYAML parses a full Benthos config and uses it to configure the builder.
-	err = newSB.SetYAML(string(out))
-	require.NoError(t, err)
-}
-
-func Test_BenthosBuilder_GenerateBenthosConfigs_CircularDependency_PrimaryKey_Transformer_Pg_Pg(t *testing.T) {
-	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
-	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-
-	pgcache := &sync.Map{}
-	pgcache.Store("123", pg_queries.NewMockDBTX(t))
-	pgcache.Store("456", pg_queries.NewMockDBTX(t))
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := &sync.Map{}
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
-	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
-
-	redisConfig := &shared.RedisConfig{
-		Url:  "redis://localhost:6379",
-		Kind: "simple",
-	}
-
-	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
-		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
-			Job: &mgmtv1alpha1.Job{
-				Source: &mgmtv1alpha1.JobSource{
-					Options: &mgmtv1alpha1.JobSourceOptions{
-						Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
-							Postgres: &mgmtv1alpha1.PostgresSourceConnectionOptions{
-								ConnectionId: "123",
-							},
-						},
-					},
-				},
-				Mappings: []*mgmtv1alpha1.JobMapping{
-					{
-						Schema: "public",
-						Table:  "jobs",
-						Column: "id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UUID,
-							Config: &mgmtv1alpha1.TransformerConfig{
-								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
-									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
-										IncludeHyphens: true,
-									},
-								},
-							},
-						},
-					},
-					{
-						Schema: "public",
-						Table:  "jobs",
-						Column: "parent_id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-				},
-				Destinations: []*mgmtv1alpha1.JobDestination{
-					{
-						ConnectionId: "456",
-					},
-				},
-			},
-		}), nil)
-	mockConnectionClient.On(
-		"GetConnection",
-		mock.Anything,
-		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: "123",
-		}),
-	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		Connection: &mgmtv1alpha1.Connection{
-			Id:   "123",
-			Name: "prod",
-			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
-					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
-						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-							Url: "fake-prod-url",
-						},
-					},
-				},
-			},
-		},
-	}), nil)
-	mockConnectionClient.On(
-		"GetConnection",
-		mock.Anything,
-		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: "456",
-		}),
-	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		Connection: &mgmtv1alpha1.Connection{
-			Id:   "456",
-			Name: "stage",
-			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
-					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
-						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-							Url: "fake-stage-url",
-						},
-					},
-				},
-			},
-		},
-	}), nil)
-
-	pgquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetDatabaseSchemaRow{
-			{
-				TableSchema: "public",
-				TableName:   "jobs",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "jobs",
-				ColumnName:  "parent_id",
-			},
-		}, nil)
-	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
-		Once().
-		Return([]*pg_queries.GetTableConstraintsBySchemaRow{
-			{
-				ConstraintName:     "fk_user_account_associations_user_id_users_id",
-				SchemaName:         "public",
-				TableName:          "jobs",
-				ConstraintColumns:  []string{"parent_id"},
-				ForeignSchemaName:  "public",
-				ForeignTableName:   "jobs",
-				ForeignColumnNames: []string{"id"},
-				ConstraintType:     "f",
-				Notnullable:        []bool{false},
-			},
-		}, nil)
-	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
-		Once().
-		Return(
-			[]*pg_queries.GetTableConstraintsBySchemaRow{{
-				SchemaName:        "public",
-				TableName:         "jobs",
-				ConstraintName:    "job",
-				ConstraintColumns: []string{"id"},
-				ConstraintType:    "p",
-			}}, nil,
-		)
-
-	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, redisConfig, false)
-
-	resp, err := bbuilder.GenerateBenthosConfigs(
-		context.Background(),
-		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		slog.Default(),
-	)
-
-	require.NoError(t, err)
-	require.NotEmpty(t, resp.BenthosConfigs)
-	require.Len(t, resp.BenthosConfigs, 2)
-	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.jobs")
-	require.Equal(t, bc.Name, "public.jobs")
-	require.Len(t, bc.RedisConfig, 1)
-	require.Equal(t, bc.RedisConfig[0].Table, "public.jobs")
-	require.Equal(t, bc.RedisConfig[0].Column, "id")
-	out, err := yaml.Marshal(bc.Config)
-	require.NoError(t, err)
-	require.Equal(
-		t,
-		strings.TrimSpace(string(out)),
-		strings.TrimSpace(`
-input:
-    label: ""
-    pooled_sql_raw:
-        driver: postgres
-        dsn: ${SOURCE_CONNECTION_DSN}
-        query: SELECT "id", "parent_id" FROM "public"."jobs";
-pipeline:
-    threads: -1
-    processors:
-        - mapping: meta neosync_id = this."id"
-        - mutation: root."id" = generate_uuid(include_hyphens:true)
-        - catch:
-            - error:
-                error_msg: ${! meta("fallback_error")}
-output:
-    label: ""
-    broker:
-        pattern: fan_out
-        outputs:
-            - redis_hash_output:
-                url: redis://localhost:6379
-                key: 60c88959dfc6d1e114ca65511290b36786e08961ee1acc3c2b605e1468b561cb
-                walk_metadata: false
-                walk_json_object: false
-                fields_mapping: 'root = {meta("neosync_id"): json("id")}'
-                kind: simple
-            - fallback:
-                - pooled_sql_insert:
-                    driver: postgres
-                    dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    schema: public
-                    table: jobs
-                    columns:
-                        - id
-                    on_conflict_do_nothing: false
-                    truncate_on_retry: false
-                    args_mapping: root = [this."id"]
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-                - error:
-                    error_msg: ${! meta("fallback_error")}
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-`),
-	)
-
-	bc = getBenthosConfigByName(resp.BenthosConfigs, "public.jobs.update")
-	require.Equal(t, bc.Name, "public.jobs.update")
-	require.Empty(t, bc.RedisConfig)
-	out, err = yaml.Marshal(bc.Config)
-	require.NoError(t, err)
-	require.Equal(
-		t,
-		strings.TrimSpace(string(out)),
-		strings.TrimSpace(`
-input:
-    label: ""
-    pooled_sql_raw:
-        driver: postgres
-        dsn: ${SOURCE_CONNECTION_DSN}
-        query: SELECT "id", "parent_id" FROM "public"."jobs";
-pipeline:
-    threads: -1
-    processors:
-        - branch:
-            processors:
-                - redis:
-                    url: redis://localhost:6379
-                    command: hget
-                    args_mapping: root = ["60c88959dfc6d1e114ca65511290b36786e08961ee1acc3c2b605e1468b561cb", json("parent_id")]
-                    kind: simple
-            request_map: root = if this."parent_id" == null { deleted() } else { this }
-            result_map: root."parent_id" = this
-        - branch:
-            processors:
-                - redis:
-                    url: redis://localhost:6379
-                    command: hget
-                    args_mapping: root = ["60c88959dfc6d1e114ca65511290b36786e08961ee1acc3c2b605e1468b561cb", json("id")]
-                    kind: simple
-            request_map: root = if this."id" == null { deleted() } else { this }
-            result_map: root."id" = this
-        - catch:
-            - error:
-                error_msg: ${! meta("fallback_error")}
-output:
-    label: ""
-    broker:
-        pattern: fan_out
-        outputs:
-            - fallback:
-                - pooled_sql_update:
-                    driver: postgres
-                    dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    schema: public
-                    table: jobs
-                    columns:
-                        - parent_id
-                    where_columns:
-                        - id
-                    args_mapping: root = [this."parent_id", this."id"]
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-                - error:
-                    error_msg: ${! meta("fallback_error")}
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-
-`),
-	)
-
-	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
-	require.NoError(t, err)
-	err = neosync_benthos_sql.RegisterPooledSqlUpdateOutput(benthosenv, nil)
-	require.NoError(t, err)
-	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
-	require.NoError(t, err)
-	err = neosync_benthos_error.RegisterErrorProcessor(benthosenv, nil)
-	require.NoError(t, err)
-	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
-	require.NoError(t, err)
-	newSB := benthosenv.NewStreamBuilder()
-
-	// SetYAML parses a full Benthos config and uses it to configure the builder.
-	err = newSB.SetYAML(string(out))
-	require.NoError(t, err)
-}
-
-func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *testing.T) {
-	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
-	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-
-	pgcache := &sync.Map{}
-	pgcache.Store("123", pg_queries.NewMockDBTX(t))
-	pgcache.Store("456", pg_queries.NewMockDBTX(t))
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := &sync.Map{}
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
-	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
-
-	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
-		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
-			Job: &mgmtv1alpha1.Job{
-				Source: &mgmtv1alpha1.JobSource{
-					Options: &mgmtv1alpha1.JobSourceOptions{
-						Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
-							Postgres: &mgmtv1alpha1.PostgresSourceConnectionOptions{
-								ConnectionId: "123",
-							},
-						},
-					},
-				},
-				Mappings: []*mgmtv1alpha1.JobMapping{
-					{
-						Schema: "public",
-						Table:  "users",
-						Column: "id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "public",
-						Table:  "users",
-						Column: "name",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "public",
-						Table:  "user_account_associations",
-						Column: "id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "public",
-						Table:  "user_account_associations",
-						Column: "user_id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-				},
-				Destinations: []*mgmtv1alpha1.JobDestination{
-					{
-						ConnectionId: "456",
-					},
-				},
-			},
-		}), nil)
-	mockConnectionClient.On(
-		"GetConnection",
-		mock.Anything,
-		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: "123",
-		}),
-	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		Connection: &mgmtv1alpha1.Connection{
-			Id:   "123",
-			Name: "prod",
-			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
-					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
-						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-							Url: "fake-prod-url",
-						},
-					},
-				},
-			},
-		},
-	}), nil)
-	mockConnectionClient.On(
-		"GetConnection",
-		mock.Anything,
-		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: "456",
-		}),
-	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		Connection: &mgmtv1alpha1.Connection{
-			Id:   "456",
-			Name: "stage",
-			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
-					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
-						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-							Url: "fake-stage-url",
-						},
-					},
-				},
-			},
-		},
-	}), nil)
-
-	pgquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetDatabaseSchemaRow{
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "name",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "user_account_associations",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "user_account_associations",
-				ColumnName:  "user_id",
-			},
-		}, nil)
-	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
-		Once().
-		Return([]*pg_queries.GetTableConstraintsBySchemaRow{
-			{
-				ConstraintName:     "fk_user_account_associations_user_id_users_id",
-				SchemaName:         "public",
-				TableName:          "user_account_associations",
-				ConstraintColumns:  []string{"user_id"},
-				ForeignSchemaName:  "public",
-				ForeignTableName:   "users",
-				ForeignColumnNames: []string{"id"},
-				ConstraintType:     "f",
-				Notnullable:        []bool{true},
-			},
-		}, nil)
-	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
-		Once().
-		Return(
-			[]*pg_queries.GetTableConstraintsBySchemaRow{{
-				SchemaName:        "public",
-				TableName:         "users",
-				ConstraintName:    "name",
-				ConstraintColumns: []string{"id"},
-				ConstraintType:    "p",
-			}, {
-				SchemaName:        "public",
-				TableName:         "user_account_associations",
-				ConstraintName:    "acc_assoc_constraint",
-				ConstraintColumns: []string{"id"},
-				ConstraintType:    "p",
-			}}, nil,
-		)
-
-	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
-
-	resp, err := bbuilder.GenerateBenthosConfigs(
-		context.Background(),
-		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		slog.Default(),
-	)
-	require.Nil(t, err)
-	require.NotEmpty(t, resp.BenthosConfigs)
-	require.Len(t, resp.BenthosConfigs, 2)
-
-	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
-	require.NotNil(t, bc)
-	require.Equal(t, bc.Name, "public.users")
-	require.Empty(t, bc.DependsOn)
-	out, err := yaml.Marshal(bc.Config)
-	require.NoError(t, err)
-
-	bc2 := getBenthosConfigByName(resp.BenthosConfigs, "public.user_account_associations")
-	require.Equal(t, bc2.Name, "public.user_account_associations")
-	require.Equal(t, bc2.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}})
-	out2, err := yaml.Marshal(bc2.Config)
-	require.NoError(t, err)
-
-	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
-	require.NoError(t, err)
-	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
-	require.NoError(t, err)
-	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
-	require.NoError(t, err)
-	newSB := benthosenv.NewStreamBuilder()
-
-	// SetYAML parses a full Benthos config and uses it to configure the builder.
-	err = newSB.SetYAML(string(out))
-	require.NoError(t, err)
-
-	err = newSB.SetYAML(string(out2))
-	require.NoError(t, err)
-}
-
-func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Dependency(t *testing.T) {
-	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
-	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-
-	pgcache := &sync.Map{}
-	pgcache.Store("123", pg_queries.NewMockDBTX(t))
-	pgcache.Store("456", pg_queries.NewMockDBTX(t))
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := &sync.Map{}
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
-	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
-
-	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
-		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
-			Job: &mgmtv1alpha1.Job{
-				Source: &mgmtv1alpha1.JobSource{
-					Options: &mgmtv1alpha1.JobSourceOptions{
-						Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
-							Postgres: &mgmtv1alpha1.PostgresSourceConnectionOptions{
-								ConnectionId: "123",
-							},
-						},
-					},
-				},
-				Mappings: []*mgmtv1alpha1.JobMapping{
-					{
-						Schema: "public",
-						Table:  "users",
-						Column: "id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "public",
-						Table:  "users",
-						Column: "name",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "public",
-						Table:  "users",
-						Column: "user_assoc_id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "public",
-						Table:  "user_account_associations",
-						Column: "id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "public",
-						Table:  "user_account_associations",
-						Column: "user_id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-				},
-				Destinations: []*mgmtv1alpha1.JobDestination{
-					{
-						ConnectionId: "456",
-					},
-				},
-			},
-		}), nil)
-	mockConnectionClient.On(
-		"GetConnection",
-		mock.Anything,
-		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: "123",
-		}),
-	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		Connection: &mgmtv1alpha1.Connection{
-			Id:   "123",
-			Name: "prod",
-			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
-					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
-						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-							Url: "fake-prod-url",
-						},
-					},
-				},
-			},
-		},
-	}), nil)
-	mockConnectionClient.On(
-		"GetConnection",
-		mock.Anything,
-		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: "456",
-		}),
-	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		Connection: &mgmtv1alpha1.Connection{
-			Id:   "456",
-			Name: "stage",
-			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
-					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
-						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-							Url: "fake-stage-url",
-						},
-					},
-				},
-			},
-		},
-	}), nil)
-
-	pgquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetDatabaseSchemaRow{
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "user_assoc_id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "name",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "user_account_associations",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "user_account_associations",
-				ColumnName:  "user_id",
-			},
-		}, nil)
-	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
-		Once().
-		Return([]*pg_queries.GetTableConstraintsBySchemaRow{
-			{
-				ConstraintName:     "fk_user_account_associations_user_id_users_id",
-				SchemaName:         "public",
-				TableName:          "user_account_associations",
-				ConstraintColumns:  []string{"user_id"},
-				ForeignSchemaName:  "public",
-				ForeignTableName:   "users",
-				ForeignColumnNames: []string{"id"},
-				ConstraintType:     "f",
-				Notnullable:        []bool{true},
-			},
-			{
-				ConstraintName:     "fk_users_user_assoc_id_user_account_associations_id",
-				SchemaName:         "public",
-				TableName:          "users",
-				ConstraintColumns:  []string{"user_assoc_id"},
-				ForeignSchemaName:  "public",
-				ForeignTableName:   "user_account_associations",
-				ForeignColumnNames: []string{"id"},
-				ConstraintType:     "f",
-				Notnullable:        []bool{false},
-			},
-		}, nil)
-	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
-		Once().
-		Return(
-			[]*pg_queries.GetTableConstraintsBySchemaRow{{
-				SchemaName:        "public",
-				TableName:         "users",
-				ConstraintName:    "pk-user-id",
-				ConstraintColumns: []string{"id"},
-				ConstraintType:    "p",
-			}, {
-				SchemaName:        "public",
-				TableName:         "users_account_associations",
-				ConstraintName:    "pk-user-assoc-id",
-				ConstraintColumns: []string{"id"},
-				ConstraintType:    "p",
-			}}, nil,
-		)
-	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
-
-	resp, err := bbuilder.GenerateBenthosConfigs(
-		context.Background(),
-		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		slog.Default(),
-	)
-	require.Nil(t, err)
-	require.NotEmpty(t, resp.BenthosConfigs)
-	require.Len(t, resp.BenthosConfigs, 3)
-
-	insertConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
-	require.NotNil(t, insertConfig)
-	require.Equal(t, insertConfig.Name, "public.users")
-	require.Empty(t, insertConfig.DependsOn)
-	out, err := yaml.Marshal(insertConfig.Config)
-	require.NoError(t, err)
-	require.Equal(
-		t,
-		strings.TrimSpace(string(out)),
-		strings.TrimSpace(`
-input:
-    label: ""
-    pooled_sql_raw:
-        driver: postgres
-        dsn: ${SOURCE_CONNECTION_DSN}
-        query: SELECT "id", "name", "user_assoc_id" FROM "public"."users";
-pipeline:
-    threads: -1
-    processors: []
-output:
-    label: ""
-    broker:
-        pattern: fan_out
-        outputs:
-            - fallback:
-                - pooled_sql_insert:
-                    driver: postgres
-                    dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    schema: public
-                    table: users
-                    columns:
-                        - id
-                        - name
-                    on_conflict_do_nothing: false
-                    truncate_on_retry: false
-                    args_mapping: root = [this."id", this."name"]
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-                - error:
-                    error_msg: ${! meta("fallback_error")}
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-`),
-	)
-
-	updateConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users.update")
-	require.NotNil(t, updateConfig)
-	require.Equal(t, updateConfig.Name, "public.users.update")
-	require.Equal(t, updateConfig.DependsOn, []*tabledependency.DependsOn{{Table: "public.user_account_associations", Columns: []string{"id"}}, {Table: "public.users", Columns: []string{"id"}}})
-	out1, err := yaml.Marshal(updateConfig.Config)
-	require.NoError(t, err)
-	require.Equal(
-		t,
-		strings.TrimSpace(string(out1)),
-		strings.TrimSpace(`
-input:
-    label: ""
-    pooled_sql_raw:
-        driver: postgres
-        dsn: ${SOURCE_CONNECTION_DSN}
-        query: SELECT "id", "name", "user_assoc_id" FROM "public"."users";
-pipeline:
-    threads: -1
-    processors: []
-output:
-    label: ""
-    broker:
-        pattern: fan_out
-        outputs:
-            - fallback:
-                - pooled_sql_update:
-                    driver: postgres
-                    dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    schema: public
-                    table: users
-                    columns:
-                        - user_assoc_id
-                    where_columns:
-                        - id
-                    args_mapping: root = [this."user_assoc_id", this."id"]
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-                - error:
-                    error_msg: ${! meta("fallback_error")}
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-`),
-	)
-
-	bc2 := getBenthosConfigByName(resp.BenthosConfigs, "public.user_account_associations")
-	require.Equal(t, bc2.Name, "public.user_account_associations")
-	require.Equal(t, bc2.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}})
-	out2, err := yaml.Marshal(bc2.Config)
-	require.NoError(t, err)
-	require.Equal(
-		t,
-		strings.TrimSpace(string(out2)),
-		strings.TrimSpace(`
-input:
-    label: ""
-    pooled_sql_raw:
-        driver: postgres
-        dsn: ${SOURCE_CONNECTION_DSN}
-        query: SELECT "id", "user_id" FROM "public"."user_account_associations";
-pipeline:
-    threads: -1
-    processors: []
-output:
-    label: ""
-    broker:
-        pattern: fan_out
-        outputs:
-            - fallback:
-                - pooled_sql_insert:
-                    driver: postgres
-                    dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    schema: public
-                    table: user_account_associations
-                    columns:
-                        - id
-                        - user_id
-                    on_conflict_do_nothing: false
-                    truncate_on_retry: false
-                    args_mapping: root = [this."id", this."user_id"]
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-                - error:
-                    error_msg: ${! meta("fallback_error")}
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-`),
-	)
-
-	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
-	require.NoError(t, err)
-	err = neosync_benthos_sql.RegisterPooledSqlUpdateOutput(benthosenv, nil)
-	require.NoError(t, err)
-	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
-	require.NoError(t, err)
-	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
-	require.NoError(t, err)
-	newSB := benthosenv.NewStreamBuilder()
-
-	// SetYAML parses a full Benthos config and uses it to configure the builder.
-	err = newSB.SetYAML(string(out))
-	require.NoError(t, err)
-
-	err = newSB.SetYAML(string(out2))
-	require.NoError(t, err)
-}
-
-func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Dependency_S3(t *testing.T) {
-	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
-	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-
-	pgcache := &sync.Map{}
-	pgcache.Store("123", pg_queries.NewMockDBTX(t))
-	pgcache.Store("456", pg_queries.NewMockDBTX(t))
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := &sync.Map{}
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
-	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
-
-	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
-		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
-			Job: &mgmtv1alpha1.Job{
-				Source: &mgmtv1alpha1.JobSource{
-					Options: &mgmtv1alpha1.JobSourceOptions{
-						Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
-							Postgres: &mgmtv1alpha1.PostgresSourceConnectionOptions{
-								ConnectionId: "123",
-							},
-						},
-					},
-				},
-				Mappings: []*mgmtv1alpha1.JobMapping{
-					{
-						Schema: "public",
-						Table:  "users",
-						Column: "id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "public",
-						Table:  "users",
-						Column: "name",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "public",
-						Table:  "users",
-						Column: "user_assoc_id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "public",
-						Table:  "user_account_associations",
-						Column: "id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "public",
-						Table:  "user_account_associations",
-						Column: "user_id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-				},
-				Destinations: []*mgmtv1alpha1.JobDestination{
-					{
-						ConnectionId: "456",
-					},
-					{
-						ConnectionId: "789",
-					},
-				},
-			},
-		}), nil)
-	mockConnectionClient.On(
-		"GetConnection",
-		mock.Anything,
-		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: "123",
-		}),
-	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		Connection: &mgmtv1alpha1.Connection{
-			Id:   "123",
-			Name: "prod",
-			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
-					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
-						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-							Url: "fake-prod-url",
-						},
-					},
-				},
-			},
-		},
-	}), nil)
-	mockConnectionClient.On(
-		"GetConnection",
-		mock.Anything,
-		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: "456",
-		}),
-	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		Connection: &mgmtv1alpha1.Connection{
-			Id:   "456",
-			Name: "stage",
-			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
-					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
-						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
-							Url: "fake-stage-url",
-						},
-					},
-				},
-			},
-		},
-	}), nil)
-	region := "us-west-2"
-	accessId := "access-key"
-	secret := "secret"
-	mockConnectionClient.On(
-		"GetConnection",
-		mock.Anything,
-		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: "789",
-		}),
-	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		Connection: &mgmtv1alpha1.Connection{
-			Id:   "789",
-			Name: "s3",
-			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-				Config: &mgmtv1alpha1.ConnectionConfig_AwsS3Config{
-					AwsS3Config: &mgmtv1alpha1.AwsS3ConnectionConfig{
-						Bucket: "s3-bucket",
-						Region: &region,
-						Credentials: &mgmtv1alpha1.AwsS3Credentials{
-							AccessKeyId:     &accessId,
-							SecretAccessKey: &secret,
-						},
-					},
-				},
-			},
-		},
-	}), nil)
-
-	pgquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetDatabaseSchemaRow{
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "user_assoc_id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "name",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "user_account_associations",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "user_account_associations",
-				ColumnName:  "user_id",
-			},
-		}, nil)
-	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
-		Once().
-		Return([]*pg_queries.GetTableConstraintsBySchemaRow{
-			{
-				ConstraintName:     "fk_user_account_associations_user_id_users_id",
-				SchemaName:         "public",
-				TableName:          "user_account_associations",
-				ConstraintColumns:  []string{"user_id"},
-				ForeignSchemaName:  "public",
-				ForeignTableName:   "users",
-				ForeignColumnNames: []string{"id"},
-				ConstraintType:     "f",
-				Notnullable:        []bool{true},
-			},
-			{
-				ConstraintName:     "fk_users_user_assoc_id_user_account_associations_id",
-				SchemaName:         "public",
-				TableName:          "users",
-				ConstraintColumns:  []string{"user_assoc_id"},
-				ForeignSchemaName:  "public",
-				ForeignTableName:   "user_account_associations",
-				ForeignColumnNames: []string{"id"},
-				ConstraintType:     "f",
-				Notnullable:        []bool{false},
-			},
-		}, nil)
-	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
-		Once().
-		Return(
-			[]*pg_queries.GetTableConstraintsBySchemaRow{{
-				SchemaName:        "public",
-				TableName:         "users",
-				ConstraintName:    "pk-user-id",
-				ConstraintColumns: []string{"id"},
-				ConstraintType:    "p",
-			}, {
-				SchemaName:        "public",
-				TableName:         "users_account_associations",
-				ConstraintName:    "pk-user-assoc-id",
-				ConstraintColumns: []string{"id"},
-				ConstraintType:    "p",
-			}}, nil,
-		)
-
-	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
-
-	resp, err := bbuilder.GenerateBenthosConfigs(
-		context.Background(),
-		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		slog.Default(),
-	)
-	require.Nil(t, err)
-	require.NotEmpty(t, resp.BenthosConfigs)
-	require.Len(t, resp.BenthosConfigs, 3)
-
-	insertConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
-	require.NotNil(t, insertConfig)
-	require.Equal(t, insertConfig.Name, "public.users")
-	require.Empty(t, insertConfig.DependsOn)
-	out, err := yaml.Marshal(insertConfig.Config)
-
-	require.NoError(t, err)
-	require.Equal(
-		t,
-		strings.TrimSpace(string(out)),
-		strings.TrimSpace(`
-input:
-    label: ""
-    pooled_sql_raw:
-        driver: postgres
-        dsn: ${SOURCE_CONNECTION_DSN}
-        query: SELECT "id", "name", "user_assoc_id" FROM "public"."users";
-pipeline:
-    threads: -1
-    processors: []
-output:
-    label: ""
-    broker:
-        pattern: fan_out
-        outputs:
-            - fallback:
-                - pooled_sql_insert:
-                    driver: postgres
-                    dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    schema: public
-                    table: users
-                    columns:
-                        - id
-                        - name
-                    on_conflict_do_nothing: false
-                    truncate_on_retry: false
-                    args_mapping: root = [this."id", this."name"]
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-                - error:
-                    error_msg: ${! meta("fallback_error")}
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-            - fallback:
-                - aws_s3:
-                    bucket: s3-bucket
-                    max_in_flight: 64
-                    path: /workflows/123/activities/public.users/data/${!count("files")}.txt.gz
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors:
-                            - archive:
-                                format: lines
-                            - compress:
-                                algorithm: gzip
-                    region: us-west-2
-                    credentials:
-                        id: access-key
-                        secret: secret
-                - error:
-                    error_msg: ${! meta("fallback_error")}
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-`),
-	)
-
-	updateConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users.update")
-	require.NotNil(t, updateConfig)
-	require.Equal(t, updateConfig.Name, "public.users.update")
-	require.Equal(t, updateConfig.DependsOn, []*tabledependency.DependsOn{{Table: "public.user_account_associations", Columns: []string{"id"}}, {Table: "public.users", Columns: []string{"id"}}})
-	out1, err := yaml.Marshal(updateConfig.Config)
-
-	require.NoError(t, err)
-	require.Equal(
-		t,
-		strings.TrimSpace(string(out1)),
-		strings.TrimSpace(`
-input:
-    label: ""
-    pooled_sql_raw:
-        driver: postgres
-        dsn: ${SOURCE_CONNECTION_DSN}
-        query: SELECT "id", "name", "user_assoc_id" FROM "public"."users";
-pipeline:
-    threads: -1
-    processors: []
-output:
-    label: ""
-    broker:
-        pattern: fan_out
-        outputs:
-            - fallback:
-                - pooled_sql_update:
-                    driver: postgres
-                    dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    schema: public
-                    table: users
-                    columns:
-                        - user_assoc_id
-                    where_columns:
-                        - id
-                    args_mapping: root = [this."user_assoc_id", this."id"]
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-                - error:
-                    error_msg: ${! meta("fallback_error")}
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-`),
-	)
-
-	bc2 := getBenthosConfigByName(resp.BenthosConfigs, "public.user_account_associations")
-	require.Equal(t, bc2.Name, "public.user_account_associations")
-	require.Equal(t, bc2.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}})
-	out2, err := yaml.Marshal(bc2.Config)
-
-	require.NoError(t, err)
-	require.Equal(
-		t,
-		strings.TrimSpace(string(out2)),
-		strings.TrimSpace(`
-input:
-    label: ""
-    pooled_sql_raw:
-        driver: postgres
-        dsn: ${SOURCE_CONNECTION_DSN}
-        query: SELECT "id", "user_id" FROM "public"."user_account_associations";
-pipeline:
-    threads: -1
-    processors: []
-output:
-    label: ""
-    broker:
-        pattern: fan_out
-        outputs:
-            - fallback:
-                - pooled_sql_insert:
-                    driver: postgres
-                    dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    schema: public
-                    table: user_account_associations
-                    columns:
-                        - id
-                        - user_id
-                    on_conflict_do_nothing: false
-                    truncate_on_retry: false
-                    args_mapping: root = [this."id", this."user_id"]
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-                - error:
-                    error_msg: ${! meta("fallback_error")}
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-            - fallback:
-                - aws_s3:
-                    bucket: s3-bucket
-                    max_in_flight: 64
-                    path: /workflows/123/activities/public.user_account_associations/data/${!count("files")}.txt.gz
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors:
-                            - archive:
-                                format: lines
-                            - compress:
-                                algorithm: gzip
-                    region: us-west-2
-                    credentials:
-                        id: access-key
-                        secret: secret
-                - error:
-                    error_msg: ${! meta("fallback_error")}
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-`),
-	)
-
-	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
-	require.NoError(t, err)
-	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
-	require.NoError(t, err)
-	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
-	require.NoError(t, err)
-	newSB := benthosenv.NewStreamBuilder()
-
-	// SetYAML parses a full Benthos config and uses it to configure the builder.
-	err = newSB.SetYAML(string(out))
-	require.NoError(t, err)
-
-	err = newSB.SetYAML(string(out2))
-	require.NoError(t, err)
-}
-
-func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) {
-	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
-	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-	mockTransformersClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-
-	pgcache := &sync.Map{}
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := &sync.Map{}
-	mysqlcache.Store("123", mysql_queries.NewMockDBTX(t))
-	mysqlcache.Store("456", mysql_queries.NewMockDBTX(t))
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
-	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
-
-	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
-		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
-			Job: &mgmtv1alpha1.Job{
-				Source: &mgmtv1alpha1.JobSource{
-					Options: &mgmtv1alpha1.JobSourceOptions{
-						Config: &mgmtv1alpha1.JobSourceOptions_Mysql{
-							Mysql: &mgmtv1alpha1.MysqlSourceConnectionOptions{
-								ConnectionId: "123",
-							},
-						},
-					},
-				},
-				Mappings: []*mgmtv1alpha1.JobMapping{
-					{
-						Schema: "public",
-						Table:  "users",
-						Column: "id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "public",
-						Table:  "users",
-						Column: "name",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "public",
-						Table:  "user_account_associations",
-						Column: "id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "public",
-						Table:  "user_account_associations",
-						Column: "user_id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-				},
-				Destinations: []*mgmtv1alpha1.JobDestination{
-					{
-						ConnectionId: "456",
-					},
-				},
-			},
-		}), nil)
-	mockConnectionClient.On(
-		"GetConnection",
-		mock.Anything,
-		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: "123",
-		}),
-	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		Connection: &mgmtv1alpha1.Connection{
-			Id:   "123",
-			Name: "prod",
-			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
-					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
-						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
-							Url: "fake-prod-url",
-						},
-					},
-				},
-			},
-		},
-	}), nil)
-	mockConnectionClient.On(
-		"GetConnection",
-		mock.Anything,
-		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: "456",
-		}),
-	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		Connection: &mgmtv1alpha1.Connection{
-			Id:   "456",
-			Name: "stage",
-			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
-					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
-						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
-							Url: "fake-stage-url",
-						},
-					},
-				},
-			},
-		},
-	}), nil)
-
-	mysqlquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
-		Return([]*mysql_queries.GetDatabaseSchemaRow{
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "name",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "user_account_associations",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "user_account_associations",
-				ColumnName:  "user_id",
-			},
-		}, nil)
-	mysqlquerier.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*mysql_queries.GetForeignKeyConstraintsRow{
-			{
-				ConstraintName:    "fk_user_account_associations_user_id_users_id",
-				SchemaName:        "public",
-				TableName:         "user_account_associations",
-				ColumnName:        "user_id",
-				ForeignSchemaName: "public",
-				ForeignTableName:  "users",
-				ForeignColumnName: "id",
-			},
-		}, nil)
-	mysqlquerier.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*mysql_queries.GetPrimaryKeyConstraintsRow{{
-			SchemaName:     "public",
-			TableName:      "users",
-			ConstraintName: "pk-users-id",
-			ColumnName:     "id",
-		}, {
-			SchemaName:     "public",
-			TableName:      "user_account_associations",
-			ConstraintName: "pk-users-assoc-id",
-			ColumnName:     "id",
-		}}, nil)
-	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformersClient, mockJobId, mockRunId, nil, false)
-
-	resp, err := bbuilder.GenerateBenthosConfigs(
-		context.Background(),
-		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		slog.Default(),
-	)
-	require.Nil(t, err)
-	require.NotEmpty(t, resp.BenthosConfigs)
-	require.Len(t, resp.BenthosConfigs, 2)
-
-	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
-	require.Equal(t, bc.Name, "public.users")
-	require.Empty(t, bc.DependsOn)
-	out, err := yaml.Marshal(bc.Config)
-	require.NoError(t, err)
-	require.Equal(
-		t,
-		strings.TrimSpace(string(out)),
-		strings.TrimSpace(`
-input:
-    label: ""
-    pooled_sql_raw:
-        driver: mysql
-        dsn: ${SOURCE_CONNECTION_DSN}
-        `+"query: SELECT `id`, `name` FROM `public`.`users`;"+`
-pipeline:
-    threads: -1
-    processors: []
-output:
-    label: ""
-    broker:
-        pattern: fan_out
-        outputs:
-            - fallback:
-                - pooled_sql_insert:
-                    driver: mysql
-                    dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    schema: public
-                    table: users
-                    columns:
-                        - id
-                        - name
-                    on_conflict_do_nothing: false
-                    truncate_on_retry: false
-                    args_mapping: root = [this."id", this."name"]
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-                - error:
-                    error_msg: ${! meta("fallback_error")}
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-`),
-	)
-
-	bc2 := getBenthosConfigByName(resp.BenthosConfigs, "public.user_account_associations")
-	require.Equal(t, bc2.Name, "public.user_account_associations")
-	require.Equal(t, bc2.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}})
-	out2, err := yaml.Marshal(bc2.Config)
-	require.NoError(t, err)
-	require.Equal(
-		t,
-		strings.TrimSpace(string(out2)),
-		strings.TrimSpace(`
-input:
-    label: ""
-    pooled_sql_raw:
-        driver: mysql
-        dsn: ${SOURCE_CONNECTION_DSN}
-        `+"query: SELECT `id`, `user_id` FROM `public`.`user_account_associations`;"+`
-pipeline:
-    threads: -1
-    processors: []
-output:
-    label: ""
-    broker:
-        pattern: fan_out
-        outputs:
-            - fallback:
-                - pooled_sql_insert:
-                    driver: mysql
-                    dsn: ${DESTINATION_0_CONNECTION_DSN}
-                    schema: public
-                    table: user_account_associations
-                    columns:
-                        - id
-                        - user_id
-                    on_conflict_do_nothing: false
-                    truncate_on_retry: false
-                    args_mapping: root = [this."id", this."user_id"]
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-                - error:
-                    error_msg: ${! meta("fallback_error")}
-                    batching:
-                        count: 100
-                        byte_size: 0
-                        period: 5s
-                        check: ""
-                        processors: []
-`),
-	)
-
-	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
-	require.NoError(t, err)
-	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
-	require.NoError(t, err)
-	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
-	require.NoError(t, err)
-	newSB := benthosenv.NewStreamBuilder()
-
-	// SetYAML parses a full Benthos config and uses it to configure the builder.
-	err = newSB.SetYAML(string(out))
-	require.NoError(t, err)
-
-	// SetYAML parses a full Benthos config and uses it to configure the builder.
-	err = newSB.SetYAML(string(out2))
-	require.NoError(t, err)
-}
-
-func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_Dependency(t *testing.T) {
-	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
-	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-
-	pgcache := &sync.Map{}
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := &sync.Map{}
-	mysqlcache.Store("123", mysql_queries.NewMockDBTX(t))
-	mysqlcache.Store("456", mysql_queries.NewMockDBTX(t))
-
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
-	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
-
-	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
-		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
-			Job: &mgmtv1alpha1.Job{
-				Source: &mgmtv1alpha1.JobSource{
-					Options: &mgmtv1alpha1.JobSourceOptions{
-						Config: &mgmtv1alpha1.JobSourceOptions_Mysql{
-							Mysql: &mgmtv1alpha1.MysqlSourceConnectionOptions{
-								ConnectionId: "123",
-							},
-						},
-					},
-				},
-				Mappings: []*mgmtv1alpha1.JobMapping{
-					{
-						Schema: "public",
-						Table:  "users",
-						Column: "id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "public",
-						Table:  "users",
-						Column: "name",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "public",
-						Table:  "users",
-						Column: "user_assoc_id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "public",
-						Table:  "user_account_associations",
-						Column: "id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-					{
-						Schema: "public",
-						Table:  "user_account_associations",
-						Column: "user_id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
-						},
-					},
-				},
-				Destinations: []*mgmtv1alpha1.JobDestination{
-					{
-						ConnectionId: "456",
-					},
-				},
-			},
-		}), nil)
-	mockConnectionClient.On(
-		"GetConnection",
-		mock.Anything,
-		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: "123",
-		}),
-	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		Connection: &mgmtv1alpha1.Connection{
-			Id:   "123",
-			Name: "prod",
-			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
-					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
-						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
-							Url: "fake-prod-url",
-						},
-					},
-				},
-			},
-		},
-	}), nil)
-	mockConnectionClient.On(
-		"GetConnection",
-		mock.Anything,
-		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: "456",
-		}),
-	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		Connection: &mgmtv1alpha1.Connection{
-			Id:   "456",
-			Name: "stage",
-			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
-					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
-						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
-							Url: "fake-stage-url",
-						},
-					},
-				},
-			},
-		},
-	}), nil)
-
-	mysqlquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
-		Return([]*mysql_queries.GetDatabaseSchemaRow{
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "user_assoc_id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "name",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "user_account_associations",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "user_account_associations",
-				ColumnName:  "user_id",
-			},
-		}, nil)
-	mysqlquerier.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*mysql_queries.GetForeignKeyConstraintsRow{
-			{
-				ConstraintName:    "fk_user_account_associations_user_id_users_id",
-				SchemaName:        "public",
-				TableName:         "user_account_associations",
-				ColumnName:        "user_id",
-				ForeignSchemaName: "public",
-				ForeignTableName:  "users",
-				ForeignColumnName: "id",
-				IsNullable:        "NO",
-			},
-			{
-				ConstraintName:    "fk_users_user_assoc_id_user_account_associations_id",
-				SchemaName:        "public",
-				TableName:         "users",
-				ColumnName:        "user_assoc_id",
-				ForeignSchemaName: "public",
-				ForeignTableName:  "user_account_associations",
-				ForeignColumnName: "id",
-				IsNullable:        "YES",
-			},
-		}, nil)
-	mysqlquerier.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).Return([]*mysql_queries.GetPrimaryKeyConstraintsRow{
-		{
-			ConstraintName: "pkey-user-id",
-			SchemaName:     "public",
-			TableName:      "users",
-			ColumnName:     "id",
-		},
-		{
-			ConstraintName: "pkey-user-assoc-id",
-			SchemaName:     "public",
-			TableName:      "users_account_associations",
-			ColumnName:     "id",
-		},
-	}, nil)
-	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
-
-	resp, err := bbuilder.GenerateBenthosConfigs(
-		context.Background(),
-		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
-		slog.Default(),
-	)
-	require.Nil(t, err)
-	require.NotEmpty(t, resp.BenthosConfigs)
-	require.Len(t, resp.BenthosConfigs, 3)
-
-	insertConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
-	require.NotNil(t, insertConfig)
-	require.Equal(t, insertConfig.Name, "public.users")
-	require.Empty(t, insertConfig.DependsOn)
-	out, err := yaml.Marshal(insertConfig.Config)
-	require.NoError(t, err)
-
-	updateConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users.update")
-	require.NotNil(t, updateConfig)
-	require.Equal(t, updateConfig.Name, "public.users.update")
-	require.Equal(t, updateConfig.DependsOn, []*tabledependency.DependsOn{{Table: "public.user_account_associations", Columns: []string{"id"}}, {Table: "public.users", Columns: []string{"id"}}})
-	out1, err := yaml.Marshal(updateConfig.Config)
-	require.NoError(t, err)
-
-	bc2 := getBenthosConfigByName(resp.BenthosConfigs, "public.user_account_associations")
-	require.Equal(t, bc2.Name, "public.user_account_associations")
-	require.Equal(t, bc2.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}})
-	out2, err := yaml.Marshal(bc2.Config)
-	require.NoError(t, err)
-
-	benthosenv := service.NewEnvironment()
-	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
-	require.NoError(t, err)
-	err = neosync_benthos_sql.RegisterPooledSqlUpdateOutput(benthosenv, nil)
-	require.NoError(t, err)
-	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
-	require.NoError(t, err)
-	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
-	require.NoError(t, err)
-	newSB := benthosenv.NewStreamBuilder()
-
-	// SetYAML parses a full Benthos config and uses it to configure the builder.
-	err = newSB.SetYAML(string(out))
-	require.NoError(t, err)
-
-	err = newSB.SetYAML(string(out1))
-	require.NoError(t, err)
-
-	err = newSB.SetYAML(string(out2))
-	require.NoError(t, err)
-}
+// func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Passthrough_Pg_Pg(t *testing.T) {
+// 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
+// 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
+// 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+// 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
+
+// 	pgcache := &sync.Map{}
+// 	pgcache.Store("123", pg_queries.NewMockDBTX(t))
+// 	pgcache.Store("456", pg_queries.NewMockDBTX(t))
+// 	pgquerier := pg_queries.NewMockQuerier(t)
+// 	mysqlcache := &sync.Map{}
+// 	mysqlquerier := mysql_queries.NewMockQuerier(t)
+// 	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
+
+// 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
+// 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
+// 			Job: &mgmtv1alpha1.Job{
+// 				Source: &mgmtv1alpha1.JobSource{
+// 					Options: &mgmtv1alpha1.JobSourceOptions{
+// 						Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
+// 							Postgres: &mgmtv1alpha1.PostgresSourceConnectionOptions{
+// 								ConnectionId: "123",
+// 							},
+// 						},
+// 					},
+// 				},
+// 				Mappings: []*mgmtv1alpha1.JobMapping{
+// 					{
+// 						Schema: "public",
+// 						Table:  "users",
+// 						Column: "id",
+// 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+// 						},
+// 					},
+// 					{
+// 						Schema: "public",
+// 						Table:  "users",
+// 						Column: "name",
+// 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+// 						},
+// 					},
+// 					{
+// 						Schema: "public",
+// 						Table:  "orders",
+// 						Column: "id",
+// 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+// 						},
+// 					},
+// 					{
+// 						Schema: "public",
+// 						Table:  "orders",
+// 						Column: "buyer_id",
+// 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+// 						},
+// 					},
+// 				},
+// 				Destinations: []*mgmtv1alpha1.JobDestination{
+// 					{
+// 						ConnectionId: "456",
+// 					},
+// 				},
+// 			},
+// 		}), nil)
+// 	mockConnectionClient.On(
+// 		"GetConnection",
+// 		mock.Anything,
+// 		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+// 			Id: "123",
+// 		}),
+// 	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+// 		Connection: &mgmtv1alpha1.Connection{
+// 			Id:   "123",
+// 			Name: "prod",
+// 			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+// 				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+// 					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+// 						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
+// 							Url: "fake-prod-url",
+// 						},
+// 					},
+// 				},
+// 			},
+// 		},
+// 	}), nil)
+// 	mockConnectionClient.On(
+// 		"GetConnection",
+// 		mock.Anything,
+// 		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+// 			Id: "456",
+// 		}),
+// 	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+// 		Connection: &mgmtv1alpha1.Connection{
+// 			Id:   "456",
+// 			Name: "stage",
+// 			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+// 				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+// 					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+// 						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
+// 							Url: "fake-stage-url",
+// 						},
+// 					},
+// 				},
+// 			},
+// 		},
+// 	}), nil)
+
+// 	pgquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
+// 		Return([]*pg_queries.GetDatabaseSchemaRow{
+// 			{
+// 				TableSchema: "public",
+// 				TableName:   "users",
+// 				ColumnName:  "id",
+// 			},
+// 			{
+// 				TableSchema: "public",
+// 				TableName:   "users",
+// 				ColumnName:  "name",
+// 			},
+// 			{
+// 				TableSchema: "public",
+// 				TableName:   "orders",
+// 				ColumnName:  "id",
+// 			},
+// 			{
+// 				TableSchema: "public",
+// 				TableName:   "orders",
+// 				ColumnName:  "buyer_id",
+// 			},
+// 		}, nil)
+// 	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
+// 		Once().
+// 		Return([]*pg_queries.GetTableConstraintsBySchemaRow{
+// 			{
+// 				ConstraintName:     "fk_user_account_associations_user_id_users_id",
+// 				SchemaName:         "public",
+// 				TableName:          "orders",
+// 				ConstraintColumns:  []string{"buyer_id"},
+// 				ForeignSchemaName:  "public",
+// 				ForeignTableName:   "users",
+// 				ForeignColumnNames: []string{"id"},
+// 				ConstraintType:     "f",
+// 				Notnullable:        []bool{true},
+// 			},
+// 		}, nil)
+// 	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
+// 		Once().
+// 		Return(
+// 			[]*pg_queries.GetTableConstraintsBySchemaRow{{
+// 				SchemaName:        "public",
+// 				TableName:         "users",
+// 				ConstraintName:    "users",
+// 				ConstraintColumns: []string{"id"},
+// 				ConstraintType:    "p",
+// 			}, {
+// 				SchemaName:        "public",
+// 				TableName:         "orders",
+// 				ConstraintName:    "orders",
+// 				ConstraintColumns: []string{"id"},
+// 				ConstraintType:    "p",
+// 			}}, nil,
+// 		)
+// 	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
+
+// 	resp, err := bbuilder.GenerateBenthosConfigs(
+// 		context.Background(),
+// 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
+// 		slog.Default(),
+// 	)
+
+// 	require.Nil(t, err)
+// 	require.NotEmpty(t, resp.BenthosConfigs)
+// 	require.Len(t, resp.BenthosConfigs, 2)
+// 	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
+// 	require.Equal(t, bc.Name, "public.users")
+// 	require.Empty(t, bc.RedisConfig)
+// 	out, err := yaml.Marshal(bc.Config)
+// 	require.NoError(t, err)
+// 	require.Equal(
+// 		t,
+// 		strings.TrimSpace(string(out)),
+// 		strings.TrimSpace(`
+// input:
+//     label: ""
+//     pooled_sql_raw:
+//         driver: postgres
+//         dsn: ${SOURCE_CONNECTION_DSN}
+//         query: SELECT "id", "name" FROM "public"."users";
+// pipeline:
+//     threads: -1
+//     processors: []
+// output:
+//     label: ""
+//     broker:
+//         pattern: fan_out
+//         outputs:
+//             - fallback:
+//                 - pooled_sql_insert:
+//                     driver: postgres
+//                     dsn: ${DESTINATION_0_CONNECTION_DSN}
+//                     schema: public
+//                     table: users
+//                     columns:
+//                         - id
+//                         - name
+//                     on_conflict_do_nothing: false
+//                     truncate_on_retry: false
+//                     args_mapping: root = [this."id", this."name"]
+//                     batching:
+//                         count: 100
+//                         byte_size: 0
+//                         period: 5s
+//                         check: ""
+//                         processors: []
+//                 - error:
+//                     error_msg: ${! meta("fallback_error")}
+//                     batching:
+//                         count: 100
+//                         byte_size: 0
+//                         period: 5s
+//                         check: ""
+//                         processors: []
+// `),
+// 	)
+
+// 	bc = getBenthosConfigByName(resp.BenthosConfigs, "public.orders")
+// 	require.Equal(t, bc.Name, "public.orders")
+// 	require.Empty(t, bc.RedisConfig)
+// 	out, err = yaml.Marshal(bc.Config)
+// 	require.NoError(t, err)
+// 	require.Equal(
+// 		t,
+// 		strings.TrimSpace(string(out)),
+// 		strings.TrimSpace(`
+// input:
+//     label: ""
+//     pooled_sql_raw:
+//         driver: postgres
+//         dsn: ${SOURCE_CONNECTION_DSN}
+//         query: SELECT "id", "buyer_id" FROM "public"."orders";
+// pipeline:
+//     threads: -1
+//     processors: []
+// output:
+//     label: ""
+//     broker:
+//         pattern: fan_out
+//         outputs:
+//             - fallback:
+//                 - pooled_sql_insert:
+//                     driver: postgres
+//                     dsn: ${DESTINATION_0_CONNECTION_DSN}
+//                     schema: public
+//                     table: orders
+//                     columns:
+//                         - id
+//                         - buyer_id
+//                     on_conflict_do_nothing: false
+//                     truncate_on_retry: false
+//                     args_mapping: root = [this."id", this."buyer_id"]
+//                     batching:
+//                         count: 100
+//                         byte_size: 0
+//                         period: 5s
+//                         check: ""
+//                         processors: []
+//                 - error:
+//                     error_msg: ${! meta("fallback_error")}
+//                     batching:
+//                         count: 100
+//                         byte_size: 0
+//                         period: 5s
+//                         check: ""
+//                         processors: []
+// `),
+// 	)
+
+// 	benthosenv := service.NewEnvironment()
+// 	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
+// 	require.NoError(t, err)
+// 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
+// 	require.NoError(t, err)
+// 	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
+// 	require.NoError(t, err)
+// 	newSB := benthosenv.NewStreamBuilder()
+
+// 	// SetYAML parses a full Benthos config and uses it to configure the builder.
+// 	err = newSB.SetYAML(string(out))
+// 	require.NoError(t, err)
+// }
+
+// func Test_BenthosBuilder_GenerateBenthosConfigs_CircularDependency_PrimaryKey_Transformer_Pg_Pg(t *testing.T) {
+// 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
+// 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
+// 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+// 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
+
+// 	pgcache := &sync.Map{}
+// 	pgcache.Store("123", pg_queries.NewMockDBTX(t))
+// 	pgcache.Store("456", pg_queries.NewMockDBTX(t))
+// 	pgquerier := pg_queries.NewMockQuerier(t)
+// 	mysqlcache := &sync.Map{}
+// 	mysqlquerier := mysql_queries.NewMockQuerier(t)
+// 	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
+
+// 	redisConfig := &shared.RedisConfig{
+// 		Url:  "redis://localhost:6379",
+// 		Kind: "simple",
+// 	}
+
+// 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
+// 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
+// 			Job: &mgmtv1alpha1.Job{
+// 				Source: &mgmtv1alpha1.JobSource{
+// 					Options: &mgmtv1alpha1.JobSourceOptions{
+// 						Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
+// 							Postgres: &mgmtv1alpha1.PostgresSourceConnectionOptions{
+// 								ConnectionId: "123",
+// 							},
+// 						},
+// 					},
+// 				},
+// 				Mappings: []*mgmtv1alpha1.JobMapping{
+// 					{
+// 						Schema: "public",
+// 						Table:  "jobs",
+// 						Column: "id",
+// 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UUID,
+// 							Config: &mgmtv1alpha1.TransformerConfig{
+// 								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
+// 									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
+// 										IncludeHyphens: true,
+// 									},
+// 								},
+// 							},
+// 						},
+// 					},
+// 					{
+// 						Schema: "public",
+// 						Table:  "jobs",
+// 						Column: "parent_id",
+// 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+// 						},
+// 					},
+// 				},
+// 				Destinations: []*mgmtv1alpha1.JobDestination{
+// 					{
+// 						ConnectionId: "456",
+// 					},
+// 				},
+// 			},
+// 		}), nil)
+// 	mockConnectionClient.On(
+// 		"GetConnection",
+// 		mock.Anything,
+// 		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+// 			Id: "123",
+// 		}),
+// 	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+// 		Connection: &mgmtv1alpha1.Connection{
+// 			Id:   "123",
+// 			Name: "prod",
+// 			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+// 				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+// 					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+// 						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
+// 							Url: "fake-prod-url",
+// 						},
+// 					},
+// 				},
+// 			},
+// 		},
+// 	}), nil)
+// 	mockConnectionClient.On(
+// 		"GetConnection",
+// 		mock.Anything,
+// 		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+// 			Id: "456",
+// 		}),
+// 	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+// 		Connection: &mgmtv1alpha1.Connection{
+// 			Id:   "456",
+// 			Name: "stage",
+// 			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+// 				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+// 					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+// 						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
+// 							Url: "fake-stage-url",
+// 						},
+// 					},
+// 				},
+// 			},
+// 		},
+// 	}), nil)
+
+// 	pgquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
+// 		Return([]*pg_queries.GetDatabaseSchemaRow{
+// 			{
+// 				TableSchema: "public",
+// 				TableName:   "jobs",
+// 				ColumnName:  "id",
+// 			},
+// 			{
+// 				TableSchema: "public",
+// 				TableName:   "jobs",
+// 				ColumnName:  "parent_id",
+// 			},
+// 		}, nil)
+// 	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
+// 		Once().
+// 		Return([]*pg_queries.GetTableConstraintsBySchemaRow{
+// 			{
+// 				ConstraintName:     "fk_user_account_associations_user_id_users_id",
+// 				SchemaName:         "public",
+// 				TableName:          "jobs",
+// 				ConstraintColumns:  []string{"parent_id"},
+// 				ForeignSchemaName:  "public",
+// 				ForeignTableName:   "jobs",
+// 				ForeignColumnNames: []string{"id"},
+// 				ConstraintType:     "f",
+// 				Notnullable:        []bool{false},
+// 			},
+// 		}, nil)
+// 	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
+// 		Once().
+// 		Return(
+// 			[]*pg_queries.GetTableConstraintsBySchemaRow{{
+// 				SchemaName:        "public",
+// 				TableName:         "jobs",
+// 				ConstraintName:    "job",
+// 				ConstraintColumns: []string{"id"},
+// 				ConstraintType:    "p",
+// 			}}, nil,
+// 		)
+
+// 	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, redisConfig, false)
+
+// 	resp, err := bbuilder.GenerateBenthosConfigs(
+// 		context.Background(),
+// 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
+// 		slog.Default(),
+// 	)
+
+// 	require.NoError(t, err)
+// 	require.NotEmpty(t, resp.BenthosConfigs)
+// 	require.Len(t, resp.BenthosConfigs, 2)
+// 	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.jobs")
+// 	require.Equal(t, bc.Name, "public.jobs")
+// 	require.Len(t, bc.RedisConfig, 1)
+// 	require.Equal(t, bc.RedisConfig[0].Table, "public.jobs")
+// 	require.Equal(t, bc.RedisConfig[0].Column, "id")
+// 	out, err := yaml.Marshal(bc.Config)
+// 	require.NoError(t, err)
+// 	require.Equal(
+// 		t,
+// 		strings.TrimSpace(string(out)),
+// 		strings.TrimSpace(`
+// input:
+//     label: ""
+//     pooled_sql_raw:
+//         driver: postgres
+//         dsn: ${SOURCE_CONNECTION_DSN}
+//         query: SELECT "id", "parent_id" FROM "public"."jobs";
+// pipeline:
+//     threads: -1
+//     processors:
+//         - mapping: meta neosync_id = this."id"
+//         - mutation: root."id" = generate_uuid(include_hyphens:true)
+//         - catch:
+//             - error:
+//                 error_msg: ${! meta("fallback_error")}
+// output:
+//     label: ""
+//     broker:
+//         pattern: fan_out
+//         outputs:
+//             - redis_hash_output:
+//                 url: redis://localhost:6379
+//                 key: 60c88959dfc6d1e114ca65511290b36786e08961ee1acc3c2b605e1468b561cb
+//                 walk_metadata: false
+//                 walk_json_object: false
+//                 fields_mapping: 'root = {meta("neosync_id"): json("id")}'
+//                 kind: simple
+//             - fallback:
+//                 - pooled_sql_insert:
+//                     driver: postgres
+//                     dsn: ${DESTINATION_0_CONNECTION_DSN}
+//                     schema: public
+//                     table: jobs
+//                     columns:
+//                         - id
+//                     on_conflict_do_nothing: false
+//                     truncate_on_retry: false
+//                     args_mapping: root = [this."id"]
+//                     batching:
+//                         count: 100
+//                         byte_size: 0
+//                         period: 5s
+//                         check: ""
+//                         processors: []
+//                 - error:
+//                     error_msg: ${! meta("fallback_error")}
+//                     batching:
+//                         count: 100
+//                         byte_size: 0
+//                         period: 5s
+//                         check: ""
+//                         processors: []
+// `),
+// 	)
+
+// 	bc = getBenthosConfigByName(resp.BenthosConfigs, "public.jobs.update")
+// 	require.Equal(t, bc.Name, "public.jobs.update")
+// 	require.Empty(t, bc.RedisConfig)
+// 	out, err = yaml.Marshal(bc.Config)
+// 	require.NoError(t, err)
+// 	require.Equal(
+// 		t,
+// 		strings.TrimSpace(string(out)),
+// 		strings.TrimSpace(`
+// input:
+//     label: ""
+//     pooled_sql_raw:
+//         driver: postgres
+//         dsn: ${SOURCE_CONNECTION_DSN}
+//         query: SELECT "id", "parent_id" FROM "public"."jobs";
+// pipeline:
+//     threads: -1
+//     processors:
+//         - branch:
+//             processors:
+//                 - redis:
+//                     url: redis://localhost:6379
+//                     command: hget
+//                     args_mapping: root = ["60c88959dfc6d1e114ca65511290b36786e08961ee1acc3c2b605e1468b561cb", json("parent_id")]
+//                     kind: simple
+//             request_map: root = if this."parent_id" == null { deleted() } else { this }
+//             result_map: root."parent_id" = this
+//         - branch:
+//             processors:
+//                 - redis:
+//                     url: redis://localhost:6379
+//                     command: hget
+//                     args_mapping: root = ["60c88959dfc6d1e114ca65511290b36786e08961ee1acc3c2b605e1468b561cb", json("id")]
+//                     kind: simple
+//             request_map: root = if this."id" == null { deleted() } else { this }
+//             result_map: root."id" = this
+//         - catch:
+//             - error:
+//                 error_msg: ${! meta("fallback_error")}
+// output:
+//     label: ""
+//     broker:
+//         pattern: fan_out
+//         outputs:
+//             - fallback:
+//                 - pooled_sql_update:
+//                     driver: postgres
+//                     dsn: ${DESTINATION_0_CONNECTION_DSN}
+//                     schema: public
+//                     table: jobs
+//                     columns:
+//                         - parent_id
+//                     where_columns:
+//                         - id
+//                     args_mapping: root = [this."parent_id", this."id"]
+//                     batching:
+//                         count: 100
+//                         byte_size: 0
+//                         period: 5s
+//                         check: ""
+//                         processors: []
+//                 - error:
+//                     error_msg: ${! meta("fallback_error")}
+//                     batching:
+//                         count: 100
+//                         byte_size: 0
+//                         period: 5s
+//                         check: ""
+//                         processors: []
+
+// `),
+// 	)
+
+// 	benthosenv := service.NewEnvironment()
+// 	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
+// 	require.NoError(t, err)
+// 	err = neosync_benthos_sql.RegisterPooledSqlUpdateOutput(benthosenv, nil)
+// 	require.NoError(t, err)
+// 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
+// 	require.NoError(t, err)
+// 	err = neosync_benthos_error.RegisterErrorProcessor(benthosenv, nil)
+// 	require.NoError(t, err)
+// 	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
+// 	require.NoError(t, err)
+// 	newSB := benthosenv.NewStreamBuilder()
+
+// 	// SetYAML parses a full Benthos config and uses it to configure the builder.
+// 	err = newSB.SetYAML(string(out))
+// 	require.NoError(t, err)
+// }
+
+// func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *testing.T) {
+// 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
+// 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
+// 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+// 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
+
+// 	pgcache := &sync.Map{}
+// 	pgcache.Store("123", pg_queries.NewMockDBTX(t))
+// 	pgcache.Store("456", pg_queries.NewMockDBTX(t))
+// 	pgquerier := pg_queries.NewMockQuerier(t)
+// 	mysqlcache := &sync.Map{}
+// 	mysqlquerier := mysql_queries.NewMockQuerier(t)
+// 	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
+
+// 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
+// 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
+// 			Job: &mgmtv1alpha1.Job{
+// 				Source: &mgmtv1alpha1.JobSource{
+// 					Options: &mgmtv1alpha1.JobSourceOptions{
+// 						Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
+// 							Postgres: &mgmtv1alpha1.PostgresSourceConnectionOptions{
+// 								ConnectionId: "123",
+// 							},
+// 						},
+// 					},
+// 				},
+// 				Mappings: []*mgmtv1alpha1.JobMapping{
+// 					{
+// 						Schema: "public",
+// 						Table:  "users",
+// 						Column: "id",
+// 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+// 						},
+// 					},
+// 					{
+// 						Schema: "public",
+// 						Table:  "users",
+// 						Column: "name",
+// 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+// 						},
+// 					},
+// 					{
+// 						Schema: "public",
+// 						Table:  "user_account_associations",
+// 						Column: "id",
+// 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+// 						},
+// 					},
+// 					{
+// 						Schema: "public",
+// 						Table:  "user_account_associations",
+// 						Column: "user_id",
+// 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+// 						},
+// 					},
+// 				},
+// 				Destinations: []*mgmtv1alpha1.JobDestination{
+// 					{
+// 						ConnectionId: "456",
+// 					},
+// 				},
+// 			},
+// 		}), nil)
+// 	mockConnectionClient.On(
+// 		"GetConnection",
+// 		mock.Anything,
+// 		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+// 			Id: "123",
+// 		}),
+// 	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+// 		Connection: &mgmtv1alpha1.Connection{
+// 			Id:   "123",
+// 			Name: "prod",
+// 			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+// 				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+// 					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+// 						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
+// 							Url: "fake-prod-url",
+// 						},
+// 					},
+// 				},
+// 			},
+// 		},
+// 	}), nil)
+// 	mockConnectionClient.On(
+// 		"GetConnection",
+// 		mock.Anything,
+// 		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+// 			Id: "456",
+// 		}),
+// 	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+// 		Connection: &mgmtv1alpha1.Connection{
+// 			Id:   "456",
+// 			Name: "stage",
+// 			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+// 				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+// 					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+// 						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
+// 							Url: "fake-stage-url",
+// 						},
+// 					},
+// 				},
+// 			},
+// 		},
+// 	}), nil)
+
+// 	pgquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
+// 		Return([]*pg_queries.GetDatabaseSchemaRow{
+// 			{
+// 				TableSchema: "public",
+// 				TableName:   "users",
+// 				ColumnName:  "id",
+// 			},
+// 			{
+// 				TableSchema: "public",
+// 				TableName:   "users",
+// 				ColumnName:  "name",
+// 			},
+// 			{
+// 				TableSchema: "public",
+// 				TableName:   "user_account_associations",
+// 				ColumnName:  "id",
+// 			},
+// 			{
+// 				TableSchema: "public",
+// 				TableName:   "user_account_associations",
+// 				ColumnName:  "user_id",
+// 			},
+// 		}, nil)
+// 	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
+// 		Once().
+// 		Return([]*pg_queries.GetTableConstraintsBySchemaRow{
+// 			{
+// 				ConstraintName:     "fk_user_account_associations_user_id_users_id",
+// 				SchemaName:         "public",
+// 				TableName:          "user_account_associations",
+// 				ConstraintColumns:  []string{"user_id"},
+// 				ForeignSchemaName:  "public",
+// 				ForeignTableName:   "users",
+// 				ForeignColumnNames: []string{"id"},
+// 				ConstraintType:     "f",
+// 				Notnullable:        []bool{true},
+// 			},
+// 		}, nil)
+// 	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
+// 		Once().
+// 		Return(
+// 			[]*pg_queries.GetTableConstraintsBySchemaRow{{
+// 				SchemaName:        "public",
+// 				TableName:         "users",
+// 				ConstraintName:    "name",
+// 				ConstraintColumns: []string{"id"},
+// 				ConstraintType:    "p",
+// 			}, {
+// 				SchemaName:        "public",
+// 				TableName:         "user_account_associations",
+// 				ConstraintName:    "acc_assoc_constraint",
+// 				ConstraintColumns: []string{"id"},
+// 				ConstraintType:    "p",
+// 			}}, nil,
+// 		)
+
+// 	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
+
+// 	resp, err := bbuilder.GenerateBenthosConfigs(
+// 		context.Background(),
+// 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
+// 		slog.Default(),
+// 	)
+// 	require.Nil(t, err)
+// 	require.NotEmpty(t, resp.BenthosConfigs)
+// 	require.Len(t, resp.BenthosConfigs, 2)
+
+// 	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
+// 	require.NotNil(t, bc)
+// 	require.Equal(t, bc.Name, "public.users")
+// 	require.Empty(t, bc.DependsOn)
+// 	out, err := yaml.Marshal(bc.Config)
+// 	require.NoError(t, err)
+
+// 	bc2 := getBenthosConfigByName(resp.BenthosConfigs, "public.user_account_associations")
+// 	require.Equal(t, bc2.Name, "public.user_account_associations")
+// 	require.Equal(t, bc2.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}})
+// 	out2, err := yaml.Marshal(bc2.Config)
+// 	require.NoError(t, err)
+
+// 	benthosenv := service.NewEnvironment()
+// 	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
+// 	require.NoError(t, err)
+// 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
+// 	require.NoError(t, err)
+// 	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
+// 	require.NoError(t, err)
+// 	newSB := benthosenv.NewStreamBuilder()
+
+// 	// SetYAML parses a full Benthos config and uses it to configure the builder.
+// 	err = newSB.SetYAML(string(out))
+// 	require.NoError(t, err)
+
+// 	err = newSB.SetYAML(string(out2))
+// 	require.NoError(t, err)
+// }
+
+// func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Dependency(t *testing.T) {
+// 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
+// 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
+// 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+// 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
+
+// 	pgcache := &sync.Map{}
+// 	pgcache.Store("123", pg_queries.NewMockDBTX(t))
+// 	pgcache.Store("456", pg_queries.NewMockDBTX(t))
+// 	pgquerier := pg_queries.NewMockQuerier(t)
+// 	mysqlcache := &sync.Map{}
+// 	mysqlquerier := mysql_queries.NewMockQuerier(t)
+// 	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
+
+// 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
+// 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
+// 			Job: &mgmtv1alpha1.Job{
+// 				Source: &mgmtv1alpha1.JobSource{
+// 					Options: &mgmtv1alpha1.JobSourceOptions{
+// 						Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
+// 							Postgres: &mgmtv1alpha1.PostgresSourceConnectionOptions{
+// 								ConnectionId: "123",
+// 							},
+// 						},
+// 					},
+// 				},
+// 				Mappings: []*mgmtv1alpha1.JobMapping{
+// 					{
+// 						Schema: "public",
+// 						Table:  "users",
+// 						Column: "id",
+// 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+// 						},
+// 					},
+// 					{
+// 						Schema: "public",
+// 						Table:  "users",
+// 						Column: "name",
+// 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+// 						},
+// 					},
+// 					{
+// 						Schema: "public",
+// 						Table:  "users",
+// 						Column: "user_assoc_id",
+// 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+// 						},
+// 					},
+// 					{
+// 						Schema: "public",
+// 						Table:  "user_account_associations",
+// 						Column: "id",
+// 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+// 						},
+// 					},
+// 					{
+// 						Schema: "public",
+// 						Table:  "user_account_associations",
+// 						Column: "user_id",
+// 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+// 						},
+// 					},
+// 				},
+// 				Destinations: []*mgmtv1alpha1.JobDestination{
+// 					{
+// 						ConnectionId: "456",
+// 					},
+// 				},
+// 			},
+// 		}), nil)
+// 	mockConnectionClient.On(
+// 		"GetConnection",
+// 		mock.Anything,
+// 		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+// 			Id: "123",
+// 		}),
+// 	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+// 		Connection: &mgmtv1alpha1.Connection{
+// 			Id:   "123",
+// 			Name: "prod",
+// 			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+// 				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+// 					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+// 						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
+// 							Url: "fake-prod-url",
+// 						},
+// 					},
+// 				},
+// 			},
+// 		},
+// 	}), nil)
+// 	mockConnectionClient.On(
+// 		"GetConnection",
+// 		mock.Anything,
+// 		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+// 			Id: "456",
+// 		}),
+// 	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+// 		Connection: &mgmtv1alpha1.Connection{
+// 			Id:   "456",
+// 			Name: "stage",
+// 			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+// 				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+// 					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+// 						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
+// 							Url: "fake-stage-url",
+// 						},
+// 					},
+// 				},
+// 			},
+// 		},
+// 	}), nil)
+
+// 	pgquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
+// 		Return([]*pg_queries.GetDatabaseSchemaRow{
+// 			{
+// 				TableSchema: "public",
+// 				TableName:   "users",
+// 				ColumnName:  "id",
+// 			},
+// 			{
+// 				TableSchema: "public",
+// 				TableName:   "users",
+// 				ColumnName:  "user_assoc_id",
+// 			},
+// 			{
+// 				TableSchema: "public",
+// 				TableName:   "users",
+// 				ColumnName:  "name",
+// 			},
+// 			{
+// 				TableSchema: "public",
+// 				TableName:   "user_account_associations",
+// 				ColumnName:  "id",
+// 			},
+// 			{
+// 				TableSchema: "public",
+// 				TableName:   "user_account_associations",
+// 				ColumnName:  "user_id",
+// 			},
+// 		}, nil)
+// 	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
+// 		Once().
+// 		Return([]*pg_queries.GetTableConstraintsBySchemaRow{
+// 			{
+// 				ConstraintName:     "fk_user_account_associations_user_id_users_id",
+// 				SchemaName:         "public",
+// 				TableName:          "user_account_associations",
+// 				ConstraintColumns:  []string{"user_id"},
+// 				ForeignSchemaName:  "public",
+// 				ForeignTableName:   "users",
+// 				ForeignColumnNames: []string{"id"},
+// 				ConstraintType:     "f",
+// 				Notnullable:        []bool{true},
+// 			},
+// 			{
+// 				ConstraintName:     "fk_users_user_assoc_id_user_account_associations_id",
+// 				SchemaName:         "public",
+// 				TableName:          "users",
+// 				ConstraintColumns:  []string{"user_assoc_id"},
+// 				ForeignSchemaName:  "public",
+// 				ForeignTableName:   "user_account_associations",
+// 				ForeignColumnNames: []string{"id"},
+// 				ConstraintType:     "f",
+// 				Notnullable:        []bool{false},
+// 			},
+// 		}, nil)
+// 	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
+// 		Once().
+// 		Return(
+// 			[]*pg_queries.GetTableConstraintsBySchemaRow{{
+// 				SchemaName:        "public",
+// 				TableName:         "users",
+// 				ConstraintName:    "pk-user-id",
+// 				ConstraintColumns: []string{"id"},
+// 				ConstraintType:    "p",
+// 			}, {
+// 				SchemaName:        "public",
+// 				TableName:         "users_account_associations",
+// 				ConstraintName:    "pk-user-assoc-id",
+// 				ConstraintColumns: []string{"id"},
+// 				ConstraintType:    "p",
+// 			}}, nil,
+// 		)
+// 	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
+
+// 	resp, err := bbuilder.GenerateBenthosConfigs(
+// 		context.Background(),
+// 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
+// 		slog.Default(),
+// 	)
+// 	require.Nil(t, err)
+// 	require.NotEmpty(t, resp.BenthosConfigs)
+// 	require.Len(t, resp.BenthosConfigs, 3)
+
+// 	insertConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
+// 	require.NotNil(t, insertConfig)
+// 	require.Equal(t, insertConfig.Name, "public.users")
+// 	require.Empty(t, insertConfig.DependsOn)
+// 	out, err := yaml.Marshal(insertConfig.Config)
+// 	require.NoError(t, err)
+// 	require.Equal(
+// 		t,
+// 		strings.TrimSpace(string(out)),
+// 		strings.TrimSpace(`
+// input:
+//     label: ""
+//     pooled_sql_raw:
+//         driver: postgres
+//         dsn: ${SOURCE_CONNECTION_DSN}
+//         query: SELECT "id", "name", "user_assoc_id" FROM "public"."users";
+// pipeline:
+//     threads: -1
+//     processors: []
+// output:
+//     label: ""
+//     broker:
+//         pattern: fan_out
+//         outputs:
+//             - fallback:
+//                 - pooled_sql_insert:
+//                     driver: postgres
+//                     dsn: ${DESTINATION_0_CONNECTION_DSN}
+//                     schema: public
+//                     table: users
+//                     columns:
+//                         - id
+//                         - name
+//                     on_conflict_do_nothing: false
+//                     truncate_on_retry: false
+//                     args_mapping: root = [this."id", this."name"]
+//                     batching:
+//                         count: 100
+//                         byte_size: 0
+//                         period: 5s
+//                         check: ""
+//                         processors: []
+//                 - error:
+//                     error_msg: ${! meta("fallback_error")}
+//                     batching:
+//                         count: 100
+//                         byte_size: 0
+//                         period: 5s
+//                         check: ""
+//                         processors: []
+// `),
+// 	)
+
+// 	updateConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users.update")
+// 	require.NotNil(t, updateConfig)
+// 	require.Equal(t, updateConfig.Name, "public.users.update")
+// 	require.Equal(t, updateConfig.DependsOn, []*tabledependency.DependsOn{{Table: "public.user_account_associations", Columns: []string{"id"}}, {Table: "public.users", Columns: []string{"id"}}})
+// 	out1, err := yaml.Marshal(updateConfig.Config)
+// 	require.NoError(t, err)
+// 	require.Equal(
+// 		t,
+// 		strings.TrimSpace(string(out1)),
+// 		strings.TrimSpace(`
+// input:
+//     label: ""
+//     pooled_sql_raw:
+//         driver: postgres
+//         dsn: ${SOURCE_CONNECTION_DSN}
+//         query: SELECT "id", "name", "user_assoc_id" FROM "public"."users";
+// pipeline:
+//     threads: -1
+//     processors: []
+// output:
+//     label: ""
+//     broker:
+//         pattern: fan_out
+//         outputs:
+//             - fallback:
+//                 - pooled_sql_update:
+//                     driver: postgres
+//                     dsn: ${DESTINATION_0_CONNECTION_DSN}
+//                     schema: public
+//                     table: users
+//                     columns:
+//                         - user_assoc_id
+//                     where_columns:
+//                         - id
+//                     args_mapping: root = [this."user_assoc_id", this."id"]
+//                     batching:
+//                         count: 100
+//                         byte_size: 0
+//                         period: 5s
+//                         check: ""
+//                         processors: []
+//                 - error:
+//                     error_msg: ${! meta("fallback_error")}
+//                     batching:
+//                         count: 100
+//                         byte_size: 0
+//                         period: 5s
+//                         check: ""
+//                         processors: []
+// `),
+// 	)
+
+// 	bc2 := getBenthosConfigByName(resp.BenthosConfigs, "public.user_account_associations")
+// 	require.Equal(t, bc2.Name, "public.user_account_associations")
+// 	require.Equal(t, bc2.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}})
+// 	out2, err := yaml.Marshal(bc2.Config)
+// 	require.NoError(t, err)
+// 	require.Equal(
+// 		t,
+// 		strings.TrimSpace(string(out2)),
+// 		strings.TrimSpace(`
+// input:
+//     label: ""
+//     pooled_sql_raw:
+//         driver: postgres
+//         dsn: ${SOURCE_CONNECTION_DSN}
+//         query: SELECT "id", "user_id" FROM "public"."user_account_associations";
+// pipeline:
+//     threads: -1
+//     processors: []
+// output:
+//     label: ""
+//     broker:
+//         pattern: fan_out
+//         outputs:
+//             - fallback:
+//                 - pooled_sql_insert:
+//                     driver: postgres
+//                     dsn: ${DESTINATION_0_CONNECTION_DSN}
+//                     schema: public
+//                     table: user_account_associations
+//                     columns:
+//                         - id
+//                         - user_id
+//                     on_conflict_do_nothing: false
+//                     truncate_on_retry: false
+//                     args_mapping: root = [this."id", this."user_id"]
+//                     batching:
+//                         count: 100
+//                         byte_size: 0
+//                         period: 5s
+//                         check: ""
+//                         processors: []
+//                 - error:
+//                     error_msg: ${! meta("fallback_error")}
+//                     batching:
+//                         count: 100
+//                         byte_size: 0
+//                         period: 5s
+//                         check: ""
+//                         processors: []
+// `),
+// 	)
+
+// 	benthosenv := service.NewEnvironment()
+// 	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
+// 	require.NoError(t, err)
+// 	err = neosync_benthos_sql.RegisterPooledSqlUpdateOutput(benthosenv, nil)
+// 	require.NoError(t, err)
+// 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
+// 	require.NoError(t, err)
+// 	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
+// 	require.NoError(t, err)
+// 	newSB := benthosenv.NewStreamBuilder()
+
+// 	// SetYAML parses a full Benthos config and uses it to configure the builder.
+// 	err = newSB.SetYAML(string(out))
+// 	require.NoError(t, err)
+
+// 	err = newSB.SetYAML(string(out2))
+// 	require.NoError(t, err)
+// }
+
+// func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Dependency_S3(t *testing.T) {
+// 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
+// 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
+// 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+// 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
+
+// 	pgcache := &sync.Map{}
+// 	pgcache.Store("123", pg_queries.NewMockDBTX(t))
+// 	pgcache.Store("456", pg_queries.NewMockDBTX(t))
+// 	pgquerier := pg_queries.NewMockQuerier(t)
+// 	mysqlcache := &sync.Map{}
+// 	mysqlquerier := mysql_queries.NewMockQuerier(t)
+// 	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
+
+// 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
+// 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
+// 			Job: &mgmtv1alpha1.Job{
+// 				Source: &mgmtv1alpha1.JobSource{
+// 					Options: &mgmtv1alpha1.JobSourceOptions{
+// 						Config: &mgmtv1alpha1.JobSourceOptions_Postgres{
+// 							Postgres: &mgmtv1alpha1.PostgresSourceConnectionOptions{
+// 								ConnectionId: "123",
+// 							},
+// 						},
+// 					},
+// 				},
+// 				Mappings: []*mgmtv1alpha1.JobMapping{
+// 					{
+// 						Schema: "public",
+// 						Table:  "users",
+// 						Column: "id",
+// 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+// 						},
+// 					},
+// 					{
+// 						Schema: "public",
+// 						Table:  "users",
+// 						Column: "name",
+// 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+// 						},
+// 					},
+// 					{
+// 						Schema: "public",
+// 						Table:  "users",
+// 						Column: "user_assoc_id",
+// 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+// 						},
+// 					},
+// 					{
+// 						Schema: "public",
+// 						Table:  "user_account_associations",
+// 						Column: "id",
+// 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+// 						},
+// 					},
+// 					{
+// 						Schema: "public",
+// 						Table:  "user_account_associations",
+// 						Column: "user_id",
+// 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+// 						},
+// 					},
+// 				},
+// 				Destinations: []*mgmtv1alpha1.JobDestination{
+// 					{
+// 						ConnectionId: "456",
+// 					},
+// 					{
+// 						ConnectionId: "789",
+// 					},
+// 				},
+// 			},
+// 		}), nil)
+// 	mockConnectionClient.On(
+// 		"GetConnection",
+// 		mock.Anything,
+// 		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+// 			Id: "123",
+// 		}),
+// 	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+// 		Connection: &mgmtv1alpha1.Connection{
+// 			Id:   "123",
+// 			Name: "prod",
+// 			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+// 				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+// 					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+// 						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
+// 							Url: "fake-prod-url",
+// 						},
+// 					},
+// 				},
+// 			},
+// 		},
+// 	}), nil)
+// 	mockConnectionClient.On(
+// 		"GetConnection",
+// 		mock.Anything,
+// 		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+// 			Id: "456",
+// 		}),
+// 	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+// 		Connection: &mgmtv1alpha1.Connection{
+// 			Id:   "456",
+// 			Name: "stage",
+// 			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+// 				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
+// 					PgConfig: &mgmtv1alpha1.PostgresConnectionConfig{
+// 						ConnectionConfig: &mgmtv1alpha1.PostgresConnectionConfig_Url{
+// 							Url: "fake-stage-url",
+// 						},
+// 					},
+// 				},
+// 			},
+// 		},
+// 	}), nil)
+// 	region := "us-west-2"
+// 	accessId := "access-key"
+// 	secret := "secret"
+// 	mockConnectionClient.On(
+// 		"GetConnection",
+// 		mock.Anything,
+// 		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+// 			Id: "789",
+// 		}),
+// 	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+// 		Connection: &mgmtv1alpha1.Connection{
+// 			Id:   "789",
+// 			Name: "s3",
+// 			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+// 				Config: &mgmtv1alpha1.ConnectionConfig_AwsS3Config{
+// 					AwsS3Config: &mgmtv1alpha1.AwsS3ConnectionConfig{
+// 						Bucket: "s3-bucket",
+// 						Region: &region,
+// 						Credentials: &mgmtv1alpha1.AwsS3Credentials{
+// 							AccessKeyId:     &accessId,
+// 							SecretAccessKey: &secret,
+// 						},
+// 					},
+// 				},
+// 			},
+// 		},
+// 	}), nil)
+
+// 	pgquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
+// 		Return([]*pg_queries.GetDatabaseSchemaRow{
+// 			{
+// 				TableSchema: "public",
+// 				TableName:   "users",
+// 				ColumnName:  "id",
+// 			},
+// 			{
+// 				TableSchema: "public",
+// 				TableName:   "users",
+// 				ColumnName:  "user_assoc_id",
+// 			},
+// 			{
+// 				TableSchema: "public",
+// 				TableName:   "users",
+// 				ColumnName:  "name",
+// 			},
+// 			{
+// 				TableSchema: "public",
+// 				TableName:   "user_account_associations",
+// 				ColumnName:  "id",
+// 			},
+// 			{
+// 				TableSchema: "public",
+// 				TableName:   "user_account_associations",
+// 				ColumnName:  "user_id",
+// 			},
+// 		}, nil)
+// 	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
+// 		Once().
+// 		Return([]*pg_queries.GetTableConstraintsBySchemaRow{
+// 			{
+// 				ConstraintName:     "fk_user_account_associations_user_id_users_id",
+// 				SchemaName:         "public",
+// 				TableName:          "user_account_associations",
+// 				ConstraintColumns:  []string{"user_id"},
+// 				ForeignSchemaName:  "public",
+// 				ForeignTableName:   "users",
+// 				ForeignColumnNames: []string{"id"},
+// 				ConstraintType:     "f",
+// 				Notnullable:        []bool{true},
+// 			},
+// 			{
+// 				ConstraintName:     "fk_users_user_assoc_id_user_account_associations_id",
+// 				SchemaName:         "public",
+// 				TableName:          "users",
+// 				ConstraintColumns:  []string{"user_assoc_id"},
+// 				ForeignSchemaName:  "public",
+// 				ForeignTableName:   "user_account_associations",
+// 				ForeignColumnNames: []string{"id"},
+// 				ConstraintType:     "f",
+// 				Notnullable:        []bool{false},
+// 			},
+// 		}, nil)
+// 	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
+// 		Once().
+// 		Return(
+// 			[]*pg_queries.GetTableConstraintsBySchemaRow{{
+// 				SchemaName:        "public",
+// 				TableName:         "users",
+// 				ConstraintName:    "pk-user-id",
+// 				ConstraintColumns: []string{"id"},
+// 				ConstraintType:    "p",
+// 			}, {
+// 				SchemaName:        "public",
+// 				TableName:         "users_account_associations",
+// 				ConstraintName:    "pk-user-assoc-id",
+// 				ConstraintColumns: []string{"id"},
+// 				ConstraintType:    "p",
+// 			}}, nil,
+// 		)
+
+// 	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
+
+// 	resp, err := bbuilder.GenerateBenthosConfigs(
+// 		context.Background(),
+// 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
+// 		slog.Default(),
+// 	)
+// 	require.Nil(t, err)
+// 	require.NotEmpty(t, resp.BenthosConfigs)
+// 	require.Len(t, resp.BenthosConfigs, 3)
+
+// 	insertConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
+// 	require.NotNil(t, insertConfig)
+// 	require.Equal(t, insertConfig.Name, "public.users")
+// 	require.Empty(t, insertConfig.DependsOn)
+// 	out, err := yaml.Marshal(insertConfig.Config)
+
+// 	require.NoError(t, err)
+// 	require.Equal(
+// 		t,
+// 		strings.TrimSpace(string(out)),
+// 		strings.TrimSpace(`
+// input:
+//     label: ""
+//     pooled_sql_raw:
+//         driver: postgres
+//         dsn: ${SOURCE_CONNECTION_DSN}
+//         query: SELECT "id", "name", "user_assoc_id" FROM "public"."users";
+// pipeline:
+//     threads: -1
+//     processors: []
+// output:
+//     label: ""
+//     broker:
+//         pattern: fan_out
+//         outputs:
+//             - fallback:
+//                 - pooled_sql_insert:
+//                     driver: postgres
+//                     dsn: ${DESTINATION_0_CONNECTION_DSN}
+//                     schema: public
+//                     table: users
+//                     columns:
+//                         - id
+//                         - name
+//                     on_conflict_do_nothing: false
+//                     truncate_on_retry: false
+//                     args_mapping: root = [this."id", this."name"]
+//                     batching:
+//                         count: 100
+//                         byte_size: 0
+//                         period: 5s
+//                         check: ""
+//                         processors: []
+//                 - error:
+//                     error_msg: ${! meta("fallback_error")}
+//                     batching:
+//                         count: 100
+//                         byte_size: 0
+//                         period: 5s
+//                         check: ""
+//                         processors: []
+//             - fallback:
+//                 - aws_s3:
+//                     bucket: s3-bucket
+//                     max_in_flight: 64
+//                     path: /workflows/123/activities/public.users/data/${!count("files")}.txt.gz
+//                     batching:
+//                         count: 100
+//                         byte_size: 0
+//                         period: 5s
+//                         check: ""
+//                         processors:
+//                             - archive:
+//                                 format: lines
+//                             - compress:
+//                                 algorithm: gzip
+//                     region: us-west-2
+//                     credentials:
+//                         id: access-key
+//                         secret: secret
+//                 - error:
+//                     error_msg: ${! meta("fallback_error")}
+//                     batching:
+//                         count: 100
+//                         byte_size: 0
+//                         period: 5s
+//                         check: ""
+//                         processors: []
+// `),
+// 	)
+
+// 	updateConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users.update")
+// 	require.NotNil(t, updateConfig)
+// 	require.Equal(t, updateConfig.Name, "public.users.update")
+// 	require.Equal(t, updateConfig.DependsOn, []*tabledependency.DependsOn{{Table: "public.user_account_associations", Columns: []string{"id"}}, {Table: "public.users", Columns: []string{"id"}}})
+// 	out1, err := yaml.Marshal(updateConfig.Config)
+
+// 	require.NoError(t, err)
+// 	require.Equal(
+// 		t,
+// 		strings.TrimSpace(string(out1)),
+// 		strings.TrimSpace(`
+// input:
+//     label: ""
+//     pooled_sql_raw:
+//         driver: postgres
+//         dsn: ${SOURCE_CONNECTION_DSN}
+//         query: SELECT "id", "name", "user_assoc_id" FROM "public"."users";
+// pipeline:
+//     threads: -1
+//     processors: []
+// output:
+//     label: ""
+//     broker:
+//         pattern: fan_out
+//         outputs:
+//             - fallback:
+//                 - pooled_sql_update:
+//                     driver: postgres
+//                     dsn: ${DESTINATION_0_CONNECTION_DSN}
+//                     schema: public
+//                     table: users
+//                     columns:
+//                         - user_assoc_id
+//                     where_columns:
+//                         - id
+//                     args_mapping: root = [this."user_assoc_id", this."id"]
+//                     batching:
+//                         count: 100
+//                         byte_size: 0
+//                         period: 5s
+//                         check: ""
+//                         processors: []
+//                 - error:
+//                     error_msg: ${! meta("fallback_error")}
+//                     batching:
+//                         count: 100
+//                         byte_size: 0
+//                         period: 5s
+//                         check: ""
+//                         processors: []
+// `),
+// 	)
+
+// 	bc2 := getBenthosConfigByName(resp.BenthosConfigs, "public.user_account_associations")
+// 	require.Equal(t, bc2.Name, "public.user_account_associations")
+// 	require.Equal(t, bc2.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}})
+// 	out2, err := yaml.Marshal(bc2.Config)
+
+// 	require.NoError(t, err)
+// 	require.Equal(
+// 		t,
+// 		strings.TrimSpace(string(out2)),
+// 		strings.TrimSpace(`
+// input:
+//     label: ""
+//     pooled_sql_raw:
+//         driver: postgres
+//         dsn: ${SOURCE_CONNECTION_DSN}
+//         query: SELECT "id", "user_id" FROM "public"."user_account_associations";
+// pipeline:
+//     threads: -1
+//     processors: []
+// output:
+//     label: ""
+//     broker:
+//         pattern: fan_out
+//         outputs:
+//             - fallback:
+//                 - pooled_sql_insert:
+//                     driver: postgres
+//                     dsn: ${DESTINATION_0_CONNECTION_DSN}
+//                     schema: public
+//                     table: user_account_associations
+//                     columns:
+//                         - id
+//                         - user_id
+//                     on_conflict_do_nothing: false
+//                     truncate_on_retry: false
+//                     args_mapping: root = [this."id", this."user_id"]
+//                     batching:
+//                         count: 100
+//                         byte_size: 0
+//                         period: 5s
+//                         check: ""
+//                         processors: []
+//                 - error:
+//                     error_msg: ${! meta("fallback_error")}
+//                     batching:
+//                         count: 100
+//                         byte_size: 0
+//                         period: 5s
+//                         check: ""
+//                         processors: []
+//             - fallback:
+//                 - aws_s3:
+//                     bucket: s3-bucket
+//                     max_in_flight: 64
+//                     path: /workflows/123/activities/public.user_account_associations/data/${!count("files")}.txt.gz
+//                     batching:
+//                         count: 100
+//                         byte_size: 0
+//                         period: 5s
+//                         check: ""
+//                         processors:
+//                             - archive:
+//                                 format: lines
+//                             - compress:
+//                                 algorithm: gzip
+//                     region: us-west-2
+//                     credentials:
+//                         id: access-key
+//                         secret: secret
+//                 - error:
+//                     error_msg: ${! meta("fallback_error")}
+//                     batching:
+//                         count: 100
+//                         byte_size: 0
+//                         period: 5s
+//                         check: ""
+//                         processors: []
+// `),
+// 	)
+
+// 	benthosenv := service.NewEnvironment()
+// 	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
+// 	require.NoError(t, err)
+// 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
+// 	require.NoError(t, err)
+// 	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
+// 	require.NoError(t, err)
+// 	newSB := benthosenv.NewStreamBuilder()
+
+// 	// SetYAML parses a full Benthos config and uses it to configure the builder.
+// 	err = newSB.SetYAML(string(out))
+// 	require.NoError(t, err)
+
+// 	err = newSB.SetYAML(string(out2))
+// 	require.NoError(t, err)
+// }
+
+// func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) {
+// 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
+// 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
+// 	mockTransformersClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+// 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
+
+// 	pgcache := &sync.Map{}
+// 	pgquerier := pg_queries.NewMockQuerier(t)
+// 	mysqlcache := &sync.Map{}
+// 	mysqlcache.Store("123", mysql_queries.NewMockDBTX(t))
+// 	mysqlcache.Store("456", mysql_queries.NewMockDBTX(t))
+// 	mysqlquerier := mysql_queries.NewMockQuerier(t)
+// 	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
+
+// 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
+// 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
+// 			Job: &mgmtv1alpha1.Job{
+// 				Source: &mgmtv1alpha1.JobSource{
+// 					Options: &mgmtv1alpha1.JobSourceOptions{
+// 						Config: &mgmtv1alpha1.JobSourceOptions_Mysql{
+// 							Mysql: &mgmtv1alpha1.MysqlSourceConnectionOptions{
+// 								ConnectionId: "123",
+// 							},
+// 						},
+// 					},
+// 				},
+// 				Mappings: []*mgmtv1alpha1.JobMapping{
+// 					{
+// 						Schema: "public",
+// 						Table:  "users",
+// 						Column: "id",
+// 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+// 						},
+// 					},
+// 					{
+// 						Schema: "public",
+// 						Table:  "users",
+// 						Column: "name",
+// 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+// 						},
+// 					},
+// 					{
+// 						Schema: "public",
+// 						Table:  "user_account_associations",
+// 						Column: "id",
+// 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+// 						},
+// 					},
+// 					{
+// 						Schema: "public",
+// 						Table:  "user_account_associations",
+// 						Column: "user_id",
+// 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+// 						},
+// 					},
+// 				},
+// 				Destinations: []*mgmtv1alpha1.JobDestination{
+// 					{
+// 						ConnectionId: "456",
+// 					},
+// 				},
+// 			},
+// 		}), nil)
+// 	mockConnectionClient.On(
+// 		"GetConnection",
+// 		mock.Anything,
+// 		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+// 			Id: "123",
+// 		}),
+// 	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+// 		Connection: &mgmtv1alpha1.Connection{
+// 			Id:   "123",
+// 			Name: "prod",
+// 			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+// 				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+// 					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+// 						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
+// 							Url: "fake-prod-url",
+// 						},
+// 					},
+// 				},
+// 			},
+// 		},
+// 	}), nil)
+// 	mockConnectionClient.On(
+// 		"GetConnection",
+// 		mock.Anything,
+// 		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+// 			Id: "456",
+// 		}),
+// 	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+// 		Connection: &mgmtv1alpha1.Connection{
+// 			Id:   "456",
+// 			Name: "stage",
+// 			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+// 				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+// 					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+// 						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
+// 							Url: "fake-stage-url",
+// 						},
+// 					},
+// 				},
+// 			},
+// 		},
+// 	}), nil)
+
+// 	mysqlquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
+// 		Return([]*mysql_queries.GetDatabaseSchemaRow{
+// 			{
+// 				TableSchema: "public",
+// 				TableName:   "users",
+// 				ColumnName:  "id",
+// 			},
+// 			{
+// 				TableSchema: "public",
+// 				TableName:   "users",
+// 				ColumnName:  "name",
+// 			},
+// 			{
+// 				TableSchema: "public",
+// 				TableName:   "user_account_associations",
+// 				ColumnName:  "id",
+// 			},
+// 			{
+// 				TableSchema: "public",
+// 				TableName:   "user_account_associations",
+// 				ColumnName:  "user_id",
+// 			},
+// 		}, nil)
+// 	mysqlquerier.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
+// 		Return([]*mysql_queries.GetForeignKeyConstraintsRow{
+// 			{
+// 				ConstraintName:    "fk_user_account_associations_user_id_users_id",
+// 				SchemaName:        "public",
+// 				TableName:         "user_account_associations",
+// 				ColumnName:        "user_id",
+// 				ForeignSchemaName: "public",
+// 				ForeignTableName:  "users",
+// 				ForeignColumnName: "id",
+// 			},
+// 		}, nil)
+// 	mysqlquerier.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
+// 		Return([]*mysql_queries.GetPrimaryKeyConstraintsRow{{
+// 			SchemaName:     "public",
+// 			TableName:      "users",
+// 			ConstraintName: "pk-users-id",
+// 			ColumnName:     "id",
+// 		}, {
+// 			SchemaName:     "public",
+// 			TableName:      "user_account_associations",
+// 			ConstraintName: "pk-users-assoc-id",
+// 			ColumnName:     "id",
+// 		}}, nil)
+// 	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformersClient, mockJobId, mockRunId, nil, false)
+
+// 	resp, err := bbuilder.GenerateBenthosConfigs(
+// 		context.Background(),
+// 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
+// 		slog.Default(),
+// 	)
+// 	require.Nil(t, err)
+// 	require.NotEmpty(t, resp.BenthosConfigs)
+// 	require.Len(t, resp.BenthosConfigs, 2)
+
+// 	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
+// 	require.Equal(t, bc.Name, "public.users")
+// 	require.Empty(t, bc.DependsOn)
+// 	out, err := yaml.Marshal(bc.Config)
+// 	require.NoError(t, err)
+// 	require.Equal(
+// 		t,
+// 		strings.TrimSpace(string(out)),
+// 		strings.TrimSpace(`
+// input:
+//     label: ""
+//     pooled_sql_raw:
+//         driver: mysql
+//         dsn: ${SOURCE_CONNECTION_DSN}
+//         `+"query: SELECT `id`, `name` FROM `public`.`users`;"+`
+// pipeline:
+//     threads: -1
+//     processors: []
+// output:
+//     label: ""
+//     broker:
+//         pattern: fan_out
+//         outputs:
+//             - fallback:
+//                 - pooled_sql_insert:
+//                     driver: mysql
+//                     dsn: ${DESTINATION_0_CONNECTION_DSN}
+//                     schema: public
+//                     table: users
+//                     columns:
+//                         - id
+//                         - name
+//                     on_conflict_do_nothing: false
+//                     truncate_on_retry: false
+//                     args_mapping: root = [this."id", this."name"]
+//                     batching:
+//                         count: 100
+//                         byte_size: 0
+//                         period: 5s
+//                         check: ""
+//                         processors: []
+//                 - error:
+//                     error_msg: ${! meta("fallback_error")}
+//                     batching:
+//                         count: 100
+//                         byte_size: 0
+//                         period: 5s
+//                         check: ""
+//                         processors: []
+// `),
+// 	)
+
+// 	bc2 := getBenthosConfigByName(resp.BenthosConfigs, "public.user_account_associations")
+// 	require.Equal(t, bc2.Name, "public.user_account_associations")
+// 	require.Equal(t, bc2.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}})
+// 	out2, err := yaml.Marshal(bc2.Config)
+// 	require.NoError(t, err)
+// 	require.Equal(
+// 		t,
+// 		strings.TrimSpace(string(out2)),
+// 		strings.TrimSpace(`
+// input:
+//     label: ""
+//     pooled_sql_raw:
+//         driver: mysql
+//         dsn: ${SOURCE_CONNECTION_DSN}
+//         `+"query: SELECT `id`, `user_id` FROM `public`.`user_account_associations`;"+`
+// pipeline:
+//     threads: -1
+//     processors: []
+// output:
+//     label: ""
+//     broker:
+//         pattern: fan_out
+//         outputs:
+//             - fallback:
+//                 - pooled_sql_insert:
+//                     driver: mysql
+//                     dsn: ${DESTINATION_0_CONNECTION_DSN}
+//                     schema: public
+//                     table: user_account_associations
+//                     columns:
+//                         - id
+//                         - user_id
+//                     on_conflict_do_nothing: false
+//                     truncate_on_retry: false
+//                     args_mapping: root = [this."id", this."user_id"]
+//                     batching:
+//                         count: 100
+//                         byte_size: 0
+//                         period: 5s
+//                         check: ""
+//                         processors: []
+//                 - error:
+//                     error_msg: ${! meta("fallback_error")}
+//                     batching:
+//                         count: 100
+//                         byte_size: 0
+//                         period: 5s
+//                         check: ""
+//                         processors: []
+// `),
+// 	)
+
+// 	benthosenv := service.NewEnvironment()
+// 	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
+// 	require.NoError(t, err)
+// 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
+// 	require.NoError(t, err)
+// 	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
+// 	require.NoError(t, err)
+// 	newSB := benthosenv.NewStreamBuilder()
+
+// 	// SetYAML parses a full Benthos config and uses it to configure the builder.
+// 	err = newSB.SetYAML(string(out))
+// 	require.NoError(t, err)
+
+// 	// SetYAML parses a full Benthos config and uses it to configure the builder.
+// 	err = newSB.SetYAML(string(out2))
+// 	require.NoError(t, err)
+// }
+
+// func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_Dependency(t *testing.T) {
+// 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
+// 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
+// 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
+// 	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
+
+// 	pgcache := &sync.Map{}
+// 	pgquerier := pg_queries.NewMockQuerier(t)
+// 	mysqlcache := &sync.Map{}
+// 	mysqlcache.Store("123", mysql_queries.NewMockDBTX(t))
+// 	mysqlcache.Store("456", mysql_queries.NewMockDBTX(t))
+
+// 	mysqlquerier := mysql_queries.NewMockQuerier(t)
+// 	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
+
+// 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
+// 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
+// 			Job: &mgmtv1alpha1.Job{
+// 				Source: &mgmtv1alpha1.JobSource{
+// 					Options: &mgmtv1alpha1.JobSourceOptions{
+// 						Config: &mgmtv1alpha1.JobSourceOptions_Mysql{
+// 							Mysql: &mgmtv1alpha1.MysqlSourceConnectionOptions{
+// 								ConnectionId: "123",
+// 							},
+// 						},
+// 					},
+// 				},
+// 				Mappings: []*mgmtv1alpha1.JobMapping{
+// 					{
+// 						Schema: "public",
+// 						Table:  "users",
+// 						Column: "id",
+// 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+// 						},
+// 					},
+// 					{
+// 						Schema: "public",
+// 						Table:  "users",
+// 						Column: "name",
+// 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+// 						},
+// 					},
+// 					{
+// 						Schema: "public",
+// 						Table:  "users",
+// 						Column: "user_assoc_id",
+// 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+// 						},
+// 					},
+// 					{
+// 						Schema: "public",
+// 						Table:  "user_account_associations",
+// 						Column: "id",
+// 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+// 						},
+// 					},
+// 					{
+// 						Schema: "public",
+// 						Table:  "user_account_associations",
+// 						Column: "user_id",
+// 						Transformer: &mgmtv1alpha1.JobMappingTransformer{
+// 							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH,
+// 						},
+// 					},
+// 				},
+// 				Destinations: []*mgmtv1alpha1.JobDestination{
+// 					{
+// 						ConnectionId: "456",
+// 					},
+// 				},
+// 			},
+// 		}), nil)
+// 	mockConnectionClient.On(
+// 		"GetConnection",
+// 		mock.Anything,
+// 		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+// 			Id: "123",
+// 		}),
+// 	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+// 		Connection: &mgmtv1alpha1.Connection{
+// 			Id:   "123",
+// 			Name: "prod",
+// 			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+// 				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+// 					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+// 						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
+// 							Url: "fake-prod-url",
+// 						},
+// 					},
+// 				},
+// 			},
+// 		},
+// 	}), nil)
+// 	mockConnectionClient.On(
+// 		"GetConnection",
+// 		mock.Anything,
+// 		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+// 			Id: "456",
+// 		}),
+// 	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
+// 		Connection: &mgmtv1alpha1.Connection{
+// 			Id:   "456",
+// 			Name: "stage",
+// 			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
+// 				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
+// 					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
+// 						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
+// 							Url: "fake-stage-url",
+// 						},
+// 					},
+// 				},
+// 			},
+// 		},
+// 	}), nil)
+
+// 	mysqlquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
+// 		Return([]*mysql_queries.GetDatabaseSchemaRow{
+// 			{
+// 				TableSchema: "public",
+// 				TableName:   "users",
+// 				ColumnName:  "id",
+// 			},
+// 			{
+// 				TableSchema: "public",
+// 				TableName:   "users",
+// 				ColumnName:  "user_assoc_id",
+// 			},
+// 			{
+// 				TableSchema: "public",
+// 				TableName:   "users",
+// 				ColumnName:  "name",
+// 			},
+// 			{
+// 				TableSchema: "public",
+// 				TableName:   "user_account_associations",
+// 				ColumnName:  "id",
+// 			},
+// 			{
+// 				TableSchema: "public",
+// 				TableName:   "user_account_associations",
+// 				ColumnName:  "user_id",
+// 			},
+// 		}, nil)
+// 	mysqlquerier.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
+// 		Return([]*mysql_queries.GetForeignKeyConstraintsRow{
+// 			{
+// 				ConstraintName:    "fk_user_account_associations_user_id_users_id",
+// 				SchemaName:        "public",
+// 				TableName:         "user_account_associations",
+// 				ColumnName:        "user_id",
+// 				ForeignSchemaName: "public",
+// 				ForeignTableName:  "users",
+// 				ForeignColumnName: "id",
+// 				IsNullable:        "NO",
+// 			},
+// 			{
+// 				ConstraintName:    "fk_users_user_assoc_id_user_account_associations_id",
+// 				SchemaName:        "public",
+// 				TableName:         "users",
+// 				ColumnName:        "user_assoc_id",
+// 				ForeignSchemaName: "public",
+// 				ForeignTableName:  "user_account_associations",
+// 				ForeignColumnName: "id",
+// 				IsNullable:        "YES",
+// 			},
+// 		}, nil)
+// 	mysqlquerier.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).Return([]*mysql_queries.GetPrimaryKeyConstraintsRow{
+// 		{
+// 			ConstraintName: "pkey-user-id",
+// 			SchemaName:     "public",
+// 			TableName:      "users",
+// 			ColumnName:     "id",
+// 		},
+// 		{
+// 			ConstraintName: "pkey-user-assoc-id",
+// 			SchemaName:     "public",
+// 			TableName:      "users_account_associations",
+// 			ColumnName:     "id",
+// 		},
+// 	}, nil)
+// 	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
+
+// 	resp, err := bbuilder.GenerateBenthosConfigs(
+// 		context.Background(),
+// 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
+// 		slog.Default(),
+// 	)
+// 	require.Nil(t, err)
+// 	require.NotEmpty(t, resp.BenthosConfigs)
+// 	require.Len(t, resp.BenthosConfigs, 3)
+
+// 	insertConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
+// 	require.NotNil(t, insertConfig)
+// 	require.Equal(t, insertConfig.Name, "public.users")
+// 	require.Empty(t, insertConfig.DependsOn)
+// 	out, err := yaml.Marshal(insertConfig.Config)
+// 	require.NoError(t, err)
+
+// 	updateConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users.update")
+// 	require.NotNil(t, updateConfig)
+// 	require.Equal(t, updateConfig.Name, "public.users.update")
+// 	require.Equal(t, updateConfig.DependsOn, []*tabledependency.DependsOn{{Table: "public.user_account_associations", Columns: []string{"id"}}, {Table: "public.users", Columns: []string{"id"}}})
+// 	out1, err := yaml.Marshal(updateConfig.Config)
+// 	require.NoError(t, err)
+
+// 	bc2 := getBenthosConfigByName(resp.BenthosConfigs, "public.user_account_associations")
+// 	require.Equal(t, bc2.Name, "public.user_account_associations")
+// 	require.Equal(t, bc2.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}})
+// 	out2, err := yaml.Marshal(bc2.Config)
+// 	require.NoError(t, err)
+
+// 	benthosenv := service.NewEnvironment()
+// 	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, nil, false)
+// 	require.NoError(t, err)
+// 	err = neosync_benthos_sql.RegisterPooledSqlUpdateOutput(benthosenv, nil)
+// 	require.NoError(t, err)
+// 	err = neosync_benthos_sql.RegisterPooledSqlRawInput(benthosenv, nil, nil)
+// 	require.NoError(t, err)
+// 	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, nil)
+// 	require.NoError(t, err)
+// 	newSB := benthosenv.NewStreamBuilder()
+
+// 	// SetYAML parses a full Benthos config and uses it to configure the builder.
+// 	err = newSB.SetYAML(string(out))
+// 	require.NoError(t, err)
+
+// 	err = newSB.SetYAML(string(out1))
+// 	require.NoError(t, err)
+
+// 	err = newSB.SetYAML(string(out2))
+// 	require.NoError(t, err)
+// }
 
 func getBenthosConfigByName(resps []*BenthosConfigResponse, name string) *BenthosConfigResponse {
 	for _, cfg := range resps {

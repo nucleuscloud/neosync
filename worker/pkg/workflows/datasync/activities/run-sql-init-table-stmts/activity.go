@@ -2,12 +2,14 @@ package runsqlinittablestmts_activity
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	logger_utils "github.com/nucleuscloud/neosync/worker/internal/logger"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"go.temporal.io/sdk/activity"
@@ -48,10 +50,11 @@ func RunSqlInitTableStatements(
 	neosyncUrl := shared.GetNeosyncUrl()
 	httpClient := shared.GetNeosyncHttpClient()
 
-	pgpoolmap := map[string]pg_queries.DBTX{}
+	pgpoolmap := &sync.Map{}
 	pgquerier := pg_queries.New()
-	mysqlpoolmap := map[string]mysql_queries.DBTX{}
+	mysqlpoolmap := &sync.Map{}
 	mysqlquerier := mysql_queries.New()
+	sqlmanager := sql_manager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, &sqlconnect.SqlOpenConnector{})
 
 	jobclient := mgmtv1alpha1connect.NewJobServiceClient(
 		httpClient,
@@ -63,13 +66,9 @@ func RunSqlInitTableStatements(
 		neosyncUrl,
 	)
 	builder := newInitStatementBuilder(
-		pgpoolmap,
-		pgquerier,
-		mysqlpoolmap,
-		mysqlquerier,
+		sqlmanager,
 		jobclient,
 		connclient,
-		&sqlconnect.SqlOpenConnector{},
 	)
 	slogger := logger_utils.NewJsonSLogger().With(
 		"jobId", req.JobId,

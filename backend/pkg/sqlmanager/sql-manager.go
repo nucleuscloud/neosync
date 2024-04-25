@@ -19,10 +19,17 @@ const (
 	MysqlDriver    = "mysql"
 )
 
+type BatchExecOpts struct {
+	Prefix *string // this string will be added to the start of each statement
+}
+
 type SqlDatabase interface {
 	GetDatabaseSchema(ctx context.Context) ([]*DatabaseSchemaRow, error)
 	GetAllForeignKeyConstraints(ctx context.Context, schemas []string) ([]*ForeignKeyConstraintsRow, error)
 	GetAllPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*PrimaryKeyConstraintsRow, error)
+	GetCreateTableStatement(ctx context.Context, schema, table string) (string, error)
+	BatchExec(ctx context.Context, batchSize int, statements []string, opts *BatchExecOpts) error
+	Exec(ctx context.Context, statement string) error
 	ClosePool()
 }
 
@@ -51,6 +58,16 @@ func NewSqlManager(
 		sqlconnector: sqlconnector,
 	}
 }
+
+type SqlManagerClient interface {
+	NewSqlDb(
+		ctx context.Context,
+		slogger *slog.Logger,
+		connection *mgmtv1alpha1.Connection,
+	) (*SqlConnection, error)
+}
+
+var _ SqlManagerClient = &SqlManager{}
 
 type SqlConnection struct {
 	Db     SqlDatabase
@@ -170,19 +187,3 @@ func (s *SqlManager) NewSqlDb(
 		Driver: driver,
 	}, nil
 }
-
-// func (s *SqlConnection) GetDatabaseSchema(ctx context.Context) ([]*DatabaseSchemaRow, error) {
-// 	return s.db.GetDatabaseSchema(ctx)
-// }
-
-// func (s *SqlConnection) GetAllForeignKeyConstraints(ctx context.Context, schemas []string) ([]*ForeignKeyConstraintsRow, error) {
-// 	return s.db.GetAllForeignKeyConstraints(ctx, schemas)
-// }
-
-// func (s *SqlConnection) GetAllPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*PrimaryKeyConstraintsRow, error) {
-// 	return s.db.GetAllPrimaryKeyConstraints(ctx, schemas)
-// }
-
-// func (s *SqlConnection) ClosePool() {
-// 	s.db.ClosePool()
-// }

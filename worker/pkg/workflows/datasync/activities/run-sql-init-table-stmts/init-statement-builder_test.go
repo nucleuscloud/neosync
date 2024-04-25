@@ -7,14 +7,11 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
-	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/jackc/pgx/v5/pgconn"
-	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
-	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
-	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	dbschemas_mysql "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/mysql"
+	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -22,17 +19,8 @@ import (
 func Test_InitStatementBuilder_Pg_Generate(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-	pgPoolContainerMock := sqlconnect.NewMockPgPoolContainer(t)
-
-	dbtx := pg_queries.NewMockDBTX(t)
-	pgcache := map[string]pg_queries.DBTX{
-		"fake-prod-url": pg_queries.NewMockDBTX(t),
-		"postgresql://postgres:foofar@localhost:5435/nucleus": dbtx,
-	}
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{}
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
+	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
+	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
 	connectionId := "456"
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
@@ -128,13 +116,12 @@ func Test_InitStatementBuilder_Pg_Generate(t *testing.T) {
 			},
 		},
 	}), nil)
-	var cmdtag pgconn.CommandTag
-	dbtx.On("Exec", mock.Anything, `TRUNCATE TABLE "public"."users" CASCADE;`).Return(cmdtag, nil)
-	pgPoolContainerMock.On("Open", mock.Anything).Return(dbtx, nil)
-	pgPoolContainerMock.On("Close")
-	mockSqlConnector.On("NewPgPoolFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(pgPoolContainerMock, nil)
+	mockSqlManager.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
+	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{}, nil)
+	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"TRUNCATE \"public\".\"users\" CASCADE;"}, &sql_manager.BatchExecOpts{}).Return(nil)
+	mockSqlDb.On("ClosePool").Return(nil)
 
-	bbuilder := newInitStatementBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockSqlConnector)
+	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123", WorkflowId: "123"},
@@ -146,15 +133,8 @@ func Test_InitStatementBuilder_Pg_Generate(t *testing.T) {
 func Test_InitStatementBuilder_Pg_Generate_NoInitStatement(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-
-	pgcache := map[string]pg_queries.DBTX{
-		"123": pg_queries.NewMockDBTX(t),
-		"456": pg_queries.NewMockDBTX(t),
-	}
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{}
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
+	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
+	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
 	connectionId := "456"
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
@@ -239,8 +219,11 @@ func Test_InitStatementBuilder_Pg_Generate_NoInitStatement(t *testing.T) {
 			},
 		},
 	}), nil)
+	mockSqlManager.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
+	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{}, nil)
+	mockSqlDb.On("ClosePool").Return(nil)
 
-	bbuilder := newInitStatementBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockSqlConnector)
+	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123", WorkflowId: "123"},
@@ -252,17 +235,8 @@ func Test_InitStatementBuilder_Pg_Generate_NoInitStatement(t *testing.T) {
 func Test_InitStatementBuilder_Pg_TruncateCascade(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-	pgPoolContainerMock := sqlconnect.NewMockPgPoolContainer(t)
-
-	dbtx := pg_queries.NewMockDBTX(t)
-	pgcache := map[string]pg_queries.DBTX{
-		"fake-prod-url": pg_queries.NewMockDBTX(t),
-		"postgresql://postgres:foofar@localhost:5435/nucleus": dbtx,
-	}
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{}
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
+	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
+	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
 	connectionId := "456"
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
@@ -375,21 +349,13 @@ func Test_InitStatementBuilder_Pg_TruncateCascade(t *testing.T) {
 			},
 		},
 	}), nil)
-	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetTableConstraintsBySchemaRow{}, nil)
+	mockSqlManager.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
+	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{}, nil)
+	stmts := []string{"TRUNCATE \"public\".\"users\" CASCADE;", "TRUNCATE \"public\".\"accounts\" CASCADE;"}
+	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, mock.MatchedBy(func(query []string) bool { return compareSlices(query, stmts) }), &sql_manager.BatchExecOpts{}).Return(nil)
+	mockSqlDb.On("ClosePool").Return(nil)
 
-	var cmdtag pgconn.CommandTag
-	allowedQueries := []string{
-		"TRUNCATE TABLE \"public\".\"users\" CASCADE;\nTRUNCATE TABLE \"public\".\"accounts\" CASCADE;",
-		"TRUNCATE TABLE \"public\".\"accounts\" CASCADE;\nTRUNCATE TABLE \"public\".\"users\" CASCADE;",
-	}
-	dbtx.On("Exec", mock.Anything, mock.MatchedBy(func(query string) bool { return slices.Contains(allowedQueries, query) })).Return(cmdtag, nil)
-
-	pgPoolContainerMock.On("Open", mock.Anything).Return(dbtx, nil)
-	pgPoolContainerMock.On("Close")
-	mockSqlConnector.On("NewPgPoolFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(pgPoolContainerMock, nil)
-
-	bbuilder := newInitStatementBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockSqlConnector)
+	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123", WorkflowId: "123"},
@@ -401,17 +367,8 @@ func Test_InitStatementBuilder_Pg_TruncateCascade(t *testing.T) {
 func Test_InitStatementBuilder_Pg_Truncate(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-	pgPoolContainerMock := sqlconnect.NewMockPgPoolContainer(t)
-
-	dbtx := pg_queries.NewMockDBTX(t)
-	pgcache := map[string]pg_queries.DBTX{
-		"fake-prod-url": pg_queries.NewMockDBTX(t),
-		"postgresql://postgres:foofar@localhost:5435/nucleus": dbtx,
-	}
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{}
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
+	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
+	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
 	connectionId := "456"
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
@@ -524,28 +481,23 @@ func Test_InitStatementBuilder_Pg_Truncate(t *testing.T) {
 			},
 		},
 	}), nil)
-	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetTableConstraintsBySchemaRow{
-			{
-				ConstraintName:     "fk_user_account_id",
-				SchemaName:         "public",
-				TableName:          "users",
-				ConstraintColumns:  []string{"account_id"},
-				ForeignSchemaName:  "public",
-				ForeignTableName:   "accounts",
-				ForeignColumnNames: []string{"id"},
-				Notnullable:        []bool{true},
-				ConstraintType:     "f",
-			},
-		}, nil)
+	mockSqlManager.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
+	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
+		{
+			ConstraintName:    "fk_user_account_id",
+			SchemaName:        "public",
+			TableName:         "users",
+			ColumnName:        "account_id",
+			ForeignSchemaName: "public",
+			ForeignTableName:  "accounts",
+			ForeignColumnName: "id",
+			IsNullable:        "false",
+		},
+	}, nil)
+	mockSqlDb.On("Exec", mock.Anything, "TRUNCATE TABLE \"public\".\"accounts\", \"public\".\"users\";").Return(nil)
+	mockSqlDb.On("ClosePool").Return(nil)
 
-	var cmdtag pgconn.CommandTag
-	dbtx.On("Exec", mock.Anything, "TRUNCATE TABLE \"public\".\"accounts\", \"public\".\"users\";").Return(cmdtag, nil)
-	pgPoolContainerMock.On("Open", mock.Anything).Return(dbtx, nil)
-	pgPoolContainerMock.On("Close")
-	mockSqlConnector.On("NewPgPoolFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(pgPoolContainerMock, nil)
-
-	bbuilder := newInitStatementBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockSqlConnector)
+	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123", WorkflowId: "123"},
@@ -557,17 +509,8 @@ func Test_InitStatementBuilder_Pg_Truncate(t *testing.T) {
 func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-	pgPoolContainerMock := sqlconnect.NewMockPgPoolContainer(t)
-
-	dbtx := pg_queries.NewMockDBTX(t)
-	pgcache := map[string]pg_queries.DBTX{
-		"fake-prod-url": pg_queries.NewMockDBTX(t),
-		"postgresql://postgres:foofar@localhost:5435/nucleus": dbtx,
-	}
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{}
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
+	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
+	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
 	connectionId := "456"
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
@@ -680,91 +623,29 @@ func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 			},
 		},
 	}), nil)
-	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetTableConstraintsBySchemaRow{
-			{
-				ConstraintName:     "fk_user_account_id",
-				SchemaName:         "public",
-				TableName:          "users",
-				ConstraintColumns:  []string{"account_id"},
-				ForeignSchemaName:  "public",
-				ForeignTableName:   "accounts",
-				ForeignColumnNames: []string{"id"},
-				Notnullable:        []bool{true},
-				ConstraintType:     "f",
-			},
-		}, nil)
-	pgquerier.On("GetTableConstraints", mock.Anything, mock.Anything, &pg_queries.GetTableConstraintsParams{
-		Schema: "public",
-		Table:  "users",
-	}).Return([]*pg_queries.GetTableConstraintsRow{
-		{
-			ConstraintName:       "users_pkey",
-			ConstraintDefinition: "PRIMARY KEY (id)",
-		},
-		{
-			ConstraintName:       "accounts_pkey",
-			ConstraintDefinition: "PRIMARY KEY (id)",
-		},
-	}, nil)
-	pgquerier.On("GetDatabaseTableSchema", mock.Anything, mock.Anything, &pg_queries.GetDatabaseTableSchemaParams{
-		Schema: "public",
-		Table:  "users",
-	}).Return([]*pg_queries.GetDatabaseTableSchemaRow{
-		{
-			ColumnName:      "id",
-			DataType:        "uuid",
-			OrdinalPosition: 1,
-			IsNullable:      "NO",
-			ColumnDefault:   "gen_random_uuid()",
-		},
-		{
-			ColumnName:             "account_id",
-			DataType:               "uuid",
-			OrdinalPosition:        1,
-			IsNullable:             "No",
-			CharacterMaximumLength: 40,
-		},
-	}, nil)
-	pgquerier.On("GetDatabaseTableSchema", mock.Anything, mock.Anything, &pg_queries.GetDatabaseTableSchemaParams{
-		Schema: "public",
-		Table:  "accounts",
-	}).Return([]*pg_queries.GetDatabaseTableSchemaRow{
-		{
-			ColumnName:      "id",
-			DataType:        "uuid",
-			OrdinalPosition: 1,
-			IsNullable:      "NO",
-			ColumnDefault:   "gen_random_uuid()",
-		},
-	}, nil)
 
-	pgquerier.On("GetTableConstraints", mock.Anything, mock.Anything, &pg_queries.GetTableConstraintsParams{
-		Schema: "public",
-		Table:  "users",
-	}).Return([]*pg_queries.GetTableConstraintsRow{
+	mockSqlManager.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
+	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
 		{
-			ConstraintName:       "users_pkey",
-			ConstraintDefinition: "PRIMARY KEY (id)",
+			ConstraintName:    "fk_user_account_id",
+			SchemaName:        "public",
+			TableName:         "users",
+			ColumnName:        "account_id",
+			ForeignSchemaName: "public",
+			ForeignTableName:  "accounts",
+			ForeignColumnName: "id",
+			IsNullable:        "false",
 		},
 	}, nil)
-	pgquerier.On("GetTableConstraints", mock.Anything, mock.Anything, &pg_queries.GetTableConstraintsParams{
-		Schema: "public",
-		Table:  "accounts",
-	}).Return([]*pg_queries.GetTableConstraintsRow{
-		{
-			ConstraintName:       "accounts_pkey",
-			ConstraintDefinition: "PRIMARY KEY (id)",
-		},
-	}, nil)
+	accountCreateStmt := "CREATE TABLE IF NOT EXISTS \"public\".\"accounts\" (\"id\" uuid NOT NULL DEFAULT gen_random_uuid(), CONSTRAINT accounts_pkey PRIMARY KEY (id));"
+	usersCreateStmt := "CREATE TABLE IF NOT EXISTS \"public\".\"users\" (\"id\" uuid NOT NULL DEFAULT gen_random_uuid(), \"account_id\" uuid NULL, CONSTRAINT users_pkey PRIMARY KEY (id), CONSTRAINT accounts_pkey PRIMARY KEY (id));"
+	mockSqlDb.On("GetCreateTableStatement", mock.Anything, "public", "accounts").Return(accountCreateStmt, nil)
+	mockSqlDb.On("GetCreateTableStatement", mock.Anything, "public", "users").Return(usersCreateStmt, nil)
 
-	var cmdtag pgconn.CommandTag
-	dbtx.On("Exec", mock.Anything, "CREATE TABLE IF NOT EXISTS \"public\".\"accounts\" (\"id\" uuid NOT NULL DEFAULT gen_random_uuid(), CONSTRAINT accounts_pkey PRIMARY KEY (id));\nCREATE TABLE IF NOT EXISTS \"public\".\"users\" (\"id\" uuid NOT NULL DEFAULT gen_random_uuid(), \"account_id\" uuid NULL, CONSTRAINT users_pkey PRIMARY KEY (id), CONSTRAINT accounts_pkey PRIMARY KEY (id));").Return(cmdtag, nil)
-	pgPoolContainerMock.On("Open", mock.Anything).Return(dbtx, nil)
-	pgPoolContainerMock.On("Close")
-	mockSqlConnector.On("NewPgPoolFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(pgPoolContainerMock, nil)
+	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{accountCreateStmt, usersCreateStmt}, &sql_manager.BatchExecOpts{}).Return(nil)
+	mockSqlDb.On("ClosePool").Return(nil)
 
-	bbuilder := newInitStatementBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockSqlConnector)
+	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
 	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123", WorkflowId: "123"},
@@ -776,20 +657,8 @@ func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 func Test_InitStatementBuilder_Mysql_Generate(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-	sqlDbContainerMock := sqlconnect.NewMockSqlDbContainer(t)
-
-	sqlDbMock, _, err := sqlmock.New(sqlmock.MonitorPingsOption(false))
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-	pgcache := map[string]pg_queries.DBTX{}
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{
-		"fake-prod-url": sqlDbMock,
-		"postgresql://postgres:foofar@localhost:5435/nucleus": mysql_queries.NewMockDBTX(t),
-	}
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
+	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
+	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
 	connectionId := "456"
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
@@ -884,12 +753,12 @@ func Test_InitStatementBuilder_Mysql_Generate(t *testing.T) {
 			},
 		},
 	}), nil)
-	sqlDbContainerMock.On("Open", mock.Anything).Return(sqlDbMock, nil)
-	sqlDbContainerMock.On("Close").Return(nil)
-	mockSqlConnector.On("NewDbFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(sqlDbContainerMock, nil)
+	mockSqlManager.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
+	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{}, nil)
+	mockSqlDb.On("ClosePool").Return(nil)
 
-	bbuilder := newInitStatementBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockSqlConnector)
-	_, err = bbuilder.RunSqlInitTableStatements(
+	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
+	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123", WorkflowId: "123"},
 		slog.Default(),
@@ -897,23 +766,12 @@ func Test_InitStatementBuilder_Mysql_Generate(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func Test_InitStatementBuilder_Mysql_Truncate(t *testing.T) {
+func Test_InitStatementBuilder_Mysql_TruncateCreate(t *testing.T) {
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-	sqlDbContainerMock := sqlconnect.NewMockSqlDbContainer(t)
+	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
+	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
 
-	sqlDbMock, sqlMock, err := sqlmock.New(sqlmock.MonitorPingsOption(false))
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-	pgcache := map[string]pg_queries.DBTX{}
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{
-		"fake-prod-url": sqlDbMock,
-		"postgresql://postgres:foofar@localhost:5435/nucleus": mysql_queries.NewMockDBTX(t),
-	}
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
 	connectionId := "456"
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
@@ -1000,166 +858,6 @@ func Test_InitStatementBuilder_Mysql_Truncate(t *testing.T) {
 									TruncateTable: &mgmtv1alpha1.MysqlTruncateTableConfig{
 										TruncateBeforeInsert: true,
 									},
-									InitTableSchema: false,
-								},
-							},
-						},
-					},
-				},
-			},
-		}), nil)
-
-	mockConnectionClient.On(
-		"GetConnection",
-		mock.Anything,
-		connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
-			Id: "456",
-		}),
-	).Return(connect.NewResponse(&mgmtv1alpha1.GetConnectionResponse{
-		Connection: &mgmtv1alpha1.Connection{
-			Id:   "456",
-			Name: "stage",
-			ConnectionConfig: &mgmtv1alpha1.ConnectionConfig{
-				Config: &mgmtv1alpha1.ConnectionConfig_MysqlConfig{
-					MysqlConfig: &mgmtv1alpha1.MysqlConnectionConfig{
-						ConnectionConfig: &mgmtv1alpha1.MysqlConnectionConfig_Url{
-							Url: "fake-prod-url",
-						},
-					},
-				},
-			},
-		},
-	}), nil)
-	mysqlquerier.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*mysql_queries.GetForeignKeyConstraintsRow{
-			{
-				ConstraintName:    "fk_user_account_id",
-				SchemaName:        "public",
-				TableName:         "users",
-				ColumnName:        "account_id",
-				ForeignSchemaName: "public",
-				ForeignTableName:  "accounts",
-				ForeignColumnName: "id",
-			},
-		}, nil)
-	regexPattern := "TRUNCATE TABLE `?public`?\\.\\`(users|accounts)\\`"
-	sqlMock.ExpectExec(regexPattern).WillReturnResult(sqlmock.NewResult(1, 2))
-	sqlDbContainerMock.On("Open", mock.Anything).Return(sqlDbMock, nil)
-	sqlDbContainerMock.On("Close").Return(nil)
-	mockSqlConnector.On("NewDbFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(sqlDbContainerMock, nil)
-
-	bbuilder := newInitStatementBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockSqlConnector)
-	_, err = bbuilder.RunSqlInitTableStatements(
-		context.Background(),
-		&RunSqlInitTableStatementsRequest{JobId: "123", WorkflowId: "123"},
-		slog.Default(),
-	)
-	assert.Nil(t, err)
-}
-
-func Test_InitStatementBuilder_Mysql_InitSchema(t *testing.T) {
-	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
-	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-	sqlDbContainerMock := sqlconnect.NewMockSqlDbContainer(t)
-
-	sqlDbMock, sqlMock, err := sqlmock.New(sqlmock.MonitorPingsOption(false))
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-	pgcache := map[string]pg_queries.DBTX{}
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := map[string]mysql_queries.DBTX{
-		"fake-prod-url": sqlDbMock,
-		"postgresql://postgres:foofar@localhost:5435/nucleus": mysql_queries.NewMockDBTX(t),
-	}
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
-	connectionId := "456"
-
-	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
-		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
-			Job: &mgmtv1alpha1.Job{
-				Source: &mgmtv1alpha1.JobSource{
-					Options: &mgmtv1alpha1.JobSourceOptions{
-						Config: &mgmtv1alpha1.JobSourceOptions_Mysql{
-							Mysql: &mgmtv1alpha1.MysqlSourceConnectionOptions{
-								Schemas: []*mgmtv1alpha1.MysqlSourceSchemaOption{
-									{
-										Schema: "public",
-										Tables: []*mgmtv1alpha1.MysqlSourceTableOption{
-											{
-												Table: "users",
-											},
-										},
-									},
-									{
-										Schema: "public",
-										Tables: []*mgmtv1alpha1.MysqlSourceTableOption{
-											{
-												Table: "accounts",
-											},
-										},
-									},
-								},
-								ConnectionId: connectionId,
-							},
-						},
-					},
-				},
-				Mappings: []*mgmtv1alpha1.JobMapping{
-					{
-						Schema: "public",
-						Table:  "users",
-						Column: "id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UUID,
-							Config: &mgmtv1alpha1.TransformerConfig{
-								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
-									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
-										IncludeHyphens: true,
-									},
-								},
-							},
-						},
-					},
-					{
-						Schema: "public",
-						Table:  "users",
-						Column: "name",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_NAME,
-							Config: &mgmtv1alpha1.TransformerConfig{
-								Config: &mgmtv1alpha1.TransformerConfig_GenerateFullNameConfig{
-									GenerateFullNameConfig: &mgmtv1alpha1.GenerateFullName{},
-								},
-							},
-						},
-					},
-					{
-						Schema: "public",
-						Table:  "accounts",
-						Column: "id",
-						Transformer: &mgmtv1alpha1.JobMappingTransformer{
-							Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UUID,
-							Config: &mgmtv1alpha1.TransformerConfig{
-								Config: &mgmtv1alpha1.TransformerConfig_GenerateUuidConfig{
-									GenerateUuidConfig: &mgmtv1alpha1.GenerateUuid{
-										IncludeHyphens: true,
-									},
-								},
-							},
-						},
-					},
-				},
-				Destinations: []*mgmtv1alpha1.JobDestination{
-					{
-						ConnectionId: "456",
-						Options: &mgmtv1alpha1.JobDestinationOptions{
-							Config: &mgmtv1alpha1.JobDestinationOptions_MysqlOptions{
-								MysqlOptions: &mgmtv1alpha1.MysqlDestinationConnectionOptions{
-									TruncateTable: &mgmtv1alpha1.MysqlTruncateTableConfig{
-										TruncateBeforeInsert: false,
-									},
 									InitTableSchema: true,
 								},
 							},
@@ -1190,40 +888,38 @@ func Test_InitStatementBuilder_Mysql_InitSchema(t *testing.T) {
 			},
 		},
 	}), nil)
-	mysqlquerier.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*mysql_queries.GetForeignKeyConstraintsRow{
-			{
-				ConstraintName:    "fk_user_account_id",
-				SchemaName:        "public",
-				TableName:         "users",
-				ColumnName:        "account_id",
-				ForeignSchemaName: "public",
-				ForeignTableName:  "accounts",
-				ForeignColumnName: "id",
-			},
-		}, nil)
 
-	createAccountRows := sqlmock.NewRows([]string{"Table", "Create Table"}).
-		AddRow("accounts", "CREATE TABLE public.accounts")
-	sqlMock.ExpectQuery("SHOW CREATE TABLE public.accounts;").WillReturnRows(createAccountRows)
-	createUsersRows := sqlmock.NewRows([]string{"Table", "Create Table"}).
-		AddRow("users", "CREATE TABLE public.users")
-	sqlMock.ExpectQuery("SHOW CREATE TABLE public.users;").WillReturnRows(createUsersRows)
-	sqlMock.ExpectExec("CREATE TABLE IF NOT EXISTS  public.accounts; CREATE TABLE IF NOT EXISTS  public.users;").WillReturnResult(sqlmock.NewResult(1, 2))
-	sqlDbContainerMock.On("Open", mock.Anything).Return(sqlDbMock, nil)
-	sqlDbContainerMock.On("Close").Return(nil)
-	mockSqlConnector.On("NewDbFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(sqlDbContainerMock, nil)
+	mockSqlManager.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
+	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
+		{
+			ConstraintName:    "fk_user_account_id",
+			SchemaName:        "public",
+			TableName:         "users",
+			ColumnName:        "account_id",
+			ForeignSchemaName: "public",
+			ForeignTableName:  "accounts",
+			ForeignColumnName: "id",
+		},
+	}, nil)
+	accountCreateStmt := "CREATE TABLE IF NOT EXISTS \"public\".\"accounts\" (\"id\" uuid NOT NULL DEFAULT gen_random_uuid(), CONSTRAINT accounts_pkey PRIMARY KEY (id));"
+	usersCreateStmt := "CREATE TABLE IF NOT EXISTS \"public\".\"users\" (\"id\" uuid NOT NULL DEFAULT gen_random_uuid(), \"account_id\" uuid NULL, CONSTRAINT users_pkey PRIMARY KEY (id), CONSTRAINT accounts_pkey PRIMARY KEY (id));"
+	mockSqlDb.On("GetCreateTableStatement", mock.Anything, "public", "accounts").Return(accountCreateStmt, nil)
+	mockSqlDb.On("GetCreateTableStatement", mock.Anything, "public", "users").Return(usersCreateStmt, nil)
 
-	bbuilder := newInitStatementBuilder(pgcache, pgquerier, mysqlcache, mysqlquerier, mockJobClient, mockConnectionClient, mockSqlConnector)
-	_, err = bbuilder.RunSqlInitTableStatements(
+	createStmts := []string{accountCreateStmt, usersCreateStmt}
+	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, mock.MatchedBy(func(query []string) bool { return compareSlices(query, createStmts) }), &sql_manager.BatchExecOpts{}).Return(nil)
+	disableFkChecks := dbschemas_mysql.DisableForeignKeyChecks
+	truncateStmts := []string{"TRUNCATE \"public\".\"users\";", "TRUNCATE \"public\".\"accounts\";"}
+	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, mock.MatchedBy(func(query []string) bool { return compareSlices(query, truncateStmts) }), &sql_manager.BatchExecOpts{Prefix: &disableFkChecks}).Return(nil)
+	mockSqlDb.On("ClosePool").Return(nil)
+
+	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
+	_, err := bbuilder.RunSqlInitTableStatements(
 		context.Background(),
 		&RunSqlInitTableStatementsRequest{JobId: "123", WorkflowId: "123"},
 		slog.Default(),
 	)
 	assert.Nil(t, err)
-	if err := sqlMock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expectations: %s", err)
-	}
 }
 
 func Test_getFilteredForeignToPrimaryTableMap(t *testing.T) {
@@ -1306,4 +1002,13 @@ func Test_getFilteredForeignToPrimaryTableMap_filtered(t *testing.T) {
 		assert.Len(t, deps, len(expected[table]))
 		assert.ElementsMatch(t, expected[table], deps)
 	}
+}
+
+func compareSlices(slice1, slice2 []string) bool {
+	for _, ele := range slice1 {
+		if !slices.Contains(slice2, ele) {
+			return false
+		}
+	}
+	return true
 }
