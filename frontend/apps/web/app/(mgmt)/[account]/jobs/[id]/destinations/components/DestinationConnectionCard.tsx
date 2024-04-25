@@ -129,6 +129,7 @@ export default function DestinationConnectionCard({
                             truncateBeforeInsert: false,
                             truncateCascade: false,
                             initTableSchema: false,
+                            onConflictDoNothing: false,
                           });
                         }}
                         value={field.value}

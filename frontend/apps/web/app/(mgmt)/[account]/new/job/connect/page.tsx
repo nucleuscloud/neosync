@@ -234,6 +234,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                           truncateBeforeInsert: false,
                                           truncateCascade: false,
                                           initTableSchema: false,
+                                          onConflictDoNothing: false,
                                         }
                                       );
                                     }}

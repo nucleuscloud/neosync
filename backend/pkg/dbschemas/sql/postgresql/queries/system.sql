@@ -130,7 +130,7 @@ SELECT
     con.conname AS constraint_name,
     con.contype::text AS constraint_type,
     con.connamespace::regnamespace::text AS schema_name,
-    con.conrelid::regclass::text AS table_name,
+    cls.relname AS table_name,
     CASE
         WHEN con.contype IN ('f', 'p', 'u') THEN array_agg(att.attname)
         ELSE NULL
@@ -141,7 +141,7 @@ SELECT
         ELSE ''
     END AS foreign_schema_name,
     CASE
-        WHEN con.contype = 'f' THEN con.confrelid::regclass::text
+        WHEN con.contype = 'f' THEN fn_cl.relname
         ELSE ''
     END AS foreign_table_name,
     CASE
@@ -157,17 +157,21 @@ LEFT JOIN
     pg_catalog.pg_attribute att ON att.attrelid = con.conrelid AND att.attnum = ANY(con.conkey)
 LEFT JOIN
     pg_catalog.pg_class fn_cl ON fn_cl.oid = con.confrelid
+JOIN
+    pg_catalog.pg_class cls ON con.conrelid = cls.oid
+JOIN
+    pg_catalog.pg_namespace nsp ON cls.relnamespace = nsp.oid
 WHERE
     con.connamespace::regnamespace::text = sqlc.arg('schema') AND con.conrelid::regclass::text = sqlc.arg('table')
 GROUP BY
-    con.oid, con.conname, con.conrelid, fn_cl.relnamespace, con.confrelid, con.contype;
+    con.oid, con.conname, cls.relname, fn_cl.relnamespace, fn_cl.relname, con.contype;
 
 -- name: GetTableConstraintsBySchema :many
 SELECT
     con.conname AS constraint_name,
     con.contype::text AS constraint_type,
     con.connamespace::regnamespace::text AS schema_name,
-    con.conrelid::regclass::text AS table_name,
+    cls.relname AS table_name,
     CASE
         WHEN con.contype IN ('f', 'p', 'u') THEN array_agg(att.attname)
         ELSE NULL
@@ -178,7 +182,7 @@ SELECT
         ELSE ''
     END AS foreign_schema_name,
     CASE
-        WHEN con.contype = 'f' THEN con.confrelid::regclass::text
+        WHEN con.contype = 'f' THEN fn_cl.relname
         ELSE ''
     END AS foreign_table_name,
     CASE
@@ -194,10 +198,14 @@ LEFT JOIN
     pg_catalog.pg_attribute att ON att.attrelid = con.conrelid AND att.attnum = ANY(con.conkey)
 LEFT JOIN
     pg_catalog.pg_class fn_cl ON fn_cl.oid = con.confrelid
+JOIN
+    pg_catalog.pg_class cls ON con.conrelid = cls.oid
+JOIN
+    pg_catalog.pg_namespace nsp ON cls.relnamespace = nsp.oid
 WHERE
     con.connamespace::regnamespace::text = ANY(sqlc.arg('schema')::text[])
 GROUP BY
-    con.oid, con.conname, con.conrelid, fn_cl.relnamespace, con.confrelid, con.contype;
+    con.oid, con.conname, cls.relname, fn_cl.relnamespace, fn_cl.relname, con.contype;
 
 -- name: GetPostgresRolePermissions :many
 SELECT

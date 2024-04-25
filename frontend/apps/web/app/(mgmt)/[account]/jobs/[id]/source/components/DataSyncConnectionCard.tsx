@@ -24,6 +24,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectionForeignConstraints';
 import { useGetConnectionPrimaryConstraints } from '@/libs/hooks/useGetConnectionPrimaryConstraints';
 import {
+  ConnectionSchemaMap,
   GetConnectionSchemaMapResponse,
   getConnectionSchema,
   useGetConnectionSchemaMap,
@@ -106,7 +107,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
 
   const form = useForm({
     resolver: yupResolver<SourceFormValues>(FORM_SCHEMA),
-    values: getJobSource(data?.job),
+    values: getJobSource(data?.job, connectionSchemaDataMap?.schemaMap),
     context: { accountId: account?.id },
   });
 
@@ -359,8 +360,11 @@ function getExistingMysqlSourceConnectionOptions(
     : undefined;
 }
 
-function getJobSource(job?: Job): SourceFormValues {
-  if (!job) {
+function getJobSource(
+  job?: Job,
+  connSchemaMap?: ConnectionSchemaMap
+): SourceFormValues {
+  if (!job || !connSchemaMap) {
     return {
       sourceId: '',
       sourceOptions: {
@@ -372,13 +376,42 @@ function getJobSource(job?: Job): SourceFormValues {
     };
   }
 
+  const mapData: Record<string, Set<string>> = {};
+
   const mappings = (job.mappings ?? []).map((mapping) => {
+    const tkey = `${mapping.schema}.${mapping.table}`;
+    const uniqcols = mapData[tkey];
+    if (uniqcols) {
+      uniqcols.add(mapping.column);
+    } else {
+      mapData[tkey] = new Set([mapping.column]);
+    }
+
     return {
       ...mapping,
       transformer: mapping.transformer
         ? convertJobMappingTransformerToForm(mapping.transformer)
         : convertJobMappingTransformerToForm(new JobMappingTransformer()),
     };
+  });
+
+  Object.entries(mapData).forEach(([key, currcols]) => {
+    const dbcols = connSchemaMap[key];
+    if (!dbcols) {
+      return;
+    }
+    dbcols.forEach((dbcol) => {
+      if (!currcols.has(dbcol.column)) {
+        mappings.push({
+          schema: dbcol.schema,
+          table: dbcol.table,
+          column: dbcol.column,
+          transformer: convertJobMappingTransformerToForm(
+            new JobMappingTransformer()
+          ),
+        });
+      }
+    });
   });
 
   const destinationIds = job?.destinations.map((d) => d.connectionId);

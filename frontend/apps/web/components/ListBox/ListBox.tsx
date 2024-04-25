@@ -123,7 +123,7 @@ export default function ListBox<TData, TValue>(
         >
           {rows.length === 0 && !!noDataMessage && (
             <TableRow className="flex justify-center items-center py-10 text-gray-500">
-              <div className="px-4">{noDataMessage}</div>
+              <td className="px-4">{noDataMessage}</td>
             </TableRow>
           )}
           {rowVirtualizer.getVirtualItems().map((virtualRow) => {
