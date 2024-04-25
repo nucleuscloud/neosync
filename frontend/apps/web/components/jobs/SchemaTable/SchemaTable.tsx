@@ -118,7 +118,7 @@ export function SchemaTable(props: Props): ReactElement {
   }
 
   const extractedFormErrors = formErrorsToMessages(
-    extractAllErrors(form.formState.errors, form.getValues('mappings'))
+    extractAllFormErrors(form.formState.errors, form.getValues('mappings'))
   );
   return (
     <div className="flex flex-col gap-3">
@@ -220,7 +220,7 @@ interface FormError {
   path: string;
 }
 
-function extractAllErrors(
+function extractAllFormErrors(
   errors: FieldErrors<SchemaFormValues | SingleTableSchemaFormValues>,
   values: JobMappingFormValues[],
   path = ''
@@ -250,7 +250,7 @@ function extractAllErrors(
         type: error.type,
       });
     } else {
-      messages = messages.concat(extractAllErrors(error, values, newPath));
+      messages = messages.concat(extractAllFormErrors(error, values, newPath));
     }
   }
   return messages;

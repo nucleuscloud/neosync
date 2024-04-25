@@ -151,6 +151,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         const form = useFormContext<
           SchemaFormValues | SingleTableSchemaFormValues
         >();
+        // eslint-disable-next-line react-hooks/rules-of-hooks
         const { remove } = useFieldArray<
           SchemaFormValues | SingleTableSchemaFormValues
         >({
