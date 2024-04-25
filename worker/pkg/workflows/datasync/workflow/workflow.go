@@ -64,6 +64,11 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		return &WorkflowResponse{}, nil
 	}
 
+	splitConfigs := splitBenthosConfigs(bcResp.BenthosConfigs)
+	if !isValidRunOrder(splitConfigs) {
+		return nil, errors.New("unable to build table run order. unsupported circular dependency detected.")
+	}
+
 	var actOptResp *syncactivityopts_activity.RetrieveActivityOptionsResponse
 	ctx = workflow.WithActivityOptions(wfctx, workflow.ActivityOptions{
 		StartToCloseTimeout: 1 * time.Minute,
@@ -92,11 +97,6 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		return nil, err
 	}
 	logger.Info("completed RunSqlInitTableStatements.")
-
-	splitConfigs := splitBenthosConfigs(bcResp.BenthosConfigs)
-	if !isValidRunOrder(splitConfigs) {
-		return nil, errors.New("unable to build table run order. unsupported circular dependency detected.")
-	}
 
 	started := sync.Map{}
 	completed := sync.Map{}
@@ -385,17 +385,25 @@ func isValidRunOrder(splitConfigs *SplitConfigs) bool {
 		for name, config := range childMap {
 			for _, d := range config.DependsOn {
 				seenCols, seen := seenTables[d.Table]
-				if !seen {
-					break
-				}
-				for _, c := range d.Columns {
-					if !slices.Contains(seenCols, c) {
-						break
+				isReady := func() bool {
+					if !seen {
+						return false
 					}
+					for _, c := range d.Columns {
+						if !slices.Contains(seenCols, c) {
+							return false
+						}
+					}
+					return true
 				}
+				if isReady() {
+					seenTables[fmt.Sprintf("%s.%s", config.TableSchema, config.TableName)] = config.Columns
+					delete(childMap, name)
+
+				}
+
 			}
-			seenTables[fmt.Sprintf("%s.%s", config.TableSchema, config.TableName)] = config.Columns
-			delete(childMap, name)
+
 		}
 	}
 	return true
