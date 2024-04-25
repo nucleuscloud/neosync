@@ -22,7 +22,7 @@ func sqlRawInputSpec() *service.ConfigSpec {
 }
 
 // Registers an input on a benthos environment called pooled_sql_raw
-func RegisterPooledSqlRawInput(env *service.Environment, dbprovider DbPoolProvider, stopActivityChannel chan error) error {
+func RegisterPooledSqlRawInput(env *service.Environment, dbprovider DbPoolProvider, stopActivityChannel chan<- error) error {
 	return env.RegisterInput(
 		"pooled_sql_raw", sqlRawInputSpec(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.Input, error) {
@@ -50,10 +50,10 @@ type pooledInput struct {
 
 	shutSig *shutdown.Signaller
 
-	stopActivityChannel chan error
+	stopActivityChannel chan<- error
 }
 
-func newInput(conf *service.ParsedConfig, mgr *service.Resources, dbprovider DbPoolProvider, channel chan error) (*pooledInput, error) {
+func newInput(conf *service.ParsedConfig, mgr *service.Resources, dbprovider DbPoolProvider, channel chan<- error) (*pooledInput, error) {
 	driver, err := conf.FieldString("driver")
 	if err != nil {
 		return nil, err
