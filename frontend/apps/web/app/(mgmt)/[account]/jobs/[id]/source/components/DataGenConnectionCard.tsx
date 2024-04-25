@@ -21,7 +21,10 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectionForeignConstraints';
 import { useGetConnectionPrimaryConstraints } from '@/libs/hooks/useGetConnectionPrimaryConstraints';
-import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
+import {
+  ConnectionSchemaMap,
+  useGetConnectionSchemaMap,
+} from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetConnectionUniqueConstraints } from '@/libs/hooks/useGetConnectionUniqueConstraints';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 import { getErrorMessage } from '@/util/util';
@@ -89,7 +92,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
 
   const form = useForm<SingleTableSchemaFormValues>({
     resolver: yupResolver(SINGLE_TABLE_SCHEMA_FORM_SCHEMA),
-    values: getJobSource(data?.job),
+    values: getJobSource(data?.job, connectionSchemaDataMap?.schemaMap),
     context: { accountId: account?.id },
   });
 
@@ -183,8 +186,11 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
   );
 }
 
-function getJobSource(job?: Job): SingleTableSchemaFormValues {
-  if (!job) {
+function getJobSource(
+  job?: Job,
+  connSchemaMap?: ConnectionSchemaMap
+): SingleTableSchemaFormValues {
+  if (!job || !connSchemaMap) {
     return {
       mappings: [],
       numRows: 0,
@@ -201,9 +207,19 @@ function getJobSource(job?: Job): SingleTableSchemaFormValues {
     }
   }
 
+  const mapData: Record<string, Set<string>> = {};
+
   const mappings: SingleTableSchemaFormValues['mappings'] = (
     job.mappings ?? []
   ).map((mapping) => {
+    const tkey = `${mapping.schema}.${mapping.table}`;
+    const uniqcols = mapData[tkey];
+    if (uniqcols) {
+      uniqcols.add(mapping.column);
+    } else {
+      mapData[tkey] = new Set([mapping.column]);
+    }
+
     return {
       schema: mapping.schema,
       table: mapping.table,
@@ -213,6 +229,26 @@ function getJobSource(job?: Job): SingleTableSchemaFormValues {
         : convertJobMappingTransformerToForm(new JobMappingTransformer()),
     };
   });
+
+  Object.entries(mapData).forEach(([key, currcols]) => {
+    const dbcols = connSchemaMap[key];
+    if (!dbcols) {
+      return;
+    }
+    dbcols.forEach((dbcol) => {
+      if (!currcols.has(dbcol.column)) {
+        mappings.push({
+          schema: dbcol.schema,
+          table: dbcol.table,
+          column: dbcol.column,
+          transformer: convertJobMappingTransformerToForm(
+            new JobMappingTransformer()
+          ),
+        });
+      }
+    });
+  });
+
   return {
     mappings: mappings,
     numRows: numRows,
