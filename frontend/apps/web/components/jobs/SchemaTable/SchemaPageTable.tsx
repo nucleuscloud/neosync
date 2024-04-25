@@ -165,12 +165,10 @@ export default function SchemaPageTable<TData, TValue>({
                           minWidth: cell.column.getSize(),
                         }}
                       >
-                        <div>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </div>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
                       </td>
                     );
                   })}
