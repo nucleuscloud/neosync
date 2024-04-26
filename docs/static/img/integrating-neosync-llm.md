@@ -13,7 +13,7 @@ This guide walks through how you can integrate Neosync with any LLM or machine l
 
 In order to get started, you'll need the following:
 
-1. A Neosync account which you can sign up for free [here]("https://neosync.dev")
+1. A Neosync account which you can sign up for free [here]("https://www.neosync.dev")
 2. Access to an LLM hosted at an endpoint. I'll be using OpenAI but you can use any other LLM as long as it's available at a REST endpoint.
 3. A database to store your data. I'm going to use Neon but either Postgres or Mysql works.
 
