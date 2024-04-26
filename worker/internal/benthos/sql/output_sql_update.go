@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/Jeffail/shutdown"
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/benthosdev/benthos/v4/public/service"
 	"github.com/doug-martin/goqu/v9"
@@ -13,7 +14,6 @@ import (
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	"github.com/doug-martin/goqu/v9/exp"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
-	"github.com/nucleuscloud/neosync/worker/internal/benthos/shutdown"
 )
 
 type SqlDbtx interface {
@@ -149,14 +149,14 @@ func (s *pooledUpdateOutput) Connect(ctx context.Context) error {
 	s.db = db
 
 	go func() {
-		<-s.shutSig.CloseNowChan()
+		<-s.shutSig.HardStopChan()
 
 		s.dbMut.Lock()
 		// not closing the connection here as that is managed by an outside force
 		s.db = nil
 		s.dbMut.Unlock()
 
-		s.shutSig.ShutdownComplete()
+		s.shutSig.TriggerHasStopped()
 	}()
 	return nil
 }
@@ -229,12 +229,11 @@ func (s *pooledUpdateOutput) WriteBatch(ctx context.Context, batch service.Messa
 			return err
 		}
 	}
-
 	return nil
 }
 
 func (s *pooledUpdateOutput) Close(ctx context.Context) error {
-	s.shutSig.CloseNow()
+	s.shutSig.TriggerHardStop()
 	s.dbMut.RLock()
 	isNil := s.db == nil
 	s.dbMut.RUnlock()
@@ -242,7 +241,7 @@ func (s *pooledUpdateOutput) Close(ctx context.Context) error {
 		return nil
 	}
 	select {
-	case <-s.shutSig.HasClosedChan():
+	case <-s.shutSig.HasStoppedChan():
 	case <-ctx.Done():
 		return ctx.Err()
 	}

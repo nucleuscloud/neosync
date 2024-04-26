@@ -114,7 +114,7 @@ func serve(ctx context.Context) error {
 		},
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("unable to dial temporal client: %w", err)
 	}
 	defer temporalClient.Close()
 
@@ -147,7 +147,7 @@ func serve(ctx context.Context) error {
 	w.RegisterActivity(genbenthosActivity.GenerateBenthosConfigs)
 
 	if err := w.Start(); err != nil {
-		return err
+		return fmt.Errorf("unable to start temporal worker: %w", err)
 	}
 
 	httpServer := getHttpServer(loglogger)
@@ -161,13 +161,15 @@ func serve(ctx context.Context) error {
 	}()
 
 	<-worker.InterruptCh()
+	logger.Info("received interrupt, stopping worker...")
 	w.Stop()
-
+	logger.Info("temporal worker shut down, proceeding to shutting down http server")
 	ctx, cancelHandler := context.WithDeadline(context.Background(), time.Now().Add(2*time.Second))
 	defer cancelHandler()
 	if err := httpServer.Shutdown(ctx); err != nil {
 		return err
 	}
+	logger.Info("worker stopped successfully, fully shutting down")
 	return nil
 }
 

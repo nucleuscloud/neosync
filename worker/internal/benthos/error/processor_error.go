@@ -14,7 +14,7 @@ func errorProcessorSpec() *service.ConfigSpec {
 }
 
 // Registers an processor on a benthos environment called error
-func RegisterErrorProcessor(env *service.Environment, stopActivityChannel chan error) error {
+func RegisterErrorProcessor(env *service.Environment, stopActivityChannel chan<- error) error {
 	return env.RegisterBatchProcessor(
 		"error", errorProcessorSpec(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.BatchProcessor, error) {
@@ -28,11 +28,11 @@ func RegisterErrorProcessor(env *service.Environment, stopActivityChannel chan e
 
 type errorProcessor struct {
 	logger              *service.Logger
-	stopActivityChannel chan error
+	stopActivityChannel chan<- error
 	errorMsg            *service.InterpolatedString
 }
 
-func newErrorProcessor(conf *service.ParsedConfig, mgr *service.Resources, channel chan error) (*errorProcessor, error) {
+func newErrorProcessor(conf *service.ParsedConfig, mgr *service.Resources, channel chan<- error) (*errorProcessor, error) {
 	errMsg, err := conf.FieldInterpolatedString("error_msg")
 	if err != nil {
 		return nil, err

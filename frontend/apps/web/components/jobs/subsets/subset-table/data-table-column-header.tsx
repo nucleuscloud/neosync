@@ -6,12 +6,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/libs/utils';
 import {
   ArrowDownIcon,
   ArrowUpIcon,
   CaretSortIcon,
-  EyeNoneIcon,
 } from '@radix-ui/react-icons';
 import { Column } from '@tanstack/react-table';
 
@@ -51,6 +51,13 @@ export function DataTableColumnHeader<TData, TValue>({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start">
+            <Input
+              type="text"
+              value={(column.getFilterValue() ?? '') as string}
+              onChange={(e) => column.setFilterValue(e.target.value)}
+              placeholder={`Search...`}
+              className="w-36 border rounded"
+            />
             <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
               <ArrowUpIcon className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
               Asc
@@ -60,10 +67,6 @@ export function DataTableColumnHeader<TData, TValue>({
               Desc
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
-              <EyeNoneIcon className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
-              Hide
-            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

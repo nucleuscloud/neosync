@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/Jeffail/shutdown"
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/benthosdev/benthos/v4/public/service"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
-	"github.com/nucleuscloud/neosync/worker/internal/benthos/shutdown"
 )
 
 func sqlRawInputSpec() *service.ConfigSpec {
@@ -22,7 +22,7 @@ func sqlRawInputSpec() *service.ConfigSpec {
 }
 
 // Registers an input on a benthos environment called pooled_sql_raw
-func RegisterPooledSqlRawInput(env *service.Environment, dbprovider DbPoolProvider, stopActivityChannel chan error) error {
+func RegisterPooledSqlRawInput(env *service.Environment, dbprovider DbPoolProvider, stopActivityChannel chan<- error) error {
 	return env.RegisterInput(
 		"pooled_sql_raw", sqlRawInputSpec(),
 		func(conf *service.ParsedConfig, mgr *service.Resources) (service.Input, error) {
@@ -50,10 +50,10 @@ type pooledInput struct {
 
 	shutSig *shutdown.Signaller
 
-	stopActivityChannel chan error
+	stopActivityChannel chan<- error
 }
 
-func newInput(conf *service.ParsedConfig, mgr *service.Resources, dbprovider DbPoolProvider, channel chan error) (*pooledInput, error) {
+func newInput(conf *service.ParsedConfig, mgr *service.Resources, dbprovider DbPoolProvider, channel chan<- error) (*pooledInput, error) {
 	driver, err := conf.FieldString("driver")
 	if err != nil {
 		return nil, err
@@ -127,7 +127,7 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 
 	s.rows = rows
 	go func() {
-		<-s.shutSig.CloseNowChan()
+		<-s.shutSig.HardStopChan()
 
 		s.dbMut.Lock()
 		if s.rows != nil {
@@ -138,7 +138,7 @@ func (s *pooledInput) Connect(ctx context.Context) error {
 		s.db = nil
 		s.dbMut.Unlock()
 
-		s.shutSig.ShutdownComplete()
+		s.shutSig.TriggerHasStopped()
 	}()
 	return nil
 }
@@ -182,7 +182,7 @@ func emptyAck(ctx context.Context, err error) error {
 }
 
 func (s *pooledInput) Close(ctx context.Context) error {
-	s.shutSig.CloseNow()
+	s.shutSig.TriggerHardStop()
 	s.dbMut.Lock()
 	isNil := s.db == nil
 	s.dbMut.Unlock()
@@ -190,7 +190,7 @@ func (s *pooledInput) Close(ctx context.Context) error {
 		return nil
 	}
 	select {
-	case <-s.shutSig.HasClosedChan():
+	case <-s.shutSig.HasStoppedChan():
 	case <-ctx.Done():
 		return ctx.Err()
 	}

@@ -39,7 +39,6 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		HeartbeatTimeout: 1 * time.Minute,
 	})
 	logger := workflow.GetLogger(ctx)
-	_ = logger
 
 	logger = log.With(logger, "jobId", req.JobId)
 	logger.Info("data sync workflow starting")
@@ -122,9 +121,9 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	}
 	for _, bc := range splitConfigs.Root {
 		bc := bc
+		logger := log.With(logger, withBenthosConfigResponseLoggerTags(bc)...)
 		future := invokeSync(bc, childctx, &started, &completed, logger)
 		workselector.AddFuture(future, func(f workflow.Future) {
-			logger := log.With(logger, withBenthosConfigResponseLoggerTags(bc)...)
 			logger.Info("config sync completed")
 			var result sync_activity.SyncResponse
 			err := f.Get(childctx, &result)
@@ -147,8 +146,8 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		})
 	}
 
+	logger.Info("all root tables spawned, moving on to children")
 	for i := 0; i < len(bcResp.BenthosConfigs); i++ {
-		logger := log.With(logger, withBenthosConfigResponseLoggerTags(bcResp.BenthosConfigs[i])...)
 		logger.Debug("*** blocking select ***", "i", i)
 		workselector.Select(ctx)
 		if activityErr != nil {
@@ -171,7 +170,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 			if !isReady {
 				continue
 			}
-
+			logger := log.With(logger, withBenthosConfigResponseLoggerTags(bc)...)
 			future := invokeSync(bc, childctx, &started, &completed, logger)
 			workselector.AddFuture(future, func(f workflow.Future) {
 				var result sync_activity.SyncResponse
@@ -196,7 +195,6 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		}
 	}
 	logger.Info("data sync workflow completed")
-
 	return &WorkflowResponse{}, nil
 }
 
@@ -271,7 +269,6 @@ func invokeSync(
 ) workflow.Future {
 	metadata := getSyncMetadata(config)
 	future, settable := workflow.NewFuture(ctx)
-	logger = log.With(logger, "name", config.Name, "metadata", metadata)
 	logger.Debug("triggering config sync")
 	started.Store(config.Name, struct{}{})
 	workflow.GoNamed(ctx, config.Name, func(ctx workflow.Context) {
