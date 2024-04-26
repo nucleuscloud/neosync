@@ -28,12 +28,6 @@ export function getColumns(props: GetColumnsProps): ColumnDef<TableRow>[] {
   const { onEdit, hasLocalChange, onReset } = props;
   return [
     {
-      id: 'select',
-      enableSorting: false,
-      enableHiding: false,
-      enableColumnFilter: false,
-    },
-    {
       accessorKey: 'schema',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Schema" />
@@ -73,8 +67,6 @@ export function getColumns(props: GetColumnsProps): ColumnDef<TableRow>[] {
           </div>
         );
       },
-      enableSorting: false,
-      enableColumnFilter: false,
     },
     {
       accessorKey: 'edit',

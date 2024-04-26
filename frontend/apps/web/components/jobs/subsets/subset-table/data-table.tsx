@@ -13,16 +13,16 @@ import {
 
 import ButtonText from '@/components/ButtonText';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
-  Table,
+  StickyHeaderTable,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
 import { Cross2Icon } from '@radix-ui/react-icons';
+import { useVirtualizer } from '@tanstack/react-virtual';
+import { useRef } from 'react';
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
@@ -51,6 +51,20 @@ export function DataTable<TData, TValue>({
 
   const { rows } = table.getRowModel();
 
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+
+  const rowVirtualizer = useVirtualizer({
+    count: rows.length,
+    estimateSize: () => 33,
+    getScrollElement: () => tableContainerRef.current,
+    measureElement:
+      typeof window !== 'undefined' &&
+      navigator.userAgent.indexOf('Firefox') === -1
+        ? (element) => element?.getBoundingClientRect().height
+        : undefined,
+    overscan: 5,
+  });
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-row items-center gap-2 justify-end">
@@ -69,74 +83,81 @@ export function DataTable<TData, TValue>({
           </Button>
         </div>
       </div>
-      <div className="rounded-md border overflow-hidden dark:border-gray-700">
-        <Table className="table-fixed">
-          <TableHeader className="bg-gray-100 dark:bg-gray-800">
+      <div
+        className="rounded-md border max-h-[500px] relative overflow-x-auto"
+        ref={tableContainerRef}
+      >
+        <StickyHeaderTable>
+          <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 flex w-full px-2">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow
+                key={headerGroup.id}
+                className="flex flex-row items-center justify-between w-full"
+                id="table-header-row"
+              >
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead
                       key={header.id}
-                      className={
-                        header.id === 'select'
-                          ? 'w-[44px] pl-2 '
-                          : 'w-[197px] px-0'
-                      }
+                      style={{ minWidth: `${header.column.getSize()}px` }}
+                      colSpan={header.colSpan}
+                      className="flex items-center"
                     >
-                      <div className="flex flex-row">
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                        {header.column.getCanFilter() ? <div></div> : null}
-                      </div>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
                   );
                 })}
               </TableRow>
             ))}
           </TableHeader>
-        </Table>
-        <ScrollArea className="max-h-[700px] overflow-y-auto">
-          <Table className="table-fixed">
-            <TableBody>
-              {rows.length === 0 && (
-                <TableRow className="flex justify-center items-center py-10 text-gray-500">
-                  <td>No schema(s) or table(s) found.</td>
+          <TableBody
+            style={{
+              height: `${rowVirtualizer.getTotalSize()}px`, //tells scrollbar how big the table is
+            }}
+          >
+            {rows.length === 0 && (
+              <TableRow className="flex justify-center items-center py-10 text-gray-500">
+                <td>No schema(s) or table(s) found.</td>
+              </TableRow>
+            )}
+            {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+              const row = rows[virtualRow.index];
+              return (
+                <TableRow
+                  data-index={virtualRow.index} //needed for dynamic row height measurement
+                  ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
+                  key={row.id}
+                  style={{
+                    transform: `translateY(${virtualRow.start}px)`,
+                  }}
+                  className="items-center flex absolute w-full justify-between px-2"
+                >
+                  {row.getVisibleCells().map((cell) => {
+                    return (
+                      <td
+                        key={cell.id}
+                        className="py-2"
+                        style={{
+                          minWidth: cell.column.getSize(),
+                        }}
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </td>
+                    );
+                  })}
                 </TableRow>
-              )}
-              {rows.map((row) => {
-                return (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && 'selected'}
-                  >
-                    {row.getVisibleCells().map((cell) => {
-                      return (
-                        <TableCell
-                          className={
-                            cell.column.id === 'select'
-                              ? ' w-[40px]'
-                              : 'w-[197px]'
-                          }
-                          key={cell.id}
-                        >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </ScrollArea>
+              );
+            })}
+          </TableBody>
+        </StickyHeaderTable>
       </div>
     </div>
   );
