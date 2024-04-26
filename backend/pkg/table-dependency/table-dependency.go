@@ -1,7 +1,6 @@
 package tabledependency
 
 import (
-	"encoding/json"
 	"fmt"
 	"slices"
 	"strings"
@@ -98,7 +97,7 @@ func GetRunConfigs(
 			continue
 		}
 		if len(group) == 1 {
-			cycleConfigs, err := processSimplCycle(group[0], tableColumnsMap, primaryKeyMap, subsets, dependencyMap, foreignKeyColsMap)
+			cycleConfigs, err := processSingleCycle(group[0], tableColumnsMap, primaryKeyMap, subsets, dependencyMap, foreignKeyColsMap)
 			if err != nil {
 				return nil, err
 			}
@@ -121,7 +120,7 @@ func GetRunConfigs(
 	return configs, nil
 }
 
-func processSimplCycle(
+func processSingleCycle(
 	cycle []string,
 	tableColumnsMap map[string][]string,
 	primaryKeyMap map[string][]string,
@@ -159,7 +158,7 @@ func processSimplCycle(
 
 	updateConfig := &RunConfig{
 		Table:       startTable,
-		DependsOn:   []*DependsOn{{Table: startTable, Columns: pks}},
+		DependsOn:   []*DependsOn{{Table: startTable, Columns: pks}}, // add insert config as dependency to update config
 		RunType:     Update,
 		Columns:     []string{},
 		PrimaryKeys: pks,
@@ -167,6 +166,9 @@ func processSimplCycle(
 	}
 	deps := foreignKeyColsMap[startTable]
 	for fkTable, fkCols := range deps {
+		if fkTable == startTable {
+			continue
+		}
 		if slices.Contains(cycle, fkTable) {
 			updateConfig.DependsOn = append(updateConfig.DependsOn, &DependsOn{Table: fkTable, Columns: fkCols.NullableColumns})
 		} else {
@@ -201,7 +203,7 @@ func processSimplCycle(
 			PrimaryKeys: pks,
 			WhereClause: &where,
 		}
-		deps := foreignKeyColsMap[startTable]
+		deps := foreignKeyColsMap[table]
 		for fkTable, fkCols := range deps {
 			config.DependsOn = append(config.DependsOn, &DependsOn{Table: fkTable, Columns: slices.Concat(fkCols.NullableColumns, fkCols.NonNullableColumns)})
 		}
@@ -233,12 +235,12 @@ func determineCycleStart(
 		}
 		if newRank > rank {
 			start = &table
+			rank = newRank
 		}
 	}
 	if start == nil || *start == "" {
 		return "", fmt.Errorf("unable to find start point for cycle: %+v", cycle)
 	}
-
 	return *start, nil
 }
 
@@ -285,133 +287,6 @@ func processTables(
 		configs = append(configs, config)
 	}
 	return configs
-}
-
-type tableFkNullableCols struct {
-	AreAllFkColsNullable bool
-	NullableCols         []string
-}
-
-func getFkNullableCols(cycles [][]string, constraints []*dbschemas.ForeignConstraint) *tableFkNullableCols {
-	nullableCols := []string{}
-	allFkAreNullable := true
-	fmt.Println("getFkNullableCols -----------")
-	jsonF, _ := json.MarshalIndent(cycles, "", " ")
-	fmt.Printf("\n cycles: %s \n", string(jsonF))
-	jsonF, _ = json.MarshalIndent(constraints, "", " ")
-	fmt.Printf("\n constraints: %s \n", string(jsonF))
-
-	for _, constraint := range constraints {
-		for _, cycle := range cycles {
-			if slices.Contains(cycle, constraint.ForeignKey.Table) {
-				if constraint.IsNullable {
-					nullableCols = append(nullableCols, constraint.Column)
-				} else {
-					allFkAreNullable = false
-				}
-			}
-		}
-	}
-	jsonF, _ = json.MarshalIndent(&tableFkNullableCols{
-		AreAllFkColsNullable: allFkAreNullable,
-		NullableCols:         nullableCols,
-	}, "", " ")
-	fmt.Printf("\n response: %s \n", string(jsonF))
-	fmt.Println("------------------")
-	return &tableFkNullableCols{
-		AreAllFkColsNullable: allFkAreNullable,
-		NullableCols:         nullableCols,
-	}
-}
-
-func findOverlap(slice1, slice2 []string) []string {
-	elemMap := make(map[string]bool)
-	for _, item := range slice1 {
-		elemMap[item] = true
-	}
-
-	var overlap []string
-	for _, item := range slice2 {
-		if _, found := elemMap[item]; found {
-			overlap = append(overlap, item)
-		}
-	}
-
-	return overlap
-}
-
-// tables with the highest nullable cols
-func determineStartTable(tablesWithNullable, tablesWithSubset, cycle []string) string {
-	// if only one table has nullable cols use that as start
-	if len(tablesWithNullable) == 1 {
-		return tablesWithNullable[0]
-	}
-
-	// if more than one table has nullable cols choose table with most nullables
-	// if all have equal nullable cols count then choose one with priority to table with subset
-
-	// if all are nullable with subsets use first table in cycle order
-	if len(tablesWithNullable) == len(cycle) && len(tablesWithSubset) == len(cycle) {
-		return cycle[0]
-	}
-
-	// find nullable with subset as start
-	nullableSubsetOverlap := findOverlap(tablesWithNullable, tablesWithSubset)
-	if len(nullableSubsetOverlap) > 0 {
-		return nullableSubsetOverlap[0]
-	}
-
-	// use first tables with nullable cols
-	ordered := cycleOrder(tablesWithNullable)
-	return ordered[0]
-}
-
-type circularDependencyConfig struct {
-	Table           string
-	NullableColumns []string
-	Cycles          [][]string
-}
-
-func buildCircularDependencyConfigs(cycle []string, dependencies dbschemas.TableDependency, subsets map[string]string, circularDeps [][]string) ([]*circularDependencyConfig, error) {
-	configs := []*circularDependencyConfig{}
-
-	nullablesColsMap := map[string][]string{}
-	tablesWithNullable := []string{}
-	tablesWithSubset := []string{}
-	tableCyclesMap := map[string][][]string{}
-	for _, table := range cycle {
-		fmt.Printf("\n table: %s \n", table)
-		cycles := getTableCirularDependencies(table, circularDeps)
-		_, isSubset := subsets[table]
-		nc := getFkNullableCols(cycles, dependencies[table].Constraints)
-		nullablesColsMap[table] = nc.NullableCols
-		tableCyclesMap[table] = cycles
-		if nc.AreAllFkColsNullable {
-			tablesWithNullable = append(tablesWithNullable, table)
-		}
-		if isSubset {
-			tablesWithSubset = append(tablesWithSubset, table)
-		}
-	}
-
-	if len(tablesWithNullable) == 0 {
-		return nil, fmt.Errorf("found circular dependency with no nullable columns: %+v", cycle)
-	}
-
-	startTable := determineStartTable(tablesWithNullable, tablesWithSubset, cycle)
-	fmt.Printf("\n start table: %s \n", startTable)
-	for _, table := range cycle {
-		nullableCols := []string{}
-		if table == startTable {
-			nullableCols = nullablesColsMap[table]
-		}
-		configs = append(configs, &circularDependencyConfig{
-			Table:           table,
-			NullableColumns: nullableCols,
-			Cycles:          tableCyclesMap[table],
-		})
-	}
-	return configs, nil
 }
 
 // returns all cycles table is in
