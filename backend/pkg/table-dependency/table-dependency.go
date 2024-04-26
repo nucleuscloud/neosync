@@ -11,8 +11,8 @@ import (
 type RunType string
 
 const (
-	Update RunType = "update"
-	Insert RunType = "insert"
+	RunTypeUpdate RunType = "update"
+	RunTypeInsert RunType = "insert"
 )
 
 // type SyncColumn struct {
@@ -150,7 +150,7 @@ func processSingleCycle(
 	insertConfig := &RunConfig{
 		Table:       startTable,
 		DependsOn:   []*DependsOn{},
-		RunType:     Insert,
+		RunType:     RunTypeInsert,
 		Columns:     []string{},
 		PrimaryKeys: pks,
 		WhereClause: &where,
@@ -159,7 +159,7 @@ func processSingleCycle(
 	updateConfig := &RunConfig{
 		Table:       startTable,
 		DependsOn:   []*DependsOn{{Table: startTable, Columns: pks}}, // add insert config as dependency to update config
-		RunType:     Update,
+		RunType:     RunTypeUpdate,
 		Columns:     []string{},
 		PrimaryKeys: pks,
 		WhereClause: &where,
@@ -198,7 +198,7 @@ func processSingleCycle(
 		config := &RunConfig{
 			Table:       table,
 			DependsOn:   []*DependsOn{},
-			RunType:     Insert,
+			RunType:     RunTypeInsert,
 			Columns:     cols,
 			PrimaryKeys: pks,
 			WhereClause: &where,
@@ -276,7 +276,7 @@ func processTables(
 		config := &RunConfig{
 			Table:       table,
 			DependsOn:   []*DependsOn{},
-			RunType:     Insert,
+			RunType:     RunTypeInsert,
 			Columns:     cols,
 			PrimaryKeys: pks,
 			WhereClause: &where,

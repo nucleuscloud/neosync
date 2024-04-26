@@ -36,6 +36,7 @@ type BenthosRedisConfig struct {
 type BenthosConfigResponse struct {
 	Name        string
 	DependsOn   []*tabledependency.DependsOn
+	RunType     tabledependency.RunType
 	Config      *neosync_benthos.BenthosConfig
 	TableSchema string
 	TableName   string

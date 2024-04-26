@@ -162,7 +162,15 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 		tables := filterNullTables(groupedMappings)
 		tableSubsetMap := buildTableSubsetMap(sourceTableOpts)
-		dependencyConfigs, err := tabledependency.GetRunConfigs(td, tables, tableSubsetMap)
+		tableColMap := map[string][]string{}
+		for _, m := range groupedMappings {
+			cols := []string{}
+			for _, c := range m.Mappings {
+				cols = append(cols, c.Column)
+			}
+			tableColMap[fmt.Sprintf("%s.%s", m.Schema, m.Table)] = cols
+		}
+		runConfigs, err := tabledependency.GetRunConfigs(td, tables, tableSubsetMap, primaryKeyMap, tableColMap)
 		if err != nil {
 			return nil, err
 		}
@@ -170,59 +178,21 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		// reverse of table dependency
 		// map of foreign key to source table + column
 		tableConstraintsSource = getForeignKeyToSourceMap(td)
-		tableQueryMap, err := buildSelectQueryMap(db.Driver, groupedTableMapping, sourceTableOpts, td, dependencyConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints)
+		tableQueryMap, err := buildSelectQueryMap(db.Driver, groupedTableMapping, sourceTableOpts, td, runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build select queries: %w", err)
 		}
 
-		sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedMappings, sourceConnection.Id, db.Driver, tableQueryMap, groupedSchemas, td, colTransformerMap, primaryKeyMap, b.jobId, b.runId, b.redisConfig)
+		sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, db.Driver, tableQueryMap, groupedSchemas, td, colTransformerMap, b.jobId, b.runId, b.redisConfig)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build benthos sql source config responses: %w", err)
 		}
 		responses = append(responses, sourceResponses...)
 
-		dependencyMap := map[string][]*tabledependency.RunConfig{}
-		for _, cfg := range dependencyConfigs {
-			_, ok := dependencyMap[cfg.Table]
-			if ok {
-				dependencyMap[cfg.Table] = append(dependencyMap[cfg.Table], cfg)
-			} else {
-				dependencyMap[cfg.Table] = []*tabledependency.RunConfig{cfg}
-			}
-		}
-
-		for _, resp := range responses {
-			tableName := neosync_benthos.BuildBenthosTable(resp.TableSchema, resp.TableName)
-			configs := dependencyMap[tableName]
-			if len(configs) > 1 {
-				// circular dependency
-				for _, c := range configs {
-					if c.Columns != nil && c.Columns.Exclude != nil && len(c.Columns.Exclude) > 0 {
-						resp.excludeColumns = c.Columns.Exclude
-						resp.DependsOn = c.DependsOn
-					} else if c.Columns != nil && c.Columns.Include != nil && len(c.Columns.Include) > 0 {
-						pks := primaryKeyMap[tableName]
-						if len(pks) == 0 {
-							return nil, fmt.Errorf("no primary keys found for table (%s). Unable to build update query", tableName)
-						}
-
-						// config for sql update
-						resp.updateConfig = c
-						resp.primaryKeys = pks
-					}
-				}
-			} else if len(configs) == 1 {
-				resp.DependsOn = configs[0].DependsOn
-			} else {
-				return nil, fmt.Errorf("unexpected number of dependency configs")
-			}
-		}
-
 	default:
 		return nil, errors.New("unsupported job source")
 	}
 
-	updateResponses := []*BenthosConfigResponse{} // update configs for circular dependecies
 	for destIdx, destination := range job.Destinations {
 		destinationConnection, err := b.getConnectionById(ctx, destination.ConnectionId)
 		if err != nil {
@@ -277,46 +247,68 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 				resp.BenthosDsns = append(resp.BenthosDsns, &shared.BenthosDsn{EnvVarKey: dstEnvVarKey, ConnectionId: destinationConnection.Id})
 
 				if resp.Config.Input.SqlSelect != nil || resp.Config.Input.PooledSqlRaw != nil {
-					out := buildOutputArgs(resp, tm)
-					resp.Columns = out.Columns
-					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-						Fallback: []neosync_benthos.Outputs{
-							{
-								PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
-									Driver: driver,
-									Dsn:    dsn,
+					if resp.RunType == tabledependency.RunTypeUpdate {
+						resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
+							Fallback: []neosync_benthos.Outputs{
+								{
+									PooledSqlUpdate: &neosync_benthos.PooledSqlUpdate{
+										Driver: driver,
+										Dsn:    dsn,
 
-									Schema:              resp.TableSchema,
-									Table:               resp.TableName,
-									Columns:             out.Columns,
-									OnConflictDoNothing: destOpts.OnConflictDoNothing,
-									TruncateOnRetry:     destOpts.Truncate,
-									ArgsMapping:         out.ArgsMapping,
+										Schema:       resp.TableSchema,
+										Table:        resp.TableName,
+										Columns:      resp.Columns,
+										WhereColumns: resp.primaryKeys,
+										ArgsMapping:  buildPlainInsertArgs(resp.Columns),
 
+										Batching: &neosync_benthos.Batching{
+											Period: "5s",
+											Count:  100,
+										},
+									},
+								},
+								// kills activity depending on error
+								{Error: &neosync_benthos.ErrorOutputConfig{
+									ErrorMsg: `${! meta("fallback_error")}`,
 									Batching: &neosync_benthos.Batching{
 										Period: "5s",
 										Count:  100,
 									},
-								},
+								}},
 							},
-							// kills activity depending on error
-							{Error: &neosync_benthos.ErrorOutputConfig{
-								ErrorMsg: `${! meta("fallback_error")}`,
-								Batching: &neosync_benthos.Batching{
-									Period: "5s",
-									Count:  100,
-								},
-							}},
-						},
-					})
+						})
 
-					if resp.updateConfig != nil {
-						// circular dependency -> create update benthos config
-						updateResp, err := createSqlUpdateBenthosConfig(ctx, b.transformerclient, resp, dsn, resp.TableSchema, resp.TableName, tm, groupedColInfoMap, tableConstraintsSource[neosync_benthos.BuildBenthosTable(resp.TableSchema, resp.TableName)], b.jobId, b.runId, b.redisConfig)
-						if err != nil {
-							return nil, fmt.Errorf("unable to create sql update benthos config: %w", err)
-						}
-						updateResponses = append(updateResponses, updateResp)
+					} else {
+						resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
+							Fallback: []neosync_benthos.Outputs{
+								{
+									PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
+										Driver: driver,
+										Dsn:    dsn,
+
+										Schema:              resp.TableSchema,
+										Table:               resp.TableName,
+										Columns:             resp.Columns,
+										OnConflictDoNothing: destOpts.OnConflictDoNothing,
+										TruncateOnRetry:     destOpts.Truncate,
+										ArgsMapping:         buildPlainInsertArgs(resp.Columns),
+
+										Batching: &neosync_benthos.Batching{
+											Period: "5s",
+											Count:  100,
+										},
+									},
+								},
+								// kills activity depending on error
+								{Error: &neosync_benthos.ErrorOutputConfig{
+									ErrorMsg: `${! meta("fallback_error")}`,
+									Batching: &neosync_benthos.Batching{
+										Period: "5s",
+										Count:  100,
+									},
+								}},
+							},
+						})
 					}
 				} else if resp.Config.Input.Generate != nil {
 					cols := buildPlainColumns(tm.Mappings)
@@ -386,8 +378,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					`${!count("files")}.txt.gz`,
 				)
 
-				cols := buildPlainColumns(tm.Mappings)
-				resp.Columns = cols
 				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
 					Fallback: []neosync_benthos.Outputs{
 						{
@@ -423,8 +413,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			}
 		}
 	}
-
-	responses = append(responses, updateResponses...)
 
 	if b.metricsEnabled {
 		labels := metrics.MetricLabels{
@@ -473,54 +461,6 @@ func buildTableSubsetMap(tableOpts map[string]*sqlSourceTableOptions) map[string
 		}
 	}
 	return tableSubsetMap
-}
-
-type sqlUpdateOutput struct {
-	Query       string
-	ArgsMapping string
-	Columns     []string
-	WhereCols   []string
-}
-
-func buildOutputArgs(resp *BenthosConfigResponse, tm *tableMapping) *sqlUpdateOutput {
-	if len(resp.excludeColumns) > 0 {
-		// insert excluding specific columns
-		filteredInsertMappings := []*mgmtv1alpha1.JobMapping{}
-		for _, m := range tm.Mappings {
-			if !slices.Contains(resp.excludeColumns, m.Column) {
-				filteredInsertMappings = append(filteredInsertMappings, m)
-			}
-		}
-		cols := buildPlainColumns(filteredInsertMappings)
-		return &sqlUpdateOutput{
-			ArgsMapping: buildPlainInsertArgs(cols),
-			Columns:     cols,
-		}
-	} else if resp.updateConfig != nil && resp.updateConfig.Columns != nil && len(resp.updateConfig.Columns.Include) > 0 {
-		// update specific columns
-		filteredUpdateMappings := []*mgmtv1alpha1.JobMapping{}
-		for _, m := range tm.Mappings {
-			if slices.Contains(resp.updateConfig.Columns.Include, m.Column) {
-				filteredUpdateMappings = append(filteredUpdateMappings, m)
-			}
-		}
-		updateCols := buildPlainColumns(filteredUpdateMappings)
-		updateArgsMapping := []string{}
-		updateArgsMapping = append(updateArgsMapping, updateCols...)
-		updateArgsMapping = append(updateArgsMapping, resp.primaryKeys...)
-
-		return &sqlUpdateOutput{
-			ArgsMapping: buildPlainInsertArgs(updateArgsMapping),
-			Columns:     updateCols,
-			WhereCols:   resp.primaryKeys,
-		}
-	}
-	// insert all columns
-	cols := buildPlainColumns(tm.Mappings)
-	return &sqlUpdateOutput{
-		ArgsMapping: buildPlainInsertArgs(cols),
-		Columns:     cols,
-	}
 }
 
 type generateSourceTableOptions struct {
@@ -671,143 +611,6 @@ func getDriverFromBenthosInput(input *neosync_benthos.Inputs) (string, error) {
 	return "", errors.New("invalid benthos input when trying to find database driver")
 }
 
-func createSqlUpdateBenthosConfig(
-	ctx context.Context,
-	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
-	insertConfig *BenthosConfigResponse,
-	dsn,
-	schema string,
-	table string,
-	tm *tableMapping,
-	groupedColInfo map[string]map[string]*dbschemas_utils.ColumnInfo,
-	fkMap map[string]*dbschemas_utils.ForeignKey,
-	jobId, runId string,
-	redisConfig *shared.RedisConfig,
-) (*BenthosConfigResponse, error) {
-	driver, err := getDriverFromBenthosInput(&insertConfig.Config.Input.Inputs)
-	if err != nil {
-		return nil, err
-	}
-
-	colSourceMap := map[string]mgmtv1alpha1.TransformerSource{}
-	for _, col := range tm.Mappings {
-		colSourceMap[col.Column] = col.GetTransformer().Source
-	}
-
-	sourceResponses, err := buildBenthosSqlSourceConfigResponses(
-		ctx,
-		transformerclient,
-		[]*tableMapping{tm},
-		"", // does not matter what is here. gets overwritten with insert config
-		driver,
-		map[string]string{
-			insertConfig.updateConfig.Table: "", // gets overwritten below
-		},
-		groupedColInfo,
-		map[string]*dbschemas_utils.TableConstraints{},
-		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
-		map[string][]string{},
-		jobId,
-		runId,
-		redisConfig,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(sourceResponses) > 0 {
-		newResp := sourceResponses[0]
-
-		// create processor
-		if insertConfig.updateConfig != nil && insertConfig.updateConfig.Columns != nil && insertConfig.updateConfig.Columns.Include != nil {
-			processorConfigs := []neosync_benthos.ProcessorConfig{}
-			for pkCol, fk := range fkMap {
-				// only need redis processors if the primary key has a transformer
-				if !hasTransformer(colSourceMap[pkCol]) || !slices.Contains(insertConfig.updateConfig.Columns.Include, fk.Column) {
-					continue
-				}
-
-				// circular dependent foreign key
-				hashedKey := neosync_benthos.HashBenthosCacheKey(jobId, runId, fk.Table, pkCol)
-				requestMap := fmt.Sprintf(`root = if this.%q == null { deleted() } else { this }`, fk.Column)
-				argsMapping := fmt.Sprintf(`root = [%q, json(%q)]`, hashedKey, fk.Column)
-				resultMap := fmt.Sprintf("root.%q = this", fk.Column)
-				fkBranch, err := buildRedisGetBranchConfig(resultMap, argsMapping, &requestMap, redisConfig)
-				if err != nil {
-					return nil, err
-				}
-				processorConfigs = append(processorConfigs, neosync_benthos.ProcessorConfig{Branch: fkBranch})
-
-				// primary key
-				pkRequestMap := fmt.Sprintf(`root = if this.%q == null { deleted() } else { this }`, pkCol)
-				pkArgsMapping := fmt.Sprintf(`root = [%q, json(%q)]`, hashedKey, pkCol)
-				pkResultMap := fmt.Sprintf("root.%q = this", pkCol)
-				pkBranch, err := buildRedisGetBranchConfig(pkResultMap, pkArgsMapping, &pkRequestMap, redisConfig)
-				if err != nil {
-					return nil, err
-				}
-				processorConfigs = append(processorConfigs, neosync_benthos.ProcessorConfig{Branch: pkBranch})
-			}
-			if len(processorConfigs) > 0 {
-				// add catch and error processor
-				processorConfigs = append(processorConfigs, neosync_benthos.ProcessorConfig{Catch: []*neosync_benthos.ProcessorConfig{
-					{Error: &neosync_benthos.ErrorProcessorConfig{
-						ErrorMsg: `${! meta("fallback_error")}`,
-					}},
-				}})
-			}
-			newResp.Config.StreamConfig.Pipeline.Processors = processorConfigs
-		}
-
-		newResp.updateConfig = insertConfig.updateConfig
-		newResp.DependsOn = insertConfig.updateConfig.DependsOn
-		newResp.Name = fmt.Sprintf("%s.update", insertConfig.Name)
-		newResp.primaryKeys = insertConfig.primaryKeys
-		newResp.metriclabels = append(newResp.metriclabels, metrics.NewEqLabel(metrics.IsUpdateConfigLabel, "true"))
-		output := buildOutputArgs(newResp, tm)
-		newResp.Columns = output.Columns
-		// add self to dependency so that insert always runs before update
-		newResp.DependsOn = append(newResp.DependsOn, &tabledependency.DependsOn{Table: insertConfig.updateConfig.Table, Columns: output.WhereCols})
-		if newResp.Config.Input.SqlSelect != nil {
-			newResp.Config.Input.SqlSelect.Where = insertConfig.Config.Input.SqlSelect.Where // keep the where clause the same as insert
-		} else if newResp.Config.Input.PooledSqlRaw != nil {
-			newResp.Config.Input.PooledSqlRaw.Query = insertConfig.Config.Input.PooledSqlRaw.Query // keep this the same for the insert
-		}
-		newResp.BenthosDsns = insertConfig.BenthosDsns
-		newResp.Config.Output.Broker.Outputs = append(newResp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
-			Fallback: []neosync_benthos.Outputs{
-				{
-					PooledSqlUpdate: &neosync_benthos.PooledSqlUpdate{
-						Driver: driver,
-						Dsn:    dsn,
-
-						Schema:       schema,
-						Table:        table,
-						Columns:      output.Columns,
-						WhereColumns: output.WhereCols,
-						ArgsMapping:  output.ArgsMapping,
-
-						Batching: &neosync_benthos.Batching{
-							Period: "5s",
-							Count:  100,
-						},
-					},
-				},
-				// kills activity depending on error
-				{Error: &neosync_benthos.ErrorOutputConfig{
-					ErrorMsg: `${! meta("fallback_error")}`,
-					Batching: &neosync_benthos.Batching{
-						Period: "5s",
-						Count:  100,
-					},
-				}},
-			},
-		})
-		return newResp, nil
-	}
-	return nil, errors.New("unable to build sql update benthos config")
-}
-
 func hasTransformer(t mgmtv1alpha1.TransformerSource) bool {
 	return t != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_UNSPECIFIED && t != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH
 }
@@ -819,14 +622,14 @@ type sqlSourceTableOptions struct {
 func buildBenthosSqlSourceConfigResponses(
 	ctx context.Context,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
-	mappings []*tableMapping,
+	groupedTableMapping map[string]*tableMapping,
+	runconfigs []*tabledependency.RunConfig,
 	dsnConnectionId string,
 	driver string,
 	selectQueryMap map[string]string,
 	groupedColumnInfo map[string]map[string]*dbschemas_utils.ColumnInfo,
 	tableDependencies map[string]*dbschemas_utils.TableConstraints,
 	colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,
-	primaryKeys map[string][]string,
 	jobId, runId string,
 	redisConfig *shared.RedisConfig,
 ) ([]*BenthosConfigResponse, error) {
@@ -847,18 +650,14 @@ func buildBenthosSqlSourceConfigResponses(
 			}
 		}
 	}
-
-	for i := range mappings {
-		tableMapping := mappings[i]
-		if shared.AreAllColsNull(tableMapping.Mappings) {
-			// skipping table as no columns are mapped
-			continue
-		}
-
-		table := neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table)
-		query, ok := selectQueryMap[table]
+	for _, config := range runconfigs {
+		mappings, ok := groupedTableMapping[config.Table]
 		if !ok {
-			return nil, fmt.Errorf("select query not found for table: %s", table)
+			return nil, fmt.Errorf("missing column mappings for table: %s", config.Table)
+		}
+		query, ok := selectQueryMap[config.Table]
+		if !ok {
+			return nil, fmt.Errorf("select query not found for table: %s", config.Table)
 		}
 		bc := &neosync_benthos.BenthosConfig{
 			StreamConfig: neosync_benthos.StreamConfig{
@@ -885,40 +684,107 @@ func buildBenthosSqlSourceConfigResponses(
 				},
 			},
 		}
-
-		columnConstraints, ok := tableConstraints[table]
+		columnConstraints, ok := tableConstraints[config.Table]
 		if !ok {
 			columnConstraints = map[string]*dbschemas_utils.ForeignKey{}
 		}
+		if config.RunType == tabledependency.RunTypeUpdate {
+			// sql update processor configs
+			processorConfigs, err := buildSqlUpdateProcessorConfigs(config, redisConfig, jobId, runId, mappings.Mappings, columnConstraints)
+			if err != nil {
+				return nil, err
+			}
 
-		processorConfigs, err := buildProcessorConfigs(ctx, transformerclient, tableMapping.Mappings, groupedColumnInfo[table], columnConstraints, primaryKeys[table], jobId, runId, redisConfig)
-		if err != nil {
-			return nil, err
-		}
+			for _, pc := range processorConfigs {
+				bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *pc)
+			}
 
-		for _, pc := range processorConfigs {
-			bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *pc)
+		} else {
+			// sql insert processor configs
+			processorConfigs, err := buildProcessorConfigs(ctx, transformerclient, mappings.Mappings, groupedColumnInfo[config.Table], columnConstraints, config.PrimaryKeys, jobId, runId, redisConfig)
+			if err != nil {
+				return nil, err
+			}
+
+			for _, pc := range processorConfigs {
+				bc.StreamConfig.Pipeline.Processors = append(bc.StreamConfig.Pipeline.Processors, *pc)
+			}
 		}
 
 		responses = append(responses, &BenthosConfigResponse{
-			Name:      neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table), // todo: may need to expand on this
+			Name:      config.Table,
 			Config:    bc,
-			DependsOn: []*tabledependency.DependsOn{},
+			DependsOn: config.DependsOn,
+			RunType:   config.RunType,
 
 			BenthosDsns: []*shared.BenthosDsn{{ConnectionId: dsnConnectionId, EnvVarKey: "SOURCE_CONNECTION_DSN"}},
 
-			TableSchema: tableMapping.Schema,
-			TableName:   tableMapping.Table,
+			TableSchema: mappings.Schema,
+			TableName:   mappings.Table,
+			Columns:     config.Columns,
+			primaryKeys: config.PrimaryKeys,
 
 			metriclabels: metrics.MetricLabels{
-				metrics.NewEqLabel(metrics.TableSchemaLabel, tableMapping.Schema),
-				metrics.NewEqLabel(metrics.TableNameLabel, tableMapping.Table),
+				metrics.NewEqLabel(metrics.TableSchemaLabel, mappings.Schema),
+				metrics.NewEqLabel(metrics.TableNameLabel, mappings.Table),
 				metrics.NewEqLabel(metrics.JobTypeLabel, "sync"),
 			},
 		})
+
 	}
 
 	return responses, nil
+}
+
+func buildSqlUpdateProcessorConfigs(
+	config *tabledependency.RunConfig,
+	redisConfig *shared.RedisConfig,
+	jobId, runId string,
+	mappings []*mgmtv1alpha1.JobMapping,
+	fkMap map[string]*dbschemas_utils.ForeignKey,
+) ([]*neosync_benthos.ProcessorConfig, error) {
+	processorConfigs := []*neosync_benthos.ProcessorConfig{}
+	colSourceMap := map[string]mgmtv1alpha1.TransformerSource{}
+	for _, col := range mappings {
+		colSourceMap[col.Column] = col.GetTransformer().Source
+	}
+	for pkCol, fk := range fkMap {
+		// only need redis processors if the primary key has a transformer
+		if !hasTransformer(colSourceMap[pkCol]) || !slices.Contains(config.Columns, fk.Column) {
+			continue
+		}
+
+		// circular dependent foreign key
+		hashedKey := neosync_benthos.HashBenthosCacheKey(jobId, runId, fk.Table, pkCol)
+		requestMap := fmt.Sprintf(`root = if this.%q == null { deleted() } else { this }`, fk.Column)
+		argsMapping := fmt.Sprintf(`root = [%q, json(%q)]`, hashedKey, fk.Column)
+		resultMap := fmt.Sprintf("root.%q = this", fk.Column)
+		fkBranch, err := buildRedisGetBranchConfig(resultMap, argsMapping, &requestMap, redisConfig)
+		if err != nil {
+			return nil, err
+		}
+		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Branch: fkBranch})
+
+		// primary key
+		pkRequestMap := fmt.Sprintf(`root = if this.%q == null { deleted() } else { this }`, pkCol)
+		pkArgsMapping := fmt.Sprintf(`root = [%q, json(%q)]`, hashedKey, pkCol)
+		pkResultMap := fmt.Sprintf("root.%q = this", pkCol)
+		pkBranch, err := buildRedisGetBranchConfig(pkResultMap, pkArgsMapping, &pkRequestMap, redisConfig)
+		if err != nil {
+			return nil, err
+		}
+		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Branch: pkBranch})
+	}
+	if len(processorConfigs) > 0 {
+		// add catch and error processor
+		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Catch: []*neosync_benthos.ProcessorConfig{
+			{Error: &neosync_benthos.ErrorProcessorConfig{
+				ErrorMsg: `${! meta("fallback_error")}`,
+			}},
+		}})
+	}
+	return processorConfigs, nil
+
 }
 
 func buildBenthosS3Credentials(mgmtCreds *mgmtv1alpha1.AwsS3Credentials) *neosync_benthos.AwsCredentials {
