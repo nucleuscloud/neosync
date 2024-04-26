@@ -162,7 +162,10 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 		tables := filterNullTables(groupedMappings)
 		tableSubsetMap := buildTableSubsetMap(sourceTableOpts)
-		dependencyConfigs := tabledependency.GetRunConfigs(td, tables, tableSubsetMap)
+		dependencyConfigs, err := tabledependency.GetRunConfigs(td, tables, tableSubsetMap)
+		if err != nil {
+			return nil, err
+		}
 
 		// reverse of table dependency
 		// map of foreign key to source table + column

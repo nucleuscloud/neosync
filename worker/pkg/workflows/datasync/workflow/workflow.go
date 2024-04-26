@@ -66,7 +66,9 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 
 	splitConfigs := splitBenthosConfigs(bcResp.BenthosConfigs)
 	if !isValidRunOrder(splitConfigs) {
-		return nil, errors.New("unable to build table run order. unsupported circular dependency detected.")
+		errMsg := "unable to build table run order. unsupported circular dependency detected."
+		logger.Error(errMsg)
+		return nil, errors.New(errMsg)
 	}
 
 	var actOptResp *syncactivityopts_activity.RetrieveActivityOptionsResponse
@@ -172,7 +174,6 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 
 			future := invokeSync(bc, childctx, &started, &completed, logger)
 			workselector.AddFuture(future, func(f workflow.Future) {
-				logger.Info("config sync completed", "name", bc.Name)
 				var result sync_activity.SyncResponse
 				err := f.Get(childctx, &result)
 				if err != nil {
@@ -184,6 +185,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 					cancelHandler()
 					activityErr = err
 				}
+				logger.Info("config sync completed", "name", bc.Name)
 				delete(allDependsOn, bc.Name)
 				// clean up redis
 				err = runRedisCleanUpActivity(wfctx, logger, actOptResp, allDependsOn, req.JobId, wfinfo.WorkflowExecution.ID, redisConfigs)

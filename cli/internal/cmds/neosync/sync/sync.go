@@ -649,7 +649,11 @@ func buildSyncConfigs(
 	if len(tableColMap) == 0 {
 		return syncConfigs
 	}
-	dependencyMap := getDependencyConfigs(schemaConfig.TableConstraints, tableColMap)
+	dependencyMap, err := getDependencyConfigs(schemaConfig.TableConstraints, tableColMap)
+	if err != nil {
+		fmt.Println(bold.Render(err.Error())) //nolint:forbidigo
+		return nil
+	}
 
 	for table, dc := range dependencyMap {
 		split := strings.Split(table, ".")
@@ -1283,12 +1287,15 @@ func getDestinationPrimaryKeyConstraints(ctx context.Context, connectionDriver D
 func getDependencyConfigs(
 	tc map[string]*dbschemas_utils.TableConstraints,
 	tables map[string][]string,
-) map[string][]*tabledependency.RunConfig {
+) (map[string][]*tabledependency.RunConfig, error) {
 	tablesSlice := []string{}
 	for t := range tables {
 		tablesSlice = append(tablesSlice, t)
 	}
-	dependencyConfigs := tabledependency.GetRunConfigs(tc, tablesSlice, map[string]string{})
+	dependencyConfigs, err := tabledependency.GetRunConfigs(tc, tablesSlice, map[string]string{})
+	if err != nil {
+		return nil, err
+	}
 	dependencyMap := map[string][]*tabledependency.RunConfig{}
 	for _, cfg := range dependencyConfigs {
 		_, ok := dependencyMap[cfg.Table]
@@ -1298,7 +1305,7 @@ func getDependencyConfigs(
 			dependencyMap[cfg.Table] = []*tabledependency.RunConfig{cfg}
 		}
 	}
-	return dependencyMap
+	return dependencyMap, nil
 }
 
 func getConfigCount(groupedConfigs [][]*benthosConfigResponse) int {
