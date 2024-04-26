@@ -4,6 +4,7 @@ import { Row, Table } from '@tanstack/react-table';
 
 import { SingleTableSchemaFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
 import EditTransformerOptions from '@/app/(mgmt)/[account]/transformers/EditTransformerOptions';
+import ButtonText from '@/components/ButtonText';
 import { Button } from '@/components/ui/button';
 import { Transformer } from '@/shared/transformers';
 import {
@@ -167,8 +168,10 @@ export function SchemaTableToolbar<TData>({
               }}
               className="h-8 px-2 lg:px-3"
             >
-              <Cross2Icon className="mr-2 h-3 w-3" />
-              Clear Filters
+              <ButtonText
+                leftIcon={<Cross2Icon className="h-3 w-3" />}
+                text="Clear filters"
+              />
             </Button>
           )}
           <SchemaTableViewOptions table={table} />
