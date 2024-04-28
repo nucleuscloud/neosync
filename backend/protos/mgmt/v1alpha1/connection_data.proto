@@ -66,6 +66,8 @@ message DatabaseColumn {
   string data_type = 4;
   // The isNullable Flag of the column
   string is_nullable = 5;
+  // Indicates where the column has a default value
+  bool has_default = 6;
 }
 
 message GetConnectionSchemaRequest {

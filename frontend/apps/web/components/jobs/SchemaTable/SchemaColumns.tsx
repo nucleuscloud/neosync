@@ -349,7 +349,6 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
                 const filtered = transformerHandler.getFilteredTransformers(
                   getTransformerFilter(constraintHandler, colkey, jobType)
                 );
-
                 const filteredTransformerHandler = new TransformerHandler(
                   filtered.system,
                   filtered.userDefined

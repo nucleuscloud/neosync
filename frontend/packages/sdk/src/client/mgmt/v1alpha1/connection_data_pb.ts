@@ -479,6 +479,13 @@ export class DatabaseColumn extends Message<DatabaseColumn> {
    */
   isNullable = "";
 
+  /**
+   * Indicates where the column has a default value
+   *
+   * @generated from field: bool has_default = 6;
+   */
+  hasDefault = false;
+
   constructor(data?: PartialMessage<DatabaseColumn>) {
     super();
     proto3.util.initPartial(data, this);
@@ -492,6 +499,7 @@ export class DatabaseColumn extends Message<DatabaseColumn> {
     { no: 3, name: "column", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "data_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 5, name: "is_nullable", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "has_default", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DatabaseColumn {
