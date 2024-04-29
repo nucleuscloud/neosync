@@ -369,12 +369,19 @@ func (s *Service) GetConnectionSchema(
 
 		schemas := []*mgmtv1alpha1.DatabaseColumn{}
 		for _, col := range dbschema {
+			var defaultColumn *string
+			if col.ColumnDefault != "" {
+				defaultVal := col.ColumnDefault
+				defaultColumn = &defaultVal
+			}
+
 			schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
-				Schema:     col.TableSchema,
-				Table:      col.TableName,
-				Column:     col.ColumnName,
-				DataType:   col.DataType,
-				IsNullable: col.IsNullable,
+				Schema:        col.TableSchema,
+				Table:         col.TableName,
+				Column:        col.ColumnName,
+				DataType:      col.DataType,
+				IsNullable:    col.IsNullable,
+				ColumnDefault: defaultColumn,
 			})
 		}
 
@@ -404,12 +411,19 @@ func (s *Service) GetConnectionSchema(
 
 		schemas := []*mgmtv1alpha1.DatabaseColumn{}
 		for _, col := range dbschema {
+			var defaultColumn *string
+			if col.ColumnDefault != "" {
+				defaultVal := col.ColumnDefault
+				defaultColumn = &defaultVal
+			}
+
 			schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
-				Schema:     col.TableSchema,
-				Table:      col.TableName,
-				Column:     col.ColumnName,
-				DataType:   col.DataType,
-				IsNullable: col.IsNullable,
+				Schema:        col.TableSchema,
+				Table:         col.TableName,
+				Column:        col.ColumnName,
+				DataType:      col.DataType,
+				IsNullable:    col.IsNullable,
+				ColumnDefault: defaultColumn,
 			})
 		}
 

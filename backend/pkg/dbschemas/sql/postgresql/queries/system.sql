@@ -4,10 +4,10 @@ SELECT
     c.relname AS table_name,
     a.attname AS column_name,
     pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type, -- This formats the type into something that should always be a valid postgres type. It also includes constraints if there are any
-    COALESCE(
+ COALESCE(
         pg_catalog.pg_get_expr(d.adbin, d.adrelid),
         ''
-    ) AS column_default,
+    )::text AS column_default,
     CASE
         WHEN a.attnotnull THEN 'NO'
         ELSE 'YES'
@@ -67,10 +67,10 @@ SELECT
     c.relname AS table_name,
     a.attname AS column_name,
     pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type,  -- This formats the type into something that should always be a valid postgres type. It also includes constraints if there are any
-    COALESCE(
+ COALESCE(
         pg_catalog.pg_get_expr(d.adbin, d.adrelid),
         ''
-    ) AS column_default,
+    )::text AS column_default,
     CASE
         WHEN a.attnotnull THEN 'NO'
         ELSE 'YES'

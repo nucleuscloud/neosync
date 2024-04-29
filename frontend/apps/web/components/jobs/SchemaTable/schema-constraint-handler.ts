@@ -34,6 +34,7 @@ interface ColDetails {
   isNullable: boolean;
   dataType: string;
   isUniqueConstraint: boolean;
+  columnDefault: string;
 }
 
 export function getSchemaConstraintHandler(
@@ -48,6 +49,7 @@ export function getSchemaConstraintHandler(
     foreignConstraints,
     uniqueConstraints
   );
+
   return {
     getDataType(key) {
       return colmap[fromColKey(key)]?.dataType ?? '';
@@ -74,8 +76,8 @@ export function getSchemaConstraintHandler(
     getIsInSchema(key) {
       return !!colmap[fromColKey(key)];
     },
-    getHasDefault(_key) {
-      return true; // todo - NEOS-969
+    getHasDefault(key) {
+      return !!colmap[fromColKey(key)]?.columnDefault;
     },
   };
 }
@@ -213,6 +215,7 @@ function buildColDetailsMap(
         ],
         isPrimaryKey: primaryCols.has(dbcol.column),
         isUniqueConstraint: uniqueConstraintCols.has(dbcol.column),
+        columnDefault: dbcol.columnDefault ?? '',
       };
     });
   });

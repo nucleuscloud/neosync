@@ -81,16 +81,15 @@ func generateCreateTableStatement(
 
 func buildTableCol(record *pg_queries.GetDatabaseTableSchemaRow) string {
 	pieces := []string{escapeColumnName(record.ColumnName), buildDataType(record), buildNullableText(record)}
-	colDefault, ok := record.ColumnDefault.(string)
-	if ok && colDefault != "" {
-		if strings.HasPrefix(colDefault, "nextval") && record.DataType == "integer" {
+	if record.ColumnDefault != "" {
+		if strings.HasPrefix(record.ColumnDefault, "nextval") && record.DataType == "integer" {
 			pieces[1] = "SERIAL"
-		} else if strings.HasPrefix(colDefault, "nextval") && record.DataType == "bigint" {
+		} else if strings.HasPrefix(record.ColumnDefault, "nextval") && record.DataType == "bigint" {
 			pieces[1] = "BIGSERIAL"
-		} else if strings.HasPrefix(colDefault, "nextval") && record.DataType == "smallint" {
+		} else if strings.HasPrefix(record.ColumnDefault, "nextval") && record.DataType == "smallint" {
 			pieces[1] = "SMALLSERIAL"
-		} else if colDefault != "NULL" {
-			pieces = append(pieces, "DEFAULT", colDefault)
+		} else if record.ColumnDefault != "NULL" {
+			pieces = append(pieces, "DEFAULT", record.ColumnDefault)
 		}
 	}
 	return strings.Join(pieces, " ")
@@ -168,16 +167,9 @@ func GetUniqueSchemaColMappings(
 }
 
 func toColumnInfo(row *pg_queries.GetDatabaseSchemaRow) *dbschemas.ColumnInfo {
-	var colDefault string
-	if row.ColumnDefault != nil {
-		val, ok := row.ColumnDefault.(string)
-		if ok {
-			colDefault = val
-		}
-	}
 	return &dbschemas.ColumnInfo{
 		OrdinalPosition:        int32(row.OrdinalPosition),
-		ColumnDefault:          colDefault,
+		ColumnDefault:          row.ColumnDefault,
 		IsNullable:             row.IsNullable,
 		DataType:               row.DataType,
 		CharacterMaximumLength: ptr(row.CharacterMaximumLength),
