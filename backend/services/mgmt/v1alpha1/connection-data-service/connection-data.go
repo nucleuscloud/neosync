@@ -369,13 +369,19 @@ func (s *Service) GetConnectionSchema(
 
 		schemas := []*mgmtv1alpha1.DatabaseColumn{}
 		for _, col := range dbschema {
+
+			var defaultColumn *string
+			if col.ColumnDefault != "" {
+				defaultColumn = &col.ColumnDefault
+			}
+
 			schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
 				Schema:        col.TableSchema,
 				Table:         col.TableName,
 				Column:        col.ColumnName,
 				DataType:      col.DataType,
 				IsNullable:    col.IsNullable,
-				ColumnDefault: &col.ColumnDefault,
+				ColumnDefault: defaultColumn,
 			})
 		}
 
