@@ -77,7 +77,6 @@ export function getSchemaConstraintHandler(
       return !!colmap[fromColKey(key)];
     },
     getHasDefault(key) {
-      console.log('the column defualt', colmap[fromColKey(key)]?.columnDefault);
       return !!colmap[fromColKey(key)]?.columnDefault;
     },
   };
