@@ -194,7 +194,6 @@ export default function Page({ params }: PageProps): ReactElement {
                     <DestinationOptionsForm
                       index={index}
                       connection={currConnection}
-                      maxColNum={3}
                     />
                   </div>
                 );

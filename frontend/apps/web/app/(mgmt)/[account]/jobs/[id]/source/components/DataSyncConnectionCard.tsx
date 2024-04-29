@@ -243,7 +243,6 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
             connection={connections.find(
               (c) => c.id === form.getValues().sourceId
             )}
-            maxColNum={2}
           />
 
           <SchemaTable
