@@ -11,13 +11,11 @@ import { ReactElement } from 'react';
 
 interface SourceOptionsProps {
   connection?: Connection;
-  maxColNum?: number;
 }
 export default function SourceOptionsForm(
   props: SourceOptionsProps
 ): ReactElement {
-  const { connection, maxColNum } = props;
-  const grid = maxColNum ? `lg:grid-cols-${maxColNum}` : 'lg:grid-cols-3';
+  const { connection } = props;
 
   if (!connection) {
     return <></>;
@@ -25,7 +23,7 @@ export default function SourceOptionsForm(
   switch (connection?.connectionConfig?.config?.case) {
     case 'pgConfig':
       return (
-        <div className={`grid grid-cols-1 md:grid-cols-1 ${grid} gap-4`}>
+        <div className="flex flex-col gap-2">
           <div>
             <FormField
               name="sourceOptions.haltOnNewColumnAddition"
@@ -51,7 +49,7 @@ export default function SourceOptionsForm(
       switch (mysqlValue.connectionConfig.case) {
         case 'connection':
           return (
-            <div className={`grid grid-cols-1 md:grid-cols-1 ${grid} gap-4`}>
+            <div className="flex flex-col gap-2">
               <div>
                 <FormField
                   name="sourceOptions.haltOnNewColumnAddition"
