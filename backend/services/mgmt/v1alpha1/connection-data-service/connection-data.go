@@ -369,10 +369,10 @@ func (s *Service) GetConnectionSchema(
 
 		schemas := []*mgmtv1alpha1.DatabaseColumn{}
 		for _, col := range dbschema {
-
 			var defaultColumn *string
 			if col.ColumnDefault != "" {
-				defaultColumn = &col.ColumnDefault
+				defaultVal := col.ColumnDefault
+				defaultColumn = &defaultVal
 			}
 
 			schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
@@ -411,10 +411,10 @@ func (s *Service) GetConnectionSchema(
 
 		schemas := []*mgmtv1alpha1.DatabaseColumn{}
 		for _, col := range dbschema {
-
 			var defaultColumn *string
 			if col.ColumnDefault != "" {
-				defaultColumn = &col.ColumnDefault
+				defaultVal := col.ColumnDefault
+				defaultColumn = &defaultVal
 			}
 
 			schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
