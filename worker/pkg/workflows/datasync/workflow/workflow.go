@@ -1,7 +1,6 @@
 package datasync_workflow
 
 import (
-	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -64,11 +63,6 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	}
 
 	splitConfigs := splitBenthosConfigs(bcResp.BenthosConfigs)
-	if !isValidRunOrder(splitConfigs) {
-		errMsg := "unable to build table run order. unsupported circular dependency detected."
-		logger.Error(errMsg)
-		return nil, errors.New(errMsg)
-	}
 
 	var actOptResp *syncactivityopts_activity.RetrieveActivityOptionsResponse
 	ctx = workflow.WithActivityOptions(wfctx, workflow.ActivityOptions{
@@ -360,50 +354,4 @@ func splitBenthosConfigs(configs []*genbenthosconfigs_activity.BenthosConfigResp
 	}
 
 	return out
-}
-
-func isValidRunOrder(splitConfigs *SplitConfigs) bool {
-	seenTables := map[string][]string{}
-	for _, root := range splitConfigs.Root {
-		tn := fmt.Sprintf("%s.%s", root.TableSchema, root.TableName)
-		seenTables[tn] = root.Columns
-	}
-
-	childMap := map[string]*genbenthosconfigs_activity.BenthosConfigResponse{}
-	for _, child := range splitConfigs.Dependents {
-		childMap[child.Name] = child
-	}
-
-	prevTableLen := 0
-	for len(childMap) > 0 {
-		// prevents looping forever
-		if prevTableLen == len(childMap) {
-			return false
-		}
-		prevTableLen = len(childMap)
-		for name, config := range childMap {
-			for _, d := range config.DependsOn {
-				seenCols, seen := seenTables[d.Table]
-				isReady := func() bool {
-					if !seen {
-						return false
-					}
-					for _, c := range d.Columns {
-						if !slices.Contains(seenCols, c) {
-							return false
-						}
-					}
-					return true
-				}
-				if isReady() {
-					seenTables[fmt.Sprintf("%s.%s", config.TableSchema, config.TableName)] = config.Columns
-					delete(childMap, name)
-
-				}
-
-			}
-
-		}
-	}
-	return true
 }
