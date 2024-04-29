@@ -34,7 +34,7 @@ interface ColDetails {
   isNullable: boolean;
   dataType: string;
   isUniqueConstraint: boolean;
-  hasDefault: boolean;
+  columnDefault: string;
 }
 
 export function getSchemaConstraintHandler(
@@ -77,7 +77,8 @@ export function getSchemaConstraintHandler(
       return !!colmap[fromColKey(key)];
     },
     getHasDefault(key) {
-      return colmap[fromColKey(key)]?.hasDefault ?? false;
+      console.log('the column defualt', colmap[fromColKey(key)]?.columnDefault);
+      return !!colmap[fromColKey(key)]?.columnDefault;
     },
   };
 }
@@ -215,7 +216,7 @@ function buildColDetailsMap(
         ],
         isPrimaryKey: primaryCols.has(dbcol.column),
         isUniqueConstraint: uniqueConstraintCols.has(dbcol.column),
-        hasDefault: dbcol.hasDefault,
+        columnDefault: dbcol.columnDefault ?? '',
       };
     });
   });

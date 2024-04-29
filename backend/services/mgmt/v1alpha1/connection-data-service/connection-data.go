@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"reflect"
 	"strings"
 	"time"
 
@@ -371,12 +370,12 @@ func (s *Service) GetConnectionSchema(
 		schemas := []*mgmtv1alpha1.DatabaseColumn{}
 		for _, col := range dbschema {
 			schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
-				Schema:     col.TableSchema,
-				Table:      col.TableName,
-				Column:     col.ColumnName,
-				DataType:   col.DataType,
-				IsNullable: col.IsNullable,
-				HasDefault: col.ColumnDefault != "",
+				Schema:        col.TableSchema,
+				Table:         col.TableName,
+				Column:        col.ColumnName,
+				DataType:      col.DataType,
+				IsNullable:    col.IsNullable,
+				ColumnDefault: &col.ColumnDefault,
 			})
 		}
 
@@ -406,20 +405,19 @@ func (s *Service) GetConnectionSchema(
 
 		schemas := []*mgmtv1alpha1.DatabaseColumn{}
 		for _, col := range dbschema {
-			hasDefault := false
-			if col.ColumnDefault != nil {
-				// ColumnDefault is an interface we need to check the value to see if it's set or not
-				value := reflect.ValueOf(col.ColumnDefault)
-				hasDefault = !value.IsZero()
+
+			var defaultColumn *string
+			if col.ColumnDefault != "" {
+				defaultColumn = &col.ColumnDefault
 			}
 
 			schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
-				Schema:     col.TableSchema,
-				Table:      col.TableName,
-				Column:     col.ColumnName,
-				DataType:   col.DataType,
-				IsNullable: col.IsNullable,
-				HasDefault: hasDefault,
+				Schema:        col.TableSchema,
+				Table:         col.TableName,
+				Column:        col.ColumnName,
+				DataType:      col.DataType,
+				IsNullable:    col.IsNullable,
+				ColumnDefault: defaultColumn,
 			})
 		}
 

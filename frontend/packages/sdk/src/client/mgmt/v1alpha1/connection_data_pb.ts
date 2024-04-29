@@ -480,11 +480,11 @@ export class DatabaseColumn extends Message<DatabaseColumn> {
   isNullable = "";
 
   /**
-   * Indicates where the column has a default value
+   * The default value of the column if available
    *
-   * @generated from field: bool has_default = 6;
+   * @generated from field: optional string column_default = 6;
    */
-  hasDefault = false;
+  columnDefault?: string;
 
   constructor(data?: PartialMessage<DatabaseColumn>) {
     super();
@@ -499,7 +499,7 @@ export class DatabaseColumn extends Message<DatabaseColumn> {
     { no: 3, name: "column", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "data_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 5, name: "is_nullable", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 6, name: "has_default", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 6, name: "column_default", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DatabaseColumn {

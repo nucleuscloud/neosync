@@ -1440,7 +1440,9 @@ func (m *DatabaseColumn) validate(all bool) error {
 
 	// no validation rules for IsNullable
 
-	// no validation rules for HasDefault
+	if m.ColumnDefault != nil {
+		// no validation rules for ColumnDefault
+	}
 
 	if len(errors) > 0 {
 		return DatabaseColumnMultiError(errors)

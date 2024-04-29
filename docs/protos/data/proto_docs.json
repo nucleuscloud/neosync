@@ -2640,7 +2640,7 @@
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
-          "hasOneofs": false,
+          "hasOneofs": true,
           "extensions": [],
           "fields": [
             {
@@ -2704,15 +2704,15 @@
               "defaultValue": ""
             },
             {
-              "name": "has_default",
-              "description": "Indicates where the column has a default value",
-              "label": "",
-              "type": "bool",
-              "longType": "bool",
-              "fullType": "bool",
+              "name": "column_default",
+              "description": "The default value of the column if available",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
               "ismap": false,
-              "isoneof": false,
-              "oneofdecl": "",
+              "isoneof": true,
+              "oneofdecl": "_column_default",
               "defaultValue": ""
             }
           ]
