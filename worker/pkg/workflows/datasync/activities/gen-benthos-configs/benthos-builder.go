@@ -97,13 +97,15 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	// reverse of table dependency
 	// map of foreign key to source table + column
 	var tableConstraintsSource map[string]map[string]*dbschemas_utils.ForeignKey // schema.table -> column -> ForeignKey
+	var aiGenerateMappings []*aiGenerateMappings
 
 	switch jobSourceConfig := job.Source.Options.Config.(type) {
 	case *mgmtv1alpha1.JobSourceOptions_AiGenerate:
-		sourceResponses, err := b.getAiGenerateBenthosConfigResponses(ctx, job, slogger)
+		sourceResponses, aimappings, err := b.getAiGenerateBenthosConfigResponses(ctx, job, slogger)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build benthos ai generate source config responses: %w", err)
 		}
+		aiGenerateMappings = aimappings
 		responses = append(responses, sourceResponses...)
 	case *mgmtv1alpha1.JobSourceOptions_Generate:
 		sourceTableOpts := groupGenerateSourceOptionsByTable(jobSourceConfig.Generate.Schemas)
@@ -195,6 +197,15 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		return nil, errors.New("unsupported job source")
 	}
 
+	// builds a map of table key to columns for AI Generated schemas as they are calculated lazily instead of via job mappings
+	aiGroupedTableCols := map[string][]string{}
+	for _, agm := range aiGenerateMappings {
+		key := neosync_benthos.BuildBenthosTable(agm.Schema, agm.Table)
+		for _, col := range agm.Columns {
+			aiGroupedTableCols[key] = append(aiGroupedTableCols[key], col.Column)
+		}
+	}
+
 	for destIdx, destination := range job.Destinations {
 		destinationConnection, err := b.getConnectionById(ctx, destination.ConnectionId)
 		if err != nil {
@@ -203,10 +214,6 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 		for _, resp := range responses {
 			tableKey := neosync_benthos.BuildBenthosTable(resp.TableSchema, resp.TableName)
-			tm := groupedTableMapping[tableKey]
-			if tm == nil {
-				return nil, fmt.Errorf("unable to find table mapping for key (%s) when building destination connection", tableKey)
-			}
 			dstEnvVarKey := fmt.Sprintf("DESTINATION_%d_CONNECTION_DSN", destIdx)
 			dsn := fmt.Sprintf("${%s}", dstEnvVarKey)
 
@@ -313,7 +320,64 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 						})
 					}
 				} else if resp.Config.Input.Generate != nil {
+					tm := groupedTableMapping[tableKey]
+					if tm == nil {
+						return nil, fmt.Errorf("unable to find table mapping for key (%s) when building destination connection", tableKey)
+					}
 					cols := buildPlainColumns(tm.Mappings)
+					processorConfigs := []neosync_benthos.ProcessorConfig{}
+					for _, pc := range resp.Processors {
+						processorConfigs = append(processorConfigs, *pc)
+					}
+
+					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, neosync_benthos.Outputs{
+						Fallback: []neosync_benthos.Outputs{
+							{
+								// retry processor and output several times
+								Retry: &neosync_benthos.RetryConfig{
+									InlineRetryConfig: neosync_benthos.InlineRetryConfig{
+										MaxRetries: 10,
+									},
+									Output: neosync_benthos.OutputConfig{
+										Outputs: neosync_benthos.Outputs{
+											PooledSqlInsert: &neosync_benthos.PooledSqlInsert{
+												Driver: driver,
+												Dsn:    dsn,
+
+												Schema:              resp.TableSchema,
+												Table:               resp.TableName,
+												Columns:             cols,
+												OnConflictDoNothing: destOpts.OnConflictDoNothing,
+												TruncateOnRetry:     destOpts.Truncate,
+
+												ArgsMapping: buildPlainInsertArgs(cols),
+
+												Batching: &neosync_benthos.Batching{
+													Period: "5s",
+													Count:  100,
+												},
+											},
+										},
+										Processors: processorConfigs,
+									},
+								},
+							},
+							// kills activity depending on error
+							{Error: &neosync_benthos.ErrorOutputConfig{
+								ErrorMsg: `${! meta("fallback_error")}`,
+								Batching: &neosync_benthos.Batching{
+									Period: "5s",
+									Count:  100,
+								},
+							}},
+						},
+					})
+				} else if resp.Config.Input.OpenAiGenerate != nil {
+					cols, ok := aiGroupedTableCols[tableKey]
+					if !ok {
+						return nil, fmt.Errorf("unable to find table columns for key (%s) when building destination connection", tableKey)
+					}
+
 					processorConfigs := []neosync_benthos.ProcessorConfig{}
 					for _, pc := range resp.Processors {
 						processorConfigs = append(processorConfigs, *pc)

@@ -29,33 +29,33 @@ func (b *benthosBuilder) getAiGenerateBenthosConfigResponses(
 	ctx context.Context,
 	job *mgmtv1alpha1.Job,
 	slogger *slog.Logger,
-) ([]*BenthosConfigResponse, error) {
+) ([]*BenthosConfigResponse, []*aiGenerateMappings, error) {
 	jobSource := job.GetSource()
 	sourceOptions := job.GetSource().GetOptions().GetAiGenerate()
 	if sourceOptions == nil {
-		return nil, fmt.Errorf("job does not have AiGenerate source options, has: %T", jobSource.GetOptions().Config)
+		return nil, nil, fmt.Errorf("job does not have AiGenerate source options, has: %T", jobSource.GetOptions().Config)
 	}
 	sourceConnection, err := getJobSourceConnection(ctx, jobSource, b.getConnectionById)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	openaiConfig := sourceConnection.GetConnectionConfig().GetOpenaiConfig()
 	if openaiConfig == nil {
-		return nil, errors.New("configured source connection is not an openai configuration")
+		return nil, nil, errors.New("configured source connection is not an openai configuration")
 	}
 	constraintConnection, err := getConstraintConnection(ctx, jobSource, b.getConnectionById)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	db, err := b.sqladapter.NewSqlDb(ctx, slogger, constraintConnection)
 	if err != nil {
-		return nil, fmt.Errorf("unable to create new sql db: %w", err)
+		return nil, nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}
 	defer db.ClosePool()
 
 	dbschemas, err := db.GetDatabaseSchema(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get database schema for connection: %w", err)
+		return nil, nil, fmt.Errorf("unable to get database schema for connection: %w", err)
 	}
 	groupedSchemas := sql_manager.GetUniqueSchemaColMappings(dbschemas)
 
@@ -66,7 +66,7 @@ func (b *benthosBuilder) getAiGenerateBenthosConfigResponses(
 
 			tableColsMap, ok := groupedSchemas[dbschemas_utils.BuildTable(schema.GetSchema(), table.GetTable())]
 			if !ok {
-				return nil, fmt.Errorf("did not find schema data when building Ai Generate config: %s", schema.GetSchema())
+				return nil, nil, fmt.Errorf("did not find schema data when building Ai Generate config: %s", schema.GetSchema())
 			}
 			for col, info := range tableColsMap {
 				columns = append(columns, &aiGenerateColumn{
@@ -84,7 +84,7 @@ func (b *benthosBuilder) getAiGenerateBenthosConfigResponses(
 		}
 	}
 	if len(mappings) == 0 {
-		return nil, fmt.Errorf("did not generate any mapping configs during ai generate build for connection: %s", constraintConnection.GetId())
+		return nil, nil, fmt.Errorf("did not generate any mapping configs during ai generate build for connection: %s", constraintConnection.GetId())
 	}
 
 	var userPrompt *string
@@ -99,7 +99,7 @@ func (b *benthosBuilder) getAiGenerateBenthosConfigResponses(
 		userPrompt,
 	)
 
-	return sourceResponses, nil
+	return sourceResponses, mappings, nil
 }
 
 func buildBenthosAiGenerateSourceConfigResponses(
