@@ -194,7 +194,7 @@ function PermissionsPageContainer(props: PermissionsPageContainerProps) {
           <TestConnectionResult
             isConnected={isDbConnected}
             connectionName={connectionName}
-            privileges={data}
+            hasPrivileges={data.length > 0}
           />
         }
         TestConnectionButton={

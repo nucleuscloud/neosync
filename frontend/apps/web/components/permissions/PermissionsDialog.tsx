@@ -6,7 +6,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { ConnectionRolePrivilege } from '@neosync/sdk';
+import { PlainMessage } from '@bufbuild/protobuf';
+import { CheckConnectionConfigResponse } from '@neosync/sdk';
 import {
   CheckCircledIcon,
   ExclamationTriangleIcon,
@@ -15,34 +16,27 @@ import { ReactElement, useMemo } from 'react';
 import { IoWarning } from 'react-icons/io5';
 import LearnMoreTag from '../labels/LearnMoreTag';
 import { Button } from '../ui/button';
-import { Skeleton } from '../ui/skeleton';
 import PermissionsDataTable from './PermissionsDataTable';
 import { getPermissionColumns } from './columns';
 
 interface Props {
-  data: ConnectionRolePrivilege[];
+  checkResponse: PlainMessage<CheckConnectionConfigResponse>;
   openPermissionDialog: boolean;
-  setOpenPermissionDialog: (open: boolean) => void;
+  setOpenPermissionDialog(open: boolean): void;
   isValidating: boolean;
-  validationResponse: boolean;
   connectionName: string;
 }
 
 export default function PermissionsDialog(props: Props): ReactElement {
   const {
-    data,
     openPermissionDialog,
     setOpenPermissionDialog,
     isValidating,
-    validationResponse,
     connectionName,
+    checkResponse,
   } = props;
 
   const columns = useMemo(() => getPermissionColumns(), []);
-
-  if (isValidating) {
-    return <Skeleton />;
-  }
 
   return (
     <Dialog open={openPermissionDialog} onOpenChange={setOpenPermissionDialog}>
@@ -58,12 +52,12 @@ export default function PermissionsDialog(props: Props): ReactElement {
         <PermissionsDataTable
           ConnectionAlert={
             <TestConnectionResult
-              isConnected={validationResponse}
+              isConnected={checkResponse.isConnected}
               connectionName={connectionName}
-              privileges={data}
+              hasPrivileges={checkResponse.privileges.length > 0}
             />
           }
-          data={data}
+          data={checkResponse.privileges}
           columns={columns}
         />
         <DialogFooter className="pt-6">
@@ -84,15 +78,15 @@ export default function PermissionsDialog(props: Props): ReactElement {
 interface TestConnectionResultProps {
   isConnected: boolean;
   connectionName: string;
-  privileges: ConnectionRolePrivilege[];
+  hasPrivileges: boolean;
 }
 
 export function TestConnectionResult(
   props: TestConnectionResultProps
 ): ReactElement {
-  const { isConnected, connectionName, privileges } = props;
+  const { isConnected, connectionName, hasPrivileges } = props;
 
-  if (isConnected && privileges.length == 0) {
+  if (isConnected && !hasPrivileges) {
     return (
       <WarningAlert
         description={`We were able to connect to: ${connectionName}, but were not able to find any schema(s) or table(s). Does your role have permissions? `}
