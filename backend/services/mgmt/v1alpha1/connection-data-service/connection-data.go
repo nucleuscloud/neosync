@@ -685,53 +685,20 @@ func (s *Service) GetConnectionPrimaryConstraints(
 		schemas = append(schemas, s)
 	}
 
-	connectionTimeout := uint32(5)
+	connectionTimeout := 5
+	db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
+	if err != nil {
+		return nil, err
+	}
+	defer db.Db.Close()
 
-	var pc map[string][]string
-	switch config := connection.Msg.Connection.ConnectionConfig.Config.(type) {
-	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.Msg.Connection.ConnectionConfig, &connectionTimeout, logger)
-		if err != nil {
-			return nil, err
-		}
-		defer conn.Close()
-		db, err := conn.Open()
-		if err != nil {
-			return nil, err
-		}
-
-		allConstraints, err := dbschemas_mysql.GetAllMysqlPkConstraints(s.mysqlquerier, ctx, db, schemas)
-		if err != nil && !nucleusdb.IsNoRows(err) {
-			return nil, err
-		} else if err != nil && nucleusdb.IsNoRows(err) {
-			return connect.NewResponse(&mgmtv1alpha1.GetConnectionPrimaryConstraintsResponse{
-				TableConstraints: map[string]*mgmtv1alpha1.PrimaryConstraint{},
-			}), nil
-		}
-		pc = dbschemas_mysql.GetMysqlTablePrimaryKeys(allConstraints)
-
-	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		conn, err := s.sqlConnector.NewPgPoolFromConnectionConfig(config.PgConfig, &connectionTimeout, logger)
-		if err != nil {
-			return nil, err
-		}
-		db, err := conn.Open(ctx)
-		if err != nil {
-			return nil, err
-		}
-		defer conn.Close()
-
-		pcon, err := dbschemas_postgres.GetAllPostgresPrimaryKeyConstraintsByTableCols(ctx, db, s.pgquerier, schemas)
-		if err != nil {
-			return nil, err
-		}
-		pc = pcon
-	default:
-		return nil, errors.New("unsupported fk connection")
+	primaryKeysMap, err := db.Db.GetPrimaryKeyConstraintsMap(ctx, schemas)
+	if err != nil {
+		return nil, err
 	}
 
 	tableConstraints := map[string]*mgmtv1alpha1.PrimaryConstraint{}
-	for tableName, cols := range pc {
+	for tableName, cols := range primaryKeysMap {
 		tableConstraints[tableName] = &mgmtv1alpha1.PrimaryConstraint{
 			Columns: cols,
 		}
@@ -769,35 +736,27 @@ func (s *Service) GetConnectionInitStatements(
 		schemaTableMap[fmt.Sprintf("%s.%s", s.Schema, s.Table)] = s
 	}
 
-	connectionTimeout := uint32(5)
+	connectionTimeout := 5
+	db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
+	if err != nil {
+		return nil, err
+	}
+	defer db.Db.Close()
 
 	createStmtsMap := map[string]string{}
 	truncateStmtsMap := map[string]string{}
-	switch config := connection.Msg.Connection.ConnectionConfig.Config.(type) {
-	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.Msg.Connection.ConnectionConfig, &connectionTimeout, logger)
-		if err != nil {
-			return nil, err
-		}
-		defer conn.Close()
-		db, err := conn.Open()
-		if err != nil {
-			return nil, err
-		}
-
-		if req.Msg.GetOptions().GetInitSchema() {
-			for k, v := range schemaTableMap {
-				stmt, err := dbschemas_mysql.GetTableCreateStatement(ctx, db, &dbschemas_mysql.GetTableCreateStatementRequest{
-					Schema: v.Schema,
-					Table:  v.Table,
-				})
-				if err != nil {
-					return nil, err
-				}
-				createStmtsMap[k] = stmt
+	if req.Msg.GetOptions().GetInitSchema() {
+		for k, v := range schemaTableMap {
+			stmt, err := db.Db.GetCreateTableStatement(ctx, v.Schema, v.Table)
+			if err != nil {
+				return nil, err
 			}
+			createStmtsMap[k] = stmt
 		}
+	}
 
+	switch connection.Msg.Connection.ConnectionConfig.Config.(type) {
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 		if req.Msg.GetOptions().GetTruncateBeforeInsert() {
 			for k, v := range schemaTableMap {
 				stmt, err := dbschemas_mysql.BuildTruncateStatement(v.Schema, v.Table)
@@ -809,26 +768,6 @@ func (s *Service) GetConnectionInitStatements(
 		}
 
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		conn, err := s.sqlConnector.NewPgPoolFromConnectionConfig(config.PgConfig, &connectionTimeout, logger)
-		if err != nil {
-			return nil, err
-		}
-		db, err := conn.Open(ctx)
-		if err != nil {
-			return nil, err
-		}
-		defer conn.Close()
-
-		if req.Msg.GetOptions().GetInitSchema() {
-			for k, v := range schemaTableMap {
-				stmt, err := dbschemas_postgres.GetTableCreateStatement(ctx, db, s.pgquerier, v.Schema, v.Table)
-				if err != nil {
-					return nil, err
-				}
-				createStmtsMap[k] = stmt
-			}
-		}
-
 		if req.Msg.GetOptions().GetTruncateCascade() {
 			for k, v := range schemaTableMap {
 				stmt, err := dbschemas_postgres.BuildTruncateCascadeStatement(v.Schema, v.Table)

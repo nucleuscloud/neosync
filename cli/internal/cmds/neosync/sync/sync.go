@@ -12,6 +12,7 @@ import (
 	"os"
 	"slices"
 	"strings"
+	syncmap "sync"
 	"time"
 
 	"connectrpc.com/connect"
@@ -23,6 +24,8 @@ import (
 	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	dbschemas_mysql "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/mysql"
 	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/postgres"
+	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
+	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/nucleuscloud/neosync/cli/internal/auth"
 	neosync_benthos "github.com/nucleuscloud/neosync/cli/internal/benthos"
@@ -303,6 +306,13 @@ func sync(
 		),
 	)
 
+	pgpoolmap := &syncmap.Map{}
+	mysqlpoolmap := &syncmap.Map{}
+	pgquerier := pg_queries.New()
+	mysqlquerier := mysql_queries.New()
+	sqlConnector := &sqlconnect.SqlOpenConnector{}
+	sqlmanager := sql_manager.NewSqlManager(pgpoolmap, pgquerier, mysqlpoolmap, mysqlquerier, sqlConnector)
+
 	connResp, err := connectionclient.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
 		Id: cmd.Source.ConnectionId,
 	}))
@@ -374,7 +384,7 @@ func sync(
 			},
 		}
 
-		schemaCfg, err := getDestinationSchemaConfig(ctx, connectiondataclient, connection, cmd, s3Config)
+		schemaCfg, err := getDestinationSchemaConfig(ctx, connectiondataclient, sqlmanager, connection, cmd, s3Config)
 		if err != nil {
 			return err
 		}
@@ -1129,6 +1139,7 @@ func getConnectionSchemaConfig(
 func getDestinationSchemaConfig(
 	ctx context.Context,
 	connectiondataclient mgmtv1alpha1connect.ConnectionDataServiceClient,
+	sqlmanager sql_manager.SqlManagerClient,
 	connection *mgmtv1alpha1.Connection,
 	cmd *cmdConfig,
 	sc *mgmtv1alpha1.ConnectionSchemaConfig,
@@ -1163,7 +1174,7 @@ func getDestinationSchemaConfig(
 	}
 
 	fmt.Println(printlog.Render("Building primary key table constraints...")) //nolint:forbidigo
-	tablePrimaryKeys, err := getDestinationPrimaryKeyConstraints(ctx, cmd.Destination.Driver, cmd.Destination.ConnectionUrl, schemas)
+	tablePrimaryKeys, err := getDestinationPrimaryKeyConstraints(ctx, sqlmanager, cmd.Destination.Driver, cmd.Destination.ConnectionUrl, schemas)
 	if err != nil {
 		return nil, err
 	}
@@ -1234,46 +1245,22 @@ func getDestinationForeignConstraints(ctx context.Context, connectionDriver Driv
 	return constraints, nil
 }
 
-func getDestinationPrimaryKeyConstraints(ctx context.Context, connectionDriver DriverType, connectionUrl string, schemas []string) (map[string]*mgmtv1alpha1.PrimaryConstraint, error) {
-	var pc map[string][]string
-	switch connectionDriver {
-	case postgresDriver:
-		pgquerier := pg_queries.New()
-		pool, err := pgxpool.New(ctx, connectionUrl)
-		if err != nil {
-			return nil, err
-		}
-		cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
-		defer cancel()
-		pcon, err := dbschemas_postgres.GetAllPostgresPrimaryKeyConstraintsByTableCols(cctx, pool, pgquerier, schemas)
-		if err != nil {
-			return nil, err
-		}
-		pc = pcon
-	case mysqlDriver:
-		mysqlquerier := mysql_queries.New()
-		conn, err := sql.Open(string(connectionDriver), connectionUrl)
-		if err != nil {
-			return nil, err
-		}
-		defer func() {
-			if err := conn.Close(); err != nil {
-				fmt.Println(fmt.Errorf("failed to close mysql connection: %w", err).Error()) //nolint:forbidigo
-			}
-		}()
-		cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
-		defer cancel()
-		allConstraints, err := dbschemas_mysql.GetAllMysqlPkConstraints(mysqlquerier, cctx, conn, schemas)
-		if err != nil {
-			return nil, err
-		}
-		pc = dbschemas_mysql.GetMysqlTablePrimaryKeys(allConstraints)
-	default:
-		return nil, errors.New("unsupported fk connection")
+func getDestinationPrimaryKeyConstraints(ctx context.Context, sqlmanager sql_manager.SqlManagerClient, connectionDriver DriverType, connectionUrl string, schemas []string) (map[string]*mgmtv1alpha1.PrimaryConstraint, error) {
+	cctx, cancel := context.WithDeadline(ctx, time.Now().Add(5*time.Second))
+	defer cancel()
+	db, err := sqlmanager.NewSqlDbFromUrl(cctx, string(connectionDriver), connectionUrl)
+	if err != nil {
+		return nil, err
+	}
+	defer db.Db.Close()
+
+	primaryKeysMap, err := db.Db.GetPrimaryKeyConstraintsMap(ctx, schemas)
+	if err != nil {
+		return nil, err
 	}
 
 	tableConstraints := map[string]*mgmtv1alpha1.PrimaryConstraint{}
-	for tableName, cols := range pc {
+	for tableName, cols := range primaryKeysMap {
 		tableConstraints[tableName] = &mgmtv1alpha1.PrimaryConstraint{
 			Columns: cols,
 		}

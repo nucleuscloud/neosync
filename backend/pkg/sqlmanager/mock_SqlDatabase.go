@@ -70,34 +70,34 @@ func (_c *MockSqlDatabase_BatchExec_Call) RunAndReturn(run func(context.Context,
 	return _c
 }
 
-// ClosePool provides a mock function with given fields:
-func (_m *MockSqlDatabase) ClosePool() {
+// Close provides a mock function with given fields:
+func (_m *MockSqlDatabase) Close() {
 	_m.Called()
 }
 
-// MockSqlDatabase_ClosePool_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ClosePool'
-type MockSqlDatabase_ClosePool_Call struct {
+// MockSqlDatabase_Close_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Close'
+type MockSqlDatabase_Close_Call struct {
 	*mock.Call
 }
 
-// ClosePool is a helper method to define mock.On call
-func (_e *MockSqlDatabase_Expecter) ClosePool() *MockSqlDatabase_ClosePool_Call {
-	return &MockSqlDatabase_ClosePool_Call{Call: _e.mock.On("ClosePool")}
+// Close is a helper method to define mock.On call
+func (_e *MockSqlDatabase_Expecter) Close() *MockSqlDatabase_Close_Call {
+	return &MockSqlDatabase_Close_Call{Call: _e.mock.On("Close")}
 }
 
-func (_c *MockSqlDatabase_ClosePool_Call) Run(run func()) *MockSqlDatabase_ClosePool_Call {
+func (_c *MockSqlDatabase_Close_Call) Run(run func()) *MockSqlDatabase_Close_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run()
 	})
 	return _c
 }
 
-func (_c *MockSqlDatabase_ClosePool_Call) Return() *MockSqlDatabase_ClosePool_Call {
+func (_c *MockSqlDatabase_Close_Call) Return() *MockSqlDatabase_Close_Call {
 	_c.Call.Return()
 	return _c
 }
 
-func (_c *MockSqlDatabase_ClosePool_Call) RunAndReturn(run func()) *MockSqlDatabase_ClosePool_Call {
+func (_c *MockSqlDatabase_Close_Call) RunAndReturn(run func()) *MockSqlDatabase_Close_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -204,65 +204,6 @@ func (_c *MockSqlDatabase_GetAllForeignKeyConstraints_Call) Return(_a0 []*Foreig
 }
 
 func (_c *MockSqlDatabase_GetAllForeignKeyConstraints_Call) RunAndReturn(run func(context.Context, []string) ([]*ForeignKeyConstraintsRow, error)) *MockSqlDatabase_GetAllForeignKeyConstraints_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// GetAllPrimaryKeyConstraints provides a mock function with given fields: ctx, schemas
-func (_m *MockSqlDatabase) GetAllPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*PrimaryKeyConstraintsRow, error) {
-	ret := _m.Called(ctx, schemas)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetAllPrimaryKeyConstraints")
-	}
-
-	var r0 []*PrimaryKeyConstraintsRow
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, []string) ([]*PrimaryKeyConstraintsRow, error)); ok {
-		return rf(ctx, schemas)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, []string) []*PrimaryKeyConstraintsRow); ok {
-		r0 = rf(ctx, schemas)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*PrimaryKeyConstraintsRow)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, []string) error); ok {
-		r1 = rf(ctx, schemas)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// MockSqlDatabase_GetAllPrimaryKeyConstraints_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAllPrimaryKeyConstraints'
-type MockSqlDatabase_GetAllPrimaryKeyConstraints_Call struct {
-	*mock.Call
-}
-
-// GetAllPrimaryKeyConstraints is a helper method to define mock.On call
-//   - ctx context.Context
-//   - schemas []string
-func (_e *MockSqlDatabase_Expecter) GetAllPrimaryKeyConstraints(ctx interface{}, schemas interface{}) *MockSqlDatabase_GetAllPrimaryKeyConstraints_Call {
-	return &MockSqlDatabase_GetAllPrimaryKeyConstraints_Call{Call: _e.mock.On("GetAllPrimaryKeyConstraints", ctx, schemas)}
-}
-
-func (_c *MockSqlDatabase_GetAllPrimaryKeyConstraints_Call) Run(run func(ctx context.Context, schemas []string)) *MockSqlDatabase_GetAllPrimaryKeyConstraints_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].([]string))
-	})
-	return _c
-}
-
-func (_c *MockSqlDatabase_GetAllPrimaryKeyConstraints_Call) Return(_a0 []*PrimaryKeyConstraintsRow, _a1 error) *MockSqlDatabase_GetAllPrimaryKeyConstraints_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *MockSqlDatabase_GetAllPrimaryKeyConstraints_Call) RunAndReturn(run func(context.Context, []string) ([]*PrimaryKeyConstraintsRow, error)) *MockSqlDatabase_GetAllPrimaryKeyConstraints_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -379,6 +320,124 @@ func (_c *MockSqlDatabase_GetDatabaseSchema_Call) Return(_a0 []*DatabaseSchemaRo
 }
 
 func (_c *MockSqlDatabase_GetDatabaseSchema_Call) RunAndReturn(run func(context.Context) ([]*DatabaseSchemaRow, error)) *MockSqlDatabase_GetDatabaseSchema_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetPrimaryKeyConstraints provides a mock function with given fields: ctx, schemas
+func (_m *MockSqlDatabase) GetPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*PrimaryKey, error) {
+	ret := _m.Called(ctx, schemas)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPrimaryKeyConstraints")
+	}
+
+	var r0 []*PrimaryKey
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, []string) ([]*PrimaryKey, error)); ok {
+		return rf(ctx, schemas)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, []string) []*PrimaryKey); ok {
+		r0 = rf(ctx, schemas)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*PrimaryKey)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, []string) error); ok {
+		r1 = rf(ctx, schemas)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockSqlDatabase_GetPrimaryKeyConstraints_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPrimaryKeyConstraints'
+type MockSqlDatabase_GetPrimaryKeyConstraints_Call struct {
+	*mock.Call
+}
+
+// GetPrimaryKeyConstraints is a helper method to define mock.On call
+//   - ctx context.Context
+//   - schemas []string
+func (_e *MockSqlDatabase_Expecter) GetPrimaryKeyConstraints(ctx interface{}, schemas interface{}) *MockSqlDatabase_GetPrimaryKeyConstraints_Call {
+	return &MockSqlDatabase_GetPrimaryKeyConstraints_Call{Call: _e.mock.On("GetPrimaryKeyConstraints", ctx, schemas)}
+}
+
+func (_c *MockSqlDatabase_GetPrimaryKeyConstraints_Call) Run(run func(ctx context.Context, schemas []string)) *MockSqlDatabase_GetPrimaryKeyConstraints_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].([]string))
+	})
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetPrimaryKeyConstraints_Call) Return(_a0 []*PrimaryKey, _a1 error) *MockSqlDatabase_GetPrimaryKeyConstraints_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetPrimaryKeyConstraints_Call) RunAndReturn(run func(context.Context, []string) ([]*PrimaryKey, error)) *MockSqlDatabase_GetPrimaryKeyConstraints_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetPrimaryKeyConstraintsMap provides a mock function with given fields: ctx, schemas
+func (_m *MockSqlDatabase) GetPrimaryKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]string, error) {
+	ret := _m.Called(ctx, schemas)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPrimaryKeyConstraintsMap")
+	}
+
+	var r0 map[string][]string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, []string) (map[string][]string, error)); ok {
+		return rf(ctx, schemas)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, []string) map[string][]string); ok {
+		r0 = rf(ctx, schemas)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string][]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, []string) error); ok {
+		r1 = rf(ctx, schemas)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockSqlDatabase_GetPrimaryKeyConstraintsMap_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPrimaryKeyConstraintsMap'
+type MockSqlDatabase_GetPrimaryKeyConstraintsMap_Call struct {
+	*mock.Call
+}
+
+// GetPrimaryKeyConstraintsMap is a helper method to define mock.On call
+//   - ctx context.Context
+//   - schemas []string
+func (_e *MockSqlDatabase_Expecter) GetPrimaryKeyConstraintsMap(ctx interface{}, schemas interface{}) *MockSqlDatabase_GetPrimaryKeyConstraintsMap_Call {
+	return &MockSqlDatabase_GetPrimaryKeyConstraintsMap_Call{Call: _e.mock.On("GetPrimaryKeyConstraintsMap", ctx, schemas)}
+}
+
+func (_c *MockSqlDatabase_GetPrimaryKeyConstraintsMap_Call) Run(run func(ctx context.Context, schemas []string)) *MockSqlDatabase_GetPrimaryKeyConstraintsMap_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].([]string))
+	})
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetPrimaryKeyConstraintsMap_Call) Return(_a0 map[string][]string, _a1 error) *MockSqlDatabase_GetPrimaryKeyConstraintsMap_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetPrimaryKeyConstraintsMap_Call) RunAndReturn(run func(context.Context, []string) (map[string][]string, error)) *MockSqlDatabase_GetPrimaryKeyConstraintsMap_Call {
 	_c.Call.Return(run)
 	return _c
 }

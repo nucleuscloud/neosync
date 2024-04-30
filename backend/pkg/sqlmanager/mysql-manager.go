@@ -7,12 +7,13 @@ import (
 
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	dbschemas_mysql "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/mysql"
+	"golang.org/x/sync/errgroup"
 )
 
 type MySqlManager struct {
-	querier   mysql_queries.Querier
-	pool      mysql_queries.DBTX
-	closePool func()
+	querier mysql_queries.Querier
+	pool    mysql_queries.DBTX
+	close   func()
 }
 
 func (m *MySqlManager) GetDatabaseSchema(ctx context.Context) ([]*DatabaseSchemaRow, error) {
@@ -55,19 +56,53 @@ func (m *MySqlManager) GetAllForeignKeyConstraints(ctx context.Context, schemas 
 	return result, nil
 }
 
-func (m *MySqlManager) GetAllPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*PrimaryKeyConstraintsRow, error) {
-	fkConstraints, err := dbschemas_mysql.GetAllMysqlPkConstraints(m.querier, ctx, m.pool, schemas)
-	if err != nil {
-		return nil, fmt.Errorf("unable to get database foreign keys for mysql connection: %w", err)
-	}
-	result := []*PrimaryKeyConstraintsRow{}
-	for _, row := range fkConstraints {
-		result = append(result, &PrimaryKeyConstraintsRow{
-			SchemaName:     row.SchemaName,
-			TableName:      row.TableName,
-			ColumnName:     row.ColumnName,
-			ConstraintName: row.ConstraintName,
+func (m *MySqlManager) GetPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*PrimaryKey, error) {
+	holder := make([][]*mysql_queries.GetPrimaryKeyConstraintsRow, len(schemas))
+	errgrp, errctx := errgroup.WithContext(ctx)
+	for idx := range schemas {
+		idx := idx
+		schema := schemas[idx]
+		errgrp.Go(func() error {
+			constraints, err := m.querier.GetPrimaryKeyConstraints(errctx, m.pool, schema)
+			if err != nil {
+				return err
+			}
+			holder[idx] = constraints
+			return nil
 		})
+	}
+
+	if err := errgrp.Wait(); err != nil {
+		return nil, err
+	}
+
+	output := []*mysql_queries.GetPrimaryKeyConstraintsRow{}
+	for _, schemas := range holder {
+		output = append(output, schemas...)
+	}
+	result := []*PrimaryKey{}
+	for _, row := range output {
+		result = append(result, &PrimaryKey{
+			Schema:  row.SchemaName,
+			Table:   row.TableName,
+			Columns: []string{row.ColumnName},
+		})
+	}
+	return result, nil
+}
+
+func (m *MySqlManager) GetPrimaryKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]string, error) {
+	primaryKeys, err := m.GetPrimaryKeyConstraints(ctx, schemas)
+	if err != nil {
+		return nil, err
+	}
+	result := map[string][]string{}
+	for _, row := range primaryKeys {
+		tableName := fmt.Sprintf("%s.%s", row.Schema, row.Table)
+		if _, exists := result[tableName]; !exists {
+			result[tableName] = []string{}
+		}
+		result[tableName] = append(result[tableName], row.Columns...)
 	}
 	return result, nil
 }
@@ -110,8 +145,8 @@ func (m *MySqlManager) Exec(ctx context.Context, statement string) error {
 	return nil
 }
 
-func (m *MySqlManager) ClosePool() {
-	if m.pool != nil && m.closePool != nil {
-		m.closePool()
+func (m *MySqlManager) Close() {
+	if m.pool != nil && m.close != nil {
+		m.close()
 	}
 }

@@ -54,11 +54,11 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 	if err != nil {
 		return nil, fmt.Errorf("unable to get connection by id: %w", err)
 	}
-	sourcedb, err := b.sqlmanager.NewSqlDb(ctx, slogger, sourceConnection)
+	sourcedb, err := b.sqlmanager.NewPooledSqlDb(ctx, slogger, sourceConnection)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}
-	defer sourcedb.Db.ClosePool()
+	defer sourcedb.Db.Close()
 
 	var tableDependencies map[string]*dbschemas_utils.TableConstraints
 	uniqueTables := shared.GetUniqueTablesFromMappings(job.Mappings)
@@ -94,7 +94,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 			continue
 		}
 
-		destdb, err := b.sqlmanager.NewSqlDb(ctx, slogger, destinationConnection)
+		destdb, err := b.sqlmanager.NewPooledSqlDb(ctx, slogger, destinationConnection)
 		if err != nil {
 			return nil, fmt.Errorf("unable to create new sql db: %w", err)
 		}
@@ -104,11 +104,11 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 			tableForeignDependencyMap := getFilteredForeignToPrimaryTableMap(tableDependencies, uniqueTables)
 			orderedTablesResp, err := tabledependency.GetTablesOrderedByDependency(tableForeignDependencyMap)
 			if err != nil {
-				destdb.Db.ClosePool()
+				destdb.Db.Close()
 				return nil, err
 			}
 			if orderedTablesResp.HasCycles {
-				destdb.Db.ClosePool()
+				destdb.Db.Close()
 				return nil, errors.New("init schema: unable to handle circular dependencies")
 			}
 
@@ -122,7 +122,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					split[1],
 				)
 				if err != nil {
-					destdb.Db.ClosePool()
+					destdb.Db.Close()
 					return nil, fmt.Errorf("unable to build init statement for postgres: %w", err)
 				}
 				tableCreateStmts = append(tableCreateStmts, initStmt)
@@ -130,7 +130,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 			slogger.Info(fmt.Sprintf("executing %d sql statements that will initialize tables", len(tableCreateStmts)))
 			err = destdb.Db.BatchExec(ctx, batchSizeConst, tableCreateStmts, &sql_manager.BatchExecOpts{})
 			if err != nil {
-				destdb.Db.ClosePool()
+				destdb.Db.Close()
 				return nil, fmt.Errorf("unable to exec postgres table create statements: %w", err)
 			}
 		}
@@ -143,7 +143,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					split := strings.Split(table, ".")
 					stmt, err := dbschemas_postgres.BuildTruncateCascadeStatement(split[0], split[1])
 					if err != nil {
-						destdb.Db.ClosePool()
+						destdb.Db.Close()
 						return nil, err
 					}
 					tableTruncateStmts = append(tableTruncateStmts, stmt)
@@ -151,14 +151,14 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				slogger.Info(fmt.Sprintf("executing %d sql statements that will truncate cascade tables", len(tableTruncateStmts)))
 				err = destdb.Db.BatchExec(ctx, batchSizeConst, tableTruncateStmts, &sql_manager.BatchExecOpts{})
 				if err != nil {
-					destdb.Db.ClosePool()
+					destdb.Db.Close()
 					return nil, fmt.Errorf("unable to exec truncate cascade statements: %w", err)
 				}
 			} else if sqlopts.TruncateBeforeInsert {
 				tablePrimaryDependencyMap := getFilteredForeignToPrimaryTableMap(tableDependencies, uniqueTables)
 				orderedTablesResp, err := tabledependency.GetTablesOrderedByDependency(tablePrimaryDependencyMap)
 				if err != nil {
-					destdb.Db.ClosePool()
+					destdb.Db.Close()
 					return nil, err
 				}
 
@@ -171,11 +171,11 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				truncateStmt := dbschemas_postgres.BuildTruncateStatement(orderedTableTruncate)
 				err = destdb.Db.Exec(ctx, truncateStmt)
 				if err != nil {
-					destdb.Db.ClosePool()
+					destdb.Db.Close()
 					return nil, fmt.Errorf("unable to exec ordered truncate statements: %w", err)
 				}
 			}
-			destdb.Db.ClosePool()
+			destdb.Db.Close()
 		case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
 			// truncate statements
 			if sqlopts.TruncateBeforeInsert {
@@ -184,7 +184,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					split := strings.Split(table, ".")
 					stmt, err := dbschemas_mysql.BuildTruncateStatement(split[0], split[1])
 					if err != nil {
-						destdb.Db.ClosePool()
+						destdb.Db.Close()
 						return nil, err
 					}
 					tableTruncate = append(tableTruncate, stmt)
@@ -193,11 +193,11 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				disableFkChecks := dbschemas_mysql.DisableForeignKeyChecks
 				err = destdb.Db.BatchExec(ctx, batchSizeConst, tableTruncate, &sql_manager.BatchExecOpts{Prefix: &disableFkChecks})
 				if err != nil {
-					destdb.Db.ClosePool()
+					destdb.Db.Close()
 					return nil, err
 				}
 			}
-			destdb.Db.ClosePool()
+			destdb.Db.Close()
 		case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
 			// nothing to do here
 		default:

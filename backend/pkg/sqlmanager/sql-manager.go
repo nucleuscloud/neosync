@@ -2,11 +2,13 @@ package sqlmanager
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"log/slog"
 	"sync"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
@@ -26,11 +28,12 @@ type BatchExecOpts struct {
 type SqlDatabase interface {
 	GetDatabaseSchema(ctx context.Context) ([]*DatabaseSchemaRow, error)
 	GetAllForeignKeyConstraints(ctx context.Context, schemas []string) ([]*ForeignKeyConstraintsRow, error)
-	GetAllPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*PrimaryKeyConstraintsRow, error)
+	GetPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*PrimaryKey, error)
+	GetPrimaryKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]string, error)
 	GetCreateTableStatement(ctx context.Context, schema, table string) (string, error)
 	BatchExec(ctx context.Context, batchSize int, statements []string, opts *BatchExecOpts) error
 	Exec(ctx context.Context, statement string) error
-	ClosePool()
+	Close()
 }
 
 type SqlManager struct {
@@ -60,10 +63,20 @@ func NewSqlManager(
 }
 
 type SqlManagerClient interface {
+	NewPooledSqlDb(
+		ctx context.Context,
+		slogger *slog.Logger,
+		connection *mgmtv1alpha1.Connection,
+	) (*SqlConnection, error)
 	NewSqlDb(
 		ctx context.Context,
 		slogger *slog.Logger,
 		connection *mgmtv1alpha1.Connection,
+		connectionTimeout *int,
+	) (*SqlConnection, error)
+	NewSqlDbFromUrl(
+		ctx context.Context,
+		driver, connectionUrl string,
 	) (*SqlConnection, error)
 }
 
@@ -105,7 +118,13 @@ type PrimaryKeyConstraintsRow struct {
 	ColumnName     string
 }
 
-func (s *SqlManager) NewSqlDb(
+type PrimaryKey struct {
+	Schema  string
+	Table   string
+	Columns []string
+}
+
+func (s *SqlManager) NewPooledSqlDb(
 	ctx context.Context,
 	slogger *slog.Logger,
 	connection *mgmtv1alpha1.Connection,
@@ -131,7 +150,7 @@ func (s *SqlManager) NewSqlDb(
 				return nil, fmt.Errorf("unable to open postgres connection: %w", err)
 			}
 			s.pgpool.Store(connection.Id, pool)
-			adapter.closePool = func() {
+			adapter.close = func() {
 				if pgconn != nil {
 					pgconn.Close()
 					s.pgpool.Delete(connection.Id)
@@ -160,7 +179,7 @@ func (s *SqlManager) NewSqlDb(
 				return nil, fmt.Errorf("unable to open mysql connection: %w", err)
 			}
 			s.mysqlpool.Store(connection.Id, pool)
-			adapter.closePool = func() {
+			adapter.close = func() {
 				if conn != nil {
 					err := conn.Close()
 					if err != nil {
@@ -176,6 +195,126 @@ func (s *SqlManager) NewSqlDb(
 			return nil, fmt.Errorf("pool found, but type assertion to mysql_queries.DBTX failed")
 		}
 		adapter.pool = pool
+		db = adapter
+		driver = MysqlDriver
+	default:
+		return nil, errors.New("unsupported sql database connection: %s")
+	}
+
+	return &SqlConnection{
+		Db:     db,
+		Driver: driver,
+	}, nil
+}
+
+func (s *SqlManager) NewSqlDb(
+	ctx context.Context,
+	slogger *slog.Logger,
+	connection *mgmtv1alpha1.Connection,
+	connectionTimeout *int,
+) (*SqlConnection, error) {
+	connTimeout := shared.Ptr(uint32(5))
+	if connectionTimeout != nil {
+		timeout := uint32(*connectionTimeout)
+		connTimeout = &timeout
+	}
+
+	var db SqlDatabase
+	var driver string
+	switch connection.ConnectionConfig.Config.(type) {
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		adapter := &PostgresManager{
+			querier: s.pgquerier,
+		}
+		pgconfig := connection.ConnectionConfig.GetPgConfig()
+		if pgconfig == nil {
+			return nil, fmt.Errorf("source connection (%s) is not a postgres config", connection.Id)
+		}
+		pgconn, err := s.sqlconnector.NewPgPoolFromConnectionConfig(pgconfig, connTimeout, slogger)
+		if err != nil {
+			return nil, fmt.Errorf("unable to create new postgres pool from connection config: %w", err)
+		}
+		pool, err := pgconn.Open(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("unable to open postgres connection: %w", err)
+		}
+		adapter.close = func() {
+			if pgconn != nil {
+				pgconn.Close()
+			}
+		}
+		adapter.pool = pool
+		db = adapter
+		driver = PostgresDriver
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		adapter := &MySqlManager{
+			querier: s.mysqlquerier,
+		}
+		conn, err := s.sqlconnector.NewDbFromConnectionConfig(connection.ConnectionConfig, connTimeout, slogger)
+		if err != nil {
+			return nil, fmt.Errorf("unable to create new mysql pool from connection config: %w", err)
+		}
+		pool, err := conn.Open()
+		if err != nil {
+			return nil, fmt.Errorf("unable to open mysql connection: %w", err)
+		}
+		adapter.close = func() {
+			if conn != nil {
+				err := conn.Close()
+				if err != nil {
+					slogger.Error(fmt.Errorf("failed to close connection: %w", err).Error())
+				}
+			}
+		}
+		adapter.pool = pool
+		db = adapter
+		driver = MysqlDriver
+	default:
+		return nil, errors.New("unsupported sql database connection: %s")
+	}
+
+	return &SqlConnection{
+		Db:     db,
+		Driver: driver,
+	}, nil
+}
+
+func (s *SqlManager) NewSqlDbFromUrl(
+	ctx context.Context,
+	driver, connectionUrl string,
+) (*SqlConnection, error) {
+	var db SqlDatabase
+	switch driver {
+	case PostgresDriver:
+		adapter := &PostgresManager{
+			querier: s.pgquerier,
+		}
+		pgconn, err := pgxpool.New(ctx, connectionUrl)
+		if err != nil {
+			return nil, err
+		}
+		adapter.close = func() {
+			if pgconn != nil {
+				pgconn.Close()
+			}
+		}
+		adapter.pool = pgconn
+		db = adapter
+		driver = PostgresDriver
+	case MysqlDriver:
+		adapter := &MySqlManager{
+			querier: s.mysqlquerier,
+		}
+		conn, err := sql.Open(driver, connectionUrl)
+		if err != nil {
+			return nil, err
+		}
+		adapter.close = func() {
+			if conn != nil {
+				conn.Close()
+			}
+		}
+		adapter.pool = conn
 		db = adapter
 		driver = MysqlDriver
 	default:

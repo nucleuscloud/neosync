@@ -716,8 +716,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Transformer_Pg_Pg(t *
 			},
 		},
 	}), nil)
-	mockSqlManager.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.PostgresDriver}, nil)
-	mockSqlDb.On("ClosePool").Return(nil)
+	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.PostgresDriver}, nil)
+	mockSqlDb.On("Close").Return(nil)
 	mockSqlDb.On("GetDatabaseSchema", mock.Anything).Return([]*sql_manager.DatabaseSchemaRow{
 		{
 			TableSchema: "public",
@@ -740,19 +740,9 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Transformer_Pg_Pg(t *
 			ColumnName:  "buyer_id",
 		},
 	}, nil)
-	mockSqlDb.On("GetAllPrimaryKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.PrimaryKeyConstraintsRow{
-		{
-			ConstraintName: "users",
-			SchemaName:     "public",
-			TableName:      "users",
-			ColumnName:     "id",
-		},
-		{
-			ConstraintName: "orders",
-			SchemaName:     "public",
-			TableName:      "orders",
-			ColumnName:     "id",
-		},
+	mockSqlDb.On("GetPrimaryKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]string{
+		"public.users":  {"id"},
+		"public.orders": {"id"},
 	}, nil)
 	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
 		{
@@ -1026,8 +1016,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Passthrough_Pg_Pg(t *
 			},
 		},
 	}), nil)
-	mockSqlManager.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.PostgresDriver}, nil)
-	mockSqlDb.On("ClosePool").Return(nil)
+	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.PostgresDriver}, nil)
+	mockSqlDb.On("Close").Return(nil)
 	mockSqlDb.On("GetDatabaseSchema", mock.Anything).Return([]*sql_manager.DatabaseSchemaRow{
 		{
 			TableSchema: "public",
@@ -1050,19 +1040,9 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Passthrough_Pg_Pg(t *
 			ColumnName:  "buyer_id",
 		},
 	}, nil)
-	mockSqlDb.On("GetAllPrimaryKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.PrimaryKeyConstraintsRow{
-		{
-			ConstraintName: "users",
-			SchemaName:     "public",
-			TableName:      "users",
-			ColumnName:     "id",
-		},
-		{
-			ConstraintName: "orders",
-			SchemaName:     "public",
-			TableName:      "orders",
-			ColumnName:     "id",
-		},
+	mockSqlDb.On("GetPrimaryKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]string{
+		"public.users":  {"id"},
+		"public.orders": {"id"},
 	}, nil)
 	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
 		{
@@ -1305,8 +1285,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_CircularDependency_PrimaryKey_Tr
 		},
 	}), nil)
 
-	mockSqlManager.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.PostgresDriver}, nil)
-	mockSqlDb.On("ClosePool").Return(nil)
+	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.PostgresDriver}, nil)
+	mockSqlDb.On("Close").Return(nil)
 	mockSqlDb.On("GetDatabaseSchema", mock.Anything).Return([]*sql_manager.DatabaseSchemaRow{
 		{
 			TableSchema: "public",
@@ -1319,13 +1299,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_CircularDependency_PrimaryKey_Tr
 			ColumnName:  "parent_id",
 		},
 	}, nil)
-	mockSqlDb.On("GetAllPrimaryKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.PrimaryKeyConstraintsRow{
-		{
-			ConstraintName: "jobs",
-			SchemaName:     "public",
-			TableName:      "jobs",
-			ColumnName:     "id",
-		},
+	mockSqlDb.On("GetPrimaryKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]string{
+		"public.jobs": {"id"},
 	}, nil)
 	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
 		{
@@ -1610,8 +1585,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 		},
 	}), nil)
 
-	mockSqlManager.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.PostgresDriver}, nil)
-	mockSqlDb.On("ClosePool").Return(nil)
+	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.PostgresDriver}, nil)
+	mockSqlDb.On("Close").Return(nil)
 	mockSqlDb.On("GetDatabaseSchema", mock.Anything).Return([]*sql_manager.DatabaseSchemaRow{
 		{
 			TableSchema: "public",
@@ -1634,19 +1609,9 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 			ColumnName:  "user_id",
 		},
 	}, nil)
-	mockSqlDb.On("GetAllPrimaryKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.PrimaryKeyConstraintsRow{
-		{
-			ConstraintName: "users",
-			SchemaName:     "public",
-			TableName:      "users",
-			ColumnName:     "id",
-		},
-		{
-			ConstraintName: "user_account_associations",
-			SchemaName:     "public",
-			TableName:      "user_account_associations",
-			ColumnName:     "id",
-		},
+	mockSqlDb.On("GetPrimaryKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]string{
+		"public.users":                     {"id"},
+		"public.user_account_associations": {"id"},
 	}, nil)
 	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
 		{
@@ -1812,8 +1777,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 			},
 		},
 	}), nil)
-	mockSqlManager.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.PostgresDriver}, nil)
-	mockSqlDb.On("ClosePool").Return(nil)
+	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.PostgresDriver}, nil)
+	mockSqlDb.On("Close").Return(nil)
 	mockSqlDb.On("GetDatabaseSchema", mock.Anything).Return([]*sql_manager.DatabaseSchemaRow{
 		{
 			TableSchema: "public",
@@ -1841,19 +1806,9 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 			ColumnName:  "user_id",
 		},
 	}, nil)
-	mockSqlDb.On("GetAllPrimaryKeyConstraints", mock.Anything, mock.Anything).Return([]*sql_manager.PrimaryKeyConstraintsRow{
-		{
-			ConstraintName: "users",
-			SchemaName:     "public",
-			TableName:      "users",
-			ColumnName:     "id",
-		},
-		{
-			ConstraintName: "users_account_associations",
-			SchemaName:     "public",
-			TableName:      "users_account_associations",
-			ColumnName:     "id",
-		},
+	mockSqlDb.On("GetPrimaryKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]string{
+		"public.users":                     {"id"},
+		"public.user_account_associations": {"id"},
 	}, nil)
 	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, mock.Anything).Return([]*sql_manager.ForeignKeyConstraintsRow{
 		{
@@ -2205,8 +2160,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 			},
 		},
 	}), nil)
-	mockSqlManager.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.PostgresDriver}, nil)
-	mockSqlDb.On("ClosePool").Return(nil)
+	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.PostgresDriver}, nil)
+	mockSqlDb.On("Close").Return(nil)
 	mockSqlDb.On("GetDatabaseSchema", mock.Anything).Return([]*sql_manager.DatabaseSchemaRow{
 		{
 			TableSchema: "public",
@@ -2234,19 +2189,9 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 			ColumnName:  "user_id",
 		},
 	}, nil)
-	mockSqlDb.On("GetAllPrimaryKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.PrimaryKeyConstraintsRow{
-		{
-			ConstraintName: "users",
-			SchemaName:     "public",
-			TableName:      "users",
-			ColumnName:     "id",
-		},
-		{
-			ConstraintName: "users_account_associations",
-			SchemaName:     "public",
-			TableName:      "users_account_associations",
-			ColumnName:     "id",
-		},
+	mockSqlDb.On("GetPrimaryKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]string{
+		"public.users":                     {"id"},
+		"public.user_account_associations": {"id"},
 	}, nil)
 	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
 		{
@@ -2616,8 +2561,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) 
 			},
 		},
 	}), nil)
-	mockSqlManager.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.MysqlDriver}, nil)
-	mockSqlDb.On("ClosePool").Return(nil)
+	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.MysqlDriver}, nil)
+	mockSqlDb.On("Close").Return(nil)
 	mockSqlDb.On("GetDatabaseSchema", mock.Anything).Return([]*sql_manager.DatabaseSchemaRow{
 		{
 			TableSchema: "public",
@@ -2640,19 +2585,9 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) 
 			ColumnName:  "user_id",
 		},
 	}, nil)
-	mockSqlDb.On("GetAllPrimaryKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.PrimaryKeyConstraintsRow{
-		{
-			ConstraintName: "users",
-			SchemaName:     "public",
-			TableName:      "users",
-			ColumnName:     "id",
-		},
-		{
-			ConstraintName: "user_account_associations",
-			SchemaName:     "public",
-			TableName:      "user_account_associations",
-			ColumnName:     "id",
-		},
+	mockSqlDb.On("GetPrimaryKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]string{
+		"public.users":                     {"id"},
+		"public.user_account_associations": {"id"},
 	}, nil)
 	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
 		{
@@ -2911,8 +2846,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_
 		},
 	}), nil)
 
-	mockSqlManager.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.MysqlDriver}, nil)
-	mockSqlDb.On("ClosePool").Return(nil)
+	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.MysqlDriver}, nil)
+	mockSqlDb.On("Close").Return(nil)
 	mockSqlDb.On("GetDatabaseSchema", mock.Anything).Return([]*sql_manager.DatabaseSchemaRow{
 		{
 			TableSchema: "public",
@@ -2940,19 +2875,9 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_
 			ColumnName:  "user_id",
 		},
 	}, nil)
-	mockSqlDb.On("GetAllPrimaryKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.PrimaryKeyConstraintsRow{
-		{
-			ConstraintName: "users",
-			SchemaName:     "public",
-			TableName:      "users",
-			ColumnName:     "id",
-		},
-		{
-			ConstraintName: "orders",
-			SchemaName:     "public",
-			TableName:      "users_account_associations",
-			ColumnName:     "id",
-		},
+	mockSqlDb.On("GetPrimaryKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]string{
+		"public.users":                     {"id"},
+		"public.user_account_associations": {"id"},
 	}, nil)
 	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
 		{

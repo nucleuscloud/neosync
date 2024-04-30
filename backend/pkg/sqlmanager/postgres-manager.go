@@ -6,13 +6,14 @@ import (
 	"strings"
 
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
+	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/postgres"
 )
 
 type PostgresManager struct {
-	querier   pg_queries.Querier
-	pool      pg_queries.DBTX
-	closePool func()
+	querier pg_queries.Querier
+	pool    pg_queries.DBTX
+	close   func()
 }
 
 func (p *PostgresManager) GetDatabaseSchema(ctx context.Context) ([]*DatabaseSchemaRow, error) {
@@ -78,19 +79,47 @@ func convertNotNullableToNullableText(notnullable bool) string {
 	return "YES"
 }
 
-func (p *PostgresManager) GetAllPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*PrimaryKeyConstraintsRow, error) {
-	constraints, err := dbschemas_postgres.GetAllPostgresPrimaryKeyConstraints(ctx, p.pool, p.querier, schemas)
-	if err != nil {
-		return nil, fmt.Errorf("unable to get database primary keys for postgres connection: %w", err)
+func (p *PostgresManager) GetPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*PrimaryKey, error) {
+	if len(schemas) == 0 {
+		return []*PrimaryKey{}, nil
 	}
-	result := []*PrimaryKeyConstraintsRow{}
+	rows, err := p.querier.GetTableConstraintsBySchema(ctx, p.pool, schemas)
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return []*PrimaryKey{}, nil
+	}
+
+	constraints := []*pg_queries.GetTableConstraintsBySchemaRow{}
+	for _, row := range rows {
+		if row.ConstraintType != "p" {
+			continue
+		}
+		constraints = append(constraints, row)
+	}
+	result := []*PrimaryKey{}
 	for _, row := range constraints {
-		result = append(result, &PrimaryKeyConstraintsRow{
-			SchemaName:     row.SchemaName,
-			TableName:      row.TableName,
-			ColumnName:     row.ConstraintColumns[0], // todo: hack, this should be fixed to support primary keys
-			ConstraintName: row.ConstraintName,
+		result = append(result, &PrimaryKey{
+			Schema:  row.SchemaName,
+			Table:   row.TableName,
+			Columns: row.ConstraintColumns,
 		})
+	}
+	return result, nil
+}
+
+func (p *PostgresManager) GetPrimaryKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]string, error) {
+	primaryKeys, err := p.GetPrimaryKeyConstraints(ctx, schemas)
+	if err != nil {
+		return nil, err
+	}
+	result := map[string][]string{}
+	for _, row := range primaryKeys {
+		tableName := fmt.Sprintf("%s.%s", row.Schema, row.Table)
+		if _, exists := result[tableName]; !exists {
+			result[tableName] = []string{}
+		}
+		result[tableName] = append(result[tableName], row.Columns...)
 	}
 	return result, nil
 }
@@ -130,8 +159,8 @@ func (p *PostgresManager) Exec(ctx context.Context, statement string) error {
 	return nil
 }
 
-func (p *PostgresManager) ClosePool() {
-	if p.pool != nil && p.closePool != nil {
-		p.closePool()
+func (p *PostgresManager) Close() {
+	if p.pool != nil && p.close != nil {
+		p.close()
 	}
 }

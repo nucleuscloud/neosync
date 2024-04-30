@@ -123,11 +123,11 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			sourceTableOpts = groupJobSourceOptionsByTable(sqlSourceOpts)
 		}
 
-		db, err := b.sqlmanager.NewSqlDb(ctx, slogger, sourceConnection)
+		db, err := b.sqlmanager.NewPooledSqlDb(ctx, slogger, sourceConnection)
 		if err != nil {
 			return nil, fmt.Errorf("unable to create new sql db: %w", err)
 		}
-		defer db.Db.ClosePool()
+		defer db.Db.Close()
 
 		dbschemas, err := db.Db.GetDatabaseSchema(ctx)
 		if err != nil {
@@ -149,12 +149,15 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		slogger.Info(fmt.Sprintf("found %d foreign key constraints for database", len(allConstraints)))
 		td := sql_manager.GetDbTableDependencies(allConstraints)
 
-		primaryKeys, err := db.Db.GetAllPrimaryKeyConstraints(ctx, uniqueSchemas)
+		primaryKeyMap, err := db.Db.GetPrimaryKeyConstraintsMap(ctx, uniqueSchemas)
 		if err != nil {
 			return nil, fmt.Errorf("unable to get all primary key constraints: %w", err)
 		}
-		slogger.Info(fmt.Sprintf("found %d primary key constraints for database", len(primaryKeys)))
-		primaryKeyMap := sql_manager.GetTablePrimaryKeysMap(primaryKeys)
+		slogger.Info(fmt.Sprintf("found %d primary key constraints for database", len(primaryKeyMap)))
+		jsonF, _ := json.MarshalIndent(allConstraints, "", " ")
+		fmt.Printf("\n fk: %s \n", string(jsonF))
+		jsonF, _ = json.MarshalIndent(primaryKeyMap, "", " ")
+		fmt.Printf("\n pk: %s \n", string(jsonF))
 
 		tables := filterNullTables(groupedMappings)
 		tableSubsetMap := buildTableSubsetMap(sourceTableOpts)

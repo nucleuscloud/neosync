@@ -24,12 +24,12 @@ func (_m *MockSqlManagerClient) EXPECT() *MockSqlManagerClient_Expecter {
 	return &MockSqlManagerClient_Expecter{mock: &_m.Mock}
 }
 
-// NewSqlDb provides a mock function with given fields: ctx, slogger, connection
-func (_m *MockSqlManagerClient) NewSqlDb(ctx context.Context, slogger *slog.Logger, connection *mgmtv1alpha1.Connection) (*SqlConnection, error) {
+// NewPooledSqlDb provides a mock function with given fields: ctx, slogger, connection
+func (_m *MockSqlManagerClient) NewPooledSqlDb(ctx context.Context, slogger *slog.Logger, connection *mgmtv1alpha1.Connection) (*SqlConnection, error) {
 	ret := _m.Called(ctx, slogger, connection)
 
 	if len(ret) == 0 {
-		panic("no return value specified for NewSqlDb")
+		panic("no return value specified for NewPooledSqlDb")
 	}
 
 	var r0 *SqlConnection
@@ -54,6 +54,66 @@ func (_m *MockSqlManagerClient) NewSqlDb(ctx context.Context, slogger *slog.Logg
 	return r0, r1
 }
 
+// MockSqlManagerClient_NewPooledSqlDb_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NewPooledSqlDb'
+type MockSqlManagerClient_NewPooledSqlDb_Call struct {
+	*mock.Call
+}
+
+// NewPooledSqlDb is a helper method to define mock.On call
+//   - ctx context.Context
+//   - slogger *slog.Logger
+//   - connection *mgmtv1alpha1.Connection
+func (_e *MockSqlManagerClient_Expecter) NewPooledSqlDb(ctx interface{}, slogger interface{}, connection interface{}) *MockSqlManagerClient_NewPooledSqlDb_Call {
+	return &MockSqlManagerClient_NewPooledSqlDb_Call{Call: _e.mock.On("NewPooledSqlDb", ctx, slogger, connection)}
+}
+
+func (_c *MockSqlManagerClient_NewPooledSqlDb_Call) Run(run func(ctx context.Context, slogger *slog.Logger, connection *mgmtv1alpha1.Connection)) *MockSqlManagerClient_NewPooledSqlDb_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*slog.Logger), args[2].(*mgmtv1alpha1.Connection))
+	})
+	return _c
+}
+
+func (_c *MockSqlManagerClient_NewPooledSqlDb_Call) Return(_a0 *SqlConnection, _a1 error) *MockSqlManagerClient_NewPooledSqlDb_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockSqlManagerClient_NewPooledSqlDb_Call) RunAndReturn(run func(context.Context, *slog.Logger, *mgmtv1alpha1.Connection) (*SqlConnection, error)) *MockSqlManagerClient_NewPooledSqlDb_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// NewSqlDb provides a mock function with given fields: ctx, slogger, connection, connectionTimeout
+func (_m *MockSqlManagerClient) NewSqlDb(ctx context.Context, slogger *slog.Logger, connection *mgmtv1alpha1.Connection, connectionTimeout *int) (*SqlConnection, error) {
+	ret := _m.Called(ctx, slogger, connection, connectionTimeout)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NewSqlDb")
+	}
+
+	var r0 *SqlConnection
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *slog.Logger, *mgmtv1alpha1.Connection, *int) (*SqlConnection, error)); ok {
+		return rf(ctx, slogger, connection, connectionTimeout)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *slog.Logger, *mgmtv1alpha1.Connection, *int) *SqlConnection); ok {
+		r0 = rf(ctx, slogger, connection, connectionTimeout)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*SqlConnection)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *slog.Logger, *mgmtv1alpha1.Connection, *int) error); ok {
+		r1 = rf(ctx, slogger, connection, connectionTimeout)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // MockSqlManagerClient_NewSqlDb_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NewSqlDb'
 type MockSqlManagerClient_NewSqlDb_Call struct {
 	*mock.Call
@@ -63,13 +123,14 @@ type MockSqlManagerClient_NewSqlDb_Call struct {
 //   - ctx context.Context
 //   - slogger *slog.Logger
 //   - connection *mgmtv1alpha1.Connection
-func (_e *MockSqlManagerClient_Expecter) NewSqlDb(ctx interface{}, slogger interface{}, connection interface{}) *MockSqlManagerClient_NewSqlDb_Call {
-	return &MockSqlManagerClient_NewSqlDb_Call{Call: _e.mock.On("NewSqlDb", ctx, slogger, connection)}
+//   - connectionTimeout *int
+func (_e *MockSqlManagerClient_Expecter) NewSqlDb(ctx interface{}, slogger interface{}, connection interface{}, connectionTimeout interface{}) *MockSqlManagerClient_NewSqlDb_Call {
+	return &MockSqlManagerClient_NewSqlDb_Call{Call: _e.mock.On("NewSqlDb", ctx, slogger, connection, connectionTimeout)}
 }
 
-func (_c *MockSqlManagerClient_NewSqlDb_Call) Run(run func(ctx context.Context, slogger *slog.Logger, connection *mgmtv1alpha1.Connection)) *MockSqlManagerClient_NewSqlDb_Call {
+func (_c *MockSqlManagerClient_NewSqlDb_Call) Run(run func(ctx context.Context, slogger *slog.Logger, connection *mgmtv1alpha1.Connection, connectionTimeout *int)) *MockSqlManagerClient_NewSqlDb_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*slog.Logger), args[2].(*mgmtv1alpha1.Connection))
+		run(args[0].(context.Context), args[1].(*slog.Logger), args[2].(*mgmtv1alpha1.Connection), args[3].(*int))
 	})
 	return _c
 }
@@ -79,7 +140,7 @@ func (_c *MockSqlManagerClient_NewSqlDb_Call) Return(_a0 *SqlConnection, _a1 err
 	return _c
 }
 
-func (_c *MockSqlManagerClient_NewSqlDb_Call) RunAndReturn(run func(context.Context, *slog.Logger, *mgmtv1alpha1.Connection) (*SqlConnection, error)) *MockSqlManagerClient_NewSqlDb_Call {
+func (_c *MockSqlManagerClient_NewSqlDb_Call) RunAndReturn(run func(context.Context, *slog.Logger, *mgmtv1alpha1.Connection, *int) (*SqlConnection, error)) *MockSqlManagerClient_NewSqlDb_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -209,67 +209,6 @@ func GetAllPostgresForeignKeyConstraints(
 	return output, nil
 }
 
-func GetAllPostgresPrimaryKeyConstraints(
-	ctx context.Context,
-	conn pg_queries.DBTX,
-	pgquerier pg_queries.Querier,
-	schemas []string,
-) ([]*pg_queries.GetTableConstraintsBySchemaRow, error) {
-	if len(schemas) == 0 {
-		return []*pg_queries.GetTableConstraintsBySchemaRow{}, nil
-	}
-	rows, err := pgquerier.GetTableConstraintsBySchema(ctx, conn, schemas)
-	if err != nil && !nucleusdb.IsNoRows(err) {
-		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
-		return []*pg_queries.GetTableConstraintsBySchemaRow{}, nil
-	}
-
-	output := []*pg_queries.GetTableConstraintsBySchemaRow{}
-	for _, row := range rows {
-		if row.ConstraintType != "p" {
-			continue
-		}
-		output = append(output, row)
-	}
-	return output, nil
-}
-
-func GetAllPostgresPrimaryKeyConstraintsByTableCols(
-	ctx context.Context,
-	conn pg_queries.DBTX,
-	pgquerier pg_queries.Querier,
-	schemas []string,
-) (map[string][]string, error) {
-	if len(schemas) == 0 {
-		return map[string][]string{}, nil
-	}
-	rows, err := pgquerier.GetTableConstraintsBySchema(ctx, conn, schemas)
-	if err != nil && !nucleusdb.IsNoRows(err) {
-		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
-		return map[string][]string{}, nil
-	}
-
-	output := map[string][]string{}
-	for _, row := range rows {
-		if row.ConstraintType != "p" {
-			continue
-		}
-		key := dbschemas.BuildTable(row.SchemaName, row.TableName)
-		if _, ok := output[key]; ok {
-			output[key] = append(output[key], row.ConstraintColumns...)
-		} else {
-			output[key] = append([]string{}, row.ConstraintColumns...)
-		}
-	}
-
-	for key, val := range output {
-		output[key] = dedupeSlice(val)
-	}
-	return output, nil
-}
-
 func BuildTruncateStatement(
 	tables []string,
 ) string {

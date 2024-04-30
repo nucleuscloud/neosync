@@ -96,33 +96,6 @@ func GetMysqlTableDependencies(
 	return tableConstraints
 }
 
-func GetMysqlTablePrimaryKeys(
-	primaryKeyConstraints []*mysql_queries.GetPrimaryKeyConstraintsRow,
-) map[string][]string {
-	pkConstraintMap := map[string][]*mysql_queries.GetPrimaryKeyConstraintsRow{}
-	for _, c := range primaryKeyConstraints {
-		_, ok := pkConstraintMap[c.ConstraintName]
-		if ok {
-			pkConstraintMap[c.ConstraintName] = append(pkConstraintMap[c.ConstraintName], c)
-		} else {
-			pkConstraintMap[c.ConstraintName] = []*mysql_queries.GetPrimaryKeyConstraintsRow{c}
-		}
-	}
-	pkMap := map[string][]string{}
-	for _, constraints := range pkConstraintMap {
-		for _, c := range constraints {
-			key := dbschemas.BuildTable(c.SchemaName, c.TableName)
-			_, ok := pkMap[key]
-			if ok {
-				pkMap[key] = append(pkMap[key], c.ColumnName)
-			} else {
-				pkMap[key] = []string{c.ColumnName}
-			}
-		}
-	}
-	return pkMap
-}
-
 func GetUniqueSchemaColMappings(
 	schemas []*mysql_queries.GetDatabaseSchemaRow,
 ) map[string]map[string]*dbschemas.ColumnInfo {
@@ -191,37 +164,37 @@ func GetAllMysqlFkConstraints(
 	return output, nil
 }
 
-func GetAllMysqlPkConstraints(
-	mysqlquerier mysql_queries.Querier,
-	ctx context.Context,
-	conn mysql_queries.DBTX,
-	schemas []string,
-) ([]*mysql_queries.GetPrimaryKeyConstraintsRow, error) {
-	holder := make([][]*mysql_queries.GetPrimaryKeyConstraintsRow, len(schemas))
-	errgrp, errctx := errgroup.WithContext(ctx)
-	for idx := range schemas {
-		idx := idx
-		schema := schemas[idx]
-		errgrp.Go(func() error {
-			constraints, err := mysqlquerier.GetPrimaryKeyConstraints(errctx, conn, schema)
-			if err != nil {
-				return err
-			}
-			holder[idx] = constraints
-			return nil
-		})
-	}
+// func GetAllMysqlPkConstraints(
+// 	mysqlquerier mysql_queries.Querier,
+// 	ctx context.Context,
+// 	conn mysql_queries.DBTX,
+// 	schemas []string,
+// ) ([]*mysql_queries.GetPrimaryKeyConstraintsRow, error) {
+// 	holder := make([][]*mysql_queries.GetPrimaryKeyConstraintsRow, len(schemas))
+// 	errgrp, errctx := errgroup.WithContext(ctx)
+// 	for idx := range schemas {
+// 		idx := idx
+// 		schema := schemas[idx]
+// 		errgrp.Go(func() error {
+// 			constraints, err := mysqlquerier.GetPrimaryKeyConstraints(errctx, conn, schema)
+// 			if err != nil {
+// 				return err
+// 			}
+// 			holder[idx] = constraints
+// 			return nil
+// 		})
+// 	}
 
-	if err := errgrp.Wait(); err != nil {
-		return nil, err
-	}
+// 	if err := errgrp.Wait(); err != nil {
+// 		return nil, err
+// 	}
 
-	output := []*mysql_queries.GetPrimaryKeyConstraintsRow{}
-	for _, schemas := range holder {
-		output = append(output, schemas...)
-	}
-	return output, nil
-}
+// 	output := []*mysql_queries.GetPrimaryKeyConstraintsRow{}
+// 	for _, schemas := range holder {
+// 		output = append(output, schemas...)
+// 	}
+// 	return output, nil
+// }
 
 func BuildTruncateStatement(
 	schema string,
