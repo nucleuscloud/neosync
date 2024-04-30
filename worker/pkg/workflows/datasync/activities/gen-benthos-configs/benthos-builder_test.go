@@ -39,48 +39,6 @@ import (
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 )
 
-// import (
-// 	"context"
-// 	"fmt"
-// 	"log/slog"
-// 	"strings"
-// 	"sync"
-// 	"testing"
-
-// 	"connectrpc.com/connect"
-// 	"github.com/benthosdev/benthos/v4/public/bloblang"
-// 	"github.com/benthosdev/benthos/v4/public/service"
-// 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
-// 	mysql_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/mysql"
-// 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
-// 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-// 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-// 	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
-// 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
-// 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
-// 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
-// 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
-// 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
-// 	"github.com/stretchr/testify/mock"
-// 	"github.com/stretchr/testify/require"
-// 	"gopkg.in/yaml.v3"
-
-// 	_ "github.com/benthosdev/benthos/v4/public/components/aws"
-// 	_ "github.com/benthosdev/benthos/v4/public/components/io"
-// 	_ "github.com/benthosdev/benthos/v4/public/components/javascript"
-// 	_ "github.com/benthosdev/benthos/v4/public/components/pure"
-// 	_ "github.com/benthosdev/benthos/v4/public/components/pure/extended"
-// 	_ "github.com/benthosdev/benthos/v4/public/components/redis"
-// 	_ "github.com/benthosdev/benthos/v4/public/components/sql"
-// 	neosync_benthos_error "github.com/nucleuscloud/neosync/worker/internal/benthos/error"
-// 	benthos_metrics "github.com/nucleuscloud/neosync/worker/internal/benthos/metrics"
-// 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/redis"
-// 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/internal/benthos/sql"
-// 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
-
-// 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
-// )
-
 const (
 	mockJobId = "b1767636-3992-4cb4-9bf2-4bb9bddbf43c"
 	mockRunId = "26444272-0bb0-4325-ae60-17dcd9744785"
@@ -805,7 +763,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Transformer_Pg_Pg(t *
 			ForeignSchemaName: "public",
 			ForeignTableName:  "users",
 			ForeignColumnName: "id",
-			IsNullable:        "false",
+			IsNullable:        "NO",
 		},
 	}, nil)
 	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, redisConfig, false)
@@ -1115,7 +1073,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Passthrough_Pg_Pg(t *
 			ForeignSchemaName: "public",
 			ForeignTableName:  "users",
 			ForeignColumnName: "id",
-			IsNullable:        "false",
+			IsNullable:        "NO",
 		},
 	}, nil)
 
@@ -1378,7 +1336,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_CircularDependency_PrimaryKey_Tr
 			ForeignSchemaName: "public",
 			ForeignTableName:  "jobs",
 			ForeignColumnName: "id",
-			IsNullable:        "true",
+			IsNullable:        "YES",
 		},
 	}, nil)
 
@@ -1699,7 +1657,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 			ForeignSchemaName: "public",
 			ForeignTableName:  "users",
 			ForeignColumnName: "id",
-			IsNullable:        "false",
+			IsNullable:        "NO",
 		},
 	}, nil)
 
@@ -1883,7 +1841,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 			ColumnName:  "user_id",
 		},
 	}, nil)
-	mockSqlDb.On("GetAllPrimaryKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.PrimaryKeyConstraintsRow{
+	mockSqlDb.On("GetAllPrimaryKeyConstraints", mock.Anything, mock.Anything).Return([]*sql_manager.PrimaryKeyConstraintsRow{
 		{
 			ConstraintName: "users",
 			SchemaName:     "public",
@@ -1897,7 +1855,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 			ColumnName:     "id",
 		},
 	}, nil)
-	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
+	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, mock.Anything).Return([]*sql_manager.ForeignKeyConstraintsRow{
 		{
 			ConstraintName:    "user_account_associations",
 			SchemaName:        "public",
@@ -1906,7 +1864,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 			ForeignSchemaName: "public",
 			ForeignTableName:  "users",
 			ForeignColumnName: "id",
-			IsNullable:        "false",
+			IsNullable:        "NO",
 		},
 		{
 			ConstraintName:    "fk_users_user_assoc_id_user_account_associations_id",
@@ -1916,7 +1874,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 			ForeignSchemaName: "public",
 			ForeignTableName:  "user_account_associations",
 			ForeignColumnName: "id",
-			IsNullable:        "true",
+			IsNullable:        "YES",
 		},
 	}, nil)
 
@@ -2299,7 +2257,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 			ForeignSchemaName: "public",
 			ForeignTableName:  "users",
 			ForeignColumnName: "id",
-			IsNullable:        "false",
+			IsNullable:        "NO",
 		},
 		{
 			ConstraintName:    "users",
@@ -2309,7 +2267,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 			ForeignSchemaName: "public",
 			ForeignTableName:  "user_account_associations",
 			ForeignColumnName: "id",
-			IsNullable:        "true",
+			IsNullable:        "YES",
 		},
 	}, nil)
 
@@ -2705,7 +2663,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) 
 			ForeignSchemaName: "public",
 			ForeignTableName:  "users",
 			ForeignColumnName: "id",
-			IsNullable:        "false",
+			IsNullable:        "NO",
 		},
 	}, nil)
 
@@ -3005,7 +2963,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_
 			ForeignSchemaName: "public",
 			ForeignTableName:  "users",
 			ForeignColumnName: "id",
-			IsNullable:        "false",
+			IsNullable:        "NO",
 		},
 		{
 			ConstraintName:    "fk_users_user_assoc_id_user_account_associations_id",
@@ -3015,7 +2973,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_
 			ForeignSchemaName: "public",
 			ForeignTableName:  "user_account_associations",
 			ForeignColumnName: "id",
-			IsNullable:        "true",
+			IsNullable:        "YES",
 		},
 	}, nil)
 

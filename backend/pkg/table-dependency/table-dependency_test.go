@@ -122,7 +122,7 @@ func Test_determineCycleStart(t *testing.T) {
 			dependencyMap: dbschemas.TableDependency{
 				"a": &dbschemas.TableConstraints{
 					Constraints: []*dbschemas.ForeignConstraint{
-						{ForeignKey: &dbschemas.ForeignKey{Table: "b"}, IsNullable: true},
+						{ForeignKey: &dbschemas.ForeignKey{Table: "b"}, IsNullable: false},
 					},
 				},
 				"b": &dbschemas.TableConstraints{
@@ -131,7 +131,7 @@ func Test_determineCycleStart(t *testing.T) {
 					},
 				},
 			},
-			expected:    "a",
+			expected:    "b",
 			expectError: false,
 		},
 		{
