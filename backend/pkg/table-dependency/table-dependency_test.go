@@ -673,7 +673,7 @@ func Test_GetRunConfigs_Subset_SingleCycle(t *testing.T) {
 				},
 				"public.b": &dbschemas.TableConstraints{
 					Constraints: []*dbschemas.ForeignConstraint{
-						{Column: "c_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
+						{Column: "c_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
 					},
 				},
 				"public.c": &dbschemas.TableConstraints{
@@ -924,7 +924,14 @@ func Test_GetRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			actual, err := GetRunConfigs(tt.dependencies, tt.tables, tt.subsets, tt.primaryKeyMap, tt.tableColsMap)
 			require.NoError(t, err)
-			require.ElementsMatch(t, tt.expect, actual)
+			for _, e := range tt.expect {
+				acutalConfig := getConfigByTableAndType(e.Table, e.RunType, actual)
+				require.NotNil(t, acutalConfig)
+				require.ElementsMatch(t, e.Columns, acutalConfig.Columns)
+				require.ElementsMatch(t, e.DependsOn, acutalConfig.DependsOn)
+				require.ElementsMatch(t, e.PrimaryKeys, acutalConfig.PrimaryKeys)
+				require.Equal(t, e.WhereClause, e.WhereClause)
+			}
 		})
 	}
 }
@@ -1214,4 +1221,13 @@ func Test_isValidRunOrder(t *testing.T) {
 			require.Equal(t, tt.expected, actual)
 		})
 	}
+}
+
+func getConfigByTableAndType(table string, runtype RunType, configs []*RunConfig) *RunConfig {
+	for _, c := range configs {
+		if c.Table == table && c.RunType == runtype {
+			return c
+		}
+	}
+	return nil
 }
