@@ -68,11 +68,6 @@ export default function ListBox<TData, TValue>(
     count: rows.length,
     estimateSize: () => 33,
     getScrollElement: () => tableContainerRef.current,
-    measureElement:
-      typeof window !== 'undefined' &&
-      navigator.userAgent.indexOf('Firefox') === -1
-        ? (element) => element?.getBoundingClientRect().height
-        : undefined,
     overscan: 5,
   });
 
