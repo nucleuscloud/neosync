@@ -649,7 +649,11 @@ func buildSyncConfigs(
 	if len(tableColMap) == 0 {
 		return syncConfigs
 	}
-	dependencyMap, err := getDependencyConfigs(schemaConfig.TableConstraints, tableColMap)
+	primaryKeysMap := map[string][]string{}
+	for table, constraints := range schemaConfig.TablePrimaryKeys {
+		primaryKeysMap[table] = constraints.GetColumns()
+	}
+	dependencyMap, err := getDependencyConfigs(schemaConfig.TableConstraints, tableColMap, primaryKeysMap)
 	if err != nil {
 		fmt.Println(bold.Render(err.Error())) //nolint:forbidigo
 		return nil
@@ -660,39 +664,32 @@ func buildSyncConfigs(
 		cols := tableColMap[table]
 		if len(dc) > 1 {
 			for _, c := range dc {
-				if c.Columns != nil && c.Columns.Exclude != nil && len(c.Columns.Exclude) > 0 {
-					filteredCols := []string{}
-					for _, col := range cols {
-						if !slices.Contains(c.Columns.Exclude, col) {
-							filteredCols = append(filteredCols, col)
-						}
-					}
+				if c.RunType == tabledependency.RunTypeInsert {
 					syncConfigs = append(syncConfigs, &syncConfig{
-						Query:         buildInsertQueryFunc(split[0], split[1], filteredCols),
-						ArgsMapping:   buildPlainInsertArgs(filteredCols),
+						Query:         buildInsertQueryFunc(split[0], split[1], c.Columns),
+						ArgsMapping:   buildPlainInsertArgs(c.Columns),
 						InitStatement: schemaConfig.InitTableStatementsMap[table],
 						Schema:        split[0],
 						Table:         split[1],
-						Columns:       filteredCols,
+						Columns:       c.Columns,
 						DependsOn:     c.DependsOn,
 						Name:          table,
 					})
-				} else if c.Columns != nil && c.Columns.Include != nil && len(c.Columns.Include) > 0 {
-					primaryKeyCols := schemaConfig.TablePrimaryKeys[table].GetColumns()
-					if len(primaryKeyCols) == 0 {
+				} else if c.RunType == tabledependency.RunTypeUpdate {
+					if len(c.PrimaryKeys) == 0 {
 						fmt.Println(bold.Render(fmt.Sprintf("No primary keys found for table (%s). Unable to build update query.", table))) //nolint:forbidigo
 						return nil
 					}
 					argCols := []string{}
-					argCols = append(argCols, c.Columns.Include...)
-					argCols = append(argCols, primaryKeyCols...)
+					argCols = append(argCols, c.Columns...)
+					argCols = append(argCols, c.PrimaryKeys...)
 					syncConfigs = append(syncConfigs, &syncConfig{
-						Query:       buildUpdateQueryFunc(split[0], split[1], c.Columns.Include, primaryKeyCols),
+						Query:       buildUpdateQueryFunc(split[0], split[1], c.Columns, c.PrimaryKeys),
 						ArgsMapping: buildPlainInsertArgs(argCols),
 
 						Schema:    split[0],
 						Table:     split[1],
-						Columns:   c.Columns.Include,
+						Columns:   c.Columns,
 						DependsOn: c.DependsOn,
 						Name:      fmt.Sprintf("%s.update", table),
 					})
@@ -1287,12 +1284,13 @@ func getDestinationPrimaryKeyConstraints(ctx context.Context, connectionDriver D
 func getDependencyConfigs(
 	tc map[string]*dbschemas_utils.TableConstraints,
 	tables map[string][]string,
+	primaryKeyMap map[string][]string,
 ) (map[string][]*tabledependency.RunConfig, error) {
 	tablesSlice := []string{}
 	for t := range tables {
 		tablesSlice = append(tablesSlice, t)
 	}
-	dependencyConfigs, err := tabledependency.GetRunConfigs(tc, tablesSlice, map[string]string{})
+	dependencyConfigs, err := tabledependency.GetRunConfigs(tc, tablesSlice, map[string]string{}, primaryKeyMap, tables)
 	if err != nil {
 		return nil, err
 	}

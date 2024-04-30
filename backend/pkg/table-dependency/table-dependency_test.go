@@ -1,8 +1,6 @@
 package tabledependency
 
 import (
-	"encoding/json"
-	"fmt"
 	"sort"
 	"testing"
 
@@ -713,10 +711,6 @@ func Test_GetRunConfigs_Subset_SingleCycle(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			actual, err := GetRunConfigs(tt.dependencies, tt.tables, tt.subsets, tt.primaryKeyMap, tt.tableColsMap)
-			jsonF, _ := json.MarshalIndent(actual, "", " ")
-			fmt.Printf("\n actual: %s \n", string(jsonF))
-			jsonF, _ = json.MarshalIndent(tt.expect, "", " ")
-			fmt.Printf("\n expect: %s \n", string(jsonF))
 			require.NoError(t, err)
 			require.ElementsMatch(t, tt.expect, actual)
 		})
