@@ -844,10 +844,10 @@ func Test_buildSelectQueryMap_CircularDependency(t *testing.T) {
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.b", Columns: &tabledependency.SyncColumn{Exclude: []string{"a_id"}}, DependsOn: []*tabledependency.DependsOn{}},
+		{Table: "public.b", Columns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}},
 		{Table: "public.c", DependsOn: []*tabledependency.DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
 		{Table: "public.a", DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
-		{Table: "public.b", Columns: &tabledependency.SyncColumn{Include: []string{"a_id"}}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+		{Table: "public.b", Columns: []string{"a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
 	}
 	expected :=
 		map[string]string{
@@ -1269,8 +1269,8 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyRoot(t *testing.T) {
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.a", Columns: &tabledependency.SyncColumn{Exclude: []string{"a_id", "aa_id"}}, DependsOn: []*tabledependency.DependsOn{}},
-		{Table: "public.a", Columns: &tabledependency.SyncColumn{Include: []string{"a_id", "aa_id"}}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+		{Table: "public.a", Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
+		{Table: "public.a", Columns: []string{"a_id", "aa_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
 		{Table: "public.b", DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
 	}
 	expected :=
@@ -1358,8 +1358,8 @@ func Test_buildSelectQueryMap_doubleCircularDependencyRoot_mysql(t *testing.T) {
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.a", Columns: &tabledependency.SyncColumn{Exclude: []string{"a_id", "aa_id"}}, DependsOn: []*tabledependency.DependsOn{}},
-		{Table: "public.a", Columns: &tabledependency.SyncColumn{Include: []string{"a_id", "aa_id"}}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+		{Table: "public.a", Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
+		{Table: "public.a", Columns: []string{"a_id", "aa_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
 		{Table: "public.b", DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
 	}
 	expected :=
@@ -1443,8 +1443,8 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyChild(t *testing.T) {
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.a", Columns: &tabledependency.SyncColumn{Exclude: []string{"a_id", "aa_id"}}, DependsOn: []*tabledependency.DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
-		{Table: "public.a", Columns: &tabledependency.SyncColumn{Include: []string{"a_id", "aa_id"}}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+		{Table: "public.a", Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
+		{Table: "public.a", Columns: []string{"a_id", "aa_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
 		{Table: "public.b", DependsOn: []*tabledependency.DependsOn{}},
 	}
 	expected :=

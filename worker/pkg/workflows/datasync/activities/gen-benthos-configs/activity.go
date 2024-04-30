@@ -46,9 +46,7 @@ type BenthosConfigResponse struct {
 	BenthosDsns []*shared.BenthosDsn
 	RedisConfig []*BenthosRedisConfig
 
-	primaryKeys    []string
-	excludeColumns []string
-	updateConfig   *tabledependency.RunConfig
+	primaryKeys []string
 
 	metriclabels metrics.MetricLabels
 }

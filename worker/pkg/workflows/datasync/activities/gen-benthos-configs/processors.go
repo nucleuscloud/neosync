@@ -65,7 +65,6 @@ func buildSqlUpdateProcessorConfigs(
 		}})
 	}
 	return processorConfigs, nil
-
 }
 
 func buildProcessorConfigs(
