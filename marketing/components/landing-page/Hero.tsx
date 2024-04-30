@@ -28,7 +28,7 @@ export default function Hero(): ReactElement {
           <div>Backed by Y Combinator</div>
         </div>
       </Badge>
-      <div className="text-gray-900 font-semibold text-6xl leading-tight text-center z-20 px-2 ">
+      <div className="text-gray-900 font-semibold text-6xl leading-tight text-center z-20 px-2 lg:w-[80%]">
         Open Source Anonymization and Synthetic Data For Developers
       </div>
       <div className="text-gray-800 text-2xl font-normal text-center lg:w-[70%] xl:w-[70%] px-6 bg-white/40">
@@ -46,7 +46,8 @@ export default function Hero(): ReactElement {
               })
             }
           >
-            Neosync Cloud <ArrowRightIcon className="ml-2 h-4 w-4" />
+            Try for free
+            <ArrowRightIcon className="ml-2 h-4 w-4" />
           </Button>
         </Link>
         <Button
