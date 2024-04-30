@@ -2,7 +2,8 @@
 import { useAccount } from '@/components/providers/account-provider';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 import { ReactElement } from 'react';
-import { isDataGenJob } from '../../util';
+import { isAiDataGenJob, isDataGenJob } from '../../util';
+import AiDataGenConnectionCard from './AiDataGenConnectionCard';
 import DataGenConnectionCard from './DataGenConnectionCard';
 import DataSyncConnectionCard from './DataSyncConnectionCard';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
@@ -20,6 +21,9 @@ export default function SourceConnectionCard({ jobId }: Props): ReactElement {
   }
   if (isDataGenJob(data?.job)) {
     return <DataGenConnectionCard jobId={jobId} />;
+  }
+  if (isAiDataGenJob(data?.job)) {
+    return <AiDataGenConnectionCard jobId={jobId} />;
   }
   return <DataSyncConnectionCard jobId={jobId} />;
 }

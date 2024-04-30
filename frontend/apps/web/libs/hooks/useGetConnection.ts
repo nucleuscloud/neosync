@@ -12,7 +12,7 @@ export function useGetConnection(
     GetConnectionResponse,
     JsonValue | GetConnectionResponse
   >(
-    `/api/accounts/${accountId}/connections/${id}`,
+    buildGetConnectionRouteKey(accountId, id),
     !!accountId && !!id,
     undefined,
     (data) =>
@@ -20,4 +20,29 @@ export function useGetConnection(
         ? data
         : GetConnectionResponse.fromJson(data)
   );
+}
+
+export async function getConnection(
+  accountId: string,
+  id: string
+): Promise<GetConnectionResponse> {
+  const res = await fetch(buildGetConnectionRouteKey(accountId, id), {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.message);
+  }
+  return GetConnectionResponse.fromJson(await res.json());
+}
+
+export function buildGetConnectionRouteKey(
+  accountId: string,
+  id: string
+): string {
+  return `/api/accounts/${accountId}/connections/${id}`;
 }

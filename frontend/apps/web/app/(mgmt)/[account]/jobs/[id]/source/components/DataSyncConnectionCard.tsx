@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
+import { getConnection } from '@/libs/hooks/useGetConnection';
 import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectionForeignConstraints';
 import { useGetConnectionPrimaryConstraints } from '@/libs/hooks/useGetConnectionPrimaryConstraints';
 import {
@@ -56,7 +57,6 @@ import { ReactElement, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { KeyedMutator } from 'swr';
 import * as Yup from 'yup';
-import { getConnection } from '../../util';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
 
 interface Props {
@@ -102,7 +102,6 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
 
   const { isLoading: isConnectionsLoading, data: connectionsData } =
     useGetConnections(account?.id ?? '');
-
   const connections = connectionsData?.connections ?? [];
 
   const form = useForm({
@@ -149,9 +148,8 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
         mutateGetConnectionSchemaMap
       );
       form.reset(newValues);
-      mutateGetConnectionSchemaMap();
     } catch (err) {
-      form.reset({ ...form.getValues, mappings: [], sourceId: value });
+      form.reset({ ...form.getValues(), mappings: [], sourceId: value });
       toast({
         title: 'Unable to get connection schema',
         description: getErrorMessage(err),
@@ -220,7 +218,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                         .filter(
                           (c) =>
                             !form.getValues().destinationIds?.includes(c.id) &&
-                            c.connectionConfig?.config.case != 'awsS3Config'
+                            c.connectionConfig?.config.case !== 'awsS3Config'
                         )
                         .map((connection) => (
                           <SelectItem
@@ -253,7 +251,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
             isSchemaDataReloading={isSchemaMapValidating}
           />
           <div className="flex flex-row items-center justify-end w-full mt-4">
-            <Button type="submit">Save</Button>
+            <Button type="submit">Update</Button>
           </div>
         </div>
       </form>

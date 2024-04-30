@@ -35,7 +35,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { IoAlertCircleOutline } from 'react-icons/io5';
-import { GetConnectionCloneValues } from '../postgres/PostgresForm';
+import { getConnection } from '@/libs/hooks/useGetConnection';
 
 export default function AwsS3Form() {
   const searchParams = useSearchParams();
@@ -137,10 +137,7 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
       if (sourceConnId && account?.id) {
         setIsLoading(true);
         try {
-          const connData = await GetConnectionCloneValues(
-            account.id,
-            sourceConnId
-          );
+          const connData = await getConnection(account.id, sourceConnId);
 
           if (
             connData &&

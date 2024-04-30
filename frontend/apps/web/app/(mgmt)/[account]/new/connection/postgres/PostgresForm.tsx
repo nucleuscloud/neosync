@@ -37,6 +37,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/use-toast';
 import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
+import { getConnection } from '@/libs/hooks/useGetConnection';
 import { getErrorMessage } from '@/util/util';
 import {
   POSTGRES_FORM_SCHEMA,
@@ -50,7 +51,6 @@ import {
   CreateConnectionRequest,
   CreateConnectionResponse,
   GetAccountOnboardingConfigResponse,
-  GetConnectionResponse,
   IsConnectionNameAvailableResponse,
   PostgresConnection,
   PostgresConnectionConfig,
@@ -220,10 +220,7 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
       if (sourceConnId && account?.id) {
         setIsLoading(true);
         try {
-          const connData = await GetConnectionCloneValues(
-            account.id,
-            sourceConnId
-          );
+          const connData = await getConnection(account.id, sourceConnId);
 
           if (
             connData &&
@@ -910,26 +907,4 @@ export async function isConnectionNameAvailable(
     throw new Error(body.message);
   }
   return IsConnectionNameAvailableResponse.fromJson(await res.json());
-}
-
-export async function GetConnectionCloneValues(
-  accountId: string,
-  sourceConnId: string
-): Promise<GetConnectionResponse> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/connections/${sourceConnId}`,
-    {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }
-  );
-
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-
-  return GetConnectionResponse.fromJson(await res.json());
 }

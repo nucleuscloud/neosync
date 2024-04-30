@@ -54,7 +54,9 @@ import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
-import JobsProgressSteps, { DATA_GEN_STEPS } from '../../../JobsProgressSteps';
+import JobsProgressSteps, {
+  getJobProgressSteps,
+} from '../../../JobsProgressSteps';
 import {
   DefineFormValues,
   SINGLE_TABLE_SCHEMA_FORM_SCHEMA,
@@ -227,7 +229,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           <PageHeader
             header="Schema"
             progressSteps={
-              <JobsProgressSteps steps={DATA_GEN_STEPS} stepName={'schema'} />
+              <JobsProgressSteps
+                steps={getJobProgressSteps('generate-table')}
+                stepName={'schema'}
+              />
             }
           />
         }

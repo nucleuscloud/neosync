@@ -178,7 +178,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
         )}
         <div className="flex flex-row gap-1 justify-end">
           <Button key="submit" type="submit">
-            Submit
+            Update
           </Button>
         </div>
       </form>

@@ -49,7 +49,7 @@ export function withNeosyncContext<T = unknown>(
       }
       return NextResponse.json(
         {
-          message: 'unknown error type',
+          message: `unknown error type: ${err}`,
         },
         {
           status: 500,

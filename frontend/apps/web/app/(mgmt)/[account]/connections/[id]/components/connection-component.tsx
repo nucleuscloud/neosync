@@ -10,6 +10,7 @@ import {
 import { ReactElement } from 'react';
 import AwsS3Form from './AwsS3Form';
 import MysqlForm from './MysqlForm';
+import OpenAiForm from './OpenAiForm';
 import PostgresForm from './PostgresForm';
 
 interface ConnectionComponent {
@@ -259,6 +260,37 @@ export function getConnectionComponentDetails(
                 },
                 endpoint: connection.connectionConfig.config.value.endpoint,
                 region: connection.connectionConfig.config.value.region,
+              },
+            }}
+            onSaved={(resp) => onSaved(resp)}
+            onSaveFailed={onSaveFailed}
+          />
+        ),
+      };
+    case 'openaiConfig':
+      return {
+        name: connection.name,
+        summary: (
+          <div>
+            <p>No summary found.</p>
+          </div>
+        ),
+        header: (
+          <PageHeader
+            header="OpenAI"
+            leftIcon={<ConnectionIcon name="openai" />}
+            extraHeading={extraPageHeading}
+            subHeadings={subHeading}
+          />
+        ),
+        body: (
+          <OpenAiForm
+            connectionId={connection.id}
+            defaultValues={{
+              connectionName: connection.name,
+              sdk: {
+                url: connection.connectionConfig.config.value.apiUrl,
+                apiKey: connection.connectionConfig.config.value.apiKey,
               },
             }}
             onSaved={(resp) => onSaved(resp)}

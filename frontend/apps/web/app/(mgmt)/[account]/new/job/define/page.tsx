@@ -21,12 +21,8 @@ import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
-import JobsProgressSteps, {
-  DATA_GEN_STEPS,
-  DATA_SYNC_STEPS,
-} from '../JobsProgressSteps';
-import { NewJobType } from '../page';
-import { DEFINE_FORM_SCHEMA, DefineFormValues } from '../schema';
+import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
+import { DEFINE_FORM_SCHEMA, DefineFormValues, NewJobType } from '../schema';
 
 import {
   Accordion,
@@ -36,6 +32,7 @@ import {
 } from '@/components/ui/accordion';
 import { Separator } from '@/components/ui/separator';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { getSingleOrUndefined } from '@/libs/utils';
 import { DEFAULT_CRON_STRING } from '../../../jobs/[id]/components/ScheduleCard';
 
 const isBrowser = () => typeof window !== 'undefined';
@@ -92,6 +89,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       router.push(
         `/${account?.name}/new/job/generate/single/connect?sessionId=${sessionPrefix}`
       );
+    } else if (newJobType === 'ai-generate-table') {
+      router.push(
+        `/${account?.name}/new/job/aigenerate/single/connect?sessionId=${sessionPrefix}`
+      );
     } else {
       router.push(
         `/${account?.name}/new/job/connect?sessionId=${sessionPrefix}`
@@ -110,9 +111,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             header="Define"
             progressSteps={
               <JobsProgressSteps
-                steps={
-                  newJobType === 'data-sync' ? DATA_SYNC_STEPS : DATA_GEN_STEPS
-                }
+                steps={getJobProgressSteps(newJobType)}
                 stepName={'define'}
               />
             }
@@ -346,14 +345,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 }
 
 function getNewJobType(jobtype?: string): NewJobType {
-  return jobtype === 'generate-table' ? 'generate-table' : 'data-sync';
-}
-function getSingleOrUndefined(
-  item: string | string[] | undefined
-): string | undefined {
-  if (!item) {
-    return undefined;
+  switch (jobtype) {
+    case 'generate-table':
+    case 'ai-generate-table':
+    case 'data-sync':
+      return jobtype as NewJobType;
+    default:
+      return 'data-sync';
   }
-  const newItem = Array.isArray(item) ? item[0] : item;
-  return !newItem || newItem === 'undefined' ? undefined : newItem;
 }

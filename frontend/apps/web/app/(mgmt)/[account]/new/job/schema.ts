@@ -9,6 +9,8 @@ import { Connection, IsJobNameAvailableResponse } from '@neosync/sdk';
 import cron from 'cron-validate';
 import * as Yup from 'yup';
 
+export type NewJobType = 'data-sync' | 'generate-table' | 'ai-generate-table';
+
 // Schema for a job's workflow settings
 export const WorkflowSettingsSchema = Yup.object({
   runTimeout: Yup.number().optional().min(0),
@@ -241,6 +243,60 @@ export const SINGLE_TABLE_CONNECT_FORM_SCHEMA = Yup.object({}).concat(
 );
 export type SingleTableConnectFormValues = Yup.InferType<
   typeof SINGLE_TABLE_CONNECT_FORM_SCHEMA
+>;
+
+export const SingleTableAiConnectFormValues = Yup.object({
+  sourceId: Yup.string().uuid().required('Source is required'),
+  fkSourceConnectionId: Yup.string()
+    .uuid()
+    .required('Foreign Key Source is required'),
+  destination: DESTINATION_FORM_SCHEMA,
+});
+
+export type SingleTableAiConnectFormValues = Yup.InferType<
+  typeof SingleTableAiConnectFormValues
+>;
+
+export const SingleTableAiSchemaFormValues = Yup.object({
+  numRows: Yup.number()
+    .required('Must provide a number of rows to generate')
+    .min(1)
+    .max(1000)
+    .default(10),
+  model: Yup.string().required('must provide a model name to use.'),
+  userPrompt: Yup.string(),
+
+  schema: Yup.string().required('Must provide a valid schema'),
+  table: Yup.string().required('Must provide a valid table'),
+});
+
+export type SingleTableAiSchemaFormValues = Yup.InferType<
+  typeof SingleTableAiSchemaFormValues
+>;
+
+export const SingleTableEditAiSourceFormValues = Yup.object({
+  source: Yup.object({
+    sourceId: Yup.string().uuid().required('Source is required'),
+    fkSourceConnectionId: Yup.string()
+      .uuid()
+      .required('Foreign key Source is required'),
+  }).required(),
+
+  schema: Yup.object({
+    numRows: Yup.number()
+      .required('Must provide a number of rows to generate')
+      .min(1)
+      .max(1000)
+      .default(10),
+    model: Yup.string().required('must provide a model name to use.'),
+    userPrompt: Yup.string(),
+
+    schema: Yup.string().required('Must provide a valid schema'),
+    table: Yup.string().required('Must provide a valid table'),
+  }).required(),
+});
+export type SingleTableEditAiSourceFormValues = Yup.InferType<
+  typeof SingleTableEditAiSourceFormValues
 >;
 
 export const SINGLE_TABLE_SCHEMA_FORM_SCHEMA = Yup.object({

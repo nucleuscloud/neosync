@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3 } from "@bufbuild/protobuf";
+import { Message, proto3, protoInt64, Struct } from "@bufbuild/protobuf";
 
 /**
  * @generated from message mgmt.v1alpha1.PostgresStreamConfig
@@ -1174,6 +1174,155 @@ export class UniqueConstraint extends Message<UniqueConstraint> {
 
   static equals(a: UniqueConstraint | PlainMessage<UniqueConstraint> | undefined, b: UniqueConstraint | PlainMessage<UniqueConstraint> | undefined): boolean {
     return proto3.util.equals(UniqueConstraint, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetAiGeneratedDataRequest
+ */
+export class GetAiGeneratedDataRequest extends Message<GetAiGeneratedDataRequest> {
+  /**
+   * @generated from field: string ai_connection_id = 1;
+   */
+  aiConnectionId = "";
+
+  /**
+   * @generated from field: int64 count = 2;
+   */
+  count = protoInt64.zero;
+
+  /**
+   * @generated from field: string model_name = 3;
+   */
+  modelName = "";
+
+  /**
+   * @generated from field: optional string user_prompt = 4;
+   */
+  userPrompt?: string;
+
+  /**
+   * @generated from field: string data_connection_id = 5;
+   */
+  dataConnectionId = "";
+
+  /**
+   * @generated from field: mgmt.v1alpha1.DatabaseTable table = 6;
+   */
+  table?: DatabaseTable;
+
+  constructor(data?: PartialMessage<GetAiGeneratedDataRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetAiGeneratedDataRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "ai_connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "count", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 3, name: "model_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "user_prompt", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 5, name: "data_connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "table", kind: "message", T: DatabaseTable },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetAiGeneratedDataRequest {
+    return new GetAiGeneratedDataRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetAiGeneratedDataRequest {
+    return new GetAiGeneratedDataRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetAiGeneratedDataRequest {
+    return new GetAiGeneratedDataRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetAiGeneratedDataRequest | PlainMessage<GetAiGeneratedDataRequest> | undefined, b: GetAiGeneratedDataRequest | PlainMessage<GetAiGeneratedDataRequest> | undefined): boolean {
+    return proto3.util.equals(GetAiGeneratedDataRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.DatabaseTable
+ */
+export class DatabaseTable extends Message<DatabaseTable> {
+  /**
+   * @generated from field: string schema = 1;
+   */
+  schema = "";
+
+  /**
+   * @generated from field: string table = 2;
+   */
+  table = "";
+
+  constructor(data?: PartialMessage<DatabaseTable>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.DatabaseTable";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DatabaseTable {
+    return new DatabaseTable().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DatabaseTable {
+    return new DatabaseTable().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DatabaseTable {
+    return new DatabaseTable().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DatabaseTable | PlainMessage<DatabaseTable> | undefined, b: DatabaseTable | PlainMessage<DatabaseTable> | undefined): boolean {
+    return proto3.util.equals(DatabaseTable, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.GetAiGeneratedDataResponse
+ */
+export class GetAiGeneratedDataResponse extends Message<GetAiGeneratedDataResponse> {
+  /**
+   * A list of generated records
+   *
+   * @generated from field: repeated google.protobuf.Struct records = 1;
+   */
+  records: Struct[] = [];
+
+  constructor(data?: PartialMessage<GetAiGeneratedDataResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.GetAiGeneratedDataResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "records", kind: "message", T: Struct, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetAiGeneratedDataResponse {
+    return new GetAiGeneratedDataResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetAiGeneratedDataResponse {
+    return new GetAiGeneratedDataResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetAiGeneratedDataResponse {
+    return new GetAiGeneratedDataResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetAiGeneratedDataResponse | PlainMessage<GetAiGeneratedDataResponse> | undefined, b: GetAiGeneratedDataResponse | PlainMessage<GetAiGeneratedDataResponse> | undefined): boolean {
+    return proto3.util.equals(GetAiGeneratedDataResponse, a, b);
   }
 }
 

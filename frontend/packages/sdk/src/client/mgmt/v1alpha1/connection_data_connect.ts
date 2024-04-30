@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { GetConnectionDataStreamRequest, GetConnectionDataStreamResponse, GetConnectionForeignConstraintsRequest, GetConnectionForeignConstraintsResponse, GetConnectionInitStatementsRequest, GetConnectionInitStatementsResponse, GetConnectionPrimaryConstraintsRequest, GetConnectionPrimaryConstraintsResponse, GetConnectionSchemaRequest, GetConnectionSchemaResponse, GetConnectionUniqueConstraintsRequest, GetConnectionUniqueConstraintsResponse } from "./connection_data_pb.js";
+import { GetAiGeneratedDataRequest, GetAiGeneratedDataResponse, GetConnectionDataStreamRequest, GetConnectionDataStreamResponse, GetConnectionForeignConstraintsRequest, GetConnectionForeignConstraintsResponse, GetConnectionInitStatementsRequest, GetConnectionInitStatementsResponse, GetConnectionPrimaryConstraintsRequest, GetConnectionPrimaryConstraintsResponse, GetConnectionSchemaRequest, GetConnectionSchemaResponse, GetConnectionUniqueConstraintsRequest, GetConnectionUniqueConstraintsResponse } from "./connection_data_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -83,6 +83,17 @@ export const ConnectionDataService = {
       name: "GetConnectionUniqueConstraints",
       I: GetConnectionUniqueConstraintsRequest,
       O: GetConnectionUniqueConstraintsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * Query an AI connection by providing the necessary values. Typically used for generating preview data
+     *
+     * @generated from rpc mgmt.v1alpha1.ConnectionDataService.GetAiGeneratedData
+     */
+    getAiGeneratedData: {
+      name: "GetAiGeneratedData",
+      I: GetAiGeneratedDataRequest,
+      O: GetAiGeneratedDataResponse,
       kind: MethodKind.Unary,
     },
   }

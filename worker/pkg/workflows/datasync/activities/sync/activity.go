@@ -18,6 +18,7 @@ import (
 	"github.com/google/uuid"
 	neosync_benthos_error "github.com/nucleuscloud/neosync/worker/internal/benthos/error"
 	benthos_metrics "github.com/nucleuscloud/neosync/worker/internal/benthos/metrics"
+	openaigenerate "github.com/nucleuscloud/neosync/worker/internal/benthos/openai_generate"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/redis"
 	neosync_benthos_sql "github.com/nucleuscloud/neosync/worker/internal/benthos/sql"
 	_ "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
@@ -231,6 +232,10 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	err = neosync_benthos_error.RegisterErrorOutput(benthosenv, stopActivityChan)
 	if err != nil {
 		return nil, fmt.Errorf("unable to register error output to benthos instance: %w", err)
+	}
+	err = openaigenerate.RegisterOpenaiGenerate(benthosenv)
+	if err != nil {
+		return nil, fmt.Errorf("unable to register openai_generate input to benthos instance: %w", err)
 	}
 
 	envKeyMap := syncMapToStringMap(&envKeyDsnSyncMap)

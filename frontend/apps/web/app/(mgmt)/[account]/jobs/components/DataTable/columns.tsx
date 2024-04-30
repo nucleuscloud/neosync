@@ -13,7 +13,7 @@ import { DataTableRowActions } from './data-table-row-actions';
 const JOB_STATUS = [
   {
     value: JobStatus.ENABLED,
-    badge: <Badge className="bg-green-600">Enabled</Badge>,
+    badge: <Badge className="bg-blue-600">Enabled</Badge>,
   },
   {
     value: JobStatus.DISABLED,

@@ -35,6 +35,7 @@ const config = {
     '@types/react-dom',
     '@typescript-eslint/eslint-plugin',
     '@types/react-window',
+    '@neosync/sdk',
   ],
   ignoreBinaries: ['tail', 'next'],
 };

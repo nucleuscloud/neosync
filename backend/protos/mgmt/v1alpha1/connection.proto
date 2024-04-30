@@ -91,7 +91,17 @@ message ConnectionConfig {
     MysqlConnectionConfig mysql_config = 3;
     // Configures a connection to a directory available on the local file system
     LocalDirectoryConnectionConfig local_dir_config = 4;
+    // Connection config for an OpenAI (or compatible) Connection
+    OpenAiConnectionConfig openai_config = 5;
   }
+}
+
+// Configures a connection to OpenAI or OpenAI compatible API.
+message OpenAiConnectionConfig {
+  // OpenAI Api Key
+  string api_key = 1;
+  // OpenAI URL
+  string api_url = 2;
 }
 
 // Configures a connection to a directory available on the local file system

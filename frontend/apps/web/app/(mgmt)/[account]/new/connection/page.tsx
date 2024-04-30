@@ -32,7 +32,13 @@ const CONNECTIONS: ConnectionMeta[] = [
     urlSlug: 'supabase',
     name: 'Supabase',
     description:
-      'Supabase is an open source Firebase alternative that ships with Authentication, Instant APIs, Edge functions and more. ',
+      'Supabase is an open source Firebase alternative that ships with Authentication, Instant APIs, Edge functions and more.',
+  },
+  {
+    urlSlug: 'openai',
+    name: 'OpenAI',
+    description:
+      'OpenAI (or equivalent interface) Chat API for generating synthetic data and inserting it directly into a destination datasource.',
   },
 ];
 

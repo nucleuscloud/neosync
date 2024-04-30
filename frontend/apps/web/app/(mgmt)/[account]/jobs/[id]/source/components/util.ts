@@ -19,5 +19,8 @@ export function getFkIdFromGenerateSource(
   if (js?.options?.config.case === 'generate') {
     return js.options.config.value.fkSourceConnectionId;
   }
+  if (js?.options?.config.case === 'aiGenerate') {
+    return js.options.config.value.fkSourceConnectionId;
+  }
   return undefined;
 }

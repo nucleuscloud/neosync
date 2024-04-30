@@ -24,6 +24,7 @@ message JobSourceOptions {
     AwsS3SourceConnectionOptions aws_s3 = 2;
     MysqlSourceConnectionOptions mysql = 3;
     GenerateSourceOptions generate = 4;
+    AiGenerateSourceOptions ai_generate = 5;
   }
 }
 
@@ -36,6 +37,28 @@ message JobDestination {
   string connection_id = 1;
   JobDestinationOptions options = 2;
   string id = 3;
+}
+
+message AiGenerateSourceOptions {
+  string ai_connection_id = 1 [(buf.validate.field).string.uuid = true];
+  repeated AiGenerateSourceSchemaOption schemas = 2 [(buf.validate.field).repeated.min_items = 1];
+  optional string fk_source_connection_id = 3 [(buf.validate.field).string.uuid = true];
+  // The name of the model to use
+  string model_name = 4 [(buf.validate.field).string.min_len = 1];
+  // Optionally provide a user prompt to give more context to the schema
+  optional string user_prompt = 5;
+}
+
+message AiGenerateSourceSchemaOption {
+  string schema = 1 [(buf.validate.field).string.min_len = 1];
+  repeated AiGenerateSourceTableOption tables = 2 [(buf.validate.field).repeated.min_items = 1];
+}
+message AiGenerateSourceTableOption {
+  string table = 1 [(buf.validate.field).string.min_len = 1];
+  int64 row_count = 2 [
+    (buf.validate.field).int64.gte = 1,
+    (buf.validate.field).int64.lte = 1000
+  ];
 }
 
 message GenerateSourceOptions {
@@ -228,7 +251,7 @@ message PauseJobResponse {
 message UpdateJobSourceConnectionRequest {
   string id = 1 [(buf.validate.field).string.uuid = true];
   JobSource source = 2;
-  repeated JobMapping mappings = 3 [(buf.validate.field).repeated = {min_items: 1}];
+  repeated JobMapping mappings = 3;
 }
 message UpdateJobSourceConnectionResponse {
   Job job = 1;

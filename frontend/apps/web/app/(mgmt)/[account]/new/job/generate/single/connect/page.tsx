@@ -31,11 +31,14 @@ import { ReactElement, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
-import JobsProgressSteps, { DATA_GEN_STEPS } from '../../../JobsProgressSteps';
+import JobsProgressSteps, {
+  getJobProgressSteps,
+} from '../../../JobsProgressSteps';
 import {
   SINGLE_TABLE_CONNECT_FORM_SCHEMA,
   SingleTableConnectFormValues,
 } from '../../../schema';
+import { getSingleOrUndefined } from '@/libs/utils';
 
 const NEW_CONNECTION_VALUE = 'new-connection';
 
@@ -100,7 +103,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           <PageHeader
             header="Connect"
             progressSteps={
-              <JobsProgressSteps steps={DATA_GEN_STEPS} stepName={'connect'} />
+              <JobsProgressSteps
+                steps={getJobProgressSteps('generate-table')}
+                stepName={'connect'}
+              />
             }
           />
         }
@@ -242,4 +248,16 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       </Form>
     </div>
   );
+}
+
+function getNewJobType(
+  jobtype?: string
+): 'generate-table' | 'ai-generate-table' {
+  switch (jobtype) {
+    case 'generate-table':
+    case 'ai-generate-table':
+      return jobtype;
+    default:
+      return 'generate-table';
+  }
 }

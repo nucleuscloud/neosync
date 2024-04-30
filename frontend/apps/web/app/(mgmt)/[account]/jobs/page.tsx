@@ -60,10 +60,16 @@ function JobTable(props: JobTableProps): ReactElement {
     ) || {};
 
   const jobData = jobs.map((j) => {
+    let jobtype = 'Sync';
+    if (j.source?.options?.config.case === 'generate') {
+      jobtype = 'Generate';
+    } else if (j.source?.options?.config.case === 'aiGenerate') {
+      jobtype = 'Ai Generate';
+    }
     return {
       ...j,
       status: statusJobMap[j.id] || JobStatus.UNSPECIFIED,
-      type: j.source?.options?.config.case === 'generate' ? 'Generate' : 'Sync',
+      type: jobtype,
     };
   });
 

@@ -10,8 +10,11 @@ import { useGetJob } from '@/libs/hooks/useGetJob';
 import { PlusIcon } from '@radix-ui/react-icons';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
-import { getConnectionIdFromSource } from '../source/components/util';
-import { isDataGenJob } from '../util';
+import {
+  getConnectionIdFromSource,
+  getFkIdFromGenerateSource,
+} from '../source/components/util';
+import { isAiDataGenJob, isDataGenJob } from '../util';
 import DestinationConnectionCard from './components/DestinationConnectionCard';
 
 export default function Page({ params }: PageProps): ReactElement {
@@ -26,13 +29,17 @@ export default function Page({ params }: PageProps): ReactElement {
     data?.job?.destinations.map((d) => d.connectionId)
   );
   const sourceConnectionId = getConnectionIdFromSource(data?.job?.source);
+  const fkConnectionId = getFkIdFromGenerateSource(data?.job?.source);
+  const fkConnection = connections.find((c) => c.id === fkConnectionId);
   return (
     <div className="job-details-container">
       <SubPageHeader
         header="Destination Connections"
         description={`Manage a job's destination connections`}
         extraHeading={
-          isDataGenJob(data?.job) ? null : <NewDestinationButton jobId={id} />
+          isDataGenJob(data?.job) || isAiDataGenJob(data?.job) ? null : (
+            <NewDestinationButton jobId={id} />
+          )
         }
       />
 
@@ -48,11 +55,18 @@ export default function Page({ params }: PageProps): ReactElement {
                 destination={destination}
                 mutate={mutate}
                 connections={connections}
-                availableConnections={connections.filter(
-                  (c) =>
+                availableConnections={connections.filter((c) => {
+                  if (isDataGenJob(data?.job) || isAiDataGenJob(data?.job)) {
+                    return (
+                      c.connectionConfig?.config.case ===
+                      fkConnection?.connectionConfig?.config.case
+                    );
+                  }
+                  return (
                     c.id === destination.connectionId ||
                     (c.id != sourceConnectionId && !destinationIds?.has(c.id))
-                )}
+                  );
+                })}
                 isDeleteDisabled={data?.job?.destinations.length === 1}
               />
             );

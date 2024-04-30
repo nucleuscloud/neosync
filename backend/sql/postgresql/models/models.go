@@ -12,6 +12,7 @@ type ConnectionConfig struct {
 	AwsS3Config          *AwsS3ConnectionConfig          `json:"awsS3Config,omitempty"`
 	MysqlConfig          *MysqlConnectionConfig          `json:"mysqlConfig,omitempty"`
 	LocalDirectoryConfig *LocalDirectoryConnectionConfig `json:"localDirConfig,omitempty"`
+	OpenAiConfig         *OpenAiConnectionConfig         `json:"openaiConfig,omitempty"`
 }
 
 func (c *ConnectionConfig) ToDto() *mgmtv1alpha1.ConnectionConfig {
@@ -108,6 +109,12 @@ func (c *ConnectionConfig) ToDto() *mgmtv1alpha1.ConnectionConfig {
 				LocalDirConfig: c.LocalDirectoryConfig.ToDto(),
 			},
 		}
+	} else if c.OpenAiConfig != nil {
+		return &mgmtv1alpha1.ConnectionConfig{
+			Config: &mgmtv1alpha1.ConnectionConfig_OpenaiConfig{
+				OpenaiConfig: c.OpenAiConfig.ToDto(),
+			},
+		}
 	}
 	return nil
 }
@@ -173,8 +180,11 @@ func (c *ConnectionConfig) FromDto(dto *mgmtv1alpha1.ConnectionConfig) error {
 	case *mgmtv1alpha1.ConnectionConfig_LocalDirConfig:
 		c.LocalDirectoryConfig = &LocalDirectoryConnectionConfig{}
 		c.LocalDirectoryConfig.FromDto(config.LocalDirConfig)
+	case *mgmtv1alpha1.ConnectionConfig_OpenaiConfig:
+		c.OpenAiConfig = &OpenAiConnectionConfig{}
+		c.OpenAiConfig.FromDto(config.OpenaiConfig)
 	default:
-		return fmt.Errorf("invalid connection config")
+		return fmt.Errorf("unable to convert to ConnectionConfig from DTO ConnectionConfig, type not supported: %T", config)
 	}
 	return nil
 }
@@ -332,6 +342,26 @@ func (l *LocalDirectoryConnectionConfig) FromDto(dto *mgmtv1alpha1.LocalDirector
 	l.Path = dto.Path
 }
 
+type OpenAiConnectionConfig struct {
+	ApiUrl string `json:"apiUrl"`
+	ApiKey string `json:"apiKey"`
+}
+
+func (o *OpenAiConnectionConfig) ToDto() *mgmtv1alpha1.OpenAiConnectionConfig {
+	return &mgmtv1alpha1.OpenAiConnectionConfig{
+		ApiKey: o.ApiKey,
+		ApiUrl: o.ApiUrl,
+	}
+}
+
+func (o *OpenAiConnectionConfig) FromDto(dto *mgmtv1alpha1.OpenAiConnectionConfig) {
+	if dto == nil {
+		return
+	}
+	o.ApiKey = dto.ApiKey
+	o.ApiUrl = dto.ApiUrl
+}
+
 func (a *AwsS3Credentials) ToDto() *mgmtv1alpha1.AwsS3Credentials {
 	return &mgmtv1alpha1.AwsS3Credentials{
 		Profile:         a.Profile,
@@ -418,9 +448,10 @@ func (jm *JobMapping) FromDto(dto *mgmtv1alpha1.JobMapping) error {
 }
 
 type JobSourceOptions struct {
-	PostgresOptions *PostgresSourceOptions `json:"postgresOptions,omitempty"`
-	MysqlOptions    *MysqlSourceOptions    `json:"mysqlOptions,omitempty"`
-	GenerateOptions *GenerateSourceOptions `json:"generateOptions,omitempty"`
+	PostgresOptions   *PostgresSourceOptions   `json:"postgresOptions,omitempty"`
+	MysqlOptions      *MysqlSourceOptions      `json:"mysqlOptions,omitempty"`
+	GenerateOptions   *GenerateSourceOptions   `json:"generateOptions,omitempty"`
+	AiGenerateOptions *AiGenerateSourceOptions `json:"aiGenerateOptions,omitempty"`
 }
 
 type MysqlSourceOptions struct {
@@ -446,6 +477,23 @@ type GenerateSourceSchemaOption struct {
 	Tables []*GenerateSourceTableOption `json:"tables"`
 }
 type GenerateSourceTableOption struct {
+	Table    string `json:"table"`
+	RowCount int64  `json:"rowCount,omitempty"`
+}
+
+type AiGenerateSourceOptions struct {
+	AiConnectionId       string                          `json:"aiConnectionId"`
+	Schemas              []*AiGenerateSourceSchemaOption `json:"schemas"`
+	FkSourceConnectionId *string                         `json:"fkSourceConnectionId,omitempty"`
+	ModelName            string                          `json:"modelName"`
+	UserPrompt           *string                         `json:"userPrompt,omitempty"`
+}
+
+type AiGenerateSourceSchemaOption struct {
+	Schema string                         `json:"schema"`
+	Tables []*AiGenerateSourceTableOption `json:"tables"`
+}
+type AiGenerateSourceTableOption struct {
 	Table    string `json:"table"`
 	RowCount int64  `json:"rowCount,omitempty"`
 }
@@ -605,6 +653,60 @@ func FromDtoGenerateSourceSchemaOptions(dtos []*mgmtv1alpha1.GenerateSourceSchem
 	return output
 }
 
+func (s *AiGenerateSourceOptions) ToDto() *mgmtv1alpha1.AiGenerateSourceOptions {
+	dto := &mgmtv1alpha1.AiGenerateSourceOptions{
+		FkSourceConnectionId: s.FkSourceConnectionId,
+		AiConnectionId:       s.AiConnectionId,
+		ModelName:            s.ModelName,
+		UserPrompt:           s.UserPrompt,
+	}
+	dto.Schemas = make([]*mgmtv1alpha1.AiGenerateSourceSchemaOption, len(s.Schemas))
+	for idx := range s.Schemas {
+		schema := s.Schemas[idx]
+		tables := make([]*mgmtv1alpha1.AiGenerateSourceTableOption, len(schema.Tables))
+		for tidx := range schema.Tables {
+			table := schema.Tables[tidx]
+			tables[tidx] = &mgmtv1alpha1.AiGenerateSourceTableOption{
+				Table:    table.Table,
+				RowCount: table.RowCount,
+			}
+		}
+		dto.Schemas[idx] = &mgmtv1alpha1.AiGenerateSourceSchemaOption{
+			Schema: schema.Schema,
+			Tables: tables,
+		}
+	}
+	return dto
+}
+func (s *AiGenerateSourceOptions) FromDto(dto *mgmtv1alpha1.AiGenerateSourceOptions) {
+	s.FkSourceConnectionId = dto.FkSourceConnectionId
+	s.Schemas = FromDtoAiGenerateSourceSchemaOptions(dto.Schemas)
+	s.AiConnectionId = dto.AiConnectionId
+	s.ModelName = dto.ModelName
+	s.UserPrompt = dto.UserPrompt
+}
+
+func FromDtoAiGenerateSourceSchemaOptions(dtos []*mgmtv1alpha1.AiGenerateSourceSchemaOption) []*AiGenerateSourceSchemaOption {
+	output := make([]*AiGenerateSourceSchemaOption, len(dtos))
+	for idx := range dtos {
+		schema := dtos[idx]
+		tables := make([]*AiGenerateSourceTableOption, len(schema.Tables))
+		for tidx := range schema.Tables {
+			table := schema.Tables[tidx]
+			tables[tidx] = &AiGenerateSourceTableOption{
+				Table:    table.Table,
+				RowCount: table.RowCount,
+			}
+		}
+		output[idx] = &AiGenerateSourceSchemaOption{
+			Schema: schema.Schema,
+			Tables: tables,
+		}
+	}
+
+	return output
+}
+
 type PostgresSourceSchemaOption struct {
 	Schema string                       `json:"schema"`
 	Tables []*PostgresSourceTableOption `json:"tables"`
@@ -645,6 +747,13 @@ func (j *JobSourceOptions) ToDto() *mgmtv1alpha1.JobSourceOptions {
 			},
 		}
 	}
+	if j.AiGenerateOptions != nil {
+		return &mgmtv1alpha1.JobSourceOptions{
+			Config: &mgmtv1alpha1.JobSourceOptions_AiGenerate{
+				AiGenerate: j.AiGenerateOptions.ToDto(),
+			},
+		}
+	}
 	return nil
 }
 
@@ -662,8 +771,12 @@ func (j *JobSourceOptions) FromDto(dto *mgmtv1alpha1.JobSourceOptions) error {
 		genOpts := &GenerateSourceOptions{}
 		genOpts.FromDto(config.Generate)
 		j.GenerateOptions = genOpts
+	case *mgmtv1alpha1.JobSourceOptions_AiGenerate:
+		genOpts := &AiGenerateSourceOptions{}
+		genOpts.FromDto(config.AiGenerate)
+		j.AiGenerateOptions = genOpts
 	default:
-		return fmt.Errorf("invalid job source options config")
+		return fmt.Errorf("invalid job source options config, received type: %T", config)
 	}
 	return nil
 }

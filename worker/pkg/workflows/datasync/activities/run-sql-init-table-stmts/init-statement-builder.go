@@ -77,6 +77,44 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 	uniqueSchemas := shared.GetUniqueSchemasFromMappings(job.Mappings)
 
 	switch jobSourceConfig := job.Source.Options.Config.(type) {
+	case *mgmtv1alpha1.JobSourceOptions_AiGenerate:
+		sourceConnection, err := b.getConnectionById(ctx, jobSourceConfig.AiGenerate.GetFkSourceConnectionId())
+		if err != nil {
+			return nil, fmt.Errorf("unable to get connection by fk source connection id: %w", err)
+		}
+		switch connConfig := sourceConnection.ConnectionConfig.Config.(type) {
+		case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+			if _, ok := b.pgpool[sourceConnection.Id]; !ok {
+				pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(connConfig.PgConfig, shared.Ptr(uint32(5)), slogger)
+				if err != nil {
+					return nil, fmt.Errorf("unable to create new postgres pool from connection config: %w", err)
+				}
+				pool, err := pgconn.Open(ctx)
+				if err != nil {
+					return nil, fmt.Errorf("unable to open postgres connection: %w", err)
+				}
+				defer pgconn.Close()
+				b.pgpool[sourceConnection.Id] = pool
+			}
+			sourceConnectionId = sourceConnection.Id
+
+		case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+			if _, ok := b.mysqlpool[sourceConnection.Id]; !ok {
+				conn, err := b.sqlconnector.NewDbFromConnectionConfig(sourceConnection.ConnectionConfig, shared.Ptr(uint32(5)), slogger)
+				if err != nil {
+					return nil, fmt.Errorf("unable to create new mysql pool from connection config: %w", err)
+				}
+				db, err := conn.Open()
+				if err != nil {
+					return nil, fmt.Errorf("unable to open mysql connection: %w", err)
+				}
+				defer conn.Close()
+				b.mysqlpool[sourceConnection.Id] = db
+			}
+			sourceConnectionId = sourceConnection.Id
+		default:
+			return nil, fmt.Errorf("unsupported job source connection: %T", jobSourceConfig)
+		}
 	case *mgmtv1alpha1.JobSourceOptions_Generate:
 		sourceConnection, err := b.getConnectionById(ctx, *jobSourceConfig.Generate.FkSourceConnectionId)
 		if err != nil {

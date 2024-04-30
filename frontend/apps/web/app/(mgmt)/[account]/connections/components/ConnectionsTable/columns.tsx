@@ -138,6 +138,10 @@ function getCategory(cc?: PlainMessage<ConnectionConfig>): string {
       return 'MySQL';
     case 'awsS3Config':
       return 'AWS S3';
+    case 'openaiConfig':
+      return 'OpenAI';
+    case 'localDirConfig':
+      return 'Local Dir';
     default:
       return '-';
   }

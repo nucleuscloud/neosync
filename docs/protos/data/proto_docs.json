@@ -1444,6 +1444,18 @@
               "isoneof": true,
               "oneofdecl": "config",
               "defaultValue": ""
+            },
+            {
+              "name": "openai_config",
+              "description": "Connection config for an OpenAI (or compatible) Connection",
+              "label": "",
+              "type": "OpenAiConnectionConfig",
+              "longType": "OpenAiConnectionConfig",
+              "fullType": "mgmt.v1alpha1.OpenAiConnectionConfig",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
             }
           ]
         },
@@ -1931,6 +1943,42 @@
               "type": "SqlConnectionOptions",
               "longType": "SqlConnectionOptions",
               "fullType": "mgmt.v1alpha1.SqlConnectionOptions",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "OpenAiConnectionConfig",
+          "longName": "OpenAiConnectionConfig",
+          "fullName": "mgmt.v1alpha1.OpenAiConnectionConfig",
+          "description": "Configures a connection to OpenAI or OpenAI compatible API.",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "api_key",
+              "description": "OpenAI Api Key",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "api_url",
+              "description": "OpenAI URL",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -2718,6 +2766,42 @@
           ]
         },
         {
+          "name": "DatabaseTable",
+          "longName": "DatabaseTable",
+          "fullName": "mgmt.v1alpha1.DatabaseTable",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schema",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "table",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "ForeignConstraint",
           "longName": "ForeignConstraint",
           "fullName": "mgmt.v1alpha1.ForeignConstraint",
@@ -2818,6 +2902,114 @@
               "type": "string",
               "longType": "string",
               "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetAiGeneratedDataRequest",
+          "longName": "GetAiGeneratedDataRequest",
+          "fullName": "mgmt.v1alpha1.GetAiGeneratedDataRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "ai_connection_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "count",
+              "description": "",
+              "label": "",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "model_name",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "user_prompt",
+              "description": "",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_user_prompt",
+              "defaultValue": ""
+            },
+            {
+              "name": "data_connection_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "table",
+              "description": "",
+              "label": "",
+              "type": "DatabaseTable",
+              "longType": "DatabaseTable",
+              "fullType": "mgmt.v1alpha1.DatabaseTable",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetAiGeneratedDataResponse",
+          "longName": "GetAiGeneratedDataResponse",
+          "fullName": "mgmt.v1alpha1.GetAiGeneratedDataResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "records",
+              "description": "A list of generated records",
+              "label": "repeated",
+              "type": "Struct",
+              "longType": "google.protobuf.Struct",
+              "fullType": "google.protobuf.Struct",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -3619,6 +3811,18 @@
               "responseType": "GetConnectionUniqueConstraintsResponse",
               "responseLongType": "GetConnectionUniqueConstraintsResponse",
               "responseFullType": "mgmt.v1alpha1.GetConnectionUniqueConstraintsResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "GetAiGeneratedData",
+              "description": "Query an AI connection by providing the necessary values. Typically used for generating preview data",
+              "requestType": "GetAiGeneratedDataRequest",
+              "requestLongType": "GetAiGeneratedDataRequest",
+              "requestFullType": "mgmt.v1alpha1.GetAiGeneratedDataRequest",
+              "requestStreaming": false,
+              "responseType": "GetAiGeneratedDataResponse",
+              "responseLongType": "GetAiGeneratedDataResponse",
+              "responseFullType": "mgmt.v1alpha1.GetAiGeneratedDataResponse",
               "responseStreaming": false
             }
           ]
@@ -6573,6 +6777,150 @@
           ]
         },
         {
+          "name": "AiGenerateSourceOptions",
+          "longName": "AiGenerateSourceOptions",
+          "fullName": "mgmt.v1alpha1.AiGenerateSourceOptions",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "ai_connection_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "schemas",
+              "description": "",
+              "label": "repeated",
+              "type": "AiGenerateSourceSchemaOption",
+              "longType": "AiGenerateSourceSchemaOption",
+              "fullType": "mgmt.v1alpha1.AiGenerateSourceSchemaOption",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "fk_source_connection_id",
+              "description": "",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_fk_source_connection_id",
+              "defaultValue": ""
+            },
+            {
+              "name": "model_name",
+              "description": "The name of the model to use",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "user_prompt",
+              "description": "Optionally provide a user prompt to give more context to the schema",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_user_prompt",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "AiGenerateSourceSchemaOption",
+          "longName": "AiGenerateSourceSchemaOption",
+          "fullName": "mgmt.v1alpha1.AiGenerateSourceSchemaOption",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "schema",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "tables",
+              "description": "",
+              "label": "repeated",
+              "type": "AiGenerateSourceTableOption",
+              "longType": "AiGenerateSourceTableOption",
+              "fullType": "mgmt.v1alpha1.AiGenerateSourceTableOption",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "AiGenerateSourceTableOption",
+          "longName": "AiGenerateSourceTableOption",
+          "fullName": "mgmt.v1alpha1.AiGenerateSourceTableOption",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "table",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "row_count",
+              "description": "",
+              "label": "",
+              "type": "int64",
+              "longType": "int64",
+              "fullType": "int64",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "AwsS3DestinationConnectionOptions",
           "longName": "AwsS3DestinationConnectionOptions",
           "fullName": "mgmt.v1alpha1.AwsS3DestinationConnectionOptions",
@@ -8647,6 +8995,18 @@
               "type": "GenerateSourceOptions",
               "longType": "GenerateSourceOptions",
               "fullType": "mgmt.v1alpha1.GenerateSourceOptions",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "config",
+              "defaultValue": ""
+            },
+            {
+              "name": "ai_generate",
+              "description": "",
+              "label": "",
+              "type": "AiGenerateSourceOptions",
+              "longType": "AiGenerateSourceOptions",
+              "fullType": "mgmt.v1alpha1.AiGenerateSourceOptions",
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "config",
