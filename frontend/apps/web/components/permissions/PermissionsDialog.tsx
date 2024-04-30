@@ -14,6 +14,7 @@ import {
 } from '@radix-ui/react-icons';
 import { ReactElement, useMemo } from 'react';
 import { IoWarning } from 'react-icons/io5';
+import Spinner from '../Spinner';
 import LearnMoreTag from '../labels/LearnMoreTag';
 import { Button } from '../ui/button';
 import PermissionsDataTable from './PermissionsDataTable';
@@ -31,9 +32,9 @@ export default function PermissionsDialog(props: Props): ReactElement {
   const {
     openPermissionDialog,
     setOpenPermissionDialog,
-    isValidating,
     connectionName,
     checkResponse,
+    isValidating,
   } = props;
 
   const columns = useMemo(() => getPermissionColumns(), []);
@@ -42,7 +43,10 @@ export default function PermissionsDialog(props: Props): ReactElement {
     <Dialog open={openPermissionDialog} onOpenChange={setOpenPermissionDialog}>
       <DialogContent className="max-w-5xl flex flex-col gap-4">
         <DialogHeader>
-          <DialogTitle>Connection Permissions</DialogTitle>
+          <div className="flex flex-col md:flex-row gap-2 items-center">
+            <DialogTitle>Connection Permissions</DialogTitle>
+            {isValidating ? <Spinner /> : null}
+          </div>
           <div className="text-muted-foreground text-sm">
             Review the permissions that Neosync needs for your connection.{' '}
             <LearnMoreTag href="https://docs.neosync.dev/connections/postgres#permissions" />
