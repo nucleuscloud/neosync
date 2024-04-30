@@ -38,7 +38,6 @@ import {
   SINGLE_TABLE_CONNECT_FORM_SCHEMA,
   SingleTableConnectFormValues,
 } from '../../../schema';
-import { getSingleOrUndefined } from '@/libs/utils';
 
 const NEW_CONNECTION_VALUE = 'new-connection';
 
@@ -248,16 +247,4 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       </Form>
     </div>
   );
-}
-
-function getNewJobType(
-  jobtype?: string
-): 'generate-table' | 'ai-generate-table' {
-  switch (jobtype) {
-    case 'generate-table':
-    case 'ai-generate-table':
-      return jobtype;
-    default:
-      return 'generate-table';
-  }
 }

@@ -176,7 +176,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 connection={connections.find(
                   (c) => c.id === form.getValues().sourceId
                 )}
-                maxColNum={2}
               />
             </div>
           </div>
@@ -317,7 +316,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 connection={connections.find(
                   (c) => c.id === form.getValues().destination.connectionId
                 )}
-                maxColNum={2}
               />
             </div>
           </div>
