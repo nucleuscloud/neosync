@@ -24,12 +24,3 @@ export function getFkIdFromGenerateSource(
   }
   return undefined;
 }
-
-export function getAiConnFromAiGenerateSource(
-  js: JobSource | undefined
-): string | undefined {
-  if (js?.options?.config.case === 'aiGenerate') {
-    return js.options.config.value.aiConnectionId;
-  }
-  return undefined;
-}
