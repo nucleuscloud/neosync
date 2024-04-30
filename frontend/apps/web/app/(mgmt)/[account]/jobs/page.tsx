@@ -64,7 +64,7 @@ function JobTable(props: JobTableProps): ReactElement {
     if (j.source?.options?.config.case === 'generate') {
       jobtype = 'Generate';
     } else if (j.source?.options?.config.case === 'aiGenerate') {
-      jobtype = 'Ai Generate';
+      jobtype = 'AI Generate';
     }
     return {
       ...j,

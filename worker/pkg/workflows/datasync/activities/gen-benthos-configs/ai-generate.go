@@ -66,7 +66,7 @@ func (b *benthosBuilder) getAiGenerateBenthosConfigResponses(
 
 			tableColsMap, ok := groupedSchemas[dbschemas_utils.BuildTable(schema.GetSchema(), table.GetTable())]
 			if !ok {
-				return nil, nil, fmt.Errorf("did not find schema data when building Ai Generate config: %s", schema.GetSchema())
+				return nil, nil, fmt.Errorf("did not find schema data when building AI Generate config: %s", schema.GetSchema())
 			}
 			for col, info := range tableColsMap {
 				columns = append(columns, &aiGenerateColumn{
@@ -84,7 +84,7 @@ func (b *benthosBuilder) getAiGenerateBenthosConfigResponses(
 		}
 	}
 	if len(mappings) == 0 {
-		return nil, nil, fmt.Errorf("did not generate any mapping configs during ai generate build for connection: %s", constraintConnection.GetId())
+		return nil, nil, fmt.Errorf("did not generate any mapping configs during AI Generate build for connection: %s", constraintConnection.GetId())
 	}
 
 	var userPrompt *string
