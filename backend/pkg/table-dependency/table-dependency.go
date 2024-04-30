@@ -1,6 +1,7 @@
 package tabledependency
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
@@ -215,6 +216,8 @@ func processCycles(
 		}
 		configs = append(configs, config)
 	}
+	jsonF, _ := json.MarshalIndent(configs, "", " ")
+	fmt.Printf("\n configs: %s \n", string(jsonF))
 	return configs, err
 }
 

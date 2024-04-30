@@ -2,10 +2,10 @@ package genbenthosconfigs_activity
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"strings"
-	"sync"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -15,7 +15,6 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
-	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
@@ -760,62 +759,55 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Transformer_Pg_Pg(t *
 		},
 	}), nil)
 	mockSqlManager.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.PostgresDriver}, nil)
-
-	pgquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetDatabaseSchemaRow{
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "name",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "orders",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "orders",
-				ColumnName:  "buyer_id",
-			},
-		}, nil)
-	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
-		Once().
-		Return([]*pg_queries.GetTableConstraintsBySchemaRow{
-			{
-				ConstraintName:     "fk_user_account_associations_user_id_users_id",
-				SchemaName:         "public",
-				TableName:          "orders",
-				ConstraintColumns:  []string{"buyer_id"},
-				ForeignSchemaName:  "public",
-				ForeignTableName:   "users",
-				ForeignColumnNames: []string{"id"},
-				ConstraintType:     "f",
-				Notnullable:        []bool{true},
-			},
-		}, nil)
-	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
-		Once().
-		Return(
-			[]*pg_queries.GetTableConstraintsBySchemaRow{{
-				SchemaName:        "public",
-				TableName:         "users",
-				ConstraintName:    "users",
-				ConstraintColumns: []string{"id"},
-				ConstraintType:    "p",
-			}, {
-				SchemaName:        "public",
-				TableName:         "orders",
-				ConstraintName:    "orders",
-				ConstraintColumns: []string{"id"},
-				ConstraintType:    "p",
-			}}, nil,
-		)
+	mockSqlDb.On("ClosePool").Return(nil)
+	mockSqlDb.On("GetDatabaseSchema", mock.Anything).Return([]*sql_manager.DatabaseSchemaRow{
+		{
+			TableSchema: "public",
+			TableName:   "users",
+			ColumnName:  "id",
+		},
+		{
+			TableSchema: "public",
+			TableName:   "users",
+			ColumnName:  "name",
+		},
+		{
+			TableSchema: "public",
+			TableName:   "orders",
+			ColumnName:  "id",
+		},
+		{
+			TableSchema: "public",
+			TableName:   "orders",
+			ColumnName:  "buyer_id",
+		},
+	}, nil)
+	mockSqlDb.On("GetAllPrimaryKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.PrimaryKeyConstraintsRow{
+		{
+			ConstraintName: "users",
+			SchemaName:     "public",
+			TableName:      "users",
+			ColumnName:     "id",
+		},
+		{
+			ConstraintName: "orders",
+			SchemaName:     "public",
+			TableName:      "orders",
+			ColumnName:     "id",
+		},
+	}, nil)
+	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
+		{
+			ConstraintName:    "fk_user_account_id",
+			SchemaName:        "public",
+			TableName:         "orders",
+			ColumnName:        "buyer_id",
+			ForeignSchemaName: "public",
+			ForeignTableName:  "users",
+			ForeignColumnName: "id",
+			IsNullable:        "false",
+		},
+	}, nil)
 	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, redisConfig, false)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
@@ -978,15 +970,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Passthrough_Pg_Pg(t *
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-
-	pgcache := &sync.Map{}
-	pgcache.Store("123", pg_queries.NewMockDBTX(t))
-	pgcache.Store("456", pg_queries.NewMockDBTX(t))
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := &sync.Map{}
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
-	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
+	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
+	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
@@ -1083,63 +1068,58 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Passthrough_Pg_Pg(t *
 			},
 		},
 	}), nil)
+	mockSqlManager.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.PostgresDriver}, nil)
+	mockSqlDb.On("ClosePool").Return(nil)
+	mockSqlDb.On("GetDatabaseSchema", mock.Anything).Return([]*sql_manager.DatabaseSchemaRow{
+		{
+			TableSchema: "public",
+			TableName:   "users",
+			ColumnName:  "id",
+		},
+		{
+			TableSchema: "public",
+			TableName:   "users",
+			ColumnName:  "name",
+		},
+		{
+			TableSchema: "public",
+			TableName:   "orders",
+			ColumnName:  "id",
+		},
+		{
+			TableSchema: "public",
+			TableName:   "orders",
+			ColumnName:  "buyer_id",
+		},
+	}, nil)
+	mockSqlDb.On("GetAllPrimaryKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.PrimaryKeyConstraintsRow{
+		{
+			ConstraintName: "users",
+			SchemaName:     "public",
+			TableName:      "users",
+			ColumnName:     "id",
+		},
+		{
+			ConstraintName: "orders",
+			SchemaName:     "public",
+			TableName:      "orders",
+			ColumnName:     "id",
+		},
+	}, nil)
+	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
+		{
+			ConstraintName:    "fk_user_account_associations_user_id_users_id",
+			SchemaName:        "public",
+			TableName:         "orders",
+			ColumnName:        "buyer_id",
+			ForeignSchemaName: "public",
+			ForeignTableName:  "users",
+			ForeignColumnName: "id",
+			IsNullable:        "false",
+		},
+	}, nil)
 
-	pgquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetDatabaseSchemaRow{
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "name",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "orders",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "orders",
-				ColumnName:  "buyer_id",
-			},
-		}, nil)
-	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
-		Once().
-		Return([]*pg_queries.GetTableConstraintsBySchemaRow{
-			{
-				ConstraintName:     "fk_user_account_associations_user_id_users_id",
-				SchemaName:         "public",
-				TableName:          "orders",
-				ConstraintColumns:  []string{"buyer_id"},
-				ForeignSchemaName:  "public",
-				ForeignTableName:   "users",
-				ForeignColumnNames: []string{"id"},
-				ConstraintType:     "f",
-				Notnullable:        []bool{true},
-			},
-		}, nil)
-	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
-		Once().
-		Return(
-			[]*pg_queries.GetTableConstraintsBySchemaRow{{
-				SchemaName:        "public",
-				TableName:         "users",
-				ConstraintName:    "users",
-				ConstraintColumns: []string{"id"},
-				ConstraintType:    "p",
-			}, {
-				SchemaName:        "public",
-				TableName:         "orders",
-				ConstraintName:    "orders",
-				ConstraintColumns: []string{"id"},
-				ConstraintType:    "p",
-			}}, nil,
-		)
-	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
+	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -1272,15 +1252,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_CircularDependency_PrimaryKey_Tr
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-
-	pgcache := &sync.Map{}
-	pgcache.Store("123", pg_queries.NewMockDBTX(t))
-	pgcache.Store("456", pg_queries.NewMockDBTX(t))
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := &sync.Map{}
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
-	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
+	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
+	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
 
 	redisConfig := &shared.RedisConfig{
 		Url:  "redis://localhost:6379",
@@ -1374,47 +1347,42 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_CircularDependency_PrimaryKey_Tr
 		},
 	}), nil)
 
-	pgquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetDatabaseSchemaRow{
-			{
-				TableSchema: "public",
-				TableName:   "jobs",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "jobs",
-				ColumnName:  "parent_id",
-			},
-		}, nil)
-	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
-		Once().
-		Return([]*pg_queries.GetTableConstraintsBySchemaRow{
-			{
-				ConstraintName:     "fk_user_account_associations_user_id_users_id",
-				SchemaName:         "public",
-				TableName:          "jobs",
-				ConstraintColumns:  []string{"parent_id"},
-				ForeignSchemaName:  "public",
-				ForeignTableName:   "jobs",
-				ForeignColumnNames: []string{"id"},
-				ConstraintType:     "f",
-				Notnullable:        []bool{false},
-			},
-		}, nil)
-	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
-		Once().
-		Return(
-			[]*pg_queries.GetTableConstraintsBySchemaRow{{
-				SchemaName:        "public",
-				TableName:         "jobs",
-				ConstraintName:    "job",
-				ConstraintColumns: []string{"id"},
-				ConstraintType:    "p",
-			}}, nil,
-		)
+	mockSqlManager.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.PostgresDriver}, nil)
+	mockSqlDb.On("ClosePool").Return(nil)
+	mockSqlDb.On("GetDatabaseSchema", mock.Anything).Return([]*sql_manager.DatabaseSchemaRow{
+		{
+			TableSchema: "public",
+			TableName:   "jobs",
+			ColumnName:  "id",
+		},
+		{
+			TableSchema: "public",
+			TableName:   "jobs",
+			ColumnName:  "parent_id",
+		},
+	}, nil)
+	mockSqlDb.On("GetAllPrimaryKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.PrimaryKeyConstraintsRow{
+		{
+			ConstraintName: "jobs",
+			SchemaName:     "public",
+			TableName:      "jobs",
+			ColumnName:     "id",
+		},
+	}, nil)
+	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
+		{
+			ConstraintName:    "fk_jobs",
+			SchemaName:        "public",
+			TableName:         "jobs",
+			ColumnName:        "parent_id",
+			ForeignSchemaName: "public",
+			ForeignTableName:  "jobs",
+			ForeignColumnName: "id",
+			IsNullable:        "true",
+		},
+	}, nil)
 
-	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, redisConfig, false)
+	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, redisConfig, false)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -1585,15 +1553,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-
-	pgcache := &sync.Map{}
-	pgcache.Store("123", pg_queries.NewMockDBTX(t))
-	pgcache.Store("456", pg_queries.NewMockDBTX(t))
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := &sync.Map{}
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
-	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
+	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
+	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
@@ -1691,63 +1652,58 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 		},
 	}), nil)
 
-	pgquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetDatabaseSchemaRow{
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "name",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "user_account_associations",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "user_account_associations",
-				ColumnName:  "user_id",
-			},
-		}, nil)
-	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
-		Once().
-		Return([]*pg_queries.GetTableConstraintsBySchemaRow{
-			{
-				ConstraintName:     "fk_user_account_associations_user_id_users_id",
-				SchemaName:         "public",
-				TableName:          "user_account_associations",
-				ConstraintColumns:  []string{"user_id"},
-				ForeignSchemaName:  "public",
-				ForeignTableName:   "users",
-				ForeignColumnNames: []string{"id"},
-				ConstraintType:     "f",
-				Notnullable:        []bool{true},
-			},
-		}, nil)
-	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
-		Once().
-		Return(
-			[]*pg_queries.GetTableConstraintsBySchemaRow{{
-				SchemaName:        "public",
-				TableName:         "users",
-				ConstraintName:    "name",
-				ConstraintColumns: []string{"id"},
-				ConstraintType:    "p",
-			}, {
-				SchemaName:        "public",
-				TableName:         "user_account_associations",
-				ConstraintName:    "acc_assoc_constraint",
-				ConstraintColumns: []string{"id"},
-				ConstraintType:    "p",
-			}}, nil,
-		)
+	mockSqlManager.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.PostgresDriver}, nil)
+	mockSqlDb.On("ClosePool").Return(nil)
+	mockSqlDb.On("GetDatabaseSchema", mock.Anything).Return([]*sql_manager.DatabaseSchemaRow{
+		{
+			TableSchema: "public",
+			TableName:   "users",
+			ColumnName:  "id",
+		},
+		{
+			TableSchema: "public",
+			TableName:   "users",
+			ColumnName:  "name",
+		},
+		{
+			TableSchema: "public",
+			TableName:   "user_account_associations",
+			ColumnName:  "id",
+		},
+		{
+			TableSchema: "public",
+			TableName:   "user_account_associations",
+			ColumnName:  "user_id",
+		},
+	}, nil)
+	mockSqlDb.On("GetAllPrimaryKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.PrimaryKeyConstraintsRow{
+		{
+			ConstraintName: "users",
+			SchemaName:     "public",
+			TableName:      "users",
+			ColumnName:     "id",
+		},
+		{
+			ConstraintName: "user_account_associations",
+			SchemaName:     "public",
+			TableName:      "user_account_associations",
+			ColumnName:     "id",
+		},
+	}, nil)
+	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
+		{
+			ConstraintName:    "fk_user_account_associations_user_id_users_id",
+			SchemaName:        "public",
+			TableName:         "user_account_associations",
+			ColumnName:        "user_id",
+			ForeignSchemaName: "public",
+			ForeignTableName:  "users",
+			ForeignColumnName: "id",
+			IsNullable:        "false",
+		},
+	}, nil)
 
-	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
+	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -1792,15 +1748,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-
-	pgcache := &sync.Map{}
-	pgcache.Store("123", pg_queries.NewMockDBTX(t))
-	pgcache.Store("456", pg_queries.NewMockDBTX(t))
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := &sync.Map{}
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
-	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
+	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
+	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
@@ -1905,79 +1854,73 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 			},
 		},
 	}), nil)
+	mockSqlManager.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.PostgresDriver}, nil)
+	mockSqlDb.On("ClosePool").Return(nil)
+	mockSqlDb.On("GetDatabaseSchema", mock.Anything).Return([]*sql_manager.DatabaseSchemaRow{
+		{
+			TableSchema: "public",
+			TableName:   "users",
+			ColumnName:  "id",
+		},
+		{
+			TableSchema: "public",
+			TableName:   "users",
+			ColumnName:  "user_assoc_id",
+		},
+		{
+			TableSchema: "public",
+			TableName:   "users",
+			ColumnName:  "name",
+		},
+		{
+			TableSchema: "public",
+			TableName:   "user_account_associations",
+			ColumnName:  "id",
+		},
+		{
+			TableSchema: "public",
+			TableName:   "user_account_associations",
+			ColumnName:  "user_id",
+		},
+	}, nil)
+	mockSqlDb.On("GetAllPrimaryKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.PrimaryKeyConstraintsRow{
+		{
+			ConstraintName: "users",
+			SchemaName:     "public",
+			TableName:      "users",
+			ColumnName:     "id",
+		},
+		{
+			ConstraintName: "users_account_associations",
+			SchemaName:     "public",
+			TableName:      "users_account_associations",
+			ColumnName:     "id",
+		},
+	}, nil)
+	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
+		{
+			ConstraintName:    "user_account_associations",
+			SchemaName:        "public",
+			TableName:         "user_account_associations",
+			ColumnName:        "user_id",
+			ForeignSchemaName: "public",
+			ForeignTableName:  "users",
+			ForeignColumnName: "id",
+			IsNullable:        "false",
+		},
+		{
+			ConstraintName:    "fk_users_user_assoc_id_user_account_associations_id",
+			SchemaName:        "public",
+			TableName:         "users",
+			ColumnName:        "user_assoc_id",
+			ForeignSchemaName: "public",
+			ForeignTableName:  "user_account_associations",
+			ForeignColumnName: "id",
+			IsNullable:        "true",
+		},
+	}, nil)
 
-	pgquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetDatabaseSchemaRow{
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "user_assoc_id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "name",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "user_account_associations",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "user_account_associations",
-				ColumnName:  "user_id",
-			},
-		}, nil)
-	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
-		Once().
-		Return([]*pg_queries.GetTableConstraintsBySchemaRow{
-			{
-				ConstraintName:     "fk_user_account_associations_user_id_users_id",
-				SchemaName:         "public",
-				TableName:          "user_account_associations",
-				ConstraintColumns:  []string{"user_id"},
-				ForeignSchemaName:  "public",
-				ForeignTableName:   "users",
-				ForeignColumnNames: []string{"id"},
-				ConstraintType:     "f",
-				Notnullable:        []bool{true},
-			},
-			{
-				ConstraintName:     "fk_users_user_assoc_id_user_account_associations_id",
-				SchemaName:         "public",
-				TableName:          "users",
-				ConstraintColumns:  []string{"user_assoc_id"},
-				ForeignSchemaName:  "public",
-				ForeignTableName:   "user_account_associations",
-				ForeignColumnNames: []string{"id"},
-				ConstraintType:     "f",
-				Notnullable:        []bool{false},
-			},
-		}, nil)
-	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
-		Once().
-		Return(
-			[]*pg_queries.GetTableConstraintsBySchemaRow{{
-				SchemaName:        "public",
-				TableName:         "users",
-				ConstraintName:    "pk-user-id",
-				ConstraintColumns: []string{"id"},
-				ConstraintType:    "p",
-			}, {
-				SchemaName:        "public",
-				TableName:         "users_account_associations",
-				ConstraintName:    "pk-user-assoc-id",
-				ConstraintColumns: []string{"id"},
-				ConstraintType:    "p",
-			}}, nil,
-		)
-	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
+	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -2168,15 +2111,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-
-	pgcache := &sync.Map{}
-	pgcache.Store("123", pg_queries.NewMockDBTX(t))
-	pgcache.Store("456", pg_queries.NewMockDBTX(t))
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := &sync.Map{}
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
-	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
+	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
+	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
@@ -2311,86 +2247,81 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 			},
 		},
 	}), nil)
+	mockSqlManager.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.PostgresDriver}, nil)
+	mockSqlDb.On("ClosePool").Return(nil)
+	mockSqlDb.On("GetDatabaseSchema", mock.Anything).Return([]*sql_manager.DatabaseSchemaRow{
+		{
+			TableSchema: "public",
+			TableName:   "users",
+			ColumnName:  "id",
+		},
+		{
+			TableSchema: "public",
+			TableName:   "users",
+			ColumnName:  "user_assoc_id",
+		},
+		{
+			TableSchema: "public",
+			TableName:   "users",
+			ColumnName:  "name",
+		},
+		{
+			TableSchema: "public",
+			TableName:   "user_account_associations",
+			ColumnName:  "id",
+		},
+		{
+			TableSchema: "public",
+			TableName:   "user_account_associations",
+			ColumnName:  "user_id",
+		},
+	}, nil)
+	mockSqlDb.On("GetAllPrimaryKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.PrimaryKeyConstraintsRow{
+		{
+			ConstraintName: "users",
+			SchemaName:     "public",
+			TableName:      "users",
+			ColumnName:     "id",
+		},
+		{
+			ConstraintName: "users_account_associations",
+			SchemaName:     "public",
+			TableName:      "users_account_associations",
+			ColumnName:     "id",
+		},
+	}, nil)
+	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
+		{
+			ConstraintName:    "user_account_associations",
+			SchemaName:        "public",
+			TableName:         "user_account_associations",
+			ColumnName:        "user_id",
+			ForeignSchemaName: "public",
+			ForeignTableName:  "users",
+			ForeignColumnName: "id",
+			IsNullable:        "false",
+		},
+		{
+			ConstraintName:    "users",
+			SchemaName:        "public",
+			TableName:         "users",
+			ColumnName:        "user_assoc_id",
+			ForeignSchemaName: "public",
+			ForeignTableName:  "user_account_associations",
+			ForeignColumnName: "id",
+			IsNullable:        "true",
+		},
+	}, nil)
 
-	pgquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
-		Return([]*pg_queries.GetDatabaseSchemaRow{
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "user_assoc_id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "name",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "user_account_associations",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "user_account_associations",
-				ColumnName:  "user_id",
-			},
-		}, nil)
-	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
-		Once().
-		Return([]*pg_queries.GetTableConstraintsBySchemaRow{
-			{
-				ConstraintName:     "fk_user_account_associations_user_id_users_id",
-				SchemaName:         "public",
-				TableName:          "user_account_associations",
-				ConstraintColumns:  []string{"user_id"},
-				ForeignSchemaName:  "public",
-				ForeignTableName:   "users",
-				ForeignColumnNames: []string{"id"},
-				ConstraintType:     "f",
-				Notnullable:        []bool{true},
-			},
-			{
-				ConstraintName:     "fk_users_user_assoc_id_user_account_associations_id",
-				SchemaName:         "public",
-				TableName:          "users",
-				ConstraintColumns:  []string{"user_assoc_id"},
-				ForeignSchemaName:  "public",
-				ForeignTableName:   "user_account_associations",
-				ForeignColumnNames: []string{"id"},
-				ConstraintType:     "f",
-				Notnullable:        []bool{false},
-			},
-		}, nil)
-	pgquerier.On("GetTableConstraintsBySchema", mock.Anything, mock.Anything, mock.Anything).
-		Once().
-		Return(
-			[]*pg_queries.GetTableConstraintsBySchemaRow{{
-				SchemaName:        "public",
-				TableName:         "users",
-				ConstraintName:    "pk-user-id",
-				ConstraintColumns: []string{"id"},
-				ConstraintType:    "p",
-			}, {
-				SchemaName:        "public",
-				TableName:         "users_account_associations",
-				ConstraintName:    "pk-user-assoc-id",
-				ConstraintColumns: []string{"id"},
-				ConstraintType:    "p",
-			}}, nil,
-		)
-
-	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
+	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
 		slog.Default(),
 	)
+	jsonF, _ := json.MarshalIndent(resp, "", " ")
+	fmt.Printf("\n %s \n", string(jsonF))
 	require.Nil(t, err)
 	require.NotEmpty(t, resp.BenthosConfigs)
 	require.Len(t, resp.BenthosConfigs, 3)
@@ -2629,15 +2560,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) 
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformersClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-
-	pgcache := &sync.Map{}
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := &sync.Map{}
-	mysqlcache.Store("123", mysql_queries.NewMockDBTX(t))
-	mysqlcache.Store("456", mysql_queries.NewMockDBTX(t))
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
-	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
+	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
+	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
@@ -2734,55 +2658,58 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) 
 			},
 		},
 	}), nil)
-
-	mysqlquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
-		Return([]*mysql_queries.GetDatabaseSchemaRow{
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "name",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "user_account_associations",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "user_account_associations",
-				ColumnName:  "user_id",
-			},
-		}, nil)
-	mysqlquerier.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*mysql_queries.GetForeignKeyConstraintsRow{
-			{
-				ConstraintName:    "fk_user_account_associations_user_id_users_id",
-				SchemaName:        "public",
-				TableName:         "user_account_associations",
-				ColumnName:        "user_id",
-				ForeignSchemaName: "public",
-				ForeignTableName:  "users",
-				ForeignColumnName: "id",
-			},
-		}, nil)
-	mysqlquerier.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*mysql_queries.GetPrimaryKeyConstraintsRow{{
+	mockSqlManager.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.MysqlDriver}, nil)
+	mockSqlDb.On("ClosePool").Return(nil)
+	mockSqlDb.On("GetDatabaseSchema", mock.Anything).Return([]*sql_manager.DatabaseSchemaRow{
+		{
+			TableSchema: "public",
+			TableName:   "users",
+			ColumnName:  "id",
+		},
+		{
+			TableSchema: "public",
+			TableName:   "users",
+			ColumnName:  "name",
+		},
+		{
+			TableSchema: "public",
+			TableName:   "user_account_associations",
+			ColumnName:  "id",
+		},
+		{
+			TableSchema: "public",
+			TableName:   "user_account_associations",
+			ColumnName:  "user_id",
+		},
+	}, nil)
+	mockSqlDb.On("GetAllPrimaryKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.PrimaryKeyConstraintsRow{
+		{
+			ConstraintName: "users",
 			SchemaName:     "public",
 			TableName:      "users",
-			ConstraintName: "pk-users-id",
 			ColumnName:     "id",
-		}, {
+		},
+		{
+			ConstraintName: "user_account_associations",
 			SchemaName:     "public",
 			TableName:      "user_account_associations",
-			ConstraintName: "pk-users-assoc-id",
 			ColumnName:     "id",
-		}}, nil)
-	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformersClient, mockJobId, mockRunId, nil, false)
+		},
+	}, nil)
+	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
+		{
+			ConstraintName:    "user_account_associations",
+			SchemaName:        "public",
+			TableName:         "user_account_associations",
+			ColumnName:        "user_id",
+			ForeignSchemaName: "public",
+			ForeignTableName:  "users",
+			ForeignColumnName: "id",
+			IsNullable:        "false",
+		},
+	}, nil)
+
+	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformersClient, mockJobId, mockRunId, nil, false)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
@@ -2919,16 +2846,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_
 	mockJobClient := mgmtv1alpha1connect.NewMockJobServiceClient(t)
 	mockConnectionClient := mgmtv1alpha1connect.NewMockConnectionServiceClient(t)
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-	mockSqlConnector := sqlconnect.NewMockSqlConnector(t)
-
-	pgcache := &sync.Map{}
-	pgquerier := pg_queries.NewMockQuerier(t)
-	mysqlcache := &sync.Map{}
-	mysqlcache.Store("123", mysql_queries.NewMockDBTX(t))
-	mysqlcache.Store("456", mysql_queries.NewMockDBTX(t))
-
-	mysqlquerier := mysql_queries.NewMockQuerier(t)
-	mockSqlAdapter := sql_manager.NewSqlManager(pgcache, pgquerier, mysqlcache, mysqlquerier, mockSqlConnector)
+	mockSqlDb := sql_manager.NewMockSqlDatabase(t)
+	mockSqlManager := sql_manager.NewMockSqlManagerClient(t)
 
 	mockJobClient.On("GetJob", mock.Anything, mock.Anything).
 		Return(connect.NewResponse(&mgmtv1alpha1.GetJobResponse{
@@ -3034,72 +2953,73 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_
 		},
 	}), nil)
 
-	mysqlquerier.On("GetDatabaseSchema", mock.Anything, mock.Anything).
-		Return([]*mysql_queries.GetDatabaseSchemaRow{
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "user_assoc_id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "users",
-				ColumnName:  "name",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "user_account_associations",
-				ColumnName:  "id",
-			},
-			{
-				TableSchema: "public",
-				TableName:   "user_account_associations",
-				ColumnName:  "user_id",
-			},
-		}, nil)
-	mysqlquerier.On("GetForeignKeyConstraints", mock.Anything, mock.Anything, mock.Anything).
-		Return([]*mysql_queries.GetForeignKeyConstraintsRow{
-			{
-				ConstraintName:    "fk_user_account_associations_user_id_users_id",
-				SchemaName:        "public",
-				TableName:         "user_account_associations",
-				ColumnName:        "user_id",
-				ForeignSchemaName: "public",
-				ForeignTableName:  "users",
-				ForeignColumnName: "id",
-				IsNullable:        "NO",
-			},
-			{
-				ConstraintName:    "fk_users_user_assoc_id_user_account_associations_id",
-				SchemaName:        "public",
-				TableName:         "users",
-				ColumnName:        "user_assoc_id",
-				ForeignSchemaName: "public",
-				ForeignTableName:  "user_account_associations",
-				ForeignColumnName: "id",
-				IsNullable:        "YES",
-			},
-		}, nil)
-	mysqlquerier.On("GetPrimaryKeyConstraints", mock.Anything, mock.Anything, mock.Anything).Return([]*mysql_queries.GetPrimaryKeyConstraintsRow{
+	mockSqlManager.On("NewSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb, Driver: sql_manager.MysqlDriver}, nil)
+	mockSqlDb.On("ClosePool").Return(nil)
+	mockSqlDb.On("GetDatabaseSchema", mock.Anything).Return([]*sql_manager.DatabaseSchemaRow{
 		{
-			ConstraintName: "pkey-user-id",
+			TableSchema: "public",
+			TableName:   "users",
+			ColumnName:  "id",
+		},
+		{
+			TableSchema: "public",
+			TableName:   "users",
+			ColumnName:  "user_assoc_id",
+		},
+		{
+			TableSchema: "public",
+			TableName:   "users",
+			ColumnName:  "name",
+		},
+		{
+			TableSchema: "public",
+			TableName:   "user_account_associations",
+			ColumnName:  "id",
+		},
+		{
+			TableSchema: "public",
+			TableName:   "user_account_associations",
+			ColumnName:  "user_id",
+		},
+	}, nil)
+	mockSqlDb.On("GetAllPrimaryKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.PrimaryKeyConstraintsRow{
+		{
+			ConstraintName: "users",
 			SchemaName:     "public",
 			TableName:      "users",
 			ColumnName:     "id",
 		},
 		{
-			ConstraintName: "pkey-user-assoc-id",
+			ConstraintName: "orders",
 			SchemaName:     "public",
 			TableName:      "users_account_associations",
 			ColumnName:     "id",
 		},
 	}, nil)
-	bbuilder := newBenthosBuilder(*mockSqlAdapter, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
+	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
+		{
+			ConstraintName:    "fk_user_account_associations_user_id_users_id",
+			SchemaName:        "public",
+			TableName:         "user_account_associations",
+			ColumnName:        "user_id",
+			ForeignSchemaName: "public",
+			ForeignTableName:  "users",
+			ForeignColumnName: "id",
+			IsNullable:        "false",
+		},
+		{
+			ConstraintName:    "fk_users_user_assoc_id_user_account_associations_id",
+			SchemaName:        "public",
+			TableName:         "users",
+			ColumnName:        "user_assoc_id",
+			ForeignSchemaName: "public",
+			ForeignTableName:  "user_account_associations",
+			ForeignColumnName: "id",
+			IsNullable:        "true",
+		},
+	}, nil)
+
+	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, nil, false)
 
 	resp, err := bbuilder.GenerateBenthosConfigs(
 		context.Background(),
