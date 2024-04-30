@@ -311,7 +311,7 @@ JOIN
 WHERE
     con.connamespace::regnamespace::text = $1 AND con.conrelid::regclass::text = $2
 GROUP BY
-    con.oid, con.conname, cls.relname, fn_cl.relnamespace, fn_cl.relname, con.contype
+    con.oid, con.connamespace, con.conname, cls.relname, fn_cl.relnamespace, fn_cl.relname, con.contype
 `
 
 type GetTableConstraintsParams struct {
@@ -402,7 +402,7 @@ JOIN
 WHERE
     con.connamespace::regnamespace::text = ANY($1::text[])
 GROUP BY
-    con.oid, con.conname, cls.relname, fn_cl.relnamespace, fn_cl.relname, con.contype
+    con.oid, con.connamespace, con.conname, cls.relname, fn_cl.relnamespace, fn_cl.relname, con.contype
 `
 
 type GetTableConstraintsBySchemaRow struct {

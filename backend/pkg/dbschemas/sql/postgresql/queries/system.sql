@@ -164,7 +164,7 @@ JOIN
 WHERE
     con.connamespace::regnamespace::text = sqlc.arg('schema') AND con.conrelid::regclass::text = sqlc.arg('table')
 GROUP BY
-    con.oid, con.conname, cls.relname, fn_cl.relnamespace, fn_cl.relname, con.contype;
+    con.oid, con.connamespace, con.conname, cls.relname, fn_cl.relnamespace, fn_cl.relname, con.contype;
 
 -- name: GetTableConstraintsBySchema :many
 SELECT
@@ -205,7 +205,7 @@ JOIN
 WHERE
     con.connamespace::regnamespace::text = ANY(sqlc.arg('schema')::text[])
 GROUP BY
-    con.oid, con.conname, cls.relname, fn_cl.relnamespace, fn_cl.relname, con.contype;
+    con.oid, con.connamespace, con.conname, cls.relname, fn_cl.relnamespace, fn_cl.relname, con.contype;
 
 -- name: GetPostgresRolePermissions :many
 SELECT
