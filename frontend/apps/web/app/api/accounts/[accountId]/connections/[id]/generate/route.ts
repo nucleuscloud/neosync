@@ -13,19 +13,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   })(req);
 }
 
-// eslint-disable-next-lint @typescript-eslint/no-explicit-any
-function fromStructToRecord(struct: Struct): Record<string, any> {
+function fromStructToRecord(struct: Struct): Record<string, unknown> {
   return Object.entries(struct.fields).reduce(
     (output, [key, value]) => {
       output[key] = handleValue(value);
       return output;
     },
-    {} as Record<string, any>
+    {} as Record<string, unknown>
   );
 }
 
-// eslint-disable-next-lint @typescript-eslint/no-explicit-any
-function handleValue(value: Value): any {
+function handleValue(value: Value): unknown {
   switch (value.kind.case) {
     case 'structValue': {
       return fromStructToRecord(value.kind.value);
