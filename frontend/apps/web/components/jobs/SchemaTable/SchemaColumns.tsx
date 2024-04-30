@@ -18,8 +18,9 @@ import {
 import { SystemTransformer, TransformerSource } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ColumnDef, Row } from '@tanstack/react-table';
-import { HTMLProps, ReactElement, useEffect, useRef } from 'react';
+import { HTMLProps, useEffect, useRef } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
+import SchemaRowAlert from './RowAlert';
 import { SchemaColumnHeader } from './SchemaColumnHeader';
 import { Row as RowData } from './SchemaPageTable';
 import TransformerSelect from './TransformerSelect';
@@ -43,54 +44,16 @@ export function fromRowDataToColKey(row: Row<RowData>): ColumnKey {
     column: row.getValue('column'),
   };
 }
-function toColKey(schema: string, table: string, column: string): ColumnKey {
+export function toColKey(
+  schema: string,
+  table: string,
+  column: string
+): ColumnKey {
   return {
     schema,
     table,
     column,
   };
-}
-
-interface SchemaRowAlertProps {
-  row: Row<RowData>;
-  handler: SchemaConstraintHandler;
-  onRemoveClick(): void;
-}
-
-function SchemaRowAlert(props: SchemaRowAlertProps): ReactElement {
-  const { row, handler, onRemoveClick } = props;
-  const key: ColumnKey = {
-    schema: row.getValue('schema'),
-    table: row.getValue('table'),
-    column: row.getValue('column'),
-  };
-  const isInSchema = handler.getIsInSchema(key);
-
-  const messages: string[] = [];
-
-  if (!isInSchema) {
-    messages.push('This column was not found in the backing source schema');
-  }
-
-  if (messages.length === 0) {
-    return <div className="hidden" />;
-  }
-
-  return (
-    <TooltipProvider delayDuration={100}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <ExclamationTriangleIcon
-            className="text-yellow-600 dark:text-yellow-300 cursor-pointer"
-            onClick={() => onRemoveClick()}
-          />
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>{messages.join('\n')}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
 }
 
 interface Props {
@@ -446,7 +409,7 @@ function IndeterminateCheckbox({
 }
 
 // cleans up the data type values since some are too long , can add on more here
-function handleDataTypeBadge(dataType: string): string {
+export function handleDataTypeBadge(dataType: string): string {
   // Check for "timezone" and replace accordingly without entering the switch
   if (dataType.includes('timezone')) {
     return dataType

@@ -187,3 +187,13 @@ export const AWS_FORM_SCHEMA = Yup.object({
 });
 
 export type AWSFormValues = Yup.InferType<typeof AWS_FORM_SCHEMA>;
+
+export const OpenAiFormValues = Yup.object({
+  connectionName: connectionNameSchema,
+  sdk: Yup.object({
+    url: Yup.string().required('A URL must be provided.'),
+    apiKey: Yup.string().required('An API Key must be provided.'),
+  }).required(),
+});
+
+export type OpenAiFormValues = Yup.InferType<typeof OpenAiFormValues>;

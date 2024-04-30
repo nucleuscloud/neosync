@@ -57,7 +57,7 @@ export default function DualListBox(props: Props): ReactElement {
           onRowSelectionChange={setLeftSelected}
           rowSelection={leftSelected}
           mode={mode}
-          noDataMessage={getLeftBoxNoMessage(options, leftData)}
+          noDataMessage={getLeftBoxNoMessage(options, leftData, mode)}
         />
       </div>
       <div className="flex flex-row md:flex-col justify-center gap-2">
@@ -144,14 +144,18 @@ export default function DualListBox(props: Props): ReactElement {
           onRowSelectionChange={setRightSelected}
           rowSelection={rightSelected}
           mode={mode}
-          noDataMessage={getRightBoxNoMessage(options, rightData)}
+          noDataMessage={getRightBoxNoMessage(options, rightData, mode)}
         />
       </div>
     </div>
   );
 }
 
-function getLeftBoxNoMessage(options: Option[], leftData: Row[]): string {
+function getLeftBoxNoMessage(
+  options: Option[],
+  leftData: Row[],
+  _mode: Mode
+): string {
   // this isnt super useful right now because the options are always a combination of schema+jobmappings
   if (options.length === 0) {
     return 'Unable to load schema from connection';
@@ -162,12 +166,20 @@ function getLeftBoxNoMessage(options: Option[], leftData: Row[]): string {
   return '';
 }
 
-function getRightBoxNoMessage(options: Option[], rightData: Row[]): string {
+function getRightBoxNoMessage(
+  options: Option[],
+  rightData: Row[],
+  mode: Mode
+): string {
   if (options.length === 0) {
     return 'Unable to load schema from connection';
   }
   if (rightData.length === 0) {
-    return 'Add tables to get started!';
+    if (mode === 'many') {
+      return 'Add tables to get started!';
+    } else {
+      return 'Add a table to get started!';
+    }
   }
   return '';
 }

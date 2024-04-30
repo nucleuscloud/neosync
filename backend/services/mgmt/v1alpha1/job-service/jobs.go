@@ -377,6 +377,11 @@ func (s *Service) CreateJob(
 		if fkConnId != "" {
 			connectionIdToVerify = &fkConnId
 		}
+	case *mgmtv1alpha1.JobSourceOptions_AiGenerate:
+		fkConnId := config.AiGenerate.GetFkSourceConnectionId()
+		if fkConnId != "" {
+			connectionIdToVerify = &fkConnId
+		}
 	default:
 		return nil, errors.New("unsupported source option config type")
 	}
@@ -886,6 +891,11 @@ func (s *Service) UpdateJobSourceConnection(
 		if fkConnId != "" {
 			connectionIdToVerify = &fkConnId
 		}
+	case *mgmtv1alpha1.JobSourceOptions_AiGenerate:
+		fkConnId := config.AiGenerate.GetFkSourceConnectionId()
+		if fkConnId != "" {
+			connectionIdToVerify = &fkConnId
+		}
 	}
 
 	// verifies that the account has access to that connection id
@@ -901,35 +911,37 @@ func (s *Service) UpdateJobSourceConnection(
 	}))
 
 	// Type checking that the connection config that we want to use for the job is the same as the incoming job source config type
-	switch conn.Msg.Connection.ConnectionConfig.Config.(type) {
+	switch cconfig := conn.Msg.Connection.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		if _, ok := req.Msg.Source.Options.Config.(*mgmtv1alpha1.JobSourceOptions_Mysql); !ok {
-			if _, ok = req.Msg.Source.Options.Config.(*mgmtv1alpha1.JobSourceOptions_Generate); !ok {
-				return nil, fmt.Errorf("job source option config type and connection type mismatch")
-			}
+		dbConf := req.Msg.GetSource().GetOptions().GetMysql()
+		generateConf := req.Msg.GetSource().GetOptions().GetGenerate()
+		aigenerateConf := req.Msg.GetSource().GetOptions().GetAiGenerate()
+		if dbConf == nil && generateConf == nil && aigenerateConf == nil {
+			return nil, nucleuserrors.NewBadRequest("job source option config type and connection type mismatch")
 		}
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		if _, ok := req.Msg.Source.Options.Config.(*mgmtv1alpha1.JobSourceOptions_Postgres); !ok {
-			if _, ok = req.Msg.Source.Options.Config.(*mgmtv1alpha1.JobSourceOptions_Generate); !ok {
-				return nil, fmt.Errorf("job source option config type and connection type mismatch")
-			}
+		dbConf := req.Msg.GetSource().GetOptions().GetPostgres()
+		generateConf := req.Msg.GetSource().GetOptions().GetGenerate()
+		aigenerateConf := req.Msg.GetSource().GetOptions().GetAiGenerate()
+		if dbConf == nil && generateConf == nil && aigenerateConf == nil {
+			return nil, nucleuserrors.NewBadRequest("job source option config type and connection type mismatch")
 		}
 	case *mgmtv1alpha1.ConnectionConfig_AwsS3Config:
 		if _, ok := req.Msg.Source.Options.Config.(*mgmtv1alpha1.JobSourceOptions_AwsS3); !ok {
 			return nil, fmt.Errorf("job source option config type and connection type mismatch")
 		}
 	default:
-		return nil, nucleuserrors.NewNotImplemented("this connection config is not currently supported")
+		return nil, nucleuserrors.NewNotImplemented(fmt.Sprintf("connection config is not currently supported: %T", cconfig))
 	}
 
 	connectionOptions := &pg_models.JobSourceOptions{}
-	err = connectionOptions.FromDto(req.Msg.Source.Options)
+	err = connectionOptions.FromDto(req.Msg.GetSource().GetOptions())
 	if err != nil {
 		return nil, err
 	}
 
 	mappings := []*pg_models.JobMapping{}
-	for _, mapping := range req.Msg.Mappings {
+	for _, mapping := range req.Msg.GetMappings() {
 		jm := &pg_models.JobMapping{}
 		err = jm.FromDto(mapping)
 		if err != nil {
@@ -946,8 +958,7 @@ func (s *Service) UpdateJobSourceConnection(
 			UpdatedByID: *userUuid,
 		})
 		if err != nil {
-			logger.Error(fmt.Errorf("unable to update job source: %w", err).Error())
-			return err
+			return fmt.Errorf("unable to update job source: %w", err)
 		}
 
 		_, err = s.db.Q.UpdateJobMappings(ctx, dbtx, db_queries.UpdateJobMappingsParams{
@@ -956,8 +967,7 @@ func (s *Service) UpdateJobSourceConnection(
 			UpdatedByID: *userUuid,
 		})
 		if err != nil {
-			logger.Error(fmt.Errorf("unable to update job mappings: %w", err).Error())
-			return err
+			return fmt.Errorf("unable to update job mappings: %w", err)
 		}
 
 		return nil
@@ -969,8 +979,7 @@ func (s *Service) UpdateJobSourceConnection(
 		Id: req.Msg.Id,
 	}))
 	if err != nil {
-		logger.Error(fmt.Errorf("unable to retrieve job: %w", err).Error())
-		return nil, err
+		return nil, fmt.Errorf("unable to retrieve job after source update: %w", err)
 	}
 
 	return connect.NewResponse(&mgmtv1alpha1.UpdateJobSourceConnectionResponse{

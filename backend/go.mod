@@ -13,6 +13,8 @@ require (
 	connectrpc.com/grpcreflect v1.2.0
 	connectrpc.com/otelconnect v0.7.0
 	connectrpc.com/validate v0.1.0
+	github.com/Azure/azure-sdk-for-go/sdk/ai/azopenai v0.5.1
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.11.1
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/auth0/go-auth0 v1.5.0
 	github.com/auth0/go-jwt-middleware/v2 v2.2.1
@@ -57,7 +59,6 @@ require (
 	cuelang.org/go v0.7.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.9.2 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.5.2 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.2.1 // indirect
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect

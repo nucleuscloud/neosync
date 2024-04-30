@@ -371,6 +371,12 @@ export class JobSourceOptions extends Message<JobSourceOptions> {
      */
     value: GenerateSourceOptions;
     case: "generate";
+  } | {
+    /**
+     * @generated from field: mgmt.v1alpha1.AiGenerateSourceOptions ai_generate = 5;
+     */
+    value: AiGenerateSourceOptions;
+    case: "aiGenerate";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<JobSourceOptions>) {
@@ -385,6 +391,7 @@ export class JobSourceOptions extends Message<JobSourceOptions> {
     { no: 2, name: "aws_s3", kind: "message", T: AwsS3SourceConnectionOptions, oneof: "config" },
     { no: 3, name: "mysql", kind: "message", T: MysqlSourceConnectionOptions, oneof: "config" },
     { no: 4, name: "generate", kind: "message", T: GenerateSourceOptions, oneof: "config" },
+    { no: 5, name: "ai_generate", kind: "message", T: AiGenerateSourceOptions, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): JobSourceOptions {
@@ -493,6 +500,157 @@ export class JobDestination extends Message<JobDestination> {
 
   static equals(a: JobDestination | PlainMessage<JobDestination> | undefined, b: JobDestination | PlainMessage<JobDestination> | undefined): boolean {
     return proto3.util.equals(JobDestination, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.AiGenerateSourceOptions
+ */
+export class AiGenerateSourceOptions extends Message<AiGenerateSourceOptions> {
+  /**
+   * @generated from field: string ai_connection_id = 1;
+   */
+  aiConnectionId = "";
+
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.AiGenerateSourceSchemaOption schemas = 2;
+   */
+  schemas: AiGenerateSourceSchemaOption[] = [];
+
+  /**
+   * @generated from field: optional string fk_source_connection_id = 3;
+   */
+  fkSourceConnectionId?: string;
+
+  /**
+   * The name of the model to use
+   *
+   * @generated from field: string model_name = 4;
+   */
+  modelName = "";
+
+  /**
+   * Optionally provide a user prompt to give more context to the schema
+   *
+   * @generated from field: optional string user_prompt = 5;
+   */
+  userPrompt?: string;
+
+  constructor(data?: PartialMessage<AiGenerateSourceOptions>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.AiGenerateSourceOptions";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "ai_connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "schemas", kind: "message", T: AiGenerateSourceSchemaOption, repeated: true },
+    { no: 3, name: "fk_source_connection_id", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 4, name: "model_name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "user_prompt", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AiGenerateSourceOptions {
+    return new AiGenerateSourceOptions().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AiGenerateSourceOptions {
+    return new AiGenerateSourceOptions().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AiGenerateSourceOptions {
+    return new AiGenerateSourceOptions().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AiGenerateSourceOptions | PlainMessage<AiGenerateSourceOptions> | undefined, b: AiGenerateSourceOptions | PlainMessage<AiGenerateSourceOptions> | undefined): boolean {
+    return proto3.util.equals(AiGenerateSourceOptions, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.AiGenerateSourceSchemaOption
+ */
+export class AiGenerateSourceSchemaOption extends Message<AiGenerateSourceSchemaOption> {
+  /**
+   * @generated from field: string schema = 1;
+   */
+  schema = "";
+
+  /**
+   * @generated from field: repeated mgmt.v1alpha1.AiGenerateSourceTableOption tables = 2;
+   */
+  tables: AiGenerateSourceTableOption[] = [];
+
+  constructor(data?: PartialMessage<AiGenerateSourceSchemaOption>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.AiGenerateSourceSchemaOption";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "schema", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "tables", kind: "message", T: AiGenerateSourceTableOption, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AiGenerateSourceSchemaOption {
+    return new AiGenerateSourceSchemaOption().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AiGenerateSourceSchemaOption {
+    return new AiGenerateSourceSchemaOption().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AiGenerateSourceSchemaOption {
+    return new AiGenerateSourceSchemaOption().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AiGenerateSourceSchemaOption | PlainMessage<AiGenerateSourceSchemaOption> | undefined, b: AiGenerateSourceSchemaOption | PlainMessage<AiGenerateSourceSchemaOption> | undefined): boolean {
+    return proto3.util.equals(AiGenerateSourceSchemaOption, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.AiGenerateSourceTableOption
+ */
+export class AiGenerateSourceTableOption extends Message<AiGenerateSourceTableOption> {
+  /**
+   * @generated from field: string table = 1;
+   */
+  table = "";
+
+  /**
+   * @generated from field: int64 row_count = 2;
+   */
+  rowCount = protoInt64.zero;
+
+  constructor(data?: PartialMessage<AiGenerateSourceTableOption>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.AiGenerateSourceTableOption";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "table", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "row_count", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AiGenerateSourceTableOption {
+    return new AiGenerateSourceTableOption().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AiGenerateSourceTableOption {
+    return new AiGenerateSourceTableOption().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AiGenerateSourceTableOption {
+    return new AiGenerateSourceTableOption().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AiGenerateSourceTableOption | PlainMessage<AiGenerateSourceTableOption> | undefined, b: AiGenerateSourceTableOption | PlainMessage<AiGenerateSourceTableOption> | undefined): boolean {
+    return proto3.util.equals(AiGenerateSourceTableOption, a, b);
   }
 }
 

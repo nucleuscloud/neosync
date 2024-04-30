@@ -1,4 +1,5 @@
 import { NeonLogo } from '@/app/(mgmt)/[account]/new/connection/neon/NeonLogo';
+import { OpenAiLogo } from '@/app/(mgmt)/[account]/new/connection/openai/OpenAiLogo';
 import { SupabaseLogo } from '@/app/(mgmt)/[account]/new/connection/supabase/SupabaseLogo';
 import { ReactElement } from 'react';
 import { IconContext } from 'react-icons';
@@ -50,6 +51,13 @@ export default function ConnectionIcon(props: Props): ReactElement | null {
       return (
         <IconContext.Provider value={{ style: { width, height } }}>
           <SupabaseLogo />
+        </IconContext.Provider>
+      );
+    }
+    case 'openai': {
+      return (
+        <IconContext.Provider value={{ style: { width, height } }}>
+          <OpenAiLogo />
         </IconContext.Provider>
       );
     }

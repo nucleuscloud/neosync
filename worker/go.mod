@@ -10,6 +10,8 @@ require (
 	connectrpc.com/connect v1.16.1
 	connectrpc.com/grpchealth v1.3.0
 	connectrpc.com/grpcreflect v1.2.0
+	github.com/Azure/azure-sdk-for-go/sdk/ai/azopenai v0.5.1
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.11.1
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/Jeffail/shutdown v1.0.0
 	github.com/benthosdev/benthos/v4 v4.27.0
@@ -45,7 +47,6 @@ require (
 	cuelang.org/go v0.7.0 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.9.2 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.5.2 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.2.1 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
@@ -176,6 +177,7 @@ require (
 	github.com/jcmturner/rpc/v2 v2.0.3 // indirect
 	github.com/jhump/protoreflect v1.15.6 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
+	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/klauspost/compress v1.17.7 // indirect

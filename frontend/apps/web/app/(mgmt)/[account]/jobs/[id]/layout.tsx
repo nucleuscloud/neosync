@@ -20,7 +20,7 @@ import { LightningBoltIcon, TrashIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import JobIdSkeletonForm from './JobIdSkeletonForm';
 import JobPauseButton from './components/JobPauseButton';
-import { isDataGenJob } from './util';
+import { isAiDataGenJob, isDataGenJob } from './util';
 
 export default function JobIdLayout({ children, params }: LayoutProps) {
   const id = params?.id ?? '';
@@ -108,6 +108,13 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
       ? sidebarNavItems.filter((item) => !item.href.endsWith('/usage'))
       : sidebarNavItems;
 
+  let badgeValue = 'Sync Job';
+  if (data.job.source?.options?.config.case === 'generate') {
+    badgeValue = 'Generate Job';
+  } else if (data.job.source?.options?.config.case === 'aiGenerate') {
+    badgeValue = 'AI Generate Job';
+  }
+
   return (
     <div>
       <OverviewContainer
@@ -123,11 +130,7 @@ export default function JobIdLayout({ children, params }: LayoutProps) {
                   onHoverText="Copy the Job ID"
                 />
               }
-              leftBadgeValue={
-                data.job.source?.options?.config.case === 'generate'
-                  ? 'Generate Job'
-                  : 'Sync Job'
-              }
+              leftBadgeValue={badgeValue}
               extraHeading={
                 <div className="flex flex-row space-x-4">
                   <DeleteConfirmationDialog
@@ -179,7 +182,7 @@ function getSidebarNavItems(accountName: string, job?: Job): SidebarNav[] {
   }
   const basePath = `/${accountName}/jobs/${job.id}`;
 
-  if (isDataGenJob(job)) {
+  if (isDataGenJob(job) || isAiDataGenJob(job)) {
     return [
       {
         title: 'Overview',
@@ -190,7 +193,7 @@ function getSidebarNavItems(accountName: string, job?: Job): SidebarNav[] {
         href: `${basePath}/source`,
       },
       {
-        title: 'Destinations',
+        title: 'Destination',
         href: `${basePath}/destinations`,
       },
       {

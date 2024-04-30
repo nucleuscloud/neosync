@@ -19,5 +19,17 @@ export function getFkIdFromGenerateSource(
   if (js?.options?.config.case === 'generate') {
     return js.options.config.value.fkSourceConnectionId;
   }
+  if (js?.options?.config.case === 'aiGenerate') {
+    return js.options.config.value.fkSourceConnectionId;
+  }
+  return undefined;
+}
+
+export function getAiConnFromAiGenerateSource(
+  js: JobSource | undefined
+): string | undefined {
+  if (js?.options?.config.case === 'aiGenerate') {
+    return js.options.config.value.aiConnectionId;
+  }
   return undefined;
 }

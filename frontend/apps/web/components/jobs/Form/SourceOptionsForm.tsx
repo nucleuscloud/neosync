@@ -74,6 +74,8 @@ export default function SourceOptionsForm(
       return <></>;
     case 'awsS3Config':
       return <></>;
+    case 'openaiConfig':
+      return <></>;
     default:
       return (
         <div>

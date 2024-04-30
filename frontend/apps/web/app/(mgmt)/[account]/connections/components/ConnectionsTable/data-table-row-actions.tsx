@@ -125,6 +125,8 @@ export function getConnectionType(connType: string): string {
       return 'mysql';
     case 'awsS3Config':
       return 'aws-s3';
+    case 'openaiConfig':
+      return 'openai';
     default:
       return 'postgres';
   }

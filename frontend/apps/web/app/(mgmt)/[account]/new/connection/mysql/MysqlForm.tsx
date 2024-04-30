@@ -63,7 +63,7 @@ import {
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ReactElement, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { GetConnectionCloneValues } from '../postgres/PostgresForm';
+import { getConnection } from '@/libs/hooks/useGetConnection';
 
 export default function MysqlForm() {
   const { account } = useAccount();
@@ -195,10 +195,7 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
       if (sourceConnId && account?.id) {
         setIsLoading(true);
         try {
-          const connData = await GetConnectionCloneValues(
-            account.id,
-            sourceConnId
-          );
+          const connData = await getConnection(account.id, sourceConnId);
 
           if (
             connData &&
