@@ -11,7 +11,7 @@ export default function DeploymentOptions(): ReactElement {
       name: 'Open Source',
       description:
         'Deploy Neosync on your infrastructure using Helm or Docker Compose.',
-      link: 'github.com/nucleuscloud/neosync',
+      link: 'https://github.com/nucleuscloud/neosync',
       image: '/images/osdeploy.svg',
     },
     {
