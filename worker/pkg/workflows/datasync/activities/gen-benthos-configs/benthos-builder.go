@@ -103,7 +103,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	case *mgmtv1alpha1.JobSourceOptions_AiGenerate:
 		sourceResponses, aimappings, err := b.getAiGenerateBenthosConfigResponses(ctx, job, slogger)
 		if err != nil {
-			return nil, fmt.Errorf("unable to build benthos ai generate source config responses: %w", err)
+			return nil, fmt.Errorf("unable to build benthos AI Generate source config responses: %w", err)
 		}
 		aiGenerateMappings = aimappings
 		responses = append(responses, sourceResponses...)
