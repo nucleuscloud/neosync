@@ -62,6 +62,8 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 		return &WorkflowResponse{}, nil
 	}
 
+	splitConfigs := splitBenthosConfigs(bcResp.BenthosConfigs)
+
 	var actOptResp *syncactivityopts_activity.RetrieveActivityOptionsResponse
 	ctx = workflow.WithActivityOptions(wfctx, workflow.ActivityOptions{
 		StartToCloseTimeout: 1 * time.Minute,
@@ -105,7 +107,6 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 
 	workselector := workflow.NewSelector(ctx)
 
-	splitConfigs := splitBenthosConfigs(bcResp.BenthosConfigs)
 	var activityErr error
 	childctx, cancelHandler := workflow.WithCancel(ctx)
 
@@ -166,7 +167,6 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 			logger := log.With(logger, withBenthosConfigResponseLoggerTags(bc)...)
 			future := invokeSync(bc, childctx, &started, &completed, logger)
 			workselector.AddFuture(future, func(f workflow.Future) {
-				logger.Info("config sync completed", "name", bc.Name)
 				var result sync_activity.SyncResponse
 				err := f.Get(childctx, &result)
 				if err != nil {
@@ -178,6 +178,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 					cancelHandler()
 					activityErr = err
 				}
+				logger.Info("config sync completed", "name", bc.Name)
 				delete(allDependsOn, bc.Name)
 				// clean up redis
 				err = runRedisCleanUpActivity(wfctx, logger, actOptResp, allDependsOn, req.JobId, wfinfo.WorkflowExecution.ID, redisConfigs)

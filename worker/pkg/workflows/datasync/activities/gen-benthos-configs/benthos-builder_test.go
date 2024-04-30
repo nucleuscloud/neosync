@@ -821,8 +821,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Transformer_Pg_Pg(t *
 	require.NoError(t, err)
 	require.NotEmpty(t, resp.BenthosConfigs)
 	require.Len(t, resp.BenthosConfigs, 2)
-	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
-	require.Equal(t, bc.Name, "public.users")
+	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users.insert")
+	require.Equal(t, bc.Name, "public.users.insert")
 	require.Len(t, bc.RedisConfig, 1)
 	require.Equal(t, bc.RedisConfig[0].Table, "public.users")
 	require.Equal(t, bc.RedisConfig[0].Column, "id")
@@ -887,8 +887,8 @@ output:
 `),
 	)
 
-	bc = getBenthosConfigByName(resp.BenthosConfigs, "public.orders")
-	require.Equal(t, bc.Name, "public.orders")
+	bc = getBenthosConfigByName(resp.BenthosConfigs, "public.orders.insert")
+	require.Equal(t, bc.Name, "public.orders.insert")
 	require.Empty(t, bc.RedisConfig)
 	out, err = yaml.Marshal(bc.Config)
 	require.NoError(t, err)
@@ -1144,8 +1144,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Passthrough_Pg_Pg(t *
 	require.Nil(t, err)
 	require.NotEmpty(t, resp.BenthosConfigs)
 	require.Len(t, resp.BenthosConfigs, 2)
-	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
-	require.Equal(t, bc.Name, "public.users")
+	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users.insert")
+	require.Equal(t, bc.Name, "public.users.insert")
 	require.Empty(t, bc.RedisConfig)
 	out, err := yaml.Marshal(bc.Config)
 	require.NoError(t, err)
@@ -1196,8 +1196,8 @@ output:
 `),
 	)
 
-	bc = getBenthosConfigByName(resp.BenthosConfigs, "public.orders")
-	require.Equal(t, bc.Name, "public.orders")
+	bc = getBenthosConfigByName(resp.BenthosConfigs, "public.orders.insert")
+	require.Equal(t, bc.Name, "public.orders.insert")
 	require.Empty(t, bc.RedisConfig)
 	out, err = yaml.Marshal(bc.Config)
 	require.NoError(t, err)
@@ -1419,8 +1419,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_CircularDependency_PrimaryKey_Tr
 	require.NoError(t, err)
 	require.NotEmpty(t, resp.BenthosConfigs)
 	require.Len(t, resp.BenthosConfigs, 2)
-	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.jobs")
-	require.Equal(t, bc.Name, "public.jobs")
+	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.jobs.insert")
+	require.Equal(t, bc.Name, "public.jobs.insert")
 	require.Len(t, bc.RedisConfig, 1)
 	require.Equal(t, bc.RedisConfig[0].Table, "public.jobs")
 	require.Equal(t, bc.RedisConfig[0].Column, "id")
@@ -1752,15 +1752,15 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 	require.NotEmpty(t, resp.BenthosConfigs)
 	require.Len(t, resp.BenthosConfigs, 2)
 
-	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
+	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users.insert")
 	require.NotNil(t, bc)
-	require.Equal(t, bc.Name, "public.users")
+	require.Equal(t, bc.Name, "public.users.insert")
 	require.Empty(t, bc.DependsOn)
 	out, err := yaml.Marshal(bc.Config)
 	require.NoError(t, err)
 
-	bc2 := getBenthosConfigByName(resp.BenthosConfigs, "public.user_account_associations")
-	require.Equal(t, bc2.Name, "public.user_account_associations")
+	bc2 := getBenthosConfigByName(resp.BenthosConfigs, "public.user_account_associations.insert")
+	require.Equal(t, bc2.Name, "public.user_account_associations.insert")
 	require.Equal(t, bc2.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}})
 	out2, err := yaml.Marshal(bc2.Config)
 	require.NoError(t, err)
@@ -1982,9 +1982,9 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 	require.NotEmpty(t, resp.BenthosConfigs)
 	require.Len(t, resp.BenthosConfigs, 3)
 
-	insertConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
+	insertConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users.insert")
 	require.NotNil(t, insertConfig)
-	require.Equal(t, insertConfig.Name, "public.users")
+	require.Equal(t, insertConfig.Name, "public.users.insert")
 	require.Empty(t, insertConfig.DependsOn)
 	out, err := yaml.Marshal(insertConfig.Config)
 	require.NoError(t, err)
@@ -2038,7 +2038,7 @@ output:
 	updateConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users.update")
 	require.NotNil(t, updateConfig)
 	require.Equal(t, updateConfig.Name, "public.users.update")
-	require.Equal(t, updateConfig.DependsOn, []*tabledependency.DependsOn{{Table: "public.user_account_associations", Columns: []string{"id"}}, {Table: "public.users", Columns: []string{"id"}}})
+	require.Equal(t, updateConfig.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}, {Table: "public.user_account_associations", Columns: []string{"id"}}})
 	out1, err := yaml.Marshal(updateConfig.Config)
 	require.NoError(t, err)
 	require.Equal(
@@ -2087,8 +2087,8 @@ output:
 `),
 	)
 
-	bc2 := getBenthosConfigByName(resp.BenthosConfigs, "public.user_account_associations")
-	require.Equal(t, bc2.Name, "public.user_account_associations")
+	bc2 := getBenthosConfigByName(resp.BenthosConfigs, "public.user_account_associations.insert")
+	require.Equal(t, bc2.Name, "public.user_account_associations.insert")
 	require.Equal(t, bc2.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}})
 	out2, err := yaml.Marshal(bc2.Config)
 	require.NoError(t, err)
@@ -2389,9 +2389,9 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 	require.NotEmpty(t, resp.BenthosConfigs)
 	require.Len(t, resp.BenthosConfigs, 3)
 
-	insertConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
+	insertConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users.insert")
 	require.NotNil(t, insertConfig)
-	require.Equal(t, insertConfig.Name, "public.users")
+	require.Equal(t, insertConfig.Name, "public.users.insert")
 	require.Empty(t, insertConfig.DependsOn)
 	out, err := yaml.Marshal(insertConfig.Config)
 
@@ -2473,9 +2473,8 @@ output:
 	updateConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users.update")
 	require.NotNil(t, updateConfig)
 	require.Equal(t, updateConfig.Name, "public.users.update")
-	require.Equal(t, updateConfig.DependsOn, []*tabledependency.DependsOn{{Table: "public.user_account_associations", Columns: []string{"id"}}, {Table: "public.users", Columns: []string{"id"}}})
+	require.Equal(t, updateConfig.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}, {Table: "public.user_account_associations", Columns: []string{"id"}}})
 	out1, err := yaml.Marshal(updateConfig.Config)
-
 	require.NoError(t, err)
 	require.Equal(
 		t,
@@ -2523,8 +2522,8 @@ output:
 `),
 	)
 
-	bc2 := getBenthosConfigByName(resp.BenthosConfigs, "public.user_account_associations")
-	require.Equal(t, bc2.Name, "public.user_account_associations")
+	bc2 := getBenthosConfigByName(resp.BenthosConfigs, "public.user_account_associations.insert")
+	require.Equal(t, bc2.Name, "public.user_account_associations.insert")
 	require.Equal(t, bc2.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}})
 	out2, err := yaml.Marshal(bc2.Config)
 
@@ -2788,8 +2787,8 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) 
 	require.NotEmpty(t, resp.BenthosConfigs)
 	require.Len(t, resp.BenthosConfigs, 2)
 
-	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
-	require.Equal(t, bc.Name, "public.users")
+	bc := getBenthosConfigByName(resp.BenthosConfigs, "public.users.insert")
+	require.Equal(t, bc.Name, "public.users.insert")
 	require.Empty(t, bc.DependsOn)
 	out, err := yaml.Marshal(bc.Config)
 	require.NoError(t, err)
@@ -2840,8 +2839,8 @@ output:
 `),
 	)
 
-	bc2 := getBenthosConfigByName(resp.BenthosConfigs, "public.user_account_associations")
-	require.Equal(t, bc2.Name, "public.user_account_associations")
+	bc2 := getBenthosConfigByName(resp.BenthosConfigs, "public.user_account_associations.insert")
+	require.Equal(t, bc2.Name, "public.user_account_associations.insert")
 	require.Equal(t, bc2.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}})
 	out2, err := yaml.Marshal(bc2.Config)
 	require.NoError(t, err)
@@ -3105,9 +3104,9 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_
 	require.NotEmpty(t, resp.BenthosConfigs)
 	require.Len(t, resp.BenthosConfigs, 3)
 
-	insertConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users")
+	insertConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users.insert")
 	require.NotNil(t, insertConfig)
-	require.Equal(t, insertConfig.Name, "public.users")
+	require.Equal(t, insertConfig.Name, "public.users.insert")
 	require.Empty(t, insertConfig.DependsOn)
 	out, err := yaml.Marshal(insertConfig.Config)
 	require.NoError(t, err)
@@ -3115,12 +3114,12 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_
 	updateConfig := getBenthosConfigByName(resp.BenthosConfigs, "public.users.update")
 	require.NotNil(t, updateConfig)
 	require.Equal(t, updateConfig.Name, "public.users.update")
-	require.Equal(t, updateConfig.DependsOn, []*tabledependency.DependsOn{{Table: "public.user_account_associations", Columns: []string{"id"}}, {Table: "public.users", Columns: []string{"id"}}})
+	require.Equal(t, updateConfig.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}, {Table: "public.user_account_associations", Columns: []string{"id"}}})
 	out1, err := yaml.Marshal(updateConfig.Config)
 	require.NoError(t, err)
 
-	bc2 := getBenthosConfigByName(resp.BenthosConfigs, "public.user_account_associations")
-	require.Equal(t, bc2.Name, "public.user_account_associations")
+	bc2 := getBenthosConfigByName(resp.BenthosConfigs, "public.user_account_associations.insert")
+	require.Equal(t, bc2.Name, "public.user_account_associations.insert")
 	require.Equal(t, bc2.DependsOn, []*tabledependency.DependsOn{{Table: "public.users", Columns: []string{"id"}}})
 	out2, err := yaml.Marshal(bc2.Config)
 	require.NoError(t, err)
@@ -3162,8 +3161,8 @@ var driver = "driver"
 func Test_ProcessorConfigEmpty(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 
-	tableMappings := []*tableMapping{
-		{Schema: "public",
+	tableMappings := map[string]*tableMapping{
+		"public.users": {Schema: "public",
 			Table: "users",
 			Mappings: []*mgmtv1alpha1.JobMapping{
 				{
@@ -3199,90 +3198,35 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 		},
 	}
 	queryMap := map[string]string{"public.users": ""}
+	runconfigs := []*tabledependency.RunConfig{
+		{Table: "public.users", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}},
+	}
 
 	res, err := buildBenthosSqlSourceConfigResponses(
 		context.Background(),
 		mockTransformerClient,
 		tableMappings,
+		runconfigs,
 		dsn,
 		driver,
 		queryMap,
 		groupedSchemas,
 		map[string]*dbschemas_utils.TableConstraints{},
 		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
-		map[string][]string{},
 		mockJobId,
 		mockRunId,
+		nil,
 		nil,
 	)
 	require.Nil(t, err)
 	require.Empty(t, res[0].Config.StreamConfig.Pipeline.Processors)
 }
 
-func Test_buildBenthosSqlSourceConfigResponses_skipTable(t *testing.T) {
-	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
-
-	tableMappings := []*tableMapping{
-		{Schema: "public",
-			Table: "users",
-			Mappings: []*mgmtv1alpha1.JobMapping{
-				{
-					Schema: "public",
-					Table:  "users",
-					Column: "id",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL,
-					},
-				},
-				{
-					Schema: "public",
-					Table:  "users",
-					Column: "name",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL,
-					},
-				},
-			},
-		}}
-
-	groupedSchemas := map[string]map[string]*dbschemas_utils.ColumnInfo{
-		"public.users": {
-			"id": &dbschemas_utils.ColumnInfo{
-				OrdinalPosition:        1,
-				ColumnDefault:          "324",
-				IsNullable:             "false",
-				DataType:               "",
-				CharacterMaximumLength: nil,
-				NumericPrecision:       nil,
-				NumericScale:           nil,
-			},
-		},
-	}
-	queryMap := map[string]string{}
-
-	res, err := buildBenthosSqlSourceConfigResponses(
-		context.Background(),
-		mockTransformerClient,
-		tableMappings,
-		dsn,
-		driver,
-		queryMap,
-		groupedSchemas,
-		map[string]*dbschemas_utils.TableConstraints{},
-		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
-		map[string][]string{},
-		mockJobId,
-		mockRunId,
-		nil,
-	)
-	require.Nil(t, err)
-	require.Len(t, res, 0)
-}
 func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 
-	tableMappings := []*tableMapping{
-		{Schema: "public",
+	tableMappings := map[string]*tableMapping{
+		"public.users": {Schema: "public",
 			Table: "users",
 			Mappings: []*mgmtv1alpha1.JobMapping{
 				{
@@ -3324,21 +3268,26 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 		},
 	}
 
+	runconfigs := []*tabledependency.RunConfig{
+		{Table: "public.users", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}},
+	}
+
 	queryMap := map[string]string{"public.users": ""}
 
 	res, err := buildBenthosSqlSourceConfigResponses(
 		context.Background(),
 		mockTransformerClient,
 		tableMappings,
+		runconfigs,
 		dsn,
 		driver,
 		queryMap,
 		groupedSchemas,
 		map[string]*dbschemas_utils.TableConstraints{},
 		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
-		map[string][]string{},
 		mockJobId,
 		mockRunId,
+		nil,
 		nil,
 	)
 	require.Nil(t, err)
@@ -3348,8 +3297,8 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 
-	tableMappings := []*tableMapping{
-		{Schema: "public",
+	tableMappings := map[string]*tableMapping{
+		"public.users": {Schema: "public",
 			Table: "users",
 			Mappings: []*mgmtv1alpha1.JobMapping{
 				{
@@ -3396,19 +3345,24 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 	}
 	queryMap := map[string]string{"public.users": ""}
 
+	runconfigs := []*tabledependency.RunConfig{
+		{Table: "public.users", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}},
+	}
+
 	res, err := buildBenthosSqlSourceConfigResponses(
 		context.Background(),
 		mockTransformerClient,
 		tableMappings,
+		runconfigs,
 		dsn,
 		driver,
 		queryMap,
 		groupedSchemas,
 		map[string]*dbschemas_utils.TableConstraints{},
 		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
-		map[string][]string{},
 		mockJobId,
 		mockRunId,
+		nil,
 		nil,
 	)
 	require.Nil(t, err)
@@ -3446,8 +3400,8 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
 	mockTransformerClient := mgmtv1alpha1connect.NewMockTransformersServiceClient(t)
 
-	tableMappings := []*tableMapping{
-		{Schema: "public",
+	tableMappings := map[string]*tableMapping{
+		"public.users": {Schema: "public",
 			Table: "users",
 			Mappings: []*mgmtv1alpha1.JobMapping{
 				{
@@ -3496,20 +3450,24 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
 	}
 
 	queryMap := map[string]string{"public.users": ""}
+	runconfigs := []*tabledependency.RunConfig{
+		{Table: "public.users", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}},
+	}
 
 	res, err := buildBenthosSqlSourceConfigResponses(
 		context.Background(),
 		mockTransformerClient,
 		tableMappings,
+		runconfigs,
 		dsn,
 		driver,
 		queryMap,
 		groupedSchemas,
 		map[string]*dbschemas_utils.TableConstraints{},
 		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
-		map[string][]string{},
 		mockJobId,
 		mockRunId,
+		nil,
 		nil,
 	)
 
