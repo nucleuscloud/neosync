@@ -99,6 +99,12 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	var tableConstraintsSource map[string]map[string]*dbschemas_utils.ForeignKey // schema.table -> column -> ForeignKey
 
 	switch jobSourceConfig := job.Source.Options.Config.(type) {
+	case *mgmtv1alpha1.JobSourceOptions_AiGenerate:
+		sourceResponses, err := b.getAiGenerateBenthosConfigResponses(ctx, job, slogger)
+		if err != nil {
+			return nil, fmt.Errorf("unable to build benthos ai generate source config responses: %w", err)
+		}
+		responses = append(responses, sourceResponses...)
 	case *mgmtv1alpha1.JobSourceOptions_Generate:
 		sourceTableOpts := groupGenerateSourceOptionsByTable(jobSourceConfig.Generate.Schemas)
 		// TODO this needs to be updated to get db schema
@@ -109,7 +115,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		responses = append(responses, sourceResponses...)
 
 	case *mgmtv1alpha1.JobSourceOptions_Postgres, *mgmtv1alpha1.JobSourceOptions_Mysql:
-		sourceConnection, err := b.getJobSourceConnection(ctx, job.GetSource())
+		sourceConnection, err := getJobSourceConnection(ctx, job.GetSource(), b.getConnectionById)
 		if err != nil {
 			return nil, fmt.Errorf("unable to get connection by id: %w", err)
 		}
@@ -998,17 +1004,23 @@ func getSqlJobSourceOpts(
 	}
 }
 
-func (b *benthosBuilder) getJobSourceConnection(ctx context.Context, jobSource *mgmtv1alpha1.JobSource) (*mgmtv1alpha1.Connection, error) {
+func getJobSourceConnection(
+	ctx context.Context,
+	jobSource *mgmtv1alpha1.JobSource,
+	getConnectionById func(context.Context, string) (*mgmtv1alpha1.Connection, error),
+) (*mgmtv1alpha1.Connection, error) {
 	var connectionId string
 	switch jobSourceConfig := jobSource.GetOptions().GetConfig().(type) {
 	case *mgmtv1alpha1.JobSourceOptions_Postgres:
 		connectionId = jobSourceConfig.Postgres.GetConnectionId()
 	case *mgmtv1alpha1.JobSourceOptions_Mysql:
 		connectionId = jobSourceConfig.Mysql.GetConnectionId()
+	case *mgmtv1alpha1.JobSourceOptions_AiGenerate:
+		connectionId = jobSourceConfig.AiGenerate.GetAiConnectionId()
 	default:
 		return nil, errors.New("unsupported job source options type")
 	}
-	sourceConnection, err := b.getConnectionById(ctx, connectionId)
+	sourceConnection, err := getConnectionById(ctx, connectionId)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get connection by id (%s): %w", connectionId, err)
 	}
