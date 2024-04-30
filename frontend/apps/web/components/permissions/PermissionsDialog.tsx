@@ -6,49 +6,47 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { ConnectionRolePrivilege } from '@neosync/sdk';
+import { PlainMessage } from '@bufbuild/protobuf';
+import { CheckConnectionConfigResponse } from '@neosync/sdk';
 import {
   CheckCircledIcon,
   ExclamationTriangleIcon,
 } from '@radix-ui/react-icons';
 import { ReactElement, useMemo } from 'react';
 import { IoWarning } from 'react-icons/io5';
+import Spinner from '../Spinner';
 import LearnMoreTag from '../labels/LearnMoreTag';
 import { Button } from '../ui/button';
-import { Skeleton } from '../ui/skeleton';
 import PermissionsDataTable from './PermissionsDataTable';
 import { getPermissionColumns } from './columns';
 
 interface Props {
-  data: ConnectionRolePrivilege[];
+  checkResponse: PlainMessage<CheckConnectionConfigResponse>;
   openPermissionDialog: boolean;
-  setOpenPermissionDialog: (open: boolean) => void;
+  setOpenPermissionDialog(open: boolean): void;
   isValidating: boolean;
-  validationResponse: boolean;
   connectionName: string;
 }
 
 export default function PermissionsDialog(props: Props): ReactElement {
   const {
-    data,
     openPermissionDialog,
     setOpenPermissionDialog,
-    isValidating,
-    validationResponse,
     connectionName,
+    checkResponse,
+    isValidating,
   } = props;
 
   const columns = useMemo(() => getPermissionColumns(), []);
-
-  if (isValidating) {
-    return <Skeleton />;
-  }
 
   return (
     <Dialog open={openPermissionDialog} onOpenChange={setOpenPermissionDialog}>
       <DialogContent className="max-w-5xl flex flex-col gap-4">
         <DialogHeader>
-          <DialogTitle>Connection Permissions</DialogTitle>
+          <div className="flex flex-col md:flex-row gap-2 items-center">
+            <DialogTitle>Connection Permissions</DialogTitle>
+            {isValidating ? <Spinner /> : null}
+          </div>
           <div className="text-muted-foreground text-sm">
             Review the permissions that Neosync needs for your connection.{' '}
             <LearnMoreTag href="https://docs.neosync.dev/connections/postgres#permissions" />
@@ -58,12 +56,12 @@ export default function PermissionsDialog(props: Props): ReactElement {
         <PermissionsDataTable
           ConnectionAlert={
             <TestConnectionResult
-              isConnected={validationResponse}
+              isConnected={checkResponse.isConnected}
               connectionName={connectionName}
-              privileges={data}
+              hasPrivileges={checkResponse.privileges.length > 0}
             />
           }
-          data={data}
+          data={checkResponse.privileges}
           columns={columns}
         />
         <DialogFooter className="pt-6">
@@ -84,15 +82,15 @@ export default function PermissionsDialog(props: Props): ReactElement {
 interface TestConnectionResultProps {
   isConnected: boolean;
   connectionName: string;
-  privileges: ConnectionRolePrivilege[];
+  hasPrivileges: boolean;
 }
 
 export function TestConnectionResult(
   props: TestConnectionResultProps
 ): ReactElement {
-  const { isConnected, connectionName, privileges } = props;
+  const { isConnected, connectionName, hasPrivileges } = props;
 
-  if (isConnected && privileges.length == 0) {
+  if (isConnected && !hasPrivileges) {
     return (
       <WarningAlert
         description={`We were able to connect to: ${connectionName}, but were not able to find any schema(s) or table(s). Does your role have permissions? `}
