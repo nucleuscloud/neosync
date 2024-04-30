@@ -88,11 +88,14 @@ function shouldIncludeSystem(
   if (!transformer.supportedJobTypes.some((jt) => jt === filters.jobType)) {
     return false;
   }
-  if (
-    filters.isNullable &&
-    !transformer.dataTypes.some((dt) => dt === TransformerDataType.NULL)
-  ) {
-    return false;
+  if (filters.isNullable) {
+    if (transformer.source === TransformerSource.GENERATE_NULL) {
+      return true;
+    }
+    // if the current transformer does not support null, filter it out
+    if (!transformer.dataTypes.some((dt) => dt === TransformerDataType.NULL)) {
+      return false;
+    }
   }
   const tdts = new Set(transformer.dataTypes);
   if (filters.dataType === TransformerDataType.UNSPECIFIED) {

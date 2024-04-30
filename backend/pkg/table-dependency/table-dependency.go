@@ -72,8 +72,6 @@ func GetRunConfigs(
 			foreignKeyMap[table][constraint.ForeignKey.Table] = constraint.ForeignKey.Column
 			if slices.Contains(tables, table) && slices.Contains(tables, constraint.ForeignKey.Table) {
 				filteredDepsMap[table] = append(filteredDepsMap[table], constraint.ForeignKey.Table)
-			} else if !constraint.IsNullable {
-				return nil, fmt.Errorf("found table constraint that is not nullable. missing table: %s", table)
 			}
 		}
 	}
