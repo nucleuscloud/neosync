@@ -42,7 +42,9 @@ export default function ConnectionCard(props: Props) {
             <p>{connection.name}</p>
           </div>
         </CardTitle>
-        <CardDescription>{connection.description}</CardDescription>
+        <CardDescription className="text-xs">
+          {connection.description}
+        </CardDescription>
       </CardHeader>
     </Card>
   );

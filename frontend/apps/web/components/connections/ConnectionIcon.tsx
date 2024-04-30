@@ -1,3 +1,4 @@
+import { CloudSQLLogo } from '@/app/(mgmt)/[account]/new/connection/cloudSQLPostgres/CloudSQLLogo';
 import { NeonLogo } from '@/app/(mgmt)/[account]/new/connection/neon/NeonLogo';
 import { SupabaseLogo } from '@/app/(mgmt)/[account]/new/connection/supabase/SupabaseLogo';
 import { ReactElement } from 'react';
@@ -50,6 +51,13 @@ export default function ConnectionIcon(props: Props): ReactElement | null {
       return (
         <IconContext.Provider value={{ style: { width, height } }}>
           <SupabaseLogo />
+        </IconContext.Provider>
+      );
+    }
+    case 'cloudsql (postgres)': {
+      return (
+        <IconContext.Provider value={{ style: { width, height } }}>
+          <CloudSQLLogo />
         </IconContext.Provider>
       );
     }

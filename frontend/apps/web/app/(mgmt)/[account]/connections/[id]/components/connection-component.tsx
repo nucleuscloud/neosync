@@ -89,14 +89,8 @@ export function getConnectionComponentDetails(
         ),
         header: (
           <PageHeader
-            header={headerType == 'neon' ? 'Neon' : 'PostgreSQL'}
-            leftIcon={
-              headerType == 'neon' ? (
-                <ConnectionIcon name="neon" />
-              ) : (
-                <ConnectionIcon name="postgres" />
-              )
-            }
+            header={handlePageHeaderType(headerType)}
+            leftIcon={<ConnectionIcon name={headerType} />}
             extraHeading={extraPageHeading}
             subHeadings={subHeading}
           />
@@ -306,5 +300,16 @@ function getPrivateKeyFromSshAuthentication(
       return sshauth.authConfig.value.value;
     default:
       return undefined;
+  }
+}
+
+function handlePageHeaderType(ht: string): string {
+  switch (ht) {
+    case 'neon':
+      return 'Neon';
+    case 'cloudSQLPostgres':
+      return 'CloudSQL (Postgres)';
+    default:
+      return 'PostgreSQL';
   }
 }

@@ -26,13 +26,19 @@ const CONNECTIONS: ConnectionMeta[] = [
     urlSlug: 'neon',
     name: 'Neon',
     description:
-      'Neon is a serverless Postgres database that separates storage and copmuyte to offer autoscaling, branching and bottomless storage.',
+      'Neon is a serverless Postgres database that separates storage and compute to offer autoscaling, branching and bottomless storage.',
   },
   {
     urlSlug: 'supabase',
     name: 'Supabase',
     description:
       'Supabase is an open source Firebase alternative that ships with Authentication, Instant APIs, Edge functions and more. ',
+  },
+  {
+    urlSlug: 'cloudSQLPostgres',
+    name: 'CloudSQL (Postgres)',
+    description:
+      'Cloud SQL for PostgreSQL is a fully-managed database service that runs on GCP. ',
   },
 ];
 

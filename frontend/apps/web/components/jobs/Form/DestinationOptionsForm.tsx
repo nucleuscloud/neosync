@@ -117,8 +117,8 @@ export default function DestinationOptionsForm(
                     <SwitchCard
                       isChecked={field.value || false}
                       onCheckedChange={field.onChange}
-                      title="On Conflict Do Nothing"
-                      description="If there is a conflict when inserting data do not insert"
+                      title="On Conflict, Do Nothing"
+                      description="If there is a conflict when inserting data, do not insert and skip the row"
                     />
                   </FormControl>
                   <FormMessage />
@@ -193,8 +193,8 @@ export default function DestinationOptionsForm(
                         <SwitchCard
                           isChecked={field.value || false}
                           onCheckedChange={field.onChange}
-                          title="On Conflict Do Nothing"
-                          description="If there is a conflict when inserting data do not insert"
+                          title="On Conflict, Do Nothing"
+                          description="If there is a conflict when inserting data, do not insert and skip the row"
                         />
                       </FormControl>
                       <FormMessage />
