@@ -24,7 +24,7 @@ import { ReactElement, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
-import JobsProgressSteps, { DATA_SYNC_STEPS } from '../JobsProgressSteps';
+import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
 import { ConnectFormValues } from '../schema';
 
 const isBrowser = () => typeof window !== 'undefined';
@@ -122,7 +122,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           <PageHeader
             header="Schema"
             progressSteps={
-              <JobsProgressSteps steps={DATA_SYNC_STEPS} stepName={'schema'} />
+              <JobsProgressSteps
+                steps={getJobProgressSteps('data-sync')}
+                stepName={'schema'}
+              />
             }
           />
         }
