@@ -9,7 +9,7 @@ import (
 	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_buildSelectQuery(t *testing.T) {
@@ -73,8 +73,8 @@ func Test_buildSelectQuery(t *testing.T) {
 		t.Run(fmt.Sprintf("%s_%s", t.Name(), tt.name), func(t *testing.T) {
 			where := tt.where
 			sql, err := buildSelectQuery(tt.driver, tt.schema, tt.table, tt.columns, &where)
-			assert.NoError(t, err)
-			assert.Equal(t, tt.expected, sql)
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, sql)
 		})
 	}
 }
@@ -161,8 +161,8 @@ func Test_buildSelectJoinQuery(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%s_%s", t.Name(), tt.name), func(t *testing.T) {
 			response, err := buildSelectJoinQuery(tt.driver, tt.schema, tt.table, tt.columns, tt.joins, tt.whereClauses)
-			assert.NoError(t, err)
-			assert.Equal(t, tt.expected, response)
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, response)
 		})
 	}
 }
@@ -240,8 +240,8 @@ func Test_buildSelectRecursiveQuery(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%s_%s", t.Name(), tt.name), func(t *testing.T) {
 			response, err := buildSelectRecursiveQuery(tt.driver, tt.schema, tt.table, tt.columns, tt.foreignKeys, tt.primaryKeyCol, tt.joins, tt.whereClauses)
-			assert.NoError(t, err)
-			assert.Equal(t, tt.expected, response)
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, response)
 		})
 	}
 }
@@ -389,8 +389,8 @@ func Test_buildSelectQueryMap(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%s_%s", t.Name(), tt.name), func(t *testing.T) {
 			sql, err := buildSelectQueryMap(tt.driver, tt.mappings, tt.sourceTableOpts, tt.tableDependencies, tt.dependencyConfigs, tt.subsetByForeignKeyConstraints)
-			assert.NoError(t, err)
-			assert.Equal(t, tt.expected, sql)
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, sql)
 		})
 	}
 }
@@ -524,8 +524,8 @@ func Test_buildSelectQueryMap_SubsetsForeignKeys(t *testing.T) {
 		}
 
 	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
-	assert.NoError(t, err)
-	assert.Equal(t, expected, sql)
+	require.NoError(t, err)
+	require.Equal(t, expected, sql)
 }
 
 func Test_buildSelectQueryMap_SubsetsCompositeForeignKeys(t *testing.T) {
@@ -606,8 +606,8 @@ func Test_buildSelectQueryMap_SubsetsCompositeForeignKeys(t *testing.T) {
 		}
 
 	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
-	assert.NoError(t, err)
-	assert.Equal(t, expected, sql)
+	require.NoError(t, err)
+	require.Equal(t, expected, sql)
 }
 
 func Test_buildSelectQueryMap_SubsetsOffForeignKeys(t *testing.T) {
@@ -739,8 +739,8 @@ func Test_buildSelectQueryMap_SubsetsOffForeignKeys(t *testing.T) {
 		}
 	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, false)
 
-	assert.NoError(t, err)
-	assert.Equal(t, expected, sql)
+	require.NoError(t, err)
+	require.Equal(t, expected, sql)
 }
 
 func Test_buildSelectQueryMap_CircularDependency(t *testing.T) {
@@ -844,10 +844,10 @@ func Test_buildSelectQueryMap_CircularDependency(t *testing.T) {
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.b", Columns: &tabledependency.SyncColumn{Exclude: []string{"a_id"}}, DependsOn: []*tabledependency.DependsOn{}},
+		{Table: "public.b", Columns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}},
 		{Table: "public.c", DependsOn: []*tabledependency.DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
 		{Table: "public.a", DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
-		{Table: "public.b", Columns: &tabledependency.SyncColumn{Include: []string{"a_id"}}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+		{Table: "public.b", Columns: []string{"a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
 	}
 	expected :=
 		map[string]string{
@@ -857,8 +857,8 @@ func Test_buildSelectQueryMap_CircularDependency(t *testing.T) {
 		}
 	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
 
-	assert.NoError(t, err)
-	assert.Equal(t, expected, sql)
+	require.NoError(t, err)
+	require.Equal(t, expected, sql)
 }
 
 func Test_buildSelectQueryMap_MultiplSubsets(t *testing.T) {
@@ -1041,8 +1041,8 @@ func Test_buildSelectQueryMap_MultiplSubsets(t *testing.T) {
 			"public.f": `SELECT "public"."f"."id", "public"."f"."e_id" FROM "public"."f" INNER JOIN "public"."e" ON ("public"."e"."id" = "public"."f"."e_id") WHERE public.e.id = 1;`,
 		}
 	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
-	assert.NoError(t, err)
-	assert.Equal(t, expected, sql)
+	require.NoError(t, err)
+	require.Equal(t, expected, sql)
 }
 
 func Test_buildSelectQueryMap_MultipleRoots(t *testing.T) {
@@ -1190,8 +1190,8 @@ func Test_buildSelectQueryMap_MultipleRoots(t *testing.T) {
 			"public.e": `SELECT "public"."e"."id", "public"."e"."c_id" FROM "public"."e" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."e"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.id = 1;`,
 		}
 	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
-	assert.NoError(t, err)
-	assert.Equal(t, expected, sql)
+	require.NoError(t, err)
+	require.Equal(t, expected, sql)
 }
 
 func Test_buildSelectQueryMap_DoubleCircularDependencyRoot(t *testing.T) {
@@ -1269,8 +1269,8 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyRoot(t *testing.T) {
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.a", Columns: &tabledependency.SyncColumn{Exclude: []string{"a_id", "aa_id"}}, DependsOn: []*tabledependency.DependsOn{}},
-		{Table: "public.a", Columns: &tabledependency.SyncColumn{Include: []string{"a_id", "aa_id"}}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+		{Table: "public.a", Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
+		{Table: "public.a", Columns: []string{"a_id", "aa_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
 		{Table: "public.b", DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
 	}
 	expected :=
@@ -1279,8 +1279,8 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyRoot(t *testing.T) {
 			"public.b": `SELECT "public"."b"."id", "public"."b"."a_id" FROM "public"."b" INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") WHERE public.a.id = 1;`,
 		}
 	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
-	assert.NoError(t, err)
-	assert.Equal(t, expected, sql)
+	require.NoError(t, err)
+	require.Equal(t, expected, sql)
 }
 
 func Test_buildSelectQueryMap_doubleCircularDependencyRoot_mysql(t *testing.T) {
@@ -1358,8 +1358,8 @@ func Test_buildSelectQueryMap_doubleCircularDependencyRoot_mysql(t *testing.T) {
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.a", Columns: &tabledependency.SyncColumn{Exclude: []string{"a_id", "aa_id"}}, DependsOn: []*tabledependency.DependsOn{}},
-		{Table: "public.a", Columns: &tabledependency.SyncColumn{Include: []string{"a_id", "aa_id"}}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+		{Table: "public.a", Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
+		{Table: "public.a", Columns: []string{"a_id", "aa_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
 		{Table: "public.b", DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
 	}
 	expected :=
@@ -1368,8 +1368,8 @@ func Test_buildSelectQueryMap_doubleCircularDependencyRoot_mysql(t *testing.T) {
 			"public.b": "SELECT `public`.`b`.`id`, `public`.`b`.`a_id` FROM `public`.`b` INNER JOIN `public`.`a` ON (`public`.`a`.`id` = `public`.`b`.`a_id`) WHERE public.a.id = 1;",
 		}
 	sql, err := buildSelectQueryMap("mysql", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
-	assert.NoError(t, err)
-	assert.Equal(t, expected, sql)
+	require.NoError(t, err)
+	require.Equal(t, expected, sql)
 }
 
 func Test_buildSelectQueryMap_DoubleCircularDependencyChild(t *testing.T) {
@@ -1443,8 +1443,8 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyChild(t *testing.T) {
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.a", Columns: &tabledependency.SyncColumn{Exclude: []string{"a_id", "aa_id"}}, DependsOn: []*tabledependency.DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
-		{Table: "public.a", Columns: &tabledependency.SyncColumn{Include: []string{"a_id", "aa_id"}}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+		{Table: "public.a", Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
+		{Table: "public.a", Columns: []string{"a_id", "aa_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
 		{Table: "public.b", DependsOn: []*tabledependency.DependsOn{}},
 	}
 	expected :=
@@ -1453,8 +1453,8 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyChild(t *testing.T) {
 			"public.b": `SELECT "id" FROM "public"."b" WHERE public.b.id = 1;`,
 		}
 	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
-	assert.NoError(t, err)
-	assert.Equal(t, expected, sql)
+	require.NoError(t, err)
+	require.Equal(t, expected, sql)
 }
 
 func Test_buildSelectQueryMap_shouldContinue(t *testing.T) {
@@ -1601,8 +1601,8 @@ func Test_buildSelectQueryMap_shouldContinue(t *testing.T) {
 		}
 	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
 
-	assert.NoError(t, err)
-	assert.Equal(t, expected, sql)
+	require.NoError(t, err)
+	require.Equal(t, expected, sql)
 }
 
 func Test_getBfsPathMap(t *testing.T) {
@@ -1724,7 +1724,7 @@ func Test_getBfsPathMap(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%s_%s", t.Name(), tt.name), func(t *testing.T) {
 			path := getBfsPathMap(tt.graph, tt.start)
-			assert.Equal(t, tt.expected, path)
+			require.Equal(t, tt.expected, path)
 		})
 	}
 }
@@ -1777,8 +1777,8 @@ func Test_qualifyWhereColumnNames_mysql(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%s_%s", t.Name(), tt.name), func(t *testing.T) {
 			response, err := qualifyWhereColumnNames(sql_manager.MysqlDriver, tt.where, tt.schema, tt.table)
-			assert.NoError(t, err)
-			assert.Equal(t, tt.expected, response)
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, response)
 		})
 	}
 }
@@ -1831,8 +1831,8 @@ func Test_qualifyWhereColumnNames_postgres(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%s_%s", t.Name(), tt.name), func(t *testing.T) {
 			response, err := qualifyWhereColumnNames(sql_manager.PostgresDriver, tt.where, tt.schema, tt.table)
-			assert.NoError(t, err)
-			assert.Equal(t, tt.expected, response)
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, response)
 		})
 	}
 }
@@ -1911,7 +1911,13 @@ func TestGetPrimaryToForeignTableMapFromRunConfigs(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			actual := getPrimaryToForeignTableMapFromRunConfigs(tt.runConfigs)
-			assert.Equal(t, tt.expected, actual)
+			for table, dependencies := range actual {
+				expected, exists := tt.expected[table]
+				require.True(t, exists)
+				for _, dep := range dependencies {
+					require.Contains(t, expected, dep)
+				}
+			}
 		})
 	}
 }

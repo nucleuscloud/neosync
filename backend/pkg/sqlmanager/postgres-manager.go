@@ -22,19 +22,12 @@ func (p *PostgresManager) GetDatabaseSchema(ctx context.Context) ([]*DatabaseSch
 	}
 	result := []*DatabaseSchemaRow{}
 	for _, row := range dbschemas {
-		var colDefault string
-		if row.ColumnDefault != nil {
-			val, ok := row.ColumnDefault.(string)
-			if ok {
-				colDefault = val
-			}
-		}
 		result = append(result, &DatabaseSchemaRow{
 			TableSchema:            row.TableSchema,
 			TableName:              row.TableName,
 			ColumnName:             row.ColumnName,
 			DataType:               row.DataType,
-			ColumnDefault:          colDefault,
+			ColumnDefault:          row.ColumnDefault,
 			IsNullable:             row.IsNullable,
 			CharacterMaximumLength: row.CharacterMaximumLength,
 			NumericPrecision:       row.NumericPrecision,

@@ -21,28 +21,31 @@ export function getPermissionColumns(): ColumnDef<
 
     {
       accessorKey: 'schema',
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Schema" />
-      ),
-      cell: ({ row }) => <div>{row.original.schema}</div>,
+      enableSorting: false,
+      enableHiding: false,
     },
     {
       accessorKey: 'table',
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorFn: (row) => `${row.schema}.${row.table}`,
+      id: 'schemaTable',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Table" />
       ),
-      cell: ({ row }) => <div>{row.original.table}</div>,
     },
     {
-      accessorKey: 'read',
+      id: 'read',
+      accessorFn: (row) => row.privilegeType.includes('SELECT'),
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Read" />
       ),
-      cell: ({ row }) => {
-        const hasRead = row.original.privilegeType.includes('SELECT');
+      cell: ({ getValue }) => {
         return (
           <div>
-            {hasRead ? (
+            {getValue<boolean>() ? (
               <CheckCircledIcon className="text-green-500" />
             ) : (
               <CircleBackslashIcon className="text-red-500" />
@@ -52,17 +55,15 @@ export function getPermissionColumns(): ColumnDef<
       },
     },
     {
-      accessorKey: 'write',
+      id: 'create',
+      accessorFn: (row) => row.privilegeType.includes('INSERT'),
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Write" />
+        <DataTableColumnHeader column={column} title="Create" />
       ),
-      cell: ({ row }) => {
-        const hasWrite = ['INSERT', 'UPDATE'].every((privilege) =>
-          row.original.privilegeType.includes(privilege)
-        );
+      cell: ({ getValue }) => {
         return (
           <div>
-            {hasWrite ? (
+            {getValue<boolean>() ? (
               <CheckCircledIcon className="text-green-500" />
             ) : (
               <CircleBackslashIcon className="text-red-500" />
@@ -72,15 +73,33 @@ export function getPermissionColumns(): ColumnDef<
       },
     },
     {
-      accessorKey: 'truncate',
+      id: 'update',
+      accessorFn: (row) => row.privilegeType.includes('UPDATE'),
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Update" />
+      ),
+      cell: ({ getValue }) => {
+        return (
+          <div>
+            {getValue<boolean>() ? (
+              <CheckCircledIcon className="text-green-500" />
+            ) : (
+              <CircleBackslashIcon className="text-red-500" />
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      id: 'truncate',
+      accessorFn: (row) => row.privilegeType.includes('TRUNCATE'),
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Truncate" />
       ),
-      cell: ({ row }) => {
-        const hasTruncate = row.original.privilegeType.includes('TRUNCATE');
+      cell: ({ getValue }) => {
         return (
           <div>
-            {hasTruncate ? (
+            {getValue<boolean>() ? (
               <CheckCircledIcon className="text-green-500" />
             ) : (
               <CircleBackslashIcon className="text-red-500" />

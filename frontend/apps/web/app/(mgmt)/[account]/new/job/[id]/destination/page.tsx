@@ -149,6 +149,7 @@ export default function Page({ params }: PageProps): ReactElement {
                                         truncateBeforeInsert: false,
                                         truncateCascade: false,
                                         initTableSchema: false,
+                                        onConflictDoNothing: false,
                                       }
                                     );
                                   }}
@@ -193,7 +194,6 @@ export default function Page({ params }: PageProps): ReactElement {
                     <DestinationOptionsForm
                       index={index}
                       connection={currConnection}
-                      maxColNum={3}
                     />
                   </div>
                 );

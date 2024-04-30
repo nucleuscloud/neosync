@@ -7,7 +7,7 @@ import (
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_groupConfigsByDependency(t *testing.T) {
@@ -107,17 +107,17 @@ func Test_groupConfigsByDependency(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			groups := groupConfigsByDependency(tt.configs)
-			assert.Len(t, groups, len(tt.expect))
+			require.Len(t, groups, len(tt.expect))
 			for i, group := range groups {
-				assert.Equal(t, len(group), len(tt.expect[i]))
+				require.Equal(t, len(group), len(tt.expect[i]))
 				expectedConfigMap := map[string]*benthosConfigResponse{}
 				for _, cfg := range tt.expect[i] {
 					expectedConfigMap[cfg.Name] = cfg
 				}
 				for _, cfg := range group {
 					expect := expectedConfigMap[cfg.Name]
-					assert.NotNil(t, expect)
-					assert.ElementsMatch(t, cfg.DependsOn, expect.DependsOn)
+					require.NotNil(t, expect)
+					require.ElementsMatch(t, cfg.DependsOn, expect.DependsOn)
 				}
 			}
 		})
@@ -131,31 +131,31 @@ func Test_groupConfigsByDependency_Error(t *testing.T) {
 		{Name: "public.c", DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}, Table: "public.c", Columns: []string{"id", "a_id"}},
 	}
 	groups := groupConfigsByDependency(configs)
-	assert.Nil(t, groups)
+	require.Nil(t, groups)
 }
 
 func Test_buildPlainInsertArgs(t *testing.T) {
-	assert.Empty(t, buildPlainInsertArgs(nil))
-	assert.Empty(t, buildPlainInsertArgs([]string{}))
-	assert.Equal(t, buildPlainInsertArgs([]string{"foo", "bar", "baz"}), `root = [this."foo", this."bar", this."baz"]`)
+	require.Empty(t, buildPlainInsertArgs(nil))
+	require.Empty(t, buildPlainInsertArgs([]string{}))
+	require.Equal(t, buildPlainInsertArgs([]string{"foo", "bar", "baz"}), `root = [this."foo", this."bar", this."baz"]`)
 }
 
 func Test_clampInt(t *testing.T) {
-	assert.Equal(t, clampInt(0, 1, 2), 1)
-	assert.Equal(t, clampInt(1, 1, 2), 1)
-	assert.Equal(t, clampInt(2, 1, 2), 2)
-	assert.Equal(t, clampInt(3, 1, 2), 2)
-	assert.Equal(t, clampInt(1, 1, 1), 1)
+	require.Equal(t, clampInt(0, 1, 2), 1)
+	require.Equal(t, clampInt(1, 1, 2), 1)
+	require.Equal(t, clampInt(2, 1, 2), 2)
+	require.Equal(t, clampInt(3, 1, 2), 2)
+	require.Equal(t, clampInt(1, 1, 1), 1)
 
-	assert.Equal(t, clampInt(1, 3, 2), 3, "low is evaluated first, order is relevant")
+	require.Equal(t, clampInt(1, 3, 2), 3, "low is evaluated first, order is relevant")
 }
 
 func Test_computeMaxPgBatchCount(t *testing.T) {
-	assert.Equal(t, computeMaxPgBatchCount(65535), 1)
-	assert.Equal(t, computeMaxPgBatchCount(65536), 1, "anything over max should clamp to 1")
-	assert.Equal(t, computeMaxPgBatchCount(math.MaxInt), 1, "anything over pgmax should clamp to 1")
-	assert.Equal(t, computeMaxPgBatchCount(1), 65535)
-	assert.Equal(t, computeMaxPgBatchCount(0), 65535)
+	require.Equal(t, computeMaxPgBatchCount(65535), 1)
+	require.Equal(t, computeMaxPgBatchCount(65536), 1, "anything over max should clamp to 1")
+	require.Equal(t, computeMaxPgBatchCount(math.MaxInt), 1, "anything over pgmax should clamp to 1")
+	require.Equal(t, computeMaxPgBatchCount(1), 65535)
+	require.Equal(t, computeMaxPgBatchCount(0), 65535)
 }
 
 func Test_buildPostgresInsertQuery(t *testing.T) {
@@ -173,7 +173,7 @@ func Test_buildPostgresInsertQuery(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			actual := buildPostgresInsertQuery(tt.schema, tt.table, tt.columns)
-			assert.Equal(t, tt.expected, actual)
+			require.Equal(t, tt.expected, actual)
 		})
 	}
 }
@@ -194,7 +194,7 @@ func Test_buildPostgresUpdateQuery(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			actual := buildPostgresUpdateQuery(tt.schema, tt.table, tt.columns, tt.primaryKeys)
-			assert.Equal(t, tt.expected, actual)
+			require.Equal(t, tt.expected, actual)
 		})
 	}
 }
@@ -214,7 +214,7 @@ func Test_buildMysqlInsertQuery(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			actual := buildMysqlInsertQuery(tt.schema, tt.table, tt.columns)
-			assert.Equal(t, tt.expected, actual)
+			require.Equal(t, tt.expected, actual)
 		})
 	}
 }
@@ -235,7 +235,7 @@ func Test_buildMysqlUpdateQuery(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			actual := buildMysqlUpdateQuery(tt.schema, tt.table, tt.columns, tt.primaryKeys)
-			assert.Equal(t, tt.expected, actual)
+			require.Equal(t, tt.expected, actual)
 		})
 	}
 }
@@ -433,11 +433,11 @@ func Test_buildSyncConfigs_postgres(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			configs := buildSyncConfigs(tt.config, buildPostgresInsertQuery, buildPostgresUpdateQuery)
-			assert.Len(t, configs, len(tt.expect))
+			require.Len(t, configs, len(tt.expect))
 			for _, actual := range configs {
 				for _, c := range tt.expect {
 					if c.Name == actual.Name {
-						assert.Equal(t, actual, c)
+						require.Equal(t, c, actual)
 					}
 				}
 			}

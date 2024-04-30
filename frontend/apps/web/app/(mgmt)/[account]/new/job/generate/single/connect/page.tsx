@@ -150,6 +150,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               initTableSchema: false,
                               truncateBeforeInsert: false,
                               truncateCascade: false,
+                              onConflictDoNothing: false,
                             });
                           }}
                           value={field.value}
@@ -210,7 +211,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 connection={connections.find(
                   (c) => c.id === form.getValues().connectionId
                 )}
-                maxColNum={2}
               />
             </div>
           </div>

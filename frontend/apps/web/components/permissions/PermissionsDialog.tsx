@@ -7,8 +7,11 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { ConnectionRolePrivilege } from '@neosync/sdk';
-import { CheckCircledIcon } from '@radix-ui/react-icons';
-import { ReactElement } from 'react';
+import {
+  CheckCircledIcon,
+  ExclamationTriangleIcon,
+} from '@radix-ui/react-icons';
+import { ReactElement, useMemo } from 'react';
 import { IoWarning } from 'react-icons/io5';
 import LearnMoreTag from '../labels/LearnMoreTag';
 import { Button } from '../ui/button';
@@ -25,7 +28,7 @@ interface Props {
   connectionName: string;
 }
 
-export default function Permissions(props: Props) {
+export default function PermissionsDialog(props: Props): ReactElement {
   const {
     data,
     openPermissionDialog,
@@ -35,7 +38,7 @@ export default function Permissions(props: Props) {
     connectionName,
   } = props;
 
-  const columns = getPermissionColumns();
+  const columns = useMemo(() => getPermissionColumns(), []);
 
   if (isValidating) {
     return <Skeleton />;
@@ -47,16 +50,22 @@ export default function Permissions(props: Props) {
         <DialogHeader>
           <DialogTitle>Connection Permissions</DialogTitle>
           <div className="text-muted-foreground text-sm">
-            Review the permissions that Neoynsc has to your connection.{' '}
-            <LearnMoreTag href="https://docs.neosync.dev/connections/postgres#testing-your-connection" />
+            Review the permissions that Neosync needs for your connection.{' '}
+            <LearnMoreTag href="https://docs.neosync.dev/connections/postgres#permissions" />
           </div>
         </DialogHeader>
-        <TestConnectionResult
-          resp={validationResponse}
-          connectionName={connectionName}
+
+        <PermissionsDataTable
+          ConnectionAlert={
+            <TestConnectionResult
+              isConnected={validationResponse}
+              connectionName={connectionName}
+              privileges={data}
+            />
+          }
           data={data}
+          columns={columns}
         />
-        <PermissionsDataTable data={data} columns={columns} />
         <DialogFooter className="pt-6">
           <div className="flex justify-end">
             <Button
@@ -73,30 +82,30 @@ export default function Permissions(props: Props) {
 }
 
 interface TestConnectionResultProps {
-  resp: boolean;
+  isConnected: boolean;
   connectionName: string;
-  data: ConnectionRolePrivilege[];
+  privileges: ConnectionRolePrivilege[];
 }
 
 export function TestConnectionResult(
   props: TestConnectionResultProps
 ): ReactElement {
-  const { resp, connectionName, data } = props;
+  const { isConnected, connectionName, privileges } = props;
 
-  if (resp && data.length == 0) {
+  if (isConnected && privileges.length == 0) {
     return (
       <WarningAlert
         description={`We were able to connect to: ${connectionName}, but were not able to find any schema(s) or table(s). Does your role have permissions? `}
       />
     );
-  } else if (resp) {
+  } else if (isConnected) {
     return (
       <SuccessAlert
         description={`Successfully connected to connection: ${connectionName}!`}
       />
     );
   }
-  return <div />;
+  return <ErrorAlert description="Not currently connected." />;
 }
 
 interface SuccessAlertProps {
@@ -130,6 +139,22 @@ function WarningAlert(props: WarningAlertProps): ReactElement {
         <div className="font-normal text-orange-900 dark:text-orange-400">
           {description}
         </div>
+      </div>
+    </Alert>
+  );
+}
+
+interface ErrorAlertProps {
+  description: string;
+}
+
+function ErrorAlert(props: ErrorAlertProps): ReactElement {
+  const { description } = props;
+  return (
+    <Alert variant="destructive">
+      <div className="flex flex-row items-center gap-2">
+        <ExclamationTriangleIcon className="h-4 w-4" />
+        <div className="font-normal">{description}</div>
       </div>
     </Alert>
   );

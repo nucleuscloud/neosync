@@ -36,6 +36,7 @@ type BenthosRedisConfig struct {
 type BenthosConfigResponse struct {
 	Name        string
 	DependsOn   []*tabledependency.DependsOn
+	RunType     tabledependency.RunType
 	Config      *neosync_benthos.BenthosConfig
 	TableSchema string
 	TableName   string
@@ -45,9 +46,7 @@ type BenthosConfigResponse struct {
 	BenthosDsns []*shared.BenthosDsn
 	RedisConfig []*BenthosRedisConfig
 
-	primaryKeys    []string
-	excludeColumns []string
-	updateConfig   *tabledependency.RunConfig
+	primaryKeys []string
 
 	metriclabels metrics.MetricLabels
 }

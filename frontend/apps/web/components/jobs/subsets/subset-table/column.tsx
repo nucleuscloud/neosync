@@ -28,55 +28,45 @@ export function getColumns(props: GetColumnsProps): ColumnDef<TableRow>[] {
   const { onEdit, hasLocalChange, onReset } = props;
   return [
     {
-      id: 'select',
-      cell: ({}) => <div />,
-      enableSorting: false,
-      enableHiding: false,
-      enableColumnFilter: false,
-    },
-    {
       accessorKey: 'schema',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Schema" />
       ),
-      cell: ({ row }) => <div>{row.getValue('schema')}</div>,
-      enableSorting: true,
-      enableColumnFilter: true,
-      filterFn: 'arrIncludesSome',
+      cell: ({ getValue }) => getValue<string>(),
     },
     {
       accessorKey: 'table',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Table" />
       ),
-      cell: ({ row }) => {
+      cell: ({ getValue }) => {
         return (
           <div className="flex space-x-2">
-            <span className="truncate font-medium">
-              {row.getValue('table')}
-            </span>
+            <span className="truncate font-medium">{getValue<string>()}</span>
           </div>
         );
       },
-      enableColumnFilter: true,
-      filterFn: 'arrIncludesSome',
+    },
+    {
+      accessorFn: (row) => `${row.schema}.${row.table}`,
+      id: 'schemaTable',
+      footer: (props) => props.column.id,
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Table" />
+      ),
     },
     {
       accessorKey: 'where',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Where" />
       ),
-      cell: ({ row }) => {
+      cell: ({ getValue }) => {
         return (
           <div className="flex space-x-2">
-            <span className="truncate font-medium">
-              {row.getValue('where')}
-            </span>
+            <span className="truncate font-medium">{getValue<string>()}</span>
           </div>
         );
       },
-      enableSorting: false,
-      enableColumnFilter: false,
     },
     {
       accessorKey: 'edit',

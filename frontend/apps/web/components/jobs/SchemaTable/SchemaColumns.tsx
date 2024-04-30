@@ -19,7 +19,7 @@ import { SystemTransformer, TransformerSource } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ColumnDef, Row } from '@tanstack/react-table';
 import { HTMLProps, ReactElement, useEffect, useRef } from 'react';
-import { useFormContext } from 'react-hook-form';
+import { useFieldArray, useFormContext } from 'react-hook-form';
 import { SchemaColumnHeader } from './SchemaColumnHeader';
 import { Row as RowData } from './SchemaPageTable';
 import TransformerSelect from './TransformerSelect';
@@ -51,13 +51,14 @@ function toColKey(schema: string, table: string, column: string): ColumnKey {
   };
 }
 
-interface RowAlertProps {
+interface SchemaRowAlertProps {
   row: Row<RowData>;
   handler: SchemaConstraintHandler;
+  onRemoveClick(): void;
 }
 
-function RowAlert(props: RowAlertProps): ReactElement {
-  const { row, handler } = props;
+function SchemaRowAlert(props: SchemaRowAlertProps): ReactElement {
+  const { row, handler, onRemoveClick } = props;
   const key: ColumnKey = {
     schema: row.getValue('schema'),
     table: row.getValue('table'),
@@ -79,9 +80,10 @@ function RowAlert(props: RowAlertProps): ReactElement {
     <TooltipProvider delayDuration={100}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="cursor-default">
-            <ExclamationTriangleIcon className="text-yellow-600 dark:text-yellow-300" />
-          </div>
+          <ExclamationTriangleIcon
+            className="text-yellow-600 dark:text-yellow-300 cursor-pointer"
+            onClick={() => onRemoveClick()}
+          />
         </TooltipTrigger>
         <TooltipContent>
           <p>{messages.join('\n')}</p>
@@ -145,11 +147,26 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         <SchemaColumnHeader column={column} title="Table" />
       ),
       cell: ({ row, getValue }) => {
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        const form = useFormContext<
+          SchemaFormValues | SingleTableSchemaFormValues
+        >();
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        const { remove } = useFieldArray<
+          SchemaFormValues | SingleTableSchemaFormValues
+        >({
+          control: form.control,
+          name: 'mappings',
+        });
         return (
           <div className="flex flex-row gap-2 items-center">
-            <RowAlert row={row} handler={constraintHandler} />
+            <SchemaRowAlert
+              row={row}
+              handler={constraintHandler}
+              onRemoveClick={() => remove(row.index)}
+            />
             <span className="max-w-[500px] truncate font-medium">
-              {getValue() as string}
+              {getValue<string>()}
             </span>
           </div>
         );

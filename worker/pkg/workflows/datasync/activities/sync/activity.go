@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"sync"
 	"time"
 
@@ -101,16 +102,20 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	}
 	logger := log.With(activity.GetLogger(ctx), loggerKeyVals...)
 	slogger := logger_utils.NewJsonSLogger().With(loggerKeyVals...)
-	stopActivityChan := make(chan error, 1)
+	stopActivityChan := make(chan error, 3)
 	resultChan := make(chan error, 1)
 	benthosStreamMutex := sync.Mutex{}
 	var benthosStream BenthosStreamClient
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				slogger.Error("recovered from panic in sync activity heartbeat loop: %v", r)
+			}
+		}()
 		for {
 			select {
-			case <-time.After(1 * time.Second):
-				activity.RecordHeartbeat(ctx)
 			case activityErr := <-stopActivityChan:
+				logger.Info("received stop activity from benthos channel, cleaning up...")
 				resultChan <- activityErr
 				benthosStreamMutex.Lock()
 				if benthosStream != nil {
@@ -124,6 +129,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 				benthosStreamMutex.Unlock()
 				return
 			case <-activity.GetWorkerStopChannel(ctx):
+				logger.Info("received worker stop, cleaning up...")
 				resultChan <- fmt.Errorf("received worker stop signal")
 				benthosStreamMutex.Lock()
 				if benthosStream != nil {
@@ -137,6 +143,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 				benthosStreamMutex.Unlock()
 				return
 			case <-ctx.Done():
+				logger.Info("received context done, cleaning up...")
 				benthosStreamMutex.Lock()
 				if benthosStream != nil {
 					// this must be here because stream.Run(ctx) doesn't seem to fully obey a canceled context when
@@ -147,7 +154,9 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 					}
 				}
 				benthosStreamMutex.Unlock()
-				resultChan <- nil
+				return
+			case <-time.After(1 * time.Second):
+				activity.RecordHeartbeat(ctx)
 			}
 		}
 	}()
@@ -156,26 +165,14 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		tunnelmanager.ReleaseSession(session)
+	}()
 
-	connections := make([]*mgmtv1alpha1.Connection, len(req.BenthosDsns))
-
-	errgrp, errctx := errgroup.WithContext(ctx)
-	for idx, bdns := range req.BenthosDsns {
-		idx := idx
-		bdns := bdns
-		errgrp.Go(func() error {
-			resp, err := a.connclient.GetConnection(errctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{Id: bdns.ConnectionId}))
-			if err != nil {
-				return fmt.Errorf("failed to retrieve connection: %w", err)
-			}
-			connections[idx] = resp.Msg.Connection
-			return nil
-		})
+	connections, err := getConnectionsFromBenthosDsns(ctx, a.connclient, req.BenthosDsns)
+	if err != nil {
+		return nil, err
 	}
-	if err := errgrp.Wait(); err != nil {
-		return nil, fmt.Errorf("unable to retrieve all or some connections: %w", err)
-	}
-
 	connectionMap := map[string]*mgmtv1alpha1.Connection{}
 	for _, connection := range connections {
 		connectionMap[connection.Id] = connection
@@ -191,13 +188,8 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	}
 
 	envKeyDsnSyncMap := sync.Map{}
-
-	defer func() {
-		tunnelmanager.ReleaseSession(session)
-	}()
-
 	dsnToConnectionIdMap := sync.Map{}
-	errgrp, errctx = errgroup.WithContext(ctx)
+	errgrp := errgroup.Group{}
 	for idx, bdns := range req.BenthosDsns {
 		idx := idx
 		bdns := bdns
@@ -218,24 +210,11 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 		return nil, fmt.Errorf("was unable to build connection details for some or all connections: %w", err)
 	}
 
-	poolprovider := newPoolProvider(func(dsn string) (neosync_benthos_sql.SqlDbtx, error) {
-		connid, ok := dsnToConnectionIdMap.Load(dsn)
-		if !ok {
-			return nil, errors.New("unable to find connection id by dsn when getting db pool")
-		}
-		connectionId, ok := connid.(string)
-		if !ok {
-			return nil, fmt.Errorf("unable to convert connection id to string. Type was %T", connectionId)
-		}
-		connection, ok := connectionMap[connectionId]
-		if !ok {
-			return nil, errors.New("unable to find connection by connection id when getting db pool")
-		}
-		return tunnelmanager.GetConnection(session, connection, slogger)
-	})
+	poolprovider := newPoolProvider(getPoolProviderGetter(tunnelmanager, &dsnToConnectionIdMap, connectionMap, session, slogger))
+
 	err = neosync_benthos_sql.RegisterPooledSqlInsertOutput(benthosenv, poolprovider, isRetry)
 	if err != nil {
-		return nil, fmt.Errorf("unable to register pooled_sql_insert input to benthos instance: %w", err)
+		return nil, fmt.Errorf("unable to register pooled_sql_insert output to benthos instance: %w", err)
 	}
 	err = neosync_benthos_sql.RegisterPooledSqlUpdateOutput(benthosenv, poolprovider)
 	if err != nil {
@@ -245,7 +224,6 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	if err != nil {
 		return nil, fmt.Errorf("unable to register pooled_sql_raw input to benthos instance: %w", err)
 	}
-
 	err = neosync_benthos_error.RegisterErrorProcessor(benthosenv, stopActivityChan)
 	if err != nil {
 		return nil, fmt.Errorf("unable to register error processor to benthos instance: %w", err)
@@ -282,6 +260,11 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 	benthosStream = stream
 	benthosStreamMutex.Unlock()
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				slogger.Error("recovered from panic in benthos stream run: %v", r)
+			}
+		}()
 		err := stream.Run(ctx)
 		if err != nil {
 			resultChan <- fmt.Errorf("unable to run benthos stream: %w", err)
@@ -292,7 +275,7 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 
 	err = <-resultChan
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not successfully complete sync activity: %w", err)
 	}
 	benthosStreamMutex.Lock()
 	benthosStream = nil
@@ -300,6 +283,56 @@ func (a *Activity) Sync(ctx context.Context, req *SyncRequest, metadata *SyncMet
 
 	logger.Info("sync complete")
 	return &SyncResponse{}, nil
+}
+
+func getPoolProviderGetter(
+	tunnelmanager *ConnectionTunnelManager,
+	dsnToConnectionIdMap *sync.Map,
+	connectionMap map[string]*mgmtv1alpha1.Connection,
+	session string,
+	slogger *slog.Logger,
+) func(dsn string) (neosync_benthos_sql.SqlDbtx, error) {
+	return func(dsn string) (neosync_benthos_sql.SqlDbtx, error) {
+		connid, ok := dsnToConnectionIdMap.Load(dsn)
+		if !ok {
+			return nil, errors.New("unable to find connection id by dsn when getting db pool")
+		}
+		connectionId, ok := connid.(string)
+		if !ok {
+			return nil, fmt.Errorf("unable to convert connection id to string. Type was %T", connectionId)
+		}
+		connection, ok := connectionMap[connectionId]
+		if !ok {
+			return nil, errors.New("unable to find connection by connection id when getting db pool")
+		}
+		return tunnelmanager.GetConnection(session, connection, slogger)
+	}
+}
+
+func getConnectionsFromBenthosDsns(
+	ctx context.Context,
+	connclient mgmtv1alpha1connect.ConnectionServiceClient,
+	dsns []*shared.BenthosDsn,
+) ([]*mgmtv1alpha1.Connection, error) {
+	connections := make([]*mgmtv1alpha1.Connection, len(dsns))
+
+	errgrp, errctx := errgroup.WithContext(ctx)
+	for idx, bdns := range dsns {
+		idx := idx
+		bdns := bdns
+		errgrp.Go(func() error {
+			resp, err := connclient.GetConnection(errctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{Id: bdns.ConnectionId}))
+			if err != nil {
+				return fmt.Errorf("failed to retrieve connection: %w", err)
+			}
+			connections[idx] = resp.Msg.Connection
+			return nil
+		})
+	}
+	if err := errgrp.Wait(); err != nil {
+		return nil, fmt.Errorf("unable to retrieve all or some connections: %w", err)
+	}
+	return connections, nil
 }
 
 func getEnvVarLookupFn(input map[string]string) func(key string) (string, bool) {

@@ -13,13 +13,11 @@ import { useFormContext } from 'react-hook-form';
 interface DestinationOptionsProps {
   connection?: Connection;
   index?: number;
-  maxColNum?: number;
 }
 export default function DestinationOptionsForm(
   props: DestinationOptionsProps
 ): ReactElement {
-  const { connection, maxColNum, index } = props;
-  const grid = maxColNum ? `lg:grid-cols-${maxColNum}` : 'lg:grid-cols-3';
+  const { connection, index } = props;
   const formCtx = useFormContext();
 
   if (!connection) {
@@ -37,7 +35,7 @@ export default function DestinationOptionsForm(
           ? `destinations.${index}.destinationOptions.truncateCascade`
           : `destinationOptions.truncateCascade`;
       return (
-        <div className={`grid grid-cols-1 md:grid-cols-1 ${grid} gap-4`}>
+        <div className="flex flex-col gap-2">
           <div>
             <FormField
               name={truncateBeforeInsertName}
@@ -98,7 +96,7 @@ export default function DestinationOptionsForm(
                       isChecked={field.value || false}
                       onCheckedChange={field.onChange}
                       title="Init Table Schema"
-                      description="Creates table(s) schema and its constraints. The database schema must exist. "
+                      description="Creates table(s) and their constraints. The database schema must already exist. "
                     />
                   </FormControl>
                   <FormMessage />
@@ -139,7 +137,7 @@ export default function DestinationOptionsForm(
       switch (mysqlValue.connectionConfig.case) {
         case 'connection':
           return (
-            <div className={`grid grid-cols-1 md:grid-cols-1 ${grid} gap-4`}>
+            <div className="flex flex-col gap-2">
               <div>
                 <FormField
                   name={mysqltruncateBeforeInsertName}
@@ -174,7 +172,7 @@ export default function DestinationOptionsForm(
                           isChecked={field.value || false}
                           onCheckedChange={field.onChange}
                           title="Init Table Schema"
-                          description="Creates table(s) schema and its constraints. The database schema must exist. "
+                          description="Creates table(s) and their constraints. The database schema must already exist. "
                         />
                       </FormControl>
                       <FormMessage />

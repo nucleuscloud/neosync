@@ -4,8 +4,6 @@ import {
   PostHogPageview,
 } from '@/components/providers/posthog-provider';
 import { ThemeProvider } from '@/components/providers/theme-provider';
-import { fontSans } from '@/libs/fonts';
-import { cn } from '@/libs/utils';
 import { Metadata } from 'next';
 import { ReactElement, ReactNode, Suspense } from 'react';
 import BaseLayout from '../BaseLayout';
@@ -24,12 +22,7 @@ export default async function InviteLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head />
-      <body
-        className={cn(
-          'min-h-screen bg-background font-sans antialiased overflow-scroll',
-          fontSans.variable
-        )}
-      >
+      <body className="min-h-screen bg-background font-sans antialiased overflow-scroll">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

@@ -129,6 +129,7 @@ export default function DestinationConnectionCard({
                             truncateBeforeInsert: false,
                             truncateCascade: false,
                             initTableSchema: false,
+                            onConflictDoNothing: false,
                           });
                         }}
                         value={field.value}
@@ -160,7 +161,6 @@ export default function DestinationConnectionCard({
                 connection={connections.find(
                   (c) => c.id === form.getValues().connectionId
                 )}
-                maxColNum={2}
               />
             </div>
           </CardContent>

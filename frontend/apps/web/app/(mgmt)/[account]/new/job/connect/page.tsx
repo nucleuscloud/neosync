@@ -179,7 +179,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 connection={connections.find(
                   (c) => c.id === form.getValues().sourceId
                 )}
-                maxColNum={2}
               />
             </div>
           </div>
@@ -234,6 +233,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                           truncateBeforeInsert: false,
                                           truncateCascade: false,
                                           initTableSchema: false,
+                                          onConflictDoNothing: false,
                                         }
                                       );
                                     }}
@@ -282,7 +282,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                           c.id ==
                           form.getValues().destinations[index].connectionId
                       )}
-                      maxColNum={2}
                     />
                   </div>
                 );

@@ -82,16 +82,15 @@ func generateCreateTableStatement(
 
 func buildTableCol(record *pg_queries.GetDatabaseTableSchemaRow) string {
 	pieces := []string{escapeColumnName(record.ColumnName), buildDataType(record), buildNullableText(record)}
-	colDefault, ok := record.ColumnDefault.(string)
-	if ok && colDefault != "" {
-		if strings.HasPrefix(colDefault, "nextval") && record.DataType == "integer" {
+	if record.ColumnDefault != "" {
+		if strings.HasPrefix(record.ColumnDefault, "nextval") && record.DataType == "integer" {
 			pieces[1] = "SERIAL"
-		} else if strings.HasPrefix(colDefault, "nextval") && record.DataType == "bigint" {
+		} else if strings.HasPrefix(record.ColumnDefault, "nextval") && record.DataType == "bigint" {
 			pieces[1] = "BIGSERIAL"
-		} else if strings.HasPrefix(colDefault, "nextval") && record.DataType == "smallint" {
+		} else if strings.HasPrefix(record.ColumnDefault, "nextval") && record.DataType == "smallint" {
 			pieces[1] = "SMALLSERIAL"
-		} else if colDefault != "NULL" {
-			pieces = append(pieces, "DEFAULT", colDefault)
+		} else if record.ColumnDefault != "NULL" {
+			pieces = append(pieces, "DEFAULT", record.ColumnDefault)
 		}
 	}
 	return strings.Join(pieces, " ")
@@ -169,16 +168,9 @@ func GetUniqueSchemaColMappings(
 }
 
 func toColumnInfo(row *pg_queries.GetDatabaseSchemaRow) *dbschemas.ColumnInfo {
-	var colDefault string
-	if row.ColumnDefault != nil {
-		val, ok := row.ColumnDefault.(string)
-		if ok {
-			colDefault = val
-		}
-	}
 	return &dbschemas.ColumnInfo{
 		OrdinalPosition:        int32(row.OrdinalPosition),
-		ColumnDefault:          colDefault,
+		ColumnDefault:          row.ColumnDefault,
 		IsNullable:             row.IsNullable,
 		DataType:               row.DataType,
 		CharacterMaximumLength: ptr(row.CharacterMaximumLength),
@@ -378,14 +370,17 @@ func dedupeSlice(input []string) []string {
 	return output
 }
 
-func GetPostgresRolePermissions(pgquerier pg_queries.Querier,
+func GetPostgresRolePermissions(
 	ctx context.Context,
 	conn pg_queries.DBTX,
+	pgquerier pg_queries.Querier,
 	role string,
 ) ([]*pg_queries.GetPostgresRolePermissionsRow, error) {
 	rows, err := pgquerier.GetPostgresRolePermissions(ctx, conn, role)
-	if err != nil {
+	if err != nil && !nucleusdb.IsNoRows(err) {
 		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return []*pg_queries.GetPostgresRolePermissionsRow{}, nil
 	}
 
 	output := []*pg_queries.GetPostgresRolePermissionsRow{}

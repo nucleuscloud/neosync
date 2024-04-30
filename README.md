@@ -8,10 +8,10 @@ Open Source Synthetic Data Orchestration
 <p>
 
 <div align='center'>
- | <a href="https://neosync.dev">Website</a> |
+ | <a href="https://www.neosync.dev">Website</a> |
  <a href="https://docs.neosync.dev">Docs</a> |
    <a href="https://discord.com/invite/MFAMgnp4HF">Discord</a> |
- <a href="https://neosync.dev/blog">Blog</a> |
+ <a href="https://www.neosync.dev/blog">Blog</a> |
  <a href="https://docs.neosync.dev/changelog">Changelog</a> |
  </div>
 
@@ -35,7 +35,7 @@ Open Source Synthetic Data Orchestration
 
 ## Introduction
 
-[Neosync](https://neosync.dev) is a developer-first way to create anonymized or synthetic data and sync it across all environments.
+[Neosync](https://www.neosync.dev) is a developer-first way to create anonymized or synthetic data and sync it across all environments.
 
 Companies use Neosync to:
 

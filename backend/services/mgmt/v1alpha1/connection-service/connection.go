@@ -11,7 +11,6 @@ import (
 
 	"connectrpc.com/connect"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
-	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
@@ -28,44 +27,25 @@ func (s *Service) CheckConnectionConfig(
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 	connectionTimeout := uint32(5)
 
-	switch req.Msg.ConnectionConfig.Config.(type) {
+	switch cconfig := req.Msg.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-
-		var pgDbPrivilegeRows []*pg_queries.GetPostgresRolePermissionsRow
-		var role string
-		var privs []*mgmtv1alpha1.ConnectionRolePrivilege
-		schemaTablePrivsMap := make(map[string][]string)
-
-		conn, err := s.sqlConnector.NewPgPoolFromConnectionConfig(req.Msg.GetConnectionConfig().GetPgConfig(), &connectionTimeout, logger)
+		role, err := getPostgresUserFromConnectionConfig(cconfig.PgConfig)
 		if err != nil {
 			return nil, err
+		}
+
+		conn, err := s.sqlConnector.NewPgPoolFromConnectionConfig(cconfig.PgConfig, &connectionTimeout, logger)
+		if err != nil {
+			return nil, fmt.Errorf("unable to create postgres connection: %w", err)
 		}
 
 		db, err := conn.Open(ctx)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unable to open postgres database connection: %w", err)
 		}
 		defer conn.Close()
 
-		cctx, cancel := context.WithCancel(ctx)
-		defer cancel()
-
-		switch config := req.Msg.ConnectionConfig.GetPgConfig().ConnectionConfig.(type) {
-		case *mgmtv1alpha1.PostgresConnectionConfig_Connection:
-			role = config.Connection.User
-		case *mgmtv1alpha1.PostgresConnectionConfig_Url:
-			u, err := url.Parse(config.Url)
-			if err != nil {
-				var urlErr *url.Error
-				if errors.As(err, &urlErr) {
-					return nil, fmt.Errorf("unable to parse postgres url [%s]: %w", urlErr.Op, urlErr.Err)
-				}
-				return nil, fmt.Errorf("unable to parse postgres url: %w", err)
-			}
-			role = u.User.Username()
-		}
-
-		pgDbPrivilegeRows, err = dbschemas_postgres.GetPostgresRolePermissions(s.pgquerier, cctx, db, role)
+		pgRolePermissions, err := dbschemas_postgres.GetPostgresRolePermissions(ctx, db, s.pgquerier, role)
 		if err != nil {
 			errorMsg := err.Error()
 			return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
@@ -74,13 +54,14 @@ func (s *Service) CheckConnectionConfig(
 				Privileges:      nil,
 			}), nil
 		}
-
-		for _, v := range pgDbPrivilegeRows {
-			key := fmt.Sprintf("%s.%s", v.TableSchema, v.TableName)
-			schemaTablePrivsMap[key] = append(schemaTablePrivsMap[key], v.PrivilegeType)
+		schemaTablePrivsMap := map[string][]string{}
+		for _, permission := range pgRolePermissions {
+			key := fmt.Sprintf("%s.%s", permission.TableSchema, permission.TableName)
+			schemaTablePrivsMap[key] = append(schemaTablePrivsMap[key], permission.PrivilegeType)
 		}
 
-		for key, privSlice := range schemaTablePrivsMap {
+		privs := []*mgmtv1alpha1.ConnectionRolePrivilege{}
+		for key, permissions := range schemaTablePrivsMap {
 			parts := strings.SplitN(key, ".", 2)
 			schema, table := parts[0], parts[1]
 
@@ -88,7 +69,7 @@ func (s *Service) CheckConnectionConfig(
 				Grantee:       role,
 				Schema:        schema,
 				Table:         table,
-				PrivilegeType: privSlice,
+				PrivilegeType: permissions,
 			})
 		}
 
@@ -127,9 +108,26 @@ func (s *Service) CheckConnectionConfig(
 			ConnectionError: nil,
 		}), nil
 	default:
-		msg := "ConnectionConfig type not implemented"
-		err := errors.New(msg)
-		return nil, err
+		return nil, fmt.Errorf("unsupported connection config: %T", cconfig)
+	}
+}
+
+func getPostgresUserFromConnectionConfig(pgconfig *mgmtv1alpha1.PostgresConnectionConfig) (string, error) {
+	switch config := pgconfig.ConnectionConfig.(type) {
+	case *mgmtv1alpha1.PostgresConnectionConfig_Connection:
+		return config.Connection.User, nil
+	case *mgmtv1alpha1.PostgresConnectionConfig_Url:
+		u, err := url.Parse(config.Url)
+		if err != nil {
+			var urlErr *url.Error
+			if errors.As(err, &urlErr) {
+				return "", fmt.Errorf("unable to parse postgres url [%s]: %w", urlErr.Op, urlErr.Err)
+			}
+			return "", fmt.Errorf("unable to parse postgres url: %w", err)
+		}
+		return u.User.Username(), nil
+	default:
+		return "", fmt.Errorf("unable to parse connection url from postgres config: %T", config)
 	}
 }
 

@@ -49,7 +49,7 @@ brews:
       owner: nucleuscloud
       name: homebrew-tap
     folder: Formula
-    homepage: https://neosync.dev
+    homepage: https://www.neosync.dev
     description: CLI for interfacing with Neosync
     license: MIT
 archives:
@@ -59,7 +59,7 @@ archives:
         format: zip
 
 aurs:
-  - homepage: https://neosync.dev
+  - homepage: https://www.neosync.dev
     description: CLI for interfacing with Neosync
     maintainers:
       - Devops <devops@nucleuscloud.com>
