@@ -127,7 +127,7 @@ func processCycles(
 		return nil, err
 	}
 	if len(startTables) == 0 {
-		return nil, fmt.Errorf("unable to determine start of multi circular dependency")
+		return nil, fmt.Errorf("unable to determine start of multi circular dependency: %+v", cycles)
 	}
 
 	for _, startTable := range startTables {
