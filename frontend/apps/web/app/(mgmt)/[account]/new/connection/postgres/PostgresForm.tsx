@@ -65,6 +65,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ReactElement, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
+type ActiveTab = 'host' | 'url';
+
 export default function PostgresForm() {
   const searchParams = useSearchParams();
   const { account } = useAccount();
@@ -74,7 +76,7 @@ export default function PostgresForm() {
     account?.id ?? ''
   );
   // used to know which tab - host or url that the user is on when we submit the form
-  const [activeTab, setActiveTab] = useState<string>('url');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('url');
 
   const form = useForm<PostgresFormValues>({
     resolver: yupResolver(POSTGRES_FORM_SCHEMA),
@@ -217,92 +219,89 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
 */
   useEffect(() => {
     const fetchData = async () => {
-      if (sourceConnId && account?.id) {
-        setIsLoading(true);
-        try {
-          const connData = await getConnection(account.id, sourceConnId);
-
-          if (
-            connData &&
-            connData.connection?.connectionConfig?.config.case === 'pgConfig'
-          ) {
-            const config = connData.connection?.connectionConfig?.config.value;
-
-            let pgConfig: PostgresConnection | string | undefined;
-
-            if (config.connectionConfig.case == 'connection') {
-              pgConfig = config.connectionConfig.value;
-            } else if (config.connectionConfig.case == 'url') {
-              pgConfig = config.connectionConfig.value;
-            }
-
-            const defaultDb = {
-              host: '',
-              name: '',
-              user: '',
-              pass: '',
-              port: 5432,
-              sslMode: 'disable',
-            };
-
-            let dbConfig = defaultDb;
-            if (typeof pgConfig !== 'string') {
-              dbConfig = {
-                host: pgConfig?.host ?? '',
-                name: pgConfig?.name ?? '',
-                user: pgConfig?.user ?? '',
-                pass: pgConfig?.pass ?? '',
-                port: pgConfig?.port ?? 5432,
-                sslMode: pgConfig?.sslMode ?? 'disable',
-              };
-            }
-
-            /* reset the form with the new values and include the fallback values because of our validation schema requires a string and not undefined which is okay because it will tell the user that something is wrong instead of the user not realizing that it's undefined
-             */
-            let passPhrase = '';
-            let privateKey = '';
-
-            const authConfig = config.tunnel?.authentication?.authConfig;
-
-            switch (authConfig?.case) {
-              case 'passphrase':
-                passPhrase = authConfig.value.value;
-                break;
-              case 'privateKey':
-                passPhrase = authConfig.value.passphrase ?? '';
-                privateKey = authConfig.value.value;
-                break;
-            }
-
-            form.reset({
-              ...form.getValues(),
-              connectionName: connData.connection?.name + '-copy',
-              db: dbConfig,
-              url: typeof pgConfig === 'string' ? pgConfig : '',
-              options: {
-                maxConnectionLimit:
-                  config.connectionOptions?.maxConnectionLimit ?? 80,
-              },
-              tunnel: {
-                host: config.tunnel?.host ?? '',
-                port: config.tunnel?.port ?? 22,
-                knownHostPublicKey: config.tunnel?.knownHostPublicKey ?? '',
-                user: config.tunnel?.user ?? '',
-                passphrase: passPhrase,
-                privateKey: privateKey,
-              },
-            });
-          }
-        } catch (error) {
-          console.error('Failed to fetch connection data:', error);
-          setIsLoading(false);
-          toast({
-            title: 'Unable to clone connection!',
-            variant: 'destructive',
-          });
-        } finally {
-          setIsLoading(false);
+      if (!sourceConnId || !account?.id) {
+        return;
+      }
+      setIsLoading(true);
+      try {
+        const connData = await getConnection(account.id, sourceConnId);
+        if (connData.connection?.connectionConfig?.config.case !== 'pgConfig') {
+          return;
         }
+
+        const config = connData.connection?.connectionConfig?.config.value;
+
+        const pgConfig = config.connectionConfig.value;
+
+        const defaultDb = {
+          host: '',
+          name: '',
+          user: '',
+          pass: '',
+          port: 5432,
+          sslMode: 'disable',
+        };
+
+        let dbConfig = defaultDb;
+        if (typeof pgConfig !== 'string') {
+          dbConfig = {
+            host: pgConfig?.host ?? '',
+            name: pgConfig?.name ?? '',
+            user: pgConfig?.user ?? '',
+            pass: pgConfig?.pass ?? '',
+            port: pgConfig?.port ?? 5432,
+            sslMode: pgConfig?.sslMode ?? 'disable',
+          };
+        }
+
+        /* reset the form with the new values and include the fallback values because of our validation schema requires a string and not undefined which is okay because it will tell the user that something is wrong instead of the user not realizing that it's undefined
+         */
+        let passPhrase = '';
+        let privateKey = '';
+
+        const authConfig = config.tunnel?.authentication?.authConfig;
+        switch (authConfig?.case) {
+          case 'passphrase':
+            passPhrase = authConfig.value.value;
+            break;
+          case 'privateKey':
+            passPhrase = authConfig.value.passphrase ?? '';
+            privateKey = authConfig.value.value;
+            break;
+        }
+
+        form.reset({
+          ...form.getValues(),
+          connectionName: connData.connection?.name + '-copy',
+          db: dbConfig,
+          url: typeof pgConfig === 'string' ? pgConfig : '',
+          options: {
+            maxConnectionLimit:
+              config.connectionOptions?.maxConnectionLimit ?? 80,
+          },
+          tunnel: {
+            host: config.tunnel?.host ?? '',
+            port: config.tunnel?.port ?? 22,
+            knownHostPublicKey: config.tunnel?.knownHostPublicKey ?? '',
+            user: config.tunnel?.user ?? '',
+            passphrase: passPhrase,
+            privateKey: privateKey,
+          },
+        });
+        if (config.connectionConfig.case === 'url') {
+          setActiveTab('url');
+        } else if (config.connectionConfig.case === 'connection') {
+          setActiveTab('host');
+        }
+      } catch (error) {
+        console.error('Failed to fetch connection data:', error);
+        toast({
+          title: 'Unable to retrieve connection data for clone!',
+          description: getErrorMessage(error),
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -350,7 +349,7 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
 
         <RadioGroup
           defaultValue="url"
-          onValueChange={(e) => setActiveTab(e)}
+          onValueChange={(value) => setActiveTab(value as ActiveTab)}
           value={activeTab}
         >
           <div className="flex flex-col md:flex-row gap-4">
