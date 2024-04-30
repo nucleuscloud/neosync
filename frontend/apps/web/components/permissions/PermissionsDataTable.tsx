@@ -90,7 +90,7 @@ export default function PermissionsDataTable<TData, TValue>({
         ref={tableContainerRef}
       >
         <StickyHeaderTable>
-          <TableHeader className="bg-gray-100 dark:bg-gray-800">
+          <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 flex w-full">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
