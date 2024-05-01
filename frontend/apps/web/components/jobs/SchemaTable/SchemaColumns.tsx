@@ -436,11 +436,13 @@ export function getTransformerFilter(
   const isNullable = constraintHandler.getIsNullable(colkey);
   const convertedDataType = constraintHandler.getConvertedDataType(colkey);
   const hasDefault = constraintHandler.getHasDefault(colkey);
+  const isGenerated = constraintHandler.getIsGenerated(colkey);
   return {
     dataType: convertedDataType,
     hasDefault,
     isForeignKey,
     isNullable,
     jobType: toSupportedJobtype(jobType),
+    isGenerated,
   };
 }

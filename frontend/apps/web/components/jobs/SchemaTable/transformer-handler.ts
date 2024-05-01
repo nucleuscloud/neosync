@@ -76,6 +76,9 @@ function shouldIncludeSystem(
   if (!transformer.supportedJobTypes.some((jt) => jt === filters.jobType)) {
     return false;
   }
+  if (filters.isGenerated) {
+    return transformer.source === TransformerSource.GENERATE_DEFAULT;
+  }
   if (transformer.source === TransformerSource.GENERATE_DEFAULT) {
     return filters.hasDefault;
   }
@@ -128,6 +131,7 @@ export interface TransformerFilters {
   dataType: TransformerDataType;
   isNullable: boolean;
   hasDefault: boolean;
+  isGenerated: boolean;
   jobType: SupportedJobType;
 }
 
