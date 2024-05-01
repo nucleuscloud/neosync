@@ -1,5 +1,7 @@
 'use client';
 
+import { getSetDelta } from '@/app/(mgmt)/[account]/jobs/[id]/source/components/util';
+import { Action } from '@/components/DualListBox/DualListBox';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { SchemaTable } from '@/components/jobs/SchemaTable/SchemaTable';
@@ -28,7 +30,9 @@ import { useGetConnectionUniqueConstraints } from '@/libs/hooks/useGetConnection
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { convertMinutesToNanoseconds, getErrorMessage } from '@/util/util';
 import {
+  JobMappingFormValues,
   convertJobMappingTransformerFormToJobMappingTransformer,
+  convertJobMappingTransformerToForm,
   toJobDestinationOptions,
 } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -43,6 +47,7 @@ import {
   GetAccountOnboardingConfigResponse,
   JobDestination,
   JobMapping,
+  JobMappingTransformer,
   JobSource,
   JobSourceOptions,
   RetryPolicy,
@@ -51,7 +56,7 @@ import {
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useFieldArray, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import JobsProgressSteps, {
@@ -221,6 +226,66 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       ),
     [isSchemaMapValidating, isPkValidating, isFkValidating, isUCValidating]
   );
+  const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set());
+  const { append, remove, fields } = useFieldArray<SingleTableSchemaFormValues>(
+    {
+      control: form.control,
+      name: 'mappings',
+    }
+  );
+
+  // useEffect(() => {
+  //   if (isSchemaDataMapLoading || selectedTables.size > 0) {
+  //     return;
+  //   }
+  //   const js = getJobSource(data?.job, connectionSchemaDataMap?.schemaMap);
+  //   setSelectedTables(
+  //     new Set(
+  //       js.mappings.map((mapping) => `${mapping.schema}.${mapping.table}`)
+  //     )
+  //   );
+  // }, [isJobLoading, isSchemaDataMapLoading]);
+  function onSelectedTableToggle(items: Set<string>, _action: Action): void {
+    if (items.size === 0) {
+      const idxs = fields.map((_, idx) => idx);
+      remove(idxs);
+      setSelectedTables(new Set());
+      return;
+    }
+    const [added, removed] = getSetDelta(items, selectedTables);
+    const toRemove: number[] = [];
+    const toAdd: JobMappingFormValues[] = [];
+    fields.forEach((field, idx) => {
+      if (removed.has(`${field.schema}.${field.table}`)) {
+        toRemove.push(idx);
+      }
+    });
+
+    const schema = connectionSchemaDataMap?.schemaMap ?? {};
+    added.forEach((item) => {
+      const dbcols = schema[item];
+      if (!dbcols) {
+        return;
+      }
+      dbcols.forEach((dbcol) => {
+        toAdd.push({
+          schema: dbcol.schema,
+          table: dbcol.table,
+          column: dbcol.column,
+          transformer: convertJobMappingTransformerToForm(
+            new JobMappingTransformer({})
+          ),
+        });
+      });
+    });
+    if (toRemove.length > 0) {
+      remove(toRemove);
+    }
+    if (toAdd.length > 0) {
+      append(toAdd);
+    }
+    setSelectedTables(items);
+  }
 
   return (
     <div className="flex flex-col gap-5">
@@ -275,6 +340,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               schema={connectionSchemaDataMap?.schemaMap ?? {}}
               isSchemaDataReloading={isSchemaMapValidating}
               jobType={'generate'}
+              selectedTables={selectedTables}
+              onSelectedTableToggle={onSelectedTableToggle}
             />
           )}
           {form.formState.errors.root && (

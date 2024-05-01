@@ -1,5 +1,6 @@
 'use client';
 
+import { Action } from '@/components/DualListBox/DualListBox';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { SchemaTable } from '@/components/jobs/SchemaTable/SchemaTable';
@@ -12,18 +13,25 @@ import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectio
 import { useGetConnectionPrimaryConstraints } from '@/libs/hooks/useGetConnectionPrimaryConstraints';
 import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetConnectionUniqueConstraints } from '@/libs/hooks/useGetConnectionUniqueConstraints';
-import { SCHEMA_FORM_SCHEMA, SchemaFormValues } from '@/yup-validations/jobs';
+import {
+  JobMappingFormValues,
+  SCHEMA_FORM_SCHEMA,
+  SchemaFormValues,
+  convertJobMappingTransformerToForm,
+} from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   DatabaseColumn,
   ForeignConstraintTables,
+  JobMappingTransformer,
   PrimaryConstraint,
 } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
-import { ReactElement, useEffect, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
+import { ReactElement, useEffect, useMemo, useState } from 'react';
+import { useFieldArray, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
+import { getSetDelta } from '../../../jobs/[id]/source/components/util';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
 import { ConnectFormValues } from '../schema';
 
@@ -114,6 +122,53 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       ),
     [isSchemaMapValidating, isPkValidating, isFkValidating, isUCValidating]
   );
+  const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set());
+
+  const { append, remove, fields } = useFieldArray<SchemaFormValues>({
+    control: form.control,
+    name: 'mappings',
+  });
+  function onSelectedTableToggle(items: Set<string>, _action: Action): void {
+    if (items.size === 0) {
+      const idxs = fields.map((_, idx) => idx);
+      remove(idxs);
+      setSelectedTables(new Set());
+      return;
+    }
+    const [added, removed] = getSetDelta(items, selectedTables);
+    const toRemove: number[] = [];
+    const toAdd: JobMappingFormValues[] = [];
+    fields.forEach((field, idx) => {
+      if (removed.has(`${field.schema}.${field.table}`)) {
+        toRemove.push(idx);
+      }
+    });
+
+    const schema = connectionSchemaDataMap?.schemaMap ?? {};
+    added.forEach((item) => {
+      const dbcols = schema[item];
+      if (!dbcols) {
+        return;
+      }
+      dbcols.forEach((dbcol) => {
+        toAdd.push({
+          schema: dbcol.schema,
+          table: dbcol.table,
+          column: dbcol.column,
+          transformer: convertJobMappingTransformerToForm(
+            new JobMappingTransformer({})
+          ),
+        });
+      });
+    });
+    if (toRemove.length > 0) {
+      remove(toRemove);
+    }
+    if (toAdd.length > 0) {
+      append(toAdd);
+    }
+    setSelectedTables(items);
+  }
 
   return (
     <div className="flex flex-col gap-5">
@@ -142,6 +197,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             constraintHandler={schemaConstraintHandler}
             schema={connectionSchemaDataMap?.schemaMap ?? {}}
             isSchemaDataReloading={isSchemaMapValidating}
+            selectedTables={selectedTables}
+            onSelectedTableToggle={onSelectedTableToggle}
           />
           <div className="flex flex-row gap-1 justify-between">
             <Button key="back" type="button" onClick={() => router.back()}>
