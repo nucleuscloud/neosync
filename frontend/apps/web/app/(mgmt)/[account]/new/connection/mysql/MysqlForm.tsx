@@ -34,6 +34,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/use-toast';
 import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
+import { getConnection } from '@/libs/hooks/useGetConnection';
 import { getErrorMessage } from '@/util/util';
 import {
   MYSQL_CONNECTION_PROTOCOLS,
@@ -63,7 +64,6 @@ import {
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ReactElement, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { getConnection } from '@/libs/hooks/useGetConnection';
 
 export default function MysqlForm() {
   const { account } = useAccount();
@@ -192,71 +192,80 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
 */
   useEffect(() => {
     const fetchData = async () => {
-      if (sourceConnId && account?.id) {
-        setIsLoading(true);
-        try {
-          const connData = await getConnection(account.id, sourceConnId);
+      if (!sourceConnId || !account?.id) {
+        return;
+      }
+      setIsLoading(true);
 
-          if (
-            connData &&
-            connData.connection?.connectionConfig?.config.case === 'mysqlConfig'
-          ) {
-            const config = connData.connection?.connectionConfig?.config.value;
-
-            let mysqlConfig: MysqlConnection = new MysqlConnection({});
-
-            if (config.connectionConfig.case == 'connection') {
-              mysqlConfig = config.connectionConfig.value;
-            }
-
-            let passPhrase = '';
-            let privateKey = '';
-
-            const authConfig = config.tunnel?.authentication?.authConfig;
-
-            switch (authConfig?.case) {
-              case 'passphrase':
-                passPhrase = authConfig.value.value;
-                break;
-              case 'privateKey':
-                passPhrase = authConfig.value.passphrase ?? '';
-                privateKey = authConfig.value.value;
-                break;
-            }
-
-            /* reset the form with the new values and include the fallback values because of our validation schema requires a string and not undefined which is okay because it will tell the user that something is wrong instead of the user not realizing that it's undefined
-             */
-            form.reset({
-              ...form.getValues(),
-              connectionName: connData.connection?.name + '-copy',
-              db: {
-                host: mysqlConfig.host ?? '',
-                name: mysqlConfig.name ?? '',
-                user: mysqlConfig.user ?? '',
-                pass: mysqlConfig.pass ?? '',
-                port: mysqlConfig.port ?? 3306,
-                protocol: mysqlConfig.protocol ?? 'tcp',
-              },
-              tunnel: {
-                host: config.tunnel?.host ?? '',
-                port: config.tunnel?.port ?? 22,
-                knownHostPublicKey: config.tunnel?.knownHostPublicKey ?? '',
-                user: config.tunnel?.user ?? '',
-                passphrase: passPhrase,
-                privateKey: privateKey,
-              },
-            });
-          }
-        } catch (error) {
-          console.error('Failed to fetch connection data:', error);
-          setIsLoading(false);
-          toast({
-            title: 'Unable to clone connection!',
-            variant: 'destructive',
-          });
-        } finally {
-          setIsLoading(false);
+      try {
+        const connData = await getConnection(account.id, sourceConnId);
+        if (
+          connData.connection?.connectionConfig?.config.case !== 'mysqlConfig'
+        ) {
+          return;
         }
+
+        const config = connData.connection?.connectionConfig?.config.value;
+        const mysqlConfig = config.connectionConfig.value;
+
+        const dbConfig = {
+          host: '',
+          name: '',
+          user: '',
+          pass: '',
+          port: 3306,
+          protocol: 'tcp',
+        };
+        if (typeof mysqlConfig !== 'string') {
+          dbConfig.host = mysqlConfig?.host ?? '';
+          dbConfig.name = mysqlConfig?.name ?? '';
+          dbConfig.user = mysqlConfig?.user ?? '';
+          dbConfig.pass = mysqlConfig?.pass ?? '';
+          dbConfig.port = mysqlConfig?.port ?? 3306;
+          dbConfig.protocol = mysqlConfig?.protocol ?? 'tcp';
+        }
+
+        let passPhrase = '';
+        let privateKey = '';
+
+        const authConfig = config.tunnel?.authentication?.authConfig;
+
+        switch (authConfig?.case) {
+          case 'passphrase':
+            passPhrase = authConfig.value.value;
+            break;
+          case 'privateKey':
+            passPhrase = authConfig.value.passphrase ?? '';
+            privateKey = authConfig.value.value;
+            break;
+        }
+
+        /* reset the form with the new values and include the fallback values because of our validation schema requires a string and not undefined which is okay because it will tell the user that something is wrong instead of the user not realizing that it's undefined
+         */
+        form.reset({
+          ...form.getValues(),
+          connectionName: connData.connection?.name + '-copy',
+          db: dbConfig,
+          // url: typeof mysqlConfig === 'string' ? mysqlConfig : '',
+          tunnel: {
+            host: config.tunnel?.host ?? '',
+            port: config.tunnel?.port ?? 22,
+            knownHostPublicKey: config.tunnel?.knownHostPublicKey ?? '',
+            user: config.tunnel?.user ?? '',
+            passphrase: passPhrase,
+            privateKey: privateKey,
+          },
+        });
+      } catch (error) {
+        console.error('Failed to fetch connection data:', error);
+        setIsLoading(false);
+        toast({
+          title: 'Unable to retrieve connection data for clone!',
+          description: getErrorMessage(error),
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
       }
     };
 
