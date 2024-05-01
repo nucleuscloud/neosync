@@ -13,6 +13,7 @@ export interface ConnectionMeta {
   name: string;
   description: string;
   urlSlug: string;
+  connectionType: string;
 }
 
 interface Props {
