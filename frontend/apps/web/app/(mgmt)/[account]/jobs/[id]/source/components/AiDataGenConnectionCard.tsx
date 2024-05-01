@@ -539,7 +539,7 @@ async function sample(
 ): Promise<SampleRecord[]> {
   const body = new GetAiGeneratedDataRequest({
     aiConnectionId: schemaform.source.sourceId,
-    count: BigInt(schemaform.schema.numRows),
+    count: BigInt(10),
     modelName: schemaform.schema.model,
     userPrompt: schemaform.schema.userPrompt,
     dataConnectionId: schemaform.source.fkSourceConnectionId,
