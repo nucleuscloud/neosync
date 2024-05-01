@@ -249,7 +249,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       return;
     }
     const js = schemaFormData;
-    setSelectedTables(new Set([`${js.schema}.${js.table}`]));
+    onSelectedTableToggle(new Set([`${js.schema}.${js.table}`]), 'add');
   }, [isSchemaMapLoading]);
 
   async function onSampleClick(): Promise<void> {
