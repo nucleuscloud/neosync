@@ -146,7 +146,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         js.mappings.map((mapping) => `${mapping.schema}.${mapping.table}`)
       )
     );
-  }, [isSchemaMapLoading]);
+  }, [isSchemaMapLoading, connectFormValues.sourceId]);
 
   return (
     <div className="flex flex-col gap-5">
