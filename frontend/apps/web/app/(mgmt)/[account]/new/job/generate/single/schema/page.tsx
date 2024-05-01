@@ -109,11 +109,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   );
 
-  const { data: connectionSchemaDataMap, isValidating: isSchemaMapValidating } =
-    useGetConnectionSchemaMap(
-      account?.id ?? '',
-      connectFormValues.connectionId
-    );
+  const {
+    data: connectionSchemaDataMap,
+    isLoading: isSchemaMapLoading,
+    isValidating: isSchemaMapValidating,
+  } = useGetConnectionSchemaMap(
+    account?.id ?? '',
+    connectFormValues.connectionId
+  );
 
   const form = useForm({
     mode: 'onChange',
@@ -238,6 +241,17 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     remove,
     append
   );
+  useEffect(() => {
+    if (isSchemaMapLoading || selectedTables.size > 0) {
+      return;
+    }
+    const js = schemaFormData;
+    setSelectedTables(
+      new Set(
+        js.mappings.map((mapping) => `${mapping.schema}.${mapping.table}`)
+      )
+    );
+  }, [isSchemaMapLoading]);
 
   return (
     <div className="flex flex-col gap-5">

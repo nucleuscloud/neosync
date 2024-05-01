@@ -65,8 +65,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   );
 
-  const { data: connectionSchemaDataMap, isValidating: isSchemaMapValidating } =
-    useGetConnectionSchemaMap(account?.id ?? '', connectFormValues.sourceId);
+  const {
+    data: connectionSchemaDataMap,
+    isLoading: isSchemaMapLoading,
+    isValidating: isSchemaMapValidating,
+  } = useGetConnectionSchemaMap(account?.id ?? '', connectFormValues.sourceId);
 
   const { data: primaryConstraints, isValidating: isPkValidating } =
     useGetConnectionPrimaryConstraints(
@@ -129,6 +132,21 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     remove,
     append
   );
+  useEffect(() => {
+    if (
+      isSchemaMapLoading ||
+      selectedTables.size > 0 ||
+      !connectFormValues.sourceId
+    ) {
+      return;
+    }
+    const js = getFormValues(connectFormValues.sourceId, schemaFormData);
+    setSelectedTables(
+      new Set(
+        js.mappings.map((mapping) => `${mapping.schema}.${mapping.table}`)
+      )
+    );
+  }, [isSchemaMapLoading]);
 
   return (
     <div className="flex flex-col gap-5">
