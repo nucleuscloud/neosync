@@ -1,3 +1,4 @@
+'use client';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { useSearchParams } from 'next/navigation';

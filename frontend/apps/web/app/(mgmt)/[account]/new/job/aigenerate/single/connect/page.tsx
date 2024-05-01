@@ -143,7 +143,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               router.push(
                                 `/${account?.name}/new/connection?returnTo=${encodeURIComponent(
                                   `/${account?.name}/new/job/aigenerate/single/connect?sessionId=${sessionPrefix}&from=new-connection`
-                                )}`
+                                )}&connectionType=openai`
                               );
                               return;
                             }
