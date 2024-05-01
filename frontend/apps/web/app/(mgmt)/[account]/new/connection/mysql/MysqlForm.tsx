@@ -260,7 +260,8 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
         console.error('Failed to fetch connection data:', error);
         setIsLoading(false);
         toast({
-          title: 'Unable to clone connection!',
+          title: 'Unable to retrieve connection data for clone!',
+          description: getErrorMessage(error),
           variant: 'destructive',
         });
       } finally {
