@@ -47,7 +47,7 @@ export default function ValueProps(): ReactElement {
               });
             }}
           >
-            <div className="border border-gray-300 bg-white rounded-xl p-2 lg:p-4 xl:p-8 shadow-xl flex flex-col justify-between gap-6 text-center w-full  max-w-[300px] lg:w-[270px] lg:max-w-[400px] mx-auto h-[360px] hover:border-gray-400">
+            <div className="border border-gray-300 bg-white rounded-xl p-2 lg:p-4 xl:p-8 shadow-xl flex flex-col justify-between gap-6 text-center w-full  max-w-[300px] lg:w-[270px] lg:max-w-[400px] mx-auto sm:h-[100px] md:h-[360px] hover:border-gray-400">
               <div>
                 <div className="flex justify-center">
                   <Image
