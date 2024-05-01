@@ -44,9 +44,9 @@ export default function UseHostedNeosync(): ReactElement {
                 <div className="w-8 h-9 bg-black rounded-full flex items-center justify-center text-white text-xl">
                   {step.step}
                 </div>
-                <div className="h-full w-[2px] bg-gray-900" />
+                <div className="h-full w-[2px] bg-gray-900 md:block hidden" />
                 {index == 2 && (
-                  <div>
+                  <div className="md:block hidden">
                     <GoCheckCircleFill className="h-8 w-8 text-green-700" />
                   </div>
                 )}
