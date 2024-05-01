@@ -9,7 +9,7 @@ import { PageProps } from '@/components/types';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetConnection } from '@/libs/hooks/useGetConnection';
 import { getErrorMessage } from '@/util/util';
-import { GetConnectionResponse } from '@neosync/sdk';
+import { ConnectionConfig, GetConnectionResponse } from '@neosync/sdk';
 import Error from 'next/error';
 import RemoveConnectionButton from './components/RemoveConnectionButton';
 import { getConnectionComponentDetails } from './components/connection-component';
@@ -56,8 +56,8 @@ export default function ConnectionPage({ params }: PageProps) {
         {data?.connection?.connectionConfig?.config.case &&
           data?.connection?.id && (
             <CloneConnectionButton
-              connectionType={
-                data?.connection?.connectionConfig?.config.case ?? ''
+              connectionConfig={
+                data?.connection?.connectionConfig ?? new ConnectionConfig()
               }
               id={data?.connection?.id ?? ''}
             />
