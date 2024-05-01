@@ -375,8 +375,11 @@ func (s *Service) GetConnectionSchema(
 		for _, col := range dbschema {
 			var defaultColumn *string
 			if col.ColumnDefault != "" {
-				defaultVal := col.ColumnDefault
-				defaultColumn = &defaultVal
+				defaultColumn = &col.ColumnDefault
+			}
+			var generatedType *string
+			if col.Extra.Valid && col.Extra.String == "GENERATED" {
+				generatedType = &col.Extra.String
 			}
 
 			schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
@@ -386,6 +389,7 @@ func (s *Service) GetConnectionSchema(
 				DataType:      col.DataType,
 				IsNullable:    col.IsNullable,
 				ColumnDefault: defaultColumn,
+				GeneratedType: generatedType,
 			})
 		}
 
