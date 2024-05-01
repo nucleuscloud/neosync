@@ -60,6 +60,7 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import { KeyedMutator } from 'swr';
 import * as Yup from 'yup';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
+import { getSetDelta } from './util';
 
 interface Props {
   jobId: string;
@@ -148,7 +149,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   });
 
   useEffect(() => {
-    if (isJobDataLoading || isSchemaDataMapLoading) {
+    if (isJobDataLoading || isSchemaDataMapLoading || selectedTables.size > 0) {
       return;
     }
     const js = getJobSource(data?.job, connectionSchemaDataMap?.schemaMap);
@@ -208,7 +209,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
       setSelectedTables(new Set());
       return;
     }
-    const [added, removed] = getDelta(items, selectedTables);
+    const [added, removed] = getSetDelta(items, selectedTables);
     const toRemove: number[] = [];
     const toAdd: JobMappingFormValues[] = [];
     fields.forEach((field, idx) => {
@@ -560,25 +561,4 @@ async function getUpdatedValues(
     default:
       return values;
   }
-}
-
-function getDelta(
-  newSet: Set<string>,
-  oldSet: Set<string>
-): [Set<string>, Set<string>] {
-  const added = new Set<string>();
-  const removed = new Set<string>();
-
-  oldSet.forEach((val) => {
-    if (!newSet.has(val)) {
-      removed.add(val);
-    }
-  });
-  newSet.forEach((val) => {
-    if (!oldSet.has(val)) {
-      added.add(val);
-    }
-  });
-
-  return [added, removed];
 }
