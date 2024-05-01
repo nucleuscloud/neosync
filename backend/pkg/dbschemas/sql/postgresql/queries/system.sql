@@ -47,7 +47,7 @@ SELECT
             -1
     END AS numeric_scale,
     a.attnum AS ordinal_position,
-    a.attgenerated as generated_type
+    a.attgenerated::text as generated_type
 FROM
     pg_catalog.pg_attribute a
     INNER JOIN pg_catalog.pg_class c ON a.attrelid = c.oid
@@ -111,7 +111,7 @@ SELECT
             -1
     END AS numeric_scale,
     a.attnum AS ordinal_position,
-    a.attgenerated as generated_type
+    a.attgenerated::text as generated_type
 FROM
     pg_catalog.pg_attribute a
     INNER JOIN pg_catalog.pg_class c ON a.attrelid = c.oid

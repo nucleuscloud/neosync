@@ -58,7 +58,7 @@ SELECT
             -1
     END AS numeric_scale,
     a.attnum AS ordinal_position,
-    a.attgenerated as generated_type
+    a.attgenerated::text as generated_type
 FROM
     pg_catalog.pg_attribute a
     INNER JOIN pg_catalog.pg_class c ON a.attrelid = c.oid
@@ -85,7 +85,7 @@ type GetDatabaseSchemaRow struct {
 	NumericPrecision       int32
 	NumericScale           int32
 	OrdinalPosition        int16
-	GeneratedType          interface{}
+	GeneratedType          string
 }
 
 func (q *Queries) GetDatabaseSchema(ctx context.Context, db DBTX) ([]*GetDatabaseSchemaRow, error) {
@@ -169,7 +169,7 @@ SELECT
             -1
     END AS numeric_scale,
     a.attnum AS ordinal_position,
-    a.attgenerated as generated_type
+    a.attgenerated::text as generated_type
 FROM
     pg_catalog.pg_attribute a
     INNER JOIN pg_catalog.pg_class c ON a.attrelid = c.oid
@@ -202,7 +202,7 @@ type GetDatabaseTableSchemaRow struct {
 	NumericPrecision       int32
 	NumericScale           int32
 	OrdinalPosition        int16
-	GeneratedType          interface{}
+	GeneratedType          string
 }
 
 func (q *Queries) GetDatabaseTableSchema(ctx context.Context, db DBTX, arg *GetDatabaseTableSchemaParams) ([]*GetDatabaseTableSchemaRow, error) {
