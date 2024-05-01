@@ -222,24 +222,3 @@ function formErrorsToMessages(errors: FormError[]): string[] {
 
   return messages;
 }
-
-function getDelta(
-  newSet: Set<string>,
-  oldSet: Set<string>
-): [Set<string>, Set<string>] {
-  const added = new Set<string>();
-  const removed = new Set<string>();
-
-  oldSet.forEach((val) => {
-    if (!newSet.has(val)) {
-      removed.add(val);
-    }
-  });
-  newSet.forEach((val) => {
-    if (!oldSet.has(val)) {
-      added.add(val);
-    }
-  });
-
-  return [added, removed];
-}
