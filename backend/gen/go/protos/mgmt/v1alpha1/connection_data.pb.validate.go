@@ -1444,6 +1444,10 @@ func (m *DatabaseColumn) validate(all bool) error {
 		// no validation rules for ColumnDefault
 	}
 
+	if m.GeneratedType != nil {
+		// no validation rules for GeneratedType
+	}
+
 	if len(errors) > 0 {
 		return DatabaseColumnMultiError(errors)
 	}

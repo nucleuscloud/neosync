@@ -486,6 +486,14 @@ export class DatabaseColumn extends Message<DatabaseColumn> {
    */
   columnDefault?: string;
 
+  /**
+   * Populated if the column is generated. The value is the type of generated column it is. For example, postgres is 's' for stored
+   * May be other values in the future, or other DB providers may use a different value types.
+   *
+   * @generated from field: optional string generated_type = 7;
+   */
+  generatedType?: string;
+
   constructor(data?: PartialMessage<DatabaseColumn>) {
     super();
     proto3.util.initPartial(data, this);
@@ -500,6 +508,7 @@ export class DatabaseColumn extends Message<DatabaseColumn> {
     { no: 4, name: "data_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 5, name: "is_nullable", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 6, name: "column_default", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 7, name: "generated_type", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DatabaseColumn {

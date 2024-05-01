@@ -9,7 +9,8 @@ SELECT
 	c.data_type,
 	c.character_maximum_length,
   c.numeric_precision,
-  c.numeric_scale
+  c.numeric_scale,
+	c.extra
 FROM
 	information_schema.columns AS c
 	JOIN information_schema.tables AS t ON c.table_schema = t.table_schema
@@ -42,8 +43,8 @@ JOIN information_schema.key_column_usage kcu
 	kcu.constraint_name = rc.constraint_name
 JOIN information_schema.columns as c
 	ON
-	c.table_schema = kcu.table_schema 
-	AND c.table_name = kcu.table_name 
+	c.table_schema = kcu.table_schema
+	AND c.table_name = kcu.table_name
 	AND c.column_name = kcu.column_name
 WHERE
 	kcu.table_schema = ?
@@ -53,18 +54,18 @@ ORDER BY
 
 
 -- name: GetPrimaryKeyConstraints :many
-SELECT 
+SELECT
 	table_schema AS schema_name,
 	table_name as table_name,
 	column_name as column_name,
-	constraint_name as constraint_name 
-FROM 
+	constraint_name as constraint_name
+FROM
 	information_schema.key_column_usage
-WHERE 
+WHERE
 	table_schema = ?
 	AND constraint_name = 'PRIMARY'
-ORDER BY 
-	table_name, 
+ORDER BY
+	table_name,
 	column_name;
 
 
