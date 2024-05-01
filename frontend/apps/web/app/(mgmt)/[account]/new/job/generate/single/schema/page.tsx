@@ -1,5 +1,6 @@
 'use client';
 
+import { getOnSelectedTableToggle } from '@/app/(mgmt)/[account]/jobs/[id]/source/components/util';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { SchemaTable } from '@/components/jobs/SchemaTable/SchemaTable';
@@ -51,7 +52,7 @@ import {
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useFieldArray, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import JobsProgressSteps, {
@@ -221,6 +222,22 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       ),
     [isSchemaMapValidating, isPkValidating, isFkValidating, isUCValidating]
   );
+  const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set());
+  const { append, remove, fields } = useFieldArray<SingleTableSchemaFormValues>(
+    {
+      control: form.control,
+      name: 'mappings',
+    }
+  );
+
+  const onSelectedTableToggle = getOnSelectedTableToggle(
+    connectionSchemaDataMap?.schemaMap ?? {},
+    selectedTables,
+    setSelectedTables,
+    fields,
+    remove,
+    append
+  );
 
   return (
     <div className="flex flex-col gap-5">
@@ -275,6 +292,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               schema={connectionSchemaDataMap?.schemaMap ?? {}}
               isSchemaDataReloading={isSchemaMapValidating}
               jobType={'generate'}
+              selectedTables={selectedTables}
+              onSelectedTableToggle={onSelectedTableToggle}
             />
           )}
           {form.formState.errors.root && (

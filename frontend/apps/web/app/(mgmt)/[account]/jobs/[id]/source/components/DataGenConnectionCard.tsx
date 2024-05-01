@@ -46,10 +46,10 @@ import {
   UpdateJobSourceConnectionResponse,
 } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
-import { ReactElement, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
+import { ReactElement, useEffect, useMemo, useState } from 'react';
+import { useFieldArray, useForm } from 'react-hook-form';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
-import { getFkIdFromGenerateSource } from './util';
+import { getFkIdFromGenerateSource, getOnSelectedTableToggle } from './util';
 
 interface Props {
   jobId: string;
@@ -106,6 +106,25 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
       ),
     [isSchemaMapValidating, isPkValidating, isFkValidating, isUCValidating]
   );
+  const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set());
+  const { append, remove, fields } = useFieldArray<SingleTableSchemaFormValues>(
+    {
+      control: form.control,
+      name: 'mappings',
+    }
+  );
+
+  useEffect(() => {
+    if (isJobLoading || isSchemaDataMapLoading || selectedTables.size > 0) {
+      return;
+    }
+    const js = getJobSource(data?.job, connectionSchemaDataMap?.schemaMap);
+    setSelectedTables(
+      new Set(
+        js.mappings.map((mapping) => `${mapping.schema}.${mapping.table}`)
+      )
+    );
+  }, [isJobLoading, isSchemaDataMapLoading]);
 
   if (isJobLoading || isSchemaDataMapLoading) {
     return <SchemaPageSkeleton />;
@@ -132,6 +151,15 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
       });
     }
   }
+
+  const onSelectedTableToggle = getOnSelectedTableToggle(
+    connectionSchemaDataMap?.schemaMap ?? {},
+    selectedTables,
+    setSelectedTables,
+    fields,
+    remove,
+    append
+  );
 
   return (
     <Form {...form}>
@@ -166,6 +194,8 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
           constraintHandler={schemaConstraintHandler}
           schema={connectionSchemaDataMap?.schemaMap ?? {}}
           isSchemaDataReloading={isSchemaMapValidating}
+          selectedTables={selectedTables}
+          onSelectedTableToggle={onSelectedTableToggle}
         />
 
         {form.formState.errors.mappings && (

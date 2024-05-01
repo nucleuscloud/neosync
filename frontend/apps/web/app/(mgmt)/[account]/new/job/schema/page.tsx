@@ -20,10 +20,11 @@ import {
   PrimaryConstraint,
 } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
-import { ReactElement, useEffect, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
+import { ReactElement, useEffect, useMemo, useState } from 'react';
+import { useFieldArray, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
+import { getOnSelectedTableToggle } from '../../../jobs/[id]/source/components/util';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
 import { ConnectFormValues } from '../schema';
 
@@ -114,6 +115,20 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       ),
     [isSchemaMapValidating, isPkValidating, isFkValidating, isUCValidating]
   );
+  const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set());
+
+  const { append, remove, fields } = useFieldArray<SchemaFormValues>({
+    control: form.control,
+    name: 'mappings',
+  });
+  const onSelectedTableToggle = getOnSelectedTableToggle(
+    connectionSchemaDataMap?.schemaMap ?? {},
+    selectedTables,
+    setSelectedTables,
+    fields,
+    remove,
+    append
+  );
 
   return (
     <div className="flex flex-col gap-5">
@@ -142,6 +157,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             constraintHandler={schemaConstraintHandler}
             schema={connectionSchemaDataMap?.schemaMap ?? {}}
             isSchemaDataReloading={isSchemaMapValidating}
+            selectedTables={selectedTables}
+            onSelectedTableToggle={onSelectedTableToggle}
           />
           <div className="flex flex-row gap-1 justify-between">
             <Button key="back" type="button" onClick={() => router.back()}>

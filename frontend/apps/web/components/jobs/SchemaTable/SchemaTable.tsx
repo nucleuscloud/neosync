@@ -18,20 +18,15 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetTransformersHandler } from '@/libs/hooks/useGetTransformersHandler';
-import {
-  JobMappingFormValues,
-  SchemaFormValues,
-  convertJobMappingTransformerToForm,
-} from '@/yup-validations/jobs';
-import { JobMappingTransformer } from '@neosync/sdk';
+import { JobMappingFormValues, SchemaFormValues } from '@/yup-validations/jobs';
 import {
   CheckCircledIcon,
   CheckIcon,
   ExclamationTriangleIcon,
   TableIcon,
 } from '@radix-ui/react-icons';
-import { ReactElement, useMemo, useState } from 'react';
-import { FieldErrors, useFieldArray, useFormContext } from 'react-hook-form';
+import { ReactElement, useMemo } from 'react';
+import { FieldErrors, useFormContext } from 'react-hook-form';
 import { getSchemaColumns } from './SchemaColumns';
 import SchemaPageTable from './SchemaPageTable';
 import { JobType, SchemaConstraintHandler } from './schema-constraint-handler';
@@ -42,17 +37,23 @@ interface Props {
   schema: ConnectionSchemaMap;
   isSchemaDataReloading: boolean;
   constraintHandler: SchemaConstraintHandler;
+  selectedTables: Set<string>;
+  onSelectedTableToggle(items: Set<string>, action: Action): void;
 }
 
 export function SchemaTable(props: Props): ReactElement {
-  const { data, constraintHandler, jobType, schema } = props;
+  const {
+    data,
+    constraintHandler,
+    jobType,
+    schema,
+    selectedTables,
+    onSelectedTableToggle,
+  } = props;
 
   const { account } = useAccount();
   const { handler, isLoading, isValidating } = useGetTransformersHandler(
     account?.id ?? ''
-  );
-  const [selectedItems, setSelectedItems] = useState<Set<string>>(
-    new Set(data.map((d) => `${d.schema}.${d.table}`))
   );
 
   const columns = useMemo(() => {
@@ -64,54 +65,6 @@ export function SchemaTable(props: Props): ReactElement {
   }, [handler, constraintHandler, jobType]);
 
   const form = useFormContext<SchemaFormValues | SingleTableSchemaFormValues>();
-  const { append, remove, fields } = useFieldArray<
-    SchemaFormValues | SingleTableSchemaFormValues
-  >({
-    control: form.control,
-    name: 'mappings',
-  });
-
-  function toggleItem(items: Set<string>, _action: Action): void {
-    if (items.size === 0) {
-      const idxs = fields.map((_, idx) => idx);
-      remove(idxs);
-      setSelectedItems(new Set());
-      return;
-    }
-    const [added, removed] = getDelta(items, selectedItems);
-
-    const toRemove: number[] = [];
-    const toAdd: JobMappingFormValues[] = [];
-
-    fields.forEach((field, idx) => {
-      if (removed.has(`${field.schema}.${field.table}`)) {
-        toRemove.push(idx);
-      }
-    });
-    added.forEach((item) => {
-      const dbcols = schema[item];
-      if (!dbcols) {
-        return;
-      }
-      dbcols.forEach((dbcol) => {
-        toAdd.push({
-          schema: dbcol.schema,
-          table: dbcol.table,
-          column: dbcol.column,
-          transformer: convertJobMappingTransformerToForm(
-            new JobMappingTransformer({})
-          ),
-        });
-      });
-    });
-    if (toRemove.length > 0) {
-      remove(toRemove);
-    }
-    if (toAdd.length > 0) {
-      append(toAdd);
-    }
-    setSelectedItems(items);
-  }
 
   if (isLoading || !data) {
     return <SkeletonTable />;
@@ -140,8 +93,8 @@ export function SchemaTable(props: Props): ReactElement {
           <CardContent>
             <DualListBox
               options={getDualListBoxOptions(schema, data)}
-              selected={selectedItems}
-              onChange={toggleItem}
+              selected={selectedTables}
+              onChange={onSelectedTableToggle}
               mode={jobType === 'generate' ? 'single' : 'many'}
             />
           </CardContent>
@@ -268,25 +221,4 @@ function formErrorsToMessages(errors: FormError[]): string[] {
   });
 
   return messages;
-}
-
-function getDelta(
-  newSet: Set<string>,
-  oldSet: Set<string>
-): [Set<string>, Set<string>] {
-  const added = new Set<string>();
-  const removed = new Set<string>();
-
-  oldSet.forEach((val) => {
-    if (!newSet.has(val)) {
-      removed.add(val);
-    }
-  });
-  newSet.forEach((val) => {
-    if (!oldSet.has(val)) {
-      added.add(val);
-    }
-  });
-
-  return [added, removed];
 }

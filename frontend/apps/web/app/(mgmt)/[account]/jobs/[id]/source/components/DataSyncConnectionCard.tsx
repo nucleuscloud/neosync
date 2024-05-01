@@ -53,11 +53,12 @@ import {
   UpdateJobSourceConnectionRequest,
   UpdateJobSourceConnectionResponse,
 } from '@neosync/sdk';
-import { ReactElement, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
+import { ReactElement, useEffect, useMemo, useState } from 'react';
+import { useFieldArray, useForm } from 'react-hook-form';
 import { KeyedMutator } from 'swr';
 import * as Yup from 'yup';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
+import { getOnSelectedTableToggle } from './util';
 
 interface Props {
   jobId: string;
@@ -138,6 +139,24 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
       ),
     [isSchemaMapValidating, isPkValidating, isFkValidating, isUCValidating]
   );
+  const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set());
+
+  const { append, remove, fields } = useFieldArray<SourceFormValues>({
+    control: form.control,
+    name: 'mappings',
+  });
+
+  useEffect(() => {
+    if (isJobDataLoading || isSchemaDataMapLoading || selectedTables.size > 0) {
+      return;
+    }
+    const js = getJobSource(data?.job, connectionSchemaDataMap?.schemaMap);
+    setSelectedTables(
+      new Set(
+        js.mappings.map((mapping) => `${mapping.schema}.${mapping.table}`)
+      )
+    );
+  }, [isJobDataLoading, isSchemaDataMapLoading]);
 
   async function onSourceChange(value: string): Promise<void> {
     try {
@@ -180,6 +199,15 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
       });
     }
   }
+
+  const onSelectedTableToggle = getOnSelectedTableToggle(
+    connectionSchemaDataMap?.schemaMap ?? {},
+    selectedTables,
+    setSelectedTables,
+    fields,
+    remove,
+    append
+  );
 
   if (isConnectionsLoading || isSchemaDataMapLoading || isJobDataLoading) {
     return <SchemaPageSkeleton />;
@@ -249,6 +277,8 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
             constraintHandler={schemaConstraintHandler}
             schema={connectionSchemaDataMap?.schemaMap ?? {}}
             isSchemaDataReloading={isSchemaMapValidating}
+            selectedTables={selectedTables}
+            onSelectedTableToggle={onSelectedTableToggle}
           />
           <div className="flex flex-row items-center justify-end w-full mt-4">
             <Button type="submit">Update</Button>
