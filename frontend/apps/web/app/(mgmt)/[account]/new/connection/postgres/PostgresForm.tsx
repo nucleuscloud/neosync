@@ -230,10 +230,9 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
         }
 
         const config = connData.connection?.connectionConfig?.config.value;
-
         const pgConfig = config.connectionConfig.value;
 
-        const defaultDb = {
+        const dbConfig = {
           host: '',
           name: '',
           user: '',
@@ -241,17 +240,13 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
           port: 5432,
           sslMode: 'disable',
         };
-
-        let dbConfig = defaultDb;
         if (typeof pgConfig !== 'string') {
-          dbConfig = {
-            host: pgConfig?.host ?? '',
-            name: pgConfig?.name ?? '',
-            user: pgConfig?.user ?? '',
-            pass: pgConfig?.pass ?? '',
-            port: pgConfig?.port ?? 5432,
-            sslMode: pgConfig?.sslMode ?? 'disable',
-          };
+          dbConfig.host = pgConfig?.host ?? '';
+          dbConfig.name = pgConfig?.name ?? '';
+          dbConfig.user = pgConfig?.user ?? '';
+          dbConfig.pass = pgConfig?.pass ?? '';
+          dbConfig.port = pgConfig?.port ?? 5432;
+          dbConfig.sslMode = pgConfig?.sslMode ?? 'disable';
         }
 
         /* reset the form with the new values and include the fallback values because of our validation schema requires a string and not undefined which is okay because it will tell the user that something is wrong instead of the user not realizing that it's undefined
