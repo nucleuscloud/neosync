@@ -1,4 +1,5 @@
 'use client';
+import { Action } from '@/components/DualListBox/DualListBox';
 import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
 import { SchemaTable } from '@/components/jobs/SchemaTable/SchemaTable';
 import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
@@ -35,6 +36,7 @@ import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 import { getErrorMessage } from '@/util/util';
 import {
+  JobMappingFormValues,
   SCHEMA_FORM_SCHEMA,
   SOURCE_FORM_SCHEMA,
   convertJobMappingTransformerFormToJobMappingTransformer,
@@ -53,8 +55,8 @@ import {
   UpdateJobSourceConnectionRequest,
   UpdateJobSourceConnectionResponse,
 } from '@neosync/sdk';
-import { ReactElement, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
+import { ReactElement, useEffect, useMemo, useState } from 'react';
+import { useFieldArray, useForm } from 'react-hook-form';
 import { KeyedMutator } from 'swr';
 import * as Yup from 'yup';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
@@ -138,6 +140,24 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
       ),
     [isSchemaMapValidating, isPkValidating, isFkValidating, isUCValidating]
   );
+  const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set());
+
+  const { append, remove, fields } = useFieldArray<SourceFormValues>({
+    control: form.control,
+    name: 'mappings',
+  });
+
+  useEffect(() => {
+    if (isJobDataLoading || isSchemaDataMapLoading) {
+      return;
+    }
+    const js = getJobSource(data?.job, connectionSchemaDataMap?.schemaMap);
+    setSelectedTables(
+      new Set(
+        js.mappings.map((mapping) => `${mapping.schema}.${mapping.table}`)
+      )
+    );
+  }, [isJobDataLoading, isSchemaDataMapLoading]);
 
   async function onSourceChange(value: string): Promise<void> {
     try {
@@ -179,6 +199,48 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
         variant: 'destructive',
       });
     }
+  }
+
+  function onSelectedTableToggle(items: Set<string>, _action: Action): void {
+    if (items.size === 0) {
+      const idxs = fields.map((_, idx) => idx);
+      remove(idxs);
+      setSelectedTables(new Set());
+      return;
+    }
+    const [added, removed] = getDelta(items, selectedTables);
+    const toRemove: number[] = [];
+    const toAdd: JobMappingFormValues[] = [];
+    fields.forEach((field, idx) => {
+      if (removed.has(`${field.schema}.${field.table}`)) {
+        toRemove.push(idx);
+      }
+    });
+
+    const schema = connectionSchemaDataMap?.schemaMap ?? {};
+    added.forEach((item) => {
+      const dbcols = schema[item];
+      if (!dbcols) {
+        return;
+      }
+      dbcols.forEach((dbcol) => {
+        toAdd.push({
+          schema: dbcol.schema,
+          table: dbcol.table,
+          column: dbcol.column,
+          transformer: convertJobMappingTransformerToForm(
+            new JobMappingTransformer({})
+          ),
+        });
+      });
+    });
+    if (toRemove.length > 0) {
+      remove(toRemove);
+    }
+    if (toAdd.length > 0) {
+      append(toAdd);
+    }
+    setSelectedTables(items);
   }
 
   if (isConnectionsLoading || isSchemaDataMapLoading || isJobDataLoading) {
@@ -249,6 +311,8 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
             constraintHandler={schemaConstraintHandler}
             schema={connectionSchemaDataMap?.schemaMap ?? {}}
             isSchemaDataReloading={isSchemaMapValidating}
+            selectedTables={selectedTables}
+            onSelectedTableToggle={onSelectedTableToggle}
           />
           <div className="flex flex-row items-center justify-end w-full mt-4">
             <Button type="submit">Update</Button>
@@ -496,4 +560,25 @@ async function getUpdatedValues(
     default:
       return values;
   }
+}
+
+function getDelta(
+  newSet: Set<string>,
+  oldSet: Set<string>
+): [Set<string>, Set<string>] {
+  const added = new Set<string>();
+  const removed = new Set<string>();
+
+  oldSet.forEach((val) => {
+    if (!newSet.has(val)) {
+      removed.add(val);
+    }
+  });
+  newSet.forEach((val) => {
+    if (!oldSet.has(val)) {
+      added.add(val);
+    }
+  });
+
+  return [added, removed];
 }
