@@ -31,7 +31,7 @@ export function getFkIdFromGenerateSource(
   return undefined;
 }
 
-export function getSetDelta(
+function getSetDelta(
   newSet: Set<string>,
   oldSet: Set<string>
 ): [Set<string>, Set<string>] {
