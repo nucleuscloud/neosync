@@ -1,6 +1,5 @@
 'use client';
 
-import { Action } from '@/components/DualListBox/DualListBox';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import { SchemaTable } from '@/components/jobs/SchemaTable/SchemaTable';
@@ -13,17 +12,11 @@ import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectio
 import { useGetConnectionPrimaryConstraints } from '@/libs/hooks/useGetConnectionPrimaryConstraints';
 import { useGetConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetConnectionUniqueConstraints } from '@/libs/hooks/useGetConnectionUniqueConstraints';
-import {
-  JobMappingFormValues,
-  SCHEMA_FORM_SCHEMA,
-  SchemaFormValues,
-  convertJobMappingTransformerToForm,
-} from '@/yup-validations/jobs';
+import { SCHEMA_FORM_SCHEMA, SchemaFormValues } from '@/yup-validations/jobs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   DatabaseColumn,
   ForeignConstraintTables,
-  JobMappingTransformer,
   PrimaryConstraint,
 } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
@@ -31,7 +24,7 @@ import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
-import { getSetDelta } from '../../../jobs/[id]/source/components/util';
+import { getOnSelectedTableToggle } from '../../../jobs/[id]/source/components/util';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
 import { ConnectFormValues } from '../schema';
 
@@ -128,47 +121,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     control: form.control,
     name: 'mappings',
   });
-  function onSelectedTableToggle(items: Set<string>, _action: Action): void {
-    if (items.size === 0) {
-      const idxs = fields.map((_, idx) => idx);
-      remove(idxs);
-      setSelectedTables(new Set());
-      return;
-    }
-    const [added, removed] = getSetDelta(items, selectedTables);
-    const toRemove: number[] = [];
-    const toAdd: JobMappingFormValues[] = [];
-    fields.forEach((field, idx) => {
-      if (removed.has(`${field.schema}.${field.table}`)) {
-        toRemove.push(idx);
-      }
-    });
-
-    const schema = connectionSchemaDataMap?.schemaMap ?? {};
-    added.forEach((item) => {
-      const dbcols = schema[item];
-      if (!dbcols) {
-        return;
-      }
-      dbcols.forEach((dbcol) => {
-        toAdd.push({
-          schema: dbcol.schema,
-          table: dbcol.table,
-          column: dbcol.column,
-          transformer: convertJobMappingTransformerToForm(
-            new JobMappingTransformer({})
-          ),
-        });
-      });
-    });
-    if (toRemove.length > 0) {
-      remove(toRemove);
-    }
-    if (toAdd.length > 0) {
-      append(toAdd);
-    }
-    setSelectedTables(items);
-  }
+  const onSelectedTableToggle = getOnSelectedTableToggle(
+    connectionSchemaDataMap?.schemaMap ?? {},
+    selectedTables,
+    setSelectedTables,
+    fields,
+    remove,
+    append
+  );
 
   return (
     <div className="flex flex-col gap-5">

@@ -3,7 +3,6 @@ import {
   SINGLE_TABLE_SCHEMA_FORM_SCHEMA,
   SingleTableSchemaFormValues,
 } from '@/app/(mgmt)/[account]/new/job/schema';
-import { Action } from '@/components/DualListBox/DualListBox';
 import { SchemaTable } from '@/components/jobs/SchemaTable/SchemaTable';
 import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
 import { useAccount } from '@/components/providers/account-provider';
@@ -30,7 +29,6 @@ import { useGetConnectionUniqueConstraints } from '@/libs/hooks/useGetConnection
 import { useGetJob } from '@/libs/hooks/useGetJob';
 import { getErrorMessage } from '@/util/util';
 import {
-  JobMappingFormValues,
   convertJobMappingTransformerFormToJobMappingTransformer,
   convertJobMappingTransformerToForm,
 } from '@/yup-validations/jobs';
@@ -51,7 +49,7 @@ import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
-import { getFkIdFromGenerateSource, getSetDelta } from './util';
+import { getFkIdFromGenerateSource, getOnSelectedTableToggle } from './util';
 
 interface Props {
   jobId: string;
@@ -154,47 +152,14 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     }
   }
 
-  function onSelectedTableToggle(items: Set<string>, _action: Action): void {
-    if (items.size === 0) {
-      const idxs = fields.map((_, idx) => idx);
-      remove(idxs);
-      setSelectedTables(new Set());
-      return;
-    }
-    const [added, removed] = getSetDelta(items, selectedTables);
-    const toRemove: number[] = [];
-    const toAdd: JobMappingFormValues[] = [];
-    fields.forEach((field, idx) => {
-      if (removed.has(`${field.schema}.${field.table}`)) {
-        toRemove.push(idx);
-      }
-    });
-
-    const schema = connectionSchemaDataMap?.schemaMap ?? {};
-    added.forEach((item) => {
-      const dbcols = schema[item];
-      if (!dbcols) {
-        return;
-      }
-      dbcols.forEach((dbcol) => {
-        toAdd.push({
-          schema: dbcol.schema,
-          table: dbcol.table,
-          column: dbcol.column,
-          transformer: convertJobMappingTransformerToForm(
-            new JobMappingTransformer({})
-          ),
-        });
-      });
-    });
-    if (toRemove.length > 0) {
-      remove(toRemove);
-    }
-    if (toAdd.length > 0) {
-      append(toAdd);
-    }
-    setSelectedTables(items);
-  }
+  const onSelectedTableToggle = getOnSelectedTableToggle(
+    connectionSchemaDataMap?.schemaMap ?? {},
+    selectedTables,
+    setSelectedTables,
+    fields,
+    remove,
+    append
+  );
 
   return (
     <Form {...form}>
