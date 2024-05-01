@@ -69,6 +69,9 @@ message DatabaseColumn {
   string is_nullable = 5;
   // The default value of the column if available
   optional string column_default = 6;
+  // Populated if the column is generated. The value is the type of generated column it is. For example, postgres is 's' for stored
+  // May be other values in the future, or other DB providers may use a different value types.
+  optional string generated_type = 7;
 }
 
 message GetConnectionSchemaRequest {

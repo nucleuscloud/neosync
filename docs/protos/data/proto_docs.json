@@ -2762,6 +2762,18 @@
               "isoneof": true,
               "oneofdecl": "_column_default",
               "defaultValue": ""
+            },
+            {
+              "name": "generated_type",
+              "description": "Populated if the column is generated. The value is the type of generated column it is. For example, postgres is 's' for stored\nMay be other values in the future, or other DB providers may use a different value types.",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_generated_type",
+              "defaultValue": ""
             }
           ]
         },
