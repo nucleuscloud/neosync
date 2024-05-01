@@ -112,11 +112,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   );
 
-  const { data: connectionSchemaDataMap, isValidating: isSchemaMapValidating } =
-    useGetConnectionSchemaMap(
-      account?.id ?? '',
-      connectFormValues.fkSourceConnectionId
-    );
+  const {
+    data: connectionSchemaDataMap,
+    isLoading: isSchemaMapLoading,
+    isValidating: isSchemaMapValidating,
+  } = useGetConnectionSchemaMap(
+    account?.id ?? '',
+    connectFormValues.fkSourceConnectionId
+  );
 
   const formKey = `${sessionPrefix}-new-job-single-table-ai-schema`;
 
@@ -240,6 +243,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     [isSchemaMapValidating, isPkValidating, isFkValidating, isUCValidating]
   );
   const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (isSchemaMapLoading || selectedTables.size > 0) {
+      return;
+    }
+    const js = schemaFormData;
+    onSelectedTableToggle(new Set([`${js.schema}.${js.table}`]), 'add');
+  }, [isSchemaMapLoading]);
 
   async function onSampleClick(): Promise<void> {
     if (!account?.id || isSampling) {

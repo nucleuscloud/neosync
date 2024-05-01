@@ -147,7 +147,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               );
                               return;
                             }
-                            // set value
                             field.onChange(value);
                           }}
                           value={field.value}
