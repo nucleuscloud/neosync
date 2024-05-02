@@ -143,10 +143,12 @@ export default function AiDataGenConnectionCard({
       return;
     }
     const js = getJobSource(data.job);
-    onSelectedTableToggle(
-      new Set([`${js.schema.schema}.${js.schema.table}`]),
-      'add'
-    );
+    if (js.schema.schema && js.schema.table) {
+      onSelectedTableToggle(
+        new Set([`${js.schema.schema}.${js.schema.table}`]),
+        'add'
+      );
+    }
   }, [isJobLoading]);
 
   const [formSchema, formTable, formSourceId] = form.watch([
