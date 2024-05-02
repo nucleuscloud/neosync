@@ -141,6 +141,7 @@ export default function TransformEmailForm(props: Props): ReactElement {
               </div>
               <FormControl>
                 <Select
+                  disabled={isReadonly}
                   onValueChange={(value) => {
                     // this is so hacky, but has to be done due to have we are encoding the incoming config and how the enums are converted to their wire-format string type
                     const emailConfig = new TransformEmail({
