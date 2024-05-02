@@ -1,7 +1,11 @@
-export const OpenAiLogo = () => {
+interface Props {
+  bg: string;
+}
+
+export const OpenAiLogo = ({ bg }: Props) => {
   return (
     <svg
-      fill="#000000"
+      fill={bg}
       width="28px"
       height="29px"
       viewBox="0 0 24 24"
