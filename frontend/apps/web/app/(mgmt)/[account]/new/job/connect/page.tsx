@@ -21,7 +21,9 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
+import { splitConnections } from '@/libs/utils';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { ConnectionConfig } from '@neosync/sdk';
 import { Cross2Icon, PlusIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect } from 'react';
@@ -29,10 +31,13 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import DestinationOptionsForm from '../../../../../../components/jobs/Form/DestinationOptionsForm';
+import {
+  DESTINATION_ONLY_CONNECTION_TYPES,
+  getConnectionType,
+} from '../../../connections/util';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
 import { CONNECT_FORM_SCHEMA, ConnectFormValues } from '../schema';
 import ConnectionSelectContent from './ConnectionSelectContent';
-import { splitConnections } from '@/libs/utils';
 
 const NEW_CONNECTION_VALUE = 'new-connection';
 
@@ -140,14 +145,48 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               return;
                             }
                             if (value === NEW_CONNECTION_VALUE) {
+                              const destIds = new Set(
+                                form
+                                  .getValues('destinations')
+                                  .map((d) => d.connectionId)
+                              );
+
+                              const urlParams = new URLSearchParams({
+                                returnTo: `/${account?.name}/new/job/connect?sessionId=${sessionPrefix}&from=new-connection`,
+                              });
+
+                              const connTypes = new Set(
+                                connections
+                                  .filter((c) => destIds.has(c.id))
+                                  .map((c) =>
+                                    getConnectionType(
+                                      c.connectionConfig ??
+                                        new ConnectionConfig()
+                                    )
+                                  )
+                              );
+                              connTypes.forEach((connType) => {
+                                if (
+                                  connType &&
+                                  !DESTINATION_ONLY_CONNECTION_TYPES.has(
+                                    connType
+                                  )
+                                ) {
+                                  urlParams.append('connectionType', connType);
+                                }
+                              });
+                              if (
+                                urlParams.getAll('connectionType').length === 0
+                              ) {
+                                urlParams.append('connectionType', 'postgres');
+                                urlParams.append('connectionType', 'mysql');
+                              }
+
                               router.push(
-                                `/${account?.name}/new/connection?returnTo=${encodeURIComponent(
-                                  `/${account?.name}/new/job/connect?sessionId=${sessionPrefix}&from=new-connection`
-                                )}`
+                                `/${account?.name}/new/connection?${urlParams.toString()}`
                               );
                               return;
                             }
-                            // set value
                             field.onChange(value);
                             form.setValue('sourceOptions', {
                               haltOnNewColumnAddition: false,
@@ -221,10 +260,46 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                         return;
                                       }
                                       if (value === NEW_CONNECTION_VALUE) {
+                                        const sourceId =
+                                          form.getValues('sourceId');
+
+                                        const urlParams = new URLSearchParams({
+                                          returnTo: `/${account?.name}/new/job/connect?sessionId=${sessionPrefix}&from=new-connection`,
+                                        });
+
+                                        const connection = connections.find(
+                                          (c) => c.id === sourceId
+                                        );
+                                        const connType = getConnectionType(
+                                          connection?.connectionConfig ??
+                                            new ConnectionConfig()
+                                        );
+                                        if (connType) {
+                                          urlParams.append(
+                                            'connectionType',
+                                            connType
+                                          );
+                                        }
+                                        if (
+                                          urlParams.getAll('connectionType')
+                                            .length === 0
+                                        ) {
+                                          urlParams.append(
+                                            'connectionType',
+                                            'postgres'
+                                          );
+                                          urlParams.append(
+                                            'connectionType',
+                                            'mysql'
+                                          );
+                                          urlParams.append(
+                                            'connectionType',
+                                            'aws-s3'
+                                          );
+                                        }
+
                                         router.push(
-                                          `/${account?.name}/new/connection?returnTo=${encodeURIComponent(
-                                            `/${account?.name}/new/job/connect?sessionId=${sessionPrefix}&from=new-connection`
-                                          )}`
+                                          `/${account?.name}/new/connection?${urlParams.toString()}`
                                         );
                                         return;
                                       }

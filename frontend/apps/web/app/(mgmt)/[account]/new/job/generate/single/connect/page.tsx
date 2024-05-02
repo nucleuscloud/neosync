@@ -143,10 +143,13 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                         <Select
                           onValueChange={(value: string) => {
                             if (value === NEW_CONNECTION_VALUE) {
+                              const urlParams = new URLSearchParams({
+                                returnTo: `/${account?.name}/new/job/generate/single/connect?sessionId=${sessionPrefix}&from=new-connection`,
+                              });
+                              urlParams.append('connectionType', 'postgres');
+                              urlParams.append('connectionType', 'mysql');
                               router.push(
-                                `/${account?.name}/new/connection?returnTo=${encodeURIComponent(
-                                  `/${account?.name}/new/job/generate/single/connect?sessionId=${sessionPrefix}&from=new-connection`
-                                )}`
+                                `/${account?.name}/new/connection?${urlParams.toString()}`
                               );
                               return;
                             }

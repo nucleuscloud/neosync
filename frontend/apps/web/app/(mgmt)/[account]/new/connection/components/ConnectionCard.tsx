@@ -8,18 +8,21 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { ReactElement } from 'react';
+import { ConnectionType } from '../../../connections/util';
 
 export interface ConnectionMeta {
   name: string;
   description: string;
   urlSlug: string;
+  connectionType: ConnectionType;
 }
 
 interface Props {
   connection: ConnectionMeta;
 }
 
-export default function ConnectionCard(props: Props) {
+export default function ConnectionCard(props: Props): ReactElement {
   const { connection } = props;
   const router = useRouter();
   const { account } = useAccount();

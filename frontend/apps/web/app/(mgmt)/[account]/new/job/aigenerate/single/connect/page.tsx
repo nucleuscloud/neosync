@@ -1,4 +1,5 @@
 'use client';
+import { getConnectionType } from '@/app/(mgmt)/[account]/connections/util';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import DestinationOptionsForm from '@/components/jobs/Form/DestinationOptionsForm';
@@ -24,6 +25,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { splitConnections } from '@/libs/utils';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { ConnectionConfig } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -140,10 +142,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               return;
                             }
                             if (value === NEW_CONNECTION_VALUE) {
+                              const urlParams = new URLSearchParams({
+                                returnTo: `/${account?.name}/new/job/aigenerate/single/connect?sessionId=${sessionPrefix}&from=new-connection`,
+                                connectionType: 'openai',
+                              });
                               router.push(
-                                `/${account?.name}/new/connection?returnTo=${encodeURIComponent(
-                                  `/${account?.name}/new/job/aigenerate/single/connect?sessionId=${sessionPrefix}&from=new-connection`
-                                )}`
+                                `/${account?.name}/new/connection?${urlParams.toString()}`
                               );
                               return;
                             }
@@ -210,10 +214,31 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                         <Select
                           onValueChange={(value: string) => {
                             if (value === NEW_CONNECTION_VALUE) {
+                              const destId = form.getValues(
+                                'destination.connectionId'
+                              );
+
+                              const urlParams = new URLSearchParams({
+                                returnTo: `/${account?.name}/new/job/aigenerate/single/connect?sessionId=${sessionPrefix}&from=new-connection`,
+                              });
+                              const connection = connections.find(
+                                (c) => c.id === destId
+                              );
+                              const connType = getConnectionType(
+                                connection?.connectionConfig ??
+                                  new ConnectionConfig()
+                              );
+                              if (connType) {
+                                urlParams.append('connectionType', connType);
+                              }
+                              if (
+                                urlParams.getAll('connectionType').length === 0
+                              ) {
+                                urlParams.append('connectionType', 'postgres');
+                                urlParams.append('connectionType', 'mysql');
+                              }
                               router.push(
-                                `/${account?.name}/new/connection?returnTo=${encodeURIComponent(
-                                  `/${account?.name}/new/job/aigenerate/single/connect?sessionId=${sessionPrefix}&from=new-connection`
-                                )}`
+                                `/${account?.name}/new/connection?${urlParams.toString()}`
                               );
                               return;
                             }
@@ -277,10 +302,31 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                         <Select
                           onValueChange={(value: string) => {
                             if (value === NEW_CONNECTION_VALUE) {
+                              const fkSourceConnId = form.getValues(
+                                'fkSourceConnectionId'
+                              );
+
+                              const urlParams = new URLSearchParams({
+                                returnTo: `/${account?.name}/new/job/aigenerate/single/connect?sessionId=${sessionPrefix}&from=new-connection`,
+                              });
+                              const connection = connections.find(
+                                (c) => c.id === fkSourceConnId
+                              );
+                              const connType = getConnectionType(
+                                connection?.connectionConfig ??
+                                  new ConnectionConfig()
+                              );
+                              if (connType) {
+                                urlParams.append('connectionType', connType);
+                              }
+                              if (
+                                urlParams.getAll('connectionType').length === 0
+                              ) {
+                                urlParams.append('connectionType', 'postgres');
+                                urlParams.append('connectionType', 'mysql');
+                              }
                               router.push(
-                                `/${account?.name}/new/connection?returnTo=${encodeURIComponent(
-                                  `/${account?.name}/new/job/aigenerate/single/connect?sessionId=${sessionPrefix}&from=new-connection`
-                                )}`
+                                `/${account?.name}/new/connection?${urlParams.toString()}`
                               );
                               return;
                             }
