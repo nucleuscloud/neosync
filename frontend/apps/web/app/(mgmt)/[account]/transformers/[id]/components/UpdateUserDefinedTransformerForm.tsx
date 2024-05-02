@@ -56,8 +56,6 @@ export default function UpdateUserDefinedTransformerForm(
     context: { name: currentTransformer?.name, accountId: account?.id ?? '' },
   });
 
-  console.log('config', form.getValues('config.value'));
-
   async function onSubmit(values: UpdateUserDefinedTransformer): Promise<void> {
     if (!account) {
       return;
@@ -151,7 +149,7 @@ export default function UpdateUserDefinedTransformerForm(
           </div>
         </div>
         <div>
-          {UserDefinedTransformerForm({ value: currentTransformer?.source })}
+          <UserDefinedTransformerForm value={currentTransformer?.source} />
         </div>
         <div className="flex flex-row justify-between">
           <NextLink href={`/${account?.name}/transformers?tab=ud`}>

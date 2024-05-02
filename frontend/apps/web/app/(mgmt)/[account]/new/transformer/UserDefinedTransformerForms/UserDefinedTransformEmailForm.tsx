@@ -119,12 +119,6 @@ export default function UserDefinedTransformEmailForm(
       <FormField
         name={`config.value.emailType`}
         render={({ field }) => {
-          console.log(
-            'value',
-            getGenerateEmailTypeString(
-              generateEmailTypeStringToEnum(field.value)
-            )
-          );
           return (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
               <div className="space-y-0.5">
@@ -137,7 +131,7 @@ export default function UserDefinedTransformEmailForm(
               <FormControl>
                 <Select
                   onValueChange={(value) => {
-                    // this is so hacky
+                    // this is so hacky, but has to be done due to have we are encoding the incoming config and how the enums are converted to their wire-format string type
                     const emailConfig = new TransformEmail({
                       emailType: parseInt(value, 10),
                     }).toJson();

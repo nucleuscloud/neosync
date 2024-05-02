@@ -28,7 +28,6 @@ export default function UpdateUserDefinedTransformerPage({
       </div>
     );
   }
-  console.log('data', data?.transformer);
 
   return (
     <OverviewContainer

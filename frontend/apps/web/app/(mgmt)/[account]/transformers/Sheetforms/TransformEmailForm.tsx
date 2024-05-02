@@ -18,7 +18,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { getGenerateEmailTypeString } from '@/util/util';
+import {
+  generateEmailTypeStringToEnum,
+  getGenerateEmailTypeString,
+} from '@/util/util';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { GenerateEmailType, TransformEmail } from '@neosync/sdk';
 import { ReactElement } from 'react';
@@ -30,7 +33,10 @@ interface Props extends TransformerFormProps<TransformEmail> {}
 
 export default function TransformEmailForm(props: Props): ReactElement {
   const { existingConfig, onSubmit, isReadonly } = props;
-  console.log(existingConfig?.emailType);
+
+  const emailType =
+    (existingConfig?.toJson() as any)?.emailType ??
+    'GENERATE_EMAIL_TYPE_UUID_V4';
   const form = useForm({
     mode: 'onChange',
     resolver: yupResolver(TRANSFORMER_SCHEMA_CONFIGS.transformEmailConfig),
@@ -38,7 +44,7 @@ export default function TransformEmailForm(props: Props): ReactElement {
       preserveDomain: existingConfig?.preserveDomain ?? false,
       preserveLength: existingConfig?.preserveLength ?? false,
       excludedDomains: existingConfig?.excludedDomains ?? [],
-      emailType: (existingConfig?.emailType as unknown as string) ?? '', // This is so hacky. The
+      emailType: emailType,
     },
   });
 
@@ -136,9 +142,13 @@ export default function TransformEmailForm(props: Props): ReactElement {
               <FormControl>
                 <Select
                   onValueChange={(value) => {
-                    field.onChange(parseInt(value, 10));
+                    // this is so hacky, but has to be done due to have we are encoding the incoming config and how the enums are converted to their wire-format string type
+                    const emailConfig = new TransformEmail({
+                      emailType: parseInt(value, 10),
+                    }).toJson();
+                    field.onChange((emailConfig as any).emailType);
                   }}
-                  value={field.value.toString()}
+                  value={generateEmailTypeStringToEnum(field.value).toString()}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -169,11 +179,7 @@ export default function TransformEmailForm(props: Props): ReactElement {
             disabled={isReadonly}
             onClick={(e) => {
               form.handleSubmit((values) => {
-                onSubmit(
-                  new TransformEmail({
-                    ...(values as any),
-                  })
-                );
+                onSubmit(TransformEmail.fromJson(values));
               })(e);
             }}
           >
