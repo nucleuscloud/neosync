@@ -45,3 +45,15 @@ func BuildTable(schema, table string) string {
 	}
 	return table
 }
+
+func dedupeSlice(input []string) []string {
+	set := map[string]any{}
+	for _, i := range input {
+		set[i] = struct{}{}
+	}
+	output := make([]string, 0, len(set))
+	for key := range set {
+		output = append(output, key)
+	}
+	return output
+}

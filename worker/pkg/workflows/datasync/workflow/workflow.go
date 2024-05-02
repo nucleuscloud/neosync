@@ -13,7 +13,6 @@ import (
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	sync_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync"
 	syncactivityopts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-activity-opts"
-	syncrediscleanup_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/sync-redis-clean-up"
 	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/temporal"
 
@@ -205,17 +204,17 @@ func runRedisCleanUpActivity(
 			if !isReadyForCleanUp(cfg.Table, cfg.Column, dependsOnMap) {
 				continue
 			}
-			ctx := workflow.WithActivityOptions(wfctx, *actOptResp.SyncActivityOptions)
+			// ctx := workflow.WithActivityOptions(wfctx, *actOptResp.SyncActivityOptions)
 			logger.Debug("executing redis clean up activity")
-			var resp *syncrediscleanup_activity.DeleteRedisHashResponse
-			err := workflow.ExecuteActivity(ctx, syncrediscleanup_activity.DeleteRedisHash, &syncrediscleanup_activity.DeleteRedisHashRequest{
-				JobId:      jobId,
-				WorkflowId: workflowId,
-				HashKey:    cfg.Key,
-			}).Get(ctx, &resp)
-			if err != nil {
-				return err
-			}
+			// var resp *syncrediscleanup_activity.DeleteRedisHashResponse
+			// err := workflow.ExecuteActivity(ctx, syncrediscleanup_activity.DeleteRedisHash, &syncrediscleanup_activity.DeleteRedisHashRequest{
+			// 	JobId:      jobId,
+			// 	WorkflowId: workflowId,
+			// 	HashKey:    cfg.Key,
+			// }).Get(ctx, &resp)
+			// if err != nil {
+			// 	return err
+			// }
 			delete(redisConfigs, k)
 		}
 	}
@@ -273,6 +272,7 @@ func invokeSync(
 			return
 		}
 		logger.Info("scheduling Sync for execution.")
+		fmt.Println(string(configbits))
 
 		var result sync_activity.SyncResponse
 		activity := sync_activity.Activity{}

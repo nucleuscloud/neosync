@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_GetUniqueSchemaColMappings(t *testing.T) {
-	mappings := GetUniqueSchemaColMappings(
+func Test_getUniqueSchemaColMappings(t *testing.T) {
+	mappings := getUniqueSchemaColMappings(
 		[]*DatabaseSchemaRow{
 			{TableSchema: "public", TableName: "users", ColumnName: "id"},
 			{TableSchema: "public", TableName: "users", ColumnName: "created_by"},

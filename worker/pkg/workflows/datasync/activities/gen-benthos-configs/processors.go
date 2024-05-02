@@ -2,6 +2,7 @@ package genbenthosconfigs_activity
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
@@ -207,16 +208,26 @@ func buildBranchCacheConfigs(
 	jobId, runId string,
 	redisConfig *shared.RedisConfig,
 ) ([]*neosync_benthos.BranchConfig, error) {
+	fmt.Println("---- buildBranchCacheConfigs")
+	jsonF, _ := json.MarshalIndent(columnConstraints, "", " ")
+	fmt.Printf("\n columnConstraints: %s \n", string(jsonF))
 	branchConfigs := []*neosync_benthos.BranchConfig{}
 	for _, col := range cols {
 		fk, ok := columnConstraints[col.Column]
 		if ok {
+			fmt.Println("------")
+			fmt.Printf("col: %s \n", col)
+			fmt.Printf("fk.table: %s \n", fk.Table)
+			fmt.Printf("fk.col: %s \n", fk.Column)
+
 			// skip self referencing cols
 			if fk.Table == fmt.Sprintf("%s.%s", col.Schema, col.Table) {
 				continue
 			}
 
 			hashedKey := neosync_benthos.HashBenthosCacheKey(jobId, runId, fk.Table, fk.Column)
+			fmt.Printf("hashedKey: %s \n", hashedKey)
+
 			requestMap := fmt.Sprintf(`root = if this.%q == null { deleted() } else { this }`, col.Column)
 			argsMapping := fmt.Sprintf(`root = [%q, json(%q)]`, hashedKey, col.Column)
 			resultMap := fmt.Sprintf("root.%q = this", col.Column)
@@ -227,6 +238,9 @@ func buildBranchCacheConfigs(
 			branchConfigs = append(branchConfigs, br)
 		}
 	}
+	jsonF, _ = json.MarshalIndent(branchConfigs, "", " ")
+	fmt.Printf("\n branchConfigs: %s \n", string(jsonF))
+
 	return branchConfigs, nil
 }
 

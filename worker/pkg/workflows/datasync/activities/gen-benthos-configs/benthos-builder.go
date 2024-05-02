@@ -128,11 +128,10 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		}
 		defer db.Db.Close()
 
-		dbschemas, err := db.Db.GetDatabaseSchema(ctx)
+		groupedSchemas, err := db.Db.GetSchemaColumnMap(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("unable to get database schema for connection: %w", err)
 		}
-		groupedSchemas := sql_manager.GetUniqueSchemaColMappings(dbschemas)
 		if !areMappingsSubsetOfSchemas(groupedSchemas, job.Mappings) {
 			return nil, errors.New(jobmappingSubsetErrMsg)
 		}
@@ -609,6 +608,8 @@ func buildBenthosSqlSourceConfigResponses(
 	tableConstraintsSource map[string]map[string]*sql_manager.ForeignKey,
 ) ([]*BenthosConfigResponse, error) {
 	responses := []*BenthosConfigResponse{}
+	jsonF, _ := json.MarshalIndent(tableDependencies, "", " ")
+	fmt.Printf("\n tableDependencies: %s \n", string(jsonF))
 
 	// filter this list by table constraints that has transformer
 	tableConstraints := map[string]map[string]*sql_manager.ForeignKey{} // schema.table -> column -> foreignKey
@@ -617,7 +618,7 @@ func buildBenthosSqlSourceConfigResponses(
 		if !ok {
 			tableConstraints[table] = map[string]*sql_manager.ForeignKey{}
 		}
-		for _, tc := range constraints.Constraints {
+		for _, tc := range constraints {
 			// only add constraint if foreign key has transformer
 			transformer, transformerOk := colTransformerMap[tc.ForeignKey.Table][tc.ForeignKey.Column]
 			if transformerOk && shouldProcessStrict(transformer) {
@@ -625,6 +626,8 @@ func buildBenthosSqlSourceConfigResponses(
 			}
 		}
 	}
+	jsonF, _ = json.MarshalIndent(tableConstraints, "", " ")
+	fmt.Printf("\n tableDependencies: %s \n", string(jsonF))
 	for _, config := range runconfigs {
 		mappings, ok := groupedTableMapping[config.Table]
 		if !ok {
