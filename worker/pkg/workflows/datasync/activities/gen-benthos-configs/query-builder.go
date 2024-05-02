@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
-	dbschemas "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -188,7 +187,7 @@ func buildSelectQueryMap(
 	driver string,
 	groupedMappings map[string]*tableMapping,
 	sourceTableOpts map[string]*sqlSourceTableOptions,
-	tableDependencies map[string]*dbschemas.TableConstraints,
+	tableDependencies map[string][]*sql_manager.ForeignConstraint,
 	dependencyConfigs []*tabledependency.RunConfig,
 	subsetByForeignKeyConstraints bool,
 ) (map[string]string, error) {
@@ -385,7 +384,7 @@ type subsetQueryConfig struct {
 func buildTableSubsetQueryConfig(
 	table string,
 	pathToRoot []string,
-	dependencyMap map[string]*dbschemas.TableConstraints,
+	dependencyMap map[string][]*sql_manager.ForeignConstraint,
 	tableWhereMap map[string]string,
 ) *subsetQueryConfig {
 	joins := []*sqlJoin{}
@@ -440,10 +439,10 @@ func buildTableSubsetQueryConfig(
 	}
 }
 
-func buildFkTableMap(fks *dbschemas.TableConstraints) map[string]map[string]string {
+func buildFkTableMap(fks []*sql_manager.ForeignConstraint) map[string]map[string]string {
 	fksTableMap := map[string]map[string]string{} // map of fk table to map of fk column to base table column
 	if fks != nil {
-		for _, c := range fks.Constraints {
+		for _, c := range fks {
 			if _, exists := fksTableMap[c.ForeignKey.Table]; !exists {
 				fksTableMap[c.ForeignKey.Table] = map[string]string{}
 			}
@@ -554,13 +553,13 @@ type selfReferencingCircularDependency struct {
 	ForeignKeyColumns []string
 }
 
-func getSelfReferencingColumns(table string, tc *dbschemas.TableConstraints) *selfReferencingCircularDependency {
+func getSelfReferencingColumns(table string, tc []*sql_manager.ForeignConstraint) *selfReferencingCircularDependency {
 	if tc == nil {
 		return nil
 	}
 	fkCols := []string{}
 	var primaryKeyCol string
-	for _, fc := range tc.Constraints {
+	for _, fc := range tc {
 		if fc.ForeignKey.Table == table {
 			fkCols = append(fkCols, fc.Column)
 			primaryKeyCol = fc.ForeignKey.Column

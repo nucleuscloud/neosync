@@ -6,7 +6,7 @@ import (
 	"slices"
 	"strings"
 
-	dbschemas "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
+	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 )
 
 type RunType string
@@ -42,7 +42,7 @@ type ConstraintColumns struct {
 }
 
 func GetRunConfigs(
-	dependencyMap dbschemas.TableDependency,
+	dependencyMap map[string][]*sql_manager.ForeignConstraint,
 	tables []string,
 	subsets map[string]string,
 	primaryKeyMap map[string][]string,
@@ -56,7 +56,7 @@ func GetRunConfigs(
 	for table, constraints := range dependencyMap {
 		foreignKeyMap[table] = map[string]string{}
 		foreignKeyColsMap[table] = map[string]*ConstraintColumns{}
-		for _, constraint := range constraints.Constraints {
+		for _, constraint := range constraints {
 			if _, exists := foreignKeyColsMap[table][constraint.ForeignKey.Table]; !exists {
 				foreignKeyColsMap[table][constraint.ForeignKey.Table] = &ConstraintColumns{
 					NullableColumns:    []string{},
@@ -115,7 +115,7 @@ func processCycles(
 	tableColumnsMap map[string][]string,
 	primaryKeyMap map[string][]string,
 	subsets map[string]string,
-	dependencyMap map[string]*dbschemas.TableConstraints,
+	dependencyMap map[string][]*sql_manager.ForeignConstraint,
 	foreignKeyColsMap map[string]map[string]*ConstraintColumns,
 ) ([]*RunConfig, error) {
 	configs := []*RunConfig{}
@@ -173,7 +173,7 @@ func processCycles(
 				insertConfig.DependsOn = append(insertConfig.DependsOn, &DependsOn{Table: fkTable, Columns: fkCols.NonNullableColumns})
 			}
 		}
-		for _, d := range dependencies.Constraints {
+		for _, d := range dependencies {
 			if d.IsNullable {
 				updateConfig.Columns = append(updateConfig.Columns, d.Column)
 			}
@@ -230,7 +230,7 @@ func isTableInCycles(cycles [][]string, table string) bool {
 func determineCycleStarts(
 	cycles [][]string,
 	subsets map[string]string,
-	dependencyMap dbschemas.TableDependency,
+	dependencyMap map[string][]*sql_manager.ForeignConstraint,
 ) ([]string, error) {
 	tableRankMap := map[string]int{}
 	possibleStarts := [][]string{}
@@ -245,7 +245,7 @@ func determineCycleStarts(
 				return nil, fmt.Errorf("missing dependencies for table: %s", table)
 			}
 			// FK columns must be nullable to be a starting point
-			if areAllFkColsNullable(dependencies.Constraints, cycle) {
+			if areAllFkColsNullable(dependencies, cycle) {
 				filteredCycle = append(filteredCycle, table)
 			}
 		}
@@ -293,7 +293,7 @@ func determineCycleStarts(
 	return results, nil
 }
 
-func areAllFkColsNullable(dependencies []*dbschemas.ForeignConstraint, cycle []string) bool {
+func areAllFkColsNullable(dependencies []*sql_manager.ForeignConstraint, cycle []string) bool {
 	for _, dep := range dependencies {
 		if !slices.Contains(cycle, dep.ForeignKey.Table) {
 			continue

@@ -9,8 +9,9 @@ import (
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
+	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
+
 	http_client "github.com/nucleuscloud/neosync/worker/internal/http/client"
 	"github.com/spf13/viper"
 )
@@ -73,7 +74,7 @@ func GetUniqueSchemasFromMappings(mappings []*mgmtv1alpha1.JobMapping) []string 
 func GetUniqueTablesFromMappings(mappings []*mgmtv1alpha1.JobMapping) map[string]struct{} {
 	groupedMappings := map[string][]*mgmtv1alpha1.JobMapping{}
 	for _, mapping := range mappings {
-		tableName := dbschemas_utils.BuildTable(mapping.Schema, mapping.Table)
+		tableName := sql_manager.BuildTable(mapping.Schema, mapping.Table)
 		_, ok := groupedMappings[tableName]
 		if ok {
 			groupedMappings[tableName] = append(groupedMappings[tableName], mapping)

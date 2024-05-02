@@ -744,7 +744,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Transformer_Pg_Pg(t *
 		"public.users":  {"id"},
 		"public.orders": {"id"},
 	}, nil)
-	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
+	mockSqlDb.On("GetForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
 		{
 			ConstraintName:    "fk_user_account_id",
 			SchemaName:        "public",
@@ -1044,7 +1044,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Passthrough_Pg_Pg(t *
 		"public.users":  {"id"},
 		"public.orders": {"id"},
 	}, nil)
-	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
+	mockSqlDb.On("GetForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
 		{
 			ConstraintName:    "fk_user_account_associations_user_id_users_id",
 			SchemaName:        "public",
@@ -1302,7 +1302,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_CircularDependency_PrimaryKey_Tr
 	mockSqlDb.On("GetPrimaryKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]string{
 		"public.jobs": {"id"},
 	}, nil)
-	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
+	mockSqlDb.On("GetForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
 		{
 			ConstraintName:    "fk_jobs",
 			SchemaName:        "public",
@@ -1613,7 +1613,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 		"public.users":                     {"id"},
 		"public.user_account_associations": {"id"},
 	}, nil)
-	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
+	mockSqlDb.On("GetForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
 		{
 			ConstraintName:    "fk_user_account_associations_user_id_users_id",
 			SchemaName:        "public",
@@ -1810,7 +1810,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 		"public.users":                     {"id"},
 		"public.user_account_associations": {"id"},
 	}, nil)
-	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, mock.Anything).Return([]*sql_manager.ForeignKeyConstraintsRow{
+	mockSqlDb.On("GetForeignKeyConstraints", mock.Anything, mock.Anything).Return([]*sql_manager.ForeignKeyConstraintsRow{
 		{
 			ConstraintName:    "user_account_associations",
 			SchemaName:        "public",
@@ -2193,7 +2193,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 		"public.users":                     {"id"},
 		"public.user_account_associations": {"id"},
 	}, nil)
-	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
+	mockSqlDb.On("GetForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
 		{
 			ConstraintName:    "user_account_associations",
 			SchemaName:        "public",
@@ -2589,7 +2589,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) 
 		"public.users":                     {"id"},
 		"public.user_account_associations": {"id"},
 	}, nil)
-	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
+	mockSqlDb.On("GetForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
 		{
 			ConstraintName:    "user_account_associations",
 			SchemaName:        "public",
@@ -2879,7 +2879,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_
 		"public.users":                     {"id"},
 		"public.user_account_associations": {"id"},
 	}, nil)
-	mockSqlDb.On("GetAllForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
+	mockSqlDb.On("GetForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
 		{
 			ConstraintName:    "fk_user_account_associations_user_id_users_id",
 			SchemaName:        "public",

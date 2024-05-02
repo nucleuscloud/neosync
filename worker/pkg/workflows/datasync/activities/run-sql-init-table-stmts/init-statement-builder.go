@@ -10,9 +10,6 @@ import (
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
-	dbschemas_mysql "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/mysql"
-	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/postgres"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -60,16 +57,14 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 	}
 	defer sourcedb.Db.Close()
 
-	var tableDependencies map[string]*dbschemas_utils.TableConstraints
 	uniqueTables := shared.GetUniqueTablesFromMappings(job.Mappings)
 	uniqueSchemas := shared.GetUniqueSchemasFromMappings(job.Mappings)
 
-	allConstraints, err := sourcedb.Db.GetAllForeignKeyConstraints(ctx, uniqueSchemas)
+	tableDependencies, err := sourcedb.Db.GetForeignKeyConstraintsMap(ctx, uniqueSchemas)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve database foreign key constraints: %w", err)
 	}
-	slogger.Info(fmt.Sprintf("found %d foreign key constraints for database", len(allConstraints)))
-	tableDependencies = sql_manager.GetDbTableDependencies(allConstraints)
+	slogger.Info(fmt.Sprintf("found %d foreign key constraints for database", len(tableDependencies)))
 
 	for _, destination := range job.Destinations {
 		destinationConnection, err := shared.GetConnectionById(ctx, b.connclient, destination.ConnectionId)
@@ -141,7 +136,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				tableTruncateStmts := []string{}
 				for table := range uniqueTables {
 					split := strings.Split(table, ".")
-					stmt, err := dbschemas_postgres.BuildTruncateCascadeStatement(split[0], split[1])
+					stmt, err := sql_manager.BuildPgTruncateCascadeStatement(split[0], split[1])
 					if err != nil {
 						destdb.Db.Close()
 						return nil, err
@@ -168,7 +163,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					orderedTableTruncate = append(orderedTableTruncate, fmt.Sprintf(`%q.%q`, split[0], split[1]))
 				}
 				slogger.Info(fmt.Sprintf("executing %d sql statements that will truncate tables", len(orderedTableTruncate)))
-				truncateStmt := dbschemas_postgres.BuildTruncateStatement(orderedTableTruncate)
+				truncateStmt := sql_manager.BuildPgTruncateStatement(orderedTableTruncate)
 				err = destdb.Db.Exec(ctx, truncateStmt)
 				if err != nil {
 					destdb.Db.Close()
@@ -182,7 +177,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				tableTruncate := []string{}
 				for table := range uniqueTables {
 					split := strings.Split(table, ".")
-					stmt, err := dbschemas_mysql.BuildTruncateStatement(split[0], split[1])
+					stmt, err := sql_manager.BuildMysqlTruncateStatement(split[0], split[1])
 					if err != nil {
 						destdb.Db.Close()
 						return nil, err
@@ -190,7 +185,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					tableTruncate = append(tableTruncate, stmt)
 				}
 				slogger.Info(fmt.Sprintf("executing %d sql statements that will truncate tables", len(tableTruncate)))
-				disableFkChecks := dbschemas_mysql.DisableForeignKeyChecks
+				disableFkChecks := sql_manager.DisableForeignKeyChecks
 				err = destdb.Db.BatchExec(ctx, batchSizeConst, tableTruncate, &sql_manager.BatchExecOpts{Prefix: &disableFkChecks})
 				if err != nil {
 					destdb.Db.Close()
@@ -222,7 +217,7 @@ func (b *initStatementBuilder) getJobById(
 }
 
 // filtered by tables found in job mappings
-func getFilteredForeignToPrimaryTableMap(td map[string]*dbschemas_utils.TableConstraints, uniqueTables map[string]struct{}) map[string][]string {
+func getFilteredForeignToPrimaryTableMap(td map[string][]*sql_manager.ForeignConstraint, uniqueTables map[string]struct{}) map[string][]string {
 	dpMap := map[string][]string{}
 	for table := range uniqueTables {
 		_, dpOk := dpMap[table]
@@ -233,7 +228,7 @@ func getFilteredForeignToPrimaryTableMap(td map[string]*dbschemas_utils.TableCon
 		if !ok {
 			continue
 		}
-		for _, dep := range constraints.Constraints {
+		for _, dep := range constraints {
 			_, ok := uniqueTables[dep.ForeignKey.Table]
 			// only add to map if dependency is an included table
 			if ok {

@@ -13,7 +13,8 @@ import (
 	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/pkg/sqlconnect"
-	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 const (
@@ -25,12 +26,25 @@ type BatchExecOpts struct {
 	Prefix *string // this string will be added to the start of each statement
 }
 
+type ForeignKey struct {
+	Table  string
+	Column string
+}
+type ForeignConstraint struct {
+	Column     string
+	IsNullable bool
+	ForeignKey *ForeignKey
+}
+
 type SqlDatabase interface {
 	GetDatabaseSchema(ctx context.Context) ([]*DatabaseSchemaRow, error)
-	GetAllForeignKeyConstraints(ctx context.Context, schemas []string) ([]*ForeignKeyConstraintsRow, error)
+	GetForeignKeyConstraints(ctx context.Context, schemas []string) ([]*ForeignKeyConstraintsRow, error)
+	GetForeignKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]*ForeignConstraint, error)
 	GetPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*PrimaryKey, error)
 	GetPrimaryKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]string, error)
+	GetUniqueConstraintsMap(ctx context.Context, schemas []string) (map[string][][]string, error)
 	GetCreateTableStatement(ctx context.Context, schema, table string) (string, error)
+	GetRolePermissionsMap(ctx context.Context, role string) (map[string][]string, error)
 	BatchExec(ctx context.Context, batchSize int, statements []string, opts *BatchExecOpts) error
 	Exec(ctx context.Context, statement string) error
 	Close()
@@ -78,6 +92,12 @@ type SqlManagerClient interface {
 		ctx context.Context,
 		driver, connectionUrl string,
 	) (*SqlConnection, error)
+	NewSqlDbFromConnectionConfig(
+		ctx context.Context,
+		slogger *slog.Logger,
+		connectionConfig *mgmtv1alpha1.ConnectionConfig,
+		connectionTimeout *int,
+	) (*SqlConnection, error)
 }
 
 var _ SqlManagerClient = &SqlManager{}
@@ -105,17 +125,10 @@ type ForeignKeyConstraintsRow struct {
 	SchemaName        string
 	TableName         string
 	ColumnName        string
-	IsNullable        string
+	IsNullable        bool
 	ForeignSchemaName string
 	ForeignTableName  string
 	ForeignColumnName string
-}
-
-type PrimaryKeyConstraintsRow struct {
-	SchemaName     string
-	TableName      string
-	ConstraintName string
-	ColumnName     string
 }
 
 type PrimaryKey struct {
@@ -141,7 +154,7 @@ func (s *SqlManager) NewPooledSqlDb(
 			if pgconfig == nil {
 				return nil, fmt.Errorf("source connection (%s) is not a postgres config", connection.Id)
 			}
-			pgconn, err := s.sqlconnector.NewPgPoolFromConnectionConfig(pgconfig, shared.Ptr(uint32(5)), slogger)
+			pgconn, err := s.sqlconnector.NewPgPoolFromConnectionConfig(pgconfig, Ptr(uint32(5)), slogger)
 			if err != nil {
 				return nil, fmt.Errorf("unable to create new postgres pool from connection config: %w", err)
 			}
@@ -166,11 +179,11 @@ func (s *SqlManager) NewPooledSqlDb(
 		db = adapter
 		driver = PostgresDriver
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		adapter := &MySqlManager{
+		adapter := &MysqlManager{
 			querier: s.mysqlquerier,
 		}
 		if _, ok := s.mysqlpool.Load(connection.Id); !ok {
-			conn, err := s.sqlconnector.NewDbFromConnectionConfig(connection.ConnectionConfig, shared.Ptr(uint32(5)), slogger)
+			conn, err := s.sqlconnector.NewDbFromConnectionConfig(connection.ConnectionConfig, Ptr(uint32(5)), slogger)
 			if err != nil {
 				return nil, fmt.Errorf("unable to create new mysql pool from connection config: %w", err)
 			}
@@ -213,7 +226,16 @@ func (s *SqlManager) NewSqlDb(
 	connection *mgmtv1alpha1.Connection,
 	connectionTimeout *int,
 ) (*SqlConnection, error) {
-	connTimeout := shared.Ptr(uint32(5))
+	return s.NewSqlDbFromConnectionConfig(ctx, slogger, connection.GetConnectionConfig(), connectionTimeout)
+}
+
+func (s *SqlManager) NewSqlDbFromConnectionConfig(
+	ctx context.Context,
+	slogger *slog.Logger,
+	connectionConfig *mgmtv1alpha1.ConnectionConfig,
+	connectionTimeout *int,
+) (*SqlConnection, error) {
+	connTimeout := Ptr(uint32(5))
 	if connectionTimeout != nil {
 		timeout := uint32(*connectionTimeout)
 		connTimeout = &timeout
@@ -221,14 +243,14 @@ func (s *SqlManager) NewSqlDb(
 
 	var db SqlDatabase
 	var driver string
-	switch connection.ConnectionConfig.Config.(type) {
+	switch connectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
 		adapter := &PostgresManager{
 			querier: s.pgquerier,
 		}
-		pgconfig := connection.ConnectionConfig.GetPgConfig()
+		pgconfig := connectionConfig.GetPgConfig()
 		if pgconfig == nil {
-			return nil, fmt.Errorf("source connection (%s) is not a postgres config", connection.Id)
+			return nil, fmt.Errorf("source connection is not a postgres config")
 		}
 		pgconn, err := s.sqlconnector.NewPgPoolFromConnectionConfig(pgconfig, connTimeout, slogger)
 		if err != nil {
@@ -247,10 +269,10 @@ func (s *SqlManager) NewSqlDb(
 		db = adapter
 		driver = PostgresDriver
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		adapter := &MySqlManager{
+		adapter := &MysqlManager{
 			querier: s.mysqlquerier,
 		}
-		conn, err := s.sqlconnector.NewDbFromConnectionConfig(connection.ConnectionConfig, connTimeout, slogger)
+		conn, err := s.sqlconnector.NewDbFromConnectionConfig(connectionConfig, connTimeout, slogger)
 		if err != nil {
 			return nil, fmt.Errorf("unable to create new mysql pool from connection config: %w", err)
 		}
@@ -302,10 +324,10 @@ func (s *SqlManager) NewSqlDbFromUrl(
 		db = adapter
 		driver = PostgresDriver
 	case MysqlDriver:
-		adapter := &MySqlManager{
+		adapter := &MysqlManager{
 			querier: s.mysqlquerier,
 		}
-		conn, err := sql.Open(driver, connectionUrl)
+		conn, err := sql.Open(MysqlDriver, connectionUrl)
 		if err != nil {
 			return nil, err
 		}

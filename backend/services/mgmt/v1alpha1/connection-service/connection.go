@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
-	"time"
 
 	"connectrpc.com/connect"
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
@@ -16,7 +15,6 @@ import (
 	"github.com/nucleuscloud/neosync/backend/internal/dtomaps"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
-	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/postgres"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
 )
 
@@ -25,91 +23,62 @@ func (s *Service) CheckConnectionConfig(
 	req *connect.Request[mgmtv1alpha1.CheckConnectionConfigRequest],
 ) (*connect.Response[mgmtv1alpha1.CheckConnectionConfigResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
-	connectionTimeout := uint32(5)
 
+	var role string
 	switch cconfig := req.Msg.ConnectionConfig.Config.(type) {
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		role, err := getPostgresUserFromConnectionConfig(cconfig.PgConfig)
+		user, err := getPostgresUserFromConnectionConfig(cconfig.PgConfig)
 		if err != nil {
 			return nil, err
 		}
-
-		conn, err := s.sqlConnector.NewPgPoolFromConnectionConfig(cconfig.PgConfig, &connectionTimeout, logger)
-		if err != nil {
-			return nil, fmt.Errorf("unable to create postgres connection: %w", err)
-		}
-
-		db, err := conn.Open(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("unable to open postgres database connection: %w", err)
-		}
-		defer conn.Close()
-
-		pgRolePermissions, err := dbschemas_postgres.GetPostgresRolePermissions(ctx, db, s.pgquerier, role)
-		if err != nil {
-			errorMsg := err.Error()
-			return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
-				IsConnected:     false,
-				ConnectionError: &errorMsg,
-				Privileges:      nil,
-			}), nil
-		}
-		schemaTablePrivsMap := map[string][]string{}
-		for _, permission := range pgRolePermissions {
-			key := fmt.Sprintf("%s.%s", permission.TableSchema, permission.TableName)
-			schemaTablePrivsMap[key] = append(schemaTablePrivsMap[key], permission.PrivilegeType)
-		}
-
-		privs := []*mgmtv1alpha1.ConnectionRolePrivilege{}
-		for key, permissions := range schemaTablePrivsMap {
-			parts := strings.SplitN(key, ".", 2)
-			schema, table := parts[0], parts[1]
-
-			privs = append(privs, &mgmtv1alpha1.ConnectionRolePrivilege{
-				Grantee:       role,
-				Schema:        schema,
-				Table:         table,
-				PrivilegeType: permissions,
-			})
-		}
-
-		return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
-			IsConnected:     true,
-			ConnectionError: nil,
-			Privileges:      privs,
-		}), nil
+		role = user
 
 	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-
-		conn, err := s.sqlConnector.NewDbFromConnectionConfig(req.Msg.ConnectionConfig, &connectionTimeout, logger)
+		user, err := getMysqlUserFromConnectionConfig(cconfig.MysqlConfig)
 		if err != nil {
 			return nil, err
 		}
-		defer conn.Close()
+		role = user
 
-		db, err := conn.Open()
-		if err != nil {
-			return nil, err
-		}
-
-		cctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-		defer cancel()
-
-		err = db.PingContext(cctx)
-		if err != nil {
-			msg := err.Error()
-			return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
-				IsConnected:     false,
-				ConnectionError: &msg,
-			}), nil
-		}
-		return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
-			IsConnected:     true,
-			ConnectionError: nil,
-		}), nil
 	default:
 		return nil, fmt.Errorf("unsupported connection config: %T", cconfig)
 	}
+	connectionTimeout := 5
+	db, err := s.sqlmanager.NewSqlDbFromConnectionConfig(ctx, logger, req.Msg.ConnectionConfig, &connectionTimeout)
+	if err != nil {
+		return nil, err
+	}
+	defer db.Db.Close()
+
+	schemaTablePrivsMap, err := db.Db.GetRolePermissionsMap(ctx, role)
+	if err != nil {
+		errorMsg := err.Error()
+		return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
+			IsConnected:     false,
+			ConnectionError: &errorMsg,
+			Privileges:      nil,
+		}), nil
+	}
+
+	privs := []*mgmtv1alpha1.ConnectionRolePrivilege{}
+	for key, permissions := range schemaTablePrivsMap {
+		parts := strings.SplitN(key, ".", 2)
+		schema, table := parts[0], parts[1]
+
+		privs = append(privs, &mgmtv1alpha1.ConnectionRolePrivilege{
+			Grantee:       role,
+			Schema:        schema,
+			Table:         table,
+			PrivilegeType: permissions,
+		})
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.CheckConnectionConfigResponse{
+		IsConnected:     true,
+		ConnectionError: nil,
+		Privileges:      privs,
+	}), nil
+
 }
 
 func getPostgresUserFromConnectionConfig(pgconfig *mgmtv1alpha1.PostgresConnectionConfig) (string, error) {
@@ -117,6 +86,25 @@ func getPostgresUserFromConnectionConfig(pgconfig *mgmtv1alpha1.PostgresConnecti
 	case *mgmtv1alpha1.PostgresConnectionConfig_Connection:
 		return config.Connection.User, nil
 	case *mgmtv1alpha1.PostgresConnectionConfig_Url:
+		u, err := url.Parse(config.Url)
+		if err != nil {
+			var urlErr *url.Error
+			if errors.As(err, &urlErr) {
+				return "", fmt.Errorf("unable to parse postgres url [%s]: %w", urlErr.Op, urlErr.Err)
+			}
+			return "", fmt.Errorf("unable to parse postgres url: %w", err)
+		}
+		return u.User.Username(), nil
+	default:
+		return "", fmt.Errorf("unable to parse connection url from postgres config: %T", config)
+	}
+}
+
+func getMysqlUserFromConnectionConfig(pgconfig *mgmtv1alpha1.MysqlConnectionConfig) (string, error) {
+	switch config := pgconfig.ConnectionConfig.(type) {
+	case *mgmtv1alpha1.MysqlConnectionConfig_Connection:
+		return config.Connection.User, nil
+	case *mgmtv1alpha1.MysqlConnectionConfig_Url:
 		u, err := url.Parse(config.Url)
 		if err != nil {
 			var urlErr *url.Error

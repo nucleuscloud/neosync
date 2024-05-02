@@ -11,7 +11,6 @@ import (
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
@@ -96,13 +95,13 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 	// reverse of table dependency
 	// map of foreign key to source table + column
-	var tableConstraintsSource map[string]map[string]*dbschemas_utils.ForeignKey // schema.table -> column -> ForeignKey
+	var tableConstraintsSource map[string]map[string]*sql_manager.ForeignKey // schema.table -> column -> ForeignKey
 
 	switch jobSourceConfig := job.Source.Options.Config.(type) {
 	case *mgmtv1alpha1.JobSourceOptions_Generate:
 		sourceTableOpts := groupGenerateSourceOptionsByTable(jobSourceConfig.Generate.Schemas)
 		// TODO this needs to be updated to get db schema
-		sourceResponses, err := buildBenthosGenerateSourceConfigResponses(ctx, b.transformerclient, groupedMappings, sourceTableOpts, map[string]*dbschemas_utils.ColumnInfo{})
+		sourceResponses, err := buildBenthosGenerateSourceConfigResponses(ctx, b.transformerclient, groupedMappings, sourceTableOpts, map[string]*sql_manager.ColumnInfo{})
 		if err != nil {
 			return nil, fmt.Errorf("unable to build benthos generate source config responses: %w", err)
 		}
@@ -142,22 +141,17 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, errors.New(haltOnSchemaAdditionErrMsg)
 		}
 
-		allConstraints, err := db.Db.GetAllForeignKeyConstraints(ctx, uniqueSchemas)
+		tableDependencyMap, err := db.Db.GetForeignKeyConstraintsMap(ctx, uniqueSchemas)
 		if err != nil {
 			return nil, fmt.Errorf("unable to retrieve database foreign key constraints: %w", err)
 		}
-		slogger.Info(fmt.Sprintf("found %d foreign key constraints for database", len(allConstraints)))
-		td := sql_manager.GetDbTableDependencies(allConstraints)
+		slogger.Info(fmt.Sprintf("found %d foreign key constraints for database", getMapValuesCount(tableDependencyMap)))
 
 		primaryKeyMap, err := db.Db.GetPrimaryKeyConstraintsMap(ctx, uniqueSchemas)
 		if err != nil {
 			return nil, fmt.Errorf("unable to get all primary key constraints: %w", err)
 		}
-		slogger.Info(fmt.Sprintf("found %d primary key constraints for database", len(primaryKeyMap)))
-		jsonF, _ := json.MarshalIndent(allConstraints, "", " ")
-		fmt.Printf("\n fk: %s \n", string(jsonF))
-		jsonF, _ = json.MarshalIndent(primaryKeyMap, "", " ")
-		fmt.Printf("\n pk: %s \n", string(jsonF))
+		slogger.Info(fmt.Sprintf("found %d primary key constraints for database", getMapValuesCount(primaryKeyMap)))
 
 		tables := filterNullTables(groupedMappings)
 		tableSubsetMap := buildTableSubsetMap(sourceTableOpts)
@@ -167,22 +161,22 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			for _, c := range m.Mappings {
 				cols = append(cols, c.Column)
 			}
-			tableColMap[fmt.Sprintf("%s.%s", m.Schema, m.Table)] = cols
+			tableColMap[sql_manager.BuildTable(m.Schema, m.Table)] = cols
 		}
-		runConfigs, err := tabledependency.GetRunConfigs(td, tables, tableSubsetMap, primaryKeyMap, tableColMap)
+		runConfigs, err := tabledependency.GetRunConfigs(tableDependencyMap, tables, tableSubsetMap, primaryKeyMap, tableColMap)
 		if err != nil {
 			return nil, err
 		}
 
 		// reverse of table dependency
 		// map of foreign key to source table + column
-		tableConstraintsSource = getForeignKeyToSourceMap(td)
-		tableQueryMap, err := buildSelectQueryMap(db.Driver, groupedTableMapping, sourceTableOpts, td, runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints)
+		tableConstraintsSource = getForeignKeyToSourceMap(tableDependencyMap)
+		tableQueryMap, err := buildSelectQueryMap(db.Driver, groupedTableMapping, sourceTableOpts, tableDependencyMap, runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build select queries: %w", err)
 		}
 
-		sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, db.Driver, tableQueryMap, groupedSchemas, td, colTransformerMap, b.jobId, b.runId, b.redisConfig, tableConstraintsSource)
+		sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, db.Driver, tableQueryMap, groupedSchemas, tableDependencyMap, colTransformerMap, b.jobId, b.runId, b.redisConfig, tableConstraintsSource)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build benthos sql source config responses: %w", err)
 		}
@@ -438,15 +432,15 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	}, nil
 }
 
-func getForeignKeyToSourceMap(tableDependencies map[string]*dbschemas_utils.TableConstraints) map[string]map[string]*dbschemas_utils.ForeignKey {
-	tc := map[string]map[string]*dbschemas_utils.ForeignKey{} // schema.table -> column -> ForeignKey
+func getForeignKeyToSourceMap(tableDependencies map[string][]*sql_manager.ForeignConstraint) map[string]map[string]*sql_manager.ForeignKey {
+	tc := map[string]map[string]*sql_manager.ForeignKey{} // schema.table -> column -> ForeignKey
 	for table, constraints := range tableDependencies {
-		for _, c := range constraints.Constraints {
+		for _, c := range constraints {
 			_, ok := tc[c.ForeignKey.Table]
 			if !ok {
-				tc[c.ForeignKey.Table] = map[string]*dbschemas_utils.ForeignKey{}
+				tc[c.ForeignKey.Table] = map[string]*sql_manager.ForeignKey{}
 			}
-			tc[c.ForeignKey.Table][c.ForeignKey.Column] = &dbschemas_utils.ForeignKey{
+			tc[c.ForeignKey.Table][c.ForeignKey.Column] = &sql_manager.ForeignKey{
 				Table:  table,
 				Column: c.Column,
 			}
@@ -474,7 +468,7 @@ func buildBenthosGenerateSourceConfigResponses(
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	mappings []*tableMapping,
 	sourceTableOpts map[string]*generateSourceTableOptions,
-	columnInfo map[string]*dbschemas_utils.ColumnInfo,
+	columnInfo map[string]*sql_manager.ColumnInfo,
 ) ([]*BenthosConfigResponse, error) {
 	responses := []*BenthosConfigResponse{}
 
@@ -585,7 +579,7 @@ func filterNullTables(mappings []*tableMapping) []string {
 	tables := []string{}
 	for _, group := range mappings {
 		if !shared.AreAllColsNull(group.Mappings) {
-			tables = append(tables, dbschemas_utils.BuildTable(group.Schema, group.Table))
+			tables = append(tables, sql_manager.BuildTable(group.Schema, group.Table))
 		}
 	}
 	return tables
@@ -607,21 +601,21 @@ func buildBenthosSqlSourceConfigResponses(
 	dsnConnectionId string,
 	driver string,
 	selectQueryMap map[string]string,
-	groupedColumnInfo map[string]map[string]*dbschemas_utils.ColumnInfo,
-	tableDependencies map[string]*dbschemas_utils.TableConstraints,
+	groupedColumnInfo map[string]map[string]*sql_manager.ColumnInfo,
+	tableDependencies map[string][]*sql_manager.ForeignConstraint,
 	colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,
 	jobId, runId string,
 	redisConfig *shared.RedisConfig,
-	tableConstraintsSource map[string]map[string]*dbschemas_utils.ForeignKey,
+	tableConstraintsSource map[string]map[string]*sql_manager.ForeignKey,
 ) ([]*BenthosConfigResponse, error) {
 	responses := []*BenthosConfigResponse{}
 
 	// filter this list by table constraints that has transformer
-	tableConstraints := map[string]map[string]*dbschemas_utils.ForeignKey{} // schema.table -> column -> foreignKey
+	tableConstraints := map[string]map[string]*sql_manager.ForeignKey{} // schema.table -> column -> foreignKey
 	for table, constraints := range tableDependencies {
 		_, ok := tableConstraints[table]
 		if !ok {
-			tableConstraints[table] = map[string]*dbschemas_utils.ForeignKey{}
+			tableConstraints[table] = map[string]*sql_manager.ForeignKey{}
 		}
 		for _, tc := range constraints.Constraints {
 			// only add constraint if foreign key has transformer
@@ -669,7 +663,7 @@ func buildBenthosSqlSourceConfigResponses(
 		if config.RunType == tabledependency.RunTypeUpdate {
 			columnConstraints, ok := tableConstraintsSource[config.Table]
 			if !ok {
-				columnConstraints = map[string]*dbschemas_utils.ForeignKey{}
+				columnConstraints = map[string]*sql_manager.ForeignKey{}
 			}
 			// sql update processor configs
 			processorConfigs, err := buildSqlUpdateProcessorConfigs(config, redisConfig, jobId, runId, mappings.Mappings, columnConstraints)
@@ -683,7 +677,7 @@ func buildBenthosSqlSourceConfigResponses(
 		} else {
 			columnConstraints, ok := tableConstraints[config.Table]
 			if !ok {
-				columnConstraints = map[string]*dbschemas_utils.ForeignKey{}
+				columnConstraints = map[string]*sql_manager.ForeignKey{}
 			}
 			// sql insert processor configs
 			processorConfigs, err := buildProcessorConfigs(ctx, transformerclient, mappings.Mappings, groupedColumnInfo[config.Table], columnConstraints, config.PrimaryKeys, jobId, runId, redisConfig)
@@ -751,7 +745,7 @@ func buildBenthosS3Credentials(mgmtCreds *mgmtv1alpha1.AwsS3Credentials) *neosyn
 }
 
 func areMappingsSubsetOfSchemas(
-	groupedSchemas map[string]map[string]*dbschemas_utils.ColumnInfo,
+	groupedSchemas map[string]map[string]*sql_manager.ColumnInfo,
 	mappings []*mgmtv1alpha1.JobMapping,
 ) bool {
 	tableColMappings := getUniqueColMappingsMap(mappings)
@@ -804,7 +798,7 @@ func getUniqueColMappingsMap(
 }
 
 func shouldHaltOnSchemaAddition(
-	groupedSchemas map[string]map[string]*dbschemas_utils.ColumnInfo,
+	groupedSchemas map[string]map[string]*sql_manager.ColumnInfo,
 	mappings []*mgmtv1alpha1.JobMapping,
 ) bool {
 	tableColMappings := getUniqueColMappingsMap(mappings)
@@ -1054,4 +1048,12 @@ func convertStringSliceToString(slc []string) (string, error) {
 		returnStr = string(sliceBytes)
 	}
 	return returnStr, nil
+}
+
+func getMapValuesCount[K comparable, V any](m map[K][]V) int {
+	count := 0
+	for _, v := range m {
+		count += len(v)
+	}
+	return count
 }

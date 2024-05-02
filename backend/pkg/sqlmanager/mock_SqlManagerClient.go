@@ -145,6 +145,127 @@ func (_c *MockSqlManagerClient_NewSqlDb_Call) RunAndReturn(run func(context.Cont
 	return _c
 }
 
+// NewSqlDbFromConnectionConfig provides a mock function with given fields: ctx, slogger, connectionConfig, connectionTimeout
+func (_m *MockSqlManagerClient) NewSqlDbFromConnectionConfig(ctx context.Context, slogger *slog.Logger, connectionConfig *mgmtv1alpha1.ConnectionConfig, connectionTimeout *int) (*SqlConnection, error) {
+	ret := _m.Called(ctx, slogger, connectionConfig, connectionTimeout)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NewSqlDbFromConnectionConfig")
+	}
+
+	var r0 *SqlConnection
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, *slog.Logger, *mgmtv1alpha1.ConnectionConfig, *int) (*SqlConnection, error)); ok {
+		return rf(ctx, slogger, connectionConfig, connectionTimeout)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, *slog.Logger, *mgmtv1alpha1.ConnectionConfig, *int) *SqlConnection); ok {
+		r0 = rf(ctx, slogger, connectionConfig, connectionTimeout)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*SqlConnection)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, *slog.Logger, *mgmtv1alpha1.ConnectionConfig, *int) error); ok {
+		r1 = rf(ctx, slogger, connectionConfig, connectionTimeout)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockSqlManagerClient_NewSqlDbFromConnectionConfig_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NewSqlDbFromConnectionConfig'
+type MockSqlManagerClient_NewSqlDbFromConnectionConfig_Call struct {
+	*mock.Call
+}
+
+// NewSqlDbFromConnectionConfig is a helper method to define mock.On call
+//   - ctx context.Context
+//   - slogger *slog.Logger
+//   - connectionConfig *mgmtv1alpha1.ConnectionConfig
+//   - connectionTimeout *int
+func (_e *MockSqlManagerClient_Expecter) NewSqlDbFromConnectionConfig(ctx interface{}, slogger interface{}, connectionConfig interface{}, connectionTimeout interface{}) *MockSqlManagerClient_NewSqlDbFromConnectionConfig_Call {
+	return &MockSqlManagerClient_NewSqlDbFromConnectionConfig_Call{Call: _e.mock.On("NewSqlDbFromConnectionConfig", ctx, slogger, connectionConfig, connectionTimeout)}
+}
+
+func (_c *MockSqlManagerClient_NewSqlDbFromConnectionConfig_Call) Run(run func(ctx context.Context, slogger *slog.Logger, connectionConfig *mgmtv1alpha1.ConnectionConfig, connectionTimeout *int)) *MockSqlManagerClient_NewSqlDbFromConnectionConfig_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(*slog.Logger), args[2].(*mgmtv1alpha1.ConnectionConfig), args[3].(*int))
+	})
+	return _c
+}
+
+func (_c *MockSqlManagerClient_NewSqlDbFromConnectionConfig_Call) Return(_a0 *SqlConnection, _a1 error) *MockSqlManagerClient_NewSqlDbFromConnectionConfig_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockSqlManagerClient_NewSqlDbFromConnectionConfig_Call) RunAndReturn(run func(context.Context, *slog.Logger, *mgmtv1alpha1.ConnectionConfig, *int) (*SqlConnection, error)) *MockSqlManagerClient_NewSqlDbFromConnectionConfig_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// NewSqlDbFromUrl provides a mock function with given fields: ctx, driver, connectionUrl
+func (_m *MockSqlManagerClient) NewSqlDbFromUrl(ctx context.Context, driver string, connectionUrl string) (*SqlConnection, error) {
+	ret := _m.Called(ctx, driver, connectionUrl)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NewSqlDbFromUrl")
+	}
+
+	var r0 *SqlConnection
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*SqlConnection, error)); ok {
+		return rf(ctx, driver, connectionUrl)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) *SqlConnection); ok {
+		r0 = rf(ctx, driver, connectionUrl)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*SqlConnection)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, driver, connectionUrl)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockSqlManagerClient_NewSqlDbFromUrl_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NewSqlDbFromUrl'
+type MockSqlManagerClient_NewSqlDbFromUrl_Call struct {
+	*mock.Call
+}
+
+// NewSqlDbFromUrl is a helper method to define mock.On call
+//   - ctx context.Context
+//   - driver string
+//   - connectionUrl string
+func (_e *MockSqlManagerClient_Expecter) NewSqlDbFromUrl(ctx interface{}, driver interface{}, connectionUrl interface{}) *MockSqlManagerClient_NewSqlDbFromUrl_Call {
+	return &MockSqlManagerClient_NewSqlDbFromUrl_Call{Call: _e.mock.On("NewSqlDbFromUrl", ctx, driver, connectionUrl)}
+}
+
+func (_c *MockSqlManagerClient_NewSqlDbFromUrl_Call) Run(run func(ctx context.Context, driver string, connectionUrl string)) *MockSqlManagerClient_NewSqlDbFromUrl_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *MockSqlManagerClient_NewSqlDbFromUrl_Call) Return(_a0 *SqlConnection, _a1 error) *MockSqlManagerClient_NewSqlDbFromUrl_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockSqlManagerClient_NewSqlDbFromUrl_Call) RunAndReturn(run func(context.Context, string, string) (*SqlConnection, error)) *MockSqlManagerClient_NewSqlDbFromUrl_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewMockSqlManagerClient creates a new instance of MockSqlManagerClient. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockSqlManagerClient(t interface {
