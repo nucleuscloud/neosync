@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Control, SetFieldValue, useWatch } from 'react-hook-form';
 
-export interface FormPersistConfig {
+interface FormPersistConfig {
   storage?: Storage;
   control: Control<any>;
   setValue: SetFieldValue<any>;
@@ -14,7 +14,7 @@ export interface FormPersistConfig {
   timeout?: number;
 }
 
-export interface UseFormPersistResult {
+interface UseFormPersistResult {
   clear(): void;
 }
 
