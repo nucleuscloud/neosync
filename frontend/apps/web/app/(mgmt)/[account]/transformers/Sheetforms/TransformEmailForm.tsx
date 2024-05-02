@@ -35,7 +35,7 @@ export default function TransformEmailForm(props: Props): ReactElement {
   const { existingConfig, onSubmit, isReadonly } = props;
 
   const emailType =
-    (existingConfig?.toJson() as any)?.emailType ??
+    (existingConfig?.toJson() as any)?.emailType ?? // eslint-disable-line @typescript-eslint/no-explicit-any
     'GENERATE_EMAIL_TYPE_UUID_V4';
   const form = useForm({
     mode: 'onChange',
@@ -147,7 +147,7 @@ export default function TransformEmailForm(props: Props): ReactElement {
                     const emailConfig = new TransformEmail({
                       emailType: parseInt(value, 10),
                     }).toJson();
-                    field.onChange((emailConfig as any).emailType);
+                    field.onChange((emailConfig as any).emailType); // eslint-disable-line @typescript-eslint/no-explicit-any
                   }}
                   value={generateEmailTypeStringToEnum(field.value).toString()}
                 >
