@@ -31,7 +31,10 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import DestinationOptionsForm from '../../../../../../components/jobs/Form/DestinationOptionsForm';
-import { getConnectionType } from '../../../connections/util';
+import {
+  DESTINATION_ONLY_CONNECTION_TYPES,
+  getConnectionType,
+} from '../../../connections/util';
 import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
 import { CONNECT_FORM_SCHEMA, ConnectFormValues } from '../schema';
 import ConnectionSelectContent from './ConnectionSelectContent';
@@ -163,10 +166,21 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                   )
                               );
                               connTypes.forEach((connType) => {
-                                if (connType) {
+                                if (
+                                  connType &&
+                                  !DESTINATION_ONLY_CONNECTION_TYPES.has(
+                                    connType
+                                  )
+                                ) {
                                   urlParams.append('connectionType', connType);
                                 }
                               });
+                              if (
+                                urlParams.getAll('connectionType').length === 0
+                              ) {
+                                urlParams.append('connectionType', 'postgres');
+                                urlParams.append('connectionType', 'mysql');
+                              }
 
                               router.push(
                                 `/${account?.name}/new/connection?${urlParams.toString()}`
@@ -264,6 +278,23 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                           urlParams.append(
                                             'connectionType',
                                             connType
+                                          );
+                                        }
+                                        if (
+                                          urlParams.getAll('connectionType')
+                                            .length === 0
+                                        ) {
+                                          urlParams.append(
+                                            'connectionType',
+                                            'postgres'
+                                          );
+                                          urlParams.append(
+                                            'connectionType',
+                                            'mysql'
+                                          );
+                                          urlParams.append(
+                                            'connectionType',
+                                            'aws-s3'
                                           );
                                         }
 

@@ -146,6 +146,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               const urlParams = new URLSearchParams({
                                 returnTo: `/${account?.name}/new/job/generate/single/connect?sessionId=${sessionPrefix}&from=new-connection`,
                               });
+                              urlParams.append('connectionType', 'postgres');
+                              urlParams.append('connectionType', 'mysql');
                               router.push(
                                 `/${account?.name}/new/connection?${urlParams.toString()}`
                               );
