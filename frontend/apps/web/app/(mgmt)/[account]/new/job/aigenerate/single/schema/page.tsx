@@ -1,6 +1,5 @@
 'use client';
 
-import useFormPersist from '@/app/(mgmt)/useFormPersist';
 import ButtonText from '@/components/ButtonText';
 import { Action } from '@/components/DualListBox/DualListBox';
 import Spinner from '@/components/Spinner';
@@ -59,6 +58,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import JobsProgressSteps, {
   getJobProgressSteps,
@@ -142,8 +142,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   });
 
   useFormPersist(formKey, {
-    // watch: form.watch,
-    control: form.control,
+    watch: form.watch,
     setValue: form.setValue,
     storage: isBrowser() ? window.sessionStorage : undefined,
   });
