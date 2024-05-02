@@ -375,7 +375,13 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                   appended to the end of this prompt automatically.
                 </FormDescription>
                 <FormControl>
-                  <Textarea {...field} />
+                  <Textarea
+                    {...field}
+                    autoComplete="off"
+                    autoCapitalize="off"
+                    autoCorrect="off"
+                    spellCheck={false}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

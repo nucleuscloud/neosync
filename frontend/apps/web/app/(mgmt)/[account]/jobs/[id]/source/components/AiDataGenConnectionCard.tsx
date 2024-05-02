@@ -82,8 +82,11 @@ export default function AiDataGenConnectionCard({
     isLoading: isJobLoading,
   } = useGetJob(account?.id ?? '', jobId);
 
-  const { isLoading: isConnectionsLoading, data: connectionsData } =
-    useGetConnections(account?.id ?? '');
+  const {
+    isLoading: isConnectionsLoading,
+    isValidating: isConnectionsValidating,
+    data: connectionsData,
+  } = useGetConnections(account?.id ?? '');
   const connections = connectionsData?.connections ?? [];
 
   const form = useForm<SingleTableEditAiSourceFormValues>({
@@ -92,7 +95,7 @@ export default function AiDataGenConnectionCard({
     context: { accountId: account?.id },
   });
 
-  const fkSourceConnectionId = form.getValues('source.fkSourceConnectionId');
+  const fkSourceConnectionId = form.watch('source.fkSourceConnectionId');
 
   const {
     data: connectionSchemaDataMap,
@@ -127,6 +130,11 @@ export default function AiDataGenConnectionCard({
 
   const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set());
 
+  const connectionsMap = useMemo(
+    () => new Map(connections.map((c) => [c.id, c])),
+    [isConnectionsValidating]
+  );
+
   useEffect(() => {
     if (
       isJobLoading ||
@@ -140,6 +148,30 @@ export default function AiDataGenConnectionCard({
       'add'
     );
   }, [isJobLoading]);
+
+  const [formSchema, formTable, formSourceId] = form.watch([
+    'schema.schema',
+    'schema.table',
+    'source.sourceId',
+  ]);
+
+  const [tableData, columns] = useMemo(() => {
+    const tdata: AiSchemaTableRecord[] = [];
+    const cols: ColumnDef<SampleRecord>[] = [];
+    if (formSchema && formTable && connectionSchemaDataMap?.schemaMap) {
+      const tableSchema =
+        connectionSchemaDataMap.schemaMap[`${formSchema}.${formTable}`];
+      if (tableSchema) {
+        tdata.push(...tableSchema);
+        cols.push(
+          ...getAiSampleTableColumns(tableSchema.map((dbcol) => dbcol.column))
+        );
+      }
+    }
+    return [tdata, cols];
+  }, [formSchema, formTable, isSchemaMapValidating]);
+
+  const sourceConn = connectionsMap.get(formSourceId);
 
   if (isJobLoading || isSchemaDataMapLoading || isConnectionsLoading) {
     return <SchemaPageSkeleton />;
@@ -238,28 +270,6 @@ export default function AiDataGenConnectionCard({
       });
     }
   }
-
-  const formVals = form.watch();
-  let tableData: AiSchemaTableRecord[] = [];
-  let columns: ColumnDef<SampleRecord>[] = [];
-  if (
-    formVals.schema.schema &&
-    formVals.schema.table &&
-    connectionSchemaDataMap?.schemaMap
-  ) {
-    const tableSchema =
-      connectionSchemaDataMap.schemaMap[
-        `${formVals.schema.schema}.${formVals.schema.table}`
-      ];
-    if (tableSchema) {
-      tableData.push(...tableSchema);
-      columns = getAiSampleTableColumns(
-        tableSchema.map((dbcol) => dbcol.column)
-      );
-    }
-  }
-  const connectionsMap = new Map(connections.map((c) => [c.id, c]));
-  const sourceConn = connectionsMap.get(formVals.source.sourceId);
 
   return (
     <Form {...form}>
