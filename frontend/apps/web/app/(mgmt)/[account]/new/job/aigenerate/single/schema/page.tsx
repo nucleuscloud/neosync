@@ -141,11 +141,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     defaultValues: schemaFormData,
   });
 
-  // useFormPersist(formKey, {
-  //   watch: form.watch,
-  //   setValue: form.setValue,
-  //   storage: isBrowser() ? window.sessionStorage : undefined,
-  // });
   const [isClient, setIsClient] = useState(false);
   useEffect(() => {
     setIsClient(true);
