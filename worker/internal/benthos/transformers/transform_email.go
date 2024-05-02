@@ -21,7 +21,7 @@ func init() {
 		Param(bloblang.NewAnyParam("excluded_domains").Default([]any{})).
 		Param(bloblang.NewInt64Param("max_length").Default(10000)).
 		Param(bloblang.NewInt64Param("seed").Optional()).
-		Param(bloblang.NewStringParam("email_type").Default(uuidV4EmailType.String()))
+		Param(bloblang.NewStringParam("email_type").Default(GenerateEmailType_UuidV4.String()))
 
 	err := bloblang.RegisterFunctionV2("transform_email", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		emailPtr, err := args.GetOptionalString("email")
@@ -128,7 +128,7 @@ type transformeEmailOptions struct {
 	PreserveDomain  bool
 	MaxLength       int64
 	ExcludedDomains []string
-	EmailType       generateEmailType
+	EmailType       GenerateEmailType
 }
 
 // Anonymizes an existing email address. This function returns a string pointer to handle nullable email columns where an input email value may not exist.
@@ -144,7 +144,7 @@ func transformEmail(
 		opts.MaxLength = math.MaxInt64
 	}
 	emailType := opts.EmailType
-	if emailType == anyEmailType {
+	if emailType == GenerateEmailType_Any {
 		emailType = getRandomEmailType(randomizer)
 	}
 
@@ -198,7 +198,7 @@ func transformEmail(
 	}
 
 	var newname string
-	if emailType == uuidV4EmailType {
+	if emailType == GenerateEmailType_UuidV4 {
 		newuuid := strings.ReplaceAll(uuid.NewString(), "-", "")
 		trimmeduuid := transformer_utils.TrimStringIfExceeds(newuuid, maxNameLength)
 		if trimmeduuid == "" {

@@ -3851,6 +3851,29 @@
       "hasServices": true,
       "enums": [
         {
+          "name": "GenerateEmailType",
+          "longName": "GenerateEmailType",
+          "fullName": "mgmt.v1alpha1.GenerateEmailType",
+          "description": "",
+          "values": [
+            {
+              "name": "GENERATE_EMAIL_TYPE_UNSPECIFIED",
+              "number": "0",
+              "description": "Unspecified defaults to uuid v4"
+            },
+            {
+              "name": "GENERATE_EMAIL_TYPE_UUID_V4",
+              "number": "1",
+              "description": "Generates a random uuid v4 (without hyphens) on the left side of the @. This has all the uniqueness guarantees of the standard uuid v4, along with randomized domains."
+            },
+            {
+              "name": "GENERATE_EMAIL_TYPE_FULLNAME",
+              "number": "2",
+              "description": "Generates a full name (firstnamelastname) on the left side of the @. This has high cardinality but is not guaranteed to be unique."
+            }
+          ]
+        },
+        {
           "name": "SupportedJobType",
           "longName": "SupportedJobType",
           "fullName": "mgmt.v1alpha1.SupportedJobType",
@@ -4428,10 +4451,23 @@
           "fullName": "mgmt.v1alpha1.GenerateEmail",
           "description": "",
           "hasExtensions": false,
-          "hasFields": false,
-          "hasOneofs": false,
+          "hasFields": true,
+          "hasOneofs": true,
           "extensions": [],
-          "fields": []
+          "fields": [
+            {
+              "name": "email_type",
+              "description": "Optionally specify the type of email to generate. The types specified determine the contents on the left side of the @.",
+              "label": "optional",
+              "type": "GenerateEmailType",
+              "longType": "GenerateEmailType",
+              "fullType": "mgmt.v1alpha1.GenerateEmailType",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_email_type",
+              "defaultValue": ""
+            }
+          ]
         },
         {
           "name": "GenerateFirstName",
@@ -5240,12 +5276,12 @@
           "description": "",
           "hasExtensions": false,
           "hasFields": true,
-          "hasOneofs": false,
+          "hasOneofs": true,
           "extensions": [],
           "fields": [
             {
               "name": "preserve_domain",
-              "description": "",
+              "description": "Whether or not to preserve the original domain, barring what has been specified in the excluded_domains property.",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -5257,7 +5293,7 @@
             },
             {
               "name": "preserve_length",
-              "description": "",
+              "description": "Whether or not to preserve the original length of the email. This causes the transformed email to retain the original length.",
               "label": "",
               "type": "bool",
               "longType": "bool",
@@ -5269,7 +5305,7 @@
             },
             {
               "name": "excluded_domains",
-              "description": "",
+              "description": "A lsit of email domains that should be excluded. This changes based on the preserve_domain flag. See the docs for more details.",
               "label": "repeated",
               "type": "string",
               "longType": "string",
@@ -5277,6 +5313,18 @@
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "email_type",
+              "description": "Optionally specify the type of email to generate. The types specified determine the contents on the left side of the @.",
+              "label": "optional",
+              "type": "GenerateEmailType",
+              "longType": "GenerateEmailType",
+              "fullType": "mgmt.v1alpha1.GenerateEmailType",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_email_type",
               "defaultValue": ""
             }
           ]

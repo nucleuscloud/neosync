@@ -38,7 +38,7 @@ func Test_TransformEmail_Empty_Options(t *testing.T) {
 
 func Test_TransformEmail_Seed_1711240985047220000_Specific_Options(t *testing.T) {
 	randomizer := rand.New(rand.NewSource(1711240985047220000))
-	res, err := transformEmail(randomizer, email, transformeEmailOptions{MaxLength: 40, EmailType: fullNameEmailType, ExcludedDomains: excludedDomains, PreserveLength: true, PreserveDomain: true})
+	res, err := transformEmail(randomizer, email, transformeEmailOptions{MaxLength: 40, EmailType: GenerateEmailType_FullName, ExcludedDomains: excludedDomains, PreserveLength: true, PreserveDomain: true})
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	require.NotEmpty(t, res)
@@ -69,7 +69,7 @@ func Test_TransformEmail_Random_Seed(t *testing.T) {
 func Test_TransformEmail_Any_EmailType(t *testing.T) {
 	randomizer := rand.New(rand.NewSource(time.Now().UnixMicro()))
 	res, err := transformEmail(randomizer, email, transformeEmailOptions{
-		EmailType: anyEmailType,
+		EmailType: GenerateEmailType_Any,
 	})
 	require.NoError(t, err)
 	require.NotNil(t, res)
@@ -82,7 +82,7 @@ func Test_TransformEmail_Any_EmailType(t *testing.T) {
 func Test_TransformEmail_Uuid_EmailType(t *testing.T) {
 	randomizer := rand.New(rand.NewSource(time.Now().UnixMicro()))
 	res, err := transformEmail(randomizer, email, transformeEmailOptions{
-		EmailType: uuidV4EmailType,
+		EmailType: GenerateEmailType_UuidV4,
 	})
 	require.NoError(t, err)
 	require.NotNil(t, res)
@@ -95,7 +95,7 @@ func Test_TransformEmail_Uuid_EmailType(t *testing.T) {
 func Test_TransformEmail_Fullname_EmailType(t *testing.T) {
 	randomizer := rand.New(rand.NewSource(time.Now().UnixMicro()))
 	res, err := transformEmail(randomizer, email, transformeEmailOptions{
-		EmailType: fullNameEmailType,
+		EmailType: GenerateEmailType_FullName,
 	})
 	require.NoError(t, err)
 	require.NotNil(t, res)
