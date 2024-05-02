@@ -57,7 +57,7 @@ import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ColumnDef } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
-import { UseFormReturn, useForm } from 'react-hook-form';
+import { FieldValues, UseFormReturn, useForm } from 'react-hook-form';
 // import useFormPersist from 'react-hook-form-persist';
 import useFormPersist from '@/app/(mgmt)/useFormPersist';
 import { useSessionStorage } from 'usehooks-ts';
@@ -453,12 +453,15 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   );
 }
 
-interface FormPersistProps {
-  form: UseFormReturn<any>;
+// eslint-disable-
+interface FormPersistProps<T extends FieldValues> {
+  form: UseFormReturn<T>;
   formKey: string;
 }
 
-function FormPersist(props: FormPersistProps): ReactElement {
+function FormPersist<T extends FieldValues>(
+  props: FormPersistProps<T>
+): ReactElement {
   const { form, formKey } = props;
   useFormPersist(formKey, {
     control: form.control,
