@@ -1,5 +1,6 @@
 'use client';
 
+import FormPersist from '@/app/(mgmt)/FormPersist';
 import ButtonText from '@/components/ButtonText';
 import { Action } from '@/components/DualListBox/DualListBox';
 import Spinner from '@/components/Spinner';
@@ -58,7 +59,6 @@ import { ColumnDef } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import JobsProgressSteps, {
   getJobProgressSteps,
@@ -72,7 +72,6 @@ import SampleTable from './SampleTable/SampleTable';
 import { getAiSampleTableColumns } from './SampleTable/SampleTableColumns';
 import SelectModelNames from './SelectModelNames';
 import { SampleRecord } from './types';
-const isBrowser = () => typeof window !== 'undefined';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
   const { account } = useAccount();
@@ -135,18 +134,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   );
 
   const form = useForm<SingleTableAiSchemaFormValues>({
-    mode: 'onChange',
     resolver: yupResolver<SingleTableAiSchemaFormValues>(
       SingleTableAiSchemaFormValues
     ),
     values: schemaFormData,
   });
 
-  useFormPersist(formKey, {
-    watch: form.watch,
-    setValue: form.setValue,
-    storage: isBrowser() ? window.sessionStorage : undefined,
-  });
   const [isClient, setIsClient] = useState(false);
   useEffect(() => {
     setIsClient(true);
@@ -249,7 +242,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       return;
     }
     const js = schemaFormData;
-    onSelectedTableToggle(new Set([`${js.schema}.${js.table}`]), 'add');
+    if (js.schema && js.table) {
+      onSelectedTableToggle(new Set([`${js.schema}.${js.table}`]), 'add');
+    }
   }, [isSchemaMapLoading]);
 
   async function onSampleClick(): Promise<void> {
@@ -294,22 +289,27 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   }
 
-  const formVals = form.watch();
-  let tableData: AiSchemaTableRecord[] = [];
-  let columns: ColumnDef<SampleRecord>[] = [];
-  if (formVals.schema && formVals.table && connectionSchemaDataMap?.schemaMap) {
-    const tableSchema =
-      connectionSchemaDataMap.schemaMap[`${formVals.schema}.${formVals.table}`];
-    if (tableSchema) {
-      tableData.push(...tableSchema);
-      columns = getAiSampleTableColumns(
-        tableSchema.map((dbcol) => dbcol.column)
-      );
+  const [formSchema, formTable] = form.watch(['schema', 'table']);
+
+  const [tableData, columns] = useMemo(() => {
+    const tdata: AiSchemaTableRecord[] = [];
+    const cols: ColumnDef<SampleRecord>[] = [];
+    if (formSchema && formTable && connectionSchemaDataMap?.schemaMap) {
+      const tableSchema =
+        connectionSchemaDataMap.schemaMap[`${formSchema}.${formTable}`];
+      if (tableSchema) {
+        tdata.push(...tableSchema);
+        cols.push(
+          ...getAiSampleTableColumns(tableSchema.map((dbcol) => dbcol.column))
+        );
+      }
     }
-  }
+    return [tdata, cols];
+  }, [formSchema, formTable, isSchemaMapValidating]);
 
   return (
     <div className="flex flex-col gap-5">
+      <FormPersist formKey={formKey} form={form} />
       <OverviewContainer
         Header={
           <PageHeader
@@ -375,7 +375,13 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                   appended to the end of this prompt automatically.
                 </FormDescription>
                 <FormControl>
-                  <Textarea {...field} />
+                  <Textarea
+                    {...field}
+                    autoComplete="off"
+                    autoCapitalize="off"
+                    autoCorrect="off"
+                    spellCheck={false}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
