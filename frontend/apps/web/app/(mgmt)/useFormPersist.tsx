@@ -3,10 +3,10 @@ import { Control, SetFieldValue, useWatch } from 'react-hook-form';
 
 interface FormPersistConfig {
   storage?: Storage;
-  control: Control<any>;
-  setValue: SetFieldValue<any>;
+  control: Control<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+  setValue: SetFieldValue<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
   exclude?: string[];
-  onDataRestored?: (data: any) => void;
+  onDataRestored?: (data: any) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
   validate?: boolean;
   dirty?: boolean;
   touch?: boolean;
@@ -46,7 +46,7 @@ export default function useFormPersist(
 
     if (str) {
       const { _timestamp = null, ...values } = JSON.parse(str);
-      const dataRestored: { [key: string]: any } = {};
+      const dataRestored: { [key: string]: any } = {}; // eslint-disable-line @typescript-eslint/no-explicit-any
       const currTimestamp = Date.now();
 
       if (timeout && currTimestamp - _timestamp > timeout) {
