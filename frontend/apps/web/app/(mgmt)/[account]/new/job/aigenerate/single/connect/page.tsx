@@ -142,10 +142,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               return;
                             }
                             if (value === NEW_CONNECTION_VALUE) {
+                              const urlParams = new URLSearchParams({
+                                returnTo: `/${account?.name}/new/job/aigenerate/single/connect?sessionId=${sessionPrefix}&from=new-connection`,
+                                connectionType: 'openai',
+                              });
                               router.push(
-                                `/${account?.name}/new/connection?returnTo=${encodeURIComponent(
-                                  `/${account?.name}/new/job/aigenerate/single/connect?sessionId=${sessionPrefix}&from=new-connection`
-                                )}&connectionType=openai`
+                                `/${account?.name}/new/connection?${urlParams.toString()}`
                               );
                               return;
                             }
@@ -222,14 +224,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               const connection = connections.find(
                                 (c) => c.id === destId
                               );
-                              if (connection) {
-                                const connType = getConnectionType(
-                                  connection?.connectionConfig ??
-                                    new ConnectionConfig()
-                                );
-                                if (connType) {
-                                  urlParams.append('connectionType', connType);
-                                }
+                              const connType = getConnectionType(
+                                connection?.connectionConfig ??
+                                  new ConnectionConfig()
+                              );
+                              if (connType) {
+                                urlParams.append('connectionType', connType);
                               }
                               router.push(
                                 `/${account?.name}/new/connection?${urlParams.toString()}`
@@ -306,14 +306,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               const connection = connections.find(
                                 (c) => c.id === fkSourceConnId
                               );
-                              if (connection) {
-                                const connType = getConnectionType(
-                                  connection?.connectionConfig ??
-                                    new ConnectionConfig()
-                                );
-                                if (connType) {
-                                  urlParams.append('connectionType', connType);
-                                }
+                              const connType = getConnectionType(
+                                connection?.connectionConfig ??
+                                  new ConnectionConfig()
+                              );
+                              if (connType) {
+                                urlParams.append('connectionType', connType);
                               }
                               router.push(
                                 `/${account?.name}/new/connection?${urlParams.toString()}`
