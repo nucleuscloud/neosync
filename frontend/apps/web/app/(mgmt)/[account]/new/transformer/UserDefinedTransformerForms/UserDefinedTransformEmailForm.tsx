@@ -8,7 +8,19 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import {
+  generateEmailTypeStringToEnum,
+  getGenerateEmailTypeString,
+} from '@/util/util';
+import { GenerateEmailType, TransformEmail } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { useFormContext } from 'react-hook-form';
 import {
@@ -103,6 +115,59 @@ export default function UserDefinedTransformEmailForm(
             <FormMessage />
           </FormItem>
         )}
+      />
+      <FormField
+        name={`config.value.emailType`}
+        render={({ field }) => {
+          console.log(
+            'value',
+            getGenerateEmailTypeString(
+              generateEmailTypeStringToEnum(field.value)
+            )
+          );
+          return (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+              <div className="space-y-0.5">
+                <FormLabel>Email Type</FormLabel>
+                <FormDescription className="w-[90%]">
+                  Configure the email type that will be used during
+                  transformation.
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Select
+                  onValueChange={(value) => {
+                    // this is so hacky
+                    const emailConfig = new TransformEmail({
+                      emailType: parseInt(value, 10),
+                    }).toJson();
+                    field.onChange((emailConfig as any).emailType);
+                  }}
+                  value={generateEmailTypeStringToEnum(field.value).toString()}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[
+                      GenerateEmailType.UUID_V4,
+                      GenerateEmailType.FULLNAME,
+                    ].map((emailType) => (
+                      <SelectItem
+                        key={emailType}
+                        className="cursor-pointer"
+                        value={emailType.toString()}
+                      >
+                        {getGenerateEmailTypeString(emailType)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          );
+        }}
       />
     </div>
   );

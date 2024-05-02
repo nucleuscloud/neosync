@@ -56,6 +56,8 @@ export default function UpdateUserDefinedTransformerForm(
     context: { name: currentTransformer?.name, accountId: account?.id ?? '' },
   });
 
+  console.log('config', form.getValues('config.value'));
+
   async function onSubmit(values: UpdateUserDefinedTransformer): Promise<void> {
     if (!account) {
       return;

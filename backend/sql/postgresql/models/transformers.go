@@ -54,12 +54,15 @@ type TransformerConfigs struct {
 	GenerateJavascript         *GenerateJavascript              `json:"generateJavascript,omitempty"`
 }
 
-type GenerateEmailConfig struct{}
+type GenerateEmailConfig struct {
+	EmailType *int32 `json:"emailType,omitempty"`
+}
 
 type TransformEmailConfig struct {
 	PreserveLength  bool     `json:"preserveLength"`
 	PreserveDomain  bool     `json:"preserveDomain"`
 	ExcludedDomains []string `json:"excludedDomains"`
+	EmailType       *int32   `json:"emailType,omitempty"`
 }
 
 type GenerateBoolConfig struct{}
@@ -212,12 +215,15 @@ func (t *JobMappingTransformerModel) FromTransformerDto(tr *mgmtv1alpha1.JobMapp
 func (t *TransformerConfigs) FromTransformerConfigDto(tr *mgmtv1alpha1.TransformerConfig) error {
 	switch tr.Config.(type) {
 	case *mgmtv1alpha1.TransformerConfig_GenerateEmailConfig:
-		t.GenerateEmail = &GenerateEmailConfig{}
+		t.GenerateEmail = &GenerateEmailConfig{
+			EmailType: (*int32)(tr.GetGenerateEmailConfig().EmailType),
+		}
 	case *mgmtv1alpha1.TransformerConfig_TransformEmailConfig:
 		t.TransformEmail = &TransformEmailConfig{
 			PreserveLength:  tr.GetTransformEmailConfig().PreserveLength,
 			PreserveDomain:  tr.GetTransformEmailConfig().PreserveDomain,
 			ExcludedDomains: tr.GetTransformEmailConfig().ExcludedDomains,
+			EmailType:       (*int32)(tr.GetTransformEmailConfig().EmailType),
 		}
 	case *mgmtv1alpha1.TransformerConfig_GenerateBoolConfig:
 		t.GenerateBool = &GenerateBoolConfig{}
@@ -380,7 +386,9 @@ func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerC
 	case t.GenerateEmail != nil:
 		return &mgmtv1alpha1.TransformerConfig{
 			Config: &mgmtv1alpha1.TransformerConfig_GenerateEmailConfig{
-				GenerateEmailConfig: &mgmtv1alpha1.GenerateEmail{},
+				GenerateEmailConfig: &mgmtv1alpha1.GenerateEmail{
+					EmailType: (*mgmtv1alpha1.GenerateEmailType)(t.GenerateEmail.EmailType),
+				},
 			},
 		}
 	case t.TransformEmail != nil:
@@ -390,6 +398,7 @@ func (t *TransformerConfigs) ToTransformerConfigDto() *mgmtv1alpha1.TransformerC
 					PreserveDomain:  t.TransformEmail.PreserveDomain,
 					PreserveLength:  t.TransformEmail.PreserveLength,
 					ExcludedDomains: t.TransformEmail.ExcludedDomains,
+					EmailType:       (*mgmtv1alpha1.GenerateEmailType)(t.TransformEmail.EmailType),
 				},
 			},
 		}

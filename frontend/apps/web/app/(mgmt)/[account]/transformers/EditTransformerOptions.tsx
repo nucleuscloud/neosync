@@ -403,11 +403,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
       return (
         <TransformEmailForm
           isReadonly={isReadonly}
-          existingConfig={
-            new TransformEmail({
-              ...(valueConfig.value as PlainMessage<TransformEmail>),
-            })
-          }
+          existingConfig={TransformEmail.fromJson(valueConfig.value)}
           onSubmit={(newconfig) => {
             onSubmit(
               convertJobMappingTransformerToForm(
