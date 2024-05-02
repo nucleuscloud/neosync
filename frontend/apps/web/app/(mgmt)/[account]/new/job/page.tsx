@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/libs/utils';
-import { SymbolIcon } from '@radix-ui/react-icons';
+import { MagicWandIcon, SymbolIcon } from '@radix-ui/react-icons';
 import { nanoid } from 'nanoid';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ReactElement, useEffect, useState } from 'react';
@@ -69,10 +69,9 @@ export default function NewJob({ params }: PageProps): ReactElement {
     },
     {
       name: 'AI Data Generation',
-      description:
-        'Generate synthetic data from scratch for a chosen destination with AI.',
+      description: 'Generate synthetic data from scratch with AI.',
       href: `/${account?.name}/new/job/define?${aiDataGenParams.toString()}`,
-      icon: <AiOutlineExperiment />,
+      icon: <MagicWandIcon />,
       type: 'ai-generate-table',
       experimental: true,
     },
