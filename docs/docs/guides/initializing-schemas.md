@@ -21,7 +21,7 @@ If your migrations are any of the following you may run into issues:
 - Have hard coded database names (if you are choosing to run neosync against a separate logical database in your single instance)
 - Edit database users, global configurations or other settings that are not related to the schema/data
 
-Some of the above issues can be resolved by choosing to use a completely fresh database, or by running your migrations against a fresh database and then snapshotting that database to use as your target.
+Some of the above issues can be resolved by choosing to run your migrations against a completely fresh database.
 
 Steps to run this method are out of scope for the Neosync docs, but ideally it is as simple as running your migrations against the same database as the Neosync destination.
 
@@ -43,5 +43,3 @@ pg_dump -s -h localhost -U postgres -d my_database --schema-only > my_schema.sql
 Then edit the `my_schema.sql` file to remove anything that is tripping up Neosync, save it in a separate file, and execute it against your target database after the sync is finished.
 
 You also can use this method to fine tune which constraints you want to be honored when doing the sync, in some cases it may be faster to insert with no constraints then apply them after.
-
-
