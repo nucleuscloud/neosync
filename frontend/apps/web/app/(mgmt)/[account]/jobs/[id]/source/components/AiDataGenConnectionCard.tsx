@@ -426,7 +426,13 @@ export default function AiDataGenConnectionCard({
                 appended to the end of this prompt automatically.
               </FormDescription>
               <FormControl>
-                <Textarea {...field} />
+                <Textarea
+                  {...field}
+                  autoComplete="off"
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
