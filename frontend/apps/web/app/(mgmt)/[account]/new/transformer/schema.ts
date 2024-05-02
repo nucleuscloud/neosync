@@ -70,6 +70,7 @@ const transformEmailConfig = Yup.object().shape({
     .of(Yup.string().required())
     .optional()
     .default([]),
+  emailType: Yup.string().default('GENERATE_EMAIL_TYPE_UUID_V4'),
 });
 
 const generateCardNumberConfig = Yup.object().shape({

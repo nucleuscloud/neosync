@@ -13,6 +13,7 @@ import (
 	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
+	"github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
@@ -335,7 +336,11 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		categories := col.Transformer.Config.GetGenerateCategoricalConfig().Categories
 		return fmt.Sprintf(`generate_categorical(categories: %q)`, categories), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_EMAIL:
-		return fmt.Sprintf(`generate_email(max_length:%d)`, maxLen), nil
+		emailType := col.GetTransformer().GetConfig().GetGenerateEmailConfig().GetEmailType()
+		if emailType == mgmtv1alpha1.GenerateEmailType_GENERATE_EMAIL_TYPE_UNSPECIFIED {
+			emailType = mgmtv1alpha1.GenerateEmailType_GENERATE_EMAIL_TYPE_UUID_V4
+		}
+		return fmt.Sprintf(`generate_email(max_length:%d,email_type:%s)`, maxLen, dtoEmailTypeToBenthosEmailType(emailType)), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_EMAIL:
 		pd := col.Transformer.Config.GetTransformEmailConfig().PreserveDomain
 		pl := col.Transformer.Config.GetTransformEmailConfig().PreserveLength
@@ -345,8 +350,15 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		if err != nil {
 			return "", err
 		}
+		emailType := col.GetTransformer().GetConfig().GetTransformEmailConfig().GetEmailType()
+		if emailType == mgmtv1alpha1.GenerateEmailType_GENERATE_EMAIL_TYPE_UNSPECIFIED {
+			emailType = mgmtv1alpha1.GenerateEmailType_GENERATE_EMAIL_TYPE_UUID_V4
+		}
 
-		return fmt.Sprintf("transform_email(email:this.%q,preserve_domain:%t,preserve_length:%t,excluded_domains:%v,max_length:%d)", col.Column, pd, pl, excludedDomainsStr, maxLen), nil
+		return fmt.Sprintf(
+			"transform_email(email:this.%q,preserve_domain:%t,preserve_length:%t,excluded_domains:%v,max_length:%d,email_type:%s)",
+			col.Column, pd, pl, excludedDomainsStr, maxLen, dtoEmailTypeToBenthosEmailType(emailType),
+		), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_BOOL:
 		return "generate_bool()", nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_CARD_NUMBER:
@@ -460,5 +472,14 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 
 	default:
 		return "", fmt.Errorf("unsupported transformer")
+	}
+}
+
+func dtoEmailTypeToBenthosEmailType(dto mgmtv1alpha1.GenerateEmailType) transformers.GenerateEmailType {
+	switch dto {
+	case mgmtv1alpha1.GenerateEmailType_GENERATE_EMAIL_TYPE_FULLNAME:
+		return transformers.GenerateEmailType_FullName
+	default:
+		return transformers.GenerateEmailType_UuidV4
 	}
 }

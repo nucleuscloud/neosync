@@ -4174,6 +4174,10 @@ func (m *GenerateEmail) validate(all bool) error {
 
 	var errors []error
 
+	if m.EmailType != nil {
+		// no validation rules for EmailType
+	}
+
 	if len(errors) > 0 {
 		return GenerateEmailMultiError(errors)
 	}
@@ -4277,6 +4281,10 @@ func (m *TransformEmail) validate(all bool) error {
 	// no validation rules for PreserveDomain
 
 	// no validation rules for PreserveLength
+
+	if m.EmailType != nil {
+		// no validation rules for EmailType
+	}
 
 	if len(errors) > 0 {
 		return TransformEmailMultiError(errors)

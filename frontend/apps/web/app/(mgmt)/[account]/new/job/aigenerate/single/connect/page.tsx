@@ -247,7 +247,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               'destination.connectionId'
                             );
                             if (!destId) {
-                              console.log('setting destination connection id');
                               form.setValue('destination.connectionId', value);
                             }
                           }}

@@ -11,6 +11,8 @@ import (
 )
 
 var (
+	defaultGenerateEmailType = mgmtv1alpha1.GenerateEmailType_GENERATE_EMAIL_TYPE_UUID_V4
+
 	systemTransformers = []*mgmtv1alpha1.SystemTransformer{
 		{
 
@@ -22,7 +24,9 @@ var (
 			Source:            mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_EMAIL,
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateEmailConfig{
-					GenerateEmailConfig: &mgmtv1alpha1.GenerateEmail{},
+					GenerateEmailConfig: &mgmtv1alpha1.GenerateEmail{
+						EmailType: &defaultGenerateEmailType,
+					},
 				},
 			},
 		},
@@ -39,6 +43,7 @@ var (
 						PreserveDomain:  false,
 						PreserveLength:  false,
 						ExcludedDomains: []string{},
+						EmailType:       &defaultGenerateEmailType,
 					},
 				},
 			},

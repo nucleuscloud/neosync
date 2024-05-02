@@ -12,26 +12,26 @@ import (
 	"github.com/nucleuscloud/neosync/worker/internal/rng"
 )
 
-type generateEmailType string
+type GenerateEmailType string
 
 const (
-	uuidV4EmailType   generateEmailType = "uuidv4"
-	fullNameEmailType generateEmailType = "fullname"
-	anyEmailType      generateEmailType = "any"
+	GenerateEmailType_UuidV4   GenerateEmailType = "uuidv4"
+	GenerateEmailType_FullName GenerateEmailType = "fullname"
+	GenerateEmailType_Any      GenerateEmailType = "any"
 )
 
-func (g generateEmailType) String() string {
+func (g GenerateEmailType) String() string {
 	return string(g)
 }
 
 func isValidEmailType(emailType string) bool {
-	return emailType == string(uuidV4EmailType) || emailType == string(fullNameEmailType)
+	return emailType == string(GenerateEmailType_UuidV4) || emailType == string(GenerateEmailType_FullName)
 }
 
 func init() {
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewInt64Param("max_length").Default(100000)).
-		Param(bloblang.NewStringParam("email_type").Default(uuidV4EmailType.String())).
+		Param(bloblang.NewStringParam("email_type").Default(GenerateEmailType_UuidV4.String())).
 		Param(bloblang.NewInt64Param("seed").Optional())
 
 	err := bloblang.RegisterFunctionV2("generate_email", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
@@ -78,11 +78,11 @@ func init() {
 	}
 }
 
-func getEmailTypeOrDefault(input string) generateEmailType {
+func getEmailTypeOrDefault(input string) GenerateEmailType {
 	if isValidEmailType(input) {
-		return generateEmailType(input)
+		return GenerateEmailType(input)
 	}
-	return uuidV4EmailType
+	return GenerateEmailType_UuidV4
 }
 
 func getRandomEmailDomain(randomizer rng.Rand, maxLength int64, excludedDomains []string) (string, error) {
@@ -98,22 +98,22 @@ func getRandomEmailDomain(randomizer rng.Rand, maxLength int64, excludedDomains 
 }
 
 /* Generates an email in the format <username@domain.tld> such as jdoe@gmail.com */
-func generateRandomEmail(randomizer rng.Rand, maxLength int64, emailType generateEmailType, excludedDomains []string) (string, error) {
-	if emailType == anyEmailType {
+func generateRandomEmail(randomizer rng.Rand, maxLength int64, emailType GenerateEmailType, excludedDomains []string) (string, error) {
+	if emailType == GenerateEmailType_Any {
 		emailType = getRandomEmailType(randomizer)
 	}
-	if emailType == uuidV4EmailType {
+	if emailType == GenerateEmailType_UuidV4 {
 		return generateUuidEmail(randomizer, maxLength, excludedDomains)
 	}
 	return generateFullnameEmail(randomizer, maxLength, excludedDomains)
 }
 
-func getRandomEmailType(randomizer rng.Rand) generateEmailType {
+func getRandomEmailType(randomizer rng.Rand) GenerateEmailType {
 	randInt := randomizer.Intn(2)
 	if randInt == 0 {
-		return uuidV4EmailType
+		return GenerateEmailType_UuidV4
 	}
-	return fullNameEmailType
+	return GenerateEmailType_FullName
 }
 
 func generateFullnameEmail(randomizer rng.Rand, maxLength int64, excludedDomains []string) (string, error) {

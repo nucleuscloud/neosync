@@ -214,12 +214,29 @@ message TransformerConfig {
   }
 }
 
-message GenerateEmail {}
+enum GenerateEmailType {
+  // Unspecified defaults to uuid v4
+  GENERATE_EMAIL_TYPE_UNSPECIFIED = 0;
+  // Generates a random uuid v4 (without hyphens) on the left side of the @. This has all the uniqueness guarantees of the standard uuid v4, along with randomized domains.
+  GENERATE_EMAIL_TYPE_UUID_V4 = 1;
+  // Generates a full name (firstnamelastname) on the left side of the @. This has high cardinality but is not guaranteed to be unique.
+  GENERATE_EMAIL_TYPE_FULLNAME = 2;
+}
+
+message GenerateEmail {
+  // Optionally specify the type of email to generate. The types specified determine the contents on the left side of the @.
+  optional GenerateEmailType email_type = 1;
+}
 
 message TransformEmail {
+  // Whether or not to preserve the original domain, barring what has been specified in the excluded_domains property.
   bool preserve_domain = 1;
+  // Whether or not to preserve the original length of the email. This causes the transformed email to retain the original length.
   bool preserve_length = 2;
+  // A lsit of email domains that should be excluded. This changes based on the preserve_domain flag. See the docs for more details.
   repeated string excluded_domains = 3;
+  // Optionally specify the type of email to generate. The types specified determine the contents on the left side of the @.
+  optional GenerateEmailType email_type = 4;
 }
 
 message GenerateBool {}
