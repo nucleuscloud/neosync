@@ -223,6 +223,16 @@ const sidebars: SidebarsConfig = {
       label: 'Using Neosync with any LLM',
     },
     {
+      type: 'doc',
+      id: 'guides/initializing-your-schema',
+      label: 'Initializing your Schema',
+    },
+    {
+      type: 'doc',
+      id: 'guides/troubleshooting',
+      label: 'Troubleshooting',
+    },
+    {
       type: 'html',
       value: '<div>Connections</div>',
       className: 'sidebarcategory',
