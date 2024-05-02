@@ -246,8 +246,8 @@ export type SingleTableConnectFormValues = Yup.InferType<
 >;
 
 export const SingleTableAiConnectFormValues = Yup.object({
-  sourceId: Yup.string().required('Connection is required'),
-  fkSourceConnectionId: Yup.string().required('Connection is required'),
+  sourceId: Yup.string().required('Connection is required').uuid(),
+  fkSourceConnectionId: Yup.string().required('Connection is required').uuid(),
   destination: DESTINATION_FORM_SCHEMA,
 });
 
@@ -274,8 +274,10 @@ export type SingleTableAiSchemaFormValues = Yup.InferType<
 
 export const SingleTableEditAiSourceFormValues = Yup.object({
   source: Yup.object({
-    sourceId: Yup.string().required('Connection is required'),
-    fkSourceConnectionId: Yup.string().required('Connection is required'),
+    sourceId: Yup.string().required('Connection is required').uuid(),
+    fkSourceConnectionId: Yup.string()
+      .required('Connection is required')
+      .uuid(),
   }).required(),
 
   schema: Yup.object({
