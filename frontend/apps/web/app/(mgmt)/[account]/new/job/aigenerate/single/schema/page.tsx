@@ -57,9 +57,9 @@ import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ColumnDef } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
-import { FieldValues, UseFormReturn, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 // import useFormPersist from 'react-hook-form-persist';
-import useFormPersist from '@/app/(mgmt)/useFormPersist';
+import FormPersist from '@/app/(mgmt)/FormPersist';
 import { useSessionStorage } from 'usehooks-ts';
 import JobsProgressSteps, {
   getJobProgressSteps,
@@ -73,7 +73,6 @@ import SampleTable from './SampleTable/SampleTable';
 import { getAiSampleTableColumns } from './SampleTable/SampleTableColumns';
 import SelectModelNames from './SelectModelNames';
 import { SampleRecord } from './types';
-const isBrowser = () => typeof window !== 'undefined';
 
 export default function Page({ searchParams }: PageProps): ReactElement {
   const { account } = useAccount();
@@ -451,24 +450,6 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       </Form>
     </div>
   );
-}
-
-// eslint-disable-
-interface FormPersistProps<T extends FieldValues> {
-  form: UseFormReturn<T>;
-  formKey: string;
-}
-
-function FormPersist<T extends FieldValues>(
-  props: FormPersistProps<T>
-): ReactElement {
-  const { form, formKey } = props;
-  useFormPersist(formKey, {
-    control: form.control,
-    setValue: form.setValue,
-    storage: isBrowser() ? window.sessionStorage : undefined,
-  });
-  return <></>;
 }
 
 async function sample(
