@@ -42,6 +42,16 @@ func (m *MysqlManager) GetDatabaseSchema(ctx context.Context) ([]*DatabaseSchema
 	return result, nil
 }
 
+// returns: {public.users: { id: struct{}{}, created_at: struct{}{}}}
+func (m *MysqlManager) GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*ColumnInfo, error) {
+	dbSchemas, err := m.GetDatabaseSchema(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result := getUniqueSchemaColMappings(dbSchemas)
+	return result, nil
+}
+
 func (m *MysqlManager) GetForeignKeyConstraints(ctx context.Context, schemas []string) ([]*ForeignKeyConstraintsRow, error) {
 	holder := make([][]*mysql_queries.GetForeignKeyConstraintsRow, len(schemas))
 	errgrp, errctx := errgroup.WithContext(ctx)
@@ -80,10 +90,6 @@ func (m *MysqlManager) GetForeignKeyConstraints(ctx context.Context, schemas []s
 		})
 	}
 	return result, nil
-}
-
-func convertNullableTextToBool(isNullableStr string) bool {
-	return isNullableStr != "NO"
 }
 
 // Key is schema.table value is list of tables that key depends on

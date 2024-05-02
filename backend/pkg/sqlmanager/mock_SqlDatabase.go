@@ -560,6 +560,64 @@ func (_c *MockSqlDatabase_GetRolePermissionsMap_Call) RunAndReturn(run func(cont
 	return _c
 }
 
+// GetSchemaColumnMap provides a mock function with given fields: ctx
+func (_m *MockSqlDatabase) GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*ColumnInfo, error) {
+	ret := _m.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSchemaColumnMap")
+	}
+
+	var r0 map[string]map[string]*ColumnInfo
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) (map[string]map[string]*ColumnInfo, error)); ok {
+		return rf(ctx)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context) map[string]map[string]*ColumnInfo); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]map[string]*ColumnInfo)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockSqlDatabase_GetSchemaColumnMap_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSchemaColumnMap'
+type MockSqlDatabase_GetSchemaColumnMap_Call struct {
+	*mock.Call
+}
+
+// GetSchemaColumnMap is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *MockSqlDatabase_Expecter) GetSchemaColumnMap(ctx interface{}) *MockSqlDatabase_GetSchemaColumnMap_Call {
+	return &MockSqlDatabase_GetSchemaColumnMap_Call{Call: _e.mock.On("GetSchemaColumnMap", ctx)}
+}
+
+func (_c *MockSqlDatabase_GetSchemaColumnMap_Call) Run(run func(ctx context.Context)) *MockSqlDatabase_GetSchemaColumnMap_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetSchemaColumnMap_Call) Return(_a0 map[string]map[string]*ColumnInfo, _a1 error) *MockSqlDatabase_GetSchemaColumnMap_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetSchemaColumnMap_Call) RunAndReturn(run func(context.Context) (map[string]map[string]*ColumnInfo, error)) *MockSqlDatabase_GetSchemaColumnMap_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetUniqueConstraintsMap provides a mock function with given fields: ctx, schemas
 func (_m *MockSqlDatabase) GetUniqueConstraintsMap(ctx context.Context, schemas []string) (map[string][][]string, error) {
 	ret := _m.Called(ctx, schemas)

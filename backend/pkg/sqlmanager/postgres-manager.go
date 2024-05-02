@@ -42,6 +42,16 @@ func (p *PostgresManager) GetDatabaseSchema(ctx context.Context) ([]*DatabaseSch
 	return result, nil
 }
 
+// returns: {public.users: { id: struct{}{}, created_at: struct{}{}}}
+func (p *PostgresManager) GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*ColumnInfo, error) {
+	dbSchemas, err := p.GetDatabaseSchema(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result := getUniqueSchemaColMappings(dbSchemas)
+	return result, nil
+}
+
 func (p *PostgresManager) GetForeignKeyConstraints(ctx context.Context, schemas []string) ([]*ForeignKeyConstraintsRow, error) {
 	if len(schemas) == 0 {
 		return []*ForeignKeyConstraintsRow{}, nil

@@ -9,8 +9,6 @@ import (
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
-	dbschemas_mysql "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/mysql"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -117,7 +115,7 @@ func Test_InitStatementBuilder_Pg_Generate(t *testing.T) {
 		},
 	}), nil)
 	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
-	mockSqlDb.On("GetForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{}, nil)
+	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sql_manager.ForeignConstraint{}, nil)
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, []string{"TRUNCATE \"public\".\"users\" CASCADE;"}, &sql_manager.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("Close").Return(nil)
 
@@ -220,7 +218,7 @@ func Test_InitStatementBuilder_Pg_Generate_NoInitStatement(t *testing.T) {
 		},
 	}), nil)
 	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
-	mockSqlDb.On("GetForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{}, nil)
+	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sql_manager.ForeignConstraint{}, nil)
 	mockSqlDb.On("Close").Return(nil)
 
 	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
@@ -350,7 +348,7 @@ func Test_InitStatementBuilder_Pg_TruncateCascade(t *testing.T) {
 		},
 	}), nil)
 	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
-	mockSqlDb.On("GetForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{}, nil)
+	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sql_manager.ForeignConstraint{}, nil)
 	stmts := []string{"TRUNCATE \"public\".\"users\" CASCADE;", "TRUNCATE \"public\".\"accounts\" CASCADE;"}
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, mock.MatchedBy(func(query []string) bool { return compareSlices(query, stmts) }), &sql_manager.BatchExecOpts{}).Return(nil)
 	mockSqlDb.On("Close").Return(nil)
@@ -482,17 +480,12 @@ func Test_InitStatementBuilder_Pg_Truncate(t *testing.T) {
 		},
 	}), nil)
 	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
-	mockSqlDb.On("GetForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
-		{
-			ConstraintName:    "fk_user_account_id",
-			SchemaName:        "public",
-			TableName:         "users",
-			ColumnName:        "account_id",
-			ForeignSchemaName: "public",
-			ForeignTableName:  "accounts",
-			ForeignColumnName: "id",
-			IsNullable:        "false",
-		},
+	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sql_manager.ForeignConstraint{
+		"public.users": {{
+			Column:     "account_id",
+			IsNullable: false,
+			ForeignKey: &sql_manager.ForeignKey{Table: "public.accounts", Column: "id"},
+		}},
 	}, nil)
 	mockSqlDb.On("Exec", mock.Anything, "TRUNCATE TABLE \"public\".\"accounts\", \"public\".\"users\";").Return(nil)
 	mockSqlDb.On("Close").Return(nil)
@@ -625,17 +618,12 @@ func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 	}), nil)
 
 	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
-	mockSqlDb.On("GetForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
-		{
-			ConstraintName:    "fk_user_account_id",
-			SchemaName:        "public",
-			TableName:         "users",
-			ColumnName:        "account_id",
-			ForeignSchemaName: "public",
-			ForeignTableName:  "accounts",
-			ForeignColumnName: "id",
-			IsNullable:        "false",
-		},
+	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sql_manager.ForeignConstraint{
+		"public.users": {{
+			Column:     "account_id",
+			IsNullable: false,
+			ForeignKey: &sql_manager.ForeignKey{Table: "public.accounts", Column: "id"},
+		}},
 	}, nil)
 	accountCreateStmt := "CREATE TABLE IF NOT EXISTS \"public\".\"accounts\" (\"id\" uuid NOT NULL DEFAULT gen_random_uuid(), CONSTRAINT accounts_pkey PRIMARY KEY (id));"
 	usersCreateStmt := "CREATE TABLE IF NOT EXISTS \"public\".\"users\" (\"id\" uuid NOT NULL DEFAULT gen_random_uuid(), \"account_id\" uuid NULL, CONSTRAINT users_pkey PRIMARY KEY (id), CONSTRAINT accounts_pkey PRIMARY KEY (id));"
@@ -754,7 +742,7 @@ func Test_InitStatementBuilder_Mysql_Generate(t *testing.T) {
 		},
 	}), nil)
 	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
-	mockSqlDb.On("GetForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{}, nil)
+	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sql_manager.ForeignConstraint{}, nil)
 	mockSqlDb.On("Close").Return(nil)
 
 	bbuilder := newInitStatementBuilder(mockSqlManager, mockJobClient, mockConnectionClient)
@@ -890,16 +878,12 @@ func Test_InitStatementBuilder_Mysql_TruncateCreate(t *testing.T) {
 	}), nil)
 
 	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
-	mockSqlDb.On("GetForeignKeyConstraints", mock.Anything, []string{"public"}).Return([]*sql_manager.ForeignKeyConstraintsRow{
-		{
-			ConstraintName:    "fk_user_account_id",
-			SchemaName:        "public",
-			TableName:         "users",
-			ColumnName:        "account_id",
-			ForeignSchemaName: "public",
-			ForeignTableName:  "accounts",
-			ForeignColumnName: "id",
-		},
+	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sql_manager.ForeignConstraint{
+		"public.users": {{
+			Column:     "account_id",
+			IsNullable: false,
+			ForeignKey: &sql_manager.ForeignKey{Table: "public.accounts", Column: "id"},
+		}},
 	}, nil)
 	accountCreateStmt := "CREATE TABLE IF NOT EXISTS \"public\".\"accounts\" (\"id\" uuid NOT NULL DEFAULT gen_random_uuid(), CONSTRAINT accounts_pkey PRIMARY KEY (id));"
 	usersCreateStmt := "CREATE TABLE IF NOT EXISTS \"public\".\"users\" (\"id\" uuid NOT NULL DEFAULT gen_random_uuid(), \"account_id\" uuid NULL, CONSTRAINT users_pkey PRIMARY KEY (id), CONSTRAINT accounts_pkey PRIMARY KEY (id));"
@@ -908,7 +892,7 @@ func Test_InitStatementBuilder_Mysql_TruncateCreate(t *testing.T) {
 
 	createStmts := []string{accountCreateStmt, usersCreateStmt}
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, mock.MatchedBy(func(query []string) bool { return compareSlices(query, createStmts) }), &sql_manager.BatchExecOpts{}).Return(nil)
-	disableFkChecks := dbschemas_mysql.DisableForeignKeyChecks
+	disableFkChecks := sql_manager.DisableForeignKeyChecks
 	truncateStmts := []string{"TRUNCATE \"public\".\"users\";", "TRUNCATE \"public\".\"accounts\";"}
 	mockSqlDb.On("BatchExec", mock.Anything, mock.Anything, mock.MatchedBy(func(query []string) bool { return compareSlices(query, truncateStmts) }), &sql_manager.BatchExecOpts{Prefix: &disableFkChecks}).Return(nil)
 	mockSqlDb.On("Close").Return(nil)
@@ -932,24 +916,24 @@ func Test_getFilteredForeignToPrimaryTableMap(t *testing.T) {
 		"public.departments": {},
 		"public.employees":   {},
 	}
-	dependencies := map[string]*dbschemas_utils.TableConstraints{
-		"public.countries": {Constraints: []*dbschemas_utils.ForeignConstraint{
-			{Column: "region_id", IsNullable: false, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.regions", Column: "region_id"}},
-		}},
-		"public.departments": {Constraints: []*dbschemas_utils.ForeignConstraint{
-			{Column: "location_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.locations", Column: "location_id"}},
-		}},
-		"public.dependents": {Constraints: []*dbschemas_utils.ForeignConstraint{
-			{Column: "dependent_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.employees", Column: "employees_id"}},
-		}},
-		"public.locations": {Constraints: []*dbschemas_utils.ForeignConstraint{
-			{Column: "country_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.countries", Column: "country_id"}},
-		}},
-		"public.employees": {Constraints: []*dbschemas_utils.ForeignConstraint{
-			{Column: "department_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.departments", Column: "department_id"}},
-			{Column: "job_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.jobs", Column: "job_id"}},
-			{Column: "manager_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.employees", Column: "employee_id"}},
-		}},
+	dependencies := map[string][]*sql_manager.ForeignConstraint{
+		"public.countries": {
+			{Column: "region_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.regions", Column: "region_id"}},
+		},
+		"public.departments": {
+			{Column: "location_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.locations", Column: "location_id"}},
+		},
+		"public.dependents": {
+			{Column: "dependent_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.employees", Column: "employees_id"}},
+		},
+		"public.locations": {
+			{Column: "country_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.countries", Column: "country_id"}},
+		},
+		"public.employees": {
+			{Column: "department_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.departments", Column: "department_id"}},
+			{Column: "job_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.jobs", Column: "job_id"}},
+			{Column: "manager_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.employees", Column: "employee_id"}},
+		},
 	}
 
 	expected := map[string][]string{
@@ -973,24 +957,24 @@ func Test_getFilteredForeignToPrimaryTableMap_filtered(t *testing.T) {
 	tables := map[string]struct{}{
 		"public.countries": {},
 	}
-	dependencies := map[string]*dbschemas_utils.TableConstraints{
-		"public.countries": {Constraints: []*dbschemas_utils.ForeignConstraint{
-			{Column: "region_id", IsNullable: false, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.regions", Column: "region_id"}},
-		}},
-		"public.departments": {Constraints: []*dbschemas_utils.ForeignConstraint{
-			{Column: "location_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.locations", Column: "location_id"}},
-		}},
-		"public.dependents": {Constraints: []*dbschemas_utils.ForeignConstraint{
-			{Column: "dependent_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.employees", Column: "employees_id"}},
-		}},
-		"public.locations": {Constraints: []*dbschemas_utils.ForeignConstraint{
-			{Column: "country_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.countries", Column: "country_id"}},
-		}},
-		"public.employees": {Constraints: []*dbschemas_utils.ForeignConstraint{
-			{Column: "department_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.departments", Column: "department_id"}},
-			{Column: "job_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.jobs", Column: "job_id"}},
-			{Column: "manager_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.employees", Column: "employee_id"}},
-		}},
+	dependencies := map[string][]*sql_manager.ForeignConstraint{
+		"public.countries": {
+			{Column: "region_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.regions", Column: "region_id"}}},
+
+		"public.departments": {
+			{Column: "location_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.locations", Column: "location_id"}},
+		},
+		"public.dependents": {
+			{Column: "dependent_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.employees", Column: "employees_id"}},
+		},
+		"public.locations": {
+			{Column: "country_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.countries", Column: "country_id"}},
+		},
+		"public.employees": {
+			{Column: "department_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.departments", Column: "department_id"}},
+			{Column: "job_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.jobs", Column: "job_id"}},
+			{Column: "manager_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.employees", Column: "employee_id"}},
+		},
 	}
 
 	expected := map[string][]string{

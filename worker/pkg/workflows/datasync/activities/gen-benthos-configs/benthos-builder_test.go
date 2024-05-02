@@ -14,7 +14,6 @@ import (
 	db_queries "github.com/nucleuscloud/neosync/backend/gen/go/db"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	pg_models "github.com/nucleuscloud/neosync/backend/sql/postgresql/models"
@@ -753,7 +752,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Transformer_Pg_Pg(t *
 			ForeignSchemaName: "public",
 			ForeignTableName:  "users",
 			ForeignColumnName: "id",
-			IsNullable:        "NO",
+			IsNullable:        false,
 		},
 	}, nil)
 	bbuilder := newBenthosBuilder(mockSqlManager, mockJobClient, mockConnectionClient, mockTransformerClient, mockJobId, mockRunId, redisConfig, false)
@@ -1053,7 +1052,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_PrimaryKey_Passthrough_Pg_Pg(t *
 			ForeignSchemaName: "public",
 			ForeignTableName:  "users",
 			ForeignColumnName: "id",
-			IsNullable:        "NO",
+			IsNullable:        false,
 		},
 	}, nil)
 
@@ -1311,7 +1310,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_CircularDependency_PrimaryKey_Tr
 			ForeignSchemaName: "public",
 			ForeignTableName:  "jobs",
 			ForeignColumnName: "id",
-			IsNullable:        "YES",
+			IsNullable:        true,
 		},
 	}, nil)
 
@@ -1622,7 +1621,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Constraints(t *
 			ForeignSchemaName: "public",
 			ForeignTableName:  "users",
 			ForeignColumnName: "id",
-			IsNullable:        "NO",
+			IsNullable:        false,
 		},
 	}, nil)
 
@@ -1819,7 +1818,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 			ForeignSchemaName: "public",
 			ForeignTableName:  "users",
 			ForeignColumnName: "id",
-			IsNullable:        "NO",
+			IsNullable:        false,
 		},
 		{
 			ConstraintName:    "fk_users_user_assoc_id_user_account_associations_id",
@@ -1829,7 +1828,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 			ForeignSchemaName: "public",
 			ForeignTableName:  "user_account_associations",
 			ForeignColumnName: "id",
-			IsNullable:        "YES",
+			IsNullable:        true,
 		},
 	}, nil)
 
@@ -2202,7 +2201,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 			ForeignSchemaName: "public",
 			ForeignTableName:  "users",
 			ForeignColumnName: "id",
-			IsNullable:        "NO",
+			IsNullable:        false,
 		},
 		{
 			ConstraintName:    "users",
@@ -2212,7 +2211,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 			ForeignSchemaName: "public",
 			ForeignTableName:  "user_account_associations",
 			ForeignColumnName: "id",
-			IsNullable:        "YES",
+			IsNullable:        true,
 		},
 	}, nil)
 
@@ -2598,7 +2597,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql(t *testing.T) 
 			ForeignSchemaName: "public",
 			ForeignTableName:  "users",
 			ForeignColumnName: "id",
-			IsNullable:        "NO",
+			IsNullable:        false,
 		},
 	}, nil)
 
@@ -2888,7 +2887,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_
 			ForeignSchemaName: "public",
 			ForeignTableName:  "users",
 			ForeignColumnName: "id",
-			IsNullable:        "NO",
+			IsNullable:        false,
 		},
 		{
 			ConstraintName:    "fk_users_user_assoc_id_user_account_associations_id",
@@ -2898,7 +2897,7 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Mysql_Mysql_With_Circular_
 			ForeignSchemaName: "public",
 			ForeignTableName:  "user_account_associations",
 			ForeignColumnName: "id",
-			IsNullable:        "YES",
+			IsNullable:        true,
 		},
 	}, nil)
 
@@ -2993,12 +2992,12 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 			},
 		}}
 
-	groupedSchemas := map[string]map[string]*dbschemas_utils.ColumnInfo{
+	groupedSchemas := map[string]map[string]*sql_manager.ColumnInfo{
 		"public.users": {
-			"id": &dbschemas_utils.ColumnInfo{
+			"id": &sql_manager.ColumnInfo{
 				OrdinalPosition:        1,
 				ColumnDefault:          "324",
-				IsNullable:             "false",
+				IsNullable:             false,
 				DataType:               "",
 				CharacterMaximumLength: nil,
 				NumericPrecision:       nil,
@@ -3020,7 +3019,7 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 		driver,
 		queryMap,
 		groupedSchemas,
-		map[string]*dbschemas_utils.TableConstraints{},
+		map[string][]*sql_manager.ForeignConstraint{},
 		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
 		mockJobId,
 		mockRunId,
@@ -3063,12 +3062,12 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 			},
 		}}
 
-	groupedSchemas := map[string]map[string]*dbschemas_utils.ColumnInfo{
+	groupedSchemas := map[string]map[string]*sql_manager.ColumnInfo{
 		"public.users": {
-			"id": &dbschemas_utils.ColumnInfo{
+			"id": &sql_manager.ColumnInfo{
 				OrdinalPosition:        1,
 				ColumnDefault:          "324",
-				IsNullable:             "false",
+				IsNullable:             false,
 				DataType:               "",
 				CharacterMaximumLength: nil,
 				NumericPrecision:       nil,
@@ -3092,7 +3091,7 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 		driver,
 		queryMap,
 		groupedSchemas,
-		map[string]*dbschemas_utils.TableConstraints{},
+		map[string][]*sql_manager.ForeignConstraint{},
 		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
 		mockJobId,
 		mockRunId,
@@ -3139,12 +3138,12 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 			},
 		}}
 
-	groupedSchemas := map[string]map[string]*dbschemas_utils.ColumnInfo{
+	groupedSchemas := map[string]map[string]*sql_manager.ColumnInfo{
 		"public.users": {
-			"id": &dbschemas_utils.ColumnInfo{
+			"id": &sql_manager.ColumnInfo{
 				OrdinalPosition:        1,
 				ColumnDefault:          "324",
-				IsNullable:             "false",
+				IsNullable:             false,
 				DataType:               "",
 				CharacterMaximumLength: nil,
 				NumericPrecision:       nil,
@@ -3167,7 +3166,7 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 		driver,
 		queryMap,
 		groupedSchemas,
-		map[string]*dbschemas_utils.TableConstraints{},
+		map[string][]*sql_manager.ForeignConstraint{},
 		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
 		mockJobId,
 		mockRunId,
@@ -3244,12 +3243,12 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
 
 	var email int32 = int32(40)
 
-	groupedSchemas := map[string]map[string]*dbschemas_utils.ColumnInfo{
+	groupedSchemas := map[string]map[string]*sql_manager.ColumnInfo{
 		"public.users": {
-			"email": &dbschemas_utils.ColumnInfo{
+			"email": &sql_manager.ColumnInfo{
 				OrdinalPosition:        2,
 				ColumnDefault:          "",
-				IsNullable:             "true",
+				IsNullable:             true,
 				DataType:               "timestamptz",
 				CharacterMaximumLength: &email,
 				NumericPrecision:       nil,
@@ -3272,7 +3271,7 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
 		driver,
 		queryMap,
 		groupedSchemas,
-		map[string]*dbschemas_utils.TableConstraints{},
+		map[string][]*sql_manager.ForeignConstraint{},
 		map[string]map[string]*mgmtv1alpha1.JobMappingTransformer{},
 		mockJobId,
 		mockRunId,
@@ -3311,14 +3310,14 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
 
 func TestAreMappingsSubsetOfSchemas(t *testing.T) {
 	ok := areMappingsSubsetOfSchemas(
-		map[string]map[string]*dbschemas_utils.ColumnInfo{
+		map[string]map[string]*sql_manager.ColumnInfo{
 			"public.users": {
-				"id":         &dbschemas_utils.ColumnInfo{},
-				"created_by": &dbschemas_utils.ColumnInfo{},
-				"updated_by": &dbschemas_utils.ColumnInfo{},
+				"id":         &sql_manager.ColumnInfo{},
+				"created_by": &sql_manager.ColumnInfo{},
+				"updated_by": &sql_manager.ColumnInfo{},
 			},
 			"neosync_api.accounts": {
-				"id": &dbschemas_utils.ColumnInfo{},
+				"id": &sql_manager.ColumnInfo{},
 			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
@@ -3329,9 +3328,9 @@ func TestAreMappingsSubsetOfSchemas(t *testing.T) {
 	require.True(t, ok, "job mappings are a subset of the present database schemas")
 
 	ok = areMappingsSubsetOfSchemas(
-		map[string]map[string]*dbschemas_utils.ColumnInfo{
+		map[string]map[string]*sql_manager.ColumnInfo{
 			"public.users": {
-				"id": &dbschemas_utils.ColumnInfo{},
+				"id": &sql_manager.ColumnInfo{},
 			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
@@ -3341,9 +3340,9 @@ func TestAreMappingsSubsetOfSchemas(t *testing.T) {
 	require.False(t, ok, "job mappings contain mapping that is not in the source schema")
 
 	ok = areMappingsSubsetOfSchemas(
-		map[string]map[string]*dbschemas_utils.ColumnInfo{
+		map[string]map[string]*sql_manager.ColumnInfo{
 			"public.users": {
-				"id": &dbschemas_utils.ColumnInfo{},
+				"id": &sql_manager.ColumnInfo{},
 			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
@@ -3356,10 +3355,10 @@ func TestAreMappingsSubsetOfSchemas(t *testing.T) {
 
 func TestShouldHaltOnSchemaAddition(t *testing.T) {
 	ok := shouldHaltOnSchemaAddition(
-		map[string]map[string]*dbschemas_utils.ColumnInfo{
+		map[string]map[string]*sql_manager.ColumnInfo{
 			"public.users": {
-				"id":         &dbschemas_utils.ColumnInfo{},
-				"created_by": &dbschemas_utils.ColumnInfo{},
+				"id":         &sql_manager.ColumnInfo{},
+				"created_by": &sql_manager.ColumnInfo{},
 			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
@@ -3370,13 +3369,13 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 	require.False(t, ok, "job mappings are valid set of database schemas")
 
 	ok = shouldHaltOnSchemaAddition(
-		map[string]map[string]*dbschemas_utils.ColumnInfo{
+		map[string]map[string]*sql_manager.ColumnInfo{
 			"public.users": {
-				"id":         &dbschemas_utils.ColumnInfo{},
-				"created_by": &dbschemas_utils.ColumnInfo{},
+				"id":         &sql_manager.ColumnInfo{},
+				"created_by": &sql_manager.ColumnInfo{},
 			},
 			"neosync_api.accounts": {
-				"id": &dbschemas_utils.ColumnInfo{},
+				"id": &sql_manager.ColumnInfo{},
 			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
@@ -3387,10 +3386,10 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 	require.True(t, ok, "job mappings are missing database schema mappings")
 
 	ok = shouldHaltOnSchemaAddition(
-		map[string]map[string]*dbschemas_utils.ColumnInfo{
+		map[string]map[string]*sql_manager.ColumnInfo{
 			"public.users": {
-				"id":         &dbschemas_utils.ColumnInfo{},
-				"created_by": &dbschemas_utils.ColumnInfo{},
+				"id":         &sql_manager.ColumnInfo{},
+				"created_by": &sql_manager.ColumnInfo{},
 			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
@@ -3400,10 +3399,10 @@ func TestShouldHaltOnSchemaAddition(t *testing.T) {
 	require.True(t, ok, "job mappings are missing table column")
 
 	ok = shouldHaltOnSchemaAddition(
-		map[string]map[string]*dbschemas_utils.ColumnInfo{
+		map[string]map[string]*sql_manager.ColumnInfo{
 			"public.users": {
-				"id":         &dbschemas_utils.ColumnInfo{},
-				"created_by": &dbschemas_utils.ColumnInfo{},
+				"id":         &sql_manager.ColumnInfo{},
+				"created_by": &sql_manager.ColumnInfo{},
 			},
 		},
 		[]*mgmtv1alpha1.JobMapping{
@@ -3419,29 +3418,29 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 
 	ctx := context.Background()
 
-	output, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
+	output, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{}, map[string]*sql_manager.ColumnInfo{}, map[string]*sql_manager.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 	require.Nil(t, err)
 	require.Empty(t, output)
 
-	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
+	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{}, map[string]*sql_manager.ColumnInfo{}, map[string]*sql_manager.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 	require.Nil(t, err)
 	require.Empty(t, output)
 
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id"},
-	}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
+	}, map[string]*sql_manager.ColumnInfo{}, map[string]*sql_manager.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 	require.Nil(t, err)
 	require.Empty(t, output)
 
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{}},
-	}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
+	}, map[string]*sql_manager.ColumnInfo{}, map[string]*sql_manager.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 	require.Nil(t, err)
 	require.Empty(t, output)
 
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH}},
-	}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
+	}, map[string]*sql_manager.ColumnInfo{}, map[string]*sql_manager.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 	require.Nil(t, err)
 	require.Empty(t, output)
 
@@ -3456,7 +3455,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 				Nullconfig: &mgmtv1alpha1.Null{},
 			},
 		}}},
-	}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
+	}, map[string]*sql_manager.ColumnInfo{}, map[string]*sql_manager.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	require.Nil(t, err)
 
@@ -3480,12 +3479,12 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 
 	var email int32 = int32(40)
 
-	groupedSchemas := map[string]*dbschemas_utils.ColumnInfo{
+	groupedSchemas := map[string]*sql_manager.ColumnInfo{
 
 		"email": {
 			OrdinalPosition:        2,
 			ColumnDefault:          "",
-			IsNullable:             "true",
+			IsNullable:             true,
 			DataType:               "timestamptz",
 			CharacterMaximumLength: &email,
 			NumericPrecision:       nil,
@@ -3494,7 +3493,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 	}
 
 	output, err = buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, groupedSchemas, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
+		{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, groupedSchemas, map[string]*sql_manager.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	require.Nil(t, err)
 	require.Equal(t, *output[0].Mutation, `root."email" = transform_email(email:this."email",preserve_domain:true,preserve_length:false,excluded_domains:[],max_length:40)`)
@@ -3523,7 +3522,7 @@ func Test_buildProcessorConfigsJavascript(t *testing.T) {
 	}
 
 	res, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "address", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
+		{Schema: "public", Table: "users", Column: "address", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*sql_manager.ColumnInfo{}, map[string]*sql_manager.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	require.NoError(t, err)
 	require.Equal(t, `
@@ -3563,7 +3562,7 @@ func Test_buildProcessorConfigsGenerateJavascript(t *testing.T) {
 	}
 
 	res, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "test", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
+		{Schema: "public", Table: "users", Column: "test", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*sql_manager.ColumnInfo{}, map[string]*sql_manager.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	require.NoError(t, err)
 	require.Equal(t, `
@@ -3609,7 +3608,7 @@ func Test_buildProcessorConfigsJavascriptMultiLineScript(t *testing.T) {
 	}
 
 	res, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
+		{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*sql_manager.ColumnInfo{}, map[string]*sql_manager.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	require.NoError(t, err)
 	require.Equal(t, `
@@ -3667,7 +3666,7 @@ func Test_buildProcessorConfigsJavascriptMultiple(t *testing.T) {
 
 	res, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}},
-		{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
+		{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}}, map[string]*sql_manager.ColumnInfo{}, map[string]*sql_manager.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	require.NoError(t, err)
 	require.Equal(t, `
@@ -3729,7 +3728,7 @@ func Test_buildProcessorConfigsTransformAndGenerateJavascript(t *testing.T) {
 
 	res, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
 		{Schema: "public", Table: "users", Column: nameCol, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}},
-		{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
+		{Schema: "public", Table: "users", Column: col2, Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT2.Source, Config: jsT2.Config}}}, map[string]*sql_manager.ColumnInfo{}, map[string]*sql_manager.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	require.NoError(t, err)
 	require.Equal(t, `
@@ -3889,7 +3888,7 @@ func Test_buildProcessorConfigsJavascriptEmpty(t *testing.T) {
 	}
 
 	resp, err := buildProcessorConfigs(ctx, mockTransformerClient, []*mgmtv1alpha1.JobMapping{
-		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*dbschemas_utils.ColumnInfo{}, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
+		{Schema: "public", Table: "users", Column: "id", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, map[string]*sql_manager.ColumnInfo{}, map[string]*sql_manager.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	require.NoError(t, err)
 	require.Empty(t, resp)
@@ -4063,7 +4062,7 @@ func Test_computeMutationFunction_null(t *testing.T) {
 			Transformer: &mgmtv1alpha1.JobMappingTransformer{
 				Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL,
 			},
-		}, &dbschemas_utils.ColumnInfo{})
+		}, &sql_manager.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, val, "null")
 }
@@ -4428,10 +4427,10 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 		},
 	}
 
-	emailColInfo := &dbschemas_utils.ColumnInfo{
+	emailColInfo := &sql_manager.ColumnInfo{
 		OrdinalPosition:        2,
 		ColumnDefault:          "",
-		IsNullable:             "true",
+		IsNullable:             true,
 		DataType:               "timestamptz",
 		CharacterMaximumLength: shared.Ptr(int32(40)),
 		NumericPrecision:       nil,
@@ -4459,7 +4458,7 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 func Test_computeMutationFunction_handles_Db_Maxlen(t *testing.T) {
 	type testcase struct {
 		jm       *mgmtv1alpha1.JobMapping
-		ci       *dbschemas_utils.ColumnInfo
+		ci       *sql_manager.ColumnInfo
 		expected string
 	}
 	jm := &mgmtv1alpha1.JobMapping{
@@ -4478,47 +4477,47 @@ func Test_computeMutationFunction_handles_Db_Maxlen(t *testing.T) {
 	testcases := []testcase{
 		{
 			jm:       jm,
-			ci:       &dbschemas_utils.ColumnInfo{},
+			ci:       &sql_manager.ColumnInfo{},
 			expected: "generate_string(min:2,max:7)",
 		},
 		{
 			jm: jm,
-			ci: &dbschemas_utils.ColumnInfo{
+			ci: &sql_manager.ColumnInfo{
 				CharacterMaximumLength: nil,
 			},
 			expected: "generate_string(min:2,max:7)",
 		},
 		{
 			jm: jm,
-			ci: &dbschemas_utils.ColumnInfo{
+			ci: &sql_manager.ColumnInfo{
 				CharacterMaximumLength: shared.Ptr(int32(-1)),
 			},
 			expected: "generate_string(min:2,max:7)",
 		},
 		{
 			jm: jm,
-			ci: &dbschemas_utils.ColumnInfo{
+			ci: &sql_manager.ColumnInfo{
 				CharacterMaximumLength: shared.Ptr(int32(0)),
 			},
 			expected: "generate_string(min:2,max:7)",
 		},
 		{
 			jm: jm,
-			ci: &dbschemas_utils.ColumnInfo{
+			ci: &sql_manager.ColumnInfo{
 				CharacterMaximumLength: shared.Ptr(int32(10)),
 			},
 			expected: "generate_string(min:2,max:7)",
 		},
 		{
 			jm: jm,
-			ci: &dbschemas_utils.ColumnInfo{
+			ci: &sql_manager.ColumnInfo{
 				CharacterMaximumLength: shared.Ptr(int32(3)),
 			},
 			expected: "generate_string(min:2,max:3)",
 		},
 		{
 			jm: jm,
-			ci: &dbschemas_utils.ColumnInfo{
+			ci: &sql_manager.ColumnInfo{
 				CharacterMaximumLength: shared.Ptr(int32(1)),
 			},
 			expected: "generate_string(min:1,max:1)",
@@ -4546,7 +4545,7 @@ func Test_buildBranchCacheConfigs_null(t *testing.T) {
 		},
 	}
 
-	constraints := map[string]*dbschemas_utils.ForeignKey{
+	constraints := map[string]*sql_manager.ForeignKey{
 		"name": {
 			Table:  "public.orders",
 			Column: "buyer_id",
@@ -4567,7 +4566,7 @@ func Test_buildBranchCacheConfigs_missing_redis(t *testing.T) {
 		},
 	}
 
-	constraints := map[string]*dbschemas_utils.ForeignKey{
+	constraints := map[string]*sql_manager.ForeignKey{
 		"user_id": {
 			Table:  "public.orders",
 			Column: "buyer_id",
@@ -4592,7 +4591,7 @@ func Test_buildBranchCacheConfigs_success(t *testing.T) {
 		},
 	}
 
-	constraints := map[string]*dbschemas_utils.ForeignKey{
+	constraints := map[string]*sql_manager.ForeignKey{
 		"user_id": {
 			Table:  "public.orders",
 			Column: "buyer_id",
@@ -4620,7 +4619,7 @@ func Test_buildBranchCacheConfigs_self_referencing(t *testing.T) {
 		},
 	}
 
-	constraints := map[string]*dbschemas_utils.ForeignKey{
+	constraints := map[string]*sql_manager.ForeignKey{
 		"user_id": {
 			Table:  "public.users",
 			Column: "other_id",
