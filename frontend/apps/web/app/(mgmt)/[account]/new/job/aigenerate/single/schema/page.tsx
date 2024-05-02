@@ -138,7 +138,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     resolver: yupResolver<SingleTableAiSchemaFormValues>(
       SingleTableAiSchemaFormValues
     ),
-    defaultValues: schemaFormData,
+    values: schemaFormData,
   });
 
   const [isClient, setIsClient] = useState(false);
