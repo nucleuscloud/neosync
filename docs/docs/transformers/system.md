@@ -128,11 +128,12 @@ Would produce the following output value:
 
 Depending on your logic, you may want to configure the output email. The transform email transformer has the following configurations:
 
-| Name             | Description                                                                     | Default | Example Input           | Example Output      |
-| ---------------- | ------------------------------------------------------------------------------- | ------- | ----------------------- | ------------------- |
-| PreserveDomain   | Carries over the input domain and top-level to the output email address.        | false   | `john@gmail.com`        | `fjf2903@gmail.com` |
-| PreserveLength   | Ensures the output email address is the same length as the input email address. | false   | `john@gmail.com`        | `hw98@gmail.edu `   |
-| Excluded Domains | Specify a list of comma separated domains to exclude from transformation logic. | empty   | `gmail.com,hotmail.com` | `hw98@gmail.edu `   |
+| Name             | Description                                                                                                                                                                                                               | Default | Example Input           | Example Output                               |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ----------------------- | -------------------------------------------- |
+| PreserveDomain   | Carries over the input domain and top-level to the output email address.                                                                                                                                                  | false   | `john@gmail.com`        | `fjf2903@gmail.com`                          |
+| PreserveLength   | Ensures the output email address is the same length as the input email address.                                                                                                                                           | false   | `john@gmail.com`        | `hw98@gmail.edu `                            |
+| Excluded Domains | Specify a list of comma separated domains to exclude from transformation logic.                                                                                                                                           | empty   | `gmail.com,hotmail.com` | `hw98@gmail.edu `                            |
+| Email Type       | Specify how the email should be transformed. Today the options are uuid v4 and fullname. Fullname is not guaranteed to be unique, although it has high cardinality. For unique transformers, it's advised to use uuid v4. | uuid v4 | `foo@gmail.com`         | `d62bcb6a98ee4316a078852efda21c3d@gmail.com` |
 
 **Examples**
 
