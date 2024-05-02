@@ -57,8 +57,9 @@ import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ColumnDef } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import useFormPersist from 'react-hook-form-persist';
+import { UseFormReturn, useForm } from 'react-hook-form';
+// import useFormPersist from 'react-hook-form-persist';
+import useFormPersist from '@/app/(mgmt)/useFormPersist';
 import { useSessionStorage } from 'usehooks-ts';
 import JobsProgressSteps, {
   getJobProgressSteps,
@@ -141,11 +142,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     defaultValues: schemaFormData,
   });
 
-  useFormPersist(formKey, {
-    watch: form.watch,
-    setValue: form.setValue,
-    storage: isBrowser() ? window.sessionStorage : undefined,
-  });
+  // useFormPersist(formKey, {
+  //   watch: form.watch,
+  //   setValue: form.setValue,
+  //   storage: isBrowser() ? window.sessionStorage : undefined,
+  // });
   const [isClient, setIsClient] = useState(false);
   useEffect(() => {
     setIsClient(true);
@@ -315,6 +316,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   return (
     <div className="flex flex-col gap-5">
+      <FormPersist formKey={formKey} form={form} />
       <OverviewContainer
         Header={
           <PageHeader
@@ -449,6 +451,21 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       </Form>
     </div>
   );
+}
+
+interface FormPersistProps {
+  form: UseFormReturn<any>;
+  formKey: string;
+}
+
+function FormPersist(props: FormPersistProps): ReactElement {
+  const { form, formKey } = props;
+  useFormPersist(formKey, {
+    control: form.control,
+    setValue: form.setValue,
+    storage: isBrowser() ? window.sessionStorage : undefined,
+  });
+  return <></>;
 }
 
 async function sample(
