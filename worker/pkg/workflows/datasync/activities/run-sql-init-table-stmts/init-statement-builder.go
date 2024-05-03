@@ -238,6 +238,13 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 			if job.Source.Options.GetGenerate() != nil {
 				initSchema = false
 			}
+			if job.GetSource().GetOptions().GetAiGenerate() != nil {
+				fkSrcConnId := job.GetSource().GetOptions().GetAiGenerate().GetFkSourceConnectionId()
+				if fkSrcConnId == destination.GetConnectionId() && initSchema {
+					slogger.Warn("cannot init schema when destination connection is the same as the foreign key source connection")
+					initSchema = false
+				}
+			}
 
 			if !truncateBeforeInsert && !truncateCascade && !initSchema {
 				slogger.Info("skipping truncate and schema init as none were set to true")
@@ -245,7 +252,6 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 			}
 
 			if job.Source.Options.GetPostgres() != nil || job.Source.Options.GetGenerate() != nil || job.Source.Options.GetAiGenerate() != nil {
-				sourcePool := b.pgpool[sourceConnectionId]
 				pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(connection.PgConfig, shared.Ptr(uint32(5)), slogger)
 				if err != nil {
 					return nil, fmt.Errorf("unable to create new postgres pool from connection config: %w", err)
@@ -267,6 +273,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 					}
 
 					tableCreateStmts := []string{}
+					sourcePool := b.pgpool[sourceConnectionId]
 					for _, table := range orderedTablesResp.OrderedTables {
 						split := strings.Split(table, ".")
 						// todo: make this more efficient to reduce amount of times we have to connect to the source database

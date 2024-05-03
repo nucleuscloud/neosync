@@ -162,6 +162,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         const key = toColKey(row.schema, row.table, row.column);
         const isPrimaryKey = constraintHandler.getIsPrimaryKey(key);
         const [isForeignKey, fkCols] = constraintHandler.getIsForeignKey(key);
+        const isUnique = constraintHandler.getIsUniqueConstraint(key);
 
         const pieces: string[] = [];
         if (isPrimaryKey) {
@@ -169,6 +170,9 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         }
         if (isForeignKey) {
           fkCols.forEach((col) => pieces.push(`Foreign Key: ${col}`));
+        }
+        if (isUnique) {
+          pieces.push('Unique');
         }
         return pieces.join('\n');
       },
@@ -291,10 +295,25 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
 
     {
       accessorKey: 'transformer',
+
       id: 'transformer',
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Transformer" />
       ),
+      filterFn: (row, id, value) => {
+        const rowVal = row.getValue(id) as JobMappingTransformerForm;
+        const tsource = transformerHandler.getSystemTransformerBySource(
+          rowVal.source
+        );
+        console.log(
+          'row val',
+          row.original,
+          row.getValue(id),
+          id,
+          transformerHandler.getSystemTransformerBySource(rowVal.source)
+        );
+        return value.includes(row.getValue(id));
+      },
       cell: (info) => {
         // eslint-disable-next-line react-hooks/rules-of-hooks
         const fctx = useFormContext<
@@ -306,6 +325,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
               name={`mappings.${info.row.index}.transformer`}
               control={fctx.control}
               render={({ field, fieldState, formState }) => {
+                console.log('field', field.value, info.getValue());
                 const fv = field.value as JobMappingTransformerForm;
                 const colkey = fromRowDataToColKey(info.row);
 

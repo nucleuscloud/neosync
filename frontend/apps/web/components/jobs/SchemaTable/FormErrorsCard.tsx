@@ -1,0 +1,91 @@
+import { Badge } from '@/components/ui/badge';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  CheckCircledIcon,
+  CheckIcon,
+  ExclamationTriangleIcon,
+} from '@radix-ui/react-icons';
+import { ReactElement } from 'react';
+
+export interface FormError {
+  message: string;
+  type?: string;
+  path: string;
+}
+
+interface Props {
+  formErrors: FormError[];
+}
+
+export default function FormErrorsCard(props: Props): ReactElement {
+  const { formErrors } = props;
+
+  const messages = formErrorsToMessages(formErrors);
+  return (
+    <Card className="w-full flex flex-col">
+      <CardHeader className="flex flex-col gap-2">
+        <div className="flex flex-row items-center gap-2">
+          {messages.length != 0 ? (
+            <ExclamationTriangleIcon className="h-4 w-4 text-destructive" />
+          ) : (
+            <CheckCircledIcon className="w-4 h-4" />
+          )}
+          <CardTitle>Validations</CardTitle>
+
+          {messages.length != 0 && (
+            <Badge variant="destructive">{messages.length} Errors</Badge>
+          )}
+        </div>
+        <CardDescription>
+          A list of schema validation errors to resolve before moving forward.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col flex-1">
+        {formErrors.length === 0 ? (
+          <div className="flex flex-col flex-1 items-center justify-center bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-200 rounded-xl">
+            <div className="text-sm flex flex-row items-center gap-2 px-1">
+              <div className="flex">
+                <CheckIcon />
+              </div>
+              <p>Everything looks good!</p>
+            </div>
+          </div>
+        ) : (
+          <ScrollArea className="max-h-[177px] overflow-auto">
+            <div className="flex flex-col gap-2">
+              {messages.map((message, index) => (
+                <div
+                  key={message + index}
+                  className="text-xs bg-red-200 dark:bg-red-800/70 rounded-sm p-2 text-wrap"
+                >
+                  {message}
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function formErrorsToMessages(errors: FormError[]): string[] {
+  const messages: string[] = [];
+  errors.forEach((error) => {
+    const pieces: string[] = [error.path];
+    if (error.type) {
+      pieces.push(`[${error.type}]`);
+    }
+    pieces.push(error.message);
+    messages.push(pieces.join(' '));
+  });
+
+  return messages;
+}
