@@ -581,7 +581,7 @@ func buildBenthosGenerateSourceConfigResponses(
 			// add catch and error processor
 			processors = append(processors, &neosync_benthos.ProcessorConfig{Catch: []*neosync_benthos.ProcessorConfig{
 				{Error: &neosync_benthos.ErrorProcessorConfig{
-					ErrorMsg: `${! meta("fallback_error")}`,
+					ErrorMsg: `${! error()}`,
 				}},
 			}})
 		}

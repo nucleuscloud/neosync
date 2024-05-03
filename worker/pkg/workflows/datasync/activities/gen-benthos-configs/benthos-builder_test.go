@@ -216,7 +216,7 @@ output:
                                 root."name" = generate_ssn()
                             - catch:
                                 - error:
-                                    error_msg: ${! meta("fallback_error")}
+                                    error_msg: ${! error()}
                     max_retries: 10
                     backoff: {}
                 - error:
@@ -405,7 +405,7 @@ output:
                                 root."name" = generate_ssn()
                             - catch:
                                 - error:
-                                    error_msg: ${! meta("fallback_error")}
+                                    error_msg: ${! error()}
                     max_retries: 10
                     backoff: {}
                 - error:
@@ -602,7 +602,7 @@ output:
                                 root."name" = generate_ssn()
                             - catch:
                                 - error:
-                                    error_msg: ${! meta("fallback_error")}
+                                    error_msg: ${! error()}
                     max_retries: 10
                     backoff: {}
                 - error:
@@ -845,7 +845,7 @@ pipeline:
         - mutation: root."id" = generate_uuid(include_hyphens:true)
         - catch:
             - error:
-                error_msg: ${! meta("fallback_error")}
+                error_msg: ${! error()}
 output:
     label: ""
     broker:
@@ -916,7 +916,7 @@ pipeline:
             result_map: root."buyer_id" = this
         - catch:
             - error:
-                error_msg: ${! meta("fallback_error")}
+                error_msg: ${! error()}
 output:
     label: ""
     broker:
@@ -1443,7 +1443,7 @@ pipeline:
         - mutation: root."id" = generate_uuid(include_hyphens:true)
         - catch:
             - error:
-                error_msg: ${! meta("fallback_error")}
+                error_msg: ${! error()}
 output:
     label: ""
     broker:
@@ -1522,7 +1522,7 @@ pipeline:
             result_map: root."id" = this
         - catch:
             - error:
-                error_msg: ${! meta("fallback_error")}
+                error_msg: ${! error()}
 output:
     label: ""
     broker:
@@ -3393,7 +3393,7 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
         })();
 - catch:
     - error:
-        error_msg: ${! meta("fallback_error")}
+        error_msg: ${! error()}
       `), strings.TrimSpace(string(out)))
 }
 
@@ -3496,7 +3496,7 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
         })();
 - catch:
     - error:
-        error_msg: ${! meta("fallback_error")}
+        error_msg: ${! error()}
       `), strings.TrimSpace(string(out)))
 }
 
