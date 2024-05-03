@@ -244,7 +244,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				continue
 			}
 
-			if job.Source.Options.GetPostgres() != nil || job.Source.Options.GetGenerate() != nil {
+			if job.Source.Options.GetPostgres() != nil || job.Source.Options.GetGenerate() != nil || job.Source.Options.GetAiGenerate() != nil {
 				sourcePool := b.pgpool[sourceConnectionId]
 				pgconn, err := b.sqlconnector.NewPgPoolFromConnectionConfig(connection.PgConfig, shared.Ptr(uint32(5)), slogger)
 				if err != nil {
@@ -346,7 +346,7 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 				continue
 			}
 
-			if job.Source.Options.GetMysql() != nil || job.Source.Options.GetGenerate() != nil {
+			if job.Source.Options.GetMysql() != nil || job.Source.Options.GetGenerate() != nil || job.Source.Options.GetAiGenerate() != nil {
 				sourcePool := b.mysqlpool[sourceConnectionId]
 				destconn, err := b.sqlconnector.NewDbFromConnectionConfig(destinationConnection.ConnectionConfig, shared.Ptr(uint32(5)), slogger)
 				if err != nil {
