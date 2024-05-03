@@ -4643,10 +4643,11 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 						Config: transformer.Config,
 					},
 				}, emailColInfo)
-
 			require.NoError(t, err)
-			_, err = bloblang.Parse(val)
+			ex, err := bloblang.Parse(val)
 			require.NoError(t, err, fmt.Sprintf("transformer lint failed, check that the transformer string is being constructed correctly. Failing source: %s", transformer.Source))
+			_, err = ex.Query(nil)
+			require.NoError(t, err)
 		})
 	}
 }
