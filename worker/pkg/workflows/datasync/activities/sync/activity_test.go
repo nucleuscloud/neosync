@@ -243,7 +243,7 @@ pipeline:
   threads: 1
   processors:
     - error:
-        error_msg: ${! meta("fallback_error")}
+        error_msg: ${! error()}
 output:
   label: ""
   stdout:

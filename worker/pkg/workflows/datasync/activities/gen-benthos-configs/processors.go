@@ -61,7 +61,7 @@ func buildSqlUpdateProcessorConfigs(
 		// add catch and error processor
 		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Catch: []*neosync_benthos.ProcessorConfig{
 			{Error: &neosync_benthos.ErrorProcessorConfig{
-				ErrorMsg: `${! meta("fallback_error")}`,
+				ErrorMsg: `${! error()}`,
 			}},
 		}})
 	}
@@ -115,7 +115,7 @@ func buildProcessorConfigs(
 		// add catch and error processor
 		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Catch: []*neosync_benthos.ProcessorConfig{
 			{Error: &neosync_benthos.ErrorProcessorConfig{
-				ErrorMsg: `${! meta("fallback_error")}`,
+				ErrorMsg: `${! error()}`,
 			}},
 		}})
 	}
