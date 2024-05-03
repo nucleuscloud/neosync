@@ -136,7 +136,7 @@ export default function UserDefinedTransformEmailForm(
                     const emailConfig = new TransformEmail({
                       emailType: parseInt(value, 10),
                     }).toJson();
-                    field.onChange((emailConfig as any).emailType);
+                    field.onChange((emailConfig as any).emailType); // eslint-disable-line @typescript-eslint/no-explicit-any
                   }}
                   value={generateEmailTypeStringToEnum(field.value).toString()}
                 >
