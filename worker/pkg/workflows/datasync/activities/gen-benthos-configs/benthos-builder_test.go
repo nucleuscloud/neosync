@@ -4643,10 +4643,11 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 						Config: transformer.Config,
 					},
 				}, emailColInfo)
-
 			require.NoError(t, err)
-			_, err = bloblang.Parse(val)
+			ex, err := bloblang.Parse(val)
 			require.NoError(t, err, fmt.Sprintf("transformer lint failed, check that the transformer string is being constructed correctly. Failing source: %s", transformer.Source))
+			_, err = ex.Query(nil)
+			require.NoError(t, err)
 		})
 	}
 }
@@ -4726,7 +4727,9 @@ func Test_computeMutationFunction_handles_Db_Maxlen(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, out)
 			require.Equal(t, tc.expected, out, "computed bloblang string was not expected")
-			_, err = bloblang.Parse(out)
+			ex, err := bloblang.Parse(out)
+			require.NoError(t, err)
+			_, err = ex.Query(nil)
 			require.NoError(t, err)
 		})
 	}

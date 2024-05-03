@@ -56,7 +56,7 @@ func Test_GenerateRandomEmail_Uuid_Small(t *testing.T) {
 
 func Test_RandomEmailTransformer(t *testing.T) {
 	maxLength := int64(40)
-	mapping := fmt.Sprintf(`root = generate_email(max_length:%d)`, maxLength)
+	mapping := fmt.Sprintf(`root = generate_email(max_length:%d, email_type:%q)`, maxLength, GenerateEmailType_UuidV4)
 	ex, err := bloblang.Parse(mapping)
 	require.NoError(t, err)
 	require.NotEmpty(t, ex)
