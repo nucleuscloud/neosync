@@ -300,19 +300,16 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Transformer" />
       ),
-      filterFn: (row, id, value) => {
-        const rowVal = row.getValue(id) as JobMappingTransformerForm;
+      filterFn: (row, _id, value) => {
+        // row.getValue doesn't work here due to a tanstack bug where the transformer value is out of sync with getValue
+        // row.original works here. There must be a caching bug with the transformer prop being an object.
+        // This may be related: https://github.com/TanStack/table/issues/5363
+        const rowVal = row.original.transformer;
         const tsource = transformerHandler.getSystemTransformerBySource(
           rowVal.source
         );
-        console.log(
-          'row val',
-          row.original,
-          row.getValue(id),
-          id,
-          transformerHandler.getSystemTransformerBySource(rowVal.source)
-        );
-        return value.includes(row.getValue(id));
+        const sourceName = tsource?.name.toLowerCase() ?? 'select transformer';
+        return sourceName.includes((value as string)?.toLowerCase());
       },
       cell: (info) => {
         // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -325,7 +322,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
               name={`mappings.${info.row.index}.transformer`}
               control={fctx.control}
               render={({ field, fieldState, formState }) => {
-                console.log('field', field.value, info.getValue());
+                // console.log('field', field.value, info.getValue());
                 const fv = field.value as JobMappingTransformerForm;
                 const colkey = fromRowDataToColKey(info.row);
 
