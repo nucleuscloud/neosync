@@ -4727,7 +4727,9 @@ func Test_computeMutationFunction_handles_Db_Maxlen(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, out)
 			require.Equal(t, tc.expected, out, "computed bloblang string was not expected")
-			_, err = bloblang.Parse(out)
+			ex, err := bloblang.Parse(out)
+			require.NoError(t, err)
+			_, err = ex.Query(nil)
 			require.NoError(t, err)
 		})
 	}
