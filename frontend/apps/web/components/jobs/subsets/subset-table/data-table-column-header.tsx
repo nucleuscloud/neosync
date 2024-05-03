@@ -57,7 +57,6 @@ export function DataTableColumnHeader<TData, TValue>({
               onChange={(e) => column.setFilterValue(e.target.value)}
               placeholder={`Search...`}
               className="w-36 border rounded"
-              autoFocus
             />
             <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
               <ArrowUpIcon className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
