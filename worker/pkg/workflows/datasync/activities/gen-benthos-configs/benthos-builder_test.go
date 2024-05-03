@@ -4260,12 +4260,15 @@ func Test_computeMutationFunction_null(t *testing.T) {
 }
 
 func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
+	uuidEmailType := mgmtv1alpha1.GenerateEmailType_GENERATE_EMAIL_TYPE_UUID_V4
 	transformers := []*mgmtv1alpha1.SystemTransformer{
 		{
 			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_EMAIL,
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateEmailConfig{
-					GenerateEmailConfig: &mgmtv1alpha1.GenerateEmail{},
+					GenerateEmailConfig: &mgmtv1alpha1.GenerateEmail{
+						EmailType: &uuidEmailType,
+					},
 				},
 			},
 		},
@@ -4277,6 +4280,7 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 						PreserveDomain:  false,
 						PreserveLength:  false,
 						ExcludedDomains: []string{},
+						EmailType:       &uuidEmailType,
 					},
 				},
 			},
