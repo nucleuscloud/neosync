@@ -3480,7 +3480,7 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
 	require.Equal(
 		t,
 		strings.TrimSpace(`
-- mutation: root."email" = generate_email(max_length:40,email_type:uuidv4)
+- mutation: root."email" = generate_email(max_length:40,email_type:"uuidv4")
 - javascript:
     code: |4-
         (() => {
@@ -3688,7 +3688,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 		{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, groupedSchemas, map[string]*dbschemas_utils.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	require.Nil(t, err)
-	require.Equal(t, *output[0].Mutation, `root."email" = transform_email(email:this."email",preserve_domain:true,preserve_length:false,excluded_domains:[],max_length:40,email_type:uuidv4)`)
+	require.Equal(t, *output[0].Mutation, `root."email" = transform_email(email:this."email",preserve_domain:true,preserve_length:false,excluded_domains:[],max_length:40,email_type:"uuidv4")`)
 }
 
 const transformJsCodeFnStr = `var payload = value+=" hello";return payload;`
@@ -4260,12 +4260,15 @@ func Test_computeMutationFunction_null(t *testing.T) {
 }
 
 func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
+	uuidEmailType := mgmtv1alpha1.GenerateEmailType_GENERATE_EMAIL_TYPE_UUID_V4
 	transformers := []*mgmtv1alpha1.SystemTransformer{
 		{
 			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_EMAIL,
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateEmailConfig{
-					GenerateEmailConfig: &mgmtv1alpha1.GenerateEmail{},
+					GenerateEmailConfig: &mgmtv1alpha1.GenerateEmail{
+						EmailType: &uuidEmailType,
+					},
 				},
 			},
 		},
@@ -4277,6 +4280,7 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 						PreserveDomain:  false,
 						PreserveLength:  false,
 						ExcludedDomains: []string{},
+						EmailType:       &uuidEmailType,
 					},
 				},
 			},
