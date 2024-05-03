@@ -10,7 +10,7 @@ require (
 	connectrpc.com/connect v1.16.1
 	github.com/benthosdev/benthos/v4 v4.27.0
 	github.com/charmbracelet/bubbles v0.18.0
-	github.com/charmbracelet/bubbletea v0.26.0
+	github.com/charmbracelet/bubbletea v0.26.1
 	github.com/charmbracelet/lipgloss v0.10.0
 	github.com/fatih/color v1.16.0
 	github.com/google/uuid v1.6.0
