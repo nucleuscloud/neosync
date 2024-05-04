@@ -3,7 +3,10 @@ import {
   SINGLE_TABLE_SCHEMA_FORM_SCHEMA,
   SingleTableSchemaFormValues,
 } from '@/app/(mgmt)/[account]/new/job/schema';
-import { SchemaTable } from '@/components/jobs/SchemaTable/SchemaTable';
+import {
+  SchemaTable,
+  extractAllFormErrors,
+} from '@/components/jobs/SchemaTable/SchemaTable';
 import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
 import { useAccount } from '@/components/providers/account-provider';
 import { Alert, AlertTitle } from '@/components/ui/alert';
@@ -160,6 +163,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     remove,
     append
   );
+  const formMappings = form.watch('mappings');
 
   return (
     <Form {...form}>
@@ -189,13 +193,14 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
         />
 
         <SchemaTable
-          data={form.watch('mappings')}
+          data={formMappings}
           jobType="generate"
           constraintHandler={schemaConstraintHandler}
           schema={connectionSchemaDataMap?.schemaMap ?? {}}
           isSchemaDataReloading={isSchemaMapValidating}
           selectedTables={selectedTables}
           onSelectedTableToggle={onSelectedTableToggle}
+          formErrors={extractAllFormErrors(form.formState.errors, formMappings)}
         />
 
         {form.formState.errors.mappings && (

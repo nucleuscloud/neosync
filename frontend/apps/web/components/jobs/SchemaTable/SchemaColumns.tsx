@@ -162,6 +162,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         const key = toColKey(row.schema, row.table, row.column);
         const isPrimaryKey = constraintHandler.getIsPrimaryKey(key);
         const [isForeignKey, fkCols] = constraintHandler.getIsForeignKey(key);
+        const isUnique = constraintHandler.getIsUniqueConstraint(key);
 
         const pieces: string[] = [];
         if (isPrimaryKey) {
@@ -169,6 +170,9 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         }
         if (isForeignKey) {
           fkCols.forEach((col) => pieces.push(`Foreign Key: ${col}`));
+        }
+        if (isUnique) {
+          pieces.push('Unique');
         }
         return pieces.join('\n');
       },
@@ -291,10 +295,22 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
 
     {
       accessorKey: 'transformer',
+
       id: 'transformer',
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Transformer" />
       ),
+      filterFn: (row, _id, value) => {
+        // row.getValue doesn't work here due to a tanstack bug where the transformer value is out of sync with getValue
+        // row.original works here. There must be a caching bug with the transformer prop being an object.
+        // This may be related: https://github.com/TanStack/table/issues/5363
+        const rowVal = row.original.transformer;
+        const tsource = transformerHandler.getSystemTransformerBySource(
+          rowVal.source
+        );
+        const sourceName = tsource?.name.toLowerCase() ?? 'select transformer';
+        return sourceName.includes((value as string)?.toLowerCase());
+      },
       cell: (info) => {
         // eslint-disable-next-line react-hooks/rules-of-hooks
         const fctx = useFormContext<

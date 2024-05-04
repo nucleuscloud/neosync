@@ -1,6 +1,9 @@
 'use client';
 import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
-import { SchemaTable } from '@/components/jobs/SchemaTable/SchemaTable';
+import {
+  SchemaTable,
+  extractAllFormErrors,
+} from '@/components/jobs/SchemaTable/SchemaTable';
 import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
 import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
@@ -214,6 +217,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
   }
 
   const source = connections.find((item) => item.id === sourceConnectionId);
+  const formMappings = form.watch('mappings');
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -272,13 +276,17 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
           />
 
           <SchemaTable
-            data={form.watch('mappings')}
+            data={formMappings}
             jobType="sync"
             constraintHandler={schemaConstraintHandler}
             schema={connectionSchemaDataMap?.schemaMap ?? {}}
             isSchemaDataReloading={isSchemaMapValidating}
             selectedTables={selectedTables}
             onSelectedTableToggle={onSelectedTableToggle}
+            formErrors={extractAllFormErrors(
+              form.formState.errors,
+              formMappings
+            )}
           />
           <div className="flex flex-row items-center justify-end w-full mt-4">
             <Button type="submit">Update</Button>

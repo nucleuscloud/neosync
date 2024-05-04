@@ -7,7 +7,6 @@ import DualListBox, {
 import Spinner from '@/components/Spinner';
 import { useAccount } from '@/components/providers/account-provider';
 import SkeletonTable from '@/components/skeleton/SkeletonTable';
-import { Badge } from '@/components/ui/badge';
 import {
   Card,
   CardContent,
@@ -15,18 +14,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { ConnectionSchemaMap } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetTransformersHandler } from '@/libs/hooks/useGetTransformersHandler';
 import { JobMappingFormValues, SchemaFormValues } from '@/yup-validations/jobs';
-import {
-  CheckCircledIcon,
-  CheckIcon,
-  ExclamationTriangleIcon,
-  TableIcon,
-} from '@radix-ui/react-icons';
+import { TableIcon } from '@radix-ui/react-icons';
 import { ReactElement, useMemo } from 'react';
-import { FieldErrors, useFormContext } from 'react-hook-form';
+import { FieldErrors } from 'react-hook-form';
+import FormErrorsCard, { FormError } from './FormErrorsCard';
 import { getSchemaColumns } from './SchemaColumns';
 import SchemaPageTable from './SchemaPageTable';
 import { JobType, SchemaConstraintHandler } from './schema-constraint-handler';
@@ -39,6 +33,8 @@ interface Props {
   constraintHandler: SchemaConstraintHandler;
   selectedTables: Set<string>;
   onSelectedTableToggle(items: Set<string>, action: Action): void;
+
+  formErrors: FormError[];
 }
 
 export function SchemaTable(props: Props): ReactElement {
@@ -49,6 +45,7 @@ export function SchemaTable(props: Props): ReactElement {
     schema,
     selectedTables,
     onSelectedTableToggle,
+    formErrors,
   } = props;
 
   const { account } = useAccount();
@@ -64,15 +61,10 @@ export function SchemaTable(props: Props): ReactElement {
     });
   }, [handler, constraintHandler, jobType]);
 
-  const form = useFormContext<SchemaFormValues | SingleTableSchemaFormValues>();
-
   if (isLoading || !data) {
     return <SkeletonTable />;
   }
 
-  const extractedFormErrors = formErrorsToMessages(
-    extractAllFormErrors(form.formState.errors, form.getValues('mappings'))
-  );
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col md:flex-row gap-3">
@@ -99,53 +91,7 @@ export function SchemaTable(props: Props): ReactElement {
             />
           </CardContent>
         </Card>
-        <Card className="w-full flex flex-col">
-          <CardHeader className="flex flex-col gap-2">
-            <div className="flex flex-row items-center gap-2">
-              {extractedFormErrors.length != 0 ? (
-                <ExclamationTriangleIcon className="h-4 w-4 text-destructive" />
-              ) : (
-                <CheckCircledIcon className="w-4 h-4" />
-              )}
-              <CardTitle>Validations</CardTitle>
-
-              {extractedFormErrors.length != 0 && (
-                <Badge variant="destructive">
-                  {extractedFormErrors.length} Errors
-                </Badge>
-              )}
-            </div>
-            <CardDescription>
-              A list of schema validation errors to resolve before moving
-              forward.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col flex-1">
-            {extractedFormErrors.length === 0 ? (
-              <div className="flex flex-col flex-1 items-center justify-center bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-200 rounded-xl">
-                <div className="text-sm flex flex-row items-center gap-2 px-1">
-                  <div className="flex">
-                    <CheckIcon />
-                  </div>
-                  <p>Everything looks good!</p>
-                </div>
-              </div>
-            ) : (
-              <ScrollArea className="max-h-[177px] overflow-auto">
-                <div className="flex flex-col gap-2">
-                  {extractedFormErrors.map((message, index) => (
-                    <div
-                      key={message + index}
-                      className="text-xs bg-red-200 dark:bg-red-800/70 rounded-sm p-2 text-wrap"
-                    >
-                      {message}
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            )}
-          </CardContent>
-        </Card>
+        <FormErrorsCard formErrors={formErrors} />
       </div>
       <SchemaPageTable
         columns={columns}
@@ -167,13 +113,7 @@ function getDualListBoxOptions(
   return Array.from(tables).map((table): Option => ({ value: table }));
 }
 
-interface FormError {
-  message: string;
-  type?: string;
-  path: string;
-}
-
-function extractAllFormErrors(
+export function extractAllFormErrors(
   errors: FieldErrors<SchemaFormValues | SingleTableSchemaFormValues>,
   values: JobMappingFormValues[],
   path = ''
@@ -206,19 +146,5 @@ function extractAllFormErrors(
       messages = messages.concat(extractAllFormErrors(error, values, newPath));
     }
   }
-  return messages;
-}
-
-function formErrorsToMessages(errors: FormError[]): string[] {
-  const messages: string[] = [];
-  errors.forEach((error) => {
-    const pieces: string[] = [error.path];
-    if (error.type) {
-      pieces.push(`[${error.type}]`);
-    }
-    pieces.push(error.message);
-    messages.push(pieces.join(' '));
-  });
-
   return messages;
 }
