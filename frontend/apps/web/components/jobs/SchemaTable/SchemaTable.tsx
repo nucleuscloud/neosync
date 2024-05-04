@@ -61,15 +61,10 @@ export function SchemaTable(props: Props): ReactElement {
     });
   }, [handler, constraintHandler, jobType]);
 
-  // const form = useFormContext<SchemaFormValues | SingleTableSchemaFormValues>();
-
   if (isLoading || !data) {
     return <SkeletonTable />;
   }
 
-  // const extractedFormErrors = formErrorsToMessages(
-  //   extractAllFormErrors(form.formState.errors, data)
-  // );
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col md:flex-row gap-3">
