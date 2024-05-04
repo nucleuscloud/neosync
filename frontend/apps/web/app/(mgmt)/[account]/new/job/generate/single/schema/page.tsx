@@ -3,7 +3,10 @@
 import { getOnSelectedTableToggle } from '@/app/(mgmt)/[account]/jobs/[id]/source/components/util';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
-import { SchemaTable } from '@/components/jobs/SchemaTable/SchemaTable';
+import {
+  SchemaTable,
+  extractAllFormErrors,
+} from '@/components/jobs/SchemaTable/SchemaTable';
 import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
 import { setOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
 import { useAccount } from '@/components/providers/account-provider';
@@ -253,6 +256,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     );
   }, [isSchemaMapLoading]);
 
+  const formMappings = form.watch('mappings');
+
   return (
     <div className="flex flex-col gap-5">
       <OverviewContainer
@@ -301,13 +306,17 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
           {isClient && (
             <SchemaTable
-              data={form.watch('mappings')}
+              data={formMappings}
               constraintHandler={schemaConstraintHandler}
               schema={connectionSchemaDataMap?.schemaMap ?? {}}
               isSchemaDataReloading={isSchemaMapValidating}
               jobType={'generate'}
               selectedTables={selectedTables}
               onSelectedTableToggle={onSelectedTableToggle}
+              formErrors={extractAllFormErrors(
+                form.formState.errors,
+                formMappings
+              )}
             />
           )}
           {form.formState.errors.root && (

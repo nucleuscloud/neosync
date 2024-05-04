@@ -2,7 +2,10 @@
 
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
-import { SchemaTable } from '@/components/jobs/SchemaTable/SchemaTable';
+import {
+  SchemaTable,
+  extractAllFormErrors,
+} from '@/components/jobs/SchemaTable/SchemaTable';
 import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
 import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
@@ -148,6 +151,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     );
   }, [isSchemaMapLoading, connectFormValues.sourceId]);
 
+  const formMappings = form.watch('mappings');
   return (
     <div className="flex flex-col gap-5">
       <OverviewContainer
@@ -170,13 +174,17 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <SchemaTable
-            data={form.watch('mappings')}
+            data={formMappings}
             jobType="sync"
             constraintHandler={schemaConstraintHandler}
             schema={connectionSchemaDataMap?.schemaMap ?? {}}
             isSchemaDataReloading={isSchemaMapValidating}
             selectedTables={selectedTables}
             onSelectedTableToggle={onSelectedTableToggle}
+            formErrors={extractAllFormErrors(
+              form.formState.errors,
+              formMappings
+            )}
           />
           <div className="flex flex-row gap-1 justify-between">
             <Button key="back" type="button" onClick={() => router.back()}>
