@@ -94,13 +94,15 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
     },
     {
       accessorKey: 'schema',
-      enableSorting: false,
-      enableHiding: false,
+      header: ({ column }) => (
+        <SchemaColumnHeader column={column} title="Schema" />
+      ),
     },
     {
       accessorKey: 'table',
-      enableSorting: false,
-      enableHiding: false,
+      header: ({ column }) => (
+        <SchemaColumnHeader column={column} title="Table" />
+      ),
     },
     {
       accessorFn: (row) => `${row.schema}.${row.table}`,
