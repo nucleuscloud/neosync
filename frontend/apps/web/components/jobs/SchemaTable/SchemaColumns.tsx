@@ -322,7 +322,6 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
               name={`mappings.${info.row.index}.transformer`}
               control={fctx.control}
               render={({ field, fieldState, formState }) => {
-                // console.log('field', field.value, info.getValue());
                 const fv = field.value as JobMappingTransformerForm;
                 const colkey = fromRowDataToColKey(info.row);
 
