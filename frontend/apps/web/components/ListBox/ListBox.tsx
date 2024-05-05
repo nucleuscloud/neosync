@@ -78,23 +78,27 @@ export default function ListBox<TData, TValue>(
   return (
     <div
       className={cn(
-        'max-h-[164px] overflow-x-auto relative w-full rounded-md border border-gray-300 dark:border-gray-700',
+        'max-h-[164px] overflow-x-auto relative w-full rounded-md border border-gray-300 dark:border-gray-700 ',
         tableContainerClassName
       )}
       ref={tableContainerRef}
     >
       <StickyHeaderTable>
-        <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 flex w-full px-2">
+        <TableHeader
+          className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10"
+          id="table-header"
+        >
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow
               key={headerGroup.id}
-              className="flex items-center flex-row w-full"
+              className="flex flex-row px-2"
               id="table-header-row"
             >
               {headerGroup.headers.map((header) => {
                 return (
                   <TableHead
-                    className="flex items-center"
+                    className="flex"
+                    id="table-head"
                     key={header.id}
                     style={{ minWidth: `${header.column.getSize()}px` }}
                     colSpan={header.colSpan}
