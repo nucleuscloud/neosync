@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { GenerateFloat64 } from '@neosync/sdk';
-import { ReactElement } from 'react';
+import { ReactElement, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { TRANSFORMER_SCHEMA_CONFIGS } from '../../new/transformer/schema';
 import { TransformerFormProps } from './util';
@@ -31,6 +31,17 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
       max: existingConfig?.max ?? 40,
     },
   });
+
+  const min = form.watch('min');
+  const max = form.watch('max');
+
+  useEffect(() => {
+    form.trigger('min');
+  }, [max, form.trigger]);
+
+  useEffect(() => {
+    form.trigger('max');
+  }, [min, form.trigger]);
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">
@@ -135,7 +146,6 @@ export default function GenerateFloat64Form(props: Props): ReactElement {
                     float64 value of 23.567 to 23.56.
                   </FormDescription>
                 </div>
-
                 <FormControl>
                   <div className="flex flex-col items-center">
                     <Input
