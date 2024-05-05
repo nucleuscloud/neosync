@@ -39,27 +39,30 @@ export default function GenerateStringPhoneNumberForm(
         control={form.control}
         name={`min`}
         render={({ field }) => (
-          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-            <div className="space-y-0.5">
-              <FormLabel>Minimum Length</FormLabel>
-              <FormDescription>
-                Set the minimum length range of the output phone number.
-              </FormDescription>
-            </div>
-            <FormControl>
-              <div className="max-w-[180px]">
-                <Input
-                  {...field}
-                  type="number"
-                  className="max-w-[180px]"
-                  value={field.value ? field.value.toString() : 0}
-                  onChange={(event) => {
-                    setBigIntOrOld(event.target.valueAsNumber, field.value);
-                  }}
-                  disabled={isReadonly}
-                />
+          <FormItem className="rounded-lg border p-3 shadow-sm">
+            <div className="flex flex-row items-start justify-between">
+              <div className="flex flex-col space-y-2">
+                <FormLabel>Minimum Length</FormLabel>
+                <FormDescription>
+                  Set the minimum length range of the output phone number.
+                </FormDescription>
               </div>
-            </FormControl>
+              <FormControl>
+                <div className="flex flex-col items-center">
+                  <Input
+                    {...field}
+                    type="number"
+                    className="max-w-[180px]"
+                    value={field.value ? field.value.toString() : 0}
+                    onChange={(event) => {
+                      setBigIntOrOld(event.target.valueAsNumber, field.value);
+                    }}
+                    disabled={isReadonly}
+                  />
+                  <FormMessage />
+                </div>
+              </FormControl>
+            </div>
           </FormItem>
         )}
       />
@@ -67,28 +70,30 @@ export default function GenerateStringPhoneNumberForm(
         control={form.control}
         name={`max`}
         render={({ field }) => (
-          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-            <div className="space-y-0.5">
-              <FormLabel>Maximum Length</FormLabel>
-              <FormDescription>
-                Set the maximum length range of the output phone number.
-              </FormDescription>
-            </div>
-            <FormControl>
-              <div className="max-w-[180px]">
-                <Input
-                  {...field}
-                  type="number"
-                  className="max-w-[180px]"
-                  value={field.value ? field.value.toString() : 0}
-                  onChange={(event) => {
-                    setBigIntOrOld(event.target.valueAsNumber, field.value);
-                  }}
-                  disabled={isReadonly}
-                />
+          <FormItem className="rounded-lg border p-3 shadow-sm">
+            <div className="flex flex-row items-start justify-between">
+              <div className="flex flex-col space-y-2">
+                <FormLabel>Maximum Length</FormLabel>
+                <FormDescription>
+                  Set the maximum length range of the output phone number.
+                </FormDescription>
               </div>
-            </FormControl>
-            <FormMessage />
+              <FormControl>
+                <div className="flex flex-col items-center">
+                  <Input
+                    {...field}
+                    type="number"
+                    className="max-w-[180px]"
+                    value={field.value ? field.value.toString() : 0}
+                    onChange={(event) => {
+                      setBigIntOrOld(event.target.valueAsNumber, field.value);
+                    }}
+                    disabled={isReadonly}
+                  />
+                  <FormMessage />
+                </div>
+              </FormControl>
+            </div>
           </FormItem>
         )}
       />

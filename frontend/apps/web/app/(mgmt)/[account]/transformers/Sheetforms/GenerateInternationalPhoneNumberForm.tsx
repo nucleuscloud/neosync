@@ -43,28 +43,30 @@ export default function GenerateInternationalPhoneNumberForm(
           control={form.control}
           name="min"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-              <div className="space-y-0.5">
-                <FormLabel>Min</FormLabel>
-                <FormDescription className="w-[90%]">
-                  Set the minimum length range of the output phone number. It
-                  cannot be less than 9.
-                </FormDescription>
-              </div>
-              <FormControl>
-                <div className="max-w-[180px]">
-                  <Input
-                    type="number"
-                    {...field}
-                    value={String(field.value)}
-                    onChange={(event) =>
-                      field.onChange(event.target.valueAsNumber)
-                    }
-                    disabled={isReadonly}
-                  />
+            <FormItem className="rounded-lg border p-3 shadow-sm">
+              <div className="flex flex-row items-start justify-between">
+                <div className="flex flex-col space-y-2">
+                  <FormLabel>Min</FormLabel>
+                  <FormDescription className="w-[90%]">
+                    Set the minimum length range of the output phone number. It
+                    cannot be less than 9.
+                  </FormDescription>
                 </div>
-              </FormControl>
-              <FormMessage />
+                <FormControl>
+                  <div className=" flex flex-col items-center max-w-[180px]">
+                    <Input
+                      type="number"
+                      {...field}
+                      value={String(field.value)}
+                      onChange={(event) =>
+                        field.onChange(event.target.valueAsNumber)
+                      }
+                      disabled={isReadonly}
+                    />
+                    <FormMessage />
+                  </div>
+                </FormControl>
+              </div>
             </FormItem>
           )}
         />
@@ -72,28 +74,30 @@ export default function GenerateInternationalPhoneNumberForm(
           control={form.control}
           name="max"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-              <div className="space-y-0.5">
-                <FormLabel>Max</FormLabel>
-                <FormDescription className="w-[90%]">
-                  Set the maximum length range of the output phone number. It
-                  cannot be greater than 15.
-                </FormDescription>
-              </div>
-              <FormControl>
-                <div className="max-w-[180px]">
-                  <Input
-                    type="number"
-                    {...field}
-                    value={String(field.value)}
-                    onChange={(event) =>
-                      field.onChange(event.target.valueAsNumber)
-                    }
-                    disabled={isReadonly}
-                  />
+            <FormItem className="rounded-lg border p-3 shadow-sm">
+              <div className="flex flex-row items-start justify-between">
+                <div className="flex flex-col space-y-2">
+                  <FormLabel>Max</FormLabel>
+                  <FormDescription className="w-[90%]">
+                    Set the maximum length range of the output phone number. It
+                    cannot be greater than 15.
+                  </FormDescription>
                 </div>
-              </FormControl>
-              <FormMessage />
+                <FormControl>
+                  <div className=" flex flex-col items-center max-w-[180px]">
+                    <Input
+                      type="number"
+                      {...field}
+                      value={String(field.value)}
+                      onChange={(event) =>
+                        field.onChange(event.target.valueAsNumber)
+                      }
+                      disabled={isReadonly}
+                    />
+                    <FormMessage />
+                  </div>
+                </FormControl>
+              </div>
             </FormItem>
           )}
         />

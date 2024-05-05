@@ -63,28 +63,35 @@ export default function GenerateInt64Form(props: Props): ReactElement {
           control={form.control}
           name={`min`}
           render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-              <div className="space-y-0.5">
-                <FormLabel>Minimum Value</FormLabel>
-                <FormDescription>
-                  Sets a minimum range for generated int64 value.
-                </FormDescription>
+            <FormItem className="rounded-lg border p-3 shadow-sm">
+              <div className="flex flex-row items-start justify-between">
+                <div className="flex flex-col space-y-2">
+                  <FormLabel>Minimum Value</FormLabel>
+                  <FormDescription>
+                    Sets a minimum range for generated int64 value.
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <div className="flex flex-col items-center">
+                    <Input
+                      {...field}
+                      type="number"
+                      className="max-w-[180px]"
+                      value={field.value ? field.value.toString() : 0}
+                      onChange={(event) => {
+                        field.onChange(
+                          setBigIntOrOld(
+                            event.target.valueAsNumber,
+                            field.value
+                          )
+                        );
+                      }}
+                      disabled={isReadonly}
+                    />
+                    <FormMessage />
+                  </div>
+                </FormControl>
               </div>
-              <FormControl>
-                <Input
-                  {...field}
-                  type="number"
-                  className="max-w-[180px]"
-                  value={field.value ? field.value.toString() : 0}
-                  onChange={(event) => {
-                    field.onChange(
-                      setBigIntOrOld(event.target.valueAsNumber, field.value)
-                    );
-                  }}
-                  disabled={isReadonly}
-                />
-              </FormControl>
-              <FormMessage />
             </FormItem>
           )}
         />
@@ -92,28 +99,35 @@ export default function GenerateInt64Form(props: Props): ReactElement {
           control={form.control}
           name={`max`}
           render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-              <div className="space-y-0.5">
-                <FormLabel>Maximum Value</FormLabel>
-                <FormDescription>
-                  Sets a maximum range for generated int64 value.
-                </FormDescription>
+            <FormItem className="rounded-lg border p-3 shadow-sm">
+              <div className="flex flex-row items-start justify-between">
+                <div className="flex flex-col space-y-2">
+                  <FormLabel>Maximum Value</FormLabel>
+                  <FormDescription>
+                    Sets a maximum range for generated int64 value.
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <div className="flex flex-col items-center">
+                    <Input
+                      {...field}
+                      type="number"
+                      className="max-w-[180px]"
+                      value={field.value ? field.value.toString() : 0}
+                      onChange={(event) => {
+                        field.onChange(
+                          setBigIntOrOld(
+                            event.target.valueAsNumber,
+                            field.value
+                          )
+                        );
+                      }}
+                      disabled={isReadonly}
+                    />
+                    <FormMessage />
+                  </div>
+                </FormControl>
               </div>
-              <FormControl>
-                <Input
-                  {...field}
-                  type="number"
-                  className="max-w-[180px]"
-                  value={field.value ? field.value.toString() : 0}
-                  onChange={(event) => {
-                    field.onChange(
-                      setBigIntOrOld(event.target.valueAsNumber, field.value)
-                    );
-                  }}
-                  disabled={isReadonly}
-                />
-              </FormControl>
-              <FormMessage />
             </FormItem>
           )}
         />
