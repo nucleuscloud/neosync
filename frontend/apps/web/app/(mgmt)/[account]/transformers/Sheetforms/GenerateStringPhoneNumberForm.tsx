@@ -28,7 +28,7 @@ export default function GenerateStringPhoneNumberForm(
       TRANSFORMER_SCHEMA_CONFIGS.generateStringPhoneNumberConfig
     ),
     defaultValues: {
-      min: existingConfig?.min ?? BigInt(1),
+      min: existingConfig?.min ?? BigInt(8),
       max: existingConfig?.max ?? BigInt(15),
     },
   });
@@ -66,7 +66,9 @@ export default function GenerateStringPhoneNumberForm(
                     className="max-w-[180px]"
                     value={field.value ? field.value.toString() : 0}
                     onChange={(event) => {
-                      setBigIntOrOld(event.target.valueAsNumber, field.value);
+                      field.onChange(
+                        setBigIntOrOld(event.target.valueAsNumber, field.value)
+                      );
                     }}
                     disabled={isReadonly}
                   />
@@ -97,7 +99,9 @@ export default function GenerateStringPhoneNumberForm(
                     className="max-w-[180px]"
                     value={field.value ? field.value.toString() : 0}
                     onChange={(event) => {
-                      setBigIntOrOld(event.target.valueAsNumber, field.value);
+                      field.onChange(
+                        setBigIntOrOld(event.target.valueAsNumber, field.value)
+                      );
                     }}
                     disabled={isReadonly}
                   />
