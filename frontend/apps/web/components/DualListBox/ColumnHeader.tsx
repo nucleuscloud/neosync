@@ -19,15 +19,15 @@ export default function ColumnHeader<TData, TValue>({
   className,
 }: DataTableColumnHeaderProps<TData, TValue>) {
   return (
-    <div className="flex flex-row gap-2 items-center">
+    <div className="flex flex-row gap-2 items-center justify-start">
       {column.getCanFilter() && (
         <div>
           <Input
             type="text"
             value={(column.getFilterValue() ?? '') as string}
             onChange={(e) => column.setFilterValue(e.target.value)}
-            placeholder={`Search...`}
-            className="border border-gray-300 rounded bg-transparent"
+            placeholder={`Search ...`}
+            className="border border-gray-300 dark:border-gray-700 rounded bg-transparent text-xs h-8"
           />
         </div>
       )}
