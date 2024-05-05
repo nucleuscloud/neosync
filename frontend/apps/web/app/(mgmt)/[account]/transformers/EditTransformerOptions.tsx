@@ -295,7 +295,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           }}
         />
       );
-    case TransformerSource.GENERATE_STRING:
+    case TransformerSource.GENERATE_RANDOM_STRING:
       return (
         <GenerateStringForm
           isReadonly={isReadonly}
