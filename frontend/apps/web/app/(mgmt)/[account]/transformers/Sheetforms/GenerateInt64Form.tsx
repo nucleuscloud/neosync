@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { GenerateInt64 } from '@neosync/sdk';
-import { ReactElement } from 'react';
+import { ReactElement, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { TRANSFORMER_SCHEMA_CONFIGS } from '../../new/transformer/schema';
 import { TransformerFormProps, setBigIntOrOld } from './util';
@@ -32,6 +32,21 @@ export default function GenerateInt64Form(props: Props): ReactElement {
       max: existingConfig?.max ?? BigInt(40),
     },
   });
+
+  /* this handles triggering the validations on the min and max if each other changes. For ex. the min must be less than the max, if the min > max, and then i update to max > min, the min would still show an error
+  so we use a watch and trigger to revalidate it.
+ */
+
+  const min = form.watch('min');
+  const max = form.watch('max');
+
+  useEffect(() => {
+    form.trigger('min');
+  }, [max, form.trigger]);
+
+  useEffect(() => {
+    form.trigger('max');
+  }, [min, form.trigger]);
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">

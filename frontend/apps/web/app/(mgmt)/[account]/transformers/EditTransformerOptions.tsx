@@ -739,7 +739,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
   }
   return (
     <div>
-      <Alert className="border-gray-200 shadow-sm">
+      <Alert className="border-gray-200 dark:border-gray-700 shadow-sm">
         <div className="flex flex-row items-center gap-4">
           <MixerHorizontalIcon className="h-4 w-4" />
           <AlertDescription className="text-gray-500">

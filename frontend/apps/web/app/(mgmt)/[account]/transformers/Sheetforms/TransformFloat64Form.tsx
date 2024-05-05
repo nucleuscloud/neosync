@@ -12,7 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { TransformFloat64 } from '@neosync/sdk';
-import { ReactElement } from 'react';
+import { ReactElement, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { TRANSFORMER_SCHEMA_CONFIGS } from '../../new/transformer/schema';
 import { TransformerFormProps } from './util';
@@ -30,6 +30,17 @@ export default function TransformFloat64Form(props: Props): ReactElement {
       randomizationRangeMax: existingConfig?.randomizationRangeMax ?? 40,
     },
   });
+
+  const min = form.watch('randomizationRangeMin');
+  const max = form.watch('randomizationRangeMax');
+
+  useEffect(() => {
+    form.trigger('randomizationRangeMin');
+  }, [max, form.trigger]);
+
+  useEffect(() => {
+    form.trigger('randomizationRangeMax');
+  }, [min, form.trigger]);
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">

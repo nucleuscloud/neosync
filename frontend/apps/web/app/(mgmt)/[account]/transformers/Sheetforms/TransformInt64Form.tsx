@@ -12,7 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { TransformInt64 } from '@neosync/sdk';
-import { ReactElement } from 'react';
+import { ReactElement, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { TRANSFORMER_SCHEMA_CONFIGS } from '../../new/transformer/schema';
 import { TransformerFormProps, setBigIntOrOld } from './util';
@@ -31,6 +31,17 @@ export default function TransformInt64Form(props: Props): ReactElement {
         existingConfig?.randomizationRangeMax ?? BigInt(40),
     },
   });
+
+  const min = form.watch('randomizationRangeMin');
+  const max = form.watch('randomizationRangeMax');
+
+  useEffect(() => {
+    form.trigger('randomizationRangeMin');
+  }, [max, form.trigger]);
+
+  useEffect(() => {
+    form.trigger('randomizationRangeMax');
+  }, [min, form.trigger]);
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">

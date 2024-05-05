@@ -12,7 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { GenerateString } from '@neosync/sdk';
-import { ReactElement } from 'react';
+import { ReactElement, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { TRANSFORMER_SCHEMA_CONFIGS } from '../../new/transformer/schema';
 import { TransformerFormProps, setBigIntOrOld } from './util';
@@ -29,6 +29,17 @@ export default function GenerateStringForm(props: Props): ReactElement {
       max: existingConfig?.max ?? BigInt(40),
     },
   });
+
+  const min = form.watch('min');
+  const max = form.watch('max');
+
+  useEffect(() => {
+    form.trigger('min');
+  }, [max, form.trigger]);
+
+  useEffect(() => {
+    form.trigger('max');
+  }, [min, form.trigger]);
 
   return (
     <div className="flex flex-col w-full space-y-4 pt-4">

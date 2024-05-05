@@ -97,7 +97,7 @@ export default function ListBox<TData, TValue>(
               {headerGroup.headers.map((header) => {
                 return (
                   <TableHead
-                    className="flex"
+                    className="flex items-center"
                     id="table-head"
                     key={header.id}
                     style={{ minWidth: `${header.column.getSize()}px` }}
