@@ -38,31 +38,33 @@ export default function TransformFloat64Form(props: Props): ReactElement {
           control={form.control}
           name={`randomizationRangeMin`}
           render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-              <div className="space-y-0.5">
-                <FormLabel>Relative Minimum Value</FormLabel>
-                <FormDescription className="w-[90%]">
-                  Sets a relative minium lower range value. This will create an
-                  lowerbound around the source input value. For example, if the
-                  input value is 10, and you set this value to 5, then the
-                  maximum range will be 5.
-                </FormDescription>
-              </div>
-              <FormControl>
-                <div className="max-w-[180px]">
-                  <Input
-                    {...field}
-                    className="max-w-[180px]"
-                    type="number"
-                    value={field.value ? field.value.toString() : 0}
-                    onChange={(event) => {
-                      field.onChange(event.target.valueAsNumber);
-                    }}
-                    disabled={isReadonly}
-                  />
+            <FormItem className="rounded-lg border p-3 shadow-sm">
+              <div className="flex flex-row items-start justify-between">
+                <div className="flex flex-col space-y-2">
+                  <FormLabel>Relative Minimum Value</FormLabel>
+                  <FormDescription className="w-[90%]">
+                    Sets a relative minium lower range value. This will create
+                    an lowerbound around the source input value. For example, if
+                    the input value is 10, and you set this value to 5, then the
+                    maximum range will be 5.
+                  </FormDescription>
                 </div>
-              </FormControl>
-              <FormMessage />
+                <FormControl>
+                  <div className="flex flex-col items-center">
+                    <Input
+                      {...field}
+                      className="max-w-[180px]"
+                      type="number"
+                      value={field.value ? field.value.toString() : 0}
+                      onChange={(event) => {
+                        field.onChange(event.target.valueAsNumber);
+                      }}
+                      disabled={isReadonly}
+                    />
+                    <FormMessage />
+                  </div>
+                </FormControl>
+              </div>
             </FormItem>
           )}
         />
@@ -70,31 +72,33 @@ export default function TransformFloat64Form(props: Props): ReactElement {
           control={form.control}
           name={`randomizationRangeMax`}
           render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-              <div className="space-y-0.5">
-                <FormLabel>Relative Maximum Range Value</FormLabel>
-                <FormDescription className="w-[90%]">
-                  Sets a relative maximum upper range value. This will create an
-                  upperbound around the source input value. For example, if the
-                  input value is 10, and you set this value to 5, then the
-                  maximum range will be 15.
-                </FormDescription>
-              </div>
-              <FormControl>
-                <div className="max-w-[180px]">
-                  <Input
-                    {...field}
-                    className="max-w-[180px]"
-                    type="number"
-                    value={field.value ? field.value.toString() : 0}
-                    onChange={(event) => {
-                      field.onChange(event.target.valueAsNumber);
-                    }}
-                    disabled={isReadonly}
-                  />
+            <FormItem className="rounded-lg border p-3 shadow-sm">
+              <div className="flex flex-row items-start justify-between">
+                <div className="flex flex-col space-y-2">
+                  <FormLabel>Relative Maximum Range Value</FormLabel>
+                  <FormDescription className="w-[90%]">
+                    Sets a relative maximum upper range value. This will create
+                    an upperbound around the source input value. For example, if
+                    the input value is 10, and you set this value to 5, then the
+                    maximum range will be 15.
+                  </FormDescription>
                 </div>
-              </FormControl>
-              <FormMessage />
+                <FormControl>
+                  <div className="flex flex-col items-center">
+                    <Input
+                      {...field}
+                      className="max-w-[180px]"
+                      type="number"
+                      value={field.value ? field.value.toString() : 0}
+                      onChange={(event) => {
+                        field.onChange(event.target.valueAsNumber);
+                      }}
+                      disabled={isReadonly}
+                    />
+                    <FormMessage />
+                  </div>
+                </FormControl>
+              </div>
             </FormItem>
           )}
         />

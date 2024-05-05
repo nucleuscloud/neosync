@@ -103,27 +103,31 @@ export default function TransformEmailForm(props: Props): ReactElement {
           control={form.control}
           name={`excludedDomains`}
           render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm gap-4 ">
-              <div className="space-y-0.5">
-                <FormLabel>Excluded Domains</FormLabel>
-                <FormDescription>
-                  Provide a list of comma-separated domains that you want to be
-                  excluded from the transformer. Do not provide an @ with the
-                  domains.{' '}
-                </FormDescription>
-              </div>
-              <FormControl>
-                <div className="min-w-[300px]">
-                  <Input
-                    {...field}
-                    onChange={(e) => field.onChange(e.target.value.split(','))}
-                    disabled={isReadonly}
-                    type="string"
-                    className="min-w-[300px]"
-                  />
+            <FormItem className="rounded-lg border p-3 shadow-sm">
+              <div className="flex flex-row items-start justify-between">
+                <div className="flex flex-col space-y-2">
+                  <FormLabel>Excluded Domains</FormLabel>
+                  <FormDescription>
+                    Provide a list of comma-separated domains that you want to
+                    be excluded from the transformer. Do not provide an @ with
+                    the domains.{' '}
+                  </FormDescription>
                 </div>
-              </FormControl>
-              <FormMessage />
+                <FormControl>
+                  <div className="flex flex-col items-center">
+                    <Input
+                      {...field}
+                      onChange={(e) =>
+                        field.onChange(e.target.value.split(','))
+                      }
+                      disabled={isReadonly}
+                      type="string"
+                      className="min-w-[300px]"
+                    />
+                    <FormMessage />
+                  </div>
+                </FormControl>
+              </div>
             </FormItem>
           )}
         />
