@@ -1,0 +1,28 @@
+on:
+  pull_request:
+    # paths:
+    #   - backend/**.go
+    #   - worker/**.go
+    #   - cli/**.go
+
+name: Golang Lint
+
+jobs:
+  golangci:
+    name: Golang Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: "**/go.sum"
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v5
+        with:
+          version: latest
+          args: --timeout=5m
