@@ -49,7 +49,6 @@ const (
 	TransformerSource_TRANSFORMER_SOURCE_GENERATE_STATE               TransformerSource = 21
 	TransformerSource_TRANSFORMER_SOURCE_GENERATE_STREET_ADDRESS      TransformerSource = 22
 	TransformerSource_TRANSFORMER_SOURCE_GENERATE_STRING_PHONE_NUMBER TransformerSource = 23
-	// @deprecated - use GENERATE_RANDOM_STRING
 	TransformerSource_TRANSFORMER_SOURCE_GENERATE_STRING              TransformerSource = 24
 	TransformerSource_TRANSFORMER_SOURCE_GENERATE_RANDOM_STRING       TransformerSource = 25
 	TransformerSource_TRANSFORMER_SOURCE_GENERATE_UNIXTIMESTAMP       TransformerSource = 26

@@ -131,8 +131,6 @@ export enum TransformerSource {
   GENERATE_STRING_PHONE_NUMBER = 23,
 
   /**
-   * @deprecated - use GENERATE_RANDOM_STRING
-   *
    * @generated from enum value: TRANSFORMER_SOURCE_GENERATE_STRING = 24;
    */
   GENERATE_STRING = 24,
