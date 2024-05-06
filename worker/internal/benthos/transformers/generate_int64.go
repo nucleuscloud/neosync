@@ -62,8 +62,8 @@ func init() {
 /*
 Generates a random int64 in the interval [min, max].
 */
-func generateRandomInt64(randomizeSign bool, min, max int64) (int64, error) {
-	output, err := transformer_utils.GenerateRandomInt64InValueRange(min, max)
+func generateRandomInt64(randomizeSign bool, minValue, maxValue int64) (int64, error) {
+	output, err := transformer_utils.GenerateRandomInt64InValueRange(minValue, maxValue)
 	if err != nil {
 		return 0, err
 	}

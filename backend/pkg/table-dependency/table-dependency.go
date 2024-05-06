@@ -410,16 +410,16 @@ func cycleOrder(cycle []string) []string {
 	if len(cycle) == 0 {
 		return []string{}
 	}
-	min := cycle[0]
+	minVal := cycle[0]
 	for _, node := range cycle {
-		if node < min {
-			min = node
+		if node < minVal {
+			minVal = node
 		}
 	}
 
 	startIndex := -1
 	for i, node := range cycle {
-		if node == min && (startIndex == -1 || cycle[i-1] > cycle[(i+1)%len(cycle)]) {
+		if node == minVal && (startIndex == -1 || cycle[i-1] > cycle[(i+1)%len(cycle)]) {
 			startIndex = i
 		}
 	}

@@ -53,31 +53,31 @@ func Test_GetFloat64Legth(t *testing.T) {
 }
 
 func Test_GetFloat64Range(t *testing.T) {
-	min := float64(2.2)
-	max := float64(4.2)
+	minValue := float64(2.2)
+	maxValue := float64(4.2)
 
-	val, err := GetFloat64Range(min, max)
+	val, err := GetFloat64Range(minValue, maxValue)
 	assert.NoError(t, err)
 
-	assert.Equal(t, max-min, val)
+	assert.Equal(t, maxValue-minValue, val)
 }
 
 func Test_GetFloat64RangeError(t *testing.T) {
-	min := float64(6.9)
-	max := float64(2.2)
+	minValue := float64(6.9)
+	maxValue := float64(2.2)
 
-	_, err := GetFloat64Range(min, max)
+	_, err := GetFloat64Range(minValue, maxValue)
 	assert.Error(t, err)
 }
 
 func Test_GetFloat64RangeMinEqualMax(t *testing.T) {
-	min := float64(2.2)
-	max := float64(2.2)
+	minValue := float64(2.2)
+	maxValue := float64(2.2)
 
-	val, err := GetFloat64Range(min, max)
+	val, err := GetFloat64Range(minValue, maxValue)
 	assert.NoError(t, err)
 
-	assert.Equal(t, min, val)
+	assert.Equal(t, minValue, val)
 }
 
 func Test_IsNegativeFloatTrue(t *testing.T) {

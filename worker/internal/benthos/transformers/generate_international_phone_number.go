@@ -41,12 +41,12 @@ func init() {
 
 /*  Generates a random phone number in e164 format in the length interval [min, max] with the min length == 9 and the max length == 15.
  */
-func generateInternationalPhoneNumber(min, max int64) (string, error) {
-	if min < 9 || max > 15 {
+func generateInternationalPhoneNumber(minValue, maxValue int64) (string, error) {
+	if minValue < 9 || maxValue > 15 {
 		return "", errors.New("the length has between 9 and 15 characters long")
 	}
 
-	val, err := transformer_utils.GenerateRandomInt64InLengthRange(min, max)
+	val, err := transformer_utils.GenerateRandomInt64InLengthRange(minValue, maxValue)
 	if err != nil {
 		return "", nil
 	}

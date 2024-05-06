@@ -367,17 +367,17 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_CITY:
 		return fmt.Sprintf(`generate_city(max_length:%d)`, maxLen), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_E164_PHONE_NUMBER:
-		min := col.Transformer.Config.GetGenerateE164PhoneNumberConfig().Min
-		max := col.Transformer.Config.GetGenerateE164PhoneNumberConfig().Max
-		return fmt.Sprintf(`generate_e164_phone_number(min:%d,max:%d)`, min, max), nil
+		minValue := col.Transformer.Config.GetGenerateE164PhoneNumberConfig().Min
+		maxValue := col.Transformer.Config.GetGenerateE164PhoneNumberConfig().Max
+		return fmt.Sprintf(`generate_e164_phone_number(min:%d,max:%d)`, minValue, maxValue), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FIRST_NAME:
 		return fmt.Sprintf(`generate_first_name(max_length:%d)`, maxLen), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FLOAT64:
 		randomSign := col.Transformer.Config.GetGenerateFloat64Config().RandomizeSign
-		min := col.Transformer.Config.GetGenerateFloat64Config().Min
-		max := col.Transformer.Config.GetGenerateFloat64Config().Max
+		minValue := col.Transformer.Config.GetGenerateFloat64Config().Min
+		maxValue := col.Transformer.Config.GetGenerateFloat64Config().Max
 		precision := col.Transformer.Config.GetGenerateFloat64Config().Precision
-		return fmt.Sprintf(`generate_float64(randomize_sign:%t, min:%f, max:%f, precision:%d)`, randomSign, min, max, precision), nil
+		return fmt.Sprintf(`generate_float64(randomize_sign:%t, min:%f, max:%f, precision:%d)`, randomSign, minValue, maxValue, precision), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_ADDRESS:
 		return fmt.Sprintf(`generate_full_address(max_length:%d)`, maxLen), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_NAME:
@@ -389,9 +389,9 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		return "generate_int64_phone_number()", nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_INT64:
 		sign := col.Transformer.Config.GetGenerateInt64Config().RandomizeSign
-		min := col.Transformer.Config.GetGenerateInt64Config().Min
-		max := col.Transformer.Config.GetGenerateInt64Config().Max
-		return fmt.Sprintf(`generate_int64(randomize_sign:%t,min:%d, max:%d)`, sign, min, max), nil
+		minValue := col.Transformer.Config.GetGenerateInt64Config().Min
+		maxValue := col.Transformer.Config.GetGenerateInt64Config().Max
+		return fmt.Sprintf(`generate_int64(randomize_sign:%t,min:%d, max:%d)`, sign, minValue, maxValue), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_LAST_NAME:
 		return fmt.Sprintf(`generate_last_name(max_length:%d)`, maxLen), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_SHA256HASH:
@@ -403,18 +403,18 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_STREET_ADDRESS:
 		return fmt.Sprintf(`generate_street_address(max_length:%d)`, maxLen), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_STRING_PHONE_NUMBER:
-		min := col.Transformer.Config.GetGenerateStringPhoneNumberConfig().Min
-		max := col.Transformer.Config.GetGenerateStringPhoneNumberConfig().Max
-		min = transformer_utils.MinInt(min, maxLen)
-		max = transformer_utils.Ceil(max, maxLen)
-		return fmt.Sprintf("generate_string_phone_number(min:%d,max:%d)", min, max), nil
+		minValue := col.Transformer.Config.GetGenerateStringPhoneNumberConfig().Min
+		maxValue := col.Transformer.Config.GetGenerateStringPhoneNumberConfig().Max
+		minValue = transformer_utils.MinInt(minValue, maxLen)
+		maxValue = transformer_utils.Ceil(maxValue, maxLen)
+		return fmt.Sprintf("generate_string_phone_number(min:%d,max:%d)", minValue, maxValue), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_RANDOM_STRING:
-		min := col.Transformer.Config.GetGenerateStringConfig().Min
-		max := col.Transformer.Config.GetGenerateStringConfig().Max
-		min = transformer_utils.MinInt(min, maxLen) // ensure the min is not larger than the max allowed length
-		max = transformer_utils.Ceil(max, maxLen)
+		minValue := col.Transformer.Config.GetGenerateStringConfig().Min
+		maxValue := col.Transformer.Config.GetGenerateStringConfig().Max
+		minValue = transformer_utils.MinInt(minValue, maxLen) // ensure the min is not larger than the max allowed length
+		maxValue = transformer_utils.Ceil(maxValue, maxLen)
 		// todo: we need to pull in the min from the database schema
-		return fmt.Sprintf(`generate_string(min:%d,max:%d)`, min, max), nil
+		return fmt.Sprintf(`generate_string(min:%d,max:%d)`, minValue, maxValue), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_UNIXTIMESTAMP:
 		return "generate_unixtimestamp()", nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_USERNAME:

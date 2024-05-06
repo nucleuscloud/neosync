@@ -10,13 +10,13 @@ import (
 /* FLOAT MANIPULATION UTILS */
 
 // Generates a random float64 in the range of the min and max float64 values
-func GenerateRandomFloat64WithInclusiveBounds(min, max float64) (float64, error) {
-	if min > max {
-		min, max = max, min
+func GenerateRandomFloat64WithInclusiveBounds(minValue, maxValue float64) (float64, error) {
+	if minValue > maxValue {
+		minValue, maxValue = maxValue, minValue
 	}
 
-	if min == max {
-		return min, nil
+	if minValue == maxValue {
+		return minValue, nil
 	}
 
 	// generates a rand float64 value from [0.0,1.0)
@@ -24,7 +24,7 @@ func GenerateRandomFloat64WithInclusiveBounds(min, max float64) (float64, error)
 	randValue := rand.Float64()
 
 	// Scale and shift the value to the range
-	returnValue := min + randValue*(max-min)
+	returnValue := minValue + randValue*(maxValue-minValue)
 	return returnValue, nil
 }
 
@@ -46,16 +46,16 @@ func GetFloat64Length(i float64) int64 {
 }
 
 // Returns the float64 range between the min and max
-func GetFloat64Range(min, max float64) (float64, error) {
-	if min > max {
+func GetFloat64Range(minValue, maxValue float64) (float64, error) {
+	if minValue > maxValue {
 		return 0, fmt.Errorf("min cannot be greater than max")
 	}
 
-	if min == max {
-		return min, nil
+	if minValue == maxValue {
+		return minValue, nil
 	}
 
-	return max - min, nil
+	return maxValue - minValue, nil
 }
 
 func IsNegativeFloat64(val float64) bool {

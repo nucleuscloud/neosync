@@ -50,8 +50,8 @@ func init() {
 }
 
 /* Generates a random float64 value within the interval [min, max]*/
-func generateRandomFloat64(randomizeSign bool, min, max float64, precision int64) (float64, error) {
-	generatedVal, err := transformer_utils.GenerateRandomFloat64WithInclusiveBounds(min, max)
+func generateRandomFloat64(randomizeSign bool, minValue, maxValue float64, precision int64) (float64, error) {
+	generatedVal, err := transformer_utils.GenerateRandomFloat64WithInclusiveBounds(minValue, maxValue)
 	if err != nil {
 		return 0, err
 	}

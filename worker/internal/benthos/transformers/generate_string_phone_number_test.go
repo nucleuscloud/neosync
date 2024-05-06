@@ -9,10 +9,10 @@ import (
 )
 
 func Test_GenerateStringPhoneNumber(t *testing.T) {
-	min := int64(9)
-	max := int64(14)
+	minValue := int64(9)
+	maxValue := int64(14)
 
-	res, err := generateStringPhoneNumber(min, max)
+	res, err := generateStringPhoneNumber(minValue, maxValue)
 
 	assert.NoError(t, err)
 	assert.GreaterOrEqual(t, len(res), 9, "Should be greater than 10 characters in length. 9 for the number and 1 for the plus sign.")
@@ -20,22 +20,22 @@ func Test_GenerateStringPhoneNumber(t *testing.T) {
 }
 
 func Test_GenerateStringPhoneNumberEqualMinMax(t *testing.T) {
-	min := int64(12)
-	max := int64(12)
+	minValue := int64(12)
+	maxValue := int64(12)
 
-	res, err := generateStringPhoneNumber(min, max)
+	res, err := generateStringPhoneNumber(minValue, maxValue)
 
 	assert.NoError(t, err)
 	assert.GreaterOrEqual(t, len(res), 8, "Should be greater than 9 characters in length. 9 for the number and 1 for the plus sign.")
 	assert.LessOrEqual(t, len(res), 15, "Should be less than 16 characters in length. 15 for the number and 1 for the plus sign.")
-	assert.Equal(t, int64(len(res)), max)
+	assert.Equal(t, int64(len(res)), maxValue)
 }
 
 func Test_GenerateStringPhoneNumberShortMax(t *testing.T) {
-	min := int64(9)
+	minValue := int64(9)
 	maxPhoneLimit := 11
 
-	res, err := generateStringPhoneNumber(min, int64(maxPhoneLimit))
+	res, err := generateStringPhoneNumber(minValue, int64(maxPhoneLimit))
 
 	assert.NoError(t, err)
 	assert.GreaterOrEqual(t, len(res), 8, "Should be greater than 9 characters in length. 9 for the number and 1 for the plus sign.")
@@ -43,9 +43,9 @@ func Test_GenerateStringPhoneNumberShortMax(t *testing.T) {
 }
 
 func Test_GenerateStringPhoneNumberTransformer(t *testing.T) {
-	min := int64(10)
-	max := int64(13)
-	mapping := fmt.Sprintf(`root = generate_string_phone_number(min:%d,max:%d)`, min, max)
+	minValue := int64(10)
+	maxValue := int64(13)
+	mapping := fmt.Sprintf(`root = generate_string_phone_number(min:%d,max:%d)`, minValue, maxValue)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the phone transformer")
 
