@@ -8,21 +8,26 @@ on:
 name: Golang Lint
 
 jobs:
-  golangci:
-    name: Golang Lint
+  resolve-modules:
+    name: Resolve Go Modules
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - name: Checkout
+      - name: Checkout Sources
         uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: backend/go.mod
-          cache-dependency-path: "**/go.sum"
-
-      - name: golangci-lint
+      - id: set-matrix
+        run: ./hack/resolve-go-modules.sh
+  golangci:
+    name: Linter
+    needs: resolve-modules
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.resolve-modules.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: golangci
         uses: golangci/golangci-lint-action@v5
         with:
           version: latest
-          args: --timeout=5m
+          working-directory: ${{ matrix.workdir }}
