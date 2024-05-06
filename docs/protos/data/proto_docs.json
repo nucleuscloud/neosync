@@ -4078,7 +4078,7 @@
             {
               "name": "TRANSFORMER_SOURCE_GENERATE_STRING",
               "number": "24",
-              "description": ""
+              "description": "@deprecated - use GENERATE_RANDOM_STRING"
             },
             {
               "name": "TRANSFORMER_SOURCE_GENERATE_RANDOM_STRING",
