@@ -38,11 +38,11 @@
     "tailwindcss": "^3.4.3"
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "^3.2.1",
-    "@docusaurus/types": "^3.2.1",
+    "@docusaurus/module-type-aliases": "^3.3.2",
+    "@docusaurus/types": "^3.3.2",
     "@tsconfig/docusaurus": "^2.0.3",
-    "cspell": "^8.7.0",
-    "knip": "^5.11.0",
+    "cspell": "^8.8.0",
+    "knip": "^5.12.3",
     "postcss-import": "^16.1.0",
     "postcss-nesting": "^12.1.2",
     "prettier": "^3.2.5",
