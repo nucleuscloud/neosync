@@ -382,13 +382,13 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 			userDefinedPrecision := col.GetTransformer().GetConfig().GetGenerateFloat64Config().GetPrecision()
 			precision = &userDefinedPrecision
 		}
-		if colInfo.NumericPrecision != nil && *colInfo.NumericPrecision > 0 {
+		if colInfo != nil && colInfo.NumericPrecision != nil && *colInfo.NumericPrecision > 0 {
 			newPrecision := transformer_utils.Ceil(*precision, int64(*colInfo.NumericPrecision))
 			precision = &newPrecision
 		}
 
 		var scale *int64
-		if colInfo.NumericScale != nil && *colInfo.NumericScale > 0 {
+		if colInfo != nil && colInfo.NumericScale != nil && *colInfo.NumericScale > 0 {
 			newScale := int64(*colInfo.NumericScale)
 			scale = &newScale
 		}
