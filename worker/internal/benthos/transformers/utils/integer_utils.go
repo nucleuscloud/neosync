@@ -20,53 +20,53 @@ func GenerateRandomInt64FixedLength(l int64) (int64, error) {
 		return 0, fmt.Errorf("length is too large")
 	}
 
-	min := int64(math.Pow10(int(l - 1)))
-	max := int64(math.Pow10(int(l))) - 1
+	minValue := int64(math.Pow10(int(l - 1)))
+	maxValue := int64(math.Pow10(int(l))) - 1
 
 	// Generate a random number in the range
 	//nolint:gosec
-	return min + rand.Int63n(max-min+1), nil
+	return minValue + rand.Int63n(maxValue-minValue+1), nil
 }
 
 /*
 Generates a random int64 with length in the inclusive range of [min, max]. For example, given a length range of [4, 7], possible values will have a length ranging from 4 -> 7 digits.
 */
-func GenerateRandomInt64InLengthRange(min, max int64) (int64, error) {
-	if min > max {
-		min, max = max, min
+func GenerateRandomInt64InLengthRange(minValue, maxValue int64) (int64, error) {
+	if minValue > maxValue {
+		minValue, maxValue = maxValue, minValue
 	}
 
 	// Ensure the length doesn't exceed the limit for int64
-	if min > 19 || max > 19 {
+	if minValue > 19 || maxValue > 19 {
 		return 0, fmt.Errorf("length of integer must not exceed 19")
 	}
 
-	val, err := GenerateRandomInt64InValueRange(min, max)
+	val, err := GenerateRandomInt64InValueRange(minValue, maxValue)
 	if err != nil {
-		return 0, fmt.Errorf("unable to generate a value in the range provided [%d:%d]: %w", min, max, err)
+		return 0, fmt.Errorf("unable to generate a value in the range provided [%d:%d]: %w", minValue, maxValue, err)
 	}
 
 	res, err := GenerateRandomInt64FixedLength(val)
 	if err != nil {
-		return 0, fmt.Errorf("unable to generate fixed int64 in the range provided [%d:%d: %w]", min, max, err)
+		return 0, fmt.Errorf("unable to generate fixed int64 in the range provided [%d:%d: %w]", minValue, maxValue, err)
 	}
 
 	return res, nil
 }
 
 /* Generates a random int64 in the inclusive range of [min, max]. For example, given a range of [40, 50], possible values range from 40 -> 50, inclusive. */
-func GenerateRandomInt64InValueRange(min, max int64) (int64, error) {
-	if min > max {
-		min, max = max, min
+func GenerateRandomInt64InValueRange(minValue, maxValue int64) (int64, error) {
+	if minValue > maxValue {
+		minValue, maxValue = maxValue, minValue
 	}
 
-	if min == max {
-		return min, nil
+	if minValue == maxValue {
+		return minValue, nil
 	}
 
-	rangeVal := max - min + 1
+	rangeVal := maxValue - minValue + 1
 	//nolint:gosec
-	return min + rand.Int63n(rangeVal), nil
+	return minValue + rand.Int63n(rangeVal), nil
 }
 
 // gets the number of digits in an int64

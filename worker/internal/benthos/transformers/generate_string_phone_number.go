@@ -38,11 +38,11 @@ func init() {
 
 /*  Generates a string phone number in the length interval [min, max] with the min length == 9 and the max length == 15.
  */
-func generateStringPhoneNumber(min, max int64) (string, error) {
-	min = transformer_utils.Floor(min, 9)
-	max = transformer_utils.Ceil(max, 15)
+func generateStringPhoneNumber(minValue, maxValue int64) (string, error) {
+	minValue = transformer_utils.Floor(minValue, 9)
+	maxValue = transformer_utils.Ceil(maxValue, 15)
 
-	val, err := transformer_utils.GenerateRandomInt64InLengthRange(min, max)
+	val, err := transformer_utils.GenerateRandomInt64InLengthRange(minValue, maxValue)
 	if err != nil {
 		return "", err
 	}

@@ -26,20 +26,20 @@ func Test_GenerateRandomInt64WithFixedLengthError(t *testing.T) {
 }
 
 func Test_GenerateRandomInt64InLengthRange(t *testing.T) {
-	min := int64(3)
-	max := int64(7)
+	minValue := int64(3)
+	maxValue := int64(7)
 
-	val, err := GenerateRandomInt64InLengthRange(min, max)
+	val, err := GenerateRandomInt64InLengthRange(minValue, maxValue)
 	assert.NoError(t, err)
 
-	assert.GreaterOrEqual(t, GetInt64Length(val), min, "The expected value should be greater than or equal to the minimum length.")
-	assert.LessOrEqual(t, GetInt64Length(val), max, "The expected value should be less than or equal to the maximum length")
+	assert.GreaterOrEqual(t, GetInt64Length(val), minValue, "The expected value should be greater than or equal to the minimum length.")
+	assert.LessOrEqual(t, GetInt64Length(val), maxValue, "The expected value should be less than or equal to the maximum length")
 }
 
 func Test_GenerateRandomInt64InLengthRangeError(t *testing.T) {
-	min := int64(3)
-	max := int64(29)
-	_, err := GenerateRandomInt64InLengthRange(min, max)
+	minValue := int64(3)
+	maxValue := int64(29)
+	_, err := GenerateRandomInt64InLengthRange(minValue, maxValue)
 	assert.Error(t, err, "The int length is greater than 19 and too long")
 }
 
@@ -71,12 +71,12 @@ func Test_GenerateRandomInt64InValueRange(t *testing.T) {
 }
 
 func Test_GenerateRandomInt64InValueRange_Swapped_MinMax(t *testing.T) {
-	min := int64(2)
-	max := int64(1)
-	output, err := GenerateRandomInt64InValueRange(min, max)
+	minValue := int64(2)
+	maxValue := int64(1)
+	output, err := GenerateRandomInt64InValueRange(minValue, maxValue)
 	assert.NoError(t, err)
-	assert.GreaterOrEqual(t, output, max)
-	assert.LessOrEqual(t, output, min)
+	assert.GreaterOrEqual(t, output, maxValue)
+	assert.LessOrEqual(t, output, minValue)
 }
 
 func Test_GetInt64Legth(t *testing.T) {

@@ -66,17 +66,17 @@ func Test_GenerateRandomInt_Randomized_Range(t *testing.T) {
 }
 
 func Test_GenerateRandomInt_Benthos(t *testing.T) {
-	min := int64(2)
-	max := int64(9)
+	minValue := int64(2)
+	maxValue := int64(9)
 	randomizeSign := false
 
-	mapping := fmt.Sprintf(`root = generate_int64(randomize_sign:%t, min:%d, max:%d)`, randomizeSign, min, max)
+	mapping := fmt.Sprintf(`root = generate_int64(randomize_sign:%t, min:%d, max:%d)`, randomizeSign, minValue, maxValue)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the random int transformer")
 
 	res, err := ex.Query(nil)
 	assert.NoError(t, err)
 
-	assert.GreaterOrEqual(t, res, min, "The result should be greater or equal to the minimum")
-	assert.LessOrEqual(t, res, max, "The result should be less or equal to the maximum")
+	assert.GreaterOrEqual(t, res, minValue, "The result should be greater or equal to the minimum")
+	assert.LessOrEqual(t, res, maxValue, "The result should be less or equal to the maximum")
 }
