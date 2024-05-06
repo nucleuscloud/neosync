@@ -376,8 +376,36 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		randomSign := col.Transformer.Config.GetGenerateFloat64Config().RandomizeSign
 		minValue := col.Transformer.Config.GetGenerateFloat64Config().Min
 		maxValue := col.Transformer.Config.GetGenerateFloat64Config().Max
-		precision := col.Transformer.Config.GetGenerateFloat64Config().Precision
-		return fmt.Sprintf(`generate_float64(randomize_sign:%t, min:%f, max:%f, precision:%d)`, randomSign, minValue, maxValue, precision), nil
+
+		var precision *int64
+		if col.GetTransformer().GetConfig().GetGenerateFloat64Config().GetPrecision() > 0 {
+			userDefinedPrecision := col.GetTransformer().GetConfig().GetGenerateFloat64Config().GetPrecision()
+			precision = &userDefinedPrecision
+		}
+		if colInfo.NumericPrecision != nil && *colInfo.NumericPrecision > 0 {
+			newPrecision := transformer_utils.Ceil(*precision, int64(*colInfo.NumericPrecision))
+			precision = &newPrecision
+		}
+
+		var scale *int64
+		if colInfo.NumericScale != nil && *colInfo.NumericScale > 0 {
+			newScale := int64(*colInfo.NumericScale)
+			scale = &newScale
+		}
+
+		fnStr := []string{"randomize_sign:%t", "min:%f", "max:%f"}
+		params := []any{randomSign, minValue, maxValue}
+
+		if precision != nil {
+			fnStr = append(fnStr, "precision: %d")
+			params = append(params, *precision)
+		}
+		if scale != nil {
+			fnStr = append(fnStr, "scale: %d")
+			params = append(params, *scale)
+		}
+		template := fmt.Sprintf("generate_float64(%s)", strings.Join(fnStr, ", "))
+		return fmt.Sprintf(template, params...), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_ADDRESS:
 		return fmt.Sprintf(`generate_full_address(max_length:%d)`, maxLen), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_FULL_NAME:

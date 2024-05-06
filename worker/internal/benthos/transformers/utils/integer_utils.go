@@ -55,16 +55,16 @@ func GenerateRandomInt64InLengthRange(minValue, maxValue int64) (int64, error) {
 }
 
 /* Generates a random int64 in the inclusive range of [min, max]. For example, given a range of [40, 50], possible values range from 40 -> 50, inclusive. */
-func GenerateRandomInt64InValueRange(minValue, maxValue int64) (int64, error) {
-	if minValue > maxValue {
-		minValue, maxValue = maxValue, minValue
+func GenerateRandomInt64InValueRange(minValue, max int64) (int64, error) {
+	if minValue > max {
+		minValue, max = max, minValue
 	}
 
-	if minValue == maxValue {
+	if minValue == max {
 		return minValue, nil
 	}
 
-	rangeVal := maxValue - minValue + 1
+	rangeVal := max - minValue + 1
 	//nolint:gosec
 	return minValue + rand.Int63n(rangeVal), nil
 }

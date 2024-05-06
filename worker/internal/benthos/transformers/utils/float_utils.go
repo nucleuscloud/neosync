@@ -2,15 +2,16 @@ package transformer_utils
 
 import (
 	"fmt"
-	"math/rand"
 	"strconv"
 	"strings"
+
+	"github.com/nucleuscloud/neosync/worker/internal/rng"
 )
 
 /* FLOAT MANIPULATION UTILS */
 
 // Generates a random float64 in the range of the min and max float64 values
-func GenerateRandomFloat64WithInclusiveBounds(minValue, maxValue float64) (float64, error) {
+func GenerateRandomFloat64WithInclusiveBounds(randomizer rng.Rand, minValue, maxValue float64) (float64, error) {
 	if minValue > maxValue {
 		minValue, maxValue = maxValue, minValue
 	}
@@ -19,9 +20,7 @@ func GenerateRandomFloat64WithInclusiveBounds(minValue, maxValue float64) (float
 		return minValue, nil
 	}
 
-	// generates a rand float64 value from [0.0,1.0)
-	//nolint:all
-	randValue := rand.Float64()
+	randValue := randomizer.Float64()
 
 	// Scale and shift the value to the range
 	returnValue := minValue + randValue*(maxValue-minValue)
@@ -80,22 +79,4 @@ func GetFloatLength(i float64) *FloatLength {
 		DigitsBeforeDecimalLength: int64(len(parsed[0])),
 		DigitsAfterDecimalLength:  int64(len(parsed[1])),
 	}
-}
-
-func ReduceFloat64Precision(precision int, value float64) (float64, error) {
-	if precision < 1 {
-		return 0, fmt.Errorf("precision cannot be less than 1")
-	}
-
-	if precision > 17 {
-		return 0, fmt.Errorf("precision cannot be greater than 17")
-	}
-
-	res := strconv.FormatFloat(value, 'g', precision, 64)
-
-	f, err := strconv.ParseFloat(res, 64)
-	if err != nil {
-		return 0, fmt.Errorf("unable to convert string to float64 value: %w", err)
-	}
-	return f, nil
 }
