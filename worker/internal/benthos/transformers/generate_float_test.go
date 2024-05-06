@@ -3,33 +3,38 @@ package transformers
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
+	"github.com/nucleuscloud/neosync/worker/internal/rng"
+	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_GenerateRandomFloat(t *testing.T) {
 	type testcase struct {
+		randomizer    rng.Rand
 		randomizeSign bool
 		min           float64
 		max           float64
-		precision     int64
+		precision     *int64
+		scale         *int64
 
 		floor float64
 		ceil  float64
 	}
 	testcases := []testcase{
-		{randomizeSign: false, min: 0, max: 100, precision: 7, floor: 0, ceil: 100},
-		{randomizeSign: false, min: -100, max: 100, precision: 7, floor: -100, ceil: 100},
-		{randomizeSign: true, min: 20, max: 40, precision: 7, floor: -40, ceil: 40},
-		{randomizeSign: false, min: 12.3, max: 19.2, precision: 7, floor: 12.3, ceil: 19.2},
-		{randomizeSign: false, min: 12.3, max: 19.2, precision: 3, floor: 12.3, ceil: 19.2},
+		{randomizer: rng.New(time.Now().UnixNano()), randomizeSign: false, min: 0, max: 100, precision: shared.Ptr(int64(7)), floor: 0, ceil: 100},
+		{randomizer: rng.New(time.Now().UnixNano()), randomizeSign: false, min: -100, max: 100, precision: shared.Ptr(int64(7)), floor: -100, ceil: 100},
+		{randomizer: rng.New(time.Now().UnixNano()), randomizeSign: true, min: 20, max: 40, precision: shared.Ptr(int64(7)), floor: -40, ceil: 40},
+		{randomizer: rng.New(time.Now().UnixNano()), randomizeSign: false, min: 12.3, max: 19.2, precision: shared.Ptr(int64(7)), floor: 12.3, ceil: 19.2},
+		{randomizer: rng.New(time.Now().UnixNano()), randomizeSign: false, min: 12.3, max: 19.2, precision: shared.Ptr(int64(3)), scale: shared.Ptr(int64(1)), floor: 12.3, ceil: 19.2},
 	}
 
 	for _, tc := range testcases {
 		t.Run("", func(t *testing.T) {
-			output, err := generateRandomFloat64(tc.randomizeSign, tc.min, tc.max, tc.precision)
+			output, err := generateRandomFloat64(tc.randomizer, tc.randomizeSign, tc.min, tc.max, tc.precision, tc.scale)
 			require.NoError(t, err)
 			require.GreaterOrEqual(t, output, tc.floor)
 			require.LessOrEqual(t, output, tc.ceil)
@@ -37,7 +42,7 @@ func Test_GenerateRandomFloat(t *testing.T) {
 	}
 }
 
-func Test_GenerateRandomFloat_Randomized_Range(t *testing.T) {
+func Test_GenerateRandomFloat_Randomized_Sign(t *testing.T) {
 	type testcase struct {
 		min       float64
 		max       float64
@@ -56,7 +61,7 @@ func Test_GenerateRandomFloat_Randomized_Range(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run("", func(t *testing.T) {
-			output, err := generateRandomFloat64(true, tc.min, tc.max, tc.precision)
+			output, err := generateRandomFloat64(rng.New(time.Now().UnixNano()), true, tc.min, tc.max, &tc.precision, nil)
 			require.NoError(t, err)
 			if output > 0 {
 				require.GreaterOrEqual(t, output, tc.positiveFloor)
@@ -74,8 +79,9 @@ func Test_GenerateRandomFloat_Benthos(t *testing.T) {
 	maxValue := float64(9.7)
 	randomizeSign := false
 	precision := int64(7)
+	scale := int64(1)
 
-	mapping := fmt.Sprintf(`root = generate_float64(randomize_sign:%t, min:%f, max:%f, precision: %d)`, randomizeSign, minValue, maxValue, precision)
+	mapping := fmt.Sprintf(`root = generate_float64(randomize_sign:%t, min:%f, max:%f, precision: %d, scale: %d)`, randomizeSign, minValue, maxValue, precision, scale)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the generate float transformer")
 
