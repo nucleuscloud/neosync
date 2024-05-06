@@ -62,6 +62,14 @@ export function convertTransformerConfigToForm(
 export function convertTransformerConfigSchemaToTransformerConfig(
   tcs: TransformerConfigSchema
 ): TransformerConfig {
+  // hack job that fixes bigint json transformation until we can fit this with better types
+  const value = tcs.value ?? {};
+  Object.entries(tcs.value).forEach(([key, val]) => {
+    value[key] = val;
+    if (typeof val === 'bigint') {
+      value[key] = val.toString();
+    }
+  });
   return tcs instanceof TransformerConfig
     ? tcs
     : TransformerConfig.fromJson({
