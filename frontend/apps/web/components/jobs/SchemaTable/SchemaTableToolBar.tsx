@@ -120,27 +120,15 @@ export function SchemaTableToolbar<TData>({
             variant="outline"
             onClick={() => {
               table.getSelectedRowModel().rows.forEach((r) => {
-                const colkey = {
-                  schema: r.getValue<string>('schema'),
-                  table: r.getValue<string>('table'),
-                  column: r.getValue<string>('column'),
-                };
-                const [isForeignKey] =
-                  constraintHandler.getIsForeignKey(colkey);
-                const isNullable = constraintHandler.getIsNullable(colkey);
-                if (
-                  isBulkUpdateable(bulkTransformer, isForeignKey, isNullable)
-                ) {
-                  form.setValue(
-                    `mappings.${r.index}.transformer`,
-                    bulkTransformer,
-                    {
-                      shouldDirty: true,
-                      shouldTouch: true,
-                      shouldValidate: false, // this is really expensive, see the trigger call below
-                    }
-                  );
-                }
+                form.setValue(
+                  `mappings.${r.index}.transformer`,
+                  bulkTransformer,
+                  {
+                    shouldDirty: true,
+                    shouldTouch: true,
+                    shouldValidate: false, // this is really expensive, see the trigger call below
+                  }
+                );
               });
               setBulkTransformer(
                 convertJobMappingTransformerToForm(new JobMappingTransformer())
@@ -179,24 +167,6 @@ export function SchemaTableToolbar<TData>({
       </div>
     </div>
   );
-}
-
-// see method in SchemaColumns.tsx transformer cell
-// should update to use similar logic
-function isBulkUpdateable(
-  transformer: JobMappingTransformerForm,
-  isForeignKey: boolean,
-  isNullable: boolean
-): boolean {
-  if (!isForeignKey || transformer.source === TransformerSource.UNSPECIFIED) {
-    return true;
-  }
-  const valid = new Set<TransformerSource>([TransformerSource.PASSTHROUGH]);
-  if (isNullable) {
-    valid.add(TransformerSource.GENERATE_NULL);
-  }
-
-  return valid.has(transformer.source);
 }
 
 function findCommonSystem(arrays: SystemTransformer[][]): TransformerSource[] {
