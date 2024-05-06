@@ -3,8 +3,10 @@ package transformers
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
+	"github.com/nucleuscloud/neosync/worker/internal/rng"
 	"github.com/stretchr/testify/require"
 )
 
@@ -13,7 +15,7 @@ func Test_TransformFloat64InRange(t *testing.T) {
 	rMin := float64(5)
 	rMax := float64(5)
 
-	res, err := transformFloat(&val, rMin, rMax)
+	res, err := transformFloat(rng.New(time.Now().UnixNano()), &val, rMin, rMax, nil, nil)
 	require.NoError(t, err)
 
 	require.GreaterOrEqual(t, *res, val-rMin, "The result should be greater than the min")

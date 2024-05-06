@@ -27,12 +27,12 @@ func init() {
 			return nil, err
 		}
 
-		min, err := args.GetFloat64("min")
+		minVal, err := args.GetFloat64("min")
 		if err != nil {
 			return nil, err
 		}
 
-		max, err := args.GetFloat64("max")
+		maxVal, err := args.GetFloat64("max")
 		if err != nil {
 			return nil, err
 		}
@@ -52,7 +52,7 @@ func init() {
 		randomizer := rng.New(seed)
 
 		return func() (any, error) {
-			res, err := generateRandomFloat64(randomizer, randomizeSign, min, max, precision, scale)
+			res, err := generateRandomFloat64(randomizer, randomizeSign, minVal, maxVal, precision, scale)
 			if err != nil {
 				return nil, fmt.Errorf("unable to run generate_float: %w", err)
 			}
