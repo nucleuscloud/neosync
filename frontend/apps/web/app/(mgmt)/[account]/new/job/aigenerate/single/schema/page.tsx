@@ -276,7 +276,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       form.setValue('table', '');
       return;
     }
-    if (action === 'add' || action === 'add-all') {
+    if (action === 'add') {
       setSelectedTables(items);
       const item = Array.from(items)[0];
       const [schema, table] = item.split('.');

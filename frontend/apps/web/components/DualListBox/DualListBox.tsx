@@ -25,7 +25,7 @@ export interface Option {
   value: string;
   // label: string;
 }
-export type Action = 'add' | 'add-all' | 'remove' | 'remove-all';
+export type Action = 'add' | 'remove';
 interface Props {
   options: Option[];
   selected: Set<string>;

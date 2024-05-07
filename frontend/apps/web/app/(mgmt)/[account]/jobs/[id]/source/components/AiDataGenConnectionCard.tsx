@@ -230,7 +230,7 @@ export default function AiDataGenConnectionCard({
       form.setValue('schema.table', '');
       return;
     }
-    if (action === 'add' || action === 'add-all') {
+    if (action === 'add') {
       setSelectedTables(items);
       const item = Array.from(items)[0];
       const [schema, table] = item.split('.');
