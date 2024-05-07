@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from 'crypto';
 import { format } from 'date-fns';
-import { utcToZonedTime } from 'date-fns-tz';
+import { toZonedTime } from 'date-fns-tz';
 import got from 'got';
 import { NextRequest, NextResponse } from 'next/server';
 import * as Yup from 'yup';
@@ -158,7 +158,7 @@ function getSlackMessage(event: RegisterEvent): { blocks: Block[] } {
       },
       {
         type: 'mrkdwn',
-        text: `*When*\n${format(utcToZonedTime(new Date(event.time), 'America/Los_Angeles'), 'MMM d yyyy h:mma')}`,
+        text: `*When*\n${format(toZonedTime(new Date(event.time), 'America/Los_Angeles'), 'MMM d yyyy h:mma')}`,
       },
     ],
   };
