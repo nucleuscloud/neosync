@@ -661,6 +661,14 @@ export class ConnectionConfig extends Message<ConnectionConfig> {
      */
     value: LocalDirectoryConnectionConfig;
     case: "localDirConfig";
+  } | {
+    /**
+     * Connection config for an OpenAI (or compatible) Connection
+     *
+     * @generated from field: mgmt.v1alpha1.OpenAiConnectionConfig openai_config = 5;
+     */
+    value: OpenAiConnectionConfig;
+    case: "openaiConfig";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<ConnectionConfig>) {
@@ -675,6 +683,7 @@ export class ConnectionConfig extends Message<ConnectionConfig> {
     { no: 2, name: "aws_s3_config", kind: "message", T: AwsS3ConnectionConfig, oneof: "config" },
     { no: 3, name: "mysql_config", kind: "message", T: MysqlConnectionConfig, oneof: "config" },
     { no: 4, name: "local_dir_config", kind: "message", T: LocalDirectoryConnectionConfig, oneof: "config" },
+    { no: 5, name: "openai_config", kind: "message", T: OpenAiConnectionConfig, oneof: "config" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectionConfig {
@@ -691,6 +700,55 @@ export class ConnectionConfig extends Message<ConnectionConfig> {
 
   static equals(a: ConnectionConfig | PlainMessage<ConnectionConfig> | undefined, b: ConnectionConfig | PlainMessage<ConnectionConfig> | undefined): boolean {
     return proto3.util.equals(ConnectionConfig, a, b);
+  }
+}
+
+/**
+ * Configures a connection to OpenAI or OpenAI compatible API.
+ *
+ * @generated from message mgmt.v1alpha1.OpenAiConnectionConfig
+ */
+export class OpenAiConnectionConfig extends Message<OpenAiConnectionConfig> {
+  /**
+   * OpenAI Api Key
+   *
+   * @generated from field: string api_key = 1;
+   */
+  apiKey = "";
+
+  /**
+   * OpenAI URL
+   *
+   * @generated from field: string api_url = 2;
+   */
+  apiUrl = "";
+
+  constructor(data?: PartialMessage<OpenAiConnectionConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.OpenAiConnectionConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "api_key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "api_url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): OpenAiConnectionConfig {
+    return new OpenAiConnectionConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): OpenAiConnectionConfig {
+    return new OpenAiConnectionConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): OpenAiConnectionConfig {
+    return new OpenAiConnectionConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: OpenAiConnectionConfig | PlainMessage<OpenAiConnectionConfig> | undefined, b: OpenAiConnectionConfig | PlainMessage<OpenAiConnectionConfig> | undefined): boolean {
+    return proto3.util.equals(OpenAiConnectionConfig, a, b);
   }
 }
 

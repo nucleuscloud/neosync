@@ -373,6 +373,38 @@ proto3.util.setEnumType(SupportedJobType, "mgmt.v1alpha1.SupportedJobType", [
 ]);
 
 /**
+ * @generated from enum mgmt.v1alpha1.GenerateEmailType
+ */
+export enum GenerateEmailType {
+  /**
+   * Unspecified defaults to uuid v4
+   *
+   * @generated from enum value: GENERATE_EMAIL_TYPE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * Generates a random uuid v4 (without hyphens) on the left side of the @. This has all the uniqueness guarantees of the standard uuid v4, along with randomized domains.
+   *
+   * @generated from enum value: GENERATE_EMAIL_TYPE_UUID_V4 = 1;
+   */
+  UUID_V4 = 1,
+
+  /**
+   * Generates a full name (firstnamelastname) on the left side of the @. This has high cardinality but is not guaranteed to be unique.
+   *
+   * @generated from enum value: GENERATE_EMAIL_TYPE_FULLNAME = 2;
+   */
+  FULLNAME = 2,
+}
+// Retrieve enum metadata with: proto3.getEnumType(GenerateEmailType)
+proto3.util.setEnumType(GenerateEmailType, "mgmt.v1alpha1.GenerateEmailType", [
+  { no: 0, name: "GENERATE_EMAIL_TYPE_UNSPECIFIED" },
+  { no: 1, name: "GENERATE_EMAIL_TYPE_UUID_V4" },
+  { no: 2, name: "GENERATE_EMAIL_TYPE_FULLNAME" },
+]);
+
+/**
  * @generated from message mgmt.v1alpha1.GetSystemTransformersRequest
  */
 export class GetSystemTransformersRequest extends Message<GetSystemTransformersRequest> {
@@ -1508,6 +1540,13 @@ export class TransformerConfig extends Message<TransformerConfig> {
  * @generated from message mgmt.v1alpha1.GenerateEmail
  */
 export class GenerateEmail extends Message<GenerateEmail> {
+  /**
+   * Optionally specify the type of email to generate. The types specified determine the contents on the left side of the @.
+   *
+   * @generated from field: optional mgmt.v1alpha1.GenerateEmailType email_type = 1;
+   */
+  emailType?: GenerateEmailType;
+
   constructor(data?: PartialMessage<GenerateEmail>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1516,6 +1555,7 @@ export class GenerateEmail extends Message<GenerateEmail> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GenerateEmail";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "email_type", kind: "enum", T: proto3.getEnumType(GenerateEmailType), opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GenerateEmail {
@@ -1540,19 +1580,32 @@ export class GenerateEmail extends Message<GenerateEmail> {
  */
 export class TransformEmail extends Message<TransformEmail> {
   /**
+   * Whether or not to preserve the original domain, barring what has been specified in the excluded_domains property.
+   *
    * @generated from field: bool preserve_domain = 1;
    */
   preserveDomain = false;
 
   /**
+   * Whether or not to preserve the original length of the email. This causes the transformed email to retain the original length.
+   *
    * @generated from field: bool preserve_length = 2;
    */
   preserveLength = false;
 
   /**
+   * A lsit of email domains that should be excluded. This changes based on the preserve_domain flag. See the docs for more details.
+   *
    * @generated from field: repeated string excluded_domains = 3;
    */
   excludedDomains: string[] = [];
+
+  /**
+   * Optionally specify the type of email to generate. The types specified determine the contents on the left side of the @.
+   *
+   * @generated from field: optional mgmt.v1alpha1.GenerateEmailType email_type = 4;
+   */
+  emailType?: GenerateEmailType;
 
   constructor(data?: PartialMessage<TransformEmail>) {
     super();
@@ -1565,6 +1618,7 @@ export class TransformEmail extends Message<TransformEmail> {
     { no: 1, name: "preserve_domain", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 2, name: "preserve_length", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
     { no: 3, name: "excluded_domains", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 4, name: "email_type", kind: "enum", T: proto3.getEnumType(GenerateEmailType), opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): TransformEmail {

@@ -65,10 +65,10 @@ func TransformE164PhoneNumber(phone string, preserveLength bool, maxLength int64
 
 		returnValue = res
 	} else {
-		min := int64(9)
-		max := int64(15)
+		minValue := int64(9)
+		maxValue := int64(15)
 
-		res, err := generateInternationalPhoneNumber(min, max)
+		res, err := generateInternationalPhoneNumber(minValue, maxValue)
 		if err != nil {
 			return nil, err
 		}

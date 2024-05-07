@@ -72,18 +72,18 @@ func Test_GenerateRandomStringBounds(t *testing.T) {
 }
 
 func Test_GenerateRandomStringError(t *testing.T) {
-	min := int64(-2)
-	max := int64(4)
+	minValue := int64(-2)
+	maxValue := int64(4)
 
-	_, err := GenerateRandomStringWithInclusiveBounds(min, max)
+	_, err := GenerateRandomStringWithInclusiveBounds(minValue, maxValue)
 	require.Error(t, err, "The min or max cannot be less than 0")
 }
 
 func Test_GenerateRandomStringErrorMinGreaterThanMax(t *testing.T) {
-	min := int64(5)
-	max := int64(4)
+	minValue := int64(5)
+	maxValue := int64(4)
 
-	_, err := GenerateRandomStringWithInclusiveBounds(min, max)
+	_, err := GenerateRandomStringWithInclusiveBounds(minValue, maxValue)
 	require.Error(t, err, "The min cannot be greater than the max")
 }
 

@@ -51,6 +51,9 @@ const (
 	// ConnectionDataServiceGetConnectionUniqueConstraintsProcedure is the fully-qualified name of the
 	// ConnectionDataService's GetConnectionUniqueConstraints RPC.
 	ConnectionDataServiceGetConnectionUniqueConstraintsProcedure = "/mgmt.v1alpha1.ConnectionDataService/GetConnectionUniqueConstraints"
+	// ConnectionDataServiceGetAiGeneratedDataProcedure is the fully-qualified name of the
+	// ConnectionDataService's GetAiGeneratedData RPC.
+	ConnectionDataServiceGetAiGeneratedDataProcedure = "/mgmt.v1alpha1.ConnectionDataService/GetAiGeneratedData"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
@@ -62,6 +65,7 @@ var (
 	connectionDataServiceGetConnectionPrimaryConstraintsMethodDescriptor = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionPrimaryConstraints")
 	connectionDataServiceGetConnectionInitStatementsMethodDescriptor     = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionInitStatements")
 	connectionDataServiceGetConnectionUniqueConstraintsMethodDescriptor  = connectionDataServiceServiceDescriptor.Methods().ByName("GetConnectionUniqueConstraints")
+	connectionDataServiceGetAiGeneratedDataMethodDescriptor              = connectionDataServiceServiceDescriptor.Methods().ByName("GetAiGeneratedData")
 )
 
 // ConnectionDataServiceClient is a client for the mgmt.v1alpha1.ConnectionDataService service.
@@ -82,6 +86,8 @@ type ConnectionDataServiceClient interface {
 	GetConnectionInitStatements(context.Context, *connect.Request[v1alpha1.GetConnectionInitStatementsRequest]) (*connect.Response[v1alpha1.GetConnectionInitStatementsResponse], error)
 	// For a specific connection, returns the unique constraints. Mostly useful for SQL-based connections.
 	GetConnectionUniqueConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionUniqueConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionUniqueConstraintsResponse], error)
+	// Query an AI connection by providing the necessary values. Typically used for generating preview data
+	GetAiGeneratedData(context.Context, *connect.Request[v1alpha1.GetAiGeneratedDataRequest]) (*connect.Response[v1alpha1.GetAiGeneratedDataResponse], error)
 }
 
 // NewConnectionDataServiceClient constructs a client for the mgmt.v1alpha1.ConnectionDataService
@@ -130,6 +136,12 @@ func NewConnectionDataServiceClient(httpClient connect.HTTPClient, baseURL strin
 			connect.WithSchema(connectionDataServiceGetConnectionUniqueConstraintsMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		getAiGeneratedData: connect.NewClient[v1alpha1.GetAiGeneratedDataRequest, v1alpha1.GetAiGeneratedDataResponse](
+			httpClient,
+			baseURL+ConnectionDataServiceGetAiGeneratedDataProcedure,
+			connect.WithSchema(connectionDataServiceGetAiGeneratedDataMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -141,6 +153,7 @@ type connectionDataServiceClient struct {
 	getConnectionPrimaryConstraints *connect.Client[v1alpha1.GetConnectionPrimaryConstraintsRequest, v1alpha1.GetConnectionPrimaryConstraintsResponse]
 	getConnectionInitStatements     *connect.Client[v1alpha1.GetConnectionInitStatementsRequest, v1alpha1.GetConnectionInitStatementsResponse]
 	getConnectionUniqueConstraints  *connect.Client[v1alpha1.GetConnectionUniqueConstraintsRequest, v1alpha1.GetConnectionUniqueConstraintsResponse]
+	getAiGeneratedData              *connect.Client[v1alpha1.GetAiGeneratedDataRequest, v1alpha1.GetAiGeneratedDataResponse]
 }
 
 // GetConnectionDataStream calls mgmt.v1alpha1.ConnectionDataService.GetConnectionDataStream.
@@ -177,6 +190,11 @@ func (c *connectionDataServiceClient) GetConnectionUniqueConstraints(ctx context
 	return c.getConnectionUniqueConstraints.CallUnary(ctx, req)
 }
 
+// GetAiGeneratedData calls mgmt.v1alpha1.ConnectionDataService.GetAiGeneratedData.
+func (c *connectionDataServiceClient) GetAiGeneratedData(ctx context.Context, req *connect.Request[v1alpha1.GetAiGeneratedDataRequest]) (*connect.Response[v1alpha1.GetAiGeneratedDataResponse], error) {
+	return c.getAiGeneratedData.CallUnary(ctx, req)
+}
+
 // ConnectionDataServiceHandler is an implementation of the mgmt.v1alpha1.ConnectionDataService
 // service.
 type ConnectionDataServiceHandler interface {
@@ -196,6 +214,8 @@ type ConnectionDataServiceHandler interface {
 	GetConnectionInitStatements(context.Context, *connect.Request[v1alpha1.GetConnectionInitStatementsRequest]) (*connect.Response[v1alpha1.GetConnectionInitStatementsResponse], error)
 	// For a specific connection, returns the unique constraints. Mostly useful for SQL-based connections.
 	GetConnectionUniqueConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionUniqueConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionUniqueConstraintsResponse], error)
+	// Query an AI connection by providing the necessary values. Typically used for generating preview data
+	GetAiGeneratedData(context.Context, *connect.Request[v1alpha1.GetAiGeneratedDataRequest]) (*connect.Response[v1alpha1.GetAiGeneratedDataResponse], error)
 }
 
 // NewConnectionDataServiceHandler builds an HTTP handler from the service implementation. It
@@ -240,6 +260,12 @@ func NewConnectionDataServiceHandler(svc ConnectionDataServiceHandler, opts ...c
 		connect.WithSchema(connectionDataServiceGetConnectionUniqueConstraintsMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	connectionDataServiceGetAiGeneratedDataHandler := connect.NewUnaryHandler(
+		ConnectionDataServiceGetAiGeneratedDataProcedure,
+		svc.GetAiGeneratedData,
+		connect.WithSchema(connectionDataServiceGetAiGeneratedDataMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/mgmt.v1alpha1.ConnectionDataService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case ConnectionDataServiceGetConnectionDataStreamProcedure:
@@ -254,6 +280,8 @@ func NewConnectionDataServiceHandler(svc ConnectionDataServiceHandler, opts ...c
 			connectionDataServiceGetConnectionInitStatementsHandler.ServeHTTP(w, r)
 		case ConnectionDataServiceGetConnectionUniqueConstraintsProcedure:
 			connectionDataServiceGetConnectionUniqueConstraintsHandler.ServeHTTP(w, r)
+		case ConnectionDataServiceGetAiGeneratedDataProcedure:
+			connectionDataServiceGetAiGeneratedDataHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -285,4 +313,8 @@ func (UnimplementedConnectionDataServiceHandler) GetConnectionInitStatements(con
 
 func (UnimplementedConnectionDataServiceHandler) GetConnectionUniqueConstraints(context.Context, *connect.Request[v1alpha1.GetConnectionUniqueConstraintsRequest]) (*connect.Response[v1alpha1.GetConnectionUniqueConstraintsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionDataService.GetConnectionUniqueConstraints is not implemented"))
+}
+
+func (UnimplementedConnectionDataServiceHandler) GetAiGeneratedData(context.Context, *connect.Request[v1alpha1.GetAiGeneratedDataRequest]) (*connect.Response[v1alpha1.GetAiGeneratedDataResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.ConnectionDataService.GetAiGeneratedData is not implemented"))
 }

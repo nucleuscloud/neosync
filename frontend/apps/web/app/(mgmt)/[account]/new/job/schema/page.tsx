@@ -2,7 +2,10 @@
 
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
-import { SchemaTable } from '@/components/jobs/SchemaTable/SchemaTable';
+import {
+  SchemaTable,
+  extractAllFormErrors,
+} from '@/components/jobs/SchemaTable/SchemaTable';
 import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
 import { useAccount } from '@/components/providers/account-provider';
 import { PageProps } from '@/components/types';
@@ -20,11 +23,12 @@ import {
   PrimaryConstraint,
 } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
-import { ReactElement, useEffect, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
+import { ReactElement, useEffect, useMemo, useState } from 'react';
+import { useFieldArray, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
-import JobsProgressSteps, { DATA_SYNC_STEPS } from '../JobsProgressSteps';
+import { getOnSelectedTableToggle } from '../../../jobs/[id]/source/components/util';
+import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
 import { ConnectFormValues } from '../schema';
 
 const isBrowser = () => typeof window !== 'undefined';
@@ -64,8 +68,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   );
 
-  const { data: connectionSchemaDataMap, isValidating: isSchemaMapValidating } =
-    useGetConnectionSchemaMap(account?.id ?? '', connectFormValues.sourceId);
+  const {
+    data: connectionSchemaDataMap,
+    isLoading: isSchemaMapLoading,
+    isValidating: isSchemaMapValidating,
+  } = useGetConnectionSchemaMap(account?.id ?? '', connectFormValues.sourceId);
 
   const { data: primaryConstraints, isValidating: isPkValidating } =
     useGetConnectionPrimaryConstraints(
@@ -114,7 +121,37 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       ),
     [isSchemaMapValidating, isPkValidating, isFkValidating, isUCValidating]
   );
+  const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set());
 
+  const { append, remove, fields } = useFieldArray<SchemaFormValues>({
+    control: form.control,
+    name: 'mappings',
+  });
+  const onSelectedTableToggle = getOnSelectedTableToggle(
+    connectionSchemaDataMap?.schemaMap ?? {},
+    selectedTables,
+    setSelectedTables,
+    fields,
+    remove,
+    append
+  );
+  useEffect(() => {
+    if (
+      isSchemaMapLoading ||
+      selectedTables.size > 0 ||
+      !connectFormValues.sourceId
+    ) {
+      return;
+    }
+    const js = getFormValues(connectFormValues.sourceId, schemaFormData);
+    setSelectedTables(
+      new Set(
+        js.mappings.map((mapping) => `${mapping.schema}.${mapping.table}`)
+      )
+    );
+  }, [isSchemaMapLoading, connectFormValues.sourceId]);
+
+  const formMappings = form.watch('mappings');
   return (
     <div className="flex flex-col gap-5">
       <OverviewContainer
@@ -122,7 +159,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           <PageHeader
             header="Schema"
             progressSteps={
-              <JobsProgressSteps steps={DATA_SYNC_STEPS} stepName={'schema'} />
+              <JobsProgressSteps
+                steps={getJobProgressSteps('data-sync')}
+                stepName={'schema'}
+              />
             }
           />
         }
@@ -134,11 +174,17 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <SchemaTable
-            data={form.watch('mappings')}
+            data={formMappings}
             jobType="sync"
             constraintHandler={schemaConstraintHandler}
             schema={connectionSchemaDataMap?.schemaMap ?? {}}
             isSchemaDataReloading={isSchemaMapValidating}
+            selectedTables={selectedTables}
+            onSelectedTableToggle={onSelectedTableToggle}
+            formErrors={extractAllFormErrors(
+              form.formState.errors,
+              formMappings
+            )}
           />
           <div className="flex flex-row gap-1 justify-between">
             <Button key="back" type="button" onClick={() => router.back()}>

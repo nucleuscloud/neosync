@@ -20,6 +20,7 @@ import { getErrorMessage } from '@/util/util';
 import { PlainMessage } from '@bufbuild/protobuf';
 import {
   CheckConnectionConfigResponse,
+  ConnectionConfig,
   ConnectionRolePrivilege,
   GetConnectionResponse,
   PostgresConnectionConfig,
@@ -90,8 +91,8 @@ export default function PermissionsPage({ params }: PageProps) {
         {data?.connection?.connectionConfig?.config.case &&
           data?.connection?.id && (
             <CloneConnectionButton
-              connectionType={
-                data?.connection?.connectionConfig?.config.case ?? ''
+              connectionConfig={
+                data?.connection?.connectionConfig ?? new ConnectionConfig()
               }
               id={data?.connection?.id ?? ''}
             />
@@ -194,7 +195,7 @@ function PermissionsPageContainer(props: PermissionsPageContainerProps) {
           <TestConnectionResult
             isConnected={isDbConnected}
             connectionName={connectionName}
-            privileges={data}
+            hasPrivileges={data.length > 0}
           />
         }
         TestConnectionButton={

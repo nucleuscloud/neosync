@@ -48,7 +48,7 @@ import { ReactElement, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
-import JobsProgressSteps, { DATA_SYNC_STEPS } from '../JobsProgressSteps';
+import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
 import {
   ConnectFormValues,
   DefineFormValues,
@@ -242,7 +242,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           <PageHeader
             header="Subset"
             progressSteps={
-              <JobsProgressSteps steps={DATA_SYNC_STEPS} stepName={'subset'} />
+              <JobsProgressSteps
+                steps={getJobProgressSteps('data-sync')}
+                stepName={'subset'}
+              />
             }
           />
         }

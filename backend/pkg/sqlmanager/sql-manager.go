@@ -129,6 +129,7 @@ type DatabaseSchemaRow struct {
 	NumericPrecision       int32
 	NumericScale           int32
 	OrdinalPosition        int16
+	GeneratedType          *string
 }
 
 type ForeignKeyConstraintsRow struct {

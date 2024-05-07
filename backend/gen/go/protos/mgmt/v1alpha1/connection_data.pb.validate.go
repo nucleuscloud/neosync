@@ -1444,6 +1444,10 @@ func (m *DatabaseColumn) validate(all bool) error {
 		// no validation rules for ColumnDefault
 	}
 
+	if m.GeneratedType != nil {
+		// no validation rules for GeneratedType
+	}
+
 	if len(errors) > 0 {
 		return DatabaseColumnMultiError(errors)
 	}
@@ -3499,3 +3503,386 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = UniqueConstraintValidationError{}
+
+// Validate checks the field values on GetAiGeneratedDataRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetAiGeneratedDataRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetAiGeneratedDataRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetAiGeneratedDataRequestMultiError, or nil if none found.
+func (m *GetAiGeneratedDataRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetAiGeneratedDataRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for AiConnectionId
+
+	// no validation rules for Count
+
+	// no validation rules for ModelName
+
+	// no validation rules for DataConnectionId
+
+	if all {
+		switch v := interface{}(m.GetTable()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetAiGeneratedDataRequestValidationError{
+					field:  "Table",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetAiGeneratedDataRequestValidationError{
+					field:  "Table",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetTable()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetAiGeneratedDataRequestValidationError{
+				field:  "Table",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.UserPrompt != nil {
+		// no validation rules for UserPrompt
+	}
+
+	if len(errors) > 0 {
+		return GetAiGeneratedDataRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetAiGeneratedDataRequestMultiError is an error wrapping multiple validation
+// errors returned by GetAiGeneratedDataRequest.ValidateAll() if the
+// designated constraints aren't met.
+type GetAiGeneratedDataRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetAiGeneratedDataRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetAiGeneratedDataRequestMultiError) AllErrors() []error { return m }
+
+// GetAiGeneratedDataRequestValidationError is the validation error returned by
+// GetAiGeneratedDataRequest.Validate if the designated constraints aren't met.
+type GetAiGeneratedDataRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetAiGeneratedDataRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetAiGeneratedDataRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetAiGeneratedDataRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetAiGeneratedDataRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetAiGeneratedDataRequestValidationError) ErrorName() string {
+	return "GetAiGeneratedDataRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetAiGeneratedDataRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetAiGeneratedDataRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetAiGeneratedDataRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetAiGeneratedDataRequestValidationError{}
+
+// Validate checks the field values on DatabaseTable with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *DatabaseTable) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DatabaseTable with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in DatabaseTableMultiError, or
+// nil if none found.
+func (m *DatabaseTable) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DatabaseTable) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Schema
+
+	// no validation rules for Table
+
+	if len(errors) > 0 {
+		return DatabaseTableMultiError(errors)
+	}
+
+	return nil
+}
+
+// DatabaseTableMultiError is an error wrapping multiple validation errors
+// returned by DatabaseTable.ValidateAll() if the designated constraints
+// aren't met.
+type DatabaseTableMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DatabaseTableMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DatabaseTableMultiError) AllErrors() []error { return m }
+
+// DatabaseTableValidationError is the validation error returned by
+// DatabaseTable.Validate if the designated constraints aren't met.
+type DatabaseTableValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DatabaseTableValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DatabaseTableValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DatabaseTableValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DatabaseTableValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DatabaseTableValidationError) ErrorName() string { return "DatabaseTableValidationError" }
+
+// Error satisfies the builtin error interface
+func (e DatabaseTableValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDatabaseTable.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DatabaseTableValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DatabaseTableValidationError{}
+
+// Validate checks the field values on GetAiGeneratedDataResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetAiGeneratedDataResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetAiGeneratedDataResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetAiGeneratedDataResponseMultiError, or nil if none found.
+func (m *GetAiGeneratedDataResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetAiGeneratedDataResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetRecords() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, GetAiGeneratedDataResponseValidationError{
+						field:  fmt.Sprintf("Records[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, GetAiGeneratedDataResponseValidationError{
+						field:  fmt.Sprintf("Records[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return GetAiGeneratedDataResponseValidationError{
+					field:  fmt.Sprintf("Records[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return GetAiGeneratedDataResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetAiGeneratedDataResponseMultiError is an error wrapping multiple
+// validation errors returned by GetAiGeneratedDataResponse.ValidateAll() if
+// the designated constraints aren't met.
+type GetAiGeneratedDataResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetAiGeneratedDataResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetAiGeneratedDataResponseMultiError) AllErrors() []error { return m }
+
+// GetAiGeneratedDataResponseValidationError is the validation error returned
+// by GetAiGeneratedDataResponse.Validate if the designated constraints aren't met.
+type GetAiGeneratedDataResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetAiGeneratedDataResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetAiGeneratedDataResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetAiGeneratedDataResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetAiGeneratedDataResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetAiGeneratedDataResponseValidationError) ErrorName() string {
+	return "GetAiGeneratedDataResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetAiGeneratedDataResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetAiGeneratedDataResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetAiGeneratedDataResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetAiGeneratedDataResponseValidationError{}

@@ -586,6 +586,47 @@ func (m *JobSourceOptions) validate(all bool) error {
 			}
 		}
 
+	case *JobSourceOptions_AiGenerate:
+		if v == nil {
+			err := JobSourceOptionsValidationError{
+				field:  "Config",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetAiGenerate()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, JobSourceOptionsValidationError{
+						field:  "AiGenerate",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, JobSourceOptionsValidationError{
+						field:  "AiGenerate",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetAiGenerate()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return JobSourceOptionsValidationError{
+					field:  "AiGenerate",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	default:
 		_ = v // ensures v is used
 	}
@@ -933,6 +974,400 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = JobDestinationValidationError{}
+
+// Validate checks the field values on AiGenerateSourceOptions with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AiGenerateSourceOptions) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AiGenerateSourceOptions with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AiGenerateSourceOptionsMultiError, or nil if none found.
+func (m *AiGenerateSourceOptions) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AiGenerateSourceOptions) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for AiConnectionId
+
+	for idx, item := range m.GetSchemas() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, AiGenerateSourceOptionsValidationError{
+						field:  fmt.Sprintf("Schemas[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, AiGenerateSourceOptionsValidationError{
+						field:  fmt.Sprintf("Schemas[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return AiGenerateSourceOptionsValidationError{
+					field:  fmt.Sprintf("Schemas[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	// no validation rules for ModelName
+
+	if m.FkSourceConnectionId != nil {
+		// no validation rules for FkSourceConnectionId
+	}
+
+	if m.UserPrompt != nil {
+		// no validation rules for UserPrompt
+	}
+
+	if len(errors) > 0 {
+		return AiGenerateSourceOptionsMultiError(errors)
+	}
+
+	return nil
+}
+
+// AiGenerateSourceOptionsMultiError is an error wrapping multiple validation
+// errors returned by AiGenerateSourceOptions.ValidateAll() if the designated
+// constraints aren't met.
+type AiGenerateSourceOptionsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AiGenerateSourceOptionsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AiGenerateSourceOptionsMultiError) AllErrors() []error { return m }
+
+// AiGenerateSourceOptionsValidationError is the validation error returned by
+// AiGenerateSourceOptions.Validate if the designated constraints aren't met.
+type AiGenerateSourceOptionsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AiGenerateSourceOptionsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AiGenerateSourceOptionsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AiGenerateSourceOptionsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AiGenerateSourceOptionsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AiGenerateSourceOptionsValidationError) ErrorName() string {
+	return "AiGenerateSourceOptionsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AiGenerateSourceOptionsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAiGenerateSourceOptions.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AiGenerateSourceOptionsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AiGenerateSourceOptionsValidationError{}
+
+// Validate checks the field values on AiGenerateSourceSchemaOption with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AiGenerateSourceSchemaOption) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AiGenerateSourceSchemaOption with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AiGenerateSourceSchemaOptionMultiError, or nil if none found.
+func (m *AiGenerateSourceSchemaOption) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AiGenerateSourceSchemaOption) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Schema
+
+	for idx, item := range m.GetTables() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, AiGenerateSourceSchemaOptionValidationError{
+						field:  fmt.Sprintf("Tables[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, AiGenerateSourceSchemaOptionValidationError{
+						field:  fmt.Sprintf("Tables[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return AiGenerateSourceSchemaOptionValidationError{
+					field:  fmt.Sprintf("Tables[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return AiGenerateSourceSchemaOptionMultiError(errors)
+	}
+
+	return nil
+}
+
+// AiGenerateSourceSchemaOptionMultiError is an error wrapping multiple
+// validation errors returned by AiGenerateSourceSchemaOption.ValidateAll() if
+// the designated constraints aren't met.
+type AiGenerateSourceSchemaOptionMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AiGenerateSourceSchemaOptionMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AiGenerateSourceSchemaOptionMultiError) AllErrors() []error { return m }
+
+// AiGenerateSourceSchemaOptionValidationError is the validation error returned
+// by AiGenerateSourceSchemaOption.Validate if the designated constraints
+// aren't met.
+type AiGenerateSourceSchemaOptionValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AiGenerateSourceSchemaOptionValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AiGenerateSourceSchemaOptionValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AiGenerateSourceSchemaOptionValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AiGenerateSourceSchemaOptionValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AiGenerateSourceSchemaOptionValidationError) ErrorName() string {
+	return "AiGenerateSourceSchemaOptionValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AiGenerateSourceSchemaOptionValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAiGenerateSourceSchemaOption.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AiGenerateSourceSchemaOptionValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AiGenerateSourceSchemaOptionValidationError{}
+
+// Validate checks the field values on AiGenerateSourceTableOption with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AiGenerateSourceTableOption) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AiGenerateSourceTableOption with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AiGenerateSourceTableOptionMultiError, or nil if none found.
+func (m *AiGenerateSourceTableOption) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AiGenerateSourceTableOption) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Table
+
+	// no validation rules for RowCount
+
+	if len(errors) > 0 {
+		return AiGenerateSourceTableOptionMultiError(errors)
+	}
+
+	return nil
+}
+
+// AiGenerateSourceTableOptionMultiError is an error wrapping multiple
+// validation errors returned by AiGenerateSourceTableOption.ValidateAll() if
+// the designated constraints aren't met.
+type AiGenerateSourceTableOptionMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AiGenerateSourceTableOptionMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AiGenerateSourceTableOptionMultiError) AllErrors() []error { return m }
+
+// AiGenerateSourceTableOptionValidationError is the validation error returned
+// by AiGenerateSourceTableOption.Validate if the designated constraints
+// aren't met.
+type AiGenerateSourceTableOptionValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AiGenerateSourceTableOptionValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AiGenerateSourceTableOptionValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AiGenerateSourceTableOptionValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AiGenerateSourceTableOptionValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AiGenerateSourceTableOptionValidationError) ErrorName() string {
+	return "AiGenerateSourceTableOptionValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AiGenerateSourceTableOptionValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAiGenerateSourceTableOption.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AiGenerateSourceTableOptionValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AiGenerateSourceTableOptionValidationError{}
 
 // Validate checks the field values on GenerateSourceOptions with the rules
 // defined in the proto definition for this message. If any rules are

@@ -2,6 +2,7 @@ package transformers
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
@@ -27,7 +28,8 @@ func init() {
 	spec := bloblang.NewPluginSpec().
 		Param(bloblang.NewBoolParam("randomize_sign")).
 		Param(bloblang.NewInt64Param("min")).
-		Param(bloblang.NewInt64Param("max"))
+		Param(bloblang.NewInt64Param("max")).
+		Param(bloblang.NewInt64Param("seed").Default(time.Now().UnixNano()))
 
 	err := bloblang.RegisterFunctionV2("generate_int64", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		randomizeSign, err := args.GetBool("randomize_sign")
@@ -62,8 +64,8 @@ func init() {
 /*
 Generates a random int64 in the interval [min, max].
 */
-func generateRandomInt64(randomizeSign bool, min, max int64) (int64, error) {
-	output, err := transformer_utils.GenerateRandomInt64InValueRange(min, max)
+func generateRandomInt64(randomizeSign bool, minValue, maxValue int64) (int64, error) {
+	output, err := transformer_utils.GenerateRandomInt64InValueRange(minValue, maxValue)
 	if err != nil {
 		return 0, err
 	}

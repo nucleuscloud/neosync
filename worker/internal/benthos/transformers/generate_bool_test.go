@@ -2,13 +2,15 @@ package transformers
 
 import (
 	"testing"
+	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
+	"github.com/nucleuscloud/neosync/worker/internal/rng"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_GenerateRandomBool(t *testing.T) {
-	res := generateRandomBool()
+	res := generateRandomizerBool(rng.New(time.Now().UnixNano()))
 	assert.IsType(t, res, false)
 }
 

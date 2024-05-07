@@ -15,17 +15,15 @@ import {
 import {
   Select,
   SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
+import { splitConnections } from '@/libs/utils';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Connection } from '@neosync/sdk';
+import { ConnectionConfig } from '@neosync/sdk';
 import { Cross2Icon, PlusIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect } from 'react';
@@ -33,8 +31,13 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import DestinationOptionsForm from '../../../../../../components/jobs/Form/DestinationOptionsForm';
-import JobsProgressSteps, { DATA_SYNC_STEPS } from '../JobsProgressSteps';
+import {
+  DESTINATION_ONLY_CONNECTION_TYPES,
+  getConnectionType,
+} from '../../../connections/util';
+import JobsProgressSteps, { getJobProgressSteps } from '../JobsProgressSteps';
 import { CONNECT_FORM_SCHEMA, ConnectFormValues } from '../schema';
+import ConnectionSelectContent from './ConnectionSelectContent';
 
 const NEW_CONNECTION_VALUE = 'new-connection';
 
@@ -96,7 +99,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           <PageHeader
             header="Connect"
             progressSteps={
-              <JobsProgressSteps steps={DATA_SYNC_STEPS} stepName={'connect'} />
+              <JobsProgressSteps
+                steps={getJobProgressSteps('data-sync')}
+                stepName={'connect'}
+              />
             }
           />
         }
@@ -139,14 +145,48 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               return;
                             }
                             if (value === NEW_CONNECTION_VALUE) {
+                              const destIds = new Set(
+                                form
+                                  .getValues('destinations')
+                                  .map((d) => d.connectionId)
+                              );
+
+                              const urlParams = new URLSearchParams({
+                                returnTo: `/${account?.name}/new/job/connect?sessionId=${sessionPrefix}&from=new-connection`,
+                              });
+
+                              const connTypes = new Set(
+                                connections
+                                  .filter((c) => destIds.has(c.id))
+                                  .map((c) =>
+                                    getConnectionType(
+                                      c.connectionConfig ??
+                                        new ConnectionConfig()
+                                    )
+                                  )
+                              );
+                              connTypes.forEach((connType) => {
+                                if (
+                                  connType &&
+                                  !DESTINATION_ONLY_CONNECTION_TYPES.has(
+                                    connType
+                                  )
+                                ) {
+                                  urlParams.append('connectionType', connType);
+                                }
+                              });
+                              if (
+                                urlParams.getAll('connectionType').length === 0
+                              ) {
+                                urlParams.append('connectionType', 'postgres');
+                                urlParams.append('connectionType', 'mysql');
+                              }
+
                               router.push(
-                                `/${account?.name}/new/connection?returnTo=${encodeURIComponent(
-                                  `/${account?.name}/new/job/connect?sessionId=${sessionPrefix}&from=new-connection`
-                                )}`
+                                `/${account?.name}/new/connection?${urlParams.toString()}`
                               );
                               return;
                             }
-                            // set value
                             field.onChange(value);
                             form.setValue('sourceOptions', {
                               haltOnNewColumnAddition: false,
@@ -165,6 +205,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               postgres={postgres}
                               mysql={mysql}
                               s3={[]}
+                              openai={[]}
+                              newConnectionValue={NEW_CONNECTION_VALUE}
                             />
                           </SelectContent>
                         </Select>
@@ -218,10 +260,46 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                         return;
                                       }
                                       if (value === NEW_CONNECTION_VALUE) {
+                                        const sourceId =
+                                          form.getValues('sourceId');
+
+                                        const urlParams = new URLSearchParams({
+                                          returnTo: `/${account?.name}/new/job/connect?sessionId=${sessionPrefix}&from=new-connection`,
+                                        });
+
+                                        const connection = connections.find(
+                                          (c) => c.id === sourceId
+                                        );
+                                        const connType = getConnectionType(
+                                          connection?.connectionConfig ??
+                                            new ConnectionConfig()
+                                        );
+                                        if (connType) {
+                                          urlParams.append(
+                                            'connectionType',
+                                            connType
+                                          );
+                                        }
+                                        if (
+                                          urlParams.getAll('connectionType')
+                                            .length === 0
+                                        ) {
+                                          urlParams.append(
+                                            'connectionType',
+                                            'postgres'
+                                          );
+                                          urlParams.append(
+                                            'connectionType',
+                                            'mysql'
+                                          );
+                                          urlParams.append(
+                                            'connectionType',
+                                            'aws-s3'
+                                          );
+                                        }
+
                                         router.push(
-                                          `/${account?.name}/new/connection?returnTo=${encodeURIComponent(
-                                            `/${account?.name}/new/job/connect?sessionId=${sessionPrefix}&from=new-connection`
-                                          )}`
+                                          `/${account?.name}/new/connection?${urlParams.toString()}`
                                         );
                                         return;
                                       }
@@ -250,6 +328,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                                         postgres={postgres}
                                         mysql={mysql}
                                         s3={s3}
+                                        openai={[]}
+                                        newConnectionValue={
+                                          NEW_CONNECTION_VALUE
+                                        }
                                       />
                                     </SelectContent>
                                   </Select>
@@ -325,99 +407,5 @@ export default function Page({ searchParams }: PageProps): ReactElement {
         </form>
       </Form>
     </div>
-  );
-}
-
-function splitConnections(connections: Connection[]): {
-  postgres: Connection[];
-  mysql: Connection[];
-  s3: Connection[];
-} {
-  const postgres: Connection[] = [];
-  const mysql: Connection[] = [];
-  const s3: Connection[] = [];
-
-  connections.forEach((connection) => {
-    if (connection.connectionConfig?.config.case === 'pgConfig') {
-      postgres.push(connection);
-    } else if (connection.connectionConfig?.config.case === 'mysqlConfig') {
-      mysql.push(connection);
-    } else if (connection.connectionConfig?.config.case === 'awsS3Config') {
-      s3.push(connection);
-    }
-  });
-
-  return {
-    postgres,
-    mysql,
-    s3,
-  };
-}
-
-interface ConnectionSelectContentProps {
-  postgres: Connection[];
-  mysql: Connection[];
-  s3: Connection[];
-}
-function ConnectionSelectContent(
-  props: ConnectionSelectContentProps
-): ReactElement {
-  const { postgres, mysql, s3 } = props;
-  return (
-    <>
-      {postgres.length > 0 && (
-        <SelectGroup>
-          <SelectLabel>Postgres</SelectLabel>
-          {postgres.map((connection) => (
-            <SelectItem
-              className="cursor-pointer ml-2"
-              key={connection.id}
-              value={connection.id}
-            >
-              {connection.name}
-            </SelectItem>
-          ))}
-        </SelectGroup>
-      )}
-
-      {mysql.length > 0 && (
-        <SelectGroup>
-          <SelectLabel>Mysql</SelectLabel>
-          {mysql.map((connection) => (
-            <SelectItem
-              className="cursor-pointer ml-2"
-              key={connection.id}
-              value={connection.id}
-            >
-              {connection.name}
-            </SelectItem>
-          ))}
-        </SelectGroup>
-      )}
-      {s3.length > 0 && (
-        <SelectGroup>
-          <SelectLabel>AWS S3</SelectLabel>
-          {s3.map((connection) => (
-            <SelectItem
-              className="cursor-pointer ml-2"
-              key={connection.id}
-              value={connection.id}
-            >
-              {connection.name}
-            </SelectItem>
-          ))}
-        </SelectGroup>
-      )}
-      <SelectItem
-        className="cursor-pointer"
-        key="new-dst-connection"
-        value={NEW_CONNECTION_VALUE}
-      >
-        <div className="flex flex-row gap-1 items-center">
-          <PlusIcon />
-          <p>New Connection</p>
-        </div>
-      </SelectItem>
-    </>
   );
 }

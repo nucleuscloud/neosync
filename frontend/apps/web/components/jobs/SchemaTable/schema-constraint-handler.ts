@@ -20,6 +20,7 @@ export interface SchemaConstraintHandler {
   getIsInSchema(key: ColumnKey): boolean;
   getIsUniqueConstraint(key: ColumnKey): boolean;
   getHasDefault(key: ColumnKey): boolean;
+  getIsGenerated(key: ColumnKey): boolean;
 }
 
 interface ColumnKey {
@@ -34,7 +35,8 @@ interface ColDetails {
   isNullable: boolean;
   dataType: string;
   isUniqueConstraint: boolean;
-  columnDefault: string;
+  columnDefault?: string;
+  generatedType?: string;
 }
 
 export function getSchemaConstraintHandler(
@@ -78,6 +80,9 @@ export function getSchemaConstraintHandler(
     },
     getHasDefault(key) {
       return !!colmap[fromColKey(key)]?.columnDefault;
+    },
+    getIsGenerated(key) {
+      return !!colmap[fromColKey(key)]?.generatedType;
     },
   };
 }
@@ -215,7 +220,8 @@ function buildColDetailsMap(
         ],
         isPrimaryKey: primaryCols.has(dbcol.column),
         isUniqueConstraint: uniqueConstraintCols.has(dbcol.column),
-        columnDefault: dbcol.columnDefault ?? '',
+        columnDefault: dbcol.columnDefault,
+        generatedType: dbcol.generatedType,
       };
     });
   });

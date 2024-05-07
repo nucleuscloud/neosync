@@ -179,6 +179,8 @@ func GetJobSourceConnection(
 		connectionId = jobSourceConfig.Mysql.GetConnectionId()
 	case *mgmtv1alpha1.JobSourceOptions_Generate:
 		connectionId = jobSourceConfig.Generate.GetFkSourceConnectionId()
+	case *mgmtv1alpha1.JobSourceOptions_AiGenerate:
+		connectionId = jobSourceConfig.AiGenerate.GetAiConnectionId()
 	default:
 		return nil, errors.New("unsupported job source options type")
 	}

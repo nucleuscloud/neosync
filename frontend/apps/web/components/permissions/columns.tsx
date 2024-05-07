@@ -12,11 +12,10 @@ export function getPermissionColumns(): ColumnDef<
 >[] {
   return [
     {
-      accessorKey: 'Role',
+      accessorKey: 'grantee',
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Role" />
       ),
-      cell: ({ row }) => <div>{row.original.grantee}</div>,
     },
 
     {
@@ -35,6 +34,9 @@ export function getPermissionColumns(): ColumnDef<
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Table" />
       ),
+      cell: ({ getValue }) => {
+        return <p className="truncate">{getValue<string>()}</p>;
+      },
     },
     {
       id: 'read',

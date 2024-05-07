@@ -9,7 +9,8 @@ CREATE TABLE information_schema.columns (
   data_type text not null,
   character_maximum_length int,
   numeric_precision int,
-  numeric_scale int
+  numeric_scale int,
+  extra text null
 );
 
 create table information_schema.tables (

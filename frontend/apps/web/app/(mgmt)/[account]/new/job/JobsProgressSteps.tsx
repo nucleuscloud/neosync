@@ -1,22 +1,19 @@
 import Step from '@/components/progress-steps/Step';
 import { ReactElement } from 'react';
+import { NewJobType } from './schema';
 
 interface Props {
   steps: JobProgressStep[];
   stepName: JobProgressStep;
 }
 
-export const DATA_SYNC_STEPS: JobProgressStep[] = [
+const DATA_SYNC_STEPS: JobProgressStep[] = [
   'define',
   'connect',
   'schema',
   'subset',
 ];
-export const DATA_GEN_STEPS: JobProgressStep[] = [
-  'define',
-  'connect',
-  'schema',
-];
+const DATA_GEN_STEPS: JobProgressStep[] = ['define', 'connect', 'schema'];
 
 type JobProgressStep = 'define' | 'connect' | 'schema' | 'subset';
 
@@ -44,4 +41,17 @@ export default function JobsProgressSteps(props: Props): ReactElement {
       </div>
     </div>
   );
+}
+
+export function getJobProgressSteps(jobtype: NewJobType): JobProgressStep[] {
+  switch (jobtype) {
+    case 'data-sync':
+      return DATA_SYNC_STEPS;
+    case 'generate-table':
+      return DATA_GEN_STEPS;
+    case 'ai-generate-table':
+      return DATA_GEN_STEPS;
+    default:
+      return [];
+  }
 }

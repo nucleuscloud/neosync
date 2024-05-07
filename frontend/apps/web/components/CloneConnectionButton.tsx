@@ -1,4 +1,5 @@
-import { getConnectionType } from '@/app/(mgmt)/[account]/connections/components/ConnectionsTable/data-table-row-actions';
+import { getConnectionType } from '@/app/(mgmt)/[account]/connections/util';
+import { ConnectionConfig } from '@neosync/sdk';
 import NextLink from 'next/link';
 import { ReactElement } from 'react';
 import { GrClone } from 'react-icons/gr';
@@ -7,19 +8,19 @@ import { useAccount } from './providers/account-provider';
 import { Button } from './ui/button';
 
 interface CloneConnectionProps {
-  connectionType: string;
+  connectionConfig: ConnectionConfig;
   id: string;
 }
 
 export function CloneConnectionButton(
   props: CloneConnectionProps
 ): ReactElement {
-  const { connectionType, id } = props;
+  const { connectionConfig, id } = props;
   const { account } = useAccount();
 
   return (
     <NextLink
-      href={`/${account?.name}/new/connection/${getConnectionType(connectionType)}?sourceId=${id}`}
+      href={`/${account?.name}/new/connection/${getConnectionType(connectionConfig)}?sourceId=${id}`}
     >
       <Button>
         <ButtonText

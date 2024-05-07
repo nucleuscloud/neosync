@@ -59,18 +59,18 @@ func GenerateRandomStringWithDefinedLength(length int64) (string, error) {
 }
 
 // Generate a random alphanumeric string within the interval [min, max]
-func GenerateRandomStringWithInclusiveBounds(min, max int64) (string, error) {
-	if min < 0 || max < 0 || min > max {
-		return "", fmt.Errorf("invalid bounds when attempting to generate random string: [%d:%d]", min, max)
+func GenerateRandomStringWithInclusiveBounds(minValue, maxValue int64) (string, error) {
+	if minValue < 0 || maxValue < 0 || minValue > maxValue {
+		return "", fmt.Errorf("invalid bounds when attempting to generate random string: [%d:%d]", minValue, maxValue)
 	}
 
 	var length int64
-	if min == max {
-		length = min
+	if minValue == maxValue {
+		length = minValue
 	} else {
-		randlength, err := GenerateRandomInt64InValueRange(min, max)
+		randlength, err := GenerateRandomInt64InValueRange(minValue, maxValue)
 		if err != nil {
-			return "", fmt.Errorf("unable to generate a random length for the string within range [%d:%d]: %w", min, max, err)
+			return "", fmt.Errorf("unable to generate a random length for the string within range [%d:%d]: %w", minValue, maxValue, err)
 		}
 		length = randlength
 	}
@@ -289,6 +289,6 @@ func getRangeText(minLength *int64, maxLength int64) string {
 	return fmt.Sprintf("[-:%d]", maxLength)
 }
 
-func randomInt64(randomizer rng.Rand, min, max int64) int64 {
-	return min + randomizer.Int63n(max-min+1)
+func randomInt64(randomizer rng.Rand, minValue, maxValue int64) int64 {
+	return minValue + randomizer.Int63n(maxValue-minValue+1)
 }

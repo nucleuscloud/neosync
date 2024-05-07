@@ -46,7 +46,8 @@ SELECT
         ELSE
             -1
     END AS numeric_scale,
-    a.attnum AS ordinal_position
+    a.attnum AS ordinal_position,
+    a.attgenerated::text as generated_type
 FROM
     pg_catalog.pg_attribute a
     INNER JOIN pg_catalog.pg_class c ON a.attrelid = c.oid
@@ -109,7 +110,8 @@ SELECT
         ELSE
             -1
     END AS numeric_scale,
-    a.attnum AS ordinal_position
+    a.attnum AS ordinal_position,
+    a.attgenerated::text as generated_type
 FROM
     pg_catalog.pg_attribute a
     INNER JOIN pg_catalog.pg_class c ON a.attrelid = c.oid
@@ -128,16 +130,13 @@ ORDER BY
 -- name: GetTableConstraints :many
 SELECT
     con.conname AS constraint_name,
-    con.contype::text AS constraint_type,
-    con.connamespace::regnamespace::text AS schema_name,
+    con.contype::TEXT AS constraint_type,
+    con.connamespace::regnamespace::TEXT AS schema_name,
     cls.relname AS table_name,
+    array_agg(att.attname)::TEXT[] AS constraint_columns,
+    array_agg(att.attnotnull)::BOOL[] AS notnullable,
     CASE
-        WHEN con.contype IN ('f', 'p', 'u') THEN array_agg(att.attname)
-        ELSE NULL
-    END::text[] AS constraint_columns,
-    array_agg(att.attnotnull)::bool[] AS notnullable,
-    CASE
-        WHEN con.contype = 'f' THEN fn_cl.relnamespace::regnamespace::text
+        WHEN con.contype = 'f' THEN fn_cl.relnamespace::regnamespace::TEXT
         ELSE ''
     END AS foreign_schema_name,
     CASE
@@ -145,40 +144,58 @@ SELECT
         ELSE ''
     END AS foreign_table_name,
     CASE
-        WHEN con.contype = 'f' THEN array_agg(fk_att.attname)::text[]
+        WHEN con.contype = 'f' THEN fk_columns.foreign_column_names
         ELSE NULL::text[]
-    END AS foreign_column_names,
-    pg_get_constraintdef(con.oid)::text AS constraint_definition
+    END as foreign_column_names,
+    pg_get_constraintdef(con.oid)::TEXT AS constraint_definition
 FROM
     pg_catalog.pg_constraint con
-LEFT JOIN
-    pg_catalog.pg_attribute fk_att ON fk_att.attrelid = con.confrelid AND fk_att.attnum = ANY(con.confkey)
-LEFT JOIN
-    pg_catalog.pg_attribute att ON att.attrelid = con.conrelid AND att.attnum = ANY(con.conkey)
-LEFT JOIN
-    pg_catalog.pg_class fn_cl ON fn_cl.oid = con.confrelid
 JOIN
-    pg_catalog.pg_class cls ON con.conrelid = cls.oid
+    pg_catalog.pg_attribute att ON
+    att.attrelid = con.conrelid
+    AND att.attnum = ANY(con.conkey)
 JOIN
-    pg_catalog.pg_namespace nsp ON cls.relnamespace = nsp.oid
+    pg_catalog.pg_class cls ON
+    con.conrelid = cls.oid
+JOIN
+    pg_catalog.pg_namespace nsp ON
+    cls.relnamespace = nsp.oid
+LEFT JOIN
+    pg_catalog.pg_class fn_cl ON
+    fn_cl.oid = con.confrelid
+LEFT JOIN LATERAL (
+        SELECT
+            array_agg(fk_att.attname) AS foreign_column_names
+        FROM
+            pg_catalog.pg_attribute fk_att
+        WHERE
+            fk_att.attrelid = con.confrelid
+            AND fk_att.attnum = ANY(con.confkey)
+    ) AS fk_columns ON
+    TRUE
 WHERE
-    con.connamespace::regnamespace::text = sqlc.arg('schema') AND con.conrelid::regclass::text = sqlc.arg('table')
+    con.connamespace::regnamespace::TEXT = sqlc.arg('schema')
+    AND con.conrelid::regclass::TEXT = sqlc.arg('table')
 GROUP BY
-    con.oid, con.connamespace, con.conname, cls.relname, fn_cl.relnamespace, fn_cl.relname, con.contype;
+    con.oid,
+    con.connamespace,
+    con.conname,
+    cls.relname,
+    con.contype,
+    fn_cl.relnamespace,
+    fn_cl.relname,
+    fk_columns.foreign_column_names;
 
 -- name: GetTableConstraintsBySchema :many
 SELECT
     con.conname AS constraint_name,
-    con.contype::text AS constraint_type,
-    con.connamespace::regnamespace::text AS schema_name,
+    con.contype::TEXT AS constraint_type,
+    con.connamespace::regnamespace::TEXT AS schema_name,
     cls.relname AS table_name,
+    array_agg(att.attname)::TEXT[] AS constraint_columns,
+    array_agg(att.attnotnull)::BOOL[] AS notnullable,
     CASE
-        WHEN con.contype IN ('f', 'p', 'u') THEN array_agg(att.attname)
-        ELSE NULL
-    END::text[] AS constraint_columns,
-    array_agg(att.attnotnull)::bool[] AS notnullable,
-    CASE
-        WHEN con.contype = 'f' THEN fn_cl.relnamespace::regnamespace::text
+        WHEN con.contype = 'f' THEN fn_cl.relnamespace::regnamespace::TEXT
         ELSE ''
     END AS foreign_schema_name,
     CASE
@@ -186,26 +203,48 @@ SELECT
         ELSE ''
     END AS foreign_table_name,
     CASE
-        WHEN con.contype = 'f' THEN array_agg(fk_att.attname)::text[]
+        WHEN con.contype = 'f' THEN fk_columns.foreign_column_names
         ELSE NULL::text[]
-    END AS foreign_column_names,
-    pg_get_constraintdef(con.oid)::text AS constraint_definition
+    END as foreign_column_names,
+    pg_get_constraintdef(con.oid)::TEXT AS constraint_definition
 FROM
     pg_catalog.pg_constraint con
-LEFT JOIN
-    pg_catalog.pg_attribute fk_att ON fk_att.attrelid = con.confrelid AND fk_att.attnum = ANY(con.confkey)
-LEFT JOIN
-    pg_catalog.pg_attribute att ON att.attrelid = con.conrelid AND att.attnum = ANY(con.conkey)
-LEFT JOIN
-    pg_catalog.pg_class fn_cl ON fn_cl.oid = con.confrelid
 JOIN
-    pg_catalog.pg_class cls ON con.conrelid = cls.oid
+    pg_catalog.pg_attribute att ON
+    att.attrelid = con.conrelid
+    AND att.attnum = ANY(con.conkey)
 JOIN
-    pg_catalog.pg_namespace nsp ON cls.relnamespace = nsp.oid
+    pg_catalog.pg_class cls ON
+    con.conrelid = cls.oid
+JOIN
+    pg_catalog.pg_namespace nsp ON
+    cls.relnamespace = nsp.oid
+LEFT JOIN
+    pg_catalog.pg_class fn_cl ON
+    fn_cl.oid = con.confrelid
+LEFT JOIN LATERAL (
+        SELECT
+            array_agg(fk_att.attname) AS foreign_column_names
+        FROM
+            pg_catalog.pg_attribute fk_att
+        WHERE
+            fk_att.attrelid = con.confrelid
+            AND fk_att.attnum = ANY(con.confkey)
+    ) AS fk_columns ON
+    TRUE
 WHERE
-    con.connamespace::regnamespace::text = ANY(sqlc.arg('schema')::text[])
+    con.connamespace::regnamespace::TEXT = ANY(
+        sqlc.arg('schema')::TEXT[]
+    )
 GROUP BY
-    con.oid, con.connamespace, con.conname, cls.relname, fn_cl.relnamespace, fn_cl.relname, con.contype;
+    con.oid,
+    con.connamespace,
+    con.conname,
+    cls.relname,
+    con.contype,
+    fn_cl.relnamespace,
+    fn_cl.relname,
+    fk_columns.foreign_column_names;
 
 -- name: GetPostgresRolePermissions :many
 SELECT

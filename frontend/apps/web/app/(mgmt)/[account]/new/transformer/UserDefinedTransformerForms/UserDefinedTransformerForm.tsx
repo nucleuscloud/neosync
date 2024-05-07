@@ -47,7 +47,7 @@ export function UserDefinedTransformerForm(props: Props): ReactElement {
       return <UserDefinedGenerateGenderForm isDisabled={disabled} />;
     case TransformerSource.GENERATE_INT64:
       return <UserDefinedGenerateInt64Form isDisabled={disabled} />;
-    case TransformerSource.GENERATE_STRING:
+    case TransformerSource.GENERATE_RANDOM_STRING:
       return <UserDefinedGenerateStringForm isDisabled={disabled} />;
     case TransformerSource.GENERATE_STRING_PHONE_NUMBER:
       return (

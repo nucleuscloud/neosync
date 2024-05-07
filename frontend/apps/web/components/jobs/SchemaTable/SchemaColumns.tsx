@@ -18,8 +18,9 @@ import {
 import { SystemTransformer, TransformerSource } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ColumnDef, Row } from '@tanstack/react-table';
-import { HTMLProps, ReactElement, useEffect, useRef } from 'react';
+import { HTMLProps, useEffect, useRef } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
+import SchemaRowAlert from './RowAlert';
 import { SchemaColumnHeader } from './SchemaColumnHeader';
 import { Row as RowData } from './SchemaPageTable';
 import TransformerSelect from './TransformerSelect';
@@ -43,54 +44,16 @@ export function fromRowDataToColKey(row: Row<RowData>): ColumnKey {
     column: row.getValue('column'),
   };
 }
-function toColKey(schema: string, table: string, column: string): ColumnKey {
+export function toColKey(
+  schema: string,
+  table: string,
+  column: string
+): ColumnKey {
   return {
     schema,
     table,
     column,
   };
-}
-
-interface SchemaRowAlertProps {
-  row: Row<RowData>;
-  handler: SchemaConstraintHandler;
-  onRemoveClick(): void;
-}
-
-function SchemaRowAlert(props: SchemaRowAlertProps): ReactElement {
-  const { row, handler, onRemoveClick } = props;
-  const key: ColumnKey = {
-    schema: row.getValue('schema'),
-    table: row.getValue('table'),
-    column: row.getValue('column'),
-  };
-  const isInSchema = handler.getIsInSchema(key);
-
-  const messages: string[] = [];
-
-  if (!isInSchema) {
-    messages.push('This column was not found in the backing source schema');
-  }
-
-  if (messages.length === 0) {
-    return <div className="hidden" />;
-  }
-
-  return (
-    <TooltipProvider delayDuration={100}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <ExclamationTriangleIcon
-            className="text-yellow-600 dark:text-yellow-300 cursor-pointer"
-            onClick={() => onRemoveClick()}
-          />
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>{messages.join('\n')}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
 }
 
 interface Props {
@@ -131,13 +94,15 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
     },
     {
       accessorKey: 'schema',
-      enableSorting: false,
-      enableHiding: false,
+      header: ({ column }) => (
+        <SchemaColumnHeader column={column} title="Schema" />
+      ),
     },
     {
       accessorKey: 'table',
-      enableSorting: false,
-      enableHiding: false,
+      header: ({ column }) => (
+        <SchemaColumnHeader column={column} title="Table" />
+      ),
     },
     {
       accessorFn: (row) => `${row.schema}.${row.table}`,
@@ -199,6 +164,7 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         const key = toColKey(row.schema, row.table, row.column);
         const isPrimaryKey = constraintHandler.getIsPrimaryKey(key);
         const [isForeignKey, fkCols] = constraintHandler.getIsForeignKey(key);
+        const isUnique = constraintHandler.getIsUniqueConstraint(key);
 
         const pieces: string[] = [];
         if (isPrimaryKey) {
@@ -206,6 +172,9 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
         }
         if (isForeignKey) {
           fkCols.forEach((col) => pieces.push(`Foreign Key: ${col}`));
+        }
+        if (isUnique) {
+          pieces.push('Unique');
         }
         return pieces.join('\n');
       },
@@ -328,10 +297,22 @@ export function getSchemaColumns(props: Props): ColumnDef<RowData>[] {
 
     {
       accessorKey: 'transformer',
+
       id: 'transformer',
       header: ({ column }) => (
         <SchemaColumnHeader column={column} title="Transformer" />
       ),
+      filterFn: (row, _id, value) => {
+        // row.getValue doesn't work here due to a tanstack bug where the transformer value is out of sync with getValue
+        // row.original works here. There must be a caching bug with the transformer prop being an object.
+        // This may be related: https://github.com/TanStack/table/issues/5363
+        const rowVal = row.original.transformer;
+        const tsource = transformerHandler.getSystemTransformerBySource(
+          rowVal.source
+        );
+        const sourceName = tsource?.name.toLowerCase() ?? 'select transformer';
+        return sourceName.includes((value as string)?.toLowerCase());
+      },
       cell: (info) => {
         // eslint-disable-next-line react-hooks/rules-of-hooks
         const fctx = useFormContext<
@@ -446,7 +427,7 @@ function IndeterminateCheckbox({
 }
 
 // cleans up the data type values since some are too long , can add on more here
-function handleDataTypeBadge(dataType: string): string {
+export function handleDataTypeBadge(dataType: string): string {
   // Check for "timezone" and replace accordingly without entering the switch
   if (dataType.includes('timezone')) {
     return dataType
@@ -473,11 +454,13 @@ export function getTransformerFilter(
   const isNullable = constraintHandler.getIsNullable(colkey);
   const convertedDataType = constraintHandler.getConvertedDataType(colkey);
   const hasDefault = constraintHandler.getHasDefault(colkey);
+  const isGenerated = constraintHandler.getIsGenerated(colkey);
   return {
     dataType: convertedDataType,
     hasDefault,
     isForeignKey,
     isNullable,
     jobType: toSupportedJobtype(jobType),
+    isGenerated,
   };
 }

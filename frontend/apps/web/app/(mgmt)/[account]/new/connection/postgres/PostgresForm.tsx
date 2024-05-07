@@ -37,6 +37,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/use-toast';
 import { useGetAccountOnboardingConfig } from '@/libs/hooks/useGetAccountOnboardingConfig';
+import { getConnection } from '@/libs/hooks/useGetConnection';
 import { getErrorMessage } from '@/util/util';
 import {
   POSTGRES_FORM_SCHEMA,
@@ -47,11 +48,9 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
   ConnectionConfig,
-  ConnectionRolePrivilege,
   CreateConnectionRequest,
   CreateConnectionResponse,
   GetAccountOnboardingConfigResponse,
-  GetConnectionResponse,
   IsConnectionNameAvailableResponse,
   PostgresConnection,
   PostgresConnectionConfig,
@@ -66,6 +65,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ReactElement, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
+type ActiveTab = 'host' | 'url';
+
 export default function PostgresForm() {
   const searchParams = useSearchParams();
   const { account } = useAccount();
@@ -75,7 +76,7 @@ export default function PostgresForm() {
     account?.id ?? ''
   );
   // used to know which tab - host or url that the user is on when we submit the form
-  const [activeTab, setActiveTab] = useState<string>('url');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('url');
 
   const form = useForm<PostgresFormValues>({
     resolver: yupResolver(POSTGRES_FORM_SCHEMA),
@@ -103,20 +104,17 @@ export default function PostgresForm() {
         privateKey: '',
       },
     },
-
     context: { accountId: account?.id ?? '', activeTab: activeTab },
   });
+
   const router = useRouter();
   const [validationResponse, setValidationResponse] = useState<
     CheckConnectionConfigResponse | undefined
   >();
 
   const [isValidating, setIsValidating] = useState<boolean>(false);
-
   const [openPermissionDialog, setOpenPermissionDialog] =
     useState<boolean>(false);
-  const [permissionData, setPermissionData] =
-    useState<ConnectionRolePrivilege[]>();
 
   async function onSubmit(values: PostgresFormValues) {
     if (!account) {
@@ -221,95 +219,84 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
 */
   useEffect(() => {
     const fetchData = async () => {
-      if (sourceConnId && account?.id) {
-        setIsLoading(true);
-        try {
-          const connData = await GetConnectionCloneValues(
-            account.id,
-            sourceConnId
-          );
-
-          if (
-            connData &&
-            connData.connection?.connectionConfig?.config.case === 'pgConfig'
-          ) {
-            const config = connData.connection?.connectionConfig?.config.value;
-
-            let pgConfig: PostgresConnection | string | undefined;
-
-            if (config.connectionConfig.case == 'connection') {
-              pgConfig = config.connectionConfig.value;
-            } else if (config.connectionConfig.case == 'url') {
-              pgConfig = config.connectionConfig.value;
-            }
-
-            const defaultDb = {
-              host: '',
-              name: '',
-              user: '',
-              pass: '',
-              port: 5432,
-              sslMode: 'disable',
-            };
-
-            let dbConfig = defaultDb;
-            if (typeof pgConfig !== 'string') {
-              dbConfig = {
-                host: pgConfig?.host ?? '',
-                name: pgConfig?.name ?? '',
-                user: pgConfig?.user ?? '',
-                pass: pgConfig?.pass ?? '',
-                port: pgConfig?.port ?? 5432,
-                sslMode: pgConfig?.sslMode ?? 'disable',
-              };
-            }
-
-            /* reset the form with the new values and include the fallback values because of our validation schema requires a string and not undefined which is okay because it will tell the user that something is wrong instead of the user not realizing that it's undefined
-             */
-            let passPhrase = '';
-            let privateKey = '';
-
-            const authConfig = config.tunnel?.authentication?.authConfig;
-
-            switch (authConfig?.case) {
-              case 'passphrase':
-                passPhrase = authConfig.value.value;
-                break;
-              case 'privateKey':
-                passPhrase = authConfig.value.passphrase ?? '';
-                privateKey = authConfig.value.value;
-                break;
-            }
-
-            form.reset({
-              ...form.getValues(),
-              connectionName: connData.connection?.name + '-copy',
-              db: dbConfig,
-              url: typeof pgConfig === 'string' ? pgConfig : '',
-              options: {
-                maxConnectionLimit:
-                  config.connectionOptions?.maxConnectionLimit ?? 80,
-              },
-              tunnel: {
-                host: config.tunnel?.host ?? '',
-                port: config.tunnel?.port ?? 22,
-                knownHostPublicKey: config.tunnel?.knownHostPublicKey ?? '',
-                user: config.tunnel?.user ?? '',
-                passphrase: passPhrase,
-                privateKey: privateKey,
-              },
-            });
-          }
-        } catch (error) {
-          console.error('Failed to fetch connection data:', error);
-          setIsLoading(false);
-          toast({
-            title: 'Unable to clone connection!',
-            variant: 'destructive',
-          });
-        } finally {
-          setIsLoading(false);
+      if (!sourceConnId || !account?.id) {
+        return;
+      }
+      setIsLoading(true);
+      try {
+        const connData = await getConnection(account.id, sourceConnId);
+        if (connData.connection?.connectionConfig?.config.case !== 'pgConfig') {
+          return;
         }
+
+        const config = connData.connection?.connectionConfig?.config.value;
+        const pgConfig = config.connectionConfig.value;
+
+        const dbConfig = {
+          host: '',
+          name: '',
+          user: '',
+          pass: '',
+          port: 5432,
+          sslMode: 'disable',
+        };
+        if (typeof pgConfig !== 'string') {
+          dbConfig.host = pgConfig?.host ?? '';
+          dbConfig.name = pgConfig?.name ?? '';
+          dbConfig.user = pgConfig?.user ?? '';
+          dbConfig.pass = pgConfig?.pass ?? '';
+          dbConfig.port = pgConfig?.port ?? 5432;
+          dbConfig.sslMode = pgConfig?.sslMode ?? 'disable';
+        }
+
+        /* reset the form with the new values and include the fallback values because of our validation schema requires a string and not undefined which is okay because it will tell the user that something is wrong instead of the user not realizing that it's undefined
+         */
+        let passPhrase = '';
+        let privateKey = '';
+
+        const authConfig = config.tunnel?.authentication?.authConfig;
+        switch (authConfig?.case) {
+          case 'passphrase':
+            passPhrase = authConfig.value.value;
+            break;
+          case 'privateKey':
+            passPhrase = authConfig.value.passphrase ?? '';
+            privateKey = authConfig.value.value;
+            break;
+        }
+
+        form.reset({
+          ...form.getValues(),
+          connectionName: connData.connection?.name + '-copy',
+          db: dbConfig,
+          url: typeof pgConfig === 'string' ? pgConfig : '',
+          options: {
+            maxConnectionLimit:
+              config.connectionOptions?.maxConnectionLimit ?? 80,
+          },
+          tunnel: {
+            host: config.tunnel?.host ?? '',
+            port: config.tunnel?.port ?? 22,
+            knownHostPublicKey: config.tunnel?.knownHostPublicKey ?? '',
+            user: config.tunnel?.user ?? '',
+            passphrase: passPhrase,
+            privateKey: privateKey,
+          },
+        });
+        if (config.connectionConfig.case === 'url') {
+          setActiveTab('url');
+        } else if (config.connectionConfig.case === 'connection') {
+          setActiveTab('host');
+        }
+      } catch (error) {
+        console.error('Failed to fetch connection data:', error);
+        toast({
+          title: 'Unable to retrieve connection data for clone!',
+          description: getErrorMessage(error),
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -357,7 +344,7 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
 
         <RadioGroup
           defaultValue="url"
-          onValueChange={(e) => setActiveTab(e)}
+          onValueChange={(value) => setActiveTab(value as ActiveTab)}
           value={activeTab}
         >
           <div className="flex flex-col md:flex-row gap-4">
@@ -684,11 +671,12 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
           </AccordionItem>
         </Accordion>
         <PermissionsDialog
-          data={permissionData ?? []}
+          checkResponse={
+            validationResponse ?? new CheckConnectionConfigResponse({})
+          }
           openPermissionDialog={openPermissionDialog}
           setOpenPermissionDialog={setOpenPermissionDialog}
           isValidating={isValidating}
-          validationResponse={validationResponse?.isConnected ?? false}
           connectionName={form.getValues('connectionName')}
         />
         <div className="flex flex-row gap-3 justify-between">
@@ -714,10 +702,8 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
                     form.getValues().url ?? ''
                   );
                 }
-                setIsValidating(false);
                 setValidationResponse(res);
-                setPermissionData(res.privileges);
-                setOpenPermissionDialog(res?.isConnected && true);
+                setOpenPermissionDialog(!!res?.isConnected);
               } catch (err) {
                 setValidationResponse(
                   new CheckConnectionConfigResponse({
@@ -726,6 +712,7 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
                       err instanceof Error ? err.message : 'unknown error',
                   })
                 );
+              } finally {
                 setIsValidating(false);
               }
             }}
@@ -914,26 +901,4 @@ export async function isConnectionNameAvailable(
     throw new Error(body.message);
   }
   return IsConnectionNameAvailableResponse.fromJson(await res.json());
-}
-
-export async function GetConnectionCloneValues(
-  accountId: string,
-  sourceConnId: string
-): Promise<GetConnectionResponse> {
-  const res = await fetch(
-    `/api/accounts/${accountId}/connections/${sourceConnId}`,
-    {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }
-  );
-
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.message);
-  }
-
-  return GetConnectionResponse.fromJson(await res.json());
 }

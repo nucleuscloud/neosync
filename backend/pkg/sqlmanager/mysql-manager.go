@@ -30,6 +30,10 @@ func (m *MysqlManager) GetDatabaseSchema(ctx context.Context) ([]*DatabaseSchema
 	}
 	result := []*DatabaseSchemaRow{}
 	for _, row := range dbSchemas {
+		var generatedType *string
+		if row.Extra.Valid && row.Extra.String == "GENERATED" {
+			generatedType = &row.Extra.String
+		}
 		result = append(result, &DatabaseSchemaRow{
 			TableSchema:   row.TableSchema,
 			TableName:     row.TableName,
@@ -37,6 +41,7 @@ func (m *MysqlManager) GetDatabaseSchema(ctx context.Context) ([]*DatabaseSchema
 			DataType:      row.DataType,
 			ColumnDefault: row.ColumnDefault,
 			IsNullable:    row.IsNullable,
+			GeneratedType: generatedType,
 		})
 	}
 	return result, nil

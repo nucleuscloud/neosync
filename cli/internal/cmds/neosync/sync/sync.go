@@ -975,7 +975,7 @@ func (m *model) View() string {
 
 	spin := m.spinner.View() + " "
 	prog := m.progress.View()
-	cellsAvail := max(0, m.width-lipgloss.Width(spin+prog+pkgCount))
+	cellsAvail := maxInt(0, m.width-lipgloss.Width(spin+prog+pkgCount))
 
 	successStrs := []string{}
 	for _, config := range m.groupedConfigs[m.index] {
@@ -984,7 +984,7 @@ func (m *model) View() string {
 	pkgName := currentPkgNameStyle.Render(successStrs...)
 	info := lipgloss.NewStyle().MaxWidth(cellsAvail).Render("Syncing " + pkgName)
 
-	cellsRemaining := max(0, m.width-lipgloss.Width(spin+info+prog+pkgCount))
+	cellsRemaining := maxInt(0, m.width-lipgloss.Width(spin+info+prog+pkgCount))
 	gap := strings.Repeat(" ", cellsRemaining)
 
 	return spin + info + gap + prog + pkgCount
@@ -1281,7 +1281,7 @@ func buildPlainInsertArgs(cols []string) string {
 	return fmt.Sprintf("root = [%s]", strings.Join(pieces, ", "))
 }
 
-func max(a, b int) int {
+func maxInt(a, b int) int {
 	if a > b {
 		return a
 	}

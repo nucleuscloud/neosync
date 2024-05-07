@@ -10,9 +10,20 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import {
+  generateEmailTypeStringToEnum,
+  getGenerateEmailTypeString,
+} from '@/util/util';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { TransformEmail } from '@neosync/sdk';
+import { GenerateEmailType, TransformEmail } from '@neosync/sdk';
 import { ReactElement } from 'react';
 import { useForm } from 'react-hook-form';
 import { TRANSFORMER_SCHEMA_CONFIGS } from '../../new/transformer/schema';
@@ -23,6 +34,9 @@ interface Props extends TransformerFormProps<TransformEmail> {}
 export default function TransformEmailForm(props: Props): ReactElement {
   const { existingConfig, onSubmit, isReadonly } = props;
 
+  const emailType =
+    (existingConfig?.toJson() as any)?.emailType ?? // eslint-disable-line @typescript-eslint/no-explicit-any
+    'GENERATE_EMAIL_TYPE_UUID_V4';
   const form = useForm({
     mode: 'onChange',
     resolver: yupResolver(TRANSFORMER_SCHEMA_CONFIGS.transformEmailConfig),
@@ -30,6 +44,7 @@ export default function TransformEmailForm(props: Props): ReactElement {
       preserveDomain: existingConfig?.preserveDomain ?? false,
       preserveLength: existingConfig?.preserveLength ?? false,
       excludedDomains: existingConfig?.excludedDomains ?? [],
+      emailType: emailType,
     },
   });
 
@@ -88,25 +103,76 @@ export default function TransformEmailForm(props: Props): ReactElement {
           control={form.control}
           name={`excludedDomains`}
           render={({ field }) => (
+            <FormItem className="rounded-lg border p-3 shadow-sm">
+              <div className="flex flex-row items-start justify-between">
+                <div className="flex flex-col space-y-2">
+                  <FormLabel>Excluded Domains</FormLabel>
+                  <FormDescription>
+                    Provide a list of comma-separated domains that you want to
+                    be excluded from the transformer. Do not provide an @ with
+                    the domains.{' '}
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <div className="flex flex-col items-center">
+                    <Input
+                      {...field}
+                      onChange={(e) =>
+                        field.onChange(e.target.value.split(','))
+                      }
+                      disabled={isReadonly}
+                      type="string"
+                      className="min-w-[300px]"
+                    />
+                    <FormMessage />
+                  </div>
+                </FormControl>
+              </div>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name={`emailType`}
+          render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm gap-4 ">
               <div className="space-y-0.5">
-                <FormLabel>Excluded Domains</FormLabel>
-                <FormDescription>
-                  Provide a list of comma-separated domains that you want to be
-                  excluded from the transformer. Do not provide an @ with the
-                  domains.{' '}
+                <FormLabel>Email Type</FormLabel>
+                <FormDescription className="w-[90%]">
+                  Configure the email type that will be used during
+                  transformation.
                 </FormDescription>
               </div>
               <FormControl>
-                <div className="min-w-[300px]">
-                  <Input
-                    {...field}
-                    onChange={(e) => field.onChange(e.target.value.split(','))}
-                    disabled={isReadonly}
-                    type="string"
-                    className="min-w-[300px]"
-                  />
-                </div>
+                <Select
+                  disabled={isReadonly}
+                  onValueChange={(value) => {
+                    // this is so hacky, but has to be done due to have we are encoding the incoming config and how the enums are converted to their wire-format string type
+                    const emailConfig = new TransformEmail({
+                      emailType: parseInt(value, 10),
+                    }).toJson();
+                    field.onChange((emailConfig as any).emailType); // eslint-disable-line @typescript-eslint/no-explicit-any
+                  }}
+                  value={generateEmailTypeStringToEnum(field.value).toString()}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[
+                      GenerateEmailType.UUID_V4,
+                      GenerateEmailType.FULLNAME,
+                    ].map((emailType) => (
+                      <SelectItem
+                        key={emailType}
+                        className="cursor-pointer"
+                        value={emailType.toString()}
+                      >
+                        {getGenerateEmailTypeString(emailType)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -118,11 +184,7 @@ export default function TransformEmailForm(props: Props): ReactElement {
             disabled={isReadonly}
             onClick={(e) => {
               form.handleSubmit((values) => {
-                onSubmit(
-                  new TransformEmail({
-                    ...values,
-                  })
-                );
+                onSubmit(TransformEmail.fromJson(values));
               })(e);
             }}
           >

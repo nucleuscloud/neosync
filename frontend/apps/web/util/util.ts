@@ -1,4 +1,5 @@
 import {
+  GenerateEmailType,
   SupportedJobType,
   TransformerDataType,
   TransformerSource,
@@ -100,4 +101,25 @@ export function getTransformerJobTypesString(
 export function getTransformerSourceString(ds: TransformerSource): string {
   const value = TransformerSource[ds];
   return value ? value.toLowerCase() : 'unspecified';
+}
+
+export function getGenerateEmailTypeString(
+  emailType: GenerateEmailType
+): string {
+  const value = GenerateEmailType[emailType];
+  return value ? value.toLowerCase() : 'unknown';
+}
+
+// This expects the fully qualified proto email that looks like this: GENERATE_EMAIL_TYPE_FULLNAME
+// This is because the form deals with the TransformConfig that is jsonified and contains the wired value instead of the int value.
+// There seems to be no easy way to convert between the two
+export function generateEmailTypeStringToEnum(
+  emailType: string
+): GenerateEmailType {
+  switch (emailType) {
+    case 'GENERATE_EMAIL_TYPE_FULLNAME':
+      return GenerateEmailType.FULLNAME;
+    default:
+      return GenerateEmailType.UUID_V4;
+  }
 }

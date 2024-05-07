@@ -54,9 +54,21 @@ type InputConfig struct {
 }
 
 type Inputs struct {
-	SqlSelect    *SqlSelect         `json:"sql_select,omitempty" yaml:"sql_select,omitempty"`
-	PooledSqlRaw *InputPooledSqlRaw `json:"pooled_sql_raw,omitempty" yaml:"pooled_sql_raw,omitempty"`
-	Generate     *Generate          `json:"generate,omitempty" yaml:"generate,omitempty"`
+	SqlSelect      *SqlSelect         `json:"sql_select,omitempty" yaml:"sql_select,omitempty"`
+	PooledSqlRaw   *InputPooledSqlRaw `json:"pooled_sql_raw,omitempty" yaml:"pooled_sql_raw,omitempty"`
+	Generate       *Generate          `json:"generate,omitempty" yaml:"generate,omitempty"`
+	OpenAiGenerate *OpenAiGenerate    `json:"openai_generate,omitempty" yaml:"openai_generate,omitempty"`
+}
+
+type OpenAiGenerate struct {
+	ApiUrl     string   `json:"api_url" yaml:"api_url"`
+	ApiKey     string   `json:"api_key" yaml:"api_key"`
+	UserPrompt *string  `json:"user_prompt,omitempty" yaml:"user_prompt,omitempty"`
+	Columns    []string `json:"columns" yaml:"columns"`
+	DataTypes  []string `json:"data_types" yaml:"data_types"`
+	Model      string   `json:"model" yaml:"model"`
+	Count      int      `json:"count" yaml:"count"`
+	BatchSize  int      `json:"batch_size" yaml:"batch_size"`
 }
 
 type Generate struct {

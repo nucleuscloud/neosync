@@ -1,3 +1,4 @@
+import { Connection } from '@neosync/sdk';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -5,17 +6,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// interface DtoClass<T>{
-//   new (data: any): DtoClass<T>;
-
-//   fromJson(data: any): DtoClass<T>;
-
-//   // fromJson(jsonValue: JsonValue): T;
-// }
-
-// export function hookOnData<T>(data: JsonValue | DtoClass<T>, cl: DtoClass<T>): DtoClass<T> {
-//   return data instanceof DtoClass<T> ? data :
-// }
 export function getRefreshIntervalFn<T>(
   fn?: (data: T) => number
 ): ((data: T | undefined) => number) | undefined {
@@ -27,5 +17,46 @@ export function getRefreshIntervalFn<T>(
       return 0;
     }
     return fn(data);
+  };
+}
+
+export function getSingleOrUndefined(
+  item: string | string[] | undefined
+): string | undefined {
+  if (!item) {
+    return undefined;
+  }
+  const newItem = Array.isArray(item) ? item[0] : item;
+  return !newItem || newItem === 'undefined' ? undefined : newItem;
+}
+
+export function splitConnections(connections: Connection[]): {
+  postgres: Connection[];
+  mysql: Connection[];
+  s3: Connection[];
+  openai: Connection[];
+} {
+  const postgres: Connection[] = [];
+  const mysql: Connection[] = [];
+  const s3: Connection[] = [];
+  const openai: Connection[] = [];
+
+  connections.forEach((connection) => {
+    if (connection.connectionConfig?.config.case === 'pgConfig') {
+      postgres.push(connection);
+    } else if (connection.connectionConfig?.config.case === 'mysqlConfig') {
+      mysql.push(connection);
+    } else if (connection.connectionConfig?.config.case === 'awsS3Config') {
+      s3.push(connection);
+    } else if (connection.connectionConfig?.config.case === 'openaiConfig') {
+      openai.push(connection);
+    }
+  });
+
+  return {
+    postgres,
+    mysql,
+    s3,
+    openai,
   };
 }

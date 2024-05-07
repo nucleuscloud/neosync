@@ -2,9 +2,11 @@ package transformers
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
+	"github.com/nucleuscloud/neosync/worker/internal/rng"
 )
 
 func init() {
@@ -50,7 +52,7 @@ func transformFloat(value *float64, rMin, rMax float64) (*float64, error) {
 	minRange := *value - rMin
 	maxRange := *value + rMax
 
-	val, err := transformer_utils.GenerateRandomFloat64WithInclusiveBounds(minRange, maxRange)
+	val, err := transformer_utils.GenerateRandomFloat64WithInclusiveBounds(rng.New(time.Now().UnixNano()), minRange, maxRange)
 	if err != nil {
 		return nil, fmt.Errorf("unable to generate a random float64 with inclusive bounds with length [%f:%f]: %w", minRange, maxRange, err)
 	}

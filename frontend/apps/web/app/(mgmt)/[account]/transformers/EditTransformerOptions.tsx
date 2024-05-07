@@ -295,7 +295,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
           }}
         />
       );
-    case TransformerSource.GENERATE_STRING:
+    case TransformerSource.GENERATE_RANDOM_STRING:
       return (
         <GenerateStringForm
           isReadonly={isReadonly}
@@ -403,11 +403,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
       return (
         <TransformEmailForm
           isReadonly={isReadonly}
-          existingConfig={
-            new TransformEmail({
-              ...(valueConfig.value as PlainMessage<TransformEmail>),
-            })
-          }
+          existingConfig={TransformEmail.fromJson(valueConfig.value)}
           onSubmit={(newconfig) => {
             onSubmit(
               convertJobMappingTransformerToForm(
@@ -743,7 +739,7 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
   }
   return (
     <div>
-      <Alert className="border-gray-200 shadow-sm">
+      <Alert className="border-gray-200 dark:border-gray-700 shadow-sm">
         <div className="flex flex-row items-center gap-4">
           <MixerHorizontalIcon className="h-4 w-4" />
           <AlertDescription className="text-gray-500">

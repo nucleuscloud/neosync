@@ -27,6 +27,10 @@ func (p *PostgresManager) GetDatabaseSchema(ctx context.Context) ([]*DatabaseSch
 	}
 	result := []*DatabaseSchemaRow{}
 	for _, row := range dbSchemas {
+		var generatedType *string
+		if row.GeneratedType != "" {
+			generatedType = &row.GeneratedType
+		}
 		result = append(result, &DatabaseSchemaRow{
 			TableSchema:            row.TableSchema,
 			TableName:              row.TableName,
@@ -38,6 +42,7 @@ func (p *PostgresManager) GetDatabaseSchema(ctx context.Context) ([]*DatabaseSch
 			NumericPrecision:       row.NumericPrecision,
 			NumericScale:           row.NumericScale,
 			OrdinalPosition:        row.OrdinalPosition,
+			GeneratedType:          generatedType,
 		})
 	}
 	return result, nil

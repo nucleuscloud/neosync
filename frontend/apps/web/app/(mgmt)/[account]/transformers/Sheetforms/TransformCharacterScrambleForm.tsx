@@ -8,6 +8,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
@@ -96,24 +97,29 @@ export default function TransformCharacterScrambleForm(
           control={form.control}
           name={`userProvidedRegex`}
           render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-              <div className="space-y-0.5">
-                <FormLabel>Regular Expression</FormLabel>
-                <FormDescription className="w-[90%]">
-                  Provide a Go regular expression to match and transform a
-                  substring of the value. Leave this blank to transform the
-                  entire value. Note: the regex needs to compile in Go.
-                </FormDescription>
-                <LearnMoreTag href="https://docs.neosync.dev/transformers/user-defined#transform-character-scramble" />
+            <FormItem className="rounded-lg border p-3 shadow-sm">
+              <div className="flex flex-row items-start justify-between">
+                <div className="flex flex-col space-y-2">
+                  <FormLabel>Regular Expression</FormLabel>
+                  <FormDescription className="w-[90%]">
+                    Provide a Go regular expression to match and transform a
+                    substring of the value. Leave this blank to transform the
+                    entire value. Note: the regex needs to compile in Go.
+                  </FormDescription>
+                  <LearnMoreTag href="https://docs.neosync.dev/transformers/user-defined#transform-character-scramble" />
+                </div>
+                <FormControl>
+                  <div className="flex flex-col items-center">
+                    <Input
+                      {...field}
+                      type="string"
+                      className="min-w-[300px]"
+                      disabled={isReadonly}
+                    />
+                    <FormMessage />
+                  </div>
+                </FormControl>
               </div>
-              <FormControl>
-                <Input
-                  {...field}
-                  type="string"
-                  className="min-w-[300px]"
-                  disabled={isReadonly}
-                />
-              </FormControl>
             </FormItem>
           )}
         />

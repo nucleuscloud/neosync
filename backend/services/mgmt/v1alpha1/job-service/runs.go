@@ -526,7 +526,7 @@ func (s *Service) streamK8sWorkerPodLogs(
 			var logLine LogLine
 			err := json.Unmarshal([]byte(txt), &logLine)
 			if err != nil {
-				logger.Error("error unmarshaling log line: %v\n", err)
+				logger.Error(fmt.Sprintf("error unmarshaling log line: %v\n", err))
 				continue // Skip lines that can't be unmarshaled
 			}
 

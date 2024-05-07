@@ -15,8 +15,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/use-toast';
 import { getErrorMessage } from '@/util/util';
-import { Connection } from '@neosync/sdk';
+import { Connection, ConnectionConfig } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
+import { getConnectionType } from '../../util';
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
@@ -75,7 +76,7 @@ export function DataTableRowActions<TData>({
           className="cursor-pointer"
           onClick={() =>
             router.push(
-              `/${account?.name}/new/connection/${getConnectionType(connection.connectionConfig?.config.case ?? '')}?sourceId=${connection.id}`
+              `/${account?.name}/new/connection/${getConnectionType(connection.connectionConfig ?? new ConnectionConfig())}?sourceId=${connection.id}`
             )
           }
         >
@@ -115,17 +116,4 @@ async function removeConnection(
     throw new Error(body.message);
   }
   await res.json();
-}
-
-export function getConnectionType(connType: string): string {
-  switch (connType) {
-    case 'pgConfig':
-      return 'postgres';
-    case 'mysqlConfig':
-      return 'mysql';
-    case 'awsS3Config':
-      return 'aws-s3';
-    default:
-      return 'postgres';
-  }
 }

@@ -73,20 +73,18 @@ function shouldIncludeSystem(
   transformer: SystemTransformer,
   filters: TransformerFilters
 ): boolean {
+  if (!transformer.supportedJobTypes.some((jt) => jt === filters.jobType)) {
+    return false;
+  }
+  if (filters.isGenerated) {
+    return transformer.source === TransformerSource.GENERATE_DEFAULT;
+  }
   if (transformer.source === TransformerSource.GENERATE_DEFAULT) {
     return filters.hasDefault;
   }
   if (filters.isForeignKey) {
-    if (filters.isNullable) {
-      return (
-        transformer.source === TransformerSource.GENERATE_NULL ||
-        transformer.source === TransformerSource.PASSTHROUGH
-      );
-    }
-    return transformer.source === TransformerSource.PASSTHROUGH;
-  }
-  if (!transformer.supportedJobTypes.some((jt) => jt === filters.jobType)) {
-    return false;
+    const allowedFkTransformers = buildAllowedForeignKeyTransformers(filters);
+    return allowedFkTransformers.some((t) => t === transformer.source);
   }
   if (filters.isNullable) {
     if (transformer.source === TransformerSource.GENERATE_NULL) {
@@ -104,11 +102,36 @@ function shouldIncludeSystem(
   return tdts.has(filters.dataType) || tdts.has(TransformerDataType.ANY);
 }
 
+function buildAllowedForeignKeyTransformers(
+  filters: TransformerFilters
+): TransformerSource[] {
+  const allowedFkTransformers = [];
+  if (
+    filters.jobType === SupportedJobType.UNSPECIFIED ||
+    filters.jobType === SupportedJobType.SYNC
+  ) {
+    allowedFkTransformers.push(
+      TransformerSource.PASSTHROUGH,
+      TransformerSource.TRANSFORM_JAVASCRIPT
+    );
+  } else if (filters.jobType === SupportedJobType.GENERATE) {
+    allowedFkTransformers.push(TransformerSource.GENERATE_JAVASCRIPT);
+  }
+  if (filters.isNullable) {
+    allowedFkTransformers.push(TransformerSource.GENERATE_NULL);
+  }
+  if (filters.hasDefault) {
+    allowedFkTransformers.push(TransformerSource.GENERATE_DEFAULT);
+  }
+  return allowedFkTransformers;
+}
+
 export interface TransformerFilters {
   isForeignKey: boolean;
   dataType: TransformerDataType;
   isNullable: boolean;
   hasDefault: boolean;
+  isGenerated: boolean;
   jobType: SupportedJobType;
 }
 

@@ -3,7 +3,10 @@ import {
   SINGLE_TABLE_SCHEMA_FORM_SCHEMA,
   SingleTableSchemaFormValues,
 } from '@/app/(mgmt)/[account]/new/job/schema';
-import { SchemaTable } from '@/components/jobs/SchemaTable/SchemaTable';
+import {
+  SchemaTable,
+  extractAllFormErrors,
+} from '@/components/jobs/SchemaTable/SchemaTable';
 import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
 import { useAccount } from '@/components/providers/account-provider';
 import { Alert, AlertTitle } from '@/components/ui/alert';
@@ -46,10 +49,10 @@ import {
   UpdateJobSourceConnectionResponse,
 } from '@neosync/sdk';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
-import { ReactElement, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
+import { ReactElement, useEffect, useMemo, useState } from 'react';
+import { useFieldArray, useForm } from 'react-hook-form';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
-import { getFkIdFromGenerateSource } from './util';
+import { getFkIdFromGenerateSource, getOnSelectedTableToggle } from './util';
 
 interface Props {
   jobId: string;
@@ -106,6 +109,25 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
       ),
     [isSchemaMapValidating, isPkValidating, isFkValidating, isUCValidating]
   );
+  const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set());
+  const { append, remove, fields } = useFieldArray<SingleTableSchemaFormValues>(
+    {
+      control: form.control,
+      name: 'mappings',
+    }
+  );
+
+  useEffect(() => {
+    if (isJobLoading || isSchemaDataMapLoading || selectedTables.size > 0) {
+      return;
+    }
+    const js = getJobSource(data?.job, connectionSchemaDataMap?.schemaMap);
+    setSelectedTables(
+      new Set(
+        js.mappings.map((mapping) => `${mapping.schema}.${mapping.table}`)
+      )
+    );
+  }, [isJobLoading, isSchemaDataMapLoading]);
 
   if (isJobLoading || isSchemaDataMapLoading) {
     return <SchemaPageSkeleton />;
@@ -132,6 +154,16 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
       });
     }
   }
+
+  const onSelectedTableToggle = getOnSelectedTableToggle(
+    connectionSchemaDataMap?.schemaMap ?? {},
+    selectedTables,
+    setSelectedTables,
+    fields,
+    remove,
+    append
+  );
+  const formMappings = form.watch('mappings');
 
   return (
     <Form {...form}>
@@ -161,11 +193,14 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
         />
 
         <SchemaTable
-          data={form.watch('mappings')}
+          data={formMappings}
           jobType="generate"
           constraintHandler={schemaConstraintHandler}
           schema={connectionSchemaDataMap?.schemaMap ?? {}}
           isSchemaDataReloading={isSchemaMapValidating}
+          selectedTables={selectedTables}
+          onSelectedTableToggle={onSelectedTableToggle}
+          formErrors={extractAllFormErrors(form.formState.errors, formMappings)}
         />
 
         {form.formState.errors.mappings && (
@@ -178,7 +213,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
         )}
         <div className="flex flex-row gap-1 justify-end">
           <Button key="submit" type="submit">
-            Submit
+            Update
           </Button>
         </div>
       </form>

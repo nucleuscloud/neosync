@@ -201,7 +201,7 @@ output:
                                 root."name" = generate_ssn()
                             - catch:
                                 - error:
-                                    error_msg: ${! meta("fallback_error")}
+                                    error_msg: ${! error()}
                     max_retries: 10
                     backoff: {}
                 - error:
@@ -381,7 +381,7 @@ output:
                                 root."name" = generate_ssn()
                             - catch:
                                 - error:
-                                    error_msg: ${! meta("fallback_error")}
+                                    error_msg: ${! error()}
                     max_retries: 10
                     backoff: {}
                 - error:
@@ -570,7 +570,7 @@ output:
                                 root."name" = generate_ssn()
                             - catch:
                                 - error:
-                                    error_msg: ${! meta("fallback_error")}
+                                    error_msg: ${! error()}
                     max_retries: 10
                     backoff: {}
                 - error:
@@ -790,7 +790,7 @@ pipeline:
         - mutation: root."id" = generate_uuid(include_hyphens:true)
         - catch:
             - error:
-                error_msg: ${! meta("fallback_error")}
+                error_msg: ${! error()}
 output:
     label: ""
     broker:
@@ -861,7 +861,7 @@ pipeline:
             result_map: root."buyer_id" = this
         - catch:
             - error:
-                error_msg: ${! meta("fallback_error")}
+                error_msg: ${! error()}
 output:
     label: ""
     broker:
@@ -1349,7 +1349,7 @@ pipeline:
         - mutation: root."id" = generate_uuid(include_hyphens:true)
         - catch:
             - error:
-                error_msg: ${! meta("fallback_error")}
+                error_msg: ${! error()}
 output:
     label: ""
     broker:
@@ -1428,7 +1428,7 @@ pipeline:
             result_map: root."id" = this
         - catch:
             - error:
-                error_msg: ${! meta("fallback_error")}
+                error_msg: ${! error()}
 output:
     label: ""
     broker:
@@ -3201,7 +3201,7 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
         })();
 - catch:
     - error:
-        error_msg: ${! meta("fallback_error")}
+        error_msg: ${! error()}
       `), strings.TrimSpace(string(out)))
 }
 
@@ -3288,7 +3288,7 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
 	require.Equal(
 		t,
 		strings.TrimSpace(`
-- mutation: root."email" = generate_email(max_length:40)
+- mutation: root."email" = generate_email(max_length:40,email_type:"uuidv4")
 - javascript:
     code: |4-
         (() => {
@@ -3304,7 +3304,7 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
         })();
 - catch:
     - error:
-        error_msg: ${! meta("fallback_error")}
+        error_msg: ${! error()}
       `), strings.TrimSpace(string(out)))
 }
 
@@ -3496,7 +3496,7 @@ func Test_buildProcessorConfigsMutation(t *testing.T) {
 		{Schema: "public", Table: "users", Column: "email", Transformer: &mgmtv1alpha1.JobMappingTransformer{Source: jsT.Source, Config: jsT.Config}}}, groupedSchemas, map[string]*sql_manager.ForeignKey{}, []string{}, mockJobId, mockRunId, nil)
 
 	require.Nil(t, err)
-	require.Equal(t, *output[0].Mutation, `root."email" = transform_email(email:this."email",preserve_domain:true,preserve_length:false,excluded_domains:[],max_length:40)`)
+	require.Equal(t, *output[0].Mutation, `root."email" = transform_email(email:this."email",preserve_domain:true,preserve_length:false,excluded_domains:[],max_length:40,email_type:"uuidv4")`)
 }
 
 const transformJsCodeFnStr = `var payload = value+=" hello";return payload;`
@@ -4068,12 +4068,15 @@ func Test_computeMutationFunction_null(t *testing.T) {
 }
 
 func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
+	uuidEmailType := mgmtv1alpha1.GenerateEmailType_GENERATE_EMAIL_TYPE_UUID_V4
 	transformers := []*mgmtv1alpha1.SystemTransformer{
 		{
 			Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_EMAIL,
 			Config: &mgmtv1alpha1.TransformerConfig{
 				Config: &mgmtv1alpha1.TransformerConfig_GenerateEmailConfig{
-					GenerateEmailConfig: &mgmtv1alpha1.GenerateEmail{},
+					GenerateEmailConfig: &mgmtv1alpha1.GenerateEmail{
+						EmailType: &uuidEmailType,
+					},
 				},
 			},
 		},
@@ -4085,6 +4088,7 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 						PreserveDomain:  false,
 						PreserveLength:  false,
 						ExcludedDomains: []string{},
+						EmailType:       &uuidEmailType,
 					},
 				},
 			},
@@ -4447,10 +4451,11 @@ func Test_computeMutationFunction_Validate_Bloblang_Output(t *testing.T) {
 						Config: transformer.Config,
 					},
 				}, emailColInfo)
-
 			require.NoError(t, err)
-			_, err = bloblang.Parse(val)
+			ex, err := bloblang.Parse(val)
 			require.NoError(t, err, fmt.Sprintf("transformer lint failed, check that the transformer string is being constructed correctly. Failing source: %s", transformer.Source))
+			_, err = ex.Query(nil)
+			require.NoError(t, err)
 		})
 	}
 }
@@ -4530,7 +4535,9 @@ func Test_computeMutationFunction_handles_Db_Maxlen(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, out)
 			require.Equal(t, tc.expected, out, "computed bloblang string was not expected")
-			_, err = bloblang.Parse(out)
+			ex, err := bloblang.Parse(out)
+			require.NoError(t, err)
+			_, err = ex.Query(nil)
 			require.NoError(t, err)
 		})
 	}

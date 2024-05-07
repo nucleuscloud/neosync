@@ -11,7 +11,7 @@ export default function DeploymentOptions(): ReactElement {
       name: 'Open Source',
       description:
         'Deploy Neosync on your infrastructure using Helm or Docker Compose.',
-      link: 'github.com/nucleuscloud/neosync',
+      link: 'https://github.com/nucleuscloud/neosync',
       image: '/images/osdeploy.svg',
     },
     {
@@ -38,7 +38,7 @@ export default function DeploymentOptions(): ReactElement {
       <div className="text-md text-gray-700 font-satoshi font-semibold pt-10 lg:px-60 text-center">
         Choose the deployment option that works best for you and your needs.
       </div>
-      <div className="flex flex-row gap-4 pt-20 justify-center">
+      <div className="flex flex-col items-center lg:flex-row gap-4 pt-20 justify-center">
         {deployOptions.map((opt) => (
           <Link
             href={opt.link}

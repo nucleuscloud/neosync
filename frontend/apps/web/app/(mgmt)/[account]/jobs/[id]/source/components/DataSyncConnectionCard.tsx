@@ -1,6 +1,9 @@
 'use client';
 import SourceOptionsForm from '@/components/jobs/Form/SourceOptionsForm';
-import { SchemaTable } from '@/components/jobs/SchemaTable/SchemaTable';
+import {
+  SchemaTable,
+  extractAllFormErrors,
+} from '@/components/jobs/SchemaTable/SchemaTable';
 import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
 import { useAccount } from '@/components/providers/account-provider';
 import { Button } from '@/components/ui/button';
@@ -21,6 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
+import { getConnection } from '@/libs/hooks/useGetConnection';
 import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectionForeignConstraints';
 import { useGetConnectionPrimaryConstraints } from '@/libs/hooks/useGetConnectionPrimaryConstraints';
 import {
@@ -52,12 +56,12 @@ import {
   UpdateJobSourceConnectionRequest,
   UpdateJobSourceConnectionResponse,
 } from '@neosync/sdk';
-import { ReactElement, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
+import { ReactElement, useEffect, useMemo, useState } from 'react';
+import { useFieldArray, useForm } from 'react-hook-form';
 import { KeyedMutator } from 'swr';
 import * as Yup from 'yup';
-import { getConnection } from '../../util';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
+import { getOnSelectedTableToggle } from './util';
 
 interface Props {
   jobId: string;
@@ -102,7 +106,6 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
 
   const { isLoading: isConnectionsLoading, data: connectionsData } =
     useGetConnections(account?.id ?? '');
-
   const connections = connectionsData?.connections ?? [];
 
   const form = useForm({
@@ -139,6 +142,24 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
       ),
     [isSchemaMapValidating, isPkValidating, isFkValidating, isUCValidating]
   );
+  const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set());
+
+  const { append, remove, fields } = useFieldArray<SourceFormValues>({
+    control: form.control,
+    name: 'mappings',
+  });
+
+  useEffect(() => {
+    if (isJobDataLoading || isSchemaDataMapLoading || selectedTables.size > 0) {
+      return;
+    }
+    const js = getJobSource(data?.job, connectionSchemaDataMap?.schemaMap);
+    setSelectedTables(
+      new Set(
+        js.mappings.map((mapping) => `${mapping.schema}.${mapping.table}`)
+      )
+    );
+  }, [isJobDataLoading, isSchemaDataMapLoading]);
 
   async function onSourceChange(value: string): Promise<void> {
     try {
@@ -149,9 +170,8 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
         mutateGetConnectionSchemaMap
       );
       form.reset(newValues);
-      mutateGetConnectionSchemaMap();
     } catch (err) {
-      form.reset({ ...form.getValues, mappings: [], sourceId: value });
+      form.reset({ ...form.getValues(), mappings: [], sourceId: value });
       toast({
         title: 'Unable to get connection schema',
         description: getErrorMessage(err),
@@ -183,11 +203,21 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
     }
   }
 
+  const onSelectedTableToggle = getOnSelectedTableToggle(
+    connectionSchemaDataMap?.schemaMap ?? {},
+    selectedTables,
+    setSelectedTables,
+    fields,
+    remove,
+    append
+  );
+
   if (isConnectionsLoading || isSchemaDataMapLoading || isJobDataLoading) {
     return <SchemaPageSkeleton />;
   }
 
   const source = connections.find((item) => item.id === sourceConnectionId);
+  const formMappings = form.watch('mappings');
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -220,7 +250,7 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                         .filter(
                           (c) =>
                             !form.getValues().destinationIds?.includes(c.id) &&
-                            c.connectionConfig?.config.case != 'awsS3Config'
+                            c.connectionConfig?.config.case !== 'awsS3Config'
                         )
                         .map((connection) => (
                           <SelectItem
@@ -246,14 +276,20 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
           />
 
           <SchemaTable
-            data={form.watch('mappings')}
+            data={formMappings}
             jobType="sync"
             constraintHandler={schemaConstraintHandler}
             schema={connectionSchemaDataMap?.schemaMap ?? {}}
             isSchemaDataReloading={isSchemaMapValidating}
+            selectedTables={selectedTables}
+            onSelectedTableToggle={onSelectedTableToggle}
+            formErrors={extractAllFormErrors(
+              form.formState.errors,
+              formMappings
+            )}
           />
           <div className="flex flex-row items-center justify-end w-full mt-4">
-            <Button type="submit">Save</Button>
+            <Button type="submit">Update</Button>
           </div>
         </div>
       </form>

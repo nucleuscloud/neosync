@@ -42,7 +42,6 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
   ConnectionConfig,
-  ConnectionRolePrivilege,
   PostgresConnection,
   PostgresConnectionConfig,
   SSHAuthentication,
@@ -86,11 +85,8 @@ export default function PostgresForm(props: Props) {
   >();
 
   const [isValidating, setIsValidating] = useState<boolean>(false);
-
   const [openPermissionDialog, setOpenPermissionDialog] =
     useState<boolean>(false);
-  const [permissionData, setPermissionData] =
-    useState<ConnectionRolePrivilege[]>();
 
   async function onSubmit(values: PostgresFormValues) {
     try {
@@ -490,11 +486,12 @@ export default function PostgresForm(props: Props) {
           </AccordionItem>
         </Accordion>
         <PermissionsDialog
-          data={permissionData ?? []}
+          checkResponse={
+            validationResponse ?? new CheckConnectionConfigResponse({})
+          }
           openPermissionDialog={openPermissionDialog}
           setOpenPermissionDialog={setOpenPermissionDialog}
           isValidating={isValidating}
-          validationResponse={validationResponse?.isConnected ?? false}
           connectionName={form.getValues('connectionName')}
         />
         <div className="flex flex-row gap-3 justify-between">
@@ -520,12 +517,9 @@ export default function PostgresForm(props: Props) {
                     form.getValues().url ?? ''
                   );
                 }
-                setIsValidating(false);
                 setValidationResponse(res);
-                setPermissionData(res.privileges);
-                setOpenPermissionDialog(res?.isConnected && true);
+                setOpenPermissionDialog(!!res?.isConnected);
               } catch (err) {
-                setIsValidating(false);
                 setValidationResponse(
                   new CheckConnectionConfigResponse({
                     isConnected: false,
@@ -533,6 +527,8 @@ export default function PostgresForm(props: Props) {
                       err instanceof Error ? err.message : 'unknown error',
                   })
                 );
+              } finally {
+                setIsValidating(false);
               }
             }}
             type="button"

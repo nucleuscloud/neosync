@@ -62,11 +62,6 @@ export default function PermissionsDataTable<TData, TValue>({
     count: rows.length,
     estimateSize: () => 33,
     getScrollElement: () => tableContainerRef.current,
-    measureElement:
-      typeof window !== 'undefined' &&
-      navigator.userAgent.indexOf('Firefox') === -1
-        ? (element) => element?.getBoundingClientRect().height
-        : undefined,
     overscan: 5,
   });
 
@@ -95,7 +90,7 @@ export default function PermissionsDataTable<TData, TValue>({
         ref={tableContainerRef}
       >
         <StickyHeaderTable>
-          <TableHeader className="bg-gray-100 dark:bg-gray-800">
+          <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 flex w-full">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
@@ -154,12 +149,10 @@ export default function PermissionsDataTable<TData, TValue>({
                           minWidth: cell.column.getSize(),
                         }}
                       >
-                        <div>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </div>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
                       </td>
                     );
                   })}

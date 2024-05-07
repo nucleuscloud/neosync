@@ -50,10 +50,7 @@ export default function SchemaPageTable<TData, TValue>({
     data,
     columns,
     initialState: {
-      sorting: [
-        { id: 'schema', desc: true },
-        { id: 'table', desc: true },
-      ],
+      sorting: [{ id: 'schemaTable', desc: false }],
       columnVisibility: {
         schema: false,
         table: false,
@@ -75,11 +72,6 @@ export default function SchemaPageTable<TData, TValue>({
     count: rows.length,
     estimateSize: () => 33,
     getScrollElement: () => tableContainerRef.current,
-    measureElement:
-      typeof window !== 'undefined' &&
-      navigator.userAgent.indexOf('Firefox') === -1
-        ? (element) => element?.getBoundingClientRect().height
-        : undefined,
     overscan: 5,
   });
 

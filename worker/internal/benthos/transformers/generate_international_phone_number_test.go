@@ -9,10 +9,10 @@ import (
 )
 
 func Test_GenerateInternationalPhoneNumber(t *testing.T) {
-	min := int64(9)
-	max := int64(12)
+	minValue := int64(9)
+	maxValue := int64(12)
 
-	res, err := generateInternationalPhoneNumber(min, max)
+	res, err := generateInternationalPhoneNumber(minValue, maxValue)
 
 	assert.NoError(t, err)
 	assert.Equal(t, validateE164(res), true, "The actual value should be a valid e164 number")
@@ -21,10 +21,10 @@ func Test_GenerateInternationalPhoneNumber(t *testing.T) {
 }
 
 func Test_GenerateInternationalPhoneNumberPreserveLength(t *testing.T) {
-	min := int64(12)
-	max := int64(12)
+	minValue := int64(12)
+	maxValue := int64(12)
 
-	res, err := generateInternationalPhoneNumber(min, max)
+	res, err := generateInternationalPhoneNumber(minValue, maxValue)
 
 	assert.NoError(t, err)
 	assert.Equal(t, validateE164(res), true, "The actual value should be a valid e164 number")
@@ -33,9 +33,9 @@ func Test_GenerateInternationalPhoneNumberPreserveLength(t *testing.T) {
 }
 
 func Test_GenerateInternationalPhoneNumberTransformer(t *testing.T) {
-	min := int64(10)
-	max := int64(13)
-	mapping := fmt.Sprintf(`root = generate_e164_phone_number(min:%d, max: %d)`, min, max)
+	minValue := int64(10)
+	maxValue := int64(13)
+	mapping := fmt.Sprintf(`root = generate_e164_phone_number(min:%d, max: %d)`, minValue, maxValue)
 	ex, err := bloblang.Parse(mapping)
 	assert.NoError(t, err, "failed to parse the international phone number transformer")
 

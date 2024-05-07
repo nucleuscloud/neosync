@@ -12,14 +12,18 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
+	"github.com/Azure/azure-sdk-for-go/sdk/ai/azopenai"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gofrs/uuid"
+	pg_queries "github.com/nucleuscloud/neosync/backend/gen/go/db/dbschemas/postgresql"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 type DatabaseSchema struct {
@@ -360,8 +364,7 @@ func (s *Service) GetConnectionSchema(
 		for _, col := range dbschema {
 			var defaultColumn *string
 			if col.ColumnDefault != "" {
-				defaultVal := col.ColumnDefault
-				defaultColumn = &defaultVal
+				defaultColumn = &col.ColumnDefault
 			}
 
 			schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
@@ -371,6 +374,7 @@ func (s *Service) GetConnectionSchema(
 				DataType:      col.DataType,
 				IsNullable:    col.IsNullable,
 				ColumnDefault: defaultColumn,
+				GeneratedType: col.GeneratedType,
 			})
 		}
 
@@ -739,6 +743,67 @@ func (s *Service) getConnectionSchema(ctx context.Context, connection *mgmtv1alp
 	return schemaResp.Msg.GetSchemas(), nil
 }
 
+func (s *Service) getConnectionTableSchema(ctx context.Context, connection *mgmtv1alpha1.Connection, schema, table string, logger *slog.Logger) ([]*mgmtv1alpha1.DatabaseColumn, error) {
+	conntimeout := uint32(5)
+	switch cconfig := connection.ConnectionConfig.Config.(type) {
+	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		conn, err := s.sqlConnector.NewPgPoolFromConnectionConfig(cconfig.PgConfig, &conntimeout, logger)
+		if err != nil {
+			return nil, err
+		}
+		defer conn.Close()
+		db, err := conn.Open(ctx)
+		if err != nil {
+			return nil, err
+		}
+		dbschema, err := s.pgquerier.GetDatabaseTableSchema(ctx, db, &pg_queries.GetDatabaseTableSchemaParams{Schema: schema, Table: table})
+		if err != nil {
+			return nil, err
+		}
+		schemas := []*mgmtv1alpha1.DatabaseColumn{}
+		for _, col := range dbschema {
+			schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
+				Schema:     col.SchemaName,
+				Table:      col.TableName,
+				Column:     col.ColumnName,
+				DataType:   col.DataType,
+				IsNullable: col.IsNullable,
+			})
+		}
+		return schemas, nil
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.ConnectionConfig, &conntimeout, logger)
+		if err != nil {
+			return nil, err
+		}
+		defer conn.Close()
+		db, err := conn.Open()
+		if err != nil {
+			return nil, err
+		}
+		dbschema, err := s.mysqlquerier.GetDatabaseSchema(ctx, db)
+		if err != nil {
+			return nil, err
+		}
+		schemas := []*mgmtv1alpha1.DatabaseColumn{}
+		for _, col := range dbschema {
+			if col.TableSchema != schema || col.TableName != table {
+				continue
+			}
+			schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
+				Schema:     col.TableSchema,
+				Table:      col.TableName,
+				Column:     col.ColumnName,
+				DataType:   col.DataType,
+				IsNullable: col.IsNullable,
+			})
+		}
+		return schemas, nil
+	default:
+		return nil, nucleuserrors.NewBadRequest("this connection config is not currently supported")
+	}
+}
+
 // returns the first job run id for a given job that is in S3
 func (s *Service) getLastestJobRunFromAwsS3(
 	ctx context.Context,
@@ -865,4 +930,104 @@ func (s *Service) GetConnectionUniqueConstraints(
 	return connect.NewResponse(&mgmtv1alpha1.GetConnectionUniqueConstraintsResponse{
 		TableConstraints: tableConstraints,
 	}), nil
+}
+
+type completionResponse struct {
+	Data []map[string]any `json:"data"`
+}
+
+func (s *Service) GetAiGeneratedData(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetAiGeneratedDataRequest],
+) (*connect.Response[mgmtv1alpha1.GetAiGeneratedDataResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	_ = logger
+	aiconnectionResp, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+		Id: req.Msg.GetAiConnectionId(),
+	}))
+	if err != nil {
+		return nil, err
+	}
+	aiconnection := aiconnectionResp.Msg.GetConnection()
+	_, err = s.verifyUserInAccount(ctx, aiconnection.GetAccountId())
+	if err != nil {
+		return nil, err
+	}
+
+	dbconnectionResp, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+		Id: req.Msg.GetDataConnectionId(),
+	}))
+	if err != nil {
+		return nil, err
+	}
+	dbcols, err := s.getConnectionTableSchema(ctx, dbconnectionResp.Msg.GetConnection(), req.Msg.GetTable().GetSchema(), req.Msg.GetTable().GetTable(), logger)
+	if err != nil {
+		return nil, err
+	}
+
+	columns := make([]string, 0, len(dbcols))
+	for _, dbcol := range dbcols {
+		columns = append(columns, fmt.Sprintf("%s is %s", dbcol.Column, dbcol.DataType))
+	}
+
+	openaiconfig := aiconnection.GetConnectionConfig().GetOpenaiConfig()
+	if openaiconfig == nil {
+		return nil, nucleuserrors.NewBadRequest("connection must be a valid openai connection")
+	}
+
+	client, err := azopenai.NewClientForOpenAI(openaiconfig.GetApiUrl(), azcore.NewKeyCredential(openaiconfig.GetApiKey()), &azopenai.ClientOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("unable to init openai client: %w", err)
+	}
+
+	conversation := []azopenai.ChatRequestMessageClassification{
+		&azopenai.ChatRequestSystemMessage{
+			Content: ptr(fmt.Sprintf("You generate data in JSON format. Generate %d records in a json array located on the data key", req.Msg.GetCount())),
+		},
+		&azopenai.ChatRequestUserMessage{
+			Content: azopenai.NewChatRequestUserMessageContent(fmt.Sprintf("%s\n%s", req.Msg.GetUserPrompt(), fmt.Sprintf("Each record looks like this: %s", strings.Join(columns, ",")))),
+		},
+	}
+
+	chatResp, err := client.GetChatCompletions(ctx, azopenai.ChatCompletionsOptions{
+		Temperature:      ptr(float32(1.0)),
+		DeploymentName:   ptr(req.Msg.GetModelName()),
+		TopP:             ptr(float32(1.0)),
+		FrequencyPenalty: ptr(float32(0)),
+		N:                ptr(int32(1)),
+		ResponseFormat:   &azopenai.ChatCompletionsJSONResponseFormat{},
+		Messages:         conversation,
+	}, &azopenai.GetChatCompletionsOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("unable to get chat completions: %w", err)
+	}
+	if len(chatResp.Choices) == 0 {
+		return nil, errors.New("received no choices back from openai")
+	}
+	choice := chatResp.Choices[0]
+
+	if *choice.FinishReason == azopenai.CompletionsFinishReasonTokenLimitReached {
+		return nil, errors.New("completion limit reached")
+	}
+
+	var dataResponse completionResponse
+	err = json.Unmarshal([]byte(*choice.Message.Content), &dataResponse)
+	if err != nil {
+		return nil, fmt.Errorf("unable to unmarshal openai message content into expected response: %w", err)
+	}
+
+	dtoRecords := []*structpb.Struct{}
+	for _, record := range dataResponse.Data {
+		dto, err := structpb.NewStruct(record)
+		if err != nil {
+			return nil, fmt.Errorf("unable to convert response data to dto struct: %w", err)
+		}
+		dtoRecords = append(dtoRecords, dto)
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.GetAiGeneratedDataResponse{Records: dtoRecords}), nil
+}
+
+func ptr[T any](val T) *T {
+	return &val
 }

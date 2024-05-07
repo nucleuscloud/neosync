@@ -62,6 +62,14 @@ export function convertTransformerConfigToForm(
 export function convertTransformerConfigSchemaToTransformerConfig(
   tcs: TransformerConfigSchema
 ): TransformerConfig {
+  // hack job that fixes bigint json transformation until we can fit this with better types
+  const value = tcs.value ?? {};
+  Object.entries(tcs.value).forEach(([key, val]) => {
+    value[key] = val;
+    if (typeof val === 'bigint') {
+      value[key] = val.toString();
+    }
+  });
   return tcs instanceof TransformerConfig
     ? tcs
     : TransformerConfig.fromJson({
@@ -85,7 +93,7 @@ export const SCHEMA_FORM_SCHEMA = Yup.object({
 });
 
 export const SOURCE_FORM_SCHEMA = Yup.object({
-  sourceId: Yup.string().uuid('Source is required').required(),
+  sourceId: Yup.string().required('Source is required').uuid(),
   sourceOptions: Yup.object({
     haltOnNewColumnAddition: Yup.boolean().optional(),
   }),
@@ -93,8 +101,8 @@ export const SOURCE_FORM_SCHEMA = Yup.object({
 
 export const DESTINATION_FORM_SCHEMA = Yup.object({
   connectionId: Yup.string()
-    .uuid('Destination is required')
-    .required()
+    .required('Connection is required')
+    .uuid()
     .test(
       'checkConnectionUnique',
       'Destination must be different from source.',

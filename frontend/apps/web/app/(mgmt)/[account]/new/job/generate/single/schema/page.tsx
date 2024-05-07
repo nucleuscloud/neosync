@@ -1,8 +1,12 @@
 'use client';
 
+import { getOnSelectedTableToggle } from '@/app/(mgmt)/[account]/jobs/[id]/source/components/util';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
-import { SchemaTable } from '@/components/jobs/SchemaTable/SchemaTable';
+import {
+  SchemaTable,
+  extractAllFormErrors,
+} from '@/components/jobs/SchemaTable/SchemaTable';
 import { getSchemaConstraintHandler } from '@/components/jobs/SchemaTable/schema-constraint-handler';
 import { setOnboardingConfig } from '@/components/onboarding-checklist/OnboardingChecklist';
 import { useAccount } from '@/components/providers/account-provider';
@@ -51,10 +55,12 @@ import {
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useFieldArray, useForm } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
-import JobsProgressSteps, { DATA_GEN_STEPS } from '../../../JobsProgressSteps';
+import JobsProgressSteps, {
+  getJobProgressSteps,
+} from '../../../JobsProgressSteps';
 import {
   DefineFormValues,
   SINGLE_TABLE_SCHEMA_FORM_SCHEMA,
@@ -106,11 +112,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   );
 
-  const { data: connectionSchemaDataMap, isValidating: isSchemaMapValidating } =
-    useGetConnectionSchemaMap(
-      account?.id ?? '',
-      connectFormValues.connectionId
-    );
+  const {
+    data: connectionSchemaDataMap,
+    isLoading: isSchemaMapLoading,
+    isValidating: isSchemaMapValidating,
+  } = useGetConnectionSchemaMap(
+    account?.id ?? '',
+    connectFormValues.connectionId
+  );
 
   const form = useForm({
     mode: 'onChange',
@@ -219,6 +228,35 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       ),
     [isSchemaMapValidating, isPkValidating, isFkValidating, isUCValidating]
   );
+  const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set());
+  const { append, remove, fields } = useFieldArray<SingleTableSchemaFormValues>(
+    {
+      control: form.control,
+      name: 'mappings',
+    }
+  );
+
+  const onSelectedTableToggle = getOnSelectedTableToggle(
+    connectionSchemaDataMap?.schemaMap ?? {},
+    selectedTables,
+    setSelectedTables,
+    fields,
+    remove,
+    append
+  );
+  useEffect(() => {
+    if (isSchemaMapLoading || selectedTables.size > 0) {
+      return;
+    }
+    const js = schemaFormData;
+    setSelectedTables(
+      new Set(
+        js.mappings.map((mapping) => `${mapping.schema}.${mapping.table}`)
+      )
+    );
+  }, [isSchemaMapLoading]);
+
+  const formMappings = form.watch('mappings');
 
   return (
     <div className="flex flex-col gap-5">
@@ -227,7 +265,10 @@ export default function Page({ searchParams }: PageProps): ReactElement {
           <PageHeader
             header="Schema"
             progressSteps={
-              <JobsProgressSteps steps={DATA_GEN_STEPS} stepName={'schema'} />
+              <JobsProgressSteps
+                steps={getJobProgressSteps('generate-table')}
+                stepName={'schema'}
+              />
             }
           />
         }
@@ -265,11 +306,17 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
           {isClient && (
             <SchemaTable
-              data={form.watch('mappings')}
+              data={formMappings}
               constraintHandler={schemaConstraintHandler}
               schema={connectionSchemaDataMap?.schemaMap ?? {}}
               isSchemaDataReloading={isSchemaMapValidating}
               jobType={'generate'}
+              selectedTables={selectedTables}
+              onSelectedTableToggle={onSelectedTableToggle}
+              formErrors={extractAllFormErrors(
+                form.formState.errors,
+                formMappings
+              )}
             />
           )}
           {form.formState.errors.root && (
