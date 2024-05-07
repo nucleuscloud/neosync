@@ -54,14 +54,14 @@ export default function DualListBox(props: Props): ReactElement {
       options
         .filter((value) => !selected.has(value.value))
         .map((value): Row => ({ value: value.value })),
-    [options]
+    [options, selected]
   );
   const rightData = useMemo(
     () =>
       options
         .filter((value) => selected.has(value.value))
         .map((value): Row => ({ value: value.value })),
-    [options]
+    [options, selected]
   );
 
   const leftTable = useReactTable({
