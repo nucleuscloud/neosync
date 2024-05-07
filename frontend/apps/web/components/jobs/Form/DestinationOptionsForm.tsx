@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Connection } from '@neosync/sdk';
 import { ReactElement } from 'react';
 
-export interface DestinationOptions {
+interface DestinationOptions {
   truncateBeforeInsert: boolean;
   truncateCascade: boolean;
   initTableSchema: boolean;
