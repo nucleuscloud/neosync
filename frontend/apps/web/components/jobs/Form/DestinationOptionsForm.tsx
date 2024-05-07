@@ -15,12 +15,14 @@ interface DestinationOptionsProps {
 
   value: DestinationOptions;
   setValue(newVal: DestinationOptions): void;
+
+  hideInitTableSchema?: boolean;
 }
 
 export default function DestinationOptionsForm(
   props: DestinationOptionsProps
 ): ReactElement {
-  const { connection, value, setValue } = props;
+  const { connection, value, setValue, hideInitTableSchema } = props;
 
   if (!connection) {
     return <></>;
@@ -61,16 +63,18 @@ export default function DestinationOptionsForm(
               description="TRUNCATE CASCADE to all tables"
             />
           </div>
-          <div>
-            <SwitchCard
-              isChecked={value.initTableSchema}
-              onCheckedChange={(newVal) => {
-                setValue({ ...value, initTableSchema: newVal });
-              }}
-              title="Init Table Schema"
-              description="Creates table(s) and their constraints. The database schema must already exist. "
-            />
-          </div>
+          {!hideInitTableSchema && (
+            <div>
+              <SwitchCard
+                isChecked={value.initTableSchema}
+                onCheckedChange={(newVal) => {
+                  setValue({ ...value, initTableSchema: newVal });
+                }}
+                title="Init Table Schema"
+                description="Creates table(s) and their constraints. The database schema must already exist. "
+              />
+            </div>
+          )}
           <div>
             <SwitchCard
               isChecked={value.onConflictDoNothing}
