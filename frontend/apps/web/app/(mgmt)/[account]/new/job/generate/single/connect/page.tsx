@@ -221,6 +221,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 connection={connections.find(
                   (c) => c.id === form.getValues().connectionId
                 )}
+                hideInitTableSchema={true} // true until NEOS-1043
                 value={{
                   initTableSchema: destOpts.initTableSchema ?? false,
                   onConflictDoNothing: destOpts.onConflictDoNothing ?? false,
