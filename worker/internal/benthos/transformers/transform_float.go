@@ -158,7 +158,7 @@ func calculateMaxNumber(precision int, scale *int) (float64, error) {
 
 	// If scale is nil, default it to zero
 	actualScale := 0
-	if scale != nil {
+	if scale != nil && *scale > 0 {
 		actualScale = *scale
 	}
 	// Calculate the number of integer digits

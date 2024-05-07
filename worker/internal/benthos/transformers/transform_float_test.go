@@ -50,15 +50,35 @@ func Test_TransformFloat64_Benthos(t *testing.T) {
 }
 
 func Test_calculateMaxNumber(t *testing.T) {
-	val, err := calculateMaxNumber(5, shared.Ptr(3))
-	require.NoError(t, err)
-	require.Equal(t, 99.999, val)
+	tests := []struct {
+		precision int
+		scale     *int
+		expected  float64
+		expectErr bool
+	}{
+		// Valid cases
+		{precision: 5, scale: nil, expected: 99999, expectErr: false},                  // Precision 5, scale nil (defaults to 0)
+		{precision: 5, scale: shared.Ptr(0), expected: 99999, expectErr: false},        // Precision 5, scale 0
+		{precision: 5, scale: shared.Ptr(2), expected: 999.99, expectErr: false},       // Precision 5, scale 2
+		{precision: 10, scale: shared.Ptr(3), expected: 9999999.999, expectErr: false}, // Precision 10, scale 3
+		{precision: 5, scale: shared.Ptr(-1), expected: 99999, expectErr: false},       // Precision 5, scale 0
 
-	val, err = calculateMaxNumber(5, nil)
-	require.NoError(t, err)
-	require.Equal(t, float64(99999), val)
+		// Invalid cases
+		{precision: 0, scale: nil, expected: 0, expectErr: true},           // Invalid precision
+		{precision: 3, scale: shared.Ptr(5), expected: 0, expectErr: true}, // Scale greater than precision
+	}
 
-	val, err = calculateMaxNumber(1, shared.Ptr(1))
-	require.Error(t, err)
-	require.Equal(t, float64(0), val)
+	// Run each test
+	for _, tt := range tests {
+		t.Run("", func(t *testing.T) {
+			result, err := calculateMaxNumber(tt.precision, tt.scale)
+
+			if tt.expectErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+			require.Equal(t, tt.expected, result)
+		})
+	}
 }
