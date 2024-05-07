@@ -9,7 +9,14 @@ import {
   DoubleArrowRightIcon,
   DoubleArrowUpIcon,
 } from '@radix-ui/react-icons';
-import { RowSelectionState } from '@tanstack/react-table';
+import {
+  RowSelectionState,
+  getCoreRowModel,
+  getFacetedRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
 import { ReactElement, useMemo, useState } from 'react';
 import ListBox from '../ListBox/ListBox';
 import { Mode, Row, getListBoxColumns } from './columns';
@@ -41,22 +48,57 @@ export default function DualListBox(props: Props): ReactElement {
     [mode]
   );
 
-  const leftData = options
-    .filter((value) => !selected.has(value.value))
-    .map((value): Row => ({ value: value.value }));
-  const rightData = options
-    .filter((value) => selected.has(value.value))
-    .map((value): Row => ({ value: value.value }));
+  // left/right data must be stable in order to not cause infinite re-renders
+  const leftData = useMemo(
+    () =>
+      options
+        .filter((value) => !selected.has(value.value))
+        .map((value): Row => ({ value: value.value })),
+    [options]
+  );
+  const rightData = useMemo(
+    () =>
+      options
+        .filter((value) => selected.has(value.value))
+        .map((value): Row => ({ value: value.value })),
+    [options]
+  );
+
+  const leftTable = useReactTable({
+    data: leftData,
+    columns: leftCols,
+    state: {
+      rowSelection: leftSelected,
+    },
+    enableRowSelection: true,
+    enableMultiRowSelection: mode === 'many',
+    onRowSelectionChange: setLeftSelected,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getFacetedRowModel: getFacetedRowModel(),
+  });
+
+  const rightTable = useReactTable({
+    data: rightData,
+    columns: rightCols,
+    state: {
+      rowSelection: rightSelected,
+    },
+    enableRowSelection: true,
+    enableMultiRowSelection: mode === 'many',
+    onRowSelectionChange: setRightSelected,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getFacetedRowModel: getFacetedRowModel(),
+  });
 
   return (
     <div className="flex gap-3 flex-col md:flex-row">
       <div className="flex flex-1">
         <ListBox
-          columns={leftCols}
-          data={leftData}
-          onRowSelectionChange={setLeftSelected}
-          rowSelection={leftSelected}
-          mode={mode}
+          table={leftTable}
           noDataMessage={getLeftBoxNoMessage(options, leftData, mode)}
         />
       </div>
@@ -67,10 +109,11 @@ export default function DualListBox(props: Props): ReactElement {
               type="button"
               variant="ghost"
               onClick={() => {
-                onChange(
-                  new Set(options.map((option) => option.value)),
-                  'add-all'
-                );
+                const newSet = new Set(selected);
+                leftTable.getFilteredRowModel().rows.forEach((row) => {
+                  newSet.add(row.getValue('value'));
+                });
+                onChange(newSet, 'add');
                 setLeftSelected({});
               }}
             >
@@ -127,7 +170,11 @@ export default function DualListBox(props: Props): ReactElement {
               type="button"
               variant="ghost"
               onClick={() => {
-                onChange(new Set(), 'remove-all');
+                const newSet = new Set(selected);
+                rightTable.getFilteredRowModel().rows.forEach((row) => {
+                  newSet.delete(row.getValue('value'));
+                });
+                onChange(newSet, 'remove');
                 setRightSelected({});
               }}
             >
@@ -139,11 +186,7 @@ export default function DualListBox(props: Props): ReactElement {
       </div>
       <div className="flex flex-1">
         <ListBox
-          columns={rightCols}
-          data={rightData}
-          onRowSelectionChange={setRightSelected}
-          rowSelection={rightSelected}
-          mode={mode}
+          table={rightTable}
           noDataMessage={getRightBoxNoMessage(options, rightData, mode)}
         />
       </div>

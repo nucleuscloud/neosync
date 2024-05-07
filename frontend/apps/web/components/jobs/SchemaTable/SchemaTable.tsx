@@ -61,6 +61,12 @@ export function SchemaTable(props: Props): ReactElement {
     });
   }, [handler, constraintHandler, jobType]);
 
+  // it is imperative that this is stable to not cause infinite re-renders of the listbox(s)
+  const dualListBoxOpts = useMemo(
+    () => getDualListBoxOptions(schema, data),
+    [schema, data]
+  );
+
   if (isLoading || !data) {
     return <SkeletonTable />;
   }
@@ -84,7 +90,7 @@ export function SchemaTable(props: Props): ReactElement {
           </CardHeader>
           <CardContent>
             <DualListBox
-              options={getDualListBoxOptions(schema, data)}
+              options={dualListBoxOpts}
               selected={selectedTables}
               onChange={onSelectedTableToggle}
               mode={jobType === 'generate' ? 'single' : 'many'}

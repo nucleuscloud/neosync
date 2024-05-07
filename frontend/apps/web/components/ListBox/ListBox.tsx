@@ -7,60 +7,21 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { cn } from '@/libs/utils';
-import {
-  ColumnDef,
-  OnChangeFn,
-  RowSelectionState,
-  flexRender,
-  getCoreRowModel,
-  getFacetedRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
+import { Table, flexRender } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { ReactElement, useRef } from 'react';
-import { Mode } from '../DualListBox/columns';
 import { Skeleton } from '../ui/skeleton';
 
-interface Props<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
-  rowSelection: RowSelectionState;
-  onRowSelectionChange: OnChangeFn<RowSelectionState>;
+interface Props<TData> {
+  table: Table<TData>;
   tableContainerClassName?: string;
-  mode?: Mode;
   isDataLoading?: boolean;
   noDataMessage?: string;
 }
 
-export default function ListBox<TData, TValue>(
-  props: Props<TData, TValue>
-): ReactElement {
-  const {
-    columns,
-    data,
-    rowSelection,
-    onRowSelectionChange,
-    tableContainerClassName,
-    mode = 'many',
-    isDataLoading,
-    noDataMessage,
-  } = props;
-  const table = useReactTable({
-    data,
-    columns,
-    state: {
-      rowSelection: rowSelection,
-    },
-    enableRowSelection: true,
-    enableMultiRowSelection: mode === 'many',
-    onRowSelectionChange: onRowSelectionChange,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-  });
+export default function ListBox<TData>(props: Props<TData>): ReactElement {
+  const { table, tableContainerClassName, isDataLoading, noDataMessage } =
+    props;
   const { rows } = table.getRowModel();
   const tableContainerRef = useRef<HTMLDivElement>(null);
 
