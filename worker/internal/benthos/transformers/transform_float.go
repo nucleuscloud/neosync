@@ -138,6 +138,29 @@ func (m *maxNumCache) CalculateMaxNumber(precision int, scale *int) (float64, er
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
+	maxAllowedValue, err := calculateMaxNumber(precision, &actualScale)
+	if err != nil {
+		return 0, err
+	}
+
+	m.cache[key] = maxAllowedValue
+	return maxAllowedValue, nil
+}
+
+func (m *maxNumCache) computeKey(precision, scale int) string {
+	return fmt.Sprintf("%d_%d", precision, scale)
+}
+
+func calculateMaxNumber(precision int, scale *int) (float64, error) {
+	if precision <= 0 {
+		return 0, fmt.Errorf("invalid precision value")
+	}
+
+	// If scale is nil, default it to zero
+	actualScale := 0
+	if scale != nil {
+		actualScale = *scale
+	}
 	// Calculate the number of integer digits
 	intDigits := precision - actualScale
 	if intDigits <= 0 {
@@ -159,11 +182,5 @@ func (m *maxNumCache) CalculateMaxNumber(precision int, scale *int) (float64, er
 	if err != nil {
 		return 0, err
 	}
-
-	m.cache[key] = maxAllowedValue
 	return maxAllowedValue, nil
-}
-
-func (m *maxNumCache) computeKey(precision, scale int) string {
-	return fmt.Sprintf("%d_%d", precision, scale)
 }

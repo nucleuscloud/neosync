@@ -7,6 +7,7 @@ import (
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	"github.com/nucleuscloud/neosync/worker/internal/rng"
+	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/stretchr/testify/require"
 )
 
@@ -46,4 +47,18 @@ func Test_TransformFloat64_Benthos(t *testing.T) {
 	} else {
 		require.Error(t, err, "Expected the pointer to resolve to an float64")
 	}
+}
+
+func Test_calculateMaxNumber(t *testing.T) {
+	val, err := calculateMaxNumber(5, shared.Ptr(3))
+	require.NoError(t, err)
+	require.Equal(t, 99.999, val)
+
+	val, err = calculateMaxNumber(5, nil)
+	require.NoError(t, err)
+	require.Equal(t, float64(99999), val)
+
+	val, err = calculateMaxNumber(1, shared.Ptr(1))
+	require.Error(t, err)
+	require.Equal(t, float64(0), val)
 }
