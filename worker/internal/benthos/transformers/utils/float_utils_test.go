@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/nucleuscloud/neosync/worker/internal/rng"
+	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	"github.com/stretchr/testify/require"
 )
 
@@ -51,19 +52,32 @@ func Test_AnyToFloat64(t *testing.T) {
 		"1.0",
 		[]byte("1.0"),
 		int(1),
+		shared.Ptr(int(1)),
 		int8(1),
+		shared.Ptr(int8(1)),
 		int16(1),
+		shared.Ptr(int16(1)),
 		int32(1),
+		shared.Ptr(int32(1)),
 		int64(1),
+		shared.Ptr(int64(1)),
 		uint(1),
+		shared.Ptr(uint(1)),
 		uint8(1),
+		shared.Ptr(uint8(1)),
 		uint16(1),
+		shared.Ptr(uint16(1)),
 		uint32(1),
+		shared.Ptr(uint32(1)),
 		uint64(1),
+		shared.Ptr(uint64(1)),
 		float32(1),
+		shared.Ptr(float32(1)),
 		float64(1),
+		shared.Ptr(float64(1)),
 		true,
 		false,
+		shared.Ptr(true),
 	}
 	for _, input := range inputs {
 		output, err := AnyToFloat64(input)
