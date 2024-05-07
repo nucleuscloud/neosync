@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
+	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
 	"github.com/nucleuscloud/neosync/worker/internal/rng"
 )
 
@@ -18,7 +19,7 @@ func init() {
 		Param(bloblang.NewInt64Param("seed").Default(time.Now().UnixNano()))
 
 	err := bloblang.RegisterFunctionV2("transform_float64", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
-		valuePtr, err := args.GetOptionalFloat64("value")
+		value, err := args.Get("value")
 		if err != nil {
 			return nil, err
 		}
@@ -48,7 +49,7 @@ func init() {
 		randomizer := rng.New(seed)
 
 		return func() (any, error) {
-			res, err := transformFloat(randomizer, valuePtr, rMin, rMax, precision, scale)
+			res, err := transformFloat(randomizer, value, rMin, rMax, precision, scale)
 			if err != nil {
 				return nil, fmt.Errorf("unable to run transform_float64: %w", err)
 			}
@@ -61,13 +62,18 @@ func init() {
 	}
 }
 
-func transformFloat(randomizer rng.Rand, value *float64, rMin, rMax float64, precision, scale *int64) (*float64, error) {
+func transformFloat(randomizer rng.Rand, value any, rMin, rMax float64, precision, scale *int64) (*float64, error) {
 	if value == nil {
 		return nil, nil
 	}
 
-	minRange := *value - rMin
-	maxRange := *value + rMax
+	parsedVal, err := transformer_utils.AnyToFloat64(value)
+	if err != nil {
+		return nil, err
+	}
+
+	minRange := parsedVal - rMin
+	maxRange := parsedVal + rMax
 
 	newVal, err := generateRandomFloat64(randomizer, false, minRange, maxRange, precision, scale)
 	if err != nil {
