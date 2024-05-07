@@ -232,7 +232,6 @@ func (s *pooledInsertOutput) WriteBatch(ctx context.Context, batch service.Messa
 		return err
 	}
 	if _, err := s.db.ExecContext(ctx, query, args...); err != nil {
-		fmt.Println("failed to insert", query, args)
 		return err
 	}
 	return nil

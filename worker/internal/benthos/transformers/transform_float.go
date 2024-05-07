@@ -167,39 +167,3 @@ func (m *maxNumCache) CalculateMaxNumber(precision int, scale *int) (float64, er
 func (m *maxNumCache) computeKey(precision, scale int) string {
 	return fmt.Sprintf("%d_%d", precision, scale)
 }
-
-func maxNumberForPrecisionAndOptionalScale(precision int, scale *int) (float64, error) {
-	if precision <= 0 {
-		return 0, fmt.Errorf("invalid precision value")
-	}
-
-	// If scale is nil, default it to zero
-	actualScale := 0
-	if scale != nil {
-		actualScale = *scale
-	}
-
-	// Calculate the number of integer digits
-	intDigits := precision - actualScale
-	if intDigits <= 0 {
-		return 0, fmt.Errorf("invalid precision and scale combination")
-	}
-
-	// Construct the maximum integer part
-	maxIntPart := math.Pow(10, float64(intDigits)) - 1
-
-	// Construct the maximum fractional part
-	maxFracPart := ""
-	if actualScale > 0 {
-		maxFracPart = fmt.Sprintf(".%0*d", actualScale, int(math.Pow(10, float64(actualScale))-1))
-	}
-
-	// Combine integer and fractional parts into a float
-	maxAllowedStr := fmt.Sprintf("%d%s", int(maxIntPart), maxFracPart)
-	maxAllowedValue, err := strconv.ParseFloat(maxAllowedStr, 64)
-	if err != nil {
-		return 0, err
-	}
-
-	return maxAllowedValue, nil
-}
