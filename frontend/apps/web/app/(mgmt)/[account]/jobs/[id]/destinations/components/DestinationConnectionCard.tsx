@@ -33,7 +33,7 @@ import {
   UpdateJobDestinationConnectionResponse,
 } from '@neosync/sdk';
 import { ReactElement } from 'react';
-import { useForm } from 'react-hook-form';
+import { Control, useForm, useWatch } from 'react-hook-form';
 import * as Yup from 'yup';
 
 const FORM_SCHEMA = DESTINATION_FORM_SCHEMA;
@@ -41,6 +41,7 @@ type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
 
 interface Props {
   jobId: string;
+  jobSourceId: string;
   destination: JobDestination;
   connections: Connection[];
   availableConnections: Connection[];
@@ -55,6 +56,7 @@ export default function DestinationConnectionCard({
   availableConnections,
   mutate,
   isDeleteDisabled,
+  jobSourceId,
 }: Props): ReactElement {
   const { toast } = useToast();
   const { account } = useAccount();
@@ -110,6 +112,11 @@ export default function DestinationConnectionCard({
   const dest = availableConnections.find(
     (item) => item.id === destination.connectionId
   );
+  const destOpts = form.watch('destinationOptions');
+  const shouldHideInitTableSchema = useShouldHideInitConnectionSchema(
+    form.control,
+    jobSourceId
+  );
   return (
     <Card>
       <Form {...form}>
@@ -125,12 +132,20 @@ export default function DestinationConnectionCard({
                       <Select
                         onValueChange={(value: string) => {
                           field.onChange(value);
-                          form.setValue(`destinationOptions`, {
-                            truncateBeforeInsert: false,
-                            truncateCascade: false,
-                            initTableSchema: false,
-                            onConflictDoNothing: false,
-                          });
+                          form.setValue(
+                            `destinationOptions`,
+                            {
+                              truncateBeforeInsert: false,
+                              truncateCascade: false,
+                              initTableSchema: false,
+                              onConflictDoNothing: false,
+                            },
+                            {
+                              shouldDirty: true,
+                              shouldTouch: true,
+                              shouldValidate: true,
+                            }
+                          );
                         }}
                         value={field.value}
                       >
@@ -161,6 +176,29 @@ export default function DestinationConnectionCard({
                 connection={connections.find(
                   (c) => c.id === form.getValues().connectionId
                 )}
+                value={{
+                  initTableSchema: destOpts.initTableSchema ?? false,
+                  onConflictDoNothing: destOpts.onConflictDoNothing ?? false,
+                  truncateBeforeInsert: destOpts.truncateBeforeInsert ?? false,
+                  truncateCascade: destOpts.truncateCascade ?? false,
+                }}
+                setValue={(newOpts) => {
+                  form.setValue(
+                    'destinationOptions',
+                    {
+                      initTableSchema: newOpts.initTableSchema,
+                      onConflictDoNothing: newOpts.onConflictDoNothing,
+                      truncateBeforeInsert: newOpts.truncateBeforeInsert,
+                      truncateCascade: newOpts.truncateCascade,
+                    },
+                    {
+                      shouldDirty: true,
+                      shouldTouch: true,
+                      shouldValidate: true,
+                    }
+                  );
+                }}
+                hideInitTableSchema={shouldHideInitTableSchema}
               />
             </div>
           </CardContent>
@@ -265,4 +303,15 @@ function getDefaultValues(d: JobDestination): FormValues {
         destinationOptions: {},
       };
   }
+}
+
+function useShouldHideInitConnectionSchema(
+  control: Control<FormValues>,
+  sourceId: string
+): boolean {
+  const [destinationConnectionid] = useWatch({
+    control,
+    name: ['connectionId'],
+  });
+  return destinationConnectionid === sourceId;
 }

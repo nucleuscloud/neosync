@@ -28,7 +28,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { ConnectionConfig } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { Control, useForm, useWatch } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import JobsProgressSteps, {
@@ -62,7 +62,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     }
   );
 
-  const form = useForm({
+  const form = useForm<SingleTableAiConnectFormValues>({
     resolver: yupResolver<SingleTableAiConnectFormValues>(
       SingleTableAiConnectFormValues
     ),
@@ -85,6 +85,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   }
 
   const { mysql, postgres, openai } = splitConnections(connections);
+
+  const destOpts = form.watch('destination.destinationOptions');
+  const shouldHideInitTableSchema = useShouldHideInitConnectionSchema(
+    form.control
+  );
 
   return (
     <div
@@ -334,6 +339,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               initTableSchema: false,
                               truncateBeforeInsert: false,
                               truncateCascade: false,
+                              onConflictDoNothing: false,
                             });
                           }}
                           value={field.value}
@@ -360,6 +366,29 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 connection={connections.find(
                   (c) => c.id === form.getValues().destination.connectionId
                 )}
+                hideInitTableSchema={shouldHideInitTableSchema}
+                value={{
+                  initTableSchema: destOpts.initTableSchema ?? false,
+                  onConflictDoNothing: destOpts.onConflictDoNothing ?? false,
+                  truncateBeforeInsert: destOpts.truncateBeforeInsert ?? false,
+                  truncateCascade: destOpts.truncateCascade ?? false,
+                }}
+                setValue={(newOpts) => {
+                  form.setValue(
+                    'destination.destinationOptions',
+                    {
+                      initTableSchema: newOpts.initTableSchema,
+                      onConflictDoNothing: newOpts.onConflictDoNothing,
+                      truncateBeforeInsert: newOpts.truncateBeforeInsert,
+                      truncateCascade: newOpts.truncateCascade,
+                    },
+                    {
+                      shouldDirty: true,
+                      shouldTouch: true,
+                      shouldValidate: true,
+                    }
+                  );
+                }}
               />
             </div>
           </div>
@@ -386,4 +415,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       </Form>
     </div>
   );
+}
+
+function useShouldHideInitConnectionSchema(
+  control: Control<SingleTableAiConnectFormValues>
+): boolean {
+  const [destinationConnectionid, fkSourceConnectionId] = useWatch({
+    control,
+    name: ['destination.connectionId', 'fkSourceConnectionId'],
+  });
+  return destinationConnectionid === fkSourceConnectionId;
 }

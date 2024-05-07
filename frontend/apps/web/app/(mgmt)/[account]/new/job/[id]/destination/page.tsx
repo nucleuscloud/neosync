@@ -122,6 +122,9 @@ export default function Page({ params }: PageProps): ReactElement {
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="space-y-12">
               {fields.map((_, index) => {
+                const destOpts = form.watch(
+                  `destinations.${index}.destinationOptions`
+                );
                 return (
                   <div key={index} className="space-y-4">
                     <div className="flex flex-row space-x-8">
@@ -192,8 +195,31 @@ export default function Page({ params }: PageProps): ReactElement {
                     </div>
 
                     <DestinationOptionsForm
-                      index={index}
                       connection={currConnection}
+                      value={{
+                        initTableSchema: destOpts.initTableSchema ?? false,
+                        onConflictDoNothing:
+                          destOpts.onConflictDoNothing ?? false,
+                        truncateBeforeInsert:
+                          destOpts.truncateBeforeInsert ?? false,
+                        truncateCascade: destOpts.truncateCascade ?? false,
+                      }}
+                      setValue={(newOpts) => {
+                        form.setValue(
+                          `destinations.${index}.destinationOptions`,
+                          {
+                            initTableSchema: newOpts.initTableSchema,
+                            onConflictDoNothing: newOpts.onConflictDoNothing,
+                            truncateBeforeInsert: newOpts.truncateBeforeInsert,
+                            truncateCascade: newOpts.truncateCascade,
+                          },
+                          {
+                            shouldDirty: true,
+                            shouldTouch: true,
+                            shouldValidate: true,
+                          }
+                        );
+                      }}
                     />
                   </div>
                 );
