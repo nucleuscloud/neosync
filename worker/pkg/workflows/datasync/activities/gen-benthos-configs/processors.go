@@ -388,7 +388,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		}
 
 		var scale *int64
-		if colInfo != nil && colInfo.NumericScale != nil && *colInfo.NumericScale > 0 {
+		if colInfo != nil && colInfo.NumericScale != nil && *colInfo.NumericScale >= 0 {
 			newScale := int64(*colInfo.NumericScale)
 			scale = &newScale
 		}
@@ -471,7 +471,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		}
 
 		var scale *int64
-		if colInfo != nil && colInfo.NumericScale != nil && *colInfo.NumericScale > 0 {
+		if colInfo != nil && colInfo.NumericScale != nil && *colInfo.NumericScale >= 0 {
 			newScale := int64(*colInfo.NumericScale)
 			scale = &newScale
 		}

@@ -34,7 +34,11 @@ SELECT
     END AS numeric_precision,
     CASE
         WHEN a.atttypid = pg_catalog.regtype 'numeric'::regtype THEN
-            (a.atttypmod - 4) & 65535
+            CASE
+                -- If scale is not explicitly set, return -1 (meaning arbitrary scale)
+                WHEN (a.atttypmod) = -1 THEN -1
+                ELSE (a.atttypmod - 4) & 65535
+            END
         -- Scale is technically only necessary for numeric values, but we are populating these here for simplicity in knowing what the type of integer is.
         -- This operates similar to the scake column in the information_schema.columns table
         WHEN a.atttypid = pg_catalog.regtype 'smallint'::regtype THEN
@@ -98,7 +102,11 @@ SELECT
     END AS numeric_precision,
     CASE
         WHEN a.atttypid = pg_catalog.regtype 'numeric'::regtype THEN
-            (a.atttypmod - 4) & 65535
+            CASE
+                -- If scale is not explicitly set, return -1 (meaning arbitrary scale)
+                WHEN (a.atttypmod) = -1 THEN -1
+                ELSE (a.atttypmod - 4) & 65535
+            END
         -- Scale is technically only necessary for numeric values, but we are populating these here for simplicity in knowing what the type of integer is.
         -- This operates similar to the scake column in the information_schema.columns table
         WHEN a.atttypid = pg_catalog.regtype 'smallint'::regtype THEN

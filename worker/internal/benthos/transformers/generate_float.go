@@ -79,8 +79,10 @@ func generateRandomFloat64(
 
 	// Apply scale if specified
 	if scale != nil {
-		scaleFactor := math.Pow(10, float64(*scale))
-		randomFloat = math.Round(randomFloat*scaleFactor) / scaleFactor
+		randomFloat, err = roundToScale(randomFloat, int(*scale))
+		if err != nil {
+			return 0, err
+		}
 	}
 
 	// Apply precision if specified
@@ -101,11 +103,17 @@ func generateRandomFloat64(
 		if int64(digitsBefore+digitsAfter) > *precision { // total digits exceed precision
 			if digitsBefore > int(*precision) { // need to cut in the integer part
 				strFloat = strFloat[:int(*precision)]
-				randomFloat, _ = strconv.ParseFloat(strFloat, 64)
+				randomFloat, err = strconv.ParseFloat(strFloat, 64)
+				if err != nil {
+					return 0, err
+				}
 			} else { // cut in the fractional part
 				allowedAfter := int(*precision) - digitsBefore
 				strFloat = fmt.Sprintf("%.*f", allowedAfter, randomFloat)
-				randomFloat, _ = strconv.ParseFloat(strFloat, 64)
+				randomFloat, err = strconv.ParseFloat(strFloat, 64)
+				if err != nil {
+					return 0, err
+				}
 			}
 		}
 	}
@@ -115,4 +123,17 @@ func generateRandomFloat64(
 	}
 
 	return randomFloat, nil
+}
+
+func roundToScale(val float64, scale int) (float64, error) {
+	// Use strconv.FormatFloat to format and round to the desired scale
+	formattedStr := strconv.FormatFloat(val, 'f', scale, 64)
+
+	// Convert the formatted string back to float64
+	roundedVal, err := strconv.ParseFloat(formattedStr, 64)
+	if err != nil {
+		return 0, fmt.Errorf("failed to convert rounded string back to float64: %w", err)
+	}
+
+	return roundedVal, nil
 }
