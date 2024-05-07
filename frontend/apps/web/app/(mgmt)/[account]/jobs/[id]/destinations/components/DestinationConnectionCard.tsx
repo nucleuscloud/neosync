@@ -33,7 +33,7 @@ import {
   UpdateJobDestinationConnectionResponse,
 } from '@neosync/sdk';
 import { ReactElement } from 'react';
-import { useForm } from 'react-hook-form';
+import { Control, useForm, useWatch } from 'react-hook-form';
 import * as Yup from 'yup';
 
 const FORM_SCHEMA = DESTINATION_FORM_SCHEMA;
@@ -41,6 +41,7 @@ type FormValues = Yup.InferType<typeof FORM_SCHEMA>;
 
 interface Props {
   jobId: string;
+  jobSourceId: string;
   destination: JobDestination;
   connections: Connection[];
   availableConnections: Connection[];
@@ -55,6 +56,7 @@ export default function DestinationConnectionCard({
   availableConnections,
   mutate,
   isDeleteDisabled,
+  jobSourceId,
 }: Props): ReactElement {
   const { toast } = useToast();
   const { account } = useAccount();
@@ -111,6 +113,10 @@ export default function DestinationConnectionCard({
     (item) => item.id === destination.connectionId
   );
   const destOpts = form.watch('destinationOptions');
+  const shouldHideInitTableSchema = useShouldHideInitConnectionSchema(
+    form.control,
+    jobSourceId
+  );
   return (
     <Card>
       <Form {...form}>
@@ -192,6 +198,7 @@ export default function DestinationConnectionCard({
                     }
                   );
                 }}
+                hideInitTableSchema={shouldHideInitTableSchema}
               />
             </div>
           </CardContent>
@@ -296,4 +303,15 @@ function getDefaultValues(d: JobDestination): FormValues {
         destinationOptions: {},
       };
   }
+}
+
+function useShouldHideInitConnectionSchema(
+  control: Control<FormValues>,
+  sourceId: string
+): boolean {
+  const [destinationConnectionid] = useWatch({
+    control,
+    name: ['connectionId'],
+  });
+  return destinationConnectionid === sourceId;
 }
