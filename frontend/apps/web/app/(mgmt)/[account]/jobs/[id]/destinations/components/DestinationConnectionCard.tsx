@@ -110,6 +110,7 @@ export default function DestinationConnectionCard({
   const dest = availableConnections.find(
     (item) => item.id === destination.connectionId
   );
+  const destOpts = form.watch('destinationOptions');
   return (
     <Card>
       <Form {...form}>
@@ -125,12 +126,20 @@ export default function DestinationConnectionCard({
                       <Select
                         onValueChange={(value: string) => {
                           field.onChange(value);
-                          form.setValue(`destinationOptions`, {
-                            truncateBeforeInsert: false,
-                            truncateCascade: false,
-                            initTableSchema: false,
-                            onConflictDoNothing: false,
-                          });
+                          form.setValue(
+                            `destinationOptions`,
+                            {
+                              truncateBeforeInsert: false,
+                              truncateCascade: false,
+                              initTableSchema: false,
+                              onConflictDoNothing: false,
+                            },
+                            {
+                              shouldDirty: true,
+                              shouldTouch: true,
+                              shouldValidate: true,
+                            }
+                          );
                         }}
                         value={field.value}
                       >
@@ -161,6 +170,28 @@ export default function DestinationConnectionCard({
                 connection={connections.find(
                   (c) => c.id === form.getValues().connectionId
                 )}
+                value={{
+                  initTableSchema: destOpts.initTableSchema ?? false,
+                  onConflictDoNothing: destOpts.onConflictDoNothing ?? false,
+                  truncateBeforeInsert: destOpts.truncateBeforeInsert ?? false,
+                  truncateCascade: destOpts.truncateCascade ?? false,
+                }}
+                setValue={(newOpts) => {
+                  form.setValue(
+                    'destinationOptions',
+                    {
+                      initTableSchema: newOpts.initTableSchema,
+                      onConflictDoNothing: newOpts.onConflictDoNothing,
+                      truncateBeforeInsert: newOpts.truncateBeforeInsert,
+                      truncateCascade: newOpts.truncateCascade,
+                    },
+                    {
+                      shouldDirty: true,
+                      shouldTouch: true,
+                      shouldValidate: true,
+                    }
+                  );
+                }}
               />
             </div>
           </CardContent>

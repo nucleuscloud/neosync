@@ -92,6 +92,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     (c) => c.connectionConfig?.config.case === 'pgConfig'
   );
 
+  const destOpts = form.watch('destinationOptions');
+
   return (
     <div
       id="newjobflowcontainer"
@@ -219,6 +221,28 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 connection={connections.find(
                   (c) => c.id === form.getValues().connectionId
                 )}
+                value={{
+                  initTableSchema: destOpts.initTableSchema ?? false,
+                  onConflictDoNothing: destOpts.onConflictDoNothing ?? false,
+                  truncateBeforeInsert: destOpts.truncateBeforeInsert ?? false,
+                  truncateCascade: destOpts.truncateCascade ?? false,
+                }}
+                setValue={(newOpts) => {
+                  form.setValue(
+                    'destinationOptions',
+                    {
+                      initTableSchema: newOpts.initTableSchema,
+                      onConflictDoNothing: newOpts.onConflictDoNothing,
+                      truncateBeforeInsert: newOpts.truncateBeforeInsert,
+                      truncateCascade: newOpts.truncateCascade,
+                    },
+                    {
+                      shouldDirty: true,
+                      shouldTouch: true,
+                      shouldValidate: true,
+                    }
+                  );
+                }}
               />
             </div>
           </div>

@@ -86,6 +86,8 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const { mysql, postgres, openai } = splitConnections(connections);
 
+  const destOpts = form.watch('destination.destinationOptions');
+
   return (
     <div
       id="newjobflowcontainer"
@@ -360,6 +362,28 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 connection={connections.find(
                   (c) => c.id === form.getValues().destination.connectionId
                 )}
+                value={{
+                  initTableSchema: destOpts.initTableSchema ?? false,
+                  onConflictDoNothing: destOpts.onConflictDoNothing ?? false,
+                  truncateBeforeInsert: destOpts.truncateBeforeInsert ?? false,
+                  truncateCascade: destOpts.truncateCascade ?? false,
+                }}
+                setValue={(newOpts) => {
+                  form.setValue(
+                    'destination.destinationOptions',
+                    {
+                      initTableSchema: newOpts.initTableSchema,
+                      onConflictDoNothing: newOpts.onConflictDoNothing,
+                      truncateBeforeInsert: newOpts.truncateBeforeInsert,
+                      truncateCascade: newOpts.truncateCascade,
+                    },
+                    {
+                      shouldDirty: true,
+                      shouldTouch: true,
+                      shouldValidate: true,
+                    }
+                  );
+                }}
               />
             </div>
           </div>

@@ -239,6 +239,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             </div>
             <div className="space-y-12 col-span-2">
               {fields.map((val, index) => {
+                const destOpts = form.watch(
+                  `destinations.${index}.destinationOptions`
+                );
                 return (
                   <div className="space-y-4 col-span-2" key={val.id}>
                     <div className="flex flew-row space-x-4">
@@ -358,12 +361,35 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                       </div>
                     </div>
                     <DestinationOptionsForm
-                      index={index}
                       connection={connections.find(
                         (c) =>
                           c.id ==
                           form.getValues().destinations[index].connectionId
                       )}
+                      value={{
+                        initTableSchema: destOpts.initTableSchema ?? false,
+                        onConflictDoNothing:
+                          destOpts.onConflictDoNothing ?? false,
+                        truncateBeforeInsert:
+                          destOpts.truncateBeforeInsert ?? false,
+                        truncateCascade: destOpts.truncateCascade ?? false,
+                      }}
+                      setValue={(newOpts) => {
+                        form.setValue(
+                          `destinations.${index}.destinationOptions`,
+                          {
+                            initTableSchema: newOpts.initTableSchema,
+                            onConflictDoNothing: newOpts.onConflictDoNothing,
+                            truncateBeforeInsert: newOpts.truncateBeforeInsert,
+                            truncateCascade: newOpts.truncateCascade,
+                          },
+                          {
+                            shouldDirty: true,
+                            shouldTouch: true,
+                            shouldValidate: true,
+                          }
+                        );
+                      }}
                     />
                   </div>
                 );
