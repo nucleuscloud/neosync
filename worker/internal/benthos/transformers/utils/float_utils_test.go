@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/nucleuscloud/neosync/worker/internal/rng"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -14,8 +13,8 @@ func Test_GenerateRandomFloat64WithInclusiveBoundsMinEqualMax(t *testing.T) {
 	v2 := float64(2.2)
 
 	val, err := GenerateRandomFloat64WithInclusiveBounds(rng.New(time.Now().UnixNano()), v1, v2)
-	assert.NoError(t, err, "Did not expect an error when min == max")
-	assert.Equal(t, v1, val, "actual value to be equal to min/max")
+	require.NoError(t, err, "Did not expect an error when min == max")
+	require.Equal(t, v1, val, "actual value to be equal to min/max")
 }
 
 func Test_GenerateRandomFloat64WithInclusiveBoundsPositive(t *testing.T) {
@@ -23,8 +22,8 @@ func Test_GenerateRandomFloat64WithInclusiveBoundsPositive(t *testing.T) {
 	v2 := float64(5.2)
 
 	val, err := GenerateRandomFloat64WithInclusiveBounds(rng.New(time.Now().UnixNano()), v1, v2)
-	assert.NoError(t, err, "Did not expect an error for valid range")
-	assert.True(t, val >= v1 && val <= v2, "actual value to be within the range")
+	require.NoError(t, err, "Did not expect an error for valid range")
+	require.True(t, val >= v1 && val <= v2, "actual value to be within the range")
 }
 
 func Test_GenerateRandomFloat64WithInclusiveBoundsNegative(t *testing.T) {
@@ -33,8 +32,8 @@ func Test_GenerateRandomFloat64WithInclusiveBoundsNegative(t *testing.T) {
 
 	val, err := GenerateRandomFloat64WithInclusiveBounds(rng.New(time.Now().UnixNano()), v1, v2)
 
-	assert.NoError(t, err, "Did not expect an error for valid range")
-	assert.True(t, val <= v1 && val >= v2, "actual value to be within the range")
+	require.NoError(t, err, "Did not expect an error for valid range")
+	require.True(t, val <= v1 && val >= v2, "actual value to be within the range")
 }
 
 func Test_GenerateRandomFloat64WithBoundsNegativeToPositive(t *testing.T) {
@@ -43,8 +42,8 @@ func Test_GenerateRandomFloat64WithBoundsNegativeToPositive(t *testing.T) {
 
 	val, err := GenerateRandomFloat64WithInclusiveBounds(rng.New(time.Now().UnixNano()), v1, v2)
 
-	assert.NoError(t, err, "Did not expect an error for valid range")
-	assert.True(t, val >= v1 && val <= v2, "actual value to be within the range")
+	require.NoError(t, err, "Did not expect an error for valid range")
+	require.True(t, val >= v1 && val <= v2, "actual value to be within the range")
 }
 
 func Test_AnyToFloat64(t *testing.T) {
