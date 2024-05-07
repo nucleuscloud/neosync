@@ -54,7 +54,7 @@ func init() {
 		maxnumgetter := newMaxNumCache()
 
 		return func() (any, error) {
-			res, err := TransformFloat(randomizer, maxnumgetter, value, rMin, rMax, precision, scale)
+			res, err := transformFloat(randomizer, maxnumgetter, value, rMin, rMax, precision, scale)
 			if err != nil {
 				return nil, fmt.Errorf("unable to run transform_float64: %w", err)
 			}
@@ -67,7 +67,7 @@ func init() {
 	}
 }
 
-func TransformFloat(randomizer rng.Rand, maxnumgetter maxNum, value any, rMin, rMax float64, precision, scale *int64) (*float64, error) {
+func transformFloat(randomizer rng.Rand, maxnumgetter maxNum, value any, rMin, rMax float64, precision, scale *int64) (*float64, error) {
 	if value == nil {
 		return nil, nil
 	}

@@ -15,7 +15,7 @@ func Test_TransformFloat64InRange(t *testing.T) {
 	rMin := float64(5)
 	rMax := float64(5)
 
-	res, err := TransformFloat(rng.New(time.Now().UnixNano()), newMaxNumCache(), &val, rMin, rMax, nil, nil)
+	res, err := transformFloat(rng.New(time.Now().UnixNano()), newMaxNumCache(), &val, rMin, rMax, nil, nil)
 	require.NoError(t, err)
 
 	require.GreaterOrEqual(t, *res, val-rMin, "The result should be greater than the min")
