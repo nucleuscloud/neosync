@@ -193,6 +193,7 @@ const getJobConnectionDestinations = `-- name: GetJobConnectionDestinations :man
 SELECT jdca.id, jdca.created_at, jdca.updated_at, jdca.job_id, jdca.connection_id, jdca.options from neosync_api.job_destination_connection_associations jdca
 INNER JOIN neosync_api.jobs j ON j.id = jdca.job_id
 WHERE j.id = $1
+ORDER BY jdca.created_at
 `
 
 func (q *Queries) GetJobConnectionDestinations(ctx context.Context, db DBTX, id pgtype.UUID) ([]NeosyncApiJobDestinationConnectionAssociation, error) {
@@ -226,6 +227,7 @@ const getJobConnectionDestinationsByJobIds = `-- name: GetJobConnectionDestinati
 SELECT jdca.id, jdca.created_at, jdca.updated_at, jdca.job_id, jdca.connection_id, jdca.options from neosync_api.job_destination_connection_associations jdca
 INNER JOIN neosync_api.jobs j ON j.id = jdca.job_id
 WHERE j.id = ANY($1::uuid[])
+ORDER BY j.created_at, jdca.created_at
 `
 
 func (q *Queries) GetJobConnectionDestinationsByJobIds(ctx context.Context, db DBTX, jobids []pgtype.UUID) ([]NeosyncApiJobDestinationConnectionAssociation, error) {

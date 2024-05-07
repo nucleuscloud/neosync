@@ -91,12 +91,14 @@ WHERE jdca.id = $1;
 -- name: GetJobConnectionDestinations :many
 SELECT jdca.* from neosync_api.job_destination_connection_associations jdca
 INNER JOIN neosync_api.jobs j ON j.id = jdca.job_id
-WHERE j.id = $1;
+WHERE j.id = $1
+ORDER BY jdca.created_at;
 
 -- name: GetJobConnectionDestinationsByJobIds :many
 SELECT jdca.* from neosync_api.job_destination_connection_associations jdca
 INNER JOIN neosync_api.jobs j ON j.id = jdca.job_id
-WHERE j.id = ANY(sqlc.arg('jobIds')::uuid[]);
+WHERE j.id = ANY(sqlc.arg('jobIds')::uuid[])
+ORDER BY j.created_at, jdca.created_at;
 
 -- name: RemoveJobConnectionDestinations :exec
 DELETE FROM neosync_api.job_destination_connection_associations
