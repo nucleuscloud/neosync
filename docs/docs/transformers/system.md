@@ -267,6 +267,10 @@ For example:
 
 This transformer supports both positive and negative float numbers with a max precision of 17.
 
+Go float64 adheres to the IEEE 754 standard for double-precision floating-point numbers.
+
+If this is not sufficient, contact us about creating a generator that supports numbers with higher precision.
+
 **Configurations**
 
 Depending on your validations, you may want to configure the output float. The random float transformer has the following configurations:

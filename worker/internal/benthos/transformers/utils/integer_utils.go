@@ -115,7 +115,7 @@ func Floor[T int | int64 | int32 | uint | uint32 | uint64](n, floor T) T {
 }
 
 // If n is greater than ceiling, returns ceiling. Otherwise returns n.
-func Ceil[T int | int64 | int32 | uint | uint32 | uint64](n, ceiling T) T {
+func Ceil[T int | int64 | int32 | uint | uint32 | uint64 | float32 | float64](n, ceiling T) T {
 	if n < ceiling {
 		return n
 	}

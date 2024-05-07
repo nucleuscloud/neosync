@@ -388,7 +388,7 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 		}
 
 		var scale *int64
-		if colInfo != nil && colInfo.NumericScale != nil && *colInfo.NumericScale > 0 {
+		if colInfo != nil && colInfo.NumericScale != nil && *colInfo.NumericScale >= 0 {
 			newScale := int64(*colInfo.NumericScale)
 			scale = &newScale
 		}
@@ -463,7 +463,32 @@ func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_ut
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FLOAT64:
 		rMin := col.Transformer.Config.GetTransformFloat64Config().RandomizationRangeMin
 		rMax := col.Transformer.Config.GetTransformFloat64Config().RandomizationRangeMax
-		return fmt.Sprintf(`transform_float64(value:this.%q,randomization_range_min:%f,randomization_range_max:%f)`, col.Column, rMin, rMax), nil
+
+		var precision *int64
+		if colInfo != nil && colInfo.NumericPrecision != nil && *colInfo.NumericPrecision > 0 {
+			newPrecision := int64(*colInfo.NumericPrecision)
+			precision = &newPrecision
+		}
+
+		var scale *int64
+		if colInfo != nil && colInfo.NumericScale != nil && *colInfo.NumericScale >= 0 {
+			newScale := int64(*colInfo.NumericScale)
+			scale = &newScale
+		}
+
+		fnStr := []string{"value:this.%q", "randomization_range_min:%f", "randomization_range_max:%f"}
+		params := []any{col.Column, rMin, rMax}
+
+		if precision != nil {
+			fnStr = append(fnStr, "precision:%d")
+			params = append(params, *precision)
+		}
+		if scale != nil {
+			fnStr = append(fnStr, "scale:%d")
+			params = append(params, *scale)
+		}
+		template := fmt.Sprintf(`transform_float64(%s)`, strings.Join(fnStr, ", "))
+		return fmt.Sprintf(template, params...), nil
 	case mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_TRANSFORM_FULL_NAME:
 		pl := col.Transformer.Config.GetTransformFullNameConfig().PreserveLength
 		return fmt.Sprintf("transform_full_name(value:this.%q,preserve_length:%t,max_length:%d)", col.Column, pl, maxLen), nil
