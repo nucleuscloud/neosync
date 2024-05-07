@@ -1,5 +1,6 @@
 'use client';
 import SwitchCard from '@/components/switches/SwitchCard';
+import { Badge } from '@/components/ui/badge';
 import { Connection } from '@neosync/sdk';
 import { ReactElement } from 'react';
 
@@ -71,6 +72,7 @@ export default function DestinationOptionsForm(
                   setValue({ ...value, initTableSchema: newVal });
                 }}
                 title="Init Table Schema"
+                postTitle={<Badge>Experimental</Badge>}
                 description="Creates table(s) and their constraints. The database schema must already exist. "
               />
             </div>
