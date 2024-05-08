@@ -193,7 +193,7 @@ function PermissionsPageContainer(props: PermissionsPageContainerProps) {
       <PermissionsDataTable
         ConnectionAlert={
           <TestConnectionResult
-            isConnected={true}
+            isConnected={isDbConnected}
             connectionName={connectionName}
             hasPrivileges={data.length > 0}
           />
