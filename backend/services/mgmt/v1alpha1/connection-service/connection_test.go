@@ -52,7 +52,7 @@ func Test_CheckConnectionConfig_Postgres(t *testing.T) {
 	m.PgPoolContainerMock.On("Close")
 	m.SqlConnectorMock.On("NewPgPoolFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.PgPoolContainerMock, nil)
 
-	m.PgQueierMock.On("GetPostgresRolePermissions", mock.Anything, mock.Anything, mock.Anything).
+	m.PgQuerierMock.On("GetPostgresRolePermissions", mock.Anything, mock.Anything, mock.Anything).
 		Return([]*pg_queries.GetPostgresRolePermissionsRow{
 			{
 				TableSchema:   "Users",
@@ -81,10 +81,22 @@ func Test_CheckConnectionConfig_Mysql(t *testing.T) {
 	m := createServiceMock(t)
 	defer m.SqlDbMock.Close()
 
-	m.SqlMock.ExpectPing()
 	m.SqlDbContainerMock.On("Open").Return(m.SqlDbMock, nil)
 	m.SqlDbContainerMock.On("Close").Return(nil)
 	m.SqlConnectorMock.On("NewDbFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.SqlDbContainerMock, nil)
+	m.MysqlQuerierMock.On("GetMysqlRolePermissions", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*mysql_queries.GetMysqlRolePermissionsRow{
+			{
+				TableSchema:   "Users",
+				TableName:     "Users",
+				PrivilegeType: "Insert",
+			},
+			{
+				TableSchema:   "Users",
+				TableName:     "Users",
+				PrivilegeType: "Delete",
+			},
+		}, nil)
 
 	resp, err := m.Service.CheckConnectionConfig(context.Background(), &connect.Request[mgmtv1alpha1.CheckConnectionConfigRequest]{
 		Msg: &mgmtv1alpha1.CheckConnectionConfigRequest{
@@ -659,7 +671,8 @@ type serviceMocks struct {
 	SqlDbMock              *sql.DB
 	SqlDbContainerMock     *sqlconnect.MockSqlDbContainer
 	PgPoolContainerMock    *sqlconnect.MockPgPoolContainer
-	PgQueierMock           *pg_queries.MockQuerier
+	PgQuerierMock          *pg_queries.MockQuerier
+	MysqlQuerierMock       *mysql_queries.MockQuerier
 }
 
 func createServiceMock(t *testing.T) *serviceMocks {
@@ -687,7 +700,8 @@ func createServiceMock(t *testing.T) *serviceMocks {
 		SqlDbMock:              sqlDbMock,
 		SqlDbContainerMock:     sqlconnect.NewMockSqlDbContainer(t),
 		PgPoolContainerMock:    sqlconnect.NewMockPgPoolContainer(t),
-		PgQueierMock:           mockPgquerier,
+		PgQuerierMock:          mockPgquerier,
+		MysqlQuerierMock:       mockMysqlquerier,
 	}
 }
 
