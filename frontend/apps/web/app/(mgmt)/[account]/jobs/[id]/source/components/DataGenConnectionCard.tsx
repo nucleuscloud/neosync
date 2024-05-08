@@ -1,8 +1,5 @@
 'use client';
-import {
-  SINGLE_TABLE_SCHEMA_FORM_SCHEMA,
-  SingleTableSchemaFormValues,
-} from '@/app/(mgmt)/[account]/new/job/schema';
+import { SingleTableEditSourceFormValues } from '@/app/(mgmt)/[account]/new/job/schema';
 import {
   SchemaTable,
   extractAllFormErrors,
@@ -21,14 +18,24 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
+import { getConnection } from '@/libs/hooks/useGetConnection';
 import { useGetConnectionForeignConstraints } from '@/libs/hooks/useGetConnectionForeignConstraints';
 import { useGetConnectionPrimaryConstraints } from '@/libs/hooks/useGetConnectionPrimaryConstraints';
 import {
-  ConnectionSchemaMap,
+  GetConnectionSchemaMapResponse,
+  getConnectionSchema,
   useGetConnectionSchemaMap,
 } from '@/libs/hooks/useGetConnectionSchemaMap';
 import { useGetConnectionUniqueConstraints } from '@/libs/hooks/useGetConnectionUniqueConstraints';
+import { useGetConnections } from '@/libs/hooks/useGetConnections';
 import { useGetJob } from '@/libs/hooks/useGetJob';
 import { getErrorMessage } from '@/util/util';
 import {
@@ -51,8 +58,9 @@ import {
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
+import { KeyedMutator } from 'swr';
 import SchemaPageSkeleton from './SchemaPageSkeleton';
-import { getFkIdFromGenerateSource, getOnSelectedTableToggle } from './util';
+import { getOnSelectedTableToggle } from './util';
 
 interface Props {
   jobId: string;
@@ -67,12 +75,25 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     mutate,
     isLoading: isJobLoading,
   } = useGetJob(account?.id ?? '', jobId);
-  const fkSourceConnectionId = getFkIdFromGenerateSource(data?.job?.source);
+
+  const { data: connectionsData, isValidating: isConnectionsValidating } =
+    useGetConnections(account?.id ?? '');
+
+  const connections = connectionsData?.connections ?? [];
+
+  const form = useForm<SingleTableEditSourceFormValues>({
+    resolver: yupResolver(SingleTableEditSourceFormValues),
+    values: getJobSource(data?.job),
+    context: { accountId: account?.id },
+  });
+
+  const fkSourceConnectionId = form.watch('source.fkSourceConnectionId');
 
   const {
     data: connectionSchemaDataMap,
     isLoading: isSchemaDataMapLoading,
     isValidating: isSchemaMapValidating,
+    mutate: mutateGetConnectionSchemaMap,
   } = useGetConnectionSchemaMap(account?.id ?? '', fkSourceConnectionId ?? '');
 
   const { data: primaryConstraints, isValidating: isPkValidating } =
@@ -93,12 +114,6 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
       fkSourceConnectionId ?? ''
     );
 
-  const form = useForm<SingleTableSchemaFormValues>({
-    resolver: yupResolver(SINGLE_TABLE_SCHEMA_FORM_SCHEMA),
-    values: getJobSource(data?.job, connectionSchemaDataMap?.schemaMap),
-    context: { accountId: account?.id },
-  });
-
   const schemaConstraintHandler = useMemo(
     () =>
       getSchemaConstraintHandler(
@@ -110,18 +125,17 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     [isSchemaMapValidating, isPkValidating, isFkValidating, isUCValidating]
   );
   const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set());
-  const { append, remove, fields } = useFieldArray<SingleTableSchemaFormValues>(
-    {
+  const { append, remove, fields } =
+    useFieldArray<SingleTableEditSourceFormValues>({
       control: form.control,
       name: 'mappings',
-    }
-  );
+    });
 
   useEffect(() => {
     if (isJobLoading || isSchemaDataMapLoading || selectedTables.size > 0) {
       return;
     }
-    const js = getJobSource(data?.job, connectionSchemaDataMap?.schemaMap);
+    const js = getJobSource(data?.job);
     setSelectedTables(
       new Set(
         js.mappings.map((mapping) => `${mapping.schema}.${mapping.table}`)
@@ -129,11 +143,16 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     );
   }, [isJobLoading, isSchemaDataMapLoading]);
 
+  const connectionsMap = useMemo(
+    () => new Map(connections.map((c) => [c.id, c])),
+    [isConnectionsValidating]
+  );
+
   if (isJobLoading || isSchemaDataMapLoading) {
     return <SchemaPageSkeleton />;
   }
 
-  async function onSubmit(values: SingleTableSchemaFormValues) {
+  async function onSubmit(values: SingleTableEditSourceFormValues) {
     const job = data?.job;
     if (!job) {
       return;
@@ -165,9 +184,104 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
   );
   const formMappings = form.watch('mappings');
 
+  async function onTableConstraintSourceChange(value: string): Promise<void> {
+    try {
+      const newValues = await getUpdatedValues(
+        account?.id ?? '',
+        value,
+        form.getValues(),
+        mutateGetConnectionSchemaMap
+      );
+      form.reset(newValues);
+      const newMapping =
+        newValues.mappings.length > 0 ? newValues.mappings[0] : undefined;
+      if (newMapping && newMapping.schema && newMapping.table) {
+        setSelectedTables(
+          new Set([`${newMapping.schema}.${newMapping.table}`])
+        );
+      } else {
+        setSelectedTables(new Set());
+      }
+    } catch (err) {
+      form.reset({
+        ...form.getValues(),
+        source: { ...form.getValues('source'), fkSourceConnectionId: value },
+      });
+      toast({
+        title:
+          'Unable to get connection schema on table constraint source change.',
+        description: getErrorMessage(err),
+        variant: 'destructive',
+      });
+    }
+  }
+
+  const fkConn = connections.find((c) => c.id === fkSourceConnectionId);
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <FormField
+          control={form.control}
+          name="source.fkSourceConnectionId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Table Schema Connection</FormLabel>
+              <FormDescription>
+                Connection used for table schema. Must be of the same type as
+                the destination.
+              </FormDescription>
+              <FormControl>
+                <Select
+                  value={field.value}
+                  onValueChange={async (value) => {
+                    if (!value) {
+                      return;
+                    }
+                    field.onChange(value);
+                    await onTableConstraintSourceChange(value);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={fkConn?.name} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {connections
+                      .filter((c) => {
+                        const dests = data?.job?.destinations ?? [];
+
+                        return (
+                          c.connectionConfig?.config.case !== 'awsS3Config' &&
+                          dests.some((dest) => {
+                            const destConn = connectionsMap.get(
+                              dest.connectionId
+                            );
+                            return (
+                              !!destConn &&
+                              destConn.connectionConfig?.config.case ===
+                                c.connectionConfig?.config.case
+                            );
+                          })
+                        );
+                      })
+                      .map((connection) => (
+                        <SelectItem
+                          className="cursor-pointer ml-2"
+                          key={connection.id}
+                          value={connection.id}
+                        >
+                          {connection.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
+
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <FormField
           control={form.control}
           name="numRows"
@@ -222,11 +336,14 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
 }
 
 function getJobSource(
-  job?: Job,
-  connSchemaMap?: ConnectionSchemaMap
-): SingleTableSchemaFormValues {
-  if (!job || !connSchemaMap) {
+  job?: Job
+  // connSchemaMap?: ConnectionSchemaMap
+): SingleTableEditSourceFormValues {
+  if (!job) {
     return {
+      source: {
+        fkSourceConnectionId: '',
+      },
       mappings: [],
       numRows: 0,
     };
@@ -244,7 +361,7 @@ function getJobSource(
 
   const mapData: Record<string, Set<string>> = {};
 
-  const mappings: SingleTableSchemaFormValues['mappings'] = (
+  const mappings: SingleTableEditSourceFormValues['mappings'] = (
     job.mappings ?? []
   ).map((mapping) => {
     const tkey = `${mapping.schema}.${mapping.table}`;
@@ -265,26 +382,35 @@ function getJobSource(
     };
   });
 
-  Object.entries(mapData).forEach(([key, currcols]) => {
-    const dbcols = connSchemaMap[key];
-    if (!dbcols) {
-      return;
-    }
-    dbcols.forEach((dbcol) => {
-      if (!currcols.has(dbcol.column)) {
-        mappings.push({
-          schema: dbcol.schema,
-          table: dbcol.table,
-          column: dbcol.column,
-          transformer: convertJobMappingTransformerToForm(
-            new JobMappingTransformer()
-          ),
-        });
-      }
-    });
-  });
+  let fkSourceConnectionId = '';
+  if (job.source?.options?.config.case === 'generate') {
+    fkSourceConnectionId =
+      job.source.options.config.value.fkSourceConnectionId ?? '';
+  }
+
+  // Object.entries(mapData).forEach(([key, currcols]) => {
+  //   const dbcols = connSchemaMap[key];
+  //   if (!dbcols) {
+  //     return;
+  //   }
+  //   dbcols.forEach((dbcol) => {
+  //     if (!currcols.has(dbcol.column)) {
+  //       mappings.push({
+  //         schema: dbcol.schema,
+  //         table: dbcol.table,
+  //         column: dbcol.column,
+  //         transformer: convertJobMappingTransformerToForm(
+  //           new JobMappingTransformer()
+  //         ),
+  //       });
+  //     }
+  //   });
+  // });
 
   return {
+    source: {
+      fkSourceConnectionId: fkSourceConnectionId,
+    },
     mappings: mappings,
     numRows: numRows,
   };
@@ -293,7 +419,7 @@ function getJobSource(
 async function updateJobConnection(
   accountId: string,
   job: Job,
-  values: SingleTableSchemaFormValues
+  values: SingleTableEditSourceFormValues
 ): Promise<UpdateJobSourceConnectionResponse> {
   const schema = values.mappings.length > 0 ? values.mappings[0].schema : null;
   const table = values.mappings.length > 0 ? values.mappings[0].table : null;
@@ -323,7 +449,7 @@ async function updateJobConnection(
               config: {
                 case: 'generate',
                 value: new GenerateSourceOptions({
-                  fkSourceConnectionId: getFkIdFromGenerateSource(job.source),
+                  fkSourceConnectionId: values.source.fkSourceConnectionId,
                   schemas:
                     schema && table
                       ? [
@@ -351,4 +477,41 @@ async function updateJobConnection(
     throw new Error(body.message);
   }
   return UpdateJobSourceConnectionResponse.fromJson(await res.json());
+}
+
+async function getUpdatedValues(
+  accountId: string,
+  connectionId: string,
+  originalValues: SingleTableEditSourceFormValues,
+  mutateConnectionSchemaRes:
+    | KeyedMutator<unknown>
+    | KeyedMutator<GetConnectionSchemaMapResponse>
+): Promise<SingleTableEditSourceFormValues> {
+  const [schemaRes, connRes] = await Promise.all([
+    getConnectionSchema(accountId, connectionId),
+    getConnection(accountId, connectionId),
+  ]);
+
+  if (!schemaRes || !connRes) {
+    return originalValues;
+  }
+
+  const sameKeys = new Set(
+    Object.values(schemaRes.schemaMap).flatMap((dbcols) =>
+      dbcols.map((dbcol) => `${dbcol.schema}.${dbcol.table}.${dbcol.column}`)
+    )
+  );
+
+  const mappings = originalValues.mappings.filter((mapping) =>
+    sameKeys.has(`${mapping.schema}.${mapping.table}.${mapping.column}`)
+  );
+
+  mutateConnectionSchemaRes(schemaRes);
+  return {
+    ...originalValues,
+    source: {
+      fkSourceConnectionId: connectionId,
+    },
+    mappings,
+  };
 }

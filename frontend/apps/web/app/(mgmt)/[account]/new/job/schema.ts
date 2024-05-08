@@ -306,6 +306,24 @@ export type SingleTableSchemaFormValues = Yup.InferType<
   typeof SINGLE_TABLE_SCHEMA_FORM_SCHEMA
 >;
 
+export const SingleTableEditSourceFormValues = Yup.object({
+  source: Yup.object({
+    fkSourceConnectionId: Yup.string()
+      .required('Connection is required')
+      .uuid(),
+  }).required(),
+
+  numRows: Yup.number()
+    .required('Must provide a number of rows to generate')
+    .min(1)
+    .default(10),
+  mappings: Yup.array().of(JOB_MAPPING_SCHEMA).required(),
+}).required();
+
+export type SingleTableEditSourceFormValues = Yup.InferType<
+  typeof SingleTableEditSourceFormValues
+>;
+
 export const SUBSET_FORM_SCHEMA = Yup.object({
   subsets: Yup.array(SINGLE_SUBSET_FORM_SCHEMA).required(),
   subsetOptions: Yup.object({
