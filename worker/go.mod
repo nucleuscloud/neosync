@@ -12,13 +12,11 @@ require (
 	connectrpc.com/grpcreflect v1.2.0
 	github.com/Azure/azure-sdk-for-go/sdk/ai/azopenai v0.5.1
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.11.1
-	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/Jeffail/shutdown v1.0.0
 	github.com/benthosdev/benthos/v4 v4.27.0
 	github.com/doug-martin/goqu/v9 v9.19.0
 	github.com/go-logr/logr v1.4.1
 	github.com/google/uuid v1.6.0
-	github.com/jackc/pgx/v5 v5.5.5
 	github.com/nucleuscloud/neosync/backend v0.0.0-20231203015621-7d46ef5b9957
 	github.com/pganalyze/pg_query_go/v5 v5.1.0
 	github.com/redis/go-redis/v9 v9.5.1
@@ -41,7 +39,7 @@ require (
 )
 
 require (
-	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.34.0-20240401165935-b983156c5e99.1 // indirect
+	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.34.1-20240401165935-b983156c5e99.1 // indirect
 	cloud.google.com/go/bigquery v1.59.1 // indirect
 	cloud.google.com/go/trace v1.10.5 // indirect
 	cuelang.org/go v0.7.0 // indirect
@@ -169,6 +167,7 @@ require (
 	github.com/itchyny/timefmt-go v0.1.5 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20231201235250-de7065d80cb9 // indirect
+	github.com/jackc/pgx/v5 v5.5.5 // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
