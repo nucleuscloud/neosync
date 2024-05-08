@@ -141,7 +141,47 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
         js.mappings.map((mapping) => `${mapping.schema}.${mapping.table}`)
       )
     );
+
+    // handle missing columns
   }, [isJobLoading, isSchemaDataMapLoading]);
+  useEffect(() => {
+    const connSchemaMap = connectionSchemaDataMap?.schemaMap;
+    if (isJobLoading || isSchemaMapValidating || !connSchemaMap) {
+      return;
+    }
+    const existingCols: Record<string, Set<string>> = {};
+    formMappings.forEach((mapping) => {
+      const key = `${mapping.schema}.${mapping.table}`;
+      const uniqcols = existingCols[key];
+      if (uniqcols) {
+        uniqcols.add(mapping.column);
+      } else {
+        existingCols[key] = new Set([mapping.column]);
+      }
+    });
+    const toAdd: any[] = [];
+    Object.entries(existingCols).forEach(([key, currcols]) => {
+      const dbcols = connSchemaMap[key];
+      if (!dbcols) {
+        return;
+      }
+      dbcols.forEach((dbcol) => {
+        if (!currcols.has(dbcol.column)) {
+          toAdd.push({
+            schema: dbcol.schema,
+            table: dbcol.table,
+            column: dbcol.column,
+            transformer: convertJobMappingTransformerToForm(
+              new JobMappingTransformer()
+            ),
+          });
+        }
+      });
+    });
+    if (toAdd.length > 0) {
+      append(toAdd);
+    }
+  }, [isJobLoading, isSchemaMapValidating]);
 
   const connectionsMap = useMemo(
     () => new Map(connections.map((c) => [c.id, c])),
@@ -335,10 +375,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
   );
 }
 
-function getJobSource(
-  job?: Job
-  // connSchemaMap?: ConnectionSchemaMap
-): SingleTableEditSourceFormValues {
+function getJobSource(job?: Job): SingleTableEditSourceFormValues {
   if (!job) {
     return {
       source: {
@@ -359,19 +396,9 @@ function getJobSource(
     }
   }
 
-  const mapData: Record<string, Set<string>> = {};
-
   const mappings: SingleTableEditSourceFormValues['mappings'] = (
     job.mappings ?? []
   ).map((mapping) => {
-    const tkey = `${mapping.schema}.${mapping.table}`;
-    const uniqcols = mapData[tkey];
-    if (uniqcols) {
-      uniqcols.add(mapping.column);
-    } else {
-      mapData[tkey] = new Set([mapping.column]);
-    }
-
     return {
       schema: mapping.schema,
       table: mapping.table,
@@ -387,25 +414,6 @@ function getJobSource(
     fkSourceConnectionId =
       job.source.options.config.value.fkSourceConnectionId ?? '';
   }
-
-  // Object.entries(mapData).forEach(([key, currcols]) => {
-  //   const dbcols = connSchemaMap[key];
-  //   if (!dbcols) {
-  //     return;
-  //   }
-  //   dbcols.forEach((dbcol) => {
-  //     if (!currcols.has(dbcol.column)) {
-  //       mappings.push({
-  //         schema: dbcol.schema,
-  //         table: dbcol.table,
-  //         column: dbcol.column,
-  //         transformer: convertJobMappingTransformerToForm(
-  //           new JobMappingTransformer()
-  //         ),
-  //       });
-  //     }
-  //   });
-  // });
 
   return {
     source: {

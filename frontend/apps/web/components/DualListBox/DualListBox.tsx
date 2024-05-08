@@ -201,7 +201,7 @@ function getLeftBoxNoMessage(
 ): string {
   // this isnt super useful right now because the options are always a combination of schema+jobmappings
   if (options.length === 0) {
-    return 'Unable to load schema from connection';
+    return 'Unable to load schema or found no tables';
   }
   if (leftData.length === 0) {
     return 'All tables have been added!';
@@ -215,7 +215,7 @@ function getRightBoxNoMessage(
   mode: Mode
 ): string {
   if (options.length === 0) {
-    return 'Unable to load schema from connection';
+    return 'Unable to load schema or found no tables';
   }
   if (rightData.length === 0) {
     if (mode === 'many') {
