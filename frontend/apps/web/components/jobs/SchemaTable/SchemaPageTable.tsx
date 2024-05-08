@@ -103,7 +103,7 @@ export default function SchemaPageTable<TData, TValue>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
-                className="flex flex-row items-center justify-between"
+                className="flex flex-row items-center justify-between px-2"
                 id="table-header-row"
               >
                 {headerGroup.headers.map((header) => {
