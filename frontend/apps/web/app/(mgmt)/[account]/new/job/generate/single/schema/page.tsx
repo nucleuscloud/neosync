@@ -97,8 +97,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const [connectFormValues] = useSessionStorage<SingleTableConnectFormValues>(
     connectFormKey,
     {
-      connectionId: '',
-      destinationOptions: {},
+      fkSourceConnectionId: '',
+      destination: {
+        connectionId: '',
+        destinationOptions: {},
+      },
     }
   );
 
@@ -118,7 +121,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
     isValidating: isSchemaMapValidating,
   } = useGetConnectionSchemaMap(
     account?.id ?? '',
-    connectFormValues.connectionId
+    connectFormValues.fkSourceConnectionId
   );
 
   const form = useForm({
@@ -203,19 +206,19 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const { data: primaryConstraints, isValidating: isPkValidating } =
     useGetConnectionPrimaryConstraints(
       account?.id ?? '',
-      connectFormValues.connectionId
+      connectFormValues.fkSourceConnectionId
     );
 
   const { data: foreignConstraints, isValidating: isFkValidating } =
     useGetConnectionForeignConstraints(
       account?.id ?? '',
-      connectFormValues.connectionId
+      connectFormValues.fkSourceConnectionId
     );
 
   const { data: uniqueConstraints, isValidating: isUCValidating } =
     useGetConnectionUniqueConstraints(
       account?.id ?? '',
-      connectFormValues.connectionId
+      connectFormValues.fkSourceConnectionId
     );
 
   const schemaConstraintHandler = useMemo(
@@ -399,7 +402,7 @@ async function createNewJob(
         config: {
           case: 'generate',
           value: new GenerateSourceOptions({
-            fkSourceConnectionId: connect.connectionId,
+            fkSourceConnectionId: connect.fkSourceConnectionId,
             schemas:
               tableSchema && table
                 ? [
@@ -420,10 +423,10 @@ async function createNewJob(
     }),
     destinations: [
       new JobDestination({
-        connectionId: connect.connectionId,
+        connectionId: connect.destination.connectionId,
         options: toJobDestinationOptions(
-          connect,
-          connectionIdMap.get(connect.connectionId)
+          connect.destination,
+          connectionIdMap.get(connect.destination.connectionId)
         ),
       }),
     ],
