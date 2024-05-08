@@ -160,7 +160,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		}
 		slogger.Info(fmt.Sprintf("found %d primary key constraints for database", getMapValuesCount(primaryKeyMap)))
 
-		tables := filterNullTables(groupedMappings)
+		tables := []string{}
 		tableSubsetMap := buildTableSubsetMap(sourceTableOpts)
 		tableColMap := map[string][]string{}
 		for _, m := range groupedMappings {
@@ -168,7 +168,9 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			for _, c := range m.Mappings {
 				cols = append(cols, c.Column)
 			}
-			tableColMap[sql_manager.BuildTable(m.Schema, m.Table)] = cols
+			tn := sql_manager.BuildTable(m.Schema, m.Table)
+			tableColMap[tn] = cols
+			tables = append(tables, tn)
 		}
 		runConfigs, err := tabledependency.GetRunConfigs(tableDependencyMap, tables, tableSubsetMap, primaryKeyMap, tableColMap)
 		if err != nil {
@@ -269,7 +271,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 									RedisHashOutput: &neosync_benthos.RedisHashOutputConfig{
 										Url:            b.redisConfig.Url,
 										Key:            hashedKey,
-										FieldsMapping:  fmt.Sprintf(`root = {meta("neosync_%s"): json(%q)}`, col, col), // map of original value to transformed value
+										FieldsMapping:  fmt.Sprintf(`root = {meta("neosync_%s_%s_%s"): json(%q)}`, resp.TableSchema, resp.TableName, col, col), // map of original value to transformed value
 										WalkMetadata:   false,
 										WalkJsonObject: false,
 										Kind:           &b.redisConfig.Kind,
@@ -542,11 +544,6 @@ func buildBenthosGenerateSourceConfigResponses(
 	responses := []*BenthosConfigResponse{}
 
 	for _, tableMapping := range mappings {
-		if shared.AreAllColsNull(tableMapping.Mappings) {
-			// skiping table as no columns are mapped
-			continue
-		}
-
 		var count = 0
 		tableOpt := sourceTableOpts[neosync_benthos.BuildBenthosTable(tableMapping.Schema, tableMapping.Table)]
 		if tableOpt != nil {
@@ -643,17 +640,6 @@ func (b *benthosBuilder) getJobById(
 	return getjobResp.Msg.Job, nil
 }
 
-// filters out tables where all cols are set to null
-func filterNullTables(mappings []*tableMapping) []string {
-	tables := []string{}
-	for _, group := range mappings {
-		if !shared.AreAllColsNull(group.Mappings) {
-			tables = append(tables, sql_manager.BuildTable(group.Schema, group.Table))
-		}
-	}
-	return tables
-}
-
 func hasTransformer(t mgmtv1alpha1.TransformerSource) bool {
 	return t != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_UNSPECIFIED && t != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_PASSTHROUGH
 }
@@ -678,26 +664,24 @@ func buildBenthosSqlSourceConfigResponses(
 	tableConstraintsSource map[string]map[string]*sql_manager.ForeignKey,
 ) ([]*BenthosConfigResponse, error) {
 	responses := []*BenthosConfigResponse{}
-	jsonF, _ := json.MarshalIndent(tableDependencies, "", " ")
-	fmt.Printf("\n tableDependencies: %s \n", string(jsonF))
 
+	fkSourceMap := buildForeignKeySourceMap(tableDependencies)
 	// filter this list by table constraints that has transformer
 	tableConstraints := map[string]map[string]*sql_manager.ForeignKey{} // schema.table -> column -> foreignKey
-	for table, constraints := range tableDependencies {
+	for table, constraints := range fkSourceMap {
 		_, ok := tableConstraints[table]
 		if !ok {
 			tableConstraints[table] = map[string]*sql_manager.ForeignKey{}
 		}
-		for _, tc := range constraints {
+		for col, tc := range constraints {
 			// only add constraint if foreign key has transformer
-			transformer, transformerOk := colTransformerMap[tc.ForeignKey.Table][tc.ForeignKey.Column]
+			transformer, transformerOk := colTransformerMap[tc.Table][tc.Column]
 			if transformerOk && shouldProcessStrict(transformer) {
-				tableConstraints[table][tc.Column] = tc.ForeignKey
+				tableConstraints[table][col] = tc
 			}
 		}
 	}
-	jsonF, _ = json.MarshalIndent(tableConstraints, "", " ")
-	fmt.Printf("\n tableDependencies: %s \n", string(jsonF))
+
 	for _, config := range runconfigs {
 		mappings, ok := groupedTableMapping[config.Table]
 		if !ok {
@@ -763,11 +747,20 @@ func buildBenthosSqlSourceConfigResponses(
 			}
 		}
 
+		redisDependsOnMap := map[string][]string{}
+		for _, fk := range tableConstraints[config.Table] {
+			if _, exists := redisDependsOnMap[fk.Table]; !exists {
+				redisDependsOnMap[fk.Table] = []string{}
+			}
+			redisDependsOnMap[fk.Table] = append(redisDependsOnMap[fk.Table], fk.Column)
+		}
+
 		responses = append(responses, &BenthosConfigResponse{
-			Name:      fmt.Sprintf("%s.%s", config.Table, config.RunType),
-			Config:    bc,
-			DependsOn: config.DependsOn,
-			RunType:   config.RunType,
+			Name:           fmt.Sprintf("%s.%s", config.Table, config.RunType),
+			Config:         bc,
+			DependsOn:      config.DependsOn,
+			RedisDependsOn: redisDependsOnMap,
+			RunType:        config.RunType,
 
 			BenthosDsns: []*shared.BenthosDsn{{ConnectionId: dsnConnectionId, EnvVarKey: "SOURCE_CONNECTION_DSN"}},
 
@@ -1129,4 +1122,36 @@ func getMapValuesCount[K comparable, V any](m map[K][]V) int {
 		count += len(v)
 	}
 	return count
+}
+
+func findTopForeignKeySource(tableName, col string, tableDependencies map[string][]*sql_manager.ForeignConstraint) *sql_manager.ForeignKey {
+	// Add the foreign key dependencies of the current table
+	if foreignKeys, ok := tableDependencies[tableName]; ok {
+		for _, fk := range foreignKeys {
+			if fk.Column == col {
+				// Recursively add dependent tables and their foreign keys
+				return findTopForeignKeySource(fk.ForeignKey.Table, fk.ForeignKey.Column, tableDependencies)
+			}
+		}
+	}
+	return &sql_manager.ForeignKey{
+		Table:  tableName,
+		Column: col,
+	}
+}
+
+// builds schema.table -> FK column ->  PK schema table column
+// find top level primary key column if foreign keys are nested
+func buildForeignKeySourceMap(tableDeps map[string][]*sql_manager.ForeignConstraint) map[string]map[string]*sql_manager.ForeignKey {
+	outputMap := map[string]map[string]*sql_manager.ForeignKey{}
+	for tableName, constraints := range tableDeps {
+		if _, ok := outputMap[tableName]; !ok {
+			outputMap[tableName] = map[string]*sql_manager.ForeignKey{}
+		}
+		for _, con := range constraints {
+			fk := findTopForeignKeySource(tableName, con.Column, tableDeps)
+			outputMap[tableName][con.Column] = fk
+		}
+	}
+	return outputMap
 }

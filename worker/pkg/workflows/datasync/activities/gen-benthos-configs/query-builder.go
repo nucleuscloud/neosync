@@ -9,7 +9,6 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
-	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 	pg_query "github.com/pganalyze/pg_query_go/v5"
 	pgquery "github.com/wasilibs/go-pgquery"
 	"github.com/xwb1989/sqlparser"
@@ -353,11 +352,6 @@ func buildQueryMapNoSubsetConstraints(
 ) (map[string]string, error) {
 	queryMap := map[string]string{}
 	for table, tableMapping := range groupedMappings {
-		if shared.AreAllColsNull(tableMapping.Mappings) {
-			// skipping table as no columns are mapped
-			continue
-		}
-
 		tableOpt := sourceTableOpts[table]
 		where := getWhereFromTableOpts(tableOpt)
 
@@ -441,13 +435,11 @@ func buildTableSubsetQueryConfig(
 
 func buildFkTableMap(fks []*sql_manager.ForeignConstraint) map[string]map[string]string {
 	fksTableMap := map[string]map[string]string{} // map of fk table to map of fk column to base table column
-	if fks != nil {
-		for _, c := range fks {
-			if _, exists := fksTableMap[c.ForeignKey.Table]; !exists {
-				fksTableMap[c.ForeignKey.Table] = map[string]string{}
-			}
-			fksTableMap[c.ForeignKey.Table][c.ForeignKey.Column] = c.Column
+	for _, c := range fks {
+		if _, exists := fksTableMap[c.ForeignKey.Table]; !exists {
+			fksTableMap[c.ForeignKey.Table] = map[string]string{}
 		}
+		fksTableMap[c.ForeignKey.Table][c.ForeignKey.Column] = c.Column
 	}
 	return fksTableMap
 }

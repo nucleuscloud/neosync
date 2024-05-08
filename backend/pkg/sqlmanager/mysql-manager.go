@@ -117,7 +117,6 @@ func (m *MysqlManager) GetForeignKeyConstraintsMap(ctx context.Context, schemas 
 				Column: row.ForeignColumnName,
 			},
 		})
-
 	}
 	return constraints, err
 }

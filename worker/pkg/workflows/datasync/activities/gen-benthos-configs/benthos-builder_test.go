@@ -2,7 +2,6 @@ package genbenthosconfigs_activity
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -2222,8 +2221,6 @@ func Test_BenthosBuilder_GenerateBenthosConfigs_Basic_Pg_Pg_With_Circular_Depend
 		&GenerateBenthosConfigsRequest{JobId: "123", WorkflowId: "123"},
 		slog.Default(),
 	)
-	jsonF, _ := json.MarshalIndent(resp, "", " ")
-	fmt.Printf("\n %s \n", string(jsonF))
 	require.Nil(t, err)
 	require.NotEmpty(t, resp.BenthosConfigs)
 	require.Len(t, resp.BenthosConfigs, 3)

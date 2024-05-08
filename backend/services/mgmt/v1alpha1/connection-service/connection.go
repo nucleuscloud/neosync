@@ -78,7 +78,6 @@ func (s *Service) CheckConnectionConfig(
 		ConnectionError: nil,
 		Privileges:      privs,
 	}), nil
-
 }
 
 func getPostgresUserFromConnectionConfig(pgconfig *mgmtv1alpha1.PostgresConnectionConfig) (string, error) {

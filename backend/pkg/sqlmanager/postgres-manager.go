@@ -2,7 +2,6 @@ package sqlmanager
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -59,7 +58,6 @@ func (p *PostgresManager) GetSchemaColumnMap(ctx context.Context) (map[string]ma
 }
 
 func (p *PostgresManager) GetForeignKeyConstraints(ctx context.Context, schemas []string) ([]*ForeignKeyConstraintsRow, error) {
-	fmt.Println("------GetForeignKeyConstraints ")
 	if len(schemas) == 0 {
 		return []*ForeignKeyConstraintsRow{}, nil
 	}
@@ -69,8 +67,6 @@ func (p *PostgresManager) GetForeignKeyConstraints(ctx context.Context, schemas 
 	} else if err != nil && nucleusdb.IsNoRows(err) {
 		return []*ForeignKeyConstraintsRow{}, nil
 	}
-	jsonF, _ := json.MarshalIndent(rows, "", " ")
-	fmt.Printf("\n rows: %s \n", string(jsonF))
 
 	result := []*ForeignKeyConstraintsRow{}
 	for _, row := range rows {
@@ -100,14 +96,11 @@ func (p *PostgresManager) GetForeignKeyConstraints(ctx context.Context, schemas 
 			})
 		}
 	}
-	jsonF, _ = json.MarshalIndent(result, "", " ")
-	fmt.Printf("\n result: %s \n", string(jsonF))
 	return result, nil
 }
 
 // Key is schema.table value is list of tables that key depends on
 func (p *PostgresManager) GetForeignKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]*ForeignConstraint, error) {
-
 	if len(schemas) == 0 {
 		return map[string][]*ForeignConstraint{}, nil
 	}
@@ -154,38 +147,8 @@ func (p *PostgresManager) GetForeignKeyConstraintsMap(ctx context.Context, schem
 			}
 		}
 	}
-	jsonF, _ := json.MarshalIndent(tableConstraints, "", " ")
-	fmt.Printf("\n tableConstraints: %s \n", string(jsonF))
 	return tableConstraints, nil
 }
-
-// // Key is schema.table value is list of tables that key depends on
-// func (p *PostgresManager) GetForeignKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]*ForeignConstraint, error) {
-// 	fkConstraints, err := p.GetForeignKeyConstraints(ctx, schemas)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	fmt.Println("------GetForeignKeyConstraintsMap ")
-// 	constraints := map[string][]*ForeignConstraint{}
-// 	for _, row := range fkConstraints {
-// 		tableName := BuildTable(row.SchemaName, row.TableName)
-// 		if _, exists := constraints[tableName]; !exists {
-// 			constraints[tableName] = []*ForeignConstraint{}
-// 		}
-// 		constraints[tableName] = append(constraints[tableName], &ForeignConstraint{
-// 			Column:     row.ColumnName,
-// 			IsNullable: row.IsNullable,
-// 			ForeignKey: &ForeignKey{
-// 				Table:  BuildTable(row.ForeignSchemaName, row.ForeignTableName),
-// 				Column: row.ForeignColumnName,
-// 			},
-// 		})
-
-// 	}
-// 	jsonF, _ := json.MarshalIndent(constraints, "", " ")
-// 	fmt.Printf("\n constraints: %s \n", string(jsonF))
-// 	return constraints, err
-// }
 
 func (p *PostgresManager) GetPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*PrimaryKey, error) {
 	if len(schemas) == 0 {

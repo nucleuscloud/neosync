@@ -307,7 +307,7 @@ func Test_NewSqlDbFromUrl(t *testing.T) {
 
 func syncMapLength(m *sync.Map) int {
 	length := 0
-	m.Range(func(_, _ interface{}) bool {
+	m.Range(func(_, _ interface{}) bool { //nolint:gofmt
 		length++
 		return true
 	})

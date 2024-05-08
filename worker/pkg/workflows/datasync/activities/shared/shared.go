@@ -54,6 +54,24 @@ func Ptr[T any](val T) *T {
 	return &val
 }
 
+// Parses the job and returns the unique set of schemas.
+func GetUniqueSchemasFromJob(job *mgmtv1alpha1.Job) []string {
+	switch jobSourceConfig := job.Source.GetOptions().GetConfig().(type) {
+	case *mgmtv1alpha1.JobSourceOptions_AiGenerate:
+		uniqueSchemas := map[string]struct{}{}
+		for _, schema := range jobSourceConfig.AiGenerate.Schemas {
+			uniqueSchemas[schema.Schema] = struct{}{}
+		}
+		schemas := []string{}
+		for s := range uniqueSchemas {
+			schemas = append(schemas, s)
+		}
+		return schemas
+	default:
+		return GetUniqueSchemasFromMappings(job.GetMappings())
+	}
+}
+
 // Parses the job mappings and returns the unique set of schemas found
 func GetUniqueSchemasFromMappings(mappings []*mgmtv1alpha1.JobMapping) []string {
 	schemas := map[string]struct{}{}
@@ -69,8 +87,23 @@ func GetUniqueSchemasFromMappings(mappings []*mgmtv1alpha1.JobMapping) []string 
 	return output
 }
 
+// Parses the job and returns the unique set of tables.
+func GetUniqueTablesMapFromJob(job *mgmtv1alpha1.Job) map[string]struct{} {
+	switch jobSourceConfig := job.Source.GetOptions().GetConfig().(type) {
+	case *mgmtv1alpha1.JobSourceOptions_AiGenerate:
+		uniqueTables := map[string]struct{}{}
+		for _, schema := range jobSourceConfig.AiGenerate.Schemas {
+			for _, table := range schema.Tables {
+				uniqueTables[sql_manager.BuildTable(schema.Schema, table.Table)] = struct{}{}
+			}
+		}
+		return uniqueTables
+	default:
+		return GetUniqueTablesFromMappings(job.GetMappings())
+	}
+}
+
 // Parses the job mappings and returns the unique set of tables.
-// Does not include a table if all of the columns are set to null
 func GetUniqueTablesFromMappings(mappings []*mgmtv1alpha1.JobMapping) map[string]struct{} {
 	groupedMappings := map[string][]*mgmtv1alpha1.JobMapping{}
 	for _, mapping := range mappings {
@@ -85,22 +118,10 @@ func GetUniqueTablesFromMappings(mappings []*mgmtv1alpha1.JobMapping) map[string
 
 	filteredTables := map[string]struct{}{}
 
-	for table, mappings := range groupedMappings {
-		if !AreAllColsNull(mappings) {
-			filteredTables[table] = struct{}{}
-		}
+	for table := range groupedMappings {
+		filteredTables[table] = struct{}{}
 	}
 	return filteredTables
-}
-
-// Checks each transformer source in the set of mappings and returns true if they are all source=null
-func AreAllColsNull(mappings []*mgmtv1alpha1.JobMapping) bool {
-	for _, col := range mappings {
-		if col.Transformer.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL {
-			return false
-		}
-	}
-	return true
 }
 
 type RedisConfig struct {

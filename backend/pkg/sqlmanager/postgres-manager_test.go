@@ -463,7 +463,6 @@ func Test_BatchExec(t *testing.T) {
 }
 
 func Test_Exec(t *testing.T) {
-
 	pgquerier := pg_queries.NewMockQuerier(t)
 	mockPool := pg_queries.NewMockDBTX(t)
 	manager := PostgresManager{

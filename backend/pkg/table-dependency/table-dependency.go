@@ -49,12 +49,12 @@ func GetRunConfigs(
 	tableColumnsMap map[string][]string,
 ) ([]*RunConfig, error) {
 	filteredDepsMap := map[string][]string{}                        // only include tables that are in tables arg list
-	foreignKeyMap := map[string]map[string]string{}                 // map: table -> foreign key table -> foreign key column
+	foreignKeyMap := map[string]map[string][]string{}               // map: table -> foreign key table -> foreign key column
 	foreignKeyColsMap := map[string]map[string]*ConstraintColumns{} // map: table -> foreign key table -> ConstraintColumns
 	configs := []*RunConfig{}
 
 	for table, constraints := range dependencyMap {
-		foreignKeyMap[table] = map[string]string{}
+		foreignKeyMap[table] = map[string][]string{}
 		foreignKeyColsMap[table] = map[string]*ConstraintColumns{}
 		for _, constraint := range constraints {
 			if _, exists := foreignKeyColsMap[table][constraint.ForeignKey.Table]; !exists {
@@ -68,11 +68,15 @@ func GetRunConfigs(
 			} else {
 				foreignKeyColsMap[table][constraint.ForeignKey.Table].NonNullableColumns = append(foreignKeyColsMap[table][constraint.ForeignKey.Table].NonNullableColumns, constraint.ForeignKey.Column)
 			}
-			foreignKeyMap[table][constraint.ForeignKey.Table] = constraint.ForeignKey.Column
+			foreignKeyMap[table][constraint.ForeignKey.Table] = append(foreignKeyMap[table][constraint.ForeignKey.Table], constraint.ForeignKey.Column)
 			if slices.Contains(tables, table) && slices.Contains(tables, constraint.ForeignKey.Table) {
 				filteredDepsMap[table] = append(filteredDepsMap[table], constraint.ForeignKey.Table)
 			}
 		}
+	}
+
+	for table, deps := range filteredDepsMap {
+		filteredDepsMap[table] = dedupeSlice(deps)
 	}
 
 	// create map containing all tables to track when each is processed
@@ -309,7 +313,7 @@ func areAllFkColsNullable(dependencies []*sql_manager.ForeignConstraint, cycle [
 func processTables(
 	tableMap map[string]bool,
 	dependencyMap map[string][]string,
-	foreignKeyMap map[string]map[string]string,
+	foreignKeyMap map[string]map[string][]string,
 	tableColumnsMap map[string][]string,
 	primaryKeyMap map[string][]string,
 	subsets map[string]string,
@@ -331,7 +335,7 @@ func processTables(
 			WhereClause: &where,
 		}
 		for _, dep := range dependencyMap[table] {
-			config.DependsOn = append(config.DependsOn, &DependsOn{Table: dep, Columns: []string{foreignKeyMap[table][dep]}})
+			config.DependsOn = append(config.DependsOn, &DependsOn{Table: dep, Columns: foreignKeyMap[table][dep]})
 		}
 		configs = append(configs, config)
 	}
@@ -645,4 +649,16 @@ func isValidRunOrder(configs []*RunConfig) bool {
 		}
 	}
 	return true
+}
+
+func dedupeSlice(input []string) []string {
+	set := map[string]any{}
+	for _, i := range input {
+		set[i] = struct{}{}
+	}
+	output := make([]string, 0, len(set))
+	for key := range set {
+		output = append(output, key)
+	}
+	return output
 }

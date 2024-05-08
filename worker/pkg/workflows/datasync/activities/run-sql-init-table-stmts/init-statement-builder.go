@@ -51,14 +51,21 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 	if err != nil {
 		return nil, fmt.Errorf("unable to get connection by id: %w", err)
 	}
+	if job.GetSource().GetOptions().GetAiGenerate() != nil {
+		sourceConnection, err = shared.GetConnectionById(ctx, b.connclient, *job.GetSource().GetOptions().GetAiGenerate().FkSourceConnectionId)
+		if err != nil {
+			return nil, fmt.Errorf("unable to get connection by id: %w", err)
+		}
+	}
+
 	sourcedb, err := b.sqlmanager.NewPooledSqlDb(ctx, slogger, sourceConnection)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}
 	defer sourcedb.Db.Close()
 
-	uniqueTables := shared.GetUniqueTablesFromMappings(job.Mappings)
-	uniqueSchemas := shared.GetUniqueSchemasFromMappings(job.Mappings)
+	uniqueTables := shared.GetUniqueTablesMapFromJob(job)
+	uniqueSchemas := shared.GetUniqueSchemasFromJob(job)
 
 	tableDependencies, err := sourcedb.Db.GetForeignKeyConstraintsMap(ctx, uniqueSchemas)
 	if err != nil {

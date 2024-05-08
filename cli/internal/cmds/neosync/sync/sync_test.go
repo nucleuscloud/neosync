@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
+	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/stretchr/testify/require"
 )
@@ -250,7 +250,7 @@ func Test_buildSyncConfigs_postgres(t *testing.T) {
 			name: "Empty Schema",
 			config: &schemaConfig{
 				Schemas:                []*mgmtv1alpha1.DatabaseColumn{},
-				TableConstraints:       map[string]*dbschemas_utils.TableConstraints{},
+				TableConstraints:       map[string][]*sql_manager.ForeignConstraint{},
 				TablePrimaryKeys:       map[string]*mgmtv1alpha1.PrimaryConstraint{},
 				InitTableStatementsMap: map[string]string{},
 			},
@@ -264,7 +264,7 @@ func Test_buildSyncConfigs_postgres(t *testing.T) {
 					{Schema: "public", Table: "users", Column: "name", DataType: ""},
 					{Schema: "public", Table: "users", Column: "email", DataType: ""},
 				},
-				TableConstraints:       map[string]*dbschemas_utils.TableConstraints{},
+				TableConstraints:       map[string][]*sql_manager.ForeignConstraint{},
 				TablePrimaryKeys:       map[string]*mgmtv1alpha1.PrimaryConstraint{},
 				InitTableStatementsMap: map[string]string{},
 			},
@@ -291,10 +291,10 @@ func Test_buildSyncConfigs_postgres(t *testing.T) {
 					{Schema: "public", Table: "accounts", Column: "id", DataType: ""},
 					{Schema: "public", Table: "accounts", Column: "user_id", DataType: ""},
 				},
-				TableConstraints: map[string]*dbschemas_utils.TableConstraints{
-					"public.accounts": {Constraints: []*dbschemas_utils.ForeignConstraint{
-						{Column: "user_id", IsNullable: false, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.users", Column: "id"}},
-					}},
+				TableConstraints: map[string][]*sql_manager.ForeignConstraint{
+					"public.accounts": {
+						{Column: "user_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Column: "id"}},
+					},
 				},
 				TablePrimaryKeys:       map[string]*mgmtv1alpha1.PrimaryConstraint{},
 				InitTableStatementsMap: map[string]string{},
@@ -334,13 +334,13 @@ func Test_buildSyncConfigs_postgres(t *testing.T) {
 					{Schema: "public", Table: "accounts", Column: "id", DataType: ""},
 					{Schema: "public", Table: "accounts", Column: "user_id", DataType: ""},
 				},
-				TableConstraints: map[string]*dbschemas_utils.TableConstraints{
-					"public.accounts": {Constraints: []*dbschemas_utils.ForeignConstraint{
-						{Column: "user_id", IsNullable: false, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.users", Column: "id"}},
-					}},
-					"public.users": {Constraints: []*dbschemas_utils.ForeignConstraint{
-						{Column: "account_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.accounts", Column: "id"}},
-					}},
+				TableConstraints: map[string][]*sql_manager.ForeignConstraint{
+					"public.accounts": {
+						{Column: "user_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Column: "id"}},
+					},
+					"public.users": {
+						{Column: "account_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.accounts", Column: "id"}},
+					},
 				},
 				TablePrimaryKeys: map[string]*mgmtv1alpha1.PrimaryConstraint{
 					"public.accounts": {Columns: []string{"id"}},
@@ -393,10 +393,10 @@ func Test_buildSyncConfigs_postgres(t *testing.T) {
 					{Schema: "public", Table: "users", Column: "name", DataType: ""},
 					{Schema: "public", Table: "users", Column: "user_id", DataType: ""},
 				},
-				TableConstraints: map[string]*dbschemas_utils.TableConstraints{
-					"public.users": {Constraints: []*dbschemas_utils.ForeignConstraint{
-						{Column: "user_id", IsNullable: true, ForeignKey: &dbschemas_utils.ForeignKey{Table: "public.users", Column: "id"}},
-					}},
+				TableConstraints: map[string][]*sql_manager.ForeignConstraint{
+					"public.users": {
+						{Column: "user_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Column: "id"}},
+					},
 				},
 				TablePrimaryKeys: map[string]*mgmtv1alpha1.PrimaryConstraint{
 					"public.users": {Columns: []string{"id"}},
