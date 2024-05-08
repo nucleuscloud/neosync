@@ -11,7 +11,7 @@ export default function ButtonText(props: Props): ReactElement {
   return (
     <div className="flex flex-row gap-1 items-center">
       {leftIcon ? leftIcon : null}
-      <p>{text}</p>
+      <p className="hidden md:flex truncate">{text}</p>
       {rightIcon ? rightIcon : null}
     </div>
   );

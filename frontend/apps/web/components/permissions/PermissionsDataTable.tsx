@@ -67,9 +67,9 @@ export default function PermissionsDataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-row items-center gap-2 justify-between">
+      <div className="flex flex-col lg:flex-row items-center gap-2 lg:gap-4 justify-between">
         <div>{ConnectionAlert}</div>
-        <div className="flex flex-row items-center gap-2">
+        <div className="flex flex-col lg:flex-row items-center gap-2">
           {TestConnectionButton && TestConnectionButton}
           <Button
             disabled={table.getState().columnFilters.length === 0}
