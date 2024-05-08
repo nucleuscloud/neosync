@@ -43,6 +43,7 @@ export default function UserDefinedGenerateEmailForm(
     <div className="flex flex-col w-full space-y-4 pt-4">
       <FormField
         name={`config.value.emailType`}
+        control={fc.control}
         render={({ field }) => {
           return (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
