@@ -163,7 +163,7 @@ func (m *MysqlManager) GetPrimaryKeyConstraintsMap(ctx context.Context, schemas 
 	}
 	result := map[string][]string{}
 	for _, row := range primaryKeys {
-		tableName := fmt.Sprintf("%s.%s", row.Schema, row.Table)
+		tableName := BuildTable(row.Schema, row.Table)
 		if _, exists := result[tableName]; !exists {
 			result[tableName] = []string{}
 		}
@@ -234,7 +234,7 @@ func (m *MysqlManager) GetRolePermissionsMap(ctx context.Context, role string) (
 
 	schemaTablePrivsMap := map[string][]string{}
 	for _, permission := range rows {
-		key := fmt.Sprintf("%s.%s", permission.TableSchema, permission.TableName)
+		key := BuildTable(permission.TableSchema, permission.TableName)
 		schemaTablePrivsMap[key] = append(schemaTablePrivsMap[key], permission.PrivilegeType)
 	}
 	return schemaTablePrivsMap, err

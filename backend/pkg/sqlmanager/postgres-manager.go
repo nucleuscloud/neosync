@@ -187,7 +187,7 @@ func (p *PostgresManager) GetPrimaryKeyConstraintsMap(ctx context.Context, schem
 	}
 	result := map[string][]string{}
 	for _, row := range primaryKeys {
-		tableName := fmt.Sprintf("%s.%s", row.Schema, row.Table)
+		tableName := BuildTable(row.Schema, row.Table)
 		if _, exists := result[tableName]; !exists {
 			result[tableName] = []string{}
 		}
