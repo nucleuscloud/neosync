@@ -238,9 +238,10 @@ const SINGLE_SUBSET_FORM_SCHEMA = Yup.object({
   whereClause: Yup.string().trim().optional(),
 });
 
-export const SINGLE_TABLE_CONNECT_FORM_SCHEMA = Yup.object({}).concat(
-  DESTINATION_FORM_SCHEMA
-);
+export const SINGLE_TABLE_CONNECT_FORM_SCHEMA = Yup.object({
+  fkSourceConnectionId: Yup.string().required('Connection is required').uuid(),
+  destination: DESTINATION_FORM_SCHEMA,
+});
 export type SingleTableConnectFormValues = Yup.InferType<
   typeof SINGLE_TABLE_CONNECT_FORM_SCHEMA
 >;
