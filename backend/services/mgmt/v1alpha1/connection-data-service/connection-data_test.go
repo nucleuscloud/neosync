@@ -509,7 +509,7 @@ func Test_GetConnectionInitStatements_Mysql_Create(t *testing.T) {
 		}, nil)
 	rows := sqlmock.NewRows([]string{"Table", "Create Table"}).
 		AddRow("users", "CREATE TABLE public.users")
-	m.SqlMock.ExpectQuery("SHOW CREATE TABLE public.users;").WillReturnRows(rows)
+	m.SqlMock.ExpectQuery("SHOW CREATE TABLE `public`.`users`;").WillReturnRows(rows)
 
 	resp, err := m.Service.GetConnectionInitStatements(context.Background(), &connect.Request[mgmtv1alpha1.GetConnectionInitStatementsRequest]{
 		Msg: &mgmtv1alpha1.GetConnectionInitStatementsRequest{
@@ -564,7 +564,7 @@ func Test_GetConnectionInitStatements_Mysql_Truncate(t *testing.T) {
 		},
 	})
 
-	expectedTruncate := "TRUNCATE TABLE `public`.`users`;"
+	expectedTruncate := `TRUNCATE "public"."users";`
 	require.Nil(t, err)
 	require.Len(t, resp.Msg.TableInitStatements, 0)
 	require.Len(t, resp.Msg.TableTruncateStatements, 1)
@@ -683,7 +683,7 @@ func Test_GetConnectionInitStatements_Postgres_Truncate(t *testing.T) {
 		},
 	})
 
-	expectedTruncate := "TRUNCATE TABLE \"public\".\"users\" CASCADE;"
+	expectedTruncate := "TRUNCATE \"public\".\"users\" CASCADE;"
 	require.Nil(t, err)
 	require.Len(t, resp.Msg.TableInitStatements, 0)
 	require.Len(t, resp.Msg.TableTruncateStatements, 1)
