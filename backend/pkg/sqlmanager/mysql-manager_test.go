@@ -267,11 +267,13 @@ func Test_GetUniqueConstraintsMap_Mysql(t *testing.T) {
 	actual, err := manager.GetUniqueConstraintsMap(context.Background(), schemas)
 
 	require.NoError(t, err)
-	require.Len(t, actual["public.person"], 1)
-	require.Len(t, actual["public.region"], 2)
-	require.ElementsMatch(t, expected["public.person"][0], actual["public.person"][0])
-	require.ElementsMatch(t, expected["public.region"][0], actual["public.region"][0])
-	require.ElementsMatch(t, expected["public.region"][1], actual["public.region"][1])
+	for table, cols := range expected {
+		actualCols := actual[table]
+		require.Len(t, actualCols, len(cols))
+		for _, col := range cols {
+			require.Contains(t, actualCols, col)
+		}
+	}
 }
 
 func Test_GetRolePermissionsMap_Mysql(t *testing.T) {
