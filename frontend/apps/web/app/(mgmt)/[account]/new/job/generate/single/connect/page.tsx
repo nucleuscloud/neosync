@@ -1,4 +1,5 @@
 'use client';
+import { getConnectionType } from '@/app/(mgmt)/[account]/connections/util';
 import OverviewContainer from '@/components/containers/OverviewContainer';
 import PageHeader from '@/components/headers/PageHeader';
 import DestinationOptionsForm from '@/components/jobs/Form/DestinationOptionsForm';
@@ -15,25 +16,24 @@ import {
 import {
   Select,
   SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGetConnections } from '@/libs/hooks/useGetConnections';
+import { splitConnections } from '@/libs/utils';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { PlusIcon } from '@radix-ui/react-icons';
+import { ConnectionConfig } from '@neosync/sdk';
 import { useRouter } from 'next/navigation';
 import { ReactElement, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { Control, useForm, useWatch } from 'react-hook-form';
 import useFormPersist from 'react-hook-form-persist';
 import { useSessionStorage } from 'usehooks-ts';
 import JobsProgressSteps, {
   getJobProgressSteps,
 } from '../../../JobsProgressSteps';
+import ConnectionSelectContent from '../../../connect/ConnectionSelectContent';
 import {
   SINGLE_TABLE_CONNECT_FORM_SCHEMA,
   SingleTableConnectFormValues,
@@ -55,8 +55,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
   const [defaultValues] = useSessionStorage<SingleTableConnectFormValues>(
     formKey,
     {
-      connectionId: '',
-      destinationOptions: {},
+      fkSourceConnectionId: '',
+      destination: {
+        connectionId: '',
+        destinationOptions: {},
+      },
     }
   );
 
@@ -85,15 +88,12 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
   const errors = form.formState.errors;
 
-  const mysqlConns = connections.filter(
-    (c) => c.connectionConfig?.config.case === 'mysqlConfig'
-  );
-  const postgresConns = connections.filter(
-    (c) => c.connectionConfig?.config.case === 'pgConfig'
-  );
+  const { mysql, postgres } = splitConnections(connections);
 
-  const destOpts = form.watch('destinationOptions');
-
+  const destOpts = form.watch('destination.destinationOptions');
+  const shouldHideInitTableSchema = useShouldHideInitConnectionSchema(
+    form.control
+  );
   return (
     <div
       id="newjobflowcontainer"
@@ -124,6 +124,95 @@ export default function Page({ searchParams }: PageProps): ReactElement {
               <div>
                 <div className="space-y-0.5">
                   <h2 className="text-xl font-semibold tracking-tight">
+                    Table Schema Connection
+                  </h2>
+                  <p className="text-muted-foreground text-sm">
+                    Choose a connection that will be used as a basis for the
+                    shape of data that is to be generated. This can be the same
+                    value as the destination.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-4 col-span-2">
+              <FormField
+                control={form.control}
+                name="fkSourceConnectionId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      {isConnectionsLoading ? (
+                        <Skeleton className="w-full h-12 rounded-lg" />
+                      ) : (
+                        <Select
+                          onValueChange={(value: string) => {
+                            if (value === NEW_CONNECTION_VALUE) {
+                              const destId = form.getValues(
+                                'destination.connectionId'
+                              );
+
+                              const urlParams = new URLSearchParams({
+                                returnTo: `/${account?.name}/new/job/generate/single/connect?sessionId=${sessionPrefix}&from=new-connection`,
+                              });
+                              const connection = connections.find(
+                                (c) => c.id === destId
+                              );
+                              const connType = getConnectionType(
+                                connection?.connectionConfig ??
+                                  new ConnectionConfig()
+                              );
+                              if (connType) {
+                                urlParams.append('connectionType', connType);
+                              }
+                              if (
+                                urlParams.getAll('connectionType').length === 0
+                              ) {
+                                urlParams.append('connectionType', 'postgres');
+                                urlParams.append('connectionType', 'mysql');
+                              }
+                              router.push(
+                                `/${account?.name}/new/connection?${urlParams.toString()}`
+                              );
+                              return;
+                            }
+                            field.onChange(value);
+                            const destId = form.getValues(
+                              'destination.connectionId'
+                            );
+                            if (!destId) {
+                              form.setValue('destination.connectionId', value);
+                            }
+                          }}
+                          value={field.value}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a connection ..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <ConnectionSelectContent
+                              postgres={postgres}
+                              mysql={mysql}
+                              newConnectionValue={NEW_CONNECTION_VALUE}
+                            />
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+          <Separator className="my-6" />
+
+          <div
+            className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4`}
+          >
+            <div>
+              <div>
+                <div className="space-y-0.5">
+                  <h2 className="text-xl font-semibold tracking-tight">
                     Destination
                   </h2>
                   <p className="text-muted-foreground text-sm">
@@ -135,7 +224,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
             <div className="space-y-4 col-span-2">
               <FormField
                 control={form.control}
-                name="connectionId"
+                name="destination.connectionId"
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
@@ -156,7 +245,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                               return;
                             }
                             field.onChange(value);
-                            form.setValue('destinationOptions', {
+                            form.setValue('destination.destinationOptions', {
                               initTableSchema: false,
                               truncateBeforeInsert: false,
                               truncateCascade: false,
@@ -169,45 +258,11 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                             <SelectValue placeholder="Select a connection ..." />
                           </SelectTrigger>
                           <SelectContent>
-                            {postgresConns.length > 0 && (
-                              <SelectGroup>
-                                <SelectLabel>Postgres</SelectLabel>
-                                {postgresConns.map((connection) => (
-                                  <SelectItem
-                                    className="cursor-pointer"
-                                    key={connection.id}
-                                    value={connection.id}
-                                  >
-                                    {connection.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectGroup>
-                            )}
-
-                            {mysqlConns.length > 0 && (
-                              <SelectGroup>
-                                <SelectLabel>Mysql</SelectLabel>
-                                {mysqlConns.map((connection) => (
-                                  <SelectItem
-                                    className="cursor-pointer"
-                                    key={connection.id}
-                                    value={connection.id}
-                                  >
-                                    {connection.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectGroup>
-                            )}
-                            <SelectItem
-                              className="cursor-pointer"
-                              key="new-src-connection"
-                              value={NEW_CONNECTION_VALUE}
-                            >
-                              <div className="flex flex-row gap-1 items-center">
-                                <PlusIcon />
-                                <p>New Connection</p>
-                              </div>
-                            </SelectItem>
+                            <ConnectionSelectContent
+                              postgres={postgres}
+                              mysql={mysql}
+                              newConnectionValue={NEW_CONNECTION_VALUE}
+                            />
                           </SelectContent>
                         </Select>
                       )}
@@ -219,9 +274,9 @@ export default function Page({ searchParams }: PageProps): ReactElement {
 
               <DestinationOptionsForm
                 connection={connections.find(
-                  (c) => c.id === form.getValues().connectionId
+                  (c) => c.id === form.getValues().destination.connectionId
                 )}
-                hideInitTableSchema={true} // true until NEOS-1043
+                hideInitTableSchema={shouldHideInitTableSchema}
                 value={{
                   initTableSchema: destOpts.initTableSchema ?? false,
                   onConflictDoNothing: destOpts.onConflictDoNothing ?? false,
@@ -230,7 +285,7 @@ export default function Page({ searchParams }: PageProps): ReactElement {
                 }}
                 setValue={(newOpts) => {
                   form.setValue(
-                    'destinationOptions',
+                    'destination.destinationOptions',
                     {
                       initTableSchema: newOpts.initTableSchema,
                       onConflictDoNothing: newOpts.onConflictDoNothing,
@@ -275,4 +330,14 @@ export default function Page({ searchParams }: PageProps): ReactElement {
       </Form>
     </div>
   );
+}
+
+function useShouldHideInitConnectionSchema(
+  control: Control<SingleTableConnectFormValues>
+): boolean {
+  const [destinationConnectionid, fkSourceConnectionId] = useWatch({
+    control,
+    name: ['destination.connectionId', 'fkSourceConnectionId'],
+  });
+  return destinationConnectionid === fkSourceConnectionId;
 }

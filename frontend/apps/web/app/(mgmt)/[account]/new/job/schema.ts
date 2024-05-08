@@ -238,9 +238,10 @@ const SINGLE_SUBSET_FORM_SCHEMA = Yup.object({
   whereClause: Yup.string().trim().optional(),
 });
 
-export const SINGLE_TABLE_CONNECT_FORM_SCHEMA = Yup.object({}).concat(
-  DESTINATION_FORM_SCHEMA
-);
+export const SINGLE_TABLE_CONNECT_FORM_SCHEMA = Yup.object({
+  fkSourceConnectionId: Yup.string().required('Connection is required').uuid(),
+  destination: DESTINATION_FORM_SCHEMA,
+});
 export type SingleTableConnectFormValues = Yup.InferType<
   typeof SINGLE_TABLE_CONNECT_FORM_SCHEMA
 >;
@@ -303,6 +304,24 @@ export const SINGLE_TABLE_SCHEMA_FORM_SCHEMA = Yup.object({
 });
 export type SingleTableSchemaFormValues = Yup.InferType<
   typeof SINGLE_TABLE_SCHEMA_FORM_SCHEMA
+>;
+
+export const SingleTableEditSourceFormValues = Yup.object({
+  source: Yup.object({
+    fkSourceConnectionId: Yup.string()
+      .required('Connection is required')
+      .uuid(),
+  }).required(),
+
+  numRows: Yup.number()
+    .required('Must provide a number of rows to generate')
+    .min(1)
+    .default(10),
+  mappings: Yup.array().of(JOB_MAPPING_SCHEMA).required(),
+}).required();
+
+export type SingleTableEditSourceFormValues = Yup.InferType<
+  typeof SingleTableEditSourceFormValues
 >;
 
 export const SUBSET_FORM_SCHEMA = Yup.object({

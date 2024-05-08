@@ -250,7 +250,8 @@ export default function DataSyncConnectionCard({ jobId }: Props): ReactElement {
                         .filter(
                           (c) =>
                             !form.getValues().destinationIds?.includes(c.id) &&
-                            c.connectionConfig?.config.case !== 'awsS3Config'
+                            c.connectionConfig?.config.case !== 'awsS3Config' &&
+                            c.connectionConfig?.config.case !== 'openaiConfig'
                         )
                         .map((connection) => (
                           <SelectItem
