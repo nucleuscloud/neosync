@@ -120,7 +120,8 @@ func Test_CheckConnectionConfigs_Fail(t *testing.T) {
 	m.SqlDbContainerMock.On("Open").Return(m.SqlDbMock, nil)
 	m.SqlDbContainerMock.On("Close").Return(nil)
 	m.SqlConnectorMock.On("NewDbFromConnectionConfig", mock.Anything, mock.Anything, mock.Anything).Return(m.SqlDbContainerMock, nil)
-	m.SqlMock.ExpectPing().WillReturnError(errors.New("connection failed"))
+	m.MysqlQuerierMock.On("GetMysqlRolePermissions", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*mysql_queries.GetMysqlRolePermissionsRow{}, errors.New("connection failed"))
 
 	resp, err := m.Service.CheckConnectionConfig(context.Background(), &connect.Request[mgmtv1alpha1.CheckConnectionConfigRequest]{
 		Msg: &mgmtv1alpha1.CheckConnectionConfigRequest{
