@@ -118,6 +118,7 @@ export default function UserDefinedTransformEmailForm(
       />
       <FormField
         name={`config.value.emailType`}
+        control={fc.control}
         render={({ field }) => {
           return (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">

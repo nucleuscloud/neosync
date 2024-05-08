@@ -27,6 +27,7 @@ import {
   GenerateCardNumber,
   GenerateCategorical,
   GenerateE164PhoneNumber,
+  GenerateEmail,
   GenerateFloat64,
   GenerateGender,
   GenerateInt64,
@@ -59,6 +60,7 @@ import {
 import { ReactElement, useState } from 'react';
 import GenerateCardNumberForm from './Sheetforms/GenerateCardNumberForm';
 import GenerateCategoricalForm from './Sheetforms/GenerateCategoricalForm';
+import GenerateEmailForm from './Sheetforms/GenerateEmailForm';
 import GenerateFloatForm from './Sheetforms/GenerateFloat64Form';
 import GenerateGenderForm from './Sheetforms/GenerateGenderForm';
 import GenerateIntForm from './Sheetforms/GenerateInt64Form';
@@ -412,6 +414,28 @@ function ConfigureTransformer(props: ConfigureTransformerProps): ReactElement {
                   config: new TransformerConfig({
                     config: {
                       case: 'transformEmailConfig',
+                      value: newconfig,
+                    },
+                  }),
+                })
+              )
+            );
+          }}
+        />
+      );
+    case TransformerSource.GENERATE_EMAIL:
+      return (
+        <GenerateEmailForm
+          isReadonly={isReadonly}
+          existingConfig={GenerateEmail.fromJson(valueConfig.value)}
+          onSubmit={(newconfig) => {
+            onSubmit(
+              convertJobMappingTransformerToForm(
+                new JobMappingTransformer({
+                  source: transformer.source,
+                  config: new TransformerConfig({
+                    config: {
+                      case: 'generateEmailConfig',
                       value: newconfig,
                     },
                   }),

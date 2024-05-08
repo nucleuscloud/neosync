@@ -73,6 +73,10 @@ const transformEmailConfig = Yup.object().shape({
   emailType: Yup.string().default('GENERATE_EMAIL_TYPE_UUID_V4'),
 });
 
+const generateEmailConfig = Yup.object().shape({
+  emailType: Yup.string().default('GENERATE_EMAIL_TYPE_UUID_V4'),
+});
+
 const generateCardNumberConfig = Yup.object().shape({
   validLuhn: Yup.boolean().default(false).required('This field is required.'),
 });
@@ -457,7 +461,6 @@ export const TRANSFORMER_SCHEMA_CONFIGS = {
   generateBoolConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
   generateCityConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
   generateDefaultConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
-  generateEmailConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
   generateFirstNameConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
   generateFullAddressConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
   generateFullNameConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
@@ -474,6 +477,7 @@ export const TRANSFORMER_SCHEMA_CONFIGS = {
   nullconfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
   passthroughConfig: EMPTY_TRANSFORMER_VALUE_CONFIG,
 
+  generateEmailConfig: generateEmailConfig,
   transformEmailConfig: transformEmailConfig,
   generateCardNumberConfig: generateCardNumberConfig,
   generateE164PhoneNumberConfig: generateInternationalPhoneNumberConfig,
