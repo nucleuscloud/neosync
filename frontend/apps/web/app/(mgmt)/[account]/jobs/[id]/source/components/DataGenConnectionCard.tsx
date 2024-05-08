@@ -144,13 +144,14 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
 
     // handle missing columns
   }, [isJobLoading, isSchemaDataMapLoading]);
+
   useEffect(() => {
     const connSchemaMap = connectionSchemaDataMap?.schemaMap;
     if (isJobLoading || isSchemaMapValidating || !connSchemaMap) {
       return;
     }
     const existingCols: Record<string, Set<string>> = {};
-    formMappings.forEach((mapping) => {
+    fields.forEach((mapping) => {
       const key = `${mapping.schema}.${mapping.table}`;
       const uniqcols = existingCols[key];
       if (uniqcols) {
@@ -159,7 +160,7 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
         existingCols[key] = new Set([mapping.column]);
       }
     });
-    const toAdd: any[] = [];
+    const toAdd: SingleTableEditSourceFormValues['mappings'] = [];
     Object.entries(existingCols).forEach(([key, currcols]) => {
       const dbcols = connSchemaMap[key];
       if (!dbcols) {
@@ -179,7 +180,8 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
       });
     });
     if (toAdd.length > 0) {
-      append(toAdd);
+      // must be set instead of append as sometimes this is triggered twice and would result in duplicate values being inserted.
+      form.setValue('mappings', [...fields, ...toAdd]);
     }
   }, [isJobLoading, isSchemaMapValidating]);
 
@@ -222,7 +224,6 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
     remove,
     append
   );
-  const formMappings = form.watch('mappings');
 
   async function onTableConstraintSourceChange(value: string): Promise<void> {
     try {
@@ -347,14 +348,14 @@ export default function DataGenConnectionCard({ jobId }: Props): ReactElement {
         />
 
         <SchemaTable
-          data={formMappings}
+          data={fields}
           jobType="generate"
           constraintHandler={schemaConstraintHandler}
           schema={connectionSchemaDataMap?.schemaMap ?? {}}
           isSchemaDataReloading={isSchemaMapValidating}
           selectedTables={selectedTables}
           onSelectedTableToggle={onSelectedTableToggle}
-          formErrors={extractAllFormErrors(form.formState.errors, formMappings)}
+          formErrors={extractAllFormErrors(form.formState.errors, fields)}
         />
 
         {form.formState.errors.mappings && (
