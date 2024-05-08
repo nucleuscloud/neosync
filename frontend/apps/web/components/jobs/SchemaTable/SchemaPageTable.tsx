@@ -95,16 +95,15 @@ export default function SchemaPageTable<TData, TValue>({
         />
       </div>
       <div
-        className="rounded-md border max-h-[500px] relative overflow-x-auto"
+        className="rounded-md border max-h-[500px] relative overflow-auto"
         ref={tableContainerRef}
       >
         <StickyHeaderTable>
-          <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 px-2">
+          <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 px-2 grid">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
                 className="flex flex-row items-center justify-between px-2"
-                id="table-header-row"
               >
                 {headerGroup.headers.map((header) => {
                   return (
@@ -127,6 +126,7 @@ export default function SchemaPageTable<TData, TValue>({
             ))}
           </TableHeader>
           <TableBody
+            className="grid"
             style={{
               height: `${rowVirtualizer.getTotalSize()}px`, //tells scrollbar how big the table is
             }}
