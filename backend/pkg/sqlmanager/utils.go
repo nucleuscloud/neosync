@@ -1,17 +1,17 @@
 package sqlmanager
 
-import dbschemas "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
+import "fmt"
 
-func GetUniqueSchemaColMappings(
+func getUniqueSchemaColMappings(
 	schemas []*DatabaseSchemaRow,
-) map[string]map[string]*dbschemas.ColumnInfo {
-	groupedSchemas := map[string]map[string]*dbschemas.ColumnInfo{} // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
+) map[string]map[string]*ColumnInfo {
+	groupedSchemas := map[string]map[string]*ColumnInfo{} // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
 	for _, record := range schemas {
-		key := dbschemas.BuildTable(record.TableSchema, record.TableName)
+		key := BuildTable(record.TableSchema, record.TableName)
 		if _, ok := groupedSchemas[key]; ok {
 			groupedSchemas[key][record.ColumnName] = toColumnInfo(record)
 		} else {
-			groupedSchemas[key] = map[string]*dbschemas.ColumnInfo{
+			groupedSchemas[key] = map[string]*ColumnInfo{
 				record.ColumnName: toColumnInfo(record),
 			}
 		}
@@ -19,75 +19,41 @@ func GetUniqueSchemaColMappings(
 	return groupedSchemas
 }
 
-func toColumnInfo(row *DatabaseSchemaRow) *dbschemas.ColumnInfo {
-	return &dbschemas.ColumnInfo{
+func toColumnInfo(row *DatabaseSchemaRow) *ColumnInfo {
+	return &ColumnInfo{
 		OrdinalPosition:        int32(row.OrdinalPosition),
 		ColumnDefault:          row.ColumnDefault,
-		IsNullable:             row.IsNullable,
+		IsNullable:             convertNullableTextToBool(row.IsNullable),
 		DataType:               row.DataType,
-		CharacterMaximumLength: ptr(row.CharacterMaximumLength),
-		NumericPrecision:       ptr(row.NumericPrecision),
-		NumericScale:           ptr(row.NumericScale),
+		CharacterMaximumLength: Ptr(row.CharacterMaximumLength),
+		NumericPrecision:       Ptr(row.NumericPrecision),
+		NumericScale:           Ptr(row.NumericScale),
 	}
 }
 
-func ptr[T any](val T) *T {
+func convertNullableTextToBool(isNullableStr string) bool {
+	return isNullableStr != "NO"
+}
+
+func Ptr[T any](val T) *T {
 	return &val
 }
 
-// Key is schema.table value is list of tables that key depends on
-func GetDbTableDependencies(
-	constraints []*ForeignKeyConstraintsRow,
-) dbschemas.TableDependency {
-	tableConstraints := map[string]*dbschemas.TableConstraints{}
-	for _, c := range constraints {
-		tableName := dbschemas.BuildTable(c.SchemaName, c.TableName)
-
-		constraint, ok := tableConstraints[tableName]
-		if !ok {
-			tableConstraints[tableName] = &dbschemas.TableConstraints{
-				Constraints: []*dbschemas.ForeignConstraint{
-					{Column: c.ColumnName, IsNullable: dbschemas.ConvertIsNullableToBool(c.IsNullable), ForeignKey: &dbschemas.ForeignKey{
-						Table:  dbschemas.BuildTable(c.ForeignSchemaName, c.ForeignTableName),
-						Column: c.ForeignColumnName,
-					}},
-				},
-			}
-		} else {
-			constraint.Constraints = append(constraint.Constraints, &dbschemas.ForeignConstraint{
-				Column: c.ColumnName, IsNullable: dbschemas.ConvertIsNullableToBool(c.IsNullable), ForeignKey: &dbschemas.ForeignKey{
-					Table:  dbschemas.BuildTable(c.ForeignSchemaName, c.ForeignTableName),
-					Column: c.ForeignColumnName,
-				},
-			})
-		}
+func BuildTable(schema, table string) string {
+	if schema != "" {
+		return fmt.Sprintf("%s.%s", schema, table)
 	}
-	return tableConstraints
+	return table
 }
 
-func GetTablePrimaryKeysMap(
-	primaryKeyConstraints []*PrimaryKeyConstraintsRow,
-) map[string][]string {
-	pkConstraintMap := map[string][]*PrimaryKeyConstraintsRow{}
-	for _, c := range primaryKeyConstraints {
-		_, ok := pkConstraintMap[c.ConstraintName]
-		if ok {
-			pkConstraintMap[c.ConstraintName] = append(pkConstraintMap[c.ConstraintName], c)
-		} else {
-			pkConstraintMap[c.ConstraintName] = []*PrimaryKeyConstraintsRow{c}
-		}
+func dedupeSlice(input []string) []string {
+	set := map[string]any{}
+	for _, i := range input {
+		set[i] = struct{}{}
 	}
-	pkMap := map[string][]string{}
-	for _, constraints := range pkConstraintMap {
-		for _, c := range constraints {
-			key := dbschemas.BuildTable(c.SchemaName, c.TableName)
-			_, ok := pkMap[key]
-			if ok {
-				pkMap[key] = append(pkMap[key], c.ColumnName)
-			} else {
-				pkMap[key] = []string{c.ColumnName}
-			}
-		}
+	output := make([]string, 0, len(set))
+	for key := range set {
+		output = append(output, key)
 	}
-	return pkMap
+	return output
 }

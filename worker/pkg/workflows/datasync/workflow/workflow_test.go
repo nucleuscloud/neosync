@@ -709,11 +709,8 @@ func Test_isReadyForCleanUp(t *testing.T) {
 		isReadyForCleanUp(
 			"table",
 			"col",
-			map[string][]*tabledependency.DependsOn{
-				"config": {{
-					Table:   "table",
-					Columns: []string{"col"},
-				}},
+			map[string]map[string][]string{
+				"other_table": {"table": []string{"col"}},
 			},
 		),
 		"has dependency",
@@ -724,13 +721,10 @@ func Test_isReadyForCleanUp(t *testing.T) {
 		isReadyForCleanUp(
 			"table",
 			"col",
-			map[string][]*tabledependency.DependsOn{
-				"config": {{
-					Table:   "table",
-					Columns: []string{"col1"},
-				}},
+			map[string]map[string][]string{
+				"other_table": {"table": []string{"col1"}},
 			},
 		),
-		"has dependency",
+		"no dependency",
 	)
 }

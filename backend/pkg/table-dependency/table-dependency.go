@@ -6,7 +6,7 @@ import (
 	"slices"
 	"strings"
 
-	dbschemas "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
+	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 )
 
 type RunType string
@@ -42,21 +42,21 @@ type ConstraintColumns struct {
 }
 
 func GetRunConfigs(
-	dependencyMap dbschemas.TableDependency,
+	dependencyMap map[string][]*sql_manager.ForeignConstraint,
 	tables []string,
 	subsets map[string]string,
 	primaryKeyMap map[string][]string,
 	tableColumnsMap map[string][]string,
 ) ([]*RunConfig, error) {
 	filteredDepsMap := map[string][]string{}                        // only include tables that are in tables arg list
-	foreignKeyMap := map[string]map[string]string{}                 // map: table -> foreign key table -> foreign key column
+	foreignKeyMap := map[string]map[string][]string{}               // map: table -> foreign key table -> foreign key column
 	foreignKeyColsMap := map[string]map[string]*ConstraintColumns{} // map: table -> foreign key table -> ConstraintColumns
 	configs := []*RunConfig{}
 
 	for table, constraints := range dependencyMap {
-		foreignKeyMap[table] = map[string]string{}
+		foreignKeyMap[table] = map[string][]string{}
 		foreignKeyColsMap[table] = map[string]*ConstraintColumns{}
-		for _, constraint := range constraints.Constraints {
+		for _, constraint := range constraints {
 			if _, exists := foreignKeyColsMap[table][constraint.ForeignKey.Table]; !exists {
 				foreignKeyColsMap[table][constraint.ForeignKey.Table] = &ConstraintColumns{
 					NullableColumns:    []string{},
@@ -68,11 +68,15 @@ func GetRunConfigs(
 			} else {
 				foreignKeyColsMap[table][constraint.ForeignKey.Table].NonNullableColumns = append(foreignKeyColsMap[table][constraint.ForeignKey.Table].NonNullableColumns, constraint.ForeignKey.Column)
 			}
-			foreignKeyMap[table][constraint.ForeignKey.Table] = constraint.ForeignKey.Column
+			foreignKeyMap[table][constraint.ForeignKey.Table] = append(foreignKeyMap[table][constraint.ForeignKey.Table], constraint.ForeignKey.Column)
 			if slices.Contains(tables, table) && slices.Contains(tables, constraint.ForeignKey.Table) {
 				filteredDepsMap[table] = append(filteredDepsMap[table], constraint.ForeignKey.Table)
 			}
 		}
+	}
+
+	for table, deps := range filteredDepsMap {
+		filteredDepsMap[table] = dedupeSlice(deps)
 	}
 
 	// create map containing all tables to track when each is processed
@@ -115,7 +119,7 @@ func processCycles(
 	tableColumnsMap map[string][]string,
 	primaryKeyMap map[string][]string,
 	subsets map[string]string,
-	dependencyMap map[string]*dbschemas.TableConstraints,
+	dependencyMap map[string][]*sql_manager.ForeignConstraint,
 	foreignKeyColsMap map[string]map[string]*ConstraintColumns,
 ) ([]*RunConfig, error) {
 	configs := []*RunConfig{}
@@ -173,7 +177,7 @@ func processCycles(
 				insertConfig.DependsOn = append(insertConfig.DependsOn, &DependsOn{Table: fkTable, Columns: fkCols.NonNullableColumns})
 			}
 		}
-		for _, d := range dependencies.Constraints {
+		for _, d := range dependencies {
 			if d.IsNullable {
 				updateConfig.Columns = append(updateConfig.Columns, d.Column)
 			}
@@ -230,7 +234,7 @@ func isTableInCycles(cycles [][]string, table string) bool {
 func determineCycleStarts(
 	cycles [][]string,
 	subsets map[string]string,
-	dependencyMap dbschemas.TableDependency,
+	dependencyMap map[string][]*sql_manager.ForeignConstraint,
 ) ([]string, error) {
 	tableRankMap := map[string]int{}
 	possibleStarts := [][]string{}
@@ -245,7 +249,7 @@ func determineCycleStarts(
 				return nil, fmt.Errorf("missing dependencies for table: %s", table)
 			}
 			// FK columns must be nullable to be a starting point
-			if areAllFkColsNullable(dependencies.Constraints, cycle) {
+			if areAllFkColsNullable(dependencies, cycle) {
 				filteredCycle = append(filteredCycle, table)
 			}
 		}
@@ -293,7 +297,7 @@ func determineCycleStarts(
 	return results, nil
 }
 
-func areAllFkColsNullable(dependencies []*dbschemas.ForeignConstraint, cycle []string) bool {
+func areAllFkColsNullable(dependencies []*sql_manager.ForeignConstraint, cycle []string) bool {
 	for _, dep := range dependencies {
 		if !slices.Contains(cycle, dep.ForeignKey.Table) {
 			continue
@@ -309,7 +313,7 @@ func areAllFkColsNullable(dependencies []*dbschemas.ForeignConstraint, cycle []s
 func processTables(
 	tableMap map[string]bool,
 	dependencyMap map[string][]string,
-	foreignKeyMap map[string]map[string]string,
+	foreignKeyMap map[string]map[string][]string,
 	tableColumnsMap map[string][]string,
 	primaryKeyMap map[string][]string,
 	subsets map[string]string,
@@ -331,7 +335,7 @@ func processTables(
 			WhereClause: &where,
 		}
 		for _, dep := range dependencyMap[table] {
-			config.DependsOn = append(config.DependsOn, &DependsOn{Table: dep, Columns: []string{foreignKeyMap[table][dep]}})
+			config.DependsOn = append(config.DependsOn, &DependsOn{Table: dep, Columns: foreignKeyMap[table][dep]})
 		}
 		configs = append(configs, config)
 	}
@@ -645,4 +649,16 @@ func isValidRunOrder(configs []*RunConfig) bool {
 		}
 	}
 	return true
+}
+
+func dedupeSlice(input []string) []string {
+	set := map[string]any{}
+	for _, i := range input {
+		set[i] = struct{}{}
+	}
+	output := make([]string, 0, len(set))
+	for key := range set {
+		output = append(output, key)
+	}
+	return output
 }

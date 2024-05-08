@@ -1,11 +1,17 @@
 package shared
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"net/http"
 
+	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
+	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
+	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
+
 	http_client "github.com/nucleuscloud/neosync/worker/internal/http/client"
 	"github.com/spf13/viper"
 )
@@ -48,6 +54,24 @@ func Ptr[T any](val T) *T {
 	return &val
 }
 
+// Parses the job and returns the unique set of schemas.
+func GetUniqueSchemasFromJob(job *mgmtv1alpha1.Job) []string {
+	switch jobSourceConfig := job.Source.GetOptions().GetConfig().(type) {
+	case *mgmtv1alpha1.JobSourceOptions_AiGenerate:
+		uniqueSchemas := map[string]struct{}{}
+		for _, schema := range jobSourceConfig.AiGenerate.Schemas {
+			uniqueSchemas[schema.Schema] = struct{}{}
+		}
+		schemas := []string{}
+		for s := range uniqueSchemas {
+			schemas = append(schemas, s)
+		}
+		return schemas
+	default:
+		return GetUniqueSchemasFromMappings(job.GetMappings())
+	}
+}
+
 // Parses the job mappings and returns the unique set of schemas found
 func GetUniqueSchemasFromMappings(mappings []*mgmtv1alpha1.JobMapping) []string {
 	schemas := map[string]struct{}{}
@@ -63,12 +87,27 @@ func GetUniqueSchemasFromMappings(mappings []*mgmtv1alpha1.JobMapping) []string 
 	return output
 }
 
+// Parses the job and returns the unique set of tables.
+func GetUniqueTablesMapFromJob(job *mgmtv1alpha1.Job) map[string]struct{} {
+	switch jobSourceConfig := job.Source.GetOptions().GetConfig().(type) {
+	case *mgmtv1alpha1.JobSourceOptions_AiGenerate:
+		uniqueTables := map[string]struct{}{}
+		for _, schema := range jobSourceConfig.AiGenerate.Schemas {
+			for _, table := range schema.Tables {
+				uniqueTables[sql_manager.BuildTable(schema.Schema, table.Table)] = struct{}{}
+			}
+		}
+		return uniqueTables
+	default:
+		return GetUniqueTablesFromMappings(job.GetMappings())
+	}
+}
+
 // Parses the job mappings and returns the unique set of tables.
-// Does not include a table if all of the columns are set to null
 func GetUniqueTablesFromMappings(mappings []*mgmtv1alpha1.JobMapping) map[string]struct{} {
 	groupedMappings := map[string][]*mgmtv1alpha1.JobMapping{}
 	for _, mapping := range mappings {
-		tableName := dbschemas_utils.BuildTable(mapping.Schema, mapping.Table)
+		tableName := sql_manager.BuildTable(mapping.Schema, mapping.Table)
 		_, ok := groupedMappings[tableName]
 		if ok {
 			groupedMappings[tableName] = append(groupedMappings[tableName], mapping)
@@ -79,22 +118,10 @@ func GetUniqueTablesFromMappings(mappings []*mgmtv1alpha1.JobMapping) map[string
 
 	filteredTables := map[string]struct{}{}
 
-	for table, mappings := range groupedMappings {
-		if !AreAllColsNull(mappings) {
-			filteredTables[table] = struct{}{}
-		}
+	for table := range groupedMappings {
+		filteredTables[table] = struct{}{}
 	}
 	return filteredTables
-}
-
-// Checks each transformer source in the set of mappings and returns true if they are all source=null
-func AreAllColsNull(mappings []*mgmtv1alpha1.JobMapping) bool {
-	for _, col := range mappings {
-		if col.Transformer.Source != mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_NULL {
-			return false
-		}
-	}
-	return true
 }
 
 type RedisConfig struct {
@@ -158,4 +185,43 @@ func BuildBenthosRedisTlsConfig(redisConfig *RedisConfig) *neosync_benthos.Redis
 		}
 	}
 	return tls
+}
+
+func GetJobSourceConnection(
+	ctx context.Context,
+	jobSource *mgmtv1alpha1.JobSource,
+	connclient mgmtv1alpha1connect.ConnectionServiceClient,
+) (*mgmtv1alpha1.Connection, error) {
+	var connectionId string
+	switch jobSourceConfig := jobSource.GetOptions().GetConfig().(type) {
+	case *mgmtv1alpha1.JobSourceOptions_Postgres:
+		connectionId = jobSourceConfig.Postgres.GetConnectionId()
+	case *mgmtv1alpha1.JobSourceOptions_Mysql:
+		connectionId = jobSourceConfig.Mysql.GetConnectionId()
+	case *mgmtv1alpha1.JobSourceOptions_Generate:
+		connectionId = jobSourceConfig.Generate.GetFkSourceConnectionId()
+	case *mgmtv1alpha1.JobSourceOptions_AiGenerate:
+		connectionId = jobSourceConfig.AiGenerate.GetAiConnectionId()
+	default:
+		return nil, errors.New("unsupported job source options type")
+	}
+	sourceConnection, err := GetConnectionById(ctx, connclient, connectionId)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get connection by id (%s): %w", connectionId, err)
+	}
+	return sourceConnection, nil
+}
+
+func GetConnectionById(
+	ctx context.Context,
+	connclient mgmtv1alpha1connect.ConnectionServiceClient,
+	connectionId string,
+) (*mgmtv1alpha1.Connection, error) {
+	getConnResp, err := connclient.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+		Id: connectionId,
+	}))
+	if err != nil {
+		return nil, err
+	}
+	return getConnResp.Msg.Connection, nil
 }

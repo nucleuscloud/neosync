@@ -22,9 +22,7 @@ import (
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/internal/nucleusdb"
-	dbschemas "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
-	dbschemas_mysql "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/mysql"
-	dbschemas_postgres "github.com/nucleuscloud/neosync/backend/pkg/dbschemas/postgres"
+	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -92,7 +90,7 @@ func (s *Service) GetConnectionDataStream(
 		}
 
 		// used to get column names
-		query := fmt.Sprintf("SELECT * FROM %s.%s LIMIT 1;", req.Msg.Schema, req.Msg.Table)
+		query := fmt.Sprintf("SELECT * FROM %s LIMIT 1;", sql_manager.BuildTable(req.Msg.Schema, req.Msg.Table))
 		r, err := db.QueryContext(ctx, query)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return err
@@ -103,7 +101,7 @@ func (s *Service) GetConnectionDataStream(
 			return err
 		}
 
-		selectQuery := fmt.Sprintf("SELECT %s FROM %s.%s;", strings.Join(columnNames, ", "), req.Msg.Schema, req.Msg.Table)
+		selectQuery := fmt.Sprintf("SELECT %s FROM %s;", strings.Join(columnNames, ", "), sql_manager.BuildTable(req.Msg.Schema, req.Msg.Table))
 		rows, err := db.QueryContext(ctx, selectQuery)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return err
@@ -146,7 +144,7 @@ func (s *Service) GetConnectionDataStream(
 		defer conn.Close()
 
 		// used to get column names
-		query := fmt.Sprintf("SELECT * FROM %s.%s LIMIT 1;", req.Msg.Schema, req.Msg.Table)
+		query := fmt.Sprintf("SELECT * FROM %s LIMIT 1;", sql_manager.BuildTable(req.Msg.Schema, req.Msg.Table))
 		r, err := db.Query(ctx, query)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return err
@@ -158,7 +156,7 @@ func (s *Service) GetConnectionDataStream(
 			columnNames = append(columnNames, col.Name)
 		}
 
-		selectQuery := fmt.Sprintf("SELECT %s FROM %s.%s;", strings.Join(columnNames, ", "), req.Msg.Schema, req.Msg.Table)
+		selectQuery := fmt.Sprintf("SELECT %s FROM %s;", strings.Join(columnNames, ", "), sql_manager.BuildTable(req.Msg.Schema, req.Msg.Table))
 		rows, err := db.Query(ctx, selectQuery)
 		if err != nil && !nucleusdb.IsNoRows(err) {
 			return err
@@ -239,7 +237,7 @@ func (s *Service) GetConnectionDataStream(
 			return nucleuserrors.NewInternalError("unsupported AWS S3 config id")
 		}
 
-		tableName := fmt.Sprintf("%s.%s", req.Msg.Schema, req.Msg.Table)
+		tableName := sql_manager.BuildTable(req.Msg.Schema, req.Msg.Table)
 		path := fmt.Sprintf("workflows/%s/activities/%s/data", jobRunId, tableName)
 		var pageToken *string
 		for {
@@ -348,27 +346,18 @@ func (s *Service) GetConnectionSchema(
 		return nil, err
 	}
 
-	connectionTimeout := uint32(5)
-
 	switch config := connection.ConnectionConfig.Config.(type) {
-	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.ConnectionConfig, &connectionTimeout, logger)
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig, *mgmtv1alpha1.ConnectionConfig_PgConfig:
+		connectionTimeout := 5
+		db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection, &connectionTimeout)
 		if err != nil {
 			return nil, err
 		}
-		defer conn.Close()
-		db, err := conn.Open()
-		if err != nil {
-			return nil, err
-		}
+		defer db.Db.Close()
 
-		dbschema, err := s.mysqlquerier.GetDatabaseSchema(ctx, db)
-		if err != nil && !nucleusdb.IsNoRows(err) {
+		dbschema, err := db.Db.GetDatabaseSchema(ctx)
+		if err != nil {
 			return nil, err
-		} else if err != nil && nucleusdb.IsNoRows(err) {
-			return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaResponse{
-				Schemas: []*mgmtv1alpha1.DatabaseColumn{},
-			}), nil
 		}
 
 		schemas := []*mgmtv1alpha1.DatabaseColumn{}
@@ -376,10 +365,6 @@ func (s *Service) GetConnectionSchema(
 			var defaultColumn *string
 			if col.ColumnDefault != "" {
 				defaultColumn = &col.ColumnDefault
-			}
-			var generatedType *string
-			if col.Extra.Valid && col.Extra.String == "GENERATED" {
-				generatedType = &col.Extra.String
 			}
 
 			schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
@@ -389,52 +374,7 @@ func (s *Service) GetConnectionSchema(
 				DataType:      col.DataType,
 				IsNullable:    col.IsNullable,
 				ColumnDefault: defaultColumn,
-				GeneratedType: generatedType,
-			})
-		}
-
-		return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaResponse{
-			Schemas: schemas,
-		}), nil
-
-	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		conn, err := s.sqlConnector.NewPgPoolFromConnectionConfig(config.PgConfig, &connectionTimeout, logger)
-		if err != nil {
-			return nil, err
-		}
-		db, err := conn.Open(ctx)
-		if err != nil {
-			return nil, err
-		}
-		defer conn.Close()
-
-		dbschema, err := s.pgquerier.GetDatabaseSchema(ctx, db)
-		if err != nil && !nucleusdb.IsNoRows(err) {
-			return nil, err
-		} else if err != nil && nucleusdb.IsNoRows(err) {
-			return connect.NewResponse(&mgmtv1alpha1.GetConnectionSchemaResponse{
-				Schemas: []*mgmtv1alpha1.DatabaseColumn{},
-			}), nil
-		}
-
-		schemas := []*mgmtv1alpha1.DatabaseColumn{}
-		for _, col := range dbschema {
-			var defaultColumn *string
-			if col.ColumnDefault != "" {
-				defaultColumn = &col.ColumnDefault
-			}
-			var generatedType *string
-			if col.GeneratedType != "" {
-				generatedType = &col.GeneratedType
-			}
-			schemas = append(schemas, &mgmtv1alpha1.DatabaseColumn{
-				Schema:        col.TableSchema,
-				Table:         col.TableName,
-				Column:        col.ColumnName,
-				DataType:      col.DataType,
-				IsNullable:    col.IsNullable,
-				ColumnDefault: defaultColumn,
-				GeneratedType: generatedType,
+				GeneratedType: col.GeneratedType,
 			})
 		}
 
@@ -491,7 +431,7 @@ func (s *Service) GetConnectionSchema(
 				tableFolder := strings.ReplaceAll(folders[len(folders)-1], "/", "")
 				schemaTableList := strings.Split(tableFolder, ".")
 
-				filePath := fmt.Sprintf("%s%s.%s/data", path, schemaTableList[0], schemaTableList[1])
+				filePath := fmt.Sprintf("%s%s/data", path, sql_manager.BuildTable(schemaTableList[0], schemaTableList[1]))
 				out, err := s.awsManager.ListObjectsV2(ctx, s3Client, awsS3Config.Region, &s3.ListObjectsV2Input{
 					Bucket:  aws.String(awsS3Config.Bucket),
 					Prefix:  aws.String(filePath),
@@ -591,66 +531,23 @@ func (s *Service) GetConnectionForeignConstraints(
 		schemas = append(schemas, s)
 	}
 
-	connectionTimeout := uint32(5)
-
-	var td dbschemas.TableDependency
-	switch config := connection.Msg.Connection.ConnectionConfig.Config.(type) {
-	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.Msg.Connection.ConnectionConfig, &connectionTimeout, logger)
-		if err != nil {
-			return nil, err
-		}
-		defer conn.Close()
-		db, err := conn.Open()
-		if err != nil {
-			return nil, err
-		}
-
-		allConstraints, err := dbschemas_mysql.GetAllMysqlFkConstraints(s.mysqlquerier, ctx, db, schemas)
-		if err != nil && !nucleusdb.IsNoRows(err) {
-			return nil, err
-		} else if err != nil && nucleusdb.IsNoRows(err) {
-			return connect.NewResponse(&mgmtv1alpha1.GetConnectionForeignConstraintsResponse{
-				TableConstraints: map[string]*mgmtv1alpha1.ForeignConstraintTables{},
-			}), nil
-		}
-		td = dbschemas_mysql.GetMysqlTableDependencies(allConstraints)
-
-	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		conn, err := s.sqlConnector.NewPgPoolFromConnectionConfig(config.PgConfig, &connectionTimeout, logger)
-		if err != nil {
-			return nil, err
-		}
-		db, err := conn.Open(ctx)
-		if err != nil {
-			return nil, err
-		}
-		defer conn.Close()
-
-		allConstraints, err := dbschemas_postgres.GetAllPostgresForeignKeyConstraints(ctx, db, s.pgquerier, schemas)
-		if err != nil && !nucleusdb.IsNoRows(err) {
-			return nil, err
-		} else if err != nil && nucleusdb.IsNoRows(err) {
-			return connect.NewResponse(&mgmtv1alpha1.GetConnectionForeignConstraintsResponse{
-				TableConstraints: map[string]*mgmtv1alpha1.ForeignConstraintTables{},
-			}), nil
-		}
-		tdeps, err := dbschemas_postgres.GetPostgresTableDependencies(allConstraints)
-		if err != nil {
-			return nil, err
-		}
-		td = tdeps
-
-	default:
-		return nil, errors.New("unsupported fk connection")
+	connectionTimeout := 5
+	db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
+	if err != nil {
+		return nil, err
+	}
+	defer db.Db.Close()
+	foreignKeyMap, err := db.Db.GetForeignKeyConstraintsMap(ctx, schemas)
+	if err != nil {
+		return nil, err
 	}
 
 	tableConstraints := map[string]*mgmtv1alpha1.ForeignConstraintTables{}
-	for tableName, d := range td {
+	for tableName, d := range foreignKeyMap {
 		tableConstraints[tableName] = &mgmtv1alpha1.ForeignConstraintTables{
 			Constraints: []*mgmtv1alpha1.ForeignConstraint{},
 		}
-		for _, c := range d.Constraints {
+		for _, c := range d {
 			tableConstraints[tableName].Constraints = append(tableConstraints[tableName].Constraints, &mgmtv1alpha1.ForeignConstraint{
 				Column: c.Column, IsNullable: c.IsNullable, ForeignKey: &mgmtv1alpha1.ForeignKey{
 					Table:  c.ForeignKey.Table,
@@ -696,53 +593,20 @@ func (s *Service) GetConnectionPrimaryConstraints(
 		schemas = append(schemas, s)
 	}
 
-	connectionTimeout := uint32(5)
+	connectionTimeout := 5
+	db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
+	if err != nil {
+		return nil, err
+	}
+	defer db.Db.Close()
 
-	var pc map[string][]string
-	switch config := connection.Msg.Connection.ConnectionConfig.Config.(type) {
-	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.Msg.Connection.ConnectionConfig, &connectionTimeout, logger)
-		if err != nil {
-			return nil, err
-		}
-		defer conn.Close()
-		db, err := conn.Open()
-		if err != nil {
-			return nil, err
-		}
-
-		allConstraints, err := dbschemas_mysql.GetAllMysqlPkConstraints(s.mysqlquerier, ctx, db, schemas)
-		if err != nil && !nucleusdb.IsNoRows(err) {
-			return nil, err
-		} else if err != nil && nucleusdb.IsNoRows(err) {
-			return connect.NewResponse(&mgmtv1alpha1.GetConnectionPrimaryConstraintsResponse{
-				TableConstraints: map[string]*mgmtv1alpha1.PrimaryConstraint{},
-			}), nil
-		}
-		pc = dbschemas_mysql.GetMysqlTablePrimaryKeys(allConstraints)
-
-	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		conn, err := s.sqlConnector.NewPgPoolFromConnectionConfig(config.PgConfig, &connectionTimeout, logger)
-		if err != nil {
-			return nil, err
-		}
-		db, err := conn.Open(ctx)
-		if err != nil {
-			return nil, err
-		}
-		defer conn.Close()
-
-		pcon, err := dbschemas_postgres.GetAllPostgresPrimaryKeyConstraintsByTableCols(ctx, db, s.pgquerier, schemas)
-		if err != nil {
-			return nil, err
-		}
-		pc = pcon
-	default:
-		return nil, errors.New("unsupported fk connection")
+	primaryKeysMap, err := db.Db.GetPrimaryKeyConstraintsMap(ctx, schemas)
+	if err != nil {
+		return nil, err
 	}
 
 	tableConstraints := map[string]*mgmtv1alpha1.PrimaryConstraint{}
-	for tableName, cols := range pc {
+	for tableName, cols := range primaryKeysMap {
 		tableConstraints[tableName] = &mgmtv1alpha1.PrimaryConstraint{
 			Columns: cols,
 		}
@@ -777,68 +641,48 @@ func (s *Service) GetConnectionInitStatements(
 
 	schemaTableMap := map[string]*mgmtv1alpha1.DatabaseColumn{}
 	for _, s := range schemaResp {
-		schemaTableMap[fmt.Sprintf("%s.%s", s.Schema, s.Table)] = s
+		schemaTableMap[sql_manager.BuildTable(s.Schema, s.Table)] = s
 	}
 
-	connectionTimeout := uint32(5)
+	connectionTimeout := 5
+	db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
+	if err != nil {
+		return nil, err
+	}
+	defer db.Db.Close()
 
 	createStmtsMap := map[string]string{}
 	truncateStmtsMap := map[string]string{}
-	switch config := connection.Msg.Connection.ConnectionConfig.Config.(type) {
-	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.Msg.Connection.ConnectionConfig, &connectionTimeout, logger)
-		if err != nil {
-			return nil, err
+	if req.Msg.GetOptions().GetInitSchema() {
+		for k, v := range schemaTableMap {
+			stmt, err := db.Db.GetCreateTableStatement(ctx, v.Schema, v.Table)
+			if err != nil {
+				return nil, err
+			}
+			createStmtsMap[k] = stmt
 		}
-		defer conn.Close()
-		db, err := conn.Open()
-		if err != nil {
-			return nil, err
-		}
+	}
 
-		if req.Msg.GetOptions().GetInitSchema() {
+	switch connection.Msg.Connection.ConnectionConfig.Config.(type) {
+	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
+		if req.Msg.GetOptions().GetTruncateBeforeInsert() {
 			for k, v := range schemaTableMap {
-				stmt, err := dbschemas_mysql.GetTableCreateStatement(ctx, db, &dbschemas_mysql.GetTableCreateStatementRequest{
-					Schema: v.Schema,
-					Table:  v.Table,
-				})
+				stmt, err := sql_manager.BuildMysqlTruncateStatement(v.Schema, v.Table)
 				if err != nil {
 					return nil, err
 				}
-				createStmtsMap[k] = stmt
-			}
-		}
-
-		if req.Msg.GetOptions().GetTruncateBeforeInsert() {
-			for k, v := range schemaTableMap {
-				truncateStmtsMap[k] = dbschemas_mysql.BuildTruncateStatement(v.Schema, v.Table)
+				truncateStmtsMap[k] = stmt
 			}
 		}
 
 	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		conn, err := s.sqlConnector.NewPgPoolFromConnectionConfig(config.PgConfig, &connectionTimeout, logger)
-		if err != nil {
-			return nil, err
-		}
-		db, err := conn.Open(ctx)
-		if err != nil {
-			return nil, err
-		}
-		defer conn.Close()
-
-		if req.Msg.GetOptions().GetInitSchema() {
+		if req.Msg.GetOptions().GetTruncateCascade() {
 			for k, v := range schemaTableMap {
-				stmt, err := dbschemas_postgres.GetTableCreateStatement(ctx, db, s.pgquerier, v.Schema, v.Table)
+				stmt, err := sql_manager.BuildPgTruncateCascadeStatement(v.Schema, v.Table)
 				if err != nil {
 					return nil, err
 				}
-				createStmtsMap[k] = stmt
-			}
-		}
-
-		if req.Msg.GetOptions().GetTruncateCascade() {
-			for k, v := range schemaTableMap {
-				truncateStmtsMap[k] = dbschemas_postgres.BuildTruncateCascadeStatement(v.Schema, v.Table)
+				truncateStmtsMap[k] = stmt
 			}
 		} else if req.Msg.GetOptions().GetTruncateBeforeInsert() {
 			return nil, nucleuserrors.NewNotImplemented("postgres truncate unsupported. table foreig keys required to build truncate statement.")
@@ -1059,56 +903,27 @@ func (s *Service) GetConnectionUniqueConstraints(
 		schemas = append(schemas, s)
 	}
 
-	connectionTimeout := uint32(5)
+	connectionTimeout := 5
+	db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
+	if err != nil {
+		return nil, err
+	}
+	defer db.Db.Close()
 
-	var uc map[string][]string
-	switch config := connection.Msg.Connection.ConnectionConfig.Config.(type) {
-	case *mgmtv1alpha1.ConnectionConfig_MysqlConfig:
-		conn, err := s.sqlConnector.NewDbFromConnectionConfig(connection.Msg.Connection.ConnectionConfig, &connectionTimeout, logger)
-		if err != nil {
-			return nil, err
-		}
-		defer conn.Close()
-		db, err := conn.Open()
-		if err != nil {
-			return nil, err
-		}
-
-		allConstraints, err := dbschemas_mysql.GetAllMysqlUniqueConstraints(s.mysqlquerier, ctx, db, schemas)
-		if err != nil && !nucleusdb.IsNoRows(err) {
-			return nil, err
-		} else if err != nil && nucleusdb.IsNoRows(err) {
-			return connect.NewResponse(&mgmtv1alpha1.GetConnectionUniqueConstraintsResponse{
-				TableConstraints: map[string]*mgmtv1alpha1.UniqueConstraint{},
-			}), nil
-		}
-		uc = dbschemas_mysql.GetMysqlTableUniqueConstraints(allConstraints)
-
-	case *mgmtv1alpha1.ConnectionConfig_PgConfig:
-		conn, err := s.sqlConnector.NewPgPoolFromConnectionConfig(config.PgConfig, &connectionTimeout, logger)
-		if err != nil {
-			return nil, err
-		}
-		db, err := conn.Open(ctx)
-		if err != nil {
-			return nil, err
-		}
-		defer conn.Close()
-
-		ucon, err := dbschemas_postgres.GetAllPostgresUniqueConstraintsByTableCols(ctx, db, s.pgquerier, schemas)
-		if err != nil {
-			return nil, err
-		}
-		uc = ucon
-
-	default:
-		return nil, errors.New("unsupported unique constraint connection")
+	ucMap, err := db.Db.GetUniqueConstraintsMap(ctx, schemas)
+	if err != nil {
+		return nil, err
 	}
 
 	tableConstraints := map[string]*mgmtv1alpha1.UniqueConstraint{}
-	for tableName, cols := range uc {
+	for tableName, uc := range ucMap {
+		columns := []string{}
+		for _, c := range uc {
+			columns = append(columns, c...)
+		}
 		tableConstraints[tableName] = &mgmtv1alpha1.UniqueConstraint{
-			Columns: cols,
+			// TODO: this doesn't fully represent unique constraints
+			Columns: columns,
 		}
 	}
 

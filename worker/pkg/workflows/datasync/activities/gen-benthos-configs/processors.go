@@ -10,7 +10,7 @@ import (
 	"connectrpc.com/connect"
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
-	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
+	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
 	"github.com/nucleuscloud/neosync/worker/internal/benthos/transformers"
@@ -23,7 +23,7 @@ func buildSqlUpdateProcessorConfigs(
 	redisConfig *shared.RedisConfig,
 	jobId, runId string,
 	mappings []*mgmtv1alpha1.JobMapping,
-	fkMap map[string]*dbschemas_utils.ForeignKey,
+	fkMap map[string]*sql_manager.ForeignKey,
 ) ([]*neosync_benthos.ProcessorConfig, error) {
 	processorConfigs := []*neosync_benthos.ProcessorConfig{}
 	colSourceMap := map[string]mgmtv1alpha1.TransformerSource{}
@@ -72,8 +72,8 @@ func buildProcessorConfigs(
 	ctx context.Context,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	cols []*mgmtv1alpha1.JobMapping,
-	tableColumnInfo map[string]*dbschemas_utils.ColumnInfo,
-	columnConstraints map[string]*dbschemas_utils.ForeignKey,
+	tableColumnInfo map[string]*sql_manager.ColumnInfo,
+	columnConstraints map[string]*sql_manager.ForeignKey,
 	primaryKeys []string,
 	jobId, runId string,
 	redisConfig *shared.RedisConfig,
@@ -164,7 +164,7 @@ func buildMutationConfigs(
 	ctx context.Context,
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	cols []*mgmtv1alpha1.JobMapping,
-	tableColumnInfo map[string]*dbschemas_utils.ColumnInfo,
+	tableColumnInfo map[string]*sql_manager.ColumnInfo,
 ) (string, error) {
 	mutations := []string{}
 
@@ -196,7 +196,7 @@ func buildPrimaryKeyMappingConfigs(cols []*mgmtv1alpha1.JobMapping, primaryKeys 
 	mappings := []string{}
 	for _, col := range cols {
 		if shouldProcessColumn(col.Transformer) && slices.Contains(primaryKeys, col.Column) {
-			mappings = append(mappings, fmt.Sprintf("meta neosync_%s = this.%q", col.Column, col.Column))
+			mappings = append(mappings, fmt.Sprintf("meta neosync_%s_%s_%s = this.%q", col.Schema, col.Table, col.Column, col.Column))
 		}
 	}
 	return strings.Join(mappings, "\n")
@@ -204,7 +204,7 @@ func buildPrimaryKeyMappingConfigs(cols []*mgmtv1alpha1.JobMapping, primaryKeys 
 
 func buildBranchCacheConfigs(
 	cols []*mgmtv1alpha1.JobMapping,
-	columnConstraints map[string]*dbschemas_utils.ForeignKey,
+	columnConstraints map[string]*sql_manager.ForeignKey,
 	jobId, runId string,
 	redisConfig *shared.RedisConfig,
 ) ([]*neosync_benthos.BranchConfig, error) {
@@ -325,7 +325,7 @@ function transformers
 root.{destination_col} = transformerfunction(args)
 */
 
-func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *dbschemas_utils.ColumnInfo) (string, error) {
+func computeMutationFunction(col *mgmtv1alpha1.JobMapping, colInfo *sql_manager.ColumnInfo) (string, error) {
 	var maxLen int64 = 10000
 	if colInfo != nil && colInfo.CharacterMaximumLength != nil && *colInfo.CharacterMaximumLength > 0 {
 		maxLen = int64(*colInfo.CharacterMaximumLength)

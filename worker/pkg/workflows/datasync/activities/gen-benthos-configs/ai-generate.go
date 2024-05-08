@@ -7,11 +7,12 @@ import (
 	"log/slog"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
+	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
+	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
 type aiGenerateMappings struct {
@@ -35,7 +36,7 @@ func (b *benthosBuilder) getAiGenerateBenthosConfigResponses(
 	if sourceOptions == nil {
 		return nil, nil, fmt.Errorf("job does not have AiGenerate source options, has: %T", jobSource.GetOptions().Config)
 	}
-	sourceConnection, err := getJobSourceConnection(ctx, jobSource, b.getConnectionById)
+	sourceConnection, err := shared.GetJobSourceConnection(ctx, job.GetSource(), b.connclient)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -43,28 +44,27 @@ func (b *benthosBuilder) getAiGenerateBenthosConfigResponses(
 	if openaiConfig == nil {
 		return nil, nil, errors.New("configured source connection is not an openai configuration")
 	}
-	constraintConnection, err := getConstraintConnection(ctx, jobSource, b.getConnectionById)
+	constraintConnection, err := getConstraintConnection(ctx, jobSource, b.connclient, shared.GetConnectionById)
 	if err != nil {
 		return nil, nil, err
 	}
-	db, err := b.sqladapter.NewSqlDb(ctx, slogger, constraintConnection)
+	db, err := b.sqlmanager.NewPooledSqlDb(ctx, slogger, constraintConnection)
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to create new sql db: %w", err)
 	}
-	defer db.ClosePool()
+	defer db.Db.Close()
 
-	dbschemas, err := db.GetDatabaseSchema(ctx)
+	groupedSchemas, err := db.Db.GetSchemaColumnMap(ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to get database schema for connection: %w", err)
 	}
-	groupedSchemas := sql_manager.GetUniqueSchemaColMappings(dbschemas)
 
 	mappings := []*aiGenerateMappings{}
 	for _, schema := range sourceOptions.GetSchemas() {
 		for _, table := range schema.GetTables() {
 			columns := []*aiGenerateColumn{}
 
-			tableColsMap, ok := groupedSchemas[dbschemas_utils.BuildTable(schema.GetSchema(), table.GetTable())]
+			tableColsMap, ok := groupedSchemas[sql_manager.BuildTable(schema.GetSchema(), table.GetTable())]
 			if !ok {
 				return nil, nil, fmt.Errorf("did not find schema data when building AI Generate config: %s", schema.GetSchema())
 			}
@@ -176,7 +176,8 @@ func buildBenthosAiGenerateSourceConfigResponses(
 func getConstraintConnection(
 	ctx context.Context,
 	jobSource *mgmtv1alpha1.JobSource,
-	getConnectionById func(context.Context, string) (*mgmtv1alpha1.Connection, error),
+	connclient mgmtv1alpha1connect.ConnectionServiceClient,
+	getConnectionById func(context.Context, mgmtv1alpha1connect.ConnectionServiceClient, string) (*mgmtv1alpha1.Connection, error),
 ) (*mgmtv1alpha1.Connection, error) {
 	var connectionId string
 	switch jsConfig := jobSource.GetOptions().GetConfig().(type) {
@@ -187,7 +188,7 @@ func getConstraintConnection(
 	default:
 		return nil, fmt.Errorf("unsupported job source options type for constraint connection: %T", jsConfig)
 	}
-	connection, err := getConnectionById(ctx, connectionId)
+	connection, err := getConnectionById(ctx, connclient, connectionId)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get constraint connection by id (%s): %w", connectionId, err)
 	}

@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	genbenthosconfigs_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/gen-benthos-configs"
 	runsqlinittablestmts_activity "github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/run-sql-init-table-stmts"
 	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
@@ -96,13 +95,13 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 	started := sync.Map{}
 	completed := sync.Map{}
 
-	allDependsOn := map[string][]*tabledependency.DependsOn{} // configName -> dependson
+	redisDependsOn := map[string]map[string][]string{} // schema.table -> dependson
 	redisConfigs := map[string]*genbenthosconfigs_activity.BenthosRedisConfig{}
 	for _, cfg := range bcResp.BenthosConfigs {
 		for _, redisCfg := range cfg.RedisConfig {
 			redisConfigs[redisCfg.Key] = redisCfg
 		}
-		allDependsOn[cfg.Name] = cfg.DependsOn
+		redisDependsOn[fmt.Sprintf("%s.%s", cfg.TableSchema, cfg.TableName)] = cfg.RedisDependsOn
 	}
 
 	workselector := workflow.NewSelector(ctx)
@@ -123,7 +122,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 			err := f.Get(childctx, &result)
 			if err != nil {
 				logger.Error("activity did not complete", "err", err)
-				redisErr := runRedisCleanUpActivity(wfctx, logger, actOptResp, map[string][]*tabledependency.DependsOn{}, req.JobId, wfinfo.WorkflowExecution.ID, redisConfigs)
+				redisErr := runRedisCleanUpActivity(wfctx, logger, actOptResp, map[string]map[string][]string{}, req.JobId, wfinfo.WorkflowExecution.ID, redisConfigs)
 				if redisErr != nil {
 					logger.Error("redis clean up activity did not complete")
 				}
@@ -131,9 +130,9 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 				cancelHandler()
 				activityErr = err
 			}
-			delete(allDependsOn, bc.Name)
+			delete(redisDependsOn, fmt.Sprintf("%s.%s", bc.TableSchema, bc.TableName))
 			// clean up redis
-			err = runRedisCleanUpActivity(wfctx, logger, actOptResp, allDependsOn, req.JobId, wfinfo.WorkflowExecution.ID, redisConfigs)
+			err = runRedisCleanUpActivity(wfctx, logger, actOptResp, redisDependsOn, req.JobId, wfinfo.WorkflowExecution.ID, redisConfigs)
 			if err != nil {
 				logger.Error("redis clean up activity did not complete")
 			}
@@ -171,7 +170,7 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 				err := f.Get(childctx, &result)
 				if err != nil {
 					logger.Error("activity did not complete", "err", err)
-					redisErr := runRedisCleanUpActivity(wfctx, logger, actOptResp, map[string][]*tabledependency.DependsOn{}, req.JobId, wfinfo.WorkflowExecution.ID, redisConfigs)
+					redisErr := runRedisCleanUpActivity(wfctx, logger, actOptResp, map[string]map[string][]string{}, req.JobId, wfinfo.WorkflowExecution.ID, redisConfigs)
 					if redisErr != nil {
 						logger.Error("redis clean up activity did not complete")
 					}
@@ -179,9 +178,9 @@ func Workflow(wfctx workflow.Context, req *WorkflowRequest) (*WorkflowResponse, 
 					activityErr = err
 				}
 				logger.Info("config sync completed", "name", bc.Name)
-				delete(allDependsOn, bc.Name)
+				delete(redisDependsOn, fmt.Sprintf("%s.%s", bc.TableSchema, bc.TableName))
 				// clean up redis
-				err = runRedisCleanUpActivity(wfctx, logger, actOptResp, allDependsOn, req.JobId, wfinfo.WorkflowExecution.ID, redisConfigs)
+				err = runRedisCleanUpActivity(wfctx, logger, actOptResp, redisDependsOn, req.JobId, wfinfo.WorkflowExecution.ID, redisConfigs)
 				if err != nil {
 					logger.Error("redis clean up activity did not complete")
 				}
@@ -196,7 +195,7 @@ func runRedisCleanUpActivity(
 	wfctx workflow.Context,
 	logger log.Logger,
 	actOptResp *syncactivityopts_activity.RetrieveActivityOptionsResponse,
-	dependsOnMap map[string][]*tabledependency.DependsOn,
+	dependsOnMap map[string]map[string][]string,
 	jobId, workflowId string,
 	redisConfigs map[string]*genbenthosconfigs_activity.BenthosRedisConfig,
 ) error {
@@ -222,10 +221,10 @@ func runRedisCleanUpActivity(
 	return nil
 }
 
-func isReadyForCleanUp(table, col string, dependsOnMap map[string][]*tabledependency.DependsOn) bool {
+func isReadyForCleanUp(table, col string, dependsOnMap map[string]map[string][]string) bool {
 	for _, dependsOn := range dependsOnMap {
-		for _, d := range dependsOn {
-			if d.Table == table && slices.Contains(d.Columns, col) {
+		for t, cols := range dependsOn {
+			if t == table && slices.Contains(cols, col) {
 				return false
 			}
 		}

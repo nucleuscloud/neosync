@@ -5,8 +5,6 @@ import (
 	"testing"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
-	dbschemas "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
-	dbschemas_utils "github.com/nucleuscloud/neosync/backend/pkg/dbschemas"
 	sql_manager "github.com/nucleuscloud/neosync/backend/pkg/sqlmanager"
 	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	"github.com/stretchr/testify/require"
@@ -254,7 +252,7 @@ func Test_buildSelectQueryMap(t *testing.T) {
 		subsetByForeignKeyConstraints bool
 		mappings                      map[string]*tableMapping
 		sourceTableOpts               map[string]*sqlSourceTableOptions
-		tableDependencies             map[string]*dbschemas.TableConstraints
+		tableDependencies             map[string][]*sql_manager.ForeignConstraint
 		dependencyConfigs             []*tabledependency.RunConfig
 		expected                      map[string]string
 	}{
@@ -309,7 +307,7 @@ func Test_buildSelectQueryMap(t *testing.T) {
 				},
 			},
 			sourceTableOpts:   map[string]*sqlSourceTableOptions{},
-			tableDependencies: map[string]*dbschemas_utils.TableConstraints{},
+			tableDependencies: map[string][]*sql_manager.ForeignConstraint{},
 			dependencyConfigs: []*tabledependency.RunConfig{
 				{Table: "public.users", DependsOn: []*tabledependency.DependsOn{}},
 				{Table: "public.accounts", DependsOn: []*tabledependency.DependsOn{}},
@@ -374,7 +372,7 @@ func Test_buildSelectQueryMap(t *testing.T) {
 					WhereClause: &whereId,
 				},
 			},
-			tableDependencies: map[string]*dbschemas_utils.TableConstraints{},
+			tableDependencies: map[string][]*sql_manager.ForeignConstraint{},
 			dependencyConfigs: []*tabledependency.RunConfig{
 				{Table: "public.users", DependsOn: []*tabledependency.DependsOn{}},
 				{Table: "public.accounts", DependsOn: []*tabledependency.DependsOn{}},
@@ -492,21 +490,15 @@ func Test_buildSelectQueryMap_SubsetsForeignKeys(t *testing.T) {
 		"public.b": {WhereClause: &bWhere},
 		"public.c": {WhereClause: &cWhere},
 	}
-	tableDependencies := map[string]*dbschemas.TableConstraints{
+	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.b": {
-			Constraints: []*dbschemas.ForeignConstraint{
-				{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
-			},
+			{Column: "a_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Column: "id"}},
 		},
 		"public.c": {
-			Constraints: []*dbschemas.ForeignConstraint{
-				{Column: "b_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
-			},
+			{Column: "b_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Column: "id"}},
 		},
 		"public.d": {
-			Constraints: []*dbschemas.ForeignConstraint{
-				{Column: "c_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
-			},
+			{Column: "c_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Column: "id"}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -587,12 +579,10 @@ func Test_buildSelectQueryMap_SubsetsCompositeForeignKeys(t *testing.T) {
 	sourceTableOpts := map[string]*sqlSourceTableOptions{
 		"public.a": {WhereClause: &aWhere},
 	}
-	tableDependencies := map[string]*dbschemas.TableConstraints{
+	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.b": {
-			Constraints: []*dbschemas.ForeignConstraint{
-				{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
-				{Column: "a_name", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "name"}},
-			},
+			{Column: "a_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Column: "id"}},
+			{Column: "a_name", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Column: "name"}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -707,21 +697,15 @@ func Test_buildSelectQueryMap_SubsetsOffForeignKeys(t *testing.T) {
 		"public.b": {WhereClause: &bWhere},
 		"public.c": {WhereClause: &cWhere},
 	}
-	tableDependencies := map[string]*dbschemas.TableConstraints{
+	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.b": {
-			Constraints: []*dbschemas.ForeignConstraint{
-				{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
-			},
+			{Column: "a_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Column: "id"}},
 		},
 		"public.c": {
-			Constraints: []*dbschemas.ForeignConstraint{
-				{Column: "b_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
-			},
+			{Column: "b_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Column: "id"}},
 		},
 		"public.d": {
-			Constraints: []*dbschemas.ForeignConstraint{
-				{Column: "c_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
-			},
+			{Column: "c_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Column: "id"}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -826,21 +810,15 @@ func Test_buildSelectQueryMap_CircularDependency(t *testing.T) {
 			WhereClause: &whereName,
 		},
 	}
-	tableDependencies := map[string]*dbschemas.TableConstraints{
+	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.b": {
-			Constraints: []*dbschemas.ForeignConstraint{
-				{Column: "a_id", IsNullable: true, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
-			},
+			{Column: "a_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Column: "id"}},
 		},
 		"public.c": {
-			Constraints: []*dbschemas.ForeignConstraint{
-				{Column: "b_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
-			},
+			{Column: "b_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Column: "id"}},
 		},
 		"public.a": {
-			Constraints: []*dbschemas.ForeignConstraint{
-				{Column: "c_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
-			},
+			{Column: "c_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Column: "id"}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -1001,26 +979,18 @@ func Test_buildSelectQueryMap_MultiplSubsets(t *testing.T) {
 			WhereClause: &whereId,
 		},
 	}
-	tableDependencies := map[string]*dbschemas.TableConstraints{
+	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.b": {
-			Constraints: []*dbschemas.ForeignConstraint{
-				{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
-			},
+			{Column: "a_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Column: "id"}},
 		},
 		"public.c": {
-			Constraints: []*dbschemas.ForeignConstraint{
-				{Column: "b_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
-			},
+			{Column: "b_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Column: "id"}},
 		},
 		"public.e": {
-			Constraints: []*dbschemas.ForeignConstraint{
-				{Column: "d_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.d", Column: "id"}},
-			},
+			{Column: "d_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.d", Column: "id"}},
 		},
 		"public.f": {
-			Constraints: []*dbschemas.ForeignConstraint{
-				{Column: "e_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.e", Column: "id"}},
-			},
+			{Column: "e_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.e", Column: "id"}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -1156,22 +1126,16 @@ func Test_buildSelectQueryMap_MultipleRoots(t *testing.T) {
 			WhereClause: &whereId,
 		},
 	}
-	tableDependencies := map[string]*dbschemas.TableConstraints{
+	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.c": {
-			Constraints: []*dbschemas.ForeignConstraint{
-				{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
-				{Column: "b_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
-			},
+			{Column: "a_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Column: "id"}},
+			{Column: "b_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Column: "id"}},
 		},
 		"public.d": {
-			Constraints: []*dbschemas.ForeignConstraint{
-				{Column: "c_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
-			},
+			{Column: "c_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Column: "id"}},
 		},
 		"public.e": {
-			Constraints: []*dbschemas.ForeignConstraint{
-				{Column: "c_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
-			},
+			{Column: "c_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Column: "id"}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -1255,17 +1219,13 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyRoot(t *testing.T) {
 			WhereClause: &whereId,
 		},
 	}
-	tableDependencies := map[string]*dbschemas.TableConstraints{
+	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.a": {
-			Constraints: []*dbschemas.ForeignConstraint{
-				{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
-				{Column: "a_a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
-			},
+			{Column: "a_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Column: "id"}},
+			{Column: "a_a_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Column: "id"}},
 		},
 		"public.b": {
-			Constraints: []*dbschemas.ForeignConstraint{
-				{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
-			},
+			{Column: "a_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Column: "id"}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -1344,17 +1304,13 @@ func Test_buildSelectQueryMap_doubleCircularDependencyRoot_mysql(t *testing.T) {
 			WhereClause: &whereId,
 		},
 	}
-	tableDependencies := map[string]*dbschemas.TableConstraints{
+	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.a": {
-			Constraints: []*dbschemas.ForeignConstraint{
-				{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
-				{Column: "a_a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
-			},
+			{Column: "a_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Column: "id"}},
+			{Column: "a_a_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Column: "id"}},
 		},
 		"public.b": {
-			Constraints: []*dbschemas.ForeignConstraint{
-				{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
-			},
+			{Column: "a_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Column: "id"}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -1433,13 +1389,11 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyChild(t *testing.T) {
 			WhereClause: &whereId,
 		},
 	}
-	tableDependencies := map[string]*dbschemas.TableConstraints{
+	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.a": {
-			Constraints: []*dbschemas.ForeignConstraint{
-				{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
-				{Column: "a_a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
-				{Column: "b_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.b", Column: "id"}},
-			},
+			{Column: "a_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Column: "id"}},
+			{Column: "a_a_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Column: "id"}},
+			{Column: "b_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Column: "id"}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -1566,22 +1520,16 @@ func Test_buildSelectQueryMap_shouldContinue(t *testing.T) {
 	sourceTableOpts := map[string]*sqlSourceTableOptions{
 		"public.a": {WhereClause: &aWhere},
 	}
-	tableDependencies := map[string]*dbschemas.TableConstraints{
+	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.b": {
-			Constraints: []*dbschemas.ForeignConstraint{
-				{Column: "a_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.a", Column: "id"}},
-				{Column: "d_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.d", Column: "id"}},
-			},
+			{Column: "a_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Column: "id"}},
+			{Column: "d_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.d", Column: "id"}},
 		},
 		"public.d": {
-			Constraints: []*dbschemas.ForeignConstraint{
-				{Column: "c_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.c", Column: "id"}},
-			},
+			{Column: "c_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Column: "id"}},
 		},
 		"public.e": {
-			Constraints: []*dbschemas.ForeignConstraint{
-				{Column: "d_id", IsNullable: false, ForeignKey: &dbschemas.ForeignKey{Table: "public.d", Column: "id"}},
-			},
+			{Column: "d_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.d", Column: "id"}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
