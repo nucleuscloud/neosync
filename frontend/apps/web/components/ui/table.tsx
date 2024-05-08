@@ -20,13 +20,11 @@ const StickyHeaderTable = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement>
 >(({ className, ...props }, ref) => (
-  <div className="w-full">
-    <table
-      ref={ref}
-      className={cn('w-full caption-bottom text-sm', className)}
-      {...props}
-    />
-  </div>
+  <table
+    ref={ref}
+    className={cn('w-full caption-bottom text-sm grid', className)}
+    {...props}
+  />
 ));
 StickyHeaderTable.displayName = 'StickyHeaderTable';
 

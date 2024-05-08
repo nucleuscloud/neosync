@@ -39,22 +39,15 @@ export default function ListBox<TData>(props: Props<TData>): ReactElement {
   return (
     <div
       className={cn(
-        'max-h-[164px] overflow-x-auto relative w-full rounded-md border border-gray-300 dark:border-gray-700 ',
+        'max-h-[164px] overflow-auto relative w-full rounded-md border border-gray-300 dark:border-gray-700 ',
         tableContainerClassName
       )}
       ref={tableContainerRef}
     >
       <StickyHeaderTable>
-        <TableHeader
-          className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10"
-          id="table-header"
-        >
+        <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 grid">
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow
-              key={headerGroup.id}
-              className="flex flex-row px-2"
-              id="table-header-row"
-            >
+            <TableRow key={headerGroup.id} className="flex flex-row px-2">
               {headerGroup.headers.map((header) => {
                 return (
                   <TableHead
@@ -77,6 +70,7 @@ export default function ListBox<TData>(props: Props<TData>): ReactElement {
           ))}
         </TableHeader>
         <TableBody
+          className="grid"
           style={{
             height: `${rowVirtualizer.getTotalSize()}px`, // tells scrollbar how big the table is
           }}
