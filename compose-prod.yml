@@ -1,5 +1,10 @@
 name: neosync
 
+include:
+  - path: ./compose/temporal/compose.yml
+    env_file:
+      - ./compose/temporal/.env
+
 services:
   app:
     container_name: neosync-app
@@ -38,7 +43,7 @@ services:
     networks:
       - neosync-network
     volumes:
-      - pg_data:/var/lib/postgresql/data
+      - neosync_pg_data:/var/lib/postgresql/data
       - ../hack/pg-init:/docker-entrypoint-initdb.d
 
   api:
@@ -99,15 +104,12 @@ services:
     networks:
       - neosync-network
     volumes:
-      - redis_cache:/data
+      - neosync_redis_cache:/data
 
 volumes:
-  redis_cache:
-  pg_data:
+  neosync_redis_cache:
+  neosync_pg_data:
 
 networks:
   neosync-network:
-    driver: bridge
     name: neosync-network
-  temporal-network:
-    external: true
