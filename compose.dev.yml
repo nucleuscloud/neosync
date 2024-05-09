@@ -1,15 +1,12 @@
 name: neosync
 
-include:
-  - path: ./compose/temporal/compose.yml
-    env_file:
-      - ./compose/temporal/.env
-  - path: ./compose/compose-db.yml
-
 services:
   app:
     container_name: neosync-app
-    image: ghcr.io/nucleuscloud/neosync/app:main
+    image: neosync-app
+    build:
+      context: ./frontend
+      dockerfile: ./apps/web/dev/build/Dockerfile.dev
     ports:
       - 3000:3000
     environment:
@@ -26,6 +23,17 @@ services:
 
     networks:
       - neosync-network
+    develop:
+      watch:
+        - path: frontend/package.json
+          action: rebuild
+        - path: frontend/package-lock.json
+          action: rebuild
+        - path: frontend/
+          action: sync
+          target: /app
+          ignore:
+            - frontend/node_modules/
 
   db:
     container_name: neosync-db
@@ -44,12 +52,15 @@ services:
     networks:
       - neosync-network
     volumes:
-      - neosync_pg_data:/var/lib/postgresql/data
+      - pg_data:/var/lib/postgresql/data
       - ./hack/pg-init:/docker-entrypoint-initdb.d
 
   api:
     container_name: neosync-api
-    image: ghcr.io/nucleuscloud/neosync/api:main
+    image: neosync-api
+    build:
+      context: ./backend
+      dockerfile: ./dev/build/Dockerfile.dev
     ports:
       - 8080:8080
     command: serve connect
@@ -59,7 +70,7 @@ services:
       - NUCLEUS_ENV=dev
       - TEMPORAL_URL=temporal:7233
       - DB_AUTO_MIGRATE=true
-      - DB_SCHEMA_DIR=/migrations
+      - DB_SCHEMA_DIR=/app/migrations
       - DB_HOST=db
       - DB_PORT=5432
       - DB_NAME=nucleus
@@ -74,16 +85,24 @@ services:
     networks:
       - neosync-network
       - temporal-network
-    restart: on-failure
 
     depends_on:
       db:
         condition: service_healthy
         restart: true
+    develop:
+      watch:
+        - path: backend/bin
+          action: rebuild
+          target: /app
+    restart: on-failure
 
   worker:
     container_name: neosync-worker
-    image: ghcr.io/nucleuscloud/neosync/worker:main
+    image: neosync-worker
+    build:
+      context: ./worker
+      dockerfile: ./dev/build/Dockerfile.dev
     environment:
       - NUCLEUS_ENV=dev
       - TEMPORAL_URL=temporal:7233
@@ -91,9 +110,15 @@ services:
       - TEMPORAL_TASK_QUEUE=sync-job
       - NEOSYNC_URL=http://api:8080
       - REDIS_URL=redis://default:foofar@redis:6379
+      - LOG_LEVEL=INFO
     networks:
       - neosync-network
       - temporal-network
+    develop:
+      watch:
+        - path: worker/bin
+          action: rebuild
+          target: /app
     restart: on-failure
 
   redis:
@@ -105,12 +130,15 @@ services:
     networks:
       - neosync-network
     volumes:
-      - neosync_redis_cache:/data
+      - redis_cache:/data
 
 volumes:
-  neosync_redis_cache:
-  neosync_pg_data:
+  redis_cache:
+  pg_data:
 
 networks:
   neosync-network:
+    driver: bridge
     name: neosync-network
+  temporal-network:
+    external: true
