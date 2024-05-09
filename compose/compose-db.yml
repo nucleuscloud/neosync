@@ -5,8 +5,8 @@ services:
     ports:
       - 5434:5432
     environment:
-      - POSTGRES_DB=nucleus
-      - POSTGRES_PASSWORD=foofar
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=postgres
       - PGUSER=postgres
     healthcheck:
       test: ["CMD", "pg_isready"]
@@ -22,8 +22,8 @@ services:
     ports:
       - 5435:5432
     environment:
-      - POSTGRES_DB=nucleus
-      - POSTGRES_PASSWORD=foofar
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=postgres
       - PGUSER=postgres
     healthcheck:
       test: ["CMD", "pg_isready"]
@@ -32,7 +32,3 @@ services:
       retries: 5
     networks:
       - neosync-network
-
-networks:
-  neosync-network:
-    external: true
