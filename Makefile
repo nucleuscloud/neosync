@@ -57,12 +57,11 @@ compose-down:
 .PHONY: compose-down
 
 compose-auth-up:
-	docker compose -f $(PROD_AUTH_COMPOSE_FILE) pull
-	docker compose -f $(PROD_AUTH_COMPOSE_FILE) up -d
+	docker compose -f $(PROD_COMPOSE_FILE) -f $(PROD_AUTH_COMPOSE_FILE) up -d
 .PHONY: compose-auth-up
 
 compose-auth-down:
-	docker compose -f $(PROD_AUTH_COMPOSE_FILE) down
+	docker compose -f $(PROD_COMPOSE_FILE) -f $(PROD_AUTH_COMPOSE_FILE) down
 .PHONY: compose-auth-down
 
 compose-dev-up:
@@ -74,11 +73,11 @@ compose-dev-down:
 .PHONY: compose-dev-down
 
 compose-dev-auth-up:
-	docker compose -f $(DEV_AUTH_COMPOSE_FILE) watch
+	docker compose -f $(DEV_COMPOSE_FILE) -f $(DEV_AUTH_COMPOSE_FILE) watch
 .PHONY: compose-dev-auth-up
 
 compose-dev-auth-down:
-	docker compose -f $(DEV_AUTH_COMPOSE_FILE) down
+	docker compose -f $(DEV_COMPOSE_FILE) -f $(DEV_AUTH_COMPOSE_FILE) down
 .PHONY: compose-dev-auth-down
 
 goworksync:
