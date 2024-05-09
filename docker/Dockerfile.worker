@@ -3,12 +3,9 @@ FROM golang:1.22 as builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
-COPY backend/go.mod backend/go.mod
-COPY backend/go.sum backend/go.sum
-COPY worker/go.mod worker/go.mod
-COPY worker/go.sum worker/go.sum
+COPY go.mod go.mod
+COPY go.sum go.sum
 
-WORKDIR /workspace/worker
 RUN go mod download
 
 WORKDIR /workspace

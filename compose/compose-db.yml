@@ -5,8 +5,8 @@ services:
     ports:
       - 5434:5432
     environment:
-      - POSTGRES_DB=nucleus
-      - POSTGRES_PASSWORD=foofar
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=postgres
       - PGUSER=postgres
     healthcheck:
       test: ["CMD", "pg_isready"]
@@ -15,6 +15,8 @@ services:
       retries: 5
     networks:
       - neosync-network
+    volumes:
+      - ../hack/seed-test-prod-db.sql:/docker-entrypoint-initdb.d/seed.sql
 
   test-stage-db:
     container_name: test-stage-db
@@ -22,8 +24,8 @@ services:
     ports:
       - 5435:5432
     environment:
-      - POSTGRES_DB=nucleus
-      - POSTGRES_PASSWORD=foofar
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=postgres
       - PGUSER=postgres
     healthcheck:
       test: ["CMD", "pg_isready"]
@@ -32,7 +34,3 @@ services:
       retries: 5
     networks:
       - neosync-network
-
-networks:
-  neosync-network:
-    external: true

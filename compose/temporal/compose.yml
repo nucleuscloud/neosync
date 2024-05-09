@@ -1,4 +1,3 @@
-version: "3.5"
 services:
   elasticsearch:
     container_name: temporal-elasticsearch
@@ -16,7 +15,7 @@ services:
     expose:
       - 9200
     volumes:
-      - elasticsearch_data:/var/lib/elasticsearch/data
+      - temporal_elasticsearch_data:/var/lib/elasticsearch/data
   postgresql:
     container_name: temporal-postgresql
     environment:
@@ -28,7 +27,7 @@ services:
     expose:
       - 5432
     volumes:
-      - pg_data:/var/lib/postgresql/data
+      - temporal_pg_data:/var/lib/postgresql/data
   temporal:
     container_name: temporal
     depends_on:
@@ -53,18 +52,18 @@ services:
       kompose.volume.type: configMap
     volumes:
       - ./dynamicconfig:/etc/temporal/config/dynamicconfig
-  temporal-admin-tools:
-    container_name: temporal-admin-tools
-    depends_on:
-      - temporal
-    environment:
-      - TEMPORAL_ADDRESS=temporal:7233
-      - TEMPORAL_CLI_ADDRESS=temporal:7233
-    image: temporalio/admin-tools:${TEMPORAL_VERSION}
-    networks:
-      - temporal-network
-    stdin_open: true
-    tty: true
+  # temporal-admin-tools:
+  #   container_name: temporal-admin-tools
+  #   depends_on:
+  #     - temporal
+  #   environment:
+  #     - TEMPORAL_ADDRESS=temporal:7233
+  #     - TEMPORAL_CLI_ADDRESS=temporal:7233
+  #   image: temporalio/admin-tools:${TEMPORAL_VERSION}
+  #   networks:
+  #     - temporal-network
+  #   stdin_open: true
+  #   tty: true
   temporal-ui:
     container_name: temporal-ui
     depends_on:
@@ -82,5 +81,5 @@ networks:
     driver: bridge
     name: temporal-network
 volumes:
-  pg_data:
-  elasticsearch_data:
+  temporal_pg_data:
+  temporal_elasticsearch_data:

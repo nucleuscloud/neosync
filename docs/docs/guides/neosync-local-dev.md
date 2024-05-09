@@ -76,48 +76,25 @@ brew install kind tilt-dev/tap/tilt tilt-dev/tap/ctlptl kubernetes-cli kustomize
 
 ## Setup with Compose
 
-When running with either `Tilt` or `docker compose`, volumes are mapped from these file systems to the host machine for both Neosync and Temporal's databases.
-A volume is mounted locally in a `.data` folder.
-
 To enable hot reloading, must run `docker compose watch` instead of `up`. **Currently there is a limitation with devcontainers where this command must be run via `sudo`.**
-This works pretty well with the `app`, but can be a bit buggy with the `api` or `worker`.
-Sometimes it's a little easier to just rebuild the docker container like.
 
-Assuming the latest binary is available in the bin folder:
-
-```
-$ docker compose up -d --build api
-```
+This command is also available in the `Makefile` via `make compose-dev-up`.
 
 ### Building the backend and worker when using Docker Compose.
 
-If using the dev-focused compose instead of the `*-prod.yml` compose files, the binaries for the `api` and `worker` will need to be built.
+If using the dev-focused compose instead of the production compose files, the binaries for the `api` and `worker` will need to be built.
 
-Run the following command to build the binaries:
-
-```sh
-make build
-```
-
-To Rebuild the binaries, run:
-
-```sh
-make rebuild
-```
-
-When building the Go processes with the intention to run with `docker compose`, it's important to run `make dbuild` instead of the typical `make build` so that the correct `GOOS` is specified. This is only needed if your native OS is not Linux (or aren't running in a devcontainer).
+When building the Go processes with the intention to run with `docker compose`, it's important to run `make dbuild` instead of the typical `make build` so that the correct `GOOS` is specified. This is only needed if your OS is not Linux (or aren't running in a devcontainer).
 The `make dbuild` command ensures that the Go binary is compiled for Linux instead of the host os.
 
-This will need to be done for both the `worker` and `api` processes prior to running compose up. Using the following command will build both the binaries for you:
+This will need to be done for both the `worker` and `api` processes prior to running compose up.
+
+Running `make build` from the root will be sufficient if your OS in Linux.
+Otherwise, you can build the individual binaries from the respective subfolders.
 
 ```sh
-make compose-dev-up
-```
-
-To stop, run:
-
-```sh
-make compose-dev-down
+cd backend && make dbuild
+cd worker && make dbuild
 ```
 
 Once everything is up and running, the app can be accessed locally at [http://localhost:3000](http://localhost:3000).
@@ -137,16 +114,18 @@ To stop, run:
 make compose-dev-auth-down
 ```
 
+## Setup with Tilt
+
 ### Docker Desktop
 
 If using Docker Desktop, the host file path to the `.data` folder will need to be added to the File Sharing tab.
 
 The allow list can be found by first opening Docker Desktop. `Settings -> Resources -> File Sharing` and add the path to the Neosync repository.
 
-If you don't want to do this, the volume mappings can be removed from the compose file, or by removing the PVC for Tilt.
+If you don't want to do this, the volume mappings can be removed by removing the PVC for Tilt.
 This comes at a negative of the local database not surviving restarts.
 
-## Setup with Tilt
+### Cluster Setup
 
 Step 1 is to ensure that the `kind` cluster is up and running along with its registry.
 This can be manually created, or done simply with `ctlptl`.
