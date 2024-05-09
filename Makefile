@@ -1,10 +1,9 @@
 default: help
 
-TEMPORAL_COMPOSE_FILE = temporal/compose.yml
-PROD_COMPOSE_FILE = compose/compose-prod.yml
-PROD_AUTH_COMPOSE_FILE = compose/compose-auth-prod.yml
-DEV_COMPOSE_FILE = compose.yml
-DEV_AUTH_COMPOSE_FILE = compose/compose-auth.yml
+PROD_COMPOSE_FILE = compose.yml
+PROD_AUTH_COMPOSE_FILE = compose.auth.yml
+DEV_COMPOSE_FILE = compose.dev.yml
+DEV_AUTH_COMPOSE_FILE = compose.auth.dev.yml
 
 ##@
 cluster-create:
@@ -50,45 +49,36 @@ rebuild: clean build
 .PHONY: rebuild
 
 compose-up:
-	docker compose -f $(TEMPORAL_COMPOSE_FILE) up -d
-	docker compose -f $(PROD_COMPOSE_FILE) pull
 	docker compose -f $(PROD_COMPOSE_FILE) up -d
 .PHONY: compose-up
 
 compose-down:
 	docker compose -f $(PROD_COMPOSE_FILE) down
-	docker compose -f $(TEMPORAL_COMPOSE_FILE) down
 .PHONY: compose-down
 
 compose-auth-up:
-	docker compose -f $(TEMPORAL_COMPOSE_FILE) up -d
 	docker compose -f $(PROD_AUTH_COMPOSE_FILE) pull
 	docker compose -f $(PROD_AUTH_COMPOSE_FILE) up -d
 .PHONY: compose-auth-up
 
 compose-auth-down:
 	docker compose -f $(PROD_AUTH_COMPOSE_FILE) down
-	docker compose -f $(TEMPORAL_COMPOSE_FILE) down
 .PHONY: compose-auth-down
 
 compose-dev-up: rebuild
-	docker compose -f $(TEMPORAL_COMPOSE_FILE) up -d
 	docker compose -f $(DEV_COMPOSE_FILE) watch
 .PHONY: compose-dev-up
 
 compose-dev-down: rebuild
 	docker compose -f $(DEV_COMPOSE_FILE) down
-	docker compose -f $(TEMPORAL_COMPOSE_FILE) down
 .PHONY: compose-dev-down
 
 compose-dev-auth-up: rebuild
-	docker compose -f $(TEMPORAL_COMPOSE_FILE) up -d
 	docker compose -f $(DEV_AUTH_COMPOSE_FILE) watch
 .PHONY: compose-dev-auth-up
 
 compose-dev-auth-down: rebuild
 	docker compose -f $(DEV_AUTH_COMPOSE_FILE) down
-	docker compose -f $(TEMPORAL_COMPOSE_FILE) down
 .PHONY: compose-dev-auth-down
 
 goworksync:
