@@ -52,18 +52,18 @@ services:
       kompose.volume.type: configMap
     volumes:
       - ./dynamicconfig:/etc/temporal/config/dynamicconfig
-  temporal-admin-tools:
-    container_name: temporal-admin-tools
-    depends_on:
-      - temporal
-    environment:
-      - TEMPORAL_ADDRESS=temporal:7233
-      - TEMPORAL_CLI_ADDRESS=temporal:7233
-    image: temporalio/admin-tools:${TEMPORAL_VERSION}
-    networks:
-      - temporal-network
-    stdin_open: true
-    tty: true
+  # temporal-admin-tools:
+  #   container_name: temporal-admin-tools
+  #   depends_on:
+  #     - temporal
+  #   environment:
+  #     - TEMPORAL_ADDRESS=temporal:7233
+  #     - TEMPORAL_CLI_ADDRESS=temporal:7233
+  #   image: temporalio/admin-tools:${TEMPORAL_VERSION}
+  #   networks:
+  #     - temporal-network
+  #   stdin_open: true
+  #   tty: true
   temporal-ui:
     container_name: temporal-ui
     depends_on:

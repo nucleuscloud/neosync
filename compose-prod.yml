@@ -44,7 +44,7 @@ services:
       - neosync-network
     volumes:
       - neosync_pg_data:/var/lib/postgresql/data
-      - ../hack/pg-init:/docker-entrypoint-initdb.d
+      - ./hack/pg-init:/docker-entrypoint-initdb.d
 
   api:
     container_name: neosync-api
