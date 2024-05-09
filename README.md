@@ -63,7 +63,9 @@ Neosync is a fully dockerized setup which makes it easy to get up and running.
 
 We provide a `compose.yml` file that contains production image references that allow you to get up and running with just a few commands without having to build anything on your system.
 
-To start Neosync, clone the repo into a local directory and then run:
+Neosync uses the newer `docker compose` command, so be sure to have that installed on your machine.
+
+To start Neosync, clone the repo into a local directory, be sure to have docker insalled and running, and then run:
 
 ```sh
 make compose-up
@@ -76,6 +78,8 @@ make compose-down
 ```
 
 Neosync will now be available on [http://localhost:3000](http://localhost:3000).
+
+Neosync is also pre-seeded with connections and jobs to get you started! Simply run the generate and sync job to watch Neosync in action!
 
 ## Kubernetes, Auth Mode and more
 
