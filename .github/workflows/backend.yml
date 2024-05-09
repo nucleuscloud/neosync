@@ -5,29 +5,6 @@ on:
 
 name: Backend
 jobs:
-  golangci:
-    name: golang-lint
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: backend/go.mod
-          cache-dependency-path: backend/go.sum
-
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v5
-        with:
-          version: latest
-          args: --timeout=5m
-          working-directory: backend
-
   buf:
     name: buf-lint
     runs-on: ubuntu-latest
@@ -52,31 +29,6 @@ jobs:
         uses: bufbuild/buf-lint-action@v1
         with:
           input: backend
-
-  test:
-    name: test
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: backend/go.mod
-          cache-dependency-path: backend/go.sum
-
-      - name: Test
-        run: |
-          go test -race -coverprofile=coverage.out -covermode=atomic ./...
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   sqlcdiff:
     name: sqlc-diff

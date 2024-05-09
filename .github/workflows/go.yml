@@ -1,16 +1,26 @@
 on:
   pull_request:
     paths:
-      - worker/**
+      - cli/**.go
+      - backend/**.go
+      - worker/**.go
+      - go.mod
+      - go.sum
+  push:
+    branches:
+      - main
+    paths:
+      - cli/**.go
+      - backend/**.go
+      - worker/**.go
+      - go.mod
+      - go.sum
 
-name: Worker
+name: Go
 jobs:
   golangci:
     name: golang-lint
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: worker
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -18,22 +28,18 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: worker/go.mod
-          cache-dependency-path: worker/go.sum
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v5
         with:
           version: latest
           args: --timeout=5m
-          working-directory: worker
 
   test:
     name: test
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: worker
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,8 +47,12 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: worker/go.mod
-          cache-dependency-path: worker/go.sum
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+
+      - name: Test
+        run: |
+          go vet ./...
 
       - name: Test
         run: |
