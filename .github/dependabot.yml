@@ -2,27 +2,6 @@ version: 2
 updates:
   # Enable version updates for go
   - package-ecosystem: "gomod"
-    directory: "backend"
-    schedule:
-      interval: "daily"
-    groups:
-      golang-minor:
-        update-types:
-          - minor
-          - patch
-
-  - package-ecosystem: "gomod"
-    directory: "worker"
-    schedule:
-      interval: "daily"
-    groups:
-      golang-minor:
-        update-types:
-          - minor
-          - patch
-
-  - package-ecosystem: "gomod"
-    directory: "cli"
     schedule:
       interval: "daily"
     groups:
