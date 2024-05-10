@@ -3,7 +3,6 @@ package transformers
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
@@ -15,7 +14,7 @@ func init() {
 		Param(bloblang.NewInt64Param("max_length").Default(10000)).
 		Param(bloblang.NewAnyParam("value").Optional()).
 		Param(bloblang.NewBoolParam("preserve_length").Default(false)).
-		Param(bloblang.NewInt64Param("seed").Default(time.Now().UnixNano()))
+		Param(bloblang.NewInt64Param("seed").Optional())
 
 	err := bloblang.RegisterFunctionV2("transform_full_name", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		valuePtr, err := args.GetOptionalString("value")
@@ -38,10 +37,22 @@ func init() {
 			return nil, err
 		}
 
-		seed, err := args.GetInt64("seed")
+		seedArg, err := args.GetOptionalInt64("seed")
 		if err != nil {
 			return nil, err
 		}
+		var seed int64
+		if seedArg != nil {
+			seed = *seedArg
+		} else {
+			// we want a bit more randomness here with generate_email so using something that isn't time based
+			var err error
+			seed, err = transformer_utils.GenerateCryptoSeed()
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		randomizer := rng.New(seed)
 
 		return func() (any, error) {

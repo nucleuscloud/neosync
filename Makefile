@@ -79,10 +79,3 @@ compose-dev-auth-up:
 compose-dev-auth-down:
 	docker compose -f $(DEV_COMPOSE_FILE) -f $(DEV_AUTH_COMPOSE_FILE) down
 .PHONY: compose-dev-auth-down
-
-goworksync:
-	go work sync
-	cd worker && go mod tidy
-	cd cli && go mod tidy
-	cd backend && go mod tidy
-.PHONY: goworksync
