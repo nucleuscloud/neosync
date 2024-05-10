@@ -5,7 +5,6 @@ import (
 	"math"
 	"strconv"
 	"sync"
-	"time"
 
 	"github.com/benthosdev/benthos/v4/public/bloblang"
 	transformer_utils "github.com/nucleuscloud/neosync/worker/internal/benthos/transformers/utils"
@@ -19,7 +18,7 @@ func init() {
 		Param(bloblang.NewFloat64Param("randomization_range_max")).
 		Param(bloblang.NewInt64Param("precision").Optional()).
 		Param(bloblang.NewInt64Param("scale").Optional()).
-		Param(bloblang.NewInt64Param("seed").Default(time.Now().UnixNano()))
+		Param(bloblang.NewInt64Param("seed").Optional())
 
 	err := bloblang.RegisterFunctionV2("transform_float64", spec, func(args *bloblang.ParsedParams) (bloblang.Function, error) {
 		value, err := args.Get("value")
@@ -45,9 +44,20 @@ func init() {
 		if err != nil {
 			return nil, err
 		}
-		seed, err := args.GetInt64("seed")
+		seedArg, err := args.GetOptionalInt64("seed")
 		if err != nil {
 			return nil, err
+		}
+		var seed int64
+		if seedArg != nil {
+			seed = *seedArg
+		} else {
+			// we want a bit more randomness here with generate_email so using something that isn't time based
+			var err error
+			seed, err = transformer_utils.GenerateCryptoSeed()
+			if err != nil {
+				return nil, err
+			}
 		}
 		randomizer := rng.New(seed)
 
