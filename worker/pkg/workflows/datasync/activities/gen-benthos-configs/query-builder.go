@@ -1,6 +1,7 @@
 package genbenthosconfigs_activity
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
@@ -29,6 +30,7 @@ type sqlJoin struct {
 	JoinType       joinType
 	JoinTable      string
 	BaseTable      string
+	Alias          *string
 	JoinColumnsMap map[string]string // map of joinColumn to baseColumn
 }
 
@@ -263,6 +265,10 @@ func buildSelectQueryMap(
 
 			pathToRoot := tablePathMap[table]
 			subsetCfg := buildTableSubsetQueryConfig(table, pathToRoot, tableDependencies, tableWhereMap)
+
+			jsonF, _ := json.MarshalIndent(subsetCfg, "", " ")
+			fmt.Printf("\n subsetCfg: %s \n", string(jsonF))
+
 			joins := subsetCfg.Joins
 			whereClauses := subsetCfg.WhereClauses
 
@@ -371,8 +377,9 @@ func buildQueryMapNoSubsetConstraints(
 }
 
 type subsetQueryConfig struct {
-	Joins        []*sqlJoin
-	WhereClauses []string
+	Joins                             []*sqlJoin
+	WhereClauses                      []string
+	SelfReferencingCircularDependency *selfReferencingCircularDependency
 }
 
 func buildTableSubsetQueryConfig(
@@ -381,51 +388,87 @@ func buildTableSubsetQueryConfig(
 	dependencyMap map[string][]*sql_manager.ForeignConstraint,
 	tableWhereMap map[string]string,
 ) *subsetQueryConfig {
+	fmt.Println("------- buildTableSubsetQueryConfig")
+	fmt.Printf("table: %s \n", table)
+
+	reversePathToRoot := reverseSlice(pathToRoot)
+	jsonF, _ := json.MarshalIndent(reversePathToRoot, "", " ")
+	fmt.Printf("\n reversePathToRoot: %s \n", string(jsonF))
+
 	joins := []*sqlJoin{}
 	whereClauses := []string{}
 	subsetTables := []string{} // keeps track of tables that are being subset
 	fks := dependencyMap[table]
+	jsonF, _ = json.MarshalIndent(fks, "", " ")
+	fmt.Printf("\n fks: %s \n", string(jsonF))
 
-	fksTableMap := buildFkTableMap(fks)
+	fksTableMap := buildFkTableMapOld(fks)
+	jsonF, _ = json.MarshalIndent(fksTableMap, "", " ")
+	fmt.Printf("\n fksTableMap: %s \n", string(jsonF))
+	jsonF, _ = json.MarshalIndent(dependencyMap, "", " ")
+	fmt.Printf("\n dependencyMap: %s \n", string(jsonF))
 	for _, t := range pathToRoot {
 		if t == table {
 			continue
 		}
 		dependencies := dependencyMap[t]
+
 		wc, ok := tableWhereMap[t]
 		if ok {
 			whereClauses = append(whereClauses, wc)
 		}
 
+		// pathToRoot: [
+		// 	"public.expense_report",
+		// 	"public.department",
+		// 	"public.company"
+		// 	]
+
+		// SELECT er.*
+		// FROM public.expense_report er
+		// JOIN public.department dsrc ON tsrc.department_id = dsrc.id
+		// JOIN public.department ddest ON tdest.department_id = ddest.id
+		// join public.company c on c.id = dsr.company_id
+		// join public.company cc on c.id == ddest.company_id
+		// WHERE dsrc.company_id = 1 AND ddest.company_id = 1;
+
 		if len(whereClauses) > 0 {
 			subsetTables = append(subsetTables, t)
 			// add joins for parent tables up to first subsetted table
-			depsTableMap := buildFkTableMap(dependencies)
+			depsTableMap := buildFkTableMapOld(dependencies)
+			jsonF, _ := json.MarshalIndent(depsTableMap, "", " ")
+			fmt.Printf("\n depsTableMap: %s \n", string(jsonF))
 			for fkTable, colsMap := range depsTableMap {
+				fmt.Println("tables in depsTableMap")
+				fmt.Println(colsMap)
 				if t != fkTable && slices.Contains(subsetTables, fkTable) {
 					joins = append(joins, &sqlJoin{
-						JoinType:       innerJoin,
-						BaseTable:      t,
-						JoinTable:      fkTable,
-						JoinColumnsMap: colsMap,
+						JoinType:  innerJoin,
+						BaseTable: t,
+						JoinTable: fkTable,
+						// JoinColumnsMap: colsMap,
+						JoinColumnsMap: map[string]string{"id": "id"},
 					})
 				}
 			}
 			// add join for current table
-			for fkTable, colMap := range fksTableMap {
+			for fkTable, colsMap := range fksTableMap {
+				fmt.Println("current table fksTableMap")
+				fmt.Println(colsMap)
 				if t == fkTable {
 					joins = append(joins, &sqlJoin{
-						JoinType:       innerJoin,
-						BaseTable:      table,
-						JoinTable:      fkTable,
-						JoinColumnsMap: colMap,
+						JoinType:  innerJoin,
+						BaseTable: table,
+						JoinTable: fkTable,
+						// JoinColumnsMap: colMap,
+						JoinColumnsMap: map[string]string{"id": "id"},
 					})
 				}
 			}
 		}
 	}
 	// reverse joins so they are constructed in correct order
-	reverseSlice(joins)
+	// reverseSlice(joins)
 
 	return &subsetQueryConfig{
 		Joins:        joins,
@@ -433,13 +476,27 @@ func buildTableSubsetQueryConfig(
 	}
 }
 
-func buildFkTableMap(fks []*sql_manager.ForeignConstraint) map[string]map[string]string {
+// func getDoubleReference() map[string][]string {
+
+// }
+func buildFkTableMapOld(fks []*sql_manager.ForeignConstraint) map[string]map[string]string {
 	fksTableMap := map[string]map[string]string{} // map of fk table to map of fk column to base table column
 	for _, c := range fks {
 		if _, exists := fksTableMap[c.ForeignKey.Table]; !exists {
 			fksTableMap[c.ForeignKey.Table] = map[string]string{}
 		}
 		fksTableMap[c.ForeignKey.Table][c.ForeignKey.Column] = c.Column
+	}
+	return fksTableMap
+}
+
+func buildFkTableMap(fks []*sql_manager.ForeignConstraint) map[string]map[string][]string {
+	fksTableMap := map[string]map[string][]string{} // map of fk table to map of fk column to base table column
+	for _, c := range fks {
+		if _, exists := fksTableMap[c.ForeignKey.Table]; !exists {
+			fksTableMap[c.ForeignKey.Table] = map[string][]string{}
+		}
+		fksTableMap[c.ForeignKey.Table][c.ForeignKey.Column] = append(fksTableMap[c.ForeignKey.Table][c.ForeignKey.Column], c.Column)
 	}
 	return fksTableMap
 }
@@ -582,10 +639,15 @@ func getWhereFromTableOpts(tableOpts *sqlSourceTableOptions) *string {
 	return where
 }
 
-func reverseSlice[T any](slice []T) {
-	for i, j := 0, len(slice)-1; i < j; i, j = i+1, j-1 {
-		slice[i], slice[j] = slice[j], slice[i]
+func reverseSlice[T any](slice []T) []T {
+	newSlice := make([]T, len(slice))
+	copy(newSlice, slice)
+
+	for i, j := 0, len(newSlice)-1; i < j; i, j = i+1, j-1 {
+		newSlice[i], newSlice[j] = newSlice[j], newSlice[i]
 	}
+
+	return newSlice
 }
 
 func qualifyPostgresWhereColumnNames(sql, schema, table string) (string, error) {
