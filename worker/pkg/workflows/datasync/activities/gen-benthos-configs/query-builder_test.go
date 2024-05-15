@@ -2174,6 +2174,67 @@ func Test_qualifyWhereColumnNames_postgres(t *testing.T) {
 	}
 }
 
+func Test_qualifyWhereWithTableAlias(t *testing.T) {
+	tests := []struct {
+		driver   string
+		name     string
+		where    string
+		alias    string
+		expected string
+	}{
+		{
+			driver:   sql_manager.PostgresDriver,
+			name:     "simple",
+			where:    "name = 'alisha'",
+			alias:    "alias",
+			expected: `alias.name = 'alisha'`,
+		},
+		{
+			driver:   sql_manager.PostgresDriver,
+			name:     "simple",
+			where:    "public.a.name = 'alisha'",
+			alias:    "alias",
+			expected: `alias.name = 'alisha'`,
+		},
+		{
+			driver:   sql_manager.PostgresDriver,
+			name:     "multiple",
+			where:    "name = 'alisha' and id = 1  or age = 2",
+			alias:    "alias",
+			expected: `(alias.name = 'alisha' AND alias.id = 1) OR alias.age = 2`,
+		},
+		{
+			driver:   sql_manager.MysqlDriver,
+			name:     "simple",
+			where:    "name = 'alisha'",
+			alias:    "alias",
+			expected: `alias.name = 'alisha'`,
+		},
+		{
+			driver:   sql_manager.MysqlDriver,
+			name:     "simple",
+			where:    "public.a.name = 'alisha'",
+			alias:    "alias",
+			expected: `alias.name = 'alisha'`,
+		},
+		{
+			driver:   sql_manager.MysqlDriver,
+			name:     "multiple",
+			where:    "name = 'alisha' and id = 1  or age = 2",
+			alias:    "alias",
+			expected: `alias.name = 'alisha' and alias.id = 1 or alias.age = 2`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("%s_%s", t.Name(), tt.name), func(t *testing.T) {
+			response, err := qualifyWhereWithTableAlias(tt.driver, tt.where, tt.alias)
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, response)
+		})
+	}
+}
+
 func TestGetPrimaryToForeignTableMapFromRunConfigs(t *testing.T) {
 	tests := []struct {
 		name       string

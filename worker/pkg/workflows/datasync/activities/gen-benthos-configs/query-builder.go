@@ -543,19 +543,48 @@ func getBfsPathMap(graph map[string][]string, start string) *bfsPaths {
 	}
 }
 
+func qualifyWhereWithTableAlias(driver, where, alias string) (string, error) {
+	sqlSelect := fmt.Sprintf("select * from %s where ", alias)
+	sql := fmt.Sprintf("%s%s", sqlSelect, where)
+	var updatedSql string
+	switch driver {
+	case sql_manager.MysqlDriver:
+		sql, err := qualifyMysqlWhereColumnNames(sql, nil, alias)
+		if err != nil {
+			return "", err
+		}
+		updatedSql = sql
+	case sql_manager.PostgresDriver:
+		sql, err := qualifyPostgresWhereColumnNames(sql, nil, alias)
+		if err != nil {
+			return "", err
+		}
+		updatedSql = sql
+	default:
+		return "", errors.New("unsupported sql driver type")
+	}
+	index := strings.Index(strings.ToLower(updatedSql), "where")
+	if index == -1 {
+		// "where" not found
+		return "", fmt.Errorf("unable to qualify where column names")
+	}
+	startIndex := index + len("where")
+	return strings.TrimSpace(updatedSql[startIndex:]), nil
+}
+
 func qualifyWhereColumnNames(driver, where, schema, table string) (string, error) {
 	sqlSelect := fmt.Sprintf("select * from %s where ", buildSqlIdentifier(schema, table))
 	sql := fmt.Sprintf("%s%s", sqlSelect, where)
 	var updatedSql string
 	switch driver {
 	case sql_manager.MysqlDriver:
-		sql, err := qualifyMysqlWhereColumnNames(sql, schema, table)
+		sql, err := qualifyMysqlWhereColumnNames(sql, &schema, table)
 		if err != nil {
 			return "", err
 		}
 		updatedSql = sql
 	case sql_manager.PostgresDriver:
-		sql, err := qualifyPostgresWhereColumnNames(sql, schema, table)
+		sql, err := qualifyPostgresWhereColumnNames(sql, &schema, table)
 		if err != nil {
 			return "", err
 		}
@@ -650,7 +679,7 @@ func reverseSlice[T any](slice []T) []T {
 	return newSlice
 }
 
-func qualifyPostgresWhereColumnNames(sql, schema, table string) (string, error) {
+func qualifyPostgresWhereColumnNames(sql string, schema *string, table string) (string, error) {
 	tree, err := pgquery.Parse(sql)
 	if err != nil {
 		return "", err
@@ -670,7 +699,7 @@ func qualifyPostgresWhereColumnNames(sql, schema, table string) (string, error) 
 	return updatedSql, nil
 }
 
-func updatePostgresExpr(schema, table string, node *pg_query.Node) {
+func updatePostgresExpr(schema *string, table string, node *pg_query.Node) {
 	switch expr := node.Node.(type) {
 	case *pg_query.Node_SubLink:
 		updatePostgresExpr(schema, table, node.GetSubLink().GetTestexpr())
@@ -689,7 +718,7 @@ func updatePostgresExpr(schema, table string, node *pg_query.Node) {
 		// find col name and check if already has schema + table name
 		for _, f := range col.Fields {
 			val := f.GetString_().GetSval()
-			if val == schema {
+			if schema != nil && val == *schema {
 				continue
 			}
 			if val == table {
@@ -699,16 +728,20 @@ func updatePostgresExpr(schema, table string, node *pg_query.Node) {
 			colName = &val
 		}
 		if !isQualified && colName != nil && *colName != "" {
-			col.Fields = []*pg_query.Node{
-				pg_query.MakeStrNode(schema),
+			fields := []*pg_query.Node{}
+			if schema != nil && *schema != "" {
+				fields = append(fields, pg_query.MakeStrNode(*schema))
+			}
+			fields = append(fields, []*pg_query.Node{
 				pg_query.MakeStrNode(table),
 				pg_query.MakeStrNode(*colName),
-			}
+			}...)
+			col.Fields = fields
 		}
 	}
 }
 
-func qualifyMysqlWhereColumnNames(sql, schema, table string) (string, error) {
+func qualifyMysqlWhereColumnNames(sql string, schema *string, table string) (string, error) {
 	stmt, err := sqlparser.Parse(sql)
 	if err != nil {
 		return "", err
@@ -720,10 +753,12 @@ func qualifyMysqlWhereColumnNames(sql, schema, table string) (string, error) {
 			switch node := node.(type) { //nolint:gocritic
 			case *sqlparser.ComparisonExpr:
 				if col, ok := node.Left.(*sqlparser.ColName); ok {
-					if col.Qualifier.IsEmpty() {
-						col.Qualifier.Qualifier = sqlparser.NewTableIdent(schema)
-						col.Qualifier.Name = sqlparser.NewTableIdent(table)
+					s := ""
+					if schema != nil && *schema != "" {
+						s = *schema
 					}
+					col.Qualifier.Qualifier = sqlparser.NewTableIdent(s)
+					col.Qualifier.Name = sqlparser.NewTableIdent(table)
 				}
 				return false, nil
 			}
