@@ -9,7 +9,6 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
-	tabledependency "github.com/nucleuscloud/neosync/backend/pkg/table-dependency"
 	pg_query "github.com/pganalyze/pg_query_go/v5"
 	pgquery "github.com/wasilibs/go-pgquery"
 
@@ -198,9 +197,11 @@ func SubsetQueries(data map[string][]QueryColumnDefinition, whereClauses map[str
 		}
 		if len(joins) == 0 {
 			where := strings.Join(wheres, " AND ")
-			fmt.Println(buildSelectQuery("postgres", schema, table, []string{"*"}, &where))
+			sql, _ := buildSelectQuery("postgres", schema, table, []string{"*"}, &where)
+			fmt.Println(sql)
 		} else {
-			fmt.Println(buildSelectJoinQuery("postgres", schema, table, []string{"*"}, joins, wheres))
+			sql, _ := buildSelectJoinQuery("postgres", schema, table, []string{"*"}, joins, wheres)
+			fmt.Println(sql)
 		}
 
 	}
@@ -215,57 +216,65 @@ func handleDoubleReferences(data map[string][]FkColumnDefinition, whereClauses m
 		newWhereClauses[table] = where
 	}
 
+	seenTables := map[string]struct{}{}
 	for table, colDefs := range data {
 		if len(colDefs) == 0 {
 			newData[table] = []QueryColumnDefinition{}
 			continue
 		}
+
 		for _, colDef := range colDefs {
 			if colDef.ForeignKey.Table == table {
 				// self reference skip
 				newData[table] = []QueryColumnDefinition{}
 				continue
 			}
+			// seenTables := map[string]struct{}{}
+
 			// this check is no longer true
 			// check if this already exists in newdata if so create an alias
-			multiRefCols := getMultiReferenceColumns(colDefs, colDef.ForeignKey.Table, colDef.Columns)
-			if len(multiRefCols) > 1 {
-				for _, cols := range multiRefCols {
-					newTable := fmt.Sprintf("%s_%s", strings.Replace(colDef.ForeignKey.Table, ".", "_", -1), strings.Join(cols, "_"))
-					alias := ToSha256(newTable)
-					newData[table] = append(newData[table], QueryColumnDefinition{
-						Columns: cols, // how to tell difference between double reference and composite keys
-						ForeignKey: ForeignKey{
-							Table:         alias,
-							OriginalTable: &colDef.ForeignKey.Table,
-							Columns:       colDef.ForeignKey.Columns,
-						},
-					})
-					reverseReferences[alias] = colDef.ForeignKey.Table
-				}
+			// multiRefCols := getMultiReferenceColumns(colDefs, colDef.ForeignKey.Table, colDef.Columns)
+			if _, exists := seenTables[colDef.ForeignKey.Table]; exists {
+				newTable := fmt.Sprintf("%s_%s", strings.Replace(colDef.ForeignKey.Table, ".", "_", -1), strings.Join(colDef.Columns, "_"))
+				alias := ToSha256(newTable)
+				newData[table] = append(newData[table], QueryColumnDefinition{
+					Columns: colDef.Columns, // how to tell difference between double reference and composite keys
+					ForeignKey: ForeignKey{
+						Table:         alias,
+						OriginalTable: &colDef.ForeignKey.Table,
+						Columns:       colDef.ForeignKey.Columns,
+					},
+				})
+				reverseReferences[alias] = colDef.ForeignKey.Table
 			} else {
 				newData[table] = append(newData[table], QueryColumnDefinition{
 					Columns:    colDef.Columns,
 					ForeignKey: colDef.ForeignKey,
 				})
+				seenTables[colDef.ForeignKey.Table] = struct{}{}
 			}
 		}
 	}
 	// jsonF, _ := json.MarshalIndent(whereClauses, "", " ")
 	// fmt.Printf("\n whereClauses: %s \n", string(jsonF))
-	jsonF, _ := json.MarshalIndent(newData, "", " ")
-	fmt.Printf("\n newData: %s \n", string(jsonF))
+	// jsonF, _ := json.MarshalIndent(newData, "", " ")
+	// fmt.Printf("\n newData: %s \n", string(jsonF))
 
 	for len(reverseReferences) > 0 {
 		for alias, table := range reverseReferences {
 			newColDefs := []QueryColumnDefinition{}
 			colDefs := newData[table]
 			where := newWhereClauses[table]
+			// fmt.Printf("old where: %s \n", where)
+
 			if where != "" {
+				// fmt.Printf("alias: %s \n", alias)
+
 				newWhere, err := qualifyWhereWithTableAlias("postgres", where, alias)
 				if err != nil {
 					fmt.Println(err)
 				}
+				// fmt.Printf("new where: %s \n", newWhere)
 				newWhereClauses[alias] = newWhere
 			}
 			for _, c := range colDefs {
@@ -286,7 +295,7 @@ func handleDoubleReferences(data map[string][]FkColumnDefinition, whereClauses m
 	}
 	// jsonF, _ = json.MarshalIndent(newWhereClauses, "", " ")
 	// fmt.Printf("\n newWhereClauses: %s \n", string(jsonF))
-	jsonF, _ = json.MarshalIndent(newData, "", " ")
+	jsonF, _ := json.MarshalIndent(newData, "", " ")
 	fmt.Printf("\n newData after: %s \n", string(jsonF))
 
 	return newData, newWhereClauses
@@ -364,59 +373,59 @@ func ToSha256(input string) string {
 
 func main() {
 	// ###################################################
-	// queryData := map[string][]FkColumnDefinition{
-	// 	"public.a": {
-	// 		{
-	// 			Columns: []string{"x_id"},
-	// 			ForeignKey: ForeignKey{
-	// 				Table:   "public.x",
-	// 				Columns: []string{"id"},
-	// 			},
-	// 		},
-	// 	},
-	// 	"public.c": {
-	// 		{
-	// 			Columns: []string{"a_id"},
-	// 			ForeignKey: ForeignKey{
-	// 				Table:   "public.a",
-	// 				Columns: []string{"id"},
-	// 			},
-	// 		},
-	// 		{
-	// 			Columns: []string{"b_id"},
-	// 			ForeignKey: ForeignKey{
-	// 				Table:   "public.b",
-	// 				Columns: []string{"id"},
-	// 			},
-	// 		},
-	// 	},
-	// 	"public.d": {
-	// 		{
-	// 			Columns: []string{"c_id"},
-	// 			ForeignKey: ForeignKey{
-	// 				Table:   "public.c",
-	// 				Columns: []string{"id"},
-	// 			},
-	// 		},
-	// 	},
-	// 	"public.e": {
-	// 		{
-	// 			Columns: []string{"c_id"},
-	// 			ForeignKey: ForeignKey{
-	// 				Table:   "public.c",
-	// 				Columns: []string{"id"},
-	// 			},
-	// 		},
-	// 	},
-	// 	"public.x": {},
-	// 	"public.b": {},
-	// 	"public.z": {},
-	// }
+	queryData := map[string][]FkColumnDefinition{
+		"public.a": {
+			{
+				Columns: []string{"x_id"},
+				ForeignKey: ForeignKey{
+					Table:   "public.x",
+					Columns: []string{"id"},
+				},
+			},
+		},
+		"public.c": {
+			{
+				Columns: []string{"a_id"},
+				ForeignKey: ForeignKey{
+					Table:   "public.a",
+					Columns: []string{"id"},
+				},
+			},
+			{
+				Columns: []string{"b_id"},
+				ForeignKey: ForeignKey{
+					Table:   "public.b",
+					Columns: []string{"id"},
+				},
+			},
+		},
+		"public.d": {
+			{
+				Columns: []string{"c_id"},
+				ForeignKey: ForeignKey{
+					Table:   "public.c",
+					Columns: []string{"id"},
+				},
+			},
+		},
+		"public.e": {
+			{
+				Columns: []string{"c_id"},
+				ForeignKey: ForeignKey{
+					Table:   "public.c",
+					Columns: []string{"id"},
+				},
+			},
+		},
+		"public.x": {},
+		"public.b": {},
+		"public.z": {},
+	}
 
-	// whereClauses := map[string]string{
-	// 	"public.b": "public.b.id = '1'",
-	// 	"public.x": "public.x.id = '2'",
-	// }
+	whereClauses := map[string]string{
+		"public.b": "public.b.id = '1'",
+		"public.x": "public.x.id = '2'",
+	}
 
 	// ###################################################
 
@@ -493,7 +502,6 @@ func main() {
 	// ###################################################
 	// double reference more complex
 	// queryData := map[string][]FkColumnDefinition{
-
 	// 	"company": {},
 	// 	"department": {
 	// 		{
@@ -544,6 +552,57 @@ func main() {
 	// 	"company": "company.id = '1'",
 	// }
 
+	// ###################################################
+	// double reference more complex even more complex
+	// queryData := map[string][]FkColumnDefinition{
+	// 	"company": {},
+	// 	"department": {
+	// 		{
+	// 			Columns: []string{"company_id"},
+	// 			ForeignKey: ForeignKey{
+	// 				Table:   "company",
+	// 				Columns: []string{"id"},
+	// 			},
+	// 		},
+	// 	},
+	// 	"transaction": {
+	// 		{
+	// 			Columns: []string{"department_id"},
+	// 			ForeignKey: ForeignKey{
+	// 				Table:   "department",
+	// 				Columns: []string{"id"},
+	// 			},
+	// 		},
+	// 	},
+	// 	"expense_report": {
+	// 		{
+	// 			Columns: []string{"department_destination_id"},
+	// 			ForeignKey: ForeignKey{
+	// 				Table:   "department",
+	// 				Columns: []string{"id"},
+	// 			},
+	// 		},
+	// 		{
+	// 			Columns: []string{"department_source_id"},
+	// 			ForeignKey: ForeignKey{
+	// 				Table:   "department",
+	// 				Columns: []string{"id"},
+	// 			},
+	// 		},
+	// 		{
+	// 			Columns: []string{"transaction_id"},
+	// 			ForeignKey: ForeignKey{
+	// 				Table:   "transaction",
+	// 				Columns: []string{"id"},
+	// 			},
+	// 		},
+	// 	},
+	// }
+
+	// whereClauses := map[string]string{
+	// 	"company": "company.id = '1'",
+	// }
+
 	// ##################################################
 	// nested composite keys
 
@@ -576,38 +635,38 @@ func main() {
 	// #############################################
 	// separate multiple foreigkeys same table
 
-	queryData := map[string][]FkColumnDefinition{
-		"composite_keys.department": {},
-		"composite_keys.employees": {
-			{
-				Columns: []string{"department_id"},
-				ForeignKey: ForeignKey{
-					Table:   "composite_keys.department",
-					Columns: []string{"department_id"},
-				},
-			},
-		},
-		"composite_keys.projects": {
-			{
-				Columns: []string{"responsible_department_id"},
-				ForeignKey: ForeignKey{
-					Table:   "composite_keys.employees",
-					Columns: []string{"department_id"},
-				},
-			},
-			{
-				Columns: []string{"responsible_employee_id"},
-				ForeignKey: ForeignKey{
-					Table:   "composite_keys.employees",
-					Columns: []string{"employee_id"},
-				},
-			},
-		},
-	}
+	// queryData := map[string][]FkColumnDefinition{
+	// 	"composite_keys.department": {},
+	// 	"composite_keys.employees": {
+	// 		{
+	// 			Columns: []string{"department_id"},
+	// 			ForeignKey: ForeignKey{
+	// 				Table:   "composite_keys.department",
+	// 				Columns: []string{"department_id"},
+	// 			},
+	// 		},
+	// 	},
+	// 	"composite_keys.projects": {
+	// 		{
+	// 			Columns: []string{"responsible_department_id"},
+	// 			ForeignKey: ForeignKey{
+	// 				Table:   "composite_keys.employees",
+	// 				Columns: []string{"department_id"},
+	// 			},
+	// 		},
+	// 		{
+	// 			Columns: []string{"responsible_employee_id"},
+	// 			ForeignKey: ForeignKey{
+	// 				Table:   "composite_keys.employees",
+	// 				Columns: []string{"employee_id"},
+	// 			},
+	// 		},
+	// 	},
+	// }
 
-	whereClauses := map[string]string{
-		"composite_keys.department": "composite_keys.department.department_id = '1'",
-	}
+	// whereClauses := map[string]string{
+	// 	"composite_keys.department": "composite_keys.department.department_id = '1'",
+	// }
 
 	// #############################################
 	// separate multiple foreigkeys different tables
@@ -720,8 +779,11 @@ map[string][]FkColumnDefinition{
 */
 
 func qualifyWhereWithTableAlias(driver, where, alias string) (string, error) {
-	sqlSelect := fmt.Sprintf("select * from %s where ", alias)
-	sql := fmt.Sprintf("%s%s", sqlSelect, where)
+	query := goqu.Dialect(driver).From(goqu.T(alias)).Select("*").Where(goqu.L(where))
+	sql, _, err := query.ToSQL()
+	if err != nil {
+		return "", err
+	}
 	var updatedSql string
 	switch driver {
 	case "mysql":
@@ -746,60 +808,6 @@ func qualifyWhereWithTableAlias(driver, where, alias string) (string, error) {
 	}
 	startIndex := index + len("where")
 	return strings.TrimSpace(updatedSql[startIndex:]), nil
-}
-
-func qualifyWhereColumnNames(driver, where, schema, table string) (string, error) {
-	sqlSelect := fmt.Sprintf("select * from %s where ", buildSqlIdentifier(schema, table))
-	sql := fmt.Sprintf("%s%s", sqlSelect, where)
-	var updatedSql string
-	switch driver {
-	case "mysql":
-		sql, err := qualifyMysqlWhereColumnNames(sql, &schema, table)
-		if err != nil {
-			return "", err
-		}
-		updatedSql = sql
-	case "postgres":
-		sql, err := qualifyPostgresWhereColumnNames(sql, &schema, table)
-		if err != nil {
-			return "", err
-		}
-		updatedSql = sql
-	default:
-		return "", errors.New("unsupported sql driver type")
-	}
-	index := strings.Index(strings.ToLower(updatedSql), "where")
-	if index == -1 {
-		// "where" not found
-		return "", fmt.Errorf("unable to qualify where column names")
-	}
-	startIndex := index + len("where")
-
-	return strings.TrimSpace(updatedSql[startIndex:]), nil
-}
-
-func getPrimaryToForeignTableMapFromRunConfigs(runConfigs []*tabledependency.RunConfig) map[string][]string {
-	dpMap := map[string]map[string]struct{}{}
-
-	for _, cfg := range runConfigs {
-		if _, exists := dpMap[cfg.Table]; !exists {
-			dpMap[cfg.Table] = map[string]struct{}{}
-		}
-		for _, dep := range cfg.DependsOn {
-			if _, exists := dpMap[dep.Table]; !exists {
-				dpMap[dep.Table] = map[string]struct{}{}
-			}
-			dpMap[dep.Table][cfg.Table] = struct{}{}
-		}
-	}
-	tableDependencyMap := map[string][]string{}
-	for table, fkTables := range dpMap {
-		for t := range fkTables {
-			tableDependencyMap[table] = append(tableDependencyMap[table], t)
-		}
-	}
-
-	return tableDependencyMap
 }
 
 type selfReferencingCircularDependency struct {

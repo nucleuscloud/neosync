@@ -2097,7 +2097,7 @@ func Test_qualifyWhereColumnNames_mysql(t *testing.T) {
 		},
 		{
 			name:     "where subquery",
-			where:    "film_id IN(SELECT film_id FROM film_category INNER JOIN category USING(category_id) WHERE name='Action');",
+			where:    "film_id IN(SELECT film_id FROM film_category INNER JOIN category USING(category_id) WHERE name='Action')",
 			schema:   "public",
 			table:    "film",
 			expected: "public.film.film_id in (select film_id from film_category join category using (category_id) where name = 'Action')",
@@ -2191,6 +2191,13 @@ func Test_qualifyWhereWithTableAlias(t *testing.T) {
 		},
 		{
 			driver:   sql_manager.PostgresDriver,
+			name:     "hash alias",
+			where:    "composite_keys.department.department_id = '1'",
+			alias:    "50d89c0f3af602",
+			expected: `"50d89c0f3af602".department_id = '1'`,
+		},
+		{
+			driver:   sql_manager.PostgresDriver,
 			name:     "simple",
 			where:    "public.a.name = 'alisha'",
 			alias:    "alias",
@@ -2223,6 +2230,13 @@ func Test_qualifyWhereWithTableAlias(t *testing.T) {
 			where:    "name = 'alisha' and id = 1  or age = 2",
 			alias:    "alias",
 			expected: `alias.name = 'alisha' and alias.id = 1 or alias.age = 2`,
+		},
+		{
+			driver:   sql_manager.MysqlDriver,
+			name:     "hash alias",
+			where:    "composite_keys.department.department_id = '1'",
+			alias:    "50d89c0f3af602",
+			expected: "`50d89c0f3af602`.department_id = '1'",
 		},
 	}
 

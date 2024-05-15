@@ -544,8 +544,11 @@ func getBfsPathMap(graph map[string][]string, start string) *bfsPaths {
 }
 
 func qualifyWhereWithTableAlias(driver, where, alias string) (string, error) {
-	sqlSelect := fmt.Sprintf("select * from %s where ", alias)
-	sql := fmt.Sprintf("%s%s", sqlSelect, where)
+	query := goqu.Dialect(driver).From(goqu.T(alias)).Select("*").Where(goqu.L(where))
+	sql, _, err := query.ToSQL()
+	if err != nil {
+		return "", err
+	}
 	var updatedSql string
 	switch driver {
 	case sql_manager.MysqlDriver:
@@ -573,8 +576,13 @@ func qualifyWhereWithTableAlias(driver, where, alias string) (string, error) {
 }
 
 func qualifyWhereColumnNames(driver, where, schema, table string) (string, error) {
-	sqlSelect := fmt.Sprintf("select * from %s where ", buildSqlIdentifier(schema, table))
-	sql := fmt.Sprintf("%s%s", sqlSelect, where)
+	// sqlSelect := fmt.Sprintf("select * from %s where ", buildSqlIdentifier(schema, table))
+	// sql := fmt.Sprintf("%s%s", sqlSelect, where)
+	sql, err := buildSelectQuery(driver, schema, table, []string{"*"}, &where)
+	if err != nil {
+		return "", err
+	}
+	fmt.Println(sql)
 	var updatedSql string
 	switch driver {
 	case sql_manager.MysqlDriver:
@@ -680,8 +688,11 @@ func reverseSlice[T any](slice []T) []T {
 }
 
 func qualifyPostgresWhereColumnNames(sql string, schema *string, table string) (string, error) {
+	fmt.Println(sql)
 	tree, err := pgquery.Parse(sql)
 	if err != nil {
+		fmt.Println("ERROR1")
+		fmt.Println(err)
 		return "", err
 	}
 
@@ -694,8 +705,12 @@ func qualifyPostgresWhereColumnNames(sql string, schema *string, table string) (
 	}
 	updatedSql, err := pgquery.Deparse(tree)
 	if err != nil {
+		fmt.Println("ERROR")
+		fmt.Println(err)
 		return "", err
 	}
+	fmt.Println("HERE")
+	fmt.Println(updatedSql)
 	return updatedSql, nil
 }
 
@@ -739,6 +754,7 @@ func updatePostgresExpr(schema *string, table string, node *pg_query.Node) {
 			col.Fields = fields
 		}
 	}
+	fmt.Println("HEDLFE")
 }
 
 func qualifyMysqlWhereColumnNames(sql string, schema *string, table string) (string, error) {
