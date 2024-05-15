@@ -27,11 +27,11 @@ type BatchExecOpts struct {
 }
 
 type ForeignKey struct {
-	Table  string
-	Column string
+	Table   string
+	Columns []string
 }
 type ForeignConstraint struct {
-	Column     string
+	Columns    []string
 	IsNullable bool
 	ForeignKey *ForeignKey
 }

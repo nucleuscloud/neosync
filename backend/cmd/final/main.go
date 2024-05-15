@@ -373,59 +373,59 @@ func ToSha256(input string) string {
 
 func main() {
 	// ###################################################
-	queryData := map[string][]FkColumnDefinition{
-		"public.a": {
-			{
-				Columns: []string{"x_id"},
-				ForeignKey: ForeignKey{
-					Table:   "public.x",
-					Columns: []string{"id"},
-				},
-			},
-		},
-		"public.c": {
-			{
-				Columns: []string{"a_id"},
-				ForeignKey: ForeignKey{
-					Table:   "public.a",
-					Columns: []string{"id"},
-				},
-			},
-			{
-				Columns: []string{"b_id"},
-				ForeignKey: ForeignKey{
-					Table:   "public.b",
-					Columns: []string{"id"},
-				},
-			},
-		},
-		"public.d": {
-			{
-				Columns: []string{"c_id"},
-				ForeignKey: ForeignKey{
-					Table:   "public.c",
-					Columns: []string{"id"},
-				},
-			},
-		},
-		"public.e": {
-			{
-				Columns: []string{"c_id"},
-				ForeignKey: ForeignKey{
-					Table:   "public.c",
-					Columns: []string{"id"},
-				},
-			},
-		},
-		"public.x": {},
-		"public.b": {},
-		"public.z": {},
-	}
+	// queryData := map[string][]FkColumnDefinition{
+	// 	"public.a": {
+	// 		{
+	// 			Columns: []string{"x_id"},
+	// 			ForeignKey: ForeignKey{
+	// 				Table:   "public.x",
+	// 				Columns: []string{"id"},
+	// 			},
+	// 		},
+	// 	},
+	// 	"public.c": {
+	// 		{
+	// 			Columns: []string{"a_id"},
+	// 			ForeignKey: ForeignKey{
+	// 				Table:   "public.a",
+	// 				Columns: []string{"id"},
+	// 			},
+	// 		},
+	// 		{
+	// 			Columns: []string{"b_id"},
+	// 			ForeignKey: ForeignKey{
+	// 				Table:   "public.b",
+	// 				Columns: []string{"id"},
+	// 			},
+	// 		},
+	// 	},
+	// 	"public.d": {
+	// 		{
+	// 			Columns: []string{"c_id"},
+	// 			ForeignKey: ForeignKey{
+	// 				Table:   "public.c",
+	// 				Columns: []string{"id"},
+	// 			},
+	// 		},
+	// 	},
+	// 	"public.e": {
+	// 		{
+	// 			Columns: []string{"c_id"},
+	// 			ForeignKey: ForeignKey{
+	// 				Table:   "public.c",
+	// 				Columns: []string{"id"},
+	// 			},
+	// 		},
+	// 	},
+	// 	"public.x": {},
+	// 	"public.b": {},
+	// 	"public.z": {},
+	// }
 
-	whereClauses := map[string]string{
-		"public.b": "public.b.id = '1'",
-		"public.x": "public.x.id = '2'",
-	}
+	// whereClauses := map[string]string{
+	// 	"public.b": "public.b.id = '1'",
+	// 	"public.x": "public.x.id = '2'",
+	// }
 
 	// ###################################################
 
