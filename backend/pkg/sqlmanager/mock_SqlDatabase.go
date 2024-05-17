@@ -383,6 +383,65 @@ func (_c *MockSqlDatabase_GetForeignKeyConstraintsMap_Call) RunAndReturn(run fun
 	return _c
 }
 
+// GetForeignKeyReferencesMap provides a mock function with given fields: ctx, schemas
+func (_m *MockSqlDatabase) GetForeignKeyReferencesMap(ctx context.Context, schemas []string) (map[string][]*ColumnConstraint, error) {
+	ret := _m.Called(ctx, schemas)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetForeignKeyReferencesMap")
+	}
+
+	var r0 map[string][]*ColumnConstraint
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, []string) (map[string][]*ColumnConstraint, error)); ok {
+		return rf(ctx, schemas)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, []string) map[string][]*ColumnConstraint); ok {
+		r0 = rf(ctx, schemas)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string][]*ColumnConstraint)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, []string) error); ok {
+		r1 = rf(ctx, schemas)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockSqlDatabase_GetForeignKeyReferencesMap_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetForeignKeyReferencesMap'
+type MockSqlDatabase_GetForeignKeyReferencesMap_Call struct {
+	*mock.Call
+}
+
+// GetForeignKeyReferencesMap is a helper method to define mock.On call
+//   - ctx context.Context
+//   - schemas []string
+func (_e *MockSqlDatabase_Expecter) GetForeignKeyReferencesMap(ctx interface{}, schemas interface{}) *MockSqlDatabase_GetForeignKeyReferencesMap_Call {
+	return &MockSqlDatabase_GetForeignKeyReferencesMap_Call{Call: _e.mock.On("GetForeignKeyReferencesMap", ctx, schemas)}
+}
+
+func (_c *MockSqlDatabase_GetForeignKeyReferencesMap_Call) Run(run func(ctx context.Context, schemas []string)) *MockSqlDatabase_GetForeignKeyReferencesMap_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].([]string))
+	})
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetForeignKeyReferencesMap_Call) Return(_a0 map[string][]*ColumnConstraint, _a1 error) *MockSqlDatabase_GetForeignKeyReferencesMap_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockSqlDatabase_GetForeignKeyReferencesMap_Call) RunAndReturn(run func(context.Context, []string) (map[string][]*ColumnConstraint, error)) *MockSqlDatabase_GetForeignKeyReferencesMap_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetPrimaryKeyConstraints provides a mock function with given fields: ctx, schemas
 func (_m *MockSqlDatabase) GetPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*PrimaryKey, error) {
 	ret := _m.Called(ctx, schemas)

@@ -148,6 +148,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, errors.New(haltOnSchemaAdditionErrMsg)
 		}
 
+		// todo should use GetForeignKeyReferencesMap instead
 		tableDependencyMap, err := db.Db.GetForeignKeyConstraintsMap(ctx, uniqueSchemas)
 		if err != nil {
 			return nil, fmt.Errorf("unable to retrieve database foreign key constraints: %w", err)
@@ -179,8 +180,11 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 		// reverse of table dependency
 		// map of foreign key to source table + column
-		tableConstraintsSource = getForeignKeyToSourceMap(tableDependencyMap)
-		tableQueryMap, err := buildSelectQueryMap(db.Driver, groupedTableMapping, sourceTableOpts, tableDependencyMap, runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints)
+		fkReferenceMap, err := db.Db.GetForeignKeyReferencesMap(ctx, uniqueSchemas)
+		if err != nil {
+			return nil, fmt.Errorf("unable to retrieve database foreign key constraints: %w", err)
+		}
+		tableQueryMap, err := buildSelectQueryMap(db.Driver, groupedTableMapping, sourceTableOpts, fkReferenceMap, runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build select queries: %w", err)
 		}
@@ -503,22 +507,22 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	}, nil
 }
 
-func getForeignKeyToSourceMap(tableDependencies map[string][]*sql_manager.ForeignConstraint) map[string]map[string]*sql_manager.ForeignKey {
-	tc := map[string]map[string]*sql_manager.ForeignKey{} // schema.table -> column -> ForeignKey
-	for table, constraints := range tableDependencies {
-		for _, c := range constraints {
-			_, ok := tc[c.ForeignKey.Table]
-			if !ok {
-				tc[c.ForeignKey.Table] = map[string]*sql_manager.ForeignKey{}
-			}
-			tc[c.ForeignKey.Table][c.ForeignKey.Column] = &sql_manager.ForeignKey{
-				Table:  table,
-				Column: c.Column,
-			}
-		}
-	}
-	return tc
-}
+// func getForeignKeyToSourceMap(tableDependencies map[string][]*sql_manager.ColumnConstraint) map[string]map[string]*sql_manager.ForeignKey {
+// 	tc := map[string]map[string]*sql_manager.ForeignKey{} // schema.table -> column -> ForeignKey
+// 	for table, constraints := range tableDependencies {
+// 		for _, c := range constraints {
+// 			_, ok := tc[c.ForeignKey.Table]
+// 			if !ok {
+// 				tc[c.ForeignKey.Table] = map[string]*sql_manager.ForeignKey{}
+// 			}
+// 			tc[c.ForeignKey.Table][c.ForeignKey.Column] = &sql_manager.ForeignKey{
+// 				Table:  table,
+// 				Column: c.Column,
+// 			}
+// 		}
+// 	}
+// 	return tc
+// }
 
 func buildTableSubsetMap(tableOpts map[string]*sqlSourceTableOptions) map[string]string {
 	tableSubsetMap := map[string]string{}

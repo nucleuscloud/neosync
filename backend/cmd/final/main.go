@@ -88,30 +88,24 @@ func buildSelectJoinQuery(
 		if j == nil {
 			continue
 		}
+		joinConditionTable := j.JoinTable
 		if j.Alias != nil && *j.Alias != "" {
-			joinCondition := goqu.Ex{}
-			for joinCol, baseCol := range j.JoinColumnsMap {
-				joinCondition[buildSqlIdentifier(*j.Alias, joinCol)] = goqu.I(buildSqlIdentifier(j.BaseTable, baseCol))
+			joinConditionTable = *j.Alias
+		}
+		joinCondition := goqu.Ex{}
+		for joinCol, baseCol := range j.JoinColumnsMap {
+			joinCondition[buildSqlIdentifier(joinConditionTable, joinCol)] = goqu.I(buildSqlIdentifier(j.BaseTable, baseCol))
+		}
+		if j.JoinType == innerJoin {
+			var joinTable exp.Expression
+			joinTable = goqu.I(j.JoinTable)
+			if j.Alias != nil && *j.Alias != "" {
+				joinTable = goqu.I(j.JoinTable).As(*j.Alias)
 			}
-			if j.JoinType == innerJoin {
-				joinTable := goqu.I(j.JoinTable).As(*j.Alias)
-				query = query.InnerJoin(
-					joinTable,
-					goqu.On(joinCondition),
-				)
-			}
-		} else {
-			joinCondition := goqu.Ex{}
-			for joinCol, baseCol := range j.JoinColumnsMap {
-				joinCondition[buildSqlIdentifier(j.JoinTable, joinCol)] = goqu.I(buildSqlIdentifier(j.BaseTable, baseCol))
-			}
-			if j.JoinType == innerJoin {
-				joinTable := goqu.I(j.JoinTable)
-				query = query.InnerJoin(
-					joinTable,
-					goqu.On(joinCondition),
-				)
-			}
+			query = query.InnerJoin(
+				joinTable,
+				goqu.On(joinCondition),
+			)
 		}
 	}
 	// where
@@ -128,13 +122,13 @@ func buildSelectJoinQuery(
 	return formatSqlQuery(sql), nil
 }
 
-func buildQuery(table string, data map[string][]QueryColumnDefinition, whereClauses map[string]string, visited map[string]bool) ([]*sqlJoin, []string) {
+func buildSubsetQuery(table string, data map[string][]QueryColumnDefinition, whereClauses map[string]string, visited map[string]bool) ([]*sqlJoin, []string) {
 	joins := []*sqlJoin{}
 	wheres := []string{}
 
 	if condition, exists := whereClauses[table]; exists {
 		wheres = append(wheres, condition)
-		return joins, wheres
+		// return joins, wheres
 	}
 
 	if columns, exists := data[table]; exists {
@@ -162,7 +156,7 @@ func buildQuery(table string, data map[string][]QueryColumnDefinition, whereClau
 
 				if !visited[col.ForeignKey.Table] {
 					visited[col.ForeignKey.Table] = true
-					subQuery, subWheres := buildQuery(col.ForeignKey.Table, data, whereClauses, visited)
+					subQuery, subWheres := buildSubsetQuery(col.ForeignKey.Table, data, whereClauses, visited)
 
 					joins = append(joins, subQuery...)
 					wheres = append(wheres, subWheres...)
@@ -174,12 +168,12 @@ func buildQuery(table string, data map[string][]QueryColumnDefinition, whereClau
 	return joins, wheres
 }
 
-func SubsetQueries(data map[string][]QueryColumnDefinition, whereClauses map[string]string) {
+func buildTableSubsetQueryConfigs(data map[string][]QueryColumnDefinition, whereClauses map[string]string) {
 	// fmt.Println()
 	// fmt.Println()
 	for table := range data {
 		visited := make(map[string]bool)
-		joins, wheres := buildQuery(table, data, whereClauses, visited)
+		joins, wheres := buildSubsetQuery(table, data, whereClauses, visited)
 		fmt.Println()
 		fmt.Println()
 		// fmt.Printf("table: %s  -------------\n", table)
@@ -301,30 +295,6 @@ func handleDoubleReferences(data map[string][]FkColumnDefinition, whereClauses m
 	return newData, newWhereClauses
 }
 
-func getMultiReferenceColumns(foreignKeys []FkColumnDefinition, table string, cols []string) [][]string {
-	// fmt.Println("------------")
-	// fmt.Printf("table: %s \n", table)
-	// fmt.Printf("cols: %v \n", cols)
-	refCols := [][]string{}
-	for _, fk := range foreignKeys {
-		if fk.ForeignKey.Table != table {
-			continue
-		}
-		if len(fk.ForeignKey.Columns) != len(cols) {
-			continue
-		}
-		for idx, c := range fk.ForeignKey.Columns {
-			if c != cols[idx] {
-				continue
-			}
-		}
-		refCols = append(refCols, fk.Columns)
-	}
-	// jsonF, _ := json.MarshalIndent(refCols, "", " ")
-	// fmt.Printf("\n refCols: %s \n", string(jsonF))
-	return refCols
-}
-
 func checkParentWhereClause(table string, data map[string][]FkColumnDefinition, whereClauses map[string]string, visited map[string]bool) bool {
 	if _, exists := whereClauses[table]; exists {
 		return true
@@ -346,7 +316,7 @@ func checkParentWhereClause(table string, data map[string][]FkColumnDefinition, 
 	return false
 }
 
-func ForeignKeysWithSubset(data map[string][]FkColumnDefinition, whereClauses map[string]string) map[string][]FkColumnDefinition {
+func ForeignKeysWithSubset(tables map[string]struct{}, data map[string][]FkColumnDefinition, whereClauses map[string]string) map[string][]FkColumnDefinition {
 	tableSubsetMap := make(map[string]bool)
 	for table := range data {
 		visited := make(map[string]bool)
@@ -704,7 +674,46 @@ func main() {
 	// 	"composite_keys.department": "composite_keys.department.department_id = '1'",
 	// }
 
-	filteredData := ForeignKeysWithSubset(queryData, whereClauses)
+	// ############################################################
+	queryData := map[string][]FkColumnDefinition{
+		"publc.a": {},
+		"public.b": {
+			{
+				Columns: []string{"a_id"},
+				ForeignKey: ForeignKey{
+					Table:   "public.a",
+					Columns: []string{"id"},
+				},
+			},
+		},
+		"public.c": {
+			{
+				Columns: []string{"b_id"},
+				ForeignKey: ForeignKey{
+					Table:   "public.b",
+					Columns: []string{"id"},
+				},
+			},
+		},
+		"public.d": {
+			{
+				Columns: []string{"c_id"},
+				ForeignKey: ForeignKey{
+					Table:   "public.c",
+					Columns: []string{"id"},
+				},
+			},
+		},
+	}
+
+	whereClauses := map[string]string{
+		"public.b": "name = 'bob",
+		"public.c": "id = 1",
+	}
+
+	tables := map[string]struct{}{"public.a": {}, "public.b": {}, "public.c": {}, "public.d": {}}
+
+	filteredData := ForeignKeysWithSubset(tables, queryData, whereClauses)
 	// jsonF, _ := json.MarshalIndent(filteredData, "", " ")
 	// fmt.Printf("\n filteredData: %s \n", string(jsonF))
 
@@ -712,7 +721,7 @@ func main() {
 	// jsonF, _ = json.MarshalIndent(newData, "", " ")
 	// fmt.Printf("\n newData: %s \n", string(jsonF))
 
-	SubsetQueries(newData, newWhereClauses)
+	buildTableSubsetQueryConfigs(newData, newWhereClauses)
 }
 
 /// NOTES
