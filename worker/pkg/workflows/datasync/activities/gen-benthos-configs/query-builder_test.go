@@ -1016,6 +1016,7 @@ func Test_buildSelectQueryMap_MultiplSubsets(t *testing.T) {
 	require.Equal(t, expected, sql)
 }
 
+// flakey test
 func Test_buildSelectQueryMap_MultipleRoots(t *testing.T) {
 	whereId := "id = 1"
 	mappings := map[string]*tableMapping{
@@ -1163,6 +1164,7 @@ func Test_buildSelectQueryMap_MultipleRoots(t *testing.T) {
 	require.Equal(t, expected, sql)
 }
 
+// alias not needed
 func Test_buildSelectQueryMap_MultipleRootsAndWheres(t *testing.T) {
 	whereId := "id = 1"
 	whereId2 := "id = 2"
@@ -1325,11 +1327,12 @@ func Test_buildSelectQueryMap_MultipleRootsAndWheres(t *testing.T) {
 	}
 	expected :=
 		map[string]string{
-			"public.a": `SELECT "id" FROM "public"."a";`,
+			"public.a": `SELECT "public"."a"."id", "public"."a"."d_id" FROM "public"."a" INNER JOIN "public"."d" ON ("public"."d"."id" = "public"."a"."d_id") WHERE public.d.id = 2;`,
 			"public.b": `SELECT "id" FROM "public"."b" WHERE public.b.id = 1;`,
-			"public.c": `SELECT "public"."c"."id", "public"."c"."a_id", "public"."c"."b_id" FROM "public"."c" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.id = 1;`,
-			"public.d": `SELECT "public"."d"."id", "public"."d"."c_id" FROM "public"."d" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."d"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.id = 1;`,
-			"public.e": `SELECT "public"."e"."id", "public"."e"."c_id" FROM "public"."e" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."e"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.id = 1;`,
+			"public.c": `SELECT "public"."c"."id", "public"."c"."a_id", "public"."c"."b_id" FROM "public"."c" INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."c"."a_id") INNER JOIN "public"."d" ON ("public"."d"."id" = "public"."a"."d_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE (public.d.id = 2 AND public.b.id = 1);`,
+			"public.d": `SELECT "public"."d"."id", "public"."d"."c_id" FROM "public"."d" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."d"."c_id") INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."c"."a_id") INNER JOIN "public"."d" ON ("public"."d"."id" = "public"."a"."d_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE (public.d.id = 2 AND public.b.id = 1);`,
+			"public.e": `SELECT "public"."e"."id", "public"."e"."c_id" FROM "public"."e" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."e"."c_id") INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."c"."a_id") INNER JOIN "public"."x" ON ("public"."x"."id" = "public"."a"."x_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE (public.x.id = 2 AND public.b.id = 1);`,
+			"public.x": `SELECT "id" FROM "public"."d" WHERE public.d.id = 2`,
 		}
 	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
 	jsonF, _ := json.MarshalIndent(sql, "", " ")
@@ -1415,7 +1418,7 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyRoot(t *testing.T) {
 	}
 	expected :=
 		map[string]string{
-			"public.a": ` WITH RECURSIVE related AS (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."a_a_id" FROM "public"."a" WHERE public.a.id = 1 UNION (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."a_a_id" FROM "public"."a" INNER JOIN "related" ON (("public"."a"."id" = "related"."a_id") OR ("public"."a"."id" = "related"."a_a_id")))) SELECT DISTINCT "id", "a_id", "a_a_id" FROM "related";`,
+			"public.a": `WITH RECURSIVE related AS (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."a_a_id" FROM "public"."a" WHERE public.a.id = 1 UNION (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."a_a_id" FROM "public"."a" INNER JOIN "related" ON (("public"."a"."id" = "related"."a_id") OR ("public"."a"."id" = "related"."a_a_id")))) SELECT DISTINCT "id", "a_id", "a_a_id" FROM "related";`,
 			"public.b": `SELECT "public"."b"."id", "public"."b"."a_id" FROM "public"."b" INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") WHERE public.a.id = 1;`,
 		}
 	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
@@ -1514,15 +1517,16 @@ func Test_buildSelectQueryMap_DoubleReference(t *testing.T) {
 	}
 	expected :=
 		map[string]string{
-			"public.a": `WITH RECURSIVE related AS (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."a_a_id" FROM "public"."a" WHERE public.a.id = 1 UNION (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."a_a_id" FROM "public"."a" INNER JOIN "related" ON (("public"."a"."id" = "related"."a_id") OR ("public"."a"."id" = "related"."a_a_id")))) SELECT DISTINCT "id", "a_id", "a_a_id" FROM "related";`,
-			"public.b": `SELECT "public"."b"."id", "public"."b"."a_id" FROM "public"."b" INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") WHERE public.a.id = 1;`,
+			"public.company":        `SELECT "id" FROM "public"."company" WHERE public.company.id = 1;`,
+			"public.department":     `SELECT "public"."department"."id", "public"."department"."company_id" FROM "public"."department" INNER JOIN "public"."company" ON ("public"."company"."id" = "public"."department"."company_id") WHERE public.company.id = 1;`,
+			"public.expense_report": `SELECT "public"."expense_report"."id", "public"."expense_report"."department_source_id", "public"."expense_report"."department_destination_id" FROM "public"."expense_report" INNER JOIN "public"."department" ON ("public"."department"."id" = "public"."expense_report"."department_source_id") INNER JOIN "public"."company" ON ("public"."company"."id" = "public"."department"."company_id") INNER JOIN "public"."department" AS "7b40130ba5a158" ON ("7b40130ba5a158"."id" = "public"."expense_report"."department_destination_id") INNER JOIN "public"."company" AS "3bf0425b83b85b" ON ("3bf0425b83b85b"."id" = "7b40130ba5a158"."company_id") WHERE (public.company.id = 1 AND "3bf0425b83b85b".id = 1);`,
 		}
 	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
 
-func Test_buildSelectQueryMap_Other(t *testing.T) {
+func Test_buildSelectQueryMap_DoubleReference_Cycle(t *testing.T) {
 	whereId := "id = 1"
 	mappings := map[string]*tableMapping{
 		"public.company": {
@@ -1573,6 +1577,14 @@ func Test_buildSelectQueryMap_Other(t *testing.T) {
 						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
 					},
 				},
+				{
+					Schema: "public",
+					Table:  "transaction",
+					Column: "department_id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
+					},
+				},
 			},
 		},
 		"public.expense_report": {
@@ -1598,6 +1610,14 @@ func Test_buildSelectQueryMap_Other(t *testing.T) {
 				{
 					Schema: "public",
 					Table:  "expense_report",
+					Column: "department_destination_id",
+					Transformer: &mgmtv1alpha1.JobMappingTransformer{
+						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
+					},
+				},
+				{
+					Schema: "public",
+					Table:  "expense_report",
 					Column: "transaction_id",
 					Transformer: &mgmtv1alpha1.JobMappingTransformer{
 						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
@@ -1615,23 +1635,33 @@ func Test_buildSelectQueryMap_Other(t *testing.T) {
 		"public.department": {
 			{Columns: []string{"company_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.company", Columns: []string{"id"}}},
 		},
+		"public.transaction": {
+			{Columns: []string{"department_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.department", Columns: []string{"id"}}},
+		},
 		"public.expense_report": {
 			{Columns: []string{"department_source_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.department", Columns: []string{"id"}}},
+			{Columns: []string{"department_destination_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.department", Columns: []string{"id"}}},
 			{Columns: []string{"transaction_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.transaction", Columns: []string{"id"}}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
 		{Table: "public.company", RunType: tabledependency.RunTypeInsert, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
-		{Table: "public.transaction", RunType: tabledependency.RunTypeInsert, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
 		{Table: "public.department", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "company_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.company", Columns: []string{"id"}}}},
-		{Table: "public.expense_report", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "department_source_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.department", Columns: []string{"department_source_id"}}, {Table: "public.transaction", Columns: []string{"id"}}}},
+		{Table: "public.transaction", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "department_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.department", Columns: []string{"id"}}}},
+		{Table: "public.expense_report", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "department_source_id", "department_destination_id", "transaction_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.department", Columns: []string{"id"}}, {Table: "public.transaction", Columns: []string{"id"}}}},
 	}
 	expected :=
 		map[string]string{
-			"public.a": `WITH RECURSIVE related AS (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."a_a_id" FROM "public"."a" WHERE public.a.id = 1 UNION (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."a_a_id" FROM "public"."a" INNER JOIN "related" ON (("public"."a"."id" = "related"."a_id") OR ("public"."a"."id" = "related"."a_a_id")))) SELECT DISTINCT "id", "a_id", "a_a_id" FROM "related";`,
-			"public.b": `SELECT "public"."b"."id", "public"."b"."a_id" FROM "public"."b" INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") WHERE public.a.id = 1;`,
+			"public.company":        `SELECT "id" FROM "public"."company" WHERE public.company.id = 1;`,
+			"public.department":     `SELECT "public"."department"."id", "public"."department"."company_id" FROM "public"."department" INNER JOIN "public"."company" ON ("public"."company"."id" = "public"."department"."company_id") WHERE public.company.id = 1;`,
+			"public.expense_report": `SELECT "public"."expense_report"."id", "public"."expense_report"."department_source_id", "public"."expense_report"."department_destination_id", "public"."expense_report"."transaction_id" FROM "public"."expense_report" INNER JOIN "public"."department" AS "9fc0c8a9c134a6" ON ("9fc0c8a9c134a6"."id" = "public"."expense_report"."department_source_id") INNER JOIN "public"."company" AS "11a3111fe95a00" ON ("11a3111fe95a00"."id" = "9fc0c8a9c134a6"."company_id") INNER JOIN "public"."department" AS "7b40130ba5a158" ON ("7b40130ba5a158"."id" = "public"."expense_report"."department_destination_id") INNER JOIN "public"."company" AS "3bf0425b83b85b" ON ("3bf0425b83b85b"."id" = "7b40130ba5a158"."company_id") INNER JOIN "public"."transaction" ON ("public"."transaction"."id" = "public"."expense_report"."transaction_id") INNER JOIN "public"."department" ON ("public"."department"."id" = "public"."transaction"."department_id") INNER JOIN "public"."company" ON ("public"."company"."id" = "public"."department"."company_id") WHERE ("11a3111fe95a00".id = 1 AND "3bf0425b83b85b".id = 1 AND public.company.id = 1);`,
+			"public.transaction":    `SELECT "public"."transaction"."id", "public"."transaction"."department_id" FROM "public"."transaction" INNER JOIN "public"."department" ON ("public"."department"."id" = "public"."transaction"."department_id") INNER JOIN "public"."company" ON ("public"."company"."id" = "public"."department"."company_id") WHERE public.company.id = 1;`,
 		}
 	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
+	jsonF, _ := json.MarshalIndent(expected, "", " ")
+	fmt.Printf("\n expected: %s \n", string(jsonF))
+	jsonF, _ = json.MarshalIndent(sql, "", " ")
+	fmt.Printf("\n actual: %s \n", string(jsonF))
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
@@ -1944,130 +1974,6 @@ func Test_buildSelectQueryMap_shouldContinue(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
-}
-
-func Test_getBfsPathMap(t *testing.T) {
-	tests := []struct {
-		name     string
-		graph    map[string][]string
-		start    string
-		expected *bfsPaths
-	}{
-		{
-			name: "straight path",
-			graph: map[string][]string{
-				"a": {"b"},
-				"b": {"c"},
-				"c": {"d"},
-				"d": {},
-			},
-			start: "a",
-			expected: &bfsPaths{
-				Path: []string{"a", "b", "c", "d"},
-				NodePathMap: map[string][]string{
-					"a": {"a"},
-					"b": {"a", "b"},
-					"c": {"a", "b", "c"},
-					"d": {"a", "b", "c", "d"},
-				},
-			},
-		},
-		{
-			name: "multiple paths",
-			graph: map[string][]string{
-				"a": {"c", "b"},
-				"b": {"c"},
-			},
-			start: "a",
-			expected: &bfsPaths{
-				Path: []string{"a", "c", "b"},
-				NodePathMap: map[string][]string{
-					"a": {"a"},
-					"b": {"a", "b"},
-					"c": {"a", "c"},
-				},
-			},
-		},
-		{
-			name: "cycle",
-			graph: map[string][]string{
-				"c": {"a"},
-				"b": {"c"},
-				"a": {"b"},
-			},
-			start: "a",
-			expected: &bfsPaths{
-				Path: []string{"a", "b", "c"},
-				NodePathMap: map[string][]string{
-					"a": {"a"},
-					"b": {"a", "b"},
-					"c": {"a", "b", "c"},
-				},
-			},
-		},
-		{
-			name: "cross",
-			graph: map[string][]string{
-				"a": {"c"},
-				"b": {"c"},
-				"c": {"d", "e"},
-				"d": {},
-				"e": {},
-			},
-			start: "a",
-			expected: &bfsPaths{
-				Path: []string{"a", "c", "d", "e"},
-				NodePathMap: map[string][]string{
-					"a": {"a"},
-					"c": {"a", "c"},
-					"d": {"a", "c", "d"},
-					"e": {"a", "c", "e"},
-				},
-			},
-		},
-		{
-			name: "self reference",
-			graph: map[string][]string{
-				"a": {"a"},
-			},
-			start: "a",
-			expected: &bfsPaths{
-				Path: []string{"a"},
-				NodePathMap: map[string][]string{
-					"a": {"a"},
-				},
-			},
-		},
-		{
-			name: "multi linear",
-			graph: map[string][]string{
-				"a": {"b", "c", "d"},
-				"b": {"e"},
-				"c": {"f"},
-				"d": {"g"},
-			},
-			start: "a",
-			expected: &bfsPaths{
-				Path: []string{"a", "b", "c", "d", "e", "f", "g"},
-				NodePathMap: map[string][]string{
-					"a": {"a"},
-					"b": {"a", "b"},
-					"c": {"a", "c"},
-					"d": {"a", "d"},
-					"e": {"a", "b", "e"},
-					"f": {"a", "c", "f"},
-					"g": {"a", "d", "g"},
-				},
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(fmt.Sprintf("%s_%s", t.Name(), tt.name), func(t *testing.T) {
-			path := getBfsPathMap(tt.graph, tt.start)
-			require.Equal(t, tt.expected, path)
-		})
-	}
 }
 
 func Test_qualifyWhereColumnNames_mysql(t *testing.T) {
