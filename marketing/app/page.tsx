@@ -1,5 +1,5 @@
 import CTA from '@/components/cta/CTA';
-import DeploymentOptions from '@/components/landing-page/DeploymentOptions';
+import { default as DeploymentOptions } from '@/components/landing-page/DeploymentOptions';
 import GitOpsSection from '@/components/landing-page/GitOps';
 import Hero from '@/components/landing-page/Hero';
 import Intergrations from '@/components/landing-page/Integrations';
@@ -46,14 +46,14 @@ export default function Home(): ReactElement {
       <div className="pt-20 lg:pt-40 flex justify-center" id="platform-section">
         <Platform />
       </div>
+      <div className=" pt-20">
+        <UseHostedNeosync />
+      </div>
       <div className="pt-20">
         <Intergrations />
       </div>
       <div className="py-10 lg:pt-40">
         <DeploymentOptions />
-      </div>
-      <div className=" pt-20 lg:pt-40">
-        <UseHostedNeosync />
       </div>
       <div className="py-10 lg:py-20">
         <GitOpsSection />

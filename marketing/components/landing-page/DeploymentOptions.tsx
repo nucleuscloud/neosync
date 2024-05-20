@@ -44,7 +44,7 @@ export default function DeploymentOptions(): ReactElement {
             href={opt.link}
             target="_blank"
             key={opt.name}
-            className="flex flex-col gap-2 border rounded-xl shadow-xl p-6 bg-white w-full  max-w-[300px] lg:max-w-[500px]h-[360px] hover:border-gray-400 items-center"
+            className="flex flex-col gap-2 border rounded-xl shadow-xl p-6 bg-white w-full  max-w-[300px] lg:max-w-[300px] h-[360px] hover:border-gray-400 items-center"
             onClick={() =>
               posthog.capture('user click', {
                 page: opt.name,

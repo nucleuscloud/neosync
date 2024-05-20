@@ -8,13 +8,13 @@ import { PiBookOpenText } from 'react-icons/pi';
 export default function Hero(): ReactElement {
   return (
     <div className="flex flex-col lg:flex-row items-center lg:pb-20 mt-20 z-20 ">
-      <div className="flex flex-col items-center lg:items-start gap-2 lg:gap-10">
+      <div className="flex flex-col items-center lg:items-start gap-2 lg:gap-10 w-1/2">
         <div className="text-gray-900 font-semibold lg:text-6xl text-4xl leading-tight text-center lg:text-left">
-          Keep Environments in Sync
+          Easily reproduce Production bugs locally
         </div>
         <h3 className="text-gray-800 text-md lg:text-lg font-semibold text-center lg:text-left lg:px-0 px-6 lg:w-[80%]">
-          Effortlessly keep all of your environments in sync with the latest
-          anonymized and synthetic data
+          Anonymize senstiive Production Data to make it safe to use locally for
+          the best debugging experience
         </h3>
         <div className="flex flex-col lg:flex-row lg:space-y-0 space-y-2 lg:space-x-4 pt-8">
           <Button className="px-6">
@@ -35,8 +35,8 @@ export default function Hero(): ReactElement {
           </Button>
         </div>
       </div>
-      <div className="hidden lg:block pt-10">
-        <KeepSync width={764} height={389} />
+      <div className="hidden lg:block pt-10 w-1/2">
+        <KeepSync width={564} height={289} />
       </div>
       <div className="block md:hidden lg:hidden pt-10">
         <KeepSync width={284} height={289} />

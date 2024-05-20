@@ -10,7 +10,7 @@ export default function Platform(): ReactElement {
   return (
     <div>
       <div className="text-gray-900 font-semibold text-2xl lg:text-4xl font-satoshi text-center bg-white/60">
-        A Flexible and Powerful Platform Built for Engineering Teams
+        A Powerful Platform Built For Engineering Teams
       </div>
       <div className="flex flex-col items-center justify-center border border-gray-400 rounded-xl mt-20 z-30 bg-white max-w-[1105px] overflow-hidden">
         <GenerateAndAnonymize />

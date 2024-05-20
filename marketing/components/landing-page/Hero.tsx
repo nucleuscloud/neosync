@@ -33,7 +33,7 @@ export default function Hero(): ReactElement {
       </div>
       <div className="text-gray-800 text-2xl font-normal text-center lg:w-[70%] xl:w-[70%] px-6 bg-white/40">
         Anonymize PII, generate synthetic data and sync environments for better
-        data privacy, testing and developer experience.
+        testing, debugging and developer experience.
       </div>
       <div className="flex flex-col lg:flex-row lg:space-y-0 space-y-2 lg:space-x-4 z-30 items-center">
         <Link href="https://app.neosync.dev" target="_blank">

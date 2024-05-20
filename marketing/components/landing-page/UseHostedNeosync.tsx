@@ -27,14 +27,13 @@ export default function UseHostedNeosync(): ReactElement {
   ];
 
   return (
-    <div className="px-6">
+    <div className="px-6 bg-gray-50 p-10 rounded-xl border border-gray-300">
       <div className="text-gray-900 font-semibold text-2xl lg:text-4xl font-satoshi text-center">
-        Get Up and Running in Minutes
+        Get Started in Minutes
       </div>
       <div className="text-md text-gray-700 font-satoshi font-semibold pt-10 lg:px-60 text-center">
-        It shouldn&apos;t take weeks to get up and running. With Neosync, you
-        can configure your connections and set up your Jobs in just a few
-        minutes.
+        With Neosync, you can configure your Connections and set up your Jobs in
+        just a few minutes.
       </div>
       <div className="pt-20">
         {steps.map((step, index) => (
