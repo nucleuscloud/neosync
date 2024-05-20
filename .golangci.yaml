@@ -129,6 +129,12 @@ linters:
   # - wsl
 
 issues:
+  excluded-dirs:
+    - marketing
+    - frontend
+    - charts
+    - docs
+    - node_modules
   #   # Excluding configuration per-path, per-linter, per-text and per-source
   exclude-rules:
     - path: _test\.go
@@ -157,7 +163,7 @@ issues:
 #       text: "string `gocritic.go` has 3 occurrences, make it a constant"
 
 run:
-  timeout: 5m
+  timeout: 10m
   # skip-dirs:
   #   - test/testdata_etc # test files
   #   - internal/cache # extracted from Go code
