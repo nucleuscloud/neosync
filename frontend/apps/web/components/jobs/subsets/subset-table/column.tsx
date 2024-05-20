@@ -1,5 +1,6 @@
 'use client';
 
+import ColumnHeader from '@/components/DualListBox/ColumnHeader';
 import { Button } from '@/components/ui/button';
 import {
   Tooltip,
@@ -52,7 +53,11 @@ export function getColumns(props: GetColumnsProps): ColumnDef<TableRow>[] {
       id: 'schemaTable',
       footer: (props) => props.column.id,
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Table" />
+        <ColumnHeader
+          column={column}
+          title={'Table'}
+          placeholder={'Search Tables ..'}
+        />
       ),
     },
     {

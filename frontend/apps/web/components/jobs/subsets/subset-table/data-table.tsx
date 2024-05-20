@@ -83,7 +83,7 @@ export function DataTable<TData, TValue>({
         ref={tableContainerRef}
       >
         <StickyHeaderTable>
-          <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 px-2 grid">
+          <TableHeader className="bg-gray-100 dark:bg-gray-800 sticky top-0 z-10 grid">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}
