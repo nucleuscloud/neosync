@@ -111,7 +111,7 @@ func (s Streams) ToProto() []Stream {
 	}
 	result := make([]Stream, 0, len(s))
 	for _, s := range s {
-		entries := *(*[]Entry)(unsafe.Pointer(&s.Entries)) //nolint:gosec
+		entries := *(*[]Entry)(unsafe.Pointer(&s.Entries))
 		result = append(result, Stream{Labels: s.Labels, Entries: entries})
 	}
 	return result
