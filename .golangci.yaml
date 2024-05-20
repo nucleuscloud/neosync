@@ -129,6 +129,12 @@ linters:
   # - wsl
 
 issues:
+  excluded-dirs:
+    - marketing
+    - frontend
+    - charts
+    - docs
+    - node_modules
   #   # Excluding configuration per-path, per-linter, per-text and per-source
   exclude-rules:
     - path: _test\.go
