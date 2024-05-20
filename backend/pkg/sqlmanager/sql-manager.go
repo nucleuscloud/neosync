@@ -36,6 +36,16 @@ type ForeignConstraint struct {
 	ForeignKey *ForeignKey
 }
 
+type ReferenceKey struct {
+	Table   string
+	Columns []string
+}
+type ColumnConstraint struct {
+	Columns     []string
+	NotNullable []bool
+	ForeignKey  *ReferenceKey
+}
+
 type ColumnInfo struct {
 	OrdinalPosition        int32  // Specifies the sequence or order in which each column is defined within the table. Starts at 1 for the first column.
 	ColumnDefault          string // Specifies the default value for a column, if any is set.
@@ -51,6 +61,7 @@ type SqlDatabase interface {
 	GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*ColumnInfo, error) // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
 	GetForeignKeyConstraints(ctx context.Context, schemas []string) ([]*ForeignKeyConstraintsRow, error)
 	GetForeignKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]*ForeignConstraint, error)
+	GetForeignKeyReferencesMap(ctx context.Context, schemas []string) (map[string][]*ColumnConstraint, error)
 	GetPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*PrimaryKey, error)
 	GetPrimaryKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]string, error)
 	GetUniqueConstraintsMap(ctx context.Context, schemas []string) (map[string][][]string, error)

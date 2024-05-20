@@ -148,6 +148,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 			return nil, errors.New(haltOnSchemaAdditionErrMsg)
 		}
 
+		// todo should use GetForeignKeyReferencesMap instead
 		tableDependencyMap, err := db.Db.GetForeignKeyConstraintsMap(ctx, uniqueSchemas)
 		if err != nil {
 			return nil, fmt.Errorf("unable to retrieve database foreign key constraints: %w", err)
@@ -176,11 +177,15 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		if err != nil {
 			return nil, err
 		}
+		tableConstraintsSource = getForeignKeyToSourceMap(tableDependencyMap)
 
 		// reverse of table dependency
 		// map of foreign key to source table + column
-		tableConstraintsSource = getForeignKeyToSourceMap(tableDependencyMap)
-		tableQueryMap, err := buildSelectQueryMap(db.Driver, groupedTableMapping, sourceTableOpts, tableDependencyMap, runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints)
+		fkReferenceMap, err := db.Db.GetForeignKeyReferencesMap(ctx, uniqueSchemas)
+		if err != nil {
+			return nil, fmt.Errorf("unable to retrieve database foreign key constraints: %w", err)
+		}
+		tableQueryMap, err := buildSelectQueryMap(db.Driver, groupedTableMapping, sourceTableOpts, fkReferenceMap, runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build select queries: %w", err)
 		}
