@@ -67,7 +67,7 @@ func (e *errorOutput) WriteBatch(ctx context.Context, batch service.MessageBatch
 		if err != nil {
 			return fmt.Errorf("error message interpolation error: %w", err)
 		}
-		if neosync_benthos.IsMaxConnectionError(errMsg) {
+		if !neosync_benthos.IsCriticalError(errMsg) {
 			// throw error so that benthos retries
 			return errors.New(errMsg)
 		}
