@@ -7,7 +7,6 @@ import (
 	"sort"
 	"strconv"
 	"time"
-	"unsafe"
 )
 
 /*
@@ -111,8 +110,7 @@ func (s Streams) ToProto() []Stream {
 	}
 	result := make([]Stream, 0, len(s))
 	for _, s := range s {
-		entries := *(*[]Entry)(unsafe.Pointer(&s.Entries)) //nolint:gosec
-		result = append(result, Stream{Labels: s.Labels, Entries: entries})
+		result = append(result, Stream{Labels: s.Labels, Entries: s.Entries})
 	}
 	return result
 }
