@@ -123,8 +123,6 @@ func buildSelectJoinQuery(
 	return formatSqlQuery(sql), nil
 }
 
-// composite keys are an AND
-// many self referencing fks are an OR
 func buildSelectRecursiveQuery(
 	driver, schema, table string,
 	columns []string,
