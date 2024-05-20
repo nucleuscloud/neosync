@@ -9,22 +9,22 @@ import { Badge } from '../ui/badge';
 export default function ValueProps(): ReactElement {
   const features = [
     {
-      title: 'Unblock local development ',
-      image: '/images/unblocklocal.svg',
+      title: 'Safely test your code against Production data',
+      image: '/images/vp1.svg',
       link: '/solutions/unblock-local-development',
     },
     {
-      title: 'Fix broken staging environments',
-      image: '/images/brokenenv.svg',
+      title: 'Automate your database seeding scripts',
+      image: '/images/vp2.svg',
       link: '/solutions/fix-staging-environments',
     },
     {
-      title: 'Keep environments in sync',
-      image: '/images/envsync3.svg',
+      title: 'Reproduce production bugs locally',
+      image: '/images/vp3.svg',
       link: '/solutions/keep-environments-in-sync',
     },
     {
-      title: `Frictionless privacy and compliance`,
+      title: `Reduce your compliance scope`,
       image: '/images/comp.svg',
       link: '/solutions/security-privacy',
     },
@@ -33,7 +33,7 @@ export default function ValueProps(): ReactElement {
   return (
     <div>
       <div className="text-gray-900 font-semibold text-2xl lg:text-4xl font-satoshi text-center">
-        Unblock Your Developers, Build Faster with Neosync
+        Every Developer Wants to Work With Production Data, Now They Can.
       </div>
       <div className="text-lg text-gray-400 font-satoshi font-light pt-20 flex flex-col md:flex-row lg:flex-row gap-6 justify-center items-center">
         {features.map((item) => (

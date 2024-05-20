@@ -1,9 +1,10 @@
 import CTA from '@/components/cta/CTA';
-import DeploymentOptions from '@/components/landing-page/DeploymentOptions';
+import { default as DeploymentOptions } from '@/components/landing-page/DeploymentOptions';
 import GitOpsSection from '@/components/landing-page/GitOps';
 import Hero from '@/components/landing-page/Hero';
 import Intergrations from '@/components/landing-page/Integrations';
 import Platform from '@/components/landing-page/Platform';
+import ProblemStatement from '@/components/landing-page/ProblemStatement';
 import UseHostedNeosync from '@/components/landing-page/UseHostedNeosync';
 import ValueProps from '@/components/landing-page/Valueprops';
 import { Metadata } from 'next';
@@ -48,6 +49,9 @@ export default function Home(): ReactElement {
       </div>
       <div className="pt-20">
         <Intergrations />
+      </div>
+      <div className="py-10 lg:pt-40">
+        <ProblemStatement />
       </div>
       <div className="py-10 lg:pt-40">
         <DeploymentOptions />
