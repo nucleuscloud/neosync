@@ -3,18 +3,18 @@ import Intergrations from '@/components/landing-page/Integrations';
 import Platform from '@/components/landing-page/Platform';
 import { Metadata } from 'next';
 import { ReactElement } from 'react';
-import JobSchedules from './JobShedules';
-import KeepEnvironmentsInSync from './KeepEnvironmentsInSync';
 import Hero from './hero';
+import JobSchedules from './JobShedules';
+import ReproduceBugsLocally from './ReproduceBugsLocally';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://assets.nucleuscloud.com/'),
-  title: 'Keep Environments In Sync | Neosync',
+  title: 'Easily reproduce Production bugs locally | Neosync',
   openGraph: {
-    title: ' Keep Environments In Sync | Neosync',
+    title: 'Easily reproduce Production bugs locally | Neosync',
     description:
-      'Keep environments in sync by anonymizing sensitive data and generating synthetic data and syncing it across environments. ',
-    url: 'https://www.neosync.dev/solutions/keep-environments-in-sync',
+      'Easily reproduce Production bugs locally by anonymizing sensitive Production data and generating synthetic so you can use it locally. ',
+    url: 'https://www.neosync.dev/solutions/reproduce-prod-bugs-locally',
     siteName: 'Neosync',
     images: [
       {
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     type: 'website',
   },
   alternates: {
-    canonical: 'https://www.neosync.dev/solutions/keep-environments-in-sync',
+    canonical: 'https://www.neosync.dev/solutions/reproduce-prod-bugs-locally',
   },
 };
 
@@ -40,7 +40,7 @@ export default function Page(): ReactElement {
         className="bg-gradient-to-tr from-[#f8f8f8] to-[#eaeaea] mt-20 lg:mt-20 pt-20 p-10 rounded-xl border border-gray-300"
         id="value-props-section"
       >
-        <KeepEnvironmentsInSync />
+        <ReproduceBugsLocally />
       </div>
       <div className=" pt-20 lg:pt-40">
         <JobSchedules />

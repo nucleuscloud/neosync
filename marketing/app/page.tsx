@@ -43,11 +43,11 @@ export default function Home(): ReactElement {
       >
         <ValueProps />
       </div>
-      <div className=" pt-20 lg:pt-40">
-        <UseHostedNeosync />
-      </div>
       <div className="pt-20 lg:pt-40 flex justify-center" id="platform-section">
         <Platform />
+      </div>
+      <div className=" pt-20">
+        <UseHostedNeosync />
       </div>
       <div className="pt-20">
         <Intergrations />

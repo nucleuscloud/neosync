@@ -14,14 +14,14 @@ export default function ValueProps(): ReactElement {
       link: '/solutions/unblock-local-development',
     },
     {
-      title: 'Automate your database seeding scripts',
-      image: '/images/vp2.svg',
-      link: '/solutions/fix-staging-environments',
-    },
-    {
       title: 'Easily reproduce Production bugs locally',
       image: '/images/vp3-new.svg',
       link: '/solutions/keep-environments-in-sync',
+    },
+    {
+      title: 'Fix broken staging environments',
+      image: '/images/vp2.svg',
+      link: '/solutions/fix-staging-environments',
     },
     {
       title: `Reduce your compliance scope`,

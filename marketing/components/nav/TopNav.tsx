@@ -59,7 +59,7 @@ const links: NavLinks[] = [
     description: 'Solutions that Neosync can deliver',
     children: [
       {
-        title: 'Unblock local development',
+        title: 'Safely test code against Production data',
         href: '/solutions/unblock-local-development',
         description:
           'Self-serve anonymized and synthetic data for local development',
@@ -67,14 +67,14 @@ const links: NavLinks[] = [
         icon: <IoTerminalOutline className="w-8 h-8" />,
       },
       {
-        title: 'Fix broken staging environments',
+        title: 'Automate your database seeding scripts',
         href: '/solutions/fix-staging-environments',
         description: 'Catch bugs faster with production-like data in staging',
         children: [],
         icon: <LucideServerCrash className="w-8 h-8" />,
       },
       {
-        title: 'Keep environments in sync',
+        title: 'Easily reproduce Production bugs locally',
         href: '/solutions/keep-environments-in-sync',
         description:
           'Effortlessly keep environments in sync with the latest data',
@@ -82,7 +82,7 @@ const links: NavLinks[] = [
         icon: <AiOutlineCloudSync className="w-8 h-8" />,
       },
       {
-        title: 'Comply with Security and Privacy',
+        title: 'Reduce your compliance scope',
         href: '/solutions/security-privacy',
         description: 'Easily comply with GDPR, HIPAA, DPDP and more',
         children: [],
@@ -153,7 +153,7 @@ export default function TopNav(): ReactElement {
                 <NavigationMenuItem key={link.href}>
                   <NavigationMenuTrigger>{link.title}</NavigationMenuTrigger>
                   <NavigationMenuContent>
-                    <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                    <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[700px]">
                       {link.children.map((sublink) => (
                         <ListItem
                           key={sublink.title}

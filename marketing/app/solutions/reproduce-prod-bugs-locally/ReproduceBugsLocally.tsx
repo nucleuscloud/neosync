@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { ReactElement } from 'react';
 
-export default function KeepEnvironmentsInSync(): ReactElement {
+export default function ReproduceBugsLocally(): ReactElement {
   const features = [
     {
       title: 'No more environment mismatches',
@@ -33,7 +33,12 @@ export default function KeepEnvironmentsInSync(): ReactElement {
     <div>
       <div className="px-6">
         <div className="text-gray-900 font-semibold text-2xl lg:text-4xl font-satoshi text-center">
-          Never Work with Stale Data Again
+          Easily replicate your Production data state locally
+        </div>
+        <div className="text-md text-gray-700 font-satoshi font-semibold pt-10 lg:px-20 text-center">
+          Mock data isn&apos;t representative of Production data which wastes a
+          lot of time trying to reproduce a Production bug locally. Use
+          anonymized production data for the best debugging experience.
         </div>
       </div>
       <div className="text-lg text-gray-400 font-satoshi font-light  pt-10 lg:pt-20 flex flex-col lg:flex-row gap-6 justify-center items-center">
