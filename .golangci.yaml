@@ -163,7 +163,7 @@ issues:
 #       text: "string `gocritic.go` has 3 occurrences, make it a constant"
 
 run:
-  timeout: 5m
+  timeout: 10m
   # skip-dirs:
   #   - test/testdata_etc # test files
   #   - internal/cache # extracted from Go code
