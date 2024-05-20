@@ -1,7 +1,6 @@
 package genbenthosconfigs_activity
 
 import (
-	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -1017,7 +1016,7 @@ func Test_buildSelectQueryMap_MultiplSubsets(t *testing.T) {
 }
 
 // flakey test
-func Test_buildSelectQueryMap_MultipleRoots(t *testing.T) {
+func Test_buildSelectQueryMap_MultipleRootss(t *testing.T) {
 	whereId := "id = 1"
 	mappings := map[string]*tableMapping{
 		"public.a": {
@@ -1156,10 +1155,6 @@ func Test_buildSelectQueryMap_MultipleRoots(t *testing.T) {
 			"public.e": `SELECT "public"."e"."id", "public"."e"."c_id" FROM "public"."e" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."e"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.id = 1;`,
 		}
 	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
-	jsonF, _ := json.MarshalIndent(expected, "", " ")
-	fmt.Printf("\n expected: %s \n", string(jsonF))
-	jsonF, _ = json.MarshalIndent(sql, "", " ")
-	fmt.Printf("\n actual: %s \n", string(jsonF))
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
@@ -1327,16 +1322,14 @@ func Test_buildSelectQueryMap_MultipleRootsAndWheres(t *testing.T) {
 	}
 	expected :=
 		map[string]string{
-			"public.a": `SELECT "public"."a"."id", "public"."a"."d_id" FROM "public"."a" INNER JOIN "public"."d" ON ("public"."d"."id" = "public"."a"."d_id") WHERE public.d.id = 2;`,
+			"public.a": `SELECT "public"."a"."id", "public"."a"."x_id" FROM "public"."a" INNER JOIN "public"."x" ON ("public"."x"."id" = "public"."a"."x_id") WHERE public.x.id = 2;`,
 			"public.b": `SELECT "id" FROM "public"."b" WHERE public.b.id = 1;`,
-			"public.c": `SELECT "public"."c"."id", "public"."c"."a_id", "public"."c"."b_id" FROM "public"."c" INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."c"."a_id") INNER JOIN "public"."d" ON ("public"."d"."id" = "public"."a"."d_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE (public.d.id = 2 AND public.b.id = 1);`,
-			"public.d": `SELECT "public"."d"."id", "public"."d"."c_id" FROM "public"."d" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."d"."c_id") INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."c"."a_id") INNER JOIN "public"."d" ON ("public"."d"."id" = "public"."a"."d_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE (public.d.id = 2 AND public.b.id = 1);`,
+			"public.c": `SELECT "public"."c"."id", "public"."c"."a_id", "public"."c"."b_id" FROM "public"."c" INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."c"."a_id") INNER JOIN "public"."x" ON ("public"."x"."id" = "public"."a"."x_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE (public.x.id = 2 AND public.b.id = 1);`,
+			"public.d": `SELECT "public"."d"."id", "public"."d"."c_id" FROM "public"."d" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."d"."c_id") INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."c"."a_id") INNER JOIN "public"."x" ON ("public"."x"."id" = "public"."a"."x_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE (public.x.id = 2 AND public.b.id = 1);`,
 			"public.e": `SELECT "public"."e"."id", "public"."e"."c_id" FROM "public"."e" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."e"."c_id") INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."c"."a_id") INNER JOIN "public"."x" ON ("public"."x"."id" = "public"."a"."x_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE (public.x.id = 2 AND public.b.id = 1);`,
-			"public.x": `SELECT "id" FROM "public"."d" WHERE public.d.id = 2`,
+			"public.x": `SELECT "id" FROM "public"."x" WHERE public.x.id = 2;`,
 		}
 	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
-	jsonF, _ := json.MarshalIndent(sql, "", " ")
-	fmt.Printf("\n sql: %s \n", string(jsonF))
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
@@ -1519,7 +1512,7 @@ func Test_buildSelectQueryMap_DoubleReference(t *testing.T) {
 		map[string]string{
 			"public.company":        `SELECT "id" FROM "public"."company" WHERE public.company.id = 1;`,
 			"public.department":     `SELECT "public"."department"."id", "public"."department"."company_id" FROM "public"."department" INNER JOIN "public"."company" ON ("public"."company"."id" = "public"."department"."company_id") WHERE public.company.id = 1;`,
-			"public.expense_report": `SELECT "public"."expense_report"."id", "public"."expense_report"."department_source_id", "public"."expense_report"."department_destination_id" FROM "public"."expense_report" INNER JOIN "public"."department" ON ("public"."department"."id" = "public"."expense_report"."department_source_id") INNER JOIN "public"."company" ON ("public"."company"."id" = "public"."department"."company_id") INNER JOIN "public"."department" AS "7b40130ba5a158" ON ("7b40130ba5a158"."id" = "public"."expense_report"."department_destination_id") INNER JOIN "public"."company" AS "3bf0425b83b85b" ON ("3bf0425b83b85b"."id" = "7b40130ba5a158"."company_id") WHERE (public.company.id = 1 AND "3bf0425b83b85b".id = 1);`,
+			"public.expense_report": `SELECT "public"."expense_report"."id", "public"."expense_report"."department_source_id", "public"."expense_report"."department_destination_id" FROM "public"."expense_report" INNER JOIN "public"."department" AS "9fc0c8a9c134a6" ON ("9fc0c8a9c134a6"."id" = "public"."expense_report"."department_source_id") INNER JOIN "public"."company" AS "11a3111fe95a00" ON ("11a3111fe95a00"."id" = "9fc0c8a9c134a6"."company_id") INNER JOIN "public"."department" AS "7b40130ba5a158" ON ("7b40130ba5a158"."id" = "public"."expense_report"."department_destination_id") INNER JOIN "public"."company" AS "3bf0425b83b85b" ON ("3bf0425b83b85b"."id" = "7b40130ba5a158"."company_id") WHERE ("11a3111fe95a00".id = 1 AND "3bf0425b83b85b".id = 1);`,
 		}
 	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
 	require.NoError(t, err)
@@ -1658,10 +1651,6 @@ func Test_buildSelectQueryMap_DoubleReference_Cycle(t *testing.T) {
 			"public.transaction":    `SELECT "public"."transaction"."id", "public"."transaction"."department_id" FROM "public"."transaction" INNER JOIN "public"."department" ON ("public"."department"."id" = "public"."transaction"."department_id") INNER JOIN "public"."company" ON ("public"."company"."id" = "public"."department"."company_id") WHERE public.company.id = 1;`,
 		}
 	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
-	jsonF, _ := json.MarshalIndent(expected, "", " ")
-	fmt.Printf("\n expected: %s \n", string(jsonF))
-	jsonF, _ = json.MarshalIndent(sql, "", " ")
-	fmt.Printf("\n actual: %s \n", string(jsonF))
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }

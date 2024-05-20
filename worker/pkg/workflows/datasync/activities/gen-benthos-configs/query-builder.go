@@ -417,7 +417,6 @@ func buildAliasReferences(driver string, constraints map[string][]*sql_manager.C
 	updatedConstraints := map[string][]*SubsetColumnConstraint{}
 	aliasReference := map[string]string{} // alias name to table name
 	updatedWheres := map[string]string{}
-	seenTables := map[string]struct{}{}
 
 	for table, where := range whereClauses {
 		updatedWheres[table] = where
@@ -426,9 +425,8 @@ func buildAliasReferences(driver string, constraints map[string][]*sql_manager.C
 	for table, colDefs := range constraints {
 		if len(colDefs) == 0 {
 			updatedConstraints[table] = []*SubsetColumnConstraint{}
-			seenTables = map[string]struct{}{}
 		} else {
-			updatedConstraints[table] = processAliasConstraints(table, colDefs, updatedConstraints, aliasReference, seenTables)
+			updatedConstraints[table] = processAliasConstraints(table, colDefs, updatedConstraints, aliasReference)
 		}
 	}
 
@@ -448,10 +446,17 @@ func processAliasConstraints(
 	colDefs []*sql_manager.ColumnConstraint,
 	updatedConstraints map[string][]*SubsetColumnConstraint,
 	aliasReference map[string]string,
-	seenTables map[string]struct{},
+	// seenTables map[string]struct{},
 ) []*SubsetColumnConstraint {
 	if _, exists := updatedConstraints[table]; exists {
 		return updatedConstraints[table]
+	}
+
+	tableCount := map[string]int{}
+	for _, colDef := range colDefs {
+		if colDef.ForeignKey != nil {
+			tableCount[colDef.ForeignKey.Table]++
+		}
 	}
 
 	newColDefs := []*SubsetColumnConstraint{}
@@ -460,7 +465,7 @@ func processAliasConstraints(
 			continue // self reference skip
 		}
 
-		if _, exists := seenTables[colDef.ForeignKey.Table]; exists {
+		if count := tableCount[colDef.ForeignKey.Table]; count > 1 {
 			// create aliased table
 			newTable := fmt.Sprintf("%s_%s", strings.ReplaceAll(colDef.ForeignKey.Table, ".", "_"), strings.Join(colDef.Columns, "_"))
 			alias := aliasHash(newTable)
@@ -481,7 +486,6 @@ func processAliasConstraints(
 					Columns: colDef.ForeignKey.Columns,
 				},
 			})
-			seenTables[colDef.ForeignKey.Table] = struct{}{}
 		}
 	}
 

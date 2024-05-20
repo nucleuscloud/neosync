@@ -177,6 +177,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		if err != nil {
 			return nil, err
 		}
+		tableConstraintsSource = getForeignKeyToSourceMap(tableDependencyMap)
 
 		// reverse of table dependency
 		// map of foreign key to source table + column
@@ -507,22 +508,22 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	}, nil
 }
 
-// func getForeignKeyToSourceMap(tableDependencies map[string][]*sql_manager.ColumnConstraint) map[string]map[string]*sql_manager.ForeignKey {
-// 	tc := map[string]map[string]*sql_manager.ForeignKey{} // schema.table -> column -> ForeignKey
-// 	for table, constraints := range tableDependencies {
-// 		for _, c := range constraints {
-// 			_, ok := tc[c.ForeignKey.Table]
-// 			if !ok {
-// 				tc[c.ForeignKey.Table] = map[string]*sql_manager.ForeignKey{}
-// 			}
-// 			tc[c.ForeignKey.Table][c.ForeignKey.Column] = &sql_manager.ForeignKey{
-// 				Table:  table,
-// 				Column: c.Column,
-// 			}
-// 		}
-// 	}
-// 	return tc
-// }
+func getForeignKeyToSourceMap(tableDependencies map[string][]*sql_manager.ForeignConstraint) map[string]map[string]*sql_manager.ForeignKey {
+	tc := map[string]map[string]*sql_manager.ForeignKey{} // schema.table -> column -> ForeignKey
+	for table, constraints := range tableDependencies {
+		for _, c := range constraints {
+			_, ok := tc[c.ForeignKey.Table]
+			if !ok {
+				tc[c.ForeignKey.Table] = map[string]*sql_manager.ForeignKey{}
+			}
+			tc[c.ForeignKey.Table][c.ForeignKey.Column] = &sql_manager.ForeignKey{
+				Table:  table,
+				Column: c.Column,
+			}
+		}
+	}
+	return tc
+}
 
 func buildTableSubsetMap(tableOpts map[string]*sqlSourceTableOptions) map[string]string {
 	tableSubsetMap := map[string]string{}
