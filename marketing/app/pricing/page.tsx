@@ -25,6 +25,7 @@ export default function Pricing() {
         Pricing shouldn&apos;t be complicated, so we made it easy.
       </div>
       <div className="flex flex-col lg:flex-row items-center justify-center gap-6 pt-10 ">
+        <OpenSourcePlan />
         <FreePlan />
         <TeamPlan />
         <CustomPlan />
@@ -37,6 +38,60 @@ export default function Pricing() {
   );
 }
 
+function OpenSourcePlan(): ReactElement {
+  const features = [
+    'Unlimited Records',
+    'Unlimited Jobs',
+    'Unlimited users',
+    'Your Region',
+    'Auth/NoAuth Mode',
+    'Self Deployed',
+    'Community Discord',
+  ];
+
+  return (
+    <div className="border-2 border-gray-400 rounded-xl py-8 px-12 lg:mt-28 lg:w-[350px] bg-gradient-to-b from-[#ffffff] to-[#f3f3f3]">
+      <div className="flex flex-col gap-6">
+        <div className="flex justify-center">
+          <Badge variant="outline" className="border-gray-400 border">
+            Open Source
+          </Badge>
+        </div>
+        <div className="flex justify-center flex-row gap-2">
+          <div className="text-3xl ">Open Source</div>
+        </div>
+        <Separator className="mt-6" />
+        <div className="flex flex-col gap-2 pt-6">
+          {features.map((item) => (
+            <div key={item} className="flex flex-row items-center gap-2">
+              <CheckCircle2Icon className="w-4 h-4 text-green-800 bg-green-200 rounded-full" />
+              <div>{item}</div>
+            </div>
+          ))}
+        </div>
+        <div className="flex justify-center pt-6">
+          <Button
+            variant="default"
+            className="w-full"
+            onClick={() =>
+              posthog.capture('user click', {
+                page: 'sign up for free',
+              })
+            }
+          >
+            <Link
+              href="https://github.com/nucleuscloud/neosync"
+              target="_blank"
+            >
+              Get Started
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function FreePlan(): ReactElement {
   const features = [
     '100k records/month',
@@ -44,12 +99,12 @@ function FreePlan(): ReactElement {
     '1 user',
     'US Region',
     'Social Login',
-    'Shared Infrastructure',
+    'Neosync Infrastructure',
     'Community Discord',
   ];
 
   return (
-    <div className="border-2 border-gray-400 rounded-xl py-8 px-12 lg:mt-28 lg:w-[350px] bg-gradient-to-b from-[#ffffff] to-[#f3f3f3]">
+    <div className="border-2 border-gray-400 rounded-xl py-8 px-12 lg:mt-28 lg:w-[360px] bg-gradient-to-b from-[#ffffff] to-[#f3f3f3]">
       <div className="flex flex-col gap-6">
         <div className="flex justify-center">
           <Badge variant="outline" className="border-gray-400 border">
@@ -63,7 +118,7 @@ function FreePlan(): ReactElement {
         <Separator className="mt-6" />
         <div className="flex flex-col gap-2 pt-6">
           {features.map((item) => (
-            <div key={item} className="flex flex-row items center gap-2">
+            <div key={item} className="flex flex-row items-center gap-2">
               <CheckCircle2Icon className="w-4 h-4 text-green-800 bg-green-200 rounded-full" />
               <div>{item}</div>
             </div>
@@ -96,7 +151,7 @@ function TeamPlan(): ReactElement {
     '5 users ($10/user after)',
     'US or EU Region',
     'Social, SSO',
-    'Shared Infrastructure',
+    'Neosync Infrastructure',
     'Private Discord/Slack',
   ];
 
@@ -120,7 +175,7 @@ function TeamPlan(): ReactElement {
         <Separator className="mt-6" />
         <div className="flex flex-col gap-2 pt-6">
           {features.map((item) => (
-            <div key={item} className="flex flex-row items center gap-2">
+            <div key={item} className="flex flex-row items-center gap-2">
               <CheckCircle2Icon className="w-4 h-4 text-green-800 bg-green-200 rounded-full" />
               <div>{item}</div>
             </div>
@@ -160,7 +215,7 @@ function CustomPlan(): ReactElement {
   ];
 
   return (
-    <div className="border-2 border-gray-400 rounded-xl p-8 lg:mt-28 lg:w-[350px] bg-gradient-to-b from-[#ffffff] to-[#f3f3f3]">
+    <div className="border-2 border-gray-400 rounded-xl p-8 lg:mt-28 lg:w-[360px] bg-gradient-to-b from-[#ffffff] to-[#f3f3f3]">
       <div className="flex flex-col gap-6">
         <div className="flex justify-center">
           <Badge variant="outline" className="border-gray-400 border">
@@ -173,7 +228,7 @@ function CustomPlan(): ReactElement {
         <Separator className="mt-6" />
         <div className="flex flex-col gap-2 pt-6">
           {features.map((item) => (
-            <div key={item} className="flex flex-row items center gap-2">
+            <div key={item} className="flex flex-row items-center gap-2">
               <CheckCircle2Icon className="w-4 h-4 text-green-800 bg-green-200 rounded-full" />
               <div>{item}</div>
             </div>
