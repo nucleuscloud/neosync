@@ -21,16 +21,18 @@ func ToSha256(input string) string {
 	return fmt.Sprintf("%x", sha256.Sum256([]byte(input)))
 }
 
-// checks if the error message matches a max connections error
-func IsMaxConnectionError(errMsg string) bool {
+// checks if the error message is critical
+func IsCriticalError(errMsg string) bool {
 	// list of known error messages for when max connections are reached
-	maxConnErrors := []string{
-		"too many clients already",
-		"remaining connection slots are reserved",
-		"maximum number of connections reached",
+	criticalErrors := []string{
+		"violates foreign key constraint",
+		"duplicate key value violates unique constraint",
+		"Duplicate entry",
+		"Cannot add or update a child row",
+		"a foreign key constraint fails",
 	}
 
-	for _, errStr := range maxConnErrors {
+	for _, errStr := range criticalErrors {
 		if containsIgnoreCase(errMsg, errStr) {
 			return true
 		}

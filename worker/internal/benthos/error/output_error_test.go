@@ -35,7 +35,7 @@ error_msg: "${! meta(\"key\") }"
 	errorOutput, err := newErrorOutput(config, service.MockResources(), stopActivityChan)
 	require.NoError(t, err)
 	msg := service.NewMessage([]byte("content"))
-	msg.MetaSet("key", "some error")
+	msg.MetaSet("key", "duplicate key value violates unique constraint")
 
 	batch := service.MessageBatch{msg}
 

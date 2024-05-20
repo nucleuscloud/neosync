@@ -257,10 +257,16 @@ func Test_Sync_Run_Output_Error(t *testing.T) {
 	testSuite := &testsuite.WorkflowTestSuite{}
 	env := testSuite.NewTestActivityEnvironment()
 
-	benthosStreamManager := NewBenthosStreamManager()
-	activity := New(nil, &sync.Map{}, nil, nil, benthosStreamManager)
+	mockBenthosStreamManager := NewMockBenthosStreamManagerClient(t)
+	mockBenthosStream := NewMockBenthosStreamClient(t)
+	activity := New(nil, &sync.Map{}, nil, nil, mockBenthosStreamManager)
 
 	env.RegisterActivity(activity.Sync)
+
+	mockBenthosStreamManager.On("NewBenthosStreamFromBuilder", mock.Anything).Return(mockBenthosStream, nil)
+	errmsg := "duplicate key value violates unique constraint"
+	mockBenthosStream.On("Run", mock.Anything).Return(errors.New(errmsg))
+	mockBenthosStream.On("StopWithin", mock.Anything).Return(nil).Maybe()
 
 	_, err := env.ExecuteActivity(activity.Sync, &SyncRequest{
 		BenthosConfig: strings.TrimSpace(`
