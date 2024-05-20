@@ -1,0 +1,34 @@
+on:
+  pull_request:
+    paths:
+      - backend/protos/**
+      - backend/BUF_VERSION
+      - backend/buf.gen.yaml
+      - backend/buf.work.yaml
+
+name: Buf
+jobs:
+  buf:
+    name: buf-lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Retrieve Buf Version
+        run: |
+          VER=$(cat BUF_VERSION)
+          echo "BUF_VERSION=$VER" >> $GITHUB_ENV
+
+      - name: Setup Buf
+        uses: bufbuild/buf-setup-action@v1.31.0
+        with:
+          version: ${{ env.BUF_VERSION }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Buf Lint
+        uses: bufbuild/buf-lint-action@v1
+        with:
+          input: backend
