@@ -30,6 +30,7 @@ func IsCriticalError(errMsg string) bool {
 		"Duplicate entry",
 		"Cannot add or update a child row",
 		"a foreign key constraint fails",
+		"could not identify an equality operator",
 	}
 
 	for _, errStr := range criticalErrors {
