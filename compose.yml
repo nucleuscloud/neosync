@@ -9,7 +9,7 @@ include:
 services:
   app:
     container_name: neosync-app
-    image: ghcr.io/nucleuscloud/neosync/app:main
+    image: ghcr.io/nucleuscloud/neosync/app:latest
     ports:
       - 3000:3000
     environment:
@@ -49,7 +49,7 @@ services:
 
   api:
     container_name: neosync-api
-    image: ghcr.io/nucleuscloud/neosync/api:main
+    image: ghcr.io/nucleuscloud/neosync/api:latest
     ports:
       - 8080:8080
     command: serve connect
@@ -94,7 +94,7 @@ services:
 
   worker:
     container_name: neosync-worker
-    image: ghcr.io/nucleuscloud/neosync/worker:main
+    image: ghcr.io/nucleuscloud/neosync/worker:latest
     environment:
       - NUCLEUS_ENV=dev
       - TEMPORAL_URL=temporal:7233
