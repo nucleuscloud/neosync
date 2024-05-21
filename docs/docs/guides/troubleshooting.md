@@ -38,3 +38,21 @@ You can resolve this by disabling the "Truncate" option in the Source Options, a
 If you have views with triggers that refresh said views on inserts you may see this error when attempting to create records in the table that the view is based on.
 
 The easiest way to resolve this, is to disable and/or remove the triggers on the view, and re-enable them after the job has completed.
+
+### Networking issues with Docker
+
+Some Linux environments have issues with Docker Networking, which may cause problems with Neosync communications.
+There have been reports of this on Ubuntu and GCP.
+
+This can possibly be fixed by updating the docker networks to use the correct MTU size.
+Be sure to update all of the networks within the compose. Example below:
+
+```yml
+networks:
+  neosync-network:
+    name: neosync-network
+    driver_opts:
+      com.docker.network.driver.mtu: 1460
+```
+
+This topic is further discussed [here](https://www.civo.com/learn/fixing-networking-for-docker) and [here](https://stackoverflow.com/questions/73101754/docker-change-mtu-on-the-fly).
