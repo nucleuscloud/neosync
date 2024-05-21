@@ -181,11 +181,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 		// reverse of table dependency
 		// map of foreign key to source table + column
-		fkReferenceMap, err := db.Db.GetForeignKeyReferencesMap(ctx, uniqueSchemas)
-		if err != nil {
-			return nil, fmt.Errorf("unable to retrieve database foreign key constraints: %w", err)
-		}
-		tableQueryMap, err := buildSelectQueryMap(db.Driver, groupedTableMapping, sourceTableOpts, fkReferenceMap, runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedSchemas)
+		tableQueryMap, err := buildSelectQueryMap(db.Driver, groupedTableMapping, sourceTableOpts, tableDependencyMap, runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedSchemas)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build select queries: %w", err)
 		}

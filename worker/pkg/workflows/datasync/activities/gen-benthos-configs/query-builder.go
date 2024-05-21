@@ -223,7 +223,7 @@ func buildSelectQueryMap(
 	driver string,
 	groupedMappings map[string]*tableMapping,
 	sourceTableOpts map[string]*sqlSourceTableOptions,
-	tableDependencies map[string][]*sql_manager.ColumnConstraint,
+	tableDependencies map[string][]*sql_manager.ForeignConstraint,
 	dependencyConfigs []*tabledependency.RunConfig,
 	subsetByForeignKeyConstraints bool,
 	groupedColumnInfo map[string]map[string]*sql_manager.ColumnInfo,
@@ -399,7 +399,7 @@ type subsetQueryConfig struct {
 	SelfReferencingCircularDependency []*selfReferencingCircularDependency
 }
 
-func buildTableSubsetQueryConfigs(driver string, tableConstraints map[string][]*sql_manager.ColumnConstraint, whereClauses map[string]string, runConfigMap map[string][]*tabledependency.RunConfig) (map[string]*subsetQueryConfig, error) {
+func buildTableSubsetQueryConfigs(driver string, tableConstraints map[string][]*sql_manager.ForeignConstraint, whereClauses map[string]string, runConfigMap map[string][]*tabledependency.RunConfig) (map[string]*subsetQueryConfig, error) {
 	configs := map[string]*subsetQueryConfig{}
 
 	filteredConstraints := filterForeignKeysWithSubset(runConfigMap, tableConstraints, whereClauses)
@@ -427,7 +427,7 @@ type subsetConstraints struct {
 	WhereClauses      map[string]string
 }
 
-func buildAliasReferences(driver string, constraints map[string][]*sql_manager.ColumnConstraint, whereClauses map[string]string) (*subsetConstraints, error) {
+func buildAliasReferences(driver string, constraints map[string][]*sql_manager.ForeignConstraint, whereClauses map[string]string) (*subsetConstraints, error) {
 	updatedConstraints := map[string][]*SubsetColumnConstraint{}
 	aliasReference := map[string]string{} // alias name to table name
 	updatedWheres := map[string]string{}
@@ -457,7 +457,7 @@ func buildAliasReferences(driver string, constraints map[string][]*sql_manager.C
 // creates alias table reference if there is a double reference
 func processAliasConstraints(
 	table string,
-	colDefs []*sql_manager.ColumnConstraint,
+	colDefs []*sql_manager.ForeignConstraint,
 	updatedConstraints map[string][]*SubsetColumnConstraint,
 	aliasReference map[string]string,
 	// seenTables map[string]struct{},
@@ -555,7 +555,7 @@ func updateAliasReferences(
 }
 
 // check if table or any parent table has a where clause
-func shouldSubsetTable(table string, data map[string][]*sql_manager.ColumnConstraint, whereClauses map[string]string, visited map[string]bool) bool {
+func shouldSubsetTable(table string, data map[string][]*sql_manager.ForeignConstraint, whereClauses map[string]string, visited map[string]bool) bool {
 	if _, exists := whereClauses[table]; exists {
 		return true
 	}
@@ -577,16 +577,16 @@ func shouldSubsetTable(table string, data map[string][]*sql_manager.ColumnConstr
 }
 
 // filters out any foreign keys that are not involved in the subset (where clauses) and tables not in the map
-func filterForeignKeysWithSubset(runConfigMap map[string][]*tabledependency.RunConfig, constraints map[string][]*sql_manager.ColumnConstraint, whereClauses map[string]string) map[string][]*sql_manager.ColumnConstraint {
+func filterForeignKeysWithSubset(runConfigMap map[string][]*tabledependency.RunConfig, constraints map[string][]*sql_manager.ForeignConstraint, whereClauses map[string]string) map[string][]*sql_manager.ForeignConstraint {
 	tableSubsetMap := map[string]bool{} // map of which tables to subset
 	for table := range runConfigMap {
 		visited := map[string]bool{}
 		tableSubsetMap[table] = shouldSubsetTable(table, constraints, whereClauses, visited)
 	}
 
-	filteredConstraints := map[string][]*sql_manager.ColumnConstraint{}
+	filteredConstraints := map[string][]*sql_manager.ForeignConstraint{}
 	for table, configs := range runConfigMap {
-		filteredConstraints[table] = []*sql_manager.ColumnConstraint{}
+		filteredConstraints[table] = []*sql_manager.ForeignConstraint{}
 		for _, c := range configs {
 			if c.RunType == tabledependency.RunTypeInsert {
 				if tableConstraints, ok := constraints[table]; ok {
@@ -703,7 +703,7 @@ type selfReferencingCircularDependency struct {
 	ForeignKeyColumns [][]string
 }
 
-func getSelfReferencingColumns(table string, constraints []*sql_manager.ColumnConstraint) []*selfReferencingCircularDependency {
+func getSelfReferencingColumns(table string, constraints []*sql_manager.ForeignConstraint) []*selfReferencingCircularDependency {
 	result := []*selfReferencingCircularDependency{}
 	resultMap := map[string]*selfReferencingCircularDependency{}
 

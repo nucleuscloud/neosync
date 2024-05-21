@@ -287,7 +287,7 @@ func Test_buildSelectQueryMap(t *testing.T) {
 		subsetByForeignKeyConstraints bool
 		mappings                      map[string]*tableMapping
 		sourceTableOpts               map[string]*sqlSourceTableOptions
-		tableDependencies             map[string][]*sql_manager.ColumnConstraint
+		tableDependencies             map[string][]*sql_manager.ForeignConstraint
 		dependencyConfigs             []*tabledependency.RunConfig
 		expected                      map[string]string
 	}{
@@ -342,7 +342,7 @@ func Test_buildSelectQueryMap(t *testing.T) {
 				},
 			},
 			sourceTableOpts:   map[string]*sqlSourceTableOptions{},
-			tableDependencies: map[string][]*sql_manager.ColumnConstraint{},
+			tableDependencies: map[string][]*sql_manager.ForeignConstraint{},
 			dependencyConfigs: []*tabledependency.RunConfig{
 				{Table: "public.users", DependsOn: []*tabledependency.DependsOn{}},
 				{Table: "public.accounts", DependsOn: []*tabledependency.DependsOn{}},
@@ -407,7 +407,7 @@ func Test_buildSelectQueryMap(t *testing.T) {
 					WhereClause: &whereId,
 				},
 			},
-			tableDependencies: map[string][]*sql_manager.ColumnConstraint{},
+			tableDependencies: map[string][]*sql_manager.ForeignConstraint{},
 			dependencyConfigs: []*tabledependency.RunConfig{
 				{Table: "public.users", DependsOn: []*tabledependency.DependsOn{}},
 				{Table: "public.accounts", DependsOn: []*tabledependency.DependsOn{}},
@@ -525,15 +525,15 @@ func Test_buildSelectQueryMap_SubsetsForeignKeys(t *testing.T) {
 		"public.b": {WhereClause: &bWhere},
 		"public.c": {WhereClause: &cWhere},
 	}
-	tableDependencies := map[string][]*sql_manager.ColumnConstraint{
+	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.b": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 		},
 		"public.c": {
-			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.b", Columns: []string{"id"}}},
+			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 		},
 		"public.d": {
-			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.c", Columns: []string{"id"}}},
+			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -614,9 +614,9 @@ func Test_buildSelectQueryMap_SubsetsCompositeForeignKeys(t *testing.T) {
 	sourceTableOpts := map[string]*sqlSourceTableOptions{
 		"public.a": {WhereClause: &aWhere},
 	}
-	tableDependencies := map[string][]*sql_manager.ColumnConstraint{
+	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.b": {
-			{Columns: []string{"a_id", "a_name"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.a", Columns: []string{"id", "name"}}},
+			{Columns: []string{"a_id", "a_name"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id", "name"}}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -731,15 +731,15 @@ func Test_buildSelectQueryMap_SubsetsOffForeignKeys(t *testing.T) {
 		"public.b": {WhereClause: &bWhere},
 		"public.c": {WhereClause: &cWhere},
 	}
-	tableDependencies := map[string][]*sql_manager.ColumnConstraint{
+	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.b": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 		},
 		"public.c": {
-			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.b", Columns: []string{"id"}}},
+			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 		},
 		"public.d": {
-			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.c", Columns: []string{"id"}}},
+			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -843,15 +843,15 @@ func Test_buildSelectQueryMap_CircularDependency(t *testing.T) {
 			WhereClause: &whereName,
 		},
 	}
-	tableDependencies := map[string][]*sql_manager.ColumnConstraint{
+	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.b": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"a_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 		},
 		"public.c": {
-			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.b", Columns: []string{"id"}}},
+			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 		},
 		"public.a": {
-			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.c", Columns: []string{"id"}}},
+			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -968,18 +968,18 @@ func Test_buildSelectQueryMap_circularDependency_additional_table(t *testing.T) 
 			WhereClause: &whereName,
 		},
 	}
-	tableDependencies := map[string][]*sql_manager.ColumnConstraint{
+	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.addresses": {
-			{Columns: []string{"order_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.orders", Columns: []string{"id"}}},
+			{Columns: []string{"order_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.orders", Columns: []string{"id"}}},
 		},
 		"public.customers": {
-			{Columns: []string{"address_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.addresses", Columns: []string{"id"}}},
+			{Columns: []string{"address_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.addresses", Columns: []string{"id"}}},
 		},
 		"public.orders": {
-			{Columns: []string{"customer_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.customers", Columns: []string{"id"}}},
+			{Columns: []string{"customer_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.customers", Columns: []string{"id"}}},
 		},
 		"public.payments": {
-			{Columns: []string{"customer_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.customers", Columns: []string{"id"}}},
+			{Columns: []string{"customer_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.customers", Columns: []string{"id"}}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -1141,18 +1141,18 @@ func Test_buildSelectQueryMap_MultiplSubsets(t *testing.T) {
 			WhereClause: &whereId,
 		},
 	}
-	tableDependencies := map[string][]*sql_manager.ColumnConstraint{
+	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.b": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 		},
 		"public.c": {
-			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.b", Columns: []string{"id"}}},
+			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 		},
 		"public.e": {
-			{Columns: []string{"d_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.d", Columns: []string{"id"}}},
+			{Columns: []string{"d_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.d", Columns: []string{"id"}}},
 		},
 		"public.f": {
-			{Columns: []string{"e_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.e", Columns: []string{"id"}}},
+			{Columns: []string{"e_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.e", Columns: []string{"id"}}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -1289,16 +1289,16 @@ func Test_buildSelectQueryMap_MultipleRootss(t *testing.T) {
 			WhereClause: &whereId,
 		},
 	}
-	tableDependencies := map[string][]*sql_manager.ColumnConstraint{
+	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.c": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.a", Columns: []string{"id"}}},
-			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.b", Columns: []string{"id"}}},
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 		},
 		"public.d": {
-			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.c", Columns: []string{"id"}}},
+			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
 		},
 		"public.e": {
-			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.c", Columns: []string{"id"}}},
+			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -1459,19 +1459,19 @@ func Test_buildSelectQueryMap_MultipleRootsAndWheres(t *testing.T) {
 			WhereClause: &whereId2,
 		},
 	}
-	tableDependencies := map[string][]*sql_manager.ColumnConstraint{
+	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.c": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.a", Columns: []string{"id"}}},
-			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.b", Columns: []string{"id"}}},
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 		},
 		"public.d": {
-			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.c", Columns: []string{"id"}}},
+			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
 		},
 		"public.e": {
-			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.c", Columns: []string{"id"}}},
+			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
 		},
 		"public.a": {
-			{Columns: []string{"x_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.x", Columns: []string{"id"}}},
+			{Columns: []string{"x_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.x", Columns: []string{"id"}}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -1557,13 +1557,13 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyRoot(t *testing.T) {
 			WhereClause: &whereId,
 		},
 	}
-	tableDependencies := map[string][]*sql_manager.ColumnConstraint{
+	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.a": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.a", Columns: []string{"id"}}},
-			{Columns: []string{"a_a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"a_a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 		},
 		"public.b": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -1656,13 +1656,13 @@ func Test_buildSelectQueryMap_DoubleReference(t *testing.T) {
 			WhereClause: &whereId,
 		},
 	}
-	tableDependencies := map[string][]*sql_manager.ColumnConstraint{
+	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.department": {
-			{Columns: []string{"company_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.company", Columns: []string{"id"}}},
+			{Columns: []string{"company_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.company", Columns: []string{"id"}}},
 		},
 		"public.expense_report": {
-			{Columns: []string{"department_source_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.department", Columns: []string{"id"}}},
-			{Columns: []string{"department_destination_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.department", Columns: []string{"id"}}},
+			{Columns: []string{"department_source_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.department", Columns: []string{"id"}}},
+			{Columns: []string{"department_destination_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.department", Columns: []string{"id"}}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -1786,17 +1786,17 @@ func Test_buildSelectQueryMap_DoubleReference_Cycle(t *testing.T) {
 			WhereClause: &whereId,
 		},
 	}
-	tableDependencies := map[string][]*sql_manager.ColumnConstraint{
+	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.department": {
-			{Columns: []string{"company_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.company", Columns: []string{"id"}}},
+			{Columns: []string{"company_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.company", Columns: []string{"id"}}},
 		},
 		"public.transaction": {
-			{Columns: []string{"department_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.department", Columns: []string{"id"}}},
+			{Columns: []string{"department_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.department", Columns: []string{"id"}}},
 		},
 		"public.expense_report": {
-			{Columns: []string{"department_source_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.department", Columns: []string{"id"}}},
-			{Columns: []string{"department_destination_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.department", Columns: []string{"id"}}},
-			{Columns: []string{"transaction_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.transaction", Columns: []string{"id"}}},
+			{Columns: []string{"department_source_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.department", Columns: []string{"id"}}},
+			{Columns: []string{"department_destination_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.department", Columns: []string{"id"}}},
+			{Columns: []string{"transaction_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.transaction", Columns: []string{"id"}}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -1878,13 +1878,13 @@ func Test_buildSelectQueryMap_doubleCircularDependencyRoot_mysql(t *testing.T) {
 			WhereClause: &whereId,
 		},
 	}
-	tableDependencies := map[string][]*sql_manager.ColumnConstraint{
+	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.a": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.a", Columns: []string{"id"}}},
-			{Columns: []string{"a_a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"a_a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 		},
 		"public.b": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -1963,11 +1963,11 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyChild(t *testing.T) {
 			WhereClause: &whereId,
 		},
 	}
-	tableDependencies := map[string][]*sql_manager.ColumnConstraint{
+	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.a": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.a", Columns: []string{"id"}}},
-			{Columns: []string{"a_a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.a", Columns: []string{"id"}}},
-			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.b", Columns: []string{"id"}}},
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"a_a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -2094,16 +2094,16 @@ func Test_buildSelectQueryMap_shouldContinue(t *testing.T) {
 	sourceTableOpts := map[string]*sqlSourceTableOptions{
 		"public.a": {WhereClause: &aWhere},
 	}
-	tableDependencies := map[string][]*sql_manager.ColumnConstraint{
+	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.b": {
-			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.a", Columns: []string{"id"}}},
-			{Columns: []string{"d_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.d", Columns: []string{"id"}}},
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+			{Columns: []string{"d_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.d", Columns: []string{"id"}}},
 		},
 		"public.d": {
-			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.c", Columns: []string{"id"}}},
+			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
 		},
 		"public.e": {
-			{Columns: []string{"d_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ReferenceKey{Table: "public.d", Columns: []string{"id"}}},
+			{Columns: []string{"d_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.d", Columns: []string{"id"}}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
@@ -2161,19 +2161,19 @@ func Test_filterForeignKeysWithSubset_partialtables(t *testing.T) {
 		},
 	}
 
-	constraints := map[string][]*sql_manager.ColumnConstraint{
+	constraints := map[string][]*sql_manager.ForeignConstraint{
 		"circle.addresses": {
 			{
 				Columns:     []string{"order_id"},
 				NotNullable: []bool{false},
-				ForeignKey:  &sql_manager.ReferenceKey{Table: "circle.orders", Columns: []string{"id"}},
+				ForeignKey:  &sql_manager.ForeignKey{Table: "circle.orders", Columns: []string{"id"}},
 			},
 		},
 		"circle.customers": {
 			{
 				Columns:     []string{"address_id"},
 				NotNullable: []bool{false},
-				ForeignKey:  &sql_manager.ReferenceKey{Table: "circle.addresses", Columns: []string{"id"}},
+				ForeignKey:  &sql_manager.ForeignKey{Table: "circle.addresses", Columns: []string{"id"}},
 			},
 		},
 	}
@@ -2182,13 +2182,13 @@ func Test_filterForeignKeysWithSubset_partialtables(t *testing.T) {
 		"circle.addresses": "id = '36f594af-6d53-4a48-a9b7-b889e2df349e'",
 	}
 
-	expected := map[string][]*sql_manager.ColumnConstraint{
+	expected := map[string][]*sql_manager.ForeignConstraint{
 		"circle.addresses": {},
 		"circle.customers": {
 			{
 				Columns:     []string{"address_id"},
 				NotNullable: []bool{false},
-				ForeignKey:  &sql_manager.ReferenceKey{Table: "circle.addresses", Columns: []string{"id"}},
+				ForeignKey:  &sql_manager.ForeignKey{Table: "circle.addresses", Columns: []string{"id"}},
 			},
 		},
 	}
