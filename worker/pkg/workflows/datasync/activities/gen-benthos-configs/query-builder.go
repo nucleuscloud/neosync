@@ -343,6 +343,14 @@ func buildSubsetJoins(table string, data map[string][]*SubsetColumnConstraint, w
 	joins := []*sqlJoin{}
 	wheres := []string{}
 
+	if seen := visited[table]; seen {
+		return &tableSubset{
+			Joins:        joins,
+			WhereClauses: wheres,
+		}
+	}
+	visited[table] = true
+
 	if condition, exists := whereClauses[table]; exists {
 		wheres = append(wheres, condition)
 	}
@@ -352,28 +360,27 @@ func buildSubsetJoins(table string, data map[string][]*SubsetColumnConstraint, w
 			if col.ForeignKey.Table == "" && col.ForeignKey.Columns == nil {
 				continue
 			}
-			// handle aliased table
-			var alias *string
-			joinTable := col.ForeignKey.Table
-			if col.ForeignKey.OriginalTable != nil && *col.ForeignKey.OriginalTable != "" {
-				alias = &col.ForeignKey.Table
-				joinTable = *col.ForeignKey.OriginalTable
-			}
-
-			joinColMap := map[string]string{}
-			for idx, c := range col.ForeignKey.Columns {
-				joinColMap[c] = col.Columns[idx]
-			}
-			joins = append(joins, &sqlJoin{
-				JoinType:       innerJoin,
-				JoinTable:      joinTable,
-				BaseTable:      table,
-				Alias:          alias,
-				JoinColumnsMap: joinColMap,
-			})
-
 			if !visited[col.ForeignKey.Table] {
-				visited[col.ForeignKey.Table] = true
+				// handle aliased table
+				var alias *string
+				joinTable := col.ForeignKey.Table
+				if col.ForeignKey.OriginalTable != nil && *col.ForeignKey.OriginalTable != "" {
+					alias = &col.ForeignKey.Table
+					joinTable = *col.ForeignKey.OriginalTable
+				}
+
+				joinColMap := map[string]string{}
+				for idx, c := range col.ForeignKey.Columns {
+					joinColMap[c] = col.Columns[idx]
+				}
+				joins = append(joins, &sqlJoin{
+					JoinType:       innerJoin,
+					JoinTable:      joinTable,
+					BaseTable:      table,
+					Alias:          alias,
+					JoinColumnsMap: joinColMap,
+				})
+
 				sub := buildSubsetJoins(col.ForeignKey.Table, data, whereClauses, visited)
 				joins = append(joins, sub.Joins...)
 				wheres = append(wheres, sub.WhereClauses...)
@@ -581,7 +588,7 @@ func filterForeignKeysWithSubset(runConfigMap map[string][]*tabledependency.RunC
 	for table, configs := range runConfigMap {
 		filteredConstraints[table] = []*sql_manager.ColumnConstraint{}
 		for _, c := range configs {
-			if c.RunType == tabledependency.RunTypeInsert && len(c.DependsOn) > 0 {
+			if c.RunType == tabledependency.RunTypeInsert {
 				if tableConstraints, ok := constraints[table]; ok {
 					for _, colDef := range tableConstraints {
 						if exists := tableSubsetMap[colDef.ForeignKey.Table]; exists {

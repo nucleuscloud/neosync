@@ -31,6 +31,7 @@ func IsCriticalError(errMsg string) bool {
 		"Cannot add or update a child row",
 		"a foreign key constraint fails",
 		"could not identify an equality operator",
+		"violates not-null constraint",
 	}
 
 	for _, errStr := range criticalErrors {
