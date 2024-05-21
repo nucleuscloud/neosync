@@ -115,7 +115,13 @@
     "unauth",
     "kwpz",
     "birthdates",
-    "axxxxfgh"
+    "axxxxfgh",
+    "cust",
+    "openaiconn",
+    "llmcon",
+    "llmschema",
+    "llmprompt",
+    "llmdata"
   ],
   "flagWords": ["hte"],
   "files": ["content/**/*.md*"],
