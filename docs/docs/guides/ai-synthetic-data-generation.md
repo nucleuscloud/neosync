@@ -7,8 +7,6 @@ slug: /guides/ai-synthetic-data-generation
 
 # Intro
 
-We recently published a blog on how to use [Neosync and Open AI to generate synthetic data](/blog/neosync-llm-integration) at the row level. That was just v0 of our AI features. We're excited to launch v1 of using LLMs to generate synthetic data on Neosync!
-
 Now you can use any model that is hosted on an endpoint to be able to generate synthetic data.
 
 Let's go through a walk-through.
