@@ -7,11 +7,11 @@ managed:
       - buf.build/bufbuild/protovalidate
       - buf.build/googleapis/googleapis
 plugins:
-  - plugin: buf.build/protocolbuffers/go:v1.33.0
+  - plugin: buf.build/protocolbuffers/go:v1.34.1
     out: gen/go/protos
     opt:
       - paths=source_relative
-  - plugin: buf.build/connectrpc/go:v1.15.0
+  - plugin: buf.build/connectrpc/go:v1.16.2
     out: gen/go/protos
     opt:
       - paths=source_relative
@@ -20,7 +20,7 @@ plugins:
     opt:
       - paths=source_relative
 
-  - plugin: buf.build/bufbuild/es:v1.8.0
+  - plugin: buf.build/bufbuild/es:v1.9.0
     out: gen/es/protos
     opt:
       - target=ts
