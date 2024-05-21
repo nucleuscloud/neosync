@@ -10,7 +10,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatDate(input: string | number): string {
   const date = new Date(input);
-  return format(utcToZonedTime(date, 'UTC'), 'MMMM do, yyyyy');
+  return format(utcToZonedTime(date, 'UTC'), 'MMMM do, yyyy');
 }
 
 export function absoluteUrl(path: string) {
