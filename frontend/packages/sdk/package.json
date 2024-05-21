@@ -36,8 +36,8 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "@bufbuild/protobuf": "^1.8.0",
-    "@connectrpc/connect": "^1.1.4"
+    "@bufbuild/protobuf": "^1.9.0",
+    "@connectrpc/connect": "^1.4.0"
   },
   "repository": {
     "type": "git",
