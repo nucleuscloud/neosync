@@ -1,5 +1,4 @@
 <p align="center">
-  <!-- <img alt="neosyncbanner" src="https://assets.nucleuscloud.com/neosync/docs/readme_header_new_logo.png"> -->
   <img alt="neosyncbanner" src="https://assets.nucleuscloud.com/neosync/docs/neosync-main-header-animated.svg" >
 </p>
 
@@ -8,27 +7,28 @@ Open Source Synthetic Data Orchestration
 <p>
 
 <div align='center'>
- | <a href="https://www.neosync.dev">Website</a> |
- <a href="https://docs.neosync.dev">Docs</a> |
-   <a href="https://discord.com/invite/MFAMgnp4HF">Discord</a> |
- <a href="https://www.neosync.dev/blog">Blog</a> |
- <a href="https://docs.neosync.dev/changelog">Changelog</a> |
- </div>
+ | <a href="https://www.neosync.dev">Website</a>
+ | <a href="https://docs.neosync.dev">Docs</a>
+ | <a href="https://discord.com/invite/MFAMgnp4HF">Discord</a>
+ | <a href="https://www.neosync.dev/blog">Blog</a>
+ | <a href="https://docs.neosync.dev/changelog">Changelog</a>
+ |
+</div>
 
  <br>
 
 <div align="center">
-  <a href='http://makeapullrequest.com'>
+  <a href='https://makeapullrequest.com'>
     <img alt='PRs Welcome' src='https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=shields'/>
   </a>
   <img src="https://img.shields.io/github/license/lightdash/lightdash" />
   <!-- <a href="https://codecov.io/gh/nucleuscloud/neosync">
     <img alt="CodeCov" src="https://codecov.io/gh/nucleuscloud/neosync/graph/badge.svg?token=A35QDLRU04"/>
     </a> -->
-     <a href="https://github.com/nucleuscloud/neosync/actions/workflows/main-tests.yml/">
-    <img alt="main tests" src="https://github.com/nucleuscloud/neosync/actions/workflows/main-tests.yml/badge.svg"/>
-    </a>
-      <a href="https://x.com/neosynccloud">
+  <a href="https://github.com/nucleuscloud/neosync/actions/workflows/go.yml/">
+    <img alt="Go Tests" src="https://github.com/nucleuscloud/neosync/actions/workflows/go.yml/badge.svg"/>
+  </a>
+  <a href="https://x.com/neosynccloud">
     <img alt="Follow X" src="https://img.shields.io/twitter/follow/neosynccloud?label=Follow"/>
   </a>
 </div>
@@ -61,7 +61,7 @@ Companies use Neosync to:
 
 Neosync is a fully dockerized setup which makes it easy to get up and running.
 
-We provide a `compose.yml` file that contains production image references that allow you to get up and running with just a few commands without having to build anything on your system.
+A [compose.yml](./compose.yml) file at the root contains production image refs that allow you to get up and running with just a few commands without having to build anything on your system.
 
 Neosync uses the newer `docker compose` command, so be sure to have that installed on your machine.
 
@@ -79,7 +79,7 @@ make compose-down
 
 Neosync will now be available on [http://localhost:3000](http://localhost:3000).
 
-Neosync is also pre-seeded with connections and jobs to get you started! Simply run the generate and sync job to watch Neosync in action!
+The production compose pre-seeds with connections and jobs to get you started! Simply run the generate and sync job to watch Neosync in action!
 
 ## Kubernetes, Auth Mode and more
 
