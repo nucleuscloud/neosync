@@ -35,32 +35,9 @@ const sidebars: SidebarsConfig = {
       label: 'Platform',
     },
     {
-      type: 'category',
+      type: 'doc',
+      id: 'overview/usecases',
       label: 'Use cases',
-      collapsible: true,
-      collapsed: true,
-      items: [
-        {
-          type: 'doc',
-          id: 'overview/use-cases/anonymization',
-          label: 'Anonymize Data',
-        },
-        {
-          type: 'doc',
-          id: 'overview/use-cases/synthetic-data',
-          label: 'Synthetic Data',
-        },
-        {
-          type: 'doc',
-          id: 'overview/use-cases/subsetting',
-          label: 'Subset Data',
-        },
-        {
-          type: 'doc',
-          id: 'overview/use-cases/replication',
-          label: 'Replicate Data',
-        },
-      ],
     },
     {
       type: 'doc',
