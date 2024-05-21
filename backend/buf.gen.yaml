@@ -1,36 +1,34 @@
-version: v1
+version: v2
 managed:
   enabled: true
-  go_package_prefix:
-    default: github.com/nucleuscloud/neosync/backend/gen/go/protos
-    except:
-      - buf.build/bufbuild/protovalidate
-      - buf.build/googleapis/googleapis
+  disable:
+    - file_option: go_package
+      module: buf.build/bufbuild/protovalidate
+    - file_option: go_package
+      module: buf.build/googleapis/googleapis
+  override:
+    - file_option: go_package_prefix
+      value: github.com/nucleuscloud/neosync/backend/gen/go/protos
 plugins:
-  - plugin: buf.build/protocolbuffers/go:v1.33.0
+  - remote: buf.build/protocolbuffers/go:v1.34.1
     out: gen/go/protos
-    opt:
-      - paths=source_relative
-  - plugin: buf.build/connectrpc/go:v1.15.0
+    opt: paths=source_relative
+  - remote: buf.build/connectrpc/go:v1.16.2
     out: gen/go/protos
-    opt:
-      - paths=source_relative
-  - plugin: buf.build/bufbuild/validate-go:v1.0.4
+    opt: paths=source_relative
+  - remote: buf.build/bufbuild/validate-go:v1.0.4
     out: gen/go/protos
-    opt:
-      - paths=source_relative
-
-  - plugin: buf.build/bufbuild/es:v1.8.0
+    opt: paths=source_relative
+  - remote: buf.build/bufbuild/es:v1.9.0
     out: gen/es/protos
     opt:
       - target=ts
       - import_extension=.js
-  - plugin: buf.build/connectrpc/es:v1.4.0
+  - remote: buf.build/connectrpc/es:v1.4.0
     out: gen/es/protos
     opt:
       - target=ts
       - import_extension=.js
-
-  - plugin: buf.build/community/pseudomuto-doc:v1.5.1
+  - remote: buf.build/community/pseudomuto-doc:v1.5.1
     out: gen/docs
     opt: json,proto_docs.json

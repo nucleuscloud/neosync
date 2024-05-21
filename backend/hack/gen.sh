@@ -24,7 +24,8 @@ docker run --rm -i \
 # buf generate
 docker run --rm -i \
   --volume "./gen:/workspace/gen" \
-  --volume "./buf.work.yaml:/workspace/buf.work.yaml" \
+  --volume "./buf.yaml:/workspace/buf.yaml" \
+  --volume "./buf.lock:/workspace/buf.lock" \
   --volume "./buf.gen.yaml:/workspace/buf.gen.yaml" \
   --volume "./protos:/workspace/protos" \
   --workdir "/workspace" \
