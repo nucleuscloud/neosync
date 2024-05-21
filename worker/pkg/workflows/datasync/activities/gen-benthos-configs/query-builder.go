@@ -126,6 +126,7 @@ func buildSelectJoinQuery(
 func buildSelectRecursiveQuery(
 	driver, schema, table string,
 	columns []string,
+	columnInfoMap map[string]*sql_manager.ColumnInfo,
 	dependencies []*selfReferencingCircularDependency,
 	joins []*sqlJoin,
 	whereClauses []string,
@@ -148,7 +149,12 @@ func buildSelectRecursiveQuery(
 
 	selectColumns := make([]any, len(columns))
 	for i, col := range columns {
-		selectColumns[i] = buildSqlIdentifier(schema, table, col)
+		colInfo := columnInfoMap[col]
+		if driver == sql_manager.PostgresDriver && colInfo != nil && colInfo.DataType == "json" {
+			selectColumns[i] = goqu.L("to_jsonb(?)", goqu.I(buildSqlIdentifier(schema, table, col))).As(col)
+		} else {
+			selectColumns[i] = buildSqlIdentifier(schema, table, col)
+		}
 	}
 	selectQuery := builder.From(sqltable).Select(selectColumns...)
 
@@ -220,6 +226,7 @@ func buildSelectQueryMap(
 	tableDependencies map[string][]*sql_manager.ColumnConstraint,
 	dependencyConfigs []*tabledependency.RunConfig,
 	subsetByForeignKeyConstraints bool,
+	groupedColumnInfo map[string]map[string]*sql_manager.ColumnInfo,
 ) (map[string]string, error) {
 	// map of table -> where clause
 	tableWhereMap := map[string]string{}
@@ -262,6 +269,7 @@ func buildSelectQueryMap(
 	for table := range dependencyMap {
 		tableMapping := groupedMappings[table]
 		config := subsetConfigs[table]
+		columnInfoMap := groupedColumnInfo[table]
 
 		selectCols := []string{}
 		for _, m := range tableMapping.Mappings {
@@ -273,6 +281,7 @@ func buildSelectQueryMap(
 				tableMapping.Schema,
 				tableMapping.Table,
 				buildPlainColumns(tableMapping.Mappings),
+				columnInfoMap,
 				config.SelfReferencingCircularDependency,
 				config.Joins,
 				config.WhereClauses,

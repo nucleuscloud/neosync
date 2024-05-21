@@ -172,6 +172,7 @@ func Test_buildSelectRecursiveQuery(t *testing.T) {
 		schema        string
 		table         string
 		columns       []string
+		columnInfoMap map[string]*sql_manager.ColumnInfo
 		joins         []*sqlJoin
 		whereClauses  []string
 		dependencies  []*selfReferencingCircularDependency
@@ -179,24 +180,54 @@ func Test_buildSelectRecursiveQuery(t *testing.T) {
 		expected      string
 	}{
 		{
-			name:         "one foreign key no joins",
-			driver:       "postgres",
-			schema:       "public",
-			table:        "employees",
-			columns:      []string{"employee_id", "name", "manager_id"},
-			joins:        []*sqlJoin{},
-			whereClauses: []string{`"public"."employees"."name" = 'alisha'`},
+			name:          "one foreign key no joins",
+			driver:        "postgres",
+			schema:        "public",
+			table:         "employees",
+			columns:       []string{"employee_id", "name", "manager_id"},
+			columnInfoMap: map[string]*sql_manager.ColumnInfo{},
+			joins:         []*sqlJoin{},
+			whereClauses:  []string{`"public"."employees"."name" = 'alisha'`},
 			dependencies: []*selfReferencingCircularDependency{
 				{PrimaryKeyColumns: []string{"employee_id"}, ForeignKeyColumns: [][]string{{"manager_id"}}},
 			},
 			expected: `WITH RECURSIVE related AS (SELECT "public"."employees"."employee_id", "public"."employees"."name", "public"."employees"."manager_id" FROM "public"."employees" WHERE "public"."employees"."name" = 'alisha' UNION (SELECT "public"."employees"."employee_id", "public"."employees"."name", "public"."employees"."manager_id" FROM "public"."employees" INNER JOIN "related" ON ("public"."employees"."employee_id" = "related"."manager_id"))) SELECT DISTINCT "employee_id", "name", "manager_id" FROM "related";`,
 		},
 		{
-			name:    "multiple foreign keys and joins",
-			driver:  "postgres",
-			schema:  "public",
-			table:   "employees",
-			columns: []string{"employee_id", "name", "manager_id", "department_id", "big_boss_id"},
+			name:          "json field",
+			driver:        "postgres",
+			schema:        "public",
+			table:         "employees",
+			columns:       []string{"employee_id", "name", "manager_id", "additional_info"},
+			columnInfoMap: map[string]*sql_manager.ColumnInfo{"additional_info": {DataType: "json"}},
+			joins:         []*sqlJoin{},
+			whereClauses:  []string{`"public"."employees"."name" = 'alisha'`},
+			dependencies: []*selfReferencingCircularDependency{
+				{PrimaryKeyColumns: []string{"employee_id"}, ForeignKeyColumns: [][]string{{"manager_id"}}},
+			},
+			expected: `WITH RECURSIVE related AS (SELECT "public"."employees"."employee_id", "public"."employees"."name", "public"."employees"."manager_id", to_jsonb("public"."employees"."additional_info") AS "additional_info" FROM "public"."employees" WHERE "public"."employees"."name" = 'alisha' UNION (SELECT "public"."employees"."employee_id", "public"."employees"."name", "public"."employees"."manager_id", to_jsonb("public"."employees"."additional_info") AS "additional_info" FROM "public"."employees" INNER JOIN "related" ON ("public"."employees"."employee_id" = "related"."manager_id"))) SELECT DISTINCT "employee_id", "name", "manager_id", "additional_info" FROM "related";`,
+		},
+		{
+			name:          "json field mysql",
+			driver:        "mysql",
+			schema:        "public",
+			table:         "employees",
+			columns:       []string{"employee_id", "name", "manager_id", "additional_info"},
+			columnInfoMap: map[string]*sql_manager.ColumnInfo{"additional_info": {DataType: "json"}},
+			joins:         []*sqlJoin{},
+			whereClauses:  []string{`"public"."employees"."name" = 'alisha'`},
+			dependencies: []*selfReferencingCircularDependency{
+				{PrimaryKeyColumns: []string{"employee_id"}, ForeignKeyColumns: [][]string{{"manager_id"}}},
+			},
+			expected: "WITH RECURSIVE related AS (SELECT `public`.`employees`.`employee_id`, `public`.`employees`.`name`, `public`.`employees`.`manager_id`, `public`.`employees`.`additional_info` FROM `public`.`employees` WHERE \"public\".\"employees\".\"name\" = 'alisha' UNION (SELECT `public`.`employees`.`employee_id`, `public`.`employees`.`name`, `public`.`employees`.`manager_id`, `public`.`employees`.`additional_info` FROM `public`.`employees` INNER JOIN `related` ON (`public`.`employees`.`employee_id` = `related`.`manager_id`))) SELECT DISTINCT `employee_id`, `name`, `manager_id`, `additional_info` FROM `related`;",
+		},
+		{
+			name:          "multiple foreign keys and joins",
+			driver:        "postgres",
+			schema:        "public",
+			table:         "employees",
+			columns:       []string{"employee_id", "name", "manager_id", "department_id", "big_boss_id"},
+			columnInfoMap: map[string]*sql_manager.ColumnInfo{},
 			joins: []*sqlJoin{
 				{
 					JoinType:  innerJoin,
@@ -214,11 +245,12 @@ func Test_buildSelectRecursiveQuery(t *testing.T) {
 			expected: `WITH RECURSIVE related AS (SELECT "public"."employees"."employee_id", "public"."employees"."name", "public"."employees"."manager_id", "public"."employees"."department_id", "public"."employees"."big_boss_id" FROM "public"."employees" INNER JOIN "public"."departments" ON ("public"."departments"."id" = "public"."employees"."department_id") WHERE ("public"."employees"."name" = 'alisha' AND "public"."departments"."department_id" = 1) UNION (SELECT "public"."employees"."employee_id", "public"."employees"."name", "public"."employees"."manager_id", "public"."employees"."department_id", "public"."employees"."big_boss_id" FROM "public"."employees" INNER JOIN "related" ON (("public"."employees"."employee_id" = "related"."manager_id") OR ("public"."employees"."employee_id" = "related"."big_boss_id")))) SELECT DISTINCT "employee_id", "name", "manager_id", "department_id", "big_boss_id" FROM "related";`,
 		},
 		{
-			name:    "composite foreign keys",
-			driver:  "postgres",
-			schema:  "public",
-			table:   "employees",
-			columns: []string{"employee_id", "department_id", "name", "manager_id", "building_id", "division_id"},
+			name:          "composite foreign keys",
+			driver:        "postgres",
+			schema:        "public",
+			table:         "employees",
+			columns:       []string{"employee_id", "department_id", "name", "manager_id", "building_id", "division_id"},
+			columnInfoMap: map[string]*sql_manager.ColumnInfo{},
 			joins: []*sqlJoin{
 				{
 					JoinType:  innerJoin,
@@ -240,7 +272,7 @@ func Test_buildSelectRecursiveQuery(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%s_%s", t.Name(), tt.name), func(t *testing.T) {
-			response, err := buildSelectRecursiveQuery(tt.driver, tt.schema, tt.table, tt.columns, tt.dependencies, tt.joins, tt.whereClauses)
+			response, err := buildSelectRecursiveQuery(tt.driver, tt.schema, tt.table, tt.columns, tt.columnInfoMap, tt.dependencies, tt.joins, tt.whereClauses)
 			require.NoError(t, err)
 			require.Equal(t, tt.expected, response)
 		})
@@ -389,7 +421,7 @@ func Test_buildSelectQueryMap(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%s_%s", t.Name(), tt.name), func(t *testing.T) {
-			sql, err := buildSelectQueryMap(tt.driver, tt.mappings, tt.sourceTableOpts, tt.tableDependencies, tt.dependencyConfigs, tt.subsetByForeignKeyConstraints)
+			sql, err := buildSelectQueryMap(tt.driver, tt.mappings, tt.sourceTableOpts, tt.tableDependencies, tt.dependencyConfigs, tt.subsetByForeignKeyConstraints, map[string]map[string]*sql_manager.ColumnInfo{})
 			require.NoError(t, err)
 			require.Equal(t, tt.expected, sql)
 		})
@@ -518,7 +550,7 @@ func Test_buildSelectQueryMap_SubsetsForeignKeys(t *testing.T) {
 			"public.d": `SELECT "public"."d"."id", "public"."d"."c_id" FROM "public"."d" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."d"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE (public.c.id = 1 AND public.b.name = 'bob');`,
 		}
 
-	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
+	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
@@ -597,7 +629,7 @@ func Test_buildSelectQueryMap_SubsetsCompositeForeignKeys(t *testing.T) {
 			"public.b": `SELECT "public"."b"."id", "public"."b"."a_name", "public"."b"."a_id" FROM "public"."b" INNER JOIN "public"."a" ON (("public"."a"."id" = "public"."b"."a_id") AND ("public"."a"."name" = "public"."b"."a_name")) WHERE public.a.name = 'bob';`,
 		}
 
-	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
+	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
@@ -723,7 +755,7 @@ func Test_buildSelectQueryMap_SubsetsOffForeignKeys(t *testing.T) {
 			"public.c": `SELECT "id", "b_id" FROM "public"."c" WHERE id = 1;`,
 			"public.d": `SELECT "id", "c_id" FROM "public"."d";`,
 		}
-	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, false)
+	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, false, map[string]map[string]*sql_manager.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
@@ -834,7 +866,7 @@ func Test_buildSelectQueryMap_CircularDependency(t *testing.T) {
 			"public.c": `SELECT "public"."c"."id", "public"."c"."b_id" FROM "public"."c" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.name = 'neo';`,
 			"public.a": `SELECT "public"."a"."id", "public"."a"."c_id" FROM "public"."a" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."a"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.name = 'neo';`,
 		}
-	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
+	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
@@ -1010,7 +1042,7 @@ func Test_buildSelectQueryMap_MultiplSubsets(t *testing.T) {
 			"public.e": `SELECT "id", "d_id" FROM "public"."e" WHERE public.e.id = 1;`,
 			"public.f": `SELECT "public"."f"."id", "public"."f"."e_id" FROM "public"."f" INNER JOIN "public"."e" ON ("public"."e"."id" = "public"."f"."e_id") WHERE public.e.id = 1;`,
 		}
-	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
+	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
@@ -1154,7 +1186,7 @@ func Test_buildSelectQueryMap_MultipleRootss(t *testing.T) {
 			"public.d": `SELECT "public"."d"."id", "public"."d"."c_id" FROM "public"."d" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."d"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.id = 1;`,
 			"public.e": `SELECT "public"."e"."id", "public"."e"."c_id" FROM "public"."e" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."e"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.id = 1;`,
 		}
-	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
+	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
@@ -1329,7 +1361,7 @@ func Test_buildSelectQueryMap_MultipleRootsAndWheres(t *testing.T) {
 			"public.e": `SELECT "public"."e"."id", "public"."e"."c_id" FROM "public"."e" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."e"."c_id") INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."c"."a_id") INNER JOIN "public"."x" ON ("public"."x"."id" = "public"."a"."x_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE (public.x.id = 2 AND public.b.id = 1);`,
 			"public.x": `SELECT "id" FROM "public"."x" WHERE public.x.id = 2;`,
 		}
-	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
+	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
@@ -1414,7 +1446,7 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyRoot(t *testing.T) {
 			"public.a": `WITH RECURSIVE related AS (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."a_a_id" FROM "public"."a" WHERE public.a.id = 1 UNION (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."a_a_id" FROM "public"."a" INNER JOIN "related" ON (("public"."a"."id" = "related"."a_id") OR ("public"."a"."id" = "related"."a_a_id")))) SELECT DISTINCT "id", "a_id", "a_a_id" FROM "related";`,
 			"public.b": `SELECT "public"."b"."id", "public"."b"."a_id" FROM "public"."b" INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") WHERE public.a.id = 1;`,
 		}
-	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
+	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
@@ -1514,7 +1546,7 @@ func Test_buildSelectQueryMap_DoubleReference(t *testing.T) {
 			"public.department":     `SELECT "public"."department"."id", "public"."department"."company_id" FROM "public"."department" INNER JOIN "public"."company" ON ("public"."company"."id" = "public"."department"."company_id") WHERE public.company.id = 1;`,
 			"public.expense_report": `SELECT "public"."expense_report"."id", "public"."expense_report"."department_source_id", "public"."expense_report"."department_destination_id" FROM "public"."expense_report" INNER JOIN "public"."department" AS "9fc0c8a9c134a6" ON ("9fc0c8a9c134a6"."id" = "public"."expense_report"."department_source_id") INNER JOIN "public"."company" AS "11a3111fe95a00" ON ("11a3111fe95a00"."id" = "9fc0c8a9c134a6"."company_id") INNER JOIN "public"."department" AS "7b40130ba5a158" ON ("7b40130ba5a158"."id" = "public"."expense_report"."department_destination_id") INNER JOIN "public"."company" AS "3bf0425b83b85b" ON ("3bf0425b83b85b"."id" = "7b40130ba5a158"."company_id") WHERE ("11a3111fe95a00".id = 1 AND "3bf0425b83b85b".id = 1);`,
 		}
-	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
+	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
@@ -1650,7 +1682,7 @@ func Test_buildSelectQueryMap_DoubleReference_Cycle(t *testing.T) {
 			"public.expense_report": `SELECT "public"."expense_report"."id", "public"."expense_report"."department_source_id", "public"."expense_report"."department_destination_id", "public"."expense_report"."transaction_id" FROM "public"."expense_report" INNER JOIN "public"."department" AS "9fc0c8a9c134a6" ON ("9fc0c8a9c134a6"."id" = "public"."expense_report"."department_source_id") INNER JOIN "public"."company" AS "11a3111fe95a00" ON ("11a3111fe95a00"."id" = "9fc0c8a9c134a6"."company_id") INNER JOIN "public"."department" AS "7b40130ba5a158" ON ("7b40130ba5a158"."id" = "public"."expense_report"."department_destination_id") INNER JOIN "public"."company" AS "3bf0425b83b85b" ON ("3bf0425b83b85b"."id" = "7b40130ba5a158"."company_id") INNER JOIN "public"."transaction" ON ("public"."transaction"."id" = "public"."expense_report"."transaction_id") INNER JOIN "public"."department" ON ("public"."department"."id" = "public"."transaction"."department_id") INNER JOIN "public"."company" ON ("public"."company"."id" = "public"."department"."company_id") WHERE ("11a3111fe95a00".id = 1 AND "3bf0425b83b85b".id = 1 AND public.company.id = 1);`,
 			"public.transaction":    `SELECT "public"."transaction"."id", "public"."transaction"."department_id" FROM "public"."transaction" INNER JOIN "public"."department" ON ("public"."department"."id" = "public"."transaction"."department_id") INNER JOIN "public"."company" ON ("public"."company"."id" = "public"."department"."company_id") WHERE public.company.id = 1;`,
 		}
-	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
+	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
@@ -1735,7 +1767,7 @@ func Test_buildSelectQueryMap_doubleCircularDependencyRoot_mysql(t *testing.T) {
 			"public.a": "WITH RECURSIVE related AS (SELECT `public`.`a`.`id`, `public`.`a`.`a_id`, `public`.`a`.`a_a_id` FROM `public`.`a` WHERE public.a.id = 1 UNION (SELECT `public`.`a`.`id`, `public`.`a`.`a_id`, `public`.`a`.`a_a_id` FROM `public`.`a` INNER JOIN `related` ON ((`public`.`a`.`id` = `related`.`a_id`) OR (`public`.`a`.`id` = `related`.`a_a_id`)))) SELECT DISTINCT `id`, `a_id`, `a_a_id` FROM `related`;",
 			"public.b": "SELECT `public`.`b`.`id`, `public`.`b`.`a_id` FROM `public`.`b` INNER JOIN `public`.`a` ON (`public`.`a`.`id` = `public`.`b`.`a_id`) WHERE public.a.id = 1;",
 		}
-	sql, err := buildSelectQueryMap("mysql", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
+	sql, err := buildSelectQueryMap("mysql", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
@@ -1818,7 +1850,7 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyChild(t *testing.T) {
 			"public.a": `WITH RECURSIVE related AS (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."a_a_id", "public"."a"."b_id" FROM "public"."a" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."a"."b_id") WHERE public.b.id = 1 UNION (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."a_a_id", "public"."a"."b_id" FROM "public"."a" INNER JOIN "related" ON (("public"."a"."id" = "related"."a_id") OR ("public"."a"."id" = "related"."a_a_id")))) SELECT DISTINCT "id", "a_id", "a_a_id", "b_id" FROM "related";`,
 			"public.b": `SELECT "id" FROM "public"."b" WHERE public.b.id = 1;`,
 		}
-	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
+	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
@@ -1959,7 +1991,7 @@ func Test_buildSelectQueryMap_shouldContinue(t *testing.T) {
 			"public.d": `SELECT "id", "c_id" FROM "public"."d";`,
 			"public.e": `SELECT "id", "d_id" FROM "public"."e";`,
 		}
-	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true)
+	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
 
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
