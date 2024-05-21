@@ -126,6 +126,7 @@
   "flagWords": ["hte"],
   "files": ["content/**/*.md*"],
   "useGitignore": true,
+  "ignoreRegExpList": ["/!\\[[^\\]]*\\]\\([^)]*\\)/g"],
   "dictionaries": [
     "en_US",
     "companies",
