@@ -39,9 +39,10 @@ If you have views with triggers that refresh said views on inserts you may see t
 
 The easiest way to resolve this, is to disable and/or remove the triggers on the view, and re-enable them after the job has completed.
 
-### Networking issues in GCP with Docker Compose
+### Networking issues with Docker
 
-If choosing to deploy compose within a GCP environment, or if needing to communicate with a resource that is in GCP, you may run into networking issues with variant in MTU.
+Some Linux environments have issues with Docker Networking, which may cause problems with Neosync communications.
+There have been reports of this on Ubuntu and GCP.
 
 This can possibly be fixed by updating the docker networks to use the correct MTU size.
 Be sure to update all of the networks within the compose. Example below:
@@ -53,3 +54,5 @@ networks:
     driver_opts:
       com.docker.network.driver.mtu: 1460
 ```
+
+This topic is further discussed [here](https://www.civo.com/learn/fixing-networking-for-docker) and [here](https://stackoverflow.com/questions/73101754/docker-change-mtu-on-the-fly).
