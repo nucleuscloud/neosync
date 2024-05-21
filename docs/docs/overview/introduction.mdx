@@ -21,10 +21,14 @@ import { CustomCardList } from '@site/src/CustomComponents/CustomCardList.tsx';
 import { BsFunnel } from 'react-icons/bs';
 
 import {
+  PiArrowCounterClockwise,
   PiArrowsSplitLight,
+  PiDatabase,
   PiFlaskLight,
   PiPlugsLight,
   PiRocketLaunchLight,
+  PiShieldCheckLight,
+  PiTestTube,
 } from 'react-icons/pi';
 
 # Welcome to the Neosync Docs
@@ -34,39 +38,69 @@ testing, debugging and developer experience.
 
 <HeroImage />
 
-## Learn about Neosync
+## Core Features
 
-The best way to learn Neosync is to check out our core concepts and familiarize yourself with Jobs, Runs, Connections and Transformers.
+Neosync can be used in many different ways to support different use-cases. Check out the most common use-cases below.
 
 <CustomCardList
   cards={[
     {
-      title: 'Jobs',
-      description:
-        'Jobs are async workflows that transform data and sync it between connections.',
-      link: 'core-concepts#jobs',
-      icon: <StackIcon />,
+      title: 'Anonymization',
+      description: 'Anonymize sensitive data for safe testing and development',
+      link: '/core-features#anonymization',
+      icon: <LinkBreak1Icon />,
     },
     {
-      title: 'Runs',
+      title: 'Synthetic Data Generation',
       description:
-        'Runs are instances of a job that can be started, paused and played back.',
-      link: 'core-concepts#runs',
-      icon: <LayersIcon />,
+        'Generate high-quality synthetic data from existing data or from scratch.',
+      link: '/core-features#synthetic-data-generation',
+      icon: <PiFlaskLight />,
     },
     {
-      title: 'Connections',
-      description:
-        'Connections are sources of data or destinations that you sync using Jobs such as databases.',
-      link: 'core-concepts#connections',
-      icon: <PiPlugsLight />,
+      title: 'Subsetting',
+      description: 'Subset your data to fit local and stage environments.',
+      link: '/core-features#subsetting',
+      icon: <BsFunnel />,
     },
     {
-      title: 'Transformers',
-      description:
-        'Transformers are data-type specific modules that anonymize or generate data.',
-      link: 'core-concepts#transformers',
-      icon: <LightningBoltIcon />,
+      title: 'Orchestration',
+      description: 'Orchestrate and sync data across environments',
+      link: '/core-features#orchestration',
+      icon: <PiArrowsSplitLight />,
+    },
+  ]}
+/>
+
+## Use cases
+
+Neosync can be used in many different ways to support different use-cases. Check out the most common use-cases below.
+
+<CustomCardList
+  cards={[
+    {
+      title: 'Test code against Production',
+      description: 'Safely test your code against Production data',
+      link: '/usecases#safely-test-your-code-against-production-data',
+      icon: <PiTestTube />,
+    },
+    {
+      title: 'Reproduce bugs locally',
+      description: 'Easily reproduce Production bugs locally',
+      link: '/usecases#easily-reproduce-production-bugs-locally',
+      icon: <PiArrowCounterClockwise />,
+    },
+    {
+      title: 'Fix broken staging environments',
+      description: 'Fix broken staging environments',
+      link: '/usecases#fix-broken-staging-environments',
+      icon: <PiDatabase />,
+    },
+    {
+      title: 'Reduce your compliance scope',
+      description: 'Frictionless compliance, security and data privacy',
+      link: '/usecases#reduce-your-compliance-scope',
+      icon: <PiShieldCheckLight />,
     },
   ]}
 />
@@ -80,40 +114,6 @@ Once you're ready to deploy Neosync, check out our Deployment guide to see the a
   description="Learn how to deploy Neosync using Docker Compose or Kubernetes. "
   link="/deploy/introduction"
   icon={<PiRocketLaunchLight />}
-/>
-
-## Use cases
-
-Neosync can be used in many different ways to support different use-cases. Check out the most common use-cases below.
-
-<CustomCardList
-  cards={[
-    {
-      title: 'Anonymize Data',
-      description: 'Anonymize sensitive data for safe testing and development',
-      link: 'overview/use-cases/anonymization',
-      icon: <LinkBreak1Icon />,
-    },
-    {
-      title: 'Synthetic Data',
-      description:
-        'Generate high-quality synthetic data from existing data or from scratch.',
-      link: 'overview/use-cases/synthetic-data',
-      icon: <PiFlaskLight />,
-    },
-    {
-      title: 'Subset Data',
-      description: 'Subset your data to fit local and stage environments.',
-      link: 'overview/use-cases/subsetting',
-      icon: <BsFunnel />,
-    },
-    {
-      title: 'Replicate data',
-      description: 'Easily replicate source data to multiple environments.',
-      link: 'overview/use-cases/replication',
-      icon: <PiArrowsSplitLight />,
-    },
-  ]}
 />
 
 ## Contributing to Neosync

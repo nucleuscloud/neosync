@@ -41,6 +41,11 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'doc',
+      id: 'overview/core-features',
+      label: 'Core Features',
+    },
+    {
+      type: 'doc',
       id: 'overview/core-concepts',
       label: 'Core Concepts',
     },
