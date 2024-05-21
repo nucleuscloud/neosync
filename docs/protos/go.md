@@ -7,7 +7,7 @@ slug: /go
 
 ## Introduction
 
-The Neosync Go SDK is publicly available and can be added to any Go-based project by running `go get github.com/nucleuscloud/neosync/backend`.
+The Neosync Go SDK is publicly available and can be added to any Go-based project by running `go get github.com/nucleuscloud/neosync`.
 
 Neosync's CLI is the primary user of the Go SDK today, and can be referenced for examples of how to use the SDK.
 
