@@ -121,7 +121,8 @@
     "llmcon",
     "llmschema",
     "llmprompt",
-    "llmdata"
+    "llmdata",
+    "llmheader"
   ],
   "flagWords": ["hte"],
   "files": ["content/**/*.md*"],
