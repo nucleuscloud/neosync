@@ -38,3 +38,18 @@ You can resolve this by disabling the "Truncate" option in the Source Options, a
 If you have views with triggers that refresh said views on inserts you may see this error when attempting to create records in the table that the view is based on.
 
 The easiest way to resolve this, is to disable and/or remove the triggers on the view, and re-enable them after the job has completed.
+
+### Networking issues in GCP with Docker Compose
+
+If choosing to deploy compose within a GCP environment, or if needing to communicate with a resource that is in GCP, you may run into networking issues with variant in MTU.
+
+This can possibly be fixed by updating the docker networks to use the correct MTU size.
+Be sure to update all of the networks within the compose. Example below:
+
+```yml
+networks:
+  neosync-network:
+    name: neosync-network
+    driver_opts:
+      com.docker.network.driver.mtu: 1460
+```
