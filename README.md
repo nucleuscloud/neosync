@@ -3,7 +3,7 @@
 </p>
 
 <p align="center" style="font-size: 24px;font-weight: 500;">
-Open Source Synthetic Data Orchestration
+Open Source Synthetic Data Orchestrations
 <p>
 
 <div align='center'>
