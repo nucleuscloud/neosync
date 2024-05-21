@@ -15,6 +15,7 @@ import {
   AiOutlineExperiment,
   AiOutlineMail,
   AiOutlinePhone,
+  AiOutlineSolution,
 } from 'react-icons/ai';
 import {
   BiDownload,
@@ -23,7 +24,7 @@ import {
   BiSolidWrench,
   BiTerminal,
 } from 'react-icons/bi';
-import { BsFunnel, BsShieldCheck } from 'react-icons/bs';
+import { BsFunnel } from 'react-icons/bs';
 import { CiMicrochip } from 'react-icons/ci';
 import { FaAws, FaDocker, FaFolder, FaKey, FaLaptop } from 'react-icons/fa';
 import { GoLightBulb, GoSync } from 'react-icons/go';
@@ -31,7 +32,12 @@ import { GoLightBulb, GoSync } from 'react-icons/go';
 import { GoCode, GoTable, GoVersions } from 'react-icons/go';
 import { GrAnalytics, GrMysql } from 'react-icons/gr';
 import { IoBuildOutline } from 'react-icons/io5';
-import { MdOutlineSchema, MdPassword, MdStart } from 'react-icons/md';
+import {
+  MdCenterFocusStrong,
+  MdOutlineSchema,
+  MdPassword,
+  MdStart,
+} from 'react-icons/md';
 import { PiArrowsSplitLight, PiFlaskLight } from 'react-icons/pi';
 import { RiOpenaiFill } from 'react-icons/ri';
 import { SiGo, SiKubernetes, SiTerraform, SiTypescript } from 'react-icons/si';
@@ -67,8 +73,6 @@ export function IconHandler(name: string): ReactElement {
       return <GoCode />;
     case 'System':
       return <IoBuildOutline />;
-    case 'Use cases':
-      return <BsShieldCheck />;
     case 'Anonymize Data':
       return <LinkBreak1Icon />;
     case 'Replicate Data':
@@ -140,6 +144,10 @@ export function IconHandler(name: string): ReactElement {
       return <MdOutlineSchema />;
     case 'Cloud Security Overview':
       return <TbCloudLock />;
+    case 'Use cases':
+      return <AiOutlineSolution />;
+    case 'Core Features':
+      return <MdCenterFocusStrong />;
     default:
       return <LayersIcon />;
   }
