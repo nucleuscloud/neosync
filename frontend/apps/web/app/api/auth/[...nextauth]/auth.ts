@@ -115,10 +115,6 @@ export const {
   handlers: { GET, POST },
   // auth function meant to be used in RSC or middleware.
   auth,
-  // server-side signIn. Use signIn from the next-auth/react library for client-side
-  signIn,
-  // server-side signOut. Use signOut from the next-auth/react library for client-side
-  signOut,
 } = NextAuth({
   providers: getProviders(),
   session: { strategy: 'jwt' },
