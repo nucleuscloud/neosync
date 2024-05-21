@@ -7,13 +7,87 @@ slug: /guides/neosync-local-dev
 
 ## Introduction
 
-This section goes into detail on each tool that is used for developing with Neosync locally. This section casts a wide net, and some tools may not be required depending on if you are using a Tilt setup or a Compose setup.
-Most of the `Kubernetes` focused tools can be skipped if developing via compose.
+This section goes into detail on each tool that is used for developing with Neosync locally.
 
 ## Neosync DevContainer
 
 Neosync has a pre-published [devcontainer](https://containers.dev/) that can be used to easily get a working Neosync dev environment.
 This container comes pre-packaged with all of the tools needed for developing Neosync, and works with Tilt or Compose, or Bare Metal setups.
+
+## Setup with Compose
+
+### Pre-requisites
+
+- Golang >=1.22
+- Docker Compose >=2.26
+
+### Setup
+
+The docker compose environment runs almost entirely by itself. However, the Golang services (backend, worker), must be built on the host system.
+
+Each service can be built simply by `cd`ing into each directory (`backend`, `worker`) and running the command `make dbuild`. This builds the service specifically for Linux.
+
+Running `make compose-dev-up` will stand up Neosync and it's dependencies.
+**Currently there is a limitation with devcontainers where this command must be run via `sudo`.**
+
+The frontend, backend, and worker will be in watch mode, which will cause them to look for changes and reload. The frontend will reload on save, where as the backend/worker will reload on the next `make dbuild` run.
+
+```sh
+cd backend && make dbuild
+cd worker && make dbuild
+```
+
+Once everything is up and running, The app can be accessed locally at [http://localhost:3000](http://localhost:3000).
+
+### Running Compose with Authentication
+
+This will stand up Keycloak with a pre-configured realm that will allow logging in to Neosync with a standard username and password, completely offline!
+
+```sh
+make compose-dev-auth-up
+```
+
+To stop, run:
+
+```sh
+make compose-dev-auth-down
+```
+
+## Setup with Tilt
+
+Developing with Kubernetes via Tilt is also an option, however it is a bit more setup and is heavier. The benefits of this are that it allows you to develop more closely to what a k8s production environment could look like.d
+
+### Docker Desktop
+
+If using Docker Desktop, the host file path to the `.data` folder will need to be added to the File Sharing tab.
+
+The allow list can be found by first opening Docker Desktop. `Settings -> Resources -> File Sharing` and add the path to the Neosync repository.
+
+If you don't want to do this, the volume mappings can be removed by removing the PVC for Tilt.
+This comes at a negative of the local database not surviving restarts.
+
+### Cluster Setup
+
+Step 1 is to ensure that the `kind` cluster is up and running along with its registry.
+This can be manually created, or done simply with `ctlptl`.
+The cluster is declaratively defined [here](https://github.com/nucleuscloud/neosync/tree/main//tilt/kind/cluster.yaml)
+
+The below command invokes the cluster-create script that can be found [here](https://github.com/nucleuscloud/neosync/tree/main//tilt/scripts/cluster-create.sh)
+
+```
+make cluster-create
+```
+
+After the cluster has been successfully created, `tilt up` can be run to start up `neosync`.
+Refer to the top-level [Tiltfile](https://github.com/nucleuscloud/neosync/tree/main//Tiltfile) for a clear picture of everything that runs.
+Each dependency in the `neosync` repo is split into sub Tilt files so that they can be run in isolation, or in combination with other sub-resources more easily.
+
+Once everything is up and running, the app can be accessed locally at [http://localhost:3000](http://localhost:3000).
+
+## Developing on Bare Metal
+
+You can develop Neosync totally on bare metal. Every service supports a .env file along with environment specific .env overrides.
+This way of developing isn't really used today as we've invested heavily in developing within containerized environments to be more closely aligned with a production environment.
 
 ## Tools
 
@@ -73,72 +147,3 @@ Each tool above can be straightforwardly installed with brew if on Linux/MacOS
 ```
 brew install kind tilt-dev/tap/tilt tilt-dev/tap/ctlptl kubernetes-cli kustomize helm helmfile go sqlc buf golangci-lint node
 ```
-
-## Setup with Compose
-
-To enable hot reloading, must run `docker compose watch` instead of `up`. **Currently there is a limitation with devcontainers where this command must be run via `sudo`.**
-
-This command is also available in the `Makefile` via `make compose-dev-up`.
-
-### Building the backend and worker when using Docker Compose.
-
-If using the dev-focused compose instead of the production compose files, the binaries for the `api` and `worker` will need to be built.
-
-When building the Go processes with the intention to run with `docker compose`, it's important to run `make dbuild` instead of the typical `make build` so that the correct `GOOS` is specified. This is only needed if your OS is not Linux (or aren't running in a devcontainer).
-The `make dbuild` command ensures that the Go binary is compiled for Linux instead of the host os.
-
-This will need to be done for both the `worker` and `api` processes prior to running compose up.
-
-Running `make build` from the root will be sufficient if your OS in Linux.
-Otherwise, you can build the individual binaries from the respective subfolders.
-
-```sh
-cd backend && make dbuild
-cd worker && make dbuild
-```
-
-Once everything is up and running, the app can be accessed locally at [http://localhost:3000](http://localhost:3000).
-
-### Running Compose with Authentication
-
-Note, a compose file with authentication pre-configured can be found [here](https://github.com/nucleuscloud/neosync/tree/main/compose/compose-auth.yml).
-This will stand up Keycloak with a pre-configured realm that will allow logging in to Neosync with a standard username and password, completely offline!
-
-```sh
-make compose-dev-auth-up
-```
-
-To stop, run:
-
-```sh
-make compose-dev-auth-down
-```
-
-## Setup with Tilt
-
-### Docker Desktop
-
-If using Docker Desktop, the host file path to the `.data` folder will need to be added to the File Sharing tab.
-
-The allow list can be found by first opening Docker Desktop. `Settings -> Resources -> File Sharing` and add the path to the Neosync repository.
-
-If you don't want to do this, the volume mappings can be removed by removing the PVC for Tilt.
-This comes at a negative of the local database not surviving restarts.
-
-### Cluster Setup
-
-Step 1 is to ensure that the `kind` cluster is up and running along with its registry.
-This can be manually created, or done simply with `ctlptl`.
-The cluster is declaratively defined [here](https://github.com/nucleuscloud/neosync/tree/main//tilt/kind/cluster.yaml)
-
-The below command invokes the cluster-create script that can be found [here](https://github.com/nucleuscloud/neosync/tree/main//tilt/scripts/cluster-create.sh)
-
-```
-make cluster-create
-```
-
-After the cluster has been successfully created, `tilt up` can be run to start up `neosync`.
-Refer to the top-level [Tiltfile](https://github.com/nucleuscloud/neosync/tree/main//Tiltfile) for a clear picture of everything that runs.
-Each dependency in the `neosync` repo is split into sub Tilt files so that they can be run in isolation, or in combination with other sub-resources more easily.
-
-Once everything is up and running, the app can be accessed locally at [http://localhost:3000](http://localhost:3000). -->
