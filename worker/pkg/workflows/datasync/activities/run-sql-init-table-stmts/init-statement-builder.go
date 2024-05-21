@@ -95,8 +95,12 @@ func (b *initStatementBuilder) RunSqlInitTableStatements(
 			}
 		}
 
-		if job.Source.Options.GetGenerate() != nil {
-			sqlopts.InitSchema = false
+		if job.GetSource().GetOptions().GetGenerate() != nil {
+			fkSrcConnId := job.GetSource().GetOptions().GetGenerate().GetFkSourceConnectionId()
+			if fkSrcConnId == destination.GetConnectionId() && sqlopts.InitSchema {
+				slogger.Warn("cannot init schema when destination connection is the same as the foreign key source connection")
+				sqlopts.InitSchema = false
+			}
 		}
 
 		if !sqlopts.TruncateCascade && !sqlopts.TruncateBeforeInsert && !sqlopts.InitSchema {
