@@ -219,8 +219,13 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'doc',
-      id: 'guides/using-neosync-with-llms',
-      label: 'Using Neosync with any LLM',
+      id: 'guides/using-custom-llm-transformer',
+      label: 'Using a Custom LLM Transformer',
+    },
+    {
+      type: 'doc',
+      id: 'guides/ai-synthetic-data-generation',
+      label: 'AI Synthetic Data Generation',
     },
     {
       type: 'doc',

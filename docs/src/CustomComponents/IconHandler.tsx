@@ -20,20 +20,22 @@ import {
   BiDownload,
   BiLogInCircle,
   BiLogoPostgresql,
+  BiSolidWrench,
   BiTerminal,
 } from 'react-icons/bi';
 import { BsFunnel, BsShieldCheck } from 'react-icons/bs';
+import { CiMicrochip } from 'react-icons/ci';
 import { FaAws, FaDocker, FaFolder, FaKey, FaLaptop } from 'react-icons/fa';
 import { GoLightBulb, GoSync } from 'react-icons/go';
 
 import { GoCode, GoTable, GoVersions } from 'react-icons/go';
 import { GrAnalytics, GrMysql } from 'react-icons/gr';
 import { IoBuildOutline } from 'react-icons/io5';
-import { MdPassword, MdStart } from 'react-icons/md';
+import { MdOutlineSchema, MdPassword, MdStart } from 'react-icons/md';
 import { PiArrowsSplitLight, PiFlaskLight } from 'react-icons/pi';
 import { RiOpenaiFill } from 'react-icons/ri';
 import { SiGo, SiKubernetes, SiTerraform, SiTypescript } from 'react-icons/si';
-import { TbSdk, TbVariable } from 'react-icons/tb';
+import { TbCloudLock, TbSdk, TbVariable } from 'react-icons/tb';
 
 export function IconHandler(name: string): ReactElement {
   switch (name) {
@@ -128,8 +130,16 @@ export function IconHandler(name: string): ReactElement {
       return <SiTerraform />;
     case 'Quickstart':
       return <RocketIcon />;
-    case 'Using Neosync with any LLM':
+    case 'Using a Custom LLM Transformer':
       return <RiOpenaiFill />;
+    case 'AI Synthetic Data Generation':
+      return <CiMicrochip />;
+    case 'Troubleshooting':
+      return <BiSolidWrench />;
+    case 'Initializing your Schema':
+      return <MdOutlineSchema />;
+    case 'Cloud Security Overview':
+      return <TbCloudLock />;
     default:
       return <LayersIcon />;
   }

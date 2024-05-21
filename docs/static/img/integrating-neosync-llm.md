@@ -125,7 +125,7 @@ Next, you'll be taken to the **Connect** page where you can select the connectio
 
 ![new-trans](/img/cust-gen-connect.png)
 
-Select the `cust-gen-db` connection and set the **Truncate Before Insert** option to `true`. This will give us a fresh slate everytime we want to run the job and clear out any existing data.
+Select the `cust-gen-db` connection and set the **Truncate Before Insert** option to `true`. This will give us a fresh slate every time we want to run the job and clear out any existing data.
 
 Click **Next** for the last step.
 
