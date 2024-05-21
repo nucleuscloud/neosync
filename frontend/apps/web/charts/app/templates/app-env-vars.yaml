@@ -55,6 +55,9 @@ stringData:
     {{ if .Values.auth.tokenUrl }}
     AUTH_TOKEN_URL: {{ .Values.auth.tokenUrl }}
     {{- end }}
+    {{ if .Values.auth.logoutUrl }}
+    AUTH_LOGOUT_URL: {{ .Values.auth.logoutUrl }}
+    {{- end}}
 
     {{ if .Values.auth.scope }}
     AUTH_SCOPE: {{ .Values.auth.scope }}
