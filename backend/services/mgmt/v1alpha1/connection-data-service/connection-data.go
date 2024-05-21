@@ -547,13 +547,15 @@ func (s *Service) GetConnectionForeignConstraints(
 		tableConstraints[tableName] = &mgmtv1alpha1.ForeignConstraintTables{
 			Constraints: []*mgmtv1alpha1.ForeignConstraint{},
 		}
-		for _, c := range d {
-			tableConstraints[tableName].Constraints = append(tableConstraints[tableName].Constraints, &mgmtv1alpha1.ForeignConstraint{
-				Column: c.Column, IsNullable: c.IsNullable, ForeignKey: &mgmtv1alpha1.ForeignKey{
-					Table:  c.ForeignKey.Table,
-					Column: c.ForeignKey.Column,
-				},
-			})
+		for _, constraint := range d {
+			for idx, col := range constraint.Columns {
+				tableConstraints[tableName].Constraints = append(tableConstraints[tableName].Constraints, &mgmtv1alpha1.ForeignConstraint{
+					Column: col, IsNullable: !constraint.NotNullable[idx], ForeignKey: &mgmtv1alpha1.ForeignKey{
+						Table:  constraint.ForeignKey.Table,
+						Column: constraint.ForeignKey.Columns[idx],
+					},
+				})
+			}
 		}
 	}
 

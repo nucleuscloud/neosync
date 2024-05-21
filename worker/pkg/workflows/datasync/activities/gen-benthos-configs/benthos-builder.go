@@ -95,7 +95,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 	// reverse of table dependency
 	// map of foreign key to source table + column
-	var tableConstraintsSource map[string]map[string]*sql_manager.ForeignKey // schema.table -> column -> ForeignKey
+	var tableConstraintsSource map[string]map[string][]*referenceKey // schema.table -> column -> ForeignKey
 	var aiGenerateMappings []*aiGenerateMappings
 
 	switch jobSourceConfig := job.Source.Options.Config.(type) {
@@ -177,7 +177,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		if err != nil {
 			return nil, err
 		}
-		tableConstraintsSource = getForeignKeyToSourceMap(tableDependencyMap)
+		tableConstraintsSource = getPrimaryKeyDependencyMap(tableDependencyMap)
 
 		// reverse of table dependency
 		// map of foreign key to source table + column
@@ -504,22 +504,47 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 	}, nil
 }
 
-func getForeignKeyToSourceMap(tableDependencies map[string][]*sql_manager.ForeignConstraint) map[string]map[string]*sql_manager.ForeignKey {
-	tc := map[string]map[string]*sql_manager.ForeignKey{} // schema.table -> column -> ForeignKey
+type referenceKey struct {
+	Table  string
+	Column string
+}
+
+// map of table primary key cols to foreign key cols
+func getPrimaryKeyDependencyMap(tableDependencies map[string][]*sql_manager.ForeignConstraint) map[string]map[string][]*referenceKey {
+	tc := map[string]map[string][]*referenceKey{} // schema.table -> column -> ForeignKey
 	for table, constraints := range tableDependencies {
 		for _, c := range constraints {
 			_, ok := tc[c.ForeignKey.Table]
 			if !ok {
-				tc[c.ForeignKey.Table] = map[string]*sql_manager.ForeignKey{}
+				tc[c.ForeignKey.Table] = map[string][]*referenceKey{}
 			}
-			tc[c.ForeignKey.Table][c.ForeignKey.Column] = &sql_manager.ForeignKey{
-				Table:  table,
-				Column: c.Column,
+			for idx, col := range c.ForeignKey.Columns {
+				tc[c.ForeignKey.Table][col] = append(tc[c.ForeignKey.Table][col], &referenceKey{
+					Table:  table,
+					Column: c.Columns[idx],
+				})
 			}
 		}
 	}
 	return tc
 }
+
+// func getForeignKeyToSourceMap(tableDependencies map[string][]*sql_manager.ForeignConstraint) map[string]map[string]*sql_manager.ForeignKey {
+// 	tc := map[string]map[string]*sql_manager.ForeignKey{} // schema.table -> column -> ForeignKey
+// 	for table, constraints := range tableDependencies {
+// 		for _, c := range constraints {
+// 			_, ok := tc[c.ForeignKey.Table]
+// 			if !ok {
+// 				tc[c.ForeignKey.Table] = map[string]*sql_manager.ForeignKey{}
+// 			}
+// 			tc[c.ForeignKey.Table][c.ForeignKey.Column] = &sql_manager.ForeignKey{
+// 				Table:  table,
+// 				Column: c.Column,
+// 			}
+// 		}
+// 	}
+// 	return tc
+// }
 
 func buildTableSubsetMap(tableOpts map[string]*sqlSourceTableOptions) map[string]string {
 	tableSubsetMap := map[string]string{}
@@ -662,23 +687,23 @@ func buildBenthosSqlSourceConfigResponses(
 	colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,
 	jobId, runId string,
 	redisConfig *shared.RedisConfig,
-	tableConstraintsSource map[string]map[string]*sql_manager.ForeignKey,
+	tableConstraintsSource map[string]map[string][]*referenceKey,
 ) ([]*BenthosConfigResponse, error) {
 	responses := []*BenthosConfigResponse{}
 
 	fkSourceMap := buildForeignKeySourceMap(tableDependencies)
 	// filter this list by table constraints that has transformer
-	tableConstraints := map[string]map[string]*sql_manager.ForeignKey{} // schema.table -> column -> foreignKey
+	tableConstraints := map[string]map[string][]*referenceKey{} // schema.table -> column -> foreignKey
 	for table, constraints := range fkSourceMap {
 		_, ok := tableConstraints[table]
 		if !ok {
-			tableConstraints[table] = map[string]*sql_manager.ForeignKey{}
+			tableConstraints[table] = map[string][]*referenceKey{}
 		}
 		for col, tc := range constraints {
 			// only add constraint if foreign key has transformer
 			transformer, transformerOk := colTransformerMap[tc.Table][tc.Column]
 			if transformerOk && shouldProcessStrict(transformer) {
-				tableConstraints[table][col] = tc
+				tableConstraints[table][col] = append(tableConstraints[table][col], tc)
 			}
 		}
 	}
@@ -721,7 +746,7 @@ func buildBenthosSqlSourceConfigResponses(
 		if config.RunType == tabledependency.RunTypeUpdate {
 			columnConstraints, ok := tableConstraintsSource[config.Table]
 			if !ok {
-				columnConstraints = map[string]*sql_manager.ForeignKey{}
+				columnConstraints = map[string][]*referenceKey{}
 			}
 			// sql update processor configs
 			processorConfigs, err := buildSqlUpdateProcessorConfigs(config, redisConfig, jobId, runId, mappings.Mappings, columnConstraints)
@@ -735,7 +760,7 @@ func buildBenthosSqlSourceConfigResponses(
 		} else {
 			columnConstraints, ok := tableConstraints[config.Table]
 			if !ok {
-				columnConstraints = map[string]*sql_manager.ForeignKey{}
+				columnConstraints = map[string][]*referenceKey{}
 			}
 			// sql insert processor configs
 			processorConfigs, err := buildProcessorConfigs(ctx, transformerclient, mappings.Mappings, groupedColumnInfo[config.Table], columnConstraints, config.PrimaryKeys, jobId, runId, redisConfig)
@@ -749,11 +774,13 @@ func buildBenthosSqlSourceConfigResponses(
 		}
 
 		redisDependsOnMap := map[string][]string{}
-		for _, fk := range tableConstraints[config.Table] {
-			if _, exists := redisDependsOnMap[fk.Table]; !exists {
-				redisDependsOnMap[fk.Table] = []string{}
+		for _, fks := range tableConstraints[config.Table] {
+			for _, fk := range fks {
+				if _, exists := redisDependsOnMap[fk.Table]; !exists {
+					redisDependsOnMap[fk.Table] = []string{}
+				}
+				redisDependsOnMap[fk.Table] = append(redisDependsOnMap[fk.Table], fk.Column)
 			}
-			redisDependsOnMap[fk.Table] = append(redisDependsOnMap[fk.Table], fk.Column)
 		}
 
 		responses = append(responses, &BenthosConfigResponse{
@@ -1125,17 +1152,19 @@ func getMapValuesCount[K comparable, V any](m map[K][]V) int {
 	return count
 }
 
-func findTopForeignKeySource(tableName, col string, tableDependencies map[string][]*sql_manager.ForeignConstraint) *sql_manager.ForeignKey {
+func findTopForeignKeySource(tableName, col string, tableDependencies map[string][]*sql_manager.ForeignConstraint) *referenceKey {
 	// Add the foreign key dependencies of the current table
 	if foreignKeys, ok := tableDependencies[tableName]; ok {
 		for _, fk := range foreignKeys {
-			if fk.Column == col {
-				// Recursively add dependent tables and their foreign keys
-				return findTopForeignKeySource(fk.ForeignKey.Table, fk.ForeignKey.Column, tableDependencies)
+			for idx, c := range fk.Columns {
+				if c == col {
+					// Recursively add dependent tables and their foreign keys
+					return findTopForeignKeySource(fk.ForeignKey.Table, fk.ForeignKey.Columns[idx], tableDependencies)
+				}
 			}
 		}
 	}
-	return &sql_manager.ForeignKey{
+	return &referenceKey{
 		Table:  tableName,
 		Column: col,
 	}
@@ -1143,15 +1172,17 @@ func findTopForeignKeySource(tableName, col string, tableDependencies map[string
 
 // builds schema.table -> FK column ->  PK schema table column
 // find top level primary key column if foreign keys are nested
-func buildForeignKeySourceMap(tableDeps map[string][]*sql_manager.ForeignConstraint) map[string]map[string]*sql_manager.ForeignKey {
-	outputMap := map[string]map[string]*sql_manager.ForeignKey{}
+func buildForeignKeySourceMap(tableDeps map[string][]*sql_manager.ForeignConstraint) map[string]map[string]*referenceKey {
+	outputMap := map[string]map[string]*referenceKey{}
 	for tableName, constraints := range tableDeps {
 		if _, ok := outputMap[tableName]; !ok {
-			outputMap[tableName] = map[string]*sql_manager.ForeignKey{}
+			outputMap[tableName] = map[string]*referenceKey{}
 		}
 		for _, con := range constraints {
-			fk := findTopForeignKeySource(tableName, con.Column, tableDeps)
-			outputMap[tableName][con.Column] = fk
+			for _, col := range con.Columns {
+				fk := findTopForeignKeySource(tableName, col, tableDeps)
+				outputMap[tableName][col] = fk
+			}
 		}
 	}
 	return outputMap

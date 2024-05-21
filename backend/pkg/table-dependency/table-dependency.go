@@ -63,14 +63,17 @@ func GetRunConfigs(
 					NonNullableColumns: []string{},
 				}
 			}
-			if constraint.IsNullable {
-				foreignKeyColsMap[table][constraint.ForeignKey.Table].NullableColumns = append(foreignKeyColsMap[table][constraint.ForeignKey.Table].NullableColumns, constraint.ForeignKey.Column)
-			} else {
-				foreignKeyColsMap[table][constraint.ForeignKey.Table].NonNullableColumns = append(foreignKeyColsMap[table][constraint.ForeignKey.Table].NonNullableColumns, constraint.ForeignKey.Column)
-			}
-			foreignKeyMap[table][constraint.ForeignKey.Table] = append(foreignKeyMap[table][constraint.ForeignKey.Table], constraint.ForeignKey.Column)
-			if slices.Contains(tables, table) && slices.Contains(tables, constraint.ForeignKey.Table) {
-				filteredDepsMap[table] = append(filteredDepsMap[table], constraint.ForeignKey.Table)
+			for idx, col := range constraint.ForeignKey.Columns {
+				notNullable := constraint.NotNullable[idx]
+				if notNullable {
+					foreignKeyColsMap[table][constraint.ForeignKey.Table].NonNullableColumns = append(foreignKeyColsMap[table][constraint.ForeignKey.Table].NonNullableColumns, col)
+				} else {
+					foreignKeyColsMap[table][constraint.ForeignKey.Table].NullableColumns = append(foreignKeyColsMap[table][constraint.ForeignKey.Table].NullableColumns, col)
+				}
+				foreignKeyMap[table][constraint.ForeignKey.Table] = append(foreignKeyMap[table][constraint.ForeignKey.Table], col)
+				if slices.Contains(tables, table) && slices.Contains(tables, constraint.ForeignKey.Table) {
+					filteredDepsMap[table] = append(filteredDepsMap[table], constraint.ForeignKey.Table)
+				}
 			}
 		}
 	}
@@ -178,8 +181,10 @@ func processCycles(
 			}
 		}
 		for _, d := range dependencies {
-			if d.IsNullable {
-				updateConfig.Columns = append(updateConfig.Columns, d.Column)
+			for idx, col := range d.Columns {
+				if !d.NotNullable[idx] {
+					updateConfig.Columns = append(updateConfig.Columns, col)
+				}
 			}
 		}
 		for _, col := range cols {
@@ -302,8 +307,10 @@ func areAllFkColsNullable(dependencies []*sql_manager.ForeignConstraint, cycle [
 		if !slices.Contains(cycle, dep.ForeignKey.Table) {
 			continue
 		}
-		if !dep.IsNullable {
-			return false
+		for _, notNullable := range dep.NotNullable {
+			if notNullable {
+				return false
+			}
 		}
 	}
 	return true

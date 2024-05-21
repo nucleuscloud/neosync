@@ -121,10 +121,10 @@ func Test_determineCycleStart(t *testing.T) {
 			subsets: map[string]string{},
 			dependencyMap: map[string][]*sql_manager.ForeignConstraint{
 				"a": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, IsNullable: false},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, NotNullable: []bool{true}},
 				},
 				"b": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, IsNullable: true},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, NotNullable: []bool{false}},
 				},
 			},
 			expected:    "b",
@@ -138,10 +138,10 @@ func Test_determineCycleStart(t *testing.T) {
 			},
 			dependencyMap: map[string][]*sql_manager.ForeignConstraint{
 				"a": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, IsNullable: true},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, NotNullable: []bool{false}},
 				},
 				"b": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, IsNullable: true},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, NotNullable: []bool{false}},
 				},
 			},
 			expected:    "b",
@@ -155,10 +155,10 @@ func Test_determineCycleStart(t *testing.T) {
 			},
 			dependencyMap: map[string][]*sql_manager.ForeignConstraint{
 				"a": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, IsNullable: true},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, NotNullable: []bool{false}},
 				},
 				"b": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, IsNullable: false},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, NotNullable: []bool{true}},
 				},
 			},
 			expected:    "a",
@@ -178,10 +178,10 @@ func Test_determineCycleStart(t *testing.T) {
 			subsets: map[string]string{},
 			dependencyMap: map[string][]*sql_manager.ForeignConstraint{
 				"table1": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, IsNullable: false},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, NotNullable: []bool{true}},
 				},
 				"table2": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, IsNullable: false},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, NotNullable: []bool{true}},
 				},
 			},
 			expected:    "",
@@ -218,20 +218,20 @@ func Test_determineMultiCycleStart(t *testing.T) {
 			subsets: map[string]string{},
 			dependencyMap: map[string][]*sql_manager.ForeignConstraint{
 				"a": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, IsNullable: true},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, NotNullable: []bool{false}},
 				},
 				"b": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, IsNullable: true},
-					{ForeignKey: &sql_manager.ForeignKey{Table: "d"}, IsNullable: true},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, NotNullable: []bool{false}},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "d"}, NotNullable: []bool{false}},
 				},
 				"c": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, IsNullable: true},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, NotNullable: []bool{false}},
 				},
 				"d": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "e"}, IsNullable: true},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "e"}, NotNullable: []bool{false}},
 				},
 				"e": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, IsNullable: true},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, NotNullable: []bool{false}},
 				},
 			},
 			expected:    []string{"b"},
@@ -243,20 +243,20 @@ func Test_determineMultiCycleStart(t *testing.T) {
 			subsets: map[string]string{},
 			dependencyMap: map[string][]*sql_manager.ForeignConstraint{
 				"a": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, IsNullable: true},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, NotNullable: []bool{false}},
 				},
 				"b": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, IsNullable: false},
-					{ForeignKey: &sql_manager.ForeignKey{Table: "d"}, IsNullable: false},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, NotNullable: []bool{true}},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "d"}, NotNullable: []bool{true}},
 				},
 				"c": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, IsNullable: false},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, NotNullable: []bool{true}},
 				},
 				"d": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "e"}, IsNullable: false},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "e"}, NotNullable: []bool{true}},
 				},
 				"e": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, IsNullable: true},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, NotNullable: []bool{false}},
 				},
 			},
 			expected:    []string{"a", "e"},
@@ -268,20 +268,20 @@ func Test_determineMultiCycleStart(t *testing.T) {
 			subsets: map[string]string{},
 			dependencyMap: map[string][]*sql_manager.ForeignConstraint{
 				"a": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "e"}, IsNullable: false},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "e"}, NotNullable: []bool{true}},
 				},
 				"b": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "d"}, IsNullable: true},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "d"}, NotNullable: []bool{false}},
 				},
 				"c": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, IsNullable: false},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, NotNullable: []bool{true}},
 				},
 				"d": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "e"}, IsNullable: false},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "e"}, NotNullable: []bool{true}},
 				},
 				"e": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "c"}, IsNullable: true},
-					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, IsNullable: false},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "c"}, NotNullable: []bool{false}},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, NotNullable: []bool{true}},
 				},
 			},
 			expected:    []string{"b", "e"},
@@ -295,20 +295,20 @@ func Test_determineMultiCycleStart(t *testing.T) {
 			},
 			dependencyMap: map[string][]*sql_manager.ForeignConstraint{
 				"a": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, IsNullable: true},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, NotNullable: []bool{false}},
 				},
 				"b": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, IsNullable: true},
-					{ForeignKey: &sql_manager.ForeignKey{Table: "d"}, IsNullable: true},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, NotNullable: []bool{false}},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "d"}, NotNullable: []bool{false}},
 				},
 				"c": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, IsNullable: false},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "a"}, NotNullable: []bool{true}},
 				},
 				"d": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "e"}, IsNullable: false},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "e"}, NotNullable: []bool{true}},
 				},
 				"e": {
-					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, IsNullable: false},
+					{ForeignKey: &sql_manager.ForeignKey{Table: "b"}, NotNullable: []bool{true}},
 				},
 			},
 			expected:    []string{"a", "b"},
@@ -344,13 +344,13 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 			name: "Single Cycle",
 			dependencies: map[string][]*sql_manager.ForeignConstraint{
 				"public.a": {
-					{Column: "b_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Column: "id"}},
+					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 				},
 				"public.b": {
-					{Column: "c_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Column: "id"}},
+					{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
 				},
 				"public.c": {
-					{Column: "a_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Column: "id"}},
+					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 			},
 			tables: []string{"public.a", "public.b", "public.c"},
@@ -376,14 +376,14 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 			name: "Single Cycle Non Cycle Start",
 			dependencies: map[string][]*sql_manager.ForeignConstraint{
 				"public.a": {
-					{Column: "b_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Column: "id"}},
-					{Column: "x_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.x", Column: "id"}},
+					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+					{Columns: []string{"x_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.x", Columns: []string{"id"}}},
 				},
 				"public.b": {
-					{Column: "c_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Column: "id"}},
+					{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
 				},
 				"public.c": {
-					{Column: "a_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Column: "id"}},
+					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 			},
 			tables: []string{"public.a", "public.b", "public.c", "public.x"},
@@ -412,7 +412,7 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 			name: "Self Referencing Cycle",
 			dependencies: map[string][]*sql_manager.ForeignConstraint{
 				"public.a": {
-					{Column: "a_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Column: "id"}},
+					{Columns: []string{"a_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 			},
 			tables: []string{"public.a"},
@@ -432,8 +432,8 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 			name: "Double Self Referencing Cycle",
 			dependencies: map[string][]*sql_manager.ForeignConstraint{
 				"public.a": {
-					{Column: "a_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Column: "id"}},
-					{Column: "aa_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Column: "id"}},
+					{Columns: []string{"a_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
+					{Columns: []string{"aa_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 			},
 			tables: []string{"public.a"},
@@ -453,14 +453,14 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 			name: "Single Cycle Composite Foreign Keys",
 			dependencies: map[string][]*sql_manager.ForeignConstraint{
 				"public.a": {
-					{Column: "b_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Column: "id"}},
+					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 				},
 				"public.b": {
-					{Column: "c_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Column: "id"}},
-					{Column: "cc_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Column: "other_id"}},
+					{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+					{Columns: []string{"cc_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"other_id"}}},
 				},
 				"public.c": {
-					{Column: "a_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Column: "id"}},
+					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 			},
 			tables: []string{"public.a", "public.b", "public.c"},
@@ -486,14 +486,14 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 			name: "Single Cycle Composite Foreign Keys Nullable",
 			dependencies: map[string][]*sql_manager.ForeignConstraint{
 				"public.a": {
-					{Column: "b_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Column: "id"}},
+					{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 				},
 				"public.b": {
-					{Column: "c_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Column: "id"}},
-					{Column: "cc_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Column: "other_id"}},
+					{Columns: []string{"c_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+					{Columns: []string{"cc_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"other_id"}}},
 				},
 				"public.c": {
-					{Column: "a_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Column: "id"}},
+					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 			},
 			tables: []string{"public.a", "public.b", "public.c"},
@@ -542,13 +542,13 @@ func Test_GetRunConfigs_Subset_SingleCycle(t *testing.T) {
 			name: "Single Cycle",
 			dependencies: map[string][]*sql_manager.ForeignConstraint{
 				"public.a": {
-					{Column: "b_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Column: "id"}},
+					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 				},
 				"public.b": {
-					{Column: "c_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Column: "id"}},
+					{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
 				},
 				"public.c": {
-					{Column: "a_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Column: "id"}},
+					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 			},
 			tables: []string{"public.a", "public.b", "public.c"},
@@ -576,14 +576,14 @@ func Test_GetRunConfigs_Subset_SingleCycle(t *testing.T) {
 			name: "Single Cycle Non Cycle Start",
 			dependencies: map[string][]*sql_manager.ForeignConstraint{
 				"public.a": {
-					{Column: "b_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Column: "id"}},
-					{Column: "x_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.x", Column: "id"}},
+					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
+					{Columns: []string{"x_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.x", Columns: []string{"id"}}},
 				},
 				"public.b": {
-					{Column: "c_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Column: "id"}},
+					{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
 				},
 				"public.c": {
-					{Column: "a_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Column: "id"}},
+					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 			},
 			tables: []string{"public.a", "public.b", "public.c", "public.x"},
@@ -636,20 +636,20 @@ func Test_GetRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 			name: "Multi Table Dependencies",
 			dependencies: map[string][]*sql_manager.ForeignConstraint{
 				"public.a": {
-					{Column: "b_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Column: "id"}},
+					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 				},
 				"public.b": {
-					{Column: "c_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Column: "id"}},
-					{Column: "d_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.d", Column: "id"}},
+					{Columns: []string{"c_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+					{Columns: []string{"d_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.d", Columns: []string{"id"}}},
 				},
 				"public.c": {
-					{Column: "a_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Column: "id"}},
+					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 				"public.d": {
-					{Column: "e_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.e", Column: "id"}},
+					{Columns: []string{"e_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.e", Columns: []string{"id"}}},
 				},
 				"public.e": {
-					{Column: "b_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Column: "id"}},
+					{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 				},
 			},
 			tables: []string{"public.a", "public.b", "public.c", "public.d", "public.e"},
@@ -681,20 +681,20 @@ func Test_GetRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 			name: "Multi Table Dependencies Complex Foreign Keys",
 			dependencies: map[string][]*sql_manager.ForeignConstraint{
 				"public.a": {
-					{Column: "b_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Column: "id"}},
+					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 				},
 				"public.b": {
-					{Column: "c_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Column: "id"}},
-					{Column: "d_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.d", Column: "id"}},
+					{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+					{Columns: []string{"d_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.d", Columns: []string{"id"}}},
 				},
 				"public.c": {
-					{Column: "a_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Column: "id"}},
+					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 				"public.d": {
-					{Column: "e_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.e", Column: "id"}},
+					{Columns: []string{"e_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.e", Columns: []string{"id"}}},
 				},
 				"public.e": {
-					{Column: "b_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Column: "id"}},
+					{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 				},
 			},
 			tables: []string{"public.a", "public.b", "public.c", "public.d", "public.e"},
@@ -727,14 +727,14 @@ func Test_GetRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 			name: "Multi Table Dependencies Self Referencing Circular Dependency Complex",
 			dependencies: map[string][]*sql_manager.ForeignConstraint{
 				"public.a": {
-					{Column: "b_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Column: "id"}},
+					{Columns: []string{"b_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 				},
 				"public.b": {
-					{Column: "c_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Column: "id"}},
-					{Column: "bb_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Column: "id"}},
+					{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+					{Columns: []string{"bb_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 				},
 				"public.c": {
-					{Column: "a_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Column: "id"}},
+					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 			},
 			tables: []string{"public.a", "public.b", "public.c"},
@@ -761,14 +761,14 @@ func Test_GetRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 			name: "Multi Table Dependencies Self Referencing Circular Dependency Simple",
 			dependencies: map[string][]*sql_manager.ForeignConstraint{
 				"public.a": {
-					{Column: "b_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Column: "id"}},
+					{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 				},
 				"public.b": {
-					{Column: "c_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Column: "id"}},
-					{Column: "bb_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Column: "id"}},
+					{Columns: []string{"c_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
+					{Columns: []string{"bb_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 				},
 				"public.c": {
-					{Column: "a_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Column: "id"}},
+					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 			},
 			tables: []string{"public.a", "public.b", "public.c"},
@@ -821,11 +821,10 @@ func Test_GetRunConfigs_CompositeKey(t *testing.T) {
 	emptyWhere := ""
 	dependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.employees": {
-			{Column: "department_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.department", Column: "department_id"}},
+			{Columns: []string{"department_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.department", Columns: []string{"department_id"}}},
 		},
 		"public.projects": {
-			{Column: "responsible_employee_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.employees", Column: "employee_id"}},
-			{Column: "responsible_department_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.employees", Column: "department_id"}},
+			{Columns: []string{"responsible_employee_id", "responsible_department_id"}, NotNullable: []bool{false, false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.employees", Columns: []string{"employee_id", "department_id"}}},
 		},
 	}
 	primaryKeyMap := map[string][]string{
@@ -891,10 +890,10 @@ func Test_GetRunConfigs_CompositeKey(t *testing.T) {
 func Test_GetRunConfigs_CircularDependencyNoneNullable(t *testing.T) {
 	dependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.a": {
-			{Column: "b_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Column: "id"}},
+			{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 		},
 		"public.b": {
-			{Column: "a_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Column: "id"}},
+			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 		},
 	}
 	tables := []string{"public.a", "public.b"}

@@ -293,7 +293,7 @@ func Test_buildSyncConfigs_postgres(t *testing.T) {
 				},
 				TableConstraints: map[string][]*sql_manager.ForeignConstraint{
 					"public.accounts": {
-						{Column: "user_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Column: "id"}},
+						{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}},
 					},
 				},
 				TablePrimaryKeys:       map[string]*mgmtv1alpha1.PrimaryConstraint{},
@@ -336,10 +336,10 @@ func Test_buildSyncConfigs_postgres(t *testing.T) {
 				},
 				TableConstraints: map[string][]*sql_manager.ForeignConstraint{
 					"public.accounts": {
-						{Column: "user_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Column: "id"}},
+						{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}},
 					},
 					"public.users": {
-						{Column: "account_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.accounts", Column: "id"}},
+						{Columns: []string{"account_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.accounts", Columns: []string{"id"}}},
 					},
 				},
 				TablePrimaryKeys: map[string]*mgmtv1alpha1.PrimaryConstraint{
@@ -395,7 +395,7 @@ func Test_buildSyncConfigs_postgres(t *testing.T) {
 				},
 				TableConstraints: map[string][]*sql_manager.ForeignConstraint{
 					"public.users": {
-						{Column: "user_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Column: "id"}},
+						{Columns: []string{"user_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.users", Columns: []string{"id"}}},
 					},
 				},
 				TablePrimaryKeys: map[string]*mgmtv1alpha1.PrimaryConstraint{

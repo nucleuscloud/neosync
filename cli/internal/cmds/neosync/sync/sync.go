@@ -1091,14 +1091,14 @@ func getConnectionSchemaConfig(
 			var foreignKey *sql_manager.ForeignKey
 			if fk.ForeignKey != nil {
 				foreignKey = &sql_manager.ForeignKey{
-					Table:  fk.ForeignKey.Table,
-					Column: fk.ForeignKey.Column,
+					Table:   fk.ForeignKey.Table,
+					Columns: []string{fk.ForeignKey.Column},
 				}
 			}
 			fkConstraints = append(fkConstraints, &sql_manager.ForeignConstraint{
-				Column:     fk.Column,
-				IsNullable: fk.IsNullable,
-				ForeignKey: foreignKey,
+				Columns:     []string{fk.Column},
+				NotNullable: []bool{!fk.IsNullable},
+				ForeignKey:  foreignKey,
 			})
 		}
 		tc[table] = fkConstraints
