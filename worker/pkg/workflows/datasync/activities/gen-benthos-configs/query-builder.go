@@ -327,7 +327,7 @@ func buildQueryMapNoSubsetConstraints(
 		}
 		columns := config.Columns
 		if config.RunType == tabledependency.RunTypeUpdate {
-			columns := []string{}
+			columns = []string{}
 			columns = append(columns, config.PrimaryKeys...)
 			columns = append(columns, config.Columns...)
 		}

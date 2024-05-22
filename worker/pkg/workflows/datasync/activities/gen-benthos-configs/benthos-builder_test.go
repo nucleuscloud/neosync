@@ -1268,7 +1268,7 @@ input:
     pooled_sql_raw:
         driver: postgres
         dsn: ${SOURCE_CONNECTION_DSN}
-        query: SELECT "id", "parent_id" FROM "public"."jobs";
+        query: SELECT "id" FROM "public"."jobs";
 pipeline:
     threads: -1
     processors:
@@ -1717,7 +1717,7 @@ input:
     pooled_sql_raw:
         driver: postgres
         dsn: ${SOURCE_CONNECTION_DSN}
-        query: SELECT "id", "name", "user_assoc_id" FROM "public"."users";
+        query: SELECT "id", "name" FROM "public"."users";
 pipeline:
     threads: -1
     processors: []
@@ -1770,7 +1770,7 @@ input:
     pooled_sql_raw:
         driver: postgres
         dsn: ${SOURCE_CONNECTION_DSN}
-        query: SELECT "id", "name", "user_assoc_id" FROM "public"."users";
+        query: SELECT "id", "user_assoc_id" FROM "public"."users";
 pipeline:
     threads: -1
     processors: []
@@ -2061,7 +2061,7 @@ input:
     pooled_sql_raw:
         driver: postgres
         dsn: ${SOURCE_CONNECTION_DSN}
-        query: SELECT "id", "name", "user_assoc_id" FROM "public"."users";
+        query: SELECT "id", "name" FROM "public"."users";
 pipeline:
     threads: -1
     processors: []
@@ -2141,7 +2141,7 @@ input:
     pooled_sql_raw:
         driver: postgres
         dsn: ${SOURCE_CONNECTION_DSN}
-        query: SELECT "id", "name", "user_assoc_id" FROM "public"."users";
+        query: SELECT "id", "user_assoc_id" FROM "public"."users";
 pipeline:
     threads: -1
     processors: []
