@@ -5,19 +5,32 @@ hide_title: false
 slug: /deploy/docker-compose
 ---
 
-## Deploying with Docker Compose
+## Trying Neosync with Compose
 
-A `compose.yml` file is provided in the `compose` folder to easily and quickly get Neosync up and running without having to build any dependencies. All that's needed is `docker`.
+A `compose.yml` file is provided at the root of the repository. This uses our pre-built docker images so no building is required.
 
-This compose file is not tailored for development environments as it uses pre-baked docker images that are intended for use in production environments.
+This file includes two other compose files that are found in the main repository.
 
-There is a companion compose file found in the `temporal` folder that should be run prior to the main `compose.yml` to stand up an instance of Temporal and all of its dependencies.
+- Temporal Compose
+- Test Databases
 
-To simplify the setup even further, a compose file is provided that does not stand up authentication for Neosync. Check out the section below to stand up Neosync with auth.
+We split out the Temporal compose file to make it easier to include in other places, as well as to keep the main compose clean and to have a separate of concerns.
+
+**This main compose.yml file is made to easily try Neosync and should not be used as-is for production deployments.**
+
+To run this you can run one of the two following commands:
 
 ```sh
 $ make compose-up
+$ docker compose up -d
 ```
+
+## Deploying Neosync with Compose
+
+If you wish to deploy Neosync to production with `compose.yml`, we don't currently offer a single `compose.yml` file to do this (yet.).
+However, you can easily combine main `compose.yml` and the temporal `compose.yml` files to achieve this.
+
+The main `compose.yml` includes an `api-seed` and `temporal-seed` that may not be necessary and require extra files, so those can be ommitted for minimal dependencies.
 
 Once all of the containers come online, the app is now routable via [http://localhost:3000](http://localhost:3000).
 
@@ -27,6 +40,7 @@ Neosync provides an auth friendly compose file that will stand up Neosync in aut
 
 ```sh
 $ make compose-auth-up
+$ docker compose -f compose.yml -f compose.auth.yml up -d
 ```
 
 Keycloak comes default with two clients that allow the app and cli to login successfully.
