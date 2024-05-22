@@ -181,12 +181,12 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 
 		// reverse of table dependency
 		// map of foreign key to source table + column
-		tableQueryMap, err := buildSelectQueryMap(db.Driver, groupedTableMapping, sourceTableOpts, tableDependencyMap, runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedSchemas)
+		tableRunTypeQueryMap, err := buildSelectQueryMap(db.Driver, tableDependencyMap, runConfigs, sqlSourceOpts.SubsetByForeignKeyConstraints, groupedSchemas)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build select queries: %w", err)
 		}
 
-		sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, db.Driver, tableQueryMap, groupedSchemas, tableDependencyMap, colTransformerMap, b.jobId, b.runId, b.redisConfig, tableConstraintsSource)
+		sourceResponses, err := buildBenthosSqlSourceConfigResponses(ctx, b.transformerclient, groupedTableMapping, runConfigs, sourceConnection.Id, db.Driver, tableRunTypeQueryMap, groupedSchemas, tableDependencyMap, colTransformerMap, b.jobId, b.runId, b.redisConfig, tableConstraintsSource)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build benthos sql source config responses: %w", err)
 		}
@@ -529,23 +529,6 @@ func getPrimaryKeyDependencyMap(tableDependencies map[string][]*sql_manager.Fore
 	return tc
 }
 
-// func getForeignKeyToSourceMap(tableDependencies map[string][]*sql_manager.ForeignConstraint) map[string]map[string]*sql_manager.ForeignKey {
-// 	tc := map[string]map[string]*sql_manager.ForeignKey{} // schema.table -> column -> ForeignKey
-// 	for table, constraints := range tableDependencies {
-// 		for _, c := range constraints {
-// 			_, ok := tc[c.ForeignKey.Table]
-// 			if !ok {
-// 				tc[c.ForeignKey.Table] = map[string]*sql_manager.ForeignKey{}
-// 			}
-// 			tc[c.ForeignKey.Table][c.ForeignKey.Column] = &sql_manager.ForeignKey{
-// 				Table:  table,
-// 				Column: c.Column,
-// 			}
-// 		}
-// 	}
-// 	return tc
-// }
-
 func buildTableSubsetMap(tableOpts map[string]*sqlSourceTableOptions) map[string]string {
 	tableSubsetMap := map[string]string{}
 	for table, opts := range tableOpts {
@@ -681,7 +664,7 @@ func buildBenthosSqlSourceConfigResponses(
 	runconfigs []*tabledependency.RunConfig,
 	dsnConnectionId string,
 	driver string,
-	selectQueryMap map[string]string,
+	tableRunTypeQueryMap map[string]map[tabledependency.RunType]string,
 	groupedColumnInfo map[string]map[string]*sql_manager.ColumnInfo,
 	tableDependencies map[string][]*sql_manager.ForeignConstraint,
 	colTransformerMap map[string]map[string]*mgmtv1alpha1.JobMappingTransformer,
@@ -713,9 +696,9 @@ func buildBenthosSqlSourceConfigResponses(
 		if !ok {
 			return nil, fmt.Errorf("missing column mappings for table: %s", config.Table)
 		}
-		query, ok := selectQueryMap[config.Table]
+		query, ok := tableRunTypeQueryMap[config.Table][config.RunType]
 		if !ok {
-			return nil, fmt.Errorf("select query not found for table: %s", config.Table)
+			return nil, fmt.Errorf("select query not found for table: %s runType: %s", config.Table, config.RunType)
 		}
 		bc := &neosync_benthos.BenthosConfig{
 			StreamConfig: neosync_benthos.StreamConfig{

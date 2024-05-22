@@ -225,10 +225,10 @@ func buildSelectQueryMap(
 	runConfigs []*tabledependency.RunConfig,
 	subsetByForeignKeyConstraints bool,
 	groupedColumnInfo map[string]map[string]*sql_manager.ColumnInfo,
-) (map[string]string, error) {
+) (map[string]map[tabledependency.RunType]string, error) {
 	insertRunConfigMap := map[string]*tabledependency.RunConfig{}
 	for _, cfg := range runConfigs {
-		if cfg.RunType == tabledependency.RunTypeUpdate {
+		if cfg.RunType == tabledependency.RunTypeInsert {
 			insertRunConfigMap[cfg.Table] = cfg
 		}
 	}
@@ -246,72 +246,98 @@ func buildSelectQueryMap(
 	}
 
 	if !subsetByForeignKeyConstraints || len(tableDependencies) == 0 || len(tableWhereMap) == 0 {
-		queryMap, err := buildQueryMapNoSubsetConstraints(driver, runConfigs)
+		queryRunTypeMap, err := buildQueryMapNoSubsetConstraints(driver, runConfigs)
 		if err != nil {
 			return nil, err
 		}
-		return queryMap, nil
+		return queryRunTypeMap, nil
 	}
-
-	queryMap := map[string]string{}
 
 	subsetConfigs, err := buildTableSubsetQueryConfigs(driver, tableDependencies, tableWhereMap, insertRunConfigMap)
 	if err != nil {
 		return nil, err
 	}
 
-	for table, runConfig := range insertRunConfigMap {
-		config := subsetConfigs[table]
-		columnInfoMap := groupedColumnInfo[table]
-
-		if len(config.SelfReferencingCircularDependency) != 0 {
-			sql, err := buildSelectRecursiveQuery(
-				driver,
-				table,
-				runConfig.Columns,
-				columnInfoMap,
-				config.SelfReferencingCircularDependency,
-				config.Joins,
-				config.WhereClauses,
-			)
-			if err != nil {
-				return nil, fmt.Errorf("unable to build recursive select query: %w", err)
-			}
-			queryMap[table] = sql
-		} else if len(config.Joins) == 0 {
-			where := strings.Join(config.WhereClauses, " AND ")
-			sql, err := buildSelectQuery(driver, table, runConfig.Columns, &where)
-			if err != nil {
-				return nil, fmt.Errorf("unable to build select query: %w", err)
-			}
-			queryMap[table] = sql
-		} else {
-			sql, err := buildSelectJoinQuery(driver, table, runConfig.Columns, config.Joins, config.WhereClauses)
-			if err != nil {
-				return nil, fmt.Errorf("unable to build select query with joins: %w", err)
-			}
-			queryMap[table] = sql
+	queryRunTypeMap := map[string]map[tabledependency.RunType]string{}
+	for _, runConfig := range runConfigs {
+		if _, ok := queryRunTypeMap[runConfig.Table]; !ok {
+			queryRunTypeMap[runConfig.Table] = map[tabledependency.RunType]string{}
 		}
+		columns := runConfig.Columns
+		if runConfig.RunType == tabledependency.RunTypeUpdate {
+			columns = []string{}
+			columns = append(columns, runConfig.PrimaryKeys...)
+			columns = append(columns, runConfig.Columns...)
+		}
+		subsetConfig := subsetConfigs[runConfig.Table]
+		columnInfoMap := groupedColumnInfo[runConfig.Table]
+		sql, err := buildTableQuery(driver, runConfig.Table, columns, subsetConfig, columnInfoMap)
+		if err != nil {
+			return nil, err
+		}
+		queryRunTypeMap[runConfig.Table][runConfig.RunType] = sql
 	}
-	return queryMap, nil
+	return queryRunTypeMap, nil
+}
+
+func buildTableQuery(
+	driver, table string,
+	columns []string,
+	config *subsetQueryConfig,
+	columnInfoMap map[string]*sql_manager.ColumnInfo,
+) (string, error) {
+	if len(config.SelfReferencingCircularDependency) != 0 {
+		sql, err := buildSelectRecursiveQuery(
+			driver,
+			table,
+			columns,
+			columnInfoMap,
+			config.SelfReferencingCircularDependency,
+			config.Joins,
+			config.WhereClauses,
+		)
+		if err != nil {
+			return "", fmt.Errorf("unable to build recursive select query: %w", err)
+		}
+		return sql, err
+	} else if len(config.Joins) == 0 {
+		where := strings.Join(config.WhereClauses, " AND ")
+		sql, err := buildSelectQuery(driver, table, columns, &where)
+		if err != nil {
+			return "", fmt.Errorf("unable to build select query: %w", err)
+		}
+		return sql, nil
+	} else {
+		sql, err := buildSelectJoinQuery(driver, table, columns, config.Joins, config.WhereClauses)
+		if err != nil {
+			return "", fmt.Errorf("unable to build select query with joins: %w", err)
+		}
+		return sql, nil
+	}
 }
 
 func buildQueryMapNoSubsetConstraints(
 	driver string,
 	runConfigs []*tabledependency.RunConfig,
-) (map[string]string, error) {
-	queryMap := map[string]string{}
+) (map[string]map[tabledependency.RunType]string, error) {
+	queryRunTypeMap := map[string]map[tabledependency.RunType]string{}
 	for _, config := range runConfigs {
-		if config.RunType == tabledependency.RunTypeUpdate {
-			continue
+		if _, ok := queryRunTypeMap[config.Table]; !ok {
+			queryRunTypeMap[config.Table] = map[tabledependency.RunType]string{}
 		}
-		query, err := buildSelectQuery(driver, config.Table, config.Columns, config.WhereClause)
+		columns := config.Columns
+		if config.RunType == tabledependency.RunTypeUpdate {
+			columns := []string{}
+			columns = append(columns, config.PrimaryKeys...)
+			columns = append(columns, config.Columns...)
+		}
+		query, err := buildSelectQuery(driver, config.Table, columns, config.WhereClause)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build select query: %w", err)
 		}
-		queryMap[config.Table] = query
+		queryRunTypeMap[config.Table][config.RunType] = query
 	}
-	return queryMap, nil
+	return queryRunTypeMap, nil
 }
 
 type tableSubset struct {

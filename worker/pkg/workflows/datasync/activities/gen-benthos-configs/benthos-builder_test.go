@@ -2754,7 +2754,9 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 			},
 		},
 	}
-	queryMap := map[string]string{"public.users": ""}
+	queryMap := map[string]map[tabledependency.RunType]string{
+		"public.users": {tabledependency.RunTypeInsert: ""},
+	}
 	runconfigs := []*tabledependency.RunConfig{
 		{Table: "public.users", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}},
 	}
@@ -2829,7 +2831,9 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 		{Table: "public.users", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}},
 	}
 
-	queryMap := map[string]string{"public.users": ""}
+	queryMap := map[string]map[tabledependency.RunType]string{
+		"public.users": {tabledependency.RunTypeInsert: ""},
+	}
 
 	res, err := buildBenthosSqlSourceConfigResponses(
 		context.Background(),
@@ -2900,7 +2904,9 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 			},
 		},
 	}
-	queryMap := map[string]string{"public.users": ""}
+	queryMap := map[string]map[tabledependency.RunType]string{
+		"public.users": {tabledependency.RunTypeInsert: ""},
+	}
 
 	runconfigs := []*tabledependency.RunConfig{
 		{Table: "public.users", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}},
@@ -3006,7 +3012,9 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
 		},
 	}
 
-	queryMap := map[string]string{"public.users": ""}
+	queryMap := map[string]map[tabledependency.RunType]string{
+		"public.users": {tabledependency.RunTypeInsert: ""},
+	}
 	runconfigs := []*tabledependency.RunConfig{
 		{Table: "public.users", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}},
 	}
