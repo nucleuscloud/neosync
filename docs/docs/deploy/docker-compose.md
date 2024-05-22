@@ -30,7 +30,7 @@ $ docker compose up -d
 If you wish to deploy Neosync to production with `compose.yml`, we don't currently offer a single `compose.yml` file to do this (yet.).
 However, you can easily combine main `compose.yml` and the temporal `compose.yml` files to achieve this.
 
-The main `compose.yml` includes an `api-seed` and `temporal-seed` that may not be necessary and require extra files, so those can be ommitted for minimal dependencies.
+The main `compose.yml` includes an `api-seed` and `temporal-seed` that may not be necessary and require extra files, so those can be omitted for minimal dependencies.
 
 Once all of the containers come online, the app is now routable via [http://localhost:3000](http://localhost:3000).
 
