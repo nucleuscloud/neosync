@@ -235,9 +235,19 @@ func getMetricNameFromEnum(metric mgmtv1alpha1.RangedMetricName) (string, error)
 }
 
 func getStepByRange(start, end time.Time) time.Duration {
-	_ = start
-	_ = end
-	return 5 * time.Minute
+	diff := end.Sub(start)
+
+	diffDays := int(diff.Hours() / 24)
+	diffHours := int(diff.Hours())
+
+	switch {
+	case diffHours < 24:
+		return 1 * time.Minute
+	case diffDays >= 0 && diffDays <= 15:
+		return 1 * time.Hour
+	default:
+		return 1 * time.Hour
+	}
 }
 
 func getDailyUsageFromMatrix(matrix model.Matrix) ([]*mgmtv1alpha1.DayResult, error) {
