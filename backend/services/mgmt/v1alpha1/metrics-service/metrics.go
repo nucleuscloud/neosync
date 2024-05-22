@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"sort"
+	"sync"
 	"time"
 
 	"connectrpc.com/connect"
@@ -12,6 +13,7 @@ import (
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
+	"golang.org/x/sync/errgroup"
 
 	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
@@ -80,7 +82,7 @@ func (s *Service) GetDailyMetricCount(
 	if err != nil {
 		return nil, fmt.Errorf("unable to compute valid prometheus query: %w", err)
 	}
-	results, _, err := getDailyUsageFromProm(s.prometheusclient, query, start, end, logger)
+	results, _, err := getDailyUsageFromProm(ctx, s.prometheusclient, query, start, end, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +159,7 @@ func (s *Service) GetMetricCount(
 		return nil, fmt.Errorf("unable to compute valid prometheus query: %w", err)
 	}
 
-	_, totalCount, err := getDailyUsageFromProm(s.prometheusclient, query, start.AsTime(), end.AsTime(), logger)
+	_, totalCount, err := getDailyUsageFromProm(ctx, s.prometheusclient, query, start.AsTime(), end.AsTime(), logger)
 	if err != nil {
 		return nil, err
 	}
@@ -190,39 +192,49 @@ func getMetricNameFromEnum(metric mgmtv1alpha1.RangedMetricName) (string, error)
 
 const usageDateFormat = "2006-01-02"
 
-func getDailyUsageFromProm(api promv1.API, query string, start, end time.Time, logger *slog.Logger) ([]*mgmtv1alpha1.DayResult, float64, error) {
+func getDailyUsageFromProm(ctx context.Context, api promv1.API, query string, start, end time.Time, logger *slog.Logger) ([]*mgmtv1alpha1.DayResult, float64, error) {
 	var dailyResults []*mgmtv1alpha1.DayResult
 	dailyTotals := make(map[string]float64)
 	var overallTotal float64
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.SetLimit(10)
+	mu := sync.Mutex{}
 
 	// Iterate through each day in the range
 	for d := start; !d.After(end); d = d.AddDate(0, 0, 1) {
-		dayStart := time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, time.UTC)
-		dayEnd := dayStart.AddDate(0, 0, 1).Add(-time.Nanosecond)
-		fmt.Println(query, dayEnd)
-		result, warnings, err := api.Query(ctx, query, dayEnd)
-		if err != nil {
-			return nil, 0, fmt.Errorf("error querying Prometheus for date %s: %w", d.Format(usageDateFormat), err)
-		}
-		if len(warnings) > 0 {
-			logger.Warn(fmt.Sprintf("[PROMETHEUS]: %v", warnings))
-		}
+		errgrp.Go(func() error {
+			dayStart := time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, time.UTC)
+			dayEnd := dayStart.AddDate(0, 0, 1).Add(-time.Nanosecond)
+			fmt.Println(query, dayEnd)
+			result, warnings, err := api.Query(errctx, query, dayEnd)
+			if err != nil {
+				return fmt.Errorf("error querying Prometheus for date %s: %w", d.Format(usageDateFormat), err)
+			}
+			if len(warnings) > 0 {
+				logger.Warn(fmt.Sprintf("[PROMETHEUS]: %v", warnings))
+			}
 
-		// Process the results for this day
-		vector, ok := result.(model.Vector)
-		if !ok {
-			return nil, -1, fmt.Errorf("error casting result to model.Vector for date %s", d.Format(usageDateFormat))
-		}
+			// Process the results for this day
+			vector, ok := result.(model.Vector)
+			if !ok {
+				return fmt.Errorf("error casting result to model.Vector for date %s", d.Format(usageDateFormat))
+			}
 
-		for _, sample := range vector {
-			timestamp := sample.Timestamp.Time()
-			day := timestamp.Format(usageDateFormat)
-			value := float64(sample.Value)
-			dailyTotals[day] += value
-		}
+			for _, sample := range vector {
+				timestamp := sample.Timestamp.Time()
+				day := timestamp.Format(usageDateFormat)
+				value := float64(sample.Value)
+				mu.Lock()
+				dailyTotals[day] += value
+				mu.Unlock()
+			}
+			return nil
+		})
+	}
+	err := errgrp.Wait()
+	if err != nil {
+		return nil, -1, err
 	}
 
 	var dates []string
