@@ -1,5 +1,16 @@
 <p align="center">
-  <img alt="neosyncbanner" src="https://assets.nucleuscloud.com/neosync/docs/neosync-header.svg" >
+  <!-- <img alt="neosyncbanner" src="https://assets.nucleuscloud.com/neosync/docs/neosync-header.svg" > -->
+  <picture>
+  <source
+    srcset="https://assets.nucleuscloud.com/neosync/docs/neosync-header.svg"
+    media="(prefers-color-scheme: light)"
+  />
+  <source
+    srcset="https://assets.nucleuscloud.com/neosync/docs/neosync-header-dark.svg"
+    media="(prefers-color-scheme: dark), (prefers-color-scheme: no-preference)"
+  />
+  <img src="https://github-readme-stats.vercel.app/api?username=anuraghazra&show_icons=true" />
+</picture>
 </p>
 
 <p align="center" style="font-size: 24px;font-weight: 500;">
