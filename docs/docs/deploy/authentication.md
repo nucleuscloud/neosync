@@ -7,7 +7,6 @@ slug: /deploy/authentication
 
 ## Introduction
 
-Authentication is a core pillar to a secure, productionized deployment of Neosync.
 By default, Neosync launches without requiring any form of authentication. This is to make getting started with Neosync easier, and it's not advised to run Neosync in production without any form of authentication.
 
 There are a few different authentication systems and play here, and this doc will detail what each one is, and why it exists.

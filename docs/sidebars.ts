@@ -35,32 +35,14 @@ const sidebars: SidebarsConfig = {
       label: 'Platform',
     },
     {
-      type: 'category',
+      type: 'doc',
+      id: 'overview/usecases',
       label: 'Use cases',
-      collapsible: true,
-      collapsed: true,
-      items: [
-        {
-          type: 'doc',
-          id: 'overview/use-cases/anonymization',
-          label: 'Anonymize Data',
-        },
-        {
-          type: 'doc',
-          id: 'overview/use-cases/synthetic-data',
-          label: 'Synthetic Data',
-        },
-        {
-          type: 'doc',
-          id: 'overview/use-cases/subsetting',
-          label: 'Subset Data',
-        },
-        {
-          type: 'doc',
-          id: 'overview/use-cases/replication',
-          label: 'Replicate Data',
-        },
-      ],
+    },
+    {
+      type: 'doc',
+      id: 'overview/core-features',
+      label: 'Core Features',
     },
     {
       type: 'doc',
@@ -219,8 +201,13 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'doc',
-      id: 'guides/using-neosync-with-llms',
-      label: 'Using Neosync with any LLM',
+      id: 'guides/using-custom-llm-transformer',
+      label: 'Using a Custom LLM Transformer',
+    },
+    {
+      type: 'doc',
+      id: 'guides/ai-synthetic-data-generation',
+      label: 'AI Synthetic Data Generation',
     },
     {
       type: 'doc',

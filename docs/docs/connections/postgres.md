@@ -20,7 +20,7 @@ In order to connect to your Postgres database, first navigate to **Connections**
 
 Then select a Postgres compatible database such as Neon, Supabase or just the base Postgres connection.
 
-![New Connection Page](/img/conn.png)
+![connections](/img/connectionsList.png)
 
 You'll now be taken to the Postgres connection form.
 

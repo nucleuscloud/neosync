@@ -74,13 +74,15 @@ export default function Footer(): ReactElement {
             <Socials />
           </div>
           <div>
-            <Image
-              src="https://assets.nucleuscloud.com/neosync/marketingsite/soc2.png"
-              alt="soc2"
-              className="object-scale-down"
-              width="100"
-              height="100"
-            />
+            <Link href="https://trust.neosync.dev/" target="_blank">
+              <Image
+                src="https://assets.nucleuscloud.com/neosync/marketingsite/soc2.png"
+                alt="soc2"
+                className="object-scale-down"
+                width="100"
+                height="100"
+              />
+            </Link>
           </div>
         </div>
         <Links />

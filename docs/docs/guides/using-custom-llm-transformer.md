@@ -1,13 +1,13 @@
 ---
-title: Using Neosync with any LLM
-id: using-neosync-with-llms
+title: Using a Custom LLM Transformer
+id: using-custom-llm-transformer
 hide_title: false
-slug: /guides/using-neosync-with-llms
+slug: /guides/using-custom-llm-transformer
 ---
 
 ## Introduction
 
-This guide walks through how you can integrate Neosync with any LLM or machine learning model that has a REST endpoint. We're going to use the use case that we have a customer interview platform that we want to generate synthetic data for our staging and development environments. Because the production customer interview data is sensitive, generating synthetic data is a secure and privacy-safe way of giving developers the data they need to build new features without compromising on data privacy.
+This guide walks through how you can integrate Neosync with any LLM or machine learning model that has a REST endpoint as a custom Transformer. We're going to use the use case that we have a customer interview platform that we want to generate synthetic data for our staging and development environments. Because the production customer interview data is sensitive, generating synthetic data is a secure and privacy-safe way of giving developers the data they need to build new features without compromising on data privacy.
 
 ## Pre-requisites
 
