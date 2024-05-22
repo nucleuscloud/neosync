@@ -741,8 +741,24 @@ func buildBenthosSqlSourceConfigResponses(
 			if !ok {
 				columnConstraints = map[string]*sql_manager.ForeignKey{}
 			}
+
+			fkSourceKeysMap := map[string]struct{}{}
+			for _, sourceMap := range fkSourceMap {
+				for _, pk := range sourceMap {
+					if pk.Table == config.Table {
+						fkSourceKeysMap[pk.Column] = struct{}{}
+					}
+				}
+			}
+			for _, pk := range config.PrimaryKeys {
+				fkSourceKeysMap[pk] = struct{}{}
+			}
+			fkSourceKeys := []string{}
+			for key := range fkSourceKeysMap {
+				fkSourceKeys = append(fkSourceKeys, key)
+			}
 			// sql insert processor configs
-			processorConfigs, err := buildProcessorConfigs(ctx, transformerclient, mappings.Mappings, groupedColumnInfo[config.Table], columnConstraints, config.PrimaryKeys, jobId, runId, redisConfig)
+			processorConfigs, err := buildProcessorConfigs(ctx, transformerclient, mappings.Mappings, groupedColumnInfo[config.Table], columnConstraints, fkSourceKeys, jobId, runId, redisConfig)
 			if err != nil {
 				return nil, err
 			}
