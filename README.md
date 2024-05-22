@@ -1,9 +1,9 @@
 <p align="center">
-  <img alt="neosyncbanner" src="https://assets.nucleuscloud.com/neosync/docs/neosync-main-header-animated.svg" >
+  <img alt="neosyncbanner" src="https://assets.nucleuscloud.com/neosync/docs/neosync-header.svg" >
 </p>
 
 <p align="center" style="font-size: 24px;font-weight: 500;">
-Open Source Synthetic Data Orchestration
+Open Source Data Anonymization and Synthetic Data Orchestration
 <p>
 
 <div align='center'>
@@ -35,26 +35,26 @@ Open Source Synthetic Data Orchestration
 
 ## Introduction
 
-[Neosync](https://www.neosync.dev) is a developer-first way to create anonymized or synthetic data and sync it across all environments.
+[Neosync](https://www.neosync.dev) is an open-source, developer-first way to anonymize PII, generate synthetic data and sync environments for better testing, debugging and developer experience.
 
 Companies use Neosync to:
 
-1. **Unblock local development** - Give developers the ability to self-serve de-identified and synthetic data whenever they need it
-2. **Fix broken staging environments** - Catch bugs before they hit production when you hydrate your staging and QA environments with production-like data
-3. **Keep environments in sync** - Keep your environments in sync with the latest synthetic data so you never hear "it works for me locally" again
-4. **Get frictionless security, privacy and compliance** - Easily comply with laws like HIPAA, GDPR, and DPDP with de-identified and synthetic data
+1. **Safely test code against production data** - Anonymize sensitive production data in order to safely use it locally for a better testing and developer experience
+2. **Easily reproduce production bugs locally** - Anonymize and subset production data to get a safe, representative data set that you can use to locally reproduce production bugs quickly and efficiently
+3. **Fix broken staging environments** - Catch bugs before they hit production when you hydrate your staging and QA environments with production-like data
+4. **Reduce your compliance scope** - Use anonymized and synthetic data to reduce your compliance scope and easily comply with laws like HIPAA, GDPR, and DPDP
 5. **Seed development databases** - Easily seed development databases with synthetic data for unit testing, demos and more
 
 ## Features
 
 - **Generate synthetic data** based on your schema
-- **Anonymize existing production-data** to protect data
-- **Subset your production database** for local and CI testing by filtering on an object, id or custom query
+- **Anonymize existing production-data** for a better developer experience
+- **Subset your production database** for local and CI testing using any SQL query
 - **Complete async pipeline** that automatically handles job retries, failures and playback using an event-sourcing model
-- **Referential integrity** for your data automatically - never worry about broken foreign keys again
+- **Referential integrity** for your data automatically
 - **Declarative, GitOps based configs** as a step in your CI pipeline to hydrate your CI DB
 - **Pre-built data transformers** for all major data types
-- **Custom data transformers**
+- **Custom data transformers** using javascript or LLMs
 - **Pre-built integrations** with Postgres, Mysql, S3
 
 ## Getting started
@@ -89,7 +89,7 @@ For more in-depth details on environment variables, Kubernetes deployments, and 
 
 Some resources to help you along the way:
 
-- [Docs](https://docs.neosync.dev) for comprehensive documentation and guides: Note these are still a work in progress.
+- [Docs](https://docs.neosync.dev) for comprehensive documentation and guides
 - [Discord](https://discord.com/invite/MFAMgnp4HF) for discussion with the community and Neosync team
 - [X](https://x.com/neosynccloud) for the latest updates
 
@@ -100,14 +100,6 @@ We love contributions big and small. Here are just a few ways that you can contr
 - Join our [Discord](https://discord.com/invite/MFAMgnp4HF) channel and ask us any questions there
 - Open a PR (see our instructions on [developing with Neosync locally](https://docs.neosync.dev/guides/neosync-local-dev))
 - Submit a [feature request](https://github.com/nucleuscloud/neosync/issues/new?assignees=&labels=enhancement%2C+feature&template=feature_request.md) or [bug report](https://github.com/nucleuscloud/neosync/issues/new?assignees=&labels=bug&template=bug_report.md)
-
-## Mission
-
-Our mission is to help developers build better, more resilient applications while protecting sensitive data. To do that, we built Neosync to give teams three things:
-
-1. A world-class developer experience that fits into any workflow and follows modern developer best practices such as GitOps
-2. A platform that can anonymize sensitive data or automatically generate synthetic data from a schema and sync that across all environments
-3. An open source approach that allows you to keep your most sensitive data in your infrastructure
 
 ## Licensing
 
