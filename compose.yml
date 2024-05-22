@@ -94,6 +94,20 @@ services:
     networks:
       - neosync-network
 
+  temporal-seed:
+    container_name: neosync-temporal-seed
+    image: temporalio/admin-tools:latest
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+    entrypoint: /bin/sh -c "/create_schedules.sh"
+    volumes:
+      - ./hack/create_schedules.sh:/create_schedules.sh
+    depends_on:
+      - api
+    networks:
+      - neosync-network
+      - temporal-network
+
   worker:
     container_name: neosync-worker
     image: ghcr.io/nucleuscloud/neosync/worker:latest
