@@ -38,7 +38,7 @@ export default function UsagePage({ params }: PageProps): ReactElement {
   }
   const [start, end] = periodToDateRange(period);
   return (
-    <div className="job-details-usage-container">
+    <div className="job-details-usage-container flex flex-col gap-5">
       <SubPageHeader
         header="Usage"
         description={`${getPeriodLabel(period)}: ${getDateRangeLabel(start, end)}`}
