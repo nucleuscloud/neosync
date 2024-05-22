@@ -98,7 +98,7 @@ func (s *Service) GetDailyMetricCount(
 		if !ok {
 			return nil, fmt.Errorf("unable to convert query response to model.Matrix, received type: %T", queryResponse)
 		}
-		usage, err := getDailyUsageFromMatrix(matrix)
+		usage, err := getDailyUsageFromMatrix2(matrix)
 		if err != nil {
 			return nil, err
 		}
@@ -248,6 +248,70 @@ func getStepByRange(start, end time.Time) time.Duration {
 	default:
 		return 1 * time.Hour
 	}
+}
+
+func getDailyUsageFromMatrix2(matrix model.Matrix) ([]*mgmtv1alpha1.DayResult, error) {
+	dailyTotals := map[string]float64{}
+
+	for _, stream := range matrix {
+		values := stream.Values
+		if len(values) == 1 {
+			ts := values[0].Timestamp.Time()
+			day := ts.Format("2006-01-02")
+			dailyTotals[day] += float64(values[0].Value)
+		} else {
+			prevValue := float64(values[0].Value)
+			prevTs := values[0].Timestamp.Time()
+			prevDay := prevTs.Format("2006-01-02")
+
+			for i := 1; i < len(values); i++ {
+				currentValue := float64(values[i].Value)
+				currentTs := values[i].Timestamp.Time()
+				currentDay := currentTs.Format("2006-01-02")
+
+				if currentDay == prevDay {
+					dailyTotals[currentDay] += currentValue - prevValue
+				} else {
+					dailyTotals[currentDay] += currentValue
+				}
+				prevValue = currentValue
+				prevDay = currentDay
+			}
+		}
+	}
+
+	var dates []string
+	for day := range dailyTotals {
+		dates = append(dates, day)
+	}
+	sort.Strings(dates)
+
+	output := []*mgmtv1alpha1.DayResult{}
+	for _, day := range dates {
+		date, err := parseDateString(day)
+		if err != nil {
+			return nil, err
+		}
+		output = append(output, &mgmtv1alpha1.DayResult{
+			Date:  date,
+			Count: uint64(dailyTotals[day]),
+		})
+	}
+	return output, nil
+}
+
+func parseDateString(dateStr string) (*mgmtv1alpha1.Date, error) {
+	const layout = "2006-01-02"
+	t, err := time.Parse(layout, dateStr)
+	if err != nil {
+		return nil, err
+	}
+
+	return &mgmtv1alpha1.Date{
+		Year:  uint32(t.Year()),
+		Month: uint32(t.Month()),
+		Day:   uint32(t.Day()),
+	}, nil
 }
 
 func getDailyUsageFromMatrix(matrix model.Matrix) ([]*mgmtv1alpha1.DayResult, error) {
