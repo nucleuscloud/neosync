@@ -20,6 +20,8 @@ import { CustomCardList } from '@site/src/CustomComponents/CustomCardList.tsx';
 
 import { BsFunnel } from 'react-icons/bs';
 
+import ThemedImage from '@theme/ThemedImage';
+
 import {
   PiArrowCounterClockwise,
   PiArrowsSplitLight,
@@ -36,11 +38,18 @@ import {
 Neosync is an open-source, developer-first way to anonymize PII, generate synthetic data and sync environments for better
 testing, debugging and developer experience.
 
-<HeroImage />
+<ThemedImage
+  alt="Neosync header"
+  sources={{
+    light: 'https://assets.nucleuscloud.com/neosync/docs/neosync-header.svg',
+    dark: 'https://assets.nucleuscloud.com/neosync/docs/neosync-header-dark.svg',
+  }}
+/>
+;
 
 ## Core Features
 
-Neosync can be used in many different ways to support different use-cases. Check out the most common use-cases below.
+Neosync has four core features that deliver value to developers and engineering teams. Click on each one below to learn more.
 
 <CustomCardList
   cards={[
