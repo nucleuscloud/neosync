@@ -34,6 +34,7 @@ type RunConfig struct {
 	RunType     RunType
 	PrimaryKeys []string
 	WhereClause *string
+	SelectQuery *string
 }
 
 type ConstraintColumns struct {

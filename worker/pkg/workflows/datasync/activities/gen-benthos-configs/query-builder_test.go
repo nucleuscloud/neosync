@@ -14,7 +14,6 @@ func Test_buildSelectQuery(t *testing.T) {
 	tests := []struct {
 		name     string
 		driver   string
-		schema   string
 		table    string
 		columns  []string
 		where    string
@@ -23,8 +22,7 @@ func Test_buildSelectQuery(t *testing.T) {
 		{
 			name:     "postgres select",
 			driver:   "postgres",
-			schema:   "public",
-			table:    "accounts",
+			table:    "public.accounts",
 			columns:  []string{"id", "name"},
 			where:    "",
 			expected: `SELECT "id", "name" FROM "public"."accounts";`,
@@ -32,8 +30,7 @@ func Test_buildSelectQuery(t *testing.T) {
 		{
 			name:     "postgres select with where",
 			driver:   "postgres",
-			schema:   "public",
-			table:    "accounts",
+			table:    "public.accounts",
 			columns:  []string{"id", "name"},
 			where:    `"id" = 'some-id'`,
 			expected: `SELECT "id", "name" FROM "public"."accounts" WHERE "id" = 'some-id';`,
@@ -41,8 +38,7 @@ func Test_buildSelectQuery(t *testing.T) {
 		{
 			name:     "postgres select with where prepared",
 			driver:   "postgres",
-			schema:   "public",
-			table:    "accounts",
+			table:    "public.accounts",
 			columns:  []string{"id", "name"},
 			where:    `"id" = $1`,
 			expected: `SELECT "id", "name" FROM "public"."accounts" WHERE "id" = $1;`,
@@ -50,8 +46,7 @@ func Test_buildSelectQuery(t *testing.T) {
 		{
 			name:     "mysql select",
 			driver:   "mysql",
-			schema:   "public",
-			table:    "accounts",
+			table:    "public.accounts",
 			columns:  []string{"id", "name"},
 			where:    "",
 			expected: "SELECT `id`, `name` FROM `public`.`accounts`;",
@@ -59,8 +54,7 @@ func Test_buildSelectQuery(t *testing.T) {
 		{
 			name:     "mysql select with where",
 			driver:   "mysql",
-			schema:   "public",
-			table:    "accounts",
+			table:    "public.accounts",
 			columns:  []string{"id", "name"},
 			where:    "`id` = 'some-id'",
 			expected: "SELECT `id`, `name` FROM `public`.`accounts` WHERE `id` = 'some-id';",
@@ -70,7 +64,7 @@ func Test_buildSelectQuery(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%s_%s", t.Name(), tt.name), func(t *testing.T) {
 			where := tt.where
-			sql, err := buildSelectQuery(tt.driver, tt.schema, tt.table, tt.columns, &where)
+			sql, err := buildSelectQuery(tt.driver, tt.table, tt.columns, &where)
 			require.NoError(t, err)
 			require.Equal(t, tt.expected, sql)
 		})
@@ -81,7 +75,6 @@ func Test_buildSelectJoinQuery(t *testing.T) {
 	tests := []struct {
 		name         string
 		driver       string
-		schema       string
 		table        string
 		columns      []string
 		joins        []*sqlJoin
@@ -91,8 +84,7 @@ func Test_buildSelectJoinQuery(t *testing.T) {
 		{
 			name:    "simple",
 			driver:  "postgres",
-			schema:  "public",
-			table:   "a",
+			table:   "public.a",
 			columns: []string{"id", "name", "email"},
 			joins: []*sqlJoin{
 				{
@@ -110,8 +102,7 @@ func Test_buildSelectJoinQuery(t *testing.T) {
 		{
 			name:    "multiple joins",
 			driver:  "postgres",
-			schema:  "public",
-			table:   "a",
+			table:   "public.a",
 			columns: []string{"id", "name", "email"},
 			joins: []*sqlJoin{
 				{
@@ -137,8 +128,7 @@ func Test_buildSelectJoinQuery(t *testing.T) {
 		{
 			name:    "composite foreign key",
 			driver:  "postgres",
-			schema:  "public",
-			table:   "a",
+			table:   "public.a",
 			columns: []string{"id", "name", "email"},
 			joins: []*sqlJoin{
 				{
@@ -158,7 +148,7 @@ func Test_buildSelectJoinQuery(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%s_%s", t.Name(), tt.name), func(t *testing.T) {
-			response, err := buildSelectJoinQuery(tt.driver, tt.schema, tt.table, tt.columns, tt.joins, tt.whereClauses)
+			response, err := buildSelectJoinQuery(tt.driver, tt.table, tt.columns, tt.joins, tt.whereClauses)
 			require.NoError(t, err)
 			require.Equal(t, tt.expected, response)
 		})
@@ -169,7 +159,6 @@ func Test_buildSelectRecursiveQuery(t *testing.T) {
 	tests := []struct {
 		name          string
 		driver        string
-		schema        string
 		table         string
 		columns       []string
 		columnInfoMap map[string]*sql_manager.ColumnInfo
@@ -182,8 +171,7 @@ func Test_buildSelectRecursiveQuery(t *testing.T) {
 		{
 			name:          "one foreign key no joins",
 			driver:        "postgres",
-			schema:        "public",
-			table:         "employees",
+			table:         "public.employees",
 			columns:       []string{"employee_id", "name", "manager_id"},
 			columnInfoMap: map[string]*sql_manager.ColumnInfo{},
 			joins:         []*sqlJoin{},
@@ -196,8 +184,7 @@ func Test_buildSelectRecursiveQuery(t *testing.T) {
 		{
 			name:          "json field",
 			driver:        "postgres",
-			schema:        "public",
-			table:         "employees",
+			table:         "public.employees",
 			columns:       []string{"employee_id", "name", "manager_id", "additional_info"},
 			columnInfoMap: map[string]*sql_manager.ColumnInfo{"additional_info": {DataType: "json"}},
 			joins:         []*sqlJoin{},
@@ -210,8 +197,7 @@ func Test_buildSelectRecursiveQuery(t *testing.T) {
 		{
 			name:          "json field mysql",
 			driver:        "mysql",
-			schema:        "public",
-			table:         "employees",
+			table:         "public.employees",
 			columns:       []string{"employee_id", "name", "manager_id", "additional_info"},
 			columnInfoMap: map[string]*sql_manager.ColumnInfo{"additional_info": {DataType: "json"}},
 			joins:         []*sqlJoin{},
@@ -224,8 +210,7 @@ func Test_buildSelectRecursiveQuery(t *testing.T) {
 		{
 			name:          "multiple foreign keys and joins",
 			driver:        "postgres",
-			schema:        "public",
-			table:         "employees",
+			table:         "public.employees",
 			columns:       []string{"employee_id", "name", "manager_id", "department_id", "big_boss_id"},
 			columnInfoMap: map[string]*sql_manager.ColumnInfo{},
 			joins: []*sqlJoin{
@@ -247,8 +232,7 @@ func Test_buildSelectRecursiveQuery(t *testing.T) {
 		{
 			name:          "composite foreign keys",
 			driver:        "postgres",
-			schema:        "public",
-			table:         "employees",
+			table:         "public.employees",
 			columns:       []string{"employee_id", "department_id", "name", "manager_id", "building_id", "division_id"},
 			columnInfoMap: map[string]*sql_manager.ColumnInfo{},
 			joins: []*sqlJoin{
@@ -272,7 +256,7 @@ func Test_buildSelectRecursiveQuery(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%s_%s", t.Name(), tt.name), func(t *testing.T) {
-			response, err := buildSelectRecursiveQuery(tt.driver, tt.schema, tt.table, tt.columns, tt.columnInfoMap, tt.dependencies, tt.joins, tt.whereClauses)
+			response, err := buildSelectRecursiveQuery(tt.driver, tt.table, tt.columns, tt.columnInfoMap, tt.dependencies, tt.joins, tt.whereClauses)
 			require.NoError(t, err)
 			require.Equal(t, tt.expected, response)
 		})
@@ -285,8 +269,6 @@ func Test_buildSelectQueryMap(t *testing.T) {
 		name                          string
 		driver                        string
 		subsetByForeignKeyConstraints bool
-		mappings                      map[string]*tableMapping
-		sourceTableOpts               map[string]*sqlSourceTableOptions
 		tableDependencies             map[string][]*sql_manager.ForeignConstraint
 		dependencyConfigs             []*tabledependency.RunConfig
 		expected                      map[string]string
@@ -295,57 +277,10 @@ func Test_buildSelectQueryMap(t *testing.T) {
 			name:                          "select no subset",
 			driver:                        "postgres",
 			subsetByForeignKeyConstraints: true,
-			mappings: map[string]*tableMapping{
-				"public.users": {
-					Schema: "public",
-					Table:  "users",
-					Mappings: []*mgmtv1alpha1.JobMapping{
-						{
-							Schema: "public",
-							Table:  "users",
-							Column: "id",
-							Transformer: &mgmtv1alpha1.JobMappingTransformer{
-								Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-							},
-						},
-						{
-							Schema: "public",
-							Table:  "users",
-							Column: "name",
-							Transformer: &mgmtv1alpha1.JobMappingTransformer{
-								Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_UNSPECIFIED,
-							},
-						},
-					},
-				},
-				"public.accounts": {
-					Schema: "public",
-					Table:  "accounts",
-					Mappings: []*mgmtv1alpha1.JobMapping{
-						{
-							Schema: "public",
-							Table:  "accounts",
-							Column: "id",
-							Transformer: &mgmtv1alpha1.JobMappingTransformer{
-								Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-							},
-						},
-						{
-							Schema: "public",
-							Table:  "accounts",
-							Column: "name",
-							Transformer: &mgmtv1alpha1.JobMappingTransformer{
-								Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_UNSPECIFIED,
-							},
-						},
-					},
-				},
-			},
-			sourceTableOpts:   map[string]*sqlSourceTableOptions{},
-			tableDependencies: map[string][]*sql_manager.ForeignConstraint{},
+			tableDependencies:             map[string][]*sql_manager.ForeignConstraint{},
 			dependencyConfigs: []*tabledependency.RunConfig{
-				{Table: "public.users", DependsOn: []*tabledependency.DependsOn{}},
-				{Table: "public.accounts", DependsOn: []*tabledependency.DependsOn{}},
+				{Table: "public.users", Columns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}, RunType: tabledependency.RunTypeInsert},
+				{Table: "public.accounts", Columns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}, RunType: tabledependency.RunTypeInsert},
 			},
 			expected: map[string]string{
 				"public.users":    `SELECT "id", "name" FROM "public"."users";`,
@@ -356,61 +291,10 @@ func Test_buildSelectQueryMap(t *testing.T) {
 			name:                          "select subset no foreign keys",
 			driver:                        "postgres",
 			subsetByForeignKeyConstraints: true,
-			mappings: map[string]*tableMapping{
-				"public.users": {
-					Schema: "public",
-					Table:  "users",
-					Mappings: []*mgmtv1alpha1.JobMapping{
-						{
-							Schema: "public",
-							Table:  "users",
-							Column: "id",
-							Transformer: &mgmtv1alpha1.JobMappingTransformer{
-								Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-							},
-						},
-						{
-							Schema: "public",
-							Table:  "users",
-							Column: "name",
-							Transformer: &mgmtv1alpha1.JobMappingTransformer{
-								Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_UNSPECIFIED,
-							},
-						},
-					},
-				},
-				"public.accounts": {
-					Schema: "public",
-					Table:  "accounts",
-					Mappings: []*mgmtv1alpha1.JobMapping{
-						{
-							Schema: "public",
-							Table:  "accounts",
-							Column: "id",
-							Transformer: &mgmtv1alpha1.JobMappingTransformer{
-								Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-							},
-						},
-						{
-							Schema: "public",
-							Table:  "accounts",
-							Column: "name",
-							Transformer: &mgmtv1alpha1.JobMappingTransformer{
-								Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_UNSPECIFIED,
-							},
-						},
-					},
-				},
-			},
-			sourceTableOpts: map[string]*sqlSourceTableOptions{
-				"public.users": {
-					WhereClause: &whereId,
-				},
-			},
-			tableDependencies: map[string][]*sql_manager.ForeignConstraint{},
+			tableDependencies:             map[string][]*sql_manager.ForeignConstraint{},
 			dependencyConfigs: []*tabledependency.RunConfig{
-				{Table: "public.users", DependsOn: []*tabledependency.DependsOn{}},
-				{Table: "public.accounts", DependsOn: []*tabledependency.DependsOn{}},
+				{Table: "public.users", Columns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId, RunType: tabledependency.RunTypeInsert},
+				{Table: "public.accounts", Columns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}, RunType: tabledependency.RunTypeInsert},
 			},
 			expected: map[string]string{
 				"public.users":    `SELECT "id", "name" FROM "public"."users" WHERE id = 1;`,
@@ -421,7 +305,7 @@ func Test_buildSelectQueryMap(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%s_%s", t.Name(), tt.name), func(t *testing.T) {
-			sql, err := buildSelectQueryMap(tt.driver, tt.mappings, tt.sourceTableOpts, tt.tableDependencies, tt.dependencyConfigs, tt.subsetByForeignKeyConstraints, map[string]map[string]*sql_manager.ColumnInfo{})
+			sql, err := buildSelectQueryMap(tt.driver, tt.tableDependencies, tt.dependencyConfigs, tt.subsetByForeignKeyConstraints, map[string]map[string]*sql_manager.ColumnInfo{})
 			require.NoError(t, err)
 			require.Equal(t, tt.expected, sql)
 		})
@@ -429,102 +313,8 @@ func Test_buildSelectQueryMap(t *testing.T) {
 }
 
 func Test_buildSelectQueryMap_SubsetsForeignKeys(t *testing.T) {
-	mappings := map[string]*tableMapping{
-		"public.a": {
-			Schema: "public",
-			Table:  "a",
-			Mappings: []*mgmtv1alpha1.JobMapping{
-				{
-					Schema: "public",
-					Table:  "a",
-					Column: "id",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-					},
-				},
-			},
-		},
-		"public.b": {
-			Schema: "public",
-			Table:  "b",
-			Mappings: []*mgmtv1alpha1.JobMapping{
-				{
-					Schema: "public",
-					Table:  "b",
-					Column: "id",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-					},
-				},
-				{
-					Schema: "public",
-					Table:  "b",
-					Column: "name",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-					},
-				},
-				{
-					Schema: "public",
-					Table:  "b",
-					Column: "a_id",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-					},
-				},
-			},
-		},
-		"public.c": {
-			Schema: "public",
-			Table:  "c",
-			Mappings: []*mgmtv1alpha1.JobMapping{
-				{
-					Schema: "public",
-					Table:  "c",
-					Column: "id",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-					},
-				},
-				{
-					Schema: "public",
-					Table:  "c",
-					Column: "b_id",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-					},
-				},
-			},
-		},
-		"public.d": {
-			Schema: "public",
-			Table:  "d",
-			Mappings: []*mgmtv1alpha1.JobMapping{
-				{
-					Schema: "public",
-					Table:  "d",
-					Column: "id",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-					},
-				},
-				{
-					Schema: "public",
-					Table:  "d",
-					Column: "c_id",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-					},
-				},
-			},
-		},
-	}
 	bWhere := "name = 'bob'"
 	cWhere := "id = 1"
-	sourceTableOpts := map[string]*sqlSourceTableOptions{
-		"public.b": {WhereClause: &bWhere},
-		"public.c": {WhereClause: &cWhere},
-	}
 	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.b": {
 			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
@@ -537,10 +327,10 @@ func Test_buildSelectQueryMap_SubsetsForeignKeys(t *testing.T) {
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.a", RunType: tabledependency.RunTypeInsert, DependsOn: []*tabledependency.DependsOn{}},
-		{Table: "public.b", RunType: tabledependency.RunTypeInsert, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
-		{Table: "public.c", RunType: tabledependency.RunTypeInsert, DependsOn: []*tabledependency.DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
-		{Table: "public.d", RunType: tabledependency.RunTypeInsert, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+		{Table: "public.a", RunType: tabledependency.RunTypeInsert, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
+		{Table: "public.b", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "name", "a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}, WhereClause: &bWhere},
+		{Table: "public.c", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "b_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.b", Columns: []string{"id"}}}, WhereClause: &cWhere},
+		{Table: "public.d", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
 	}
 	expected :=
 		map[string]string{
@@ -550,78 +340,21 @@ func Test_buildSelectQueryMap_SubsetsForeignKeys(t *testing.T) {
 			"public.d": `SELECT "public"."d"."id", "public"."d"."c_id" FROM "public"."d" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."d"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE (public.c.id = 1 AND public.b.name = 'bob');`,
 		}
 
-	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
+	sql, err := buildSelectQueryMap(sql_manager.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
 
 func Test_buildSelectQueryMap_SubsetsCompositeForeignKeys(t *testing.T) {
-	mappings := map[string]*tableMapping{
-		"public.a": {
-			Schema: "public",
-			Table:  "a",
-			Mappings: []*mgmtv1alpha1.JobMapping{
-				{
-					Schema: "public",
-					Table:  "a",
-					Column: "id",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-					},
-				},
-				{
-					Schema: "public",
-					Table:  "a",
-					Column: "name",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-					},
-				},
-			},
-		},
-		"public.b": {
-			Schema: "public",
-			Table:  "b",
-			Mappings: []*mgmtv1alpha1.JobMapping{
-				{
-					Schema: "public",
-					Table:  "b",
-					Column: "id",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-					},
-				},
-				{
-					Schema: "public",
-					Table:  "b",
-					Column: "a_name",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-					},
-				},
-				{
-					Schema: "public",
-					Table:  "b",
-					Column: "a_id",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-					},
-				},
-			},
-		},
-	}
 	aWhere := "name = 'bob'"
-	sourceTableOpts := map[string]*sqlSourceTableOptions{
-		"public.a": {WhereClause: &aWhere},
-	}
 	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.b": {
 			{Columns: []string{"a_id", "a_name"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id", "name"}}},
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.a", RunType: tabledependency.RunTypeInsert, DependsOn: []*tabledependency.DependsOn{}},
-		{Table: "public.b", RunType: tabledependency.RunTypeInsert, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id", "name"}}}},
+		{Table: "public.a", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &aWhere},
+		{Table: "public.b", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "a_id", "a_name"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id", "name"}}}},
 	}
 	expected :=
 		map[string]string{
@@ -629,108 +362,14 @@ func Test_buildSelectQueryMap_SubsetsCompositeForeignKeys(t *testing.T) {
 			"public.b": `SELECT "public"."b"."id", "public"."b"."a_name", "public"."b"."a_id" FROM "public"."b" INNER JOIN "public"."a" ON (("public"."a"."id" = "public"."b"."a_id") AND ("public"."a"."name" = "public"."b"."a_name")) WHERE public.a.name = 'bob';`,
 		}
 
-	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
+	sql, err := buildSelectQueryMap("postgres", tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }
 
 func Test_buildSelectQueryMap_SubsetsOffForeignKeys(t *testing.T) {
-	mappings := map[string]*tableMapping{
-		"public.a": {
-			Schema: "public",
-			Table:  "a",
-			Mappings: []*mgmtv1alpha1.JobMapping{
-				{
-					Schema: "public",
-					Table:  "a",
-					Column: "id",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-					},
-				},
-			},
-		},
-		"public.b": {
-			Schema: "public",
-			Table:  "b",
-			Mappings: []*mgmtv1alpha1.JobMapping{
-				{
-					Schema: "public",
-					Table:  "b",
-					Column: "id",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-					},
-				},
-				{
-					Schema: "public",
-					Table:  "b",
-					Column: "name",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-					},
-				},
-				{
-					Schema: "public",
-					Table:  "b",
-					Column: "a_id",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-					},
-				},
-			},
-		},
-		"public.c": {
-			Schema: "public",
-			Table:  "c",
-			Mappings: []*mgmtv1alpha1.JobMapping{
-				{
-					Schema: "public",
-					Table:  "c",
-					Column: "id",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-					},
-				},
-				{
-					Schema: "public",
-					Table:  "c",
-					Column: "b_id",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-					},
-				},
-			},
-		},
-		"public.d": {
-			Schema: "public",
-			Table:  "d",
-			Mappings: []*mgmtv1alpha1.JobMapping{
-				{
-					Schema: "public",
-					Table:  "d",
-					Column: "id",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-					},
-				},
-				{
-					Schema: "public",
-					Table:  "d",
-					Column: "c_id",
-					Transformer: &mgmtv1alpha1.JobMappingTransformer{
-						Source: mgmtv1alpha1.TransformerSource_TRANSFORMER_SOURCE_GENERATE_DEFAULT,
-					},
-				},
-			},
-		},
-	}
 	bWhere := "name = 'bob'"
 	cWhere := "id = 1"
-	sourceTableOpts := map[string]*sqlSourceTableOptions{
-		"public.b": {WhereClause: &bWhere},
-		"public.c": {WhereClause: &cWhere},
-	}
 	tableDependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.b": {
 			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
@@ -743,10 +382,10 @@ func Test_buildSelectQueryMap_SubsetsOffForeignKeys(t *testing.T) {
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.a", RunType: tabledependency.RunTypeInsert, DependsOn: []*tabledependency.DependsOn{}},
-		{Table: "public.b", RunType: tabledependency.RunTypeInsert, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
-		{Table: "public.c", RunType: tabledependency.RunTypeInsert, DependsOn: []*tabledependency.DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
-		{Table: "public.d", RunType: tabledependency.RunTypeInsert, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+		{Table: "public.a", RunType: tabledependency.RunTypeInsert, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
+		{Table: "public.b", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "name", "a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}, WhereClause: &bWhere},
+		{Table: "public.c", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "b_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.b", Columns: []string{"id"}}}, WhereClause: &cWhere},
+		{Table: "public.d", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
 	}
 	expected :=
 		map[string]string{
@@ -755,7 +394,7 @@ func Test_buildSelectQueryMap_SubsetsOffForeignKeys(t *testing.T) {
 			"public.c": `SELECT "id", "b_id" FROM "public"."c" WHERE id = 1;`,
 			"public.d": `SELECT "id", "c_id" FROM "public"."d";`,
 		}
-	sql, err := buildSelectQueryMap("postgres", mappings, sourceTableOpts, tableDependencies, dependencyConfigs, false, map[string]map[string]*sql_manager.ColumnInfo{})
+	sql, err := buildSelectQueryMap("postgres", tableDependencies, dependencyConfigs, false, map[string]map[string]*sql_manager.ColumnInfo{})
 	require.NoError(t, err)
 	require.Equal(t, expected, sql)
 }

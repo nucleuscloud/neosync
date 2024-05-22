@@ -46,12 +46,12 @@ type SubsetColumnConstraint struct {
 }
 
 func buildSelectQuery(
-	driver, schema, table string,
+	driver, table string,
 	columns []string,
 	whereClause *string,
 ) (string, error) {
 	builder := goqu.Dialect(driver)
-	sqltable := goqu.S(schema).Table(table)
+	sqltable := goqu.I(table)
 
 	selectColumns := make([]any, len(columns))
 	for i, col := range columns {
@@ -71,17 +71,17 @@ func buildSelectQuery(
 }
 
 func buildSelectJoinQuery(
-	driver, schema, table string,
+	driver, table string,
 	columns []string,
 	joins []*sqlJoin,
 	whereClauses []string,
 ) (string, error) {
 	builder := goqu.Dialect(driver)
-	sqltable := goqu.S(schema).Table(table)
+	sqltable := goqu.I(table)
 
 	selectColumns := make([]any, len(columns))
 	for i, col := range columns {
-		selectColumns[i] = buildSqlIdentifier(schema, table, col)
+		selectColumns[i] = buildSqlIdentifier(table, col)
 	}
 	query := builder.From(sqltable).Select(selectColumns...)
 	// joins
@@ -124,7 +124,7 @@ func buildSelectJoinQuery(
 }
 
 func buildSelectRecursiveQuery(
-	driver, schema, table string,
+	driver, table string,
 	columns []string,
 	columnInfoMap map[string]*sql_manager.ColumnInfo,
 	dependencies []*selfReferencingCircularDependency,
@@ -145,15 +145,15 @@ func buildSelectRecursiveQuery(
 		builder = goqu.Dialect(driver)
 	}
 
-	sqltable := goqu.S(schema).Table(table)
+	sqltable := goqu.I(table)
 
 	selectColumns := make([]any, len(columns))
 	for i, col := range columns {
 		colInfo := columnInfoMap[col]
 		if driver == sql_manager.PostgresDriver && colInfo != nil && colInfo.DataType == "json" {
-			selectColumns[i] = goqu.L("to_jsonb(?)", goqu.I(buildSqlIdentifier(schema, table, col))).As(col)
+			selectColumns[i] = goqu.L("to_jsonb(?)", goqu.I(buildSqlIdentifier(table, col))).As(col)
 		} else {
-			selectColumns[i] = buildSqlIdentifier(schema, table, col)
+			selectColumns[i] = buildSqlIdentifier(table, col)
 		}
 	}
 	selectQuery := builder.From(sqltable).Select(selectColumns...)
@@ -191,11 +191,11 @@ func buildSelectRecursiveQuery(
 		for _, fk := range d.ForeignKeyColumns {
 			if len(fk) > 1 {
 				for idx, col := range fk {
-					goquOnAndEx = append(goquOnAndEx, goqu.Ex{buildSqlIdentifier(schema, table, d.PrimaryKeyColumns[idx]): goqu.I(buildSqlIdentifier(recursiveCteAlias, col))})
+					goquOnAndEx = append(goquOnAndEx, goqu.Ex{buildSqlIdentifier(table, d.PrimaryKeyColumns[idx]): goqu.I(buildSqlIdentifier(recursiveCteAlias, col))})
 				}
 				goquOnOrEx = append(goquOnOrEx, goqu.And(goquOnAndEx...))
 			} else {
-				goquOnOrEx = append(goquOnOrEx, goqu.Ex{buildSqlIdentifier(schema, table, d.PrimaryKeyColumns[0]): goqu.I(buildSqlIdentifier(recursiveCteAlias, fk[0]))})
+				goquOnOrEx = append(goquOnOrEx, goqu.Ex{buildSqlIdentifier(table, d.PrimaryKeyColumns[0]): goqu.I(buildSqlIdentifier(recursiveCteAlias, fk[0]))})
 			}
 		}
 	}
@@ -221,29 +221,32 @@ func buildSelectRecursiveQuery(
 // returns map of schema.table -> select query
 func buildSelectQueryMap(
 	driver string,
-	groupedMappings map[string]*tableMapping,
-	sourceTableOpts map[string]*sqlSourceTableOptions,
 	tableDependencies map[string][]*sql_manager.ForeignConstraint,
-	dependencyConfigs []*tabledependency.RunConfig,
+	runConfigs []*tabledependency.RunConfig,
 	subsetByForeignKeyConstraints bool,
 	groupedColumnInfo map[string]map[string]*sql_manager.ColumnInfo,
 ) (map[string]string, error) {
+	insertRunConfigMap := map[string]*tabledependency.RunConfig{}
+	for _, cfg := range runConfigs {
+		if cfg.RunType == tabledependency.RunTypeUpdate {
+			insertRunConfigMap[cfg.Table] = cfg
+		}
+	}
+
 	// map of table -> where clause
 	tableWhereMap := map[string]string{}
-	for t, opts := range sourceTableOpts {
-		mappings, ok := groupedMappings[t]
-		where := getWhereFromTableOpts(opts)
-		if ok && where != nil && *where != "" {
-			qualifiedWhere, err := qualifyWhereColumnNames(driver, *where, mappings.Schema, mappings.Table)
+	for table, config := range insertRunConfigMap {
+		if config.WhereClause != nil && *config.WhereClause != "" {
+			qualifiedWhere, err := qualifyWhereColumnNames(driver, *config.WhereClause, table)
 			if err != nil {
 				return nil, err
 			}
-			tableWhereMap[t] = qualifiedWhere
+			tableWhereMap[table] = qualifiedWhere
 		}
 	}
 
 	if !subsetByForeignKeyConstraints || len(tableDependencies) == 0 || len(tableWhereMap) == 0 {
-		queryMap, err := buildQueryMapNoSubsetConstraints(driver, groupedMappings, sourceTableOpts)
+		queryMap, err := buildQueryMapNoSubsetConstraints(driver, runConfigs)
 		if err != nil {
 			return nil, err
 		}
@@ -251,36 +254,21 @@ func buildSelectQueryMap(
 	}
 
 	queryMap := map[string]string{}
-	dependencyMap := map[string][]*tabledependency.RunConfig{}
-	for _, cfg := range dependencyConfigs {
-		_, ok := dependencyMap[cfg.Table]
-		if ok {
-			dependencyMap[cfg.Table] = append(dependencyMap[cfg.Table], cfg)
-		} else {
-			dependencyMap[cfg.Table] = []*tabledependency.RunConfig{cfg}
-		}
-	}
 
-	subsetConfigs, err := buildTableSubsetQueryConfigs(driver, tableDependencies, tableWhereMap, dependencyMap)
+	subsetConfigs, err := buildTableSubsetQueryConfigs(driver, tableDependencies, tableWhereMap, insertRunConfigMap)
 	if err != nil {
 		return nil, err
 	}
 
-	for table := range dependencyMap {
-		tableMapping := groupedMappings[table]
+	for table, runConfig := range insertRunConfigMap {
 		config := subsetConfigs[table]
 		columnInfoMap := groupedColumnInfo[table]
 
-		selectCols := []string{}
-		for _, m := range tableMapping.Mappings {
-			selectCols = append(selectCols, m.Column)
-		}
 		if len(config.SelfReferencingCircularDependency) != 0 {
 			sql, err := buildSelectRecursiveQuery(
 				driver,
-				tableMapping.Schema,
-				tableMapping.Table,
-				buildPlainColumns(tableMapping.Mappings),
+				table,
+				runConfig.Columns,
 				columnInfoMap,
 				config.SelfReferencingCircularDependency,
 				config.Joins,
@@ -292,13 +280,13 @@ func buildSelectQueryMap(
 			queryMap[table] = sql
 		} else if len(config.Joins) == 0 {
 			where := strings.Join(config.WhereClauses, " AND ")
-			sql, err := buildSelectQuery(driver, tableMapping.Schema, tableMapping.Table, selectCols, &where)
+			sql, err := buildSelectQuery(driver, table, runConfig.Columns, &where)
 			if err != nil {
 				return nil, fmt.Errorf("unable to build select query: %w", err)
 			}
 			queryMap[table] = sql
 		} else {
-			sql, err := buildSelectJoinQuery(driver, tableMapping.Schema, tableMapping.Table, selectCols, config.Joins, config.WhereClauses)
+			sql, err := buildSelectJoinQuery(driver, table, runConfig.Columns, config.Joins, config.WhereClauses)
 			if err != nil {
 				return nil, fmt.Errorf("unable to build select query with joins: %w", err)
 			}
@@ -310,25 +298,18 @@ func buildSelectQueryMap(
 
 func buildQueryMapNoSubsetConstraints(
 	driver string,
-	groupedMappings map[string]*tableMapping,
-	sourceTableOpts map[string]*sqlSourceTableOptions,
+	runConfigs []*tabledependency.RunConfig,
 ) (map[string]string, error) {
 	queryMap := map[string]string{}
-	for table, tableMapping := range groupedMappings {
-		tableOpt := sourceTableOpts[table]
-		where := getWhereFromTableOpts(tableOpt)
-
-		query, err := buildSelectQuery(
-			driver,
-			tableMapping.Schema,
-			tableMapping.Table,
-			buildPlainColumns(tableMapping.Mappings),
-			where,
-		)
+	for _, config := range runConfigs {
+		if config.RunType == tabledependency.RunTypeUpdate {
+			continue
+		}
+		query, err := buildSelectQuery(driver, config.Table, config.Columns, config.WhereClause)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build select query: %w", err)
 		}
-		queryMap[table] = query
+		queryMap[config.Table] = query
 	}
 	return queryMap, nil
 }
@@ -399,7 +380,7 @@ type subsetQueryConfig struct {
 	SelfReferencingCircularDependency []*selfReferencingCircularDependency
 }
 
-func buildTableSubsetQueryConfigs(driver string, tableConstraints map[string][]*sql_manager.ForeignConstraint, whereClauses map[string]string, runConfigMap map[string][]*tabledependency.RunConfig) (map[string]*subsetQueryConfig, error) {
+func buildTableSubsetQueryConfigs(driver string, tableConstraints map[string][]*sql_manager.ForeignConstraint, whereClauses map[string]string, runConfigMap map[string]*tabledependency.RunConfig) (map[string]*subsetQueryConfig, error) {
 	configs := map[string]*subsetQueryConfig{}
 
 	filteredConstraints := filterForeignKeysWithSubset(runConfigMap, tableConstraints, whereClauses)
@@ -577,7 +558,7 @@ func shouldSubsetTable(table string, data map[string][]*sql_manager.ForeignConst
 }
 
 // filters out any foreign keys that are not involved in the subset (where clauses) and tables not in the map
-func filterForeignKeysWithSubset(runConfigMap map[string][]*tabledependency.RunConfig, constraints map[string][]*sql_manager.ForeignConstraint, whereClauses map[string]string) map[string][]*sql_manager.ForeignConstraint {
+func filterForeignKeysWithSubset(runConfigMap map[string]*tabledependency.RunConfig, constraints map[string][]*sql_manager.ForeignConstraint, whereClauses map[string]string) map[string][]*sql_manager.ForeignConstraint {
 	tableSubsetMap := map[string]bool{} // map of which tables to subset
 	for table := range runConfigMap {
 		visited := map[string]bool{}
@@ -585,16 +566,12 @@ func filterForeignKeysWithSubset(runConfigMap map[string][]*tabledependency.RunC
 	}
 
 	filteredConstraints := map[string][]*sql_manager.ForeignConstraint{}
-	for table, configs := range runConfigMap {
+	for table := range runConfigMap {
 		filteredConstraints[table] = []*sql_manager.ForeignConstraint{}
-		for _, c := range configs {
-			if c.RunType == tabledependency.RunTypeInsert {
-				if tableConstraints, ok := constraints[table]; ok {
-					for _, colDef := range tableConstraints {
-						if exists := tableSubsetMap[colDef.ForeignKey.Table]; exists {
-							filteredConstraints[table] = append(filteredConstraints[table], colDef)
-						}
-					}
+		if tableConstraints, ok := constraints[table]; ok {
+			for _, colDef := range tableConstraints {
+				if exists := tableSubsetMap[colDef.ForeignKey.Table]; exists {
+					filteredConstraints[table] = append(filteredConstraints[table], colDef)
 				}
 			}
 		}
@@ -642,21 +619,24 @@ func qualifyWhereWithTableAlias(driver, where, alias string) (string, error) {
 	return strings.TrimSpace(updatedSql[startIndex:]), nil
 }
 
-func qualifyWhereColumnNames(driver, where, schema, table string) (string, error) {
-	sql, err := buildSelectQuery(driver, schema, table, []string{"*"}, &where)
+func qualifyWhereColumnNames(driver, where, table string) (string, error) {
+	sql, err := buildSelectQuery(driver, table, []string{"*"}, &where)
 	if err != nil {
 		return "", err
 	}
+	split := strings.Split(table, ".")
+	schema := split[0]
+	tableName := split[1]
 	var updatedSql string
 	switch driver {
 	case sql_manager.MysqlDriver:
-		sql, err := qualifyMysqlWhereColumnNames(sql, &schema, table)
+		sql, err := qualifyMysqlWhereColumnNames(sql, &schema, tableName)
 		if err != nil {
 			return "", err
 		}
 		updatedSql = sql
 	case sql_manager.PostgresDriver:
-		sql, err := qualifyPostgresWhereColumnNames(sql, &schema, table)
+		sql, err := qualifyPostgresWhereColumnNames(sql, &schema, tableName)
 		if err != nil {
 			return "", err
 		}
