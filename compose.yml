@@ -84,9 +84,11 @@ services:
   api-seed:
     container_name: neosync-api-seed
     image: postgres:15
-    entrypoint: psql 'postgresql://postgres:foofar@neosync-db:5432/nucleus?sslmode=disable' -f /scripts/seed.sql
+    entrypoint: >
+      /bin/sh -c "./scripts/wait-for-it.sh api:8080 -- psql 'postgresql://postgres:foofar@neosync-db:5432/nucleus?sslmode=disable' -f /scripts/seed.sql"
     volumes:
       - ./hack/seed-neosync.sql:/scripts/seed.sql
+      - ./hack/wait-for-it.sh:/scripts/wait-for-it.sh
     depends_on:
       - api
     networks:
