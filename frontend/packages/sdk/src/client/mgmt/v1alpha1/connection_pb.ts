@@ -828,6 +828,11 @@ export class PostgresConnectionConfig extends Message<PostgresConnectionConfig> 
    */
   connectionOptions?: SqlConnectionOptions;
 
+  /**
+   * @generated from field: mgmt.v1alpha1.ClientTlsConfig client_tls = 5;
+   */
+  clientTls?: ClientTlsConfig;
+
   constructor(data?: PartialMessage<PostgresConnectionConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -840,6 +845,7 @@ export class PostgresConnectionConfig extends Message<PostgresConnectionConfig> 
     { no: 2, name: "connection", kind: "message", T: PostgresConnection, oneof: "connection_config" },
     { no: 3, name: "tunnel", kind: "message", T: SSHTunnel },
     { no: 4, name: "connection_options", kind: "message", T: SqlConnectionOptions },
+    { no: 5, name: "client_tls", kind: "message", T: ClientTlsConfig },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PostgresConnectionConfig {
@@ -856,6 +862,55 @@ export class PostgresConnectionConfig extends Message<PostgresConnectionConfig> 
 
   static equals(a: PostgresConnectionConfig | PlainMessage<PostgresConnectionConfig> | undefined, b: PostgresConnectionConfig | PlainMessage<PostgresConnectionConfig> | undefined): boolean {
     return proto3.util.equals(PostgresConnectionConfig, a, b);
+  }
+}
+
+/**
+ * @generated from message mgmt.v1alpha1.ClientTlsConfig
+ */
+export class ClientTlsConfig extends Message<ClientTlsConfig> {
+  /**
+   * @generated from field: optional string root_cert = 1;
+   */
+  rootCert?: string;
+
+  /**
+   * @generated from field: optional string client_cert = 2;
+   */
+  clientCert?: string;
+
+  /**
+   * @generated from field: optional string client_key = 3;
+   */
+  clientKey?: string;
+
+  constructor(data?: PartialMessage<ClientTlsConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "mgmt.v1alpha1.ClientTlsConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "root_cert", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 2, name: "client_cert", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+    { no: 3, name: "client_key", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ClientTlsConfig {
+    return new ClientTlsConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ClientTlsConfig {
+    return new ClientTlsConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ClientTlsConfig {
+    return new ClientTlsConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ClientTlsConfig | PlainMessage<ClientTlsConfig> | undefined, b: ClientTlsConfig | PlainMessage<ClientTlsConfig> | undefined): boolean {
+    return proto3.util.equals(ClientTlsConfig, a, b);
   }
 }
 

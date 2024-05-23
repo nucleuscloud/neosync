@@ -3,6 +3,7 @@ package sqlconnect
 import (
 	"context"
 	"database/sql"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -65,6 +66,13 @@ type ConnectionDetails struct {
 	MaxConnectionLimit *int32
 
 	Tunnel *sshtunnel.Sshtunnel
+}
+
+type ClientCertConfig struct {
+	RootCert *string
+
+	ClientCert *string
+	ClientKey  *string
 }
 
 const (
@@ -249,6 +257,8 @@ type GeneralDbConnectConfig struct {
 
 	Protocol *string
 
+	// ClientCerts *ClientCertConfig
+
 	QueryParams url.Values
 }
 
@@ -325,6 +335,15 @@ func getGeneralDbConnectConfigFromPg(config *mgmtv1alpha1.ConnectionConfig_PgCon
 		if connectionTimeout != nil {
 			query.Add("connect_timeout", fmt.Sprintf("%d", *connectionTimeout))
 		}
+		if config.PgConfig.GetClientTls() != nil {
+			if config.PgConfig.GetClientTls().GetRootCert() != "" {
+				query.Add("rootcert", base64.StdEncoding.EncodeToString([]byte(config.PgConfig.GetClientTls().GetRootCert())))
+			}
+			if config.PgConfig.GetClientTls().GetClientCert() != "" && config.PgConfig.GetClientTls().GetClientKey() != "" {
+				query.Add("clientcert", config.PgConfig.GetClientTls().GetClientCert())
+				query.Add("clientkey", config.PgConfig.GetClientTls().GetClientKey())
+			}
+		}
 		return &GeneralDbConnectConfig{
 			Driver:      postgresDriver,
 			Host:        cc.Connection.Host,
@@ -362,6 +381,16 @@ func getGeneralDbConnectConfigFromPg(config *mgmtv1alpha1.ConnectionConfig_PgCon
 			// default to standard postgres port 5432 if port not provided
 			port = int64(5432)
 		}
+		query := u.Query()
+		if config.PgConfig.GetClientTls() != nil {
+			if config.PgConfig.GetClientTls().GetRootCert() != "" {
+				query.Add("rootcert", base64.StdEncoding.EncodeToString([]byte(config.PgConfig.GetClientTls().GetRootCert())))
+			}
+			if config.PgConfig.GetClientTls().GetClientCert() != "" && config.PgConfig.GetClientTls().GetClientKey() != "" {
+				query.Add("clientcert", config.PgConfig.GetClientTls().GetClientCert())
+				query.Add("clientkey", config.PgConfig.GetClientTls().GetClientKey())
+			}
+		}
 
 		return &GeneralDbConnectConfig{
 			Driver:      postgresDriver,
@@ -370,7 +399,7 @@ func getGeneralDbConnectConfigFromPg(config *mgmtv1alpha1.ConnectionConfig_PgCon
 			Database:    strings.TrimPrefix(u.Path, "/"),
 			User:        user,
 			Pass:        pass,
-			QueryParams: u.Query(),
+			QueryParams: query,
 		}, nil
 	default:
 		return nil, nucleuserrors.NewBadRequest("must provide valid postgres connection")

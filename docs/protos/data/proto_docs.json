@@ -1280,6 +1280,54 @@
           ]
         },
         {
+          "name": "ClientTlsConfig",
+          "longName": "ClientTlsConfig",
+          "fullName": "mgmt.v1alpha1.ClientTlsConfig",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "root_cert",
+              "description": "",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_root_cert",
+              "defaultValue": ""
+            },
+            {
+              "name": "client_cert",
+              "description": "",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_client_cert",
+              "defaultValue": ""
+            },
+            {
+              "name": "client_key",
+              "description": "",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_client_key",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "Connection",
           "longName": "Connection",
           "fullName": "mgmt.v1alpha1.Connection",
@@ -2123,6 +2171,18 @@
               "type": "SqlConnectionOptions",
               "longType": "SqlConnectionOptions",
               "fullType": "mgmt.v1alpha1.SqlConnectionOptions",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "client_tls",
+              "description": "",
+              "label": "",
+              "type": "ClientTlsConfig",
+              "longType": "ClientTlsConfig",
+              "fullType": "mgmt.v1alpha1.ClientTlsConfig",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
