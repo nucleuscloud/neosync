@@ -11,56 +11,59 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { CheckCircle2Icon } from 'lucide-react';
-import { Metadata } from 'next';
+import Head from 'next/head';
 import Link from 'next/link';
 import posthog from 'posthog-js';
 import { ReactElement } from 'react';
 
-export const metadata: Metadata = {
-  metadataBase: new URL('https://assets.nucleuscloud.com/'),
-  title: 'Neosync | Simple, transparent pricing',
-  description: `Explore Neosync's simple and transparent pricing options ranging from Open Source to an Enterprise package.`,
-  openGraph: {
-    title: 'Neosync | Simple, transparent pricing',
-    description: `Explore Neosync's simple and transparent pricing options ranging from Open Source to an Enterprise package.`,
-    url: 'https://www.neosync.dev',
-    siteName: 'Neosync',
-    images: [
-      {
-        url: '/neosync/marketingsite/mainOGHero.svg',
-        width: 1200,
-        height: 630,
-        alt: 'mainOG',
-      },
-    ],
-    locale: 'en_US',
-    type: 'website',
-  },
-  alternates: {
-    canonical: 'https://www.neosync.dev/pricing',
-  },
-};
-
 export default function Pricing() {
   return (
-    <div className="flex flex-col gap-6 justify-center z-40 py-20  mx-auto">
-      <div className="text-center text-gray-900 font-semibold text-3xl lg:text-5xl font-satoshi pt-10 bg-white/50">
-        Simple, Transparent Pricing
+    <>
+      <Head>
+        <title>Neosync | Simple, transparent pricing</title>
+        <meta
+          name="description"
+          content="Explore Neosync's simple and transparent pricing options ranging from Open Source to an Enterprise package."
+        />
+        <link rel="canonical" href="https://www.neosync.dev/pricing" />
+        <meta
+          property="og:title"
+          content="Neosync | Simple, transparent pricing"
+        />
+        <meta
+          property="og:description"
+          content="Explore Neosync's simple and transparent pricing options ranging from Open Source to an Enterprise package."
+        />
+        <meta property="og:url" content="https://www.neosync.dev" />
+        <meta property="og:site_name" content="Neosync" />
+        <meta
+          property="og:image"
+          content="/neosync/marketingsite/mainOGHero.svg"
+        />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:locale" content="en_US" />
+        <meta property="og:type" content="website" />
+      </Head>
+      <div className="flex flex-col gap-6 justify-center z-40 py-20 mx-auto">
+        <h1 className="text-center text-gray-900 font-semibold text-3xl lg:text-5xl font-satoshi pt-10 bg-white/50">
+          Simple, Transparent Pricing
+        </h1>
+        <div className="text-center text-gray-800 font-semibold text-lg font-satoshi bg-white/50 pt-6">
+          Pricing shouldn&apos;t be complicated, so we made it easy.
+        </div>
+        <div className="flex flex-col lg:flex-row items-center justify-center gap-6 pt-10">
+          <OpenSourcePlan />
+          <FreePlan />
+          <TeamPlan />
+          <CustomPlan />
+        </div>
+        <FAQs />
+        <div className="px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto py-10 lg:py-20">
+          <CTA />
+        </div>
       </div>
-      <div className="text-center text-gray-800 font-semibold text-lg font-satoshi bg-white/50 pt-6">
-        Pricing shouldn&apos;t be complicated, so we made it easy.
-      </div>
-      <div className="flex flex-col lg:flex-row items-center justify-center gap-6 pt-10 ">
-        <OpenSourcePlan />
-        <FreePlan />
-        <TeamPlan />
-        <CustomPlan />
-      </div>
-      <FAQs />
-      <div className="px-5 sm:px-10 md:px-20 lg:px-40 max-w-[1800px] mx-auto py-10 lg:py-20">
-        <CTA />
-      </div>
-    </div>
+    </>
   );
 }
 
@@ -241,7 +244,7 @@ function CustomPlan(): ReactElement {
   ];
 
   return (
-    <div className="border-2 border-gray-400 rounded-xl p-8 lg:mt-28 lg:w-[360px] bg-gradient-to-b from-[#ffffff] to-[#f3f3f3]">
+    <div className="border-2 border-gray-400 rounded-xl p-8 lg:mt-28 lg:w-[300px] bg-gradient-to-b from-[#ffffff] to-[#f3f3f3]">
       <div className="flex flex-col gap-6">
         <div className="flex justify-center">
           <Badge variant="outline" className="border-gray-400 border">

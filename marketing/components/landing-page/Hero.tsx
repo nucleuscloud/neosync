@@ -28,10 +28,9 @@ export default function Hero(): ReactElement {
           <div>Backed by Y Combinator</div>
         </div>
       </Badge>
-      <div className="text-gray-900 font-semibold text-6xl leading-tight text-center z-20 px-2 lg:w-[90%]">
-        Open Source Data Anonymization and Synthetic Data Generation For
-        Developers
-      </div>
+      <h1 className="text-gray-900 font-semibold text-6xl leading-tight text-center z-20 px-2 lg:w-[90%]">
+        Open Source Data Anonymization and Synthetic Data For Developers
+      </h1>
       <div className="text-gray-800 text-2xl font-normal text-center lg:w-[70%] xl:w-[70%] px-6 bg-white/40">
         Anonymize PII, generate synthetic data and sync environments for better
         testing, debugging and developer experience.
