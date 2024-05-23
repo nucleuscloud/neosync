@@ -128,61 +128,10 @@ func (p *PostgresManager) GetForeignKeyConstraintsMap(ctx context.Context, schem
 		}
 
 		tableName := BuildTable(row.SchemaName, row.TableName)
-		for idx, colname := range row.ConstraintColumns {
-			fkcol := row.ForeignColumnNames[idx]
-			notnullable := row.Notnullable[idx]
-
-			_, ok := tableConstraints[tableName]
-			constraint := &ForeignConstraint{
-				Column:     colname,
-				IsNullable: !notnullable, ForeignKey: &ForeignKey{
-					Table:  BuildTable(row.ForeignSchemaName, row.ForeignTableName),
-					Column: fkcol,
-				},
-			}
-			if ok {
-				tableConstraints[tableName] = append(tableConstraints[tableName], constraint)
-			} else {
-				tableConstraints[tableName] = []*ForeignConstraint{constraint}
-			}
-		}
-	}
-	return tableConstraints, nil
-}
-
-// Key is schema.table value is list of tables that key depends on
-func (p *PostgresManager) GetForeignKeyReferencesMap(ctx context.Context, schemas []string) (map[string][]*ColumnConstraint, error) {
-	if len(schemas) == 0 {
-		return map[string][]*ColumnConstraint{}, nil
-	}
-	rows, err := p.querier.GetTableConstraintsBySchema(ctx, p.pool, schemas)
-	if err != nil && !nucleusdb.IsNoRows(err) {
-		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
-		return map[string][]*ColumnConstraint{}, nil
-	}
-
-	constraintRows := []*pg_queries.GetTableConstraintsBySchemaRow{}
-	for _, row := range rows {
-		if row.ConstraintType != "f" {
-			continue
-		}
-		constraintRows = append(constraintRows, row)
-	}
-	tableConstraints := map[string][]*ColumnConstraint{}
-	for _, row := range constraintRows {
-		if len(row.ConstraintColumns) != len(row.ForeignColumnNames) {
-			return nil, fmt.Errorf("length of columns was not equal to length of foreign key cols: %d %d", len(row.ConstraintColumns), len(row.ForeignColumnNames))
-		}
-		if len(row.ConstraintColumns) != len(row.Notnullable) {
-			return nil, fmt.Errorf("length of columns was not equal to length of not nullable cols: %d %d", len(row.ConstraintColumns), len(row.Notnullable))
-		}
-
-		tableName := BuildTable(row.SchemaName, row.TableName)
-		tableConstraints[tableName] = append(tableConstraints[tableName], &ColumnConstraint{
+		tableConstraints[tableName] = append(tableConstraints[tableName], &ForeignConstraint{
 			Columns:     row.ConstraintColumns,
 			NotNullable: row.Notnullable,
-			ForeignKey: &ReferenceKey{
+			ForeignKey: &ForeignKey{
 				Table:   BuildTable(row.ForeignSchemaName, row.ForeignTableName),
 				Columns: row.ForeignColumnNames,
 			},

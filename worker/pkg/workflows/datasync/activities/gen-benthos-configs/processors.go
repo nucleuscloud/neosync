@@ -22,40 +22,39 @@ func buildSqlUpdateProcessorConfigs(
 	config *tabledependency.RunConfig,
 	redisConfig *shared.RedisConfig,
 	jobId, runId string,
-	mappings []*mgmtv1alpha1.JobMapping,
-	fkMap map[string]*sql_manager.ForeignKey,
+	colTransformerMap map[string]*mgmtv1alpha1.JobMappingTransformer,
+	columnForeignKeysMap map[string][]*referenceKey,
 ) ([]*neosync_benthos.ProcessorConfig, error) {
 	processorConfigs := []*neosync_benthos.ProcessorConfig{}
-	colSourceMap := map[string]mgmtv1alpha1.TransformerSource{}
-	for _, col := range mappings {
-		colSourceMap[col.Column] = col.GetTransformer().Source
-	}
-	for pkCol, fk := range fkMap {
-		// only need redis processors if the primary key has a transformer
-		if !hasTransformer(colSourceMap[pkCol]) || !slices.Contains(config.Columns, fk.Column) {
-			continue
-		}
+	for pkCol, fks := range columnForeignKeysMap {
+		for _, fk := range fks {
+			colTransformer, exists := colTransformerMap[pkCol]
+			// only need redis processors if the primary key has a transformer
+			if !exists || !hasTransformer(colTransformer.GetSource()) || !slices.Contains(config.InsertColumns, fk.Column) {
+				continue
+			}
 
-		// circular dependent foreign key
-		hashedKey := neosync_benthos.HashBenthosCacheKey(jobId, runId, fk.Table, pkCol)
-		requestMap := fmt.Sprintf(`root = if this.%q == null { deleted() } else { this }`, fk.Column)
-		argsMapping := fmt.Sprintf(`root = [%q, json(%q)]`, hashedKey, fk.Column)
-		resultMap := fmt.Sprintf("root.%q = this", fk.Column)
-		fkBranch, err := buildRedisGetBranchConfig(resultMap, argsMapping, &requestMap, redisConfig)
-		if err != nil {
-			return nil, err
-		}
-		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Branch: fkBranch})
+			// circular dependent foreign key
+			hashedKey := neosync_benthos.HashBenthosCacheKey(jobId, runId, fk.Table, pkCol)
+			requestMap := fmt.Sprintf(`root = if this.%q == null { deleted() } else { this }`, fk.Column)
+			argsMapping := fmt.Sprintf(`root = [%q, json(%q)]`, hashedKey, fk.Column)
+			resultMap := fmt.Sprintf("root.%q = this", fk.Column)
+			fkBranch, err := buildRedisGetBranchConfig(resultMap, argsMapping, &requestMap, redisConfig)
+			if err != nil {
+				return nil, err
+			}
+			processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Branch: fkBranch})
 
-		// primary key
-		pkRequestMap := fmt.Sprintf(`root = if this.%q == null { deleted() } else { this }`, pkCol)
-		pkArgsMapping := fmt.Sprintf(`root = [%q, json(%q)]`, hashedKey, pkCol)
-		pkResultMap := fmt.Sprintf("root.%q = this", pkCol)
-		pkBranch, err := buildRedisGetBranchConfig(pkResultMap, pkArgsMapping, &pkRequestMap, redisConfig)
-		if err != nil {
-			return nil, err
+			// primary key
+			pkRequestMap := fmt.Sprintf(`root = if this.%q == null { deleted() } else { this }`, pkCol)
+			pkArgsMapping := fmt.Sprintf(`root = [%q, json(%q)]`, hashedKey, pkCol)
+			pkResultMap := fmt.Sprintf("root.%q = this", pkCol)
+			pkBranch, err := buildRedisGetBranchConfig(pkResultMap, pkArgsMapping, &pkRequestMap, redisConfig)
+			if err != nil {
+				return nil, err
+			}
+			processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Branch: pkBranch})
 		}
-		processorConfigs = append(processorConfigs, &neosync_benthos.ProcessorConfig{Branch: pkBranch})
 	}
 	if len(processorConfigs) > 0 {
 		// add catch and error processor
@@ -73,8 +72,8 @@ func buildProcessorConfigs(
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	cols []*mgmtv1alpha1.JobMapping,
 	tableColumnInfo map[string]*sql_manager.ColumnInfo,
-	columnConstraints map[string]*sql_manager.ForeignKey,
-	primaryKeys []string,
+	transformedFktoPkMap map[string][]*referenceKey,
+	fkSourceCols []string,
 	jobId, runId string,
 	redisConfig *shared.RedisConfig,
 ) ([]*neosync_benthos.ProcessorConfig, error) {
@@ -88,12 +87,12 @@ func buildProcessorConfigs(
 		return nil, err
 	}
 
-	cacheBranches, err := buildBranchCacheConfigs(cols, columnConstraints, jobId, runId, redisConfig)
+	cacheBranches, err := buildBranchCacheConfigs(cols, transformedFktoPkMap, jobId, runId, redisConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	pkMapping := buildPrimaryKeyMappingConfigs(cols, primaryKeys)
+	pkMapping := buildPrimaryKeyMappingConfigs(cols, fkSourceCols)
 
 	var processorConfigs []*neosync_benthos.ProcessorConfig
 	if pkMapping != "" {
@@ -204,28 +203,30 @@ func buildPrimaryKeyMappingConfigs(cols []*mgmtv1alpha1.JobMapping, primaryKeys 
 
 func buildBranchCacheConfigs(
 	cols []*mgmtv1alpha1.JobMapping,
-	columnConstraints map[string]*sql_manager.ForeignKey,
+	transformedFktoPkMap map[string][]*referenceKey,
 	jobId, runId string,
 	redisConfig *shared.RedisConfig,
 ) ([]*neosync_benthos.BranchConfig, error) {
 	branchConfigs := []*neosync_benthos.BranchConfig{}
 	for _, col := range cols {
-		fk, ok := columnConstraints[col.Column]
+		fks, ok := transformedFktoPkMap[col.Column]
 		if ok {
-			// skip self referencing cols
-			if fk.Table == fmt.Sprintf("%s.%s", col.Schema, col.Table) {
-				continue
-			}
+			for _, fk := range fks {
+				// skip self referencing cols
+				if fk.Table == fmt.Sprintf("%s.%s", col.Schema, col.Table) {
+					continue
+				}
 
-			hashedKey := neosync_benthos.HashBenthosCacheKey(jobId, runId, fk.Table, fk.Column)
-			requestMap := fmt.Sprintf(`root = if this.%q == null { deleted() } else { this }`, col.Column)
-			argsMapping := fmt.Sprintf(`root = [%q, json(%q)]`, hashedKey, col.Column)
-			resultMap := fmt.Sprintf("root.%q = this", col.Column)
-			br, err := buildRedisGetBranchConfig(resultMap, argsMapping, &requestMap, redisConfig)
-			if err != nil {
-				return nil, err
+				hashedKey := neosync_benthos.HashBenthosCacheKey(jobId, runId, fk.Table, fk.Column)
+				requestMap := fmt.Sprintf(`root = if this.%q == null { deleted() } else { this }`, col.Column)
+				argsMapping := fmt.Sprintf(`root = [%q, json(%q)]`, hashedKey, col.Column)
+				resultMap := fmt.Sprintf("root.%q = this", col.Column)
+				br, err := buildRedisGetBranchConfig(resultMap, argsMapping, &requestMap, redisConfig)
+				if err != nil {
+					return nil, err
+				}
+				branchConfigs = append(branchConfigs, br)
 			}
-			branchConfigs = append(branchConfigs, br)
 		}
 	}
 	return branchConfigs, nil

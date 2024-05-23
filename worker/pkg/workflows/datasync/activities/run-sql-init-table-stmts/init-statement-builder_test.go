@@ -482,9 +482,9 @@ func Test_InitStatementBuilder_Pg_Truncate(t *testing.T) {
 	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
 	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sql_manager.ForeignConstraint{
 		"public.users": {{
-			Column:     "account_id",
-			IsNullable: false,
-			ForeignKey: &sql_manager.ForeignKey{Table: "public.accounts", Column: "id"},
+			Columns:     []string{"account_id"},
+			NotNullable: []bool{true},
+			ForeignKey:  &sql_manager.ForeignKey{Table: "public.accounts", Columns: []string{"id"}},
 		}},
 	}, nil)
 	mockSqlDb.On("Exec", mock.Anything, "TRUNCATE TABLE \"public\".\"accounts\", \"public\".\"users\";").Return(nil)
@@ -620,9 +620,9 @@ func Test_InitStatementBuilder_Pg_InitSchema(t *testing.T) {
 	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
 	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sql_manager.ForeignConstraint{
 		"public.users": {{
-			Column:     "account_id",
-			IsNullable: false,
-			ForeignKey: &sql_manager.ForeignKey{Table: "public.accounts", Column: "id"},
+			Columns:     []string{"account_id"},
+			NotNullable: []bool{true},
+			ForeignKey:  &sql_manager.ForeignKey{Table: "public.accounts", Columns: []string{"id"}},
 		}},
 	}, nil)
 	accountCreateStmt := "CREATE TABLE IF NOT EXISTS \"public\".\"accounts\" (\"id\" uuid NOT NULL DEFAULT gen_random_uuid(), CONSTRAINT accounts_pkey PRIMARY KEY (id));"
@@ -880,9 +880,9 @@ func Test_InitStatementBuilder_Mysql_TruncateCreate(t *testing.T) {
 	mockSqlManager.On("NewPooledSqlDb", mock.Anything, mock.Anything, mock.Anything).Return(&sql_manager.SqlConnection{Db: mockSqlDb}, nil)
 	mockSqlDb.On("GetForeignKeyConstraintsMap", mock.Anything, []string{"public"}).Return(map[string][]*sql_manager.ForeignConstraint{
 		"public.users": {{
-			Column:     "account_id",
-			IsNullable: false,
-			ForeignKey: &sql_manager.ForeignKey{Table: "public.accounts", Column: "id"},
+			Columns:     []string{"account_id"},
+			NotNullable: []bool{true},
+			ForeignKey:  &sql_manager.ForeignKey{Table: "public.accounts", Columns: []string{"id"}},
 		}},
 	}, nil)
 	accountCreateStmt := "CREATE TABLE IF NOT EXISTS \"public\".\"accounts\" (\"id\" uuid NOT NULL DEFAULT gen_random_uuid(), CONSTRAINT accounts_pkey PRIMARY KEY (id));"
@@ -918,21 +918,21 @@ func Test_getFilteredForeignToPrimaryTableMap(t *testing.T) {
 	}
 	dependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.countries": {
-			{Column: "region_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.regions", Column: "region_id"}},
+			{Columns: []string{"region_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.regions", Columns: []string{"region_id"}}},
 		},
 		"public.departments": {
-			{Column: "location_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.locations", Column: "location_id"}},
+			{Columns: []string{"location_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.locations", Columns: []string{"location_id"}}},
 		},
 		"public.dependents": {
-			{Column: "dependent_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.employees", Column: "employees_id"}},
+			{Columns: []string{"dependent_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.employees", Columns: []string{"employees_id"}}},
 		},
 		"public.locations": {
-			{Column: "country_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.countries", Column: "country_id"}},
+			{Columns: []string{"country_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.countries", Columns: []string{"country_id"}}},
 		},
 		"public.employees": {
-			{Column: "department_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.departments", Column: "department_id"}},
-			{Column: "job_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.jobs", Column: "job_id"}},
-			{Column: "manager_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.employees", Column: "employee_id"}},
+			{Columns: []string{"department_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.departments", Columns: []string{"department_id"}}},
+			{Columns: []string{"job_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.jobs", Columns: []string{"job_id"}}},
+			{Columns: []string{"manager_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.employees", Columns: []string{"employee_id"}}},
 		},
 	}
 
@@ -959,21 +959,21 @@ func Test_getFilteredForeignToPrimaryTableMap_filtered(t *testing.T) {
 	}
 	dependencies := map[string][]*sql_manager.ForeignConstraint{
 		"public.countries": {
-			{Column: "region_id", IsNullable: false, ForeignKey: &sql_manager.ForeignKey{Table: "public.regions", Column: "region_id"}}},
+			{Columns: []string{"region_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.regions", Columns: []string{"region_id"}}}},
 
 		"public.departments": {
-			{Column: "location_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.locations", Column: "location_id"}},
+			{Columns: []string{"location_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.locations", Columns: []string{"location_id"}}},
 		},
 		"public.dependents": {
-			{Column: "dependent_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.employees", Column: "employees_id"}},
+			{Columns: []string{"dependent_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.employees", Columns: []string{"employees_id"}}},
 		},
 		"public.locations": {
-			{Column: "country_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.countries", Column: "country_id"}},
+			{Columns: []string{"country_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.countries", Columns: []string{"country_id"}}},
 		},
 		"public.employees": {
-			{Column: "department_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.departments", Column: "department_id"}},
-			{Column: "job_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.jobs", Column: "job_id"}},
-			{Column: "manager_id", IsNullable: true, ForeignKey: &sql_manager.ForeignKey{Table: "public.employees", Column: "employee_id"}},
+			{Columns: []string{"department_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.departments", Columns: []string{"department_id"}}},
+			{Columns: []string{"job_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.jobs", Columns: []string{"job_id"}}},
+			{Columns: []string{"manager_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.employees", Columns: []string{"employee_id"}}},
 		},
 	}
 

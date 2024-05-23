@@ -30,7 +30,7 @@ func (b *benthosBuilder) getAiGenerateBenthosConfigResponses(
 	ctx context.Context,
 	job *mgmtv1alpha1.Job,
 	slogger *slog.Logger,
-) ([]*BenthosConfigResponse, []*aiGenerateMappings, error) {
+) ([]*BenthosConfigResponse, map[string][]string, error) {
 	jobSource := job.GetSource()
 	sourceOptions := job.GetSource().GetOptions().GetAiGenerate()
 	if sourceOptions == nil {
@@ -99,7 +99,16 @@ func (b *benthosBuilder) getAiGenerateBenthosConfigResponses(
 		userPrompt,
 	)
 
-	return sourceResponses, mappings, nil
+	// builds a map of table key to columns for AI Generated schemas as they are calculated lazily instead of via job mappings
+	aiGroupedTableCols := map[string][]string{}
+	for _, agm := range mappings {
+		key := neosync_benthos.BuildBenthosTable(agm.Schema, agm.Table)
+		for _, col := range agm.Columns {
+			aiGroupedTableCols[key] = append(aiGroupedTableCols[key], col.Column)
+		}
+	}
+
+	return sourceResponses, aiGroupedTableCols, nil
 }
 
 func buildBenthosAiGenerateSourceConfigResponses(
@@ -159,8 +168,6 @@ func buildBenthosAiGenerateSourceConfigResponses(
 
 			TableSchema: tableMapping.Schema,
 			TableName:   tableMapping.Table,
-
-			// Processors: processors,
 
 			metriclabels: metrics.MetricLabels{
 				metrics.NewEqLabel(metrics.TableSchemaLabel, tableMapping.Schema),

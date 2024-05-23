@@ -96,31 +96,27 @@ func Test_GetForeignKeyConstraintsMap(t *testing.T) {
 
 	expected := map[string][]*ForeignConstraint{
 		"public.orders": {
-			{Column: "buyer_id", IsNullable: false, ForeignKey: &ForeignKey{
-				Table:  "public.users",
-				Column: "id",
+			{Columns: []string{"buyer_id"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{
+				Table:   "public.users",
+				Columns: []string{"id"},
 			},
 			},
-			{Column: "account_id", IsNullable: true, ForeignKey: &ForeignKey{
-				Table:  "public.accounts",
-				Column: "id",
+			{Columns: []string{"account_id"}, NotNullable: []bool{false}, ForeignKey: &ForeignKey{
+				Table:   "public.accounts",
+				Columns: []string{"id"},
 			}},
 		},
 		"public.users": {
-			{Column: "composite_id", IsNullable: false, ForeignKey: &ForeignKey{
-				Table:  "public.composite",
-				Column: "id",
+			{Columns: []string{"composite_id", "other_composite_id"}, NotNullable: []bool{true, true}, ForeignKey: &ForeignKey{
+				Table:   "public.composite",
+				Columns: []string{"id", "other_id"},
 			},
 			},
-			{Column: "other_composite_id", IsNullable: false, ForeignKey: &ForeignKey{
-				Table:  "public.composite",
-				Column: "other_id",
-			}},
 		},
 		"public.accounts": {
-			{Column: "user_id", IsNullable: false, ForeignKey: &ForeignKey{
-				Table:  "public.users",
-				Column: "id",
+			{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{
+				Table:   "public.users",
+				Columns: []string{"id"},
 			},
 			},
 		}}
@@ -157,17 +153,17 @@ func Test_GetForeignKeyConstraintsMap_ExtraEdgeCases(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, actual, map[string][]*ForeignConstraint{
 		"neosync_api.t1": {
-			{Column: "b", IsNullable: false, ForeignKey: &ForeignKey{Table: "neosync_api.account_user_associations", Column: "account_id"}},
-			{Column: "c", IsNullable: false, ForeignKey: &ForeignKey{Table: "neosync_api.account_user_associations", Column: "user_id"}},
+			{Columns: []string{"b"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.account_user_associations", Columns: []string{"account_id"}}},
+			{Columns: []string{"c"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.account_user_associations", Columns: []string{"user_id"}}},
 		},
 		"neosync_api.t2": {
-			{Column: "b", IsNullable: false, ForeignKey: &ForeignKey{Table: "neosync_api.t2", Column: "a"}},
+			{Columns: []string{"b"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.t2", Columns: []string{"a"}}},
 		},
 		"neosync_api.t3": {
-			{Column: "b", IsNullable: false, ForeignKey: &ForeignKey{Table: "neosync_api.t4", Column: "a"}},
+			{Columns: []string{"b"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.t4", Columns: []string{"a"}}},
 		},
 		"neosync_api.t4": {
-			{Column: "b", IsNullable: false, ForeignKey: &ForeignKey{Table: "neosync_api.t3", Column: "a"}},
+			{Columns: []string{"b"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.t3", Columns: []string{"a"}}},
 		},
 	}, "Testing composite foreign keys, table self-referencing, and table cycles")
 }

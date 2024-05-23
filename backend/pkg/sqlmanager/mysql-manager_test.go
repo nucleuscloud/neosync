@@ -89,39 +89,44 @@ func Test_GetForeignKeyConstraintsMap_Mysql(t *testing.T) {
 		{ConstraintName: "fk_jobdstconassoc_conn_id_conn_id", SchemaName: "neosync_api", TableName: "job_destination_connection_associations", ColumnName: "connection_id", ForeignSchemaName: "neosync_api", ForeignTableName: "connections", ForeignColumnName: "id", IsNullable: "NO"},
 		{ConstraintName: "fk_jobdstconassoc_job_id_jobs_id", SchemaName: "neosync_api", TableName: "job_destination_connection_associations", ColumnName: "job_id", ForeignSchemaName: "neosync_api", ForeignTableName: "jobs", ForeignColumnName: "id", IsNullable: "NO"},
 		{ConstraintName: "fk_jobs_accounts_id", SchemaName: "neosync_api", TableName: "jobs", ColumnName: "account_id", ForeignSchemaName: "neosync_api", ForeignTableName: "accounts", ForeignColumnName: "id", IsNullable: "NO"},
-		{ConstraintName: "fk_jobs_accounts_id", SchemaName: "neosync_api", TableName: "jobs", ColumnName: "connection_source_id", ForeignSchemaName: "neosync_api", ForeignTableName: "connections", ForeignColumnName: "id", IsNullable: "NO"},
+		{ConstraintName: "fk_jobs_conn_accounts_id", SchemaName: "neosync_api", TableName: "jobs", ColumnName: "connection_source_id", ForeignSchemaName: "neosync_api", ForeignTableName: "connections", ForeignColumnName: "id", IsNullable: "NO"},
 		{ConstraintName: "fk_jobs_created_by_users_id", SchemaName: "neosync_api", TableName: "jobs", ColumnName: "created_by_id", ForeignSchemaName: "neosync_api", ForeignTableName: "users", ForeignColumnName: "id", IsNullable: "YES"},
 		{ConstraintName: "fk_jobs_updated_by_users_id", SchemaName: "neosync_api", TableName: "jobs", ColumnName: "updated_by_id", ForeignSchemaName: "neosync_api", ForeignTableName: "users", ForeignColumnName: "id", IsNullable: "NO"},
 		{ConstraintName: "fk_user_identity_provider_user_id", SchemaName: "neosync_api", TableName: "user_identity_provider_associations", ColumnName: "user_id", ForeignSchemaName: "neosync_api", ForeignTableName: "users", ForeignColumnName: "id", IsNullable: "NO"},
 	}
 	mysqlquerier.On("GetForeignKeyConstraints", mock.Anything, mockPool, "neosync_api").Return(constraints, nil)
 
-	actual, err := manager.GetForeignKeyConstraintsMap(context.Background(), []string{"neosync_api"})
-	require.NoError(t, err)
-	require.Equal(t, map[string][]*ForeignConstraint{
+	expected := map[string][]*ForeignConstraint{
 		"neosync_api.account_user_associations": {
-			{Column: "account_id", IsNullable: false, ForeignKey: &ForeignKey{Table: "neosync_api.accounts", Column: "id"}},
-			{Column: "user_id", IsNullable: false, ForeignKey: &ForeignKey{Table: "neosync_api.users", Column: "id"}},
+			{Columns: []string{"account_id"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.accounts", Columns: []string{"id"}}},
+			{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.users", Columns: []string{"id"}}},
 		},
 		"neosync_api.connections": {
-			{Column: "account_id", IsNullable: false, ForeignKey: &ForeignKey{Table: "neosync_api.accounts", Column: "id"}},
-			{Column: "created_by_id", IsNullable: true, ForeignKey: &ForeignKey{Table: "neosync_api.users", Column: "id"}},
-			{Column: "updated_by_id", IsNullable: false, ForeignKey: &ForeignKey{Table: "neosync_api.users", Column: "id"}},
+			{Columns: []string{"account_id"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.accounts", Columns: []string{"id"}}},
+			{Columns: []string{"created_by_id"}, NotNullable: []bool{false}, ForeignKey: &ForeignKey{Table: "neosync_api.users", Columns: []string{"id"}}},
+			{Columns: []string{"updated_by_id"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.users", Columns: []string{"id"}}},
 		},
 		"neosync_api.job_destination_connection_associations": {
-			{Column: "connection_id", IsNullable: false, ForeignKey: &ForeignKey{Table: "neosync_api.connections", Column: "id"}},
-			{Column: "job_id", IsNullable: false, ForeignKey: &ForeignKey{Table: "neosync_api.jobs", Column: "id"}},
+			{Columns: []string{"connection_id"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.connections", Columns: []string{"id"}}},
+			{Columns: []string{"job_id"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.jobs", Columns: []string{"id"}}},
 		},
 		"neosync_api.jobs": {
-			{Column: "account_id", IsNullable: false, ForeignKey: &ForeignKey{Table: "neosync_api.accounts", Column: "id"}},
-			{Column: "connection_source_id", IsNullable: false, ForeignKey: &ForeignKey{Table: "neosync_api.connections", Column: "id"}},
-			{Column: "created_by_id", IsNullable: true, ForeignKey: &ForeignKey{Table: "neosync_api.users", Column: "id"}},
-			{Column: "updated_by_id", IsNullable: false, ForeignKey: &ForeignKey{Table: "neosync_api.users", Column: "id"}},
+			{Columns: []string{"account_id"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.accounts", Columns: []string{"id"}}},
+			{Columns: []string{"connection_source_id"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.connections", Columns: []string{"id"}}},
+			{Columns: []string{"created_by_id"}, NotNullable: []bool{false}, ForeignKey: &ForeignKey{Table: "neosync_api.users", Columns: []string{"id"}}},
+			{Columns: []string{"updated_by_id"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.users", Columns: []string{"id"}}},
 		},
 		"neosync_api.user_identity_provider_associations": {
-			{Column: "user_id", IsNullable: false, ForeignKey: &ForeignKey{Table: "neosync_api.users", Column: "id"}},
+			{Columns: []string{"user_id"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.users", Columns: []string{"id"}}},
 		},
-	}, actual)
+	}
+
+	actual, err := manager.GetForeignKeyConstraintsMap(context.Background(), []string{"neosync_api"})
+	require.NoError(t, err)
+	for table, fks := range expected {
+		acutalFks := actual[table]
+		require.ElementsMatch(t, fks, acutalFks)
+	}
 }
 
 func Test_GetForeignKeyConstraintsMap_ExtraEdgeCases_Mysql(t *testing.T) {
@@ -139,26 +144,29 @@ func Test_GetForeignKeyConstraintsMap_ExtraEdgeCases_Mysql(t *testing.T) {
 		{ConstraintName: "t3_b_fkey", SchemaName: "neosync_api", TableName: "t3", ColumnName: "b", ForeignSchemaName: "neosync_api", ForeignTableName: "t4", ForeignColumnName: "a", IsNullable: "NO"},
 		{ConstraintName: "t4_b_fkey", SchemaName: "neosync_api", TableName: "t4", ColumnName: "b", ForeignSchemaName: "neosync_api", ForeignTableName: "t3", ForeignColumnName: "a", IsNullable: "NO"},
 	}
+	expected := map[string][]*ForeignConstraint{
+		"neosync_api.t1": {
+			{Columns: []string{"b", "c"}, NotNullable: []bool{true, true}, ForeignKey: &ForeignKey{Table: "neosync_api.account_user_associations", Columns: []string{"account_id", "user_id"}}},
+		},
+		"neosync_api.t2": {
+			{Columns: []string{"b"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.t2", Columns: []string{"a"}}},
+		},
+		"neosync_api.t3": {
+			{Columns: []string{"b"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.t4", Columns: []string{"a"}}},
+		},
+		"neosync_api.t4": {
+			{Columns: []string{"b"}, NotNullable: []bool{true}, ForeignKey: &ForeignKey{Table: "neosync_api.t3", Columns: []string{"a"}}},
+		},
+	}
 
 	mysqlquerier.On("GetForeignKeyConstraints", mock.Anything, mockPool, "neosync_api").Return(constraints, nil)
 
 	actual, err := manager.GetForeignKeyConstraintsMap(context.Background(), []string{"neosync_api"})
 	require.NoError(t, err)
-	require.Equal(t, map[string][]*ForeignConstraint{
-		"neosync_api.t1": {
-			{Column: "b", IsNullable: false, ForeignKey: &ForeignKey{Table: "neosync_api.account_user_associations", Column: "account_id"}},
-			{Column: "c", IsNullable: false, ForeignKey: &ForeignKey{Table: "neosync_api.account_user_associations", Column: "user_id"}},
-		},
-		"neosync_api.t2": {
-			{Column: "b", IsNullable: false, ForeignKey: &ForeignKey{Table: "neosync_api.t2", Column: "a"}},
-		},
-		"neosync_api.t3": {
-			{Column: "b", IsNullable: false, ForeignKey: &ForeignKey{Table: "neosync_api.t4", Column: "a"}},
-		},
-		"neosync_api.t4": {
-			{Column: "b", IsNullable: false, ForeignKey: &ForeignKey{Table: "neosync_api.t3", Column: "a"}},
-		},
-	}, actual, "Testing composite foreign keys, table self-referencing, and table cycles")
+	for table, fks := range expected {
+		acutalFks := actual[table]
+		require.ElementsMatch(t, fks, acutalFks)
+	}
 }
 
 func Test_GetPrimaryKeyConstraintsMap_Mysql(t *testing.T) {

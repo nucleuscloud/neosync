@@ -654,12 +654,12 @@ func buildSyncConfigs(
 			for _, c := range dc {
 				if c.RunType == tabledependency.RunTypeInsert {
 					syncConfigs = append(syncConfigs, &syncConfig{
-						Query:         buildInsertQueryFunc(split[0], split[1], c.Columns),
-						ArgsMapping:   buildPlainInsertArgs(c.Columns),
+						Query:         buildInsertQueryFunc(split[0], split[1], c.InsertColumns),
+						ArgsMapping:   buildPlainInsertArgs(c.InsertColumns),
 						InitStatement: schemaConfig.InitTableStatementsMap[table],
 						Schema:        split[0],
 						Table:         split[1],
-						Columns:       c.Columns,
+						Columns:       c.InsertColumns,
 						DependsOn:     c.DependsOn,
 						Name:          table,
 					})
@@ -668,16 +668,13 @@ func buildSyncConfigs(
 						fmt.Println(bold.Render(fmt.Sprintf("No primary keys found for table (%s). Unable to build update query.", table))) //nolint:forbidigo
 						return nil
 					}
-					argCols := []string{}
-					argCols = append(argCols, c.Columns...)
-					argCols = append(argCols, c.PrimaryKeys...)
 					syncConfigs = append(syncConfigs, &syncConfig{
-						Query:       buildUpdateQueryFunc(split[0], split[1], c.Columns, c.PrimaryKeys),
-						ArgsMapping: buildPlainInsertArgs(argCols),
+						Query:       buildUpdateQueryFunc(split[0], split[1], c.InsertColumns, c.PrimaryKeys),
+						ArgsMapping: buildPlainInsertArgs(c.SelectColumns),
 
 						Schema:    split[0],
 						Table:     split[1],
-						Columns:   c.Columns,
+						Columns:   c.InsertColumns,
 						DependsOn: c.DependsOn,
 						Name:      fmt.Sprintf("%s.update", table),
 					})
@@ -1091,14 +1088,14 @@ func getConnectionSchemaConfig(
 			var foreignKey *sql_manager.ForeignKey
 			if fk.ForeignKey != nil {
 				foreignKey = &sql_manager.ForeignKey{
-					Table:  fk.ForeignKey.Table,
-					Column: fk.ForeignKey.Column,
+					Table:   fk.ForeignKey.Table,
+					Columns: []string{fk.ForeignKey.Column},
 				}
 			}
 			fkConstraints = append(fkConstraints, &sql_manager.ForeignConstraint{
-				Column:     fk.Column,
-				IsNullable: fk.IsNullable,
-				ForeignKey: foreignKey,
+				Columns:     []string{fk.Column},
+				NotNullable: []bool{!fk.IsNullable},
+				ForeignKey:  foreignKey,
 			})
 		}
 		tc[table] = fkConstraints
@@ -1218,14 +1215,10 @@ func getDestinationPrimaryKeyConstraints(ctx context.Context, sqlmanager sql_man
 
 func getDependencyConfigs(
 	tc map[string][]*sql_manager.ForeignConstraint,
-	tables map[string][]string,
+	tableColMap map[string][]string,
 	primaryKeyMap map[string][]string,
 ) (map[string][]*tabledependency.RunConfig, error) {
-	tablesSlice := []string{}
-	for t := range tables {
-		tablesSlice = append(tablesSlice, t)
-	}
-	dependencyConfigs, err := tabledependency.GetRunConfigs(tc, tablesSlice, map[string]string{}, primaryKeyMap, tables)
+	dependencyConfigs, err := tabledependency.GetRunConfigs(tc, map[string]string{}, primaryKeyMap, tableColMap)
 	if err != nil {
 		return nil, err
 	}
