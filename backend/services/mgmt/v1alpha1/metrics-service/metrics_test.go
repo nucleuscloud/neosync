@@ -2,7 +2,6 @@ package v1alpha1_metricsservice
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
@@ -391,7 +390,6 @@ func Test_GetDailyMetricCount_AccountId(t *testing.T) {
 		return true
 	}), mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
 		Return(testVector, promv1.Warnings{}, nil)
-	fmt.Println(startTime, endTime)
 	resp, err := m.Service.GetDailyMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetDailyMetricCountRequest{
 		Start:  &startDate,
 		End:    &endDate,
