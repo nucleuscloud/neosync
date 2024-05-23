@@ -364,10 +364,10 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 			},
 			subsets: map[string]string{},
 			expect: []*RunConfig{
-				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, Columns: []string{"id"}, DependsOn: []*DependsOn{}},
-				{Table: "public.a", RunType: RunTypeUpdate, PrimaryKeys: []string{"id"}, WhereClause: &where, Columns: []string{"b_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"id"}}}},
-				{Table: "public.c", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, Columns: []string{"id", "a_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
-				{Table: "public.b", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, Columns: []string{"id", "c_id"}, DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"id"}, DependsOn: []*DependsOn{}},
+				{Table: "public.a", RunType: RunTypeUpdate, PrimaryKeys: []string{"id"}, WhereClause: &where, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"b_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"id"}}}},
+				{Table: "public.c", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, SelectColumns: []string{"id", "a_id"}, InsertColumns: []string{"id", "a_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+				{Table: "public.b", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, SelectColumns: []string{"id", "c_id"}, InsertColumns: []string{"id", "c_id"}, DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
 			},
 		},
 		{
@@ -398,11 +398,11 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 			},
 			subsets: map[string]string{},
 			expect: []*RunConfig{
-				{Table: "public.x", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, Columns: []string{"id"}, DependsOn: []*DependsOn{}},
-				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, Columns: []string{"id", "x_id"}, DependsOn: []*DependsOn{{Table: "public.x", Columns: []string{"id"}}}},
-				{Table: "public.a", RunType: RunTypeUpdate, PrimaryKeys: []string{"id"}, WhereClause: &where, Columns: []string{"b_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"id"}}}},
-				{Table: "public.c", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, Columns: []string{"id", "a_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
-				{Table: "public.b", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, Columns: []string{"id", "c_id"}, DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+				{Table: "public.x", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*DependsOn{}},
+				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, SelectColumns: []string{"id", "b_id", "x_id"}, InsertColumns: []string{"id", "x_id"}, DependsOn: []*DependsOn{{Table: "public.x", Columns: []string{"id"}}}},
+				{Table: "public.a", RunType: RunTypeUpdate, PrimaryKeys: []string{"id"}, WhereClause: &where, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"b_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"id"}}}},
+				{Table: "public.c", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, SelectColumns: []string{"id", "a_id"}, InsertColumns: []string{"id", "a_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+				{Table: "public.b", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, SelectColumns: []string{"id", "c_id"}, InsertColumns: []string{"id", "c_id"}, DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
 			},
 		},
 		{
@@ -420,8 +420,8 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 			},
 			subsets: map[string]string{},
 			expect: []*RunConfig{
-				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, Columns: []string{"id", "other"}, DependsOn: []*DependsOn{}},
-				{Table: "public.a", RunType: RunTypeUpdate, PrimaryKeys: []string{"id"}, WhereClause: &where, Columns: []string{"a_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, SelectColumns: []string{"id", "a_id", "other"}, InsertColumns: []string{"id", "other"}, DependsOn: []*DependsOn{}},
+				{Table: "public.a", RunType: RunTypeUpdate, PrimaryKeys: []string{"id"}, WhereClause: &where, SelectColumns: []string{"id", "a_id"}, InsertColumns: []string{"a_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
 			},
 		},
 		{
@@ -440,8 +440,8 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 			},
 			subsets: map[string]string{},
 			expect: []*RunConfig{
-				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, Columns: []string{"id", "other"}, DependsOn: []*DependsOn{}},
-				{Table: "public.a", RunType: RunTypeUpdate, PrimaryKeys: []string{"id"}, WhereClause: &where, Columns: []string{"a_id", "aa_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, SelectColumns: []string{"id", "a_id", "aa_id", "other"}, InsertColumns: []string{"id", "other"}, DependsOn: []*DependsOn{}},
+				{Table: "public.a", RunType: RunTypeUpdate, PrimaryKeys: []string{"id"}, WhereClause: &where, SelectColumns: []string{"id", "a_id", "aa_id"}, InsertColumns: []string{"a_id", "aa_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
 			},
 		},
 		{
@@ -470,10 +470,10 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 			},
 			subsets: map[string]string{},
 			expect: []*RunConfig{
-				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, Columns: []string{"id"}, DependsOn: []*DependsOn{}},
-				{Table: "public.a", RunType: RunTypeUpdate, PrimaryKeys: []string{"id"}, WhereClause: &where, Columns: []string{"b_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"id"}}}},
-				{Table: "public.c", RunType: RunTypeInsert, PrimaryKeys: []string{"id", "other_id"}, WhereClause: &where, Columns: []string{"id", "other_id", "a_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
-				{Table: "public.b", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, Columns: []string{"id", "c_id", "cc_id"}, DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id", "other_id"}}}},
+				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"id"}, DependsOn: []*DependsOn{}},
+				{Table: "public.a", RunType: RunTypeUpdate, PrimaryKeys: []string{"id"}, WhereClause: &where, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"b_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"id"}}}},
+				{Table: "public.c", RunType: RunTypeInsert, PrimaryKeys: []string{"id", "other_id"}, WhereClause: &where, SelectColumns: []string{"id", "other_id", "a_id"}, InsertColumns: []string{"id", "other_id", "a_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+				{Table: "public.b", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, SelectColumns: []string{"id", "c_id", "cc_id"}, InsertColumns: []string{"id", "c_id", "cc_id"}, DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id", "other_id"}}}},
 			},
 		},
 		{
@@ -502,10 +502,10 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 			},
 			subsets: map[string]string{},
 			expect: []*RunConfig{
-				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, Columns: []string{"id", "b_id"}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
-				{Table: "public.c", RunType: RunTypeInsert, PrimaryKeys: []string{"id", "other_id"}, WhereClause: &where, Columns: []string{"id", "other_id", "a_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
-				{Table: "public.b", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, Columns: []string{"id"}, DependsOn: []*DependsOn{}},
-				{Table: "public.b", RunType: RunTypeUpdate, PrimaryKeys: []string{"id"}, WhereClause: &where, Columns: []string{"c_id", "cc_id"}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}, {Table: "public.c", Columns: []string{"id", "other_id"}}}},
+				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"id", "b_id"}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
+				{Table: "public.c", RunType: RunTypeInsert, PrimaryKeys: []string{"id", "other_id"}, WhereClause: &where, SelectColumns: []string{"id", "other_id", "a_id"}, InsertColumns: []string{"id", "other_id", "a_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+				{Table: "public.b", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, SelectColumns: []string{"id", "c_id", "cc_id"}, InsertColumns: []string{"id"}, DependsOn: []*DependsOn{}},
+				{Table: "public.b", RunType: RunTypeUpdate, PrimaryKeys: []string{"id"}, WhereClause: &where, SelectColumns: []string{"id", "c_id", "cc_id"}, InsertColumns: []string{"c_id", "cc_id"}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}, {Table: "public.c", Columns: []string{"id", "other_id"}}}},
 			},
 		},
 	}
@@ -557,10 +557,10 @@ func Test_GetRunConfigs_Subset_SingleCycle(t *testing.T) {
 				"public.b": where,
 			},
 			expect: []*RunConfig{
-				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id"}, DependsOn: []*DependsOn{}},
-				{Table: "public.a", RunType: RunTypeUpdate, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"b_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"id"}}}},
-				{Table: "public.c", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id", "a_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
-				{Table: "public.b", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, Columns: []string{"id", "c_id"}, DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"id"}, DependsOn: []*DependsOn{}},
+				{Table: "public.a", RunType: RunTypeUpdate, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"b_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"id"}}}},
+				{Table: "public.c", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "a_id"}, InsertColumns: []string{"id", "a_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+				{Table: "public.b", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, SelectColumns: []string{"id", "c_id"}, InsertColumns: []string{"id", "c_id"}, DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
 			},
 		},
 		{
@@ -593,11 +593,11 @@ func Test_GetRunConfigs_Subset_SingleCycle(t *testing.T) {
 				"public.x": "where",
 			},
 			expect: []*RunConfig{
-				{Table: "public.x", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, Columns: []string{"id"}, DependsOn: []*DependsOn{}},
-				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id", "x_id"}, DependsOn: []*DependsOn{{Table: "public.x", Columns: []string{"id"}}}},
-				{Table: "public.a", RunType: RunTypeUpdate, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"b_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"id"}}}},
-				{Table: "public.c", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id", "a_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
-				{Table: "public.b", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id", "c_id"}, DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+				{Table: "public.x", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &where, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*DependsOn{}},
+				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "b_id", "x_id"}, InsertColumns: []string{"id", "x_id"}, DependsOn: []*DependsOn{{Table: "public.x", Columns: []string{"id"}}}},
+				{Table: "public.a", RunType: RunTypeUpdate, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"b_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"id"}}}},
+				{Table: "public.c", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "a_id"}, InsertColumns: []string{"id", "a_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+				{Table: "public.b", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "c_id"}, InsertColumns: []string{"id", "c_id"}, DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
 			},
 		},
 	}
@@ -657,12 +657,12 @@ func Test_GetRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 			},
 			subsets: map[string]string{},
 			expect: []*RunConfig{
-				{Table: "public.b", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id", "other_id"}, DependsOn: []*DependsOn{}},
-				{Table: "public.b", RunType: RunTypeUpdate, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"c_id", "d_id"}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}, {Table: "public.c", Columns: []string{"id"}}, {Table: "public.d", Columns: []string{"id"}}}},
-				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id", "b_id"}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
-				{Table: "public.c", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id", "a_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
-				{Table: "public.d", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id", "e_id"}, DependsOn: []*DependsOn{{Table: "public.e", Columns: []string{"id"}}}},
-				{Table: "public.e", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id", "b_id"}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
+				{Table: "public.b", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "c_id", "d_id", "other_id"}, InsertColumns: []string{"id", "other_id"}, DependsOn: []*DependsOn{}},
+				{Table: "public.b", RunType: RunTypeUpdate, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "c_id", "d_id"}, InsertColumns: []string{"c_id", "d_id"}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}, {Table: "public.c", Columns: []string{"id"}}, {Table: "public.d", Columns: []string{"id"}}}},
+				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"id", "b_id"}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
+				{Table: "public.c", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "a_id"}, InsertColumns: []string{"id", "a_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+				{Table: "public.d", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "e_id"}, InsertColumns: []string{"id", "e_id"}, DependsOn: []*DependsOn{{Table: "public.e", Columns: []string{"id"}}}},
+				{Table: "public.e", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"id", "b_id"}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
 			},
 		},
 		{
@@ -701,13 +701,13 @@ func Test_GetRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 			},
 			subsets: map[string]string{},
 			expect: []*RunConfig{
-				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id"}, DependsOn: []*DependsOn{}},
-				{Table: "public.a", RunType: RunTypeUpdate, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"b_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"id"}}}},
-				{Table: "public.b", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id", "c_id", "other_id"}, DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
-				{Table: "public.b", RunType: RunTypeUpdate, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"d_id"}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}, {Table: "public.d", Columns: []string{"id"}}}},
-				{Table: "public.c", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id", "a_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
-				{Table: "public.d", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id", "e_id"}, DependsOn: []*DependsOn{{Table: "public.e", Columns: []string{"id"}}}},
-				{Table: "public.e", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id", "b_id"}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
+				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"id"}, DependsOn: []*DependsOn{}},
+				{Table: "public.a", RunType: RunTypeUpdate, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"b_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"id"}}}},
+				{Table: "public.b", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "c_id", "d_id", "other_id"}, InsertColumns: []string{"id", "c_id", "other_id"}, DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+				{Table: "public.b", RunType: RunTypeUpdate, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "d_id"}, InsertColumns: []string{"d_id"}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}, {Table: "public.d", Columns: []string{"id"}}}},
+				{Table: "public.c", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "a_id"}, InsertColumns: []string{"id", "a_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+				{Table: "public.d", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "e_id"}, InsertColumns: []string{"id", "e_id"}, DependsOn: []*DependsOn{{Table: "public.e", Columns: []string{"id"}}}},
+				{Table: "public.e", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"id", "b_id"}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
 			},
 		},
 		{
@@ -736,11 +736,11 @@ func Test_GetRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 			},
 			subsets: map[string]string{},
 			expect: []*RunConfig{
-				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id"}, DependsOn: []*DependsOn{}},
-				{Table: "public.a", RunType: RunTypeUpdate, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"b_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"id"}}}},
-				{Table: "public.b", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id", "c_id", "other_id"}, DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
-				{Table: "public.b", RunType: RunTypeUpdate, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"bb_id"}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
-				{Table: "public.c", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id", "a_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"id"}, DependsOn: []*DependsOn{}},
+				{Table: "public.a", RunType: RunTypeUpdate, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"b_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"id"}}}},
+				{Table: "public.b", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "c_id", "bb_id", "other_id"}, InsertColumns: []string{"id", "c_id", "other_id"}, DependsOn: []*DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+				{Table: "public.b", RunType: RunTypeUpdate, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "bb_id"}, InsertColumns: []string{"bb_id"}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
+				{Table: "public.c", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "a_id"}, InsertColumns: []string{"id", "a_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
 			},
 		},
 		{
@@ -769,10 +769,10 @@ func Test_GetRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 			},
 			subsets: map[string]string{},
 			expect: []*RunConfig{
-				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id", "b_id"}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
-				{Table: "public.b", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id", "other_id"}, DependsOn: []*DependsOn{}},
-				{Table: "public.b", RunType: RunTypeUpdate, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"c_id", "bb_id"}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}, {Table: "public.c", Columns: []string{"id"}}}},
-				{Table: "public.c", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, Columns: []string{"id", "a_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+				{Table: "public.a", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"id", "b_id"}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
+				{Table: "public.b", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "c_id", "bb_id", "other_id"}, InsertColumns: []string{"id", "other_id"}, DependsOn: []*DependsOn{}},
+				{Table: "public.b", RunType: RunTypeUpdate, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "c_id", "bb_id"}, InsertColumns: []string{"c_id", "bb_id"}, DependsOn: []*DependsOn{{Table: "public.b", Columns: []string{"id"}}, {Table: "public.c", Columns: []string{"id"}}}},
+				{Table: "public.c", RunType: RunTypeInsert, PrimaryKeys: []string{"id"}, WhereClause: &emptyWhere, SelectColumns: []string{"id", "a_id"}, InsertColumns: []string{"id", "a_id"}, DependsOn: []*DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
 			},
 		},
 	}
@@ -784,7 +784,8 @@ func Test_GetRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 			for _, e := range tt.expect {
 				acutalConfig := getConfigByTableAndType(e.Table, e.RunType, actual)
 				require.NotNil(t, acutalConfig)
-				require.ElementsMatch(t, e.Columns, acutalConfig.Columns)
+				require.ElementsMatch(t, e.SelectColumns, acutalConfig.SelectColumns)
+				require.ElementsMatch(t, e.InsertColumns, acutalConfig.InsertColumns)
 				require.ElementsMatch(t, e.DependsOn, acutalConfig.DependsOn)
 				require.ElementsMatch(t, e.PrimaryKeys, acutalConfig.PrimaryKeys)
 				require.Equal(t, e.WhereClause, e.WhereClause)
@@ -848,9 +849,14 @@ func Test_GetRunConfigs_CompositeKey(t *testing.T) {
 	}
 
 	expect := []*RunConfig{
-		{Table: "public.employees", RunType: RunTypeInsert, PrimaryKeys: []string{"employee_id", "department_id"}, WhereClause: &emptyWhere, Columns: []string{"employee_id", "department_id", "first_name", "last_name", "email"}, DependsOn: []*DependsOn{{Table: "public.department", Columns: []string{"department_id"}}}},
-		{Table: "public.department", RunType: RunTypeInsert, PrimaryKeys: []string{"department_id"}, WhereClause: &emptyWhere, Columns: []string{"department_id", "department_name", "location"}, DependsOn: []*DependsOn{}},
-		{Table: "public.projects", RunType: RunTypeInsert, PrimaryKeys: []string{"project_id"}, WhereClause: &emptyWhere, Columns: []string{"project_id",
+		{Table: "public.employees", RunType: RunTypeInsert, PrimaryKeys: []string{"employee_id", "department_id"}, WhereClause: &emptyWhere, SelectColumns: []string{"employee_id", "department_id", "first_name", "last_name", "email"}, InsertColumns: []string{"employee_id", "department_id", "first_name", "last_name", "email"}, DependsOn: []*DependsOn{{Table: "public.department", Columns: []string{"department_id"}}}},
+		{Table: "public.department", RunType: RunTypeInsert, PrimaryKeys: []string{"department_id"}, WhereClause: &emptyWhere, SelectColumns: []string{"department_id", "department_name", "location"}, InsertColumns: []string{"department_id", "department_name", "location"}, DependsOn: []*DependsOn{}},
+		{Table: "public.projects", RunType: RunTypeInsert, PrimaryKeys: []string{"project_id"}, WhereClause: &emptyWhere, SelectColumns: []string{"project_id",
+			"project_name",
+			"start_date",
+			"end_date",
+			"responsible_employee_id",
+			"responsible_department_id"}, InsertColumns: []string{"project_id",
 			"project_name",
 			"start_date",
 			"end_date",
@@ -864,7 +870,8 @@ func Test_GetRunConfigs_CompositeKey(t *testing.T) {
 	for _, e := range expect {
 		acutalConfig := getConfigByTableAndType(e.Table, e.RunType, actual)
 		require.NotNil(t, acutalConfig)
-		require.ElementsMatch(t, e.Columns, acutalConfig.Columns)
+		require.ElementsMatch(t, e.InsertColumns, acutalConfig.InsertColumns)
+		require.ElementsMatch(t, e.SelectColumns, acutalConfig.SelectColumns)
 		require.ElementsMatch(t, e.DependsOn, acutalConfig.DependsOn)
 		require.ElementsMatch(t, e.PrimaryKeys, acutalConfig.PrimaryKeys)
 		require.Equal(t, e.WhereClause, e.WhereClause)
@@ -880,7 +887,7 @@ func Test_GetRunConfigs_CircularDependencyNoneNullable(t *testing.T) {
 			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 		},
 	}
-	_, err := GetRunConfigs(dependencies, map[string]string{}, map[string][]string{}, map[string][]string{"public.a": []string{}, "public.b": []string{}})
+	_, err := GetRunConfigs(dependencies, map[string]string{}, map[string][]string{}, map[string][]string{"public.a": {}, "public.b": {}})
 	require.Error(t, err)
 }
 
@@ -1026,31 +1033,31 @@ func Test_isValidRunOrder(t *testing.T) {
 		{
 			name: "single node with no dependencies",
 			configs: []*RunConfig{
-				{Table: "users", RunType: "initial", Columns: []string{"id", "name"}, DependsOn: nil},
+				{Table: "users", RunType: "initial", InsertColumns: []string{"id", "name"}, SelectColumns: []string{"id", "name"}, DependsOn: nil},
 			},
 			expected: true,
 		},
 		{
 			name: "multiple nodes with no dependencies",
 			configs: []*RunConfig{
-				{Table: "users", RunType: "initial", Columns: []string{"id", "name"}, DependsOn: nil},
-				{Table: "products", RunType: "initial", Columns: []string{"id", "name"}, DependsOn: nil},
+				{Table: "users", RunType: "initial", InsertColumns: []string{"id", "name"}, SelectColumns: []string{"id", "name"}, DependsOn: nil},
+				{Table: "products", RunType: "initial", InsertColumns: []string{"id", "name"}, SelectColumns: []string{"id", "name"}, DependsOn: nil},
 			},
 			expected: true,
 		},
 		{
 			name: "simple dependency chain",
 			configs: []*RunConfig{
-				{Table: "users", RunType: "initial", Columns: []string{"id"}, DependsOn: nil},
-				{Table: "orders", RunType: "initial", Columns: []string{"user_id"}, DependsOn: []*DependsOn{{Table: "users", Columns: []string{"id"}}}},
+				{Table: "users", RunType: "initial", InsertColumns: []string{"id"}, SelectColumns: []string{"id"}, DependsOn: nil},
+				{Table: "orders", RunType: "initial", InsertColumns: []string{"user_id"}, SelectColumns: []string{"id", "user_id"}, DependsOn: []*DependsOn{{Table: "users", Columns: []string{"id"}}}},
 			},
 			expected: true,
 		},
 		{
 			name: "circular dependency",
 			configs: []*RunConfig{
-				{Table: "users", RunType: "initial", Columns: []string{"id"}, DependsOn: []*DependsOn{{Table: "orders", Columns: []string{"user_id"}}}},
-				{Table: "orders", RunType: "initial", Columns: []string{"user_id"}, DependsOn: []*DependsOn{{Table: "users", Columns: []string{"id"}}}},
+				{Table: "users", RunType: "initial", InsertColumns: []string{"id"}, SelectColumns: []string{"id"}, DependsOn: []*DependsOn{{Table: "orders", Columns: []string{"user_id"}}}},
+				{Table: "orders", RunType: "initial", InsertColumns: []string{"user_id"}, SelectColumns: []string{"user_id"}, DependsOn: []*DependsOn{{Table: "users", Columns: []string{"id"}}}},
 			},
 			expected: false,
 		},

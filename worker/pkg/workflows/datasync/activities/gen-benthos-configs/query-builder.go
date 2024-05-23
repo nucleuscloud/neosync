@@ -264,12 +264,12 @@ func buildSelectQueryMap(
 		if _, ok := queryRunTypeMap[runConfig.Table]; !ok {
 			queryRunTypeMap[runConfig.Table] = map[tabledependency.RunType]string{}
 		}
-		columns := runConfig.Columns
-		if runConfig.RunType == tabledependency.RunTypeUpdate {
-			columns = []string{}
-			columns = append(columns, runConfig.PrimaryKeys...)
-			columns = append(columns, runConfig.Columns...)
-		}
+		columns := runConfig.SelectColumns
+		// if runConfig.RunType == tabledependency.RunTypeUpdate {
+		// 	columns = []string{}
+		// 	columns = append(columns, runConfig.PrimaryKeys...)
+		// 	columns = append(columns, runConfig.Columns...)
+		// }
 		subsetConfig := subsetConfigs[runConfig.Table]
 		columnInfoMap := groupedColumnInfo[runConfig.Table]
 		sql, err := buildTableQuery(driver, runConfig.Table, columns, subsetConfig, columnInfoMap)

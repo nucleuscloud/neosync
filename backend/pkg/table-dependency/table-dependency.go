@@ -28,13 +28,14 @@ type DependsOn struct {
 }
 
 type RunConfig struct {
-	Table       string // schema.table
-	Columns     []string
-	DependsOn   []*DependsOn
-	RunType     RunType
-	PrimaryKeys []string
-	WhereClause *string
-	SelectQuery *string
+	Table         string // schema.table
+	SelectColumns []string
+	InsertColumns []string
+	DependsOn     []*DependsOn
+	RunType       RunType
+	PrimaryKeys   []string
+	WhereClause   *string
+	SelectQuery   *string
 }
 
 type ConstraintColumns struct {
@@ -149,22 +150,25 @@ func processCycles(
 		}
 
 		insertConfig := &RunConfig{
-			Table:       startTable,
-			DependsOn:   []*DependsOn{},
-			RunType:     RunTypeInsert,
-			Columns:     []string{},
-			PrimaryKeys: pks,
-			WhereClause: &where,
+			Table:         startTable,
+			DependsOn:     []*DependsOn{},
+			RunType:       RunTypeInsert,
+			SelectColumns: []string{},
+			InsertColumns: []string{},
+			PrimaryKeys:   pks,
+			WhereClause:   &where,
 		}
 
 		updateConfig := &RunConfig{
-			Table:       startTable,
-			DependsOn:   []*DependsOn{{Table: startTable, Columns: pks}}, // add insert config as dependency to update config
-			RunType:     RunTypeUpdate,
-			Columns:     []string{},
-			PrimaryKeys: pks,
-			WhereClause: &where,
+			Table:         startTable,
+			DependsOn:     []*DependsOn{{Table: startTable, Columns: pks}}, // add insert config as dependency to update config
+			RunType:       RunTypeUpdate,
+			SelectColumns: []string{},
+			InsertColumns: []string{},
+			PrimaryKeys:   pks,
+			WhereClause:   &where,
 		}
+		updateConfig.SelectColumns = append(updateConfig.SelectColumns, pks...)
 		deps := foreignKeyColsMap[startTable]
 		for fkTable, fkCols := range deps {
 			if fkTable == startTable {
@@ -183,14 +187,17 @@ func processCycles(
 		for _, d := range dependencies {
 			for idx, col := range d.Columns {
 				if !d.NotNullable[idx] {
-					updateConfig.Columns = append(updateConfig.Columns, col)
+					updateConfig.SelectColumns = append(updateConfig.SelectColumns, col)
+					updateConfig.InsertColumns = append(updateConfig.InsertColumns, col)
 				}
 			}
 		}
 		for _, col := range cols {
-			if !slices.Contains(updateConfig.Columns, col) {
-				insertConfig.Columns = append(insertConfig.Columns, col)
+			if !slices.Contains(updateConfig.InsertColumns, col) {
+				insertConfig.InsertColumns = append(insertConfig.InsertColumns, col)
 			}
+			// select cols in insert config must be all columns due to S3 as possible output
+			insertConfig.SelectColumns = append(insertConfig.SelectColumns, col)
 		}
 		configs = append(configs, insertConfig, updateConfig)
 	}
@@ -209,12 +216,13 @@ func processCycles(
 		pks := primaryKeyMap[table]
 		where := subsets[table]
 		config := &RunConfig{
-			Table:       table,
-			DependsOn:   []*DependsOn{},
-			RunType:     RunTypeInsert,
-			Columns:     cols,
-			PrimaryKeys: pks,
-			WhereClause: &where,
+			Table:         table,
+			DependsOn:     []*DependsOn{},
+			RunType:       RunTypeInsert,
+			SelectColumns: cols,
+			InsertColumns: cols,
+			PrimaryKeys:   pks,
+			WhereClause:   &where,
 		}
 		deps := foreignKeyColsMap[table]
 		for fkTable, fkCols := range deps {
@@ -343,12 +351,13 @@ func processTables(
 		pks := primaryKeyMap[table]
 		where := subsets[table]
 		config := &RunConfig{
-			Table:       table,
-			DependsOn:   []*DependsOn{},
-			RunType:     RunTypeInsert,
-			Columns:     cols,
-			PrimaryKeys: pks,
-			WhereClause: &where,
+			Table:         table,
+			DependsOn:     []*DependsOn{},
+			RunType:       RunTypeInsert,
+			InsertColumns: cols,
+			SelectColumns: cols,
+			PrimaryKeys:   pks,
+			WhereClause:   &where,
 		}
 		for _, dep := range dependencyMap[table] {
 			config.DependsOn = append(config.DependsOn, &DependsOn{Table: dep, Columns: foreignKeyMap[table][dep]})
@@ -639,7 +648,7 @@ func isValidRunOrder(configs []*RunConfig) bool {
 		for name, config := range configMap {
 			// root table
 			if len(config.DependsOn) == 0 {
-				seenTables[config.Table] = config.Columns
+				seenTables[config.Table] = config.InsertColumns
 				delete(configMap, name)
 				continue
 			}
@@ -658,7 +667,7 @@ func isValidRunOrder(configs []*RunConfig) bool {
 					return true
 				}
 				if isReady() {
-					seenTables[config.Table] = append(seenTables[config.Table], config.Columns...)
+					seenTables[config.Table] = append(seenTables[config.Table], config.InsertColumns...)
 					delete(configMap, name)
 				}
 			}

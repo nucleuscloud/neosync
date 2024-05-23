@@ -194,7 +194,7 @@ func buildBenthosSqlSourceConfigResponses(
 
 			TableSchema: mappings.Schema,
 			TableName:   mappings.Table,
-			Columns:     config.Columns,
+			Columns:     config.InsertColumns,
 			primaryKeys: config.PrimaryKeys,
 
 			metriclabels: metrics.MetricLabels{
