@@ -89,9 +89,9 @@ message DayResult {
 }
 
 message GetMetricCountRequest {
-  // The start time
+  // @deprecated - use start_day
   google.protobuf.Timestamp start = 1;
-  // The end time
+  // @deprecated - use end_day
   google.protobuf.Timestamp end = 2;
   // The metric to return
   RangedMetricName metric = 3;
@@ -104,6 +104,8 @@ message GetMetricCountRequest {
     // The run identifier that will be used to filter by
     string run_id = 6 [(buf.validate.field).string.uuid = true];
   }
+  Date start_day = 7;
+  Date end_day = 8;
 }
 message GetMetricCountResponse {
   // The summed up count of the metric based on the input query and timerange specified

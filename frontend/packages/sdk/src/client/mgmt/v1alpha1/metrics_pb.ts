@@ -275,14 +275,14 @@ export class DayResult extends Message<DayResult> {
  */
 export class GetMetricCountRequest extends Message<GetMetricCountRequest> {
   /**
-   * The start time
+   * @deprecated - use start_day
    *
    * @generated from field: google.protobuf.Timestamp start = 1;
    */
   start?: Timestamp;
 
   /**
-   * The end time
+   * @deprecated - use end_day
    *
    * @generated from field: google.protobuf.Timestamp end = 2;
    */
@@ -324,6 +324,16 @@ export class GetMetricCountRequest extends Message<GetMetricCountRequest> {
     case: "runId";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
+  /**
+   * @generated from field: mgmt.v1alpha1.Date start_day = 7;
+   */
+  startDay?: Date;
+
+  /**
+   * @generated from field: mgmt.v1alpha1.Date end_day = 8;
+   */
+  endDay?: Date;
+
   constructor(data?: PartialMessage<GetMetricCountRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -338,6 +348,8 @@ export class GetMetricCountRequest extends Message<GetMetricCountRequest> {
     { no: 4, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "identifier" },
     { no: 5, name: "job_id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "identifier" },
     { no: 6, name: "run_id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "identifier" },
+    { no: 7, name: "start_day", kind: "message", T: Date },
+    { no: 8, name: "end_day", kind: "message", T: Date },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetMetricCountRequest {

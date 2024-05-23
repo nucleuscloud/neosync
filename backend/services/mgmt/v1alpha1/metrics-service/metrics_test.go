@@ -2,7 +2,6 @@ package v1alpha1_metricsservice
 
 import (
 	"context"
-	"sort"
 	"testing"
 	"time"
 
@@ -13,7 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	mockPromV1 "github.com/nucleuscloud/neosync/backend/internal/mocks/github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
@@ -30,26 +28,22 @@ const (
 )
 
 var (
-	startTime = timestamppb.New(time.Date(2024, 03, 10, 14, 14, 00, 00, time.Local))
-	endTime   = timestamppb.New(time.Date(2024, 03, 11, 14, 14, 00, 00, time.Local))
+	startTime = time.Date(2024, 3, 10, 00, 00, 00, 00, time.UTC)
+	endTime   = time.Date(2024, 3, 10, 23, 59, 59, 00, time.UTC)
 
-	startDate = mgmtv1alpha1.Date{Year: uint32(startTime.AsTime().Year()), Month: uint32(startTime.AsTime().Month()), Day: uint32(startTime.AsTime().Day())}
-	endDate   = mgmtv1alpha1.Date{Year: uint32(endTime.AsTime().Year()), Month: uint32(endTime.AsTime().Month()), Day: uint32(endTime.AsTime().Day())}
+	startDate = mgmtv1alpha1.Date{Year: uint32(startTime.Year()), Month: uint32(startTime.Month()), Day: uint32(startTime.Day())}
+	endDate   = mgmtv1alpha1.Date{Year: uint32(endTime.Year()), Month: uint32(endTime.Month()), Day: uint32(endTime.Day())}
 
-	testMatrix = model.Matrix{
+	testVector = model.Vector{
 		{
-			Metric: model.Metric{"foo": "bar"},
-			Values: []model.SamplePair{
-				{Timestamp: 0, Value: 1},
-				{Timestamp: 0, Value: 2},
-			},
+			Metric:    model.Metric{"foo": "bar"},
+			Timestamp: 0,
+			Value:     2,
 		},
 		{
-			Metric: model.Metric{"foo": "bar2"},
-			Values: []model.SamplePair{
-				{Timestamp: 0, Value: 1},
-				{Timestamp: 0, Value: 2},
-			},
+			Metric:    model.Metric{"foo": "bar2"},
+			Timestamp: 0,
+			Value:     2,
 		},
 	}
 )
@@ -61,13 +55,13 @@ func Test_GetMetricCount_Empty_Matrix(t *testing.T) {
 
 	ctx := context.Background()
 
-	m.PromApiMock.On("QueryRange", ctx, mock.AnythingOfType("string"), mock.AnythingOfType("v1.Range")).
-		Return(model.Matrix{}, promv1.Warnings{}, nil)
+	m.PromApiMock.On("Query", ctx, mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
+		Return(model.Vector{}, promv1.Warnings{}, nil)
 
 	resp, err := m.Service.GetMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetMetricCountRequest{
-		Start:  startTime,
-		End:    endTime,
-		Metric: mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
+		StartDay: &startDate,
+		EndDay:   &endDate,
+		Metric:   mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
 		Identifier: &mgmtv1alpha1.GetMetricCountRequest_AccountId{
 			AccountId: mockAccountId,
 		},
@@ -83,8 +77,8 @@ func Test_GetMetricCount_InvalidIdentifier(t *testing.T) {
 	ctx := context.Background()
 
 	resp, err := m.Service.GetMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetMetricCountRequest{
-		Start:      startTime,
-		End:        endTime,
+		StartDay:   &startDate,
+		EndDay:     &endDate,
 		Metric:     mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
 		Identifier: nil,
 	}))
@@ -100,13 +94,13 @@ func Test_GetMetricCount_AccountId(t *testing.T) {
 
 	ctx := context.Background()
 
-	m.PromApiMock.On("QueryRange", ctx, mock.AnythingOfType("string"), mock.AnythingOfType("v1.Range")).
-		Return(testMatrix, promv1.Warnings{}, nil)
+	m.PromApiMock.On("Query", ctx, mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
+		Return(testVector, promv1.Warnings{}, nil)
 
 	resp, err := m.Service.GetMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetMetricCountRequest{
-		Start:  startTime,
-		End:    endTime,
-		Metric: mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
+		StartDay: &startDate,
+		EndDay:   &endDate,
+		Metric:   mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
 		Identifier: &mgmtv1alpha1.GetMetricCountRequest_AccountId{
 			AccountId: mockAccountId,
 		},
@@ -129,13 +123,13 @@ func Test_GetMetricCount_JobId(t *testing.T) {
 			},
 		}), nil)
 
-	m.PromApiMock.On("QueryRange", ctx, mock.AnythingOfType("string"), mock.AnythingOfType("v1.Range")).
-		Return(testMatrix, promv1.Warnings{}, nil)
+	m.PromApiMock.On("Query", ctx, mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
+		Return(testVector, promv1.Warnings{}, nil)
 
 	resp, err := m.Service.GetMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetMetricCountRequest{
-		Start:  startTime,
-		End:    endTime,
-		Metric: mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
+		StartDay: &startDate,
+		EndDay:   &endDate,
+		Metric:   mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
 		Identifier: &mgmtv1alpha1.GetMetricCountRequest_JobId{
 			JobId: mockJobId,
 		},
@@ -158,13 +152,13 @@ func Test_GetMetricCount_RunId(t *testing.T) {
 			},
 		}), nil)
 
-	m.PromApiMock.On("QueryRange", ctx, mock.AnythingOfType("string"), mock.AnythingOfType("v1.Range")).
-		Return(testMatrix, promv1.Warnings{}, nil)
+	m.PromApiMock.On("Query", ctx, mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
+		Return(testVector, promv1.Warnings{}, nil)
 
 	resp, err := m.Service.GetMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetMetricCountRequest{
-		Start:  startTime,
-		End:    endTime,
-		Metric: mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
+		StartDay: &startDate,
+		EndDay:   &endDate,
+		Metric:   mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
 		Identifier: &mgmtv1alpha1.GetMetricCountRequest_RunId{
 			RunId: mockJobRunId,
 		},
@@ -180,9 +174,9 @@ func Test_GetMetricCount_Bad_Times(t *testing.T) {
 	ctx := context.Background()
 
 	resp, err := m.Service.GetMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetMetricCountRequest{
-		Start:  nil,
-		End:    endTime,
-		Metric: mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
+		StartDay: nil,
+		EndDay:   &endDate,
+		Metric:   mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
 		Identifier: &mgmtv1alpha1.GetMetricCountRequest_AccountId{
 			AccountId: mockAccountId,
 		},
@@ -192,9 +186,9 @@ func Test_GetMetricCount_Bad_Times(t *testing.T) {
 	assert.Nil(t, resp)
 
 	resp, err = m.Service.GetMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetMetricCountRequest{
-		Start:  startTime,
-		End:    nil,
-		Metric: mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
+		StartDay: &startDate,
+		EndDay:   nil,
+		Metric:   mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
 		Identifier: &mgmtv1alpha1.GetMetricCountRequest_AccountId{
 			AccountId: mockAccountId,
 		},
@@ -209,10 +203,16 @@ func Test_GetMetricCount_Swapped_Times(t *testing.T) {
 
 	ctx := context.Background()
 
+	newStart := &mgmtv1alpha1.Date{
+		Month: endDate.Month,
+		Day:   endDate.Day + 1,
+		Year:  endDate.Year,
+	}
+
 	resp, err := m.Service.GetMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetMetricCountRequest{
-		Start:  endTime,
-		End:    startTime,
-		Metric: mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
+		StartDay: newStart,
+		EndDay:   &endDate,
+		Metric:   mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
 		Identifier: &mgmtv1alpha1.GetMetricCountRequest_AccountId{
 			AccountId: mockAccountId,
 		},
@@ -222,9 +222,9 @@ func Test_GetMetricCount_Swapped_Times(t *testing.T) {
 	assert.Nil(t, resp)
 
 	resp, err = m.Service.GetMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetMetricCountRequest{
-		Start:  startTime,
-		End:    nil,
-		Metric: mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
+		StartDay: &startDate,
+		EndDay:   nil,
+		Metric:   mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
 		Identifier: &mgmtv1alpha1.GetMetricCountRequest_AccountId{
 			AccountId: mockAccountId,
 		},
@@ -239,10 +239,11 @@ func Test_GetMetricCount_Time_Limit(t *testing.T) {
 
 	ctx := context.Background()
 
+	newEndTime := startTime.Add(timeLimit + 1)
 	resp, err := m.Service.GetMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetMetricCountRequest{
-		Start:  startTime,
-		End:    timestamppb.New(startTime.AsTime().Add(timeLimit + 1)),
-		Metric: mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
+		StartDay: &startDate,
+		EndDay:   &mgmtv1alpha1.Date{Year: uint32(newEndTime.Year()), Month: uint32(newEndTime.Month()), Day: uint32(newEndTime.Day())},
+		Metric:   mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
 		Identifier: &mgmtv1alpha1.GetMetricCountRequest_AccountId{
 			AccountId: mockAccountId,
 		},
@@ -252,9 +253,9 @@ func Test_GetMetricCount_Time_Limit(t *testing.T) {
 	assert.Nil(t, resp)
 
 	resp, err = m.Service.GetMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetMetricCountRequest{
-		Start:  startTime,
-		End:    nil,
-		Metric: mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
+		StartDay: &startDate,
+		EndDay:   nil,
+		Metric:   mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
 		Identifier: &mgmtv1alpha1.GetMetricCountRequest_AccountId{
 			AccountId: mockAccountId,
 		},
@@ -270,8 +271,8 @@ func Test_GetMetricCount_No_Metric(t *testing.T) {
 	ctx := context.Background()
 
 	resp, err := m.Service.GetMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetMetricCountRequest{
-		Start: startTime,
-		End:   endTime,
+		StartDay: &startDate,
+		EndDay:   &endDate,
 		// Metric: mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
 		Identifier: &mgmtv1alpha1.GetMetricCountRequest_AccountId{
 			AccountId: mockAccountId,
@@ -312,41 +313,17 @@ func mockIsUserInAccount(userAccountServiceMock *mgmtv1alpha1connect.MockUserAcc
 	}), nil)
 }
 
-func Test_getUsageFromMatrix(t *testing.T) {
-	usage, err := getUsageFromMatrix(model.Matrix{
-		{
-			Metric: model.Metric{"foo": "bar"},
-			Values: []model.SamplePair{
-				{Timestamp: 0, Value: 1},
-				{Timestamp: 0, Value: 2},
-			},
-		},
-		{
-			Metric: model.Metric{"foo": "bar2"},
-			Values: []model.SamplePair{
-				{Timestamp: 0, Value: 1},
-				{Timestamp: 0, Value: 3},
-			},
-		},
-	})
-	assert.NoError(t, err)
-	assert.NotNil(t, usage)
-	assert.Contains(t, usage, `{foo="bar"}`)
-	assert.Contains(t, usage, `{foo="bar2"}`)
-	assert.Equal(t, uint64(2), usage[`{foo="bar"}`])
-	assert.Equal(t, uint64(3), usage[`{foo="bar2"}`])
-}
-
 func Test_getPromQueryFromMetric(t *testing.T) {
 	output, err := getPromQueryFromMetric(
 		mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
 		metrics.MetricLabels{metrics.NewEqLabel("foo", "bar"), metrics.NewEqLabel("foo2", "bar2")},
+		"1d",
 	)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, output)
 	assert.Equal(
 		t,
-		`input_received_total{foo="bar",foo2="bar2"}`,
+		`sum(max_over_time(input_received_total{foo="bar",foo2="bar2"}[1d]))`,
 		output,
 	)
 }
@@ -355,6 +332,7 @@ func Test_getPromQueryFromMetric_Invalid_Metric(t *testing.T) {
 	output, err := getPromQueryFromMetric(
 		mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_UNSPECIFIED,
 		metrics.MetricLabels{metrics.NewEqLabel("foo", "bar"), metrics.NewEqLabel("foo2", "bar2")},
+		"1d",
 	)
 	assert.Error(t, err)
 	assert.Empty(t, output)
@@ -367,8 +345,10 @@ func Test_GetDailyMetricCount_Empty_Matrix(t *testing.T) {
 
 	ctx := context.Background()
 
-	m.PromApiMock.On("QueryRange", ctx, mock.AnythingOfType("string"), mock.AnythingOfType("v1.Range")).
-		Return(model.Matrix{}, promv1.Warnings{}, nil)
+	m.PromApiMock.On("Query", mock.MatchedBy(func(ctx context.Context) bool {
+		return true
+	}), mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
+		Return(model.Vector{}, promv1.Warnings{}, nil)
 
 	resp, err := m.Service.GetDailyMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetDailyMetricCountRequest{
 		Start:  &startDate,
@@ -406,9 +386,10 @@ func Test_GetDailyMetricCount_AccountId(t *testing.T) {
 
 	ctx := context.Background()
 
-	m.PromApiMock.On("QueryRange", ctx, mock.AnythingOfType("string"), mock.AnythingOfType("v1.Range")).
-		Return(testMatrix, promv1.Warnings{}, nil)
-
+	m.PromApiMock.On("Query", mock.MatchedBy(func(ctx context.Context) bool {
+		return true
+	}), mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
+		Return(testVector, promv1.Warnings{}, nil)
 	resp, err := m.Service.GetDailyMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetDailyMetricCountRequest{
 		Start:  &startDate,
 		End:    &endDate,
@@ -437,8 +418,10 @@ func Test_GetDailyMetricCount_JobId(t *testing.T) {
 			},
 		}), nil)
 
-	m.PromApiMock.On("QueryRange", ctx, mock.AnythingOfType("string"), mock.AnythingOfType("v1.Range")).
-		Return(testMatrix, promv1.Warnings{}, nil)
+	m.PromApiMock.On("Query", mock.MatchedBy(func(ctx context.Context) bool {
+		return true
+	}), mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
+		Return(testVector, promv1.Warnings{}, nil)
 
 	resp, err := m.Service.GetDailyMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetDailyMetricCountRequest{
 		Start:  &startDate,
@@ -468,8 +451,10 @@ func Test_GetDailyMetricCount_RunId(t *testing.T) {
 			},
 		}), nil)
 
-	m.PromApiMock.On("QueryRange", ctx, mock.AnythingOfType("string"), mock.AnythingOfType("v1.Range")).
-		Return(testMatrix, promv1.Warnings{}, nil)
+	m.PromApiMock.On("Query", mock.MatchedBy(func(ctx context.Context) bool {
+		return true
+	}), mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
+		Return(testVector, promv1.Warnings{}, nil)
 
 	resp, err := m.Service.GetDailyMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetDailyMetricCountRequest{
 		Start:  &startDate,
@@ -493,21 +478,17 @@ func Test_GetDailyMetricCount_MultipleDays(t *testing.T) {
 
 	ctx := context.Background()
 
-	m.PromApiMock.On("QueryRange", ctx, mock.AnythingOfType("string"), mock.AnythingOfType("v1.Range")).
-		Return(model.Matrix{
+	m.PromApiMock.On("Query", mock.MatchedBy(func(ctx context.Context) bool {
+		return true
+	}), mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
+		Return(model.Vector{
 			{
 				Metric: model.Metric{"foo": "bar"},
-				Values: []model.SamplePair{
-					{Timestamp: model.Time(time.Date(2024, 10, 3, 0, 0, 0, 0, time.UTC).UnixMilli()), Value: 1},
-					{Timestamp: model.Time(time.Date(2024, 10, 3, 0, 1, 0, 0, time.UTC).UnixMilli()), Value: 2},
-				},
+				Value:  2,
 			},
 			{
 				Metric: model.Metric{"foo": "bar2"},
-				Values: []model.SamplePair{
-					{Timestamp: model.Time(time.Date(2024, 11, 3, 0, 0, 0, 0, time.UTC).UnixMilli()), Value: 1},
-					{Timestamp: model.Time(time.Date(2024, 11, 3, 0, 1, 0, 0, time.UTC).UnixMilli()), Value: 3},
-				},
+				Value:  3,
 			},
 		}, promv1.Warnings{}, nil)
 
@@ -524,9 +505,8 @@ func Test_GetDailyMetricCount_MultipleDays(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
 	results := resp.Msg.GetResults()
-	require.Len(t, results, 2)
-	assert.Equal(t, uint64(2), results[0].Count)
-	assert.Equal(t, uint64(3), results[1].Count)
+	require.Len(t, results, 1)
+	assert.Equal(t, uint64(5), results[0].Count)
 }
 
 func Test_GetDailyMetricCount_MultipleDays_Ordering(t *testing.T) {
@@ -536,21 +516,17 @@ func Test_GetDailyMetricCount_MultipleDays_Ordering(t *testing.T) {
 
 	ctx := context.Background()
 
-	m.PromApiMock.On("QueryRange", ctx, mock.AnythingOfType("string"), mock.AnythingOfType("v1.Range")).
-		Return(model.Matrix{
+	m.PromApiMock.On("Query", mock.MatchedBy(func(ctx context.Context) bool {
+		return true
+	}), mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
+		Return(model.Vector{
 			{
 				Metric: model.Metric{"foo": "bar2"},
-				Values: []model.SamplePair{
-					{Timestamp: model.Time(time.Date(2024, 11, 3, 0, 0, 0, 0, time.UTC).UnixMilli()), Value: 1},
-					{Timestamp: model.Time(time.Date(2024, 11, 3, 0, 1, 0, 0, time.UTC).UnixMilli()), Value: 3},
-				},
+				Value:  3,
 			},
 			{
 				Metric: model.Metric{"foo": "bar"},
-				Values: []model.SamplePair{
-					{Timestamp: model.Time(time.Date(2024, 10, 3, 0, 0, 0, 0, time.UTC).UnixMilli()), Value: 1},
-					{Timestamp: model.Time(time.Date(2024, 10, 3, 0, 1, 0, 0, time.UTC).UnixMilli()), Value: 2},
-				},
+				Value:  2,
 			},
 		}, promv1.Warnings{}, nil)
 
@@ -567,31 +543,8 @@ func Test_GetDailyMetricCount_MultipleDays_Ordering(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
 	results := resp.Msg.GetResults()
-	require.Len(t, results, 2)
-	assert.Equal(t, uint64(2), results[0].Count)
-	assert.Equal(t, uint32(10), results[0].Date.Month, "the expected month should be 10")
-	assert.Equal(t, uint64(3), results[1].Count)
-	assert.Equal(t, uint32(11), results[1].Date.Month, "the expected month should be 11")
-}
-
-func Test_getDateOrderFn(t *testing.T) {
-	input := []*mgmtv1alpha1.DayResult{
-		{Date: &mgmtv1alpha1.Date{Year: 2024, Month: 3, Day: 2}, Count: 4},
-		{Date: &mgmtv1alpha1.Date{Year: 2024, Month: 3, Day: 1}, Count: 3},
-		{Date: &mgmtv1alpha1.Date{Year: 2024, Month: 2, Day: 1}, Count: 2},
-		{Date: &mgmtv1alpha1.Date{Year: 2023, Month: 2, Day: 1}, Count: 1},
-	}
-	sort.Slice(input, getDateOrderFn(input))
-	require.Equal(
-		t,
-		[]*mgmtv1alpha1.DayResult{
-			{Date: &mgmtv1alpha1.Date{Year: 2023, Month: 2, Day: 1}, Count: 1},
-			{Date: &mgmtv1alpha1.Date{Year: 2024, Month: 2, Day: 1}, Count: 2},
-			{Date: &mgmtv1alpha1.Date{Year: 2024, Month: 3, Day: 1}, Count: 3},
-			{Date: &mgmtv1alpha1.Date{Year: 2024, Month: 3, Day: 2}, Count: 4},
-		},
-		input,
-	)
+	require.Len(t, results, 1)
+	assert.Equal(t, uint64(5), results[0].Count)
 }
 
 func Test_GetDailyMetricCount_Bad_Times(t *testing.T) {
@@ -629,9 +582,14 @@ func Test_GetDailyMetricCount_Swapped_Times(t *testing.T) {
 
 	ctx := context.Background()
 
+	newStart := &mgmtv1alpha1.Date{
+		Month: endDate.Month,
+		Day:   endDate.Day + 1,
+		Year:  endDate.Year,
+	}
 	resp, err := m.Service.GetDailyMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetDailyMetricCountRequest{
-		Start:  &endDate,
-		End:    &startDate,
+		Start:  newStart,
+		End:    &endDate,
 		Metric: mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
 		Identifier: &mgmtv1alpha1.GetDailyMetricCountRequest_AccountId{
 			AccountId: mockAccountId,
@@ -647,7 +605,7 @@ func Test_GetDailyMetricCount_Time_Limit(t *testing.T) {
 
 	ctx := context.Background()
 
-	newEndTime := startTime.AsTime().Add(timeLimit + 1)
+	newEndTime := startTime.Add(timeLimit + 1)
 	resp, err := m.Service.GetDailyMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetDailyMetricCountRequest{
 		Start:  &startDate,
 		End:    &mgmtv1alpha1.Date{Year: uint32(newEndTime.Year()), Month: uint32(newEndTime.Month()), Day: uint32(newEndTime.Day())},

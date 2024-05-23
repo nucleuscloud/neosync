@@ -3,8 +3,9 @@ package v1alpha1_metricsservice
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"sort"
-	"strconv"
+	"sync"
 	"time"
 
 	"connectrpc.com/connect"
@@ -12,6 +13,7 @@ import (
 	logger_interceptor "github.com/nucleuscloud/neosync/backend/internal/connect/interceptors/logger"
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/pkg/metrics"
+	"golang.org/x/sync/errgroup"
 
 	promv1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
@@ -76,38 +78,15 @@ func (s *Service) GetDailyMetricCount(
 		return nil, nucleuserrors.NewBadRequest("must provide a valid identifier to proceed")
 	}
 
-	query, err := getPromQueryFromMetric(req.Msg.GetMetric(), queryLabels)
+	query, err := getPromQueryFromMetric(req.Msg.GetMetric(), queryLabels, "1d")
 	if err != nil {
 		return nil, fmt.Errorf("unable to compute valid prometheus query: %w", err)
 	}
-	queryResponse, warnings, err := s.prometheusclient.QueryRange(ctx, query, promv1.Range{
-		Start: start,
-		End:   end,
-		Step:  getStepByRange(start, end),
-	})
+	results, _, err := getDailyUsageFromProm(ctx, s.prometheusclient, query, start, end, logger)
 	if err != nil {
-		return nil, fmt.Errorf("unable to query prometheus for metrics: %w", err)
+		return nil, err
 	}
-	for _, warning := range warnings {
-		logger.Warn(fmt.Sprintf("[PROMETHEUS]: %s", warning))
-	}
-
-	switch queryResponse.Type() {
-	case model.ValMatrix:
-		matrix, ok := queryResponse.(model.Matrix)
-		if !ok {
-			return nil, fmt.Errorf("unable to convert query response to model.Matrix, received type: %T", queryResponse)
-		}
-		usage, err := getDailyUsageFromMatrix(matrix)
-		if err != nil {
-			return nil, err
-		}
-		return connect.NewResponse(&mgmtv1alpha1.GetDailyMetricCountResponse{
-			Results: usage,
-		}), nil
-	default:
-		return nil, fmt.Errorf("this method does not support query responses of type: %s", queryResponse.Type())
-	}
+	return connect.NewResponse(&mgmtv1alpha1.GetDailyMetricCountResponse{Results: results}), nil
 }
 
 var (
@@ -122,20 +101,20 @@ func (s *Service) GetMetricCount(
 ) (*connect.Response[mgmtv1alpha1.GetMetricCountResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 
-	if req.Msg.GetStart() == nil || req.Msg.GetEnd() == nil {
+	if req.Msg.GetStartDay() == nil || req.Msg.GetEndDay() == nil {
 		return nil, nucleuserrors.NewBadRequest("must provide a start and end time")
 	}
 	if req.Msg.GetMetric() == mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_UNSPECIFIED {
 		return nil, nucleuserrors.NewBadRequest("must provide a metric name")
 	}
-	start := req.Msg.GetStart()
-	end := req.Msg.GetEnd()
+	start := dateToTime(req.Msg.GetStartDay())
+	end := toEndOfDay(dateToTime(req.Msg.GetEndDay()))
 
-	if start.AsTime().After(end.AsTime()) {
+	if start.After(end) {
 		return nil, nucleuserrors.NewBadRequest("start must not be before end")
 	}
 
-	timeDiff := end.AsTime().Sub(start.AsTime())
+	timeDiff := end.Sub(start)
 	if timeDiff > timeLimit {
 		return nil, nucleuserrors.NewBadRequest("duration between start and end must not exceed 60 days")
 	}
@@ -175,50 +154,41 @@ func (s *Service) GetMetricCount(
 		return nil, nucleuserrors.NewBadRequest("must provide a valid identifier to proceed")
 	}
 
-	query, err := getPromQueryFromMetric(req.Msg.GetMetric(), queryLabels)
+	dayWindow := daysBetween(start, end)
+	query, err := getPromQueryFromMetric(req.Msg.GetMetric(), queryLabels, fmt.Sprintf("%dd", dayWindow))
 	if err != nil {
 		return nil, fmt.Errorf("unable to compute valid prometheus query: %w", err)
 	}
 
-	queryResponse, warnings, err := s.prometheusclient.QueryRange(ctx, query, promv1.Range{
-		Start: start.AsTime(),
-		End:   end.AsTime(),
-		Step:  getStepByRange(start.AsTime(), end.AsTime()),
-	})
+	totalCount, err := getTotalUsageFromProm(ctx, s.prometheusclient, query, end, logger)
 	if err != nil {
-		return nil, fmt.Errorf("unable to query prometheus for metrics: %w", err)
+		return nil, err
 	}
-	for _, warning := range warnings {
-		logger.Warn(fmt.Sprintf("[PROMETHEUS]: %s", warning))
-	}
+	return connect.NewResponse(&mgmtv1alpha1.GetMetricCountResponse{Count: uint64(totalCount)}), nil
+}
 
-	switch queryResponse.Type() {
-	case model.ValMatrix:
-		matrix, ok := queryResponse.(model.Matrix)
-		if !ok {
-			return nil, fmt.Errorf("unable to convert query response to model.Matrix, received type: %T", queryResponse)
-		}
+func daysBetween(start, end time.Time) int {
+	// Ensure the times are in UTC to avoid timezone issues
+	start = start.UTC()
+	end = end.UTC()
 
-		usage, err := getUsageFromMatrix(matrix)
-		if err != nil {
-			return nil, err
-		}
-		return connect.NewResponse(&mgmtv1alpha1.GetMetricCountResponse{Count: sumUsage(usage)}), nil
-
-	default:
-		return nil, fmt.Errorf("this method does not support query responses of type: %s", queryResponse.Type())
-	}
+	// Calculate the difference in days
+	duration := end.Sub(start)
+	days := int(duration.Hours()/24) + 1
+	// Convert the number of days to a string and return
+	return days
 }
 
 func getPromQueryFromMetric(
 	metric mgmtv1alpha1.RangedMetricName,
 	labels metrics.MetricLabels,
+	timeWindow string,
 ) (string, error) {
 	metricName, err := getMetricNameFromEnum(metric)
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s{%s}", metricName, labels.ToPromQueryString()), nil
+	return fmt.Sprintf("sum(max_over_time(%s{%s}[%s]))", metricName, labels.ToPromQueryString(), timeWindow), nil
 }
 
 const (
@@ -234,82 +204,98 @@ func getMetricNameFromEnum(metric mgmtv1alpha1.RangedMetricName) (string, error)
 	}
 }
 
-func getStepByRange(start, end time.Time) time.Duration {
-	diff := end.Sub(start)
+const usageDateFormat = "2006-01-02"
 
-	diffDays := int(diff.Hours() / 24)
-	diffHours := int(diff.Hours())
+func getDailyUsageFromProm(ctx context.Context, api promv1.API, query string, start, end time.Time, logger *slog.Logger) ([]*mgmtv1alpha1.DayResult, float64, error) {
+	var dailyResults []*mgmtv1alpha1.DayResult
+	dailyTotals := make(map[string]float64)
+	var overallTotal float64
 
-	switch {
-	case diffHours < 24:
-		return 1 * time.Minute
-	case diffDays >= 0 && diffDays <= 15:
-		return 1 * time.Hour
-	default:
-		return 1 * time.Hour
-	}
-}
-
-func getDailyUsageFromMatrix(matrix model.Matrix) ([]*mgmtv1alpha1.DayResult, error) {
-	output := []*mgmtv1alpha1.DayResult{}
-	for _, stream := range matrix {
-		var latest int64
-		var ts time.Time
-		for _, value := range stream.Values {
-			converted, err := strconv.ParseInt(value.Value.String(), 10, 64)
+	errgrp, errctx := errgroup.WithContext(ctx)
+	errgrp.SetLimit(10)
+	mu := sync.Mutex{}
+	// Iterate through each day in the range
+	for d := start; !d.After(end); d = d.AddDate(0, 0, 1) {
+		d := d
+		errgrp.Go(func() error {
+			dayStart := time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, time.UTC)
+			dayEnd := dayStart.AddDate(0, 0, 1).Add(-time.Nanosecond)
+			result, warnings, err := api.Query(errctx, query, dayEnd)
 			if err != nil {
-				return nil, fmt.Errorf("unable to convert metric value to int64: %w", err)
+				return fmt.Errorf("error querying Prometheus for date %s: %w", d.Format(usageDateFormat), err)
 			}
-			if converted > latest {
-				latest = converted
-				ts = value.Timestamp.Time()
+			if len(warnings) > 0 {
+				logger.Warn(fmt.Sprintf("[PROMETHEUS]: %v", warnings))
 			}
-		}
-		if latest < 0 {
-			return nil, fmt.Errorf("received a metric count that was less than 0")
-		}
-		output = append(output, &mgmtv1alpha1.DayResult{Date: ptr(timeToDate(ts)), Count: uint64(latest)})
+
+			// Process the results for this day
+			vector, ok := result.(model.Vector)
+			if !ok {
+				return fmt.Errorf("error casting result to model.Vector for date %s", d.Format(usageDateFormat))
+			}
+
+			for _, sample := range vector {
+				// using the dayStart timestamp here instead of the sample TS because sometimes it comes back as UTC for the next day
+				// which throws off the count. Using the dayStart we know that it will
+				day := dayStart.Format(usageDateFormat)
+				value := float64(sample.Value)
+				mu.Lock()
+				dailyTotals[day] += value
+				mu.Unlock()
+			}
+			return nil
+		})
 	}
-	squished := squishDayResults(output)
-	// the results must be sorted as they come out of order from prometheus
-	sort.Slice(squished, getDateOrderFn(squished))
-	return squished, nil
+	err := errgrp.Wait()
+	if err != nil {
+		return nil, -1, err
+	}
+
+	var dates []string
+	for day := range dailyTotals {
+		dates = append(dates, day)
+	}
+	sort.Strings(dates)
+
+	for _, day := range dates {
+		date, err := time.Parse(usageDateFormat, day)
+		if err != nil {
+			return nil, 0, err
+		}
+		mgmtDate := timeToDate(date)
+		dailyResults = append(dailyResults, &mgmtv1alpha1.DayResult{
+			Date:  &mgmtDate,
+			Count: uint64(dailyTotals[day]),
+		})
+		overallTotal += dailyTotals[day]
+	}
+
+	return dailyResults, overallTotal, nil
 }
 
-func getDateOrderFn(input []*mgmtv1alpha1.DayResult) func(i, j int) bool {
-	return func(i, j int) bool {
-		// Compare years
-		if input[i].Date.Year != input[j].Date.Year {
-			return input[i].Date.Year < input[j].Date.Year
-		}
-		// Years are equal, compare months
-		if input[i].Date.Month != input[j].Date.Month {
-			return input[i].Date.Month < input[j].Date.Month
-		}
-		// Both years and months are equal, compare days
-		return input[i].Date.Day < input[j].Date.Day
-	}
-}
+func getTotalUsageFromProm(ctx context.Context, api promv1.API, query string, dayEnd time.Time, logger *slog.Logger) (float64, error) {
+	var overallTotal float64
 
-// combines counts where date is the day and returns a squished list with the original order retained
-func squishDayResults(input []*mgmtv1alpha1.DayResult) []*mgmtv1alpha1.DayResult {
-	dayMap := map[string]uint64{}
-	for _, result := range input {
-		dayMap[toDateKey(result.GetDate())] += result.GetCount()
+	result, warnings, err := api.Query(ctx, query, dayEnd)
+	if err != nil {
+		return -1, fmt.Errorf("error querying Prometheus for date %s: %w", dayEnd, err)
 	}
-	output := []*mgmtv1alpha1.DayResult{}
-	for _, result := range input {
-		key := toDateKey(result.GetDate())
-		if count, ok := dayMap[key]; ok {
-			output = append(output, &mgmtv1alpha1.DayResult{Date: result.GetDate(), Count: count})
-			delete(dayMap, key)
-		}
+	if len(warnings) > 0 {
+		logger.Warn(fmt.Sprintf("[PROMETHEUS]: %v", warnings))
 	}
-	return output
-}
 
-func ptr[T any](val T) *T {
-	return &val
+	// Process the results for this day
+	vector, ok := result.(model.Vector)
+	if !ok {
+		return -1, fmt.Errorf("error casting result to model.Vector for date %s", dayEnd)
+	}
+
+	for _, sample := range vector {
+		value := float64(sample.Value)
+		overallTotal += value
+	}
+
+	return overallTotal, nil
 }
 
 func timeToDate(t time.Time) mgmtv1alpha1.Date {
@@ -318,10 +304,6 @@ func timeToDate(t time.Time) mgmtv1alpha1.Date {
 		Month: uint32(t.Month()),
 		Day:   uint32(t.Day()),
 	}
-}
-
-func toDateKey(day *mgmtv1alpha1.Date) string {
-	return fmt.Sprintf("%d_%d_%d", day.Day, day.Month, day.Year)
 }
 
 func dateToTime(d *mgmtv1alpha1.Date) time.Time {
@@ -341,35 +323,4 @@ func dateToTime(d *mgmtv1alpha1.Date) time.Time {
 }
 func toEndOfDay(t time.Time) time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), 23, 59, 59, 0, time.UTC)
-}
-
-func getUsageFromMatrix(matrix model.Matrix) (map[string]uint64, error) {
-	usage := map[string]uint64{}
-	for _, stream := range matrix {
-		usage[stream.Metric.String()] = 0
-
-		var latest int64
-		for _, value := range stream.Values {
-			converted, err := strconv.ParseInt(value.Value.String(), 10, 64)
-			if err != nil {
-				return nil, fmt.Errorf("unable to convert metric value to int64: %w", err)
-			}
-			if converted > latest {
-				latest = converted
-			}
-		}
-		if latest < 0 {
-			return nil, fmt.Errorf("received a metric count that was less than 0")
-		}
-		usage[stream.Metric.String()] = uint64(latest)
-	}
-	return usage, nil
-}
-
-func sumUsage(usage map[string]uint64) uint64 {
-	var total uint64
-	for _, val := range usage {
-		total += val
-	}
-	return total
 }
