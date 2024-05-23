@@ -236,8 +236,9 @@ func getDailyUsageFromProm(ctx context.Context, api promv1.API, query string, st
 			}
 
 			for _, sample := range vector {
-				timestamp := sample.Timestamp.Time()
-				day := timestamp.Format(usageDateFormat)
+				// using the dayStart timestamp here instead of the sample TS because sometimes it comes back as UTC for the next day
+				// which throws off the count. Using the dayStart we know that it will
+				day := dayStart.Format(usageDateFormat)
 				value := float64(sample.Value)
 				mu.Lock()
 				dailyTotals[day] += value
@@ -253,6 +254,7 @@ func getDailyUsageFromProm(ctx context.Context, api promv1.API, query string, st
 
 	var dates []string
 	for day := range dailyTotals {
+		fmt.Println("date", day)
 		dates = append(dates, day)
 	}
 	sort.Strings(dates)
