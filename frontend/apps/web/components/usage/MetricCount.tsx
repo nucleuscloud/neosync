@@ -13,7 +13,7 @@ import {
   CardTitle,
 } from '../ui/card';
 import { Skeleton } from '../ui/skeleton';
-import { UsagePeriod, periodToDateRange } from './util';
+import { UsagePeriod, dateToNeoDate, periodToDateRange } from './util';
 
 interface Props {
   period: UsagePeriod;
@@ -28,8 +28,8 @@ export default function MetricCount(props: Props): ReactElement {
   const [start, end] = periodToDateRange(period);
   const { data: metricCountData, isLoading } = useGetMetricCount(
     account?.id ?? '',
-    start,
-    end,
+    dateToNeoDate(start),
+    dateToNeoDate(end),
     metric,
     idtype,
     identifier

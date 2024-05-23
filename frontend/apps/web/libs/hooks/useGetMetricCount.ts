@@ -1,6 +1,10 @@
 'use client';
 import { JsonValue } from '@bufbuild/protobuf';
-import { GetMetricCountResponse, RangedMetricName } from '@neosync/sdk';
+import {
+  GetMetricCountResponse,
+  Date as NeosyncDate,
+  RangedMetricName,
+} from '@neosync/sdk';
 import { HookReply } from './types';
 import { useNucleusAuthenticatedFetch } from './useNucleusAuthenticatedFetch';
 
@@ -8,17 +12,19 @@ export type MetricIdentifierType = 'accountId' | 'jobId' | 'runId';
 
 export function useGetMetricCount(
   accountId: string,
-  start: Date,
-  end: Date,
+  start: NeosyncDate,
+  end: NeosyncDate,
   metric: RangedMetricName,
   idtype: MetricIdentifierType,
   identifier: string
 ): HookReply<GetMetricCountResponse> {
-  const startSec = start.getTime() / 1000;
-  const endSec = end.getTime() / 1000;
   const urlparams = new URLSearchParams({
-    start: startSec.toString(),
-    end: endSec.toString(),
+    startDay: start.day.toString(),
+    startMo: start.month.toString(),
+    startYear: start.year.toString(),
+    endDay: end.day.toString(),
+    endMo: end.month.toString(),
+    endYear: end.year.toString(),
     metric: metric.toString(),
     idtype,
     identifier,
