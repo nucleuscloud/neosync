@@ -16,7 +16,7 @@ export default function ValueProps(): ReactElement {
     {
       title: 'Easily reproduce Production bugs locally',
       image: '/images/vp3-new.svg',
-      link: '/solutions/keep-environments-in-sync',
+      link: '/solutions/reproduce-prod-bugs-locally',
     },
     {
       title: 'Fix broken staging environments',
