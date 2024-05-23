@@ -10,6 +10,8 @@ import ReproduceBugsLocally from './ReproduceBugsLocally';
 export const metadata: Metadata = {
   metadataBase: new URL('https://assets.nucleuscloud.com/'),
   title: 'Easily reproduce Production bugs locally | Neosync',
+  description:
+    'Easily reproduce Production bugs locally using Neosync in order to deliver a better developer experience.',
   openGraph: {
     title: 'Easily reproduce Production bugs locally | Neosync',
     description:

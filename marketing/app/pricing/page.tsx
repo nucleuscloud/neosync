@@ -11,9 +11,35 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { CheckCircle2Icon } from 'lucide-react';
+import { Metadata } from 'next';
 import Link from 'next/link';
 import posthog from 'posthog-js';
 import { ReactElement } from 'react';
+
+export const metadata: Metadata = {
+  metadataBase: new URL('https://assets.nucleuscloud.com/'),
+  title: 'Neosync | Pricing',
+  description: `Explore Neosync's simple and transparent pricing options ranging from Open Source to an Enterprise package.`,
+  openGraph: {
+    title: 'Neosync',
+    description: 'Open Source Data Anonymization and Synthetic Data',
+    url: 'https://www.neosync.dev',
+    siteName: 'Neosync',
+    images: [
+      {
+        url: '/neosync/marketingsite/mainOGHero.svg',
+        width: 1200,
+        height: 630,
+        alt: 'mainOG',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  alternates: {
+    canonical: 'https://www.neosync.dev/pricing',
+  },
+};
 
 export default function Pricing() {
   return (

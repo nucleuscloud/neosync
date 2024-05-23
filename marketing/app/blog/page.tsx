@@ -14,9 +14,12 @@ import { ReactElement } from 'react';
 
 export const metadata: Metadata = {
   title: 'Neosync | Blog',
+  description:
+    'Read the Neosync Blog to learn more about data anonymization, synthetic dataq and to be kept up to date on product announcements.',
   openGraph: {
-    title: 'Neosync',
-    description: 'Blog',
+    title: 'Neosync | Blog',
+    description:
+      'Read the Neosync Blog to learn more about data anonymization, synthetic dataq and to be kept up to date on product announcements.',
     url: 'https://www.neosync.dev/blog',
     siteName: 'Neosync',
     images: [

@@ -8,9 +8,10 @@ import Values from './Values';
 export const metadata: Metadata = {
   metadataBase: new URL('https://assets.nucleuscloud.com/'),
   title: 'Neosync | About',
+  description: `Learn more about Neosync's team, mission and values.`,
   openGraph: {
     title: 'Neosync | About',
-    description: `Learn more about Neosync's mission and values `,
+    description: `Learn more about Neosync's team, mission and values.`,
     url: 'https://www.neosync.dev/about',
     siteName: 'Neosync',
     images: [

@@ -11,10 +11,10 @@ import { ReactElement } from 'react';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://assets.nucleuscloud.com/'),
-  title: 'Neosync | Synthetic Data Orchestration',
+  title: 'Open Source Data Anonymization and Synthetic Data',
   openGraph: {
     title: 'Neosync',
-    description: 'Open Source Synthetic Data Orchestration',
+    description: 'Open Source Data Anonymization and Synthetic Data',
     url: 'https://www.neosync.dev',
     siteName: 'Neosync',
     images: [

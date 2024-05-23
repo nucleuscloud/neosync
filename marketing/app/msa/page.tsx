@@ -1,5 +1,32 @@
 'use client';
 
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  metadataBase: new URL('https://assets.nucleuscloud.com/'),
+  title: 'Neosync | MSA',
+  description: 'Neosync master services agreement and terms for customers.',
+  openGraph: {
+    title: 'Neosync',
+    description: 'Neosync Master Services Agreement and terms for customers.',
+    url: 'https://www.neosync.dev',
+    siteName: 'Neosync',
+    images: [
+      {
+        url: '/neosync/marketingsite/mainOGHero.svg',
+        width: 1200,
+        height: 630,
+        alt: 'mainOG',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  alternates: {
+    canonical: 'https://www.neosync.dev/msa',
+  },
+};
+
 export default function MSA() {
   return (
     <div className="flex justify-center mx-60 py-40 flex-col gap-4">
