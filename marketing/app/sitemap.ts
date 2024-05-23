@@ -24,7 +24,7 @@ export default async function sitemap() {
     '/docs',
     '/blog',
     '/solutions/fix-staging-environments',
-    '/solutions/keep-environments-in-sync',
+    '/solutions/reproduce-prod-bugs-locally',
     '/solutions/security-privacy',
     '/solutions/unblock-local-development',
   ].map((route) => ({
