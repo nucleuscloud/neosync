@@ -75,7 +75,7 @@ const links: NavLinks[] = [
       },
       {
         title: 'Easily reproduce Production bugs locally',
-        href: '/solutions/keep-environments-in-sync',
+        href: '/solutions/reproduce-prod-bugs-locally',
         description:
           'Effortlessly keep environments in sync with the latest data',
         children: [],
