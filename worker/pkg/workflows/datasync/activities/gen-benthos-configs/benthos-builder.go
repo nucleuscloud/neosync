@@ -91,7 +91,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 		aiGroupedTableCols = aimappings
 		responses = append(responses, sourceResponses...)
 	case *mgmtv1alpha1.JobSourceOptions_Generate:
-		sourceResponses, err := b.getGenerateBenthosConfigResponses(ctx, job, slogger)
+		sourceResponses, err := b.getGenerateBenthosConfigResponses(ctx, job)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build benthos Generate source config responses: %w", err)
 		}
@@ -133,14 +133,11 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, outputs...)
 				} else if resp.Config.Input.Generate != nil {
 					// SQL generate output
-					outputs, err := b.getSqlGenerateOutput(ctx, driver, resp, destination, dsn, slogger)
-					if err != nil {
-						return nil, err
-					}
+					outputs := b.getSqlGenerateOutput(driver, resp, destination, dsn)
 					resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, outputs...)
 				} else if resp.Config.Input.OpenAiGenerate != nil {
 					// SQL AI generate output
-					outputs, err := b.getSqlAiGenerateOutput(ctx, driver, resp, destination, dsn, aiGroupedTableCols, slogger)
+					outputs, err := b.getSqlAiGenerateOutput(driver, resp, destination, dsn, aiGroupedTableCols)
 					if err != nil {
 						return nil, err
 					}
@@ -152,10 +149,7 @@ func (b *benthosBuilder) GenerateBenthosConfigs(
 				if resp.RunType == tabledependency.RunTypeUpdate {
 					continue
 				}
-				outputs, err := b.getAwsS3SyncBenthosOutput(connection, resp, req.WorkflowId)
-				if err != nil {
-					return nil, err
-				}
+				outputs := b.getAwsS3SyncBenthosOutput(connection, resp, req.WorkflowId)
 				resp.Config.Output.Broker.Outputs = append(resp.Config.Output.Broker.Outputs, outputs...)
 			default:
 				return nil, fmt.Errorf("unsupported destination connection config")

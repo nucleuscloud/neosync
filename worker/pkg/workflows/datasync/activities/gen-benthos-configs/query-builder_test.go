@@ -487,14 +487,6 @@ func Test_buildSelectQueryMap_MultiplSubsets(t *testing.T) {
 			{Columns: []string{"e_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.e", Columns: []string{"id"}}},
 		},
 	}
-	// dependencyConfigs := []*tabledependency.RunConfig{
-	// 	{Table: "public.a", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
-	// 	{Table: "public.b", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "name", "a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}, WhereClause: &whereName},
-	// 	{Table: "public.c", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "b_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
-	// 	{Table: "public.d", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
-	// 	{Table: "public.e", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "d_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.d", Columns: []string{"id"}}}, WhereClause: &whereId},
-	// 	{Table: "public.f", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "e_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.e", Columns: []string{"id"}}}},
-	// }
 	dependencyConfigs := []*tabledependency.RunConfig{
 		{Table: "public.a", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
 		{Table: "public.b", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "name", "a_id"}, InsertColumns: []string{"id", "name", "a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}, WhereClause: &whereName},
@@ -532,13 +524,6 @@ func Test_buildSelectQueryMap_MultipleRootss(t *testing.T) {
 			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
 		},
 	}
-	// dependencyConfigs := []*tabledependency.RunConfig{
-	// 	{Table: "public.a", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
-	// 	{Table: "public.b", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
-	// 	{Table: "public.c", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "a_id", "b_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"id"}}}},
-	// 	{Table: "public.d", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
-	// 	{Table: "public.e", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
-	// }
 	dependencyConfigs := []*tabledependency.RunConfig{
 		{Table: "public.a", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
 		{Table: "public.b", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
@@ -642,11 +627,6 @@ func Test_buildSelectQueryMap_DoubleReference(t *testing.T) {
 			{Columns: []string{"department_destination_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.department", Columns: []string{"id"}}},
 		},
 	}
-	// dependencyConfigs := []*tabledependency.RunConfig{
-	// 	{Table: "public.company", RunType: tabledependency.RunTypeInsert, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
-	// 	{Table: "public.department", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "company_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.company", Columns: []string{"id"}}}},
-	// 	{Table: "public.expense_report", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "department_source_id", "department_destination_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.department", Columns: []string{"department_source_id", "department_destination_id"}}}},
-	// }
 	dependencyConfigs := []*tabledependency.RunConfig{
 		{Table: "public.company", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
 		{Table: "public.department", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "company_id"}, InsertColumns: []string{"id", "company_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.company", Columns: []string{"id"}}}},
@@ -679,12 +659,6 @@ func Test_buildSelectQueryMap_DoubleReference_Cycle(t *testing.T) {
 			{Columns: []string{"transaction_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.transaction", Columns: []string{"id"}}},
 		},
 	}
-	// dependencyConfigs := []*tabledependency.RunConfig{
-	// 	{Table: "public.company", RunType: tabledependency.RunTypeInsert, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
-	// 	{Table: "public.department", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "company_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.company", Columns: []string{"id"}}}},
-	// 	{Table: "public.transaction", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "department_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.department", Columns: []string{"id"}}}},
-	// 	{Table: "public.expense_report", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "department_source_id", "department_destination_id", "transaction_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.department", Columns: []string{"id"}}, {Table: "public.transaction", Columns: []string{"id"}}}},
-	// }
 	dependencyConfigs := []*tabledependency.RunConfig{
 		{Table: "public.company", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
 		{Table: "public.department", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "company_id"}, InsertColumns: []string{"id", "company_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.company", Columns: []string{"id"}}}},
@@ -776,13 +750,6 @@ func Test_buildSelectQueryMap_shouldContinue(t *testing.T) {
 			{Columns: []string{"d_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.d", Columns: []string{"id"}}},
 		},
 	}
-	// dependencyConfigs := []*tabledependency.RunConfig{
-	// 	{Table: "public.a", RunType: tabledependency.RunTypeInsert, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &aWhere},
-	// 	{Table: "public.b", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "a_id", "d_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.d", Columns: []string{"id"}}}},
-	// 	{Table: "public.c", RunType: tabledependency.RunTypeInsert, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
-	// 	{Table: "public.d", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
-	// 	{Table: "public.e", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "d_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.d", Columns: []string{"id"}}}},
-	// }
 	dependencyConfigs := []*tabledependency.RunConfig{
 		{Table: "public.a", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &aWhere},
 		{Table: "public.b", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "a_id", "d_id"}, InsertColumns: []string{"id", "a_id", "d_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.d", Columns: []string{"id"}}}},

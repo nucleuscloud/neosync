@@ -256,27 +256,25 @@ func buildProcessorConfigsByRunType(
 	mappings []*mgmtv1alpha1.JobMapping,
 	columnInfoMap map[string]*sql_manager.ColumnInfo,
 ) ([]*neosync_benthos.ProcessorConfig, error) {
-	processorConfigs := []*neosync_benthos.ProcessorConfig{}
 	if config.RunType == tabledependency.RunTypeUpdate {
 		// sql update processor configs
-		pCfgs, err := buildSqlUpdateProcessorConfigs(config, redisConfig, jobId, runId, colTransformers, columnForeignKeysMap)
+		processorConfigs, err := buildSqlUpdateProcessorConfigs(config, redisConfig, jobId, runId, colTransformers, columnForeignKeysMap)
 		if err != nil {
 			return nil, err
 		}
-		processorConfigs = pCfgs
+		return processorConfigs, nil
 	} else {
 		// sql insert processor configs
 		fkSourceCols := []string{}
 		for col := range columnForeignKeysMap {
 			fkSourceCols = append(fkSourceCols, col)
 		}
-		pCfgs, err := buildProcessorConfigs(ctx, transformerclient, mappings, columnInfoMap, transformedFktoPkMap, fkSourceCols, jobId, runId, redisConfig)
+		processorConfigs, err := buildProcessorConfigs(ctx, transformerclient, mappings, columnInfoMap, transformedFktoPkMap, fkSourceCols, jobId, runId, redisConfig)
 		if err != nil {
 			return nil, err
 		}
-		processorConfigs = pCfgs
+		return processorConfigs, nil
 	}
-	return processorConfigs, nil
 }
 
 func (b *benthosBuilder) getSqlSyncBenthosOutput(
@@ -390,7 +388,7 @@ func (b *benthosBuilder) getAwsS3SyncBenthosOutput(
 	connection *mgmtv1alpha1.ConnectionConfig_AwsS3Config,
 	benthosConfig *BenthosConfigResponse,
 	workflowId string,
-) ([]neosync_benthos.Outputs, error) {
+) []neosync_benthos.Outputs {
 	outputs := []neosync_benthos.Outputs{}
 
 	s3pathpieces := []string{}
@@ -439,7 +437,7 @@ func (b *benthosBuilder) getAwsS3SyncBenthosOutput(
 		},
 	})
 
-	return outputs, nil
+	return outputs
 }
 
 func getTableColMapFromMappings(mappings []*tableMapping) map[string][]string {

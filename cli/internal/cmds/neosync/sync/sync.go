@@ -654,12 +654,12 @@ func buildSyncConfigs(
 			for _, c := range dc {
 				if c.RunType == tabledependency.RunTypeInsert {
 					syncConfigs = append(syncConfigs, &syncConfig{
-						Query:         buildInsertQueryFunc(split[0], split[1], c.Columns),
-						ArgsMapping:   buildPlainInsertArgs(c.Columns),
+						Query:         buildInsertQueryFunc(split[0], split[1], c.SelectColumns),
+						ArgsMapping:   buildPlainInsertArgs(c.SelectColumns),
 						InitStatement: schemaConfig.InitTableStatementsMap[table],
 						Schema:        split[0],
 						Table:         split[1],
-						Columns:       c.Columns,
+						Columns:       c.InsertColumns,
 						DependsOn:     c.DependsOn,
 						Name:          table,
 					})
@@ -668,16 +668,13 @@ func buildSyncConfigs(
 						fmt.Println(bold.Render(fmt.Sprintf("No primary keys found for table (%s). Unable to build update query.", table))) //nolint:forbidigo
 						return nil
 					}
-					argCols := []string{}
-					argCols = append(argCols, c.Columns...)
-					argCols = append(argCols, c.PrimaryKeys...)
 					syncConfigs = append(syncConfigs, &syncConfig{
-						Query:       buildUpdateQueryFunc(split[0], split[1], c.Columns, c.PrimaryKeys),
-						ArgsMapping: buildPlainInsertArgs(argCols),
+						Query:       buildUpdateQueryFunc(split[0], split[1], c.InsertColumns, c.PrimaryKeys),
+						ArgsMapping: buildPlainInsertArgs(c.SelectColumns),
 
 						Schema:    split[0],
 						Table:     split[1],
-						Columns:   c.Columns,
+						Columns:   c.InsertColumns,
 						DependsOn: c.DependsOn,
 						Name:      fmt.Sprintf("%s.update", table),
 					})

@@ -3,7 +3,6 @@ package genbenthosconfigs_activity
 import (
 	"context"
 	"fmt"
-	"log/slog"
 
 	mgmtv1alpha1 "github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1"
 	"github.com/nucleuscloud/neosync/backend/gen/go/protos/mgmt/v1alpha1/mgmtv1alpha1connect"
@@ -16,7 +15,6 @@ import (
 func (b *benthosBuilder) getGenerateBenthosConfigResponses(
 	ctx context.Context,
 	job *mgmtv1alpha1.Job,
-	slogger *slog.Logger,
 ) ([]*BenthosConfigResponse, error) {
 	jobSource := job.GetSource()
 	sourceOptions := job.GetSource().GetOptions().GetGenerate()
@@ -133,13 +131,11 @@ func buildBenthosGenerateSourceConfigResponses(
 }
 
 func (b *benthosBuilder) getSqlGenerateOutput(
-	ctx context.Context,
 	driver string,
 	benthosConfig *BenthosConfigResponse,
 	destination *mgmtv1alpha1.JobDestination,
 	dsn string,
-	slogger *slog.Logger,
-) ([]neosync_benthos.Outputs, error) {
+) []neosync_benthos.Outputs {
 	outputs := []neosync_benthos.Outputs{}
 	destOpts := getDestinationOptions(destination)
 
@@ -191,17 +187,15 @@ func (b *benthosBuilder) getSqlGenerateOutput(
 		},
 	})
 
-	return outputs, nil
+	return outputs
 }
 
 func (b *benthosBuilder) getSqlAiGenerateOutput(
-	ctx context.Context,
 	driver string,
 	benthosConfig *BenthosConfigResponse,
 	destination *mgmtv1alpha1.JobDestination,
 	dsn string,
 	aiGroupedTableCols map[string][]string,
-	slogger *slog.Logger,
 ) ([]neosync_benthos.Outputs, error) {
 	outputs := []neosync_benthos.Outputs{}
 	destOpts := getDestinationOptions(destination)

@@ -265,11 +265,6 @@ func buildSelectQueryMap(
 			queryRunTypeMap[runConfig.Table] = map[tabledependency.RunType]string{}
 		}
 		columns := runConfig.SelectColumns
-		// if runConfig.RunType == tabledependency.RunTypeUpdate {
-		// 	columns = []string{}
-		// 	columns = append(columns, runConfig.PrimaryKeys...)
-		// 	columns = append(columns, runConfig.Columns...)
-		// }
 		subsetConfig := subsetConfigs[runConfig.Table]
 		columnInfoMap := groupedColumnInfo[runConfig.Table]
 		sql, err := buildTableQuery(driver, runConfig.Table, columns, subsetConfig, columnInfoMap)
@@ -733,14 +728,6 @@ func formatSqlQuery(sql string) string {
 
 func buildSqlIdentifier(identifiers ...string) string {
 	return strings.Join(identifiers, ".")
-}
-
-func getWhereFromTableOpts(tableOpts *sqlSourceTableOptions) *string {
-	var where *string
-	if tableOpts != nil && tableOpts.WhereClause != nil {
-		where = tableOpts.WhereClause
-	}
-	return where
 }
 
 func qualifyPostgresWhereColumnNames(sql string, schema *string, table string) (string, error) {
