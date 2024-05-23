@@ -8,7 +8,7 @@ authors:
   - evis
 ---
 
-# Introduction
+## Introduction
 
 [Supabase](https://supabase.com/) is an open source Firebase alternative that helps you get started quickly with a backend. Supabase gets you started with a Postgres database, authentication, APIs and more. Thousands of developers use Supabase for all sizes of projects.
 
@@ -18,14 +18,14 @@ If you haven't already done so, follow the [Seeding your Supabase DB with Synthe
 
 Let's jump in.
 
-# Prerequisites
+## Prerequisites
 
 We're going to need a Supabase account and a Neosync account. If you don't already have those, we can get those here:
 
 - [Sign up for Supabase](https://supabase.com/)
 - [Sign up for Neosync](https://www.neosync.dev)
 
-# Setting up Supabase
+## Setting up Supabase
 
 Now that we have our accounts, we can get this ball rolling. First, let's log into Supabase. If you already have a Supabase account then you can either create a new project or use an existing project. If you don't have a Supabase account then give your database a name, type in a password and select a region like below:
 
@@ -67,11 +67,11 @@ Nice! Okay, last step for Supabase. Let's get our connection string so we can co
 
 ![sb-created-tables](/images/blogs/supabase/sb-dest-con.png)
 
-# Setting up Neosync
+## Setting up Neosync
 
 Now that we're in Neosync, we'll want to first create connections to our Supabase database and then create a job to sync data. Let's get started.
 
-## Creating a Connection
+### Creating a Connection
 
 Navigate over to Neosync and [login](https://app.neosync.dev). Once you're logged in, go to to **Connections** -> **New Connection** then click on **Postgres**. You can clone the existing source connection by clicking on the **supabase-source** connection and just updating the `Username` and `Password` or just create a new connection from scratch.
 
@@ -96,7 +96,7 @@ Let's click **Submit** and repeat this for our database so that we have two conn
 
 ![neosync-test](/images/blogs/supabase/sb-connections.png)
 
-## Creating a Job
+### Creating a Job
 
 In order to generate data, we need to create a **Job** in Neosync. Let's click on **Job** and then click on **New Job**. We're now presented with two options:
 
@@ -149,6 +149,6 @@ This is our destination:
 
 We can see that we generated new first and last names, we anonymized the email address username but preserved the domain and anonymized our age. Nice!
 
-# Conclusion
+## Conclusion
 
 In this guide, we walked through how to anonymize sensitive data and generate synthetic data from one Supabase database to another. The cool thing about this is that it doesn't have to be from one Supabase database to another. Neosync supports any Postgres database. So it can be from Supabase to RDS, RDS to Supabase, RDS to Cloud SQL, etc. This is just a small test and you can expand this to anonymize millions or more rows of data across any relational database. Neosync handles all of the referential integrity. If you're working with sensitive data and want a better way to protect that data, then consider Neosync to take on the heavy lifting.

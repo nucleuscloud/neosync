@@ -8,7 +8,7 @@ authors:
   - evis
 ---
 
-# Introduction
+## Introduction
 
 [Neon DB](https://neon.tech/) is a fast-growing database that offer serverless Postgres. It's open source and gaining a lot of traction with individual developers working on side projects as well as businesses running mission critical applications.
 
@@ -18,14 +18,14 @@ If you haven't already done so, follow the [Seeding your Neon DB with Synthetic 
 
 Let's jump in.
 
-# Prerequisites
+## Prerequisites
 
 We're going to need a Neon account and a Neosync account. If you don't already have those, we can get those here:
 
 - [Sign up for Neon](https://console.neon/tech/login)
 - [Sign up for Neosync](https://www.neosync.dev)
 
-# Setting up Neon
+## Setting up Neon
 
 Now that we have our accounts, we can get this ball rolling. First, let's log into Neon. If you already have a Neon account then you can either create a new project or a new database. If you don't have a Neon account then give your project a name, your database a name and select a region like below:
 
@@ -77,11 +77,11 @@ Nice!
 
 Okay, last step for Neon. Let's get our connection strings so that we can connect to our Neon databases from Neosync. We can find our connection string by going to **Dashboard** and then under the **Connection String** header, you can find your connection string. Use the **Database** drop down to change databases so that you can get both connection strings. Hold onto this for a minute while we get Neosync set up.
 
-# Setting up Neosync
+## Setting up Neosync
 
 Now that we're in Neosync, we'll want to first create connections to our Neon database and then create a job to sync data. Let's get started.
 
-## Creating a Connection
+### Creating a Connection
 
 Navigate over to Neosync and [login](https://app.neosync.dev). Once you're logged in, go to to **Connections** -> **New Connection** then click on **Postgres**.
 
@@ -106,7 +106,7 @@ Let's click **Submit** and repeat this for our database so that we have two conn
 
 ![neosync-test](/images/blogs/neon/neonconnections.png)
 
-## Creating a Job
+### Creating a Job
 
 In order to generate data, we need to create a **Job** in Neosync. Let's click on **Job** and then click on **New Job**. We're now presented with two options:
 
@@ -179,6 +179,6 @@ This is our destination:
 
 We can see that we generated new UUIDs, street addresses, cities, zipcodes and prices. We had set the state and loyalty_plan columns to pass through and those came through. Looking good!
 
-# Conclusion
+## Conclusion
 
 In this guide, we walked through how to anonymize sensitive data and generate synthetic data from one Neon database to another. The cool thing about this is that it doesn't have to be from one Neon database to another. Neosync supports any Postgres database. So it can be from Neon to RDS, RDS to Neon, RDS to Cloud SQL, etc. This is just a small test and you can expand this to anonymize millions or more rows of data across any relational database. Neosync handles all of the referential integrity. If you're working with sensitive data and want a better way to protect that data, then consider Neosync to take on the heavy lifting.

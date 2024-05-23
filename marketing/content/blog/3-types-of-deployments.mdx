@@ -10,7 +10,7 @@ authors:
 
 import InlineBlogCode from '../../components/codeblocks/InlineBlogCode.tsx';
 
-# Intro
+## Intro
 
 One of the main benefits of using a container orchestration system like Kubernetes is that you have a lot of control over your deployment strategy and how you deploy software. In a traditional software environment, deployments or upgrades to applications result in downtime and disruption of service which can frustrate users. In today's cloud native world, users expect that software should be available at all times and in all time zones.
 
@@ -20,7 +20,7 @@ In this blog, we'll walk through three deployment strategies that you can implem
 
 Let's jump in.
 
-# 3 types of zero-downtime deployments
+## 3 types of zero-downtime deployments
 
 The three most common types of zero-downtime deployment are:
 
@@ -30,7 +30,7 @@ The three most common types of zero-downtime deployment are:
 
 Lets take a look at all three of these zero-downtime deployment approaches in more detail.
 
-## Rolling deployments
+### Rolling deployments
 
 ![rolling](https://assets.nucleuscloud.com/neosync/blog/rollingdeploy.png)
 
@@ -98,7 +98,7 @@ There are two optional parameters that you can define to have more control over 
 
 The primary benefit of rolling deployments is that if there is an issue during the deployment process, it only affects some of the pods and not all of them and the end user typically doesn't see the impact.
 
-## Blue-green deployments
+### Blue-green deployments
 
 ![bluegreen](https://assets.nucleuscloud.com/neosync/blog/bluegreen.png)
 
@@ -117,7 +117,7 @@ Blue-green deploys are great because there is minimal downtime and an easy way t
 
 Lastly, while Kubernetes doesn't support blue-green deployments natively (it's default is rolling as discussed above), there are CI/CD platforms such as ArgoCD and Jenkins which can help accomplish this.
 
-## Canary deployments
+### Canary deployments
 
 ![canary](https://assets.nucleuscloud.com/neosync/blog/canary.png)
 
@@ -131,6 +131,6 @@ Similar to Blue-green deploys, you'll need to use an additional tool to be able 
 
 Canary deployments are great for early issue detection. Since only a segment of users or servers are exposed to the issue, you can quickly resolve it without jeopardizing the broad user base. Additionally, canary deployments provide an ideal environment for controlled testing and validation. Because you choose the segment, you can experiment with different scenarios to help account for various real-world situations the software may encounter. This also carries some risk, as you may test the software with a non-representative sample.
 
-# Wrapping up
+## Wrapping up
 
 If you're building applications and services on Kubernetes and thinking about how to achieve zero down-time deploys, then these three options are definitely ones you should consider. Depending on which route you want to go, you may have to use additional tools to achieve those goals but at the end of the day, if you're able to deliver a consistent and stable application to your end users, then it's worth it!

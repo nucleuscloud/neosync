@@ -8,13 +8,13 @@ authors:
   - evis
 ---
 
-# Introduction
+## Introduction
 
 PGDUMP (or pg_dump) is a [Postgres utility](https://www.postgresql.org/docs/current/app-pgdump.html) [(source)](https://github.com/postgres/postgres/blob/master/src/bin/pg_dump/pg_dump.c) that comes bundled with every PostgreSQL installation. It is a command-line tool that connects to a PostgreSQL server and constructs queries to extract database metadata and/or table data, including all of the constraints. This exported file can then be used to recreate the database on the same or another PostgreSQL server. This is really useful for backups and data migrations.
 
 Let's take a step-by-step look at exactly how PGDUMP works under the hood and then at the end go through an example.
 
-# Step 1 - Connect and Query
+## Step 1 - Connect and Query
 
 When you run the pg_dump command, the first thing it does is establish a connection to the PostgreSQL server using the provided connection string. It uses the same libpq library as the psql command-line client. This is nice because it ensures compatability across versions.
 
@@ -38,7 +38,7 @@ Let's go through these in more detail.
 
 It's important to note that pg_dump doesn't query the tables directly. Instead, it queries the system catalogues which contain all of the metadata representing the database. The order also matters. For example, data types are queried before tables since tables may use custom types. It then buffers this metadata in memory as it gets ready for step 2.
 
-# Step 2: Dump the Data
+## Step 2: Dump the Data
 
 Now that we have the metadata, pg_dump then starts the process of extracting the raw data for each table in the database. There are configurations for pg_dump where you only get the schema. If so, then this step is effectively skipped. If we want the data as well, then here's a breakdown of what happens:
 
@@ -51,7 +51,7 @@ Tables with foreign keys or inheritance hierarchies are dumped in an order that 
 
 At this point, pg_dump has, in memory, the contents of the pg_dump output file. Just in time for step 3!
 
-# Step 3: Assembling the Dump File
+## Step 3: Assembling the Dump File
 
 As pg_dump fetches metadata definitions and table data, it incrementally constructs the dump file by writing out sections in this order:
 
@@ -65,13 +65,13 @@ As pg_dump fetches metadata definitions and table data, it incrementally constru
 
 The output is written as plain text with SQL statements intermixed with PGDUMP directives that indicate which database objects a section applies to.
 
-# Step 4: Output
+## Step 4: Output
 
 By default, pg_dump outputs the complete SQL script to standard output (stdout). You can optionally specify an output file to write to instead.
 
 Additionally, pg_dump can also compress the output SQL file using the specified compression format (gzip, bzip2, etc). The compressed file can then be transferred and decompressed on the destination system.
 
-# Let's look at an example
+## Let's look at an example
 
 Let's go through an example of using pg_dump to back up the "neosync_test" sample database:
 
@@ -174,6 +174,6 @@ The dump contains the DDL to create all schemas, tables, data types, and other o
 
 When this dump file is run through psql on another PostgreSQL server, it will accurately reconstruct the complete "neosync_test" database from scratch.
 
-# Wrapping up
+## Wrapping up
 
 Pg_dump is used by thousands of companies every day to back up their databases. Conceptually, it's pretty simple but the implementation is quite complex. The source code is about 18k lines long! It's fun to take a deep dive under the covers and see exactly what's going on. I hope this technical deep dive should give you a solid understanding of the detailed process pg_dump goes through.

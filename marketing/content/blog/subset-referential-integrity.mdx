@@ -8,7 +8,7 @@ authors:
   - evis
 ---
 
-# Introduction
+## Introduction
 
 We recently shipped Subsetting with [Referential Integrity](/blog/referential-integrity) in Neosync and we wanted to give an overview of how we built referential integrity into subsetting. We expose the ability to use referential integrity in your Subsetting page through a simple switch component but under the covers there is a lot of logic and code to make this happen.
 
@@ -16,7 +16,7 @@ We recently shipped Subsetting with [Referential Integrity](/blog/referential-in
 
 In this blog, we're going to walk through how we implemented referential integrity into our Subsetting feature. If you like graph problems, then this blog is for you.
 
-# What is subsetting
+## What is subsetting
 
 Subsetting is a technique that developers can use to shrink their database by taking a fraction of the data in their source database and moving it to their destination database. There are two main use cases for subsetting.
 
@@ -24,13 +24,13 @@ The first is debugging errors. Say that a customers is experiencing a bug and yo
 
 The second use-case is for reducing the size of the data that you're copying across databases. If your production database is 5TB and you want to do some work locally, it's unlikely that your local database will be able to hold that much data. Subsetting is a great way to "shrink" your production database to one that is usable locally.
 
-# Clarifying the requirements
+## Clarifying the requirements
 
 The requirements for referential integrity in subsetting are actually pretty straightforward. The user story is: As a user, I want to be able to subset my database using one or `WHERE` clauses and get a dataset back that contains all of the relevant and referred data.
 
 Functionally this means that we need to understand the relationships between tables in order to select and filter the data to just the rows that we care about while accounting for primary keys, foreign keys and other dependencies.
 
-# Defining the experience
+## Defining the experience
 
 Whenever we design a new feature, we try to follow our design philosophy: flexibility without complexity. This means designing a feature that is super simple to use but is also really flexible and powerful. Here is the interface to the subsetting page:
 
@@ -40,7 +40,7 @@ It's broken down into 3 sections. The first is the switch at the top that allows
 
 The flexibility part comes into play in the second and third sections where the user can add in multiple subsetting queries per table or across tables and validate those queries against the database. This is quite unique to the Neosync platform and we haven't seen anyone else take this approach to subsetting. The lack of complexity is manifested in a single switch that the user has to select to enable referential integrity.
 
-# Implementing referential integrity
+## Implementing referential integrity
 
 We can broadly break down referential integrity into two types: linear dependencies and circular dependencies.
 
@@ -48,7 +48,7 @@ We can broadly break down referential integrity into two types: linear dependenc
 
 In the following sections, we'll break both of these types down and explain the logic behind how we implemented this.
 
-## Linear dependencies
+### Linear dependencies
 
 Linear dependencies move in one direction and do not form an enclosed loop. In classic computer science language, this would be called a Directed Acyclic Graph (DAG). It's Acyclic because there is no loop formed. In the example above, `table a` points to `table b` and `table c` but no closed loop is formed. This is pretty common in most databases where you have a table that references another table with one or more foreign keys.
 
@@ -72,7 +72,7 @@ If we were to insert the data in any order, our foreign keys would complain that
 
 The other wrinkle to mention here is if the user wants to transform their primary keys or data that has a foreign key. Think of a foreign key on an email address. If you want to anonymize that data, then you need to track the transformed output from the input in order to insert the correct value. But that's for another blog post for another day.
 
-## Circular dependencies
+### Circular dependencies
 
 ![subsetpage](/images/blogs/circle.png)
 
@@ -87,7 +87,7 @@ Similar to the linear dependencies, a user would provide us with one or multiple
 
 The added layer of complexity here is in using recursive functions to manage the circular nature of these relationships. And just as in the linear dependencies, we have to be careful to insert the data in the correct order (direction) otherwise our foreign keys will panic about missing references.
 
-# Conclusion
+## Conclusion
 
 Implementing referential integrity in subsetting was a fun challenge to take on. As a team, we spent a lot of time drawing boxes and arrows on a whiteboard and thinking through the edge cases. We also implemented this for Mysql and Postgres which added an extra layer of difficult since Mysql and Postgres have different syntax and functionality.
 
