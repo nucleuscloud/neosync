@@ -278,8 +278,8 @@ func Test_buildSelectQueryMap(t *testing.T) {
 			subsetByForeignKeyConstraints: true,
 			tableDependencies:             map[string][]*sql_manager.ForeignConstraint{},
 			dependencyConfigs: []*tabledependency.RunConfig{
-				{Table: "public.users", Columns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}, RunType: tabledependency.RunTypeInsert},
-				{Table: "public.accounts", Columns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}, RunType: tabledependency.RunTypeInsert},
+				{Table: "public.users", SelectColumns: []string{"id", "name"}, InsertColumns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}, RunType: tabledependency.RunTypeInsert},
+				{Table: "public.accounts", SelectColumns: []string{"id", "name"}, InsertColumns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}, RunType: tabledependency.RunTypeInsert},
 			},
 			expected: map[string]map[tabledependency.RunType]string{
 				"public.users":    {tabledependency.RunTypeInsert: `SELECT "id", "name" FROM "public"."users";`},
@@ -292,8 +292,8 @@ func Test_buildSelectQueryMap(t *testing.T) {
 			subsetByForeignKeyConstraints: true,
 			tableDependencies:             map[string][]*sql_manager.ForeignConstraint{},
 			dependencyConfigs: []*tabledependency.RunConfig{
-				{Table: "public.users", Columns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId, RunType: tabledependency.RunTypeInsert},
-				{Table: "public.accounts", Columns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}, RunType: tabledependency.RunTypeInsert},
+				{Table: "public.users", SelectColumns: []string{"id", "name"}, InsertColumns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId, RunType: tabledependency.RunTypeInsert},
+				{Table: "public.accounts", SelectColumns: []string{"id", "name"}, InsertColumns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}, RunType: tabledependency.RunTypeInsert},
 			},
 			expected: map[string]map[tabledependency.RunType]string{
 				"public.users":    {tabledependency.RunTypeInsert: `SELECT "id", "name" FROM "public"."users" WHERE id = 1;`},
@@ -326,10 +326,10 @@ func Test_buildSelectQueryMap_SubsetsForeignKeys(t *testing.T) {
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.a", RunType: tabledependency.RunTypeInsert, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
-		{Table: "public.b", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "name", "a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}, WhereClause: &bWhere},
-		{Table: "public.c", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "b_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.b", Columns: []string{"id"}}}, WhereClause: &cWhere},
-		{Table: "public.d", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+		{Table: "public.a", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
+		{Table: "public.b", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "name", "a_id"}, InsertColumns: []string{"id", "name", "a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}, WhereClause: &bWhere},
+		{Table: "public.c", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"id", "b_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.b", Columns: []string{"id"}}}, WhereClause: &cWhere},
+		{Table: "public.d", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "c_id"}, InsertColumns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
 	}
 
 	expected :=
@@ -353,8 +353,8 @@ func Test_buildSelectQueryMap_SubsetsCompositeForeignKeys(t *testing.T) {
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.a", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &aWhere},
-		{Table: "public.b", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "a_name", "a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id", "name"}}}},
+		{Table: "public.a", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "name"}, InsertColumns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &aWhere},
+		{Table: "public.b", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "a_name", "a_id"}, InsertColumns: []string{"id", "a_name", "a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id", "name"}}}},
 	}
 	expected :=
 		map[string]map[tabledependency.RunType]string{
@@ -382,10 +382,10 @@ func Test_buildSelectQueryMap_SubsetsOffForeignKeys(t *testing.T) {
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.a", RunType: tabledependency.RunTypeInsert, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
-		{Table: "public.b", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "name", "a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}, WhereClause: &bWhere},
-		{Table: "public.c", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "b_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.b", Columns: []string{"id"}}}, WhereClause: &cWhere},
-		{Table: "public.d", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+		{Table: "public.a", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
+		{Table: "public.b", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "name", "a_id"}, InsertColumns: []string{"id", "name", "a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}, WhereClause: &bWhere},
+		{Table: "public.c", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"id", "b_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.b", Columns: []string{"id"}}}, WhereClause: &cWhere},
+		{Table: "public.d", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "c_id"}, InsertColumns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
 	}
 	expected :=
 		map[string]map[tabledependency.RunType]string{
@@ -413,16 +413,16 @@ func Test_buildSelectQueryMap_CircularDependency(t *testing.T) {
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.b", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereName},
-		{Table: "public.c", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "b_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
-		{Table: "public.a", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
-		{Table: "public.b", RunType: tabledependency.RunTypeUpdate, PrimaryKeys: []string{"id"}, Columns: []string{"a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+		{Table: "public.b", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "a_id", "name"}, InsertColumns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereName},
+		{Table: "public.c", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"id", "b_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
+		{Table: "public.a", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "c_id"}, InsertColumns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+		{Table: "public.b", RunType: tabledependency.RunTypeUpdate, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "a_id"}, InsertColumns: []string{"a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
 	}
 	expected :=
 		map[string]map[tabledependency.RunType]string{
 			"public.a": {tabledependency.RunTypeInsert: `SELECT "public"."a"."id", "public"."a"."c_id" FROM "public"."a" INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."a"."c_id") INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") WHERE public.b.name = 'neo';`},
 			"public.b": {
-				tabledependency.RunTypeInsert: `SELECT "public"."b"."id", "public"."b"."name" FROM "public"."b" INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."a"."c_id") WHERE public.b.name = 'neo';`,
+				tabledependency.RunTypeInsert: `SELECT "public"."b"."id", "public"."b"."a_id", "public"."b"."name" FROM "public"."b" INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."a"."c_id") WHERE public.b.name = 'neo';`,
 				tabledependency.RunTypeUpdate: `SELECT "public"."b"."id", "public"."b"."a_id" FROM "public"."b" INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") INNER JOIN "public"."c" ON ("public"."c"."id" = "public"."a"."c_id") WHERE public.b.name = 'neo';`,
 			},
 			"public.c": {tabledependency.RunTypeInsert: `SELECT "public"."c"."id", "public"."c"."b_id" FROM "public"."c" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."c"."b_id") INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") WHERE public.b.name = 'neo';`},
@@ -449,18 +449,18 @@ func Test_buildSelectQueryMap_circularDependency_additional_table(t *testing.T) 
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.orders", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
-		{Table: "public.addresses", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "order_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.orders", Columns: []string{"id"}}}, WhereClause: &whereName},
-		{Table: "public.customers", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "address_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.addresses", Columns: []string{"id"}}}},
-		{Table: "public.payments", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "customer_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.customers", Columns: []string{"id"}}}},
-		{Table: "public.orders", RunType: tabledependency.RunTypeUpdate, PrimaryKeys: []string{"id"}, Columns: []string{"customer_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.orders", Columns: []string{"id"}}, {Table: "public.customers", Columns: []string{"id"}}}},
+		{Table: "public.orders", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "customer_id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
+		{Table: "public.addresses", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "order_id"}, InsertColumns: []string{"id", "order_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.orders", Columns: []string{"id"}}}, WhereClause: &whereName},
+		{Table: "public.customers", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "address_id"}, InsertColumns: []string{"id", "address_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.addresses", Columns: []string{"id"}}}},
+		{Table: "public.payments", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "customer_id"}, InsertColumns: []string{"id", "customer_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.customers", Columns: []string{"id"}}}},
+		{Table: "public.orders", RunType: tabledependency.RunTypeUpdate, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "customer_id"}, InsertColumns: []string{"customer_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.orders", Columns: []string{"id"}}, {Table: "public.customers", Columns: []string{"id"}}}},
 	}
 	expected :=
 		map[string]map[tabledependency.RunType]string{
 			"public.addresses": {tabledependency.RunTypeInsert: `SELECT "public"."addresses"."id", "public"."addresses"."order_id" FROM "public"."addresses" INNER JOIN "public"."orders" ON ("public"."orders"."id" = "public"."addresses"."order_id") INNER JOIN "public"."customers" ON ("public"."customers"."id" = "public"."orders"."customer_id") WHERE public.addresses.name = 'neo';`},
 			"public.customers": {tabledependency.RunTypeInsert: `SELECT "public"."customers"."id", "public"."customers"."address_id" FROM "public"."customers" INNER JOIN "public"."addresses" ON ("public"."addresses"."id" = "public"."customers"."address_id") INNER JOIN "public"."orders" ON ("public"."orders"."id" = "public"."addresses"."order_id") WHERE public.addresses.name = 'neo';`},
 			"public.orders": {
-				tabledependency.RunTypeInsert: `SELECT "public"."orders"."id" FROM "public"."orders" INNER JOIN "public"."customers" ON ("public"."customers"."id" = "public"."orders"."customer_id") INNER JOIN "public"."addresses" ON ("public"."addresses"."id" = "public"."customers"."address_id") WHERE public.addresses.name = 'neo';`,
+				tabledependency.RunTypeInsert: `SELECT "public"."orders"."id", "public"."orders"."customer_id" FROM "public"."orders" INNER JOIN "public"."customers" ON ("public"."customers"."id" = "public"."orders"."customer_id") INNER JOIN "public"."addresses" ON ("public"."addresses"."id" = "public"."customers"."address_id") WHERE public.addresses.name = 'neo';`,
 				tabledependency.RunTypeUpdate: `SELECT "public"."orders"."id", "public"."orders"."customer_id" FROM "public"."orders" INNER JOIN "public"."customers" ON ("public"."customers"."id" = "public"."orders"."customer_id") INNER JOIN "public"."addresses" ON ("public"."addresses"."id" = "public"."customers"."address_id") WHERE public.addresses.name = 'neo';`,
 			},
 			"public.payments": {tabledependency.RunTypeInsert: `SELECT "public"."payments"."id", "public"."payments"."customer_id" FROM "public"."payments" INNER JOIN "public"."customers" ON ("public"."customers"."id" = "public"."payments"."customer_id") INNER JOIN "public"."addresses" ON ("public"."addresses"."id" = "public"."customers"."address_id") INNER JOIN "public"."orders" ON ("public"."orders"."id" = "public"."addresses"."order_id") WHERE public.addresses.name = 'neo';`},
@@ -487,14 +487,23 @@ func Test_buildSelectQueryMap_MultiplSubsets(t *testing.T) {
 			{Columns: []string{"e_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.e", Columns: []string{"id"}}},
 		},
 	}
+	// dependencyConfigs := []*tabledependency.RunConfig{
+	// 	{Table: "public.a", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
+	// 	{Table: "public.b", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "name", "a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}, WhereClause: &whereName},
+	// 	{Table: "public.c", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "b_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
+	// 	{Table: "public.d", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
+	// 	{Table: "public.e", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "d_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.d", Columns: []string{"id"}}}, WhereClause: &whereId},
+	// 	{Table: "public.f", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "e_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.e", Columns: []string{"id"}}}},
+	// }
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.a", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
-		{Table: "public.b", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "name", "a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}, WhereClause: &whereName},
-		{Table: "public.c", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "b_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
-		{Table: "public.d", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
-		{Table: "public.e", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "d_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.d", Columns: []string{"id"}}}, WhereClause: &whereId},
-		{Table: "public.f", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "e_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.e", Columns: []string{"id"}}}},
+		{Table: "public.a", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
+		{Table: "public.b", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "name", "a_id"}, InsertColumns: []string{"id", "name", "a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}, WhereClause: &whereName},
+		{Table: "public.c", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "b_id"}, InsertColumns: []string{"id", "b_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
+		{Table: "public.d", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
+		{Table: "public.e", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "d_id"}, InsertColumns: []string{"id", "d_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.d", Columns: []string{"id"}}}, WhereClause: &whereId},
+		{Table: "public.f", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "e_id"}, InsertColumns: []string{"id", "e_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.e", Columns: []string{"id"}}}},
 	}
+
 	expected :=
 		map[string]map[tabledependency.RunType]string{
 			"public.a": {tabledependency.RunTypeInsert: `SELECT "id" FROM "public"."a" WHERE public.a.id = 1;`},
@@ -523,13 +532,21 @@ func Test_buildSelectQueryMap_MultipleRootss(t *testing.T) {
 			{Columns: []string{"c_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.c", Columns: []string{"id"}}},
 		},
 	}
+	// dependencyConfigs := []*tabledependency.RunConfig{
+	// 	{Table: "public.a", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
+	// 	{Table: "public.b", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
+	// 	{Table: "public.c", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "a_id", "b_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"id"}}}},
+	// 	{Table: "public.d", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+	// 	{Table: "public.e", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+	// }
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.a", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
-		{Table: "public.b", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
-		{Table: "public.c", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "a_id", "b_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"id"}}}},
-		{Table: "public.d", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
-		{Table: "public.e", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+		{Table: "public.a", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
+		{Table: "public.b", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
+		{Table: "public.c", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "a_id", "b_id"}, InsertColumns: []string{"id", "a_id", "b_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"id"}}}},
+		{Table: "public.d", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "c_id"}, InsertColumns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+		{Table: "public.e", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "c_id"}, InsertColumns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
 	}
+
 	expected :=
 		map[string]map[tabledependency.RunType]string{
 			"public.a": {tabledependency.RunTypeInsert: `SELECT "id" FROM "public"."a";`},
@@ -562,13 +579,14 @@ func Test_buildSelectQueryMap_MultipleRootsAndWheres(t *testing.T) {
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.x", RunType: tabledependency.RunTypeInsert, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId2},
-		{Table: "public.b", RunType: tabledependency.RunTypeInsert, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
-		{Table: "public.a", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "x_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.x", Columns: []string{"id"}}}},
-		{Table: "public.c", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "a_id", "b_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"id"}}}},
-		{Table: "public.d", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
-		{Table: "public.e", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+		{Table: "public.x", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId2},
+		{Table: "public.b", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
+		{Table: "public.a", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "x_id"}, InsertColumns: []string{"id", "x_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.x", Columns: []string{"id"}}}},
+		{Table: "public.c", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "a_id", "b_id"}, InsertColumns: []string{"id", "a_id", "b_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.b", Columns: []string{"id"}}}},
+		{Table: "public.d", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "c_id"}, InsertColumns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+		{Table: "public.e", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "c_id"}, InsertColumns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
 	}
+
 	expected :=
 		map[string]map[tabledependency.RunType]string{
 			"public.a": {tabledependency.RunTypeInsert: `SELECT "public"."a"."id", "public"."a"."x_id" FROM "public"."a" INNER JOIN "public"."x" ON ("public"."x"."id" = "public"."a"."x_id") WHERE public.x.id = 2;`},
@@ -595,14 +613,15 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyRoot(t *testing.T) {
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.a", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
-		{Table: "public.a", RunType: tabledependency.RunTypeUpdate, PrimaryKeys: []string{"id"}, Columns: []string{"a_id", "aa_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
-		{Table: "public.b", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+		{Table: "public.a", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "a_id", "aa_id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
+		{Table: "public.a", RunType: tabledependency.RunTypeUpdate, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "a_id", "aa_id"}, InsertColumns: []string{"a_id", "aa_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+		{Table: "public.b", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "a_id"}, InsertColumns: []string{"id", "a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
 	}
+
 	expected :=
 		map[string]map[tabledependency.RunType]string{
 			"public.a": {
-				tabledependency.RunTypeInsert: `WITH RECURSIVE related AS (SELECT "public"."a"."id" FROM "public"."a" WHERE public.a.id = 1 UNION (SELECT "public"."a"."id" FROM "public"."a" INNER JOIN "related" ON (("public"."a"."id" = "related"."a_id") OR ("public"."a"."id" = "related"."a_a_id")))) SELECT DISTINCT "id" FROM "related";`,
+				tabledependency.RunTypeInsert: `WITH RECURSIVE related AS (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."aa_id" FROM "public"."a" WHERE public.a.id = 1 UNION (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."aa_id" FROM "public"."a" INNER JOIN "related" ON (("public"."a"."id" = "related"."a_id") OR ("public"."a"."id" = "related"."a_a_id")))) SELECT DISTINCT "id", "a_id", "aa_id" FROM "related";`,
 				tabledependency.RunTypeUpdate: `WITH RECURSIVE related AS (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."aa_id" FROM "public"."a" WHERE public.a.id = 1 UNION (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."aa_id" FROM "public"."a" INNER JOIN "related" ON (("public"."a"."id" = "related"."a_id") OR ("public"."a"."id" = "related"."a_a_id")))) SELECT DISTINCT "id", "a_id", "aa_id" FROM "related";`,
 			},
 			"public.b": {tabledependency.RunTypeInsert: `SELECT "public"."b"."id", "public"."b"."a_id" FROM "public"."b" INNER JOIN "public"."a" ON ("public"."a"."id" = "public"."b"."a_id") WHERE public.a.id = 1;`},
@@ -623,11 +642,17 @@ func Test_buildSelectQueryMap_DoubleReference(t *testing.T) {
 			{Columns: []string{"department_destination_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.department", Columns: []string{"id"}}},
 		},
 	}
+	// dependencyConfigs := []*tabledependency.RunConfig{
+	// 	{Table: "public.company", RunType: tabledependency.RunTypeInsert, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
+	// 	{Table: "public.department", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "company_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.company", Columns: []string{"id"}}}},
+	// 	{Table: "public.expense_report", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "department_source_id", "department_destination_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.department", Columns: []string{"department_source_id", "department_destination_id"}}}},
+	// }
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.company", RunType: tabledependency.RunTypeInsert, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
-		{Table: "public.department", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "company_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.company", Columns: []string{"id"}}}},
-		{Table: "public.expense_report", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "department_source_id", "department_destination_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.department", Columns: []string{"department_source_id", "department_destination_id"}}}},
+		{Table: "public.company", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
+		{Table: "public.department", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "company_id"}, InsertColumns: []string{"id", "company_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.company", Columns: []string{"id"}}}},
+		{Table: "public.expense_report", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "department_source_id", "department_destination_id"}, InsertColumns: []string{"id", "department_source_id", "department_destination_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.department", Columns: []string{"department_source_id", "department_destination_id"}}}},
 	}
+
 	expected :=
 		map[string]map[tabledependency.RunType]string{
 			"public.company":        {tabledependency.RunTypeInsert: `SELECT "id" FROM "public"."company" WHERE public.company.id = 1;`},
@@ -654,12 +679,19 @@ func Test_buildSelectQueryMap_DoubleReference_Cycle(t *testing.T) {
 			{Columns: []string{"transaction_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.transaction", Columns: []string{"id"}}},
 		},
 	}
+	// dependencyConfigs := []*tabledependency.RunConfig{
+	// 	{Table: "public.company", RunType: tabledependency.RunTypeInsert, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
+	// 	{Table: "public.department", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "company_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.company", Columns: []string{"id"}}}},
+	// 	{Table: "public.transaction", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "department_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.department", Columns: []string{"id"}}}},
+	// 	{Table: "public.expense_report", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "department_source_id", "department_destination_id", "transaction_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.department", Columns: []string{"id"}}, {Table: "public.transaction", Columns: []string{"id"}}}},
+	// }
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.company", RunType: tabledependency.RunTypeInsert, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
-		{Table: "public.department", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "company_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.company", Columns: []string{"id"}}}},
-		{Table: "public.transaction", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "department_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.department", Columns: []string{"id"}}}},
-		{Table: "public.expense_report", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "department_source_id", "department_destination_id", "transaction_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.department", Columns: []string{"id"}}, {Table: "public.transaction", Columns: []string{"id"}}}},
+		{Table: "public.company", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
+		{Table: "public.department", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "company_id"}, InsertColumns: []string{"id", "company_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.company", Columns: []string{"id"}}}},
+		{Table: "public.transaction", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "department_id"}, InsertColumns: []string{"id", "department_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.department", Columns: []string{"id"}}}},
+		{Table: "public.expense_report", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "department_source_id", "department_destination_id", "transaction_id"}, InsertColumns: []string{"id", "department_source_id", "department_destination_id", "transaction_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.department", Columns: []string{"id"}}, {Table: "public.transaction", Columns: []string{"id"}}}},
 	}
+
 	expected :=
 		map[string]map[tabledependency.RunType]string{
 			"public.company":        {tabledependency.RunTypeInsert: `SELECT "id" FROM "public"."company" WHERE public.company.id = 1;`},
@@ -684,14 +716,15 @@ func Test_buildSelectQueryMap_doubleCircularDependencyRoot_mysql(t *testing.T) {
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.a", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
-		{Table: "public.a", RunType: tabledependency.RunTypeUpdate, PrimaryKeys: []string{"id"}, Columns: []string{"a_id", "a_a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
-		{Table: "public.b", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+		{Table: "public.a", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "a_id", "a_a_id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
+		{Table: "public.a", RunType: tabledependency.RunTypeUpdate, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "a_id", "a_a_id"}, InsertColumns: []string{"a_id", "a_a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+		{Table: "public.b", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "a_id"}, InsertColumns: []string{"id", "a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
 	}
+
 	expected :=
 		map[string]map[tabledependency.RunType]string{
 			"public.a": {
-				tabledependency.RunTypeInsert: "WITH RECURSIVE related AS (SELECT `public`.`a`.`id` FROM `public`.`a` WHERE public.a.id = 1 UNION (SELECT `public`.`a`.`id` FROM `public`.`a` INNER JOIN `related` ON ((`public`.`a`.`id` = `related`.`a_id`) OR (`public`.`a`.`id` = `related`.`a_a_id`)))) SELECT DISTINCT `id` FROM `related`;",
+				tabledependency.RunTypeInsert: "WITH RECURSIVE related AS (SELECT `public`.`a`.`id`, `public`.`a`.`a_id`, `public`.`a`.`a_a_id` FROM `public`.`a` WHERE public.a.id = 1 UNION (SELECT `public`.`a`.`id`, `public`.`a`.`a_id`, `public`.`a`.`a_a_id` FROM `public`.`a` INNER JOIN `related` ON ((`public`.`a`.`id` = `related`.`a_id`) OR (`public`.`a`.`id` = `related`.`a_a_id`)))) SELECT DISTINCT `id`, `a_id`, `a_a_id` FROM `related`;",
 				tabledependency.RunTypeUpdate: "WITH RECURSIVE related AS (SELECT `public`.`a`.`id`, `public`.`a`.`a_id`, `public`.`a`.`a_a_id` FROM `public`.`a` WHERE public.a.id = 1 UNION (SELECT `public`.`a`.`id`, `public`.`a`.`a_id`, `public`.`a`.`a_a_id` FROM `public`.`a` INNER JOIN `related` ON ((`public`.`a`.`id` = `related`.`a_id`) OR (`public`.`a`.`id` = `related`.`a_a_id`)))) SELECT DISTINCT `id`, `a_id`, `a_a_id` FROM `related`;",
 			},
 			"public.b": {tabledependency.RunTypeInsert: "SELECT `public`.`b`.`id`, `public`.`b`.`a_id` FROM `public`.`b` INNER JOIN `public`.`a` ON (`public`.`a`.`id` = `public`.`b`.`a_id`) WHERE public.a.id = 1;"},
@@ -711,17 +744,18 @@ func Test_buildSelectQueryMap_DoubleCircularDependencyChild(t *testing.T) {
 		},
 	}
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.a", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "b_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.b", Columns: []string{"id"}}}},
-		{Table: "public.a", RunType: tabledependency.RunTypeUpdate, PrimaryKeys: []string{"id"}, Columns: []string{"a_id", "a_a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
-		{Table: "public.b", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &whereId},
+		{Table: "public.a", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "a_id", "a_a_id", "b_id"}, InsertColumns: []string{"id", "b_id"}, DependsOn: []*tabledependency.DependsOn{}},
+		{Table: "public.a", RunType: tabledependency.RunTypeUpdate, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "a_id", "a_a_id"}, InsertColumns: []string{"a_id", "a_a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}},
+		{Table: "public.b", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, SelectColumns: []string{"id", "a_id"}, InsertColumns: []string{"id", "a_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}}, WhereClause: &whereId},
 	}
+
 	expected :=
 		map[string]map[tabledependency.RunType]string{
 			"public.a": {
-				tabledependency.RunTypeInsert: `WITH RECURSIVE related AS (SELECT "public"."a"."id", "public"."a"."b_id" FROM "public"."a" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."a"."b_id") WHERE public.b.id = 1 UNION (SELECT "public"."a"."id", "public"."a"."b_id" FROM "public"."a" INNER JOIN "related" ON (("public"."a"."id" = "related"."a_id") OR ("public"."a"."id" = "related"."a_a_id")))) SELECT DISTINCT "id", "b_id" FROM "related";`,
+				tabledependency.RunTypeInsert: `WITH RECURSIVE related AS (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."a_a_id", "public"."a"."b_id" FROM "public"."a" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."a"."b_id") WHERE public.b.id = 1 UNION (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."a_a_id", "public"."a"."b_id" FROM "public"."a" INNER JOIN "related" ON (("public"."a"."id" = "related"."a_id") OR ("public"."a"."id" = "related"."a_a_id")))) SELECT DISTINCT "id", "a_id", "a_a_id", "b_id" FROM "related";`,
 				tabledependency.RunTypeUpdate: `WITH RECURSIVE related AS (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."a_a_id" FROM "public"."a" INNER JOIN "public"."b" ON ("public"."b"."id" = "public"."a"."b_id") WHERE public.b.id = 1 UNION (SELECT "public"."a"."id", "public"."a"."a_id", "public"."a"."a_a_id" FROM "public"."a" INNER JOIN "related" ON (("public"."a"."id" = "related"."a_id") OR ("public"."a"."id" = "related"."a_a_id")))) SELECT DISTINCT "id", "a_id", "a_a_id" FROM "related";`,
 			},
-			"public.b": {tabledependency.RunTypeInsert: `SELECT "id" FROM "public"."b" WHERE public.b.id = 1;`},
+			"public.b": {tabledependency.RunTypeInsert: `SELECT "id", "a_id" FROM "public"."b" WHERE public.b.id = 1;`},
 		}
 	sql, err := buildSelectQueryMap(sql_manager.PostgresDriver, tableDependencies, dependencyConfigs, true, map[string]map[string]*sql_manager.ColumnInfo{})
 	require.NoError(t, err)
@@ -742,13 +776,21 @@ func Test_buildSelectQueryMap_shouldContinue(t *testing.T) {
 			{Columns: []string{"d_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.d", Columns: []string{"id"}}},
 		},
 	}
+	// dependencyConfigs := []*tabledependency.RunConfig{
+	// 	{Table: "public.a", RunType: tabledependency.RunTypeInsert, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &aWhere},
+	// 	{Table: "public.b", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "a_id", "d_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.d", Columns: []string{"id"}}}},
+	// 	{Table: "public.c", RunType: tabledependency.RunTypeInsert, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
+	// 	{Table: "public.d", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+	// 	{Table: "public.e", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "d_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.d", Columns: []string{"id"}}}},
+	// }
 	dependencyConfigs := []*tabledependency.RunConfig{
-		{Table: "public.a", RunType: tabledependency.RunTypeInsert, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &aWhere},
-		{Table: "public.b", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "a_id", "d_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.d", Columns: []string{"id"}}}},
-		{Table: "public.c", RunType: tabledependency.RunTypeInsert, Columns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
-		{Table: "public.d", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
-		{Table: "public.e", RunType: tabledependency.RunTypeInsert, Columns: []string{"id", "d_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.d", Columns: []string{"id"}}}},
+		{Table: "public.a", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}, WhereClause: &aWhere},
+		{Table: "public.b", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "a_id", "d_id"}, InsertColumns: []string{"id", "a_id", "d_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.a", Columns: []string{"id"}}, {Table: "public.d", Columns: []string{"id"}}}},
+		{Table: "public.c", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id"}, InsertColumns: []string{"id"}, DependsOn: []*tabledependency.DependsOn{}},
+		{Table: "public.d", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "c_id"}, InsertColumns: []string{"id", "c_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.c", Columns: []string{"id"}}}},
+		{Table: "public.e", RunType: tabledependency.RunTypeInsert, SelectColumns: []string{"id", "d_id"}, InsertColumns: []string{"id", "d_id"}, DependsOn: []*tabledependency.DependsOn{{Table: "public.d", Columns: []string{"id"}}}},
 	}
+
 	expected :=
 		map[string]map[tabledependency.RunType]string{
 			"public.a": {tabledependency.RunTypeInsert: `SELECT "id" FROM "public"."a" WHERE public.a.id = 1;`},
@@ -768,21 +810,23 @@ func Test_filterForeignKeysWithSubset_partialtables(t *testing.T) {
 	where := "id = '36f594af-6d53-4a48-a9b7-b889e2df349e'"
 	runConfigMap := map[string]*tabledependency.RunConfig{
 		"circle.addresses": {
-			Table:       "circle.addresses",
-			Columns:     []string{"id"},
-			DependsOn:   []*tabledependency.DependsOn{},
-			RunType:     tabledependency.RunTypeInsert,
-			PrimaryKeys: []string{"id"},
-			WhereClause: &where,
+			Table:         "circle.addresses",
+			InsertColumns: []string{"id"},
+			SelectColumns: []string{"id"},
+			DependsOn:     []*tabledependency.DependsOn{},
+			RunType:       tabledependency.RunTypeInsert,
+			PrimaryKeys:   []string{"id"},
+			WhereClause:   &where,
 		},
 
 		"circle.customers": {
-			Table:       "circle.customers",
-			Columns:     []string{"id", "address_id"},
-			DependsOn:   []*tabledependency.DependsOn{{Table: "circle.addresses", Columns: []string{"id"}}},
-			RunType:     tabledependency.RunTypeInsert,
-			PrimaryKeys: []string{"id"},
-			WhereClause: emptyWhere,
+			Table:         "circle.customers",
+			InsertColumns: []string{"id", "address_id"},
+			SelectColumns: []string{"id", "address_id"},
+			DependsOn:     []*tabledependency.DependsOn{{Table: "circle.addresses", Columns: []string{"id"}}},
+			RunType:       tabledependency.RunTypeInsert,
+			PrimaryKeys:   []string{"id"},
+			WhereClause:   emptyWhere,
 		},
 	}
 

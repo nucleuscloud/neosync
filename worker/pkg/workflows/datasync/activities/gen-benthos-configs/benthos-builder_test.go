@@ -1268,7 +1268,7 @@ input:
     pooled_sql_raw:
         driver: postgres
         dsn: ${SOURCE_CONNECTION_DSN}
-        query: SELECT "id" FROM "public"."jobs";
+        query: SELECT "id", "parent_id" FROM "public"."jobs";
 pipeline:
     threads: -1
     processors:
@@ -1717,7 +1717,7 @@ input:
     pooled_sql_raw:
         driver: postgres
         dsn: ${SOURCE_CONNECTION_DSN}
-        query: SELECT "id", "name" FROM "public"."users";
+        query: SELECT "id", "name", "user_assoc_id" FROM "public"."users";
 pipeline:
     threads: -1
     processors: []
@@ -2061,7 +2061,7 @@ input:
     pooled_sql_raw:
         driver: postgres
         dsn: ${SOURCE_CONNECTION_DSN}
-        query: SELECT "id", "name" FROM "public"."users";
+        query: SELECT "id", "name", "user_assoc_id" FROM "public"."users";
 pipeline:
     threads: -1
     processors: []
@@ -2758,7 +2758,7 @@ func Test_ProcessorConfigEmpty(t *testing.T) {
 		"public.users": {tabledependency.RunTypeInsert: ""},
 	}
 	runconfigs := []*tabledependency.RunConfig{
-		{Table: "public.users", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}},
+		{Table: "public.users", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, InsertColumns: []string{"id", "name"}, SelectColumns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}},
 	}
 
 	res, err := buildBenthosSqlSourceConfigResponses(
@@ -2828,7 +2828,7 @@ func Test_ProcessorConfigEmptyJavascript(t *testing.T) {
 	}
 
 	runconfigs := []*tabledependency.RunConfig{
-		{Table: "public.users", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}},
+		{Table: "public.users", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, InsertColumns: []string{"id", "name"}, SelectColumns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}},
 	}
 
 	queryMap := map[string]map[tabledependency.RunType]string{
@@ -2909,7 +2909,7 @@ func Test_ProcessorConfigMultiJavascript(t *testing.T) {
 	}
 
 	runconfigs := []*tabledependency.RunConfig{
-		{Table: "public.users", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}},
+		{Table: "public.users", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, InsertColumns: []string{"id", "name"}, SelectColumns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}},
 	}
 
 	res, err := buildBenthosSqlSourceConfigResponses(
@@ -3016,7 +3016,7 @@ func Test_ProcessorConfigMutationAndJavascript(t *testing.T) {
 		"public.users": {tabledependency.RunTypeInsert: ""},
 	}
 	runconfigs := []*tabledependency.RunConfig{
-		{Table: "public.users", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, Columns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}},
+		{Table: "public.users", RunType: tabledependency.RunTypeInsert, PrimaryKeys: []string{"id"}, InsertColumns: []string{"id", "name"}, SelectColumns: []string{"id", "name"}, DependsOn: []*tabledependency.DependsOn{}},
 	}
 
 	res, err := buildBenthosSqlSourceConfigResponses(

@@ -326,13 +326,7 @@ func buildQueryMapNoSubsetConstraints(
 		if _, ok := queryRunTypeMap[config.Table]; !ok {
 			queryRunTypeMap[config.Table] = map[tabledependency.RunType]string{}
 		}
-		columns := config.Columns
-		if config.RunType == tabledependency.RunTypeUpdate {
-			columns = []string{}
-			columns = append(columns, config.PrimaryKeys...)
-			columns = append(columns, config.Columns...)
-		}
-		query, err := buildSelectQuery(driver, config.Table, columns, config.WhereClause)
+		query, err := buildSelectQuery(driver, config.Table, config.SelectColumns, config.WhereClause)
 		if err != nil {
 			return nil, fmt.Errorf("unable to build select query: %w", err)
 		}

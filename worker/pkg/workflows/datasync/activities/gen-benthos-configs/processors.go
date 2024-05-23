@@ -30,7 +30,7 @@ func buildSqlUpdateProcessorConfigs(
 		for _, fk := range fks {
 			colTransformer, exists := colTransformerMap[pkCol]
 			// only need redis processors if the primary key has a transformer
-			if !exists || !hasTransformer(colTransformer.GetSource()) || !slices.Contains(config.Columns, fk.Column) {
+			if !exists || !hasTransformer(colTransformer.GetSource()) || !slices.Contains(config.InsertColumns, fk.Column) {
 				continue
 			}
 
