@@ -11,12 +11,13 @@ import PHProvider, { PostHogPageview } from './providers';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://assets.nucleuscloud.com/'),
-  title: 'Open Source Data Anonymization and Synthetic Data',
+  title: 'Neosync | Open Source Data Anonymization and Synthetic Data',
   description:
     'Neosync is an open source data anonymization and synthetic data generation platform for developers',
   openGraph: {
-    title: 'Neosync',
-    description: 'Open Source Data Anonymization and Synthetic Data',
+    title: 'Neosync | Open Source Data Anonymization and Synthetic Data',
+    description:
+      'Neosync is an open source data anonymization and synthetic data generation platform for developers',
     url: 'https://www.neosync.dev',
     siteName: 'Neosync',
     images: [

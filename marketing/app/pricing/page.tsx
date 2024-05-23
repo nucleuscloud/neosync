@@ -18,11 +18,11 @@ import { ReactElement } from 'react';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://assets.nucleuscloud.com/'),
-  title: 'Neosync | Pricing',
+  title: 'Neosync | Simple, transparent pricing',
   description: `Explore Neosync's simple and transparent pricing options ranging from Open Source to an Enterprise package.`,
   openGraph: {
-    title: 'Neosync',
-    description: 'Open Source Data Anonymization and Synthetic Data',
+    title: 'Neosync | Simple, transparent pricing',
+    description: `Explore Neosync's simple and transparent pricing options ranging from Open Source to an Enterprise package.`,
     url: 'https://www.neosync.dev',
     siteName: 'Neosync',
     images: [

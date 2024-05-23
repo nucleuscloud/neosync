@@ -13,13 +13,13 @@ import { Metadata } from 'next';
 import { ReactElement } from 'react';
 
 export const metadata: Metadata = {
-  title: 'Neosync | Blog',
+  title: 'Neosync | Blogs on data anonymization and synthetic data.',
   description:
-    'Read the Neosync Blog to learn more about data anonymization, synthetic dataq and to be kept up to date on product announcements.',
+    'Read the Neosync Blog to learn more about data anonymization, synthetic data and to be kept up to date on product announcements.',
   openGraph: {
-    title: 'Neosync | Blog',
+    title: 'Neosync | Blogs on data anonymization and synthetic data.',
     description:
-      'Read the Neosync Blog to learn more about data anonymization, synthetic dataq and to be kept up to date on product announcements.',
+      'Read the Neosync Blog to learn more about data anonymization, synthetic data and to be kept up to date on product announcements.',
     url: 'https://www.neosync.dev/blog',
     siteName: 'Neosync',
     images: [
