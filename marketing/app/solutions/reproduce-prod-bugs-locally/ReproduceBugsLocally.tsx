@@ -16,9 +16,8 @@ export default function ReproduceBugsLocally(): ReactElement {
       image: '/images/unblocklocal.svg',
     },
     {
-      title: 'Run syncs ad-hoc or on a schedule',
-      description:
-        'Configure your data syncs to run on a schedule or trigger then ad-hoc to get the latest data. ',
+      title: 'Debug against anonymized production data',
+      description: 'Work with data that is representative of production.',
       image: '/images/envsync3.svg',
     },
     {
