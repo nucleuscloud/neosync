@@ -1283,7 +1283,7 @@
           "name": "ClientTlsConfig",
           "longName": "ClientTlsConfig",
           "fullName": "mgmt.v1alpha1.ClientTlsConfig",
-          "description": "",
+          "description": "Config for providing client-side TLS certificates",
           "hasExtensions": false,
           "hasFields": true,
           "hasOneofs": true,
@@ -1291,7 +1291,7 @@
           "fields": [
             {
               "name": "root_cert",
-              "description": "",
+              "description": "Root Certificate in PEM Format",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -1303,7 +1303,7 @@
             },
             {
               "name": "client_cert",
-              "description": "",
+              "description": "Client Certificate in PEM format. Must also provide key.",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -1315,7 +1315,7 @@
             },
             {
               "name": "client_key",
-              "description": "",
+              "description": "Client Key in PEM format. Must also provide cert.",
               "label": "optional",
               "type": "string",
               "longType": "string",
@@ -2178,7 +2178,7 @@
             },
             {
               "name": "client_tls",
-              "description": "",
+              "description": "Provide client-side TLS Certificates",
               "label": "",
               "type": "ClientTlsConfig",
               "longType": "ClientTlsConfig",
@@ -2370,7 +2370,7 @@
           "fields": [
             {
               "name": "max_connection_limit",
-              "description": "",
+              "description": "Limits the number of open connections in the pool.",
               "label": "optional",
               "type": "int32",
               "longType": "int32",

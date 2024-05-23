@@ -829,6 +829,8 @@ export class PostgresConnectionConfig extends Message<PostgresConnectionConfig> 
   connectionOptions?: SqlConnectionOptions;
 
   /**
+   * Provide client-side TLS Certificates
+   *
    * @generated from field: mgmt.v1alpha1.ClientTlsConfig client_tls = 5;
    */
   clientTls?: ClientTlsConfig;
@@ -866,20 +868,28 @@ export class PostgresConnectionConfig extends Message<PostgresConnectionConfig> 
 }
 
 /**
+ * Config for providing client-side TLS certificates
+ *
  * @generated from message mgmt.v1alpha1.ClientTlsConfig
  */
 export class ClientTlsConfig extends Message<ClientTlsConfig> {
   /**
+   * Root Certificate in PEM Format
+   *
    * @generated from field: optional string root_cert = 1;
    */
   rootCert?: string;
 
   /**
+   * Client Certificate in PEM format. Must also provide key.
+   *
    * @generated from field: optional string client_cert = 2;
    */
   clientCert?: string;
 
   /**
+   * Client Key in PEM format. Must also provide cert.
+   *
    * @generated from field: optional string client_key = 3;
    */
   clientKey?: string;
@@ -919,6 +929,8 @@ export class ClientTlsConfig extends Message<ClientTlsConfig> {
  */
 export class SqlConnectionOptions extends Message<SqlConnectionOptions> {
   /**
+   * Limits the number of open connections in the pool.
+   *
    * @generated from field: optional int32 max_connection_limit = 1;
    */
   maxConnectionLimit?: number;

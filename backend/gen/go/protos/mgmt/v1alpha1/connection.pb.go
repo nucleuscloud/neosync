@@ -1053,7 +1053,8 @@ type PostgresConnectionConfig struct {
 	// Provide tunnel configuration that can be used to access a postgres connection that is not publicly accessible to the internet
 	Tunnel            *SSHTunnel            `protobuf:"bytes,3,opt,name=tunnel,proto3" json:"tunnel,omitempty"`
 	ConnectionOptions *SqlConnectionOptions `protobuf:"bytes,4,opt,name=connection_options,json=connectionOptions,proto3" json:"connection_options,omitempty"`
-	ClientTls         *ClientTlsConfig      `protobuf:"bytes,5,opt,name=client_tls,json=clientTls,proto3" json:"client_tls,omitempty"`
+	// Provide client-side TLS Certificates
+	ClientTls *ClientTlsConfig `protobuf:"bytes,5,opt,name=client_tls,json=clientTls,proto3" json:"client_tls,omitempty"`
 }
 
 func (x *PostgresConnectionConfig) Reset() {
@@ -1146,14 +1147,18 @@ func (*PostgresConnectionConfig_Url) isPostgresConnectionConfig_ConnectionConfig
 
 func (*PostgresConnectionConfig_Connection) isPostgresConnectionConfig_ConnectionConfig() {}
 
+// Config for providing client-side TLS certificates
 type ClientTlsConfig struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	RootCert   *string `protobuf:"bytes,1,opt,name=root_cert,json=rootCert,proto3,oneof" json:"root_cert,omitempty"`
+	// Root Certificate in PEM Format
+	RootCert *string `protobuf:"bytes,1,opt,name=root_cert,json=rootCert,proto3,oneof" json:"root_cert,omitempty"`
+	// Client Certificate in PEM format. Must also provide key.
 	ClientCert *string `protobuf:"bytes,2,opt,name=client_cert,json=clientCert,proto3,oneof" json:"client_cert,omitempty"`
-	ClientKey  *string `protobuf:"bytes,3,opt,name=client_key,json=clientKey,proto3,oneof" json:"client_key,omitempty"`
+	// Client Key in PEM format. Must also provide cert.
+	ClientKey *string `protobuf:"bytes,3,opt,name=client_key,json=clientKey,proto3,oneof" json:"client_key,omitempty"`
 }
 
 func (x *ClientTlsConfig) Reset() {
@@ -1214,6 +1219,7 @@ type SqlConnectionOptions struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// Limits the number of open connections in the pool.
 	MaxConnectionLimit *int32 `protobuf:"varint,1,opt,name=max_connection_limit,json=maxConnectionLimit,proto3,oneof" json:"max_connection_limit,omitempty"`
 }
 
