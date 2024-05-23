@@ -90,9 +90,9 @@ message DayResult {
 
 message GetMetricCountRequest {
   // The start time
-  google.protobuf.Timestamp start = 1;
+  Date start = 1;
   // The end time
-  google.protobuf.Timestamp end = 2;
+  Date end = 2;
   // The metric to return
   RangedMetricName metric = 3;
 

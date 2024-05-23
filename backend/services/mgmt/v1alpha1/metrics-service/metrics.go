@@ -78,7 +78,7 @@ func (s *Service) GetDailyMetricCount(
 		return nil, nucleuserrors.NewBadRequest("must provide a valid identifier to proceed")
 	}
 
-	query, err := getPromQueryFromMetric(req.Msg.GetMetric(), queryLabels)
+	query, err := getPromQueryFromMetric(req.Msg.GetMetric(), queryLabels, "1d")
 	if err != nil {
 		return nil, fmt.Errorf("unable to compute valid prometheus query: %w", err)
 	}
@@ -107,14 +107,14 @@ func (s *Service) GetMetricCount(
 	if req.Msg.GetMetric() == mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_UNSPECIFIED {
 		return nil, nucleuserrors.NewBadRequest("must provide a metric name")
 	}
-	start := req.Msg.GetStart()
-	end := req.Msg.GetEnd()
+	start := dateToTime(req.Msg.GetStart())
+	end := toEndOfDay(dateToTime(req.Msg.GetEnd()))
 
-	if start.AsTime().After(end.AsTime()) {
+	if start.After(end) {
 		return nil, nucleuserrors.NewBadRequest("start must not be before end")
 	}
 
-	timeDiff := end.AsTime().Sub(start.AsTime())
+	timeDiff := end.Sub(start)
 	if timeDiff > timeLimit {
 		return nil, nucleuserrors.NewBadRequest("duration between start and end must not exceed 60 days")
 	}
@@ -154,27 +154,41 @@ func (s *Service) GetMetricCount(
 		return nil, nucleuserrors.NewBadRequest("must provide a valid identifier to proceed")
 	}
 
-	query, err := getPromQueryFromMetric(req.Msg.GetMetric(), queryLabels)
+	dayWindow := daysBetween(start, end)
+	query, err := getPromQueryFromMetric(req.Msg.GetMetric(), queryLabels, fmt.Sprintf("%dd", dayWindow))
 	if err != nil {
 		return nil, fmt.Errorf("unable to compute valid prometheus query: %w", err)
 	}
 
-	_, totalCount, err := getDailyUsageFromProm(ctx, s.prometheusclient, query, start.AsTime(), end.AsTime(), logger)
+	totalCount, err := getTotalUsageFromProm(ctx, s.prometheusclient, query, end, logger)
 	if err != nil {
 		return nil, err
 	}
 	return connect.NewResponse(&mgmtv1alpha1.GetMetricCountResponse{Count: uint64(totalCount)}), nil
 }
 
+func daysBetween(start, end time.Time) int {
+	// Ensure the times are in UTC to avoid timezone issues
+	start = start.UTC()
+	end = end.UTC()
+
+	// Calculate the difference in days
+	duration := end.Sub(start)
+	days := int(duration.Hours()/24) + 1
+	// Convert the number of days to a string and return
+	return days
+}
+
 func getPromQueryFromMetric(
 	metric mgmtv1alpha1.RangedMetricName,
 	labels metrics.MetricLabels,
+	timeWindow string,
 ) (string, error) {
 	metricName, err := getMetricNameFromEnum(metric)
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("max_over_time(%s{%s}[1d])", metricName, labels.ToPromQueryString()), nil
+	return fmt.Sprintf("sum(max_over_time(%s{%s}[%s]))", metricName, labels.ToPromQueryString(), timeWindow), nil
 }
 
 const (
@@ -203,10 +217,10 @@ func getDailyUsageFromProm(ctx context.Context, api promv1.API, query string, st
 
 	// Iterate through each day in the range
 	for d := start; !d.After(end); d = d.AddDate(0, 0, 1) {
+		d := d
 		errgrp.Go(func() error {
 			dayStart := time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, time.UTC)
 			dayEnd := dayStart.AddDate(0, 0, 1).Add(-time.Nanosecond)
-			fmt.Println(query, dayEnd)
 			result, warnings, err := api.Query(errctx, query, dayEnd)
 			if err != nil {
 				return fmt.Errorf("error querying Prometheus for date %s: %w", d.Format(usageDateFormat), err)
@@ -257,6 +271,31 @@ func getDailyUsageFromProm(ctx context.Context, api promv1.API, query string, st
 	}
 
 	return dailyResults, overallTotal, nil
+}
+
+func getTotalUsageFromProm(ctx context.Context, api promv1.API, query string, dayEnd time.Time, logger *slog.Logger) (float64, error) {
+	var overallTotal float64
+
+	result, warnings, err := api.Query(ctx, query, dayEnd)
+	if err != nil {
+		return -1, fmt.Errorf("error querying Prometheus for date %s: %w", dayEnd, err)
+	}
+	if len(warnings) > 0 {
+		logger.Warn(fmt.Sprintf("[PROMETHEUS]: %v", warnings))
+	}
+
+	// Process the results for this day
+	vector, ok := result.(model.Vector)
+	if !ok {
+		return -1, fmt.Errorf("error casting result to model.Vector for date %s", dayEnd)
+	}
+
+	for _, sample := range vector {
+		value := float64(sample.Value)
+		overallTotal += value
+	}
+
+	return overallTotal, nil
 }
 
 func timeToDate(t time.Time) mgmtv1alpha1.Date {

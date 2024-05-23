@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
+import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
 
 /**
  * @generated from enum mgmt.v1alpha1.RangedMetricName
@@ -277,16 +277,16 @@ export class GetMetricCountRequest extends Message<GetMetricCountRequest> {
   /**
    * The start time
    *
-   * @generated from field: google.protobuf.Timestamp start = 1;
+   * @generated from field: mgmt.v1alpha1.Date start = 1;
    */
-  start?: Timestamp;
+  start?: Date;
 
   /**
    * The end time
    *
-   * @generated from field: google.protobuf.Timestamp end = 2;
+   * @generated from field: mgmt.v1alpha1.Date end = 2;
    */
-  end?: Timestamp;
+  end?: Date;
 
   /**
    * The metric to return
@@ -332,8 +332,8 @@ export class GetMetricCountRequest extends Message<GetMetricCountRequest> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GetMetricCountRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "start", kind: "message", T: Timestamp },
-    { no: 2, name: "end", kind: "message", T: Timestamp },
+    { no: 1, name: "start", kind: "message", T: Date },
+    { no: 2, name: "end", kind: "message", T: Date },
     { no: 3, name: "metric", kind: "enum", T: proto3.getEnumType(RangedMetricName) },
     { no: 4, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "identifier" },
     { no: 5, name: "job_id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "identifier" },
