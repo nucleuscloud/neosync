@@ -3737,16 +3737,6 @@ func Test_buildPlainColumns(t *testing.T) {
 	)
 }
 
-func Test_splitTableKey(t *testing.T) {
-	schema, table := splitTableKey("foo")
-	require.Equal(t, schema, "public")
-	require.Equal(t, table, "foo")
-
-	schema, table = splitTableKey("neosync.foo")
-	require.Equal(t, schema, "neosync")
-	require.Equal(t, table, "foo")
-}
-
 func Test_buildBenthosS3Credentials(t *testing.T) {
 	require.Nil(t, buildBenthosS3Credentials(nil))
 

@@ -44,7 +44,6 @@ type ConstraintColumns struct {
 
 func GetRunConfigs(
 	dependencyMap map[string][]*sql_manager.ForeignConstraint,
-	tables []string,
 	subsets map[string]string,
 	primaryKeyMap map[string][]string,
 	tableColumnsMap map[string][]string,
@@ -72,7 +71,7 @@ func GetRunConfigs(
 					foreignKeyColsMap[table][constraint.ForeignKey.Table].NullableColumns = append(foreignKeyColsMap[table][constraint.ForeignKey.Table].NullableColumns, col)
 				}
 				foreignKeyMap[table][constraint.ForeignKey.Table] = append(foreignKeyMap[table][constraint.ForeignKey.Table], col)
-				if slices.Contains(tables, table) && slices.Contains(tables, constraint.ForeignKey.Table) {
+				if checkTableHasCols([]string{table, constraint.ForeignKey.Table}, tableColumnsMap) {
 					filteredDepsMap[table] = append(filteredDepsMap[table], constraint.ForeignKey.Table)
 				}
 			}
@@ -84,8 +83,8 @@ func GetRunConfigs(
 	}
 
 	// create map containing all tables to track when each is processed
-	processed := make(map[string]bool, len(tables))
-	for _, t := range tables {
+	processed := make(map[string]bool, len(tableColumnsMap))
+	for t := range tableColumnsMap {
 		processed[t] = false
 	}
 
@@ -301,6 +300,15 @@ func determineCycleStarts(
 		results = append(results, t)
 	}
 	return results, nil
+}
+
+func checkTableHasCols(tables []string, tablesColMap map[string][]string) bool {
+	for _, t := range tables {
+		if _, ok := tablesColMap[t]; !ok {
+			return false
+		}
+	}
+	return true
 }
 
 func areAllFkColsNullable(dependencies []*sql_manager.ForeignConstraint, cycle []string) bool {

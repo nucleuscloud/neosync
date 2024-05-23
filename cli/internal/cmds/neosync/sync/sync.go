@@ -1218,14 +1218,10 @@ func getDestinationPrimaryKeyConstraints(ctx context.Context, sqlmanager sql_man
 
 func getDependencyConfigs(
 	tc map[string][]*sql_manager.ForeignConstraint,
-	tables map[string][]string,
+	tableColMap map[string][]string,
 	primaryKeyMap map[string][]string,
 ) (map[string][]*tabledependency.RunConfig, error) {
-	tablesSlice := []string{}
-	for t := range tables {
-		tablesSlice = append(tablesSlice, t)
-	}
-	dependencyConfigs, err := tabledependency.GetRunConfigs(tc, tablesSlice, map[string]string{}, primaryKeyMap, tables)
+	dependencyConfigs, err := tabledependency.GetRunConfigs(tc, map[string]string{}, primaryKeyMap, tableColMap)
 	if err != nil {
 		return nil, err
 	}

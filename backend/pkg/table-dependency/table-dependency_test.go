@@ -334,7 +334,6 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 	tests := []struct {
 		name          string
 		dependencies  map[string][]*sql_manager.ForeignConstraint
-		tables        []string
 		subsets       map[string]string
 		tableColsMap  map[string][]string
 		primaryKeyMap map[string][]string
@@ -353,7 +352,6 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 			},
-			tables: []string{"public.a", "public.b", "public.c"},
 			tableColsMap: map[string][]string{
 				"public.a": {"id", "b_id"},
 				"public.b": {"id", "c_id"},
@@ -386,7 +384,6 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 			},
-			tables: []string{"public.a", "public.b", "public.c", "public.x"},
 			tableColsMap: map[string][]string{
 				"public.a": {"id", "b_id", "x_id"},
 				"public.b": {"id", "c_id"},
@@ -415,7 +412,6 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 					{Columns: []string{"a_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 			},
-			tables: []string{"public.a"},
 			tableColsMap: map[string][]string{
 				"public.a": {"id", "a_id", "other"},
 			},
@@ -436,7 +432,6 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 					{Columns: []string{"aa_id"}, NotNullable: []bool{false}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 			},
-			tables: []string{"public.a"},
 			tableColsMap: map[string][]string{
 				"public.a": {"id", "a_id", "aa_id", "other"},
 			},
@@ -463,7 +458,6 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 			},
-			tables: []string{"public.a", "public.b", "public.c"},
 			tableColsMap: map[string][]string{
 				"public.a": {"id", "b_id"},
 				"public.b": {"id", "c_id", "cc_id"},
@@ -496,7 +490,6 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 			},
-			tables: []string{"public.a", "public.b", "public.c"},
 			tableColsMap: map[string][]string{
 				"public.a": {"id", "b_id"},
 				"public.b": {"id", "c_id", "cc_id"},
@@ -519,7 +512,7 @@ func Test_GetRunConfigs_NoSubset_SingleCycle(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual, err := GetRunConfigs(tt.dependencies, tt.tables, tt.subsets, tt.primaryKeyMap, tt.tableColsMap)
+			actual, err := GetRunConfigs(tt.dependencies, tt.subsets, tt.primaryKeyMap, tt.tableColsMap)
 			require.NoError(t, err)
 			require.ElementsMatch(t, tt.expect, actual)
 		})
@@ -532,7 +525,6 @@ func Test_GetRunConfigs_Subset_SingleCycle(t *testing.T) {
 	tests := []struct {
 		name          string
 		dependencies  map[string][]*sql_manager.ForeignConstraint
-		tables        []string
 		subsets       map[string]string
 		tableColsMap  map[string][]string
 		primaryKeyMap map[string][]string
@@ -551,7 +543,6 @@ func Test_GetRunConfigs_Subset_SingleCycle(t *testing.T) {
 					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 			},
-			tables: []string{"public.a", "public.b", "public.c"},
 			tableColsMap: map[string][]string{
 				"public.a": {"id", "b_id"},
 				"public.b": {"id", "c_id"},
@@ -586,7 +577,6 @@ func Test_GetRunConfigs_Subset_SingleCycle(t *testing.T) {
 					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 			},
-			tables: []string{"public.a", "public.b", "public.c", "public.x"},
 			tableColsMap: map[string][]string{
 				"public.a": {"id", "b_id", "x_id"},
 				"public.b": {"id", "c_id"},
@@ -614,7 +604,7 @@ func Test_GetRunConfigs_Subset_SingleCycle(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual, err := GetRunConfigs(tt.dependencies, tt.tables, tt.subsets, tt.primaryKeyMap, tt.tableColsMap)
+			actual, err := GetRunConfigs(tt.dependencies, tt.subsets, tt.primaryKeyMap, tt.tableColsMap)
 			require.NoError(t, err)
 			require.ElementsMatch(t, tt.expect, actual)
 		})
@@ -626,7 +616,6 @@ func Test_GetRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 	tests := []struct {
 		name          string
 		dependencies  map[string][]*sql_manager.ForeignConstraint
-		tables        []string
 		subsets       map[string]string
 		tableColsMap  map[string][]string
 		primaryKeyMap map[string][]string
@@ -652,7 +641,6 @@ func Test_GetRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 					{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 				},
 			},
-			tables: []string{"public.a", "public.b", "public.c", "public.d", "public.e"},
 			tableColsMap: map[string][]string{
 				"public.a": {"id", "b_id"},
 				"public.b": {"id", "c_id", "d_id", "other_id"},
@@ -697,7 +685,6 @@ func Test_GetRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 					{Columns: []string{"b_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.b", Columns: []string{"id"}}},
 				},
 			},
-			tables: []string{"public.a", "public.b", "public.c", "public.d", "public.e"},
 			tableColsMap: map[string][]string{
 				"public.a": {"id", "b_id"},
 				"public.b": {"id", "c_id", "d_id", "other_id"},
@@ -737,7 +724,6 @@ func Test_GetRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 			},
-			tables: []string{"public.a", "public.b", "public.c"},
 			tableColsMap: map[string][]string{
 				"public.a": {"id", "b_id"},
 				"public.b": {"id", "c_id", "bb_id", "other_id"},
@@ -771,7 +757,6 @@ func Test_GetRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 					{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 				},
 			},
-			tables: []string{"public.a", "public.b", "public.c"},
 			tableColsMap: map[string][]string{
 				"public.a": {"id", "b_id"},
 				"public.b": {"id", "c_id", "bb_id", "other_id"},
@@ -794,7 +779,7 @@ func Test_GetRunConfigs_NoSubset_MultiCycle(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actual, err := GetRunConfigs(tt.dependencies, tt.tables, tt.subsets, tt.primaryKeyMap, tt.tableColsMap)
+			actual, err := GetRunConfigs(tt.dependencies, tt.subsets, tt.primaryKeyMap, tt.tableColsMap)
 			require.NoError(t, err)
 			for _, e := range tt.expect {
 				acutalConfig := getConfigByTableAndType(e.Table, e.RunType, actual)
@@ -861,7 +846,6 @@ func Test_GetRunConfigs_CompositeKey(t *testing.T) {
 			"responsible_department_id",
 		},
 	}
-	tables := []string{"public.employees", "public.department", "public.projects"}
 
 	expect := []*RunConfig{
 		{Table: "public.employees", RunType: RunTypeInsert, PrimaryKeys: []string{"employee_id", "department_id"}, WhereClause: &emptyWhere, Columns: []string{"employee_id", "department_id", "first_name", "last_name", "email"}, DependsOn: []*DependsOn{{Table: "public.department", Columns: []string{"department_id"}}}},
@@ -874,7 +858,7 @@ func Test_GetRunConfigs_CompositeKey(t *testing.T) {
 			"responsible_department_id"}, DependsOn: []*DependsOn{{Table: "public.employees", Columns: []string{"employee_id", "department_id"}}}},
 	}
 
-	actual, err := GetRunConfigs(dependencies, tables, map[string]string{}, primaryKeyMap, tablesColMap)
+	actual, err := GetRunConfigs(dependencies, map[string]string{}, primaryKeyMap, tablesColMap)
 
 	require.NoError(t, err)
 	for _, e := range expect {
@@ -896,8 +880,7 @@ func Test_GetRunConfigs_CircularDependencyNoneNullable(t *testing.T) {
 			{Columns: []string{"a_id"}, NotNullable: []bool{true}, ForeignKey: &sql_manager.ForeignKey{Table: "public.a", Columns: []string{"id"}}},
 		},
 	}
-	tables := []string{"public.a", "public.b"}
-	_, err := GetRunConfigs(dependencies, tables, map[string]string{}, map[string][]string{}, map[string][]string{})
+	_, err := GetRunConfigs(dependencies, map[string]string{}, map[string][]string{}, map[string][]string{"public.a": []string{}, "public.b": []string{}})
 	require.Error(t, err)
 }
 

@@ -22,18 +22,15 @@ func buildSqlUpdateProcessorConfigs(
 	config *tabledependency.RunConfig,
 	redisConfig *shared.RedisConfig,
 	jobId, runId string,
-	mappings []*mgmtv1alpha1.JobMapping,
-	fkMap map[string][]*referenceKey,
+	colTransformerMap map[string]*mgmtv1alpha1.JobMappingTransformer,
+	columnForeignKeysMap map[string][]*referenceKey,
 ) ([]*neosync_benthos.ProcessorConfig, error) {
 	processorConfigs := []*neosync_benthos.ProcessorConfig{}
-	colSourceMap := map[string]mgmtv1alpha1.TransformerSource{}
-	for _, col := range mappings {
-		colSourceMap[col.Column] = col.GetTransformer().Source
-	}
-	for pkCol, fks := range fkMap {
+	for pkCol, fks := range columnForeignKeysMap {
 		for _, fk := range fks {
+			colTransformer, exists := colTransformerMap[pkCol]
 			// only need redis processors if the primary key has a transformer
-			if !hasTransformer(colSourceMap[pkCol]) || !slices.Contains(config.Columns, fk.Column) {
+			if !exists || !hasTransformer(colTransformer.GetSource()) || !slices.Contains(config.Columns, fk.Column) {
 				continue
 			}
 
@@ -75,8 +72,8 @@ func buildProcessorConfigs(
 	transformerclient mgmtv1alpha1connect.TransformersServiceClient,
 	cols []*mgmtv1alpha1.JobMapping,
 	tableColumnInfo map[string]*sql_manager.ColumnInfo,
-	columnConstraints map[string][]*referenceKey,
-	primaryKeys []string,
+	transformedFktoPkMap map[string][]*referenceKey,
+	fkSourceCols []string,
 	jobId, runId string,
 	redisConfig *shared.RedisConfig,
 ) ([]*neosync_benthos.ProcessorConfig, error) {
@@ -90,12 +87,12 @@ func buildProcessorConfigs(
 		return nil, err
 	}
 
-	cacheBranches, err := buildBranchCacheConfigs(cols, columnConstraints, jobId, runId, redisConfig)
+	cacheBranches, err := buildBranchCacheConfigs(cols, transformedFktoPkMap, jobId, runId, redisConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	pkMapping := buildPrimaryKeyMappingConfigs(cols, primaryKeys)
+	pkMapping := buildPrimaryKeyMappingConfigs(cols, fkSourceCols)
 
 	var processorConfigs []*neosync_benthos.ProcessorConfig
 	if pkMapping != "" {
@@ -206,13 +203,13 @@ func buildPrimaryKeyMappingConfigs(cols []*mgmtv1alpha1.JobMapping, primaryKeys 
 
 func buildBranchCacheConfigs(
 	cols []*mgmtv1alpha1.JobMapping,
-	columnConstraints map[string][]*referenceKey,
+	transformedFktoPkMap map[string][]*referenceKey,
 	jobId, runId string,
 	redisConfig *shared.RedisConfig,
 ) ([]*neosync_benthos.BranchConfig, error) {
 	branchConfigs := []*neosync_benthos.BranchConfig{}
 	for _, col := range cols {
-		fks, ok := columnConstraints[col.Column]
+		fks, ok := transformedFktoPkMap[col.Column]
 		if ok {
 			for _, fk := range fks {
 				// skip self referencing cols

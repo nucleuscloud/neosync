@@ -18,6 +18,7 @@ import (
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	"github.com/doug-martin/goqu/v9/exp"
 	neosync_benthos "github.com/nucleuscloud/neosync/worker/internal/benthos"
+	"github.com/nucleuscloud/neosync/worker/pkg/workflows/datasync/activities/shared"
 )
 
 const (
@@ -650,9 +651,7 @@ func qualifyWhereColumnNames(driver, where, table string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	split := strings.Split(table, ".")
-	schema := split[0]
-	tableName := split[1]
+	schema, tableName := shared.SplitTableKey(table)
 	var updatedSql string
 	switch driver {
 	case sql_manager.MysqlDriver:
