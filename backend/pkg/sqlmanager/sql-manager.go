@@ -26,16 +26,6 @@ type BatchExecOpts struct {
 	Prefix *string // this string will be added to the start of each statement
 }
 
-// type ForeignKey struct {
-// 	Table  string
-// 	Column string
-// }
-// type ForeignConstraint struct {
-// 	Column     string
-// 	IsNullable bool
-// 	ForeignKey *ForeignKey
-// }
-
 type ForeignKey struct {
 	Table   string
 	Columns []string
@@ -61,7 +51,6 @@ type SqlDatabase interface {
 	GetSchemaColumnMap(ctx context.Context) (map[string]map[string]*ColumnInfo, error) // ex: {public.users: { id: struct{}{}, created_at: struct{}{}}}
 	GetForeignKeyConstraints(ctx context.Context, schemas []string) ([]*ForeignKeyConstraintsRow, error)
 	GetForeignKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]*ForeignConstraint, error)
-	// GetForeignKeyReferencesMap(ctx context.Context, schemas []string) (map[string][]*ColumnConstraint, error)
 	GetPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*PrimaryKey, error)
 	GetPrimaryKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]string, error)
 	GetUniqueConstraintsMap(ctx context.Context, schemas []string) (map[string][][]string, error)

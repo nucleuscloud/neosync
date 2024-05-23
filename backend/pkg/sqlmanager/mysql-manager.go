@@ -132,41 +132,6 @@ func (m *MysqlManager) GetForeignKeyConstraintsMap(ctx context.Context, schemas 
 	return constraints, err
 }
 
-// Key is schema.table value is list of tables that key depends on
-// func (m *MysqlManager) GetForeignKeyReferencesMap(ctx context.Context, schemas []string) (map[string][]*ColumnConstraint, error) {
-// 	fkConstraints, err := m.GetForeignKeyConstraints(ctx, schemas)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	groupedFks := map[string][]*ForeignKeyConstraintsRow{} //  grouped by constraint name
-// 	for _, row := range fkConstraints {
-// 		groupedFks[row.ConstraintName] = append(groupedFks[row.ConstraintName], row)
-// 	}
-// 	constraints := map[string][]*ColumnConstraint{}
-// 	for _, fks := range groupedFks {
-// 		cols := []string{}
-// 		notNullable := []bool{}
-// 		fkCols := []string{}
-// 		for _, fk := range fks {
-// 			cols = append(cols, fk.ColumnName)
-// 			notNullable = append(notNullable, !fk.IsNullable)
-// 			fkCols = append(fkCols, fk.ForeignColumnName)
-// 		}
-// 		row := fks[0]
-// 		tableName := BuildTable(row.SchemaName, row.TableName)
-// 		constraints[tableName] = append(constraints[tableName], &ColumnConstraint{
-// 			Columns:     cols,
-// 			NotNullable: notNullable,
-// 			ForeignKey: &ReferenceKey{
-// 				Table:   BuildTable(row.ForeignSchemaName, row.ForeignTableName),
-// 				Columns: fkCols,
-// 			},
-// 		})
-// 	}
-
-// 	return constraints, err
-// }
-
 func (m *MysqlManager) GetPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*PrimaryKey, error) {
 	holder := make([][]*mysql_queries.GetPrimaryKeyConstraintsRow, len(schemas))
 	errgrp, errctx := errgroup.WithContext(ctx)

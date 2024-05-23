@@ -654,8 +654,8 @@ func buildSyncConfigs(
 			for _, c := range dc {
 				if c.RunType == tabledependency.RunTypeInsert {
 					syncConfigs = append(syncConfigs, &syncConfig{
-						Query:         buildInsertQueryFunc(split[0], split[1], c.SelectColumns),
-						ArgsMapping:   buildPlainInsertArgs(c.SelectColumns),
+						Query:         buildInsertQueryFunc(split[0], split[1], c.InsertColumns),
+						ArgsMapping:   buildPlainInsertArgs(c.InsertColumns),
 						InitStatement: schemaConfig.InitTableStatementsMap[table],
 						Schema:        split[0],
 						Table:         split[1],
