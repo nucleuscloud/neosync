@@ -9,7 +9,7 @@ authors:
     image_url: https://assets.nucleuscloud.com/neosync/blog/authorHeadshots/evis.png
 ---
 
-1. Added support for JSONB columns in subsetting
+1. Added support for JSONB columns in subsetting section
 2. Updated error handling to be more responsive in worker
 3. Fixed a bug that was causing the init schema to skip on generate jobs
 4. Update Terraform provider to retrieve system transformer by source
