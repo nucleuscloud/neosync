@@ -254,7 +254,6 @@ func getDailyUsageFromProm(ctx context.Context, api promv1.API, query string, st
 
 	var dates []string
 	for day := range dailyTotals {
-		fmt.Println("date", day)
 		dates = append(dates, day)
 	}
 	sort.Strings(dates)
@@ -306,10 +305,6 @@ func timeToDate(t time.Time) mgmtv1alpha1.Date {
 		Month: uint32(t.Month()),
 		Day:   uint32(t.Day()),
 	}
-}
-
-func toDateKey(day *mgmtv1alpha1.Date) string {
-	return fmt.Sprintf("%d_%d_%d", day.Day, day.Month, day.Year)
 }
 
 func dateToTime(d *mgmtv1alpha1.Date) time.Time {
