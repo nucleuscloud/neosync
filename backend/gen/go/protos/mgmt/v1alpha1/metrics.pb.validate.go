@@ -691,6 +691,64 @@ func (m *GetMetricCountRequest) validate(all bool) error {
 
 	// no validation rules for Metric
 
+	if all {
+		switch v := interface{}(m.GetStartDay()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetMetricCountRequestValidationError{
+					field:  "StartDay",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetMetricCountRequestValidationError{
+					field:  "StartDay",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetStartDay()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetMetricCountRequestValidationError{
+				field:  "StartDay",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetEndDay()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetMetricCountRequestValidationError{
+					field:  "EndDay",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetMetricCountRequestValidationError{
+					field:  "EndDay",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetEndDay()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetMetricCountRequestValidationError{
+				field:  "EndDay",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	switch v := m.Identifier.(type) {
 	case *GetMetricCountRequest_AccountId:
 		if v == nil {

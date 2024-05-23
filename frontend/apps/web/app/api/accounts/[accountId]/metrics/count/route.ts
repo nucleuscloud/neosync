@@ -15,12 +15,12 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const identifier = searchParams.get('identifier') ?? '';
   return withNeosyncContext(async (ctx) => {
     const body = new GetMetricCountRequest({
-      start: new NeosyncDate({
+      startDay: new NeosyncDate({
         day: startDay,
         month: startMo,
         year: startYear,
       }),
-      end: new NeosyncDate({ day: endDay, month: endMo, year: endYear }),
+      endDay: new NeosyncDate({ day: endDay, month: endMo, year: endYear }),
       metric: parseInt(metric, 10),
       identifier:
         idtype === 'accountId'

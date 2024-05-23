@@ -101,14 +101,14 @@ func (s *Service) GetMetricCount(
 ) (*connect.Response[mgmtv1alpha1.GetMetricCountResponse], error) {
 	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
 
-	if req.Msg.GetStart() == nil || req.Msg.GetEnd() == nil {
+	if req.Msg.GetStartDay() == nil || req.Msg.GetEndDay() == nil {
 		return nil, nucleuserrors.NewBadRequest("must provide a start and end time")
 	}
 	if req.Msg.GetMetric() == mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_UNSPECIFIED {
 		return nil, nucleuserrors.NewBadRequest("must provide a metric name")
 	}
-	start := dateToTime(req.Msg.GetStart())
-	end := toEndOfDay(dateToTime(req.Msg.GetEnd()))
+	start := dateToTime(req.Msg.GetStartDay())
+	end := toEndOfDay(dateToTime(req.Msg.GetEndDay()))
 
 	if start.After(end) {
 		return nil, nucleuserrors.NewBadRequest("start must not be before end")

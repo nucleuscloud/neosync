@@ -10843,11 +10843,11 @@
           "fields": [
             {
               "name": "start",
-              "description": "The start time",
+              "description": "@deprecated - use start_day",
               "label": "",
-              "type": "Date",
-              "longType": "Date",
-              "fullType": "mgmt.v1alpha1.Date",
+              "type": "Timestamp",
+              "longType": "google.protobuf.Timestamp",
+              "fullType": "google.protobuf.Timestamp",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -10855,11 +10855,11 @@
             },
             {
               "name": "end",
-              "description": "The end time",
+              "description": "@deprecated - use end_day",
               "label": "",
-              "type": "Date",
-              "longType": "Date",
-              "fullType": "mgmt.v1alpha1.Date",
+              "type": "Timestamp",
+              "longType": "google.protobuf.Timestamp",
+              "fullType": "google.protobuf.Timestamp",
               "ismap": false,
               "isoneof": false,
               "oneofdecl": "",
@@ -10911,6 +10911,30 @@
               "ismap": false,
               "isoneof": true,
               "oneofdecl": "identifier",
+              "defaultValue": ""
+            },
+            {
+              "name": "start_day",
+              "description": "",
+              "label": "",
+              "type": "Date",
+              "longType": "Date",
+              "fullType": "mgmt.v1alpha1.Date",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "end_day",
+              "description": "",
+              "label": "",
+              "type": "Date",
+              "longType": "Date",
+              "fullType": "mgmt.v1alpha1.Date",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
               "defaultValue": ""
             }
           ]

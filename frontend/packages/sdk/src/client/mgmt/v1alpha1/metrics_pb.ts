@@ -4,7 +4,7 @@
 // @ts-nocheck
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
-import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
+import { Message, proto3, protoInt64, Timestamp } from "@bufbuild/protobuf";
 
 /**
  * @generated from enum mgmt.v1alpha1.RangedMetricName
@@ -275,18 +275,18 @@ export class DayResult extends Message<DayResult> {
  */
 export class GetMetricCountRequest extends Message<GetMetricCountRequest> {
   /**
-   * The start time
+   * @deprecated - use start_day
    *
-   * @generated from field: mgmt.v1alpha1.Date start = 1;
+   * @generated from field: google.protobuf.Timestamp start = 1;
    */
-  start?: Date;
+  start?: Timestamp;
 
   /**
-   * The end time
+   * @deprecated - use end_day
    *
-   * @generated from field: mgmt.v1alpha1.Date end = 2;
+   * @generated from field: google.protobuf.Timestamp end = 2;
    */
-  end?: Date;
+  end?: Timestamp;
 
   /**
    * The metric to return
@@ -324,6 +324,16 @@ export class GetMetricCountRequest extends Message<GetMetricCountRequest> {
     case: "runId";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
+  /**
+   * @generated from field: mgmt.v1alpha1.Date start_day = 7;
+   */
+  startDay?: Date;
+
+  /**
+   * @generated from field: mgmt.v1alpha1.Date end_day = 8;
+   */
+  endDay?: Date;
+
   constructor(data?: PartialMessage<GetMetricCountRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -332,12 +342,14 @@ export class GetMetricCountRequest extends Message<GetMetricCountRequest> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "mgmt.v1alpha1.GetMetricCountRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "start", kind: "message", T: Date },
-    { no: 2, name: "end", kind: "message", T: Date },
+    { no: 1, name: "start", kind: "message", T: Timestamp },
+    { no: 2, name: "end", kind: "message", T: Timestamp },
     { no: 3, name: "metric", kind: "enum", T: proto3.getEnumType(RangedMetricName) },
     { no: 4, name: "account_id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "identifier" },
     { no: 5, name: "job_id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "identifier" },
     { no: 6, name: "run_id", kind: "scalar", T: 9 /* ScalarType.STRING */, oneof: "identifier" },
+    { no: 7, name: "start_day", kind: "message", T: Date },
+    { no: 8, name: "end_day", kind: "message", T: Date },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetMetricCountRequest {

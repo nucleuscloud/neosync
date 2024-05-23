@@ -3,6 +3,7 @@ syntax = "proto3";
 package mgmt.v1alpha1;
 
 import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
 
 // Represents a whole or partial calendar date, such as a birthday. The time of
 // day and time zone are either specified elsewhere or are insignificant. The
@@ -88,10 +89,10 @@ message DayResult {
 }
 
 message GetMetricCountRequest {
-  // The start time
-  Date start = 1;
-  // The end time
-  Date end = 2;
+  // @deprecated - use start_day
+  google.protobuf.Timestamp start = 1;
+  // @deprecated - use end_day
+  google.protobuf.Timestamp end = 2;
   // The metric to return
   RangedMetricName metric = 3;
 
@@ -103,6 +104,8 @@ message GetMetricCountRequest {
     // The run identifier that will be used to filter by
     string run_id = 6 [(buf.validate.field).string.uuid = true];
   }
+  Date start_day = 7;
+  Date end_day = 8;
 }
 message GetMetricCountResponse {
   // The summed up count of the metric based on the input query and timerange specified

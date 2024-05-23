@@ -64,9 +64,9 @@ func Test_GetMetricCount_Empty_Matrix(t *testing.T) {
 		Return(model.Matrix{}, promv1.Warnings{}, nil)
 
 	resp, err := m.Service.GetMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetMetricCountRequest{
-		Start:  &startDate,
-		End:    &endDate,
-		Metric: mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
+		StartDay: &startDate,
+		EndDay:   &endDate,
+		Metric:   mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
 		Identifier: &mgmtv1alpha1.GetMetricCountRequest_AccountId{
 			AccountId: mockAccountId,
 		},
@@ -82,8 +82,8 @@ func Test_GetMetricCount_InvalidIdentifier(t *testing.T) {
 	ctx := context.Background()
 
 	resp, err := m.Service.GetMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetMetricCountRequest{
-		Start:      &startDate,
-		End:        &endDate,
+		StartDay:   &startDate,
+		EndDay:     &endDate,
 		Metric:     mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
 		Identifier: nil,
 	}))
@@ -103,9 +103,9 @@ func Test_GetMetricCount_AccountId(t *testing.T) {
 		Return(testMatrix, promv1.Warnings{}, nil)
 
 	resp, err := m.Service.GetMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetMetricCountRequest{
-		Start:  &startDate,
-		End:    &endDate,
-		Metric: mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
+		StartDay: &startDate,
+		EndDay:   &endDate,
+		Metric:   mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
 		Identifier: &mgmtv1alpha1.GetMetricCountRequest_AccountId{
 			AccountId: mockAccountId,
 		},
@@ -132,9 +132,9 @@ func Test_GetMetricCount_JobId(t *testing.T) {
 		Return(testMatrix, promv1.Warnings{}, nil)
 
 	resp, err := m.Service.GetMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetMetricCountRequest{
-		Start:  &startDate,
-		End:    &endDate,
-		Metric: mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
+		StartDay: &startDate,
+		EndDay:   &endDate,
+		Metric:   mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
 		Identifier: &mgmtv1alpha1.GetMetricCountRequest_JobId{
 			JobId: mockJobId,
 		},
@@ -161,9 +161,9 @@ func Test_GetMetricCount_RunId(t *testing.T) {
 		Return(testMatrix, promv1.Warnings{}, nil)
 
 	resp, err := m.Service.GetMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetMetricCountRequest{
-		Start:  &startDate,
-		End:    &endDate,
-		Metric: mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
+		StartDay: &startDate,
+		EndDay:   &endDate,
+		Metric:   mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
 		Identifier: &mgmtv1alpha1.GetMetricCountRequest_RunId{
 			RunId: mockJobRunId,
 		},
@@ -179,9 +179,9 @@ func Test_GetMetricCount_Bad_Times(t *testing.T) {
 	ctx := context.Background()
 
 	resp, err := m.Service.GetMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetMetricCountRequest{
-		Start:  nil,
-		End:    &endDate,
-		Metric: mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
+		StartDay: nil,
+		EndDay:   &endDate,
+		Metric:   mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
 		Identifier: &mgmtv1alpha1.GetMetricCountRequest_AccountId{
 			AccountId: mockAccountId,
 		},
@@ -191,9 +191,9 @@ func Test_GetMetricCount_Bad_Times(t *testing.T) {
 	assert.Nil(t, resp)
 
 	resp, err = m.Service.GetMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetMetricCountRequest{
-		Start:  &startDate,
-		End:    nil,
-		Metric: mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
+		StartDay: &startDate,
+		EndDay:   nil,
+		Metric:   mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
 		Identifier: &mgmtv1alpha1.GetMetricCountRequest_AccountId{
 			AccountId: mockAccountId,
 		},
@@ -209,9 +209,9 @@ func Test_GetMetricCount_Swapped_Times(t *testing.T) {
 	ctx := context.Background()
 
 	resp, err := m.Service.GetMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetMetricCountRequest{
-		Start:  &endDate,
-		End:    &startDate,
-		Metric: mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
+		StartDay: &endDate,
+		EndDay:   &startDate,
+		Metric:   mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
 		Identifier: &mgmtv1alpha1.GetMetricCountRequest_AccountId{
 			AccountId: mockAccountId,
 		},
@@ -221,9 +221,9 @@ func Test_GetMetricCount_Swapped_Times(t *testing.T) {
 	assert.Nil(t, resp)
 
 	resp, err = m.Service.GetMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetMetricCountRequest{
-		Start:  &startDate,
-		End:    nil,
-		Metric: mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
+		StartDay: &startDate,
+		EndDay:   nil,
+		Metric:   mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
 		Identifier: &mgmtv1alpha1.GetMetricCountRequest_AccountId{
 			AccountId: mockAccountId,
 		},
@@ -240,9 +240,9 @@ func Test_GetMetricCount_Time_Limit(t *testing.T) {
 
 	newEndTime := startTime.AsTime().Add(timeLimit + 1)
 	resp, err := m.Service.GetMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetMetricCountRequest{
-		Start:  &startDate,
-		End:    &mgmtv1alpha1.Date{Year: uint32(newEndTime.Year()), Month: uint32(newEndTime.Month()), Day: uint32(newEndTime.Day())},
-		Metric: mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
+		StartDay: &startDate,
+		EndDay:   &mgmtv1alpha1.Date{Year: uint32(newEndTime.Year()), Month: uint32(newEndTime.Month()), Day: uint32(newEndTime.Day())},
+		Metric:   mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
 		Identifier: &mgmtv1alpha1.GetMetricCountRequest_AccountId{
 			AccountId: mockAccountId,
 		},
@@ -252,9 +252,9 @@ func Test_GetMetricCount_Time_Limit(t *testing.T) {
 	assert.Nil(t, resp)
 
 	resp, err = m.Service.GetMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetMetricCountRequest{
-		Start:  &startDate,
-		End:    nil,
-		Metric: mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
+		StartDay: &startDate,
+		EndDay:   nil,
+		Metric:   mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
 		Identifier: &mgmtv1alpha1.GetMetricCountRequest_AccountId{
 			AccountId: mockAccountId,
 		},
@@ -270,8 +270,8 @@ func Test_GetMetricCount_No_Metric(t *testing.T) {
 	ctx := context.Background()
 
 	resp, err := m.Service.GetMetricCount(ctx, connect.NewRequest(&mgmtv1alpha1.GetMetricCountRequest{
-		Start: &startDate,
-		End:   &endDate,
+		StartDay: &startDate,
+		EndDay:   &endDate,
 		// Metric: mgmtv1alpha1.RangedMetricName_RANGED_METRIC_NAME_INPUT_RECEIVED,
 		Identifier: &mgmtv1alpha1.GetMetricCountRequest_AccountId{
 			AccountId: mockAccountId,
