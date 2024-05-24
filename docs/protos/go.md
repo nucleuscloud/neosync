@@ -1,5 +1,6 @@
 ---
 title: Neosync for Go
+description: Learn about Neosync's Go SDK and how you can use it to anonymize data and generate synthetic data
 id: go
 hide_title: false
 slug: /go

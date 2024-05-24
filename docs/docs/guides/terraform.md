@@ -1,5 +1,6 @@
 ---
 title: Configuring Neosync with Terraform
+description: Learn how to use Neosync's Terraform provider within your GitOps flow to manage your Terraform infrastructure
 id: terraform
 hide_title: false
 slug: /guides/terraform

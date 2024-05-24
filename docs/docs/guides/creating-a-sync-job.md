@@ -1,5 +1,6 @@
 ---
 title: Creating a Sync Job
+description: Learn how to create a data sync job to anonymize and transform data from a source database to one or multiple destination databases
 id: creating-a-sync-job
 hide_title: false
 slug: /guides/creating-a-sync-job
@@ -11,7 +12,7 @@ In this guide we will walk through how to create a [sync job](/core-concepts#job
 
 1. Syncing and anonymizing prod data to lower level environments
 2. Syncing data between two lower level environments with no transformations
-3. Syncing and anonymizing data to be used for analytical and machine learning usecases such as training a model
+3. Syncing and anonymizing data to be used for analytical and machine learning use cases such as training a model
 
 ## Creating a Sync Job
 

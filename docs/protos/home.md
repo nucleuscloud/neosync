@@ -1,5 +1,6 @@
 ---
 title: APIs and SDKs
+description: Learn about Neosync's APIs and SDKs in order to anonymize data and generate synthetic data
 hide_title: false
 id: home
 slug: /

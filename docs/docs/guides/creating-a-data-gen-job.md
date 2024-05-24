@@ -1,5 +1,6 @@
 ---
 title: Creating a Data Generation Job
+description: Learn how to create a data generation job in Neosync which allows you to generate synthetic data from scratch
 id: creating-a-data-gen-job
 hide_title: false
 slug: /guides/creating-a-data-gen-job

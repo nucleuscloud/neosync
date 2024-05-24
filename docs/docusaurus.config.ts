@@ -6,7 +6,7 @@ import { themes } from 'prism-react-renderer';
 
 const config: Config = {
   title: 'Neosync',
-  tagline: 'Open source Test Data Management',
+  tagline: 'Open source Data Anonymization and Synthetic Data',
   favicon: 'img/logo_light_mode.png',
   headTags: [
     {
@@ -109,6 +109,13 @@ const config: Config = {
   ],
 
   themeConfig: {
+    metadata: [
+      {
+        name: 'keywords',
+        content:
+          'open source, anonymization, data anonymization, synthetic data, data privacy, data security',
+      },
+    ],
     image: 'img/docsOG.png',
     colorMode: {
       defaultMode: 'light',

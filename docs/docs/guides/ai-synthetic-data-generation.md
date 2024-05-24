@@ -1,5 +1,6 @@
 ---
 title: AI Synthetic Data Generation
+description: Learn how to use AI to generate realistic synthetic data using any LLM provider such as OpenAI, Anthropic, Gemini and more
 id: ai-synthetic-data-generation
 hide_title: false
 slug: /guides/ai-synthetic-data-generation

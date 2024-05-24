@@ -1,11 +1,14 @@
 ---
 title: Mysql
+description: Neosync supports most Mysql-compatible databases natively using the Mysql connection.
 id: mysql
 hide_title: false
 slug: /connections/mysql
 ---
 
 Neosync is an open-source, developer-first product that allows you to create anonymized, secure test data that you can sync across all of your environments for high quality local, stage and CI testing.
+
+Neosync supports most Mysql-compatible databases natively using the Mysql connection.
 
 ## MySQL Database Connection Configuration
 

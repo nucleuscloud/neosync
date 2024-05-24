@@ -1,5 +1,6 @@
 ---
 title: Troubleshooting Neosync Jobs
+description: Learn how to troubleshoot common errors in Neosync with this guide
 id: troubleshooting
 hide_title: false
 slug: /guides/troubleshooting

@@ -1,5 +1,6 @@
 ---
 title: Using a Custom LLM Transformer
+description: Learn how to use a custom LLM transformer in Neosync in order to call an LLM on every row to generate data or anonymize existing data
 id: using-custom-llm-transformer
 hide_title: false
 slug: /guides/using-custom-llm-transformer
