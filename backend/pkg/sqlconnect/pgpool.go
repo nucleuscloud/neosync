@@ -58,27 +58,6 @@ func (s *PgPool) Open(ctx context.Context) (pg_queries.DBTX, error) {
 			return nil, fmt.Errorf("unable to parse dsn into pg config: %w", err)
 		}
 
-		// if s.details.ClientCerts != nil {
-		// 	if s.details.ClientCerts.RootCert != nil {
-		// 		rootcertPool := x509.NewCertPool()
-		// 		rootcertPool.AppendCertsFromPEM([]byte(*s.details.ClientCerts.RootCert))
-		// 		if config.ConnConfig.TLSConfig == nil {
-		// 			config.ConnConfig.TLSConfig = &tls.Config{MinVersion: tls.VersionTLS13}
-		// 		}
-		// 		config.ConnConfig.TLSConfig.RootCAs = rootcertPool
-		// 	}
-		// 	if s.details.ClientCerts.ClientKey != nil && s.details.ClientCerts.ClientCert != nil {
-		// 		if config.ConnConfig.TLSConfig == nil {
-		// 			config.ConnConfig.TLSConfig = &tls.Config{MinVersion: tls.VersionTLS13}
-		// 		}
-		// 		clientCert, err := tls.X509KeyPair([]byte(*s.details.ClientCerts.ClientKey), []byte(*s.details.ClientCerts.ClientCert))
-		// 		if err != nil {
-		// 			return nil, fmt.Errorf("unable to load client certificates: %w", err)
-		// 		}
-		// 		config.ConnConfig.TLSConfig.Certificates = append(config.ConnConfig.TLSConfig.Certificates, clientCert)
-		// 	}
-		// }
-
 		// set max number of connections.
 		if s.details.MaxConnectionLimit != nil {
 			config.MaxConns = *s.details.MaxConnectionLimit
