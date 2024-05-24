@@ -36,13 +36,13 @@ type GetDatabaseSchemaRow struct {
 	TableSchema            string
 	TableName              string
 	ColumnName             string
-	OrdinalPosition        int32
+	OrdinalPosition        int64
 	ColumnDefault          string
 	IsNullable             string
 	DataType               string
-	CharacterMaximumLength sql.NullInt32
-	NumericPrecision       sql.NullInt32
-	NumericScale           sql.NullInt32
+	CharacterMaximumLength sql.NullInt64
+	NumericPrecision       sql.NullInt64
+	NumericScale           sql.NullInt64
 	Extra                  sql.NullString
 }
 
