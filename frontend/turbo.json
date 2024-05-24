@@ -6,8 +6,9 @@
         "^build"
       ],
       "outputs": [
-        ".next/**",
-        "!.next/cache/**"
+        "apps/web/.next/**",
+        "!apps/web/.next/cache/**",
+        "packages/sdk/dist"
       ]
     },
     "deploy": {
