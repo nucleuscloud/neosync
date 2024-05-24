@@ -14,7 +14,7 @@ import InlineBlogCode from '../../components/codeblocks/InlineBlogCode.tsx';
 
 One of the main benefits of using a container orchestration system like Kubernetes is that you have a lot of control over your deployment strategy and how you deploy software. In a traditional software environment, deployments or upgrades to applications result in downtime and disruption of service which can frustrate users. In today's cloud native world, users expect that software should be available at all times and in all time zones.
 
-Now, thanks to continuous integration and continuous deployment (CI/CD) — a key component of [DevOps methodology](https://www.nucleuscloud.com/blog/sre-devops-platformeng) — deployments aren’t limited to a monthly or quarterly basis. Additionally, with the rise of [platform engineering](https://www.nucleuscloud.com/blog/what-is-platform-engineering), which is further accelerating the speed at which developers can build and deploy new or improved features, deployments are happening all of the time.
+Now, thanks to continuous integration and continuous deployment (CI/CD) — a key component of DevOps methodology — deployments aren’t limited to a monthly or quarterly basis. Additionally, with the rise of [platform engineering](/blog/what-is-platform-engineering), which is further accelerating the speed at which developers can build and deploy new or improved features, deployments are happening all of the time.
 
 In this blog, we'll walk through three deployment strategies that you can implement to avoid down-time when deploying your software.
 
@@ -34,7 +34,7 @@ Lets take a look at all three of these zero-downtime deployment approaches in mo
 
 ![rolling](https://assets.nucleuscloud.com/neosync/blog/rollingdeploy.png)
 
-A rolling deployment is the default deployment strategy used in Kubernetes. It updates pods one by one by replacing the existing version of a pod with the new version, without cluster downtime. The update uses a [readiness probe](https://www.nucleuscloud.com/blog/health-checks) to check if the new pod is ready before scaling down the old pods.
+A rolling deployment is the default deployment strategy used in Kubernetes. It updates pods one by one by replacing the existing version of a pod with the new version, without cluster downtime. The update uses a readiness probe to check if the new pod is ready before scaling down the old pods.
 
 Let's look at this process in more detail with an example.
 
