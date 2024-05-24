@@ -378,10 +378,10 @@ export default function PostgresForm(props: Props): ReactElement {
                   <FormItem>
                     <FormLabel>Root Certificate</FormLabel>
                     <FormDescription>
-                      The public key certificate of the CA that issued the
+                      {`The public key certificate of the CA that issued the
                       server's certificate. Root certificates are used to
                       authenticate the server to the client. They ensure that
-                      the server the client is connecting to is trusted.
+                      the server the client is connecting to is trusted.`}
                     </FormDescription>
                     <FormControl>
                       <Textarea {...field} />
