@@ -18,7 +18,7 @@ namespace_create('neosync', allow_duplicates=True)
 # Watches and rebuilds Go code
 local_resource(
   'neosync-worker-build',
-  'hack/build.sh',
+  'scripts/build.sh',
   deps=['.'],
   ignore=[
     '.git',
