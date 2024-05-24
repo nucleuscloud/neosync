@@ -47,6 +47,7 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
+  ClientTlsConfig,
   ConnectionConfig,
   CreateConnectionRequest,
   CreateConnectionResponse,
@@ -103,6 +104,11 @@ export default function PostgresForm() {
         passphrase: '',
         privateKey: '',
       },
+      clientTls: {
+        rootCert: '',
+        clientCert: '',
+        clientKey: '',
+      },
     },
     context: { accountId: account?.id ?? '', activeTab: activeTab },
   });
@@ -132,7 +138,8 @@ export default function PostgresForm() {
           values.db,
           undefined, // don't pass in the url since user is submitting the db values
           values.tunnel,
-          values.options
+          values.options,
+          values.clientTls
         );
       } else if (activeTab === 'url') {
         connection = await createPostgresConnection(
@@ -141,7 +148,8 @@ export default function PostgresForm() {
           undefined, // don't pass in the db values since user is submitting the url
           values.url ?? '',
           values.tunnel,
-          values.options
+          values.options,
+          values.clientTls
         );
       }
 
@@ -546,6 +554,72 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
         />
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="bastion">
+            <AccordionTrigger>Client TLS Certificates</AccordionTrigger>
+            <AccordionContent className="flex flex-col gap-4 p-2">
+              <div className="text-sm">
+                Configuring this section allows Neosync to connect to the
+                database using SSL/TLS. The verification mode may be configured
+                using the SSL Field, or by specifying the option in the
+                postgresql url.
+              </div>
+              <FormField
+                control={form.control}
+                name="clientTls.rootCert"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Root Certificate</FormLabel>
+                    <FormDescription>
+                      The public key certificate of the CA that issued the
+                      server's certificate. Root certificates are used to
+                      authenticate the server to the client. They ensure that
+                      the server the client is connecting to is trusted.
+                    </FormDescription>
+                    <FormControl>
+                      <Textarea {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="clientTls.clientCert"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Client Certificate</FormLabel>
+                    <FormDescription>
+                      A public key certificate issued to the client by a trusted
+                      Certificate Authority (CA).
+                    </FormDescription>
+                    <FormControl>
+                      <Textarea {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="clientTls.clientKey"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Client Key</FormLabel>
+                    <FormDescription>
+                      A private key corresponding to the client certificate.
+                    </FormDescription>
+                    <FormControl>
+                      <Input type="password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+
+        <Accordion type="single" collapsible className="w-full">
+          <AccordionItem value="bastion">
             <AccordionTrigger> Bastion Host Configuration</AccordionTrigger>
             <AccordionContent className="flex flex-col gap-4 p-2">
               <div className="text-sm">
@@ -770,9 +844,10 @@ async function createPostgresConnection(
   db?: PostgresFormValues['db'],
   url?: string,
   tunnel?: PostgresFormValues['tunnel'],
-  options?: PostgresFormValues['options']
+  options?: PostgresFormValues['options'],
+  clientTls?: PostgresFormValues['clientTls']
 ): Promise<CreateConnectionResponse> {
-  let pgconfig = new PostgresConnectionConfig({});
+  const pgconfig = new PostgresConnectionConfig({});
 
   if (url) {
     pgconfig.connectionConfig = {
@@ -796,6 +871,14 @@ async function createPostgresConnection(
   if (options && options.maxConnectionLimit != 0) {
     pgconfig.connectionOptions = new SqlConnectionOptions({
       maxConnectionLimit: options.maxConnectionLimit,
+    });
+  }
+
+  if (clientTls?.rootCert || clientTls?.clientCert || clientTls?.clientKey) {
+    pgconfig.clientTls = new ClientTlsConfig({
+      rootCert: clientTls.rootCert ? clientTls.rootCert : undefined,
+      clientCert: clientTls.clientCert ? clientTls.clientCert : undefined,
+      clientKey: clientTls.clientKey ? clientTls.clientKey : undefined,
     });
   }
 
