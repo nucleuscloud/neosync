@@ -17,7 +17,7 @@ namespace_create('neosync', allow_duplicates=True)
 
 local_resource(
   'neosync-api-gen',
-  'hack/gen.sh',
+  'scripts/gen.sh',
   deps=[
     'protos',
     'buf.gen.yaml',
@@ -32,7 +32,7 @@ local_resource(
 # Watches and rebuilds Go code
 local_resource(
   'neosync-api-build',
-  'hack/build.sh',
+  'scripts/build.sh',
   deps=['.'],
   ignore=[
     '.git',

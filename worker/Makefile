@@ -11,12 +11,12 @@ vet:
 
 build: vet ## Build and grpc gateway
 	go generate ./...
-	hack/build.sh
+	scripts/build.sh
 .PHONY: build
 
 dbuild: vet
 	go generate ./...
-	GOOS=linux hack/build.sh
+	GOOS=linux scripts/build.sh
 .PHONY: dbuild
 
 run:
