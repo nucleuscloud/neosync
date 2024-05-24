@@ -10,7 +10,8 @@
     "lint": "next lint",
     "latest-tag": "git tag --sort=creatordate | tail -1",
     "knip": "knip",
-    "knip:production": "knip --production --strict"
+    "knip:production": "knip --production --strict",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@auth/core": "^0.24.0",
