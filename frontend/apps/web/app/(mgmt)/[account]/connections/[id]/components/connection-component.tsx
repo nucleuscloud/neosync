@@ -112,6 +112,17 @@ export function getConnectionComponentDetails(
               options: {
                 maxConnectionLimit: value.connectionOptions?.maxConnectionLimit,
               },
+              clientTls: {
+                rootCert: value.clientTls?.rootCert
+                  ? value.clientTls.rootCert
+                  : '',
+                clientCert: value.clientTls?.clientCert
+                  ? value.clientTls.clientCert
+                  : '',
+                clientKey: value.clientTls?.clientKey
+                  ? value.clientTls.clientKey
+                  : '',
+              },
               tunnel: {
                 host: value.tunnel?.host ?? '',
                 port: value.tunnel?.port ?? 22,
