@@ -1,10 +1,12 @@
 import { withNeosyncContext } from '@/api-only/neosync-context';
 import {
+  ClientTlsFormValues,
   POSTGRES_CONNECTION,
   SSH_TUNNEL_FORM_SCHEMA,
 } from '@/yup-validations/connections';
 import {
   CheckConnectionConfigRequest,
+  ClientTlsConfig,
   ConnectionConfig,
   PostgresConnection,
   PostgresConnectionConfig,
@@ -19,7 +21,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   return withNeosyncContext(async (ctx) => {
     const body = (await req.json()) ?? {};
 
-    let pgconfig = new PostgresConnectionConfig();
+    const pgconfig = new PostgresConnectionConfig();
 
     if (body.url) {
       pgconfig.connectionConfig = {
@@ -48,6 +50,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
     const tunnel = body.tunnel
       ? await SSH_TUNNEL_FORM_SCHEMA.validate(body.tunnel)
+      : null;
+
+    const clientTls = body.clientTls
+      ? await ClientTlsFormValues.validate(body.clientTls)
       : null;
 
     if (tunnel && tunnel.host && tunnel.port && tunnel.user) {
@@ -79,6 +85,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           },
         });
       }
+    }
+    if (clientTls?.rootCert || clientTls?.clientKey || clientTls?.clientCert) {
+      pgconfig.clientTls = new ClientTlsConfig({
+        rootCert: clientTls.rootCert ? clientTls.rootCert : undefined,
+        clientKey: clientTls.clientKey ? clientTls.clientKey : undefined,
+        clientCert: clientTls.clientCert ? clientTls.clientCert : undefined,
+      });
     }
 
     return ctx.client.connections.checkConnectionConfig(

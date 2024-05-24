@@ -122,9 +122,23 @@ message PostgresConnectionConfig {
   // Provide tunnel configuration that can be used to access a postgres connection that is not publicly accessible to the internet
   SSHTunnel tunnel = 3;
   SqlConnectionOptions connection_options = 4;
+  // Provide client-side TLS Certificates
+  ClientTlsConfig client_tls = 5;
+}
+
+// Config for providing client-side TLS certificates
+message ClientTlsConfig {
+  // Root Certificate in PEM Format
+  optional string root_cert = 1;
+
+  // Client Certificate in PEM format. Must also provide key.
+  optional string client_cert = 2;
+  // Client Key in PEM format. Must also provide cert.
+  optional string client_key = 3;
 }
 
 message SqlConnectionOptions {
+  // Limits the number of open connections in the pool.
   optional int32 max_connection_limit = 1;
 }
 

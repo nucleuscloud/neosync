@@ -83,6 +83,13 @@ const SQL_OPTIONS_FORM_SCHEMA = Yup.object({
   maxConnectionLimit: Yup.number().min(0).max(10000).optional(),
 });
 
+export const ClientTlsFormValues = Yup.object({
+  rootCert: Yup.string(),
+
+  clientCert: Yup.string(),
+  clientKey: Yup.string(),
+});
+
 export const NEW_POSTGRES_CONNECTION = Yup.object({
   connectionName: connectionNameSchema,
   connection: POSTGRES_CONNECTION,
@@ -163,6 +170,7 @@ export const POSTGRES_FORM_SCHEMA = Yup.object({
   }),
   tunnel: SSH_TUNNEL_FORM_SCHEMA,
   options: SQL_OPTIONS_FORM_SCHEMA,
+  clientTls: ClientTlsFormValues,
 });
 
 export type PostgresFormValues = Yup.InferType<typeof POSTGRES_FORM_SCHEMA>;

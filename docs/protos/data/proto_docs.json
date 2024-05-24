@@ -1280,6 +1280,54 @@
           ]
         },
         {
+          "name": "ClientTlsConfig",
+          "longName": "ClientTlsConfig",
+          "fullName": "mgmt.v1alpha1.ClientTlsConfig",
+          "description": "Config for providing client-side TLS certificates",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": true,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "root_cert",
+              "description": "Root Certificate in PEM Format",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_root_cert",
+              "defaultValue": ""
+            },
+            {
+              "name": "client_cert",
+              "description": "Client Certificate in PEM format. Must also provide key.",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_client_cert",
+              "defaultValue": ""
+            },
+            {
+              "name": "client_key",
+              "description": "Client Key in PEM format. Must also provide cert.",
+              "label": "optional",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": true,
+              "oneofdecl": "_client_key",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "Connection",
           "longName": "Connection",
           "fullName": "mgmt.v1alpha1.Connection",
@@ -2127,6 +2175,18 @@
               "isoneof": false,
               "oneofdecl": "",
               "defaultValue": ""
+            },
+            {
+              "name": "client_tls",
+              "description": "Provide client-side TLS Certificates",
+              "label": "",
+              "type": "ClientTlsConfig",
+              "longType": "ClientTlsConfig",
+              "fullType": "mgmt.v1alpha1.ClientTlsConfig",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
             }
           ]
         },
@@ -2310,7 +2370,7 @@
           "fields": [
             {
               "name": "max_connection_limit",
-              "description": "",
+              "description": "Limits the number of open connections in the pool.",
               "label": "optional",
               "type": "int32",
               "longType": "int32",

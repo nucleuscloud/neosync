@@ -251,6 +251,7 @@ func Test_getConnectionDetails_Pg_NoTunnel(t *testing.T) {
 			},
 		},
 		ptr(uint32(5)),
+		nil,
 		slog.Default(),
 	)
 	assert.NoError(t, err)
@@ -278,6 +279,7 @@ func Test_getConnectionDetails_Pg_Tunnel(t *testing.T) {
 			},
 		},
 		ptr(uint32(5)),
+		nil,
 		slog.Default(),
 	)
 	assert.NoError(t, err)
@@ -300,6 +302,7 @@ func Test_getConnectionDetails_Mysql_NoTunnel(t *testing.T) {
 			},
 		},
 		ptr(uint32(5)),
+		nil,
 		slog.Default(),
 	)
 	assert.NoError(t, err)
@@ -327,6 +330,7 @@ func Test_getConnectionDetails_Mysql_Tunnel(t *testing.T) {
 			},
 		},
 		ptr(uint32(5)),
+		nil,
 		slog.Default(),
 	)
 	assert.NoError(t, err)

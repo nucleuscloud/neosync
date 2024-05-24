@@ -2428,6 +2428,35 @@ func (m *PostgresConnectionConfig) validate(all bool) error {
 		}
 	}
 
+	if all {
+		switch v := interface{}(m.GetClientTls()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PostgresConnectionConfigValidationError{
+					field:  "ClientTls",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PostgresConnectionConfigValidationError{
+					field:  "ClientTls",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetClientTls()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PostgresConnectionConfigValidationError{
+				field:  "ClientTls",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	switch v := m.ConnectionConfig.(type) {
 	case *PostgresConnectionConfig_Url:
 		if v == nil {
@@ -2565,6 +2594,118 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = PostgresConnectionConfigValidationError{}
+
+// Validate checks the field values on ClientTlsConfig with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *ClientTlsConfig) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ClientTlsConfig with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ClientTlsConfigMultiError, or nil if none found.
+func (m *ClientTlsConfig) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ClientTlsConfig) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.RootCert != nil {
+		// no validation rules for RootCert
+	}
+
+	if m.ClientCert != nil {
+		// no validation rules for ClientCert
+	}
+
+	if m.ClientKey != nil {
+		// no validation rules for ClientKey
+	}
+
+	if len(errors) > 0 {
+		return ClientTlsConfigMultiError(errors)
+	}
+
+	return nil
+}
+
+// ClientTlsConfigMultiError is an error wrapping multiple validation errors
+// returned by ClientTlsConfig.ValidateAll() if the designated constraints
+// aren't met.
+type ClientTlsConfigMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ClientTlsConfigMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ClientTlsConfigMultiError) AllErrors() []error { return m }
+
+// ClientTlsConfigValidationError is the validation error returned by
+// ClientTlsConfig.Validate if the designated constraints aren't met.
+type ClientTlsConfigValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ClientTlsConfigValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ClientTlsConfigValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ClientTlsConfigValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ClientTlsConfigValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ClientTlsConfigValidationError) ErrorName() string { return "ClientTlsConfigValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ClientTlsConfigValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sClientTlsConfig.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ClientTlsConfigValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ClientTlsConfigValidationError{}
 
 // Validate checks the field values on SqlConnectionOptions with the rules
 // defined in the proto definition for this message. If any rules are

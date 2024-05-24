@@ -2,11 +2,15 @@ package sqlconnect
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"log/slog"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -15,6 +19,7 @@ import (
 	nucleuserrors "github.com/nucleuscloud/neosync/backend/internal/errors"
 	"github.com/nucleuscloud/neosync/backend/pkg/sshtunnel"
 	"golang.org/x/crypto/ssh"
+	"golang.org/x/sync/errgroup"
 )
 
 type SqlDBTX interface {
@@ -37,7 +42,7 @@ func (rc *SqlOpenConnector) NewDbFromConnectionConfig(connectionConfig *mgmtv1al
 		return nil, errors.New("connectionConfig was nil, expected *mgmtv1alpha1.ConnectionConfig")
 	}
 
-	details, err := GetConnectionDetails(connectionConfig, connectionTimeout, logger)
+	details, err := GetConnectionDetails(connectionConfig, connectionTimeout, UpsertCLientTlsFiles, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +58,7 @@ func (rc *SqlOpenConnector) NewPgPoolFromConnectionConfig(pgconfig *mgmtv1alpha1
 		Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
 			PgConfig: pgconfig,
 		},
-	}, connectionTimeout, logger)
+	}, connectionTimeout, UpsertCLientTlsFiles, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -67,6 +72,13 @@ type ConnectionDetails struct {
 	Tunnel *sshtunnel.Sshtunnel
 }
 
+type ClientCertConfig struct {
+	RootCert *string
+
+	ClientCert *string
+	ClientKey  *string
+}
+
 const (
 	mysqlDriver    = "mysql"
 	postgresDriver = "postgres"
@@ -74,9 +86,108 @@ const (
 	randomPort     = 0
 )
 
+type ClientTlsFileConfig struct {
+	RootCert *string
+
+	ClientCert *string
+	ClientKey  *string
+}
+
+func UpsertCLientTlsFiles(config *mgmtv1alpha1.ClientTlsConfig) (*ClientTlsFileConfig, error) {
+	if config == nil {
+		return nil, errors.New("config was nil")
+	}
+
+	errgrp := errgroup.Group{}
+
+	filenames := getClientTlsFileNames(config)
+
+	errgrp.Go(func() error {
+		if filenames.RootCert == nil {
+			return nil
+		}
+		_, err := os.Stat(*filenames.RootCert)
+		if err != nil && !os.IsNotExist(err) {
+			return err
+		} else if err != nil && os.IsNotExist(err) {
+			if err := os.WriteFile(*filenames.RootCert, []byte(config.GetRootCert()), 0600); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	errgrp.Go(func() error {
+		if filenames.ClientCert != nil && filenames.ClientKey != nil {
+			_, err := os.Stat(*filenames.ClientKey)
+			if err != nil && !os.IsNotExist(err) {
+				return err
+			} else if err != nil && os.IsNotExist(err) {
+				if err := os.WriteFile(*filenames.ClientKey, []byte(config.GetClientKey()), 0600); err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	})
+	errgrp.Go(func() error {
+		if filenames.ClientCert != nil && filenames.ClientKey != nil {
+			_, err := os.Stat(*filenames.ClientCert)
+			if err != nil && !os.IsNotExist(err) {
+				return err
+			} else if err != nil && os.IsNotExist(err) {
+				if err := os.WriteFile(*filenames.ClientCert, []byte(config.GetClientCert()), 0600); err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	})
+
+	err := errgrp.Wait()
+	if err != nil {
+		return nil, err
+	}
+
+	return &filenames, nil
+}
+
+func getClientTlsFileNames(config *mgmtv1alpha1.ClientTlsConfig) ClientTlsFileConfig {
+	if config == nil {
+		return ClientTlsFileConfig{}
+	}
+
+	basedir := os.TempDir()
+
+	output := ClientTlsFileConfig{}
+	if config.GetRootCert() != "" {
+		content := hashContent(config.GetRootCert())
+		fullpath := filepath.Join(basedir, content)
+		output.RootCert = &fullpath
+	}
+	if config.GetClientCert() != "" && config.GetClientKey() != "" {
+		certContent := hashContent(config.GetClientCert())
+		certpath := filepath.Join(basedir, certContent)
+		keyContent := hashContent(config.GetClientKey())
+		keypath := filepath.Join(basedir, keyContent)
+		output.ClientCert = &certpath
+		output.ClientKey = &keypath
+	}
+	return output
+}
+
+func hashContent(content string) string {
+	hash := sha256.Sum256([]byte(content))
+	return hex.EncodeToString(hash[:])
+}
+
 // Method for retrieving connection details, including tunneling information.
 // Only use if requiring direct access to the SSH Tunnel, otherwise the SqlConnector should be used instead.
-func GetConnectionDetails(c *mgmtv1alpha1.ConnectionConfig, connectionTimeout *uint32, logger *slog.Logger) (*ConnectionDetails, error) {
+func GetConnectionDetails(
+	c *mgmtv1alpha1.ConnectionConfig,
+	connectionTimeout *uint32,
+	handleClientTlsConfig func(config *mgmtv1alpha1.ClientTlsConfig) (*ClientTlsFileConfig, error),
+	logger *slog.Logger,
+) (*ConnectionDetails, error) {
 	if c == nil {
 		return nil, errors.New("connection config was nil, expected *mgmtv1alpha1.ConnectionConfig")
 	}
@@ -122,6 +233,13 @@ func GetConnectionDetails(c *mgmtv1alpha1.ConnectionConfig, connectionTimeout *u
 				GeneralDbConnectConfig: *connDetails,
 				MaxConnectionLimit:     maxConnLimit,
 			}, nil
+		}
+
+		if config.PgConfig.GetClientTls() != nil {
+			_, err := handleClientTlsConfig(config.PgConfig.GetClientTls())
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		connDetails, err := getGeneralDbConnectConfigFromPg(config, connectionTimeout)
@@ -325,6 +443,16 @@ func getGeneralDbConnectConfigFromPg(config *mgmtv1alpha1.ConnectionConfig_PgCon
 		if connectionTimeout != nil {
 			query.Add("connect_timeout", fmt.Sprintf("%d", *connectionTimeout))
 		}
+		if config.PgConfig.GetClientTls() != nil {
+			filenames := getClientTlsFileNames(config.PgConfig.GetClientTls())
+			if filenames.RootCert != nil {
+				query.Add("sslrootcert", *filenames.RootCert)
+			}
+			if filenames.ClientCert != nil && filenames.ClientKey != nil {
+				query.Add("sslcert", *filenames.ClientCert)
+				query.Add("sslkey", *filenames.ClientKey)
+			}
+		}
 		return &GeneralDbConnectConfig{
 			Driver:      postgresDriver,
 			Host:        cc.Connection.Host,
@@ -362,6 +490,17 @@ func getGeneralDbConnectConfigFromPg(config *mgmtv1alpha1.ConnectionConfig_PgCon
 			// default to standard postgres port 5432 if port not provided
 			port = int64(5432)
 		}
+		query := u.Query()
+		if config.PgConfig.GetClientTls() != nil {
+			filenames := getClientTlsFileNames(config.PgConfig.GetClientTls())
+			if filenames.RootCert != nil {
+				query.Add("sslrootcert", *filenames.RootCert)
+			}
+			if filenames.ClientCert != nil && filenames.ClientKey != nil {
+				query.Add("sslcert", *filenames.ClientCert)
+				query.Add("sslkey", *filenames.ClientKey)
+			}
+		}
 
 		return &GeneralDbConnectConfig{
 			Driver:      postgresDriver,
@@ -370,7 +509,7 @@ func getGeneralDbConnectConfigFromPg(config *mgmtv1alpha1.ConnectionConfig_PgCon
 			Database:    strings.TrimPrefix(u.Path, "/"),
 			User:        user,
 			Pass:        pass,
-			QueryParams: u.Query(),
+			QueryParams: query,
 		}, nil
 	default:
 		return nil, nucleuserrors.NewBadRequest("must provide valid postgres connection")

@@ -41,6 +41,7 @@ func (s *SqlDb) Open() (SqlDBTX, error) {
 		newPort := int32(localport)
 		s.details.GeneralDbConnectConfig.Port = newPort
 		dsn := s.details.GeneralDbConnectConfig.String()
+
 		db, err := sql.Open(s.details.GeneralDbConnectConfig.Driver, dsn)
 		if err != nil {
 			s.details.Tunnel.Close()

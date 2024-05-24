@@ -41,6 +41,7 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   CheckConnectionConfigResponse,
+  ClientTlsConfig,
   ConnectionConfig,
   PostgresConnection,
   PostgresConnectionConfig,
@@ -63,7 +64,7 @@ interface Props {
   onSaveFailed(err: unknown): void;
 }
 
-export default function PostgresForm(props: Props) {
+export default function PostgresForm(props: Props): ReactElement {
   const { connectionId, defaultValues, onSaved, onSaveFailed } = props;
   const { account } = useAccount();
   // used to know which tab - host or url that the user is on when we submit the form
@@ -101,7 +102,8 @@ export default function PostgresForm(props: Props) {
           values.db,
           values.tunnel,
           undefined,
-          values.options
+          values.options,
+          values.clientTls
         );
       } else if (activeTab === 'url') {
         connection = await updatePostgresConnection(
@@ -111,7 +113,8 @@ export default function PostgresForm(props: Props) {
           undefined,
           undefined,
           values.url,
-          values.options
+          values.options,
+          values.clientTls
         );
       }
       onSaved(connection);
@@ -360,6 +363,72 @@ export default function PostgresForm(props: Props) {
         />
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="bastion">
+            <AccordionTrigger>Client TLS Certificates</AccordionTrigger>
+            <AccordionContent className="flex flex-col gap-4 p-2">
+              <div className="text-sm">
+                Configuring this section allows Neosync to connect to the
+                database using SSL/TLS. The verification mode may be configured
+                using the SSL Field, or by specifying the option in the
+                postgresql url.
+              </div>
+              <FormField
+                control={form.control}
+                name="clientTls.rootCert"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Root Certificate</FormLabel>
+                    <FormDescription>
+                      {`The public key certificate of the CA that issued the
+                      server's certificate. Root certificates are used to
+                      authenticate the server to the client. They ensure that
+                      the server the client is connecting to is trusted.`}
+                    </FormDescription>
+                    <FormControl>
+                      <Textarea {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="clientTls.clientCert"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Client Certificate</FormLabel>
+                    <FormDescription>
+                      A public key certificate issued to the client by a trusted
+                      Certificate Authority (CA).
+                    </FormDescription>
+                    <FormControl>
+                      <Textarea {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="clientTls.clientKey"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Client Key</FormLabel>
+                    <FormDescription>
+                      A private key corresponding to the client certificate.
+                    </FormDescription>
+                    <FormControl>
+                      <Textarea {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+
+        <Accordion type="single" collapsible className="w-full">
+          <AccordionItem value="bastion">
             <AccordionTrigger> Bastion Host Configuration</AccordionTrigger>
             <AccordionContent className="flex flex-col gap-4 p-2">
               <div className="text-sm">
@@ -507,14 +576,16 @@ export default function PostgresForm(props: Props) {
                     account?.id ?? '',
                     form.getValues().db,
                     form.getValues().tunnel,
-                    undefined
+                    undefined,
+                    form.getValues().clientTls
                   );
                 } else if (activeTab === 'url') {
                   res = await checkPostgresConnection(
                     account?.id ?? '',
                     undefined,
                     form.getValues().tunnel,
-                    form.getValues().url ?? ''
+                    form.getValues().url ?? '',
+                    form.getValues().clientTls
                   );
                 }
                 setValidationResponse(res);
@@ -571,9 +642,10 @@ async function updatePostgresConnection(
   db?: PostgresFormValues['db'],
   tunnel?: PostgresFormValues['tunnel'],
   url?: string,
-  options?: PostgresFormValues['options']
+  options?: PostgresFormValues['options'],
+  clientTls?: PostgresFormValues['clientTls']
 ): Promise<UpdateConnectionResponse> {
-  let pgconfig = new PostgresConnectionConfig({});
+  const pgconfig = new PostgresConnectionConfig({});
   if (url) {
     pgconfig.connectionConfig = {
       case: 'url',
@@ -628,6 +700,14 @@ async function updatePostgresConnection(
     }
   }
 
+  if (clientTls?.rootCert || clientTls?.clientCert || clientTls?.clientKey) {
+    pgconfig.clientTls = new ClientTlsConfig({
+      rootCert: clientTls.rootCert ? clientTls.rootCert : undefined,
+      clientCert: clientTls.clientCert ? clientTls.clientCert : undefined,
+      clientKey: clientTls.clientKey ? clientTls.clientKey : undefined,
+    });
+  }
+
   const res = await fetch(
     `/api/accounts/${accountId}/connections/${connectionId}`,
     {
@@ -660,13 +740,14 @@ async function checkPostgresConnection(
   accountId: string,
   db?: PostgresFormValues['db'],
   tunnel?: PostgresFormValues['tunnel'],
-  url?: string
+  url?: string,
+  clientTls?: PostgresFormValues['clientTls']
 ): Promise<CheckConnectionConfigResponse> {
   let requestBody;
   if (url) {
-    requestBody = { url, tunnel };
+    requestBody = { url, tunnel, clientTls };
   } else {
-    requestBody = { db, tunnel };
+    requestBody = { db, tunnel, clientTls };
   }
   const res = await fetch(
     `/api/accounts/${accountId}/connections/postgres/check`,
