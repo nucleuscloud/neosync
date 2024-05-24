@@ -1,81 +1,79 @@
+.PHONY: help default \
+        cluster/create cluster/destroy \
+        build build/backend build/worker build/cli \
+				install/frontend \
+        clean clean/backend clean/worker clean/cli \
+        compose/up compose/down \
+        compose/auth/up compose/auth/down \
+        compose/dev/up compose/dev/down \
+        compose/dev/auth/up compose/dev/auth/down
 default: help
+
+help:
+	@echo "Available commands:"
+	@awk 'BEGIN {FS = ":.*##"; printf "\n"} /^[a-zA-Z_\/]+:.*##/ { printf "\033[36m%-30s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 
 PROD_COMPOSE_FILE = compose.yml
 PROD_AUTH_COMPOSE_FILE = compose.auth.yml
 DEV_COMPOSE_FILE = compose.dev.yml
 DEV_AUTH_COMPOSE_FILE = compose.auth.dev.yml
 
-##@
-cluster-create:
+# Cluster Management
+cluster/create: ## Creates a local K8s Cluster
 	sh ./tilt/scripts/cluster-create.sh
-.PHONY: cluster-create
 
-cluster-destroy:
+cluster/destroy: ## Destroys a local K8s Cluster
 	bash ./tilt/scripts/assert-context.sh
 	sh ./tilt/scripts/cluster-destroy.sh
-.PHONY: cluster-destroy
 
-build: build-backend build-worker build-cli
-.PHONY: build
+# Building
+build: build/backend build/worker build/cli install/frontend ## Builds the project
 
-build-backend:
+build/backend: ## Builds the backend
 	cd ./backend && make all
-.PHONY: build-backend
 
-build-worker:
+build/worker: ## Builds the worker
 	cd ./worker && make all
-.PHONY: build-worker
 
-build-cli:
+build/cli: ## Builds the CLI
 	cd ./cli && make all
-.PHONY: build-cli
 
-clean: clean-backend clean-worker clean-cli
-.PHONY: clean
+install/frontend: ## Runs npm install for the frontend
+	cd ./frontend && npm install
 
-clean-backend:
+# Cleaning
+clean: clean/backend clean/worker clean/cli ## Cleans the project
+
+clean/backend: ## Cleans the backend
 	cd ./backend && make clean
-.PHONY: clean-backend
 
-clean-worker:
+clean/worker: ## Cleans the worker
 	cd ./worker && make clean
-.PHONY: clean-worker
 
-clean-cli:
+clean/cli: ## Cleans the CLI
 	cd ./cli && make clean
-.PHONY: clean-cli
 
-rebuild: clean build
-.PHONY: rebuild
-
-compose-up:
+# Compose Management
+compose/up: ## Composes up the production environment
 	docker compose -f $(PROD_COMPOSE_FILE) up -d
-.PHONY: compose-up
 
-compose-down:
+compose/down: ## Composes down the production environment
 	docker compose -f $(PROD_COMPOSE_FILE) down
-.PHONY: compose-down
 
-compose-auth-up:
+compose/auth/up: ## Composes up the production environment with auth
 	docker compose -f $(PROD_COMPOSE_FILE) -f $(PROD_AUTH_COMPOSE_FILE) up -d
-.PHONY: compose-auth-up
 
-compose-auth-down:
+compose/auth/down: ## Composes down the production environment with auth
 	docker compose -f $(PROD_COMPOSE_FILE) -f $(PROD_AUTH_COMPOSE_FILE) down
-.PHONY: compose-auth-down
 
-compose-dev-up:
+compose/dev/up: ## Composes up the development environment
 	docker compose -f $(DEV_COMPOSE_FILE) watch
-.PHONY: compose-dev-up
 
-compose-dev-down:
+compose/dev/down: ## Composes down the development environment
 	docker compose -f $(DEV_COMPOSE_FILE) down
-.PHONY: compose-dev-down
 
-compose-dev-auth-up:
+compose/dev/auth/up: ## Composes up the development environment with auth
 	docker compose -f $(DEV_COMPOSE_FILE) -f $(DEV_AUTH_COMPOSE_FILE) watch
-.PHONY: compose-dev-auth-up
 
-compose-dev-auth-down:
+compose/dev/auth/down: ## Composes down the development environment with auth
 	docker compose -f $(DEV_COMPOSE_FILE) -f $(DEV_AUTH_COMPOSE_FILE) down
-.PHONY: compose-dev-auth-down
