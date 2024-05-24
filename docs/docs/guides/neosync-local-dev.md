@@ -27,7 +27,7 @@ This container comes pre-packaged with all of the tools needed for developing Ne
 The docker compose environment runs almost entirely by itself. However, the Golang services (backend, worker), must be built on the host system.
 
 This can be done easily from the root by simply running `make dbuild`. This will build the project for Docker (Linux). It builds the entire project so it may take some time.
-Note: This command will not build the frontend and will only install node modules. This is because Nextjs runs in dev mode and only builds what it needs to. The frontend build command is meant for production deployments
+Note: This command will not build the frontend and will only install node modules. This is because Nextjs runs in dev mode and only builds what it needs to. The frontend build command is meant for production deployments.
 
 Afterwards, running `make compose/dev/up` will stand up Neosync and it's dependencies.
 **Currently there is a limitation with devcontainers where this command must be run via `sudo`.**
@@ -79,7 +79,7 @@ The cluster is declaratively defined [here](https://github.com/nucleuscloud/neos
 The below command invokes the cluster-create script that can be found [here](https://github.com/nucleuscloud/neosync/tree/main//tilt/scripts/cluster-create.sh)
 
 ```
-make cluster-create
+make cluster/create
 ```
 
 After the cluster has been successfully created, `tilt up` can be run to start up `neosync`.
