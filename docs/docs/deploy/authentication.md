@@ -23,7 +23,7 @@ This form of authentication is configured with any Open Identity Connect (OIDC) 
 Internally, we utilize Auth0, and to date this is the only provider that has been fully tested for use with Neosync.
 
 Environment variables must be provided for the App ad API to properly configure User Authentication.
-See the [environment variables](/deploy/environment-variables.md) page for the whole list of required auth env vars.
+See the [environment variables](environment-variables.md) page for the whole list of required auth env vars.
 The table shows that most of them are not required, however that is only true if `AUTH_ENABLED` is set to false. They must be provided if `AUTH_ENABLED=true`.
 
 The descriptions of each environment variable detail exactly what the `AUTH_*` is and why it is needed.
