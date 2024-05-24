@@ -1,8 +1,9 @@
 .PHONY: help default \
         cluster/create cluster/destroy \
-        build build/backend build/worker build/cli \
+        build build/backend build/worker build/cli build/frontend \
 				dbuild dbuild/backend dbuild/worker dbuild/cli \
 				install/frontend \
+				lint lint/go lint/frontend \
         clean clean/backend clean/worker clean/cli \
         compose/up compose/down \
         compose/auth/up compose/auth/down \
@@ -28,7 +29,7 @@ cluster/destroy: ## Destroys a local K8s Cluster
 	sh ./tilt/scripts/cluster-destroy.sh
 
 # Building
-build: ## Builds the project
+build: ## Builds the project (except the frontend)
 	make build/backend &
 	make build/worker &
 	make build/cli &
@@ -62,6 +63,21 @@ dbuild/cli: ## Builds the CLI specifically for Linux
 
 install/frontend: ## Runs npm install for the frontend
 	@cd ./frontend && npm install
+
+build/frontend: ## Builds the frontend (don't do this if intending to develop locally)
+	@cd ./frontend && npm run build
+
+# Linting
+lint: ## Lints the project
+	make lint/go &
+	make lint/frontend &
+	wait
+
+lint/go: ## Lints the Go Module
+	golangci-lint run
+
+lint/frontend: ## Lints the frontend
+	@cd ./frontend && npm run lint
 
 # Cleaning
 clean: ## Cleans the project
