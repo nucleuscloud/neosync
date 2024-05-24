@@ -1,46 +1,39 @@
-GO=go
+.PHONY: help default \
+				vet \
+				gen build dbuild \
+				run \
+				clean \
+				lint \
+				install-tools install-go-tools
 
-default: all
+default: help
 
-all: build
+help:
+	@echo "Available commands:"
+	@awk 'BEGIN {FS = ":.*##"; printf "\n"} /^[a-zA-Z_\/]+:.*##/ { printf "\033[36m%-30s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 
-vet:
-	$(GO) vet ./...
+vet: ## Runs go vet
+	go vet ./...
 
-build: gen vet
+build: gen vet ## Generates code, runs go vet, and builds the project
 	scripts/build.sh
-.PHONY: build
 
-dbuild: gen vet
+dbuild: gen vet ## Generates code, runs go vet, and builds the project specifically for Linux
 	GOOS=linux scripts/build.sh
-.PHONY: dbuild
 
-run:
+run: ## Runs the project
 	./bin/mgmt serve connect
-.PHONY: run
 
-# build-debug:
-# 	CGO_ENABLED=0 $(GO) build -gcflags="all=-N -l" -o bin/mgmt cmd/mgmt/*.go
-# .PHONY: build-debug
-
-protos: gen
-.PHONY: protos
-
-gen:
+gen: ## Runs the gen script
 	./scripts/gen.sh
-.PHONY: gen
 
-clean:
+clean: ## Cleans the bin directory
 	rm -rf bin
-.PHONY: clean
 
-install-tools: install-go-tools
-.PHONY: install-tools
+lint: ## Runs the Go Linter
+	golangci-lint run
 
-install-go-tools:
-	$(GO) install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate
-.PHONY: install-go-tools
+install-tools: install-go-tools ## Installs necessary tools
 
-help: ## Show this help
-	@awk 'BEGIN {FS = ":.*?## "} /^[/.a-zA-Z_-]+:.*?## / {sub("\\\\n",sprintf("\n%22c"," "), $$2);printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
-.PHONY: help
+install-go-tools: ## Installs Go tools with postgres tag
+	go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate
