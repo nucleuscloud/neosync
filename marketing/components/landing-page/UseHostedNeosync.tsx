@@ -27,7 +27,7 @@ export default function UseHostedNeosync(): ReactElement {
   ];
 
   return (
-    <div className="px-6 bg-gray-50 p-10 rounded-xl border border-gray-300">
+    <div className="px-6 bg-gray-50 p-10 rounded-xl border border-gray-300 mx-10 sm:mx-0">
       <div className="text-gray-900 font-semibold text-2xl lg:text-4xl font-satoshi text-center">
         Get Started in Minutes
       </div>
@@ -52,7 +52,9 @@ export default function UseHostedNeosync(): ReactElement {
               </div>
               <div className="flex flex-col  gap-2 lg:gap-6 justify-start pr-4">
                 <div className="text-gray-900 text-2xl"> {step.title}</div>
-                <div className="lg:w-[400px]">{step.description}</div>
+                <div className=" text-sm sm:text-md lg:w-[400px]">
+                  {step.description}
+                </div>
               </div>
             </div>
             <div className="my-8 lg:w-full">{step.image}</div>

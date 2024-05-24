@@ -32,7 +32,7 @@ export default function ValueProps(): ReactElement {
 
   return (
     <div>
-      <div className="text-gray-900 font-semibold text-2xl lg:text-4xl font-satoshi text-center ">
+      <div className="text-gray-900 font-semibold text-2xl lg:text-4xl font-satoshi text-center">
         A Better Developer Experience to Ship More Resilient Code, Faster
       </div>
       <div className="text-md text-gray-700 font-satoshi font-semibold pt-10 lg:px-20 text-center">
