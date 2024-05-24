@@ -26,7 +26,7 @@
     "clean": "rm -rf dist",
     "build": "tsup src/index.ts --format cjs,esm --dts",
     "dev": "tsup src/index.ts --format esm,cjs --dts --watch",
-    "lint": "eslint src/",
+    "lint": "eslint 'src/**/*.{js,ts,tsx}'",
     "typecheck": "tsc --noEmit"
   },
   "author": "nickzelei",
