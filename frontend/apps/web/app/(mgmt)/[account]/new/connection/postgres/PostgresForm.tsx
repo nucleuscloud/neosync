@@ -941,13 +941,14 @@ async function checkPostgresConnection(
   accountId: string,
   db?: PostgresFormValues['db'],
   tunnel?: PostgresFormValues['tunnel'],
-  url?: string
+  url?: string,
+  clientTls?: PostgresFormValues['clientTls']
 ): Promise<CheckConnectionConfigResponse> {
   let requestBody;
   if (url) {
-    requestBody = { url, tunnel };
+    requestBody = { url, tunnel, clientTls };
   } else {
-    requestBody = { db, tunnel };
+    requestBody = { db, tunnel, clientTls };
   }
   const res = await fetch(
     `/api/accounts/${accountId}/connections/postgres/check`,

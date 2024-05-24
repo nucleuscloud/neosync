@@ -83,7 +83,7 @@ const SQL_OPTIONS_FORM_SCHEMA = Yup.object({
   maxConnectionLimit: Yup.number().min(0).max(10000).optional(),
 });
 
-const ClientTlsFormValues = Yup.object({
+export const ClientTlsFormValues = Yup.object({
   rootCert: Yup.string(),
 
   clientCert: Yup.string(),
