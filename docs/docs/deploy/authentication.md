@@ -1,5 +1,6 @@
 ---
 title: Authentication
+description: Learn how to configure and maintain authentication within Neosync open source
 id: auth
 hide_title: false
 slug: /deploy/authentication

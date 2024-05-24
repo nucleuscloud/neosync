@@ -1,5 +1,6 @@
 ---
 title: Using Neosync in CI
+description: Learn how to use Neosync in your CI pipelines in order to hydrate your CI databases with anonymized production data
 id: using-neosync-in-ci
 hide_title: false
 slug: /guides/using-neosync-in-ci

@@ -1,5 +1,6 @@
 ---
 title: Environment Variables
+description: A listing of the environment variables that Neosync uses to work locally and in production
 id: env-vars
 hide_title: false
 slug: /deploy/environment-variables

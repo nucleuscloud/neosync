@@ -1,5 +1,6 @@
 ---
 title: Kubernetes
+description: The Kubernetes guide covers how to deploy Neosync specific resources.
 id: kubernetes
 hide_title: false
 slug: /deploy/kubernetes

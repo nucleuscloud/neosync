@@ -1,5 +1,6 @@
 ---
 title: Developing Neosync Locally
+description: Learn how to develop with Neosync Open Source locally in order to get up to speed with how Neosync works
 id: neosync-local-dev
 hide_title: false
 slug: /guides/neosync-local-dev
