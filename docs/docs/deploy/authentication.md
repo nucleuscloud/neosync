@@ -82,7 +82,7 @@ If using Temporal Cloud, mTLS is required by default and must be configured to p
 Temporal has a guide for creating mTLS certs [here](https://docs.temporal.io/cloud/certificates#use-tcld-to-generate-certificates).
 
 Once these have been created, they must be provided as environment variables to both the API and Worker processes.
-Reference the [environment variables](/deploy/environment-variables.md) page for the `TEMPORAL_*` environment variables.
+Reference the [environment variables](environment-variables.md) page for the `TEMPORAL_*` environment variables.
 
 ## Auth Server Admin Access
 
