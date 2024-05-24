@@ -12811,3 +12811,273 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = SetJobSyncOptionsResponseValidationError{}
+
+// Validate checks the field values on ValidateJobMappingsRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ValidateJobMappingsRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ValidateJobMappingsRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ValidateJobMappingsRequestMultiError, or nil if none found.
+func (m *ValidateJobMappingsRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ValidateJobMappingsRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for AccountId
+
+	for idx, item := range m.GetMappings() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ValidateJobMappingsRequestValidationError{
+						field:  fmt.Sprintf("Mappings[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ValidateJobMappingsRequestValidationError{
+						field:  fmt.Sprintf("Mappings[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ValidateJobMappingsRequestValidationError{
+					field:  fmt.Sprintf("Mappings[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if all {
+		switch v := interface{}(m.GetSource()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ValidateJobMappingsRequestValidationError{
+					field:  "Source",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ValidateJobMappingsRequestValidationError{
+					field:  "Source",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSource()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ValidateJobMappingsRequestValidationError{
+				field:  "Source",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return ValidateJobMappingsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// ValidateJobMappingsRequestMultiError is an error wrapping multiple
+// validation errors returned by ValidateJobMappingsRequest.ValidateAll() if
+// the designated constraints aren't met.
+type ValidateJobMappingsRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ValidateJobMappingsRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ValidateJobMappingsRequestMultiError) AllErrors() []error { return m }
+
+// ValidateJobMappingsRequestValidationError is the validation error returned
+// by ValidateJobMappingsRequest.Validate if the designated constraints aren't met.
+type ValidateJobMappingsRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ValidateJobMappingsRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ValidateJobMappingsRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ValidateJobMappingsRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ValidateJobMappingsRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ValidateJobMappingsRequestValidationError) ErrorName() string {
+	return "ValidateJobMappingsRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ValidateJobMappingsRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sValidateJobMappingsRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ValidateJobMappingsRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ValidateJobMappingsRequestValidationError{}
+
+// Validate checks the field values on ValidateJobMappingsResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ValidateJobMappingsResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ValidateJobMappingsResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ValidateJobMappingsResponseMultiError, or nil if none found.
+func (m *ValidateJobMappingsResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ValidateJobMappingsResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return ValidateJobMappingsResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// ValidateJobMappingsResponseMultiError is an error wrapping multiple
+// validation errors returned by ValidateJobMappingsResponse.ValidateAll() if
+// the designated constraints aren't met.
+type ValidateJobMappingsResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ValidateJobMappingsResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ValidateJobMappingsResponseMultiError) AllErrors() []error { return m }
+
+// ValidateJobMappingsResponseValidationError is the validation error returned
+// by ValidateJobMappingsResponse.Validate if the designated constraints
+// aren't met.
+type ValidateJobMappingsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ValidateJobMappingsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ValidateJobMappingsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ValidateJobMappingsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ValidateJobMappingsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ValidateJobMappingsResponseValidationError) ErrorName() string {
+	return "ValidateJobMappingsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ValidateJobMappingsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sValidateJobMappingsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ValidateJobMappingsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ValidateJobMappingsResponseValidationError{}

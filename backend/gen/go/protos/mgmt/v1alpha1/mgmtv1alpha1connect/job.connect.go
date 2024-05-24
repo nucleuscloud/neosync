@@ -100,6 +100,9 @@ const (
 	// JobServiceSetJobSyncOptionsProcedure is the fully-qualified name of the JobService's
 	// SetJobSyncOptions RPC.
 	JobServiceSetJobSyncOptionsProcedure = "/mgmt.v1alpha1.JobService/SetJobSyncOptions"
+	// JobServiceValidateJobMappingsProcedure is the fully-qualified name of the JobService's
+	// ValidateJobMappings RPC.
+	JobServiceValidateJobMappingsProcedure = "/mgmt.v1alpha1.JobService/ValidateJobMappings"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
@@ -131,6 +134,7 @@ var (
 	jobServiceGetJobRunLogsStreamMethodDescriptor              = jobServiceServiceDescriptor.Methods().ByName("GetJobRunLogsStream")
 	jobServiceSetJobWorkflowOptionsMethodDescriptor            = jobServiceServiceDescriptor.Methods().ByName("SetJobWorkflowOptions")
 	jobServiceSetJobSyncOptionsMethodDescriptor                = jobServiceServiceDescriptor.Methods().ByName("SetJobSyncOptions")
+	jobServiceValidateJobMappingsMethodDescriptor              = jobServiceServiceDescriptor.Methods().ByName("ValidateJobMappings")
 )
 
 // JobServiceClient is a client for the mgmt.v1alpha1.JobService service.
@@ -168,6 +172,8 @@ type JobServiceClient interface {
 	SetJobWorkflowOptions(context.Context, *connect.Request[v1alpha1.SetJobWorkflowOptionsRequest]) (*connect.Response[v1alpha1.SetJobWorkflowOptionsResponse], error)
 	// Set the job sync options. Must provide entire object as it will fully override the previous configuration
 	SetJobSyncOptions(context.Context, *connect.Request[v1alpha1.SetJobSyncOptionsRequest]) (*connect.Response[v1alpha1.SetJobSyncOptionsResponse], error)
+	// validates that the jobmapping configured can run with table constraints
+	ValidateJobMappings(context.Context, *connect.Request[v1alpha1.ValidateJobMappingsRequest]) (*connect.Response[v1alpha1.ValidateJobMappingsResponse], error)
 }
 
 // NewJobServiceClient constructs a client for the mgmt.v1alpha1.JobService service. By default, it
@@ -336,6 +342,12 @@ func NewJobServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			connect.WithSchema(jobServiceSetJobSyncOptionsMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		validateJobMappings: connect.NewClient[v1alpha1.ValidateJobMappingsRequest, v1alpha1.ValidateJobMappingsResponse](
+			httpClient,
+			baseURL+JobServiceValidateJobMappingsProcedure,
+			connect.WithSchema(jobServiceValidateJobMappingsMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -367,6 +379,7 @@ type jobServiceClient struct {
 	getJobRunLogsStream              *connect.Client[v1alpha1.GetJobRunLogsStreamRequest, v1alpha1.GetJobRunLogsStreamResponse]
 	setJobWorkflowOptions            *connect.Client[v1alpha1.SetJobWorkflowOptionsRequest, v1alpha1.SetJobWorkflowOptionsResponse]
 	setJobSyncOptions                *connect.Client[v1alpha1.SetJobSyncOptionsRequest, v1alpha1.SetJobSyncOptionsResponse]
+	validateJobMappings              *connect.Client[v1alpha1.ValidateJobMappingsRequest, v1alpha1.ValidateJobMappingsResponse]
 }
 
 // GetJobs calls mgmt.v1alpha1.JobService.GetJobs.
@@ -499,6 +512,11 @@ func (c *jobServiceClient) SetJobSyncOptions(ctx context.Context, req *connect.R
 	return c.setJobSyncOptions.CallUnary(ctx, req)
 }
 
+// ValidateJobMappings calls mgmt.v1alpha1.JobService.ValidateJobMappings.
+func (c *jobServiceClient) ValidateJobMappings(ctx context.Context, req *connect.Request[v1alpha1.ValidateJobMappingsRequest]) (*connect.Response[v1alpha1.ValidateJobMappingsResponse], error) {
+	return c.validateJobMappings.CallUnary(ctx, req)
+}
+
 // JobServiceHandler is an implementation of the mgmt.v1alpha1.JobService service.
 type JobServiceHandler interface {
 	GetJobs(context.Context, *connect.Request[v1alpha1.GetJobsRequest]) (*connect.Response[v1alpha1.GetJobsResponse], error)
@@ -534,6 +552,8 @@ type JobServiceHandler interface {
 	SetJobWorkflowOptions(context.Context, *connect.Request[v1alpha1.SetJobWorkflowOptionsRequest]) (*connect.Response[v1alpha1.SetJobWorkflowOptionsResponse], error)
 	// Set the job sync options. Must provide entire object as it will fully override the previous configuration
 	SetJobSyncOptions(context.Context, *connect.Request[v1alpha1.SetJobSyncOptionsRequest]) (*connect.Response[v1alpha1.SetJobSyncOptionsResponse], error)
+	// validates that the jobmapping configured can run with table constraints
+	ValidateJobMappings(context.Context, *connect.Request[v1alpha1.ValidateJobMappingsRequest]) (*connect.Response[v1alpha1.ValidateJobMappingsResponse], error)
 }
 
 // NewJobServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -698,6 +718,12 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 		connect.WithSchema(jobServiceSetJobSyncOptionsMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	jobServiceValidateJobMappingsHandler := connect.NewUnaryHandler(
+		JobServiceValidateJobMappingsProcedure,
+		svc.ValidateJobMappings,
+		connect.WithSchema(jobServiceValidateJobMappingsMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/mgmt.v1alpha1.JobService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case JobServiceGetJobsProcedure:
@@ -752,6 +778,8 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 			jobServiceSetJobWorkflowOptionsHandler.ServeHTTP(w, r)
 		case JobServiceSetJobSyncOptionsProcedure:
 			jobServiceSetJobSyncOptionsHandler.ServeHTTP(w, r)
+		case JobServiceValidateJobMappingsProcedure:
+			jobServiceValidateJobMappingsHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -863,4 +891,8 @@ func (UnimplementedJobServiceHandler) SetJobWorkflowOptions(context.Context, *co
 
 func (UnimplementedJobServiceHandler) SetJobSyncOptions(context.Context, *connect.Request[v1alpha1.SetJobSyncOptionsRequest]) (*connect.Response[v1alpha1.SetJobSyncOptionsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.SetJobSyncOptions is not implemented"))
+}
+
+func (UnimplementedJobServiceHandler) ValidateJobMappings(context.Context, *connect.Request[v1alpha1.ValidateJobMappingsRequest]) (*connect.Response[v1alpha1.ValidateJobMappingsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mgmt.v1alpha1.JobService.ValidateJobMappings is not implemented"))
 }

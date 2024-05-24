@@ -57,6 +57,56 @@ func (p *PostgresManager) GetSchemaColumnMap(ctx context.Context) (map[string]ma
 	return result, nil
 }
 
+func (p *PostgresManager) GetTableConstraintsBySchema(ctx context.Context, schemas []string) (*TableConstraints, error) {
+	if len(schemas) == 0 {
+		return &TableConstraints{}, nil
+	}
+	rows, err := p.querier.GetTableConstraintsBySchema(ctx, p.pool, schemas)
+	if err != nil && !nucleusdb.IsNoRows(err) {
+		return nil, err
+	} else if err != nil && nucleusdb.IsNoRows(err) {
+		return &TableConstraints{}, nil
+	}
+
+	foreignKeyMap := map[string][]*ForeignConstraint{}
+	primaryKeyMap := map[string][]string{}
+	uniqueConstraintsMap := map[string][][]string{}
+	for _, row := range rows {
+		tableName := BuildTable(row.SchemaName, row.TableName)
+		switch row.ConstraintType {
+		case "f":
+			if len(row.ConstraintColumns) != len(row.ForeignColumnNames) {
+				return nil, fmt.Errorf("length of columns was not equal to length of foreign key cols: %d %d", len(row.ConstraintColumns), len(row.ForeignColumnNames))
+			}
+			if len(row.ConstraintColumns) != len(row.Notnullable) {
+				return nil, fmt.Errorf("length of columns was not equal to length of not nullable cols: %d %d", len(row.ConstraintColumns), len(row.Notnullable))
+			}
+
+			foreignKeyMap[tableName] = append(foreignKeyMap[tableName], &ForeignConstraint{
+				Columns:     row.ConstraintColumns,
+				NotNullable: row.Notnullable,
+				ForeignKey: &ForeignKey{
+					Table:   BuildTable(row.ForeignSchemaName, row.ForeignTableName),
+					Columns: row.ForeignColumnNames,
+				},
+			})
+		case "p":
+			if _, exists := primaryKeyMap[tableName]; !exists {
+				primaryKeyMap[tableName] = []string{}
+			}
+			primaryKeyMap[tableName] = append(primaryKeyMap[tableName], dedupeSlice(row.ConstraintColumns)...)
+		case "u":
+			columns := dedupeSlice(row.ConstraintColumns)
+			uniqueConstraintsMap[tableName] = append(uniqueConstraintsMap[tableName], columns)
+		}
+	}
+	return &TableConstraints{
+		ForeignKeyConstraints: foreignKeyMap,
+		PrimaryKeyConstraints: primaryKeyMap,
+		UniqueConstraints:     uniqueConstraintsMap,
+	}, nil
+}
+
 func (p *PostgresManager) GetForeignKeyConstraints(ctx context.Context, schemas []string) ([]*ForeignKeyConstraintsRow, error) {
 	if len(schemas) == 0 {
 		return []*ForeignKeyConstraintsRow{}, nil
@@ -104,40 +154,16 @@ func (p *PostgresManager) GetForeignKeyConstraintsMap(ctx context.Context, schem
 	if len(schemas) == 0 {
 		return map[string][]*ForeignConstraint{}, nil
 	}
-	rows, err := p.querier.GetTableConstraintsBySchema(ctx, p.pool, schemas)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	constraints, err := p.GetTableConstraintsBySchema(ctx, schemas)
+	if err != nil {
 		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	}
+
+	if constraints == nil {
 		return map[string][]*ForeignConstraint{}, nil
 	}
 
-	constraintRows := []*pg_queries.GetTableConstraintsBySchemaRow{}
-	for _, row := range rows {
-		if row.ConstraintType != "f" {
-			continue
-		}
-		constraintRows = append(constraintRows, row)
-	}
-	tableConstraints := map[string][]*ForeignConstraint{}
-	for _, row := range constraintRows {
-		if len(row.ConstraintColumns) != len(row.ForeignColumnNames) {
-			return nil, fmt.Errorf("length of columns was not equal to length of foreign key cols: %d %d", len(row.ConstraintColumns), len(row.ForeignColumnNames))
-		}
-		if len(row.ConstraintColumns) != len(row.Notnullable) {
-			return nil, fmt.Errorf("length of columns was not equal to length of not nullable cols: %d %d", len(row.ConstraintColumns), len(row.Notnullable))
-		}
-
-		tableName := BuildTable(row.SchemaName, row.TableName)
-		tableConstraints[tableName] = append(tableConstraints[tableName], &ForeignConstraint{
-			Columns:     row.ConstraintColumns,
-			NotNullable: row.Notnullable,
-			ForeignKey: &ForeignKey{
-				Table:   BuildTable(row.ForeignSchemaName, row.ForeignTableName),
-				Columns: row.ForeignColumnNames,
-			},
-		})
-	}
-	return tableConstraints, nil
+	return constraints.ForeignKeyConstraints, nil
 }
 
 func (p *PostgresManager) GetPrimaryKeyConstraints(ctx context.Context, schemas []string) ([]*PrimaryKey, error) {
@@ -171,54 +197,35 @@ func (p *PostgresManager) GetPrimaryKeyConstraints(ctx context.Context, schemas 
 }
 
 func (p *PostgresManager) GetPrimaryKeyConstraintsMap(ctx context.Context, schemas []string) (map[string][]string, error) {
-	primaryKeys, err := p.GetPrimaryKeyConstraints(ctx, schemas)
+	if len(schemas) == 0 {
+		return map[string][]string{}, nil
+	}
+	constraints, err := p.GetTableConstraintsBySchema(ctx, schemas)
 	if err != nil {
 		return nil, err
 	}
-	result := map[string][]string{}
-	for _, row := range primaryKeys {
-		tableName := BuildTable(row.Schema, row.Table)
-		if _, exists := result[tableName]; !exists {
-			result[tableName] = []string{}
-		}
-		result[tableName] = append(result[tableName], row.Columns...)
+
+	if constraints == nil {
+		return map[string][]string{}, nil
 	}
-	return result, nil
+
+	return constraints.PrimaryKeyConstraints, nil
 }
 
 func (p *PostgresManager) GetUniqueConstraintsMap(ctx context.Context, schemas []string) (map[string][][]string, error) {
 	if len(schemas) == 0 {
 		return map[string][][]string{}, nil
 	}
-	rows, err := p.querier.GetTableConstraintsBySchema(ctx, p.pool, schemas)
-	if err != nil && !nucleusdb.IsNoRows(err) {
+	constraints, err := p.GetTableConstraintsBySchema(ctx, schemas)
+	if err != nil {
 		return nil, err
-	} else if err != nil && nucleusdb.IsNoRows(err) {
+	}
+
+	if constraints == nil {
 		return map[string][][]string{}, nil
 	}
 
-	groupedRows := map[string][]*pg_queries.GetTableConstraintsBySchemaRow{}
-	for _, row := range rows {
-		if row.ConstraintType != "u" {
-			continue
-		}
-		tableName := BuildTable(row.SchemaName, row.TableName)
-		if _, exists := groupedRows[tableName]; !exists {
-			groupedRows[tableName] = []*pg_queries.GetTableConstraintsBySchemaRow{}
-		}
-		groupedRows[tableName] = append(groupedRows[tableName], row)
-	}
-
-	output := map[string][][]string{}
-	for table, rows := range groupedRows {
-		output[table] = [][]string{}
-		for _, row := range rows {
-			columns := dedupeSlice(row.ConstraintColumns)
-			output[table] = append(output[table], columns)
-		}
-	}
-
-	return output, nil
+	return constraints.UniqueConstraints, nil
 }
 
 func (p *PostgresManager) GetRolePermissionsMap(ctx context.Context, role string) (map[string][]string, error) {

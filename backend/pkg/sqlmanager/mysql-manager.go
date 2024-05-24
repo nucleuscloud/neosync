@@ -57,6 +57,33 @@ func (m *MysqlManager) GetSchemaColumnMap(ctx context.Context) (map[string]map[s
 	return result, nil
 }
 
+func (m *MysqlManager) GetTableConstraintsBySchema(ctx context.Context, schemas []string) (*TableConstraints, error) {
+	if len(schemas) == 0 {
+		return &TableConstraints{}, nil
+	}
+
+	foreignKeyMap, err := m.GetForeignKeyConstraintsMap(ctx, schemas)
+	if err != nil {
+		return nil, err
+	}
+
+	primaryKeyMap, err := m.GetPrimaryKeyConstraintsMap(ctx, schemas)
+	if err != nil {
+		return nil, err
+	}
+
+	uniqueConstraintsMap, err := m.GetUniqueConstraintsMap(ctx, schemas)
+	if err != nil {
+		return nil, err
+	}
+
+	return &TableConstraints{
+		ForeignKeyConstraints: foreignKeyMap,
+		PrimaryKeyConstraints: primaryKeyMap,
+		UniqueConstraints:     uniqueConstraintsMap,
+	}, nil
+}
+
 func (m *MysqlManager) GetForeignKeyConstraints(ctx context.Context, schemas []string) ([]*ForeignKeyConstraintsRow, error) {
 	holder := make([][]*mysql_queries.GetForeignKeyConstraintsRow, len(schemas))
 	errgrp, errctx := errgroup.WithContext(ctx)

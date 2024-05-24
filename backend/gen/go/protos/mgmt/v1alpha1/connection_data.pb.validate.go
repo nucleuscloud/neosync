@@ -3886,3 +3886,353 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GetAiGeneratedDataResponseValidationError{}
+
+// Validate checks the field values on GetConnectionTableConstraintsRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *GetConnectionTableConstraintsRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetConnectionTableConstraintsRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// GetConnectionTableConstraintsRequestMultiError, or nil if none found.
+func (m *GetConnectionTableConstraintsRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetConnectionTableConstraintsRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for ConnectionId
+
+	if len(errors) > 0 {
+		return GetConnectionTableConstraintsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetConnectionTableConstraintsRequestMultiError is an error wrapping multiple
+// validation errors returned by
+// GetConnectionTableConstraintsRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetConnectionTableConstraintsRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetConnectionTableConstraintsRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetConnectionTableConstraintsRequestMultiError) AllErrors() []error { return m }
+
+// GetConnectionTableConstraintsRequestValidationError is the validation error
+// returned by GetConnectionTableConstraintsRequest.Validate if the designated
+// constraints aren't met.
+type GetConnectionTableConstraintsRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetConnectionTableConstraintsRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetConnectionTableConstraintsRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetConnectionTableConstraintsRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetConnectionTableConstraintsRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetConnectionTableConstraintsRequestValidationError) ErrorName() string {
+	return "GetConnectionTableConstraintsRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetConnectionTableConstraintsRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetConnectionTableConstraintsRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetConnectionTableConstraintsRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetConnectionTableConstraintsRequestValidationError{}
+
+// Validate checks the field values on GetConnectionTableConstraintsResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *GetConnectionTableConstraintsResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetConnectionTableConstraintsResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// GetConnectionTableConstraintsResponseMultiError, or nil if none found.
+func (m *GetConnectionTableConstraintsResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetConnectionTableConstraintsResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	{
+		sorted_keys := make([]string, len(m.GetForeignKeyConstraints()))
+		i := 0
+		for key := range m.GetForeignKeyConstraints() {
+			sorted_keys[i] = key
+			i++
+		}
+		sort.Slice(sorted_keys, func(i, j int) bool { return sorted_keys[i] < sorted_keys[j] })
+		for _, key := range sorted_keys {
+			val := m.GetForeignKeyConstraints()[key]
+			_ = val
+
+			// no validation rules for ForeignKeyConstraints[key]
+
+			if all {
+				switch v := interface{}(val).(type) {
+				case interface{ ValidateAll() error }:
+					if err := v.ValidateAll(); err != nil {
+						errors = append(errors, GetConnectionTableConstraintsResponseValidationError{
+							field:  fmt.Sprintf("ForeignKeyConstraints[%v]", key),
+							reason: "embedded message failed validation",
+							cause:  err,
+						})
+					}
+				case interface{ Validate() error }:
+					if err := v.Validate(); err != nil {
+						errors = append(errors, GetConnectionTableConstraintsResponseValidationError{
+							field:  fmt.Sprintf("ForeignKeyConstraints[%v]", key),
+							reason: "embedded message failed validation",
+							cause:  err,
+						})
+					}
+				}
+			} else if v, ok := interface{}(val).(interface{ Validate() error }); ok {
+				if err := v.Validate(); err != nil {
+					return GetConnectionTableConstraintsResponseValidationError{
+						field:  fmt.Sprintf("ForeignKeyConstraints[%v]", key),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+
+		}
+	}
+
+	{
+		sorted_keys := make([]string, len(m.GetPrimaryKeyConstraints()))
+		i := 0
+		for key := range m.GetPrimaryKeyConstraints() {
+			sorted_keys[i] = key
+			i++
+		}
+		sort.Slice(sorted_keys, func(i, j int) bool { return sorted_keys[i] < sorted_keys[j] })
+		for _, key := range sorted_keys {
+			val := m.GetPrimaryKeyConstraints()[key]
+			_ = val
+
+			// no validation rules for PrimaryKeyConstraints[key]
+
+			if all {
+				switch v := interface{}(val).(type) {
+				case interface{ ValidateAll() error }:
+					if err := v.ValidateAll(); err != nil {
+						errors = append(errors, GetConnectionTableConstraintsResponseValidationError{
+							field:  fmt.Sprintf("PrimaryKeyConstraints[%v]", key),
+							reason: "embedded message failed validation",
+							cause:  err,
+						})
+					}
+				case interface{ Validate() error }:
+					if err := v.Validate(); err != nil {
+						errors = append(errors, GetConnectionTableConstraintsResponseValidationError{
+							field:  fmt.Sprintf("PrimaryKeyConstraints[%v]", key),
+							reason: "embedded message failed validation",
+							cause:  err,
+						})
+					}
+				}
+			} else if v, ok := interface{}(val).(interface{ Validate() error }); ok {
+				if err := v.Validate(); err != nil {
+					return GetConnectionTableConstraintsResponseValidationError{
+						field:  fmt.Sprintf("PrimaryKeyConstraints[%v]", key),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+
+		}
+	}
+
+	{
+		sorted_keys := make([]string, len(m.GetUniqueConstraints()))
+		i := 0
+		for key := range m.GetUniqueConstraints() {
+			sorted_keys[i] = key
+			i++
+		}
+		sort.Slice(sorted_keys, func(i, j int) bool { return sorted_keys[i] < sorted_keys[j] })
+		for _, key := range sorted_keys {
+			val := m.GetUniqueConstraints()[key]
+			_ = val
+
+			// no validation rules for UniqueConstraints[key]
+
+			if all {
+				switch v := interface{}(val).(type) {
+				case interface{ ValidateAll() error }:
+					if err := v.ValidateAll(); err != nil {
+						errors = append(errors, GetConnectionTableConstraintsResponseValidationError{
+							field:  fmt.Sprintf("UniqueConstraints[%v]", key),
+							reason: "embedded message failed validation",
+							cause:  err,
+						})
+					}
+				case interface{ Validate() error }:
+					if err := v.Validate(); err != nil {
+						errors = append(errors, GetConnectionTableConstraintsResponseValidationError{
+							field:  fmt.Sprintf("UniqueConstraints[%v]", key),
+							reason: "embedded message failed validation",
+							cause:  err,
+						})
+					}
+				}
+			} else if v, ok := interface{}(val).(interface{ Validate() error }); ok {
+				if err := v.Validate(); err != nil {
+					return GetConnectionTableConstraintsResponseValidationError{
+						field:  fmt.Sprintf("UniqueConstraints[%v]", key),
+						reason: "embedded message failed validation",
+						cause:  err,
+					}
+				}
+			}
+
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetConnectionTableConstraintsResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetConnectionTableConstraintsResponseMultiError is an error wrapping
+// multiple validation errors returned by
+// GetConnectionTableConstraintsResponse.ValidateAll() if the designated
+// constraints aren't met.
+type GetConnectionTableConstraintsResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetConnectionTableConstraintsResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetConnectionTableConstraintsResponseMultiError) AllErrors() []error { return m }
+
+// GetConnectionTableConstraintsResponseValidationError is the validation error
+// returned by GetConnectionTableConstraintsResponse.Validate if the
+// designated constraints aren't met.
+type GetConnectionTableConstraintsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetConnectionTableConstraintsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetConnectionTableConstraintsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetConnectionTableConstraintsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetConnectionTableConstraintsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetConnectionTableConstraintsResponseValidationError) ErrorName() string {
+	return "GetConnectionTableConstraintsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetConnectionTableConstraintsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetConnectionTableConstraintsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetConnectionTableConstraintsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetConnectionTableConstraintsResponseValidationError{}

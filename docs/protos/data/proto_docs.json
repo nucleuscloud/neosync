@@ -3522,6 +3522,186 @@
           ]
         },
         {
+          "name": "GetConnectionTableConstraintsRequest",
+          "longName": "GetConnectionTableConstraintsRequest",
+          "fullName": "mgmt.v1alpha1.GetConnectionTableConstraintsRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "connection_id",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "GetConnectionTableConstraintsResponse",
+          "longName": "GetConnectionTableConstraintsResponse",
+          "fullName": "mgmt.v1alpha1.GetConnectionTableConstraintsResponse",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "foreign_key_constraints",
+              "description": "the key here is \u003cschema\u003e.\u003ctable\u003e and the list of tables that it depends on, also `\u003cschema\u003e.\u003ctable\u003e` format.",
+              "label": "repeated",
+              "type": "ForeignKeyConstraintsEntry",
+              "longType": "GetConnectionTableConstraintsResponse.ForeignKeyConstraintsEntry",
+              "fullType": "mgmt.v1alpha1.GetConnectionTableConstraintsResponse.ForeignKeyConstraintsEntry",
+              "ismap": true,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "primary_key_constraints",
+              "description": "the key here is \u003cschema\u003e.\u003ctable\u003e and value is the primary constraint",
+              "label": "repeated",
+              "type": "PrimaryKeyConstraintsEntry",
+              "longType": "GetConnectionTableConstraintsResponse.PrimaryKeyConstraintsEntry",
+              "fullType": "mgmt.v1alpha1.GetConnectionTableConstraintsResponse.PrimaryKeyConstraintsEntry",
+              "ismap": true,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "unique_constraints",
+              "description": "the key here is \u003cschema\u003e.\u003ctable\u003e and value is the unique constraint",
+              "label": "repeated",
+              "type": "UniqueConstraintsEntry",
+              "longType": "GetConnectionTableConstraintsResponse.UniqueConstraintsEntry",
+              "fullType": "mgmt.v1alpha1.GetConnectionTableConstraintsResponse.UniqueConstraintsEntry",
+              "ismap": true,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "ForeignKeyConstraintsEntry",
+          "longName": "GetConnectionTableConstraintsResponse.ForeignKeyConstraintsEntry",
+          "fullName": "mgmt.v1alpha1.GetConnectionTableConstraintsResponse.ForeignKeyConstraintsEntry",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "key",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "value",
+              "description": "",
+              "label": "",
+              "type": "ForeignConstraintTables",
+              "longType": "ForeignConstraintTables",
+              "fullType": "mgmt.v1alpha1.ForeignConstraintTables",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "PrimaryKeyConstraintsEntry",
+          "longName": "GetConnectionTableConstraintsResponse.PrimaryKeyConstraintsEntry",
+          "fullName": "mgmt.v1alpha1.GetConnectionTableConstraintsResponse.PrimaryKeyConstraintsEntry",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "key",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "value",
+              "description": "",
+              "label": "",
+              "type": "PrimaryConstraint",
+              "longType": "PrimaryConstraint",
+              "fullType": "mgmt.v1alpha1.PrimaryConstraint",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "UniqueConstraintsEntry",
+          "longName": "GetConnectionTableConstraintsResponse.UniqueConstraintsEntry",
+          "fullName": "mgmt.v1alpha1.GetConnectionTableConstraintsResponse.UniqueConstraintsEntry",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "key",
+              "description": "",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "value",
+              "description": "",
+              "label": "",
+              "type": "UniqueConstraint",
+              "longType": "UniqueConstraint",
+              "fullType": "mgmt.v1alpha1.UniqueConstraint",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "GetConnectionUniqueConstraintsRequest",
           "longName": "GetConnectionUniqueConstraintsRequest",
           "fullName": "mgmt.v1alpha1.GetConnectionUniqueConstraintsRequest",
@@ -3775,6 +3955,18 @@
               "responseType": "GetConnectionSchemaResponse",
               "responseLongType": "GetConnectionSchemaResponse",
               "responseFullType": "mgmt.v1alpha1.GetConnectionSchemaResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "GetConnectionTableConstraints",
+              "description": "For a specific connection, returns the table constraints. Mostly useful for SQL-based Connections.",
+              "requestType": "GetConnectionTableConstraintsRequest",
+              "requestLongType": "GetConnectionTableConstraintsRequest",
+              "requestFullType": "mgmt.v1alpha1.GetConnectionTableConstraintsRequest",
+              "requestStreaming": false,
+              "responseType": "GetConnectionTableConstraintsResponse",
+              "responseLongType": "GetConnectionTableConstraintsResponse",
+              "responseFullType": "mgmt.v1alpha1.GetConnectionTableConstraintsResponse",
               "responseStreaming": false
             },
             {
@@ -10262,6 +10454,90 @@
           ]
         },
         {
+          "name": "ValidateJobMappingsRequest",
+          "longName": "ValidateJobMappingsRequest",
+          "fullName": "mgmt.v1alpha1.ValidateJobMappingsRequest",
+          "description": "",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "account_id",
+              "description": "The unique account identifier that this job will be associated with",
+              "label": "",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "mappings",
+              "description": "",
+              "label": "repeated",
+              "type": "JobMapping",
+              "longType": "JobMapping",
+              "fullType": "mgmt.v1alpha1.JobMapping",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "source",
+              "description": "",
+              "label": "",
+              "type": "JobSource",
+              "longType": "JobSource",
+              "fullType": "mgmt.v1alpha1.JobSource",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
+          "name": "ValidateJobMappingsResponse",
+          "longName": "ValidateJobMappingsResponse",
+          "fullName": "mgmt.v1alpha1.ValidateJobMappingsResponse",
+          "description": "{\n\"public.company\": {\nerrors: []string{}\nwarnings: []string{}\n}\n}",
+          "hasExtensions": false,
+          "hasFields": true,
+          "hasOneofs": false,
+          "extensions": [],
+          "fields": [
+            {
+              "name": "errors",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            },
+            {
+              "name": "warnings",
+              "description": "",
+              "label": "repeated",
+              "type": "string",
+              "longType": "string",
+              "fullType": "string",
+              "ismap": false,
+              "isoneof": false,
+              "oneofdecl": "",
+              "defaultValue": ""
+            }
+          ]
+        },
+        {
           "name": "WorkflowOptions",
           "longName": "WorkflowOptions",
           "fullName": "mgmt.v1alpha1.WorkflowOptions",
@@ -10603,6 +10879,18 @@
               "responseType": "SetJobSyncOptionsResponse",
               "responseLongType": "SetJobSyncOptionsResponse",
               "responseFullType": "mgmt.v1alpha1.SetJobSyncOptionsResponse",
+              "responseStreaming": false
+            },
+            {
+              "name": "ValidateJobMappings",
+              "description": "validates that the jobmapping configured can run with table constraints",
+              "requestType": "ValidateJobMappingsRequest",
+              "requestLongType": "ValidateJobMappingsRequest",
+              "requestFullType": "mgmt.v1alpha1.ValidateJobMappingsRequest",
+              "requestStreaming": false,
+              "responseType": "ValidateJobMappingsResponse",
+              "responseLongType": "ValidateJobMappingsResponse",
+              "responseFullType": "mgmt.v1alpha1.ValidateJobMappingsResponse",
               "responseStreaming": false
             }
           ]

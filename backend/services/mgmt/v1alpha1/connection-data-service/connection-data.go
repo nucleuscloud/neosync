@@ -1033,3 +1033,65 @@ func (s *Service) GetAiGeneratedData(
 func ptr[T any](val T) *T {
 	return &val
 }
+
+func (s *Service) GetConnectionTableConstraints(
+	ctx context.Context,
+	req *connect.Request[mgmtv1alpha1.GetConnectionTableConstraintsRequest],
+) (*connect.Response[mgmtv1alpha1.GetConnectionTableConstraintsResponse], error) {
+	logger := logger_interceptor.GetLoggerFromContextOrDefault(ctx)
+	connection, err := s.connectionService.GetConnection(ctx, connect.NewRequest(&mgmtv1alpha1.GetConnectionRequest{
+		Id: req.Msg.ConnectionId,
+	}))
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.verifyUserInAccount(ctx, connection.Msg.Connection.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	schemaResp, err := s.getConnectionSchema(ctx, connection.Msg.Connection, &schemaOpts{})
+	if err != nil {
+		return nil, err
+	}
+
+	schemaMap := map[string]struct{}{}
+	for _, s := range schemaResp {
+		schemaMap[s.Schema] = struct{}{}
+	}
+	schemas := []string{}
+	for s := range schemaMap {
+		schemas = append(schemas, s)
+	}
+
+	connectionTimeout := 5
+	db, err := s.sqlmanager.NewSqlDb(ctx, logger, connection.Msg.GetConnection(), &connectionTimeout)
+	if err != nil {
+		return nil, err
+	}
+	defer db.Db.Close()
+	foreignKeyMap, err := db.Db.GetTableConstraintsBySchema(ctx, schemas)
+	if err != nil {
+		return nil, err
+	}
+
+	tableConstraints := map[string]*mgmtv1alpha1.ForeignConstraintTables{}
+	for tableName, d := range foreignKeyMap {
+		tableConstraints[tableName] = &mgmtv1alpha1.ForeignConstraintTables{
+			Constraints: []*mgmtv1alpha1.ForeignConstraint{},
+		}
+		for _, constraint := range d {
+			for idx, col := range constraint.Columns {
+				tableConstraints[tableName].Constraints = append(tableConstraints[tableName].Constraints, &mgmtv1alpha1.ForeignConstraint{
+					Column: col, IsNullable: !constraint.NotNullable[idx], ForeignKey: &mgmtv1alpha1.ForeignKey{
+						Table:  constraint.ForeignKey.Table,
+						Column: constraint.ForeignKey.Columns[idx],
+					},
+				})
+			}
+		}
+	}
+
+	return connect.NewResponse(&mgmtv1alpha1.GetConnectionTableConstraintsResponse{}), nil
+}
