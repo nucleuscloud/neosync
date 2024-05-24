@@ -102,7 +102,8 @@ export default function PostgresForm(props: Props): ReactElement {
           values.db,
           values.tunnel,
           undefined,
-          values.options
+          values.options,
+          values.clientTls
         );
       } else if (activeTab === 'url') {
         connection = await updatePostgresConnection(
@@ -112,7 +113,8 @@ export default function PostgresForm(props: Props): ReactElement {
           undefined,
           undefined,
           values.url,
-          values.options
+          values.options,
+          values.clientTls
         );
       }
       onSaved(connection);
@@ -643,7 +645,7 @@ async function updatePostgresConnection(
   options?: PostgresFormValues['options'],
   clientTls?: PostgresFormValues['clientTls']
 ): Promise<UpdateConnectionResponse> {
-  let pgconfig = new PostgresConnectionConfig({});
+  const pgconfig = new PostgresConnectionConfig({});
   if (url) {
     pgconfig.connectionConfig = {
       case: 'url',

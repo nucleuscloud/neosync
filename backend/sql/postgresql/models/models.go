@@ -25,6 +25,10 @@ func (c *ConnectionConfig) ToDto() *mgmtv1alpha1.ConnectionConfig {
 		if c.PgConfig.ConnectionOptions != nil {
 			connectionOptions = c.PgConfig.ConnectionOptions.ToDto()
 		}
+		var clientTls *mgmtv1alpha1.ClientTlsConfig
+		if c.PgConfig.ClientTls != nil {
+			clientTls = c.PgConfig.ClientTls.ToDto()
+		}
 		if c.PgConfig.Connection != nil {
 			return &mgmtv1alpha1.ConnectionConfig{
 				Config: &mgmtv1alpha1.ConnectionConfig_PgConfig{
@@ -41,6 +45,7 @@ func (c *ConnectionConfig) ToDto() *mgmtv1alpha1.ConnectionConfig {
 						},
 						Tunnel:            tunnel,
 						ConnectionOptions: connectionOptions,
+						ClientTls:         clientTls,
 					},
 				},
 			}
@@ -53,6 +58,7 @@ func (c *ConnectionConfig) ToDto() *mgmtv1alpha1.ConnectionConfig {
 						},
 						Tunnel:            tunnel,
 						ConnectionOptions: connectionOptions,
+						ClientTls:         clientTls,
 					},
 				},
 			}
@@ -131,6 +137,13 @@ func (c *ConnectionConfig) FromDto(dto *mgmtv1alpha1.ConnectionConfig) error {
 			c.PgConfig.ConnectionOptions = &ConnectionOptions{}
 			c.PgConfig.ConnectionOptions.FromDto(config.PgConfig.ConnectionOptions)
 		}
+		if config.PgConfig.GetClientTls() != nil {
+			c.PgConfig.ClientTls = &ClientTls{
+				RootCert:   config.PgConfig.GetClientTls().RootCert,
+				ClientCert: config.PgConfig.GetClientTls().ClientCert,
+				ClientKey:  config.PgConfig.GetClientTls().ClientKey,
+			}
+		}
 		switch pgcfg := config.PgConfig.ConnectionConfig.(type) {
 		case *mgmtv1alpha1.PostgresConnectionConfig_Connection:
 			c.PgConfig.Connection = &PostgresConnection{
@@ -194,6 +207,7 @@ type PostgresConnectionConfig struct {
 	Url               *string             `json:"url,omitempty"`
 	SSHTunnel         *SSHTunnel          `json:"sshTunnel,omitempty"`
 	ConnectionOptions *ConnectionOptions  `json:"connectionOptions,omitempty"`
+	ClientTls         *ClientTls          `json:"clientTls,omitempty"`
 }
 
 type PostgresConnection struct {
@@ -301,6 +315,29 @@ type SSHPassphrase struct {
 type SSHPrivateKey struct {
 	Value      string  `json:"value"`
 	Passphrase *string `json:"passphrase,omitempty"`
+}
+
+type ClientTls struct {
+	RootCert   *string `json:"rootCert,omitempty"`
+	ClientCert *string `json:"clientCert,omitempty"`
+	ClientKey  *string `json:"clientKey,omitempty"`
+}
+
+func (c *ClientTls) ToDto() *mgmtv1alpha1.ClientTlsConfig {
+	return &mgmtv1alpha1.ClientTlsConfig{
+		RootCert:   c.RootCert,
+		ClientCert: c.ClientCert,
+		ClientKey:  c.ClientKey,
+	}
+}
+
+func (c *ClientTls) FromDto(dto *mgmtv1alpha1.ClientTlsConfig) {
+	if dto == nil {
+		dto = &mgmtv1alpha1.ClientTlsConfig{}
+	}
+	c.RootCert = dto.RootCert
+	c.ClientCert = dto.ClientCert
+	c.ClientKey = dto.ClientKey
 }
 
 type MysqlConnectionConfig struct {
