@@ -1,6 +1,6 @@
 ---
 title: Introducing Custom Code Transformers
-description: We're excited to give developers the ability to have full control over how they transform their data.
+description: Use Custom Code Transformers to create your own data transformations using javascript. Implement custom logic, make API calls and more!
 date: 2024-01-09
 published: true
 image: https://assets.nucleuscloud.com/neosync/blog/codeNew.png
@@ -8,11 +8,11 @@ authors:
   - evis
 ---
 
-# Introduction
+## Introduction
 
 Developers love flexibility. They want to be able to do things their own way and transforming data is no different. Today I'm excited to give developers that flexibility in [Neosync](https://githunb.com/nucleuscloud/neosync) with Custom Code Transformers.
 
-# What is a Transformer?
+## What is a Transformer?
 
 A Transformer is a data-type specific module that transforms data in some way. Transformers can be deterministic or probabilistic and can anonymize data and/or generate synthetic data. Neosync ships with 40+ transformers out of the box.
 
@@ -20,7 +20,7 @@ A Transformer is a data-type specific module that transforms data in some way. T
 
 For example, a `generate_float64` transformer, can generate random float64 values. Or the `generate_email` transformer can generate realistic-looking email addresses that are privacy-safe. The standard transformers that Neosync ships with are useful for some use-cases but how about when you want to transform the data in a custom way? This is where Custom Code Transformers come into play.
 
-# Creating a Custom Code Transformer
+## Creating a Custom Code Transformer
 
 Custom Code Transformers are exactly what they sound like. Developers can write their own custom code to transform the data however they'd like. Let's take a look at an example.
 
@@ -58,7 +58,7 @@ Once you've validated your code, you can click **Save** to save your transformer
 
 ![tj](https://assets.nucleuscloud.com/neosync/blog/saved-transformer.png)
 
-# Using the Custom Code Transformer
+## Using the Custom Code Transformer
 
 Now that we've created our Custom Code Transformer, we can create a job to pull data from our source database, anonymize it and then sync it to our prod database. First, let's check our source database and look at a single row.
 
@@ -90,7 +90,7 @@ Lastly, we could configure Subset filters here. These filters allow you to flexi
 
 We can see that our input age from our source database table had an age of 20 and now after passing it through our custom age transformer, it's bucketed into an age range of 20-24. Also, notice the other columns have changed as well as we generated synthetic data for those columns.
 
-# Wrapping up
+## Wrapping up
 
 We've walked through how to create a Custom Code Transformer and use in it a job to anonymize age data. This is a simple example but you can make this can take this as s blueprint for a more complicated example with multiple tables, millions of rows and more.
 

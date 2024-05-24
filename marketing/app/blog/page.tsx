@@ -13,10 +13,13 @@ import { Metadata } from 'next';
 import { ReactElement } from 'react';
 
 export const metadata: Metadata = {
-  title: 'Neosync | Blog',
+  title: 'Neosync | Blogs on data anonymization and synthetic data.',
+  description:
+    'Read the Neosync Blog to learn more about data anonymization, synthetic data and to be kept up to date on product announcements.',
   openGraph: {
-    title: 'Neosync',
-    description: 'Blog',
+    title: 'Neosync | Blogs on data anonymization and synthetic data.',
+    description:
+      'Read the Neosync Blog to learn more about data anonymization, synthetic data and to be kept up to date on product announcements.',
     url: 'https://www.neosync.dev/blog',
     siteName: 'Neosync',
     images: [
@@ -46,7 +49,12 @@ export default async function BlogPage(): Promise<ReactElement> {
 
   return (
     <div className="container lg:max-w-6xl py-6 lg:py-10">
-      {headerPost && <HeaderBlog post={headerPost} />}
+      <h1 className="text-left text-gray-900 font-semibold text-3xl lg:text-6xl font-satoshi pt-10">
+        Blogs
+      </h1>
+      <div className="pt-10">
+        {headerPost && <HeaderBlog post={headerPost} />}
+      </div>
       <hr className="my-12" />
       {posts?.length ? (
         <div className="grid gap-10 sm:grid-cols-3">

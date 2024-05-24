@@ -10,6 +10,8 @@ import Hero from './hero';
 export const metadata: Metadata = {
   metadataBase: new URL('https://assets.nucleuscloud.com/'),
   title: 'Easily comply with Data Privacy, Security and Compliance | Neosync',
+  description:
+    'Easily comply with laws like HIPAA, GDPR, and DPDP with de-identified and synthetic data that structurally and statistically looks just like your production data. ',
   openGraph: {
     title: 'Easily comply with Data Privacy, Security and Compliance | Neosync',
     description:

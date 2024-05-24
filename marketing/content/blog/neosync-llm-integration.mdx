@@ -1,6 +1,6 @@
 ---
 title: Using Neosync and OpenAI to generate synthetic data
-description: A walkthrough tutorial on how to integrate Neosync with OpenAI to generate synthetic
+description: A walkthrough tutorial on how to integrate Neosync with OpenAI to generate synthetic data at the row level including code samples!
 date: 2024-04-04
 published: true
 image: /images/blogs/openai-header.png
@@ -8,21 +8,21 @@ authors:
   - evis
 ---
 
-# Introduction
+## Introduction
 
 We recently helped host a [hackathon at the Github HQ](https://www.linkedin.com/feed/update/urn:li:activity:7178809047574351873) and one of the projects that we enjoyed the most was a hacker integrating Neosync with OpenAI in order to generate synthetic data. As soon as we saw it, a hundred different use-cases came to mind of how this could be useful.
 
 So I wanted to write a blog and a guide on exactly how you can integrate Neosync with not just OpenAI but any model that is available at some endpoint. We're going to use the use case that we have a customer interview platform that we want to generate synthetic data for our staging and development environments. Because the production customer interview data is sensitive, generating synthetic data is a secure and privacy-safe way of giving developers the data they need to build new features without compromising on data privacy.
 
-# Pre-requisites
+## Pre-requisites
 
 In order to get started, you'll need the following:
 
-1. A Neosync account which you can sign up for free [here]("https://www.neosync.dev")
+1. A Neosync account which you can sign up for free [here](https://www.neosync.dev)
 2. Access to an LLM hosted at an endpoint. I'll be using OpenAI but you can use any other LLM as long as it's available at a REST endpoint.
 3. A database to store your data. I'm going to use Neon but either Postgres or Mysql works.
 
-# Setting up our database
+## Setting up our database
 
 For this guide, I'm going to use a Postgres database from [Neon](https://neon.tech).
 
@@ -52,7 +52,7 @@ Last thing we'll need to do is to just get the connection URL that we'll use to 
 
 Hang on to this for a minute and we can move onto setting up Neosync.
 
-# Creating a Connection
+## Creating a Connection
 
 Now that we have our database set up, we can connect Neosync to it.
 
@@ -64,7 +64,7 @@ Let's name our connection `cust-gen-db` and then in the **Connection URL** field
 
 Nice! Looks like we can see our database and table and that our permissions are correct. Click on **Close** and then **Submit** to save the connection.
 
-# Creating a Custom Transformer
+## Creating a Custom Transformer
 
 Neosync has the notion of Transformers. Transformers are modules that can generate synthetic data or anonymize existing data. We ship Neosync with 40+ transformers out of the box but you can also create your own [custom tranformers](/blog/introducing-custom-transformers) in code which is what we're going to do for this use case.
 
@@ -116,7 +116,7 @@ Note that if you decide to use a different endpoint, you just have to wrap it in
 
 Next, click on **Submit** and let's move onto the final step.
 
-# Creating a Job
+## Creating a Job
 
 Jobs are how we configure and execute workflows to run and generate data or anonymize existing data. Click on **Jobs** in the top navigation menu and then click on the **+ New Job** button. Select the **Data Generation** job type and click **Next**.
 
@@ -162,7 +162,7 @@ And after a minute or so, the job should complete like this:
 
 ![new-trans](/images/blogs/cust-job-done.png)
 
-# Checking the output
+## Checking the output
 
 Now is the fun part. We can open up our database and see what our data looks like. I'm using DBeaver as a database client to connect to my Neon database but you can also just use the SQL Editor in Neon to query your database.
 
@@ -204,6 +204,6 @@ Interviewer: That's impressive. Thank you for sharing your insights with us toda
 
 This looks pretty realistic!. Also, we can just do a quick scan and see that the interviews are all different and not a copy and paste which is great.
 
-# Conclusion
+## Conclusion
 
 This is just a peek into what you can do with Neosync and LLMs. There is a lot more coming on this that we're working on. As I mentioned earlier, you can think of applying this to so many other use cases and data types. If you want to use LLMs to generate some synthetic data, consider checking out Neosync.

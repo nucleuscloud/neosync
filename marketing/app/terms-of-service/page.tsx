@@ -1,4 +1,31 @@
-'use client';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  metadataBase: new URL('https://assets.nucleuscloud.com/'),
+  title: 'Neosync | Terms of Service',
+  description:
+    'Neosync Terms of Service for customers and users of the platform.',
+  openGraph: {
+    title: 'Neosync',
+    description:
+      'Neosync Terms of Service for customers and users of the platform.',
+    url: 'https://www.neosync.dev',
+    siteName: 'Neosync',
+    images: [
+      {
+        url: '/neosync/marketingsite/mainOGHero.svg',
+        width: 1200,
+        height: 630,
+        alt: 'mainOG',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  alternates: {
+    canonical: 'https://www.neosync.dev/terms-of-service',
+  },
+};
 
 export default function TOS() {
   return (

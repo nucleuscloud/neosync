@@ -1,6 +1,6 @@
 ---
 title: How to seed your Supabase DB with Synthetic Data
-description: A walkthrough tutorial on how to seed a Supabase DB with Synthetic Data
+description: A walkthrough tutorial on how to seed a Supabase DB with Synthetic Data for a better developer experience while working with Supabase.
 date: 2024-03-05
 published: true
 image: /images/blogs/supabase/supabaseheader.svg
@@ -8,7 +8,7 @@ authors:
   - evis
 ---
 
-# Introduction
+## Introduction
 
 [Supabase](https://supabase.com/) is an open source Firebase alternative that helps you get started quickly with a backend. Supabase gets you started with a Postgres database, authentication, APIs and more. Thousands of developers use Supabase for all sizes of projects.
 
@@ -16,14 +16,14 @@ In this guide, we're going to walk through how you can seed your Supabase databa
 
 Let's jump in.
 
-# Prerequisites
+## Prerequisites
 
 We're going to need a Supabase account and a Neosync account. If you don't already have those, we can get those here:
 
 - [Sign up for Supabase](https://supabase.com/)
 - [Sign up for Neosync](https://www.neosync.dev)
 
-# Setting up Supabase
+## Setting up Supabase
 
 Now that we have our accounts, we can get this ball rolling. First, let's log into Supabase. If you already have a Supabase account then you can either create a new project or use an existing project. If you don't have a Supabase account then give your database a name, type in a password and select a region like below:
 
@@ -54,11 +54,11 @@ Nice! Okay, last step for Supabase. Let's get our connection string so we can co
 
 ![sb-created-tables](/images/blogs/supabase/sb-con.png)
 
-# Setting up Neosync
+## Setting up Neosync
 
 Now that we're in Neosync, we'll want to first create a connection to our Supabase database and then create a job to generate data. Let's get started.
 
-## Creating a Connection
+### Creating a Connection
 
 Navigate over to Neosync and [login](https://app.neosync.dev). Once you're logged in, go to to **Connections** -> **New Connection** then click on **Postgres**.
 
@@ -83,7 +83,7 @@ As a sidenote, if you wanted to configure SSL mode, you can do that in the Supab
 
 Let's click **Submit** and move onto the last part.
 
-## Creating a Job
+### Creating a Job
 
 In order to generate data, we need to create a **Job** in Neosync. Let's click on **Job** and then click on **New Job**. We're now presented with two options:
 
@@ -140,6 +140,6 @@ SELECT * FROM users;
 
 Looking pretty good! We have seeded our Supabase database with 1000 rows of completely synthetic data and it only took 3 seconds.
 
-# Conclusion
+## Conclusion
 
 In this guide, we walked through how to seed your Supabase database with 1000 rows of synthetic data using Neosync. This is just a small test and you can expand this to generate tens of thousands or more rows of data across any relational database. Neosync handles the referential integrity. This is particularly helpful if you're working on a new application and don't have data yet or want to augment your existing database with more data for performance testing.
