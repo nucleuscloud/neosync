@@ -415,7 +415,7 @@ export default function PostgresForm(props: Props): ReactElement {
                       A private key corresponding to the client certificate.
                     </FormDescription>
                     <FormControl>
-                      <Input type="password" {...field} />
+                      <Textarea {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

@@ -446,11 +446,11 @@ func getGeneralDbConnectConfigFromPg(config *mgmtv1alpha1.ConnectionConfig_PgCon
 		if config.PgConfig.GetClientTls() != nil {
 			filenames := getClientTlsFileNames(config.PgConfig.GetClientTls())
 			if filenames.RootCert != nil {
-				query.Add("rootcert", *filenames.RootCert)
+				query.Add("sslrootcert", *filenames.RootCert)
 			}
 			if filenames.ClientCert != nil && filenames.ClientKey != nil {
-				query.Add("clientcert", *filenames.ClientCert)
-				query.Add("clientkey", *filenames.ClientKey)
+				query.Add("sslcert", *filenames.ClientCert)
+				query.Add("sslkey", *filenames.ClientKey)
 			}
 		}
 		return &GeneralDbConnectConfig{
@@ -494,11 +494,11 @@ func getGeneralDbConnectConfigFromPg(config *mgmtv1alpha1.ConnectionConfig_PgCon
 		if config.PgConfig.GetClientTls() != nil {
 			filenames := getClientTlsFileNames(config.PgConfig.GetClientTls())
 			if filenames.RootCert != nil {
-				query.Add("rootcert", *filenames.RootCert)
+				query.Add("sslrootcert", *filenames.RootCert)
 			}
 			if filenames.ClientCert != nil && filenames.ClientKey != nil {
-				query.Add("clientcert", *filenames.ClientCert)
-				query.Add("clientkey", *filenames.ClientKey)
+				query.Add("sslcert", *filenames.ClientCert)
+				query.Add("sslkey", *filenames.ClientKey)
 			}
 		}
 

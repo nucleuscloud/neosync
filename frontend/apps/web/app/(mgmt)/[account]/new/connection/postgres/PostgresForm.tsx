@@ -608,7 +608,7 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
                       A private key corresponding to the client certificate.
                     </FormDescription>
                     <FormControl>
-                      <Input type="password" {...field} />
+                      <Textarea {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -766,14 +766,16 @@ the hook in the useEffect conditionally. This is used to retrieve the values for
                     account?.id ?? '',
                     form.getValues().db,
                     form.getValues().tunnel,
-                    undefined
+                    undefined,
+                    form.getValues().clientTls
                   );
                 } else if (activeTab === 'url') {
                   res = await checkPostgresConnection(
                     account?.id ?? '',
                     undefined,
                     form.getValues().tunnel,
-                    form.getValues().url ?? ''
+                    form.getValues().url ?? '',
+                    form.getValues().clientTls
                   );
                 }
                 setValidationResponse(res);
