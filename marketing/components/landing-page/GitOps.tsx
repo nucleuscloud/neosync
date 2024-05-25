@@ -45,7 +45,7 @@ export default function GitOpsSection(): ReactElement {
         frameworks you know like terraform to manage your Neosync infrastructure
         and even create new jobs.
       </div>
-      <div className="flex flex-col lg:flex-row items-center justify-center pt-20 gap-4">
+      <div className="flex flex-col lg:flex-row items-center justify-center pt-10 sm:pt-20 gap-4">
         <Link href="https://docs.neosync.dev/guides/using-neosync-in-ci">
           <div className="border border-gray-400 rounded-xl shadow-xl p-4">
             <Image
@@ -58,7 +58,7 @@ export default function GitOpsSection(): ReactElement {
             <div className="pt-8">
               <div className="flex flex-row gap-4 items-center">
                 <GitHubLogoIcon className="text-gray-800 w-4 h-4" />
-                <div className="font-sans font-bold text-gray-800 mb-2 mt-2">
+                <div className="font-sans font-bold mb-2 mt-2">
                   Neosync in CI
                 </div>
                 <ExternalLinkIcon className="text-gray-800 w-4 h-4" />
@@ -82,7 +82,7 @@ export default function GitOpsSection(): ReactElement {
             <div className="pt-8">
               <div className="flex flex-row gap-4 items-center">
                 <SiTerraform className="text-gray-800 w-4 h-4" />
-                <div className="font-sans font-bold text-gray-800 mb-2 mt-2">
+                <div className="font-sans font-bold mb-2 mt-2">
                   Neosync Terraform Provider
                 </div>
                 <ExternalLinkIcon className="text-gray-800 w-4 h-4" />

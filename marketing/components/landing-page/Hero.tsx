@@ -71,7 +71,7 @@ export default function Hero(): ReactElement {
         <div className="hidden md:block lg:block pt-10 w-full max-w-[1287px] ">
           <HeroHeader />
         </div>
-        <div className="block md:hidden lg:hidden">
+        <div className="block md:hidden lg:hidden mx-4 sm:mx-0">
           <Image
             src="/images/mobilehero.svg"
             alt="pre"

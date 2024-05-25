@@ -13,7 +13,7 @@ export default function Hero(): ReactElement {
           Safely test code against Production data
         </h1>
         <h3 className="text-gray-800 text-md lg:text-lg font-semibold text-center lg:text-left lg:px-0 px-6 lg:w-[80%]">
-          Give developers the ability to self-serve de-identified and synthetic
+          Give developers the ability to self-serve anonymized and synthetic
           data for local development
         </h3>
         <div className="flex flex-col lg:flex-row lg:space-y-0 space-y-2 lg:space-x-4 pt-8">
