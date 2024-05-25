@@ -13,7 +13,7 @@ export default function CTA(): ReactElement {
       <div className="flex flex-row gap-4 items-center px-2 lg:px-10">
         <div className="flex flex-col gap-8 lg:pl-10">
           <div className="text-gray-900 text-2xl lg:text-4xl font-satoshi font-bold text-center lg:text-left">
-            Start today with Neosync
+            Get Started Today
           </div>
           <div className="text-sm sm:text-md text-gray-800 font-satoshi font-semibold md:px-10 lg:px-0 lg:w-[80%] text-center lg:text-left">
             Get started with Neosync Cloud or easily deploy open source Neosync
